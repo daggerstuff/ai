@@ -1,0 +1,15 @@
+2025-08-05 21:03:56,294 - INFO - 🚀 Quality Analytics Dashboard V2 Launcher initialized
+2025-08-05 21:03:56,294 - INFO - 🔍 Checking dependencies...
+2025-08-05 21:03:56,634 - INFO -   ✅ streamlit: Version 1.47.1
+2025-08-05 21:03:57,051 - INFO -   ✅ pandas: Version 2.3.1
+2025-08-05 21:03:57,051 - INFO -   ✅ plotly: Version 6.2.0
+2025-08-05 21:03:57,051 - INFO -   ✅ numpy: Version 2.3.2
+2025-08-05 21:03:58,042 - INFO -   ✅ seaborn: Version 0.13.2
+2025-08-05 21:03:58,042 - INFO -   ✅ matplotlib: Version 3.10.3
+2025-08-05 21:03:58,042 - INFO -   ✅ sqlite3: Available (built-in)
+2025-08-05 21:03:58,042 - INFO - ✅ All dependencies satisfied
+2025-08-05 21:03:58,042 - INFO - 🔍 Validating database...
+2025-08-05 21:03:58,054 - INFO - ✅ Data is current (2 days old)
+2025-08-05 21:03:58,054 - INFO - ✅ Database validated: 137,855 quality records found
+2025-08-05 21:03:58,055 - INFO - 🔍 Validating dashboard files...
+2025-08-05 21:03:58,055 - INFO - ✅ Dashboard files validated

@@ -1,0 +1,9 @@
+{
+  "metadata": {
+    "generated_at": "2025-08-07T21:48:00.565424",
+    "total_pairs": 0,
+    "model_used": "huihui_ai/qwen3-abliterated:4b-thinking-2507-q4_K_M",
+    "purpose": "Crisis intervention training data"
+  },
+  "training_data": []
+}

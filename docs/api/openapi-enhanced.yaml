@@ -1,0 +1,858 @@
+openapi: 3.0.3
+info:
+  title: Pixelated Empathy AI - Core API
+  version: 1.0.0
+  description: |
+    ## Overview
+    Production-quality AI system for empathetic conversation processing with ML fine-tuning capabilities for Harbinger-24B QLoRA models, voice processing, and comprehensive monitoring.
+    
+    ## Features
+    - **Conversation Management**: CRUD operations for therapeutic conversations
+    - **Quality Assessment**: Multi-dimensional quality metrics and validation
+    - **Dataset Operations**: Comprehensive dataset management and export
+    - **Processing Jobs**: Asynchronous job processing and monitoring
+    - **Search & Analytics**: Advanced search and statistical analysis
+    
+    ## Authentication
+    This API uses Bearer token authentication. Include your API key in the Authorization header:
+    ```
+    Authorization: Bearer YOUR_API_KEY
+    ```
+    
+    ## Rate Limits
+    - **Authenticated Users**: 1000 requests per hour
+    - **Unauthenticated Users**: 100 requests per hour
+    - **Burst Limit**: 50 requests per minute
+    
+    ## Error Handling
+    All errors follow RFC 7807 Problem Details format with structured error responses.
+    
+    ## Quality Tiers
+    - **Basic**: General conversations (score: 0.0-0.4)
+    - **Standard**: Structured therapeutic dialogue (score: 0.4-0.6)
+    - **Professional**: Clinical-grade conversations (score: 0.6-0.8)
+    - **Clinical**: Medical/therapeutic standards (score: 0.8-0.9)
+    - **Research**: Academic research quality (score: 0.9-1.0)
+    
+  contact:
+    name: Pixelated Empathy AI Support
+    email: api-support@pixelatedempathy.com
+    url: https://docs.pixelatedempathy.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: https://pixelatedempathy.com/terms
+
+servers:
+  - url: https://api.pixelatedempathy.com/v1
+    description: Production server
+  - url: https://staging-api.pixelatedempathy.com/v1
+    description: Staging server
+  - url: http://localhost:8000
+    description: Development server
+
+security:
+  - BearerAuth: []
+
+tags:
+  - name: Core
+    description: Basic API information and health checks
+  - name: Datasets
+    description: Dataset management and information
+  - name: Conversations
+    description: Conversation CRUD operations and management
+  - name: Quality
+    description: Quality metrics and validation
+  - name: Processing
+    description: Asynchronous job processing
+  - name: Search
+    description: Content search and filtering
+  - name: Analytics
+    description: Statistics and reporting
+  - name: Export
+    description: Data export operations
+
+paths:
+  /:
+    get:
+      summary: API Root Information
+      description: Get comprehensive API information including available endpoints and system status
+      tags: [Core]
+      responses:
+        '200':
+          description: API information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+              example:
+                success: true
+                data:
+                  name: "Pixelated Empathy AI API"
+                  version: "1.0.0"
+                  description: "RESTful API for accessing the Pixelated Empathy AI dataset and processing system"
+                  endpoints:
+                    datasets: "/v1/datasets"
+                    conversations: "/v1/conversations"
+                    quality: "/v1/quality"
+                    processing: "/v1/processing"
+                    search: "/v1/search"
+                    statistics: "/v1/statistics"
+                    export: "/v1/export"
+                message: "Welcome to Pixelated Empathy AI API"
+                timestamp: "2025-08-29T12:00:00Z"
+
+  /health:
+    get:
+      summary: Health Check
+      description: Check API health status and system availability
+      tags: [Core]
+      security: []  # No authentication required
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                success: true
+                data:
+                  status: "healthy"
+                  version: "1.0.0"
+                  uptime: "72h 15m 30s"
+                  dependencies:
+                    database: "connected"
+                    redis: "connected"
+                    ml_models: "loaded"
+                message: "All systems operational"
+                timestamp: "2025-08-29T12:00:00Z"
+
+  /v1/datasets:
+    get:
+      summary: List Available Datasets
+      description: Retrieve a comprehensive list of all available datasets with metadata
+      tags: [Datasets]
+      responses:
+        '200':
+          description: List of datasets retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetsResponse'
+              example:
+                success: true
+                data:
+                  datasets:
+                    - name: "therapeutic_conversations_v1"
+                      description: "Clinical-grade therapeutic conversations"
+                      total_conversations: 15420
+                      quality_distribution:
+                        basic: 2150
+                        standard: 4680
+                        professional: 5320
+                        clinical: 2570
+                        research: 700
+                      created_at: "2025-01-15T10:00:00Z"
+                      updated_at: "2025-08-25T14:30:00Z"
+                  total_datasets: 1
+                message: "Datasets retrieved successfully"
+                timestamp: "2025-08-29T12:00:00Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /v1/datasets/{dataset_name}:
+    get:
+      summary: Get Dataset Information
+      description: Retrieve detailed information about a specific dataset including statistics and metadata
+      tags: [Datasets]
+      parameters:
+        - name: dataset_name
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^[a-zA-Z0-9_-]+$'
+          description: Name of the dataset to retrieve information for
+          example: "therapeutic_conversations_v1"
+      responses:
+        '200':
+          description: Dataset information retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DatasetInfoResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/conversations:
+    get:
+      summary: List Conversations
+      description: Retrieve conversations with advanced filtering and pagination options
+      tags: [Conversations]
+      parameters:
+        - name: dataset
+          in: query
+          schema:
+            type: string
+          description: Filter by dataset name
+          example: "therapeutic_conversations_v1"
+        - name: tier
+          in: query
+          schema:
+            type: string
+            enum: [basic, standard, professional, clinical, research]
+          description: Filter by quality tier
+          example: "professional"
+        - name: min_quality
+          in: query
+          schema:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+          description: Minimum quality score threshold
+          example: 0.75
+        - name: max_quality
+          in: query
+          schema:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+          description: Maximum quality score threshold
+          example: 1.0
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+          description: Maximum number of conversations to return
+          example: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Number of conversations to skip for pagination
+          example: 0
+        - name: sort_by
+          in: query
+          schema:
+            type: string
+            enum: [quality_score, created_at, updated_at]
+            default: created_at
+          description: Field to sort conversations by
+        - name: sort_order
+          in: query
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order (ascending or descending)
+      responses:
+        '200':
+          description: Conversations retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationsResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/conversations/{conversation_id}:
+    get:
+      summary: Get Specific Conversation
+      description: Retrieve a specific conversation by its unique identifier with full details
+      tags: [Conversations]
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^conv_[a-zA-Z0-9]+$'
+          description: Unique conversation identifier
+          example: "conv_abc123def456"
+      responses:
+        '200':
+          description: Conversation retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConversationResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/quality/metrics:
+    get:
+      summary: Get Quality Metrics
+      description: Retrieve comprehensive quality metrics with optional filtering by dataset and tier
+      tags: [Quality]
+      parameters:
+        - name: dataset
+          in: query
+          schema:
+            type: string
+          description: Filter metrics by dataset
+        - name: tier
+          in: query
+          schema:
+            type: string
+            enum: [basic, standard, professional, clinical, research]
+          description: Filter metrics by quality tier
+      responses:
+        '200':
+          description: Quality metrics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QualityMetricsResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /v1/quality/validate:
+    post:
+      summary: Validate Conversation Quality
+      description: Validate and score a conversation using the quality assessment system
+      tags: [Quality]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConversationModel'
+            example:
+              id: "conv_validation_test"
+              messages:
+                - role: "user"
+                  content: "I've been feeling really anxious lately about work."
+                  timestamp: "2025-08-29T10:00:00Z"
+                - role: "assistant" 
+                  content: "I understand that work-related anxiety can be overwhelming. Can you tell me more about what specific aspects of work are contributing to these feelings?"
+                  timestamp: "2025-08-29T10:01:00Z"
+              quality_score: 0.0
+              tier: "basic"
+              metadata:
+                validation_request: true
+      responses:
+        '200':
+          description: Conversation validated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Bearer token authentication using API keys.
+        Include the token in the Authorization header: `Authorization: Bearer YOUR_API_KEY`
+
+  schemas:
+    APIResponse:
+      type: object
+      required:
+        - success
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          description: Indicates if the request was successful
+          example: true
+        data:
+          description: Response data (varies by endpoint)
+          oneOf:
+            - type: object
+            - type: array
+            - type: string
+            - type: number
+            - type: boolean
+        message:
+          type: string
+          description: Human-readable response message
+          example: "Operation completed successfully"
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp in ISO 8601 format
+          example: "2025-08-29T12:00:00Z"
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
+
+    HealthResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [healthy, degraded, unhealthy]
+                  description: Overall system health status
+                version:
+                  type: string
+                  description: API version
+                uptime:
+                  type: string
+                  description: System uptime
+                dependencies:
+                  type: object
+                  description: Status of external dependencies
+                  additionalProperties:
+                    type: string
+                    enum: [connected, disconnected, error]
+
+    ConversationModel:
+      type: object
+      required:
+        - id
+        - messages
+        - quality_score
+        - tier
+      properties:
+        id:
+          type: string
+          description: Unique conversation identifier
+          pattern: '^conv_[a-zA-Z0-9]+$'
+          example: "conv_abc123def456"
+        messages:
+          type: array
+          description: List of messages in the conversation
+          items:
+            $ref: '#/components/schemas/Message'
+          minItems: 1
+          maxItems: 100
+        quality_score:
+          type: number
+          description: Overall quality score (0.0-1.0)
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.85
+        tier:
+          type: string
+          description: Quality tier classification
+          enum: [basic, standard, professional, clinical, research]
+          example: "professional"
+        metadata:
+          type: object
+          description: Additional conversation metadata
+          properties:
+            tags:
+              type: array
+              items:
+                type: string
+              description: Conversation tags
+            duration_minutes:
+              type: number
+              description: Conversation duration in minutes
+            participant_count:
+              type: integer
+              description: Number of participants
+            therapeutic_techniques:
+              type: array
+              items:
+                type: string
+              description: Therapeutic techniques used
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+          example: "2025-08-29T10:00:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+          example: "2025-08-29T11:30:00Z"
+
+    Message:
+      type: object
+      required:
+        - role
+        - content
+        - timestamp
+      properties:
+        role:
+          type: string
+          enum: [user, assistant, system]
+          description: Message sender role
+          example: "user"
+        content:
+          type: string
+          description: Message content
+          minLength: 1
+          maxLength: 4000
+          example: "I've been feeling anxious about my work situation lately."
+        timestamp:
+          type: string
+          format: date-time
+          description: Message timestamp
+          example: "2025-08-29T10:00:00Z"
+        metadata:
+          type: object
+          description: Message-specific metadata
+          properties:
+            emotion_detected:
+              type: string
+              description: Detected emotion in message
+            confidence_score:
+              type: number
+              description: AI confidence in response
+              minimum: 0.0
+              maximum: 1.0
+          additionalProperties: true
+
+    QualityMetrics:
+      type: object
+      required:
+        - therapeutic_accuracy
+        - conversation_coherence
+        - emotional_authenticity
+        - clinical_compliance
+        - safety_score
+        - overall_quality
+      properties:
+        therapeutic_accuracy:
+          type: number
+          description: Therapeutic accuracy score (0.0-1.0)
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.87
+        conversation_coherence:
+          type: number
+          description: Conversation coherence score (0.0-1.0)
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.92
+        emotional_authenticity:
+          type: number
+          description: Emotional authenticity score (0.0-1.0)
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.78
+        clinical_compliance:
+          type: number
+          description: Clinical compliance score (0.0-1.0)
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.85
+        safety_score:
+          type: number
+          description: Safety assessment score (0.0-1.0)
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.95
+        overall_quality:
+          type: number
+          description: Overall quality score (0.0-1.0)
+          minimum: 0.0
+          maximum: 1.0
+          example: 0.87
+
+    PaginationInfo:
+      type: object
+      properties:
+        total:
+          type: integer
+          description: Total number of items
+          example: 1500
+        limit:
+          type: integer
+          description: Items per page limit
+          example: 100
+        offset:
+          type: integer
+          description: Current offset
+          example: 0
+        has_next:
+          type: boolean
+          description: Whether more items are available
+          example: true
+        has_previous:
+          type: boolean
+          description: Whether previous items are available
+          example: false
+
+    ProcessingRequest:
+      type: object
+      required:
+        - dataset_name
+        - processing_type
+      properties:
+        dataset_name:
+          type: string
+          description: Name of the dataset to process
+          example: "therapeutic_conversations_v1"
+        processing_type:
+          type: string
+          enum: [quality_validation, export, analysis, ml_training]
+          description: Type of processing to perform
+          example: "quality_validation"
+        parameters:
+          type: object
+          description: Processing-specific parameters
+          additionalProperties: true
+          example:
+            quality_threshold: 0.7
+            export_format: "jsonl"
+            include_metadata: true
+
+    SearchRequest:
+      type: object
+      required:
+        - query
+      properties:
+        query:
+          type: string
+          description: Search query string
+          minLength: 1
+          maxLength: 500
+          example: "anxiety coping strategies"
+        filters:
+          type: object
+          description: Additional search filters
+          properties:
+            quality_tier:
+              type: array
+              items:
+                type: string
+                enum: [basic, standard, professional, clinical, research]
+            date_range:
+              type: object
+              properties:
+                start:
+                  type: string
+                  format: date
+                end:
+                  type: string
+                  format: date
+            therapeutic_techniques:
+              type: array
+              items:
+                type: string
+          additionalProperties: true
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 500
+          default: 100
+          description: Maximum number of results
+        offset:
+          type: integer
+          minimum: 0
+          default: 0
+          description: Offset for pagination
+
+    DatasetsResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                datasets:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/DatasetSummary'
+                total_datasets:
+                  type: integer
+
+    DatasetSummary:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Dataset name
+        description:
+          type: string
+          description: Dataset description
+        total_conversations:
+          type: integer
+          description: Total number of conversations
+        quality_distribution:
+          type: object
+          description: Distribution of conversations by quality tier
+          additionalProperties:
+            type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    ConversationsResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                conversations:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/ConversationModel'
+
+    ConversationResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/ConversationModel'
+
+    QualityMetricsResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/QualityMetrics'
+
+    ValidationResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                validated_conversation:
+                  $ref: '#/components/schemas/ConversationModel'
+                quality_metrics:
+                  $ref: '#/components/schemas/QualityMetrics'
+                recommendations:
+                  type: array
+                  items:
+                    type: string
+                  description: Improvement recommendations
+
+    DatasetInfoResponse:
+      allOf:
+        - $ref: '#/components/schemas/APIResponse'
+        - type: object
+          properties:
+            data:
+              $ref: '#/components/schemas/DatasetSummary'
+
+    ErrorResponse:
+      type: object
+      required:
+        - success
+        - error
+        - timestamp
+      properties:
+        success:
+          type: boolean
+          enum: [false]
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: Error code
+            message:
+              type: string
+              description: Human-readable error message
+            details:
+              type: object
+              description: Additional error details
+              additionalProperties: true
+            trace_id:
+              type: string
+              description: Request trace ID for debugging
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    BadRequest:
+      description: Bad Request - Invalid input parameters
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "INVALID_PARAMETER"
+              message: "The provided quality_score must be between 0.0 and 1.0"
+              details:
+                parameter: "quality_score"
+                provided_value: "1.5"
+              trace_id: "req_abc123"
+            timestamp: "2025-08-29T12:00:00Z"
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing API key
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "UNAUTHORIZED"
+              message: "Invalid API key provided"
+              trace_id: "req_def456"
+            timestamp: "2025-08-29T12:00:00Z"
+
+    NotFound:
+      description: Not Found - Resource does not exist
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "RESOURCE_NOT_FOUND"
+              message: "Conversation with ID 'conv_nonexistent' not found"
+              details:
+                resource_type: "conversation"
+                resource_id: "conv_nonexistent"
+              trace_id: "req_ghi789"
+            timestamp: "2025-08-29T12:00:00Z"
+
+    RateLimitExceeded:
+      description: Rate Limit Exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            success: false
+            error:
+              code: "RATE_LIMIT_EXCEEDED"
+              message: "API rate limit exceeded. Please try again in 60 seconds."
+              details:
+                limit: 1000
+                window: "1 hour"
+                retry_after: 60
+              trace_id: "req_jkl012"
+            timestamp: "2025-08-29T12:00:00Z"

@@ -1,0 +1,32 @@
+{
+  "total_analyses": 5,
+  "approach_distribution": {
+    "cognitive_behavioral_therapy": 1,
+    "dialectical_behavior_therapy": 1,
+    "trauma_informed_therapy": 1,
+    "humanistic_therapy": 1,
+    "mindfulness_based_therapy": 1
+  },
+  "condition_distribution": {
+    "major_depressive_disorder": 2,
+    "autism_spectrum_disorder": 1,
+    "post_traumatic_stress_disorder": 1,
+    "generalized_anxiety_disorder": 1
+  },
+  "outcome_distribution": {
+    "minimal_improvement": 1,
+    "no_change": 3,
+    "deterioration": 1
+  },
+  "quality_metrics": {
+    "average_approach_quality": 0.8800000000000001,
+    "average_condition_quality": 1.0,
+    "average_prediction_confidence": 0.532
+  },
+  "risk_metrics": {
+    "high_risk_cases": 2,
+    "severe_cases": 0,
+    "high_risk_percentage": 40.0,
+    "severe_percentage": 0.0
+  }
+}

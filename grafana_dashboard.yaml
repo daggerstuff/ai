@@ -1,0 +1,8 @@
+# Grafana Dashboard Configuration
+dashboard:
+  title: "Production Monitoring"
+  panels:
+    - title: "System Health"
+      type: "graph"
+    - title: "Performance Metrics"
+      type: "stat"

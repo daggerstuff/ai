@@ -1,0 +1,225 @@
+{
+  "qa_results": [
+    {
+      "conversation_id": "test_qa_001",
+      "clinical_validation": {
+        "overall_clinical_score": 0.5857142857142856,
+        "dsm5_compliance": 0.6,
+        "therapeutic_boundaries": 0.5,
+        "ethical_guidelines": 0.5,
+        "crisis_intervention": 0.7,
+        "evidence_based_practice": 0.5,
+        "cultural_competency": 0.6,
+        "safety_protocols": 0.7,
+        "violations": [],
+        "recommendations": [
+          "Improve Therapeutic Boundaries (current: 0.50)",
+          "Improve Ethical Guidelines (current: 0.50)",
+          "Improve Evidence-Based Practice (current: 0.50)",
+          "Consider additional clinical training",
+          "Implement regular supervision and consultation"
+        ]
+      },
+      "workflow_results": {
+        "workflow_id": "comprehensive_qa",
+        "status": "completed",
+        "quality_level": "excellent",
+        "quality_score": 1.0,
+        "steps_completed": [
+          "content_validation",
+          "clinical_standards",
+          "safety_assessment",
+          "quality_metrics",
+          "recommendation_generation",
+          "linguistic_analysis",
+          "therapeutic_effectiveness",
+          "cultural_sensitivity",
+          "ethical_compliance"
+        ],
+        "issues_found": [],
+        "recommendations": []
+      },
+      "automated_checks": {
+        "content_length": 221,
+        "word_count": 33,
+        "sentence_count": 3,
+        "readability_score": 0.8,
+        "sentiment_score": 0.5,
+        "toxicity_score": 0.0,
+        "professional_language": true,
+        "empathy_indicators": 1,
+        "question_ratio": 0.0,
+        "crisis_keywords": 0,
+        "harmful_content": false,
+        "privacy_violations": false,
+        "therapeutic_techniques": [],
+        "validation_statements": 0,
+        "solution_focused": 0.3333333333333333
+      },
+      "quality_improvements": [
+        "Consider additional clinical training",
+        "Implement regular supervision and consultation",
+        "Add more open-ended questions to encourage exploration",
+        "Improve Evidence-Based Practice (current: 0.50)",
+        "Improve Therapeutic Boundaries (current: 0.50)",
+        "Improve Ethical Guidelines (current: 0.50)",
+        "Incorporate more evidence-based therapeutic techniques",
+        "Increase empathetic language and validation"
+      ],
+      "monitoring_alerts": [
+        "LOW_CLINICAL_SCORE: 0.586",
+        "LOW_SAFETY_SCORE: 0.700"
+      ],
+      "overall_qa_score": 0.7142857142857143,
+      "qa_status": "NEEDS_ATTENTION",
+      "processing_time": 0.007330656051635742,
+      "timestamp": "2025-08-07T13:27:04.610411"
+    },
+    {
+      "conversation_id": "test_qa_002",
+      "clinical_validation": {
+        "overall_clinical_score": 0.5714285714285714,
+        "dsm5_compliance": 0.5,
+        "therapeutic_boundaries": 0.5,
+        "ethical_guidelines": 0.5,
+        "crisis_intervention": 0.7,
+        "evidence_based_practice": 0.5,
+        "cultural_competency": 0.6,
+        "safety_protocols": 0.7,
+        "violations": [],
+        "recommendations": [
+          "Improve DSM-5 Compliance (current: 0.50)",
+          "Improve Therapeutic Boundaries (current: 0.50)",
+          "Improve Ethical Guidelines (current: 0.50)",
+          "Improve Evidence-Based Practice (current: 0.50)",
+          "Consider additional clinical training",
+          "Implement regular supervision and consultation"
+        ]
+      },
+      "workflow_results": {
+        "workflow_id": "comprehensive_qa",
+        "status": "completed",
+        "quality_level": "excellent",
+        "quality_score": 1.0,
+        "steps_completed": [
+          "content_validation",
+          "clinical_standards",
+          "safety_assessment",
+          "quality_metrics",
+          "recommendation_generation",
+          "linguistic_analysis",
+          "therapeutic_effectiveness",
+          "cultural_sensitivity",
+          "ethical_compliance"
+        ],
+        "issues_found": [],
+        "recommendations": []
+      },
+      "automated_checks": {
+        "content_length": 293,
+        "word_count": 48,
+        "sentence_count": 5,
+        "readability_score": 0.6,
+        "sentiment_score": 0.5,
+        "toxicity_score": 0.0,
+        "professional_language": false,
+        "empathy_indicators": 0,
+        "question_ratio": 0.2,
+        "crisis_keywords": 1,
+        "harmful_content": false,
+        "privacy_violations": false,
+        "therapeutic_techniques": [
+          "Cognitive Restructuring",
+          "Goal Setting"
+        ],
+        "validation_statements": 0,
+        "solution_focused": 0.0
+      },
+      "quality_improvements": [
+        "Consider additional clinical training",
+        "Implement regular supervision and consultation",
+        "Improve DSM-5 Compliance (current: 0.50)",
+        "Improve Evidence-Based Practice (current: 0.50)",
+        "Improve Therapeutic Boundaries (current: 0.50)",
+        "Improve Ethical Guidelines (current: 0.50)",
+        "Increase empathetic language and validation"
+      ],
+      "monitoring_alerts": [
+        "LOW_CLINICAL_SCORE: 0.571",
+        "LOW_SAFETY_SCORE: 0.700",
+        "CRISIS_CONTENT_DETECTED"
+      ],
+      "overall_qa_score": 0.5885714285714285,
+      "qa_status": "CRITICAL_ISSUES",
+      "processing_time": 0.0033228397369384766,
+      "timestamp": "2025-08-07T13:27:04.613846"
+    }
+  ],
+  "qa_report": {
+    "report_summary": {
+      "total_conversations": 2,
+      "average_qa_score": 0.651,
+      "score_distribution": {
+        "excellent": 0,
+        "good": 0,
+        "acceptable": 1,
+        "needs_improvement": 1
+      }
+    },
+    "status_analysis": {
+      "NEEDS_ATTENTION": 1,
+      "CRITICAL_ISSUES": 1
+    },
+    "alert_analysis": {
+      "LOW_CLINICAL_SCORE": 2,
+      "LOW_SAFETY_SCORE": 2,
+      "CRISIS_CONTENT_DETECTED": 1
+    },
+    "improvement_analysis": {
+      "Consider additional clinical training": 2,
+      "Implement regular supervision and consultation": 2,
+      "Improve Evidence-Based Practice (current: 0.50)": 2,
+      "Improve Therapeutic Boundaries (current: 0.50)": 2,
+      "Improve Ethical Guidelines (current: 0.50)": 2,
+      "Increase empathetic language and validation": 2,
+      "Add more open-ended questions to encourage exploration": 1,
+      "Incorporate more evidence-based therapeutic techniques": 1,
+      "Improve DSM-5 Compliance (current: 0.50)": 1
+    },
+    "performance_metrics": {
+      "average_processing_time": 0.005,
+      "total_processing_time": 0.011,
+      "conversations_per_second": 187.732
+    },
+    "system_statistics": {
+      "system_stats": {
+        "total_processed": 2,
+        "quality_improvements_made": 15,
+        "alerts_generated": 5,
+        "average_processing_time": 0.005326747894287109,
+        "cache_hit_rate": 0.0
+      },
+      "alert_thresholds": {
+        "clinical_score_min": 0.7,
+        "safety_score_min": 0.8,
+        "overall_score_min": 0.75,
+        "processing_time_max": 300
+      },
+      "cache_size": 2,
+      "improvement_history_count": 2,
+      "quality_trends_count": 0,
+      "statistics_timestamp": "2025-08-07T13:27:04.614484"
+    },
+    "report_timestamp": "2025-08-07T13:27:04.614487"
+  },
+  "system_configuration": {
+    "alert_thresholds": {
+      "clinical_score_min": 0.7,
+      "safety_score_min": 0.8,
+      "overall_score_min": 0.75,
+      "processing_time_max": 300
+    },
+    "batch_size": 100
+  },
+  "export_timestamp": "2025-08-07T13:27:04.614491"
+}
