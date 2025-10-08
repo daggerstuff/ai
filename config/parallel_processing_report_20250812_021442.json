@@ -1,0 +1,53 @@
+{
+  "generated_at": "2025-08-12T02:14:42.965328",
+  "overall_metrics": {
+    "total_tasks": 10,
+    "completed_tasks": 10,
+    "failed_tasks": 0,
+    "success_rate": 100.0
+  },
+  "processing_type_stats": {
+    "threading": {
+      "total_tasks": 10,
+      "completed_tasks": 10,
+      "failed_tasks": 0,
+      "cancelled_tasks": 0,
+      "avg_execution_time": 0.0527061,
+      "throughput": 18.973135936827045,
+      "cpu_utilization": 0.0,
+      "memory_usage": 41.7,
+      "active_workers": 0,
+      "queue_size": 0
+    },
+    "async": {
+      "total_tasks": 0,
+      "completed_tasks": 0,
+      "failed_tasks": 0,
+      "cancelled_tasks": 0,
+      "avg_execution_time": 0.0,
+      "throughput": 0.0,
+      "cpu_utilization": 0.0,
+      "memory_usage": 0.0,
+      "active_workers": 0,
+      "queue_size": 0
+    },
+    "multiprocessing": {
+      "total_tasks": 0,
+      "completed_tasks": 0,
+      "failed_tasks": 0,
+      "cancelled_tasks": 0,
+      "avg_execution_time": 0.0,
+      "throughput": 0.0,
+      "cpu_utilization": 0.0,
+      "memory_usage": 0.0,
+      "active_workers": 0,
+      "queue_size": 0
+    }
+  },
+  "system_metrics": {
+    "cpu_utilization": 0.0,
+    "memory_usage": 41.7,
+    "cpu_count": 8,
+    "thread_count": 23
+  }
+}

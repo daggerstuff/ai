@@ -1,0 +1,418 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-08-07T03:27:43.205878",
+    "analyzer_version": "1.0.0",
+    "analysis_type": "topic_and_theme_analysis",
+    "conversations_analyzed": 1500
+  },
+  "topic_analysis": {
+    "mental_health": {
+      "frequency": 64,
+      "percentage": 4.266666666666667,
+      "keywords": [
+        "depression",
+        "stress",
+        "anxiety",
+        "therapy",
+        "counseling",
+        "emotional",
+        "mental"
+      ],
+      "related_themes": [
+        "cognitive_behavioral",
+        "mindfulness",
+        "coping_strategies"
+      ],
+      "conversation_examples": [
+        "a6817cff-5fde-439b-a86e-587edd2f052b",
+        "5635bb93-ea58-4a82-b07a-17f28563a26f",
+        "300fee76-9654-4704-9cca-5c380ac0824c",
+        "178a8e5b-b1ce-421d-9834-002f8e8410a3",
+        "03883768-07cf-4d4f-91cf-1b1a8247bf76"
+      ],
+      "quality_score": 0.64,
+      "datasets": [
+        "professional_psychology"
+      ]
+    },
+    "work_career": {
+      "frequency": 93,
+      "percentage": 6.2,
+      "keywords": [
+        "career",
+        "job",
+        "professional",
+        "work"
+      ],
+      "related_themes": [
+        "coping_strategies",
+        "self_esteem"
+      ],
+      "conversation_examples": [
+        "a6817cff-5fde-439b-a86e-587edd2f052b",
+        "5635bb93-ea58-4a82-b07a-17f28563a26f",
+        "7cad1d4e-8e1a-400b-a4ad-acdc0daf14d5",
+        "1ea63b56-ad48-4f57-8456-67cd2d26634d",
+        "eeabb8fc-3c40-4b95-bc0a-78484edaef0a"
+      ],
+      "quality_score": 0.93,
+      "datasets": [
+        "professional_psychology"
+      ]
+    },
+    "emotions": {
+      "frequency": 82,
+      "percentage": 5.466666666666667,
+      "keywords": [
+        "sad",
+        "angry",
+        "emotion",
+        "feel",
+        "worried"
+      ],
+      "related_themes": [
+        "mindfulness",
+        "coping_strategies"
+      ],
+      "conversation_examples": [
+        "a6817cff-5fde-439b-a86e-587edd2f052b",
+        "5635bb93-ea58-4a82-b07a-17f28563a26f",
+        "85a7e776-7648-4305-a4e9-2ea2500013f4",
+        "1ea63b56-ad48-4f57-8456-67cd2d26634d",
+        "eeabb8fc-3c40-4b95-bc0a-78484edaef0a"
+      ],
+      "quality_score": 0.82,
+      "datasets": [
+        "professional_psychology"
+      ]
+    },
+    "support_help": {
+      "frequency": 121,
+      "percentage": 8.066666666666666,
+      "keywords": [
+        "recommend",
+        "support",
+        "help",
+        "guidance"
+      ],
+      "related_themes": [
+        "cognitive_behavioral",
+        "coping_strategies"
+      ],
+      "conversation_examples": [
+        "a6817cff-5fde-439b-a86e-587edd2f052b",
+        "5635bb93-ea58-4a82-b07a-17f28563a26f",
+        "7cad1d4e-8e1a-400b-a4ad-acdc0daf14d5",
+        "85a7e776-7648-4305-a4e9-2ea2500013f4",
+        "1ea63b56-ad48-4f57-8456-67cd2d26634d"
+      ],
+      "quality_score": 1.0,
+      "datasets": [
+        "professional_psychology"
+      ]
+    },
+    "communication": {
+      "frequency": 50,
+      "percentage": 3.3333333333333335,
+      "keywords": [
+        "talk",
+        "speak",
+        "conversation",
+        "listen",
+        "discuss",
+        "communicate"
+      ],
+      "related_themes": [],
+      "conversation_examples": [
+        "5635bb93-ea58-4a82-b07a-17f28563a26f",
+        "85a7e776-7648-4305-a4e9-2ea2500013f4",
+        "c0c7c787-f603-484d-8810-1a1d6780b9f5",
+        "178a8e5b-b1ce-421d-9834-002f8e8410a3",
+        "1669b13e-fa47-4e1f-a430-eada8cc278fe"
+      ],
+      "quality_score": 0.5,
+      "datasets": [
+        "professional_psychology"
+      ]
+    },
+    "life_challenges": {
+      "frequency": 43,
+      "percentage": 2.8666666666666667,
+      "keywords": [
+        "difficulty",
+        "challenge",
+        "struggle",
+        "issue",
+        "conflict",
+        "problem"
+      ],
+      "related_themes": [
+        "coping_strategies",
+        "trauma_recovery"
+      ],
+      "conversation_examples": [
+        "7cad1d4e-8e1a-400b-a4ad-acdc0daf14d5",
+        "178a8e5b-b1ce-421d-9834-002f8e8410a3",
+        "191f5a99-8b16-4d32-a525-358dde61425d",
+        "99645cdb-cfa8-408e-beaf-fc43c7ebdc1b",
+        "4d8a3741-f2c3-4cd6-902f-76399d93f6b3"
+      ],
+      "quality_score": 0.43,
+      "datasets": [
+        "professional_psychology"
+      ]
+    },
+    "relationships": {
+      "frequency": 36,
+      "percentage": 2.4,
+      "keywords": [
+        "family",
+        "relationship",
+        "love",
+        "friend",
+        "partner"
+      ],
+      "related_themes": [
+        "communication",
+        "self_esteem"
+      ],
+      "conversation_examples": [
+        "1ea63b56-ad48-4f57-8456-67cd2d26634d",
+        "c0c7c787-f603-484d-8810-1a1d6780b9f5",
+        "1ceadee5-a02b-4ee6-a72f-d7bfc479acd8",
+        "a0112322-8799-4333-a6a6-85b3f27b7643",
+        "1669b13e-fa47-4e1f-a430-eada8cc278fe"
+      ],
+      "quality_score": 0.36,
+      "datasets": [
+        "professional_psychology"
+      ]
+    },
+    "health_wellness": {
+      "frequency": 27,
+      "percentage": 1.7999999999999998,
+      "keywords": [
+        "exercise",
+        "sleep",
+        "diet",
+        "medical",
+        "health"
+      ],
+      "related_themes": [],
+      "conversation_examples": [
+        "300fee76-9654-4704-9cca-5c380ac0824c",
+        "60bfbaab-a3e6-4ff7-8c80-77aa22265d1a",
+        "b0c2757f-79c5-4b3c-b25f-4b760250aa1b",
+        "9fa33e5b-0870-41b2-b7f4-507fe2a56b5b",
+        "2a71e2c2-8f76-4de8-be0f-734d89cad7a9"
+      ],
+      "quality_score": 0.27,
+      "datasets": [
+        "professional_psychology"
+      ]
+    },
+    "decision_making": {
+      "frequency": 34,
+      "percentage": 2.2666666666666666,
+      "keywords": [
+        "consider",
+        "think",
+        "option",
+        "decision"
+      ],
+      "related_themes": [],
+      "conversation_examples": [
+        "300fee76-9654-4704-9cca-5c380ac0824c",
+        "1ceadee5-a02b-4ee6-a72f-d7bfc479acd8",
+        "a0112322-8799-4333-a6a6-85b3f27b7643",
+        "178a8e5b-b1ce-421d-9834-002f8e8410a3",
+        "16ec8ec9-eab6-4288-b1df-cbf0e7b9ea44"
+      ],
+      "quality_score": 0.34,
+      "datasets": [
+        "professional_psychology"
+      ]
+    },
+    "personal_growth": {
+      "frequency": 13,
+      "percentage": 0.8666666666666666,
+      "keywords": [
+        "goals",
+        "success",
+        "growth",
+        "learning",
+        "motivation"
+      ],
+      "related_themes": [],
+      "conversation_examples": [
+        "4d8a3741-f2c3-4cd6-902f-76399d93f6b3",
+        "63165a7b-c20b-4311-a1d4-7baff11791f1",
+        "ee7d1eb3-e104-47c1-a114-b4c755927f40",
+        "e12fa4e6-3836-4b44-9b3d-a730e0a501d2",
+        "2b74c1d3-9ab2-49f5-88cd-750617d3925b"
+      ],
+      "quality_score": 0.13,
+      "datasets": [
+        "professional_psychology"
+      ]
+    }
+  },
+  "theme_analysis": {
+    "coping_strategies": {
+      "topic_clusters": [
+        "decision_making",
+        "health_wellness",
+        "support_help",
+        "mental_health",
+        "emotions",
+        "work_career",
+        "life_challenges",
+        "communication",
+        "relationships",
+        "personal_growth"
+      ],
+      "conversation_count": 57,
+      "emotional_indicators": {
+        "anxious": 8,
+        "angry": 4,
+        "sad": 1,
+        "stressed": 3,
+        "worried": 1,
+        "calm": 1
+      },
+      "complexity_score": 1.0,
+      "therapeutic_relevance": 1.0,
+      "common_patterns": [
+        "Problem-solving approaches",
+        "Stress management techniques",
+        "Adaptive behavior development",
+        "High frequency theme - core therapeutic focus"
+      ]
+    },
+    "trauma_recovery": {
+      "topic_clusters": [
+        "decision_making",
+        "health_wellness",
+        "support_help",
+        "mental_health",
+        "emotions",
+        "work_career",
+        "life_challenges",
+        "communication",
+        "relationships",
+        "personal_growth"
+      ],
+      "conversation_count": 18,
+      "emotional_indicators": {
+        "anxious": 2,
+        "worried": 1
+      },
+      "complexity_score": 1.0,
+      "therapeutic_relevance": 0.36,
+      "common_patterns": [
+        "Past event processing",
+        "Healing journey focus",
+        "Recovery milestone tracking",
+        "Emerging theme - specialized therapeutic area"
+      ]
+    },
+    "cognitive_behavioral": {
+      "topic_clusters": [
+        "decision_making",
+        "health_wellness",
+        "support_help",
+        "mental_health",
+        "emotions",
+        "work_career",
+        "life_challenges",
+        "communication",
+        "relationships",
+        "personal_growth"
+      ],
+      "conversation_count": 19,
+      "emotional_indicators": {
+        "anxious": 2,
+        "sad": 1
+      },
+      "complexity_score": 1.0,
+      "therapeutic_relevance": 0.38,
+      "common_patterns": [
+        "Thought pattern analysis",
+        "Behavior modification focus",
+        "Belief system exploration",
+        "Emerging theme - specialized therapeutic area"
+      ]
+    },
+    "mindfulness": {
+      "topic_clusters": [
+        "decision_making",
+        "health_wellness",
+        "support_help",
+        "mental_health",
+        "emotions",
+        "work_career",
+        "life_challenges",
+        "communication",
+        "relationships",
+        "personal_growth"
+      ],
+      "conversation_count": 24,
+      "emotional_indicators": {
+        "angry": 4,
+        "stressed": 1,
+        "anxious": 4,
+        "calm": 1
+      },
+      "complexity_score": 1.0,
+      "therapeutic_relevance": 0.48,
+      "common_patterns": [
+        "Present moment awareness",
+        "Breathing techniques",
+        "Meditation practices",
+        "Moderate frequency theme - regular therapeutic element"
+      ]
+    },
+    "self_esteem": {
+      "topic_clusters": [
+        "decision_making",
+        "health_wellness",
+        "support_help",
+        "mental_health",
+        "emotions",
+        "work_career",
+        "life_challenges",
+        "communication",
+        "relationships",
+        "personal_growth"
+      ],
+      "conversation_count": 22,
+      "emotional_indicators": {},
+      "complexity_score": 1.0,
+      "therapeutic_relevance": 0.44,
+      "common_patterns": [
+        "Self-worth exploration",
+        "Confidence building",
+        "Identity development",
+        "Moderate frequency theme - regular therapeutic element"
+      ]
+    }
+  },
+  "insights": [
+    "Most common topic: 'support_help' appears in 121 conversations (8.1%)",
+    "Topic diversity: 10 distinct topics identified",
+    "High-frequency topics: mental_health, work_career, emotions, support_help, communication, life_challenges, relationships, health_wellness, decision_making",
+    "Most therapeutically relevant theme: 'coping_strategies' with 57 conversations",
+    "Complex themes with multiple topic clusters: coping_strategies, trauma_recovery, cognitive_behavioral, mindfulness, self_esteem",
+    "Analysis coverage: 10 topics and 5 therapeutic themes identified",
+    "Most connected theme: 'coping_strategies' relates to 10 different topics"
+  ],
+  "summary_statistics": {
+    "total_topics_identified": 10,
+    "total_themes_identified": 5,
+    "average_topic_frequency": 56.3,
+    "average_theme_count": 28.0,
+    "topic_coverage_rate": 0.37533333333333335,
+    "most_frequent_topic": "support_help",
+    "most_relevant_theme": "coping_strategies"
+  }
+}

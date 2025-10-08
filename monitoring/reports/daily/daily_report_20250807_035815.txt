@@ -1,0 +1,2 @@
+Sample daily_report generated at 2025-08-07 03:58:15.985626
+Configuration: {'frequency': 'daily', 'time': '08:00', 'recipients': ['operations@pixelated.ai'], 'sections': ['quality_summary', 'processing_stats', 'alerts'], 'format': 'email_html'}

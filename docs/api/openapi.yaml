@@ -1,0 +1,478 @@
+openapi: 3.0.3
+info:
+  title: Pixelated Empathy AI API
+  description: RESTful API for accessing the Pixelated Empathy AI dataset and processing system
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: api-support@pixelatedempathy.com
+    url: https://pixelatedempathy.com/support
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.pixelatedempathy.com/v1
+    description: Production server
+  - url: https://staging-api.pixelatedempathy.com/v1
+    description: Staging server
+
+security:
+  - BearerAuth: []
+
+paths:
+  /:
+    get:
+      summary: API Root
+      description: Get API information and available endpoints
+      responses:
+        '200':
+          description: API information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+
+  /health:
+    get:
+      summary: Health Check
+      description: Check API health status
+      responses:
+        '200':
+          description: Health status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+
+  /v1/datasets:
+    get:
+      summary: List Datasets
+      description: Get a list of all available datasets
+      responses:
+        '200':
+          description: List of datasets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimitExceeded'
+
+  /v1/datasets/{dataset_name}:
+    get:
+      summary: Get Dataset Information
+      description: Get detailed information about a specific dataset
+      parameters:
+        - name: dataset_name
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Name of the dataset
+      responses:
+        '200':
+          description: Dataset information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/conversations:
+    get:
+      summary: List Conversations
+      description: Get a list of conversations with optional filtering
+      parameters:
+        - name: dataset
+          in: query
+          schema:
+            type: string
+          description: Filter by dataset name
+        - name: tier
+          in: query
+          schema:
+            type: string
+            enum: [basic, standard, professional, clinical, research]
+          description: Filter by quality tier
+        - name: min_quality
+          in: query
+          schema:
+            type: number
+            minimum: 0.0
+            maximum: 1.0
+          description: Minimum quality score
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+          description: Maximum number of results
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          description: Offset for pagination
+      responses:
+        '200':
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+
+  /v1/conversations/{conversation_id}:
+    get:
+      summary: Get Conversation
+      description: Get a specific conversation by ID
+      parameters:
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique conversation identifier
+      responses:
+        '200':
+          description: Conversation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/quality/metrics:
+    get:
+      summary: Get Quality Metrics
+      description: Get quality metrics for datasets or tiers
+      parameters:
+        - name: dataset
+          in: query
+          schema:
+            type: string
+          description: Filter by dataset name
+        - name: tier
+          in: query
+          schema:
+            type: string
+          description: Filter by quality tier
+      responses:
+        '200':
+          description: Quality metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+
+  /v1/quality/validate:
+    post:
+      summary: Validate Conversation Quality
+      description: Validate the quality of a conversation using NLP-based assessment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConversationModel'
+      responses:
+        '200':
+          description: Quality validation results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /v1/processing/submit:
+    post:
+      summary: Submit Processing Job
+      description: Submit a processing job for dataset analysis or export
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProcessingRequest'
+      responses:
+        '201':
+          description: Processing job submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+
+  /v1/processing/jobs/{job_id}:
+    get:
+      summary: Get Job Status
+      description: Get the status of a processing job
+      parameters:
+        - name: job_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Unique job identifier
+      responses:
+        '200':
+          description: Job status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+
+  /v1/search:
+    post:
+      summary: Search Conversations
+      description: Search conversations using advanced filters and full-text search
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchRequest'
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+
+  /v1/statistics/overview:
+    get:
+      summary: Get Statistics Overview
+      description: Get comprehensive statistics about the API and datasets
+      responses:
+        '200':
+          description: Statistics overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+
+  /v1/export:
+    post:
+      summary: Export Data
+      description: Export data in specified format with optional filtering
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                dataset:
+                  type: string
+                  description: Dataset name to export
+                format:
+                  type: string
+                  enum: [jsonl, csv, parquet, huggingface, openai]
+                  description: Export format
+                tier:
+                  type: string
+                  description: Filter by quality tier
+                min_quality:
+                  type: number
+                  description: Minimum quality score
+              required:
+                - dataset
+                - format
+      responses:
+        '202':
+          description: Export initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    APIResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          description: Whether the request was successful
+        data:
+          description: Response data
+        message:
+          type: string
+          description: Response message
+        timestamp:
+          type: string
+          format: date-time
+          description: Response timestamp
+        error:
+          $ref: '#/components/schemas/ErrorObject'
+      required:
+        - success
+        - timestamp
+
+    ErrorObject:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Error code
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: string
+          description: Additional error details
+        request_id:
+          type: string
+          description: Request identifier for debugging
+
+    ConversationModel:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique conversation identifier
+        messages:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum: [user, assistant, system]
+              content:
+                type: string
+              timestamp:
+                type: string
+                format: date-time
+          description: List of messages in the conversation
+        quality_score:
+          type: number
+          minimum: 0.0
+          maximum: 1.0
+          description: Quality score
+        tier:
+          type: string
+          enum: [basic, standard, professional, clinical, research]
+          description: Quality tier
+        metadata:
+          type: object
+          description: Additional metadata
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+      required:
+        - id
+        - messages
+
+    ProcessingRequest:
+      type: object
+      properties:
+        dataset_name:
+          type: string
+          description: Name of the dataset to process
+        processing_type:
+          type: string
+          enum: [quality_validation, export, analysis]
+          description: Type of processing
+        parameters:
+          type: object
+          description: Processing parameters
+      required:
+        - dataset_name
+        - processing_type
+
+    SearchRequest:
+      type: object
+      properties:
+        query:
+          type: string
+          description: Search query
+        filters:
+          type: object
+          description: Search filters
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          default: 100
+          description: Maximum number of results
+        offset:
+          type: integer
+          minimum: 0
+          default: 0
+          description: Offset for pagination
+      required:
+        - query
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIResponse'
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIResponse'
+
+    RateLimitExceeded:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/APIResponse'
+      headers:
+        X-RateLimit-Limit:
+          schema:
+            type: integer
+          description: Request limit per hour
+        X-RateLimit-Remaining:
+          schema:
+            type: integer
+          description: Remaining requests in current window
+        X-RateLimit-Reset:
+          schema:
+            type: integer
+          description: Time when rate limit resets (Unix timestamp)
+
+tags:
+  - name: Datasets
+    description: Dataset management operations
+  - name: Conversations
+    description: Conversation retrieval and management
+  - name: Quality
+    description: Quality metrics and validation
+  - name: Processing
+    description: Data processing operations
+  - name: Search
+    description: Search and filtering operations
+  - name: Statistics
+    description: Statistics and analytics
+  - name: Export
+    description: Data export operations

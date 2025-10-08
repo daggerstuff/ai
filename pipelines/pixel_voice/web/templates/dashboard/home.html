@@ -1,0 +1,334 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Pixel Voice Pipeline{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block page_actions %}
+<a href="/dashboard/create-job" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Create Job
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Overview Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card metric-card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title" style="color: rgba(248, 250, 252, 0.7); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Total Jobs</h6>
+                        <h3 class="mb-0 text-white fw-bold">{{ job_stats.total }}</h3>
+                        <small class="text-success">
+                            <i class="fas fa-arrow-up"></i> Active Pipeline
+                        </small>
+                    </div>
+                    <div class="metric-icon">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3">
+        <div class="card metric-card success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title" style="color: rgba(248, 250, 252, 0.7); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Completed</h6>
+                        <h3 class="mb-0 text-white fw-bold">{{ job_stats.completed }}</h3>
+                        <small class="text-success">
+                            <i class="fas fa-check"></i> Success Rate: {{ "%.1f"|format((job_stats.completed / job_stats.total * 100) if job_stats.total > 0 else 0) }}%
+                        </small>
+                    </div>
+                    <div class="metric-icon success">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card metric-card warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title" style="color: rgba(248, 250, 252, 0.7); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Running</h6>
+                        <h3 class="mb-0 text-white fw-bold">{{ job_stats.running }}</h3>
+                        <small class="text-warning">
+                            <i class="fas fa-clock"></i> In Progress
+                        </small>
+                    </div>
+                    <div class="metric-icon warning">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-spinner fa-2x fa-spin"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card metric-card danger">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title" style="color: rgba(248, 250, 252, 0.7); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Failed</h6>
+                        <h3 class="mb-0 text-white fw-bold">{{ job_stats.failed }}</h3>
+                        <small class="text-danger">
+                            <i class="fas fa-exclamation-triangle"></i> Needs Attention
+                        </small>
+                    </div>
+                    <div class="metric-icon danger">
+                        <div class="icon-wrapper">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Usage Overview -->
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0 text-white">
+                    <i class="fas fa-chart-bar text-primary"></i>
+                    Today's Usage
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <div class="text-center usage-stat">
+                            <div class="usage-number">{{ daily_usage }}</div>
+                            <div class="usage-label">API Calls</div>
+                            <div class="usage-icon">
+                                <i class="fas fa-api"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-center usage-stat">
+                            <div class="usage-number">{{ user.quota_limit or '∞' }}</div>
+                            <div class="usage-label">Daily Limit</div>
+                            <div class="usage-icon">
+                                <i class="fas fa-infinity"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {% if user.quota_limit %}
+                <div class="mt-4">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="text-white-50">Usage Progress</span>
+                        <span class="text-primary fw-bold">{{ "%.1f"|format((daily_usage / user.quota_limit * 100) if user.quota_limit else 0) }}%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar" role="progressbar"
+                             style="width: {{ (daily_usage / user.quota_limit * 100) if user.quota_limit else 0 }}%">
+                        </div>
+                    </div>
+                    <small class="text-white-50 mt-2 d-block">
+                        {{ daily_usage }} / {{ user.quota_limit }} calls used today
+                    </small>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0 text-white">
+                    <i class="fas fa-user-circle text-primary"></i>
+                    Account Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="account-info-grid">
+                    <div class="account-item">
+                        <div class="account-label">
+                            <i class="fas fa-user"></i>
+                            Username
+                        </div>
+                        <div class="account-value">{{ user.username }}</div>
+                    </div>
+
+                    <div class="account-item">
+                        <div class="account-label">
+                            <i class="fas fa-shield-alt"></i>
+                            Role
+                        </div>
+                        <div class="account-value">
+                            <span class="badge bg-primary role-badge">
+                                <i class="fas fa-crown"></i>
+                                {{ user.role.title() }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="account-item">
+                        <div class="account-label">
+                            <i class="fas fa-envelope"></i>
+                            Email
+                        </div>
+                        <div class="account-value">{{ user.email }}</div>
+                    </div>
+
+                    <div class="account-item">
+                        <div class="account-label">
+                            <i class="fas fa-heartbeat"></i>
+                            Status
+                        </div>
+                        <div class="account-value">
+                            {% if user.is_active %}
+                                <span class="badge bg-success status-badge">
+                                    <i class="fas fa-check-circle"></i>
+                                    Active
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger status-badge">
+                                    <i class="fas fa-times-circle"></i>
+                                    Inactive
+                                </span>
+                            {% endif %}
+                            {% if user.is_verified %}
+                                <span class="badge bg-info status-badge ms-1">
+                                    <i class="fas fa-certificate"></i>
+                                    Verified
+                                </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Jobs -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0 text-white">
+            <i class="fas fa-history text-primary"></i>
+            Recent Pipeline Jobs
+        </h5>
+        <a href="/dashboard/jobs" class="btn btn-sm btn-primary">
+            <i class="fas fa-external-link-alt"></i>
+            View All Jobs
+        </a>
+    </div>
+    <div class="card-body">
+        {% if recent_jobs %}
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Progress</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in recent_jobs %}
+                    <tr>
+                        <td>
+                            <strong>{{ job.name }}</strong>
+                            {% if job.current_stage %}
+                            <br><small class="text-muted">{{ job.current_stage.replace('_', ' ').title() }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if job.status == 'completed' %}
+                                <span class="badge bg-success status-badge">Completed</span>
+                            {% elif job.status == 'running' %}
+                                <span class="badge bg-warning status-badge">Running</span>
+                            {% elif job.status == 'failed' %}
+                                <span class="badge bg-danger status-badge">Failed</span>
+                            {% elif job.status == 'pending' %}
+                                <span class="badge bg-secondary status-badge">Pending</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark status-badge">{{ job.status.title() }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="progress job-progress">
+                                <div class="progress-bar 
+                                    {% if job.status == 'completed' %}bg-success
+                                    {% elif job.status == 'failed' %}bg-danger
+                                    {% elif job.status == 'running' %}bg-warning
+                                    {% else %}bg-secondary{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ job.progress * 100 }}%">
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ "%.0f"|format(job.progress * 100) }}%</small>
+                        </td>
+                        <td>
+                            <span title="{{ job.created_at }}">
+                                {{ job.created_at.strftime('%Y-%m-%d %H:%M') }}
+                            </span>
+                        </td>
+                        <td>
+                            <a href="/dashboard/jobs/{{ job.id }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-microphone-alt"></i>
+            </div>
+            <h5 class="empty-title">Ready to Process Voice Data</h5>
+            <p class="empty-description">
+                Start your first pipeline job to begin processing voice data with our advanced AI models.
+            </p>
+            <div class="empty-actions">
+                <a href="/dashboard/create-job" class="btn btn-primary btn-lg">
+                    <i class="fas fa-rocket"></i>
+                    Start Your First Job
+                </a>
+                <a href="/docs" class="btn btn-outline-light btn-lg ms-2" target="_blank">
+                    <i class="fas fa-book"></i>
+                    View Documentation
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Auto-refresh job status every 30 seconds
+    setInterval(function() {
+        // Only refresh if there are running jobs
+        const runningJobs = document.querySelectorAll('.badge.bg-warning');
+        if (runningJobs.length > 0) {
+            location.reload();
+        }
+    }, 30000);
+</script>
+{% endblock %}

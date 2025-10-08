@@ -1,0 +1,13 @@
+{
+  "validation_timestamp": "2025-08-11T03:53:54.177271",
+  "validator_version": "2.0.0",
+  "tier_results": {
+    "basic": {
+      "overall_result": "pass",
+      "score": 0.9249999999999999,
+      "passed_checks": 4,
+      "total_checks": 4,
+      "execution_time": 0.00218,
+      "issues": [
+        {
+          "tier": 

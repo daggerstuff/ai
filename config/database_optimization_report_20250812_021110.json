@@ -1,0 +1,45 @@
+{
+  "generated_at": "2025-08-12T02:11:10.512263",
+  "total_optimizations": 3,
+  "successful_optimizations": 3,
+  "failed_optimizations": 0,
+  "optimization_results": [
+    {
+      "optimization_type": "OptimizationType.INDEX_OPTIMIZATION",
+      "target_table": "users",
+      "action_taken": "Created index on columns: email",
+      "performance_improvement": 10.0,
+      "execution_time": 0.10014843940734863,
+      "success": true,
+      "error_message": "",
+      "before_metrics": null,
+      "after_metrics": null
+    },
+    {
+      "optimization_type": "OptimizationType.INDEX_OPTIMIZATION",
+      "target_table": "users",
+      "action_taken": "Created index on columns: id",
+      "performance_improvement": 10.0,
+      "execution_time": 0.10023331642150879,
+      "success": true,
+      "error_message": "",
+      "before_metrics": null,
+      "after_metrics": null
+    },
+    {
+      "optimization_type": "OptimizationType.CONNECTION_POOLING",
+      "target_table": "connection_pool",
+      "action_taken": "Updated pool settings: min=10, max=25",
+      "performance_improvement": 15.0,
+      "execution_time": 0.05025768280029297,
+      "success": true,
+      "error_message": "",
+      "before_metrics": null,
+      "after_metrics": null
+    }
+  ],
+  "performance_summary": {
+    "total_improvement": 35.0,
+    "avg_improvement_per_optimization": 11.666666666666666
+  }
+}
