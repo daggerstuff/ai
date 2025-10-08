@@ -1,0 +1,8 @@
+{
+  "dataset_info": {
+    "created": "2025-08-07T23:23:05-04:00",
+    "model": "huihui_ai/qwen3-abliterated:4b-thinking-2507-q4_K_M",
+    "purpose": "Crisis intervention training - authentic conversations",
+    "total_conversations": 5
+  },
+  "training_conversations": [

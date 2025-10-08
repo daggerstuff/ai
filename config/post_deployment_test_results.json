@@ -1,0 +1,20 @@
+{
+  "health_status": "healthy",
+  "system_metrics": {
+    "status": "healthy",
+    "cpu_percent": 33.5,
+    "memory_percent": 33.2,
+    "disk_percent": 32.1,
+    "uptime": 1.000499963760376
+  },
+  "dependencies": {
+    "status": "healthy",
+    "dependencies": {
+      "bcrypt": true,
+      "prometheus_client": true,
+      "redis": true,
+      "cryptography": true
+    }
+  },
+  "timestamp": "2025-08-12T13:15:49.447537"
+}

@@ -1,0 +1,235 @@
+{
+  "generated_at": "2025-08-12T01:52:54.068578",
+  "total_benchmarks": 3,
+  "benchmark_reports": [
+    {
+      "benchmark_name": "cpu_performance",
+      "benchmark_type": "BenchmarkType.CPU_BENCHMARK",
+      "start_time": "2025-08-12 01:51:00.981747",
+      "end_time": "2025-08-12 01:51:52.984128",
+      "total_duration": 52.002381,
+      "iterations": 2,
+      "results": {
+        "throughput": [
+          {
+            "metric": "PerformanceMetric.THROUGHPUT",
+            "value": 328390.2831151534,
+            "unit": "operations/second",
+            "timestamp": "2025-08-12 01:51:20.982343",
+            "iteration": 0,
+            "metadata": {
+              "total_operations": 4925928,
+              "duration": 15.000224590301514
+            }
+          },
+          {
+            "metric": "PerformanceMetric.THROUGHPUT",
+            "value": 325054.6757016111,
+            "unit": "operations/second",
+            "timestamp": "2025-08-12 01:51:51.983650",
+            "iteration": 1,
+            "metadata": {
+              "total_operations": 4875864,
+              "duration": 15.000134944915771
+            }
+          }
+        ],
+        "cpu_utilization": [
+          {
+            "metric": "PerformanceMetric.CPU_UTILIZATION",
+            "value": 7.8,
+            "unit": "percent",
+            "timestamp": "2025-08-12 01:51:21.982816",
+            "iteration": 0,
+            "metadata": {}
+          },
+          {
+            "metric": "PerformanceMetric.CPU_UTILIZATION",
+            "value": 2.0,
+            "unit": "percent",
+            "timestamp": "2025-08-12 01:51:52.984104",
+            "iteration": 1,
+            "metadata": {}
+          }
+        ]
+      },
+      "statistics": {
+        "throughput": {
+          "count": 2,
+          "mean": 326722.4794083822,
+          "median": 326722.4794083822,
+          "min": 325054.6757016111,
+          "max": 328390.2831151534,
+          "std_dev": 2358.630621491868,
+          "p95": 328390.2831151534,
+          "p99": 328390.2831151534
+        },
+        "cpu_utilization": {
+          "count": 2,
+          "mean": 4.9,
+          "median": 4.9,
+          "min": 2.0,
+          "max": 7.8,
+          "std_dev": 4.1012193308819755,
+          "p95": 7.8,
+          "p99": 7.8
+        }
+      },
+      "baseline_comparison": {},
+      "performance_score": 55.0,
+      "recommendations": [
+        "Performance is within acceptable ranges"
+      ]
+    },
+    {
+      "benchmark_name": "memory_performance",
+      "benchmark_type": "BenchmarkType.MEMORY_BENCHMARK",
+      "start_time": "2025-08-12 01:51:52.984717",
+      "end_time": "2025-08-12 01:52:29.003212",
+      "total_duration": 36.018495,
+      "iterations": 2,
+      "results": {
+        "throughput": [
+          {
+            "metric": "PerformanceMetric.THROUGHPUT",
+            "value": 3453.7650037258486,
+            "unit": "MB/s",
+            "timestamp": "2025-08-12 01:52:05.985146",
+            "iteration": 0,
+            "metadata": {
+              "operations": 34538,
+              "chunk_size": 1048576
+            }
+          },
+          {
+            "metric": "PerformanceMetric.THROUGHPUT",
+            "value": 3508.5896272393757,
+            "unit": "MB/s",
+            "timestamp": "2025-08-12 01:52:28.996377",
+            "iteration": 1,
+            "metadata": {
+              "operations": 35086,
+              "chunk_size": 1048576
+            }
+          }
+        ],
+        "memory_utilization": [
+          {
+            "metric": "PerformanceMetric.MEMORY_UTILIZATION",
+            "value": 40.8,
+            "unit": "percent",
+            "timestamp": "2025-08-12 01:52:05.985331",
+            "iteration": 0,
+            "metadata": {}
+          },
+          {
+            "metric": "PerformanceMetric.MEMORY_UTILIZATION",
+            "value": 40.2,
+            "unit": "percent",
+            "timestamp": "2025-08-12 01:52:28.996574",
+            "iteration": 1,
+            "metadata": {}
+          }
+        ]
+      },
+      "statistics": {
+        "throughput": {
+          "count": 2,
+          "mean": 3481.1773154826124,
+          "median": 3481.1773154826124,
+          "min": 3453.7650037258486,
+          "max": 3508.5896272393757,
+          "std_dev": 38.76686306241442,
+          "p95": 3508.5896272393757,
+          "p99": 3508.5896272393757
+        },
+        "memory_utilization": {
+          "count": 2,
+          "mean": 40.5,
+          "median": 40.5,
+          "min": 40.2,
+          "max": 40.8,
+          "std_dev": 0.4242640687119245,
+          "p95": 40.8,
+          "p99": 40.8
+        }
+      },
+      "baseline_comparison": {},
+      "performance_score": 55.0,
+      "recommendations": [
+        "Performance is within acceptable ranges"
+      ]
+    },
+    {
+      "benchmark_name": "ai_inference_performance",
+      "benchmark_type": "BenchmarkType.AI_INFERENCE_BENCHMARK",
+      "start_time": "2025-08-12 01:52:29.003749",
+      "end_time": "2025-08-12 01:52:54.066541",
+      "total_duration": 25.062792,
+      "iterations": 1,
+      "results": {
+        "latency": [
+          {
+            "metric": "PerformanceMetric.LATENCY",
+            "value": 84.64625716712403,
+            "unit": "ms",
+            "timestamp": "2025-08-12 01:52:54.066182",
+            "iteration": 0,
+            "metadata": {
+              "metric_type": "average_inference_time"
+            }
+          },
+          {
+            "metric": "PerformanceMetric.LATENCY",
+            "value": 89.64681625366211,
+            "unit": "ms",
+            "timestamp": "2025-08-12 01:52:54.066193",
+            "iteration": 0,
+            "metadata": {
+              "metric_type": "p95_inference_time"
+            }
+          }
+        ],
+        "throughput": [
+          {
+            "metric": "PerformanceMetric.THROUGHPUT",
+            "value": 11.813503314352738,
+            "unit": "inferences/s",
+            "timestamp": "2025-08-12 01:52:54.066191",
+            "iteration": 0,
+            "metadata": {
+              "total_inferences": 237
+            }
+          }
+        ]
+      },
+      "statistics": {
+        "latency": {
+          "count": 2,
+          "mean": 87.14653671039306,
+          "median": 87.14653671039306,
+          "min": 84.64625716712403,
+          "max": 89.64681625366211,
+          "std_dev": 3.535929239815081,
+          "p95": 89.64681625366211,
+          "p99": 89.64681625366211
+        },
+        "throughput": {
+          "count": 1,
+          "mean": 11.813503314352738,
+          "median": 11.813503314352738,
+          "min": 11.813503314352738,
+          "max": 11.813503314352738,
+          "std_dev": 0.0,
+          "p95": 11.813503314352738,
+          "p99": 11.813503314352738
+        }
+      },
+      "baseline_comparison": {},
+      "performance_score": 50.0,
+      "recommendations": [
+        "Low throughput: Consider scaling or optimization"
+      ]
+    }
+  ]
+}

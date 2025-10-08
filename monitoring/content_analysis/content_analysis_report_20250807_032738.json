@@ -1,0 +1,174 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-08-07T03:27:38.822811",
+    "analyzer_version": "1.0.0",
+    "datasets_analyzed": 3,
+    "analysis_scope": "conversation_content"
+  },
+  "content_insights": {
+    "professional_psychology": {
+      "total_conversations_analyzed": 1000,
+      "content_patterns": {
+        "average_word_count": 72.943,
+        "average_vocabulary_richness": 0.8128274031751531,
+        "average_quality_score": 0.4481627209525459,
+        "word_count_distribution": {
+          "short": 29,
+          "medium": 971,
+          "long": 0
+        }
+      },
+      "common_themes": [
+        "licensed",
+        "psychologist",
+        "please",
+        "provide",
+        "patient",
+        "helpful",
+        "response",
+        "concern",
+        "your",
+        "feeling",
+        "self",
+        "work",
+        "having",
+        "stress",
+        "manage"
+      ],
+      "vocabulary_analysis": {
+        "richness_distribution": {
+          "low": 0,
+          "medium": 0,
+          "high": 1000
+        },
+        "average_richness": 0.8128274031751531
+      },
+      "conversation_structures": {
+        "short": 1000
+      },
+      "quality_distribution": {
+        "low": 57,
+        "medium": 943,
+        "high": 0
+      },
+      "recommendations": [
+        "Excellent vocabulary diversity - maintain current standards",
+        "Regular content quality monitoring recommended"
+      ]
+    },
+    "test_dataset": {
+      "total_conversations_analyzed": 1,
+      "content_patterns": {
+        "average_word_count": 11.0,
+        "average_vocabulary_richness": 1.0,
+        "average_quality_score": 0.35650000000000004,
+        "word_count_distribution": {
+          "short": 1,
+          "medium": 0,
+          "long": 0
+        }
+      },
+      "common_themes": [
+        "hello",
+        "doing",
+        "well",
+        "thank",
+        "asking"
+      ],
+      "vocabulary_analysis": {
+        "richness_distribution": {
+          "low": 0,
+          "medium": 0,
+          "high": 1
+        },
+        "average_richness": 1.0
+      },
+      "conversation_structures": {
+        "short": 1
+      },
+      "quality_distribution": {
+        "low": 1,
+        "medium": 0,
+        "high": 0
+      },
+      "recommendations": [
+        "Consider enhancing conversation depth - average word count is low",
+        "Excellent vocabulary diversity - maintain current standards",
+        "High percentage of low-quality conversations - review content standards",
+        "Increase sample size for more comprehensive content analysis",
+        "Regular content quality monitoring recommended"
+      ]
+    },
+    "test_search": {
+      "total_conversations_analyzed": 2,
+      "content_patterns": {
+        "average_word_count": 21.5,
+        "average_vocabulary_richness": 0.9782608695652174,
+        "average_quality_score": 0.39572826086956525,
+        "word_count_distribution": {
+          "short": 2,
+          "medium": 0,
+          "long": 0
+        }
+      },
+      "common_themes": [
+        "feeling",
+        "depressed",
+        "lately",
+        "thank",
+        "sharing",
+        "depression",
+        "serious",
+        "condition",
+        "work",
+        "through",
+        "very",
+        "anxious",
+        "about",
+        "upcoming",
+        "presentation"
+      ],
+      "vocabulary_analysis": {
+        "richness_distribution": {
+          "low": 0,
+          "medium": 0,
+          "high": 2
+        },
+        "average_richness": 0.9782608695652174
+      },
+      "conversation_structures": {
+        "short": 2
+      },
+      "quality_distribution": {
+        "low": 1,
+        "medium": 1,
+        "high": 0
+      },
+      "recommendations": [
+        "Consider enhancing conversation depth - average word count is low",
+        "Excellent vocabulary diversity - maintain current standards",
+        "High percentage of low-quality conversations - review content standards",
+        "Increase sample size for more comprehensive content analysis",
+        "Regular content quality monitoring recommended"
+      ]
+    }
+  },
+  "summary_statistics": {
+    "total_conversations_analyzed": 1003,
+    "datasets_analyzed": 3,
+    "average_quality_score": 0.4001303272740371,
+    "top_themes_across_datasets": [
+      "feeling",
+      "work",
+      "thank",
+      "licensed",
+      "psychologist",
+      "please",
+      "provide",
+      "patient",
+      "helpful",
+      "response"
+    ],
+    "analysis_completion_rate": 100.0
+  }
+}
