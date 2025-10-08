@@ -1,0 +1,188 @@
+{
+  "generated_at": "2025-08-12T13:14:25.283255",
+  "summary": {
+    "total_tests": 3,
+    "passed_tests": 2,
+    "failed_tests": 1,
+    "success_rate": 66.66666666666666,
+    "total_duration": 1.143259,
+    "avg_test_duration": 0.3810863333333333
+  },
+  "test_results": [
+    {
+      "test_id": "api_integration_001",
+      "status": "TestStatus.FAILED",
+      "start_time": "2025-08-12 13:14:24.139290",
+      "end_time": "2025-08-12 13:14:24.141527",
+      "duration": 0.002237,
+      "steps_passed": 0,
+      "steps_failed": 1,
+      "error_message": "",
+      "step_results": [
+        {
+          "step_id": "health_check",
+          "description": "Test health endpoint",
+          "success": false,
+          "execution_time": 0.0022225379943847656,
+          "actual_result": {
+            "success": false,
+            "error": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /health (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x7c3714e51b10>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+            "response_time": 0.0
+          },
+          "expected_result": {
+            "success": true
+          }
+        }
+      ],
+      "performance_metrics": {}
+    },
+    {
+      "test_id": "db_integration_001",
+      "status": "TestStatus.PASSED",
+      "start_time": "2025-08-12 13:14:24.141616",
+      "end_time": "2025-08-12 13:14:24.382142",
+      "duration": 0.240526,
+      "steps_passed": 2,
+      "steps_failed": 0,
+      "error_message": "",
+      "step_results": [
+        {
+          "step_id": "db_connection",
+          "description": "Test database connection",
+          "success": true,
+          "execution_time": 0.10008692741394043,
+          "actual_result": {
+            "success": true,
+            "connection_time": 0.10007953643798828,
+            "database_version": "13.0",
+            "active_connections": 5
+          },
+          "expected_result": {
+            "success": true
+          }
+        },
+        {
+          "step_id": "crud_operations",
+          "description": "Test CRUD operations",
+          "success": true,
+          "execution_time": 0.14038348197937012,
+          "actual_result": {
+            "success": true,
+            "operations": {
+              "create": {
+                "success": true,
+                "duration": 0.05007529258728027,
+                "records_created": 1
+              },
+              "read": {
+                "success": true,
+                "duration": 0.03007817268371582,
+                "records_found": 1
+              },
+              "update": {
+                "success": true,
+                "duration": 0.04008674621582031,
+                "records_updated": 1
+              },
+              "delete": {
+                "success": true,
+                "duration": 0.02009725570678711,
+                "records_deleted": 1
+              }
+            },
+            "total_duration": 0.14033746719360352
+          },
+          "expected_result": {
+            "success": true
+          }
+        }
+      ],
+      "performance_metrics": {}
+    },
+    {
+      "test_id": "system_integration_001",
+      "status": "TestStatus.PASSED",
+      "start_time": "2025-08-12 13:14:24.382302",
+      "end_time": "2025-08-12 13:14:25.282798",
+      "duration": 0.900496,
+      "steps_passed": 2,
+      "steps_failed": 0,
+      "error_message": "",
+      "step_results": [
+        {
+          "step_id": "service_dependencies",
+          "description": "Test service dependencies",
+          "success": true,
+          "execution_time": 1.0967254638671875e-05,
+          "actual_result": {
+            "success": true,
+            "services": {
+              "database": {
+                "healthy": true,
+                "response_time": 0.05,
+                "version": "13.0"
+              },
+              "redis": {
+                "healthy": true,
+                "response_time": 0.02,
+                "memory_usage": "45MB"
+              },
+              "elasticsearch": {
+                "healthy": true,
+                "response_time": 0.1,
+                "cluster_status": "green"
+              },
+              "prometheus": {
+                "healthy": true,
+                "response_time": 0.08,
+                "targets_up": 15
+              }
+            },
+            "healthy_count": 4,
+            "total_count": 4
+          },
+          "expected_result": {
+            "success": true
+          }
+        },
+        {
+          "step_id": "end_to_end_workflow",
+          "description": "Test end-to-end workflow",
+          "success": true,
+          "execution_time": 0.9004285335540771,
+          "actual_result": {
+            "success": true,
+            "steps": [
+              {
+                "step": "authentication",
+                "success": true,
+                "duration": 0.1
+              },
+              {
+                "step": "data_retrieval",
+                "success": true,
+                "duration": 0.2
+              },
+              {
+                "step": "ai_processing",
+                "success": true,
+                "duration": 0.5
+              },
+              {
+                "step": "response_generation",
+                "success": true,
+                "duration": 0.1
+              }
+            ],
+            "total_duration": 0.9,
+            "steps_completed": 4
+          },
+          "expected_result": {
+            "success": true
+          }
+        }
+      ],
+      "performance_metrics": {}
+    }
+  ]
+}

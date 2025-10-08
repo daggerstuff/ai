@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  wayfarer-api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - CUDA_VISIBLE_DEVICES=0,1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped

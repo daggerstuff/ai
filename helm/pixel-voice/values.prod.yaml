@@ -1,0 +1,33 @@
+replicaCount: 3
+
+image:
+  pullPolicy: Always
+
+worker:
+  replicaCount: 5
+  resources:
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+
+appConfig:
+  FASTAPI_ENV: "production"
+  LOG_LEVEL: "INFO"
+
+postgresql:
+  auth:
+    existingSecret: "pixel-voice-postgres-secret"
+    secretKeys:
+      adminPasswordKey: postgres-password
+  primary:
+    persistence:
+      size: 100Gi
+
+redis:
+  auth:
+    existingSecret: "pixel-voice-redis-secret"
+    secretKeys:
+      passwordKey: redis-password

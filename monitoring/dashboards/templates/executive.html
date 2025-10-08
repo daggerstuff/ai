@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Executive Dashboard - Pixelated Empathy AI{% endblock %}
+{% block header_title %}Executive Dashboard{% endblock %}
+{% block header_subtitle %}High-level KPIs and Strategic Metrics{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Key Metrics Row -->
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="dashboard-card metric-card">
+            <div class="metric-value text-primary" id="totalConversations">{{ metrics.total_conversations }}</div>
+            <div class="metric-label">Total Conversations</div>
+            <small class="text-success">
+                <i class="fas fa-arrow-up"></i> +{{ metrics.conversations_growth }}% this month
+            </small>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="dashboard-card metric-card">
+            <div class="metric-value text-success" id="avgQualityScore">{{ metrics.avg_quality_score }}%</div>
+            <div class="metric-label">Average Quality Score</div>
+            <small class="text-success">
+                <i class="fas fa-arrow-up"></i> +{{ metrics.quality_improvement }}% improvement
+            </small>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="dashboard-card metric-card">
+            <div class="metric-value text-warning" id="systemUptime">{{ metrics.system_uptime }}%</div>
+            <div class="metric-label">System Uptime</div>
+            <small class="text-muted">Last 30 days</small>
+        </div>
+    </div>
+    
+    <div class="col-lg-3 col-md-6 mb-4">
+        <div class="dashboard-card metric-card">
+            <div class="metric-value text-info" id="activeUsers">{{ metrics.active_users }}</div>
+            <div class="metric-label">Active Users</div>
+            <small class="text-info">
+                <i class="fas fa-users"></i> Currently online
+            </small>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Conversation Trends Chart -->
+    <div class="col-lg-8 mb-4">
+        <div class="dashboard-card">
+            <div class="chart-container">
+                <canvas id="conversationTrendsChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quality Distribution -->
+    <div class="col-lg-4 mb-4">
+        <div class="dashboard-card">
+            <div class="chart-container">
+                <canvas id="qualityDistributionChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- System Performance -->
+    <div class="col-lg-6 mb-4">
+        <div class="dashboard-card">
+            <div class="chart-container">
+                <canvas id="systemPerformanceChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Top Issues -->
+    <div class="col-lg-6 mb-4">
+        <div class="dashboard-card">
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    Top Issues Requiring Attention
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    {% for issue in top_issues %}
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong>{{ issue.title }}</strong>
+                            <br>
+                            <small class="text-muted">{{ issue.description }}</small>
+                        </div>
+                        <span class="badge bg-{{ issue.severity }} rounded-pill">{{ issue.count }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    let conversationTrendsChart, qualityDistributionChart, systemPerformanceChart;
+    
+    function initializeCharts() {
+        // Conversation Trends Chart
+        const trendsCtx = document.getElementById('conversationTrendsChart').getContext('2d');
+        conversationTrendsChart = new Chart(trendsCtx, {
+            type: 'line',
+            data: {
+                labels: {{ trend_labels | safe }},
+                datasets: [{
+                    label: 'Daily Conversations',
+                    data: {{ trend_data | safe }},
+                    borderColor: '#3498db',
+                    backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }]
+            },
+            options: {
+                plugins: {
+                    title: {
+                        text: 'Conversation Volume Trends (Last 30 Days)'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+        
+        // Quality Distribution Chart
+        const qualityCtx = document.getElementById('qualityDistributionChart').getContext('2d');
+        qualityDistributionChart = new Chart(qualityCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Excellent', 'Good', 'Fair', 'Poor'],
+                datasets: [{
+                    data: {{ quality_distribution | safe }},
+                    backgroundColor: ['#27ae60', '#3498db', '#f39c12', '#e74c3c']
+                }]
+            },
+            options: {
+                plugins: {
+                    title: {
+                        text: 'Quality Score Distribution'
+                    }
+                }
+            }
+        });
+        
+        // System Performance Chart
+        const performanceCtx = document.getElementById('systemPerformanceChart').getContext('2d');
+        systemPerformanceChart = new Chart(performanceCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Response Time', 'Throughput', 'Error Rate', 'CPU Usage'],
+                datasets: [{
+                    label: 'Current',
+                    data: {{ performance_current | safe }},
+                    backgroundColor: '#3498db'
+                }, {
+                    label: 'Target',
+                    data: {{ performance_target | safe }},
+                    backgroundColor: '#27ae60'
+                }]
+            },
+            options: {
+                plugins: {
+                    title: {
+                        text: 'System Performance Metrics'
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    }
+    
+    function refreshDashboardData() {
+        fetch('/api/executive-metrics')
+            .then(response => response.json())
+            .then(data => {
+                // Update metric cards
+                document.getElementById('totalConversations').textContent = data.total_conversations;
+                document.getElementById('avgQualityScore').textContent = data.avg_quality_score + '%';
+                document.getElementById('systemUptime').textContent = data.system_uptime + '%';
+                document.getElementById('activeUsers').textContent = data.active_users;
+                
+                // Update charts
+                conversationTrendsChart.data.datasets[0].data = data.trend_data;
+                conversationTrendsChart.update();
+                
+                qualityDistributionChart.data.datasets[0].data = data.quality_distribution;
+                qualityDistributionChart.update();
+                
+                systemPerformanceChart.data.datasets[0].data = data.performance_current;
+                systemPerformanceChart.update();
+                
+                updateLastRefreshTime();
+                hideRefreshIndicator();
+            })
+            .catch(error => {
+                console.error('Error refreshing dashboard:', error);
+                hideRefreshIndicator();
+            });
+    }
+    
+    // Initialize charts when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        initializeCharts();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,57 @@
+{
+  "jsonl": [
+    {
+      "name": "conversation_id",
+      "type": "string",
+      "description": "Unique identifier for the conversation",
+      "required": true,
+      "example": "550e8400-e29b-41d4-a716-446655440000"
+    },
+    {
+      "name": "messages",
+      "type": "array",
+      "description": "Array of conversation messages",
+      "required": true,
+      "example": [
+        {
+          "role": "user",
+          "content": "I'm feeling anxious."
+        },
+        {
+          "role": "assistant",
+          "content": "I understand..."
+        }
+      ]
+    },
+    {
+      "name": "quality_score",
+      "type": "number",
+      "description": "Overall quality score",
+      "required": true,
+      "example": 0.85
+    }
+  ],
+  "csv": [
+    {
+      "name": "conversation_id",
+      "type": "string",
+      "description": "Unique identifier",
+      "required": true,
+      "example": "550e8400-e29b-41d4-a716-446655440000"
+    },
+    {
+      "name": "messages_json",
+      "type": "string",
+      "description": "JSON-encoded messages",
+      "required": true,
+      "example": "[{\"role\": \"user\", \"content\": \"Hello\"}]"
+    },
+    {
+      "name": "quality_score",
+      "type": "number",
+      "description": "Quality score",
+      "required": true,
+      "example": 0.85
+    }
+  ]
+}

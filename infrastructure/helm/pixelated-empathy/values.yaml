@@ -1,0 +1,165 @@
+# Default values for pixelated-empathy
+# This is a YAML-formatted file.
+
+replicaCount: 3
+
+image:
+  repository: pixelated/empathy-ai
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 2000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 8000
+  targetPort: 8000
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: api.pixelated-empathy.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: pixelated-empathy-tls
+      hosts:
+        - api.pixelated-empathy.ai
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 1000m
+    memory: 2Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 100
+      podAffinityTerm:
+        labelSelector:
+          matchExpressions:
+          - key: app.kubernetes.io/name
+            operator: In
+            values:
+            - pixelated-empathy
+        topologyKey: kubernetes.io/hostname
+
+# Database Configuration
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "changeme"
+    database: "pixelated_empathy"
+  primary:
+    persistence:
+      enabled: true
+      size: 100Gi
+    resources:
+      limits:
+        cpu: 2000m
+        memory: 4Gi
+      requests:
+        cpu: 1000m
+        memory: 2Gi
+
+# Redis Configuration
+redis:
+  enabled: true
+  auth:
+    enabled: true
+    password: "changeme"
+  master:
+    persistence:
+      enabled: true
+      size: 20Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+
+# Monitoring Configuration
+monitoring:
+  prometheus:
+    enabled: true
+  grafana:
+    enabled: true
+    adminPassword: "changeme"
+
+# Application Configuration
+app:
+  config:
+    logLevel: "INFO"
+    debug: false
+    maxWorkers: 4
+    batchSize: 100
+    
+  secrets:
+    databaseUrl: ""
+    redisUrl: ""
+    jwtSecret: ""
+    encryptionKey: ""
+
+# Environment-specific overrides
+environment: "production"
+
+# Health checks
+healthCheck:
+  enabled: true
+  path: "/health"
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Backup configuration
+backup:
+  enabled: true
+  schedule: "0 2 * * *"
+  retention: "30d"
+  storage:
+    type: "s3"
+    bucket: "pixelated-empathy-backups"
+    region: "us-west-2"

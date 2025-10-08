@@ -1,0 +1,60 @@
+{
+  "URGENT_ALERT": true,
+  "detection_id": "crisis_test_conv_1_1754852247",
+  "conversation_id": "test_conv_1",
+  "crisis_level": "emergency",
+  "crisis_types": [
+    "suicide_ideation"
+  ],
+  "confidence_score": 1.0,
+  "content_hash": "13d5afa2b391753f",
+  "escalation_required": true,
+  "emergency_contacts": [
+    "911",
+    "supervisor",
+    "crisis_coordinator"
+  ],
+  "response_time_ms": 150.5,
+  "timestamp": "2025-08-10T18:57:27.173695+00:00",
+  "requires_immediate_review": true
+}
+{
+  "URGENT_ALERT": true,
+  "detection_id": "crisis_test_conv_1_1754852263",
+  "conversation_id": "test_conv_1",
+  "crisis_level": "emergency",
+  "crisis_types": [
+    "suicide_ideation"
+  ],
+  "confidence_score": 1.0,
+  "content_hash": "13d5afa2b391753f",
+  "escalation_required": true,
+  "emergency_contacts": [
+    "911",
+    "supervisor",
+    "crisis_coordinator"
+  ],
+  "response_time_ms": 150.5,
+  "timestamp": "2025-08-10T18:57:43.728752+00:00",
+  "requires_immediate_review": true
+}
+{
+  "URGENT_ALERT": true,
+  "detection_id": "crisis_test_conv_1_1754852281",
+  "conversation_id": "test_conv_1",
+  "crisis_level": "emergency",
+  "crisis_types": [
+    "suicide_ideation"
+  ],
+  "confidence_score": 1.0,
+  "content_hash": "13d5afa2b391753f",
+  "escalation_required": true,
+  "emergency_contacts": [
+    "911",
+    "supervisor",
+    "crisis_coordinator"
+  ],
+  "response_time_ms": 150.5,
+  "timestamp": "2025-08-10T18:58:01.302772+00:00",
+  "requires_immediate_review": true
+}

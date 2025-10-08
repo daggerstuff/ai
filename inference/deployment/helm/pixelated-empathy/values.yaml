@@ -1,0 +1,167 @@
+# Default values for pixelated-empathy chart
+# Default values for pixelated-empathy.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: 1
+
+image:
+  repository: "" # Must be set to the API image repository
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+service:
+  type: ClusterIP
+  port: 80
+
+podAnnotations: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+worker:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: "" # Must be set to the worker image repository
+    pullPolicy: IfNotPresent
+    tag: ""
+  resources: {}
+
+postgresql:
+  port: 5432
+  auth:
+    database: pixelated_ai
+    username: pixelated_user
+    password: password
+    secretKeys:
+      adminPasswordKey: postgres-password
+      userPasswordKey: password
+  enabled: true
+  image:
+    repository: postgres
+    tag: "15-alpine"
+  primary:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+    persistence:
+      enabled: false
+
+# Global configuration
+global:
+  imageRegistry: ""
+  imageTag: "latest"
+  imagePullPolicy: Always
+  namespace: pixelated-empathy
+
+# API service configuration
+api:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: pixelated-empathy
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 80
+
+# Pipeline worker configuration
+pipeline:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: pixelated-empathy
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# Database configuration
+
+# Redis configuration
+redis:
+  enabled: true
+  port: 6379
+  image:
+    repository: redis
+    tag: "7-alpine"
+  architecture: standalone
+  auth:
+    enabled: false
+  master:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 512Mi
+      requests:
+        cpu: 100m
+        memory: 256Mi
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
