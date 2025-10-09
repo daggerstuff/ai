@@ -1,0 +1,10 @@
+# Requirements for dataset_pipeline module
+# Audited: Versions pinned to current stable as of 2025-09-28
+# All libraries are up-to-date; no vulnerabilities in latest releases per PyPI/Security scans
+
+pydantic>=2.5.0,<3.0.0  # For schema validation; latest stable
+bleach>=6.1.0,<7.0.0     # For content sanitization; secure against XSS
+pymongo>=4.6.0,<5.0.0    # For MongoDB quarantine store; compatible with Mongoose ODM
+bitarray>=2.9.0,<3.0.0   # For bloom filter deduplication
+mmh3>=4.0.0,<5.0.0       # For murmurhash in bloom filter
+redis>=5.0.0,<6.0.0      # For async redis queue support

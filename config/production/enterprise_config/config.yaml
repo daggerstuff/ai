@@ -1,0 +1,10 @@
+batch_size: 1000
+debug_mode: false
+enable_backup: true
+enable_metrics: true
+enable_real_validation: true
+environment: production
+log_level: INFO
+max_workers: 4
+memory_limit_gb: 8
+quality_threshold: 0.7

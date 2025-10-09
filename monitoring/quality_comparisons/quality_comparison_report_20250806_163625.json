@@ -1,0 +1,472 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-08-06T16:36:25.988495",
+    "analyzer_version": "1.0.0",
+    "total_comparisons": 36,
+    "categories_analyzed": [
+      "tier",
+      "dataset_source"
+    ]
+  },
+  "summary_statistics": {
+    "tier": {
+      "total_comparisons": 18,
+      "significant_comparisons": 6,
+      "significance_rate": 33.33333333333333,
+      "average_percentage_difference": 127.42962751501712,
+      "max_percentage_difference": 1218.6477844642718,
+      "average_effect_size": 2.2810918985981514,
+      "large_effect_count": 6
+    },
+    "dataset_source": {
+      "total_comparisons": 18,
+      "significant_comparisons": 6,
+      "significance_rate": 33.33333333333333,
+      "average_percentage_difference": 8.196119622962094,
+      "max_percentage_difference": 286.6126247879965,
+      "average_effect_size": 2.2816304756136265,
+      "large_effect_count": 6
+    }
+  },
+  "detailed_comparisons": {
+    "tier": [
+      {
+        "category_a": "priority_1",
+        "category_b": "professional",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "professional",
+        "metric": "content_richness",
+        "value_a": 232.12958435207824,
+        "value_b": 68.15931142410015,
+        "difference": -163.9702729279781,
+        "percentage_difference": -70.63738703778456,
+        "statistical_significance": 0.0,
+        "effect_size": 2.3699403653731896,
+        "interpretation": "highly significant difference (lower by 70.6%) with large effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "professional",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_2",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_2",
+        "metric": "content_richness",
+        "value_a": 232.12958435207824,
+        "value_b": 898.78125,
+        "difference": 666.6516656479217,
+        "percentage_difference": 287.189445287073,
+        "statistical_significance": 1.3544613228707681e-164,
+        "effect_size": 4.658277682988103,
+        "interpretation": "highly significant difference (higher by 287.2%) with large effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_2",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_3",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_3",
+        "metric": "content_richness",
+        "value_a": 232.12958435207824,
+        "value_b": 576.6124031007752,
+        "difference": 344.4828187486969,
+        "percentage_difference": 148.40108369220573,
+        "statistical_significance": 8.899639104786448e-121,
+        "effect_size": 2.6977095728009557,
+        "interpretation": "highly significant difference (higher by 148.4%) with large effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_3",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "professional",
+        "category_b": "priority_2",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "professional",
+        "category_b": "priority_2",
+        "metric": "content_richness",
+        "value_a": 68.15931142410015,
+        "value_b": 898.78125,
+        "difference": 830.6219385758999,
+        "percentage_difference": 1218.6477844642718,
+        "statistical_significance": 7.959768970916102e-192,
+        "effect_size": 14.498774461015188,
+        "interpretation": "highly significant difference (higher by 1218.6%) with large effect size"
+      },
+      {
+        "category_a": "professional",
+        "category_b": "priority_2",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "professional",
+        "category_b": "priority_3",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "professional",
+        "category_b": "priority_3",
+        "metric": "content_richness",
+        "value_a": 68.15931142410015,
+        "value_b": 576.6124031007752,
+        "difference": 508.453091676675,
+        "percentage_difference": 745.9774476197148,
+        "statistical_significance": 8.274109977817867e-158,
+        "effect_size": 14.808138414148226,
+        "interpretation": "highly significant difference (higher by 746.0%) with large effect size"
+      },
+      {
+        "category_a": "professional",
+        "category_b": "priority_3",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_2",
+        "category_b": "priority_3",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_2",
+        "category_b": "priority_3",
+        "metric": "content_richness",
+        "value_a": 898.78125,
+        "value_b": 576.6124031007752,
+        "difference": -322.16884689922483,
+        "percentage_difference": -35.84507875517261,
+        "statistical_significance": 2.1347417068657928e-72,
+        "effect_size": 2.026813678441068,
+        "interpretation": "highly significant difference (lower by 35.8%) with large effect size"
+      },
+      {
+        "category_a": "priority_2",
+        "category_b": "priority_3",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      }
+    ],
+    "dataset_source": [
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_2",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_2",
+        "metric": "content_richness",
+        "value_a": 232.47591836734694,
+        "value_b": 898.78125,
+        "difference": 666.3053316326531,
+        "percentage_difference": 286.6126247879965,
+        "statistical_significance": 1.5541630638891343e-164,
+        "effect_size": 4.659485211637254,
+        "interpretation": "highly significant difference (higher by 286.6%) with large effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_2",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_3",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_3",
+        "metric": "content_richness",
+        "value_a": 232.47591836734694,
+        "value_b": 576.6124031007752,
+        "difference": 344.13648473342823,
+        "percentage_difference": 148.03102495529916,
+        "statistical_significance": 1.0348752813247516e-120,
+        "effect_size": 2.6982136323535153,
+        "interpretation": "highly significant difference (higher by 148.0%) with large effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "priority_3",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "professional_psychology",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "professional_psychology",
+        "metric": "content_richness",
+        "value_a": 232.47591836734694,
+        "value_b": 68.17125860989356,
+        "difference": -164.30465975745338,
+        "percentage_difference": -70.67599126453489,
+        "statistical_significance": 0.0,
+        "effect_size": 2.379123194075291,
+        "interpretation": "highly significant difference (lower by 70.7%) with large effect size"
+      },
+      {
+        "category_a": "priority_1",
+        "category_b": "professional_psychology",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_2",
+        "category_b": "priority_3",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_2",
+        "category_b": "priority_3",
+        "metric": "content_richness",
+        "value_a": 898.78125,
+        "value_b": 576.6124031007752,
+        "difference": -322.16884689922483,
+        "percentage_difference": -35.84507875517261,
+        "statistical_significance": 2.1347417068657928e-72,
+        "effect_size": 2.026813678441068,
+        "interpretation": "highly significant difference (lower by 35.8%) with large effect size"
+      },
+      {
+        "category_a": "priority_2",
+        "category_b": "priority_3",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_2",
+        "category_b": "professional_psychology",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_2",
+        "category_b": "professional_psychology",
+        "metric": "content_richness",
+        "value_a": 898.78125,
+        "value_b": 68.17125860989356,
+        "difference": -830.6099913901064,
+        "percentage_difference": -92.4151445515921,
+        "statistical_significance": 8.058194487928266e-192,
+        "effect_size": 14.497417734090073,
+        "interpretation": "highly significant difference (lower by 92.4%) with large effect size"
+      },
+      {
+        "category_a": "priority_2",
+        "category_b": "professional_psychology",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_3",
+        "category_b": "professional_psychology",
+        "metric": "conversation_length",
+        "value_a": 2.0,
+        "value_b": 2.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      },
+      {
+        "category_a": "priority_3",
+        "category_b": "professional_psychology",
+        "metric": "content_richness",
+        "value_a": 576.6124031007752,
+        "value_b": 68.17125860989356,
+        "difference": -508.4411444908816,
+        "percentage_difference": -88.17728195867836,
+        "statistical_significance": 8.342615870850786e-158,
+        "effect_size": 14.808295110448077,
+        "interpretation": "highly significant difference (lower by 88.2%) with large effect size"
+      },
+      {
+        "category_a": "priority_3",
+        "category_b": "professional_psychology",
+        "metric": "processing_efficiency",
+        "value_a": 100.0,
+        "value_b": 100.0,
+        "difference": 0.0,
+        "percentage_difference": 0.0,
+        "statistical_significance": 1.0,
+        "effect_size": 0,
+        "interpretation": "not significant difference (lower by 0.0%) with negligible effect size"
+      }
+    ]
+  },
+  "visualizations": {
+    "dashboard": "monitoring/quality_comparisons/quality_comparison_dashboard.png"
+  }
+}

@@ -1,0 +1,276 @@
+[
+  {
+    "conversation_id": "cbt_depression_positive",
+    "scenario": "CBT for Depression with Positive Prognosis",
+    "therapeutic_approach": {
+      "primary": "cognitive_behavioral_therapy",
+      "secondary": [],
+      "quality_score": 0.4,
+      "rationale": "Classified as cognitive_behavioral_therapy with confidence 0.00. Evidence: technique: automatic negative thoughts about myself. i keep thinking i'm worthless and nothing i do matters. but i'm motivated to work on this and i have good support from my family. i hear that you're experiencing some really difficult automatic thoughts. let's examine the evidence for these thought, cognitive restructur",
+      "mixed_approach": false
+    },
+    "mental_health_condition": {
+      "primary": "major_depressive_disorder",
+      "secondary": [],
+      "severity": "moderate",
+      "quality_score": 1.0,
+      "comorbidity_likelihood": 0.0,
+      "risk_indicators": [
+        "isolation_risk"
+      ],
+      "symptom_markers": {
+        "symptom": [
+          "worthless"
+        ]
+      }
+    },
+    "outcome_prediction": {
+      "predicted_outcome": "minimal_improvement",
+      "confidence_score": 0.40080000000000005,
+      "timeline": "short_term",
+      "contributing_factors": {
+        "engagement_level": 0.08333333333333333,
+        "symptom_severity": 0.18,
+        "therapeutic_alliance": 0.0,
+        "social_support": 0.2
+      },
+      "protective_factors": [
+        "strong_motivation",
+        "good_support"
+      ],
+      "risk_factors": [
+        "social_isolation"
+      ],
+      "recommended_interventions": [
+        "Enhance treatment engagement",
+        "Address barriers to progress",
+        "Consider adjunct interventions",
+        "Strengthen social support network",
+        "Develop coping skills training"
+      ],
+      "rationale": "Predicted outcome: minimal_improvement (confidence: 0.40). Key factors: social_support: 0.20, symptom_severity: 0.18, engagement_level: 0.08"
+    },
+    "analysis_timestamp": "2025-08-09T14:27:01.241965"
+  },
+  {
+    "conversation_id": "dbt_bpd_complex",
+    "scenario": "DBT for Borderline Personality Disorder",
+    "therapeutic_approach": {
+      "primary": "dialectical_behavior_therapy",
+      "secondary": [],
+      "quality_score": 1.0,
+      "rationale": "Classified as dialectical_behavior_therapy with confidence 0.97. Evidence: skill: emotions. one minute i'm fine, the next i'm in a rage or completely empty. i'm terrified of being abandoned and sometimes i hurt myself when the pain gets too intense. it sounds like you're experiencing very intense emotions that feel difficult to manage. let's work on some distress tolerance skills and emotion regulation; technique: mindfulness, radical acceptance",
+      "mixed_approach": false
+    },
+    "mental_health_condition": {
+      "primary": "autism_spectrum_disorder",
+      "secondary": [
+        "major_depressive_disorder",
+        "generalized_anxiety_disorder",
+        "borderline_personality_disorder"
+      ],
+      "severity": "moderate",
+      "quality_score": 1.0,
+      "comorbidity_likelihood": 0.9,
+      "risk_indicators": [
+        "self_harm_risk"
+      ],
+      "symptom_markers": {
+        "behavior": [
+          "overwhelm",
+          "overwhelm"
+        ]
+      }
+    },
+    "outcome_prediction": {
+      "predicted_outcome": "no_change",
+      "confidence_score": 0.5528,
+      "timeline": "short_term",
+      "contributing_factors": {
+        "engagement_level": 0.08333333333333333,
+        "symptom_severity": 0.18,
+        "therapeutic_alliance": 0.0,
+        "social_support": 0.04000000000000001
+      },
+      "protective_factors": [
+        "coping_skills"
+      ],
+      "risk_factors": [
+        "low_social_support"
+      ],
+      "recommended_interventions": [
+        "Intensive intervention needed",
+        "Consider treatment modification",
+        "Increase session frequency",
+        "Strengthen social support network",
+        "Develop coping skills training"
+      ],
+      "rationale": "Predicted outcome: no_change (confidence: 0.55). Key factors: symptom_severity: 0.18, engagement_level: 0.08, social_support: 0.04"
+    },
+    "analysis_timestamp": "2025-08-09T14:27:01.745822"
+  },
+  {
+    "conversation_id": "trauma_ptsd_severe",
+    "scenario": "Trauma-Informed Therapy for PTSD",
+    "therapeutic_approach": {
+      "primary": "trauma_informed_therapy",
+      "secondary": [],
+      "quality_score": 1.0,
+      "rationale": "Classified as trauma_informed_therapy with confidence 0.88. Evidence: concept: trauma can have profound effects on how we experience the world. let's work on some grounding techniques to help you feel more present and safe. we can explore emdr and other trauma-informed; technique: grounding technique",
+      "mixed_approach": false
+    },
+    "mental_health_condition": {
+      "primary": "post_traumatic_stress_disorder",
+      "secondary": [],
+      "severity": "moderate",
+      "quality_score": 1.0,
+      "comorbidity_likelihood": 0.0,
+      "risk_indicators": [],
+      "symptom_markers": {
+        "symptom": [
+          "flashback",
+          "disconnected"
+        ],
+        "trigger": [
+          "accident",
+          "trauma",
+          "trauma"
+        ]
+      }
+    },
+    "outcome_prediction": {
+      "predicted_outcome": "no_change",
+      "confidence_score": 0.5528,
+      "timeline": "short_term",
+      "contributing_factors": {
+        "engagement_level": 0.08333333333333333,
+        "symptom_severity": 0.18,
+        "therapeutic_alliance": 0.0,
+        "social_support": 0.04000000000000001
+      },
+      "protective_factors": [],
+      "risk_factors": [
+        "poor_engagement",
+        "low_social_support"
+      ],
+      "recommended_interventions": [
+        "Intensive intervention needed",
+        "Consider treatment modification",
+        "Increase session frequency",
+        "Strengthen social support network",
+        "Develop coping skills training"
+      ],
+      "rationale": "Predicted outcome: no_change (confidence: 0.55). Key factors: symptom_severity: 0.18, engagement_level: 0.08, social_support: 0.04"
+    },
+    "analysis_timestamp": "2025-08-09T14:27:02.249433"
+  },
+  {
+    "conversation_id": "humanistic_existential",
+    "scenario": "Humanistic Therapy for Existential Concerns",
+    "therapeutic_approach": {
+      "primary": "humanistic_therapy",
+      "secondary": [],
+      "quality_score": 1.0,
+      "rationale": "Classified as humanistic_therapy with confidence 1.00. Evidence: phrase: what i want in life anymore. everything feels meaningless and i feel lost. i have a good job and family, but i feel empty inside. how does that sense of emptiness feel for you right now? what comes up, your experience",
+      "mixed_approach": false
+    },
+    "mental_health_condition": {
+      "primary": "major_depressive_disorder",
+      "secondary": [
+        "borderline_personality_disorder",
+        "generalized_anxiety_disorder"
+      ],
+      "severity": "mild",
+      "quality_score": 1.0,
+      "comorbidity_likelihood": 0.8,
+      "risk_indicators": [],
+      "symptom_markers": {
+        "symptom": [
+          "empty"
+        ]
+      }
+    },
+    "outcome_prediction": {
+      "predicted_outcome": "no_change",
+      "confidence_score": 0.5640000000000001,
+      "timeline": "short_term",
+      "contributing_factors": {
+        "engagement_level": 0.075,
+        "symptom_severity": 0.15,
+        "therapeutic_alliance": 0.0,
+        "social_support": 0.06666666666666667
+      },
+      "protective_factors": [],
+      "risk_factors": [],
+      "recommended_interventions": [
+        "Intensive intervention needed",
+        "Consider treatment modification",
+        "Increase session frequency",
+        "Strengthen social support network",
+        "Develop coping skills training"
+      ],
+      "rationale": "Predicted outcome: no_change (confidence: 0.56). Key factors: symptom_severity: 0.15, engagement_level: 0.07, social_support: 0.07"
+    },
+    "analysis_timestamp": "2025-08-09T14:27:02.752745"
+  },
+  {
+    "conversation_id": "anxiety_panic_moderate",
+    "scenario": "Anxiety Treatment with Moderate Prognosis",
+    "therapeutic_approach": {
+      "primary": "mindfulness_based_therapy",
+      "secondary": [],
+      "quality_score": 1.0,
+      "rationale": "Classified as mindfulness_based_therapy with confidence 0.90. Evidence: technique: breathing exercise",
+      "mixed_approach": false
+    },
+    "mental_health_condition": {
+      "primary": "generalized_anxiety_disorder",
+      "secondary": [
+        "post_traumatic_stress_disorder",
+        "autism_spectrum_disorder",
+        "obsessive_compulsive_disorder",
+        "eating_disorders"
+      ],
+      "severity": "mild",
+      "quality_score": 1.0,
+      "comorbidity_likelihood": 0.9,
+      "risk_indicators": [],
+      "symptom_markers": {
+        "symptom": [
+          "worried",
+          "panic"
+        ],
+        "behavior": [
+          "can't stop thinking about all the things that could go wrong. i avoid go",
+          "avoid"
+        ]
+      }
+    },
+    "outcome_prediction": {
+      "predicted_outcome": "deterioration",
+      "confidence_score": 0.5896,
+      "timeline": "short_term",
+      "contributing_factors": {
+        "engagement_level": 0.075,
+        "symptom_severity": 0.15,
+        "therapeutic_alliance": 0.0,
+        "social_support": 0.04000000000000001
+      },
+      "protective_factors": [
+        "coping_skills"
+      ],
+      "risk_factors": [
+        "low_social_support"
+      ],
+      "recommended_interventions": [
+        "Intensive intervention needed",
+        "Consider treatment modification",
+        "Increase session frequency",
+        "Strengthen social support network",
+        "Develop coping skills training"
+      ],
+      "rationale": "Predicted outcome: deterioration (confidence: 0.59). Key factors: symptom_severity: 0.15, engagement_level: 0.07, social_support: 0.04"
+    },
+    "analysis_timestamp": "2025-08-09T14:27:03.257434"
+  }
+]

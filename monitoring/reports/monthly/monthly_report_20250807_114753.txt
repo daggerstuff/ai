@@ -1,0 +1,2 @@
+Sample monthly_report generated at 2025-08-07 11:47:53.995486
+Configuration: {'frequency': 'monthly', 'day': 1, 'time': '10:00', 'recipients': ['executives@pixelated.ai'], 'sections': ['strategic_overview', 'roi_analysis', 'roadmap_updates'], 'format': 'executive_summary'}

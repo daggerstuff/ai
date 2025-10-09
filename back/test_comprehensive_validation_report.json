@@ -1,0 +1,65 @@
+{
+  "summary": {
+    "dataset_name": "test_dataset",
+    "total_conversations": 2,
+    "validated_conversations": 0,
+    "overall_pass_rate": 0.0,
+    "average_quality_score": 0.6030493086841271,
+    "validation_level_used": "comprehensive"
+  },
+  "quality_analysis": {
+    "quality_score_distribution": {
+      "excellent": 0,
+      "good": 0,
+      "fair": 2,
+      "poor": 0,
+      "very_poor": 0
+    },
+    "quality_by_category": {
+      "mental_health": 0.6030493086841271
+    },
+    "quality_by_tier": {
+      "tier_2_professional": 0.621707708277345,
+      "tier_4_reddit": 0.5843909090909092
+    },
+    "quality_by_source": {
+      "test_dataset": 0.6030493086841271
+    }
+  },
+  "issue_analysis": {
+    "critical_issues_summary": {
+      "Ethical violations": 1
+    },
+    "common_warnings": {
+      "Context breaks detected": 1,
+      "Irrelevant responses": 1,
+      "Grammar issues": 1,
+      "Clarity issues": 1
+    },
+    "recommendation_frequency": {
+      "Consider using more evidence-based interventions appropriate for the presenting concerns": 2,
+      "Incorporate more therapeutic language patterns such as empathic responses and open-ended questions": 2,
+      "Consider incorporating a wider variety of therapeutic techniques": 2,
+      "Improve conversation flow and topic consistency": 2,
+      "Consider comprehensive revision to improve overall quality": 1,
+      "Review therapeutic techniques and professional standards": 1
+    }
+  },
+  "processing_info": {
+    "total_processing_time": 0.00527,
+    "average_processing_time_per_conversation": 0.0019615,
+    "validation_profile_used": "Custom High Standards"
+  },
+  "system_results": {
+    "deduplication_results": {
+      "original_count": 2,
+      "unique_count": 2,
+      "duplicates_removed": 0,
+      "processing_time": 0.000441
+    }
+  },
+  "metadata": {
+    "validation_timestamp": "2025-08-01T14:01:12.058755+00:00",
+    "framework_version": "1.0"
+  }
+}

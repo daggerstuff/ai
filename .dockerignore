@@ -1,0 +1,194 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Documentation
+README.md
+*.md
+docs/
+.notes/
+
+# Development files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing
+.coverage
+.pytest_cache/
+.tox/
+.nox/
+htmlcov/
+.coverage.*
+coverage.xml
+*.cover
+.hypothesis/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# Environments
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Large data files
+datasets/
+data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Model files (too large for container)
+models/
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+*.onnx
+*.pt
+*.pth
+
+# Infrastructure
+infrastructure/
+deployment/
+k8s/
+helm/
+terraform/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+azure-pipelines.yml
+Jenkinsfile
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Monitoring and metrics
+monitoring/
+grafana/
+prometheus/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Archive files
+*.tar
+*.tar.gz
+*.zip
+*.rar
+
+# IDE specific
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Node.js (if any)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Security
+.env.secret
+secrets/
+*.key
+*.pem
+*.crt
+*.p12
+
+# Cache directories
+.cache/
+.npm/
+.yarn/
+
+# Test outputs
+test-results/
+coverage/
+.nyc_output/
+
+# Linting
+.eslintcache
+.stylelintcache
+
+# Package manager locks (keep only uv.lock)
+package-lock.json
+yarn.lock
+Pipfile.lock
+poetry.lock
+
+# Exclude everything in voice_data except essential files
+voice_data/*.log
+voice_data/temp/
+voice_data/cache/

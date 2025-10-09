@@ -1,0 +1,64 @@
+# Development environment values
+environment: "development"
+
+replicaCount: 1
+
+image:
+  tag: "dev-latest"
+  pullPolicy: Always
+
+app:
+  config:
+    logLevel: "DEBUG"
+    debug: true
+    maxWorkers: 2
+    batchSize: 50
+
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+autoscaling:
+  enabled: false
+
+postgresql:
+  primary:
+    persistence:
+      size: 20Gi
+    resources:
+      limits:
+        cpu: 1000m
+        memory: 2Gi
+      requests:
+        cpu: 500m
+        memory: 1Gi
+
+redis:
+  master:
+    persistence:
+      size: 5Gi
+    resources:
+      limits:
+        cpu: 500m
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+
+ingress:
+  hosts:
+    - host: dev-api.pixelated-empathy.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: pixelated-empathy-dev-tls
+      hosts:
+        - dev-api.pixelated-empathy.ai
+
+backup:
+  enabled: false

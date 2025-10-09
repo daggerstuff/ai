@@ -1,0 +1,208 @@
+name: Container Build and Push
+
+on:
+  push:
+    branches: [ main, develop, 'release/*' ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  REGISTRY_TYPE: docker-hub
+  PROJECT_NAME: pixelated-empathy
+  IMAGE_NAME: pixelated/empathy-ai
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        include:
+          - registry: docker-hub
+            registry_url: docker.io
+          - registry: ghcr
+            registry_url: ghcr.io
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Generate metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: |
+          ${{ matrix.registry_url }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=semver,pattern={{major}}
+          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=dev-{{date 'YYYYMMDD-HHmmss'}},enable={{is_default_branch}}
+        labels: |
+          org.opencontainers.image.title=Pixelated Empathy AI
+          org.opencontainers.image.description=AI-powered empathetic conversation system
+          org.opencontainers.image.vendor=Pixelated Team
+    
+    - name: Login to Docker Hub
+      if: matrix.registry == 'docker-hub'
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    
+    - name: Login to GitHub Container Registry
+      if: matrix.registry == 'ghcr'
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        build-args: |
+          BUILD_DATE=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.created'] }}
+          GIT_COMMIT=${{ github.sha }}
+          GIT_BRANCH=${{ github.ref_name }}
+          VERSION=${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    
+    - name: Generate SBOM
+      if: github.event_name != 'pull_request'
+      uses: anchore/sbom-action@v0
+      with:
+        image: ${{ matrix.registry_url }}/${{ env.IMAGE_NAME }}:${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+        format: spdx-json
+        output-file: sbom.spdx.json
+    
+    - name: Upload SBOM
+      if: github.event_name != 'pull_request'
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-${{ matrix.registry }}
+        path: sbom.spdx.json
+    
+    - name: Run Trivy vulnerability scanner
+      if: github.event_name != 'pull_request'
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ matrix.registry_url }}/${{ env.IMAGE_NAME }}:${{ fromJSON(steps.meta.outputs.json).labels['org.opencontainers.image.version'] }}
+        format: sarif
+        output: trivy-results.sarif
+    
+    - name: Upload Trivy scan results
+      if: github.event_name != 'pull_request'
+      uses: github/codeql-action/upload-sarif@v3
+      with:
+        sarif_file: trivy-results.sarif
+
+  update-helm-charts:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Update Helm chart image tag
+      run: |
+        # Extract version from tag or use commit SHA
+        if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+          VERSION="${{ github.ref_name }}"
+          ENVIRONMENT="prod"
+        else
+          VERSION="dev-$(date +%Y%m%d-%H%M%S)"
+          ENVIRONMENT="dev"
+        fi
+        
+        # Update values files
+        sed -i "s|tag: .*|tag: \"$VERSION\"|" infrastructure/helm/pixelated-empathy/values.yaml
+        sed -i "s|tag: .*|tag: \"$VERSION\"|" infrastructure/helm/pixelated-empathy/values-${ENVIRONMENT}.yaml
+        
+        # Commit changes
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add infrastructure/helm/pixelated-empathy/values*.yaml
+        git commit -m "Update Helm chart image tag to $VERSION" || exit 0
+        git push
+
+  deploy-to-staging:
+    needs: [build-and-push, update-helm-charts]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: '3.12.0'
+    
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: '1.28.0'
+    
+    - name: Configure kubeconfig
+      run: |
+        echo "${{ secrets.KUBECONFIG_STAGING }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+    
+    - name: Deploy to staging
+      run: |
+        export KUBECONFIG=kubeconfig
+        cd infrastructure/helm
+        ./deploy.sh staging upgrade
+
+  deploy-to-production:
+    needs: [build-and-push, update-helm-charts]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    environment: production
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: '3.12.0'
+    
+    - name: Setup kubectl
+      uses: azure/setup-kubectl@v3
+      with:
+        version: '1.28.0'
+    
+    - name: Configure kubeconfig
+      run: |
+        echo "${{ secrets.KUBECONFIG_PRODUCTION }}" | base64 -d > kubeconfig
+        export KUBECONFIG=kubeconfig
+    
+    - name: Deploy to production
+      run: |
+        export KUBECONFIG=kubeconfig
+        cd infrastructure/helm
+        ./deploy.sh prod upgrade
