@@ -1,0 +1,11 @@
+2025-08-02 16:30:11,251 - INFO - 🔍 STARTING MONITORING SETUP
+2025-08-02 16:30:11,255 - INFO - ✅ Prometheus configuration created
+2025-08-02 16:30:11,257 - INFO - ✅ Alert rules created
+2025-08-02 16:30:11,258 - INFO - ✅ Grafana configuration created
+2025-08-02 16:30:11,261 - INFO - ✅ Docker Compose configuration created
+2025-08-02 16:30:11,261 - INFO - Deploying monitoring stack...
+2025-08-02 16:30:12,017 - WARNING - Command failed: docker compose -f monitoring/docker-compose.yml up -d
+2025-08-02 16:30:12,017 - WARNING - Error: open /home/vivi/pixelated/ai/monitoring/monitoring/docker-compose.yml: no such file or directory
+
+2025-08-02 16:30:12,017 - WARNING - Command not found: docker-compose
+2025-08-02 16:30:12,018 - ERROR - ❌ All Docker Compose commands failed

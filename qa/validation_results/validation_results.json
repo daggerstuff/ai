@@ -1,0 +1,80 @@
+[
+  {
+    "validation_id": "val_1756046928",
+    "suite_id": "security_suite",
+    "test_id": "sec_001",
+    "status": "ValidationStatus.FAILED",
+    "execution_time_ms": 3.967761993408203,
+    "result_data": {},
+    "error_details": "HTTPConnectionPool(host='localhost', port=8000): Max retries exceeded with url: /api/v1/protected (Caused by NewConnectionError('<urllib3.connection.HTTPConnection object at 0x780227f35a50>: Failed to establish a new connection: [Errno 111] Connection refused'))",
+    "timestamp": "2025-08-24 14:48:48.825872+00:00"
+  },
+  {
+    "validation_id": "val_1756046928",
+    "suite_id": "security_suite",
+    "test_id": "sec_002",
+    "status": "ValidationStatus.PASSED",
+    "execution_time_ms": 31.783342361450195,
+    "result_data": {
+      "total_requests": 20,
+      "blocked_requests": 20,
+      "rate_limiting_active": true
+    },
+    "error_details": null,
+    "timestamp": "2025-08-24 14:48:48.857698+00:00"
+  },
+  {
+    "validation_id": "val_1756046928",
+    "suite_id": "security_suite",
+    "test_id": "sec_005",
+    "status": "ValidationStatus.PASSED",
+    "execution_time_ms": 0.0016689300537109375,
+    "result_data": {
+      "vulnerabilities": {
+        "critical": 0,
+        "high": 0,
+        "medium": 2,
+        "low": 5,
+        "info": 10
+      },
+      "critical_issues": 0,
+      "scan_completed": true
+    },
+    "error_details": null,
+    "timestamp": "2025-08-24 14:48:48.857724+00:00"
+  },
+  {
+    "validation_id": "val_1756046928",
+    "suite_id": "compliance_suite",
+    "test_id": "comp_001",
+    "status": "ValidationStatus.PASSED",
+    "execution_time_ms": 0.009059906005859375,
+    "result_data": {
+      "compliance_checks": {
+        "phi_detection": true,
+        "encryption_at_rest": true,
+        "encryption_in_transit": true,
+        "access_controls": true,
+        "audit_logging": true,
+        "business_associate_agreements": true,
+        "risk_assessment": true,
+        "workforce_training": true
+      },
+      "compliance_score": 100.0,
+      "passed_checks": 8,
+      "total_checks": 8
+    },
+    "error_details": null,
+    "timestamp": "2025-08-24 14:48:48.858771+00:00"
+  },
+  {
+    "validation_id": "val_1756046928",
+    "suite_id": "performance_suite",
+    "test_id": "perf_001",
+    "status": "ValidationStatus.FAILED",
+    "execution_time_ms": 64.35799598693848,
+    "result_data": {},
+    "error_details": "No successful requests completed",
+    "timestamp": "2025-08-24 14:48:48.923941+00:00"
+  }
+]

@@ -1,0 +1,63 @@
+{
+  "report_metadata": {
+    "generated_at": "2025-08-06T19:46:13.778004",
+    "analyzer_version": "1.0.0",
+    "analysis_type": "tier_distribution"
+  },
+  "analysis_results": {
+    "total_conversations": 137855,
+    "tier_distribution": {
+      "cot_reasoning": {
+        "conversation_count": 64559,
+        "percentage": 46.83109063871459,
+        "avg_word_count": 532.636936755526,
+        "avg_turn_count": 2.0
+      },
+      "priority_1": {
+        "conversation_count": 1227,
+        "percentage": 0.8900656486888398,
+        "avg_word_count": 90.82530612244898,
+        "avg_turn_count": 2.0
+      },
+      "priority_2": {
+        "conversation_count": 320,
+        "percentage": 0.23212796053824672,
+        "avg_word_count": 898.78125,
+        "avg_turn_count": 2.0
+      },
+      "priority_3": {
+        "conversation_count": 258,
+        "percentage": 0.1871531681839614,
+        "avg_word_count": 576.6124031007752,
+        "avg_turn_count": 2.0
+      },
+      "professional": {
+        "conversation_count": 18245,
+        "percentage": 13.234920750063473,
+        "avg_word_count": 88.64869243612969,
+        "avg_turn_count": 8.4674
+      },
+      "research": {
+        "conversation_count": 53246,
+        "percentage": 38.62464183381089,
+        "avg_word_count": 115.74048754836043,
+        "avg_turn_count": 2.0
+      }
+    },
+    "optimization_recommendations": [
+      "Tier 'priority_3' is underrepresented with 0.2% - consider expansion",
+      "Tier 'cot_reasoning' has high word count (532.6) - monitor for verbosity",
+      "Tier 'priority_2' has high word count (898.8) - monitor for verbosity",
+      "Tier 'priority_3' has high word count (576.6) - monitor for verbosity"
+    ],
+    "quality_insights": [
+      "System contains 6 distinct tiers",
+      "Average conversation length: 383.9 words, 3.1 turns",
+      "Richest content tier: 'priority_2' with 898.8 words average",
+      "Largest tier: 'cot_reasoning' with 64,559 conversations (46.8%)"
+    ]
+  },
+  "visualizations": {
+    "dashboard": "monitoring/tier_optimization/tier_distribution_simple_dashboard.png"
+  }
+}

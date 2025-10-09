@@ -1,0 +1,164 @@
+{
+  "metric_definition": {
+    "id": "safety_score",
+    "name": "Safety Score",
+    "description": "Assessment of conversation safety including risk factors and harmful content detection",
+    "detailed_description": "The Safety Score evaluates the conversation for potential safety risks, harmful\n            content, inappropriate responses, and risk factors that could negatively impact\n            users. This includes assessment of suicide risk, self-harm indicators, substance\n            abuse references, and other safety-critical content that requires careful handling.",
+    "category": "safety",
+    "importance_weight": 0.3,
+    "reliability_score": 0.95
+  },
+  "calculation": {
+    "method": "Multi-layered safety assessment including content analysis, risk detection, and harm potential evaluation",
+    "formula": "safety_score = 1.0 - (risk_factors \u00d7 severity_weights)",
+    "dependencies": [
+      "risk_factor_detection",
+      "harm_potential_assessment",
+      "content_safety_analysis"
+    ],
+    "validation_method": "Safety expert review and automated risk detection validation"
+  },
+  "value_range": {
+    "minimum": 0.0,
+    "maximum": 1.0,
+    "optimal_range": {
+      "min": 0.9,
+      "max": 1.0
+    },
+    "data_type": "float",
+    "unit": "score"
+  },
+  "interpretation": {
+    "guide": {
+      "very_safe": "0.9-1.0: Very safe, no significant concerns",
+      "safe": "0.8-0.9: Safe with minor considerations",
+      "moderate_risk": "0.6-0.8: Moderate risk, review recommended",
+      "high_risk": "0.4-0.6: High risk, professional review required",
+      "critical_risk": "0.0-0.4: Critical risk, immediate intervention needed"
+    },
+    "examples": [
+      {
+        "score": 0.98,
+        "interpretation": "Very safe conversation with no identified risks",
+        "context": "Conversation with appropriate therapeutic content and no safety concerns"
+      },
+      {
+        "score": 0.65,
+        "interpretation": "Moderate safety concerns requiring review",
+        "context": "Conversation with some risk factors that need professional assessment"
+      },
+      {
+        "score": 0.25,
+        "interpretation": "Significant safety concerns, immediate review required",
+        "context": "Conversation with high-risk content requiring immediate attention"
+      }
+    ],
+    "quality_indicators": {}
+  },
+  "relationships": {
+    "related_metrics": [
+      "clinical_compliance",
+      "overall_quality"
+    ],
+    "calculation_dependencies": [
+      "risk_factor_detection",
+      "harm_potential_assessment",
+      "content_safety_analysis"
+    ]
+  },
+  "benchmarks": [
+    {
+      "benchmark_name": "General Dataset Safety Score",
+      "description": "Safety score benchmarks for general dataset",
+      "values": {
+        "p10": 0.75,
+        "p25": 0.88,
+        "p50": 0.94,
+        "p75": 0.98,
+        "p90": 0.99,
+        "mean": 0.92,
+        "std": 0.11
+      },
+      "sample_size": 137855,
+      "confidence_interval": [
+        0.91,
+        0.93
+      ],
+      "methodology": "Automated safety assessment with expert validation"
+    }
+  ],
+  "usage_guidelines": {
+    "recommended_use_cases": [
+      "Safety-critical application filtering",
+      "Risk assessment and mitigation",
+      "Content moderation and review",
+      "Compliance verification"
+    ],
+    "filtering_recommendations": {
+      "safe_for_all_uses": ">= 0.9",
+      "safe_with_review": ">= 0.7",
+      "requires_expert_review": "< 0.7"
+    },
+    "interpretation_best_practices": [
+      "Consider Safety Score in context with related metrics",
+      "Use benchmarks appropriate to your dataset context",
+      "Account for reliability score (0.95) in decision making",
+      "Validate interpretations against domain expertise"
+    ],
+    "common_pitfalls": [
+      "Using Safety Score in isolation without considering related metrics",
+      "Applying inappropriate thresholds without domain context",
+      "Ignoring confidence intervals and reliability scores",
+      "Over-relying on automated assessments without human validation"
+    ],
+    "quality_thresholds": {}
+  },
+  "quality_assessment_framework": {
+    "assessment_levels": {
+      "very_safe": {
+        "range": "0.9-1.0",
+        "description": "Very safe, no significant concerns",
+        "recommended_action": "Approved for all uses"
+      },
+      "safe": {
+        "range": "0.8-0.9",
+        "description": "Safe with minor considerations",
+        "recommended_action": "Approved for most uses"
+      },
+      "moderate_risk": {
+        "range": "0.6-0.8",
+        "description": "Moderate risk, review recommended",
+        "recommended_action": "Requires review"
+      },
+      "high_risk": {
+        "range": "0.4-0.6",
+        "description": "High risk, professional review required",
+        "recommended_action": "Expert review required"
+      },
+      "critical_risk": {
+        "range": "0.0-0.4",
+        "description": "Critical risk, immediate intervention needed",
+        "recommended_action": "Immediate intervention needed"
+      }
+    },
+    "decision_matrix": {
+      "high_score_actions": [
+        "Include in premium training datasets",
+        "Use for model validation",
+        "Consider for benchmark establishment"
+      ],
+      "medium_score_actions": [
+        "Include with quality review",
+        "Use for general training",
+        "Monitor for quality trends"
+      ],
+      "low_score_actions": [
+        "Exclude from training",
+        "Flag for expert review",
+        "Analyze for improvement opportunities"
+      ]
+    },
+    "improvement_strategies": {},
+    "monitoring_recommendations": {}
+  }
+}

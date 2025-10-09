@@ -1,0 +1,1 @@
+{"timestamp": "2025-08-11T06:18:04.016806", "level": "INFO", "category": "application", "message": "Database query completed", "logger": "pixelated.performance", "module": "logging_system", "function": "log_performance_event", "line": 436, "thread_id": 129292809226048, "process_id": 486948, "extra": {"duration": 0.045, "query": "SELECT * FROM users"}}

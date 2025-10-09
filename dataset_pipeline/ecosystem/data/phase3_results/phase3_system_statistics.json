@@ -1,0 +1,34 @@
+{
+  "total_analyses": 5,
+  "disorder_distribution": {
+    "major_depressive_disorder": 2,
+    "generalized_anxiety_disorder": 1,
+    "post_traumatic_stress_disorder": 1,
+    "autism_spectrum_disorder": 1
+  },
+  "integration_confidence": {
+    "average": 0.5823662646399177,
+    "individual_scores": [
+      0.6106568912349292,
+      0.685267684220679,
+      0.632757407713989,
+      0.3791582904663923,
+      0.6039910495635993
+    ]
+  },
+  "component_confidences": {
+    "multimodal": 0.448295947503201,
+    "modma": 0.753669513083219,
+    "emotion": 0.5451333333333332
+  },
+  "risk_distribution": {
+    "low": 5
+  },
+  "priority_distribution": {
+    "routine": 5
+  },
+  "cross_modal_consistency": {
+    "average": 0.9928397100818751,
+    "high_consistency_cases": 5
+  }
+}

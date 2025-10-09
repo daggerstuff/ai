@@ -1,0 +1,205 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pixel-voice-api"
+version = "1.0.0"
+description = "API and MCP server for Pixel Voice processing pipeline"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Pixel Voice Team"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.9"
+dependencies = [
+    # Core FastAPI and async support
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "websockets>=12.0",
+    "python-multipart>=0.0.6",
+    
+    # Pydantic for data validation and settings
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    
+    # MCP (Model Context Protocol) server
+    "mcp>=1.0.0",
+    
+    # HTTP client for API interactions
+    "httpx>=0.25.0",
+    "aiohttp>=3.9.0",
+    
+    # JSON and data handling
+    "orjson>=3.9.0",
+    
+    # Logging and monitoring
+    "structlog>=23.2.0",
+    
+    # Environment and configuration
+    "python-dotenv>=1.0.0",
+    
+    # Voice processing pipeline dependencies
+    "yt-dlp",
+    "whisperx",
+    "librosa",
+    "pydub",
+    "webrtcvad",
+    "langdetect",
+    "torch",
+    "torchaudio",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-mock>=3.12.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.5.0",
+    "pre-commit>=3.0.0",
+]
+production = [
+    # Database and caching
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.12.0",
+    "asyncpg>=0.29.0",
+    "redis>=5.0.0",
+    "aioredis>=2.0.0",
+
+    # Rate limiting and security
+    "slowapi>=0.1.9",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-multipart>=0.0.6",
+
+    # Monitoring and metrics
+    "prometheus-client>=0.19.0",
+    "prometheus-fastapi-instrumentator>=6.1.0",
+
+    # Email and notifications
+    "fastapi-mail>=1.4.1",
+    "celery>=5.3.0",
+
+    # Enhanced logging
+    "structlog>=23.2.0",
+    "python-json-logger>=2.0.7",
+
+    # File handling and storage
+    "boto3>=1.34.0",
+    "minio>=7.2.0",
+]
+database = [
+    "sqlalchemy>=2.0.0",
+    "aiosqlite>=0.19.0",
+]
+redis = [
+    "redis>=5.0.0",
+    "aioredis>=2.0.0",
+]
+monitoring = [
+    "prometheus-client>=0.19.0",
+    "grafana-api>=1.0.3",
+]
+kubernetes = [
+    "kubernetes>=28.1.0",
+    "kopf>=1.37.0",
+]
+
+[project.scripts]
+pixel-voice-api = "pixel_voice.start_api:main"
+pixel-voice-mcp = "pixel_voice.start_mcp:main"
+
+[project.urls]
+Homepage = "https://github.com/your-org/pixel-voice"
+Documentation = "https://github.com/your-org/pixel-voice/blob/main/README.md"
+Repository = "https://github.com/your-org/pixel-voice.git"
+Issues = "https://github.com/your-org/pixel-voice/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pixel_voice"]
+
+[tool.black]
+line-length = 100
+target-version = ['py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = [
+    "whisperx.*",
+    "yt_dlp.*",
+    "librosa.*",
+    "pydub.*",
+    "webrtcvad.*",
+    "langdetect.*",
+    "mcp.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers"
+testpaths = [
+    "tests",
+]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["pixel_voice"]
+omit = [
+    "*/tests/*",
+    "*/examples/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

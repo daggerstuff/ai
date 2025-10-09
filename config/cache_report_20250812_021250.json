@@ -1,0 +1,59 @@
+{
+  "generated_at": "2025-08-12T02:12:50.355783",
+  "total_caches": 2,
+  "cache_patterns": {
+    "user_cache": "cache_aside",
+    "session_cache": "write_through"
+  },
+  "cache_statistics": {
+    "user_cache": {
+      "l1_memory": {
+        "hits": 2,
+        "misses": 4,
+        "evictions": 0,
+        "size": 5,
+        "max_size": 100,
+        "hit_rate": 33.33333333333333,
+        "avg_access_time": 3.814697265625e-06,
+        "memory_usage": 564
+      },
+      "l2_redis": {
+        "hits": 0,
+        "misses": 4,
+        "evictions": 0,
+        "size": 5,
+        "max_size": 0,
+        "hit_rate": 0.0,
+        "avg_access_time": 0.0,
+        "memory_usage": 0
+      }
+    },
+    "session_cache": {
+      "l1_memory": {
+        "hits": 0,
+        "misses": 0,
+        "evictions": 0,
+        "size": 0,
+        "max_size": 100,
+        "hit_rate": 0.0,
+        "avg_access_time": 0.0,
+        "memory_usage": 0
+      },
+      "l2_redis": {
+        "hits": 0,
+        "misses": 0,
+        "evictions": 0,
+        "size": 0,
+        "max_size": 0,
+        "hit_rate": 0.0,
+        "avg_access_time": 0.0,
+        "memory_usage": 0
+      }
+    }
+  },
+  "performance_summary": {
+    "overall_hit_rate": 20.0,
+    "total_requests": 10,
+    "avg_access_time": 3.814697265625e-06
+  }
+}
