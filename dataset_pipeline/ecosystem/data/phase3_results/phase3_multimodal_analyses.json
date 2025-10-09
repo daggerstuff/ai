@@ -1,0 +1,401 @@
+[
+  {
+    "conversation_id": "multimodal_depression_complex",
+    "scenario": "Complex Depression with Multi-Modal Indicators",
+    "multimodal_analysis": {
+      "overall_confidence": 0.4127774647887324,
+      "emotion_text_alignment": 0.22535211267605632,
+      "audio_emotion": "sadness",
+      "audio_intensity": "high",
+      "therapeutic_insights": [
+        "Potential emotional incongruence - client may be masking feelings",
+        "High emotional intensity requires immediate attention"
+      ],
+      "intervention_recommendations": [
+        "Explore discrepancy between expressed and felt emotions"
+      ]
+    },
+    "modma_analysis": {
+      "primary_disorder": "major_depressive_disorder",
+      "disorder_confidence": 0.755193208916055,
+      "analysis_confidence": "very_high",
+      "cross_modal_consistency": 0.9885265639464723,
+      "modality_contributions": {
+        "text": 0.2,
+        "audio": 0.4,
+        "behavioral": 0.1,
+        "physiological": 0.0,
+        "temporal": 0.3
+      },
+      "treatment_recommendations": [
+        "Immediate crisis intervention protocols",
+        "Cognitive restructuring and organization skills",
+        "Social skills training and support group participation",
+        "Explore discrepancy between expressed and felt emotions"
+      ]
+    },
+    "emotion_cause_analysis": {
+      "analysis_confidence": 0.6639999999999999,
+      "identified_emotions": [
+        "anger",
+        "hopelessness"
+      ],
+      "emotion_causes": 1,
+      "intervention_mappings": 1,
+      "therapeutic_focus_areas": [
+        "cognitive_restructuring",
+        "emotion_regulation"
+      ],
+      "treatment_sequence": [
+        "Short-term: cognitive_restructuring"
+      ]
+    },
+    "integrated_analysis": {
+      "consensus_disorder": "major_depressive_disorder",
+      "integration_confidence": 0.6106568912349292,
+      "risk_assessment": {
+        "level": "low",
+        "indicators": [],
+        "indicator_count": 0
+      },
+      "treatment_priority": "routine",
+      "key_insights": [
+        "Significant emotional incongruence detected between audio and text",
+        "High cross-modal consistency supports diagnostic confidence"
+      ],
+      "integrated_recommendations": [
+        "Immediate crisis intervention protocols",
+        "Social skills training and support group participation",
+        "emotion_regulation",
+        "Explore discrepancy between expressed and felt emotions",
+        "Cognitive restructuring and organization skills"
+      ],
+      "analysis_convergence": {
+        "multimodal_confidence": 0.4127774647887324,
+        "modma_confidence": 0.755193208916055,
+        "emotion_confidence": 0.6639999999999999,
+        "cross_modal_consistency": 0.9885265639464723
+      }
+    },
+    "analysis_timestamp": "2025-08-09T15:29:12.353764"
+  },
+  {
+    "conversation_id": "multimodal_anxiety_panic",
+    "scenario": "Anxiety with Panic Features and Audio Cues",
+    "multimodal_analysis": {
+      "overall_confidence": 0.5782666666666667,
+      "emotion_text_alignment": 0.24000000000000002,
+      "audio_emotion": "fear",
+      "audio_intensity": "moderate",
+      "therapeutic_insights": [
+        "Potential emotional incongruence - client may be masking feelings"
+      ],
+      "intervention_recommendations": [
+        "Explore discrepancy between expressed and felt emotions"
+      ]
+    },
+    "modma_analysis": {
+      "primary_disorder": "generalized_anxiety_disorder",
+      "disorder_confidence": 0.7688697193287037,
+      "analysis_confidence": "very_high",
+      "cross_modal_consistency": 0.9891402633101852,
+      "modality_contributions": {
+        "text": 0.25,
+        "audio": 0.35,
+        "behavioral": 0.3,
+        "physiological": 0.0,
+        "temporal": 0.1
+      },
+      "treatment_recommendations": [
+        "Cognitive restructuring and organization skills",
+        "Explore discrepancy between expressed and felt emotions"
+      ]
+    },
+    "emotion_cause_analysis": {
+      "analysis_confidence": 0.7086666666666666,
+      "identified_emotions": [
+        "fear",
+        "anxiety"
+      ],
+      "emotion_causes": 3,
+      "intervention_mappings": 2,
+      "therapeutic_focus_areas": [
+        "cognitive_restructuring",
+        "relaxation_techniques",
+        "mindfulness"
+      ],
+      "treatment_sequence": [
+        "Immediate: cognitive_restructuring"
+      ]
+    },
+    "integrated_analysis": {
+      "consensus_disorder": "generalized_anxiety_disorder",
+      "integration_confidence": 0.685267684220679,
+      "risk_assessment": {
+        "level": "low",
+        "indicators": [],
+        "indicator_count": 0
+      },
+      "treatment_priority": "routine",
+      "key_insights": [
+        "Significant emotional incongruence detected between audio and text",
+        "High cross-modal consistency supports diagnostic confidence",
+        "Complex emotion-cause interactions require integrated treatment approach"
+      ],
+      "integrated_recommendations": [
+        "relaxation_techniques",
+        "Explore discrepancy between expressed and felt emotions",
+        "mindfulness",
+        "Cognitive restructuring and organization skills",
+        "cognitive_restructuring"
+      ],
+      "analysis_convergence": {
+        "multimodal_confidence": 0.5782666666666667,
+        "modma_confidence": 0.7688697193287037,
+        "emotion_confidence": 0.7086666666666666,
+        "cross_modal_consistency": 0.9891402633101852
+      }
+    },
+    "analysis_timestamp": "2025-08-09T15:29:12.864308"
+  },
+  {
+    "conversation_id": "multimodal_trauma_complex",
+    "scenario": "Complex Trauma with Dissociative Features",
+    "multimodal_analysis": {
+      "overall_confidence": 0.5003151515151515,
+      "emotion_text_alignment": 0.0787878787878788,
+      "audio_emotion": "anger",
+      "audio_intensity": "moderate",
+      "therapeutic_insights": [
+        "Potential emotional incongruence - client may be masking feelings"
+      ],
+      "intervention_recommendations": [
+        "Anger management techniques",
+        "Voice modulation exercises",
+        "Explore discrepancy between expressed and felt emotions"
+      ]
+    },
+    "modma_analysis": {
+      "primary_disorder": "post_traumatic_stress_disorder",
+      "disorder_confidence": 0.7374570716268158,
+      "analysis_confidence": "very_high",
+      "cross_modal_consistency": 0.9957643791131007,
+      "modality_contributions": {
+        "text": 0.35,
+        "audio": 0.25,
+        "behavioral": 0.2,
+        "physiological": 0.0,
+        "temporal": 0.2
+      },
+      "treatment_recommendations": [
+        "Anger management techniques",
+        "Social skills training and support group participation",
+        "Explore discrepancy between expressed and felt emotions",
+        "Cognitive restructuring and organization skills",
+        "Voice modulation exercises"
+      ]
+    },
+    "emotion_cause_analysis": {
+      "analysis_confidence": 0.6605,
+      "identified_emotions": [
+        "anger",
+        "fear"
+      ],
+      "emotion_causes": 1,
+      "intervention_mappings": 1,
+      "therapeutic_focus_areas": [
+        "trauma_processing",
+        "relaxation_techniques",
+        "mindfulness"
+      ],
+      "treatment_sequence": [
+        "Long-term: trauma_processing"
+      ]
+    },
+    "integrated_analysis": {
+      "consensus_disorder": "post_traumatic_stress_disorder",
+      "integration_confidence": 0.632757407713989,
+      "risk_assessment": {
+        "level": "low",
+        "indicators": [],
+        "indicator_count": 0
+      },
+      "treatment_priority": "routine",
+      "key_insights": [
+        "Significant emotional incongruence detected between audio and text",
+        "High cross-modal consistency supports diagnostic confidence"
+      ],
+      "integrated_recommendations": [
+        "relaxation_techniques",
+        "Anger management techniques",
+        "Social skills training and support group participation",
+        "trauma_processing",
+        "Explore discrepancy between expressed and felt emotions"
+      ],
+      "analysis_convergence": {
+        "multimodal_confidence": 0.5003151515151515,
+        "modma_confidence": 0.7374570716268158,
+        "emotion_confidence": 0.6605,
+        "cross_modal_consistency": 0.9957643791131007
+      }
+    },
+    "analysis_timestamp": "2025-08-09T15:29:13.374283"
+  },
+  {
+    "conversation_id": "multimodal_bipolar_mixed",
+    "scenario": "Bipolar Disorder with Mixed Episode Features",
+    "multimodal_analysis": {
+      "overall_confidence": 0.38510000000000005,
+      "emotion_text_alignment": 0.17000000000000007,
+      "audio_emotion": "sadness",
+      "audio_intensity": "moderate",
+      "therapeutic_insights": [
+        "Potential emotional incongruence - client may be masking feelings"
+      ],
+      "intervention_recommendations": [
+        "Explore discrepancy between expressed and felt emotions"
+      ]
+    },
+    "modma_analysis": {
+      "primary_disorder": "major_depressive_disorder",
+      "disorder_confidence": 0.7523748713991769,
+      "analysis_confidence": "very_high",
+      "cross_modal_consistency": 0.9957285236625515,
+      "modality_contributions": {
+        "text": 0.2,
+        "audio": 0.4,
+        "behavioral": 0.1,
+        "physiological": 0.0,
+        "temporal": 0.3
+      },
+      "treatment_recommendations": [
+        "Cognitive restructuring and organization skills",
+        "Social skills training and support group participation",
+        "Explore discrepancy between expressed and felt emotions"
+      ]
+    },
+    "emotion_cause_analysis": {
+      "analysis_confidence": 0.0,
+      "identified_emotions": [
+        "hopelessness"
+      ],
+      "emotion_causes": 0,
+      "intervention_mappings": 0,
+      "therapeutic_focus_areas": [],
+      "treatment_sequence": []
+    },
+    "integrated_analysis": {
+      "consensus_disorder": "major_depressive_disorder",
+      "integration_confidence": 0.3791582904663923,
+      "risk_assessment": {
+        "level": "low",
+        "indicators": [],
+        "indicator_count": 0
+      },
+      "treatment_priority": "routine",
+      "key_insights": [
+        "Significant emotional incongruence detected between audio and text",
+        "High cross-modal consistency supports diagnostic confidence"
+      ],
+      "integrated_recommendations": [
+        "Cognitive restructuring and organization skills",
+        "Social skills training and support group participation",
+        "Explore discrepancy between expressed and felt emotions"
+      ],
+      "analysis_convergence": {
+        "multimodal_confidence": 0.38510000000000005,
+        "modma_confidence": 0.7523748713991769,
+        "emotion_confidence": 0.0,
+        "cross_modal_consistency": 0.9957285236625515
+      }
+    },
+    "analysis_timestamp": "2025-08-09T15:29:13.884635"
+  },
+  {
+    "conversation_id": "multimodal_relationship_conflict",
+    "scenario": "Relationship Conflict with Emotional Dysregulation",
+    "multimodal_analysis": {
+      "overall_confidence": 0.36502045454545456,
+      "emotion_text_alignment": 0.08181818181818183,
+      "audio_emotion": "anger",
+      "audio_intensity": "high",
+      "therapeutic_insights": [
+        "Potential emotional incongruence - client may be masking feelings",
+        "High emotional intensity requires immediate attention"
+      ],
+      "intervention_recommendations": [
+        "Anger management techniques",
+        "Voice modulation exercises",
+        "Explore discrepancy between expressed and felt emotions"
+      ]
+    },
+    "modma_analysis": {
+      "primary_disorder": "autism_spectrum_disorder",
+      "disorder_confidence": 0.7544526941453433,
+      "analysis_confidence": "very_high",
+      "cross_modal_consistency": 0.9950388203770661,
+      "modality_contributions": {
+        "text": 0.35,
+        "audio": 0.25,
+        "behavioral": 0.2,
+        "physiological": 0.0,
+        "temporal": 0.2
+      },
+      "treatment_recommendations": [
+        "Immediate crisis intervention protocols",
+        "Anger management techniques",
+        "Social skills training and support group participation",
+        "Explore discrepancy between expressed and felt emotions",
+        "Cognitive restructuring and organization skills",
+        "Voice modulation exercises"
+      ]
+    },
+    "emotion_cause_analysis": {
+      "analysis_confidence": 0.6925,
+      "identified_emotions": [
+        "anger",
+        "fear",
+        "guilt"
+      ],
+      "emotion_causes": 2,
+      "intervention_mappings": 1,
+      "therapeutic_focus_areas": [
+        "cognitive_restructuring",
+        "problem_solving"
+      ],
+      "treatment_sequence": [
+        "Short-term: cognitive_restructuring"
+      ]
+    },
+    "integrated_analysis": {
+      "consensus_disorder": "autism_spectrum_disorder",
+      "integration_confidence": 0.6039910495635993,
+      "risk_assessment": {
+        "level": "low",
+        "indicators": [
+          "high_anger_intensity"
+        ],
+        "indicator_count": 1
+      },
+      "treatment_priority": "routine",
+      "key_insights": [
+        "Significant emotional incongruence detected between audio and text",
+        "High cross-modal consistency supports diagnostic confidence"
+      ],
+      "integrated_recommendations": [
+        "Immediate crisis intervention protocols",
+        "Anger management techniques",
+        "Social skills training and support group participation",
+        "Explore discrepancy between expressed and felt emotions",
+        "Cognitive restructuring and organization skills"
+      ],
+      "analysis_convergence": {
+        "multimodal_confidence": 0.36502045454545456,
+        "modma_confidence": 0.7544526941453433,
+        "emotion_confidence": 0.6925,
+        "cross_modal_consistency": 0.9950388203770661
+      }
+    },
+    "analysis_timestamp": "2025-08-09T15:29:14.395624"
+  }
+]

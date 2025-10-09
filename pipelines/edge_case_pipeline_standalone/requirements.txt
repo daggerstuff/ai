@@ -1,0 +1,31 @@
+# Edge Case Generation Pipeline Requirements
+
+# Core ML and NLP
+openai>=1.0.0
+anthropic>=0.8.0
+transformers>=4.30.0
+torch>=2.0.0
+
+# Data processing
+pandas>=2.0.0
+numpy>=1.24.0
+datasets>=2.14.0
+
+# Jupyter and visualization
+jupyter>=1.0.0
+ipywidgets>=8.0.0
+tqdm>=4.65.0
+matplotlib>=3.7.0
+seaborn>=0.12.0
+
+# API and requests
+requests>=2.31.0
+httpx>=0.24.0
+
+# Utilities
+python-dateutil>=2.8.2
+pydantic>=2.3.0
+jsonlines>=4.0.0
+
+# Optional: For local models
+# ollama-python>=0.1.0  # Uncomment if using local Ollama 

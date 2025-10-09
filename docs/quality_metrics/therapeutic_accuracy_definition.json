@@ -1,0 +1,135 @@
+{
+  "metric_definition": {
+    "id": "therapeutic_accuracy",
+    "name": "Therapeutic Accuracy",
+    "description": "Assessment of the accuracy and appropriateness of therapeutic techniques and interventions",
+    "detailed_description": "Therapeutic Accuracy measures how well the conversation adheres to evidence-based\n            therapeutic practices and techniques. This metric evaluates the correctness of\n            therapeutic interventions, the appropriateness of techniques used, and the\n            alignment with established therapeutic frameworks such as CBT, DBT, ACT, and others.",
+    "category": "therapeutic",
+    "importance_weight": 0.25,
+    "reliability_score": 0.88
+  },
+  "calculation": {
+    "method": "Multi-factor assessment including technique identification, appropriateness scoring, and evidence-base alignment",
+    "formula": "therapeutic_accuracy = (technique_correctness \u00d7 0.4) + (appropriateness \u00d7 0.3) + (evidence_alignment \u00d7 0.3)",
+    "dependencies": [
+      "technique_identification",
+      "appropriateness_assessment",
+      "evidence_base_alignment"
+    ],
+    "validation_method": "Expert therapist validation and literature cross-reference"
+  },
+  "value_range": {
+    "minimum": 0.0,
+    "maximum": 1.0,
+    "optimal_range": {
+      "min": 0.8,
+      "max": 1.0
+    },
+    "data_type": "float",
+    "unit": "score"
+  },
+  "interpretation": {
+    "guide": {
+      "expert_level": "0.9-1.0: Expert-level therapeutic accuracy",
+      "proficient": "0.8-0.9: Proficient therapeutic application",
+      "competent": "0.7-0.8: Competent with minor issues",
+      "developing": "0.5-0.7: Developing therapeutic skills",
+      "inadequate": "0.0-0.5: Inadequate therapeutic accuracy"
+    },
+    "examples": [
+      {
+        "score": 0.92,
+        "interpretation": "Excellent therapeutic accuracy with proper CBT technique application",
+        "context": "Conversation demonstrating expert-level cognitive restructuring techniques"
+      },
+      {
+        "score": 0.68,
+        "interpretation": "Good therapeutic approach with minor technique refinements needed",
+        "context": "Solid therapeutic foundation with some areas for improvement"
+      }
+    ],
+    "quality_indicators": {}
+  },
+  "relationships": {
+    "related_metrics": [
+      "clinical_compliance",
+      "overall_quality"
+    ],
+    "calculation_dependencies": [
+      "technique_identification",
+      "appropriateness_assessment",
+      "evidence_base_alignment"
+    ]
+  },
+  "benchmarks": [],
+  "usage_guidelines": {
+    "recommended_use_cases": [
+      "Therapeutic AI training data selection",
+      "Clinical accuracy assessment",
+      "Professional development evaluation",
+      "Evidence-based practice validation"
+    ],
+    "filtering_recommendations": {},
+    "interpretation_best_practices": [
+      "Consider Therapeutic Accuracy in context with related metrics",
+      "Use benchmarks appropriate to your dataset context",
+      "Account for reliability score (0.88) in decision making",
+      "Validate interpretations against domain expertise"
+    ],
+    "common_pitfalls": [
+      "Using Therapeutic Accuracy in isolation without considering related metrics",
+      "Applying inappropriate thresholds without domain context",
+      "Ignoring confidence intervals and reliability scores",
+      "Over-relying on automated assessments without human validation"
+    ],
+    "quality_thresholds": {}
+  },
+  "quality_assessment_framework": {
+    "assessment_levels": {
+      "expert_level": {
+        "range": "0.9-1.0",
+        "description": "Expert-level therapeutic accuracy",
+        "recommended_action": "Use for advanced training"
+      },
+      "proficient": {
+        "range": "0.8-0.9",
+        "description": "Proficient therapeutic application",
+        "recommended_action": "Use for standard training"
+      },
+      "competent": {
+        "range": "0.7-0.8",
+        "description": "Competent with minor issues",
+        "recommended_action": "Use with supervision"
+      },
+      "developing": {
+        "range": "0.5-0.7",
+        "description": "Developing therapeutic skills",
+        "recommended_action": "Additional training needed"
+      },
+      "inadequate": {
+        "range": "0.0-0.5",
+        "description": "Inadequate therapeutic accuracy",
+        "recommended_action": "Not suitable for training"
+      }
+    },
+    "decision_matrix": {
+      "high_score_actions": [
+        "Include in premium training datasets",
+        "Use for model validation",
+        "Consider for benchmark establishment"
+      ],
+      "medium_score_actions": [
+        "Include with quality review",
+        "Use for general training",
+        "Monitor for quality trends"
+      ],
+      "low_score_actions": [
+        "Exclude from training",
+        "Flag for expert review",
+        "Analyze for improvement opportunities"
+      ]
+    },
+    "improvement_strategies": {},
+    "monitoring_recommendations": {}
+  }
+}

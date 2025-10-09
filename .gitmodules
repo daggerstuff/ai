@@ -1,0 +1,4 @@
+[submodule "lightning"]
+	path = lightning
+	url = git@git.pixelatedempathy.tech:pixeltech/training.git
+	ignore = all

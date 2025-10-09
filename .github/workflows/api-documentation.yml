@@ -1,0 +1,288 @@
+name: API Documentation Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'docs/api/**'
+      - 'inference/api/**'
+      - '.github/workflows/api-documentation.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'docs/api/**'
+      - 'inference/api/**'
+
+env:
+  SWAGGERHUB_API_KEY: ${{ secrets.SWAGGERHUB_API_KEY }}
+  SWAGGERHUB_ORG: pixelated-empathy-ai
+
+jobs:
+  validate-openapi:
+    name: Validate OpenAPI Specifications
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: |
+          npm install -g @apidevtools/swagger-cli
+          npm install -g @stoplight/spectral-cli
+          npm install -g swaggerhub-cli
+
+      - name: Validate OpenAPI Spec (Original)
+        run: |
+          swagger-cli validate docs/api/openapi.yaml
+          echo "✅ Original OpenAPI spec is valid"
+
+      - name: Validate Enhanced OpenAPI Spec
+        run: |
+          swagger-cli validate docs/api/openapi-enhanced.yaml
+          echo "✅ Enhanced OpenAPI spec is valid"
+
+      - name: Lint OpenAPI Spec with Spectral
+        run: |
+          spectral lint docs/api/openapi-enhanced.yaml \
+            --ruleset https://raw.githubusercontent.com/stoplightio/spectral/develop/packages/rulesets/src/oas/index.ts \
+            --format stylish
+          echo "✅ OpenAPI spec linting completed"
+
+      - name: Generate API Documentation Report
+        run: |
+          mkdir -p reports
+          swagger-cli bundle docs/api/openapi-enhanced.yaml --outfile reports/api-spec-bundled.json --type json
+          echo "✅ API documentation bundled successfully"
+
+      - name: Upload Validation Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-validation-reports
+          path: reports/
+          retention-days: 30
+
+  sync-to-swaggerhub:
+    name: Sync to SwaggerHub
+    runs-on: ubuntu-latest
+    needs: validate-openapi
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install SwaggerHub CLI
+        run: npm install -g swaggerhub-cli
+
+      - name: Authenticate with SwaggerHub
+        run: |
+          swaggerhub configure -a ${{ env.SWAGGERHUB_API_KEY }}
+
+      - name: Get Current Version
+        id: version
+        run: |
+          VERSION=$(grep 'version:' docs/api/openapi-enhanced.yaml | head -1 | sed 's/.*version: //' | tr -d '"' | tr -d "'")
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+          echo "Current API version: $VERSION"
+
+      - name: Create/Update API in SwaggerHub
+        run: |
+          # Try to create the API, if it exists, update it
+          swaggerhub api:create ${{ env.SWAGGERHUB_ORG }}/core-api/${{ steps.version.outputs.VERSION }} \
+            --file docs/api/openapi-enhanced.yaml \
+            --visibility public || \
+          swaggerhub api:update ${{ env.SWAGGERHUB_ORG }}/core-api/${{ steps.version.outputs.VERSION }} \
+            --file docs/api/openapi-enhanced.yaml
+
+          echo "✅ API synced to SwaggerHub successfully"
+
+      - name: Set API as Default Version
+        run: |
+          swaggerhub api:setdefault ${{ env.SWAGGERHUB_ORG }}/core-api/${{ steps.version.outputs.VERSION }}
+          echo "✅ Set as default version in SwaggerHub"
+
+      - name: Generate Mock Server
+        run: |
+          # Create or update mock server
+          swaggerhub api:create:mockserver ${{ env.SWAGGERHUB_ORG }}/core-api/${{ steps.version.outputs.VERSION }} || true
+          echo "✅ Mock server created/updated"
+
+  generate-client-sdks:
+    name: Generate Client SDKs
+    runs-on: ubuntu-latest
+    needs: validate-openapi
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+
+    strategy:
+      matrix:
+        language: [python, javascript, typescript-axios]
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install OpenAPI Generator
+        run: |
+          npm install -g @openapitools/openapi-generator-cli
+          openapi-generator-cli version-manager set 7.0.1
+
+      - name: Generate Client SDK
+        run: |
+          mkdir -p sdks/${{ matrix.language }}
+
+          openapi-generator-cli generate \
+            -i docs/api/openapi-enhanced.yaml \
+            -g ${{ matrix.language }} \
+            -o sdks/${{ matrix.language }} \
+            --additional-properties=packageName=pixelated-empathy-ai-client,projectName=pixelated-empathy-ai-client
+
+          echo "✅ ${{ matrix.language }} SDK generated successfully"
+
+      - name: Upload SDK Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdk-${{ matrix.language }}
+          path: sdks/${{ matrix.language }}/
+          retention-days: 30
+
+  contract-testing:
+    name: API Contract Testing
+    runs-on: ubuntu-latest
+    needs: validate-openapi
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install Testing Tools
+        run: |
+          npm install -g dredd
+          npm install -g postman-to-openapi
+          npm install -g newman
+
+      - name: Setup Python Environment
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install uv
+          uv sync --dev
+
+      - name: Start Test API Server
+        run: |
+          cd inference/api
+          uv run uvicorn main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
+          curl -f http://localhost:8000/health || exit 1
+          echo "✅ Test API server started successfully"
+
+      - name: Run Contract Tests with Dredd
+        run: |
+          # Create hooks file for authentication
+          cat > dredd-hooks.js << 'EOF'
+          const hooks = require('hooks');
+
+          hooks.beforeEach((transaction) => {
+            if (transaction.name !== 'Core > Health Check') {
+              transaction.request.headers['Authorization'] = 'Bearer test-api-key';
+            }
+          });
+          EOF
+
+          dredd docs/api/openapi-enhanced.yaml http://localhost:8000 \
+            --hookfiles=dredd-hooks.js \
+            --reporter=junit \
+            --output=reports/contract-tests.xml
+
+          echo "✅ Contract testing completed"
+
+      - name: Upload Contract Test Results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: contract-test-results
+          path: reports/contract-tests.xml
+          retention-days: 30
+
+  notify-team:
+    name: Notify Team
+    runs-on: ubuntu-latest
+    needs: [validate-openapi, sync-to-swaggerhub, generate-client-sdks, contract-testing]
+    if: always() && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Send Slack Notification
+        if: env.SLACK_WEBHOOK_URL != ''
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          channel: '#api-updates'
+          text: |
+            API Documentation Pipeline Results:
+
+            🔍 Validation: ${{ needs.validate-openapi.result }}
+            📤 SwaggerHub Sync: ${{ needs.sync-to-swaggerhub.result }}
+            📦 SDK Generation: ${{ needs.generate-client-sdks.result }}
+            🧪 Contract Testing: ${{ needs.contract-testing.result }}
+
+            🔗 SwaggerHub: https://app.swaggerhub.com/apis/${{ env.SWAGGERHUB_ORG }}/core-api
+            📊 Workflow: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Create GitHub Release
+        if: needs.validate-openapi.result == 'success' && needs.sync-to-swaggerhub.result == 'success'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: api-v${{ github.run_number }}
+          release_name: API Documentation v${{ github.run_number }}
+          body: |
+            ## API Documentation Release
+
+            ### Changes
+            - Updated OpenAPI specifications
+            - Synced to SwaggerHub
+            - Generated client SDKs
+            - Validated contract compliance
+
+            ### Resources
+            - [SwaggerHub API](https://app.swaggerhub.com/apis/${{ env.SWAGGERHUB_ORG }}/core-api)
+            - [API Documentation](docs/api/openapi-enhanced.yaml)
+            - [Integration Plan](docs/swaggerhub-integration-plan.md)
+
+            ### Artifacts
+            - Client SDKs (Python, JavaScript, TypeScript)
+            - Validation reports
+            - Contract test results
+          draft: false
+          prerelease: false

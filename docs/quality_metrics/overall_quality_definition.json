@@ -1,0 +1,194 @@
+{
+  "metric_definition": {
+    "id": "overall_quality",
+    "name": "Overall Quality Score",
+    "description": "Comprehensive assessment of conversation quality across all dimensions",
+    "detailed_description": "The Overall Quality Score represents a weighted composite of all individual quality metrics,\n            providing a single numerical assessment of conversation quality. This metric combines\n            therapeutic accuracy, clinical compliance, safety, coherence, and emotional authenticity\n            into a unified score that reflects the overall suitability of the conversation for\n            therapeutic AI training and deployment.",
+    "category": "composite",
+    "importance_weight": 1.0,
+    "reliability_score": 0.92
+  },
+  "calculation": {
+    "method": "Weighted average of component metrics with dynamic weighting based on conversation context",
+    "formula": "overall_quality = \u03a3(weight_i \u00d7 metric_i) / \u03a3(weight_i)",
+    "dependencies": [
+      "therapeutic_accuracy",
+      "clinical_compliance",
+      "safety_score",
+      "conversation_coherence",
+      "emotional_authenticity"
+    ],
+    "validation_method": "Cross-validation with human expert ratings"
+  },
+  "value_range": {
+    "minimum": 0.0,
+    "maximum": 1.0,
+    "optimal_range": {
+      "min": 0.8,
+      "max": 1.0
+    },
+    "data_type": "float",
+    "unit": "score"
+  },
+  "interpretation": {
+    "guide": {
+      "excellent": "0.9-1.0: Premium quality, suitable for all applications",
+      "very_good": "0.8-0.9: High quality, suitable for most applications",
+      "good": "0.7-0.8: Good quality, suitable with minor review",
+      "fair": "0.5-0.7: Fair quality, requires review and filtering",
+      "poor": "0.0-0.5: Poor quality, significant issues present"
+    },
+    "examples": [
+      {
+        "score": 0.95,
+        "interpretation": "Excellent quality - suitable for premium training data",
+        "context": "High-quality therapeutic conversation with expert-level responses"
+      },
+      {
+        "score": 0.75,
+        "interpretation": "Good quality - suitable for standard training with review",
+        "context": "Solid therapeutic conversation with minor areas for improvement"
+      },
+      {
+        "score": 0.45,
+        "interpretation": "Below average - requires significant review and improvement",
+        "context": "Conversation with notable quality issues requiring attention"
+      }
+    ],
+    "quality_indicators": {
+      "high_quality_threshold": 0.8,
+      "acceptable_threshold": 0.6,
+      "review_threshold": 0.4
+    }
+  },
+  "relationships": {
+    "related_metrics": [
+      "therapeutic_accuracy",
+      "clinical_compliance",
+      "safety_score",
+      "conversation_coherence",
+      "emotional_authenticity"
+    ],
+    "calculation_dependencies": [
+      "therapeutic_accuracy",
+      "clinical_compliance",
+      "safety_score",
+      "conversation_coherence",
+      "emotional_authenticity"
+    ]
+  },
+  "benchmarks": [
+    {
+      "benchmark_name": "General Dataset Overall Quality",
+      "description": "Overall quality benchmarks for general therapeutic conversation dataset",
+      "values": {
+        "p10": 0.42,
+        "p25": 0.58,
+        "p50": 0.73,
+        "p75": 0.86,
+        "p90": 0.94,
+        "mean": 0.72,
+        "std": 0.18
+      },
+      "sample_size": 137855,
+      "confidence_interval": [
+        0.71,
+        0.73
+      ],
+      "methodology": "Statistical analysis of quality scores across complete dataset"
+    },
+    {
+      "benchmark_name": "Professional Psychology Quality",
+      "description": "Quality benchmarks for professional psychology conversations",
+      "values": {
+        "p10": 0.68,
+        "p25": 0.78,
+        "p50": 0.85,
+        "p75": 0.92,
+        "p90": 0.97,
+        "mean": 0.84,
+        "std": 0.12
+      },
+      "sample_size": 9846,
+      "confidence_interval": [
+        0.83,
+        0.85
+      ],
+      "methodology": "Analysis of professionally curated therapeutic conversations"
+    }
+  ],
+  "usage_guidelines": {
+    "recommended_use_cases": [
+      "Overall dataset quality assessment",
+      "Training data filtering and selection",
+      "Quality-based dataset stratification",
+      "Performance benchmarking"
+    ],
+    "filtering_recommendations": {
+      "premium_quality": ">= 0.8",
+      "standard_quality": ">= 0.4",
+      "review_required": "< 0.4"
+    },
+    "interpretation_best_practices": [
+      "Consider Overall Quality Score in context with related metrics",
+      "Use benchmarks appropriate to your dataset context",
+      "Account for reliability score (0.92) in decision making",
+      "Validate interpretations against domain expertise"
+    ],
+    "common_pitfalls": [
+      "Using Overall Quality Score in isolation without considering related metrics",
+      "Applying inappropriate thresholds without domain context",
+      "Ignoring confidence intervals and reliability scores",
+      "Over-relying on automated assessments without human validation"
+    ],
+    "quality_thresholds": {}
+  },
+  "quality_assessment_framework": {
+    "assessment_levels": {
+      "excellent": {
+        "range": "0.9-1.0",
+        "description": "Premium quality, suitable for all applications",
+        "recommended_action": "Include in premium datasets"
+      },
+      "very_good": {
+        "range": "0.8-0.9",
+        "description": "High quality, suitable for most applications",
+        "recommended_action": "Include in standard datasets"
+      },
+      "good": {
+        "range": "0.7-0.8",
+        "description": "Good quality, suitable with minor review",
+        "recommended_action": "Include with minor review"
+      },
+      "fair": {
+        "range": "0.5-0.7",
+        "description": "Fair quality, requires review and filtering",
+        "recommended_action": "Review before inclusion"
+      },
+      "poor": {
+        "range": "0.0-0.5",
+        "description": "Poor quality, significant issues present",
+        "recommended_action": "Exclude or improve"
+      }
+    },
+    "decision_matrix": {
+      "high_score_actions": [
+        "Include in premium training datasets",
+        "Use for model validation",
+        "Consider for benchmark establishment"
+      ],
+      "medium_score_actions": [
+        "Include with quality review",
+        "Use for general training",
+        "Monitor for quality trends"
+      ],
+      "low_score_actions": [
+        "Exclude from training",
+        "Flag for expert review",
+        "Analyze for improvement opportunities"
+      ]
+    },
+    "improvement_strategies": {},
+    "monitoring_recommendations": {}
+  }
+}

@@ -1,0 +1,55 @@
+# Notification Integration System Requirements
+# Install with: pip install -r notification_requirements.txt
+
+# Core async HTTP client for API calls
+aiohttp>=3.8.0
+
+# Email handling (built-in to Python, but listing for clarity)
+# smtplib - built-in
+# email - built-in
+
+# JSON handling (built-in)
+# json - built-in
+
+# Environment variable handling (built-in)
+# os - built-in
+
+# Logging (built-in)
+# logging - built-in
+
+# Date/time handling (built-in)
+# datetime - built-in
+
+# Type hints (built-in in Python 3.5+)
+# typing - built-in
+
+# Data classes (built-in in Python 3.7+)
+# dataclasses - built-in
+
+# Enum support (built-in)
+# enum - built-in
+
+# Async support (built-in in Python 3.7+)
+# asyncio - built-in
+
+# HTTP requests (alternative to aiohttp for sync operations)
+requests>=2.28.0
+
+# Optional: Rich console output for better CLI experience
+rich>=12.0.0
+
+# Optional: Pydantic for advanced data validation
+pydantic>=1.10.0
+
+# Optional: Pytest for testing
+pytest>=7.0.0
+pytest-asyncio>=0.21.0
+
+# Optional: Coverage for test coverage
+coverage>=6.0.0
+
+# Optional: Black for code formatting
+black>=22.0.0
+
+# Optional: Flake8 for linting
+flake8>=5.0.0

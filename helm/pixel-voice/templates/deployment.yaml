@@ -1,0 +1,113 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include (printf "%s.fullname" .Chart.Name) . }}-api
+  labels:
+    {{ include (printf "%s.labels" .Chart.Name) . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{ include (printf "%s.selectorLabels" .Chart.Name) . | nindent 6 }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        {{ include (printf "%s.selectorLabels" .Chart.Name) . | nindent 8 }}
+        app.kubernetes.io/component: api
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: {{ .Chart.Name }}-api
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          envFrom:
+            - configMapRef:
+                          name: {{ include (printf "%s.fullname" .Chart.Name) . }}-config
+          resources:
+{{- with .Values.resources }}
+{{ toYaml . | nindent 12 }}
+{{- else }}
+            limits:
+              cpu: 200m
+              memory: 256Mi
+              ephemeral-storage: "2Gi"
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: "1Gi"
+{{- end }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include (printf "%s.fullname" .Chart.Name) . }}-worker
+  labels:
+    {{ include (printf "%s.labels" .Chart.Name) . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  replicas: {{ .Values.worker.replicaCount }}
+  selector:
+    matchLabels:
+      {{ include (printf "%s.selectorLabels" .Chart.Name) . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  template:
+    metadata:
+      labels:
+        {{ include (printf "%s.selectorLabels" .Chart.Name) . | nindent 8 }}
+        app.kubernetes.io/component: worker
+    spec:
+      automountServiceAccountToken: false
+      containers:
+        - name: {{ .Chart.Name }}-worker
+          image: "{{ .Values.worker.image.repository }}:{{ .Values.worker.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.worker.image.pullPolicy }}
+          livenessProbe:
+            # Note: This is a placeholder. You should implement a real liveness check for your worker.
+            # This could be a script that checks if your worker process is still running.
+            exec:
+              command:
+              - "true"
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            # Note: This is a placeholder. You should implement a real readiness check for your worker.
+            # This could be a script that checks if your worker is ready to process jobs.
+            exec:
+              command:
+              - "true"
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          envFrom:
+            - configMapRef:
+                name: {{ include (printf "%s.fullname" .Chart.Name) . }}-config
+          resources:
+{{- with .Values.worker.resources }}
+{{ toYaml . | nindent 12 }}
+{{- else }}
+            limits:
+              cpu: 200m
+              memory: 256Mi
+              ephemeral-storage: "2Gi"
+            requests:
+              cpu: 100m
+              memory: 128Mi
+              ephemeral-storage: "1Gi"
+{{- end }}
