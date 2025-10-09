@@ -1,0 +1,72 @@
+{
+  "multimodal_stats": {
+    "total_analyses": 5,
+    "average_alignment_score": 0.15919163465642341,
+    "average_insights_per_analysis": 1.4,
+    "audio_emotion_stats": {
+      "total_analyzed": 5,
+      "emotion_distribution": {
+        "sadness": 2,
+        "fear": 1,
+        "anger": 2
+      },
+      "intensity_distribution": {
+        "high": 2,
+        "moderate": 3
+      },
+      "average_confidence": 0.25507540190638783
+    }
+  },
+  "modma_stats": {
+    "total_analyses": 5,
+    "disorder_distribution": {
+      "major_depressive_disorder": 2,
+      "generalized_anxiety_disorder": 1,
+      "post_traumatic_stress_disorder": 1,
+      "autism_spectrum_disorder": 1
+    },
+    "modality_usage": {
+      "behavioral": 5,
+      "temporal": 5,
+      "audio": 5
+    },
+    "average_confidence": 0.753669513083219,
+    "multimodal_stats": {
+      "total_analyses": 5,
+      "average_alignment_score": 0.15919163465642341,
+      "average_insights_per_analysis": 1.4,
+      "audio_emotion_stats": {
+        "total_analyzed": 5,
+        "emotion_distribution": {
+          "sadness": 2,
+          "fear": 1,
+          "anger": 2
+        },
+        "intensity_distribution": {
+          "high": 2,
+          "moderate": 3
+        },
+        "average_confidence": 0.25507540190638783
+      }
+    }
+  },
+  "emotion_stats": {
+    "total_extractions": 5,
+    "emotion_distribution": {
+      "anger": 3,
+      "hopelessness": 2,
+      "fear": 3,
+      "anxiety": 1,
+      "guilt": 1
+    },
+    "cause_distribution": {
+      "cognitive": 4,
+      "traumatic": 1,
+      "behavioral": 2
+    },
+    "intervention_recommendations": {
+      "cognitive_restructuring": 4,
+      "trauma_processing": 1
+    }
+  }
+}

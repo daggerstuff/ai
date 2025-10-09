@@ -1,0 +1,51 @@
+{
+  "security_policy": {
+    "version": "2.0.0",
+    "effective_date": "2025-08-21",
+    "policy_type": "Enhanced Production Security Policy",
+    "authentication": {
+      "multi_factor_required": true,
+      "password_policy": {
+        "min_length": 12,
+        "complexity_required": true,
+        "rotation_days": 90
+      },
+      "session_management": {
+        "timeout_minutes": 30,
+        "concurrent_sessions": 3
+      }
+    },
+    "authorization": {
+      "role_based_access": true,
+      "principle_of_least_privilege": true,
+      "access_review_frequency": "quarterly"
+    },
+    "encryption": {
+      "data_at_rest": {
+        "algorithm": "AES-256",
+        "key_management": "AWS KMS"
+      },
+      "data_in_transit": {
+        "protocol": "TLS 1.3",
+        "certificate_validation": true
+      }
+    },
+    "monitoring": {
+      "security_event_logging": true,
+      "real_time_alerting": true,
+      "log_retention_days": 2555,
+      "siem_integration": true
+    },
+    "incident_response": {
+      "response_team_available": true,
+      "escalation_procedures": true,
+      "forensic_capabilities": true,
+      "recovery_procedures": true
+    },
+    "compliance": {
+      "frameworks": ["HIPAA", "GDPR", "SOC2", "ISO27001"],
+      "audit_frequency": "annual",
+      "penetration_testing": "quarterly"
+    }
+  }
+}

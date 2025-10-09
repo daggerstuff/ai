@@ -1,0 +1,18 @@
+alerts:
+  cpu_threshold: 80
+  disk_threshold: 90
+  error_rate_threshold: 0.05
+  memory_threshold: 85
+collection_interval: 60
+metrics:
+  application:
+  - processing_rate
+  - error_rate
+  - quality_scores
+  custom: []
+  system:
+  - cpu
+  - memory
+  - disk
+  - network
+retention_days: 30

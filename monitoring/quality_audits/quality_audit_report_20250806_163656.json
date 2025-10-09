@@ -1,0 +1,333 @@
+{
+  "report_metadata": {
+    "report_id": "QAR_20250806_163656",
+    "generated_at": "2025-08-06T16:36:56.041483",
+    "reporting_period": "2025-08",
+    "compliance_framework": "healthcare",
+    "auditor_system_version": "1.0.0"
+  },
+  "executive_summary": {
+    "overall_compliance_score": 82.12765957446808,
+    "certification_status": "conditional",
+    "total_audit_findings": 16,
+    "critical_findings": 0,
+    "high_risk_findings": 1,
+    "remediation_items": 1
+  },
+  "compliance_summary": {
+    "total_audits": 16,
+    "status_distribution": {
+      "pass": 9,
+      "warning": 6,
+      "fail": 1
+    },
+    "risk_distribution": {
+      "low": 9,
+      "medium": 6,
+      "high": 1
+    },
+    "pass_rate": 56.25,
+    "critical_findings": 0,
+    "high_risk_findings": 1,
+    "framework_compliance": "healthcare",
+    "audit_date": "2025-08-06T16:36:56.041358"
+  },
+  "risk_assessment": {
+    "overall_risk_level": "low",
+    "risk_percentage": 25.0,
+    "total_risk_score": 40,
+    "max_possible_score": 160,
+    "top_risk_areas": [
+      "compliance",
+      "quality_metrics",
+      "data_governance",
+      "operations",
+      "security"
+    ],
+    "risk_trend": "stable",
+    "mitigation_priority": "medium"
+  },
+  "audit_findings": [
+    {
+      "audit_id": "QM_safety_score_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038080",
+      "audit_type": "quality_check",
+      "component": "quality_metrics.safety_score",
+      "status": "warning",
+      "finding": "Safety Score approaching compliance threshold",
+      "evidence": {
+        "current_value": 0.9326433126643034,
+        "required_threshold": 0.95,
+        "compliance_gap": 0.017356687335696508,
+        "measurement_date": "2025-08-06T16:36:56.038082"
+      },
+      "risk_level": "medium",
+      "recommendation": "Implement improvements to strengthen safety score",
+      "auditor": "automated_quality_audit"
+    },
+    {
+      "audit_id": "QM_clinical_compliance_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038142",
+      "audit_type": "quality_check",
+      "component": "quality_metrics.clinical_compliance",
+      "status": "pass",
+      "finding": "Clinical Compliance meets compliance threshold",
+      "evidence": {
+        "current_value": 0.9070192590508392,
+        "required_threshold": 0.9,
+        "compliance_gap": 0,
+        "measurement_date": "2025-08-06T16:36:56.038144"
+      },
+      "risk_level": "low",
+      "recommendation": "Maintain current clinical compliance standards",
+      "auditor": "automated_quality_audit"
+    },
+    {
+      "audit_id": "QM_therapeutic_accuracy_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038163",
+      "audit_type": "quality_check",
+      "component": "quality_metrics.therapeutic_accuracy",
+      "status": "warning",
+      "finding": "Therapeutic Accuracy approaching compliance threshold",
+      "evidence": {
+        "current_value": 0.8062272501571823,
+        "required_threshold": 0.85,
+        "compliance_gap": 0.04377274984281765,
+        "measurement_date": "2025-08-06T16:36:56.038164"
+      },
+      "risk_level": "medium",
+      "recommendation": "Implement improvements to strengthen therapeutic accuracy",
+      "auditor": "automated_quality_audit"
+    },
+    {
+      "audit_id": "QM_data_quality_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038175",
+      "audit_type": "quality_check",
+      "component": "quality_metrics.data_quality",
+      "status": "pass",
+      "finding": "Data Quality meets compliance threshold",
+      "evidence": {
+        "current_value": 0.92346712179674,
+        "required_threshold": 0.8,
+        "compliance_gap": 0,
+        "measurement_date": "2025-08-06T16:36:56.038176"
+      },
+      "risk_level": "low",
+      "recommendation": "Maintain current data quality standards",
+      "auditor": "automated_quality_audit"
+    },
+    {
+      "audit_id": "QM_processing_efficiency_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038191",
+      "audit_type": "quality_check",
+      "component": "quality_metrics.processing_efficiency",
+      "status": "pass",
+      "finding": "Processing Efficiency meets compliance threshold",
+      "evidence": {
+        "current_value": 100.0,
+        "required_threshold": 0.8,
+        "compliance_gap": 0,
+        "measurement_date": "2025-08-06T16:36:56.038191"
+      },
+      "risk_level": "low",
+      "recommendation": "Maintain current processing efficiency standards",
+      "auditor": "automated_quality_audit"
+    },
+    {
+      "audit_id": "DG_RETENTION_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038228",
+      "audit_type": "compliance_review",
+      "component": "data_governance.retention",
+      "status": "pass",
+      "finding": "Data retention policies properly implemented",
+      "evidence": {
+        "retention_policy": "active",
+        "automated_cleanup": "enabled",
+        "retention_period_days": 365
+      },
+      "risk_level": "low",
+      "recommendation": "Continue current data retention practices",
+      "auditor": "data_governance_audit"
+    },
+    {
+      "audit_id": "DG_LINEAGE_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038237",
+      "audit_type": "compliance_review",
+      "component": "data_governance.lineage",
+      "status": "warning",
+      "finding": "Data lineage tracking partially implemented",
+      "evidence": {
+        "lineage_coverage": 0.75,
+        "missing_sources": [
+          "external_api_data",
+          "manual_imports"
+        ],
+        "tracking_accuracy": 0.85
+      },
+      "risk_level": "medium",
+      "recommendation": "Implement comprehensive data lineage tracking for all sources",
+      "auditor": "data_governance_audit"
+    },
+    {
+      "audit_id": "SEC_ACCESS_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038247",
+      "audit_type": "security_audit",
+      "component": "security.access_control",
+      "status": "pass",
+      "finding": "Access controls properly configured",
+      "evidence": {
+        "role_based_access": "enabled",
+        "multi_factor_auth": "required",
+        "session_timeout": 3600,
+        "failed_login_lockout": "enabled"
+      },
+      "risk_level": "low",
+      "recommendation": "Maintain current access control standards",
+      "auditor": "security_audit"
+    },
+    {
+      "audit_id": "SEC_ENCRYPTION_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038255",
+      "audit_type": "security_audit",
+      "component": "security.encryption",
+      "status": "pass",
+      "finding": "Data encryption standards met",
+      "evidence": {
+        "data_at_rest": "AES-256",
+        "data_in_transit": "TLS 1.3",
+        "key_management": "HSM-backed",
+        "encryption_coverage": 1.0
+      },
+      "risk_level": "low",
+      "recommendation": "Continue current encryption practices",
+      "auditor": "security_audit"
+    },
+    {
+      "audit_id": "OPS_BACKUP_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038264",
+      "audit_type": "operational_audit",
+      "component": "operations.backup_recovery",
+      "status": "pass",
+      "finding": "Backup and recovery procedures operational",
+      "evidence": {
+        "backup_frequency": "daily",
+        "backup_retention": "90_days",
+        "recovery_testing": "monthly",
+        "last_recovery_test": "2025-07-22T16:36:56.038266"
+      },
+      "risk_level": "low",
+      "recommendation": "Maintain current backup and recovery schedule",
+      "auditor": "operations_audit"
+    },
+    {
+      "audit_id": "OPS_MONITORING_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038304",
+      "audit_type": "operational_audit",
+      "component": "operations.monitoring",
+      "status": "warning",
+      "finding": "Monitoring coverage needs improvement",
+      "evidence": {
+        "system_monitoring": 0.9,
+        "application_monitoring": 0.75,
+        "security_monitoring": 0.85,
+        "alert_response_time": 300
+      },
+      "risk_level": "medium",
+      "recommendation": "Enhance application monitoring coverage to 90%+",
+      "auditor": "operations_audit"
+    },
+    {
+      "audit_id": "COMP_HEALTHCARE_0_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038357",
+      "audit_type": "compliance_review",
+      "component": "compliance.healthcare.patient_safety_protocols",
+      "status": "warning",
+      "finding": "Patient safety protocols mostly compliant with minor gaps",
+      "evidence": {
+        "compliance_score": 0.889460266884097,
+        "framework": "healthcare",
+        "requirement": "Patient safety protocols",
+        "assessment_date": "2025-08-06T16:36:56.038359"
+      },
+      "risk_level": "medium",
+      "recommendation": "Address minor gaps in patient safety protocols",
+      "auditor": "healthcare_compliance_audit"
+    },
+    {
+      "audit_id": "COMP_HEALTHCARE_1_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038403",
+      "audit_type": "compliance_review",
+      "component": "compliance.healthcare.clinical_accuracy_validation",
+      "status": "pass",
+      "finding": "Clinical accuracy validation fully compliant",
+      "evidence": {
+        "compliance_score": 0.9488170260152018,
+        "framework": "healthcare",
+        "requirement": "Clinical accuracy validation",
+        "assessment_date": "2025-08-06T16:36:56.038404"
+      },
+      "risk_level": "low",
+      "recommendation": "Maintain clinical accuracy validation standards",
+      "auditor": "healthcare_compliance_audit"
+    },
+    {
+      "audit_id": "COMP_HEALTHCARE_2_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038430",
+      "audit_type": "compliance_review",
+      "component": "compliance.healthcare.privacy_protection_measures",
+      "status": "pass",
+      "finding": "Privacy protection measures fully compliant",
+      "evidence": {
+        "compliance_score": 0.911168415364581,
+        "framework": "healthcare",
+        "requirement": "Privacy protection measures",
+        "assessment_date": "2025-08-06T16:36:56.038432"
+      },
+      "risk_level": "low",
+      "recommendation": "Maintain privacy protection measures standards",
+      "auditor": "healthcare_compliance_audit"
+    },
+    {
+      "audit_id": "COMP_HEALTHCARE_3_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038469",
+      "audit_type": "compliance_review",
+      "component": "compliance.healthcare.therapeutic_boundary_compliance",
+      "status": "warning",
+      "finding": "Therapeutic boundary compliance mostly compliant with minor gaps",
+      "evidence": {
+        "compliance_score": 0.8669785634031129,
+        "framework": "healthcare",
+        "requirement": "Therapeutic boundary compliance",
+        "assessment_date": "2025-08-06T16:36:56.038471"
+      },
+      "risk_level": "medium",
+      "recommendation": "Address minor gaps in therapeutic boundary compliance",
+      "auditor": "healthcare_compliance_audit"
+    },
+    {
+      "audit_id": "COMP_HEALTHCARE_4_20250806_163656",
+      "timestamp": "2025-08-06T16:36:56.038492",
+      "audit_type": "compliance_review",
+      "component": "compliance.healthcare.crisis_intervention_procedures",
+      "status": "fail",
+      "finding": "Crisis intervention procedures significant compliance gaps",
+      "evidence": {
+        "compliance_score": 0.7802714237027528,
+        "framework": "healthcare",
+        "requirement": "Crisis intervention procedures",
+        "assessment_date": "2025-08-06T16:36:56.038493"
+      },
+      "risk_level": "high",
+      "recommendation": "URGENT: Address crisis intervention procedures compliance gaps",
+      "auditor": "healthcare_compliance_audit"
+    }
+  ],
+  "remediation_plan": [
+    "[HIGH] URGENT: Address crisis intervention procedures compliance gaps"
+  ],
+  "certification_details": {
+    "status": "conditional",
+    "valid_until": "2026-08-06T16:36:56.041719",
+    "next_audit_due": "2025-11-04T16:36:56.041731"
+  }
+}

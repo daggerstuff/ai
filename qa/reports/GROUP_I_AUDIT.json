@@ -1,0 +1,320 @@
+{
+  "audit_type": "GROUP_I_COMPREHENSIVE_AUDIT",
+  "audit_timestamp": "2025-08-13T08:04:54.201641",
+  "group": "I",
+  "group_name": "Infrastructure & Deployment",
+  "overall_completion_percentage": 13.999999999999998,
+  "overall_status": "\u274c INCOMPLETE",
+  "total_tasks": 10,
+  "task_breakdown": {
+    "completed": 0,
+    "nearly_complete": 0,
+    "partial": 2,
+    "started": 8,
+    "not_started": 6
+  },
+  "discovered_infrastructure": {
+    "deployment_files": [
+      "Dockerfile",
+      "docker-compose.yml",
+      ".dockerignore",
+      ".github/workflows",
+      ".gitlab-ci.yml",
+      "azure-pipelines.yml",
+      "fly.toml"
+    ],
+    "monitoring_systems": [
+      "monitoring",
+      "logs"
+    ],
+    "configuration_files": [
+      ".env.example",
+      "astro.config.mjs"
+    ],
+    "scripts": [
+      "scripts/azure-docker-build.sh",
+      "scripts/troubleshoot-azure-cli.sh",
+      "scripts/install-azure-cli-userspace.sh",
+      "scripts/test-contact-api.js",
+      "scripts/ollama-checkin.mjs",
+      "scripts/setup-monitoring.sh",
+      "scripts/migrate-to-stable-deployment.sh",
+      "scripts/minimal-health-check.sh",
+      "scripts/azure-commands.sh",
+      "scripts/monitor-memory.js",
+      "scripts/fix-logger-imports.js",
+      "scripts/post-build-hook.js",
+      "scripts/demo_clinical_accuracy_validator.py",
+      "scripts/consolidated-fix.js",
+      "scripts/rsync.sh",
+      "scripts/configure-clerk-secrets.sh",
+      "scripts/demo_therapeutic_response_generator.py",
+      "scripts/test-azure-cli-install.sh",
+      "scripts/add-audit-logging.js",
+      "scripts/health-check.js",
+      "scripts/provision-grafana-dashboard.ts",
+      "scripts/create-binary-artifacts.sh",
+      "scripts/optimize-scripts.js",
+      "scripts/create-standalone-binaries.sh",
+      "scripts/test-backup-system.ts",
+      "scripts/run_agents_persistent.sh",
+      "scripts/health-check.sh",
+      "scripts/consolidated-test.js",
+      "scripts/comprehensive-test.mjs",
+      "scripts/setup-azure-auth.sh",
+      "scripts/azure-cli-docker-wrapper.sh",
+      "scripts/.eslintrc.js",
+      "scripts/demo_client_scenario_generator.py",
+      "scripts/health-monitor.mjs",
+      "scripts/prevent-env-leaks.js",
+      "scripts/cleanup-disk-space.sh",
+      "scripts/setup-azure-cli-pipeline.sh",
+      "scripts/process_voice_data.py",
+      "scripts/emergency-deploy.sh",
+      "scripts/.eslintrc.cjs",
+      "scripts/generate-deploy-manifest.mjs",
+      "scripts/agent_automation.py",
+      "scripts/verify-infrastructure-alignment.sh",
+      "scripts/demo_knowledge_category_balancer.py",
+      "scripts/run_voice_pipeline.py",
+      "scripts/test-performance.sh",
+      "scripts/build-optimizer.js",
+      "scripts/memory-sync.py",
+      "scripts/fix-shell-integration.sh",
+      "scripts/fix-all-ports.sh",
+      "scripts/test-sentry.mjs",
+      "scripts/test-docker-build.sh",
+      "scripts/setup-azure-monitoring.sh",
+      "scripts/analyze-bundle-size.js",
+      "scripts/generate-compatibility-report.js",
+      "scripts/load-test.ts",
+      "scripts/psychology_pipeline_demo.py",
+      "scripts/demo_big_five_processor.py",
+      "scripts/deploy.sh",
+      "scripts/install-azure-cli-agent.sh",
+      "scripts/monitor-azure-deployment.sh",
+      "scripts/docker-startup.sh",
+      "scripts/test-slack-webhook.sh",
+      "scripts/version-manager.js",
+      "scripts/build-fail.md",
+      "scripts/azure-cli-pipeline-task.yml",
+      "scripts/docker-push-azure.sh",
+      "scripts/mongodb-seed.js",
+      "scripts/test-memory-validation.py",
+      "scripts/external-monitor.sh",
+      "scripts/mental_llama_python_handler.py",
+      "scripts/security-scan.sh",
+      "scripts/docker-pull-azure.sh",
+      "scripts/fix-azure-deployment.sh",
+      "scripts/copy-polyfills.js",
+      "scripts/test-deployment-methods.sh",
+      "scripts/mongodb-init.js",
+      "scripts/diagnostics.ts",
+      "scripts/azure-cli-diagnostics.sh",
+      "scripts/sanitize-build-logs.js",
+      "scripts/add-ssh-key-to-instance.sh",
+      "scripts/check-headers.sh",
+      "scripts/oracle-deploy.sh",
+      "scripts/create-validation-api-token.ts",
+      "scripts/smart-health-check.sh",
+      "scripts/pdm2_parser_demo.py",
+      "scripts/deploy-vps-from-gitlab.sh",
+      "scripts/pre-build-check.js",
+      "scripts/check-large-deps.js",
+      "scripts/setup-custom-domain.sh",
+      "scripts/check-acr-images.sh",
+      "scripts/deploy-azure.sh",
+      "scripts/demo_psychology_knowledge_converter.py",
+      "scripts/demo_acquisition_monitor.py",
+      "scripts/run-pagefind.ts",
+      "scripts/force-azure-redeploy.sh",
+      "scripts/cleanup-root-leftovers.sh",
+      "scripts/start-server.js",
+      "scripts/demo_pipeline_orchestrator.py",
+      "scripts/fix-zsh-integration.sh",
+      "scripts/migrate-to-oracle-cloud.sh",
+      "scripts/tag-maintenance.js",
+      "scripts/validate_dataset.py",
+      "scripts/azure-devops-health-check.sh",
+      "scripts/optimize-images.mjs",
+      "scripts/backup-validator.py",
+      "scripts/deploy-infrastructure.sh",
+      "scripts/migrate-to-mongodb-atlas.sh",
+      "scripts/deploy-azure-bicep.sh",
+      "scripts/bundle-analyzer.js",
+      "scripts/fast-health-check.sh",
+      "scripts/hipaa-security-check.js",
+      "scripts/setup-agent-azure-cli.sh",
+      "scripts/browser-compatibility-test.sh",
+      "scripts/mongodb-migrate.js",
+      "scripts/blog-simple.cjs",
+      "scripts/setup-env.ts",
+      "scripts/upload-to-cdn.js",
+      "scripts/performance-quickstart.sh",
+      "scripts/download_datasets.py",
+      "scripts/consolidated-deploy.js",
+      "scripts/schedule-posts.js",
+      "scripts/push-to-gitlab-registry.sh",
+      "scripts/blog-cli.js",
+      "scripts/robust-server.js",
+      "scripts/verify-security-headers.js",
+      "scripts/deploy-infrastructure-rest.sh",
+      "scripts/deploy-azure-app-service.sh",
+      "scripts/verify-headers.js",
+      "scripts/blog-web.js",
+      "scripts/create_crisis_events_table.sql",
+      "scripts/run-load-tests.sh",
+      "scripts/run-tests.sh",
+      "scripts/tag-manager.js",
+      "scripts/azure-app-service-health-check.sh",
+      "scripts/check-amplify-deployment.sh",
+      "scripts/azure-login-check.sh",
+      "scripts/extract-existing-binaries.sh",
+      "scripts/test-validation-simple.py",
+      "scripts/extract-backgrounds.ts",
+      "scripts/reset-dev.sh",
+      "scripts/find-problematic-images.js",
+      "scripts/azure-health-check-improved.sh",
+      "scripts/setup-dev.sh",
+      "scripts/validate-typescript.ts",
+      "scripts/deploy-qwen3-coder.sh",
+      "scripts/qwen-cli.sh"
+    ]
+  },
+  "task_results": {
+    "81": {
+      "name": "Deployment Automation",
+      "found_indicators": 2,
+      "total_indicators": 3,
+      "completion_percentage": 66.66666666666666,
+      "status": "\ud83d\udd04 PARTIAL",
+      "found_items": [
+        "Dockerfile",
+        "docker-compose.yml"
+      ],
+      "missing_items": [
+        "scripts/deploy"
+      ]
+    },
+    "82": {
+      "name": "CI/CD Pipeline",
+      "found_indicators": 1,
+      "total_indicators": 3,
+      "completion_percentage": 33.33333333333333,
+      "status": "\ud83d\udfe0 STARTED",
+      "found_items": [
+        ".github/workflows"
+      ],
+      "missing_items": [
+        "scripts/build",
+        "scripts/test"
+      ]
+    },
+    "83": {
+      "name": "Infrastructure as Code",
+      "found_indicators": 0,
+      "total_indicators": 3,
+      "completion_percentage": 0.0,
+      "status": "\u274c NOT_STARTED",
+      "found_items": [],
+      "missing_items": [
+        "terraform",
+        "kubernetes",
+        "helm"
+      ]
+    },
+    "84": {
+      "name": "Environment Management",
+      "found_indicators": 1,
+      "total_indicators": 3,
+      "completion_percentage": 33.33333333333333,
+      "status": "\ud83d\udfe0 STARTED",
+      "found_items": [
+        ".env.example"
+      ],
+      "missing_items": [
+        "config",
+        "environments"
+      ]
+    },
+    "85": {
+      "name": "Monitoring & Observability",
+      "found_indicators": 2,
+      "total_indicators": 3,
+      "completion_percentage": 66.66666666666666,
+      "status": "\ud83d\udd04 PARTIAL",
+      "found_items": [
+        "monitoring",
+        "logs"
+      ],
+      "missing_items": [
+        "metrics"
+      ]
+    },
+    "86": {
+      "name": "Load Balancing & Scaling",
+      "found_indicators": 0,
+      "total_indicators": 3,
+      "completion_percentage": 0.0,
+      "status": "\u274c NOT_STARTED",
+      "found_items": [],
+      "missing_items": [
+        "load-balancer",
+        "scaling",
+        "auto-scaling"
+      ]
+    },
+    "87": {
+      "name": "Backup & Recovery",
+      "found_indicators": 0,
+      "total_indicators": 3,
+      "completion_percentage": 0.0,
+      "status": "\u274c NOT_STARTED",
+      "found_items": [],
+      "missing_items": [
+        "backup",
+        "disaster-recovery",
+        "scripts/backup"
+      ]
+    },
+    "88": {
+      "name": "Security & Compliance",
+      "found_indicators": 0,
+      "total_indicators": 3,
+      "completion_percentage": 0.0,
+      "status": "\u274c NOT_STARTED",
+      "found_items": [],
+      "missing_items": [
+        "security",
+        "compliance",
+        "audit"
+      ]
+    },
+    "89": {
+      "name": "Performance Optimization",
+      "found_indicators": 0,
+      "total_indicators": 3,
+      "completion_percentage": 0.0,
+      "status": "\u274c NOT_STARTED",
+      "found_items": [],
+      "missing_items": [
+        "performance",
+        "optimization",
+        "caching"
+      ]
+    },
+    "90": {
+      "name": "Documentation & Runbooks",
+      "found_indicators": 0,
+      "total_indicators": 3,
+      "completion_percentage": 0.0,
+      "status": "\u274c NOT_STARTED",
+      "found_items": [],
+      "missing_items": [
+        "docs/deployment",
+        "docs/infrastructure",
+        "runbooks"
+      ]
+    }
+  }
+}

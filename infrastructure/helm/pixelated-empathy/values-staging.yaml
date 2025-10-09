@@ -1,0 +1,67 @@
+# Staging environment values
+environment: "staging"
+
+replicaCount: 2
+
+image:
+  tag: "staging-latest"
+
+app:
+  config:
+    logLevel: "INFO"
+    debug: false
+    maxWorkers: 3
+    batchSize: 75
+
+resources:
+  limits:
+    cpu: 1500m
+    memory: 3Gi
+  requests:
+    cpu: 750m
+    memory: 1.5Gi
+
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+
+postgresql:
+  primary:
+    persistence:
+      size: 50Gi
+    resources:
+      limits:
+        cpu: 1500m
+        memory: 3Gi
+      requests:
+        cpu: 750m
+        memory: 1.5Gi
+
+redis:
+  master:
+    persistence:
+      size: 10Gi
+    resources:
+      limits:
+        cpu: 750m
+        memory: 1.5Gi
+      requests:
+        cpu: 375m
+        memory: 768Mi
+
+ingress:
+  hosts:
+    - host: staging-api.pixelated-empathy.ai
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: pixelated-empathy-staging-tls
+      hosts:
+        - staging-api.pixelated-empathy.ai
+
+backup:
+  enabled: true
+  schedule: "0 4 * * *"
+  retention: "7d"
