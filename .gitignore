@@ -27,3 +27,5 @@
 lightning/
 pipelines/youtube-transcription-pipeline
 pipelines/data
+dataset_pipeline/pixelated-training/training_dataset.json
+data/conversations.db
