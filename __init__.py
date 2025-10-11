@@ -5,5 +5,8 @@ imports used throughout the AI modules and tests work correctly when
 pytest imports test modules as package members.
 """
 
-__all__ = []
+from .hf_client import HuggingFaceClient  # noqa: F401
+
+__all__ = ["HuggingFaceClient"]
+
 
