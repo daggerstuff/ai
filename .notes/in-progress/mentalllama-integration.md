@@ -110,11 +110,10 @@ Scale to production requirements (Deferred, see `src/lib/ai/mental-llama/docs/RE
   - [x] Planned for fallback mechanisms... (Implemented in router)
   - [x] Proposed location: `src/lib/ai/mental-llama/routing/MentalHealthTaskRouter.ts` (Created)
   - [x] Created initial file structure for `MentalHealthTaskRouter.ts` with interfaces and method placeholders. (Completed as part of foundational work)
-- [ ] Implemented initial `performBroadClassification` method in `MentalHealthTaskRouter.ts` to: (Now a STUB in new router)
-  - [ ] Use `buildRoutingPromptMessages` to prepare input for an LLM. (Deferred)
-  - [ ] Call the LLM invoker with the routing prompt. (Deferred)
-  - [ ] Include placeholder logic for parsing the LLM's JSON response. (Deferred)
-  - [ ] Include placeholder logic for mapping LLM category to `targetAnalyzer`. (Partially done with map)
+ - [x] Implemented initial `performBroadClassification` method in `MentalHealthTaskRouter.ts` to: (Enhanced)
+  - [x] Use a structured JSON output prompt to prepare input for the LLM.
+  - [x] Call the LLM invoker with the routing prompt and safely parse JSON/fenced responses.
+  - [x] Include robust mapping logic from LLM categories to `targetAnalyzer` with safe fallbacks.
 - [x] Refined `performBroadClassification` in `MentalHealthTaskRouter.ts` to: (Partially, as it's a stub)
   - [x] Add 'crisis' as a possible `targetAnalyzer` in `RoutingDecision`.
   - [x] Implement `LLM_CATEGORY_TO_ANALYZER_MAP`.
