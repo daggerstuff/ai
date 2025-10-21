@@ -359,10 +359,33 @@ class TherapistResponseGenerator:
             return InterventionType.REFLECTION
 
     def generate_response(self, client_content: str,
-                          clinical_context: ClinicalContext,
-                          modality: TherapeuticModality,
-                          session_number: int = 1) -> TherapistResponse:
+                          clinical_context: ClinicalContext = None,
+                          modality: TherapeuticModality = None,
+                          session_number: int = 1,
+                          # Legacy API support
+                          context=None, user_role=None) -> TherapistResponse:
         """Generate complete therapist response with clinical rationale."""
+        
+        # Handle legacy API and provide defaults
+        if clinical_context is None:
+            if context is not None:
+                # Try to map from TherapeuticContext to ClinicalContext
+                context_mapping = {
+                    'anxiety': 'ongoing',
+                    'depression': 'ongoing',
+                    'crisis': 'crisis',
+                    'general': 'ongoing'
+                }
+                session_type = context_mapping.get(getattr(context, 'value', str(context).lower()), 'ongoing')
+                clinical_context = ClinicalContext(session_type=session_type)
+            else:
+                clinical_context = ClinicalContext(session_type='ongoing')
+        elif isinstance(clinical_context, str):
+            # Handle string input
+            clinical_context = ClinicalContext(session_type=clinical_context)
+        
+        if modality is None:
+            modality = TherapeuticModality.CBT  # Default to CBT
 
         # Analyze client content
         analysis = self._analyze_client_content(client_content)
@@ -438,7 +461,8 @@ class TherapistResponseGenerator:
             enhancements.append(
                 f"Cognitive distortions identified: {', '.join(analysis['cognitive_distortions'])}")
 
-        if clinical_context.severity_level == ClinicalSeverity.SEVERE:
+        severity = getattr(clinical_context, 'severity_level', None)
+        if severity == ClinicalSeverity.SEVERE.value or severity == ClinicalSeverity.SEVERE:
             enhancements.append(
                 "Severe symptom presentation requires careful intervention selection")
 
@@ -467,7 +491,8 @@ class TherapistResponseGenerator:
         if len(clinical_context.dsm5_categories) > 2:
             base_confidence -= 0.1  # Multiple diagnoses increase complexity
 
-        if clinical_context.severity_level == ClinicalSeverity.CRISIS:
+        severity = getattr(clinical_context, 'severity_level', None)
+        if severity == ClinicalSeverity.CRISIS.value or severity == ClinicalSeverity.CRISIS:
             base_confidence -= 0.1  # Crisis situations are inherently complex
 
         return min(1.0, max(0.3, base_confidence))
@@ -528,13 +553,13 @@ def main():
             "modality": TherapeuticModality.CBT,
             "clinical_context": ClinicalContext(
                 dsm5_categories=["Major Depressive Disorder"],
-                severity_level=ClinicalSeverity.MODERATE)},
+                severity_level=ClinicalSeverity.MODERATE.value)},
         {
             "client_content": "I'm so angry I could explode! I want to hurt myself when I feel this way.",
             "modality": TherapeuticModality.DBT,
             "clinical_context": ClinicalContext(
                 dsm5_categories=["Borderline Personality Disorder"],
-                severity_level=ClinicalSeverity.SEVERE,
+                severity_level=ClinicalSeverity.SEVERE.value,
                 risk_factors=[
                     "self-harm",
                     "emotional dysregulation"])}]
