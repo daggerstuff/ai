@@ -99,7 +99,7 @@ uuid==1.30
 shortuuid==1.0.11
 
 # JSON Web Tokens
-python-jose==3.3.0
+python-jose==3.4.0
 python-multipart==0.0.6
 
 # CORS & Security
