@@ -1,0 +1,198 @@
+{
+  "scenarios_completed": 5,
+  "total_interactions": 14,
+  "performance_metrics": [
+    0.011920928955078125,
+    0.0057220458984375,
+    0.00476837158203125,
+    0.0050067901611328125,
+    0.0050067901611328125,
+    0.00476837158203125,
+    0.0059604644775390625,
+    0.00667572021484375,
+    0.0045299530029296875,
+    0.0050067901611328125,
+    0.0050067901611328125,
+    0.0045299530029296875,
+    0.0045299530029296875,
+    0.0040531158447265625
+  ],
+  "expert_voices_demonstrated": [
+    "Crisis Protocol",
+    "Dr. Gabor Mat\u00e9",
+    "Tim Fletcher",
+    "Dr. Ramani",
+    "Heidi Priebe"
+  ],
+  "crisis_interventions": 1,
+  "average_response_time_ms": 0.005534717014857701,
+  "scenario_summaries": [
+    {
+      "scenario_name": "Complex Trauma with Tim Fletcher",
+      "expert_voice": "Tim Fletcher",
+      "crisis_detected": false,
+      "response_times": [
+        0.011920928955078125,
+        0.0057220458984375,
+        0.00476837158203125
+      ],
+      "interaction_count": 3,
+      "conversation_flow": [
+        {
+          "turn": 1,
+          "client_input": "I keep having flashbacks from my childhood. My father was very abusive and I feel like my nervous system is constantly on edge.",
+          "ai_response": "I hear how difficult this is for you. What you're describing sounds like a trauma response - your ne...",
+          "expert_voice": "Tim Fletcher",
+          "response_time_ms": 0.011920928955078125
+        },
+        {
+          "turn": 2,
+          "client_input": "Sometimes I dissociate and feel like I'm watching myself from outside my body. It's really scary.",
+          "ai_response": "Dissociation is actually a brilliant survival mechanism that your nervous system developed to protec...",
+          "expert_voice": "Tim Fletcher",
+          "response_time_ms": 0.0057220458984375
+        },
+        {
+          "turn": 3,
+          "client_input": "I feel like I'll never be normal. This trauma has ruined my life and I don't see how therapy can help.",
+          "ai_response": "I want you to know that trauma doesn't have to define your life forever. Your nervous system has an ...",
+          "expert_voice": "Tim Fletcher",
+          "response_time_ms": 0.00476837158203125
+        }
+      ],
+      "avg_response_time": 0.007470448811848958
+    },
+    {
+      "scenario_name": "Narcissistic Abuse with Dr. Ramani",
+      "expert_voice": "Dr. Ramani",
+      "crisis_detected": false,
+      "response_times": [
+        0.0050067901611328125,
+        0.0050067901611328125,
+        0.00476837158203125
+      ],
+      "interaction_count": 3,
+      "conversation_flow": [
+        {
+          "turn": 1,
+          "client_input": "My partner constantly tells me I'm too sensitive and that I'm imagining things. I'm starting to question my own reality.",
+          "ai_response": "What you're describing is classic gaslighting behavior. You are not too sensitive, and you are not i...",
+          "expert_voice": "Dr. Ramani",
+          "response_time_ms": 0.0050067901611328125
+        },
+        {
+          "turn": 2,
+          "client_input": "Everyone says he's such a nice guy, but behind closed doors he's completely different. I feel like I'm going crazy.",
+          "ai_response": "You're absolutely right that people can present very differently in public versus private. This is a...",
+          "expert_voice": "Dr. Ramani",
+          "response_time_ms": 0.0050067901611328125
+        },
+        {
+          "turn": 3,
+          "client_input": "I want to leave but I'm scared. He's threatened to ruin my reputation and says no one will believe me.",
+          "ai_response": "Your safety concerns are completely valid. Let's work together on a safety plan. You deserve to be b...",
+          "expert_voice": "Dr. Ramani",
+          "response_time_ms": 0.00476837158203125
+        }
+      ],
+      "avg_response_time": 0.004927317301432292
+    },
+    {
+      "scenario_name": "Existential Pain with Dr. Gabor Mat\u00e9",
+      "expert_voice": "Dr. Gabor Mat\u00e9",
+      "crisis_detected": false,
+      "response_times": [
+        0.0059604644775390625,
+        0.00667572021484375,
+        0.0045299530029296875
+      ],
+      "interaction_count": 3,
+      "conversation_flow": [
+        {
+          "turn": 1,
+          "client_input": "I feel so disconnected from myself and everyone around me. Nothing feels real or meaningful anymore.",
+          "ai_response": "What you're describing - this feeling of disconnection - is actually your authentic self calling out...",
+          "expert_voice": "Dr. Gabor Mat\u00e9",
+          "response_time_ms": 0.0059604644775390625
+        },
+        {
+          "turn": 2,
+          "client_input": "I've been successful in my career but I feel empty inside. Like I've been living someone else's life.",
+          "ai_response": "Success without authenticity often feels empty because it's not truly yours. Society teaches us to p...",
+          "expert_voice": "Dr. Gabor Mat\u00e9",
+          "response_time_ms": 0.00667572021484375
+        },
+        {
+          "turn": 3,
+          "client_input": "Sometimes I wonder what the point of all this suffering is. How do I find meaning in pain?",
+          "ai_response": "Your pain is asking a profound question about meaning and purpose. In many traditions, suffering is ...",
+          "expert_voice": "Dr. Gabor Mat\u00e9",
+          "response_time_ms": 0.0045299530029296875
+        }
+      ],
+      "avg_response_time": 0.0057220458984375
+    },
+    {
+      "scenario_name": "Crisis Intervention - Multi-Expert Response",
+      "expert_voice": "Crisis Protocol",
+      "crisis_detected": true,
+      "response_times": [
+        0.0050067901611328125,
+        0.0050067901611328125,
+        0.0045299530029296875
+      ],
+      "interaction_count": 3,
+      "conversation_flow": [
+        {
+          "turn": 1,
+          "client_input": "I can't take this anymore. I've been thinking about ending my life and I don't see any other way out of this pain.",
+          "ai_response": "I'm really concerned about what you're sharing with me. I want you to know that I'm here with you ri...",
+          "expert_voice": "Crisis Protocol",
+          "response_time_ms": 0.0050067901611328125
+        },
+        {
+          "turn": 2,
+          "client_input": "I have a plan and I've been thinking about it for weeks. I just wanted to tell someone before I do it.",
+          "ai_response": "Thank you for trusting me with this. Having a plan is very serious, and I want to make sure you're s...",
+          "expert_voice": "Crisis Protocol",
+          "response_time_ms": 0.0050067901611328125
+        },
+        {
+          "turn": 3,
+          "client_input": "Maybe you're right that there are other options. But everything feels so hopeless right now.",
+          "ai_response": "Thank you for sharing this with me. I can hear how difficult this is for you....",
+          "expert_voice": "Tim Fletcher",
+          "response_time_ms": 0.0045299530029296875
+        }
+      ],
+      "avg_response_time": 0.0048478444417317705
+    },
+    {
+      "scenario_name": "Relationship Dynamics with Heidi Priebe",
+      "expert_voice": "Heidi Priebe",
+      "crisis_detected": false,
+      "response_times": [
+        0.0045299530029296875,
+        0.0040531158447265625
+      ],
+      "interaction_count": 2,
+      "conversation_flow": [
+        {
+          "turn": 1,
+          "client_input": "I keep getting into the same patterns in relationships. I get anxious when they pull away and then I become clingy.",
+          "ai_response": "Thank you for sharing this with me. I can hear how difficult this is for you....",
+          "expert_voice": "Heidi Priebe",
+          "response_time_ms": 0.0045299530029296875
+        },
+        {
+          "turn": 2,
+          "client_input": "I think I have anxious attachment but I don't know how to change it. It's ruining my relationships.",
+          "ai_response": "Thank you for sharing this with me. I can hear how difficult this is for you....",
+          "expert_voice": "Heidi Priebe",
+          "response_time_ms": 0.0040531158447265625
+        }
+      ],
+      "avg_response_time": 0.004291534423828125
+    }
+  ]
+}
