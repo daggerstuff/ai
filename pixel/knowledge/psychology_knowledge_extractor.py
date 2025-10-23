@@ -1343,6 +1343,195 @@ class PsychologyKnowledgeExtractor:
         """Extract expert's signature phrases and expressions."""
         return []  # Implementation would identify frequently used phrases
 
+    def _extract_semantic_concepts(self, content: str, transcript: str, expert: str) -> List[ClinicalConcept]:
+        """Extract semantic clinical concepts using advanced pattern recognition."""
+        concepts = []
+        content_lower = content.lower()
+        
+        # Enhanced semantic patterns for psychological concepts
+        semantic_patterns = {
+            # Emotional regulation patterns
+            r'\bemotional\s+(?:regulation|dysregulation|balance|imbalance|stability|instability)\b': {
+                'name': 'Emotional Regulation',
+                'category': 'emotional_process',
+                'definition': 'The ability to manage and respond to emotional experiences effectively'
+            },
+            r'\b(?:self-soothing|self\s+soothing|emotional\s+self-care)\b': {
+                'name': 'Self-Soothing',
+                'category': 'coping_mechanism',
+                'definition': 'Techniques for calming oneself during emotional distress'
+            },
+            
+            # Attachment and relationship patterns
+            r'\b(?:attachment\s+(?:style|pattern|issue)|insecure\s+attachment|avoidant\s+attachment|anxious\s+attachment)\b': {
+                'name': 'Attachment Patterns',
+                'category': 'relational_dynamic',
+                'definition': 'Patterns of relating to others based on early caregiver relationships'
+            },
+            r'\b(?:trust\s+issues|betrayal\s+trauma|relational\s+trauma)\b': {
+                'name': 'Relational Trauma',
+                'category': 'trauma_type',
+                'definition': 'Trauma resulting from betrayal or violation of trust in relationships'
+            },
+            
+            # Self-concept and identity patterns
+            r'\b(?:self-worth|self\s+worth|self-esteem|self\s+esteem|self-value)\b': {
+                'name': 'Self-Worth',
+                'category': 'self_concept',
+                'definition': 'One\'s sense of personal value and worthiness'
+            },
+            r'\b(?:identity\s+(?:crisis|confusion|formation)|sense\s+of\s+self)\b': {
+                'name': 'Identity Formation',
+                'category': 'developmental_process',
+                'definition': 'The process of developing a coherent sense of self and personal identity'
+            },
+            
+            # Boundary and autonomy patterns
+            r'\b(?:boundaries|boundary\s+(?:setting|issues|violations))\b': {
+                'name': 'Personal Boundaries',
+                'category': 'interpersonal_skill',
+                'definition': 'Limits and rules set for oneself in relationships and interactions'
+            },
+            r'\b(?:people\s+pleasing|people-pleasing|approval\s+seeking)\b': {
+                'name': 'People Pleasing',
+                'category': 'maladaptive_behavior',
+                'definition': 'Excessive concern for others\' approval at the expense of one\'s own needs'
+            },
+            
+            # Nervous system and somatic patterns
+            r'\b(?:nervous\s+system|fight\s+or\s+flight|freeze\s+response|hypervigilance)\b': {
+                'name': 'Nervous System Activation',
+                'category': 'physiological_response',
+                'definition': 'Autonomic nervous system responses to perceived threats or stress'
+            },
+            r'\b(?:somatic\s+(?:experiencing|symptoms)|body\s+awareness|embodiment)\b': {
+                'name': 'Somatic Awareness',
+                'category': 'body_mind_connection',
+                'definition': 'Awareness of bodily sensations and their connection to emotional states'
+            }
+        }
+        
+        for pattern, concept_info in semantic_patterns.items():
+            matches = re.finditer(pattern, content_lower, re.IGNORECASE)
+            for match in matches:
+                # Extract context around the match
+                start = max(0, match.start() - 120)
+                end = min(len(content), match.end() + 120)
+                context = content[start:end].strip()
+                
+                concept_id = f"semantic_{concept_info['name'].lower().replace(' ', '_').replace('-', '_')}_{transcript}_{len(concepts)}"
+                
+                concept = ClinicalConcept(
+                    concept_id=concept_id,
+                    name=concept_info['name'],
+                    category=concept_info['category'],
+                    definition=concept_info['definition'],
+                    source_transcript=transcript,
+                    expert_source=expert,
+                    confidence_score=self._calculate_confidence(match.group(), context),
+                    clinical_context=context
+                )
+                concepts.append(concept)
+        
+        return concepts
+
+    def _extract_colloquial_expressions(self, content: str, transcript: str, expert: str) -> List[ClinicalConcept]:
+        """Extract colloquial expressions that indicate clinical concepts."""
+        concepts = []
+        content_lower = content.lower()
+        
+        # Colloquial expressions mapping to clinical concepts
+        colloquial_patterns = {
+            # Trauma responses in everyday language
+            r'\b(?:feeling\s+stuck|being\s+stuck|stuck\s+in\s+(?:the\s+past|life))\b': {
+                'name': 'Trauma Fixation',
+                'category': 'trauma_symptom',
+                'definition': 'Inability to move forward due to unresolved traumatic experiences'
+            },
+            r'\b(?:walking\s+on\s+eggshells|tiptoeing\s+around)\b': {
+                'name': 'Hypervigilance in Relationships',
+                'category': 'relational_trauma',
+                'definition': 'Constant alertness to potential conflict or emotional danger in relationships'
+            },
+            r'\b(?:wearing\s+a\s+mask|putting\s+on\s+a\s+face|hiding\s+who\s+I\s+am)\b': {
+                'name': 'False Self Presentation',
+                'category': 'identity_defense',
+                'definition': 'Presenting an inauthentic version of oneself to gain acceptance or avoid rejection'
+            },
+            
+            # Emotional dysregulation expressions
+            r'\b(?:emotional\s+rollercoaster|ups\s+and\s+downs|all\s+over\s+the\s+place)\b': {
+                'name': 'Emotional Instability',
+                'category': 'mood_dysregulation',
+                'definition': 'Rapid and unpredictable changes in emotional states'
+            },
+            r'\b(?:can\'t\s+turn\s+off|racing\s+thoughts|mind\s+won\'t\s+stop)\b': {
+                'name': 'Cognitive Hyperarousal',
+                'category': 'anxiety_symptom',
+                'definition': 'Persistent, rapid, or intrusive thoughts that are difficult to control'
+            },
+            
+            # Relationship and attachment expressions
+            r'\b(?:fear\s+of\s+abandonment|scared\s+of\s+being\s+left|afraid\s+they\'ll\s+leave)\b': {
+                'name': 'Abandonment Anxiety',
+                'category': 'attachment_disorder',
+                'definition': 'Persistent fear that loved ones will leave or reject them'
+            },
+            r'\b(?:push\s+people\s+away|sabotage\s+relationships|run\s+when\s+things\s+get\s+close)\b': {
+                'name': 'Intimacy Avoidance',
+                'category': 'attachment_defense',
+                'definition': 'Defensive behaviors that create distance in close relationships'
+            },
+            
+            # Self-concept and shame expressions
+            r'\b(?:not\s+good\s+enough|feeling\s+worthless|don\'t\s+deserve|damaged\s+goods)\b': {
+                'name': 'Core Shame',
+                'category': 'negative_self_concept',
+                'definition': 'Deep-seated belief that one is fundamentally flawed or unworthy'
+            },
+            r'\b(?:inner\s+critic|negative\s+voice|beating\s+myself\s+up)\b': {
+                'name': 'Self-Critical Voice',
+                'category': 'cognitive_pattern',
+                'definition': 'Internal dialogue characterized by harsh self-judgment and criticism'
+            },
+            
+            # Coping and survival expressions
+            r'\b(?:survival\s+mode|just\s+getting\s+by|barely\s+holding\s+on)\b': {
+                'name': 'Survival Mode',
+                'category': 'stress_response',
+                'definition': 'State of chronic stress where focus is on immediate survival rather than growth'
+            },
+            r'\b(?:numbing\s+out|checking\s+out|going\s+through\s+the\s+motions)\b': {
+                'name': 'Emotional Numbing',
+                'category': 'dissociative_response',
+                'definition': 'Psychological defense mechanism involving reduced emotional responsiveness'
+            }
+        }
+        
+        for pattern, concept_info in colloquial_patterns.items():
+            matches = re.finditer(pattern, content_lower, re.IGNORECASE)
+            for match in matches:
+                # Extract context around the match
+                start = max(0, match.start() - 100)
+                end = min(len(content), match.end() + 100)
+                context = content[start:end].strip()
+                
+                concept_id = f"colloquial_{concept_info['name'].lower().replace(' ', '_').replace('-', '_')}_{transcript}_{len(concepts)}"
+                
+                concept = ClinicalConcept(
+                    concept_id=concept_id,
+                    name=concept_info['name'],
+                    category=concept_info['category'],
+                    definition=concept_info['definition'],
+                    source_transcript=transcript,
+                    expert_source=expert,
+                    confidence_score=self._calculate_confidence(match.group(), context),
+                    clinical_context=context
+                )
+                concepts.append(concept)
+        
+        return concepts
+
 
 def extract_psychology_knowledge(transcript_dir: str = ".notes/transcripts", 
                                 output_file: Optional[str] = None) -> Dict[str, Any]:
