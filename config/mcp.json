@@ -103,7 +103,8 @@
       ],
       "type": "stdio",
       "description": "Cloud browser automation via Browserbase",
-      "priority": 8
+      "priority": 8,
+      "disabled": false
     },
     "perplexity-search": {
       "command": "npx",
