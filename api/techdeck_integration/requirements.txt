@@ -99,7 +99,7 @@ uuid==1.30
 shortuuid==1.0.11
 
 # JSON Web Tokens
-python-jose==3.3.0
+python-jose==3.4.0
 python-multipart==0.0.6
 
 # CORS & Security
@@ -111,7 +111,7 @@ flask-restx==1.3.0
 flasgger==0.9.7.1
 
 # Production Server
-gunicorn==21.2.0
+gunicorn==22.0.0
 gevent==23.9.1
 
 # Async Support
