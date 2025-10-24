@@ -24,8 +24,9 @@
 **/techdeck/
 **/.venv/
 **/pixelated_ai.egg-info/
-lightning/
 pipelines/youtube-transcription-pipeline
 pipelines/data
 dataset_pipeline/pixelated-training/training_dataset.json
 database/conversations.db
+ai/config/security
+lightning/ghost
