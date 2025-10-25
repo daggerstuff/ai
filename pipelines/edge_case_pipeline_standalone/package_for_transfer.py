@@ -4,10 +4,10 @@ Package Edge Case Generation Pipeline for Transfer
 Creates a zip file ready for Google Drive/Colab
 """
 
-import zipfile
 import os
+import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
-from datetime import datetime
 
 
 def create_transfer_package():
@@ -28,34 +28,35 @@ def create_transfer_package():
     ]
 
     # Create timestamp for unique filename
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    timestamp = datetime.now(tz=timezone.utc).strftime("%Y%m%d_%H%M%S")
     zip_filename = f"pixelated_empathy_edge_case_pipeline_{timestamp}.zip"
 
-    print(f"📦 Creating transfer package: {zip_filename}")
-    print("=" * 50)
+    # Using print for CLI output is acceptable in this script
+    print(f"📦 Creating transfer package: {zip_filename}")  # noqa: T201
+    print("=" * 50)  # noqa: T201
 
     with zipfile.ZipFile(zip_filename, "w", zipfile.ZIP_DEFLATED) as zipf:
         for file_name in files_to_include:
             file_path = current_dir / file_name
             if file_path.exists():
                 zipf.write(file_path, file_name)
-                print(f"✅ Added: {file_name}")
+                print(f"✅ Added: {file_name}")  # noqa: T201
             else:
-                print(f"⚠️ Missing: {file_name}")
+                print(f"⚠️ Missing: {file_name}")  # noqa: T201
 
         # Add a quick start guide
         quickstart_content = create_quickstart_guide()
         zipf.writestr("QUICKSTART.md", quickstart_content)
-        print("✅ Added: QUICKSTART.md")
+        print("✅ Added: QUICKSTART.md")  # noqa: T201
 
     # Get zip file size
     zip_size = os.path.getsize(zip_filename)
-    print("\n" + "=" * 50)
-    print(f"📦 Package created: {zip_filename}")
-    print(f"💾 Size: {zip_size:,} bytes ({zip_size/1024:.1f} KB)")
-    print(f"📁 Current directory: {os.getcwd()}")
+    print("\n" + "=" * 50)  # noqa: T201
+    print(f"📦 Package created: {zip_filename}")  # noqa: T201
+    print(f"💾 Size: {zip_size:,} bytes ({zip_size / 1024:.1f} KB)")  # noqa: T201
+    print(f"📁 Current directory: {os.getcwd()}")  # noqa: T201
 
-    print(f"\n🚀 Ready for transfer! Upload {zip_filename} to Google Drive.")
+    print(f"\n🚀 Ready for transfer! Upload {zip_filename} to Google Drive.")  # noqa: T201
 
     return zip_filename
 
@@ -70,7 +71,7 @@ def create_quickstart_guide():
    - Upload this zip file to Google Drive
    - In Colab: File → Open notebook → Upload and extract files
 
-2. **Setup Environment** 
+2. **Setup Environment**
    ```python
    # Run this first in Colab
    exec(open('setup_colab.py').read())
@@ -81,7 +82,7 @@ def create_quickstart_guide():
    import os
    # For OpenAI
    os.environ['OPENAI_API_KEY'] = 'your_key_here'
-   # For Anthropic  
+   # For Anthropic
    os.environ['ANTHROPIC_API_KEY'] = 'your_key_here'
    ```
 
