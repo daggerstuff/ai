@@ -4,6 +4,7 @@ Google Colab Setup Script for Edge Case Generation Pipeline
 Run this first in Colab to set up the environment
 """
 
+import importlib.util
 import os
 import subprocess
 import sys
@@ -11,7 +12,7 @@ import sys
 
 def install_requirements():
     """Install required packages in Colab"""
-    print("🔧 Installing requirements for Google Colab...")
+    sys.stdout.write("🔧 Installing requirements for Google Colab...\n")
 
     requirements = [
         "openai>=1.0.0",
@@ -27,46 +28,58 @@ def install_requirements():
     for package in requirements:
         try:
             subprocess.check_call([sys.executable, "-m", "pip", "install", package])
-            print(f"✅ Installed {package}")
+            sys.stdout.write(f"✅ Installed {package}\n")
         except Exception as e:
-            print(f"❌ Failed to install {package}: {e}")
+            sys.stderr.write(f"❌ Failed to install {package}: {e}\n")
 
 
 def setup_colab_environment():
     """Set up the Colab environment"""
-    print("🚀 Setting up Google Colab environment...")
+    sys.stdout.write("🚀 Setting up Google Colab environment...\n")
 
-    # Enable widgets
-    try:
-        # Attempt to import Colab-specific modules
-        from google.colab import output
-        import IPython
+    # Enable widgets - check if Colab modules are available
+    ipython_spec = importlib.util.find_spec("IPython")
+    colab_spec = importlib.util.find_spec("google.colab")
 
-        # Check if we are running in an IPython environment (like a Colab notebook cell)
-        if IPython.get_ipython() is not None:
-            output.enable_custom_widget_manager()
-            print("✅ Enabled custom widget manager (running in Colab notebook context).")
-        else:
-            print("ℹ️ IPython environment not detected (e.g., running via '!python script.py').")
-            print(
-                "   Skipping custom widget manager setup. If you use custom third-party ipywidgets,"
+    if ipython_spec is not None and colab_spec is not None:
+        # Dynamically import only if available
+        ipython_module = importlib.import_module("IPython")
+        colab_output = importlib.import_module("google.colab.output")
+
+        try:
+            ipython_instance = ipython_module.get_ipython()
+            if ipython_instance is not None:
+                colab_output.enable_custom_widget_manager()
+                sys.stdout.write(
+                    "✅ Enabled custom widget manager (running in Colab notebook context).\n"
+                )
+            else:
+                sys.stdout.write(
+                    "INFO: IPython environment not detected (e.g., running via '!python script.py').\n"
+                )
+                sys.stdout.write(
+                    "   Skipping custom widget manager setup. If you use custom third-party ipywidgets,\n"
+                )
+                sys.stdout.write("   you may need to run the following in a separate Colab cell:\n")
+                sys.stdout.write(
+                    "   from google.colab import output; output.enable_custom_widget_manager()\n"
+                )
+        except Exception as e:
+            sys.stderr.write(f"⚠️ Could not enable custom widget manager due to an error: {e}\n")
+            sys.stderr.write(
+                "   If you use custom third-party ipywidgets, you may need to run the following\n"
             )
-            print("   you may need to run the following in a separate Colab cell:")
-            print("   from google.colab import output; output.enable_custom_widget_manager()")
-    except ImportError:
-        # This means google.colab module is not available (e.g., running locally, not in Colab)
-        print("ℹ️ Not running in a Google Colab environment - skipping Colab-specific widget setup.")
-    except Exception as e:
-        # Catch any other unexpected error during widget setup
-        print(f"⚠️ Could not enable custom widget manager due to an error: {e}")
-        print("   If you use custom third-party ipywidgets, you may need to run the following")
-        print(
-            "   in a separate Colab cell: from google.colab import output; output.enable_custom_widget_manager()"
+            sys.stderr.write(
+                "   in a separate Colab cell: from google.colab import output; output.enable_custom_widget_manager()\n"
+            )
+    else:
+        sys.stdout.write(
+            "INFO: Not running in a Google Colab environment - skipping Colab-specific widget setup.\n"
         )
 
     # Create output directory
     os.makedirs("colab_output", exist_ok=True)
-    print("✅ Created output directory")
+    sys.stdout.write("✅ Created output directory\n")
 
     # The message below was originally in your main function,
     # but it's better placed after all setup steps within this function.
@@ -108,19 +121,19 @@ def display_usage_instructions():
 - Check your API usage limits
 - Download results before session expires
 """
-    print(instructions)
+    sys.stdout.write(instructions)
 
 
 def main():
     """Main setup function"""
-    print("🚀 Google Colab Setup for Edge Case Generation")
-    print("=" * 60)
+    sys.stdout.write("🚀 Google Colab Setup for Edge Case Generation\n")
+    sys.stdout.write("=" * 60 + "\n")
 
     install_requirements()
     setup_colab_environment()
     display_usage_instructions()
 
-    print("\n🎉 Setup completed! Ready to generate edge cases.")
+    sys.stdout.write("\n🎉 Setup completed! Ready to generate edge cases.\n")
 
 
 if __name__ == "__main__":
