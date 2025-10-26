@@ -30,3 +30,12 @@ dataset_pipeline/pixelated-training/training_dataset.json
 database/conversations.db
 ai/config/security
 lightning/ghost
+
+# Large training files and artifacts
+*.tar.gz
+*.zip
+**/checkpoint-*/optimizer.pt
+**/checkpoint-*/adapter_model.safetensors
+lightning/pixelated-training/training_dataset.json
+lightning/pixelated-training/training_dataset_enhanced.json
+lightning/pixelated-training/wayfarer-balanced/
