@@ -2,14 +2,14 @@
 # Phase 1: Critical Security Blockers
 
 # Core FastAPI and security
-fastapi>=0.104.1
-uvicorn[standard]>=0.24.0
-python-multipart>=0.0.6
+fastapi>=0.115.6
+uvicorn[standard]>=0.34.0
+python-multipart>=0.0.20
 
 # Authentication and JWT
-PyJWT>=2.8.0
-bcrypt>=4.1.2
-cryptography>=41.0.8
+PyJWT>=2.9.0
+bcrypt>=4.2.1
+cryptography>=44.0.0
 
 # Rate limiting and caching
 redis>=5.0.1
@@ -24,8 +24,8 @@ pydantic[email]>=2.5.0
 sqlite3  # Built-in with Python
 
 # HTTP and networking
-httpx>=0.25.2
-requests>=2.31.0
+httpx>=0.28.1
+requests>=2.32.3
 
 # Utilities
 python-dotenv>=1.0.0
