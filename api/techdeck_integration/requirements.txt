@@ -2,21 +2,21 @@
 # Python 3.11+ required
 
 # Core Flask Dependencies
-Flask==3.0.0
-Flask-CORS==4.0.0
-Flask-Limiter==3.5.0
-Flask-SocketIO==5.3.6
+Flask==3.1.0
+Flask-CORS==6.0.0
+Flask-Limiter==3.8.0
+Flask-SocketIO==5.4.1
 
 # Authentication & Security
 PyJWT==2.9.0
-cryptography==44.0.0
+cryptography==44.0.1
 bcrypt==4.2.1
 python-dotenv==1.0.1
 
 # Database & Caching
-pymongo==4.6.1
-redis==5.0.1
-mongoengine==0.27.0
+pymongo==4.10.1
+redis==5.2.1
+mongoengine==0.29.1
 
 # Data Processing & Validation
 pandas==2.1.4
@@ -36,8 +36,8 @@ httpx==0.28.1
 aiohttp==3.11.11
 
 # WebSocket & Real-time
-python-socketio==5.10.0
-eventlet==0.33.3
+python-socketio==5.14.0
+eventlet==0.40.3
 
 # Monitoring & Logging
 structlog==23.2.0
@@ -65,14 +65,14 @@ pytest-cov==4.1.0
 pytest-asyncio==0.21.1
 
 # Development Tools
-black==23.11.0
-flake8==6.1.0
-mypy==1.7.1
-isort==5.12.0
+black==25.1.0
+flake8==7.1.1
+mypy==1.14.1
+isort==5.13.2
 
 # AI/ML Integration (for bias detection and pipeline)
-scikit-learn==1.3.2
-joblib==1.3.2
+scikit-learn==1.6.1
+joblib==1.4.2
 
 # HIPAA Compliance & Encryption
 pycryptodome==3.21.0
