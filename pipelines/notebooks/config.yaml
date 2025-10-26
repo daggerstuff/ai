@@ -1,0 +1,11 @@
+# config.yaml
+# Central configuration for edge case notebooks
+
+model_path: "your_model.pkl"
+data_path: "your_data.csv"
+edge_case_path: "generated_edge_cases.csv"
+standard_case_path: "standard_cases.csv"
+api_endpoint: "http://localhost:8000/api/bias-analysis/analyze"
+outlier_threshold: 3
+isolation_forest_contamination: 0.05
+synthetic_samples: 100
