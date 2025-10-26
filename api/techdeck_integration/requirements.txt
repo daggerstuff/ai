@@ -31,18 +31,18 @@ xlrd==2.0.1
 pyarrow==14.0.1
 
 # API & HTTP
-requests==2.32.3
+requests==2.32.4
 httpx==0.28.1
-aiohttp==3.11.11
+aiohttp==3.12.14
 
 # WebSocket & Real-time
 python-socketio==5.14.0
 eventlet==0.40.3
 
 # Monitoring & Logging
-structlog==23.2.0
-prometheus-client==0.19.0
-sentry-sdk==1.39.2
+structlog==24.4.0
+prometheus-client==0.21.1
+sentry-sdk==2.19.2
 
 # Performance & Caching
 cachetools==5.3.2
