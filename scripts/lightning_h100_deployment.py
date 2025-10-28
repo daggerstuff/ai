@@ -12,6 +12,7 @@ Configured for:
 
 import json
 import logging
+import shutil
 from pathlib import Path
 from typing import Dict, List, Optional
 import subprocess
@@ -25,8 +26,9 @@ class LightningH100Deployer:
     """Lightning.ai H100 deployment system for therapeutic AI training"""
     
     def __init__(self, unified_dataset_path: Path = None):
-        self.unified_dataset_path = unified_dataset_path or Path("/root/pixelated/data/unified_training")
-        self.lightning_workspace = Path("/root/pixelated/ai/lightning/production")
+        from path_utils import get_unified_training_dir, get_lightning_dir
+        self.unified_dataset_path = unified_dataset_path or get_unified_training_dir()
+        self.lightning_workspace = get_lightning_dir() / "production"
         self.lightning_workspace.mkdir(parents=True, exist_ok=True)
         
     def validate_unified_dataset(self) -> Dict:
@@ -467,8 +469,9 @@ logger = logging.getLogger(__name__)
 
 def prepare_lightning_data():
     """Prepare data for Lightning.ai deployment"""
-    source_dir = Path("/root/pixelated/data/unified_training")
-    target_dir = Path("/root/pixelated/ai/lightning/production/data")
+    from path_utils import get_unified_training_dir, get_lightning_dir
+    source_dir = get_unified_training_dir()
+    target_dir = get_lightning_dir() / "production/data"
     
     # Create target directory
     target_dir.mkdir(parents=True, exist_ok=True)

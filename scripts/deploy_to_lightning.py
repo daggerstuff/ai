@@ -19,6 +19,9 @@ import sys
 import zipfile
 from datetime import datetime
 
+# Import path utilities
+from path_utils import get_workspace_root, get_unified_training_dir, get_lightning_dir, get_scripts_dir
+
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -27,13 +30,14 @@ class LightningDeploymentOrchestrator:
     """Orchestrate complete Lightning.ai H100 deployment preparation"""
     
     def __init__(self):
-        self.workspace_root = Path("/root/pixelated")
-        self.unified_dataset_path = self.workspace_root / "data/unified_training"
-        self.deployment_dir = self.workspace_root / "ai/lightning/h100_deployment"
+        # Use dynamic path resolution
+        self.workspace_root = get_workspace_root()
+        self.unified_dataset_path = get_unified_training_dir()
+        self.deployment_dir = get_lightning_dir() / "h100_deployment"
         self.deployment_dir.mkdir(parents=True, exist_ok=True)
         
         # Import deployment modules
-        sys.path.append(str(self.workspace_root / "ai/scripts"))
+        sys.path.append(str(get_scripts_dir()))
         
     def run_readiness_validation(self) -> Dict:
         """Run comprehensive readiness validation"""

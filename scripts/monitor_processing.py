@@ -20,7 +20,8 @@ def check_processing_status():
 
 def check_output_progress():
     """Check progress in output directory"""
-    output_dir = Path("/root/pixelated/data/unified_training")
+    from path_utils import get_unified_training_dir
+    output_dir = get_unified_training_dir()
     
     if not output_dir.exists():
         return {"status": "processing", "files": [], "total_conversations": 0}
@@ -63,7 +64,8 @@ def main():
             print("\n🎉 Processing Complete!")
             
             # Show final results
-            config_file = Path("/root/pixelated/data/unified_training/unified_lightning_config.json")
+            from path_utils import get_unified_training_dir
+            config_file = get_unified_training_dir() / "unified_lightning_config.json"
             if config_file.exists():
                 with open(config_file, 'r') as f:
                     config = json.load(f)
