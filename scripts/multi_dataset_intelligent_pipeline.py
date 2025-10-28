@@ -20,8 +20,9 @@ import sys
 import hashlib
 from collections import defaultdict
 
-# Import our intelligent agent
+# Import path utilities and intelligent agent
 sys.path.append(str(Path(__file__).parent))
+from path_utils import get_workspace_root, get_unified_training_dir, get_ai_dir
 from intelligent_prompt_agent import MultiPatternAgent
 
 # Configure logging
@@ -57,14 +58,14 @@ class MultiDatasetIntelligentPipeline:
     
     def __init__(self, output_dir: Path = None):
         self.agent = MultiPatternAgent()
-        self.output_dir = output_dir or Path("/root/pixelated/data/unified_training")
+        self.output_dir = output_dir or get_unified_training_dir()
         self.output_dir.mkdir(exist_ok=True)
         self.stats = ProcessingStats()
         self.processed_hashes = set()  # For deduplication
         self.conversation_cache = {}  # For intelligent merging
         
-        # Define dataset sources (using absolute paths from workspace root)
-        workspace_root = Path("/root/pixelated")
+        # Define dataset sources (using dynamic path resolution)
+        workspace_root = get_workspace_root()
         self.dataset_sources = [
             # Priority 1: Existing high-quality processed datasets
             DatasetSource(
