@@ -4,6 +4,62 @@ from typing import Dict, List, NamedTuple, Optional, Set, Union
 from dataclasses import dataclass
 from enum import Enum
 
+class ContentFilter:
+    """
+    Main ContentFilter class that provides is_safe method for voice training pipeline.
+    Compatible with the voice training system that expects 'ContentFilter' object with 'is_safe' attribute.
+    """
+    
+    def __init__(self):
+        """Initialize the ContentFilter with the comprehensive filtering system."""
+        self.filtering_system = None  # Will be initialized lazily
+    
+    def _get_filtering_system(self):
+        """Lazy initialization of the filtering system to avoid circular imports."""
+        if self.filtering_system is None:
+            self.filtering_system = ContentFiltering()
+        return self.filtering_system
+    
+    def is_safe(self, content: str) -> bool:
+        """
+        Check if content is safe for training.
+        
+        Args:
+            content: Text content to check
+            
+        Returns:
+            bool: True if content is safe, False otherwise
+        """
+        try:
+            # Use the comprehensive filtering system
+            filtering_system = self._get_filtering_system()
+            result = filtering_system.filter_content(content)
+            
+            # Content is safe if no critical or error level issues found
+            critical_issues = [
+                issue for issue in result.validation_results 
+                if issue.severity in [ValidationSeverity.CRITICAL, ValidationSeverity.ERROR]
+            ]
+            
+            # Also check if content has harmful PII or safety violations
+            pii_critical = any(
+                pii.pii_type in [PiiType.SSN, PiiType.CREDIT_CARD] 
+                for pii in result.pii_detections
+            )
+            
+            return len(critical_issues) == 0 and not pii_critical
+            
+        except Exception as e:
+            # Default to unsafe if filtering fails
+            print(f"ContentFilter error: {e}")
+            return False
+    
+    # Alias method for compatibility
+    @property
+    def is_safe_method(self):
+        """Property to access is_safe as an attribute (for compatibility)."""
+        return self.is_safe
+
 class PiiType(Enum):
     """Enumeration of PII types that can be detected."""
     EMAIL = "EMAIL"
@@ -63,7 +119,7 @@ class SafetyGateResult:
     recommendations: List[str] = None
     confidence: float = 1.0
 
-class ContentFilter:
+class ContentFiltering:
     """
     Enhanced content filter for therapeutic AI systems.
     
