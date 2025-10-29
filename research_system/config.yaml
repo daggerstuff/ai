@@ -1,0 +1,138 @@
+# Journal Dataset Research System Configuration
+
+# API Endpoints and Credentials
+api_endpoints:
+  pubmed:
+    base_url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils/"
+    api_key: "${NCBI_API_KEY}"  # Optional, increases rate limits
+    email: "${NCBI_EMAIL}"  # Required for API usage
+  
+  doaj:
+    base_url: "https://doaj.org/api/v3/"
+    api_key: "${DOAJ_API_KEY}"  # Optional
+  
+  dryad:
+    base_url: "https://datadryad.org/api/v2/"
+    api_key: "${DRYAD_API_KEY}"  # Optional
+  
+  zenodo:
+    base_url: "https://zenodo.org/api/"
+    access_token: "${ZENODO_ACCESS_TOKEN}"  # Optional
+  
+  clinicaltrials:
+    base_url: "https://clinicaltrials.gov/api/v2/"
+    # No API key required
+
+# Search Keywords by Dataset Type
+search_keywords:
+  therapy_transcripts:
+    - "therapy transcript dataset"
+    - "counseling session data"
+    - "therapeutic dialogue corpus"
+    - "psychotherapy conversation"
+    - "clinical interview transcripts"
+    - "mental health counseling data"
+  
+  clinical_outcomes:
+    - "therapy outcome data"
+    - "psychotherapy effectiveness"
+    - "treatment response dataset"
+    - "clinical trial mental health"
+    - "patient progress tracking"
+    - "longitudinal therapy data"
+  
+  crisis_intervention:
+    - "crisis intervention dataset"
+    - "suicide prevention conversations"
+    - "emergency counseling protocols"
+    - "crisis hotline data"
+    - "mental health emergency"
+    - "acute psychiatric intervention"
+  
+  training_materials:
+    - "counseling training dataset"
+    - "therapy supervision transcripts"
+    - "clinical training materials"
+    - "therapeutic intervention protocols"
+    - "evidence-based therapy manuals"
+
+# MeSH Terms for PubMed Searches
+mesh_terms:
+  - "Psychotherapy"
+  - "Counseling"
+  - "Mental Health Services"
+  - "Crisis Intervention"
+  - "Cognitive Behavioral Therapy"
+  - "Dialectical Behavior Therapy"
+  - "Motivational Interviewing"
+  - "Suicide Prevention"
+  - "Depression/therapy"
+  - "Anxiety Disorders/therapy"
+
+# Storage Paths
+storage:
+  acquired_datasets: "ai/research_system/acquired_datasets"
+  logs: "ai/research_system/logs"
+  reports: "ai/research_system/reports"
+  temp_downloads: "ai/research_system/temp"
+
+# Research Targets
+targets:
+  week_1:
+    sources_identified: 10
+    datasets_evaluated: 5
+    high_priority_opportunities: 3
+  
+  week_2:
+    access_established: 3
+    datasets_acquired: 2
+    integration_plans_created: 2
+
+# Evaluation Weights
+evaluation_weights:
+  therapeutic_relevance: 0.35
+  data_structure_quality: 0.25
+  training_integration: 0.20
+  ethical_accessibility: 0.20
+
+# Priority Tier Thresholds
+priority_thresholds:
+  high: 8.0  # Overall score >= 8.0
+  medium: 6.0  # Overall score >= 6.0
+  # low: < 6.0
+
+# Rate Limiting
+rate_limits:
+  pubmed_requests_per_second: 3  # Without API key: 3/sec, with key: 10/sec
+  doaj_requests_per_second: 1
+  dryad_requests_per_second: 1
+  zenodo_requests_per_second: 1
+  clinicaltrials_requests_per_second: 1
+
+# Retry Configuration
+retry:
+  max_attempts: 3
+  backoff_factor: 2  # Exponential backoff: 1s, 2s, 4s
+  timeout_seconds: 30
+
+# Download Configuration
+download:
+  chunk_size_mb: 10
+  verify_checksums: true
+  resume_downloads: true
+  max_file_size_gb: 50
+
+# Security
+security:
+  encrypt_acquired_datasets: true
+  encryption_algorithm: "AES-256-GCM"
+  require_checksum_verification: true
+  audit_all_access: true
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "ai/research_system/logs/research_system.log"
+  max_bytes: 10485760  # 10 MB
+  backup_count: 5
