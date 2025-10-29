@@ -41,3 +41,5 @@ lightning/pixelated-training/training_dataset_enhanced.json
 lightning/pixelated-training/wayfarer-balanced/gha-key.json
 lightning/
 data/lightning_h100
+data/unified_training/
+lightning/production/deployment_package/data/
