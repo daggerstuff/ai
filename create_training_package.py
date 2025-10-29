@@ -4,135 +4,144 @@ Create Training Package for H100 Deployment
 Packages all essential files needed for training on Lightning.ai
 """
 
-import os
 import json
+import logging
+import os
 import shutil
+from datetime import datetime, timezone
 from pathlib import Path
-from datetime import datetime
 
-def create_training_package():
-    """Create a comprehensive training package"""
-    
-    print("=" * 80)
-    print("CREATING TRAINING PACKAGE FOR H100 DEPLOYMENT")
-    print("=" * 80)
-    
-    # Create package directory
-    package_name = f"therapeutic_ai_training_package_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-    package_dir = Path(f"ai/{package_name}")
-    package_dir.mkdir(parents=True, exist_ok=True)
-    
-    print(f"\n📦 Package directory: {package_dir}")
-    
-    # Files to include
-    files_to_copy = {
-        # Training scripts
-        "training_scripts": [
-            "ai/lightning/train_optimized.py",
-            "ai/lightning/train_moe_h100.py",
-            "ai/lightning/training_optimizer.py",
-            "ai/lightning/moe_architecture.py",
-            "ai/lightning/inference_optimizer.py",
-            "ai/lightning/inference_service.py",
-            "ai/lightning/therapeutic_progress_tracker.py",
-            "ai/lightning/progress_tracking_api.py",
-        ],
-        
-        # Configuration files
-        "configs": [
-            "ai/lightning/moe_training_config.json",
-            "ai/lightning/requirements_moe.txt",
-        ],
-        
-        # Documentation
-        "docs": [
-            "ai/lightning/TRAINING_PROCEDURES.md",
-            "ai/lightning/USER_GUIDE.md",
-            "ai/lightning/MODEL_ARCHITECTURE_PERFORMANCE.md",
-            "ai/lightning/LIGHTNING_H100_QUICK_DEPLOY.md",
-            "ai/QUICK_START_GUIDE.md",
-            "ai/IMPLEMENTATION_COMPLETE.md",
-        ],
-        
-        # Data pipeline scripts
-        "data_pipeline": [
-            "ai/dataset_pipeline/orchestration/integrated_training_pipeline.py",
-            "ai/dataset_pipeline/ingestion/edge_case_jsonl_loader.py",
-            "ai/dataset_pipeline/ingestion/dual_persona_loader.py",
-            "ai/dataset_pipeline/ingestion/psychology_knowledge_loader.py",
-            "ai/dataset_pipeline/ingestion/pixel_voice_loader.py",
-        ],
-        
-        # Utility files
-        "utils": [
-            "ai/dataset_pipeline/utils/logger.py",
-        ],
+
+def _get_package_config():
+    """Get configuration for files to include in training package."""
+    return {
+        "files_to_copy": {
+            # Training scripts
+            "training_scripts": [
+                "ai/lightning/train_optimized.py",
+                "ai/lightning/train_moe_h100.py",
+                "ai/lightning/training_optimizer.py",
+                "ai/lightning/moe_architecture.py",
+                "ai/lightning/inference_optimizer.py",
+                "ai/lightning/inference_service.py",
+                "ai/lightning/therapeutic_progress_tracker.py",
+                "ai/lightning/progress_tracking_api.py",
+            ],
+            # Configuration files
+            "configs": [
+                "ai/lightning/moe_training_config.json",
+                "ai/lightning/requirements_moe.txt",
+            ],
+            # Documentation
+            "docs": [
+                "ai/lightning/TRAINING_PROCEDURES.md",
+                "ai/lightning/USER_GUIDE.md",
+                "ai/lightning/MODEL_ARCHITECTURE_PERFORMANCE.md",
+                "ai/lightning/LIGHTNING_H100_QUICK_DEPLOY.md",
+                "ai/QUICK_START_GUIDE.md",
+                "ai/IMPLEMENTATION_COMPLETE.md",
+            ],
+            # Data pipeline scripts
+            "data_pipeline": [
+                "ai/dataset_pipeline/orchestration/integrated_training_pipeline.py",
+                "ai/dataset_pipeline/ingestion/edge_case_jsonl_loader.py",
+                "ai/dataset_pipeline/ingestion/dual_persona_loader.py",
+                "ai/dataset_pipeline/ingestion/psychology_knowledge_loader.py",
+                "ai/dataset_pipeline/ingestion/pixel_voice_loader.py",
+            ],
+            # Utility files
+            "utils": [
+                "ai/dataset_pipeline/utils/logger.py",
+            ],
+        },
+        "data_files": {
+            "training_data": [
+                "ai/lightning/training_dataset.json",
+            ],
+            "edge_cases": [
+                "ai/pipelines/edge_case_pipeline_standalone/output/edge_cases_training_format.jsonl",
+            ],
+            "dual_persona": [
+                "ai/pipelines/dual_persona_training/dual_persona_training_data.jsonl",
+                "ai/pipelines/dual_persona_training/training_config.json",
+            ],
+            "psychology_knowledge": [
+                "ai/training_data_consolidated/psychology_knowledge_base.json",
+                "ai/training_data_consolidated/dsm5_concepts.json",
+                "ai/training_data_consolidated/therapeutic_techniques.json",
+            ],
+        }
     }
-    
-    # Data files to include (if they exist)
-    data_files = {
-        "training_data": [
-            "ai/lightning/training_dataset.json",
-        ],
-        
-        "edge_cases": [
-            "ai/pipelines/edge_case_pipeline_standalone/output/edge_cases_training_format.jsonl",
-        ],
-        
-        "dual_persona": [
-            "ai/pipelines/dual_persona_training/dual_persona_training_data.jsonl",
-            "ai/pipelines/dual_persona_training/training_config.json",
-        ],
-        
-        "psychology_knowledge": [
-            "ai/training_data_consolidated/psychology_knowledge_base.json",
-            "ai/training_data_consolidated/dsm5_concepts.json",
-            "ai/training_data_consolidated/therapeutic_techniques.json",
-        ],
-    }
-    
-    # Copy files
+
+
+def _copy_files_to_package(package_dir, files_config):
+    """Copy files to package directory and track copied/missing files."""
+    logger = logging.getLogger(__name__)
     copied_files = []
     missing_files = []
-    
-    print("\n📋 Copying essential files...")
-    
-    for category, files in files_to_copy.items():
-        category_dir = package_dir / category
-        category_dir.mkdir(parents=True, exist_ok=True)
-        
-        for file_path in files:
-            src = Path(file_path)
-            if src.exists():
-                dst = category_dir / src.name
-                shutil.copy2(src, dst)
-                copied_files.append(file_path)
-                print(f"   ✅ {file_path}")
-            else:
-                missing_files.append(file_path)
-                print(f"   ⚠️  Missing: {file_path}")
-    
-    print("\n📊 Copying data files...")
-    
-    for category, files in data_files.items():
-        category_dir = package_dir / "data" / category
-        category_dir.mkdir(parents=True, exist_ok=True)
-        
-        for file_path in files:
-            src = Path(file_path)
-            if src.exists():
-                dst = category_dir / src.name
-                shutil.copy2(src, dst)
-                copied_files.append(file_path)
-                print(f"   ✅ {file_path}")
-            else:
-                missing_files.append(file_path)
-                print(f"   ⚠️  Missing: {file_path} (will be generated)")
-    
-    # Create README for the package
+
+    try:
+        # Copy essential files
+        logger.info("📋 Copying essential files...")
+        for category, files in files_config["files_to_copy"].items():
+            category_dir = package_dir / category
+            category_dir.mkdir(parents=True, exist_ok=True)
+
+            for file_path in files:
+                src = Path(file_path)
+                if src.exists():
+                    dst = category_dir / src.name
+                    try:
+                        shutil.copy2(src, dst)
+                        copied_files.append(file_path)
+                        logger.info(f"   ✅ {file_path}")
+                    except OSError as e:
+                        logger.error(f"   ❌ Failed to copy {file_path}: {e}")
+                        missing_files.append(file_path)
+                else:
+                    missing_files.append(file_path)
+                    logger.warning(f"   ⚠️  Missing: {file_path}")
+
+        # Copy data files
+        logger.info("📊 Copying data files...")
+        for category, files in files_config["data_files"].items():
+            category_dir = package_dir / "data" / category
+            category_dir.mkdir(parents=True, exist_ok=True)
+
+            for file_path in files:
+                src = Path(file_path)
+                if src.exists():
+                    dst = category_dir / src.name
+                    try:
+                        shutil.copy2(src, dst)
+                        copied_files.append(file_path)
+                        logger.info(f"   ✅ {file_path}")
+                    except OSError as e:
+                        logger.error(f"   ❌ Failed to copy {file_path}: {e}")
+                        missing_files.append(file_path)
+                else:
+                    missing_files.append(file_path)
+                    logger.warning(f"   ⚠️  Missing: {file_path} (will be generated)")
+
+    except Exception as e:
+        logger.error(f"Error during file copying: {e}")
+        raise
+
+    return copied_files, missing_files
+
+
+def _create_package_readme(package_dir, copied_files, missing_files):
+    """Create comprehensive README for the training package."""
+    logger = logging.getLogger(__name__)
+    package_name = package_dir.name
+
+    # Ensure we don't have duplicate entries in lists
+    copied_files = list(set(copied_files))
+    missing_files = list(set(missing_files))
+
     readme_content = f"""# Therapeutic AI Training Package
 
-**Created**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Created**: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}
 **Version**: 5.0
 **Status**: Production Ready
 
@@ -207,7 +216,7 @@ data_file = Path('data/training_data/training_dataset.json')
 if data_file.exists():
     with open(data_file, 'r') as f:
         data = json.load(f)
-        print(f'✅ Training data found: {{len(data[\"conversations\"])}} samples')
+        print(f'✅ Training data found: {{len(data.get('conversations', []))}} samples')
 else:
     print('⚠️  Training data not found. Generate it first.')
 "
@@ -263,11 +272,11 @@ watch -n 1 nvidia-smi
 **Missing Files**: {len(missing_files)}
 
 ### Copied Files:
-{chr(10).join(f'- {f}' for f in copied_files[:20])}
-{'...' if len(copied_files) > 20 else ''}
+{chr(10).join(f"- {f}" for f in sorted(copied_files)[:20])}
+{"..." if len(copied_files) > 20 else ""}
 
 ### Missing Files (will be generated):
-{chr(10).join(f'- {f}' for f in missing_files) if missing_files else 'None'}
+{chr(10).join(f"- {f}" for f in sorted(missing_files)) if missing_files else "None"}
 
 ## Training Configuration
 
@@ -323,78 +332,158 @@ For issues or questions:
 ---
 
 **Package Version**: 5.0
-**Created**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+**Created**: {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S")}
 **Status**: Ready for H100 Training
 """
-    
+
     readme_path = package_dir / "README.md"
-    with open(readme_path, 'w') as f:
-        f.write(readme_content)
-    
-    print(f"\n✅ Created README: {readme_path}")
-    
-    # Create package manifest
+    try:
+        with open(readme_path, "w", encoding="utf-8") as f:
+            f.write(readme_content)
+        logger.info(f"✅ Created README: {readme_path}")
+        return readme_path
+    except OSError as e:
+        logger.error(f"Failed to create README: {e}")
+        raise
+
+
+def _create_package_manifest(package_dir, copied_files, missing_files, files_config):
+    """Create package manifest with metadata."""
+    logger = logging.getLogger(__name__)
+
+    # Ensure we don't have duplicate entries
+    copied_files = list(set(copied_files))
+    missing_files = list(set(missing_files))
+
     manifest = {
-        "package_name": package_name,
-        "created": datetime.now().isoformat(),
+        "package_name": package_dir.name,
+        "created": datetime.now(timezone.utc).isoformat(),
         "version": "5.0",
         "total_files": len(copied_files),
-        "missing_files": len(missing_files),
-        "copied_files": copied_files,
-        "missing_files": missing_files,
-        "categories": list(files_to_copy.keys()) + list(data_files.keys()),
+        "missing_files_count": len(missing_files),
+        "copied_files": sorted(copied_files),
+        "missing_files": sorted(missing_files),
+        "categories": sorted(
+            list(files_config["files_to_copy"].keys()) +
+            list(files_config["data_files"].keys())
+        ),
     }
-    
+
     manifest_path = package_dir / "manifest.json"
-    with open(manifest_path, 'w') as f:
-        json.dump(manifest, f, indent=2)
-    
-    print(f"✅ Created manifest: {manifest_path}")
-    
-    # Create compression script
+    try:
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, indent=2, ensure_ascii=False)
+        logger.info(f"✅ Created manifest: {manifest_path}")
+        return manifest_path
+    except OSError as e:
+        logger.error(f"Failed to create manifest: {e}")
+        raise
+
+
+def _create_compression_script(package_dir):
+    """Create bash script for compressing the training package."""
+    logger = logging.getLogger(__name__)
+    package_name = package_dir.name
+
+    # Validate package name for shell safety
+    if not package_name.replace("_", "").replace("-", "").isalnum():
+        logger.warning(
+            f"Package name '{package_name}' contains special characters - "
+            "may cause issues"
+        )
+
     compress_script = f"""#!/bin/bash
 # Compress training package for transfer
+set -euo pipefail
 
 echo "Compressing training package..."
-7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on {package_name}.7z {package_name}/
+if ! command -v 7z &> /dev/null; then
+    echo "❌ 7z command not found. Please install p7zip."
+    exit 1
+fi
+
+7z a -t7z -m0=lzma2 -mx=9 -mfb=64 -md=32m -ms=on "{package_name}.7z" "{package_name}"/
 
 if [ $? -eq 0 ]; then
     echo "✅ Package created: {package_name}.7z"
-    echo "📦 Size: $(du -h {package_name}.7z | cut -f1)"
+    echo "📦 Size: $(du -h '{package_name}.7z' | cut -f1)"
     echo ""
     echo "To extract on Lightning.ai:"
-    echo "  7z x {package_name}.7z"
-    echo "  cd {package_name}/"
+    echo "  7z x '{package_name}.7z'"
+    echo "  cd '{package_name}/'"
     echo "  cat README.md"
 else
     echo "❌ Compression failed"
     exit 1
 fi
 """
-    
+
     compress_script_path = Path(f"ai/compress_{package_name}.sh")
-    with open(compress_script_path, 'w') as f:
-        f.write(compress_script)
-    
-    os.chmod(compress_script_path, 0o755)
-    
-    print(f"✅ Created compression script: {compress_script_path}")
-    
+    try:
+        with open(compress_script_path, "w", encoding="utf-8") as f:
+            f.write(compress_script)
+
+        os.chmod(compress_script_path, 0o755)
+        logger.info(f"✅ Created compression script: {compress_script_path}")
+        return compress_script_path
+    except OSError as e:
+        logger.error(f"Failed to create compression script: {e}")
+        raise
+
+
+def create_training_package():
+    """Create a comprehensive training package for H100 deployment."""
+    # Configure logging
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.StreamHandler(),
+            logging.FileHandler("training_package_creation.log")
+        ]
+    )
+    logger = logging.getLogger(__name__)
+
+    logger.info("=" * 80)
+    logger.info("CREATING TRAINING PACKAGE FOR H100 DEPLOYMENT")
+    logger.info("=" * 80)
+
+    # Create package directory
+    package_name = (
+        f"therapeutic_ai_training_package_"
+        f"{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+    )
+    package_dir = Path(f"ai/{package_name}")
+    package_dir.mkdir(parents=True, exist_ok=True)
+
+    logger.info(f"📦 Package directory: {package_dir}")
+
+    # Get configuration
+    files_config = _get_package_config()
+
+    # Copy files and track results
+    copied_files, missing_files = _copy_files_to_package(package_dir, files_config)
+
+    # Create package artifacts
+    _create_package_readme(package_dir, copied_files, missing_files)
+    _create_package_manifest(package_dir, copied_files, missing_files, files_config)
+    compress_script_path = _create_compression_script(package_dir)
+
     # Summary
-    print("\n" + "=" * 80)
-    print("PACKAGE CREATION COMPLETE")
-    print("=" * 80)
-    print(f"\n📦 Package directory: {package_dir}")
-    print(f"📋 Total files: {len(copied_files)}")
-    print(f"⚠️  Missing files: {len(missing_files)} (will be generated)")
-    print(f"\n📝 Next steps:")
-    print(f"1. Run compression script:")
-    print(f"   bash {compress_script_path}")
-    print(f"\n2. Transfer to Lightning.ai:")
-    print(f"   scp {package_name}.7z lightning.ai:/workspace/")
-    print(f"\n3. Extract and follow README.md instructions")
-    print("=" * 80)
-    
+    logger.info("=" * 80)
+    logger.info("PACKAGE CREATION COMPLETE")
+    logger.info("=" * 80)
+    logger.info(f"📦 Package directory: {package_dir}")
+    logger.info(f"📋 Total files: {len(copied_files)}")
+    logger.info(f"⚠️  Missing files: {len(missing_files)} (will be generated)")
+    logger.info("📝 Next steps:")
+    logger.info("1. Run compression script:")
+    logger.info(f"   bash {compress_script_path}")
+    logger.info("2. Transfer to Lightning.ai:")
+    logger.info(f"   scp {package_name}.7z lightning.ai:/workspace/")
+    logger.info("3. Extract and follow README.md instructions")
+    logger.info("=" * 80)
+
     return package_dir, compress_script_path
 
 
