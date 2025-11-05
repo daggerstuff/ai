@@ -14,9 +14,19 @@ import re
 from dataclasses import dataclass, field
 from datetime import datetime
 import logging
-from sentence_transformers import SentenceTransformer
-import numpy as np
-from sklearn.metrics.pairwise import cosine_similarity
+
+# Handle optional dependencies gracefully
+try:
+    from sentence_transformers import SentenceTransformer
+    import numpy as np
+    from sklearn.metrics.pairwise import cosine_similarity
+    HAS_TRANSFORMERS = True
+except ImportError:
+    SentenceTransformer = object  # Dummy class for type hints
+    np = None
+    cosine_similarity = None
+    HAS_TRANSFORMERS = False
+    logging.warning("sentence-transformers not installed. RAG search functionality will be limited.")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -54,6 +64,8 @@ class YouTubeRAGSystem:
     def __init__(self, model_name: str = 'all-MiniLM-L6-v2'):
         self.transcripts_dir = Path("ai/training_data_consolidated/transcripts")
         self.index_dir = Path("ai/dataset_pipeline/rag_index")
+        # Create the full directory path if it doesn't exist
+        self.index_dir.parent.mkdir(parents=True, exist_ok=True)
         self.index_dir.mkdir(exist_ok=True)
 
         # Load sentence transformer for embeddings
