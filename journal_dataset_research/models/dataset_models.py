@@ -251,7 +251,7 @@ class ResearchProgress:
     access_established: int = 0
     datasets_acquired: int = 0
     integration_plans_created: int = 0
-    last_updated: datetime = field(default_factory=datetime.now)
+    last_updated: Optional[datetime] = None
 
 
 @dataclass
@@ -265,19 +265,24 @@ class ResearchLog:
     outcome: str = ""
     duration_minutes: int = 0
 
+    ALLOWED_ACTIVITY_TYPES = {
+        "session_start",
+        "phase_transition",
+        "search",
+        "evaluation",
+        "acquisition",
+        "integration",
+        "access_request",
+        "download",
+        "manual_intervention",
+    }
+
     def validate(self) -> List[str]:
         """Validate the research log and return list of errors."""
         errors = []
-        if self.activity_type not in [
-            "search",
-            "evaluation",
-            "access_request",
-            "download",
-            "integration",
-        ]:
-            errors.append(
-                "activity_type must be one of: search, evaluation, access_request, download, integration"
-            )
+        if self.activity_type not in self.ALLOWED_ACTIVITY_TYPES:
+            allowed = ", ".join(sorted(self.ALLOWED_ACTIVITY_TYPES))
+            errors.append(f"activity_type must be one of: {allowed}")
         return errors
 
 
