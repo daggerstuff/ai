@@ -16,6 +16,15 @@ from ai.journal_dataset_research.models.dataset_models import (
     DatasetSource,
 )
 
+# Optional compliance module imports
+try:
+    from ai.journal_dataset_research.compliance.compliance_checker import (
+        ComplianceChecker,
+    )
+    COMPLIANCE_AVAILABLE = True
+except ImportError:
+    COMPLIANCE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -147,17 +156,28 @@ class DatasetEvaluationEngine:
     Calculates overall score using weighted average and assigns priority tier.
     """
 
-    def __init__(self, config: Optional[EvaluationConfig] = None):
+    def __init__(
+        self,
+        config: Optional[EvaluationConfig] = None,
+        compliance_checker: Optional[ComplianceChecker] = None,
+    ):
         """
         Initialize the evaluation engine.
 
         Args:
             config: Evaluation configuration. If None, uses default config.
+            compliance_checker: Optional compliance checker instance for enhanced compliance checking.
         """
         self.config = config or EvaluationConfig()
         config_errors = self.config.validate()
         if config_errors:
             raise ValueError(f"Invalid evaluation config: {', '.join(config_errors)}")
+
+        # Compliance checker (optional)
+        self.compliance_checker = compliance_checker
+        if compliance_checker and not COMPLIANCE_AVAILABLE:
+            logger.warning("Compliance checker provided but compliance module not available")
+            self.compliance_checker = None
 
     def evaluate_dataset(
         self, source: DatasetSource, evaluator: str = "system"
@@ -204,6 +224,59 @@ class DatasetEvaluationEngine:
             source, therapeutic_relevance, data_structure_quality
         )
 
+        # Perform compliance check if compliance checker is available
+        compliance_checked = False
+        compliance_status = "unknown"
+        compliance_score = 0.0
+        license_compatible = False
+        privacy_compliant = False
+        hipaa_compliant = False
+
+        if self.compliance_checker:
+            try:
+                compliance_result = self.compliance_checker.check_compliance(
+                    source=source,
+                    dataset_sample=None,  # Could be provided if available
+                    license_text=None,  # Could be extracted from source
+                    metadata={"abstract": source.abstract, "keywords": source.keywords},
+                )
+
+                compliance_checked = True
+                compliance_status = compliance_result.compliance_status
+                compliance_score = compliance_result.overall_compliance_score
+
+                # Update ethical accessibility score based on compliance results
+                if compliance_result.license_check:
+                    license_compatible = compliance_result.license_check.is_usable()
+                    # Adjust ethical accessibility score based on license compatibility
+                    if not license_compatible:
+                        ethical_accessibility = max(1, ethical_accessibility - 3)
+                        ethical_notes += "; License incompatible or requires review"
+
+                if compliance_result.privacy_assessment:
+                    privacy_compliant = compliance_result.privacy_assessment.is_compliant()
+                    if not privacy_compliant:
+                        ethical_accessibility = max(1, ethical_accessibility - 2)
+                        ethical_notes += "; Privacy compliance issues detected"
+
+                if compliance_result.hipaa_compliance:
+                    hipaa_compliant = compliance_result.hipaa_compliance.is_compliant()
+                    if compliance_result.hipaa_compliance.contains_phi and not hipaa_compliant:
+                        ethical_accessibility = max(1, ethical_accessibility - 2)
+                        ethical_notes += "; HIPAA compliance issues detected"
+
+                # Recalculate overall score with updated ethical accessibility
+                overall_score = self._calculate_overall_score(
+                    therapeutic_relevance,
+                    data_structure_quality,
+                    training_integration,
+                    ethical_accessibility,
+                )
+                priority_tier = self._calculate_priority_tier(overall_score)
+
+            except Exception as e:
+                logger.warning(f"Error performing compliance check: {e}")
+
         evaluation = DatasetEvaluation(
             source_id=source.source_id,
             therapeutic_relevance=therapeutic_relevance,
@@ -219,6 +292,12 @@ class DatasetEvaluationEngine:
             evaluation_date=datetime.now(),
             evaluator=evaluator,
             competitive_advantages=competitive_advantages,
+            compliance_checked=compliance_checked,
+            compliance_status=compliance_status,
+            compliance_score=compliance_score,
+            license_compatible=license_compatible,
+            privacy_compliant=privacy_compliant,
+            hipaa_compliant=hipaa_compliant,
         )
 
         # Validate evaluation
