@@ -76,6 +76,12 @@ class DatasetEvaluation:
     evaluation_date: datetime = field(default_factory=datetime.now)
     evaluator: str = ""
     competitive_advantages: List[str] = field(default_factory=list)
+    compliance_checked: bool = False
+    compliance_status: str = "unknown"  # compliant, partially_compliant, non_compliant
+    compliance_score: float = 0.0  # 0.0-1.0
+    license_compatible: bool = False
+    privacy_compliant: bool = False
+    hipaa_compliant: bool = False
 
     def validate(self) -> List[str]:
         """Validate the evaluation data and return list of errors."""
@@ -150,6 +156,11 @@ class AcquiredDataset:
     usage_restrictions: List[str] = field(default_factory=list)
     attribution_required: bool = False
     checksum: str = ""
+    encrypted: bool = False
+    compliance_status: str = "unknown"  # compliant, partially_compliant, non_compliant
+    compliance_score: float = 0.0  # 0.0-1.0
+    hipaa_compliant: bool = False
+    privacy_assessed: bool = False
 
     def validate(self) -> List[str]:
         """Validate the acquired dataset data and return list of errors."""
