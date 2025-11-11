@@ -18,6 +18,7 @@ from ai.journal_dataset_research.cli.interactive import (
     prompt_for_integration_approval,
     prompt_for_manual_evaluation_override,
 )
+from ai.journal_dataset_research.discovery import DiscoveryService
 from ai.journal_dataset_research.models.dataset_models import (
     DatasetEvaluation,
     DatasetSource,
@@ -46,9 +47,12 @@ class CommandHandler:
             orchestrator_config = OrchestratorConfig(
                 **self.config.get("orchestrator", {})
             )
-            # Note: In a real implementation, you'd initialize the services here
-            # For now, we'll create an orchestrator without services for CLI commands
-            self.orchestrator = ResearchOrchestrator(config=orchestrator_config)
+            # Initialize discovery service
+            discovery_service = DiscoveryService(config=self.config)
+            self.orchestrator = ResearchOrchestrator(
+                config=orchestrator_config,
+                discovery_service=discovery_service,
+            )
         return self.orchestrator
 
     def search(
