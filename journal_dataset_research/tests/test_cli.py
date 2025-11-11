@@ -69,11 +69,13 @@ class TestCommandHandler:
 
     def test_search_command(self, command_handler, mock_discovery_service):
         """Test search command."""
-        command_handler.discovery_service = mock_discovery_service
-        
+        # Replace the discovery service in the orchestrator with the mock
+        orchestrator = command_handler._get_orchestrator()
+        orchestrator.discovery_service = mock_discovery_service
+
         result = command_handler.search(
             sources=["pubmed"],
-            keywords={"therapy": ["cbt"]},
+            keywords=["cbt"],  # CLI expects list of keywords, not dict
         )
 
         assert result is not None
@@ -82,7 +84,7 @@ class TestCommandHandler:
     def test_evaluate_command(self, command_handler, mock_evaluation_engine, sample_dataset_source):
         """Test evaluate command."""
         command_handler.evaluation_engine = mock_evaluation_engine
-        
+
         result = command_handler.evaluate(source_id=sample_dataset_source.source_id)
 
         assert result is not None
@@ -91,7 +93,7 @@ class TestCommandHandler:
     def test_acquire_command(self, command_handler, mock_acquisition_manager, sample_dataset_source):
         """Test acquire command."""
         command_handler.acquisition_manager = mock_acquisition_manager
-        
+
         result = command_handler.acquire(source_id=sample_dataset_source.source_id)
 
         assert result is not None
@@ -100,7 +102,7 @@ class TestCommandHandler:
     def test_integrate_command(self, command_handler, mock_integration_engine, sample_acquired_dataset):
         """Test integrate command."""
         command_handler.integration_engine = mock_integration_engine
-        
+
         result = command_handler.integrate(dataset_id=sample_acquired_dataset.source_id)
 
         assert result is not None
@@ -109,7 +111,7 @@ class TestCommandHandler:
     def test_status_command(self, command_handler, sample_research_session):
         """Test status command."""
         command_handler.orchestrator.sessions[sample_research_session.session_id] = sample_research_session
-        
+
         result = command_handler.status(session_id=sample_research_session.session_id)
 
         assert result is not None
