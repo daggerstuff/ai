@@ -21,6 +21,7 @@ from ai.journal_dataset_research.cli.interactive import (
     display_progress,
     prompt_for_phase_transition,
 )
+from ai.journal_dataset_research.discovery import DiscoveryService
 from ai.journal_dataset_research.models.dataset_models import ResearchSession
 from ai.journal_dataset_research.orchestrator.research_orchestrator import (
     ResearchOrchestrator,
@@ -63,9 +64,13 @@ class WorkflowExecutor:
         """Execute the complete research workflow."""
         console.print("[bold blue]Starting Research Workflow[/bold blue]\n")
 
-        # Initialize orchestrator
+        # Initialize orchestrator with discovery service
         orchestrator_config = OrchestratorConfig(**self.config.get("orchestrator", {}))
-        orchestrator = ResearchOrchestrator(config=orchestrator_config)
+        discovery_service = DiscoveryService(config=self.config)
+        orchestrator = ResearchOrchestrator(
+            config=orchestrator_config,
+            discovery_service=discovery_service,
+        )
 
         # Load or create session
         if resume and session_id:
