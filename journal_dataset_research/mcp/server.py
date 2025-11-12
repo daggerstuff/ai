@@ -74,6 +74,10 @@ from ai.journal_dataset_research.mcp.tools.sessions import (
 )
 from ai.journal_dataset_research.mcp.utils.error_handling import MCPErrorHandler
 from ai.journal_dataset_research.mcp.utils.logging import get_logger, setup_logging
+from ai.journal_dataset_research.mcp.auth import (
+    create_auth_handler,
+    create_authorization_handler,
+)
 
 logger = get_logger(__name__)
 
@@ -107,8 +111,12 @@ class MCPServer:
         # Initialize protocol handler
         self.protocol_handler = MCPProtocolHandler()
 
-        # Initialize authentication and rate limiting (will be implemented in Phase 11)
-        self.auth_handler: Optional[Any] = None
+        # Initialize authentication and authorization (Phase 11)
+        self.auth_handler = create_auth_handler(self.config.auth)
+        self.authorization_handler = create_authorization_handler()
+        self.current_user: Optional[Dict[str, Any]] = None
+
+        # Initialize rate limiting (will be implemented in Phase 14)
         self.rate_limiter: Optional[Any] = None
 
         # Register session management tools (Phase 3)
@@ -338,6 +346,21 @@ class MCPServer:
                         id=request.id,
                     )
 
+                # Check authorization for tool execution
+                try:
+                    await self.authorization_handler.require_authorization(
+                        self.current_user or {},
+                        tool_name,
+                        "execute",
+                    )
+                except MCPError as e:
+                    return MCPResponse.error(
+                        e.code,
+                        e.message,
+                        e.data,
+                        id=request.id,
+                    )
+
                 tool_params = params.get("arguments", {})
                 timeout = params.get("timeout")
 
@@ -417,6 +440,21 @@ class MCPServer:
                     return MCPResponse.error(
                         JSONRPCErrorCode.INVALID_PARAMS,
                         "Missing required parameter: uri",
+                        id=request.id,
+                    )
+
+                # Check authorization for resource access
+                try:
+                    await self.authorization_handler.require_authorization(
+                        self.current_user or {},
+                        uri,
+                        "read",
+                    )
+                except MCPError as e:
+                    return MCPResponse.error(
+                        e.code,
+                        e.message,
+                        e.data,
                         id=request.id,
                     )
 
@@ -570,10 +608,32 @@ class MCPServer:
             request: Request to authenticate
 
         Raises:
-            Exception: If authentication fails
+            MCPError: If authentication fails
         """
-        # Will be implemented in Phase 11
-        pass
+        if not self.auth_handler:
+            # Authentication disabled, set default user
+            self.current_user = {
+                "user_id": "anonymous",
+                "email": None,
+                "role": "viewer",
+                "permissions": [],
+            }
+            return
+
+        try:
+            # Authenticate request and get user information
+            user = await self.auth_handler.authenticate(request)
+            self.current_user = user
+            logger.debug(f"Request authenticated for user: {user.get('user_id')}")
+        except MCPError:
+            # Re-raise MCP errors as-is
+            raise
+        except Exception as e:
+            logger.exception("Unexpected error during authentication")
+            raise MCPError(
+                MCPErrorCode.AUTHENTICATION_ERROR,
+                f"Authentication failed: {str(e)}",
+            )
 
     async def _check_rate_limit(self, request: MCPRequest) -> None:
         """
