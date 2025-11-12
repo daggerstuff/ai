@@ -36,6 +36,7 @@ from ai.journal_dataset_research.mcp.prompts.acquisition import AcquireDatasetsP
 from ai.journal_dataset_research.mcp.prompts.integration import CreateIntegrationPlansPrompt
 from ai.journal_dataset_research.mcp.tools.executor import ToolExecutor
 from ai.journal_dataset_research.mcp.tools.registry import ToolRegistry
+from ai.journal_dataset_research.mcp.utils.progress_streaming import ProgressStreamer
 from ai.journal_dataset_research.mcp.tools.acquisition import (
     AcquireDatasetsTool,
     GetAcquisitionTool,
@@ -102,9 +103,14 @@ class MCPServer:
             config=self.config.command_handler_config
         )
 
+        # Initialize progress streaming (Phase 12)
+        self.progress_streamer = ProgressStreamer()
+
         # Initialize registries
         self.tools = ToolRegistry()
-        self.tool_executor = ToolExecutor(self.tools)
+        self.tool_executor = ToolExecutor(
+            self.tools, progress_streamer=self.progress_streamer
+        )
         self.resources = ResourceRegistry()
         self.prompts = PromptRegistry()
 
