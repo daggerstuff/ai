@@ -200,7 +200,7 @@ class WorkflowExecutor:
             sources = orchestrator.discovery_service.discover_sources(session)
             state.sources = sources
             orchestrator.update_progress(
-                session_id, {"sources_identified": len(sources)}
+                session_id, {"sources_identified": len(state.sources)}
             )
             console.print(f"[green]Found {len(sources)} sources[/green]")
         else:
@@ -232,7 +232,7 @@ class WorkflowExecutor:
 
             state.evaluations.extend(evaluations)
             orchestrator.update_progress(
-                session_id, {"datasets_evaluated": len(evaluations)}
+                session_id, {"datasets_evaluated": len(state.evaluations)}
             )
             console.print(f"[green]Evaluated {len(evaluations)} datasets[/green]")
         else:
@@ -269,7 +269,7 @@ class WorkflowExecutor:
                     logger.exception("Acquisition error")
 
             orchestrator.update_progress(
-                session_id, {"datasets_acquired": acquired_count}
+                session_id, {"datasets_acquired": len(state.acquired_datasets)}
             )
             console.print(f"[green]Acquired {acquired_count} datasets[/green]")
         else:
@@ -303,7 +303,7 @@ class WorkflowExecutor:
                     logger.exception("Integration planning error")
 
             orchestrator.update_progress(
-                session_id, {"integration_plans_created": plans_count}
+                session_id, {"integration_plans_created": len(state.integration_plans)}
             )
             console.print(f"[green]Created {plans_count} integration plans[/green]")
         else:
