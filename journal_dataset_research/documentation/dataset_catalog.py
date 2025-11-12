@@ -116,19 +116,19 @@ class DatasetCatalog:
 
             # Write sources
             if self.sources:
-                writer.writerow(["## Dataset Sources"])
+                # Write header row (not markdown header)
                 writer.writerow(
                     [
-                        "Source ID",
-                        "Title",
-                        "Authors",
-                        "Publication Date",
-                        "Source Type",
-                        "URL",
-                        "DOI",
-                        "Open Access",
-                        "Data Availability",
-                        "Discovery Date",
+                        "source_id",
+                        "title",
+                        "authors",
+                        "publication_date",
+                        "source_type",
+                        "url",
+                        "doi",
+                        "open_access",
+                        "data_availability",
+                        "discovery_date",
                     ]
                 )
                 for source in self.sources:
@@ -242,6 +242,7 @@ class DatasetCatalog:
             "total_sources": len(self.sources),
             "total_evaluations": len(self.evaluations),
             "total_acquired": len(self.acquired_datasets),
+            "total_acquired_datasets": len(self.acquired_datasets),  # Alias for backward compatibility
             "total_integration_plans": len(self.integration_plans),
         }
 
@@ -281,6 +282,14 @@ class DatasetCatalog:
         # Total dataset size
         total_size_mb = sum(ds.file_size_mb for ds in self.acquired_datasets)
         stats["total_acquired_size_mb"] = total_size_mb
+
+        # Add average_score and high_priority_count for backward compatibility
+        if self.evaluations:
+            stats["average_score"] = stats["evaluation_score_stats"]["average"]
+            stats["high_priority_count"] = len([e for e in self.evaluations if e.priority_tier == "high"])
+        else:
+            stats["average_score"] = 0.0
+            stats["high_priority_count"] = 0
 
         return stats
 

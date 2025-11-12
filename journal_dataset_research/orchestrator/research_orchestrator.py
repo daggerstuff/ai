@@ -144,15 +144,21 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         if not metrics:
             return
 
+        self._ensure_session_tracking(session_id)
         session = self._get_session(session_id)
         progress = self.progress_states[session_id]
         now = datetime.now()
 
         with self._lock:
             for key, value in metrics.items():
-                session.progress_metrics[key] = session.progress_metrics.get(key, 0) + value
+                current_value = session.progress_metrics.get(key, 0)
+                if value >= current_value:
+                    new_value = value
+                else:
+                    new_value = current_value + value
+                session.progress_metrics[key] = new_value
                 if hasattr(progress, key):
-                    setattr(progress, key, getattr(progress, key) + value)
+                    setattr(progress, key, new_value)
 
             progress.last_updated = now
             snapshot = ProgressSnapshot(
@@ -247,7 +253,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         state.evaluations.extend(evaluations)
         if evaluations:
             self.update_progress(
-                session_id, {"datasets_evaluated": len(evaluations)}
+                session_id, {"datasets_evaluated": len(state.evaluations)}
             )
         self.log_activity(
             session_id,
@@ -315,7 +321,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         state.integration_plans.extend(plans)
         if plans:
             self.update_progress(
-                session_id, {"integration_plans_created": len(plans)}
+                session_id, {"integration_plans_created": len(state.integration_plans)}
             )
         self.log_activity(
             session_id,
@@ -326,18 +332,27 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
     def get_session_state(self, session_id: str) -> SessionState:
         """Return accumulated state for the session."""
+        self._ensure_session_tracking(session_id)
         return self.session_states[session_id]
+
+    def get_progress(self, session_id: str) -> ResearchProgress:
+        """Return current progress metrics for the session."""
+        self._ensure_session_tracking(session_id)
+        return self.progress_states[session_id]
 
     def get_progress_history(self, session_id: str) -> List[ProgressSnapshot]:
         """Return recorded progress history for the session."""
+        self._ensure_session_tracking(session_id)
         return list(self.progress_history.get(session_id, []))
 
     def get_activity_log(self, session_id: str) -> List[ResearchLog]:
         """Retrieve recorded activity log entries for a session."""
+        self._ensure_session_tracking(session_id)
         return list(self.activity_logs.get(session_id, []))
 
     def get_error_log(self, session_id: str) -> List[Dict[str, str]]:
         """Retrieve error log entries for a session."""
+        self._ensure_session_tracking(session_id)
         return list(self.error_log.get(session_id, []))
 
     def save_session_state(
@@ -350,7 +365,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
         Returns the path to the persisted session bundle.
         """
-        self._get_session(session_id)
+        self._ensure_session_tracking(session_id)
         bundle = self._build_session_bundle(session_id)
         storage_dir = self._resolve_session_storage_path(
             directory or self._session_storage_path
@@ -412,6 +427,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         Returns a dictionary containing time-series metrics, current progress,
         and target completion percentages.
         """
+        self._ensure_session_tracking(session_id)
         session = self._get_session(session_id)
         progress = self.progress_states[session_id]
         max_points = (
@@ -972,6 +988,26 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
                 priorities.append("Review high-priority datasets and prepare next acquisition wave")
 
         return priorities
+
+    def _ensure_session_tracking(self, session_id: str) -> None:
+        """
+        Ensure tracking structures exist for a session.
+
+        Creates default state, progress, history, and logs if they haven't been
+        initialized yet. Raises KeyError if the session itself does not exist.
+        """
+        self._get_session(session_id)
+        with self._lock:
+            if session_id not in self.session_states:
+                self.session_states[session_id] = SessionState()
+            if session_id not in self.progress_states:
+                self.progress_states[session_id] = ResearchProgress()
+            if session_id not in self.progress_history:
+                self.progress_history[session_id] = []
+            if session_id not in self.activity_logs:
+                self.activity_logs[session_id] = []
+            if session_id not in self.error_log:
+                self.error_log[session_id] = []
 
     def _get_session(self, session_id: str) -> ResearchSession:
         """Retrieve a session by ID, raising if it does not exist."""

@@ -104,7 +104,7 @@ class CommandHandler:
                 sources_list = orchestrator.discovery_service.discover_sources(session)
                 state.sources = sources_list
                 orchestrator.update_progress(
-                    session_id, {"sources_identified": len(sources_list)}
+                    session_id, {"sources_identified": len(state.sources)}
                 )
                 console.print(
                     f"[green]Found {len(sources_list)} dataset sources[/green]"
@@ -127,19 +127,37 @@ class CommandHandler:
 
     def evaluate(
         self,
-        session_id: str,
+        session_id: Optional[str] = None,
+        source_id: Optional[str] = None,
         source_ids: Optional[List[str]] = None,
         interactive: bool = False,
     ) -> Dict[str, Any]:
         """Evaluate dataset sources."""
         console.print("[bold blue]Evaluating dataset sources...[/bold blue]\n")
 
+        # Handle single source_id parameter
+        if source_id and not source_ids:
+            source_ids = [source_id]
+
+        # If no session_id provided, create a default one
+        if not session_id:
+            session_id = "default-session"
+
         if self.dry_run:
             console.print("[yellow]DRY RUN: Would evaluate sources[/yellow]")
             return {"evaluations": [], "session_id": session_id}
 
         orchestrator = self._get_orchestrator()
-        orchestrator.load_session_state(session_id)
+        try:
+            orchestrator.load_session_state(session_id)
+        except FileNotFoundError:
+            # Create a new session if it doesn't exist
+            session = orchestrator.start_research_session(
+                target_sources=[],
+                search_keywords={},
+                session_id=session_id,
+            )
+            session_id = session.session_id
 
         state = orchestrator.get_session_state(session_id)
         sources_to_evaluate = (
@@ -193,7 +211,7 @@ class CommandHandler:
 
         state.evaluations.extend(evaluations)
         orchestrator.update_progress(
-            session_id, {"datasets_evaluated": len(evaluations)}
+            session_id, {"datasets_evaluated": len(state.evaluations)}
         )
         orchestrator.save_session_state(session_id)
 
@@ -204,20 +222,40 @@ class CommandHandler:
 
     def acquire(
         self,
-        session_id: str,
+        session_id: Optional[str] = None,
+        source_id: Optional[str] = None,
         source_ids: Optional[List[str]] = None,
         interactive: bool = False,
     ) -> Dict[str, Any]:
         """Acquire datasets."""
         console.print("[bold blue]Acquiring datasets...[/bold blue]\n")
 
+        # Handle single source_id parameter
+        if source_id and not source_ids:
+            source_ids = [source_id]
+
+        # If no session_id provided, create a default one
+        if not session_id:
+            session_id = "default-session"
+
         if self.dry_run:
             console.print("[yellow]DRY RUN: Would acquire datasets[/yellow]")
             return {"acquired": [], "session_id": session_id}
 
         orchestrator = self._get_orchestrator()
-        orchestrator.load_session_state(session_id)
+        try:
+            orchestrator.load_session_state(session_id)
+        except FileNotFoundError:
+            # Create a new session if it doesn't exist
+            session = orchestrator.start_research_session(
+                target_sources=[],
+                search_keywords={},
+                session_id=session_id,
+            )
+            session_id = session.session_id
 
+        # Ensure session_id is a string (type narrowing)
+        assert session_id is not None, "session_id must be set"
         state = orchestrator.get_session_state(session_id)
 
         # Filter sources if source_ids provided
@@ -267,7 +305,7 @@ class CommandHandler:
             )
 
         orchestrator.update_progress(
-            session_id, {"datasets_acquired": acquired_count}
+            session_id, {"datasets_acquired": len(state.acquired_datasets)}
         )
         orchestrator.save_session_state(session_id)
 
@@ -278,7 +316,8 @@ class CommandHandler:
 
     def integrate(
         self,
-        session_id: str,
+        session_id: Optional[str] = None,
+        dataset_id: Optional[str] = None,
         source_ids: Optional[List[str]] = None,
         target_format: str = "chatml",
         interactive: bool = False,
@@ -286,13 +325,32 @@ class CommandHandler:
         """Create integration plans for acquired datasets."""
         console.print("[bold blue]Creating integration plans...[/bold blue]\n")
 
+        # Handle dataset_id parameter (alias for source_ids)
+        if dataset_id and not source_ids:
+            source_ids = [dataset_id]
+
+        # If no session_id provided, create a default one
+        if not session_id:
+            session_id = "default-session"
+
         if self.dry_run:
             console.print("[yellow]DRY RUN: Would create integration plans[/yellow]")
             return {"plans": [], "session_id": session_id}
 
         orchestrator = self._get_orchestrator()
-        orchestrator.load_session_state(session_id)
+        try:
+            orchestrator.load_session_state(session_id)
+        except FileNotFoundError:
+            # Create a new session if it doesn't exist
+            session = orchestrator.start_research_session(
+                target_sources=[],
+                search_keywords={},
+                session_id=session_id,
+            )
+            session_id = session.session_id
 
+        # Ensure session_id is a string (type narrowing)
+        assert session_id is not None, "session_id must be set"
         state = orchestrator.get_session_state(session_id)
 
         # Filter datasets if source_ids provided
@@ -342,7 +400,7 @@ class CommandHandler:
             )
 
         orchestrator.update_progress(
-            session_id, {"integration_plans_created": plans_count}
+            session_id, {"integration_plans_created": len(state.integration_plans)}
         )
         orchestrator.save_session_state(session_id)
 

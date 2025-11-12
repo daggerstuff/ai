@@ -320,10 +320,38 @@ class LicenseChecker:
 
     def _identify_license(self, text: str) -> Optional[str]:
         """Identify license from text patterns."""
+        # Check more specific licenses first (e.g., CC-BY-NC before CC-BY)
+        # to avoid partial matches
+        license_priority = [
+            "CC-BY-NC-SA",
+            "CC-BY-NC",
+            "CC-BY-SA",
+            "CC-BY-ND",
+            "CC-BY",
+            "CC0",
+            "GPL-3.0",
+            "GPL-2.0",
+            "MIT",
+            "Apache-2.0",
+            "BSD-3-Clause",
+            "Academic",
+            "Proprietary",
+        ]
+
+        # Check in priority order
+        for license_name in license_priority:
+            if license_name in self._compiled_patterns:
+                patterns = self._compiled_patterns[license_name]
+                for pattern in patterns:
+                    if pattern.search(text):
+                        return license_name
+
+        # Check remaining licenses
         for license_name, patterns in self._compiled_patterns.items():
-            for pattern in patterns:
-                if pattern.search(text):
-                    return license_name
+            if license_name not in license_priority:
+                for pattern in patterns:
+                    if pattern.search(text):
+                        return license_name
         return None
 
     def _check_known_license(
