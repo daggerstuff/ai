@@ -14,6 +14,7 @@ from ai.journal_dataset_research.mcp.config import MCPConfig, load_mcp_config
 from ai.journal_dataset_research.mcp.protocol import (
     JSONRPCErrorCode,
     MCPError,
+    MCPErrorCode,
     MCPProtocolHandler,
     MCPRequest,
     MCPResponse,
@@ -21,6 +22,18 @@ from ai.journal_dataset_research.mcp.protocol import (
 from ai.journal_dataset_research.api.services.command_handler_service import (
     CommandHandlerService,
 )
+from ai.journal_dataset_research.mcp.resources import (
+  ProgressHistoryResource,
+  ProgressMetricsResource,
+  ResourceRegistry,
+  SessionMetricsResource,
+  SessionStateResource,
+)
+from ai.journal_dataset_research.mcp.prompts import PromptRegistry
+from ai.journal_dataset_research.mcp.prompts.discovery import DiscoverSourcesPrompt
+from ai.journal_dataset_research.mcp.prompts.evaluation import EvaluateSourcesPrompt
+from ai.journal_dataset_research.mcp.prompts.acquisition import AcquireDatasetsPrompt
+from ai.journal_dataset_research.mcp.prompts.integration import CreateIntegrationPlansPrompt
 from ai.journal_dataset_research.mcp.tools.executor import ToolExecutor
 from ai.journal_dataset_research.mcp.tools.registry import ToolRegistry
 from ai.journal_dataset_research.mcp.tools.acquisition import (
@@ -88,8 +101,8 @@ class MCPServer:
         # Initialize registries
         self.tools = ToolRegistry()
         self.tool_executor = ToolExecutor(self.tools)
-        self.resources: Dict[str, Any] = {}  # ResourceRegistry (placeholder)
-        self.prompts: Dict[str, Any] = {}  # PromptRegistry (placeholder)
+        self.resources = ResourceRegistry()
+        self.prompts = PromptRegistry()
 
         # Initialize protocol handler
         self.protocol_handler = MCPProtocolHandler()
@@ -115,6 +128,12 @@ class MCPServer:
 
         # Register report generation tools (Phase 8)
         self._register_report_tools()
+
+        # Register resources (Phase 9)
+        self._register_resources()
+
+        # Register prompts (Phase 10)
+        self._register_prompts()
 
         logger.info(
             f"MCP Server initialized: {self.config.server_name} v{self.config.server_version}"
@@ -382,12 +401,79 @@ class MCPServer:
         Returns:
             Resource response
         """
-        # Will be implemented in Phase 9
-        return MCPResponse.error(
-            JSONRPCErrorCode.METHOD_NOT_FOUND,
-            "Resource registry not yet implemented",
-            id=request.id,
-        )
+        method = request.method
+        params = request.params or {}
+
+        try:
+            if method == "resources/list":
+                # List all available resources
+                resources = self.resources.get_resource_schemas()
+                return MCPResponse.success({"resources": resources}, id=request.id)
+
+            elif method == "resources/read":
+                # Read a resource
+                uri = params.get("uri")
+                if not uri:
+                    return MCPResponse.error(
+                        JSONRPCErrorCode.INVALID_PARAMS,
+                        "Missing required parameter: uri",
+                        id=request.id,
+                    )
+
+                # Find resource by URI pattern
+                resource = None
+                for registered_resource in self.resources.list_resources():
+                    if registered_resource.validate_uri(uri):
+                        resource = registered_resource
+                        break
+
+                if not resource:
+                    return MCPResponse.error(
+                        MCPErrorCode.RESOURCE_NOT_FOUND,
+                        f"Resource not found: {uri}",
+                        id=request.id,
+                    )
+
+                # Extract parameters from URI if needed
+                read_params = params.get("params", {})
+
+                # If resource has extract_session_id method, try to extract session_id from URI
+                if hasattr(resource, "extract_session_id"):
+                    session_id = resource.extract_session_id(uri)
+                    if session_id:
+                        read_params["session_id"] = session_id
+
+                # Read resource content
+                try:
+                    result = await resource.read(read_params if read_params else None)
+                    return MCPResponse.success(result, id=request.id)
+                except MCPError as e:
+                    return MCPResponse.error(
+                        e.code,
+                        e.message,
+                        e.data,
+                        id=request.id,
+                    )
+
+            else:
+                return MCPResponse.error(
+                    JSONRPCErrorCode.METHOD_NOT_FOUND,
+                    f"Unknown resource method: {method}",
+                    id=request.id,
+                )
+
+        except Exception as e:
+            logger.exception(f"Error handling resource request: {method}")
+            error_response = MCPErrorHandler.format_error_response(
+                e,
+                request_id=request.id,
+                include_traceback=self.config.debug,
+            )
+            return MCPResponse(
+                error=error_response.get("error"),
+                id=error_response.get("id"),
+                jsonrpc=error_response.get("jsonrpc", "2.0"),
+            )
 
     async def _handle_prompt_request(self, request: MCPRequest) -> MCPResponse:
         """
@@ -399,12 +485,82 @@ class MCPServer:
         Returns:
             Prompt response
         """
-        # Will be implemented in Phase 10
-        return MCPResponse.error(
-            JSONRPCErrorCode.METHOD_NOT_FOUND,
-            "Prompt registry not yet implemented",
-            id=request.id,
-        )
+        method = request.method
+        params = request.params or {}
+
+        try:
+            if method == "prompts/list":
+                # List all available prompts
+                prompts = self.prompts.get_prompt_schemas()
+                return MCPResponse.success({"prompts": prompts}, id=request.id)
+
+            elif method == "prompts/get":
+                # Get a specific prompt
+                prompt_name = params.get("name")
+                if not prompt_name:
+                    return MCPResponse.error(
+                        JSONRPCErrorCode.INVALID_PARAMS,
+                        "Missing required parameter: name",
+                        id=request.id,
+                    )
+
+                prompt = self.prompts.get(prompt_name)
+                if not prompt:
+                    return MCPResponse.error(
+                        MCPErrorCode.RESOURCE_NOT_FOUND,
+                        f"Prompt not found: {prompt_name}",
+                        id=request.id,
+                    )
+
+                # Get prompt arguments
+                prompt_args = params.get("arguments", {})
+
+                # Render prompt with arguments
+                try:
+                    rendered_prompt = prompt.render(prompt_args)
+                    return MCPResponse.success(
+                        {
+                            "name": prompt.name,
+                            "description": prompt.description,
+                            "arguments": prompt.arguments,
+                            "messages": [
+                                {
+                                    "role": "user",
+                                    "content": {
+                                        "type": "text",
+                                        "text": rendered_prompt,
+                                    },
+                                }
+                            ],
+                        },
+                        id=request.id,
+                    )
+                except ValueError as e:
+                    return MCPResponse.error(
+                        JSONRPCErrorCode.INVALID_PARAMS,
+                        f"Invalid prompt arguments: {str(e)}",
+                        id=request.id,
+                    )
+
+            else:
+                return MCPResponse.error(
+                    JSONRPCErrorCode.METHOD_NOT_FOUND,
+                    f"Unknown prompt method: {method}",
+                    id=request.id,
+                )
+
+        except Exception as e:
+            logger.exception(f"Error handling prompt request: {method}")
+            error_response = MCPErrorHandler.format_error_response(
+                e,
+                request_id=request.id,
+                include_traceback=self.config.debug,
+            )
+            return MCPResponse(
+                error=error_response.get("error"),
+                id=error_response.get("id"),
+                jsonrpc=error_response.get("jsonrpc", "2.0"),
+            )
 
     async def _authenticate_request(self, request: MCPRequest) -> None:
         """
@@ -448,8 +604,7 @@ class MCPServer:
         Args:
             resource: Resource to register
         """
-        # Will be implemented in Phase 9
-        logger.warning("Resource registration not yet implemented")
+        self.resources.register(resource)
 
     def register_prompt(self, prompt: Any) -> None:
         """
@@ -514,6 +669,44 @@ class MCPServer:
         self.tools.register(GetReportTool(self.command_handler_service))
         self.tools.register(ListReportsTool(self.command_handler_service))
         logger.info("Registered report generation tools")
+
+    def _register_resources(self) -> None:
+        """Register MCP resources."""
+        # Register progress resources
+        self.resources.register(
+          ProgressMetricsResource(self.command_handler_service)
+        )
+        self.resources.register(
+          ProgressHistoryResource(self.command_handler_service)
+        )
+
+        # Register session resources
+        self.resources.register(
+          SessionStateResource(self.command_handler_service)
+        )
+
+        # Register metrics resources
+        self.resources.register(
+          SessionMetricsResource(self.command_handler_service)
+        )
+
+        logger.info("Registered MCP resources")
+
+    def _register_prompts(self) -> None:
+        """Register MCP prompts."""
+        # Register discovery workflow prompt
+        self.prompts.register(DiscoverSourcesPrompt())
+
+        # Register evaluation workflow prompt
+        self.prompts.register(EvaluateSourcesPrompt())
+
+        # Register acquisition workflow prompt
+        self.prompts.register(AcquireDatasetsPrompt())
+
+        # Register integration workflow prompt
+        self.prompts.register(CreateIntegrationPlansPrompt())
+
+        logger.info("Registered MCP prompts")
 
 
 
