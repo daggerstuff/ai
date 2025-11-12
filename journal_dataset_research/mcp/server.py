@@ -47,6 +47,11 @@ from ai.journal_dataset_research.mcp.tools.integration import (
     GetIntegrationPlanTool,
     GetIntegrationPlansTool,
 )
+from ai.journal_dataset_research.mcp.tools.reports import (
+    GenerateReportTool,
+    GetReportTool,
+    ListReportsTool,
+)
 from ai.journal_dataset_research.mcp.tools.sessions import (
     CreateSessionTool,
     DeleteSessionTool,
@@ -107,6 +112,9 @@ class MCPServer:
 
         # Register integration planning tools (Phase 7)
         self._register_integration_tools()
+
+        # Register report generation tools (Phase 8)
+        self._register_report_tools()
 
         logger.info(
             f"MCP Server initialized: {self.config.server_name} v{self.config.server_version}"
@@ -498,6 +506,14 @@ class MCPServer:
         self.tools.register(GetIntegrationPlanTool(self.command_handler_service))
         self.tools.register(GeneratePreprocessingScriptTool(self.command_handler_service))
         logger.info("Registered integration planning tools")
+
+    def _register_report_tools(self) -> None:
+        """Register report generation tools."""
+        # Register report generation tools
+        self.tools.register(GenerateReportTool(self.command_handler_service))
+        self.tools.register(GetReportTool(self.command_handler_service))
+        self.tools.register(ListReportsTool(self.command_handler_service))
+        logger.info("Registered report generation tools")
 
 
 
