@@ -30,6 +30,11 @@ from ai.journal_dataset_research.mcp.tools.integration import (
     GetIntegrationPlansTool,
 )
 from ai.journal_dataset_research.mcp.tools.registry import ToolRegistry
+from ai.journal_dataset_research.mcp.tools.reports import (
+    GenerateReportTool,
+    GetReportTool,
+    ListReportsTool,
+)
 from ai.journal_dataset_research.mcp.tools.sessions import (
     CreateSessionTool,
     DeleteSessionTool,
@@ -62,4 +67,7 @@ __all__ = [
     "GetIntegrationPlansTool",
     "GetIntegrationPlanTool",
     "GeneratePreprocessingScriptTool",
+    "GenerateReportTool",
+    "GetReportTool",
+    "ListReportsTool",
 ]
