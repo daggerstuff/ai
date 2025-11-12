@@ -7,7 +7,7 @@ and result formatting.
 
 import asyncio
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from ai.journal_dataset_research.mcp.protocol import (
     JSONRPCErrorCode,
@@ -16,7 +16,12 @@ from ai.journal_dataset_research.mcp.protocol import (
 )
 from ai.journal_dataset_research.mcp.tools.base import MCPTool
 from ai.journal_dataset_research.mcp.tools.registry import ToolRegistry
+from ai.journal_dataset_research.mcp.utils.async_execution import AsyncToolExecutor
 from ai.journal_dataset_research.mcp.utils.error_handling import MCPErrorHandler
+from ai.journal_dataset_research.mcp.utils.progress_streaming import (
+    ProgressStreamer,
+    ProgressUpdate,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -24,20 +29,34 @@ logger = logging.getLogger(__name__)
 class ToolExecutor:
     """Handles tool execution with validation and error handling."""
 
-    def __init__(self, registry: ToolRegistry) -> None:
+    def __init__(
+        self,
+        registry: ToolRegistry,
+        progress_streamer: Optional[ProgressStreamer] = None,
+        async_executor: Optional[AsyncToolExecutor] = None,
+    ) -> None:
         """
         Initialize tool executor.
 
         Args:
             registry: Tool registry instance
+            progress_streamer: Optional progress streamer for async operations
+            async_executor: Optional async tool executor
         """
         self.registry = registry
+        self.progress_streamer = progress_streamer
+        self.async_executor = async_executor or (
+            AsyncToolExecutor(progress_streamer) if progress_streamer else None
+        )
 
     async def execute_tool(
         self,
         tool_name: str,
         params: Optional[Dict[str, Any]] = None,
         timeout: Optional[float] = None,
+        async_execution: bool = False,
+        operation_id: Optional[str] = None,
+        progress_callback: Optional[Callable[[ProgressUpdate], None]] = None,
     ) -> Dict[str, Any]:
         """
         Execute a tool by name.
@@ -46,6 +65,9 @@ class ToolExecutor:
             tool_name: Name of tool to execute
             params: Tool parameters
             timeout: Optional timeout in seconds
+            async_execution: If True, execute asynchronously with progress tracking
+            operation_id: Optional operation ID for async execution
+            progress_callback: Optional callback for progress updates
 
         Returns:
             Tool execution result
@@ -73,7 +95,29 @@ class ToolExecutor:
                 {"tool_name": tool_name, "params": params, "error": str(e)},
             ) from e
 
-        # Execute tool with optional timeout
+        # Use async execution if requested and available
+        if async_execution and self.async_executor:
+            # Extract session_id from params if available
+            session_id = params.get("session_id")
+
+            # Generate operation ID if not provided
+            if not operation_id:
+                operation_id = self.async_executor.generate_operation_id(
+                    prefix=f"tool_{tool_name}"
+                )
+
+            # Execute asynchronously with progress tracking
+            return await self.async_executor.execute_async(
+                operation_id=operation_id,
+                tool_name=tool_name,
+                tool_executor=tool.execute,
+                params=params,
+                session_id=session_id,
+                timeout=timeout,
+                progress_callback=progress_callback,
+            )
+
+        # Execute tool synchronously with optional timeout
         try:
             if timeout:
                 result = await asyncio.wait_for(
@@ -147,6 +191,34 @@ class ToolExecutor:
             True if tool exists, False otherwise
         """
         return self.registry.has_tool(tool_name)
+
+    async def cancel_operation(self, operation_id: str) -> bool:
+        """
+        Cancel an async operation.
+
+        Args:
+            operation_id: Operation ID to cancel
+
+        Returns:
+            True if operation was cancelled, False if not found or not async executor
+        """
+        if not self.async_executor:
+            return False
+        return await self.async_executor.cancel_operation(operation_id)
+
+    async def get_operation_status(self, operation_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get operation status.
+
+        Args:
+            operation_id: Operation ID
+
+        Returns:
+            Operation status or None if not found
+        """
+        if not self.async_executor:
+            return None
+        return await self.async_executor.get_operation_status(operation_id)
 
 
 
