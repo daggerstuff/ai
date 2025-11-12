@@ -750,7 +750,29 @@ class IntegrationPlanningEngine:
         logger.info(f"Creating integration plan for source_id: {dataset.source_id}")
 
         # Analyze structure
-        structure = self.analyze_dataset_structure(dataset)
+        try:
+            structure = self.analyze_dataset_structure(dataset)
+        except FileNotFoundError:
+            logger.warning(
+                "Dataset file not found for source_id %s at %s; generating fallback plan",
+                dataset.source_id,
+                dataset.storage_path,
+            )
+            fallback_schema = {
+                field: "unknown"
+                for field in self.pipeline_schema.get("required_fields", [])
+            }
+            if not fallback_schema:
+                fallback_schema = {"placeholder_field": "unknown"}
+
+            structure = DatasetStructure(
+                format=dataset.file_format or "custom",
+                schema=fallback_schema,
+                field_types={},
+                field_distributions={},
+                quality_issues=["Dataset file not available during integration planning"],
+                sample_size=0,
+            )
 
         # Create schema mapping
         mappings = self.create_schema_mapping(structure, target_format)

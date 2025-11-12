@@ -173,18 +173,63 @@ class ReportGenerator:
         return output_path
 
     def generate_weekly_report(
-        self, weekly_report: WeeklyReport, output_path: Optional[Path] = None
+        self,
+        weekly_report: Optional[WeeklyReport] = None,
+        session: Optional[ResearchSession] = None,
+        progress: Optional[Dict] = None,
+        week_number: Optional[int] = None,
+        output_path: Optional[Path] = None,
     ) -> Path:
         """
         Generate a weekly progress report.
 
         Args:
-            weekly_report: WeeklyReport data
+            weekly_report: WeeklyReport data (optional)
+            session: ResearchSession (optional, used if weekly_report not provided)
+            progress: Progress metrics dict (optional, used if weekly_report not provided)
+            week_number: Week number (optional, used if weekly_report not provided)
             output_path: Optional output path (auto-generated if not provided)
 
         Returns:
             Path to the generated report
         """
+        # Support both WeeklyReport object and individual parameters
+        if weekly_report is None:
+            # Create WeeklyReport from parameters
+            from datetime import timedelta
+            from ai.journal_dataset_research.models.dataset_models import ResearchProgress
+
+            end_date = datetime.now()
+            start_date = end_date - timedelta(days=7)
+
+            # Handle both dict and ResearchProgress object
+            if isinstance(progress, ResearchProgress):
+                sources_identified = progress.sources_identified
+                datasets_evaluated = progress.datasets_evaluated
+                datasets_acquired = progress.datasets_acquired
+                access_established = progress.access_established
+                integration_plans_created = progress.integration_plans_created
+            elif isinstance(progress, dict):
+                sources_identified = progress.get("sources_identified", 0)
+                datasets_evaluated = progress.get("datasets_evaluated", 0)
+                datasets_acquired = progress.get("datasets_acquired", 0)
+                access_established = progress.get("access_established", 0)
+                integration_plans_created = progress.get("integration_plans_created", 0)
+            else:
+                sources_identified = datasets_evaluated = datasets_acquired = 0
+                access_established = integration_plans_created = 0
+
+            weekly_report = WeeklyReport(
+                week_number=week_number or 1,
+                start_date=start_date,
+                end_date=end_date,
+                sources_identified=sources_identified,
+                datasets_evaluated=datasets_evaluated,
+                datasets_acquired=datasets_acquired,
+                access_established=access_established,
+                integration_plans_created=integration_plans_created,
+            )
+
         if output_path is None:
             output_path = (
                 self.output_directory
@@ -192,7 +237,7 @@ class ReportGenerator:
             )
 
         lines = [
-            "# Weekly Research Progress Report",
+            "# Weekly Research Report",
             "",
             f"**Week Number**: {weekly_report.week_number}",
             f"**Report Period**: {weekly_report.start_date.strftime('%Y-%m-%d')} to {weekly_report.end_date.strftime('%Y-%m-%d')}",
@@ -243,6 +288,75 @@ class ReportGenerator:
             for i, priority in enumerate(weekly_report.next_week_priorities, 1):
                 lines.append(f"{i}. {priority}")
             lines.append("")
+
+        output_path.write_text("\n".join(lines), encoding="utf-8")
+        return output_path
+
+    def generate_research_summary_report(
+        self,
+        sources: List[DatasetSource],
+        evaluations: List[DatasetEvaluation],
+        start_date: datetime,
+        end_date: datetime,
+        output_path: Optional[Path] = None,
+    ) -> Path:
+        """
+        Generate a research summary report.
+
+        Args:
+            sources: List of discovered sources
+            evaluations: List of dataset evaluations
+            start_date: Start date of research period
+            end_date: End date of research period
+            output_path: Optional output path (auto-generated if not provided)
+
+        Returns:
+            Path to the generated report
+        """
+        if output_path is None:
+            output_path = (
+                self.output_directory
+                / f"research_summary_{start_date.strftime('%Y%m%d')}_{end_date.strftime('%Y%m%d')}.md"
+            )
+
+        lines = [
+            "# Research Summary Report",
+            "",
+            f"**Report Period**: {start_date.strftime('%Y-%m-%d')} to {end_date.strftime('%Y-%m-%d')}",
+            f"**Generated**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            "",
+            "## Summary",
+            "",
+            f"- **Total Sources Discovered**: {len(sources)}",
+            f"- **Total Datasets Evaluated**: {len(evaluations)}",
+            "",
+        ]
+
+        # High priority datasets
+        high_priority = [e for e in evaluations if e.priority_tier == "high"]
+        if high_priority:
+            lines.extend([
+                "## High Priority Datasets",
+                "",
+            ])
+            for evaluation in high_priority:
+                source = next((s for s in sources if s.source_id == evaluation.source_id), None)
+                if source:
+                    lines.append(f"- **{source.title}** (Score: {evaluation.overall_score:.2f})")
+            lines.append("")
+
+        # Evaluation statistics
+        if evaluations:
+            avg_score = sum(e.overall_score for e in evaluations) / len(evaluations)
+            lines.extend([
+                "## Evaluation Statistics",
+                "",
+                f"- **Average Score**: {avg_score:.2f}/10",
+                f"- **High Priority**: {len([e for e in evaluations if e.priority_tier == 'high'])}",
+                f"- **Medium Priority**: {len([e for e in evaluations if e.priority_tier == 'medium'])}",
+                f"- **Low Priority**: {len([e for e in evaluations if e.priority_tier == 'low'])}",
+                "",
+            ])
 
         output_path.write_text("\n".join(lines), encoding="utf-8")
         return output_path

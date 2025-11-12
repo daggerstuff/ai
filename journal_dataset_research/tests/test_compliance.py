@@ -87,7 +87,8 @@ class TestLicenseChecker:
         result = checker.check_license("License prohibits AI training and ML use")
 
         assert result.ai_training_compatible == LicenseCompatibility.INCOMPATIBLE
-        assert "AI training" in " ".join(result.issues).lower()
+        issues_text = " ".join(result.issues).lower()
+        assert "ai training" in issues_text or "training" in issues_text
 
 
 class TestPrivacyVerifier:

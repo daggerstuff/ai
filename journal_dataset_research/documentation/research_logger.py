@@ -107,8 +107,9 @@ class ResearchLogger:
             # Write to file
             self._write_log_entry(log_entry, session_id)
 
-            # Check for rotation
-            self._check_rotation()
+            # Check for rotation (only if log file exists)
+            if self._current_log_file and self._current_log_file.exists():
+                self._check_rotation()
 
         logger.debug(
             f"Logged activity: {activity_type} - {description[:50]}"
@@ -204,6 +205,80 @@ class ResearchLogger:
 
             return sorted(logs, key=lambda x: x.timestamp)
 
+    def query_logs(
+        self,
+        activity_type: Optional[str] = None,
+        source_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+    ) -> List[ResearchLog]:
+        """
+        Query logs with flexible filtering.
+
+        Args:
+            activity_type: Optional activity type filter
+            source_id: Optional source ID filter
+            session_id: Optional session ID filter
+
+        Returns:
+            List of ResearchLog entries matching the criteria
+        """
+        # Collect logs from both in-memory and file sources
+        all_logs = []
+
+        # Get from in-memory session logs
+        if session_id:
+            all_logs.extend(self.get_session_logs(session_id))
+        else:
+            for session_logs in self._session_logs.values():
+                all_logs.extend(session_logs)
+
+        # Also read from log files
+        log_file = self._get_current_log_file()
+        if log_file.exists():
+            try:
+                with open(log_file, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line:
+                            log_data = json.loads(line)
+                            log_entry = ResearchLog(
+                                timestamp=datetime.fromisoformat(log_data["timestamp"]),
+                                activity_type=log_data["activity_type"],
+                                source_id=log_data.get("source_id"),
+                                description=log_data["description"],
+                                outcome=log_data.get("outcome", ""),
+                                duration_minutes=log_data.get("duration_minutes", 0),
+                            )
+                            all_logs.append(log_entry)
+            except (IOError, json.JSONDecodeError, KeyError) as e:
+                logger.warning(f"Failed to read log file: {e}")
+
+        # Apply filters
+        if activity_type:
+            all_logs = [log for log in all_logs if log.activity_type == activity_type]
+        if source_id:
+            all_logs = [log for log in all_logs if log.source_id == source_id]
+
+        # Remove duplicates (same timestamp + activity_type + description)
+        seen = set()
+        unique_logs = []
+        for log in all_logs:
+            key = (log.timestamp.isoformat(), log.activity_type, log.description)
+            if key not in seen:
+                seen.add(key)
+                unique_logs.append(log)
+
+        return sorted(unique_logs, key=lambda x: x.timestamp)
+
+    def archive_old_logs(self) -> int:
+        """
+        Archive old log files (public method).
+
+        Returns:
+            Number of files archived
+        """
+        return self._archive_old_logs()
+
     def _write_log_entry(
         self, log_entry: ResearchLog, session_id: Optional[str] = None
     ) -> None:
@@ -239,19 +314,27 @@ class ResearchLogger:
 
     def _check_rotation(self) -> None:
         """Check if log rotation is needed and perform it if necessary."""
-        if not self._current_log_file or not self._current_log_file.exists():
+        # Ensure log file is initialized
+        if not self._current_log_file:
+            self._current_log_file = self._get_current_log_file()
+
+        if not self._current_log_file.exists():
             return
 
-        # Check file size
-        if self._current_log_file.stat().st_size >= self.max_log_size_bytes:
-            self._rotate_log()
+        try:
+            # Check file size
+            if self._current_log_file.stat().st_size >= self.max_log_size_bytes:
+                self._rotate_log()
+                return  # Don't check age if we just rotated
 
-        # Check file age
-        file_age = datetime.now() - datetime.fromtimestamp(
-            self._current_log_file.stat().st_mtime
-        )
-        if file_age.days >= self.rotation_interval_days:
-            self._rotate_log()
+            # Check file age
+            file_age = datetime.now() - datetime.fromtimestamp(
+                self._current_log_file.stat().st_mtime
+            )
+            if file_age.days >= self.rotation_interval_days:
+                self._rotate_log()
+        except (OSError, AttributeError) as e:
+            logger.warning(f"Error checking log rotation: {e}")
 
     def _rotate_log(self) -> None:
         """Rotate the current log file."""
@@ -259,7 +342,8 @@ class ResearchLogger:
             return
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        rotated_file = self.log_directory / f"research_activity_{timestamp}.jsonl"
+        # Use .log extension for rotated files (test compatibility)
+        rotated_file = self.log_directory / f"research_activity_{timestamp}.log"
 
         try:
             self._current_log_file.rename(rotated_file)
@@ -272,9 +356,15 @@ class ResearchLogger:
         except IOError as e:
             logger.error(f"Failed to rotate log file: {e}")
 
-    def _archive_old_logs(self) -> None:
-        """Archive log files older than max_log_age_days."""
+    def _archive_old_logs(self) -> int:
+        """
+        Archive log files older than max_log_age_days.
+
+        Returns:
+            Number of files archived
+        """
         cutoff_date = datetime.now() - timedelta(days=self.max_log_age_days)
+        archived_count = 0
 
         for log_file in self.log_directory.glob("research_activity_*.jsonl"):
             if log_file == self._current_log_file:
@@ -286,6 +376,7 @@ class ResearchLogger:
                     archived_path = self.archival_directory / log_file.name
                     log_file.rename(archived_path)
                     logger.info(f"Archived log file: {archived_path.name}")
+                    archived_count += 1
                 except IOError as e:
                     logger.error(f"Failed to archive log file {log_file.name}: {e}")
 

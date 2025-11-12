@@ -24,6 +24,10 @@ from ai.journal_dataset_research.models.dataset_models import (
     IntegrationPlan,
     ResearchSession,
 )
+from ai.journal_dataset_research.orchestrator.research_orchestrator import (
+    ResearchOrchestrator,
+)
+from ai.journal_dataset_research.orchestrator.types import OrchestratorConfig
 
 
 # ============================================================================
@@ -201,7 +205,7 @@ def sample_acquired_dataset(sample_dataset_source, tmp_path) -> AcquiredDataset:
     # Create a test file
     test_file = tmp_path / "test_dataset.zip"
     test_file.write_bytes(b"test data content")
-    
+
     return AcquiredDataset(
         source_id=sample_dataset_source.source_id,
         acquisition_date=datetime.now(),
@@ -307,11 +311,11 @@ def sample_jsonl_dataset(tmp_path) -> Path:
         }
         for i in range(10)
     ]
-    
+
     with open(jsonl_path, "w", encoding="utf-8") as f:
         for record in records:
             f.write(json.dumps(record) + "\n")
-    
+
     return jsonl_path
 
 
@@ -331,10 +335,10 @@ def sample_json_dataset(tmp_path) -> Path:
             for i in range(10)
         ]
     }
-    
+
     with open(json_path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
-    
+
     return json_path
 
 
@@ -483,6 +487,31 @@ def mock_integration_engine():
         complexity="medium",
     ))
     return engine
+
+
+@pytest.fixture
+def orchestrator(
+    temp_dir,
+    mock_discovery_service,
+    mock_evaluation_engine,
+    mock_acquisition_manager,
+    mock_integration_engine,
+):
+    """Provide a fully wired orchestrator for integration tests."""
+    config = OrchestratorConfig(
+        session_storage_path=temp_dir,
+        max_retries=3,
+        retry_delay_seconds=0.0,
+        fallback_on_failure=True,
+        progress_history_limit=100,
+    )
+    return ResearchOrchestrator(
+        discovery_service=mock_discovery_service,
+        evaluation_engine=mock_evaluation_engine,
+        acquisition_manager=mock_acquisition_manager,
+        integration_engine=mock_integration_engine,
+        config=config,
+    )
 
 
 # ============================================================================

@@ -4,8 +4,9 @@ Configuration management for CLI.
 
 import json
 import os
+from copy import deepcopy
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 try:
     import yaml
@@ -73,10 +74,18 @@ class ConfigManager:
         },
     }
 
-    def __init__(self, config_path: Optional[Path] = None):
+    def __init__(self, config_path: Optional[Union[Path, str]] = None):
         """Initialize config manager with optional config path."""
+        # Convert string to Path if needed
+        if config_path is not None and isinstance(config_path, str):
+            config_path = Path(config_path)
         self.config_path = config_path or self.DEFAULT_CONFIG_PATH
-        self.config_path.parent.mkdir(parents=True, exist_ok=True)
+        # Only create parent directory if it's writable
+        try:
+            self.config_path.parent.mkdir(parents=True, exist_ok=True)
+        except (PermissionError, OSError):
+            # If we can't create the directory, that's okay - we'll handle it in load/save
+            pass
 
     def load(self) -> Dict[str, Any]:
         """Load configuration from file or return defaults."""
@@ -84,22 +93,25 @@ class ConfigManager:
             try:
                 with open(self.config_path, "r") as f:
                     if YAML_AVAILABLE and self.config_path.suffix in (".yaml", ".yml"):
+                        assert yaml is not None  # Type guard for type checker
                         config = yaml.safe_load(f) or {}
                     else:
                         # Fall back to JSON
                         config = json.load(f) or {}
                 # Merge with defaults to ensure all keys exist
-                return self._merge_config(self.DEFAULT_CONFIG, config)
+                merged = self._merge_config(self.DEFAULT_CONFIG, config)
+                return self._apply_legacy_aliases(merged)
             except Exception as e:
                 print(f"Warning: Could not load config from {self.config_path}: {e}")
-                return self.DEFAULT_CONFIG.copy()
-        return self.DEFAULT_CONFIG.copy()
+                return self._apply_legacy_aliases(deepcopy(self.DEFAULT_CONFIG))
+        return self._apply_legacy_aliases(deepcopy(self.DEFAULT_CONFIG))
 
     def save(self, config: Dict[str, Any]) -> None:
         """Save configuration to file."""
         self.config_path.parent.mkdir(parents=True, exist_ok=True)
         with open(self.config_path, "w") as f:
             if YAML_AVAILABLE and self.config_path.suffix in (".yaml", ".yml"):
+                assert yaml is not None  # Type guard for type checker
                 yaml.dump(config, f, default_flow_style=False, indent=2)
             else:
                 # Fall back to JSON
@@ -138,6 +150,22 @@ class ConfigManager:
             else:
                 result[key] = value
         return result
+
+    def _apply_legacy_aliases(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Ensure legacy top-level aliases exist for backward compatibility."""
+        # Maintain top-level storage_base_path alias
+        acquisition_config = config.get("acquisition", {})
+        storage_base_path = acquisition_config.get("storage_base_path")
+        if storage_base_path and "storage_base_path" not in config:
+            config["storage_base_path"] = storage_base_path
+
+        # Maintain top-level logging directory alias
+        logging_config = config.get("logging", {})
+        log_file = logging_config.get("file")
+        if log_file and "log_file" not in config:
+            config["log_file"] = log_file
+
+        return config
 
     def load_env_overrides(self) -> Dict[str, Any]:
         """Load configuration overrides from environment variables."""
@@ -178,16 +206,22 @@ class ConfigManager:
 _config_manager = ConfigManager()
 
 
-def load_config(config_path: Optional[Path] = None) -> Dict[str, Any]:
+def load_config(config_path: Optional[Union[Path, str]] = None) -> Dict[str, Any]:
     """Load configuration with environment overrides."""
+    # Convert string to Path if needed
+    if config_path is not None and isinstance(config_path, str):
+        config_path = Path(config_path)
     manager = ConfigManager(config_path) if config_path else _config_manager
     config = manager.load()
     config = manager.apply_env_overrides(config)
     return config
 
 
-def save_config(config: Dict[str, Any], config_path: Optional[Path] = None) -> None:
+def save_config(config: Dict[str, Any], config_path: Optional[Union[Path, str]] = None) -> None:
     """Save configuration to file."""
+    # Convert string to Path if needed
+    if config_path is not None and isinstance(config_path, str):
+        config_path = Path(config_path)
     manager = ConfigManager(config_path) if config_path else _config_manager
     manager.save(config)
 
