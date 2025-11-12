@@ -327,7 +327,7 @@ class WorkflowMixin(RetryMixin):
             raise
 
         state.sources = sources
-        self.update_progress(session_id, {"sources_identified": len(sources)})
+        self.update_progress(session_id, {"sources_identified": len(state.sources)})
         self.log_activity(
             session_id,
             "search",
@@ -353,7 +353,7 @@ class WorkflowMixin(RetryMixin):
         state.evaluations.extend(evaluations)
         if evaluations:
             self.update_progress(
-                session_id, {"datasets_evaluated": len(evaluations)}
+                session_id, {"datasets_evaluated": len(state.evaluations)}
             )
         self.log_activity(
             session_id,
@@ -421,7 +421,7 @@ class WorkflowMixin(RetryMixin):
         state.integration_plans.extend(plans)
         if plans:
             self.update_progress(
-                session_id, {"integration_plans_created": len(plans)}
+                session_id, {"integration_plans_created": len(state.integration_plans)}
             )
         self.log_activity(
             session_id,
