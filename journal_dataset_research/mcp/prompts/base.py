@@ -70,55 +70,47 @@ class MCPPrompt(ABC):
             params: Parameters to validate
 
         Raises:
-            ValueError: If parameters are invalid
+            ValidationError: If parameters are invalid
         """
+        from ai.journal_dataset_research.mcp.utils.validation import (
+            ValidationError,
+            validate_prompt_arguments,
+        )
+
         if not params:
             params = {}
 
-        # Validate required arguments
-        for arg in self.arguments:
-            arg_name = arg.get("name")
-            required = arg.get("required", False)
-
-            if required and arg_name not in params:
-                raise ValueError(f"Missing required argument: {arg_name}")
-
-            # Type validation (basic)
-            if arg_name in params:
-                expected_type = arg.get("type")
-                if expected_type:
-                    self._validate_type(arg_name, params[arg_name], expected_type)
-
-    def _validate_type(self, field: str, value: Any, expected_type: str) -> None:
-        """
-        Validate argument type.
-
-        Args:
-            field: Field name
-            value: Field value
-            expected_type: Expected type (string, integer, number, boolean, array, object)
-
-        Raises:
-            ValueError: If type doesn't match
-        """
-        type_map = {
-            "string": str,
-            "integer": int,
-            "number": (int, float),
-            "boolean": bool,
-            "array": list,
-            "object": dict,
+        # Convert arguments list to JSON schema format
+        schema = {
+            "type": "object",
+            "properties": {},
+            "required": [],
         }
 
-        if expected_type not in type_map:
-            return  # Unknown type, skip validation
+        for arg in self.arguments:
+            arg_name = arg.get("name")
+            if not arg_name:
+                continue
 
-        expected_python_type = type_map[expected_type]
-        if not isinstance(value, expected_python_type):
-            raise ValueError(
-                f"Argument '{field}' must be of type {expected_type}, "
-                f"got {type(value).__name__}"
-            )
+            schema["properties"][arg_name] = {
+                "type": arg.get("type", "string"),
+                "description": arg.get("description", ""),
+            }
+
+            if arg.get("required", False):
+                schema["required"].append(arg_name)
+
+        try:
+            validate_prompt_arguments(params, schema)
+        except ValidationError:
+            # Re-raise validation errors as-is
+            raise
+        except Exception as e:
+            # Wrap unexpected errors
+            raise ValidationError(
+                f"Prompt argument validation failed: {str(e)}",
+                value=params,
+            ) from e
 
     def format_template(
         self,

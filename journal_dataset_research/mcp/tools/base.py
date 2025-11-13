@@ -8,6 +8,11 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 
+from ai.journal_dataset_research.mcp.utils.validation import (
+    ValidationError,
+    validate_tool_parameters,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,7 +63,7 @@ class MCPTool(ABC):
             Tool execution result
 
         Raises:
-            ValueError: If parameters are invalid
+            ValidationError: If parameters are invalid
             Exception: If tool execution fails
         """
         pass
@@ -71,57 +76,17 @@ class MCPTool(ABC):
             params: Parameters to validate
 
         Raises:
-            ValueError: If parameters are invalid
+            ValidationError: If parameters are invalid
         """
-        # Basic validation - check required fields
-        schema = self.parameters
-        required = schema.get("required", [])
-
-        for field in required:
-            if field not in params:
-                raise ValueError(f"Missing required parameter: {field}")
-
-        # Type validation (basic)
-        properties = schema.get("properties", {})
-        for field, value in params.items():
-            if field in properties:
-                prop = properties[field]
-                expected_type = prop.get("type")
-                if expected_type:
-                    self._validate_type(field, value, expected_type)
-
-    def _validate_type(self, field: str, value: Any, expected_type: str) -> None:
-        """
-        Validate parameter type.
-
-        Args:
-            field: Field name
-            value: Field value
-            expected_type: Expected type (string, integer, number, boolean, array, object)
-
-        Raises:
-            ValueError: If type doesn't match
-        """
-        type_map = {
-            "string": str,
-            "integer": int,
-            "number": (int, float),
-            "boolean": bool,
-            "array": list,
-            "object": dict,
-        }
-
-        if expected_type not in type_map:
-            return  # Unknown type, skip validation
-
-        expected_python_type = type_map[expected_type]
-        if not isinstance(value, expected_python_type):
-            raise ValueError(
-                f"Parameter '{field}' must be of type {expected_type}, "
-                f"got {type(value).__name__}"
-            )
-
-    def __repr__(self) -> str:
-        """String representation of tool."""
-        return f"<MCPTool name={self.name!r}>"
+        try:
+            validate_tool_parameters(params, self.parameters)
+        except ValidationError:
+            # Re-raise validation errors as-is
+            raise
+        except Exception as e:
+            # Wrap unexpected errors
+            raise ValidationError(
+                f"Parameter validation failed: {str(e)}",
+                value=params,
+            ) from e
 
