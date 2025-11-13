@@ -9,7 +9,7 @@ import asyncio
 import logging
 import uuid
 from datetime import datetime
-from typing import Any, Callable, Dict, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from ai.journal_dataset_research.mcp.protocol import MCPError, MCPErrorCode
 from ai.journal_dataset_research.mcp.utils.progress_streaming import (
