@@ -75,6 +75,20 @@ from ai.journal_dataset_research.mcp.tools.sessions import (
 )
 from ai.journal_dataset_research.mcp.utils.error_handling import MCPErrorHandler
 from ai.journal_dataset_research.mcp.utils.logging import get_logger, setup_logging
+from ai.journal_dataset_research.mcp.utils.rate_limiting import (
+    RateLimitManager,
+    check_rate_limit as check_rate_limit_request,
+)
+from ai.journal_dataset_research.mcp.utils.security import (
+    sanitize_input,
+    sanitize_json_output,
+    validate_and_sanitize_input,
+    SecurityError,
+)
+from ai.journal_dataset_research.mcp.utils.audit_logging import (
+    AuditLogger,
+    create_audit_logger,
+)
 from ai.journal_dataset_research.mcp.auth import (
     create_auth_handler,
     create_authorization_handler,
@@ -122,8 +136,13 @@ class MCPServer:
         self.authorization_handler = create_authorization_handler()
         self.current_user: Optional[Dict[str, Any]] = None
 
-        # Initialize rate limiting (will be implemented in Phase 14)
-        self.rate_limiter: Optional[Any] = None
+        # Initialize rate limiting (Phase 14)
+        self.rate_limiter: Optional[RateLimitManager] = None
+        if self.config.rate_limits.enabled:
+            self.rate_limiter = RateLimitManager(self.config.rate_limits)
+
+        # Initialize audit logging (Phase 14)
+        self.audit_logger = create_audit_logger(self.config.logging)
 
         # Register session management tools (Phase 3)
         self._register_session_tools()
@@ -185,11 +204,47 @@ class MCPServer:
                     )
                 )
 
+            # Sanitize input (Phase 14 - Security)
+            try:
+                if request.params:
+                    request.params = validate_and_sanitize_input(
+                        request.params,
+                        detect_injections=True,
+                    )
+            except SecurityError as e:
+                # Log security violation
+                self.audit_logger.log_security_violation(
+                    violation_type="input_sanitization",
+                    description=str(e),
+                    request_id=str(request.id) if request.id else None,
+                )
+                error_response = MCPErrorHandler.format_error_response(
+                    e,
+                    request_id=request.id,
+                    include_traceback=self.config.debug,
+                )
+                return self.protocol_handler.format_response(
+                    MCPResponse(
+                        error=error_response.get("error"),
+                        id=error_response.get("id"),
+                        jsonrpc=error_response.get("jsonrpc", "2.0"),
+                    )
+                )
+
             # Authenticate request (if authentication enabled)
             if self.config.auth.enabled and self.auth_handler:
                 try:
                     await self._authenticate_request(request)
                 except Exception as e:
+                    # Log auth failure
+                    user_id = None
+                    if hasattr(e, "data") and isinstance(e.data, dict):
+                        user_id = e.data.get("user_id")
+                    self.audit_logger.log_auth_failure(
+                        reason=str(e),
+                        user_id=user_id,
+                        request_id=str(request.id) if request.id else None,
+                    )
                     error_response = MCPErrorHandler.format_error_response(
                         e,
                         request_id=request.id,
@@ -208,6 +263,13 @@ class MCPServer:
                 try:
                     await self._check_rate_limit(request)
                 except Exception as e:
+                    # Log rate limit exceeded
+                    user_id = self.current_user.get("user_id") if self.current_user else None
+                    self.audit_logger.log_rate_limit_exceeded(
+                        identifier=getattr(e, "data", {}).get("identifier", "unknown") if hasattr(e, "data") else "unknown",
+                        user_id=user_id,
+                        request_id=str(request.id) if request.id else None,
+                    )
                     error_response = MCPErrorHandler.format_error_response(
                         e,
                         request_id=request.id,
@@ -223,6 +285,13 @@ class MCPServer:
 
             # Route request to appropriate handler
             response = await self._route_request(request)
+
+            # Sanitize output (Phase 14 - Security)
+            if response.result:
+                try:
+                    response.result = sanitize_json_output(response.result)
+                except Exception as e:
+                    logger.warning(f"Error sanitizing output: {e}")
 
             # Format and return response
             return self.protocol_handler.format_response(response)
@@ -359,7 +428,26 @@ class MCPServer:
                         tool_name,
                         "execute",
                     )
+                    # Log authorization granted
+                    if self.current_user:
+                        self.audit_logger.log_authorization_granted(
+                            user_id=self.current_user.get("user_id", "unknown"),
+                            user_role=self.current_user.get("role", "unknown"),
+                            resource=tool_name,
+                            action="execute",
+                            request_id=str(request.id) if request.id else None,
+                        )
                 except MCPError as e:
+                    # Log authorization denied
+                    if self.current_user:
+                        self.audit_logger.log_authorization_denied(
+                            user_id=self.current_user.get("user_id", "unknown"),
+                            user_role=self.current_user.get("role", "unknown"),
+                            resource=tool_name,
+                            action="execute",
+                            reason=e.message,
+                            request_id=str(request.id) if request.id else None,
+                        )
                     return MCPResponse.error(
                         e.code,
                         e.message,
@@ -370,12 +458,40 @@ class MCPServer:
                 tool_params = params.get("arguments", {})
                 timeout = params.get("timeout")
 
+                # Extract session_id from tool_params for audit logging
+                session_id = tool_params.get("session_id") if isinstance(tool_params, dict) else None
+
+                # Log tool execution start
+                if self.current_user:
+                    self.audit_logger.log_tool_execution_start(
+                        user_id=self.current_user.get("user_id", "unknown"),
+                        user_role=self.current_user.get("role", "unknown"),
+                        tool_name=tool_name,
+                        tool_params=tool_params,
+                        request_id=str(request.id) if request.id else None,
+                        session_id=session_id,
+                    )
+
                 try:
+                    import time
+                    start_time = time.time()
                     result = await self.tool_executor.execute_tool(
                         tool_name,
                         tool_params,
                         timeout=timeout,
                     )
+                    execution_time_ms = (time.time() - start_time) * 1000
+
+                    # Log tool execution success
+                    if self.current_user:
+                        self.audit_logger.log_tool_execution_success(
+                            user_id=self.current_user.get("user_id", "unknown"),
+                            user_role=self.current_user.get("role", "unknown"),
+                            tool_name=tool_name,
+                            execution_time_ms=execution_time_ms,
+                            request_id=str(request.id) if request.id else None,
+                            session_id=session_id,
+                        )
                     # Format result according to MCP protocol
                     # Result should be a dict with content array
                     if isinstance(result, dict) and "content" in result:
@@ -393,6 +509,16 @@ class MCPServer:
                         }
                     return MCPResponse.success(formatted_result, id=request.id)
                 except MCPError as e:
+                    # Log tool execution failure
+                    if self.current_user:
+                        self.audit_logger.log_tool_execution_failure(
+                            user_id=self.current_user.get("user_id", "unknown"),
+                            user_role=self.current_user.get("role", "unknown"),
+                            tool_name=tool_name,
+                            error_message=e.message,
+                            request_id=str(request.id) if request.id else None,
+                            session_id=session_id,
+                        )
                     return MCPResponse.error(
                         e.code,
                         e.message,
@@ -456,7 +582,26 @@ class MCPServer:
                         uri,
                         "read",
                     )
+                    # Log authorization granted
+                    if self.current_user:
+                        self.audit_logger.log_authorization_granted(
+                            user_id=self.current_user.get("user_id", "unknown"),
+                            user_role=self.current_user.get("role", "unknown"),
+                            resource=uri,
+                            action="read",
+                            request_id=str(request.id) if request.id else None,
+                        )
                 except MCPError as e:
+                    # Log authorization denied
+                    if self.current_user:
+                        self.audit_logger.log_authorization_denied(
+                            user_id=self.current_user.get("user_id", "unknown"),
+                            user_role=self.current_user.get("role", "unknown"),
+                            resource=uri,
+                            action="read",
+                            reason=e.message,
+                            request_id=str(request.id) if request.id else None,
+                        )
                     return MCPResponse.error(
                         e.code,
                         e.message,
@@ -487,16 +632,78 @@ class MCPServer:
                     if session_id:
                         read_params["session_id"] = session_id
 
+                # Validate resource parameters if resource has validation
+                if hasattr(resource, "validate_parameters") and read_params:
+                    try:
+                        resource.validate_parameters(read_params)
+                    except Exception as e:
+                        from ai.journal_dataset_research.mcp.utils.validation import (
+                            ValidationError,
+                        )
+
+                        if isinstance(e, ValidationError):
+                            return MCPResponse.error(
+                                e.code,
+                                e.message,
+                                e.data,
+                                id=request.id,
+                            )
+                        else:
+                            return MCPResponse.error(
+                                MCPErrorCode.RESOURCE_NOT_FOUND,
+                                f"Invalid resource parameters: {str(e)}",
+                                id=request.id,
+                            )
+
+                # Extract session_id from URI or params for audit logging
+                session_id = read_params.get("session_id") if read_params else None
+                if not session_id and hasattr(resource, "extract_session_id"):
+                    session_id = resource.extract_session_id(uri)
+
                 # Read resource content
                 try:
                     result = await resource.read(read_params if read_params else None)
+                    # Log successful resource access
+                    if self.current_user:
+                        self.audit_logger.log_resource_access(
+                            user_id=self.current_user.get("user_id", "unknown"),
+                            user_role=self.current_user.get("role", "unknown"),
+                            resource_uri=uri,
+                            success=True,
+                            request_id=str(request.id) if request.id else None,
+                            session_id=session_id,
+                        )
                     return MCPResponse.success(result, id=request.id)
                 except MCPError as e:
+                    # Log failed resource access
+                    if self.current_user:
+                        self.audit_logger.log_resource_access(
+                            user_id=self.current_user.get("user_id", "unknown"),
+                            user_role=self.current_user.get("role", "unknown"),
+                            resource_uri=uri,
+                            success=False,
+                            error_message=e.message,
+                            request_id=str(request.id) if request.id else None,
+                            session_id=session_id,
+                        )
                     return MCPResponse.error(
                         e.code,
                         e.message,
                         e.data,
                         id=request.id,
+                    )
+                except Exception as e:
+                    # Handle unexpected errors in resource access
+                    error_response = MCPErrorHandler.handle_error(
+                        e,
+                        request_id=request.id,
+                        context={"method": method, "uri": uri},
+                        include_traceback=self.config.debug,
+                    )
+                    return MCPResponse(
+                        error=error_response.get("error"),
+                        id=error_response.get("id"),
+                        jsonrpc=error_response.get("jsonrpc", "2.0"),
                     )
 
             else:
@@ -559,6 +766,28 @@ class MCPServer:
                 # Get prompt arguments
                 prompt_args = params.get("arguments", {})
 
+                # Validate prompt arguments
+                try:
+                    prompt.validate_arguments(prompt_args)
+                except Exception as e:
+                    from ai.journal_dataset_research.mcp.utils.validation import (
+                        ValidationError,
+                    )
+
+                    if isinstance(e, ValidationError):
+                        return MCPResponse.error(
+                            e.code,
+                            e.message,
+                            e.data,
+                            id=request.id,
+                        )
+                    else:
+                        return MCPResponse.error(
+                            JSONRPCErrorCode.INVALID_PARAMS,
+                            f"Invalid prompt arguments: {str(e)}",
+                            id=request.id,
+                        )
+
                 # Render prompt with arguments
                 try:
                     rendered_prompt = prompt.render(prompt_args)
@@ -579,11 +808,18 @@ class MCPServer:
                         },
                         id=request.id,
                     )
-                except ValueError as e:
-                    return MCPResponse.error(
-                        JSONRPCErrorCode.INVALID_PARAMS,
-                        f"Invalid prompt arguments: {str(e)}",
-                        id=request.id,
+                except Exception as e:
+                    # Handle unexpected errors in prompt rendering
+                    error_response = MCPErrorHandler.handle_error(
+                        e,
+                        request_id=request.id,
+                        context={"method": method, "prompt_name": prompt_name},
+                        include_traceback=self.config.debug,
+                    )
+                    return MCPResponse(
+                        error=error_response.get("error"),
+                        id=error_response.get("id"),
+                        jsonrpc=error_response.get("jsonrpc", "2.0"),
                     )
 
             else:
@@ -631,11 +867,23 @@ class MCPServer:
             user = await self.auth_handler.authenticate(request)
             self.current_user = user
             logger.debug(f"Request authenticated for user: {user.get('user_id')}")
+
+            # Log successful authentication
+            self.audit_logger.log_auth_success(
+                user_id=user.get("user_id", "unknown"),
+                user_role=user.get("role"),
+                request_id=str(request.id) if request.id else None,
+            )
         except MCPError:
-            # Re-raise MCP errors as-is
+            # Re-raise MCP errors as-is (auth failure already logged in handle_request)
             raise
         except Exception as e:
             logger.exception("Unexpected error during authentication")
+            # Log auth failure
+            self.audit_logger.log_auth_failure(
+                reason=str(e),
+                request_id=str(request.id) if request.id else None,
+            )
             raise MCPError(
                 MCPErrorCode.AUTHENTICATION_ERROR,
                 f"Authentication failed: {str(e)}",
@@ -649,10 +897,16 @@ class MCPServer:
             request: Request to check
 
         Raises:
-            Exception: If rate limit exceeded
+            MCPError: If rate limit exceeded
         """
-        # Will be implemented in Phase 14
-        pass
+        if not self.rate_limiter:
+            return
+
+        await check_rate_limit_request(
+            request,
+            self.rate_limiter,
+            self.current_user,
+        )
 
     def register_tool(self, tool: Any) -> None:
         """
