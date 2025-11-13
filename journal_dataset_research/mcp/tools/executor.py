@@ -88,12 +88,24 @@ class ToolExecutor:
         params = params or {}
         try:
             tool.validate_parameters(params)
-        except ValueError as e:
-            raise MCPError(
-                MCPErrorCode.TOOL_VALIDATION_ERROR,
-                f"Parameter validation failed: {str(e)}",
-                {"tool_name": tool_name, "params": params, "error": str(e)},
-            ) from e
+        except Exception as e:
+            # Handle ValidationError and other validation exceptions
+            from ai.journal_dataset_research.mcp.utils.validation import (
+                ValidationError,
+            )
+
+            if isinstance(e, ValidationError):
+                raise MCPError(
+                    e.code,
+                    e.message,
+                    e.data,
+                ) from e
+            else:
+                raise MCPError(
+                    MCPErrorCode.TOOL_VALIDATION_ERROR,
+                    f"Parameter validation failed: {str(e)}",
+                    {"tool_name": tool_name, "params": params, "error": str(e)},
+                ) from e
 
         # Use async execution if requested and available
         if async_execution and self.async_executor:
