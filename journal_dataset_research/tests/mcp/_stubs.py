@@ -60,7 +60,9 @@ class FakeOrchestrator:
         self.progress = ResearchProgress(
             sources_identified=len(self.state.sources),
             datasets_evaluated=len(self.state.evaluations),
-            access_established=len(self.state.acquired_datasets),
+            access_established=len(
+                [d for d in self.state.acquired_datasets if d.storage_path]
+            ),
             datasets_acquired=len(self.state.acquired_datasets),
             integration_plans_created=len(self.state.integration_plans),
             last_updated=datetime.utcnow(),
