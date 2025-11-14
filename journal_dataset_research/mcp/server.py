@@ -43,6 +43,16 @@ from ai.journal_dataset_research.mcp.tools.acquisition import (
     GetAcquisitionsTool,
     UpdateAcquisitionTool,
 )
+
+# Optional pipeline bridge integration
+try:
+    from ai.journal_dataset_research.integration.mcp_pipeline_bridge import (
+        MCPPipelineBridge,
+    )
+    PIPELINE_BRIDGE_AVAILABLE = True
+except ImportError:
+    PIPELINE_BRIDGE_AVAILABLE = False
+    MCPPipelineBridge = None  # type: ignore
 from ai.journal_dataset_research.mcp.tools.discovery import (
     DiscoverSourcesTool,
     FilterSourcesTool,
@@ -143,6 +153,15 @@ class MCPServer:
 
         # Initialize audit logging (Phase 14)
         self.audit_logger = create_audit_logger(self.config.logging)
+        
+        # Initialize pipeline bridge (optional, for training pipeline integration)
+        self.pipeline_bridge: Optional[MCPPipelineBridge] = None
+        if PIPELINE_BRIDGE_AVAILABLE:
+            try:
+                self.pipeline_bridge = MCPPipelineBridge(auto_integrate=True)
+                logger.info("Pipeline bridge initialized (auto-integration enabled)")
+            except Exception as e:
+                logger.warning(f"Failed to initialize pipeline bridge: {e}")
 
         # Register session management tools (Phase 3)
         self._register_session_tools()
@@ -966,12 +985,34 @@ class MCPServer:
 
     def _register_acquisition_tools(self) -> None:
         """Register dataset acquisition tools."""
-        # Register dataset acquisition tools
-        self.tools.register(AcquireDatasetsTool(self.command_handler_service))
+        # Register dataset acquisition tools with optional pipeline bridge
+        self.tools.register(
+            AcquireDatasetsTool(
+                self.command_handler_service,
+                pipeline_bridge=self.pipeline_bridge,
+            )
+        )
         self.tools.register(GetAcquisitionsTool(self.command_handler_service))
         self.tools.register(GetAcquisitionTool(self.command_handler_service))
         self.tools.register(UpdateAcquisitionTool(self.command_handler_service))
         logger.info("Registered dataset acquisition tools")
+    
+    def register_pipeline_orchestrator(self, orchestrator: Any) -> None:
+        """
+        Register pipeline orchestrator with the pipeline bridge.
+        
+        This enables automatic integration of acquired datasets into the training pipeline.
+        
+        Args:
+            orchestrator: PipelineOrchestrator instance
+        """
+        if self.pipeline_bridge:
+            self.pipeline_bridge.register_pipeline_orchestrator(orchestrator)
+            logger.info("Pipeline orchestrator registered with MCP server bridge")
+        else:
+            logger.warning(
+                "Pipeline bridge not available, cannot register orchestrator"
+            )
 
     def _register_integration_tools(self) -> None:
         """Register integration planning tools."""

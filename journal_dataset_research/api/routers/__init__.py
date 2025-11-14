@@ -21,6 +21,8 @@ def create_api_router() -> APIRouter:
         integration,
         progress,
         reports,
+        training,
+        training_global,
     )
 
     # Include routers
@@ -31,6 +33,8 @@ def create_api_router() -> APIRouter:
     api_router.include_router(integration.router, tags=["integration"])
     api_router.include_router(progress.router, tags=["progress"])
     api_router.include_router(reports.router, tags=["reports"])
+    api_router.include_router(training.router, tags=["training"])
+    api_router.include_router(training_global.router, tags=["training"])
 
     return api_router
 

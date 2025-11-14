@@ -13,7 +13,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 from acquisition_monitor import AcquisitionMonitor
 from conversation_schema import Conversation
@@ -21,6 +21,35 @@ from logger import get_logger
 from pixel_dataset_loader import PixelDatasetLoader
 
 from utils import read_json, write_json
+
+# Journal research integration
+try:
+    from ai.dataset_pipeline.orchestration.journal_research_adapter import (
+        JournalResearchAdapter,
+    )
+    from ai.dataset_pipeline.quality.evaluation_score_filter import (
+        EvaluationScoreFilter,
+    )
+    from ai.journal_dataset_research.models.dataset_models import (
+        AcquiredDataset,
+        IntegrationPlan,
+    )
+    JOURNAL_RESEARCH_AVAILABLE = True
+except ImportError:
+    JOURNAL_RESEARCH_AVAILABLE = False
+    EvaluationScoreFilter = None  # type: ignore
+    logger.warning("Journal research integration not available (optional dependency)")
+
+# Tier processing integration
+try:
+    from ai.dataset_pipeline.orchestration.tier_processor import TierProcessor
+    from ai.dataset_pipeline.composition.tier_balancer import TierBalancer
+    TIER_PROCESSING_AVAILABLE = True
+except ImportError:
+    TIER_PROCESSING_AVAILABLE = False
+    TierProcessor = None  # type: ignore
+    TierBalancer = None  # type: ignore
+    logger.warning("Tier processing not available (optional dependency)")
 
 logger = get_logger("dataset_pipeline.pipeline_orchestrator")
 
@@ -64,6 +93,16 @@ class PipelineConfig:
     output_directory: Path = Path("data/processed")
     cache_directory: Path = Path("cache/pipeline")
     report_directory: Path = Path("reports")
+    # Tier processing configuration
+    enable_tier_processing: bool = True
+    enable_tier_1: bool = True
+    enable_tier_2: bool = True
+    enable_tier_3: bool = True
+    enable_tier_4: bool = True
+    enable_tier_5: bool = True
+    enable_tier_6: bool = True
+    enable_tier_balancing: bool = True
+    tier_balancing_target_total: Optional[int] = None  # None = use all available
 
 
 @dataclass
@@ -116,6 +155,43 @@ class PipelineOrchestrator:
         self.dataset_loader = PixelDatasetLoader()
         self.acquisition_monitor = AcquisitionMonitor()
 
+        # Journal research integration (optional)
+        self.journal_research_adapter: JournalResearchAdapter | None = None
+        self.evaluation_score_filter: EvaluationScoreFilter | None = None
+        if JOURNAL_RESEARCH_AVAILABLE and EvaluationScoreFilter:
+            try:
+                self.journal_research_adapter = JournalResearchAdapter(
+                    output_directory=self.config.output_directory / "journal_research"
+                )
+                self.evaluation_score_filter = EvaluationScoreFilter(
+                    min_overall_score=7.0,
+                    priority_threshold=8.5,
+                )
+                logger.info("Journal research adapter and evaluation filter initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize journal research components: {e}")
+
+        # Tier processing integration (optional)
+        self.tier_processor: TierProcessor | None = None
+        self.tier_balancer: TierBalancer | None = None
+        self.tier_datasets: dict[int, dict[str, list[Conversation]]] = {}
+        if TIER_PROCESSING_AVAILABLE and self.config.enable_tier_processing:
+            try:
+                self.tier_processor = TierProcessor(
+                    base_path=Path("ai/datasets"),
+                    enable_tier_1=self.config.enable_tier_1,
+                    enable_tier_2=self.config.enable_tier_2,
+                    enable_tier_3=self.config.enable_tier_3,
+                    enable_tier_4=self.config.enable_tier_4,
+                    enable_tier_5=self.config.enable_tier_5,
+                    enable_tier_6=self.config.enable_tier_6,
+                )
+                if self.config.enable_tier_balancing:
+                    self.tier_balancer = TierBalancer()
+                logger.info("Tier processor and balancer initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize tier processing components: {e}")
+
         # Pipeline state
         self.metrics = PipelineMetrics(start_time=datetime.now())
         self.current_stage = PipelineStage.INITIALIZATION
@@ -130,6 +206,9 @@ class PipelineOrchestrator:
         # Performance tracking
         self.stage_timings: dict[PipelineStage, float] = {}
         self.dataset_performance: dict[str, dict[str, float]] = {}
+
+        # Journal research datasets tracking
+        self.journal_research_datasets: dict[str, dict[str, Any]] = {}
 
         # Callbacks for pipeline events
         self.stage_callbacks: list[Callable[[PipelineStage], None]] = []
@@ -163,7 +242,7 @@ class PipelineOrchestrator:
             # Stage 2: Dataset Registration
             await self._execute_stage(PipelineStage.DATASET_REGISTRATION)
             await self._register_datasets(
-                include_huggingface, include_local, include_generated, custom_datasets
+                include_huggingface, include_local, include_generated, include_tiers, custom_datasets
             )
 
             # Stage 3: Quality Setup
@@ -272,7 +351,8 @@ class PipelineOrchestrator:
         include_huggingface: bool,
         include_local: bool,
         include_generated: bool,
-        custom_datasets: list[dict[str, Any]] | None,
+        include_tiers: bool = True,
+        custom_datasets: list[dict[str, Any]] | None = None,
     ) -> None:
         """Register datasets for loading."""
 
@@ -324,8 +404,190 @@ class PipelineOrchestrator:
                 registration_count += 1
             logger.info(f"Registered {len(custom_datasets)} custom datasets")
 
+        # Register journal research datasets (already integrated)
+        journal_count = len(self.journal_research_datasets)
+        if journal_count > 0:
+            registration_count += journal_count
+            logger.info(f"Registered {journal_count} journal research datasets")
+
+        # Register tier datasets (if tier processing is enabled and include_tiers is True)
+        tier_count = 0
+        if include_tiers and self.tier_processor and self.config.enable_tier_processing:
+            tier_count = await self._register_tier_datasets()
+            registration_count += tier_count
+            if tier_count > 0:
+                logger.info(f"Registered {tier_count} tier datasets")
+
         self.metrics.total_datasets = registration_count
         logger.info(f"Total datasets registered: {registration_count}")
+
+    async def _register_tier_datasets(self) -> int:
+        """
+        Process and register tier datasets.
+
+        Returns:
+            Number of tier datasets registered
+        """
+        if not self.tier_processor:
+            return 0
+
+        logger.info("Processing tier datasets")
+
+        try:
+            # Process all tiers
+            self.tier_datasets = self.tier_processor.process_all_tiers()
+
+            # Get statistics
+            stats = self.tier_processor.get_tier_statistics()
+            logger.info(
+                f"Tier processing complete: {stats['tiers_processed']} tiers, "
+                f"{stats['total_conversations']} total conversations"
+            )
+
+            # Count datasets across all tiers
+            total_datasets = sum(
+                len(tier_datasets) for tier_datasets in self.tier_datasets.values()
+            )
+
+            return total_datasets
+
+        except Exception as e:
+            logger.error(f"Error processing tier datasets: {e}", exc_info=True)
+            return 0
+
+    def register_journal_research_dataset(
+        self,
+        dataset: AcquiredDataset,
+        integration_plan: IntegrationPlan,
+        evaluation_score: Optional[float] = None,
+        evaluation_details: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
+        """
+        Register and integrate a journal research dataset into the training pipeline.
+
+        This method:
+        1. Filters dataset based on evaluation scores (if filter available)
+        2. Uses the journal research adapter to convert the dataset
+        3. Integrates it into the pipeline
+        4. Registers it for loading in the pipeline execution
+
+        Args:
+            dataset: Acquired dataset from journal research system
+            integration_plan: Integration plan for the dataset
+            evaluation_score: Optional evaluation score for quality filtering
+            evaluation_details: Optional detailed evaluation scores dictionary
+
+        Returns:
+            Dictionary with integration results
+        """
+        if not JOURNAL_RESEARCH_AVAILABLE or not self.journal_research_adapter:
+            raise RuntimeError(
+                "Journal research integration not available. "
+                "Ensure journal_dataset_research package is installed."
+            )
+
+        logger.info(f"Registering journal research dataset: {dataset.source_id}")
+
+        # Filter by evaluation score if filter is available
+        if self.evaluation_score_filter:
+            should_include, reason = self.evaluation_score_filter.should_include_dataset(
+                evaluation_score, evaluation_details
+            )
+            if not should_include:
+                logger.warning(
+                    f"Dataset {dataset.source_id} excluded by evaluation filter: {reason}"
+                )
+                return {
+                    "success": False,
+                    "source_id": dataset.source_id,
+                    "error": f"Excluded by evaluation filter: {reason}",
+                    "excluded": True,
+                }
+            logger.info(f"Dataset {dataset.source_id} passed evaluation filter: {reason}")
+
+        try:
+            # Integrate the dataset using the adapter
+            integration_result = self.journal_research_adapter.integrate_dataset(
+                dataset=dataset,
+                integration_plan=integration_plan,
+                target_format="chatml",
+            )
+
+            if integration_result.get("success"):
+                # Get priority and quality threshold from evaluation score
+                priority = "unknown"
+                quality_threshold = self.config.quality_threshold
+                if self.evaluation_score_filter and evaluation_score is not None:
+                    priority = self.evaluation_score_filter.get_priority(evaluation_score)
+                    quality_threshold = self.evaluation_score_filter.map_to_quality_threshold(
+                        evaluation_score
+                    )
+
+                # Store dataset info for pipeline execution
+                self.journal_research_datasets[dataset.source_id] = {
+                    "dataset": dataset,
+                    "integration_plan": integration_plan,
+                    "conversations": integration_result.get("conversations", []),
+                    "output_path": integration_result.get("output_path"),
+                    "evaluation_score": evaluation_score,
+                    "evaluation_details": evaluation_details,
+                    "evaluation_priority": priority,
+                    "quality_threshold": quality_threshold,
+                    "integration_result": integration_result,
+                    "source_type": "journal_research",
+                }
+
+                # Register with dataset loader for pipeline execution
+                # Convert conversations to dataset loader format
+                conversations = integration_result.get("conversations", [])
+                if conversations:
+                    # Create a custom dataset entry for the loader
+                    dataset_name = f"journal_research_{dataset.source_id}"
+                    self.dataset_loader.register_dataset(
+                        dataset_name=dataset_name,
+                        source_type="journal_research",
+                        path=str(integration_result.get("output_path")),
+                        metadata={
+                            "source_id": dataset.source_id,
+                            "evaluation_score": evaluation_score,
+                            "integration_plan": integration_plan.__dict__ if hasattr(integration_plan, "__dict__") else {},
+                        },
+                    )
+
+                logger.info(
+                    f"Successfully registered journal research dataset {dataset.source_id}: "
+                    f"{len(conversations)} conversations"
+                )
+            else:
+                error_msg = integration_result.get("error", "Unknown integration error")
+                logger.error(f"Failed to integrate journal research dataset {dataset.source_id}: {error_msg}")
+                self.failed_datasets.add(dataset.source_id)
+                self._log_error(dataset.source_id, Exception(error_msg))
+
+            return integration_result
+
+        except Exception as e:
+            logger.error(f"Error registering journal research dataset {dataset.source_id}: {e}", exc_info=True)
+            self.failed_datasets.add(dataset.source_id)
+            self._log_error(dataset.source_id, e)
+            raise
+
+    def get_journal_research_integration_status(
+        self, source_id: str
+    ) -> Optional[dict[str, Any]]:
+        """
+        Get integration status for a journal research dataset.
+
+        Args:
+            source_id: Source ID of the dataset
+
+        Returns:
+            Integration status dictionary or None if not found
+        """
+        if not self.journal_research_adapter:
+            return None
+
+        return self.journal_research_adapter.get_integration_status(source_id)
 
     async def _setup_quality_monitoring(self) -> None:
         """Setup quality monitoring and callbacks."""
@@ -386,15 +648,125 @@ class PipelineOrchestrator:
     async def _execute_loading(self) -> dict[str, list[Conversation]]:
         """Execute dataset loading with the configured execution mode."""
 
+        # Load tier datasets first (they're already processed)
+        tier_datasets = await self._load_tier_datasets()
+
+        # Load journal research datasets (they're already converted)
+        journal_datasets = await self._load_journal_research_datasets()
+
+        # Load other datasets based on execution mode
         if self.config.execution_mode == ExecutionMode.SEQUENTIAL:
-            return await self._execute_sequential_loading()
-        if self.config.execution_mode == ExecutionMode.CONCURRENT:
-            return await self._execute_concurrent_loading()
-        if self.config.execution_mode == ExecutionMode.ADAPTIVE:
-            return await self._execute_adaptive_loading()
-        if self.config.execution_mode == ExecutionMode.PRIORITY_BASED:
-            return await self._execute_priority_based_loading()
-        raise ValueError(f"Unknown execution mode: {self.config.execution_mode}")
+            other_datasets = await self._execute_sequential_loading()
+        elif self.config.execution_mode == ExecutionMode.CONCURRENT:
+            other_datasets = await self._execute_concurrent_loading()
+        elif self.config.execution_mode == ExecutionMode.ADAPTIVE:
+            other_datasets = await self._execute_adaptive_loading()
+        elif self.config.execution_mode == ExecutionMode.PRIORITY_BASED:
+            other_datasets = await self._execute_priority_based_loading()
+        else:
+            raise ValueError(f"Unknown execution mode: {self.config.execution_mode}")
+
+        # Merge all datasets: tier datasets first, then journal research, then others
+        all_datasets = {**tier_datasets, **journal_datasets, **other_datasets}
+        return all_datasets
+
+    async def _load_journal_research_datasets(self) -> dict[str, list[Conversation]]:
+        """Load journal research datasets that have already been integrated."""
+        datasets = {}
+
+        if not self.journal_research_datasets:
+            return datasets
+
+        logger.info(f"Loading {len(self.journal_research_datasets)} journal research datasets")
+
+        for source_id, dataset_info in self.journal_research_datasets.items():
+            try:
+                conversations = dataset_info.get("conversations", [])
+                if conversations:
+                    dataset_name = f"journal_research_{source_id}"
+                    datasets[dataset_name] = conversations
+                    self.metrics.completed_datasets += 1
+                    logger.info(
+                        f"Loaded {len(conversations)} conversations from journal research dataset {source_id}"
+                    )
+                else:
+                    logger.warning(f"No conversations found for journal research dataset {source_id}")
+                    self.failed_datasets.add(source_id)
+                    self.metrics.failed_datasets += 1
+            except Exception as e:
+                logger.error(f"Error loading journal research dataset {source_id}: {e}", exc_info=True)
+                self.failed_datasets.add(source_id)
+                self.metrics.failed_datasets += 1
+                self._log_error(source_id, e)
+
+        return datasets
+
+    async def _load_tier_datasets(self) -> dict[str, list[Conversation]]:
+        """
+        Load tier datasets that have already been processed.
+        Optionally applies tier balancing if enabled.
+
+        Returns:
+            Dictionary mapping dataset names to conversation lists
+        """
+        datasets = {}
+
+        if not self.tier_datasets:
+            return datasets
+
+        logger.info(f"Loading tier datasets from {len(self.tier_datasets)} tiers")
+
+        # Collect all conversations by tier
+        tier_conversations: dict[int, list[Conversation]] = {}
+        for tier_num, tier_datasets_dict in self.tier_datasets.items():
+            tier_conv_list = []
+            for dataset_name, conversations in tier_datasets_dict.items():
+                # Register each tier dataset with a unique name
+                full_dataset_name = f"tier_{tier_num}_{dataset_name}"
+                datasets[full_dataset_name] = conversations
+                tier_conv_list.extend(conversations)
+            tier_conversations[tier_num] = tier_conv_list
+
+        # Apply tier balancing if enabled
+        if self.tier_balancer and self.config.enable_tier_balancing:
+            logger.info("Applying tier balancing")
+            try:
+                balanced_conversations = self.tier_balancer.balance_datasets(
+                    tier_conversations,
+                    target_total=self.config.tier_balancing_target_total,
+                )
+
+                # Validate distribution
+                is_valid, validation_details = self.tier_balancer.validate_distribution(
+                    balanced_conversations
+                )
+
+                if is_valid:
+                    logger.info("Tier balancing applied successfully")
+                else:
+                    logger.warning(
+                        f"Tier distribution validation failed: {validation_details}"
+                    )
+
+                # Add balanced dataset
+                datasets["tier_balanced"] = balanced_conversations
+
+                # Log statistics
+                distribution = self.tier_balancer.get_tier_distribution(balanced_conversations)
+                logger.info(f"Tier distribution: {distribution}")
+
+            except Exception as e:
+                logger.error(f"Error applying tier balancing: {e}", exc_info=True)
+                # Continue without balancing
+
+        # Update metrics
+        total_tier_conversations = sum(len(convs) for convs in datasets.values())
+        self.metrics.completed_datasets += len(datasets)
+        logger.info(
+            f"Loaded {len(datasets)} tier datasets with {total_tier_conversations} total conversations"
+        )
+
+        return datasets
 
     async def _execute_sequential_loading(self) -> dict[str, list[Conversation]]:
         """Execute sequential dataset loading."""
