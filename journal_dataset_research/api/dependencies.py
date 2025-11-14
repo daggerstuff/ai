@@ -116,3 +116,11 @@ def require_permission_dependency(permission: str):
 def get_command_handler_service() -> CommandHandlerService:
     """Get CommandHandlerService instance."""
     return CommandHandlerService()
+
+
+def get_training_pipeline_service():
+    """Get TrainingPipelineService instance."""
+    from ai.journal_dataset_research.api.services.training_pipeline_service import (
+        TrainingPipelineService,
+    )
+    return TrainingPipelineService()

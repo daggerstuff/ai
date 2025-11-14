@@ -2,15 +2,24 @@
 Balanced Sampling Strategy for Dataset Diversity
 
 Implements advanced sampling techniques to maintain diversity while balancing dataset composition.
+Now includes tier-aware balancing for Tier 1-6 dataset system.
 """
 
 import random
 from collections import defaultdict
-from typing import Dict, List, Set
+from typing import Dict, List, Optional, Set
 
 from ..schemas.conversation_schema import Conversation
 from ..systems.dataset_categorization_system import DatasetCategory
 from ..systems.logger import get_logger
+
+# Optional tier balancer integration
+try:
+    from ai.dataset_pipeline.composition.tier_balancer import TierBalancer
+    TIER_BALANCER_AVAILABLE = True
+except ImportError:
+    TIER_BALANCER_AVAILABLE = False
+    TierBalancer = None  # type: ignore
 
 logger = get_logger(__name__)
 
@@ -23,10 +32,22 @@ class BalancedSamplingStrategy:
     to ensure representative dataset composition while preserving important variations.
     """
 
-    def __init__(self):
-        """Initialize the balanced sampling strategy."""
+    def __init__(self, enable_tier_balancing: bool = True):
+        """
+        Initialize the balanced sampling strategy.
+
+        Args:
+            enable_tier_balancing: Whether to enable tier-aware balancing
+        """
         self.logger = get_logger(__name__)
-        self.logger.info("BalancedSamplingStrategy initialized")
+        self.enable_tier_balancing = enable_tier_balancing and TIER_BALANCER_AVAILABLE
+
+        if self.enable_tier_balancing:
+            self.tier_balancer = TierBalancer()
+            self.logger.info("BalancedSamplingStrategy initialized with tier balancing")
+        else:
+            self.tier_balancer = None
+            self.logger.info("BalancedSamplingStrategy initialized (tier balancing disabled)")
 
     def stratified_sample(
         self,

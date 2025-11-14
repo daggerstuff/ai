@@ -10,6 +10,9 @@ from typing import Any, Dict, List, Optional
 from ai.journal_dataset_research.api.services.command_handler_service import (
     CommandHandlerService,
 )
+from ai.journal_dataset_research.integration.mcp_pipeline_bridge import (
+    MCPPipelineBridge,
+)
 from ai.journal_dataset_research.mcp.protocol import MCPError, MCPErrorCode
 from ai.journal_dataset_research.mcp.tools.base import MCPTool
 from ai.journal_dataset_research.models.dataset_models import AcquiredDataset
@@ -20,17 +23,23 @@ logger = logging.getLogger(__name__)
 class AcquireDatasetsTool(MCPTool):
     """Tool for acquiring dataset sources."""
 
-    def __init__(self, service: CommandHandlerService) -> None:
+    def __init__(
+        self,
+        service: CommandHandlerService,
+        pipeline_bridge: Optional[MCPPipelineBridge] = None,
+    ) -> None:
         """
         Initialize AcquireDatasetsTool.
 
         Args:
             service: CommandHandlerService instance
+            pipeline_bridge: Optional MCPPipelineBridge for automatic pipeline integration
         """
         self.service = service
+        self.pipeline_bridge = pipeline_bridge
         super().__init__(
             name="acquire_datasets",
-            description="Acquire dataset sources for a research session. This tool initiates the acquisition process by submitting access requests and downloading datasets from the specified sources.",
+            description="Acquire dataset sources for a research session. This tool initiates the acquisition process by submitting access requests and downloading datasets from the specified sources. If pipeline bridge is configured, acquired datasets are automatically integrated into the training pipeline.",
             parameters={
                 "type": "object",
                 "properties": {
@@ -42,6 +51,11 @@ class AcquireDatasetsTool(MCPTool):
                         "type": "array",
                         "items": {"type": "string"},
                         "description": "Optional list of source IDs to acquire. If not provided, all sources in the session will be acquired.",
+                    },
+                    "auto_integrate": {
+                        "type": "boolean",
+                        "description": "Whether to automatically integrate acquired datasets into training pipeline (default: true if bridge configured)",
+                        "default": True,
                     },
                 },
                 "required": ["session_id"],
@@ -74,6 +88,60 @@ class AcquireDatasetsTool(MCPTool):
 
             # Get acquired datasets
             acquisitions_list = self.service.get_acquisitions(session_id)
+            
+            # Auto-integrate with training pipeline if bridge is configured
+            integration_results = []
+            auto_integrate = params.get("auto_integrate", True)
+            
+            if self.pipeline_bridge and auto_integrate:
+                logger.info(
+                    f"Auto-integrating {len(acquisitions_list)} acquired datasets "
+                    "into training pipeline"
+                )
+                
+                # Get orchestrator to access evaluations and integration plans
+                orchestrator = self.service.orchestrator
+                state = orchestrator.get_session_state(session_id)
+                
+                for acquisition in acquisitions_list:
+                    try:
+                        # Get evaluation if available
+                        evaluation = None
+                        for eval_item in state.evaluations:
+                            if eval_item.source_id == acquisition.source_id:
+                                evaluation = eval_item
+                                break
+                        
+                        # Get integration plan if available
+                        integration_plan = None
+                        for plan in state.integration_plans:
+                            if plan.source_id == acquisition.source_id:
+                                integration_plan = plan
+                                break
+                        
+                        # Trigger pipeline integration
+                        integration_result = self.pipeline_bridge.on_dataset_acquired(
+                            dataset=acquisition,
+                            evaluation=evaluation,
+                            integration_plan=integration_plan,
+                        )
+                        integration_results.append({
+                            "source_id": acquisition.source_id,
+                            "integration_status": integration_result.get("status"),
+                            "auto_integrated": integration_result.get("auto_integrated", False),
+                        })
+                        
+                    except Exception as e:
+                        logger.error(
+                            f"Error auto-integrating dataset {acquisition.source_id}: {e}",
+                            exc_info=True,
+                        )
+                        integration_results.append({
+                            "source_id": acquisition.source_id,
+                            "integration_status": "failed",
+                            "auto_integrated": False,
+                            "error": str(e),
+                        })
 
             # Convert acquisitions to dicts
             acquisitions_data = []
@@ -86,6 +154,14 @@ class AcquireDatasetsTool(MCPTool):
                 "acquisitions": acquisitions_data,
                 "total_acquired": len(acquisitions_data),
                 "status": "completed",
+                "pipeline_integration": {
+                    "enabled": self.pipeline_bridge is not None and auto_integrate,
+                    "results": integration_results,
+                    "total_integrated": sum(
+                        1 for r in integration_results
+                        if r.get("integration_status") == "completed"
+                    ),
+                },
             }
         except ValueError as e:
             raise MCPError(
