@@ -44,8 +44,11 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
     log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 
-    # Session storage
-    session_storage_path: str = "ai/journal_dataset_research/sessions"
+    # Session storage (must match across all components)
+    session_storage_path: str = os.getenv(
+        "SESSION_STORAGE_PATH",
+        "ai/journal_dataset_research/sessions"
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
