@@ -145,7 +145,7 @@ class _ReportServiceStub:
             "session_id": session_id,
             "report_type": report_type,
             "format": format,
-            "generated_date": datetime(2025, 1, 1, 12, 0, 0),
+            "generated_date": datetime(2025, 1, 1, 0, 0, 0),
             "content": {"summary": "ok"},
             "file_path": f"/tmp/{session_id}.json",
         }
