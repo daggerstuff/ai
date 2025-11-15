@@ -138,11 +138,10 @@ class Tier5ResearchLoader(BaseTierLoader):
         """
         conversations = []
 
-        # Look for JSONL files
-        jsonl_files = list(dataset_path.rglob("*.jsonl"))
-        if not jsonl_files:
-            # Try JSON files
-            jsonl_files = list(dataset_path.rglob("*.json"))
+        # Look for JSONL files, fallback to JSON files
+        jsonl_files = list(dataset_path.rglob("*.jsonl")) or list(
+            dataset_path.rglob("*.json")
+        )
 
         for jsonl_file in jsonl_files:
             file_conversations = self.load_jsonl_file(jsonl_file)
