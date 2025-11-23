@@ -1,0 +1,143 @@
+{
+    "description": "Dataset registry pointing to Google Drive datasets - NO COPYING REQUIRED",
+    "gdrive_mount": "/mnt/gdrive/datasets",
+    "total_size_gb": 10,
+    "datasets": {
+        "cot_reasoning": {
+            "CoT_Clinical_Diagnosis_Mental_Health": {
+                "path": "/mnt/gdrive/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+                "size_mb": 20,
+                "type": "chain_of_thought",
+                "focus": "clinical diagnosis reasoning"
+            },
+            "CoT_Heartbreak_and_Breakups": {
+                "path": "/mnt/gdrive/datasets/CoT_Heartbreak_and_Breakups_downloaded.json",
+                "size_mb": 37,
+                "type": "chain_of_thought",
+                "focus": "emotional intelligence, relationship therapy"
+            },
+            "CoT_Neurodivergent_vs_Neurotypical": {
+                "path": "/mnt/gdrive/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+                "size_mb": 53,
+                "type": "chain_of_thought",
+                "focus": "neurodiversity-aware therapeutic approaches"
+            },
+            "CoT_Mens_Mental_Health": {
+                "path": "/mnt/gdrive/datasets/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+                "size_mb": 17,
+                "type": "chain_of_thought",
+                "focus": "gender-specific therapeutic reasoning"
+            },
+            "CoT_Cultural_Nuances": {
+                "path": "/mnt/gdrive/datasets/CoT-Reasoning_Cultural_Nuances/CoT-Reasoning_Cultural_Nuances_Dataset.json",
+                "size_mb": 43,
+                "type": "chain_of_thought",
+                "focus": "culturally-sensitive therapeutic approaches"
+            },
+            "CoT_Philosophical_Understanding": {
+                "path": "/mnt/gdrive/datasets/CoT_Philosophical_Understanding/CoT_Philosophical_Understanding.json",
+                "size_mb": 33,
+                "type": "chain_of_thought",
+                "focus": "existential, philosophical therapy"
+            },
+            "CoT_Temporal_Reasoning": {
+                "path": "/mnt/gdrive/datasets/CoT_Temporal_Reasoning_Dataset/CoT_Temporal_Reasoning_Dataset.json",
+                "size_mb": 15,
+                "type": "chain_of_thought",
+                "focus": "time-based therapeutic planning"
+            }
+        },
+        "professional_therapeutic": {
+            "mental_health_counseling_conversations": {
+                "path": "/mnt/gdrive/datasets/mental_health_counseling_conversations",
+                "size_mb": 4.8,
+                "type": "professional",
+                "focus": "licensed therapist responses"
+            },
+            "SoulChat2.0": {
+                "path": "/mnt/gdrive/datasets/SoulChat2.0",
+                "type": "professional",
+                "focus": "advanced psychological counselor digital twin"
+            },
+            "counsel_chat": {
+                "path": "/mnt/gdrive/datasets/counsel-chat",
+                "type": "professional",
+                "focus": "professional counseling conversation archive"
+            },
+            "LLAMA3_Mental_Counseling": {
+                "path": "/mnt/gdrive/datasets/LLAMA3_Mental_Counseling_Data",
+                "type": "professional",
+                "focus": "advanced AI counseling conversations"
+            },
+            "therapist_sft": {
+                "path": "/mnt/gdrive/datasets/therapist-sft-format",
+                "size_mb": 406,
+                "type": "professional",
+                "focus": "structured therapist training data"
+            },
+            "neuro_qa_sft": {
+                "path": "/mnt/gdrive/datasets/neuro_qa_SFT_Trainer",
+                "size_mb": 6.1,
+                "type": "professional",
+                "focus": "neurology/psychology Q&A"
+            },
+            "Psych8k": {
+                "path": "/mnt/gdrive/datasets/Psych8k",
+                "size_mb": 6.3,
+                "type": "professional",
+                "focus": "Alexander Street professional therapy conversations"
+            }
+        },
+        "priority_datasets": {
+            "priority_1": {
+                "path": "/mnt/gdrive/datasets/datasets-wendy/priority_1_FINAL.jsonl",
+                "type": "curated_priority",
+                "tier": 1,
+                "focus": "top-tier therapeutic conversations"
+            },
+            "priority_2": {
+                "path": "/mnt/gdrive/datasets/datasets-wendy/priority_2_FINAL.jsonl",
+                "type": "curated_priority",
+                "tier": 1,
+                "focus": "high-quality mental health data"
+            },
+            "priority_3": {
+                "path": "/mnt/gdrive/datasets/datasets-wendy/priority_3_FINAL.jsonl",
+                "type": "curated_priority",
+                "tier": 1,
+                "focus": "specialized therapeutic content"
+            }
+        }
+    },
+    "training_strategy": {
+        "stage_1_foundation": {
+            "datasets": [
+                "professional_therapeutic"
+            ],
+            "purpose": "Natural therapeutic dialogue patterns",
+            "recommended_epochs": "2-3"
+        },
+        "stage_2_reasoning": {
+            "datasets": [
+                "cot_reasoning"
+            ],
+            "purpose": "Clinical reasoning patterns",
+            "recommended_epochs": "1-2",
+            "note": "Different style - teaches HOW to think clinically"
+        },
+        "stage_3_voice": {
+            "datasets": [
+                "tim_fletcher_synthetic"
+            ],
+            "purpose": "Tim Fletcher teaching style/personality",
+            "recommended_epochs": "1-2",
+            "status": "TODO - need to generate from transcripts"
+        }
+    },
+    "usage_notes": {
+        "no_copy_needed": "All datasets accessible via /mnt/gdrive/datasets mount point",
+        "bandwidth_friendly": "Training scripts can read directly from Google Drive",
+        "total_conversations": "500K+ therapeutic conversations available",
+        "lightning_ai": "Can upload dataset registry + point to specific files for training"
+    }
+}
