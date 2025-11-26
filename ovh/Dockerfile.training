@@ -1,0 +1,90 @@
+# OVHcloud AI Training Dockerfile for Pixelated Empathy
+# Optimized for MoE + LoRA training on L40S/H100 GPUs
+
+# Build arguments
+ARG PYTORCH_VERSION=2.2.0
+ARG CUDA_VERSION=12.1
+ARG PYTHON_VERSION=3.11
+
+# Base image with CUDA support
+FROM pytorch/pytorch:${PYTORCH_VERSION}-cuda${CUDA_VERSION}-cudnn8-runtime
+
+# Metadata
+LABEL maintainer="Pixelated Empathy Team"
+LABEL description="OVHcloud AI Training image for therapeutic MoE model"
+LABEL version="1.0.0"
+
+# Environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    DEBIAN_FRONTEND=noninteractive \
+    CUDA_DEVICE_ORDER=PCI_BUS_ID \
+    TRANSFORMERS_CACHE=/tmp/transformers_cache \
+    HF_HOME=/tmp/huggingface \
+    WANDB_DIR=/checkpoints/wandb
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    curl \
+    wget \
+    vim \
+    htop \
+    tmux \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/* \
+    && apt-get clean
+
+# Create working directory
+WORKDIR /app
+
+# Install Python dependencies
+RUN pip install --upgrade pip && \
+    pip install \
+    torch>=2.2.0 \
+    transformers>=4.42.0 \
+    datasets>=2.19.0 \
+    accelerate>=0.33.0 \
+    peft>=0.11.0 \
+    trl>=0.9.6 \
+    bitsandbytes>=0.43.0 \
+    sentencepiece>=0.1.99 \
+    einops>=0.7.0 \
+    wandb>=0.16.0 \
+    scipy>=1.10.0 \
+    scikit-learn>=1.3.0 \
+    numpy>=1.24.0 \
+    pandas>=2.0.0 \
+    pyyaml>=6.0 \
+    rich>=13.0.0 \
+    tqdm>=4.65.0 \
+    safetensors>=0.4.0
+
+# Copy training code
+COPY lightning/moe_architecture.py /app/
+COPY lightning/training_optimizer.py /app/
+COPY lightning/train_moe_h100.py /app/
+COPY ovh/train_ovh.py /app/
+COPY lightning/moe_training_config.json /app/config/
+
+# Create necessary directories
+RUN mkdir -p /data /checkpoints /tmp/transformers_cache /tmp/huggingface
+
+# Set permissions
+RUN chmod +x /app/train_ovh.py
+
+# Default environment variables
+ENV DATA_DIR=/data \
+    CHECKPOINT_DIR=/checkpoints \
+    CONFIG_PATH=/app/config/moe_training_config.json \
+    MAX_TRAINING_HOURS=12 \
+    GPU_MODEL=L40S
+
+# Health check
+HEALTHCHECK --interval=60s --timeout=10s --start-period=120s --retries=3 \
+    CMD python -c "import torch; assert torch.cuda.is_available()" || exit 1
+
+# Default command
+CMD ["python", "/app/train_ovh.py", "--config", "/app/config/moe_training_config.json"]
