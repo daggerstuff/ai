@@ -1,0 +1,441 @@
+{
+  "manifest_version": "1.0",
+  "generated": "2025-11-27",
+  "description": "Master manifest for Pixelated Empathy training datasets",
+  "datasets": {
+    "stage1_foundation": {
+      "therapist_sft": {
+        "path": "~/datasets/consolidated/professional/therapist-sft-format/train.csv",
+        "gdrive_path": "/mnt/gdrive/datasets/therapist-sft-format",
+        "size_mb": 388,
+        "format": "csv",
+        "estimated_conversations": 99000,
+        "status": "available",
+        "description": "Structured therapist training conversations"
+      },
+      "soulchat": {
+        "path": "~/datasets/consolidated/professional/SoulChat2.0",
+        "gdrive_path": "/mnt/gdrive/datasets/SoulChat2.0",
+        "size_mb": 76,
+        "format": "json",
+        "status": "available",
+        "description": "Advanced psychological counselor digital twin data"
+      },
+      "counsel_chat": {
+        "path": "~/datasets/consolidated/professional/counsel-chat",
+        "gdrive_path": "/mnt/gdrive/datasets/counsel-chat",
+        "size_mb": 10,
+        "format": "csv/json",
+        "status": "available",
+        "description": "Professional counseling conversation archive"
+      },
+      "mental_health_counseling": {
+        "path": "~/datasets/consolidated/professional/mental_health_counseling_conversations/combined_dataset.json",
+        "gdrive_path": "/mnt/gdrive/datasets/mental_health_counseling_conversations",
+        "size_mb": 4.6,
+        "format": "json",
+        "estimated_conversations": 3512,
+        "status": "available",
+        "description": "Real therapeutic conversations from licensed therapists"
+      },
+      "psych8k": {
+        "path": "~/datasets/consolidated/professional/Psych8k",
+        "gdrive_path": "/mnt/gdrive/datasets/Psych8k",
+        "size_mb": 6.3,
+        "format": "json",
+        "status": "available",
+        "description": "Alexander Street professional therapy conversations"
+      },
+      "neuro_qa_sft": {
+        "path": "~/datasets/consolidated/professional/neuro_qa_SFT_Trainer/train.json",
+        "gdrive_path": "/mnt/gdrive/datasets/neuro_qa_SFT_Trainer",
+        "size_mb": 5.9,
+        "format": "json",
+        "status": "available",
+        "description": "Neurology/psychology Q&A training data"
+      },
+      "wendy_priority_1": {
+        "path": "~/datasets/consolidated/priority_wendy/priority_1_FINAL.jsonl",
+        "size_mb": 462,
+        "format": "jsonl",
+        "tier": 1,
+        "status": "unavailable",
+        "note": "Dataset no longer available in Google Drive (removed 2025-11)",
+        "description": "Top-tier curated therapeutic conversations"
+      },
+      "wendy_priority_2": {
+        "path": "~/datasets/consolidated/priority_wendy/priority_2_FINAL.jsonl",
+        "size_mb": 330,
+        "format": "jsonl",
+        "tier": 1,
+        "status": "unavailable",
+        "note": "Dataset no longer available in Google Drive (removed 2025-11)",
+        "description": "High-quality mental health data"
+      },
+      "wendy_priority_3": {
+        "path": "~/datasets/consolidated/priority_wendy/priority_3_FINAL.jsonl",
+        "size_mb": 370,
+        "format": "jsonl",
+        "tier": 1,
+        "status": "unavailable",
+        "note": "Dataset no longer available in Google Drive (removed 2025-11)",
+        "description": "Specialized therapeutic content"
+      }
+    },
+    "stage2_reasoning": {
+      "rpsd": {
+        "path": "~/datasets/consolidated/cot_reasoning/RPSD.json",
+        "size_mb": 653,
+        "format": "json",
+        "status": "available",
+        "description": "Reasoning and Problem Solving Dataset"
+      },
+      "tot_rpsd_v2": {
+        "path": "~/datasets/consolidated/cot_reasoning/ToT-RPSD-V2.json",
+        "size_mb": 230,
+        "format": "json",
+        "estimated_items": 72117,
+        "status": "available",
+        "description": "Tree of Thought RPSD v2"
+      },
+      "cot_clinical_diagnosis": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+        "gdrive_path": "/mnt/gdrive/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health",
+        "size_mb": 20,
+        "format": "json",
+        "estimated_items": 3000,
+        "status": "available",
+        "description": "Clinical diagnosis reasoning chains"
+      },
+      "cot_rare_diseases": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT_Rare_Disseases_Health_Conditions_9.8k.json",
+        "size_mb": 65,
+        "format": "json",
+        "status": "available",
+        "description": "Rare diseases and health conditions reasoning"
+      },
+      "cot_cultural_nuances": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT-Reasoning_Cultural_Nuances_Dataset.json",
+        "gdrive_path": "/mnt/gdrive/datasets/CoT-Reasoning_Cultural_Nuances",
+        "size_mb": 42,
+        "format": "json",
+        "status": "available",
+        "description": "Culturally-sensitive therapeutic reasoning"
+      },
+      "cot_heartbreak": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT-Breakups_and_heartbreak-9.8k.json",
+        "gdrive_path": "/mnt/gdrive/datasets/CoT_Heartbreak_and_Breakups_downloaded.json",
+        "size_mb": 37,
+        "format": "json",
+        "status": "available",
+        "description": "Emotional intelligence for relationship therapy"
+      },
+      "cot_general_inquiry": {
+        "path": "~/datasets/consolidated/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought_6K.json",
+        "size_mb": 37,
+        "format": "json",
+        "status": "available",
+        "description": "General inquiry chain of thought reasoning"
+      },
+      "cot_ancient_past": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_The_Ancient_Past.json",
+        "size_mb": 30,
+        "format": "json",
+        "status": "available",
+        "description": "Historical and existential reasoning"
+      },
+      "cot_legal_issues": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT_Legal_Issues_And_Laws.json",
+        "size_mb": 25,
+        "format": "json",
+        "status": "available",
+        "description": "Legal reasoning for therapeutic boundaries"
+      },
+      "cot_scientific_discovery": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research.json",
+        "size_mb": 25,
+        "format": "json",
+        "status": "available",
+        "description": "Scientific reasoning patterns"
+      },
+      "cot_medical_diagnosis": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT_Medical_Diagnosis_3k.json",
+        "size_mb": 21,
+        "format": "json",
+        "status": "available",
+        "description": "Medical diagnosis reasoning"
+      },
+      "cot_first_responders": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json",
+        "size_mb": 18,
+        "format": "json",
+        "status": "available",
+        "description": "Crisis triage and emergency reasoning"
+      },
+      "cot_mens_mental_health": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Mens_Mental_Health.json",
+        "gdrive_path": "/mnt/gdrive/datasets/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+        "size_mb": 18,
+        "format": "json",
+        "status": "available",
+        "description": "Gender-specific therapeutic reasoning"
+      },
+      "cot_quantum_physics": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+        "size_mb": 17,
+        "format": "json",
+        "status": "available",
+        "description": "Complex systems reasoning"
+      },
+      "cot_temporal_reasoning": {
+        "path": "~/datasets/consolidated/cot_reasoning/CoT_Temporal_Reasoning_Dataset.json",
+        "gdrive_path": "/mnt/gdrive/datasets/CoT_Temporal_Reasoning_Dataset",
+        "size_mb": 15,
+        "format": "json",
+        "status": "available",
+        "description": "Time-based therapeutic planning"
+      },
+      "cot_neurodivergent": {
+        "gdrive_path": "/mnt/gdrive/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+        "size_mb": 53,
+        "format": "json",
+        "status": "available",
+        "description": "Neurodiversity-aware therapeutic approaches"
+      },
+      "cot_philosophical": {
+        "gdrive_path": "/mnt/gdrive/datasets/CoT_Philosophical_Understanding",
+        "size_mb": 33,
+        "format": "json",
+        "status": "available",
+        "description": "Existential and philosophical therapy reasoning"
+      }
+    },
+    "stage3_voice": {
+      "tim_fletcher_pipeline": {
+        "path": "ai/data/tim_fletcher_voice/",
+        "status": "in_progress",
+        "source": "voice_pipeline",
+        "description": "Tim Fletcher teaching style and personality"
+      },
+      "tim_fletcher_voice_profile": {
+        "path": "ai/data/tim_fletcher_voice/tim_fletcher_voice_profile.json",
+        "status": "available",
+        "description": "Extracted voice profile from Tim Fletcher transcripts"
+      }
+    },
+    "supplementary": {
+      "anthropic_hh_rlhf": {
+        "path": "~/datasets/consolidated/misc/Anthropic_hh-rlhf",
+        "size_mb": 311,
+        "format": "arrow",
+        "status": "available",
+        "description": "Anthropic helpful/harmless RLHF data"
+      },
+      "reccon": {
+        "path": "~/datasets/consolidated/misc/RECCON",
+        "size_mb": 400,
+        "format": "json/csv",
+        "status": "available",
+        "description": "Recognizing Emotion Cause in CONversation"
+      },
+      "data_final": {
+        "path": "~/datasets/consolidated/misc/data-final.csv",
+        "size_mb": 397,
+        "format": "csv",
+        "status": "available",
+        "description": "Final compiled dataset"
+      },
+      "psychology_10k": {
+        "path": "~/datasets/consolidated/misc/psychology-10k/Psychology-10K.json",
+        "size_mb": 5,
+        "format": "json",
+        "status": "available",
+        "description": "Psychology knowledge base"
+      },
+      "empathy_mental_health": {
+        "path": "~/datasets/consolidated/misc/Empathy-Mental-Health",
+        "size_mb": 4.5,
+        "format": "various",
+        "status": "available",
+        "description": "Empathetic mental health conversations"
+      },
+      "depression_detection": {
+        "path": "~/datasets/consolidated/misc/DepressionDetection",
+        "size_mb": 2.7,
+        "format": "various",
+        "status": "available",
+        "description": "Depression detection training data"
+      },
+      "addiction_counseling": {
+        "path": "~/datasets/consolidated/misc/formatted_annotated_addiction_counseling",
+        "size_mb": 1.3,
+        "format": "json",
+        "status": "available",
+        "description": "Addiction counseling conversations"
+      }
+    },
+    "reddit_mental_health": {
+      "subreddit_archives": {
+        "path": "~/datasets/consolidated/reddit/",
+        "size_mb": 2900,
+        "format": "csv",
+        "status": "available",
+        "description": "Various mental health subreddit archives (Anxiety, Depression, ADHD, etc.)"
+      },
+      "mental_disorders_reddit": {
+        "path": "~/datasets/consolidated/reddit/mental_disorders_reddit.csv",
+        "size_mb": 562,
+        "format": "csv",
+        "status": "available",
+        "downloaded": "2025-11-27",
+        "description": "Mental disorders Reddit compilation"
+      },
+      "suicide_detection": {
+        "path": "~/datasets/consolidated/reddit/Suicide_Detection.csv",
+        "size_mb": 160,
+        "format": "csv",
+        "status": "available",
+        "downloaded": "2025-11-27",
+        "description": "Suicide detection training data"
+      },
+      "merged_mental_health": {
+        "path": "~/datasets/consolidated/reddit/merged_mental_health_dataset.jsonl",
+        "size_mb": 86,
+        "format": "jsonl",
+        "status": "available",
+        "downloaded": "2025-11-27",
+        "description": "Merged mental health dataset"
+      }
+    },
+    "huggingface_discovered": {
+      "description": "Datasets discovered via HuggingFace exploration (2025-11-27)",
+      "discovery_report": "ai/dataset_pipeline/discoveries/hf_discovery_20251127_125953.json",
+      "total_found": 56,
+      "high_priority": {
+        "thu-coai/esconv": {
+          "description": "Emotional support conversation dataset",
+          "downloads": 895,
+          "category": "emotional_support",
+          "license": "cc-by-nc-4.0"
+        },
+        "declare-lab/MELD": {
+          "description": "Multimodal emotion lines dataset",
+          "downloads": 730,
+          "category": "emotion_recognition",
+          "license": "gpl-3.0"
+        },
+        "daily_dialog": {
+          "description": "High-quality multi-turn dialogues",
+          "downloads": 4655,
+          "category": "multi_turn_dialogue",
+          "license": "cc-by-nc-sa-4.0"
+        },
+        "bavard/personachat_truecased": {
+          "description": "Persona-based conversations",
+          "downloads": 848,
+          "category": "persona_dialogue"
+        },
+        "EmoCareAI/Psych8k": {
+          "description": "Psychology conversations dataset",
+          "downloads": 85,
+          "category": "therapeutic",
+          "license": "cc-by-nc-sa-4.0"
+        },
+        "nbertagnolli/counsel-chat": {
+          "description": "Counseling chat dataset",
+          "downloads": 1114,
+          "category": "therapeutic"
+        }
+      },
+      "medium_priority": {
+        "Amod/mental_health_counseling_conversations": {
+          "downloads": 10923,
+          "likes": 444
+        },
+        "facebook/empathetic_dialogues": {
+          "downloads": 2441,
+          "likes": 122,
+          "category": "empathetic_dialogue"
+        }
+      },
+      "additional_datasets": [
+        "to-be/annomi-motivational-interviewing-therapy-conversations",
+        "Estwld/empathetic_dialogues_llm",
+        "arafatanam/Student-Mental-Health-Counseling-100K",
+        "heliosbrahma/mental_health_chatbot_dataset",
+        "tcabanski/mental_health_counseling_responses"
+      ],
+      "categories_found": [
+        "emotional_support",
+        "therapeutic",
+        "emotion_recognition",
+        "persona_dialogue",
+        "multi_turn_dialogue"
+      ]
+    },
+    "pending_discovery": {
+      "description": "Additional datasets to explore via journal research",
+      "remaining_searches": [
+        "CLPsych shared tasks - Computational linguistics + psychology",
+        "OpenPsych datasets - Academic psychology research data",
+        "BioNLP competitions - Biomedical NLP challenges"
+      ],
+      "gaps_to_fill": [
+        "Crisis intervention training data",
+        "Trauma informed care conversations",
+        "More motivational interviewing examples"
+      ]
+    }
+  },
+  "totals": {
+    "current_size_gb": 6.4,
+    "missing_to_download_gb": 1.86,
+    "estimated_conversations": "300k+",
+    "stage1_foundation_size_gb": 1.65,
+    "stage2_reasoning_size_gb": 1.3,
+    "stage3_voice_status": "in_progress",
+    "supplementary_size_gb": 1.1,
+    "reddit_size_gb": 2.9
+  },
+  "format_breakdown": {
+    "json": "45%",
+    "jsonl": "25%",
+    "csv": "20%",
+    "arrow": "10%"
+  },
+  "gaps_identified": [
+    "More crisis intervention data",
+    "Trauma-informed care conversations",
+    "Motivational interviewing examples",
+    "Cross-cultural therapeutic dialogues",
+    "Voice stage synthetic conversation generation"
+  ],
+  "processing_pipeline": {
+    "chatml_converter": "ai/ovh/process_datasets_chatml.py",
+    "dataset_pipeline": "ai/dataset_pipeline/processing/convert_chatml.py",
+    "training_script": "ai/ovh/train_ovh.py",
+    "sync_script": "ai/ovh/sync-datasets.sh"
+  },
+  "training_strategy": {
+    "stage_1_foundation": {
+      "purpose": "Natural therapeutic dialogue patterns",
+      "datasets": ["therapist_sft", "soulchat", "counsel_chat", "mental_health_counseling", "psych8k", "wendy_priority_*"],
+      "recommended_epochs": 3,
+      "learning_rate": "2e-4"
+    },
+    "stage_2_reasoning": {
+      "purpose": "Clinical reasoning patterns (Chain of Thought)",
+      "datasets": ["cot_*"],
+      "recommended_epochs": 2,
+      "learning_rate": "1e-4"
+    },
+    "stage_3_voice": {
+      "purpose": "Tim Fletcher teaching style/personality",
+      "datasets": ["tim_fletcher_pipeline"],
+      "recommended_epochs": 2,
+      "learning_rate": "5e-5"
+    }
+  }
+}
+
+
