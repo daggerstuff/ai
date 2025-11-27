@@ -28,7 +28,7 @@ class Message:
             "metadata": self.metadata,
         }
 
-@dataclass
+@dataclass(kw_only=True)
 class Conversation:
     """
     Represents a complete conversation, adhering to the unified schema.
