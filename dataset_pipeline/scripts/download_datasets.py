@@ -147,6 +147,52 @@ TIER6_DATASETS = [
     ),
 ]
 
+# Tier 4: Reddit Mental Health Archive
+TIER4_DATASETS = [
+    DatasetConfig(
+        name="reddit_mental_health_posts",
+        hf_id="solomonk/reddit_mental_health_posts",
+        tier=4,
+        description="Reddit mental health posts compilation",
+        expected_size_mb=100,
+    ),
+    DatasetConfig(
+        name="mental_health_reddit_posts",
+        hf_id="jsfactory/mental_health_reddit_posts",
+        tier=4,
+        description="Mental health Reddit posts dataset",
+        expected_size_mb=50,
+    ),
+    DatasetConfig(
+        name="reddit-mental-health-classification",
+        hf_id="kamruzzaman-asif/reddit-mental-health-classification",
+        tier=4,
+        description="Reddit mental health classification dataset",
+        expected_size_mb=30,
+    ),
+    DatasetConfig(
+        name="reddit-depression-cleaned",
+        hf_id="hugginglearners/reddit-depression-cleaned",
+        tier=4,
+        description="Cleaned Reddit depression posts",
+        expected_size_mb=20,
+    ),
+    DatasetConfig(
+        name="suicide-detection",
+        hf_id="Ram07/Detection-for-Suicide",
+        tier=4,
+        description="Suicide detection dataset",
+        expected_size_mb=50,
+    ),
+    DatasetConfig(
+        name="suicide-depression-detection",
+        hf_id="joshyii/suicide_depression_detection",
+        tier=4,
+        description="Suicide and depression detection dataset",
+        expected_size_mb=30,
+    ),
+]
+
 # Additional Research Datasets (Tier 5)
 TIER5_DATASETS = [
     DatasetConfig(
@@ -162,6 +208,27 @@ TIER5_DATASETS = [
         tier=5,
         description="Empathetic dialogue dataset",
         expected_size_mb=40,
+    ),
+    DatasetConfig(
+        name="therapist-sft-format",
+        hf_id="wesley7137/therapist-sft-format",
+        tier=5,
+        description="Therapist SFT format training data",
+        expected_size_mb=50,
+    ),
+    DatasetConfig(
+        name="mental-health-snli",
+        hf_id="iqrakiran/customized-mental-health-snli3",
+        tier=5,
+        description="Mental health natural language inference",
+        expected_size_mb=5,
+    ),
+    DatasetConfig(
+        name="iemocap-emotion-recognition",
+        hf_id="AudioLLMs/iemocap_emotion_recognition",
+        tier=5,
+        description="IEMOCAP emotion recognition dataset",
+        expected_size_mb=20,
     ),
 ]
 
@@ -306,7 +373,7 @@ class DatasetDownloader:
             }
         }
 
-        all_datasets = TIER2_DATASETS + TIER5_DATASETS + TIER6_DATASETS
+        all_datasets = TIER2_DATASETS + TIER4_DATASETS + TIER5_DATASETS + TIER6_DATASETS
 
         for config in all_datasets:
             tier_path = self.get_tier_path(config.tier)
@@ -364,7 +431,7 @@ class DatasetDownloader:
             "\n## Dataset Status",
         ]
 
-        for tier in [2, 5, 6]:
+        for tier in [2, 4, 5, 6]:
             tier_datasets = [d for d in verification["datasets"] if d["tier"] == tier]
             if tier_datasets:
                 lines.append(f"\n### Tier {tier}")
@@ -402,7 +469,7 @@ def main():
     parser.add_argument(
         "--tier",
         type=int,
-        choices=[2, 5, 6],
+        choices=[2, 4, 5, 6],
         help="Download only specific tier",
     )
     parser.add_argument(
@@ -443,7 +510,7 @@ def main():
 
     if args.dataset:
         # Find specific dataset
-        all_datasets = TIER2_DATASETS + TIER5_DATASETS + TIER6_DATASETS
+        all_datasets = TIER2_DATASETS + TIER4_DATASETS + TIER5_DATASETS + TIER6_DATASETS
         for ds in all_datasets:
             if ds.name.lower() == args.dataset.lower():
                 datasets_to_download.append(ds)
@@ -458,13 +525,15 @@ def main():
         # Download specific tier
         if args.tier == 2:
             datasets_to_download = TIER2_DATASETS
+        elif args.tier == 4:
+            datasets_to_download = TIER4_DATASETS
         elif args.tier == 5:
             datasets_to_download = TIER5_DATASETS
         elif args.tier == 6:
             datasets_to_download = TIER6_DATASETS
     else:
         # Download all
-        datasets_to_download = TIER2_DATASETS + TIER5_DATASETS + TIER6_DATASETS
+        datasets_to_download = TIER2_DATASETS + TIER4_DATASETS + TIER5_DATASETS + TIER6_DATASETS
 
     if args.dry_run:
         print("Dry run - would download:")
