@@ -8,43 +8,57 @@
                 "path": "/mnt/gdrive/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
                 "size_mb": 20,
                 "type": "chain_of_thought",
-                "focus": "clinical diagnosis reasoning"
+                "focus": "clinical diagnosis reasoning",
+                "stage": "stage2_therapeutic_expertise",
+                "quality_profile": "cot_reasoning"
             },
             "CoT_Heartbreak_and_Breakups": {
                 "path": "/mnt/gdrive/datasets/CoT_Heartbreak_and_Breakups_downloaded.json",
                 "size_mb": 37,
                 "type": "chain_of_thought",
-                "focus": "emotional intelligence, relationship therapy"
+                "focus": "emotional intelligence, relationship therapy",
+                "stage": "stage2_therapeutic_expertise",
+                "quality_profile": "cot_reasoning"
             },
             "CoT_Neurodivergent_vs_Neurotypical": {
                 "path": "/mnt/gdrive/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
                 "size_mb": 53,
                 "type": "chain_of_thought",
-                "focus": "neurodiversity-aware therapeutic approaches"
+                "focus": "neurodiversity-aware therapeutic approaches",
+                "stage": "stage2_therapeutic_expertise",
+                "quality_profile": "cot_reasoning"
             },
             "CoT_Mens_Mental_Health": {
                 "path": "/mnt/gdrive/datasets/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
                 "size_mb": 17,
                 "type": "chain_of_thought",
-                "focus": "gender-specific therapeutic reasoning"
+                "focus": "gender-specific therapeutic reasoning",
+                "stage": "stage2_therapeutic_expertise",
+                "quality_profile": "cot_reasoning"
             },
             "CoT_Cultural_Nuances": {
                 "path": "/mnt/gdrive/datasets/CoT-Reasoning_Cultural_Nuances/CoT-Reasoning_Cultural_Nuances_Dataset.json",
                 "size_mb": 43,
                 "type": "chain_of_thought",
-                "focus": "culturally-sensitive therapeutic approaches"
+                "focus": "culturally-sensitive therapeutic approaches",
+                "stage": "stage2_therapeutic_expertise",
+                "quality_profile": "cot_reasoning"
             },
             "CoT_Philosophical_Understanding": {
                 "path": "/mnt/gdrive/datasets/CoT_Philosophical_Understanding/CoT_Philosophical_Understanding.json",
                 "size_mb": 33,
                 "type": "chain_of_thought",
-                "focus": "existential, philosophical therapy"
+                "focus": "existential, philosophical therapy",
+                "stage": "stage2_therapeutic_expertise",
+                "quality_profile": "cot_reasoning"
             },
             "CoT_Temporal_Reasoning": {
                 "path": "/mnt/gdrive/datasets/CoT_Temporal_Reasoning_Dataset/CoT_Temporal_Reasoning_Dataset.json",
                 "size_mb": 15,
                 "type": "chain_of_thought",
-                "focus": "time-based therapeutic planning"
+                "focus": "time-based therapeutic planning",
+                "stage": "stage2_therapeutic_expertise",
+                "quality_profile": "cot_reasoning"
             }
         },
         "professional_therapeutic": {
@@ -52,40 +66,54 @@
                 "path": "/mnt/gdrive/datasets/mental_health_counseling_conversations",
                 "size_mb": 4.8,
                 "type": "professional",
-                "focus": "licensed therapist responses"
+                "focus": "licensed therapist responses",
+                "stage": "stage1_foundation",
+                "quality_profile": "foundation"
             },
             "SoulChat2.0": {
                 "path": "/mnt/gdrive/datasets/SoulChat2.0",
                 "type": "professional",
-                "focus": "advanced psychological counselor digital twin"
+                "focus": "advanced psychological counselor digital twin",
+                "stage": "stage1_foundation",
+                "quality_profile": "foundation"
             },
             "counsel_chat": {
                 "path": "/mnt/gdrive/datasets/counsel-chat",
                 "type": "professional",
-                "focus": "professional counseling conversation archive"
+                "focus": "professional counseling conversation archive",
+                "stage": "stage1_foundation",
+                "quality_profile": "foundation"
             },
             "LLAMA3_Mental_Counseling": {
                 "path": "/mnt/gdrive/datasets/LLAMA3_Mental_Counseling_Data",
                 "type": "professional",
-                "focus": "advanced AI counseling conversations"
+                "focus": "advanced AI counseling conversations",
+                "stage": "stage1_foundation",
+                "quality_profile": "foundation"
             },
             "therapist_sft": {
                 "path": "/mnt/gdrive/datasets/therapist-sft-format",
                 "size_mb": 406,
                 "type": "professional",
-                "focus": "structured therapist training data"
+                "focus": "structured therapist training data",
+                "stage": "stage1_foundation",
+                "quality_profile": "foundation"
             },
             "neuro_qa_sft": {
                 "path": "/mnt/gdrive/datasets/neuro_qa_SFT_Trainer",
                 "size_mb": 6.1,
                 "type": "professional",
-                "focus": "neurology/psychology Q&A"
+                "focus": "neurology/psychology Q&A",
+                "stage": "stage1_foundation",
+                "quality_profile": "foundation"
             },
             "Psych8k": {
                 "path": "/mnt/gdrive/datasets/Psych8k",
                 "size_mb": 6.3,
                 "type": "professional",
-                "focus": "Alexander Street professional therapy conversations"
+                "focus": "Alexander Street professional therapy conversations",
+                "stage": "stage1_foundation",
+                "quality_profile": "foundation"
             }
         },
         "priority_datasets": {
@@ -93,20 +121,81 @@
                 "path": "/mnt/gdrive/datasets/datasets-wendy/priority_1_FINAL.jsonl",
                 "type": "curated_priority",
                 "tier": 1,
-                "focus": "top-tier therapeutic conversations"
+                "focus": "top-tier therapeutic conversations",
+                "stage": "stage1_foundation",
+                "quality_profile": "foundation"
             },
             "priority_2": {
                 "path": "/mnt/gdrive/datasets/datasets-wendy/priority_2_FINAL.jsonl",
                 "type": "curated_priority",
                 "tier": 1,
-                "focus": "high-quality mental health data"
+                "focus": "high-quality mental health data",
+                "stage": "stage1_foundation",
+                "quality_profile": "foundation"
             },
             "priority_3": {
                 "path": "/mnt/gdrive/datasets/datasets-wendy/priority_3_FINAL.jsonl",
                 "type": "curated_priority",
                 "tier": 1,
-                "focus": "specialized therapeutic content"
+                "focus": "specialized therapeutic content",
+                "stage": "stage1_foundation",
+                "quality_profile": "foundation"
             }
+        }
+    },
+    "edge_case_sources": {
+        "edge_case_generator": {
+            "path": "/home/vivi/pixelated/ai/pipelines/edge_case_pipeline_standalone/output/edge_cases_training_format.jsonl",
+            "type": "synthetic_edge",
+            "focus": "crisis-level therapeutic breakdowns",
+            "stage": "stage3_edge_stress_test",
+            "quality_profile": "edge_crisis",
+            "notes": "Retain intense content; only drop when PII detected"
+        },
+        "scenario_prompt_library": {
+            "path": "/home/vivi/pixelated/ai/dataset_pipeline/prompt_corpus",
+            "type": "prompt_seed",
+            "focus": "edge scenario prompt bank (Google Drive mirror)",
+            "stage": "stage3_edge_stress_test",
+            "quality_profile": "edge_prompt"
+        },
+        "reddit_archives": {
+            "path": "/mnt/gdrive/datasets/reddit",
+            "type": "raw_forum",
+            "focus": "Reddit anxiety/depression/suicide watch dumps",
+            "stage": "stage3_edge_stress_test",
+            "quality_profile": "edge_raw"
+        },
+        "kaggle_tf_idf_bundle": {
+            "path": "/home/vivi/pixelated/ai/datasets/tier4_reddit_archive",
+            "type": "kaggle_bundle",
+            "focus": "19 Kaggle TF-IDF exports for mental health posts",
+            "stage": "stage3_edge_stress_test",
+            "quality_profile": "edge_raw",
+            "status": "pending_download"
+        }
+    },
+    "voice_persona": {
+        "tim_fletcher_transcripts": {
+            "path": "/home/vivi/pixelated/ai/training_data_consolidated/transcripts",
+            "type": "transcript_corpus",
+            "focus": "Tim Fletcher complex trauma teaching videos",
+            "stage": "stage4_voice_persona",
+            "quality_profile": "voice"
+        },
+        "tim_fletcher_voice_profile": {
+            "path": "/home/vivi/pixelated/ai/data/tim_fletcher_voice/tim_fletcher_voice_profile.json",
+            "type": "voice_profile",
+            "focus": "Voice/style embedding metadata",
+            "stage": "stage4_voice_persona",
+            "quality_profile": "voice"
+        },
+        "pixel_voice_pipeline_exports": {
+            "path": "/home/vivi/pixelated/ai/data/tim_fletcher_voice/exports",
+            "type": "synthetic_voice_conversations",
+            "focus": "Persona-constrained dialogue pairs",
+            "stage": "stage4_voice_persona",
+            "quality_profile": "voice"
         }
     },
     "training_strategy": {
@@ -117,7 +206,7 @@
             "purpose": "Natural therapeutic dialogue patterns",
             "recommended_epochs": "2-3"
         },
-        "stage_2_reasoning": {
+        "stage_2_therapeutic_expertise": {
             "datasets": [
                 "cot_reasoning"
             ],
@@ -125,13 +214,21 @@
             "recommended_epochs": "1-2",
             "note": "Different style - teaches HOW to think clinically"
         },
-        "stage_3_voice": {
+        "stage_3_edge_stress_test": {
             "datasets": [
-                "tim_fletcher_synthetic"
+                "edge_case_sources"
+            ],
+            "purpose": "Nightmare-fuel crisis rehearsal, scenario prompts, Reddit realism",
+            "recommended_epochs": "1",
+            "note": "Lenient safety; retain crisis intensity, only strip PII"
+        },
+        "stage_4_voice_persona": {
+            "datasets": [
+                "voice_persona"
             ],
             "purpose": "Tim Fletcher teaching style/personality",
             "recommended_epochs": "1-2",
-            "status": "TODO - need to generate from transcripts"
+            "status": "Transcripts available; synthetic expansion in progress"
         }
     },
     "usage_notes": {
