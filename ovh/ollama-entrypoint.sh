@@ -16,6 +16,13 @@ ensure_data_dir() {
     mkdir -p "$DATA_DIR"
     chmod 700 "$DATA_DIR"
   fi
+  
+  # If using custom path, ensure Ollama's default location points to it
+  if [ "$DATA_DIR" != "/var/lib/ollama" ] && [ ! -L /var/lib/ollama ]; then
+    log "Linking /var/lib/ollama to $DATA_DIR"
+    mkdir -p "$(dirname /var/lib/ollama)" || true
+    ln -sf "$DATA_DIR" /var/lib/ollama || true
+  fi
 }
 
 start_temp_daemon() {
