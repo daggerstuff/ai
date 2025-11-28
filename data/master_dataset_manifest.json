@@ -2,6 +2,44 @@
   "manifest_version": "1.0",
   "generated": "2025-11-27",
   "description": "Master manifest for Pixelated Empathy training datasets",
+  "stages": {
+    "stage1_foundation": {
+      "target_percentage": 0.4,
+      "quality_profile": {
+        "min_empathy": 0.55,
+        "min_safety": 0.7,
+        "bias_max": 0.2
+      },
+      "notes": "Baseline therapeutic tone, rapport building, reflective listening"
+    },
+    "stage2_therapeutic_expertise": {
+      "target_percentage": 0.25,
+      "quality_profile": {
+        "min_empathy": 0.5,
+        "min_safety": 0.68,
+        "requires_reasoning_metadata": true
+      },
+      "notes": "Chain-of-thought clinical reasoning, MEMO summaries, psychology grounding"
+    },
+    "stage3_edge_stress_test": {
+      "target_percentage": 0.2,
+      "quality_profile": {
+        "min_empathy": 0.35,
+        "min_safety": 0.55,
+        "allow_crisis_override": true
+      },
+      "notes": "Nightmare fuel crisis simulations, Reddit edge cases, Safety DPO violations"
+    },
+    "stage4_voice_persona": {
+      "target_percentage": 0.15,
+      "quality_profile": {
+        "min_empathy": 0.6,
+        "min_safety": 0.75,
+        "requires_voice_signature": true
+      },
+      "notes": "Tim Fletcher voice alignment, dual persona delivery"
+    }
+  },
   "datasets": {
     "stage1_foundation": {
       "therapist_sft": {
@@ -11,7 +49,9 @@
         "format": "csv",
         "estimated_conversations": 99000,
         "status": "available",
-        "description": "Structured therapist training conversations"
+        "description": "Structured therapist training conversations",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       },
       "soulchat": {
         "path": "~/datasets/consolidated/professional/SoulChat2.0",
@@ -19,7 +59,9 @@
         "size_mb": 76,
         "format": "json",
         "status": "available",
-        "description": "Advanced psychological counselor digital twin data"
+        "description": "Advanced psychological counselor digital twin data",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       },
       "counsel_chat": {
         "path": "~/datasets/consolidated/professional/counsel-chat",
@@ -27,7 +69,9 @@
         "size_mb": 10,
         "format": "csv/json",
         "status": "available",
-        "description": "Professional counseling conversation archive"
+        "description": "Professional counseling conversation archive",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       },
       "mental_health_counseling": {
         "path": "~/datasets/consolidated/professional/mental_health_counseling_conversations/combined_dataset.json",
@@ -36,7 +80,9 @@
         "format": "json",
         "estimated_conversations": 3512,
         "status": "available",
-        "description": "Real therapeutic conversations from licensed therapists"
+        "description": "Real therapeutic conversations from licensed therapists",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       },
       "psych8k": {
         "path": "~/datasets/consolidated/professional/Psych8k",
@@ -44,7 +90,9 @@
         "size_mb": 6.3,
         "format": "json",
         "status": "available",
-        "description": "Alexander Street professional therapy conversations"
+        "description": "Alexander Street professional therapy conversations",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       },
       "neuro_qa_sft": {
         "path": "~/datasets/consolidated/professional/neuro_qa_SFT_Trainer/train.json",
@@ -52,7 +100,9 @@
         "size_mb": 5.9,
         "format": "json",
         "status": "available",
-        "description": "Neurology/psychology Q&A training data"
+        "description": "Neurology/psychology Q&A training data",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       },
       "wendy_priority_1": {
         "path": "~/datasets/consolidated/priority_wendy/priority_1_FINAL.jsonl",
@@ -61,7 +111,9 @@
         "tier": 1,
         "status": "unavailable",
         "note": "Dataset no longer available in Google Drive (removed 2025-11)",
-        "description": "Top-tier curated therapeutic conversations"
+        "description": "Top-tier curated therapeutic conversations",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       },
       "wendy_priority_2": {
         "path": "~/datasets/consolidated/priority_wendy/priority_2_FINAL.jsonl",
@@ -70,7 +122,9 @@
         "tier": 1,
         "status": "unavailable",
         "note": "Dataset no longer available in Google Drive (removed 2025-11)",
-        "description": "High-quality mental health data"
+        "description": "High-quality mental health data",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       },
       "wendy_priority_3": {
         "path": "~/datasets/consolidated/priority_wendy/priority_3_FINAL.jsonl",
@@ -79,7 +133,9 @@
         "tier": 1,
         "status": "unavailable",
         "note": "Dataset no longer available in Google Drive (removed 2025-11)",
-        "description": "Specialized therapeutic content"
+        "description": "Specialized therapeutic content",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       }
     },
     "stage2_reasoning": {
@@ -88,7 +144,9 @@
         "size_mb": 653,
         "format": "json",
         "status": "available",
-        "description": "Reasoning and Problem Solving Dataset"
+        "description": "Reasoning and Problem Solving Dataset",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "tot_rpsd_v2": {
         "path": "~/datasets/consolidated/cot_reasoning/ToT-RPSD-V2.json",
@@ -96,7 +154,9 @@
         "format": "json",
         "estimated_items": 72117,
         "status": "available",
-        "description": "Tree of Thought RPSD v2"
+        "description": "Tree of Thought RPSD v2",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_clinical_diagnosis": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
@@ -105,14 +165,18 @@
         "format": "json",
         "estimated_items": 3000,
         "status": "available",
-        "description": "Clinical diagnosis reasoning chains"
+        "description": "Clinical diagnosis reasoning chains",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_rare_diseases": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT_Rare_Disseases_Health_Conditions_9.8k.json",
         "size_mb": 65,
         "format": "json",
         "status": "available",
-        "description": "Rare diseases and health conditions reasoning"
+        "description": "Rare diseases and health conditions reasoning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_cultural_nuances": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT-Reasoning_Cultural_Nuances_Dataset.json",
@@ -120,7 +184,9 @@
         "size_mb": 42,
         "format": "json",
         "status": "available",
-        "description": "Culturally-sensitive therapeutic reasoning"
+        "description": "Culturally-sensitive therapeutic reasoning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_heartbreak": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT-Breakups_and_heartbreak-9.8k.json",
@@ -128,49 +194,63 @@
         "size_mb": 37,
         "format": "json",
         "status": "available",
-        "description": "Emotional intelligence for relationship therapy"
+        "description": "Emotional intelligence for relationship therapy",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_general_inquiry": {
         "path": "~/datasets/consolidated/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought_6K.json",
         "size_mb": 37,
         "format": "json",
         "status": "available",
-        "description": "General inquiry chain of thought reasoning"
+        "description": "General inquiry chain of thought reasoning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_ancient_past": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_The_Ancient_Past.json",
         "size_mb": 30,
         "format": "json",
         "status": "available",
-        "description": "Historical and existential reasoning"
+        "description": "Historical and existential reasoning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_legal_issues": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT_Legal_Issues_And_Laws.json",
         "size_mb": 25,
         "format": "json",
         "status": "available",
-        "description": "Legal reasoning for therapeutic boundaries"
+        "description": "Legal reasoning for therapeutic boundaries",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_scientific_discovery": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research.json",
         "size_mb": 25,
         "format": "json",
         "status": "available",
-        "description": "Scientific reasoning patterns"
+        "description": "Scientific reasoning patterns",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_medical_diagnosis": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT_Medical_Diagnosis_3k.json",
         "size_mb": 21,
         "format": "json",
         "status": "available",
-        "description": "Medical diagnosis reasoning"
+        "description": "Medical diagnosis reasoning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_first_responders": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json",
         "size_mb": 18,
         "format": "json",
         "status": "available",
-        "description": "Crisis triage and emergency reasoning"
+        "description": "Crisis triage and emergency reasoning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_mens_mental_health": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Mens_Mental_Health.json",
@@ -178,14 +258,18 @@
         "size_mb": 18,
         "format": "json",
         "status": "available",
-        "description": "Gender-specific therapeutic reasoning"
+        "description": "Gender-specific therapeutic reasoning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_quantum_physics": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Quantum_Physics_And_Computing.json",
         "size_mb": 17,
         "format": "json",
         "status": "available",
-        "description": "Complex systems reasoning"
+        "description": "Complex systems reasoning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_temporal_reasoning": {
         "path": "~/datasets/consolidated/cot_reasoning/CoT_Temporal_Reasoning_Dataset.json",
@@ -193,34 +277,78 @@
         "size_mb": 15,
         "format": "json",
         "status": "available",
-        "description": "Time-based therapeutic planning"
+        "description": "Time-based therapeutic planning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_neurodivergent": {
         "gdrive_path": "/mnt/gdrive/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
         "size_mb": 53,
         "format": "json",
         "status": "available",
-        "description": "Neurodiversity-aware therapeutic approaches"
+        "description": "Neurodiversity-aware therapeutic approaches",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       },
       "cot_philosophical": {
         "gdrive_path": "/mnt/gdrive/datasets/CoT_Philosophical_Understanding",
         "size_mb": 33,
         "format": "json",
         "status": "available",
-        "description": "Existential and philosophical therapy reasoning"
+        "description": "Existential and philosophical therapy reasoning",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       }
     },
-    "stage3_voice": {
+    "stage4_voice_persona": {
       "tim_fletcher_pipeline": {
         "path": "ai/data/tim_fletcher_voice/",
         "status": "in_progress",
         "source": "voice_pipeline",
-        "description": "Tim Fletcher teaching style and personality"
+        "description": "Tim Fletcher teaching style and personality",
+        "stage": "stage4_voice_persona",
+        "quality_profile": "voice"
       },
       "tim_fletcher_voice_profile": {
         "path": "ai/data/tim_fletcher_voice/tim_fletcher_voice_profile.json",
         "status": "available",
-        "description": "Extracted voice profile from Tim Fletcher transcripts"
+        "description": "Extracted voice profile from Tim Fletcher transcripts",
+        "stage": "stage4_voice_persona",
+        "quality_profile": "voice"
+      }
+    },
+    "stage3_edge_stress_test": {
+      "edge_case_generator": {
+        "path": "ai/pipelines/edge_case_pipeline_standalone/output/edge_cases_training_format.jsonl",
+        "status": "available",
+        "description": "500+ nightmare fuel therapeutic crises with category + difficulty metadata",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_crisis",
+        "expected_categories": 25,
+        "notes": "Never sanitize content; only drop if malformed or PII-positive"
+      },
+      "scenario_prompt_library": {
+        "path": "ai/dataset_pipeline/prompt_corpus/",
+        "status": "pending_mirror",
+        "description": "Google Drive scenario prompt spreadsheets mirrored to repo",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_prompt",
+        "notes": "Seeds synthetic generation strategies (edge_case_expansion, cultural_augmentation)"
+      },
+      "safety_dpo_pairs": {
+        "path": "ai/dataset_pipeline/quality/output/safety_dpo_pairs.jsonl",
+        "status": "generated_on_demand",
+        "description": "DPO pairs built from unsafe conversations to teach recovery behaviors",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_dpo"
+      },
+      "kaggle_tf_idf_bundle": {
+        "path": "ai/datasets/tier4_reddit_archive/",
+        "status": "pending_download",
+        "description": "19 Kaggle TF-IDF exports (depression_2019, anxiety_2019, etc.)",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_raw",
+        "notes": "Pull via kaggle CLI on remote GPU node prior to integration"
       }
     },
     "supplementary": {
@@ -229,49 +357,63 @@
         "size_mb": 311,
         "format": "arrow",
         "status": "available",
-        "description": "Anthropic helpful/harmless RLHF data"
+        "description": "Anthropic helpful/harmless RLHF data",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "rlhf"
       },
       "reccon": {
         "path": "~/datasets/consolidated/misc/RECCON",
         "size_mb": 400,
         "format": "json/csv",
         "status": "available",
-        "description": "Recognizing Emotion Cause in CONversation"
+        "description": "Recognizing Emotion Cause in CONversation",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "emotion_cause"
       },
       "data_final": {
         "path": "~/datasets/consolidated/misc/data-final.csv",
         "size_mb": 397,
         "format": "csv",
         "status": "available",
-        "description": "Final compiled dataset"
+        "description": "Final compiled dataset",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       },
       "psychology_10k": {
         "path": "~/datasets/consolidated/misc/psychology-10k/Psychology-10K.json",
         "size_mb": 5,
         "format": "json",
         "status": "available",
-        "description": "Psychology knowledge base"
+        "description": "Psychology knowledge base",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "knowledge_base"
       },
       "empathy_mental_health": {
         "path": "~/datasets/consolidated/misc/Empathy-Mental-Health",
         "size_mb": 4.5,
         "format": "various",
         "status": "available",
-        "description": "Empathetic mental health conversations"
+        "description": "Empathetic mental health conversations",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       },
       "depression_detection": {
         "path": "~/datasets/consolidated/misc/DepressionDetection",
         "size_mb": 2.7,
         "format": "various",
         "status": "available",
-        "description": "Depression detection training data"
+        "description": "Depression detection training data",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       },
       "addiction_counseling": {
         "path": "~/datasets/consolidated/misc/formatted_annotated_addiction_counseling",
         "size_mb": 1.3,
         "format": "json",
         "status": "available",
-        "description": "Addiction counseling conversations"
+        "description": "Addiction counseling conversations",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       }
     },
     "reddit_mental_health": {
@@ -280,7 +422,9 @@
         "size_mb": 2900,
         "format": "csv",
         "status": "available",
-        "description": "Various mental health subreddit archives (Anxiety, Depression, ADHD, etc.)"
+        "description": "Various mental health subreddit archives (Anxiety, Depression, ADHD, etc.)",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_raw"
       },
       "mental_disorders_reddit": {
         "path": "~/datasets/consolidated/reddit/mental_disorders_reddit.csv",
@@ -288,7 +432,9 @@
         "format": "csv",
         "status": "available",
         "downloaded": "2025-11-27",
-        "description": "Mental disorders Reddit compilation"
+        "description": "Mental disorders Reddit compilation",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_raw"
       },
       "suicide_detection": {
         "path": "~/datasets/consolidated/reddit/Suicide_Detection.csv",
@@ -296,7 +442,9 @@
         "format": "csv",
         "status": "available",
         "downloaded": "2025-11-27",
-        "description": "Suicide detection training data"
+        "description": "Suicide detection training data",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_crisis"
       },
       "merged_mental_health": {
         "path": "~/datasets/consolidated/reddit/merged_mental_health_dataset.jsonl",
@@ -304,7 +452,9 @@
         "format": "jsonl",
         "status": "available",
         "downloaded": "2025-11-27",
-        "description": "Merged mental health dataset"
+        "description": "Merged mental health dataset",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_raw"
       }
     },
     "huggingface_discovered": {

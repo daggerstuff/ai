@@ -18,6 +18,8 @@ import logging
 from dataclasses import dataclass, field
 import hashlib
 from datetime import datetime
+import re
+from collections import OrderedDict
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -34,6 +36,122 @@ class DataSource:
     quality_score: Optional[float] = None
     source_type: str = "unknown"
     metadata: Dict[str, Any] = field(default_factory=dict)
+    stage: Optional[str] = None
+
+
+@dataclass
+class StagePolicy:
+    """Defines guard-rail expectations per training stage."""
+    name: str
+    min_empathy: float
+    min_safety: float
+    allow_crisis_override: bool = False
+    requires_voice_signature: bool = False
+    dedup_priority: int = 1
+
+
+def get_default_stage_policies() -> Dict[str, StagePolicy]:
+    """Return baseline policy definitions for all stages."""
+    return {
+        "stage1_foundation": StagePolicy(
+            name="stage1_foundation",
+            min_empathy=0.55,
+            min_safety=0.7,
+            dedup_priority=1
+        ),
+        "stage2_therapeutic_expertise": StagePolicy(
+            name="stage2_therapeutic_expertise",
+            min_empathy=0.5,
+            min_safety=0.68,
+            dedup_priority=2
+        ),
+        "stage3_edge_stress_test": StagePolicy(
+            name="stage3_edge_stress_test",
+            min_empathy=0.35,
+            min_safety=0.55,
+            allow_crisis_override=True,
+            dedup_priority=3
+        ),
+        "stage4_voice_persona": StagePolicy(
+            name="stage4_voice_persona",
+            min_empathy=0.6,
+            min_safety=0.75,
+            requires_voice_signature=True,
+            dedup_priority=4
+        )
+    }
+
+
+class StageCatalog:
+    """Loads manifest metadata and infers stage assignments."""
+
+    def __init__(self, manifest_path: Path = Path("ai/data/master_dataset_manifest.json")):
+        self.manifest_path = manifest_path
+        self.stage_map: Dict[str, str] = {}
+        self.stage_priorities: Dict[str, int] = {
+            "stage1_foundation": 1,
+            "stage2_therapeutic_expertise": 2,
+            "stage3_edge_stress_test": 3,
+            "stage4_voice_persona": 4
+        }
+        self._load_manifest()
+
+    def _load_manifest(self) -> None:
+        if not self.manifest_path.exists():
+            return
+
+        try:
+            with open(self.manifest_path, "r") as manifest_file:
+                data = json.load(manifest_file)
+        except Exception as exc:
+            logger.warning(f"Unable to load manifest for stage catalog: {exc}")
+            return
+
+        datasets = data.get("datasets", {})
+        for section in datasets.values():
+            if not isinstance(section, dict):
+                continue
+            for key, dataset in section.items():
+                if not isinstance(dataset, dict):
+                    continue
+                stage = dataset.get("stage")
+                if not stage:
+                    continue
+                self.stage_map[key.lower()] = stage
+                for field_name in ("path", "gdrive_path"):
+                    raw_path = dataset.get(field_name)
+                    if raw_path:
+                        stem = Path(str(raw_path)).stem.lower()
+                        self.stage_map[stem] = stage
+
+    def lookup(self, source_name: str, path: Optional[str], source_type: Optional[str]) -> str:
+        """Return the best stage label for the provided source metadata."""
+        candidates = [source_name or "", source_type or ""]
+        if path:
+            candidates.extend([path, Path(path).stem])
+
+        for candidate in candidates:
+            if not candidate:
+                continue
+            stage = self.stage_map.get(candidate.lower())
+            if stage:
+                return stage
+
+        return self._infer_fallback(source_name or "", source_type or "")
+
+    def _infer_fallback(self, source_name: str, source_type: str) -> str:
+        """Heuristic stage inference when manifest metadata is missing."""
+        text = f"{source_name} {source_type}".lower()
+        if any(token in text for token in ["edge_case", "reddit", "suicide", "kaggle_tf", "nightmare"]):
+            return "stage3_edge_stress_test"
+        if any(token in text for token in ["voice", "tim_fletcher", "persona", "transcript"]):
+            return "stage4_voice_persona"
+        if any(token in text for token in ["cot", "reasoning", "memo", "knowledge"]):
+            return "stage2_therapeutic_expertise"
+        return "stage1_foundation"
+
+    def get_priority(self, stage: str) -> int:
+        return self.stage_priorities.get(stage, 1)
 
 @dataclass
 class ProcessingConfig:
@@ -47,6 +165,7 @@ class ProcessingConfig:
     crisis_scenario_weight: float = 1.5
     therapeutic_conversation_weight: float = 1.0
     knowledge_base_weight: float = 1.2
+    stage_policy_overrides: Dict[str, Dict[str, Any]] = field(default_factory=dict)
 
 class UnifiedPreprocessingPipeline:
     """Main preprocessing pipeline orchestrator"""
@@ -58,9 +177,34 @@ class UnifiedPreprocessingPipeline:
         self.quality_filtered_records = 0
         self.safety_filtered_records = 0
         self.final_dataset_path = None
+        self.stage_catalog = StageCatalog()
+        self.stage_policies = self._build_stage_policies()
+        self._pii_patterns = [
+            re.compile(r"\b\d{3}-\d{3}-\d{4}\b"),
+            re.compile(r"\b\(?\d{3}\)?\s*\d{3}[-.\s]?\d{4}\b"),
+            re.compile(r"\b\d{9}\b"),
+            re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
+        ]
+
+    def _build_stage_policies(self) -> Dict[str, StagePolicy]:
+        policies = get_default_stage_policies()
+        for stage, overrides in self.config.stage_policy_overrides.items():
+            base_policy = policies.get(stage)
+            if base_policy:
+                merged = {**base_policy.__dict__, **overrides}
+            else:
+                merged = {"name": stage, **overrides}
+            policies[stage] = StagePolicy(**merged)
+        return policies
+
+    def get_stage_policy(self, stage: str) -> StagePolicy:
+        return self.stage_policies.get(stage, self.stage_policies["stage1_foundation"])
 
     def register_data_source(self, source: DataSource):
         """Register a data source for processing"""
+        if not source.stage:
+            source.stage = self.stage_catalog.lookup(source.name, source.path, source.source_type)
+        source.metadata.setdefault("stage", source.stage)
         self.data_sources.append(source)
         logger.info(f"Registered data source: {source.name} ({source.format})")
 
@@ -210,7 +354,19 @@ class UnifiedPreprocessingPipeline:
         if 'quality_score' not in record.get('metadata', {}):
             record['metadata']['quality_score'] = self.estimate_quality_score(record)
 
+        # Ensure stage metadata is populated
+        self.resolve_stage_for_record(record, source)
+
         return record
+
+    def resolve_stage_for_record(self, record: Dict[str, Any], source: DataSource) -> str:
+        """Populate and return the stage associated with this record."""
+        metadata = record.setdefault('metadata', {})
+        stage = metadata.get('stage') or source.metadata.get('stage') or source.stage
+        if not stage:
+            stage = self.stage_catalog.lookup(source.name, source.path, source.source_type)
+        metadata['stage'] = stage
+        return stage
 
     def estimate_quality_score(self, record: Dict[str, Any]) -> float:
         """Estimate quality score for a record"""
@@ -245,6 +401,10 @@ class UnifiedPreprocessingPipeline:
         if not record:
             return False
 
+        metadata = record.get('metadata', {})
+        stage = metadata.get('stage', 'stage1_foundation')
+        policy = self.get_stage_policy(stage)
+
         # Basic validation
         if self.config.validation_enabled:
             # Check for required fields
@@ -269,6 +429,19 @@ class UnifiedPreprocessingPipeline:
             if quality_score < self.config.target_quality_threshold:
                 return False
 
+        empathy_score = metadata.get('empathy_score', 0.5)
+        crisis_flag = metadata.get('crisis_intensity')
+        if empathy_score < policy.min_empathy:
+            if not (policy.allow_crisis_override and crisis_flag in {"high", "very_high"}):
+                return False
+
+        safety_score = metadata.get('safety_score', 0.7)
+        if safety_score < policy.min_safety and not policy.allow_crisis_override:
+            return False
+
+        if policy.requires_voice_signature and not metadata.get('voice_signature'):
+            return False
+
         return True
 
     def deduplicate_records(self, records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -276,9 +449,9 @@ class UnifiedPreprocessingPipeline:
         if not self.config.deduplication_enabled:
             return records
 
-        seen_hashes = set()
-        unique_records = []
+        hash_map: "OrderedDict[str, Dict[str, Any]]" = OrderedDict()
         duplicates_removed = 0
+        replacements = 0
 
         for record in records:
             # Create content hash for deduplication
@@ -290,14 +463,25 @@ class UnifiedPreprocessingPipeline:
 
             if content_to_hash:
                 content_hash = hashlib.md5(content_to_hash.encode()).hexdigest()
-                if content_hash not in seen_hashes:
-                    seen_hashes.add(content_hash)
-                    unique_records.append(record)
-                else:
-                    duplicates_removed += 1
+                stage = record.get('metadata', {}).get('stage', 'stage1_foundation')
+                priority = self.stage_catalog.get_priority(stage)
+                existing = hash_map.get(content_hash)
 
-        logger.info(f"Removed {duplicates_removed} duplicate records")
-        return unique_records
+                if existing is None:
+                    hash_map[content_hash] = {"record": record, "priority": priority}
+                else:
+                    if priority > existing["priority"]:
+                        hash_map[content_hash] = {"record": record, "priority": priority}
+                        replacements += 1
+                    else:
+                        duplicates_removed += 1
+
+        logger.info(
+            "Removed %s duplicate records (%s higher-priority replacements)",
+            duplicates_removed,
+            replacements
+        )
+        return [entry["record"] for entry in hash_map.values()]
 
     def apply_safety_filtering(self, records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Apply safety filtering to records"""
@@ -308,29 +492,48 @@ class UnifiedPreprocessingPipeline:
         unsafe_filtered = 0
 
         for record in records:
-            # Basic safety checks
-            is_safe = True
+            metadata = record.get('metadata', {})
+            stage = metadata.get('stage', 'stage1_foundation')
+            policy = self.get_stage_policy(stage)
 
-            # Check for explicit content markers
-            unsafe_keywords = ['explicit', 'nsfw', 'inappropriate']
-            content = ""
-            if 'text' in record:
-                content = record['text'].lower()
-            elif 'messages' in record:
-                content = " ".join([msg.get('content', '').lower() for msg in record['messages']])
+            content = self._collect_record_content(record)
+            safety_score = metadata.get('safety_score', 0.7)
 
-            for keyword in unsafe_keywords:
-                if keyword in content:
-                    is_safe = False
-                    break
-
-            if is_safe:
-                safe_records.append(record)
-            else:
+            if self._contains_pii(content):
                 unsafe_filtered += 1
+                continue
 
-        logger.info(f"Filtered {unsafe_filtered} unsafe records")
+            if policy.allow_crisis_override:
+                # Only drop if explicitly marked as disallowed (e.g., PII) or absurdly low safety.
+                if safety_score < 0.2 and not metadata.get('crisis_intensity'):
+                    unsafe_filtered += 1
+                    continue
+            else:
+                if safety_score < policy.min_safety or self._contains_disallowed_keywords(content):
+                    unsafe_filtered += 1
+                    continue
+
+            safe_records.append(record)
+
+        self.safety_filtered_records += unsafe_filtered
+        logger.info(f"Filtered {unsafe_filtered} unsafe records (stage-aware)")
         return safe_records
+
+    def _collect_record_content(self, record: Dict[str, Any]) -> str:
+        if 'text' in record:
+            return str(record['text']).lower()
+        if 'messages' in record:
+            return " ".join([msg.get('content', '') for msg in record['messages']]).lower()
+        return ""
+
+    def _contains_disallowed_keywords(self, content: str) -> bool:
+        unsafe_keywords = ['explicit', 'nsfw', 'inappropriate']
+        return any(keyword in content for keyword in unsafe_keywords)
+
+    def _contains_pii(self, content: str) -> bool:
+        if not content:
+            return False
+        return any(pattern.search(content) for pattern in self._pii_patterns)
 
     def integrate_psychology_knowledge(self, records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Integrate psychology knowledge base concepts into records"""

@@ -39,10 +39,11 @@ This will:
 - Load psychology knowledge
 - Load dual persona data
 - Load standard therapeutic conversations
-- Balance according to target percentages (25% edge, 20% voice, 15% psych, 10% persona, 30% standard)
+- Balance into four stages (40% Stage 1 foundation, 25% Stage 2 reasoning, 20% Stage 3 edge stress tests, 15% Stage 4 voice/persona)
 - Run bias detection
 - Run quality validation
 - Output unified dataset to `ai/lightning/training_dataset.json`
+- Emit per-stage exports + manifest under `ai/training_data_consolidated/final/`
 
 ### Step 3: Train Your Model
 
@@ -117,6 +118,13 @@ The model will now train on the complete integrated dataset!
 
 **Location**: `ai/dataset_pipeline/pixelated-training/training_dataset.json`
 
+### Stage-balanced Outputs (Pipeline Result)
+
+- **Manifest:** `ai/training_data_consolidated/final/MASTER_STAGE_MANIFEST.json`
+- **Files:** `MASTER_stage1_foundation.jsonl`, `MASTER_stage2_therapeutic_expertise.jsonl`, `MASTER_stage3_edge_stress_test.jsonl`, `MASTER_stage4_voice_persona.jsonl`
+- **Targets:** 40% Stage 1, 25% Stage 2, 20% Stage 3, 15% Stage 4
+- **Usage:** Feed individual stage files into Lightning configs or audits to verify balance before recombining.
+
 ## 🔧 Configuration
 
 ### Custom Pipeline Configuration
@@ -138,6 +146,14 @@ config = IntegratedPipelineConfig(
     # Adjust total samples
     target_total_samples=10000,  # Increase to 10k samples
     
+    # Stage distribution overrides (must sum to 1.0)
+    stage_distribution={
+        "stage1_foundation": 0.35,
+        "stage2_therapeutic_expertise": 0.25,
+        "stage3_edge_stress_test": 0.25,
+        "stage4_voice_persona": 0.15,
+    },
+
     # Quality settings
     enable_bias_detection=True,
     enable_quality_validation=True,
@@ -197,6 +213,11 @@ metadata = data['metadata']
 print(f"Total conversations: {metadata['total_conversations']}")
 print(f"Sources: {metadata['sources']}")
 print(f"Integration stats: {metadata['integration_stats']}")
+print(f"Stage metrics: {metadata.get('stage_metrics', {})}")
+
+with open('ai/training_data_consolidated/final/MASTER_STAGE_MANIFEST.json', 'r') as f:
+    stage_manifest = json.load(f)
+    print("Stage exports:", stage_manifest['stages'])
 ```
 
 ## 🐛 Troubleshooting

@@ -25,7 +25,7 @@ class EdgeCaseExample:
     purpose: str
     source: str
     generated_at: str
-    
+
     def to_training_format(self) -> Dict:
         """Convert to standard training format"""
         return {
@@ -39,25 +39,28 @@ class EdgeCaseExample:
                 "purpose": self.purpose,
                 "source": self.source,
                 "generated_at": self.generated_at,
-                "is_edge_case": True
+                "is_edge_case": True,
+                "stage": "stage3_edge_stress_test",
+                "crisis_intensity": self.difficulty_level,
+                "quality_profile": "edge_crisis"
             }
         }
 
 
 class EdgeCaseJSONLLoader:
     """Loader for edge case training data in JSONL format"""
-    
+
     def __init__(self, edge_case_pipeline_dir: str = "ai/pipelines/edge_case_pipeline_standalone/output"):
         self.pipeline_dir = Path(edge_case_pipeline_dir)
         self.training_file = self.pipeline_dir / "edge_cases_training_format.jsonl"
-        
+
     def load_edge_cases(self) -> List[EdgeCaseExample]:
         """Load all edge case examples from JSONL file"""
         if not self.training_file.exists():
             logger.warning(f"Edge case training file not found: {self.training_file}")
             logger.info("Run the edge case pipeline first to generate training data")
             return []
-        
+
         examples = []
         try:
             with open(self.training_file, 'r') as f:
@@ -78,32 +81,32 @@ class EdgeCaseJSONLLoader:
                     except (json.JSONDecodeError, KeyError) as e:
                         logger.error(f"Error parsing line {line_num}: {e}")
                         continue
-            
+
             logger.info(f"Loaded {len(examples)} edge case examples from {self.training_file}")
             return examples
-            
+
         except Exception as e:
             logger.error(f"Failed to load edge case training data: {e}")
             return []
-    
+
     def load_by_category(self, category: str) -> List[EdgeCaseExample]:
         """Load edge cases filtered by category"""
         all_examples = self.load_edge_cases()
         filtered = [ex for ex in all_examples if ex.category == category]
         logger.info(f"Loaded {len(filtered)} examples for category '{category}'")
         return filtered
-    
+
     def load_by_difficulty(self, difficulty: str) -> List[EdgeCaseExample]:
         """Load edge cases filtered by difficulty level"""
         all_examples = self.load_edge_cases()
         filtered = [ex for ex in all_examples if ex.difficulty_level == difficulty]
         logger.info(f"Loaded {len(filtered)} examples with difficulty '{difficulty}'")
         return filtered
-    
+
     def get_statistics(self) -> Dict:
         """Get statistics about loaded edge cases"""
         examples = self.load_edge_cases()
-        
+
         if not examples:
             return {
                 "total_examples": 0,
@@ -111,23 +114,23 @@ class EdgeCaseJSONLLoader:
                 "difficulty_levels": {},
                 "challenges": {}
             }
-        
+
         # Count by category
         categories = {}
         for ex in examples:
             categories[ex.category] = categories.get(ex.category, 0) + 1
-        
+
         # Count by difficulty
         difficulty_levels = {}
         for ex in examples:
             difficulty_levels[ex.difficulty_level] = difficulty_levels.get(ex.difficulty_level, 0) + 1
-        
+
         # Count challenges
         challenges = {}
         for ex in examples:
             for challenge in ex.expected_challenges:
                 challenges[challenge] = challenges.get(challenge, 0) + 1
-        
+
         return {
             "total_examples": len(examples),
             "categories": categories,
@@ -135,20 +138,20 @@ class EdgeCaseJSONLLoader:
             "challenges": challenges,
             "file_path": str(self.training_file)
         }
-    
+
     def convert_to_training_format(self, examples: Optional[List[EdgeCaseExample]] = None) -> List[Dict]:
         """Convert edge cases to standard training format"""
         if examples is None:
             examples = self.load_edge_cases()
-        
+
         training_data = [ex.to_training_format() for ex in examples]
         logger.info(f"Converted {len(training_data)} edge cases to training format")
         return training_data
-    
+
     def check_pipeline_output_exists(self) -> bool:
         """Check if edge case pipeline has been run and output exists"""
         return self.training_file.exists()
-    
+
     def get_pipeline_instructions(self) -> str:
         """Get instructions for running the edge case pipeline"""
         return """
@@ -158,22 +161,22 @@ To generate edge case training data:
    cd ai/pipelines/edge_case_pipeline_standalone/
 
 2. Run the pipeline (choose one method):
-   
+
    Option A - Jupyter Notebook (recommended):
    jupyter notebook Edge_Case_Generation_Pipeline.ipynb
-   
+
    Option B - Python script:
    python quick_start.py
-   
+
    Option C - Custom script:
    from edge_case_generator import EdgeCaseGenerator
-   
+
    generator = EdgeCaseGenerator(
        api_provider="ollama",  # or "openai", "anthropic"
        model_name="artifish/llama3.2-uncensored",
        output_dir="output"
    )
-   
+
    prompts = generator.generate_prompts(scenarios_per_category=20)
    conversations = generator.generate_conversations(prompts, max_conversations=500)
    training_data = generator.create_training_format(conversations)
@@ -188,55 +191,55 @@ To generate edge case training data:
 def load_edge_case_training_data(pipeline_dir: Optional[str] = None) -> List[Dict]:
     """
     Convenience function to load edge case training data
-    
+
     Args:
         pipeline_dir: Optional path to edge case pipeline output directory
-        
+
     Returns:
         List of training examples in standard format
     """
     loader = EdgeCaseJSONLLoader(pipeline_dir) if pipeline_dir else EdgeCaseJSONLLoader()
-    
+
     if not loader.check_pipeline_output_exists():
         logger.warning("Edge case training data not found!")
         logger.info(loader.get_pipeline_instructions())
         return []
-    
+
     return loader.convert_to_training_format()
 
 
 if __name__ == "__main__":
     # Test the loader
     loader = EdgeCaseJSONLLoader()
-    
+
     print("Edge Case Training Data Loader")
     print("=" * 60)
-    
+
     if not loader.check_pipeline_output_exists():
         print("\n❌ Edge case training data not found!")
         print(loader.get_pipeline_instructions())
     else:
         print("\n✅ Edge case training data found!")
-        
+
         # Load and show statistics
         stats = loader.get_statistics()
         print(f"\n📊 Statistics:")
         print(f"   Total examples: {stats['total_examples']}")
         print(f"   Categories: {len(stats['categories'])}")
         print(f"   Difficulty levels: {stats['difficulty_levels']}")
-        
+
         print(f"\n📁 Categories:")
         for category, count in sorted(stats['categories'].items(), key=lambda x: x[1], reverse=True)[:10]:
             print(f"   {category}: {count}")
-        
+
         print(f"\n⚠️ Top Challenges:")
         for challenge, count in sorted(stats['challenges'].items(), key=lambda x: x[1], reverse=True)[:10]:
             print(f"   {challenge}: {count}")
-        
+
         # Load training data
         training_data = loader.convert_to_training_format()
         print(f"\n✅ Loaded {len(training_data)} training examples")
-        
+
         if training_data:
             print(f"\n📝 Sample example:")
             sample = training_data[0]
