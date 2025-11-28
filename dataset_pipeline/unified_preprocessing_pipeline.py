@@ -25,6 +25,8 @@ from collections import OrderedDict
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+CRISIS_ESCALATION_LEVELS = {"high", "very_high"}
+
 @dataclass
 class DataSource:
     """Represents a data source with metadata"""
@@ -185,6 +187,14 @@ class UnifiedPreprocessingPipeline:
             re.compile(r"\b\d{9}\b"),
             re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}")
         ]
+
+    def _is_crisis_override_active(self, metadata: Dict[str, Any], policy: StagePolicy) -> bool:
+        crisis_flag = metadata.get('crisis_intensity')
+        if not crisis_flag or not policy.allow_crisis_override:
+            return False
+        if isinstance(crisis_flag, str):
+            crisis_flag = crisis_flag.lower()
+        return crisis_flag in CRISIS_ESCALATION_LEVELS
 
     def _build_stage_policies(self) -> Dict[str, StagePolicy]:
         policies = get_default_stage_policies()
@@ -430,13 +440,12 @@ class UnifiedPreprocessingPipeline:
                 return False
 
         empathy_score = metadata.get('empathy_score', 0.5)
-        crisis_flag = metadata.get('crisis_intensity')
-        if empathy_score < policy.min_empathy:
-            if not (policy.allow_crisis_override and crisis_flag in {"high", "very_high"}):
-                return False
+        crisis_override_active = self._is_crisis_override_active(metadata, policy)
+        if empathy_score < policy.min_empathy and not crisis_override_active:
+            return False
 
         safety_score = metadata.get('safety_score', 0.7)
-        if safety_score < policy.min_safety and not policy.allow_crisis_override:
+        if safety_score < policy.min_safety and not crisis_override_active:
             return False
 
         if policy.requires_voice_signature and not metadata.get('voice_signature'):
@@ -503,9 +512,11 @@ class UnifiedPreprocessingPipeline:
                 unsafe_filtered += 1
                 continue
 
+            crisis_override_active = self._is_crisis_override_active(metadata, policy)
+
             if policy.allow_crisis_override:
-                # Only drop if explicitly marked as disallowed (e.g., PII) or absurdly low safety.
-                if safety_score < 0.2 and not metadata.get('crisis_intensity'):
+                # Drop non-crisis records that fail safety thresholds even in lenient mode
+                if safety_score < policy.min_safety and not crisis_override_active:
                     unsafe_filtered += 1
                     continue
             else:
