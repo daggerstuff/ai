@@ -1,0 +1,30 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    TZ=UTC \
+    OLLAMA_HOST=0.0.0.0 \
+    OLLAMA_PORT=11434 \
+    OLLAMA_MODELS=/var/lib/ollama \
+    OLLAMA_PRELOAD_MODELS=""
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl tini jq && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN curl -fsSL https://ollama.com/install.sh | sh
+
+RUN useradd --system --shell /usr/sbin/nologin --home /var/lib/ollama ollama && \
+    mkdir -p /var/lib/ollama && \
+    chown -R ollama:ollama /var/lib/ollama
+
+COPY ai/ovh/ollama-entrypoint.sh /usr/local/bin/start-ollama.sh
+RUN chmod +x /usr/local/bin/start-ollama.sh && \
+    chown ollama:ollama /usr/local/bin/start-ollama.sh
+
+USER ollama
+VOLUME ["/var/lib/ollama"]
+
+EXPOSE 11434
+
+ENTRYPOINT ["/usr/bin/tini","--","/usr/local/bin/start-ollama.sh"]
+
