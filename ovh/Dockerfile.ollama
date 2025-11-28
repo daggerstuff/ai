@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     TZ=UTC \
     OLLAMA_HOST=0.0.0.0 \
     OLLAMA_PORT=11434 \
-    OLLAMA_MODELS=/var/lib/ollama \
+    OLLAMA_MODELS=/models \
     OLLAMA_PRELOAD_MODELS=""
 
 RUN apt-get update && \
@@ -13,16 +13,17 @@ RUN apt-get update && \
 
 RUN curl -fsSL https://ollama.com/install.sh | sh
 
-RUN useradd --system --shell /usr/sbin/nologin --home /var/lib/ollama ollama && \
-    mkdir -p /var/lib/ollama && \
-    chown -R ollama:ollama /var/lib/ollama
+# Create models directory - Ollama will use OLLAMA_MODELS env var
+RUN useradd --system --shell /usr/sbin/nologin --home /models ollama && \
+    mkdir -p /models && \
+    chown -R ollama:ollama /models
 
 COPY ai/ovh/ollama-entrypoint.sh /usr/local/bin/start-ollama.sh
 RUN chmod +x /usr/local/bin/start-ollama.sh && \
     chown ollama:ollama /usr/local/bin/start-ollama.sh
 
 USER ollama
-VOLUME ["/var/lib/ollama"]
+VOLUME ["/models"]
 
 EXPOSE 11434
 
