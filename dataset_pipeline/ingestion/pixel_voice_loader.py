@@ -36,6 +36,20 @@ class VoiceDialoguePair:
             or "tim_fletcher_voice_profile"
         )
 
+        # Extract empathy and safety scores from validation_scores
+        # Empathy: average of empathy scores from both turns
+        validation = self.validation_scores or {}
+        emp1 = validation.get('empathy_turn_1', [{}])[0].get('score', 0.5)
+        emp2 = validation.get('empathy_turn_2', [{}])[0].get('score', 0.5)
+        empathy_score = (emp1 + emp2) / 2.0
+
+        # Safety: derived from toxicity scores (safety = 1 - toxicity)
+        # Lower toxicity = higher safety
+        tox1 = validation.get('toxicity_turn_1', [{}])[0].get('score', 0.3)
+        tox2 = validation.get('toxicity_turn_2', [{}])[0].get('score', 0.3)
+        avg_toxicity = (tox1 + tox2) / 2.0
+        safety_score = max(0.0, min(1.0, 1.0 - avg_toxicity))
+
         return {
             "text": text,
             "prompt": self.turn_1,
@@ -52,7 +66,9 @@ class VoiceDialoguePair:
                 "is_edge_case": False,
                 "stage": "stage4_voice_persona",
                 "voice_signature": voice_signature,
-                "quality_profile": "voice"
+                "quality_profile": "voice",
+                "empathy_score": empathy_score,
+                "safety_score": safety_score
             }
         }
 
