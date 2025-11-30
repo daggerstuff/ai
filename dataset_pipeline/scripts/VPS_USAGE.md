@@ -7,8 +7,11 @@ The `vps_dataset_acquisition.sh` script is designed to run independently on the 
 ### Option 1: One-Line Background Execution (Recommended)
 
 ```bash
-# Upload script to VPS first, then run:
+# First upload script (see First-Time Setup above), then run:
 ssh -i ~/.ssh/planet vivi@146.71.78.184 "cd ~/pixelated-datasets && nohup ./vps_dataset_acquisition.sh > download_nohup.out 2>&1 &"
+
+# Or if directory doesn't exist yet, the script will create it:
+ssh -i ~/.ssh/planet vivi@146.71.78.184 "mkdir -p ~/pixelated-datasets && cd ~/pixelated-datasets && nohup ./vps_dataset_acquisition.sh > download_nohup.out 2>&1 &"
 ```
 
 This will:
