@@ -5,6 +5,7 @@ Combines ALL data sources for comprehensive therapeutic AI training
 """
 
 import json
+import re
 from pathlib import Path
 from typing import List, Dict, Optional
 from dataclasses import dataclass, field
@@ -264,37 +265,121 @@ class IntegratedTrainingPipeline:
             return []
 
     def _load_standard_therapeutic(self) -> List[Dict]:
-        """Load standard therapeutic conversations"""
-        try:
-            standard_file = Path(self.config.standard_therapeutic.source_path) / "training_dataset.json"
+        """Load standard therapeutic conversations with robust error handling"""
+        # Try multiple file locations
+        possible_files = [
+            Path(self.config.standard_therapeutic.source_path) / "training_dataset.json",
+            Path("ai/lightning/pixelated-training/training_dataset.json"),
+            Path("ai/dataset_pipeline/pixelated-training/training_dataset.json"),
+        ]
+
+        # Try each file until one loads successfully
+        conversations = []
+        last_error = None
+
+        for standard_file in possible_files:
             if not standard_file.exists():
-                warning = f"Standard therapeutic data not found: {standard_file}"
-                logger.warning(warning)
-                self.stats.warnings.append(warning)
-                return []
+                continue
 
-            with open(standard_file, 'r') as f:
-                data = json.load(f)
-                conversations = data.get('conversations', [])
+            logger.info(f"Attempting to load from: {standard_file}")
 
-            # Convert to standard format
-            training_data = []
-            for conv in conversations:
+            # Try multiple loading strategies
+            raw_data = None
+
+            # Strategy 1: Try standard JSON load
+            try:
+                with open(standard_file, 'r', encoding='utf-8') as f:
+                    raw_data = json.load(f)
+
+                # Handle different data structures
+                if isinstance(raw_data, list):
+                    # File is a list of conversations
+                    conversations = raw_data
+                    logger.info(f"✅ Loaded {len(conversations)} conversations from {standard_file} (list format)")
+                    break  # Success, exit loop
+                elif isinstance(raw_data, dict):
+                    # File is a dict with conversations key
+                    conversations = raw_data.get('conversations', [])
+                    if conversations:
+                        logger.info(f"✅ Loaded {len(conversations)} conversations from {standard_file} (dict format)")
+                        break  # Success, exit loop
+                    else:
+                        logger.warning(f"File {standard_file} loaded but no conversations found")
+                else:
+                    logger.warning(f"Unexpected data type in {standard_file}: {type(raw_data)}")
+
+            except json.JSONDecodeError as e:
+                logger.warning(f"JSON parsing error in {standard_file} at position {e.pos}: {e.msg}")
+                last_error = e
+                # Try next file
+                continue
+            except Exception as e:
+                logger.warning(f"Error loading {standard_file}: {e}")
+                last_error = e
+                # Try next file
+                continue
+
+        # If no file loaded successfully, report error
+        if not conversations:
+            if last_error:
+                error = f"Failed to load standard therapeutic data from any available file. Last error: {last_error}"
+            else:
+                error = f"Standard therapeutic data not found in any of: {[str(f) for f in possible_files]}"
+            logger.error(error)
+            self.stats.errors.append(error)
+            return []
+
+        # Convert to standard format
+        training_data = []
+        for conv in conversations:
+            if not isinstance(conv, dict):
+                continue
+
+            # Handle different conversation formats
+            text = conv.get('text', '')
+
+            # If no text, try to construct from conversation array
+            if not text:
+                # Check for 'conversation' key (list format)
+                conversation_array = conv.get('conversation', [])
+                if conversation_array:
+                    text_parts = []
+                    for msg in conversation_array:
+                        if isinstance(msg, dict):
+                            role = msg.get('role', '')
+                            content = msg.get('content', '')
+                            if role and content:
+                                text_parts.append(f"{role.capitalize()}: {content}")
+                    text = "\n".join(text_parts)
+
+                # Try messages format
+                if not text:
+                    messages = conv.get('messages', [])
+                    if messages:
+                        text_parts = []
+                        for msg in messages:
+                            if isinstance(msg, dict):
+                                role = msg.get('role', '')
+                                content = msg.get('content', '')
+                                if role and content:
+                                    text_parts.append(f"{role.capitalize()}: {content}")
+                        text = "\n".join(text_parts)
+
+            # If still no text, try direct content
+            if not text:
+                text = conv.get('content', '')
+
+            if text:
                 training_data.append({
-                    'text': conv.get('text', ''),
+                    'text': text,
                     'metadata': {
                         'source': 'standard_therapeutic',
                         'is_edge_case': False
                     }
                 })
 
-            return training_data
-
-        except Exception as e:
-            error = f"Failed to load standard therapeutic data: {e}"
-            logger.error(error)
-            self.stats.errors.append(error)
-            return []
+        logger.info(f"✅ Converted {len(training_data)} standard therapeutic examples to training format")
+        return training_data
 
     def _balance_dataset(self, data: List[Dict]) -> (List[Dict], Dict[str, List[Dict]]):
         """Balance dataset according to stage distribution."""
