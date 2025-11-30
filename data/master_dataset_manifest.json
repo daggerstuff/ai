@@ -349,6 +349,47 @@
         "stage": "stage3_edge_stress_test",
         "quality_profile": "edge_raw",
         "notes": "Pull via kaggle CLI on remote GPU node prior to integration"
+      },
+      "reddit_mental_health": {
+        "subreddit_archives": {
+          "path": "~/datasets/consolidated/reddit/",
+          "size_mb": 2900,
+          "format": "csv",
+          "status": "available",
+          "description": "Various mental health subreddit archives (Anxiety, Depression, ADHD, etc.)",
+          "stage": "stage3_edge_stress_test",
+          "quality_profile": "edge_raw"
+        },
+        "mental_disorders_reddit": {
+          "path": "~/datasets/consolidated/reddit/mental_disorders_reddit.csv",
+          "size_mb": 562,
+          "format": "csv",
+          "status": "available",
+          "downloaded": "2025-11-27",
+          "description": "Mental disorders Reddit compilation",
+          "stage": "stage3_edge_stress_test",
+          "quality_profile": "edge_raw"
+        },
+        "suicide_detection": {
+          "path": "~/datasets/consolidated/reddit/Suicide_Detection.csv",
+          "size_mb": 160,
+          "format": "csv",
+          "status": "available",
+          "downloaded": "2025-11-27",
+          "description": "Suicide detection training data",
+          "stage": "stage3_edge_stress_test",
+          "quality_profile": "edge_crisis"
+        },
+        "merged_mental_health": {
+          "path": "~/datasets/consolidated/reddit/merged_mental_health_dataset.jsonl",
+          "size_mb": 86,
+          "format": "jsonl",
+          "status": "available",
+          "downloaded": "2025-11-27",
+          "description": "Merged mental health dataset",
+          "stage": "stage3_edge_stress_test",
+          "quality_profile": "edge_raw"
+        }
       }
     },
     "supplementary": {
@@ -414,47 +455,6 @@
         "description": "Addiction counseling conversations",
         "stage": "stage1_foundation",
         "quality_profile": "foundation"
-      }
-    },
-    "reddit_mental_health": {
-      "subreddit_archives": {
-        "path": "~/datasets/consolidated/reddit/",
-        "size_mb": 2900,
-        "format": "csv",
-        "status": "available",
-        "description": "Various mental health subreddit archives (Anxiety, Depression, ADHD, etc.)",
-        "stage": "stage3_edge_stress_test",
-        "quality_profile": "edge_raw"
-      },
-      "mental_disorders_reddit": {
-        "path": "~/datasets/consolidated/reddit/mental_disorders_reddit.csv",
-        "size_mb": 562,
-        "format": "csv",
-        "status": "available",
-        "downloaded": "2025-11-27",
-        "description": "Mental disorders Reddit compilation",
-        "stage": "stage3_edge_stress_test",
-        "quality_profile": "edge_raw"
-      },
-      "suicide_detection": {
-        "path": "~/datasets/consolidated/reddit/Suicide_Detection.csv",
-        "size_mb": 160,
-        "format": "csv",
-        "status": "available",
-        "downloaded": "2025-11-27",
-        "description": "Suicide detection training data",
-        "stage": "stage3_edge_stress_test",
-        "quality_profile": "edge_crisis"
-      },
-      "merged_mental_health": {
-        "path": "~/datasets/consolidated/reddit/merged_mental_health_dataset.jsonl",
-        "size_mb": 86,
-        "format": "jsonl",
-        "status": "available",
-        "downloaded": "2025-11-27",
-        "description": "Merged mental health dataset",
-        "stage": "stage3_edge_stress_test",
-        "quality_profile": "edge_raw"
       }
     },
     "huggingface_discovered": {
