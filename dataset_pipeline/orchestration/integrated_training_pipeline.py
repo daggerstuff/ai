@@ -16,6 +16,7 @@ from ..ingestion.edge_case_jsonl_loader import EdgeCaseJSONLLoader, load_edge_ca
 from ..ingestion.psychology_knowledge_loader import PsychologyKnowledgeLoader, load_psychology_knowledge
 from ..ingestion.pixel_voice_loader import PixelVoiceLoader, load_pixel_voice_training_data
 from ..ingestion.dual_persona_loader import DualPersonaLoader, load_dual_persona_training_data
+from ..configs.stages import get_all_stages
 from ..utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.integrated_training_pipeline")
@@ -109,6 +110,14 @@ class IntegratedTrainingPipeline:
     def __init__(self, config: Optional[IntegratedPipelineConfig] = None):
         self.config = config or IntegratedPipelineConfig()
         self.stats = IntegrationStats()
+
+        # Initialize stage_balance with the four-stage ladder from configs/stages.py
+        for stage in get_all_stages():
+            if stage.id not in self.stats.stage_balance:
+                self.stats.stage_balance[stage.id] = {
+                    "target_share": stage.target_share,
+                    "actual_samples": 0,
+                }
 
     def run(self) -> Dict:
         """
