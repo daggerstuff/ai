@@ -241,8 +241,11 @@ class LessChipperToneLabeler:
 
             # Clean up extra whitespace and orphaned punctuation
             if modified:
-                # Clean up double spaces, orphaned punctuation
-                processed_text = re.sub(r'\s*[,.;]\s*[,.;]+', '.', processed_text)
+                # Clean up orphaned punctuation sequences (safe from ReDoS)
+                # Use bounded quantifiers to prevent catastrophic backtracking
+                # Pattern: punctuation, optional whitespace (max 10 chars), 1-10 punctuation marks
+                processed_text = re.sub(r'[,.;]\s{0,10}[,.;]{1,10}', '.', processed_text)
+                # Clean up whitespace
                 processed_text = re.sub(r'\s+', ' ', processed_text).strip()
 
             return processed_text, modified
