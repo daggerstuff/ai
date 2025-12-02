@@ -1,0 +1,14 @@
+name: ai
+id: ari:cloud:compass:6c56a7ae-12c5-4a8f-8298-1eccc4bbde6d:component/3dc223c7-13a0-414f-9c2e-7864da8ab33d/8933663f-3273-4ab2-8730-6c96fa162b06
+description: null
+configVersion: 1
+typeId: SERVICE
+fields:
+  tier: 4
+links: []
+relationships:
+  DEPENDS_ON: []
+labels:
+  - language:python
+  - source:github
+customFields: null
