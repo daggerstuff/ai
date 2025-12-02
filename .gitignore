@@ -45,3 +45,4 @@ data/unified_training/
 lightning/production/deployment_package/data/
 therapeutic_ai_training_package_20251028_204104
 training_data_consolidated
+training_ready/configs/hyperparameters/training_dataset.json
