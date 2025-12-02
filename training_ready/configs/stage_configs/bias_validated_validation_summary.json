@@ -1,0 +1,14 @@
+{
+  "total_datasets": 2,
+  "safe_datasets": 0,
+  "caution_datasets": 2,
+  "safety_percentage": 0.0,
+  "bias_categories_checked": [
+    "cultural_bias",
+    "therapeutic_bias",
+    "accessibility_bias",
+    "demographic_bias",
+    "safety_concerns"
+  ],
+  "validation_complete": true
+}
