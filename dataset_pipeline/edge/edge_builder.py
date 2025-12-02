@@ -10,7 +10,7 @@ from typing import List, Dict, Optional, Any, Union
 from pathlib import Path
 import json
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from ..types.edge_categories import (
     EdgeCategory,
@@ -45,7 +45,7 @@ class EdgeExample:
     conversation: List[Dict[str, str]]  # Normalized conversation format
     edge_profile: EdgeProfile
     raw_source: Optional[str] = None
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize edge example to dictionary"""
@@ -65,7 +65,7 @@ class EdgeExample:
             conversation=data["conversation"],
             edge_profile=EdgeProfile.from_dict(data["edge_profile"]),
             raw_source=data.get("raw_source"),
-            created_at=data.get("created_at", datetime.utcnow().isoformat()),
+            created_at=data.get("created_at", datetime.now(timezone.utc).isoformat()),
         )
 
 
@@ -80,24 +80,23 @@ class EdgeDatasetBuilder:
         self._category_mapping = self._build_category_mapping()
         self._intensity_mapping = self._build_intensity_mapping()
 
+    def _build_enum_mapping(self, enum_class) -> Dict[str, Any]:
+        """Build mapping from string names to enum values"""
+        mapping = {}
+        for enum_value in enum_class:
+            # Map both enum name and value
+            mapping[enum_value.name.lower()] = enum_value
+            mapping[enum_value.value.lower()] = enum_value
+            mapping[enum_value.value] = enum_value
+        return mapping
+
     def _build_category_mapping(self) -> Dict[str, EdgeCategory]:
         """Build mapping from string category names to EdgeCategory enum"""
-        mapping = {}
-        for category in EdgeCategory:
-            # Map both enum name and value
-            mapping[category.name.lower()] = category
-            mapping[category.value.lower()] = category
-            mapping[category.value] = category
-        return mapping
+        return self._build_enum_mapping(EdgeCategory)
 
     def _build_intensity_mapping(self) -> Dict[str, IntensityLevel]:
         """Build mapping from string intensity names to IntensityLevel enum"""
-        mapping = {}
-        for intensity in IntensityLevel:
-            mapping[intensity.name.lower()] = intensity
-            mapping[intensity.value.lower()] = intensity
-            mapping[intensity.value] = intensity
-        return mapping
+        return self._build_enum_mapping(IntensityLevel)
 
     def _normalize_category(self, category: Union[str, EdgeCategory]) -> EdgeCategory:
         """Normalize category input to EdgeCategory enum"""
@@ -158,44 +157,48 @@ class EdgeDatasetBuilder:
 
         # If string, try to parse or create simple format
         if isinstance(conversation, str):
-            # Simple heuristic: if contains "Therapist:" or "Client:", split by those
-            if "Therapist:" in conversation or "Client:" in conversation:
-                messages = []
-                lines = conversation.split("\n")
-                current_role = None
-                current_content = []
+            return self._parse_string_conversation(conversation)
 
-                for line in lines:
-                    line = line.strip()
-                    if not line:
-                        continue
+        raise ValueError(f"Invalid conversation format: {type(conversation)}")
 
-                    if line.startswith("Therapist:") or line.startswith("Client:"):
-                        # Save previous message
-                        if current_role and current_content:
-                            messages.append({
-                                "role": current_role.lower(),
-                                "content": "\n".join(current_content).strip()
-                            })
-                        # Start new message
-                        current_role = "therapist" if "Therapist:" in line else "client"
-                        current_content = [line.split(":", 1)[1].strip()]
-                    else:
-                        current_content.append(line)
+    def _parse_string_conversation(self, conversation: str) -> List[Dict[str, str]]:
+        """Parse string conversation into message list format"""
+        # Simple single message if no role markers found
+        if "Therapist:" not in conversation and "Client:" not in conversation:
+            return [{"role": "user", "content": conversation}]
 
-                # Save last message
+        # Parse multi-turn conversation with role markers
+        messages = []
+        lines = conversation.split("\n")
+        current_role = None
+        current_content = []
+
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.startswith("Therapist:") or line.startswith("Client:"):
+                # Save previous message
                 if current_role and current_content:
                     messages.append({
                         "role": current_role.lower(),
                         "content": "\n".join(current_content).strip()
                     })
-
-                return messages if messages else [{"role": "user", "content": conversation}]
+                # Start new message
+                current_role = "therapist" if "Therapist:" in line else "client"
+                current_content = [line.split(":", 1)[1].strip()]
             else:
-                # Simple single message
-                return [{"role": "user", "content": conversation}]
+                current_content.append(line)
 
-        raise ValueError(f"Invalid conversation format: {type(conversation)}")
+        # Save last message
+        if current_role and current_content:
+            messages.append({
+                "role": current_role.lower(),
+                "content": "\n".join(current_content).strip()
+            })
+
+        return messages or [{"role": "user", "content": conversation}]
 
     def build_edge_example(
         self,
@@ -244,14 +247,12 @@ class EdgeDatasetBuilder:
             raise ValueError(f"Invalid edge profile: {error}")
 
         # Create EdgeExample
-        example = EdgeExample(
+        return EdgeExample(
             example_id=f"ex-{uuid.uuid4().hex[:12]}",
             conversation=conversation,
             edge_profile=edge_profile,
             raw_source=raw_example.source,
         )
-
-        return example
 
     def build_edge_dataset(
         self,

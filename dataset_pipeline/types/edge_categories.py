@@ -135,40 +135,34 @@ def get_categories_by_intensity(intensity: IntensityLevel) -> List[EdgeCategory]
     Get edge categories that are typically associated with a given intensity level.
     This is a helper for filtering/querying, not a strict requirement.
     """
-    # Very high and extreme intensity categories
-    very_high_categories = [
-        EdgeCategory.SUICIDAL_IDEATION,
-        EdgeCategory.HOMICIDAL_IDEATION,
-        EdgeCategory.PSYCHOTIC_EPISODES,
-        EdgeCategory.CHILD_ABUSE_REPORTING,
-        EdgeCategory.OVERDOSE_SCENARIOS,
-        EdgeCategory.EMERGENCY_INTERVENTION,
-    ]
-
-    # High intensity categories
-    high_categories = [
-        EdgeCategory.DOMESTIC_VIOLENCE,
-        EdgeCategory.SELF_HARM,
-        EdgeCategory.ADDICTION_CRISIS,
-        EdgeCategory.BORDERLINE_PERSONALITY_CRISIS,
-        EdgeCategory.SEVERE_TRAUMA,
-        EdgeCategory.PSYCHIATRIC_EMERGENCIES,
-    ]
-
-    # Moderate intensity categories
-    moderate_categories = [
-        EdgeCategory.EATING_DISORDERS,
-        EdgeCategory.EMOTIONAL_DYSREGULATION,
-        EdgeCategory.BOUNDARY_TESTING_SCENARIOS,
-        EdgeCategory.CULTURAL_TRAUMA_SCENARIOS,
-    ]
-
     if intensity in [IntensityLevel.VERY_HIGH, IntensityLevel.EXTREME]:
-        return very_high_categories
+        # Very high and extreme intensity categories
+        return [
+            EdgeCategory.SUICIDAL_IDEATION,
+            EdgeCategory.HOMICIDAL_IDEATION,
+            EdgeCategory.PSYCHOTIC_EPISODES,
+            EdgeCategory.CHILD_ABUSE_REPORTING,
+            EdgeCategory.OVERDOSE_SCENARIOS,
+            EdgeCategory.EMERGENCY_INTERVENTION,
+        ]
     elif intensity == IntensityLevel.HIGH:
-        return high_categories
+        # High intensity categories
+        return [
+            EdgeCategory.DOMESTIC_VIOLENCE,
+            EdgeCategory.SELF_HARM,
+            EdgeCategory.ADDICTION_CRISIS,
+            EdgeCategory.BORDERLINE_PERSONALITY_CRISIS,
+            EdgeCategory.SEVERE_TRAUMA,
+            EdgeCategory.PSYCHIATRIC_EMERGENCIES,
+        ]
     elif intensity == IntensityLevel.MODERATE:
-        return moderate_categories
+        # Moderate intensity categories
+        return [
+            EdgeCategory.EATING_DISORDERS,
+            EdgeCategory.EMOTIONAL_DYSREGULATION,
+            EdgeCategory.BOUNDARY_TESTING_SCENARIOS,
+            EdgeCategory.CULTURAL_TRAUMA_SCENARIOS,
+        ]
     else:
         return []  # LOW intensity typically not edge categories
 
@@ -184,8 +178,5 @@ def validate_edge_profile(profile: EdgeProfile) -> tuple[bool, Optional[str]]:
     if not profile.profile_id:
         return False, "profile_id is required"
 
-    if not profile.tone:
-        return False, "tone is required"
-
-    return True, None
+    return (True, None) if profile.tone else (False, "tone is required")
 
