@@ -106,10 +106,20 @@ class EdgeProfile:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "EdgeProfile":
         """Deserialize edge profile from dictionary."""
+        try:
+            category = EdgeCategory(data["category"])
+        except ValueError as e:
+            raise ValueError(f"Invalid category '{data['category']}': {e}")
+        
+        try:
+            intensity = IntensityLevel(data["intensity"])
+        except ValueError as e:
+            raise ValueError(f"Invalid intensity '{data['intensity']}': {e}")
+        
         return cls(
             profile_id=data["profile_id"],
-            category=EdgeCategory(data["category"]),
-            intensity=IntensityLevel(data["intensity"]),
+            category=category,
+            intensity=intensity,
             tone=data["tone"],
             stage=data["stage"],
             scenario_type=data.get("scenario_type"),
@@ -134,6 +144,8 @@ def get_categories_by_intensity(intensity: IntensityLevel) -> List[EdgeCategory]
     """
     Get edge categories that are typically associated with a given intensity level.
     This is a helper for filtering/querying, not a strict requirement.
+    
+    Note: LOW intensity is not used for edge categories; querying LOW raises ValueError.
     """
     if intensity in [IntensityLevel.VERY_HIGH, IntensityLevel.EXTREME]:
         # Very high and extreme intensity categories
@@ -164,7 +176,8 @@ def get_categories_by_intensity(intensity: IntensityLevel) -> List[EdgeCategory]
             EdgeCategory.CULTURAL_TRAUMA_SCENARIOS,
         ]
     else:
-        return []  # LOW intensity typically not edge categories
+        # LOW intensity is not associated with edge categories
+        raise ValueError(f"LOW intensity is not associated with edge categories: {intensity}")
 
 
 def validate_edge_profile(profile: EdgeProfile) -> tuple[bool, Optional[str]]:
