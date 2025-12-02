@@ -207,13 +207,16 @@ class LessChipperToneLabeler:
         Returns:
             Tuple of (processed_text, was_modified)
         """
-        # Normalize tone
+        # Normalize tone - raise error for unknown tones instead of silently defaulting
         if isinstance(tone, str):
             try:
                 tone_enum = Tone(tone.lower())
             except ValueError:
-                logger.warning(f"Unknown tone string: {tone}, defaulting to CLINICAL")
-                tone_enum = Tone.CLINICAL
+                allowed_tones = [t.value for t in Tone]
+                raise ValueError(
+                    f"Unknown tone string: {tone}. "
+                    f"Allowed tones: {', '.join(allowed_tones)}"
+                )
         else:
             tone_enum = tone
 
@@ -229,12 +232,14 @@ class LessChipperToneLabeler:
                         f"Removing toxic positivity from CRISIS_DIRECT response: "
                         f"{pattern.pattern}"
                     )
-                    # Remove the matching phrase (simple approach)
+                    # Remove the matching phrase with better text cleanup
                     processed_text = pattern.sub("", processed_text)
                     modified = True
 
-            # Clean up extra whitespace
+            # Clean up extra whitespace and orphaned punctuation
             if modified:
+                # Clean up double spaces, orphaned punctuation
+                processed_text = re.sub(r'\s*[,.;]\s*[,.;]+', '.', processed_text)
                 processed_text = re.sub(r'\s+', ' ', processed_text).strip()
 
             return processed_text, modified
@@ -276,6 +281,7 @@ class LessChipperToneLabeler:
         if actual_tone == expected_tone_enum:
             return True, None
 
+        # All mismatches are treated as inappropriate, with varying messages
         # Special case: CRISIS_DIRECT should not be FOUNDATION
         if expected_tone_enum == Tone.CRISIS_DIRECT and actual_tone == Tone.FOUNDATION:
             return False, (
@@ -291,11 +297,15 @@ class LessChipperToneLabeler:
                     "Crisis responses should avoid dismissive optimism."
                 )
 
-        # For other mismatches, warn but don't fail
-        return True, (
+        # All other mismatches are inappropriate
+        return False, (
             f"Tone mismatch: expected {expected_tone_enum.value}, "
             f"got {actual_tone.value} (confidence: {actual_label.confidence:.2f})"
         )
+
+
+# Module-level labeler instance for performance (reuse compiled regexes)
+_labeler = LessChipperToneLabeler()
 
 
 def label_tone(text: str, context: Optional[Dict[str, Any]] = None) -> ToneLabel:
@@ -309,8 +319,7 @@ def label_tone(text: str, context: Optional[Dict[str, Any]] = None) -> ToneLabel
     Returns:
         ToneLabel
     """
-    labeler = LessChipperToneLabeler()
-    return labeler.label_tone(text, context)
+    return _labeler.label_tone(text, context)
 
 
 def enforce_less_chipper_policy(
@@ -329,6 +338,5 @@ def enforce_less_chipper_policy(
     Returns:
         Tuple of (processed_text, was_modified)
     """
-    labeler = LessChipperToneLabeler()
-    return labeler.enforce_less_chipper_policy(text, tone, context)
+    return _labeler.enforce_less_chipper_policy(text, tone, context)
 

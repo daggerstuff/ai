@@ -4,7 +4,7 @@ Tests for edge category and profile types.
 """
 
 import pytest
-from ai.dataset_pipeline.types.edge_categories import (
+from dataset_pipeline.types.edge_categories import (
     EdgeCategory,
     IntensityLevel,
     EdgeProfile,
@@ -132,4 +132,23 @@ def test_get_categories_by_intensity():
 
     moderate_cats = get_categories_by_intensity(IntensityLevel.MODERATE)
     assert EdgeCategory.EATING_DISORDERS in moderate_cats
+
+    # Test that LOW intensity raises ValueError
+    with pytest.raises(ValueError, match="LOW intensity is not associated"):
+        get_categories_by_intensity(IntensityLevel.LOW)
+
+
+def test_validate_edge_profile_empty_tone():
+    """Test edge profile validation with empty tone."""
+    invalid_tone = EdgeProfile(
+        profile_id="invalid-tone",
+        category=EdgeCategory.SELF_HARM,
+        intensity=IntensityLevel.MODERATE,
+        tone="",  # Empty tone
+        stage=2,
+    )
+    is_valid, error = validate_edge_profile(invalid_tone)
+    assert is_valid is False
+    assert error is not None
+    assert "tone is required" in error
 
