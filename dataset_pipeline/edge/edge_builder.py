@@ -99,18 +99,20 @@ class EdgeDatasetBuilder:
         return self._build_enum_mapping(IntensityLevel)
 
     def _normalize_category(self, category: Union[str, EdgeCategory]) -> EdgeCategory:
-        """Normalize category input to EdgeCategory enum"""
+        """
+        Normalize category input to EdgeCategory enum.
+
+        Uses strict exact matching only - no fuzzy or substring matching.
+        This ensures reliable dataset classification and fails fast for unknown categories.
+        For example, "crisis" will fail rather than ambiguously matching multiple
+        categories like "borderline_personality_crisis", "addiction_crisis", or "ptsd_crisis".
+        """
         if isinstance(category, EdgeCategory):
             return category
 
         category_str = str(category).lower()
         if category_str in self._category_mapping:
             return self._category_mapping[category_str]
-
-        # Try fuzzy matching
-        for cat_name, cat_enum in self._category_mapping.items():
-            if category_str in cat_name or cat_name in category_str:
-                return cat_enum
 
         raise ValueError(f"Unknown edge category: {category}")
 
@@ -153,6 +155,9 @@ class EdgeDatasetBuilder:
                     })
                 else:
                     logger.warning(f"Skipping invalid message format: {msg}")
+            # Ensure at least one message is returned (consistent with string parsing)
+            if not normalized:
+                raise ValueError("Conversation list is empty or contains no valid messages")
             return normalized
 
         # If string, try to parse or create simple format
@@ -163,8 +168,19 @@ class EdgeDatasetBuilder:
 
     def _parse_string_conversation(self, conversation: str) -> List[Dict[str, str]]:
         """Parse string conversation into message list format"""
-        # Simple single message if no role markers found
-        if "Therapist:" not in conversation and "Client:" not in conversation:
+        # Check for role markers (case-insensitive)
+        has_role_markers = (
+            "Therapist:" in conversation or "Client:" in conversation or
+            "therapist:" in conversation.lower() or "client:" in conversation.lower()
+        )
+        
+        if not has_role_markers:
+            # Log info when treating multi-line string as single message
+            if "\n" in conversation and len(conversation.split("\n")) > 3:
+                logger.info(
+                    "Multi-line conversation treated as single user message "
+                    "(no role markers detected)"
+                )
             return [{"role": "user", "content": conversation}]
 
         # Parse multi-turn conversation with role markers
@@ -173,32 +189,35 @@ class EdgeDatasetBuilder:
         current_role = None
         current_content = []
 
+        def save_message():
+            """Helper to save current message"""
+            if current_role and current_content:
+                messages.append({
+                    "role": current_role.lower(),
+                    "content": "\n".join(current_content).strip()
+                })
+
         for line in lines:
             line = line.strip()
             if not line:
                 continue
 
-            if line.startswith("Therapist:") or line.startswith("Client:"):
-                # Save previous message
-                if current_role and current_content:
-                    messages.append({
-                        "role": current_role.lower(),
-                        "content": "\n".join(current_content).strip()
-                    })
-                # Start new message
-                current_role = "therapist" if "Therapist:" in line else "client"
-                current_content = [line.split(":", 1)[1].strip()]
-            else:
+            # Case-insensitive role detection
+            line_lower = line.lower()
+            if line_lower.startswith("therapist:") or line_lower.startswith("client:"):
+                save_message()
+                # Start new message - use startswith to match the conditional check
+                current_role = "therapist" if line_lower.startswith("therapist:") else "client"
+                parts = line.split(":", 1)
+                current_content = [parts[1].strip()] if len(parts) > 1 else []
+            elif current_role:
+                # Continue current message
                 current_content.append(line)
 
         # Save last message
-        if current_role and current_content:
-            messages.append({
-                "role": current_role.lower(),
-                "content": "\n".join(current_content).strip()
-            })
+        save_message()
 
-        return messages or [{"role": "user", "content": conversation}]
+        return messages if messages else [{"role": "user", "content": conversation}]
 
     def build_edge_example(
         self,
@@ -284,7 +303,7 @@ class EdgeDatasetBuilder:
                 errors.append(error_msg)
                 continue
 
-        logger.info(f"Built {len(edge_examples)} edge examples ({(len(errors))} errors)")
+        logger.info(f"Built {len(edge_examples)} edge examples ({len(errors)} errors)")
 
         if errors:
             logger.warning(f"Encountered {len(errors)} errors during building")
@@ -300,9 +319,17 @@ class EdgeDatasetBuilder:
         path = Path(output_path)
         path.parent.mkdir(parents=True, exist_ok=True)
 
-        with open(path, 'w') as f:
-            for example in examples:
-                f.write(json.dumps(example.to_dict()) + "\n")
+        try:
+            with open(path, 'w', encoding='utf-8') as f:
+                for example in examples:
+                    try:
+                        f.write(json.dumps(example.to_dict(), ensure_ascii=False) + "\n")
+                    except (TypeError, ValueError) as e:
+                        logger.error(f"Failed to serialize example {example.example_id}: {e}")
+                        continue
+        except IOError as e:
+            logger.error(f"Failed to write dataset to {path}: {e}")
+            raise
 
         logger.info(f"Saved {len(examples)} edge examples to {path}")
 
