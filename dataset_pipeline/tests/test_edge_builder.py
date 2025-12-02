@@ -3,6 +3,8 @@
 Tests for EdgeDatasetBuilder, focusing on conversation normalization and strict mode.
 """
 
+from typing import Dict, List, Union, cast
+
 import pytest
 from ai.dataset_pipeline.edge.edge_builder import (
     EdgeDatasetBuilder,
@@ -17,6 +19,12 @@ from ai.dataset_pipeline.types.edge_categories import (
 
 class TestConversationNormalization:
     """Test conversation normalization in strict and non-strict modes."""
+
+    def _assert_fallback_message(self, result: list[dict[str, str]]) -> None:
+        """Helper to assert fallback message format."""
+        assert len(result) == 1
+        assert result[0]["role"] == "user"
+        assert result[0]["content"] == ""
 
     def test_strict_mode_raises_on_invalid_message_format(self):
         """Test that strict mode (default) raises ValueError on invalid messages."""
@@ -97,11 +105,11 @@ class TestConversationNormalization:
 
         # Empty list returns fallback in both modes (consistent with string inputs)
         # Strict mode only raises on invalid message formats, not on empty lists
-        for builder in [builder_strict, builder_non_strict]:
-            result = builder._normalize_conversation([])
-            assert len(result) == 1
-            assert result[0]["role"] == "user"
-            assert result[0]["content"] == ""
+        result_strict = builder_strict._normalize_conversation([])
+        self._assert_fallback_message(result_strict)
+
+        result_non_strict = builder_non_strict._normalize_conversation([])
+        self._assert_fallback_message(result_non_strict)
 
     def test_all_invalid_messages_in_non_strict_mode_returns_fallback(self):
         """Test that if all messages are invalid in non-strict mode, it returns fallback message."""
@@ -177,11 +185,14 @@ class TestBuildEdgeExampleWithStrictMode:
         """Test that building with all invalid messages uses fallback in non-strict mode."""
         builder = EdgeDatasetBuilder(strict_conversation_format=False)
 
+        # Intentionally using invalid conversation format for testing
+        # We cast to the expected type to satisfy type checker while testing invalid runtime data
+        invalid_conversation = [
+            {"invalid": "format"},
+            "not a dict",
+        ]
         raw_example = RawEdgeExample(
-            conversation=[
-                {"invalid": "format"},
-                "not a dict",
-            ],
+            conversation=cast(Union[str, List[Dict[str, str]]], invalid_conversation),
             category=EdgeCategory.SUICIDAL_IDEATION,
             intensity=IntensityLevel.HIGH,
         )
