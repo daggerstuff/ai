@@ -150,9 +150,12 @@ class LessChipperToneLabeler:
             )
 
         # Score patterns
-        crisis_score = sum(1 for pattern in self._crisis_direct_re if pattern.search(text_lower))
-        clinical_score = sum(1 for pattern in self._clinical_re if pattern.search(text_lower))
-        foundation_score = sum(1 for pattern in self._foundation_re if pattern.search(text_lower))
+        crisis_score = sum(bool(pattern.search(text_lower))
+                       for pattern in self._crisis_direct_re)
+        clinical_score = sum(bool(pattern.search(text_lower))
+                         for pattern in self._clinical_re)
+        foundation_score = sum(bool(pattern.search(text_lower))
+                           for pattern in self._foundation_re)
 
         # Determine tone based on scores and context
         if is_crisis_context or crisis_score > 0:
@@ -211,12 +214,12 @@ class LessChipperToneLabeler:
         if isinstance(tone, str):
             try:
                 tone_enum = Tone(tone.lower())
-            except ValueError:
+            except ValueError as e:
                 allowed_tones = [t.value for t in Tone]
                 raise ValueError(
                     f"Unknown tone string: {tone}. "
                     f"Allowed tones: {', '.join(allowed_tones)}"
-                )
+                ) from e
         else:
             tone_enum = tone
 
@@ -263,6 +266,8 @@ class LessChipperToneLabeler:
 
         Returns:
             Tuple of (is_appropriate, error_message)
+            - is_appropriate=True only when tones match exactly
+            - is_appropriate=False whenever there's any mismatch (error_message is non-None)
         """
         # Normalize expected tone
         if isinstance(expected_tone, str):
@@ -277,27 +282,24 @@ class LessChipperToneLabeler:
         actual_label = self.label_tone(text, context)
         actual_tone = actual_label.tone
 
-        # Check appropriateness
+        # Exact match: appropriate
         if actual_tone == expected_tone_enum:
             return True, None
 
         # All mismatches are treated as inappropriate, with varying messages
-        # Special case: CRISIS_DIRECT should not be FOUNDATION
         if expected_tone_enum == Tone.CRISIS_DIRECT and actual_tone == Tone.FOUNDATION:
             return False, (
                 "Response tone is FOUNDATION but expected CRISIS_DIRECT. "
                 "Crisis responses should be direct and serious, not overly gentle."
             )
 
-        # Check for toxic positivity in crisis contexts
-        if expected_tone_enum == Tone.CRISIS_DIRECT:
-            if actual_label.metadata.get("has_toxic_positivity", False):
-                return False, (
-                    "Response contains toxic positivity patterns. "
-                    "Crisis responses should avoid dismissive optimism."
-                )
+        if expected_tone_enum == Tone.CRISIS_DIRECT and actual_label.metadata.get("has_toxic_positivity", False):
+            return False, (
+                "Response contains toxic positivity patterns. "
+                "Crisis responses should avoid dismissive optimism."
+            )
 
-        # All other mismatches are inappropriate
+        # Generic mismatch message for all other cases
         return False, (
             f"Tone mismatch: expected {expected_tone_enum.value}, "
             f"got {actual_tone.value} (confidence: {actual_label.confidence:.2f})"

@@ -7,7 +7,9 @@ as described in the expanded project brief.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
+
+from ..style.less_chipper import Tone
 
 
 class EdgeCategory(Enum):
@@ -78,7 +80,7 @@ class EdgeProfile:
     profile_id: str
     category: EdgeCategory
     intensity: IntensityLevel
-    tone: str  # Will be refined in Task 4 (less-chipper module)
+    tone: Tone  # Strongly typed tone from less-chipper module
     stage: int  # Training stage (1-4) - typically Stage 3 for edge cases
 
     # Additional metadata
@@ -94,7 +96,7 @@ class EdgeProfile:
             "profile_id": self.profile_id,
             "category": self.category.value,
             "intensity": self.intensity.value,
-            "tone": self.tone,
+            "tone": self.tone.value,
             "stage": self.stage,
             "scenario_type": self.scenario_type,
             "challenge_type": self.challenge_type,
@@ -106,21 +108,51 @@ class EdgeProfile:
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "EdgeProfile":
         """Deserialize edge profile from dictionary."""
+        # Validate required keys exist
+        if "category" not in data:
+            raise ValueError("Missing required field 'category'")
+        if "intensity" not in data:
+            raise ValueError("Missing required field 'intensity'")
+        if "tone" not in data:
+            raise ValueError("Missing required field 'tone'")
+        if "profile_id" not in data:
+            raise ValueError("Missing required field 'profile_id'")
+        if "stage" not in data:
+            raise ValueError("Missing required field 'stage'")
+
+        # Validate and convert enum values with informative error messages
         try:
             category = EdgeCategory(data["category"])
         except ValueError as e:
-            raise ValueError(f"Invalid category '{data['category']}': {e}")
-        
+            allowed_categories = [cat.value for cat in EdgeCategory]
+            raise ValueError(
+                f"Invalid category '{data['category']}': {e}. "
+                f"Allowed categories: {allowed_categories}"
+            ) from e
+
         try:
             intensity = IntensityLevel(data["intensity"])
         except ValueError as e:
-            raise ValueError(f"Invalid intensity '{data['intensity']}': {e}")
-        
+            allowed_intensities = [int_val.value for int_val in IntensityLevel]
+            raise ValueError(
+                f"Invalid intensity '{data['intensity']}': {e}. "
+                f"Allowed intensities: {allowed_intensities}"
+            ) from e
+
+        try:
+            tone = Tone(data["tone"])
+        except ValueError as e:
+            allowed_tones = [t.value for t in Tone]
+            raise ValueError(
+                f"Invalid tone '{data['tone']}': {e}. "
+                f"Allowed tones: {allowed_tones}"
+            ) from e
+
         return cls(
             profile_id=data["profile_id"],
             category=category,
             intensity=intensity,
-            tone=data["tone"],
+            tone=tone,
             stage=data["stage"],
             scenario_type=data.get("scenario_type"),
             challenge_type=data.get("challenge_type"),
@@ -144,7 +176,7 @@ def get_categories_by_intensity(intensity: IntensityLevel) -> List[EdgeCategory]
     """
     Get edge categories that are typically associated with a given intensity level.
     This is a helper for filtering/querying, not a strict requirement.
-    
+
     Note: LOW intensity is not used for edge categories; querying LOW raises ValueError.
     """
     if intensity in [IntensityLevel.VERY_HIGH, IntensityLevel.EXTREME]:
@@ -191,5 +223,9 @@ def validate_edge_profile(profile: EdgeProfile) -> tuple[bool, Optional[str]]:
     if not profile.profile_id:
         return False, "profile_id is required"
 
-    return (True, None) if profile.tone else (False, "tone is required")
+    # Tone is now strongly typed, so it's always valid if present
+    if not isinstance(profile.tone, Tone):
+        return False, f"tone must be a Tone enum, got {type(profile.tone)}"
+
+    return True, None
 

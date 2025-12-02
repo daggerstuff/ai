@@ -4,7 +4,7 @@ Tests for edge category and profile types.
 """
 
 import pytest
-from dataset_pipeline.types.edge_categories import (
+from ai.dataset_pipeline.types.edge_categories import (
     EdgeCategory,
     IntensityLevel,
     EdgeProfile,
@@ -13,6 +13,7 @@ from dataset_pipeline.types.edge_categories import (
     get_categories_by_intensity,
     validate_edge_profile,
 )
+from ai.dataset_pipeline.style.less_chipper import Tone
 
 
 def test_edge_category_enum():
@@ -41,7 +42,7 @@ def test_edge_profile_creation():
         profile_id="test-profile-1",
         category=EdgeCategory.SUICIDAL_IDEATION,
         intensity=IntensityLevel.VERY_HIGH,
-        tone="CRISIS_DIRECT",
+        tone=Tone.CRISIS_DIRECT,
         stage=3,
         scenario_type="crisis_intervention",
         requires_supervision=True,
@@ -50,6 +51,7 @@ def test_edge_profile_creation():
     assert profile.profile_id == "test-profile-1"
     assert profile.category == EdgeCategory.SUICIDAL_IDEATION
     assert profile.intensity == IntensityLevel.VERY_HIGH
+    assert profile.tone == Tone.CRISIS_DIRECT
     assert profile.stage == 3
     assert profile.requires_supervision is True
 
@@ -60,7 +62,7 @@ def test_edge_profile_serialization():
         profile_id="test-profile-2",
         category=EdgeCategory.DOMESTIC_VIOLENCE,
         intensity=IntensityLevel.HIGH,
-        tone="CLINICAL",
+        tone=Tone.CLINICAL,
         stage=3,
         metadata={"source": "synthetic", "validation": "passed"},
     )
@@ -70,12 +72,14 @@ def test_edge_profile_serialization():
     assert data["profile_id"] == "test-profile-2"
     assert data["category"] == "domestic_violence"
     assert data["intensity"] == "high"
+    assert data["tone"] == "clinical"
 
     # Deserialize
     restored = EdgeProfile.from_dict(data)
     assert restored.profile_id == profile.profile_id
     assert restored.category == profile.category
     assert restored.intensity == profile.intensity
+    assert restored.tone == profile.tone
     assert restored.metadata == profile.metadata
 
 
@@ -86,7 +90,7 @@ def test_validate_edge_profile():
         profile_id="valid-1",
         category=EdgeCategory.PSYCHOTIC_EPISODES,
         intensity=IntensityLevel.HIGH,
-        tone="CRISIS_DIRECT",
+        tone=Tone.CRISIS_DIRECT,
         stage=3,
     )
     is_valid, error = validate_edge_profile(valid_profile)
@@ -98,7 +102,7 @@ def test_validate_edge_profile():
         profile_id="invalid-1",
         category=EdgeCategory.SUICIDAL_IDEATION,
         intensity=IntensityLevel.HIGH,
-        tone="CRISIS_DIRECT",
+        tone=Tone.CRISIS_DIRECT,
         stage=5,  # Invalid
     )
     is_valid, error = validate_edge_profile(invalid_stage)
@@ -111,7 +115,7 @@ def test_validate_edge_profile():
         profile_id="",  # Empty
         category=EdgeCategory.SELF_HARM,
         intensity=IntensityLevel.MODERATE,
-        tone="FOUNDATION",
+        tone=Tone.FOUNDATION,
         stage=2,
     )
     is_valid, error = validate_edge_profile(invalid_id)
@@ -138,17 +142,116 @@ def test_get_categories_by_intensity():
         get_categories_by_intensity(IntensityLevel.LOW)
 
 
-def test_validate_edge_profile_empty_tone():
-    """Test edge profile validation with empty tone."""
-    invalid_tone = EdgeProfile(
-        profile_id="invalid-tone",
+def test_edge_profile_invalid_tone_deserialization():
+    """Test that from_dict raises ValueError for invalid tone strings."""
+    data = {
+        "profile_id": "test-profile",
+        "category": "self_harm",
+        "intensity": "moderate",
+        "tone": "invalid_tone",
+        "stage": 2,
+    }
+
+    with pytest.raises(ValueError, match="Invalid tone"):
+        EdgeProfile.from_dict(data)
+
+
+def test_edge_profile_invalid_category_deserialization():
+    """Test that from_dict raises ValueError for invalid category strings."""
+    data = {
+        "profile_id": "test-profile",
+        "category": "invalid_category",
+        "intensity": "moderate",
+        "tone": "foundation",
+        "stage": 2,
+    }
+
+    with pytest.raises(ValueError, match="Invalid category"):
+        EdgeProfile.from_dict(data)
+
+    # Verify error message includes allowed categories
+    try:
+        EdgeProfile.from_dict(data)
+    except ValueError as e:
+        assert "Allowed categories" in str(e)
+
+
+def test_edge_profile_invalid_intensity_deserialization():
+    """Test that from_dict raises ValueError for invalid intensity strings."""
+    data = {
+        "profile_id": "test-profile",
+        "category": "self_harm",
+        "intensity": "invalid_intensity",
+        "tone": "foundation",
+        "stage": 2,
+    }
+
+    with pytest.raises(ValueError, match="Invalid intensity"):
+        EdgeProfile.from_dict(data)
+
+    # Verify error message includes allowed intensities
+    try:
+        EdgeProfile.from_dict(data)
+    except ValueError as e:
+        assert "Allowed intensities" in str(e)
+
+
+def test_edge_profile_missing_required_fields():
+    """Test that from_dict raises ValueError for missing required fields."""
+    base_data = {
+        "profile_id": "test-profile",
+        "category": "self_harm",
+        "intensity": "moderate",
+        "tone": "foundation",
+        "stage": 2,
+    }
+
+    # Test missing category
+    data = base_data.copy()
+    del data["category"]
+    with pytest.raises(ValueError, match="Missing required field 'category'"):
+        EdgeProfile.from_dict(data)
+
+    # Test missing intensity
+    data = base_data.copy()
+    del data["intensity"]
+    with pytest.raises(ValueError, match="Missing required field 'intensity'"):
+        EdgeProfile.from_dict(data)
+
+    # Test missing tone
+    data = base_data.copy()
+    del data["tone"]
+    with pytest.raises(ValueError, match="Missing required field 'tone'"):
+        EdgeProfile.from_dict(data)
+
+    # Test missing profile_id
+    data = base_data.copy()
+    del data["profile_id"]
+    with pytest.raises(ValueError, match="Missing required field 'profile_id'"):
+        EdgeProfile.from_dict(data)
+
+    # Test missing stage
+    data = base_data.copy()
+    del data["stage"]
+    with pytest.raises(ValueError, match="Missing required field 'stage'"):
+        EdgeProfile.from_dict(data)
+
+
+@pytest.mark.parametrize("tone_enum", [Tone.FOUNDATION, Tone.CLINICAL, Tone.CRISIS_DIRECT])
+def test_edge_profile_tone_serialization_roundtrip(tone_enum):
+    """Test that tone serialization/deserialization preserves all Tone enum values."""
+    profile = EdgeProfile(
+        profile_id="test-profile",
         category=EdgeCategory.SELF_HARM,
         intensity=IntensityLevel.MODERATE,
-        tone="",  # Empty tone
+        tone=tone_enum,
         stage=2,
     )
-    is_valid, error = validate_edge_profile(invalid_tone)
-    assert is_valid is False
-    assert error is not None
-    assert "tone is required" in error
+
+    # Serialize and deserialize
+    data = profile.to_dict()
+    restored = EdgeProfile.from_dict(data)
+
+    assert restored.tone == tone_enum
+    assert restored.tone.value == tone_enum.value
 
