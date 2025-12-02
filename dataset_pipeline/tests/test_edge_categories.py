@@ -206,35 +206,32 @@ def test_edge_profile_missing_required_fields():
         "stage": 2,
     }
 
+    data = _extracted_from_test_edge_profile_missing_required_fields_12(
+        base_data, "category", "Missing required field 'category'"
+    )
+    data = _extracted_from_test_edge_profile_missing_required_fields_12(
+        base_data, "intensity", "Missing required field 'intensity'"
+    )
+    data = _extracted_from_test_edge_profile_missing_required_fields_12(
+        base_data, "tone", "Missing required field 'tone'"
+    )
+    data = _extracted_from_test_edge_profile_missing_required_fields_12(
+        base_data, "profile_id", "Missing required field 'profile_id'"
+    )
+    data = _extracted_from_test_edge_profile_missing_required_fields_12(
+        base_data, "stage", "Missing required field 'stage'"
+    )
+
+
+# TODO Rename this here and in `test_edge_profile_missing_required_fields`
+def _extracted_from_test_edge_profile_missing_required_fields_12(base_data, arg1, match):
     # Test missing category
-    data = base_data.copy()
-    del data["category"]
-    with pytest.raises(ValueError, match="Missing required field 'category'"):
-        EdgeProfile.from_dict(data)
+    result = base_data.copy()
+    del result[arg1]
+    with pytest.raises(ValueError, match=match):
+        EdgeProfile.from_dict(result)
 
-    # Test missing intensity
-    data = base_data.copy()
-    del data["intensity"]
-    with pytest.raises(ValueError, match="Missing required field 'intensity'"):
-        EdgeProfile.from_dict(data)
-
-    # Test missing tone
-    data = base_data.copy()
-    del data["tone"]
-    with pytest.raises(ValueError, match="Missing required field 'tone'"):
-        EdgeProfile.from_dict(data)
-
-    # Test missing profile_id
-    data = base_data.copy()
-    del data["profile_id"]
-    with pytest.raises(ValueError, match="Missing required field 'profile_id'"):
-        EdgeProfile.from_dict(data)
-
-    # Test missing stage
-    data = base_data.copy()
-    del data["stage"]
-    with pytest.raises(ValueError, match="Missing required field 'stage'"):
-        EdgeProfile.from_dict(data)
+    return result
 
 
 @pytest.mark.parametrize("tone_enum", [Tone.FOUNDATION, Tone.CLINICAL, Tone.CRISIS_DIRECT])
