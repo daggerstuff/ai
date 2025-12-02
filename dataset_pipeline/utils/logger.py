@@ -38,35 +38,42 @@ def get_logger(name: str, level: int = LOG_LEVEL) -> logging.Logger:
 
     # Console handler
     stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(level)
-    stdout_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-    logger.addHandler(stdout_handler)
-
+    _configure_handler(stdout_handler, level, logger)
     # File handler with rotation
     try:
-        log_path = Path(LOG_FILE)
-        log_dir = log_path.parent
-        log_dir.mkdir(parents=True, exist_ok=True)
-
-        # Ensure the log file path is a file, not a directory
-        if log_path.exists() and log_path.is_dir():
-            raise ValueError(f"Log path is a directory, not a file: {log_path}")
-
-        file_handler = RotatingFileHandler(
-            str(log_path),
-            maxBytes=MAX_BYTES,
-            backupCount=BACKUP_COUNT,
-            encoding="utf-8",
-        )
-        file_handler.setLevel(level)
-        file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
-        logger.addHandler(file_handler)
-    except (OSError, PermissionError, ValueError) as e:
+        _setup_file_handler(level, logger)
+    except (OSError, ValueError) as e:
         logger.warning(f"Could not create file handler for logging: {e}")
 
     logger.propagate = False
 
     return logger
+
+
+def _setup_file_handler(level: int, logger: logging.Logger) -> None:
+    """Create and configure a rotating file handler for logging."""
+    log_path = Path(LOG_FILE)
+    log_dir = log_path.parent
+    log_dir.mkdir(parents=True, exist_ok=True)
+
+    # Ensure the log file path is a file, not a directory
+    if log_path.is_dir():
+        raise ValueError(f"Log path is a directory, not a file: {log_path}")
+
+    file_handler = RotatingFileHandler(
+        str(log_path),
+        maxBytes=MAX_BYTES,
+        backupCount=BACKUP_COUNT,
+        encoding="utf-8",
+    )
+    _configure_handler(file_handler, level, logger)
+
+
+def _configure_handler(handler: logging.Handler, level: int, logger: logging.Logger) -> None:
+    """Configure a logging handler with level, formatter, and attach to logger."""
+    handler.setLevel(level)
+    handler.setFormatter(logging.Formatter(LOG_FORMAT))
+    logger.addHandler(handler)
 
 # Example usage:
 # from logger import get_logger
