@@ -17,7 +17,7 @@ from typing import Dict, List, Any, Optional
 import logging
 from dataclasses import dataclass, field
 import hashlib
-from datetime import datetime
+from datetime import datetime, timezone
 import re
 from collections import OrderedDict
 
@@ -121,8 +121,7 @@ class StageCatalog:
                     continue
                 self.stage_map[key.lower()] = stage
                 for field_name in ("path", "gdrive_path"):
-                    raw_path = dataset.get(field_name)
-                    if raw_path:
+                    if raw_path := dataset.get(field_name):
                         stem = Path(str(raw_path)).stem.lower()
                         self.stage_map[stem] = stage
 
@@ -135,8 +134,7 @@ class StageCatalog:
         for candidate in candidates:
             if not candidate:
                 continue
-            stage = self.stage_map.get(candidate.lower())
-            if stage:
+            if stage := self.stage_map.get(candidate.lower()):
                 return stage
 
         return self._infer_fallback(source_name or "", source_type or "")
@@ -172,7 +170,9 @@ class ProcessingConfig:
 class UnifiedPreprocessingPipeline:
     """Main preprocessing pipeline orchestrator"""
 
-    def __init__(self, config: ProcessingConfig = None):
+    PROGRESS_LOG_INTERVAL = 10000
+
+    def __init__(self, config: Optional[ProcessingConfig] = None):
         self.config = config or ProcessingConfig()
         self.data_sources: List[DataSource] = []
         self.processed_records = 0
@@ -290,8 +290,7 @@ class UnifiedPreprocessingPipeline:
             if source.format == "jsonl":
                 # Check if it's a valid JSONL file
                 with open(source.path, 'r') as f:
-                    line = f.readline()
-                    if line:
+                    if line := f.readline():
                         json.loads(line)
             elif source.format == "json":
                 # Check if it's a valid JSON file
@@ -307,55 +306,67 @@ class UnifiedPreprocessingPipeline:
         """Process a single dataset"""
         logger.info(f"Processing dataset: {source.name}")
 
+        try:
+            if source.format == "jsonl":
+                return self._process_jsonl(source)
+            if source.format == "json":
+                return self._process_json(source)
+            logger.warning(f"Unsupported format '{source.format}' for {source.name}")
+            return []
+        except Exception as e:
+            logger.error(f"Error processing {source.name}: {str(e)}")
+            return []
+
+    def _process_jsonl(self, source: DataSource) -> List[Dict[str, Any]]:
+        """Process a JSONL format dataset"""
         records = []
         processed_count = 0
 
-        try:
-            if source.format == "jsonl":
-                with open(source.path, 'r') as f:
-                    for line_num, line in enumerate(f, 1):
-                        try:
-                            record = json.loads(line.strip())
-                            record = self.enhance_record(record, source)
-                            if self.validate_record(record):
-                                records.append(record)
-                                processed_count += 1
-
-                                if processed_count % 10000 == 0:
-                                    logger.info(f"Processed {processed_count} records from {source.name}")
-
-                        except json.JSONDecodeError as e:
-                            logger.warning(f"Invalid JSON on line {line_num} of {source.name}: {str(e)}")
-                            continue
-
-            elif source.format == "json":
-                with open(source.path, 'r') as f:
-                    data = json.load(f)
-                    if isinstance(data, list):
-                        for item in data:
-                            item = self.enhance_record(item, source)
-                            if self.validate_record(item):
-                                records.append(item)
-                                processed_count += 1
-                    elif isinstance(data, dict) and 'conversations' in data:
-                        for item in data['conversations']:
-                            item = self.enhance_record(item, source)
-                            if self.validate_record(item):
-                                records.append(item)
-                                processed_count += 1
-
-        except Exception as e:
-            logger.error(f"Error processing {source.name}: {str(e)}")
+        with open(source.path, 'r') as f:
+            for line_num, line in enumerate(f, 1):
+                try:
+                    record = json.loads(line.strip())
+                    if processed_record := self._process_single_record(record, source):
+                        records.append(processed_record)
+                        processed_count += 1
+                        if processed_count % self.PROGRESS_LOG_INTERVAL == 0:
+                            logger.info(f"Processed {processed_count} records from {source.name}")
+                except json.JSONDecodeError as e:
+                    logger.warning(f"Invalid JSON on line {line_num} of {source.name}: {str(e)}")
 
         logger.info(f"Completed processing {source.name}: {len(records)} valid records")
         return records
+
+    def _process_json(self, source: DataSource) -> List[Dict[str, Any]]:
+        """Process a JSON format dataset"""
+        with open(source.path, 'r') as f:
+            data = json.load(f)
+
+        items = []
+        if isinstance(data, list):
+            items = data
+        elif isinstance(data, dict) and 'conversations' in data:
+            items = data['conversations']
+
+        records = []
+        for item in items:
+            if processed_record := self._process_single_record(item, source):
+                records.append(processed_record)
+
+        logger.info(f"Completed processing {source.name}: {len(records)} valid records")
+        return records
+
+    def _process_single_record(self, record: Dict[str, Any], source: DataSource) -> Optional[Dict[str, Any]]:
+        """Process a single record: enhance and validate"""
+        enhanced = self.enhance_record(record, source)
+        return enhanced if self.validate_record(enhanced) else None
 
     def enhance_record(self, record: Dict[str, Any], source: DataSource) -> Dict[str, Any]:
         """Enhance a record with metadata and source information"""
         # Add source tracking
         record['_source'] = source.name
         record['_source_type'] = source.source_type
-        record['_processed_at'] = datetime.utcnow().isoformat()
+        record['_processed_at'] = datetime.now(timezone.utc).isoformat()
 
         # Add quality scoring if not present
         if 'metadata' not in record:
@@ -372,9 +383,12 @@ class UnifiedPreprocessingPipeline:
     def resolve_stage_for_record(self, record: Dict[str, Any], source: DataSource) -> str:
         """Populate and return the stage associated with this record."""
         metadata = record.setdefault('metadata', {})
-        stage = metadata.get('stage') or source.metadata.get('stage') or source.stage
-        if not stage:
-            stage = self.stage_catalog.lookup(source.name, source.path, source.source_type)
+        stage = (
+            metadata.get('stage') or
+            source.metadata.get('stage') or
+            source.stage or
+            self.stage_catalog.lookup(source.name, source.path, source.source_type)
+        )
         metadata['stage'] = stage
         return stage
 
@@ -422,13 +436,12 @@ class UnifiedPreprocessingPipeline:
                 return False
 
             # Check content quality
-            content_length = 0
             if 'text' in record:
                 content_length = len(record['text'])
-            elif 'messages' in record:
-                for msg in record['messages']:
-                    if 'content' in msg:
-                        content_length += len(msg['content'])
+            else:
+                content_length = sum(
+                    len(msg['content']) for msg in record['messages'] if 'content' in msg
+                )
 
             if content_length < 10:  # Minimum content length
                 return False
@@ -448,10 +461,9 @@ class UnifiedPreprocessingPipeline:
         if safety_score < policy.min_safety and not crisis_override_active:
             return False
 
-        if policy.requires_voice_signature and not metadata.get('voice_signature'):
-            return False
-
-        return True
+        return bool(
+            not policy.requires_voice_signature or metadata.get('voice_signature')
+        )
 
     def deduplicate_records(self, records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Remove duplicate records"""
@@ -478,12 +490,11 @@ class UnifiedPreprocessingPipeline:
 
                 if existing is None:
                     hash_map[content_hash] = {"record": record, "priority": priority}
+                elif priority > existing["priority"]:
+                    hash_map[content_hash] = {"record": record, "priority": priority}
+                    replacements += 1
                 else:
-                    if priority > existing["priority"]:
-                        hash_map[content_hash] = {"record": record, "priority": priority}
-                        replacements += 1
-                    else:
-                        duplicates_removed += 1
+                    duplicates_removed += 1
 
         logger.info(
             "Removed %s duplicate records (%s higher-priority replacements)",
@@ -519,10 +530,9 @@ class UnifiedPreprocessingPipeline:
                 if safety_score < policy.min_safety and not crisis_override_active:
                     unsafe_filtered += 1
                     continue
-            else:
-                if safety_score < policy.min_safety or self._contains_disallowed_keywords(content):
-                    unsafe_filtered += 1
-                    continue
+            elif safety_score < policy.min_safety or self._contains_disallowed_keywords(content):
+                unsafe_filtered += 1
+                continue
 
             safe_records.append(record)
 
@@ -560,7 +570,7 @@ class UnifiedPreprocessingPipeline:
                     with open(file_path, 'r') as f:
                         data = json.load(f)
                         if isinstance(data, dict):
-                            psych_knowledge.update(data)
+                            psych_knowledge |= data
                         elif isinstance(data, list):
                             for item in data:
                                 if isinstance(item, dict) and 'concept_id' in item:
@@ -644,10 +654,7 @@ class UnifiedPreprocessingPipeline:
             all_records = self.integrate_psychology_knowledge(all_records)
 
         # Final validation
-        final_records = []
-        for record in all_records:
-            if self.validate_record(record):
-                final_records.append(record)
+        final_records = [record for record in all_records if self.validate_record(record)]
 
         logger.info(f"Final dataset contains {len(final_records)} records")
 
@@ -655,7 +662,7 @@ class UnifiedPreprocessingPipeline:
         output_dir = Path("ai/dataset_pipeline/final_output")
         output_dir.mkdir(exist_ok=True)
 
-        final_dataset_path = output_dir / f"unified_training_dataset_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.jsonl"
+        final_dataset_path = output_dir / f"unified_training_dataset_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.jsonl"
 
         with open(final_dataset_path, 'w') as f:
             for record in final_records:
@@ -665,7 +672,7 @@ class UnifiedPreprocessingPipeline:
 
         # Generate summary report
         summary = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "total_sources_processed": len(self.data_sources),
             "total_records_processed": self.processed_records,
             "final_record_count": len(final_records),
