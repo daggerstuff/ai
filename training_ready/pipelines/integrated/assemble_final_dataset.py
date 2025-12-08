@@ -10,13 +10,21 @@ import json
 import sys
 import random
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 from datetime import datetime
 import logging
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
+
+# Add training_ready for S3 support
+try:
+    from ai.training_ready.tools.data_preparation.path_resolver import get_resolver
+    PATH_RESOLVER_AVAILABLE = True
+except ImportError:
+    PATH_RESOLVER_AVAILABLE = False
+    logging.warning("Path resolver not available - S3 support disabled")
 
 try:
     from ai.dataset_pipeline.configs.stages import STAGE1_ID, STAGE2_ID, STAGE3_ID, STAGE4_ID
@@ -62,19 +70,36 @@ class DatasetAssembler:
         with open(self.formatting_report_path, "r") as f:
             return json.load(f)
 
-    def load_conversations_from_file(self, file_path: Path) -> List[Dict[str, Any]]:
-        """Load conversations from a JSONL file"""
+    def load_conversations_from_file(self, file_path: Union[Path, str]) -> List[Dict[str, Any]]:
+        """Load conversations from a JSONL file (S3 or local)"""
         conversations = []
+
+        # Check if S3 path
+        path_str = str(file_path)
+        is_s3 = path_str.startswith("s3://")
+
         try:
-            with open(file_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    if not line.strip():
-                        continue
-                    try:
-                        conv = json.loads(line)
-                        conversations.append(conv)
-                    except json.JSONDecodeError:
-                        continue
+            if is_s3 and PATH_RESOLVER_AVAILABLE:
+                # Load from S3
+                resolver = get_resolver()
+                for record in resolver.load_dataset(path_str, "s3"):
+                    conversations.append(record)
+            else:
+                # Load from local file
+                local_path = Path(file_path)
+                if not local_path.exists():
+                    logger.warning(f"File not found: {local_path}")
+                    return []
+
+                with open(local_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        if not line.strip():
+                            continue
+                        try:
+                            conv = json.loads(line)
+                            conversations.append(conv)
+                        except json.JSONDecodeError:
+                            continue
         except Exception as e:
             logger.warning(f"Error loading {file_path}: {e}")
         return conversations
@@ -87,9 +112,23 @@ class DatasetAssembler:
             if "error" in result:
                 continue
 
-            file_path = Path(result["output_path"])
-            if not file_path.exists():
-                continue
+            file_path_str = result["output_path"]
+            # Check if S3 or local
+            if file_path_str.startswith("s3://"):
+                if PATH_RESOLVER_AVAILABLE:
+                    resolver = get_resolver()
+                    if not resolver.file_exists(file_path_str, "s3"):
+                        logger.warning(f"S3 file not found: {file_path_str}")
+                        continue
+                    file_path = file_path_str
+                else:
+                    logger.warning(f"S3 support not available, skipping: {file_path_str}")
+                    continue
+            else:
+                file_path = Path(file_path_str)
+                if not file_path.exists():
+                    continue
+                file_path = str(file_path)
 
             stage = result.get("stage", STAGE1_ID)
             conversations = self.load_conversations_from_file(file_path)
