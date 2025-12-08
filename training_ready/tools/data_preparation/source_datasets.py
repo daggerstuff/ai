@@ -18,6 +18,9 @@ from dataclasses import dataclass
 # Add dataset_pipeline to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "dataset_pipeline"))
 
+# Add training_ready to path for S3 support
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent))
+
 try:
     from datasets import load_dataset
     HF_AVAILABLE = True
@@ -33,6 +36,13 @@ try:
     from ingestion.local_loader import LocalLoader
 except ImportError as e:
     logging.warning(f"Some loaders not available: {e}")
+
+try:
+    from ai.training_ready.tools.data_preparation.path_resolver import get_resolver
+    PATH_RESOLVER_AVAILABLE = True
+except ImportError:
+    PATH_RESOLVER_AVAILABLE = False
+    logging.warning("Path resolver not available - S3 support disabled")
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -116,6 +126,54 @@ class DatasetSourcer:
                 error=str(e)
             )
 
+    def source_s3_dataset(self, s3_path: str, dataset_name: str) -> SourceResult:
+        """Source dataset from S3"""
+        if not PATH_RESOLVER_AVAILABLE:
+            return SourceResult(
+                name=dataset_name,
+                path=s3_path,
+                source_type="s3",
+                success=False,
+                error="S3 support not available"
+            )
+
+        try:
+            resolver = get_resolver()
+            if resolver.file_exists(s3_path, "s3"):
+                # Get file size from S3
+                import boto3
+                import os
+                bucket, key = resolver._s3_loader.parse_s3_path(s3_path)
+                s3_client = resolver._s3_loader.s3_client
+                response = s3_client.head_object(Bucket=bucket, Key=key)
+                size_bytes = response.get('ContentLength', 0)
+
+                return SourceResult(
+                    name=dataset_name,
+                    path=s3_path,
+                    source_type="s3",
+                    success=True,
+                    size_bytes=size_bytes,
+                    cached=True  # S3 is our "cache"
+                )
+            else:
+                return SourceResult(
+                    name=dataset_name,
+                    path=s3_path,
+                    source_type="s3",
+                    success=False,
+                    error=f"File not found in S3: {s3_path}"
+                )
+        except Exception as e:
+            logger.error(f"Failed to check S3 dataset {s3_path}: {e}")
+            return SourceResult(
+                name=dataset_name,
+                path=s3_path,
+                source_type="s3",
+                success=False,
+                error=str(e)
+            )
+
     def source_local_dataset(self, file_path: str) -> SourceResult:
         """Source dataset from local file path"""
         path = Path(file_path)
@@ -176,6 +234,16 @@ class DatasetSourcer:
             source = dataset.get("source", "")
             path = dataset.get("path", "")
             name = dataset.get("name", "")
+
+            # Check S3 first if available
+            s3_path = dataset.get("s3_path")
+            if s3_path and PATH_RESOLVER_AVAILABLE:
+                resolver = get_resolver()
+                resolved_path, source_type = resolver.resolve_path(path, dataset)
+                if source_type == "s3":
+                    result = self.source_s3_dataset(resolved_path, name or path)
+                    self.results.append(result)
+                    continue
 
             # Determine source type
             if "huggingface" in source.lower() or "hf" in source.lower() or path.startswith("huggingface:"):
