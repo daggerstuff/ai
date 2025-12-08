@@ -17,6 +17,14 @@ import logging
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
+# Add training_ready for S3 support
+try:
+    from ai.training_ready.tools.data_preparation.path_resolver import get_resolver
+    PATH_RESOLVER_AVAILABLE = True
+except ImportError:
+    PATH_RESOLVER_AVAILABLE = False
+    logging.warning("Path resolver not available - S3 support disabled")
+
 try:
     from ai.dataset_pipeline.unified_preprocessing_pipeline import UnifiedPreprocessingPipeline, ProcessingConfig, DataSource, StagePolicy
     from ai.dataset_pipeline.orchestration.integrated_training_pipeline import IntegratedTrainingPipeline, IntegratedPipelineConfig
@@ -85,21 +93,67 @@ class DatasetProcessor:
             logger.warning(f"Skipping {sourcing_result['name']}: {sourcing_result.get('error')}")
             return None
 
-        file_path = Path(sourcing_result["path"])
-        if not file_path.exists():
-            logger.warning(f"File not found: {file_path}")
-            return None
+        # Resolve path (S3 or local)
+        path = sourcing_result["path"]
+        source_type = sourcing_result.get("source_type", "local")
+
+        # Check if S3 path
+        if PATH_RESOLVER_AVAILABLE and (path.startswith("s3://") or source_type == "s3"):
+            # Download S3 file to cache for processing
+            resolver = get_resolver()
+            if not resolver.file_exists(path, "s3"):
+                logger.warning(f"S3 file not found: {path}")
+                return None
+
+            logger.info(f"📥 Downloading from S3 for processing: {path}")
+
+            # Create cache directory
+            cache_dir = Path.cwd() / "ai" / "training_ready" / "datasets" / "cache" / "s3"
+            cache_dir.mkdir(parents=True, exist_ok=True)
+
+            # Generate cache filename from S3 path
+            import hashlib
+            cache_key = hashlib.md5(path.encode()).hexdigest()
+            cache_file = cache_dir / f"{cache_key}{Path(path).suffix}"
+
+            # Download if not cached
+            if not cache_file.exists():
+                try:
+                    import boto3
+                    import os
+                    bucket, key = resolver._s3_loader.parse_s3_path(path)
+                    s3_client = resolver._s3_loader.s3_client
+                    s3_client.download_file(bucket, key, str(cache_file))
+                    logger.info(f"  ✅ Cached to: {cache_file}")
+                except Exception as e:
+                    logger.error(f"  ❌ Failed to download from S3: {e}")
+                    return None
+            else:
+                logger.info(f"  ⏭️  Using cached file: {cache_file}")
+
+            file_path = str(cache_file)
+        else:
+            # Local path
+            file_path = Path(path)
+            if not file_path.exists():
+                logger.warning(f"File not found: {file_path}")
+                return None
+            file_path = str(file_path)
 
         stage = self.determine_stage(dataset_info)
 
         logger.info(f"Processing {sourcing_result['name']} -> {stage}")
 
+        # Determine format
+        file_path_obj = Path(file_path)
+        format_type = file_path_obj.suffix[1:] if file_path_obj.suffix else "jsonl"
+
         # Create data source
         source = DataSource(
             name=sourcing_result["name"],
             path=str(file_path),
-            format=file_path.suffix[1:] if file_path.suffix else "jsonl",
-            size_bytes=sourcing_result.get("size_bytes", 0),
+            format=format_type,
+            size_bytes=sourcing_result.get("size_bytes", 0) or (file_path_obj.stat().st_size if file_path_obj.exists() else 0),
             source_type=sourcing_result.get("source_type", "unknown"),
             stage=stage,
         )
