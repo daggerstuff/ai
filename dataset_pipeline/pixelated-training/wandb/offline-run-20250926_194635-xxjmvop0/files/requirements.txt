@@ -40,7 +40,7 @@ yarl==1.20.1
 pycparser==2.23
 setuptools==80.9.0
 sentry-sdk==2.39.0
-urllib3==2.5.0
+urllib3>=2.6.0  # Fixes GHSA-gm62-xv2j-4w53, GHSA-2xpw-w6gg-jr37 (CVE-2025-66418, CVE-2025-66471)
 tqdm==4.67.1
 cffi==2.0.0
 soundfile==0.13.1
