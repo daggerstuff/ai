@@ -4,6 +4,8 @@
 
 While local dataset uploads continue in the background, we can work on integrating S3 storage into the data processing pipeline and preparing for VPS deployment.
 
+**New**: For H100 MoE training/inference, see `experimental/h100_moe/README.md` which links the production-ready Lightning package already in the repo and shows how to feed it our integrated datasets.
+
 ## Priority Tasks
 
 ### 1. ✅ S3 Dataset Loaders (High Priority)
