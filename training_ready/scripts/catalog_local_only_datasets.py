@@ -11,8 +11,10 @@ Identifies which datasets are:
 
 import json
 import sys
+import re
+import ast
 from pathlib import Path
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Set, Optional
 from datetime import datetime
 
 # Add project root to path
@@ -48,11 +50,56 @@ class DatasetCataloger:
             "url": [],
             "unknown": [],
         }
+        # Cache for extracted dataset IDs from loader scripts
+        self._loader_dataset_ids: Dict[str, List[str]] = {}
 
     def _load_manifest(self) -> Dict[str, Any]:
         """Load training manifest"""
         with open(self.manifest_path, "r") as f:
             return json.load(f)
+
+    def _extract_dataset_ids_from_python(self, file_path: Path) -> List[str]:
+        """Extract dataset_id values from Python loader scripts"""
+        if file_path in self._loader_dataset_ids:
+            return self._loader_dataset_ids[file_path]
+
+        dataset_ids = []
+
+        if not file_path.exists() or not file_path.suffix == ".py":
+            self._loader_dataset_ids[file_path] = dataset_ids
+            return dataset_ids
+
+        try:
+            content = file_path.read_text(encoding="utf-8")
+
+            # Method 1: Regex pattern for dataset_id="..." or dataset_id='...'
+            # Matches patterns like: dataset_id="user/dataset-name"
+            pattern = r'dataset_id\s*=\s*["\']([^"\']+)["\']'
+            matches = re.findall(pattern, content)
+            dataset_ids.extend(matches)
+
+            # Method 2: Look for load_dataset("...") calls
+            # Matches patterns like: load_dataset("user/dataset-name")
+            load_pattern = r'load_dataset\s*\(\s*["\']([^"\']+)["\']'
+            load_matches = re.findall(load_pattern, content)
+            dataset_ids.extend(load_matches)
+
+            # Remove duplicates while preserving order
+            seen = set()
+            unique_ids = []
+            for ds_id in dataset_ids:
+                if ds_id not in seen and "/" in ds_id:  # Valid HF IDs have format user/dataset
+                    seen.add(ds_id)
+                    unique_ids.append(ds_id)
+
+            dataset_ids = unique_ids
+
+        except Exception as e:
+            log(f"⚠️  Error extracting dataset IDs from {file_path}: {e}")
+            dataset_ids = []
+
+        self._loader_dataset_ids[file_path] = dataset_ids
+        return dataset_ids
 
     def classify_dataset(self, dataset: Dict[str, Any]) -> str:
         """Classify dataset by accessibility"""
@@ -60,9 +107,10 @@ class DatasetCataloger:
         source = dataset.get("source", "").lower()
         name = dataset.get("name", "").lower()
 
-        # Check for HuggingFace
-        if any(x in path.lower() or x in source or x in name for x in [
-            "huggingface", "hf://", "hf:", "datasets/", "huggingface.co"
+        # Check for HuggingFace - only Python loader scripts
+        # (not markdown files or other docs that mention huggingface)
+        if path.endswith(".py") and any(x in path.lower() or x in source or x in name for x in [
+            "huggingface", "hf://", "hf:", "huggingface_loader", "dpo_dataset_loader"
         ]):
             return "huggingface"
 
@@ -95,20 +143,44 @@ class DatasetCataloger:
 
         for dataset in datasets:
             classification = self.classify_dataset(dataset)
-            self.catalog[classification].append({
+
+            # Extract dataset IDs if this is a HuggingFace loader script
+            dataset_ids = []
+            if classification == "huggingface":
+                path = dataset.get("path", "")
+                if path and path.endswith(".py"):
+                    loader_path = Path(path)
+                    if loader_path.exists():
+                        dataset_ids = self._extract_dataset_ids_from_python(loader_path)
+
+            entry = {
                 "name": dataset.get("name", ""),
                 "path": dataset.get("path", ""),
                 "source": dataset.get("source", ""),
                 "stage": dataset.get("stage", "unassigned"),
                 "size": dataset.get("size", 0),
                 "format": dataset.get("format", "unknown"),
-            })
+            }
+
+            # Add extracted dataset IDs for HuggingFace entries
+            if dataset_ids:
+                entry["huggingface_ids"] = dataset_ids
+                entry["primary_dataset_id"] = dataset_ids[0] if dataset_ids else None
+
+            self.catalog[classification].append(entry)
+
+        # Collect unique HuggingFace dataset IDs
+        unique_hf_ids = set()
+        for entry in self.catalog["huggingface"]:
+            if "huggingface_ids" in entry:
+                unique_hf_ids.update(entry["huggingface_ids"])
 
         # Generate summary
         summary = {
             "total": len(datasets),
             "local_only": len(self.catalog["local_only"]),
             "huggingface": len(self.catalog["huggingface"]),
+            "huggingface_unique_ids": len(unique_hf_ids),
             "kaggle": len(self.catalog["kaggle"]),
             "url": len(self.catalog["url"]),
             "unknown": len(self.catalog["unknown"]),
@@ -145,7 +217,8 @@ def main():
     log(f"\n📊 Dataset Accessibility Summary:")
     log(f"  Total datasets: {result['summary']['total']}")
     log(f"  Local-only (need upload): {result['summary']['local_only']}")
-    log(f"  HuggingFace (direct to S3): {result['summary']['huggingface']}")
+    log(f"  HuggingFace loaders: {result['summary']['huggingface']}")
+    log(f"  HuggingFace unique IDs: {result['summary'].get('huggingface_unique_ids', 0)}")
     log(f"  Kaggle (direct to S3): {result['summary']['kaggle']}")
     log(f"  URL (direct to S3): {result['summary']['url']}")
     log(f"  Unknown: {result['summary']['unknown']}")
