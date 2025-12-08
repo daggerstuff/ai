@@ -29,12 +29,9 @@ except ImportError:
     HF_AVAILABLE = False
     logging.warning("datasets not available. Install with: uv pip install datasets")
 
-try:
-    import kaggle
-    KAGGLE_AVAILABLE = True
-except ImportError:
-    KAGGLE_AVAILABLE = False
-    logging.warning("kaggle not available. Install with: uv pip install kaggle")
+# Kaggle import is lazy (only when download_kaggle_to_s3 is called)
+# to avoid authentication issues on module import
+KAGGLE_AVAILABLE = None  # Will be checked when needed
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -161,10 +158,13 @@ class S3DatasetDownloader:
 
     def download_kaggle_to_s3(self, dataset_name: str, s3_key: Optional[str] = None) -> Dict[str, Any]:
         """Download Kaggle dataset directly to S3"""
-        if not KAGGLE_AVAILABLE:
+        # Lazy import to avoid authentication on module load
+        try:
+            import kaggle
+        except ImportError:
             return {
                 "success": False,
-                "error": "Kaggle library not available",
+                "error": "Kaggle library not available. Install with: uv pip install kaggle",
             }
 
         if not self.s3_client:
