@@ -162,7 +162,24 @@ else
     if command -v uv &> /dev/null; then
         echo "   🔄 Generating catalog..."
         cd /home/vivi/pixelated
-        uv run python3 ai/training_ready/scripts/catalog_local_only_datasets.py && echo "   ✅ Catalog generated" || echo "   ⚠️  Catalog generation failed"
+        
+        # Verify manifest exists before running catalog script
+        if [[ ! -f "ai/training_ready/TRAINING_MANIFEST.json" ]]; then
+            echo "   ❌ TRAINING_MANIFEST.json not found at ai/training_ready/TRAINING_MANIFEST.json"
+            echo "   Run generate_manifest.py first to create the manifest"
+        else
+            # Run catalog script with explicit error handling
+            if uv run python3 ai/training_ready/scripts/catalog_local_only_datasets.py 2>&1; then
+                if [[ -f "ai/training_ready/scripts/output/dataset_accessibility_catalog.json" ]]; then
+                    echo "   ✅ Catalog generated successfully"
+                else
+                    echo "   ⚠️  Catalog script ran but output file not found"
+                fi
+            else
+                echo "   ⚠️  Catalog generation failed - check manifest file"
+            fi
+        fi
+        
         cd /home/vivi/pixelated/ai/training_ready
     else
         echo "   Run: python3 scripts/catalog_local_only_datasets.py"

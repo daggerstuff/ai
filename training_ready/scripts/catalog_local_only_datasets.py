@@ -16,18 +16,17 @@ import ast
 from pathlib import Path
 from typing import Dict, List, Any, Set, Optional
 from datetime import datetime
+from contextlib import suppress
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 logger = None
-try:
+with suppress(Exception):
     import logging
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
-except:
-    pass
 
 
 def log(msg):
@@ -55,35 +54,49 @@ class DatasetCataloger:
 
     def _load_manifest(self) -> Dict[str, Any]:
         """Load training manifest"""
-        with open(self.manifest_path, "r") as f:
-            return json.load(f)
+        if not self.manifest_path.exists():
+            raise FileNotFoundError(f"Manifest file not found: {self.manifest_path}")
+
+        if self.manifest_path.stat().st_size == 0:
+            raise ValueError(f"Manifest file is empty: {self.manifest_path}")
+
+        try:
+            with open(self.manifest_path, "r", encoding="utf-8") as f:
+                content = f.read()
+                if not content.strip():
+                    raise ValueError(f"Manifest file appears empty: {self.manifest_path}")
+                return json.loads(content)
+        except json.JSONDecodeError as e:
+            log(f"❌ JSON decode error in manifest: {e}")
+            log(f"   File: {self.manifest_path}")
+            log(f"   File size: {self.manifest_path.stat().st_size} bytes")
+            raise
+        except Exception as e:
+            log(f"❌ Error loading manifest: {e}")
+            log(f"   File: {self.manifest_path}")
+            raise
 
     def _extract_dataset_ids_from_python(self, file_path: Path) -> List[str]:
         """Extract dataset_id values from Python loader scripts"""
-        if file_path in self._loader_dataset_ids:
-            return self._loader_dataset_ids[file_path]
+        file_path_str = str(file_path)
+        if file_path_str in self._loader_dataset_ids:
+            return self._loader_dataset_ids[file_path_str]
 
         dataset_ids = []
 
-        if not file_path.exists() or not file_path.suffix == ".py":
-            self._loader_dataset_ids[file_path] = dataset_ids
+        if not file_path.exists() or file_path.suffix != ".py":
+            self._loader_dataset_ids[file_path_str] = dataset_ids
             return dataset_ids
 
         try:
             content = file_path.read_text(encoding="utf-8")
 
-            # Method 1: Regex pattern for dataset_id="..." or dataset_id='...'
-            # Matches patterns like: dataset_id="user/dataset-name"
-            pattern = r'dataset_id\s*=\s*["\']([^"\']+)["\']'
-            matches = re.findall(pattern, content)
-            dataset_ids.extend(matches)
-
-            # Method 2: Look for load_dataset("...") calls
-            # Matches patterns like: load_dataset("user/dataset-name")
-            load_pattern = r'load_dataset\s*\(\s*["\']([^"\']+)["\']'
-            load_matches = re.findall(load_pattern, content)
-            dataset_ids.extend(load_matches)
-
+            self._extracted_from__extract_dataset_ids_from_python_18(
+                r'dataset_id\s*=\s*["\']([^"\']+)["\']', content, dataset_ids
+            )
+            self._extracted_from__extract_dataset_ids_from_python_18(
+                r'load_dataset\s*\(\s*["\']([^"\']+)["\']', content, dataset_ids
+            )
             # Remove duplicates while preserving order
             seen = set()
             unique_ids = []
@@ -98,8 +111,16 @@ class DatasetCataloger:
             log(f"⚠️  Error extracting dataset IDs from {file_path}: {e}")
             dataset_ids = []
 
-        self._loader_dataset_ids[file_path] = dataset_ids
+        self._loader_dataset_ids[file_path_str] = dataset_ids
         return dataset_ids
+
+    # TODO Rename this here and in `_extract_dataset_ids_from_python`
+    def _extracted_from__extract_dataset_ids_from_python_18(self, arg0, content, dataset_ids):
+            # Method 1: Regex pattern for dataset_id="..." or dataset_id='...'
+            # Matches patterns like: dataset_id="user/dataset-name"
+        pattern = arg0
+        matches = re.findall(pattern, content)
+        dataset_ids.extend(matches)
 
     def classify_dataset(self, dataset: Dict[str, Any]) -> str:
         """Classify dataset by accessibility"""
@@ -126,7 +147,7 @@ class DatasetCataloger:
 
         # Check if local file exists
         local_path = Path(path)
-        if local_path.exists() and local_path.is_file():
+        if local_path.is_file():
             return "local_only"
 
         # Check for Google Drive
@@ -195,12 +216,47 @@ class DatasetCataloger:
 
 def main():
     """Main function"""
-    base_path = Path.cwd()
+    # Try multiple path resolution strategies
+    base_path = None
+
+    # Strategy 1: Use project root from script location
+    script_path = Path(__file__).resolve()
+    potential_base = script_path.parent.parent.parent.parent
+    if (potential_base / "ai" / "training_ready" / "TRAINING_MANIFEST.json").exists():
+        base_path = potential_base
+
+    # Strategy 2: Use current working directory
+    if base_path is None:
+        cwd = Path.cwd()
+        if (cwd / "ai" / "training_ready" / "TRAINING_MANIFEST.json").exists():
+            base_path = cwd
+        elif (cwd / "TRAINING_MANIFEST.json").exists():
+            # Already in training_ready directory
+            base_path = cwd.parent.parent
+
+    # Strategy 3: Try absolute path
+    if base_path is None:
+        abs_path = Path("/home/vivi/pixelated")
+        if (abs_path / "ai" / "training_ready" / "TRAINING_MANIFEST.json").exists():
+            base_path = abs_path
+
+    if base_path is None:
+        log("❌ Could not locate project root. Tried:")
+        log(f"   - Script-based: {script_path.parent.parent.parent.parent}")
+        log(f"   - Current dir: {Path.cwd()}")
+        log("   - Absolute: /home/vivi/pixelated")
+        return 1
+
     manifest_path = base_path / "ai" / "training_ready" / "TRAINING_MANIFEST.json"
 
     if not manifest_path.exists():
         log(f"❌ Manifest not found: {manifest_path}")
+        log(f"   Base path: {base_path}")
+        log(f"   Current dir: {Path.cwd()}")
         return 1
+
+    log(f"📁 Using base path: {base_path}")
+    log(f"📄 Manifest path: {manifest_path}")
 
     log("🔍 Cataloging datasets by accessibility...")
 
