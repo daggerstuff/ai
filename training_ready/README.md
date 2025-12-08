@@ -168,6 +168,10 @@ ai/training_ready/
 - **Contents**: MoE, CNN/ResNet layers, quantum models, etc.
 - **Use**: Evaluate future model enhancements
 
+### Migration Status & Guides
+- **S3 Migration Status**: `S3_MIGRATION_STATUS.md` (single source of truth for dataset uploads/downloads)
+- **VPS Migration Guide**: `VPS_MIGRATION_GUIDE.md` (setup + checklist)
+
 ## Dataset Access
 
 ### Large Files
