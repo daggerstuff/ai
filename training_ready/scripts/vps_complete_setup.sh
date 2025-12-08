@@ -131,20 +131,42 @@ else
 fi
 echo ""
 
-# Step 6: Verify catalog exists
+# Step 6: Verify catalog exists (or generate it)
 echo "📋 Step 6: Checking dataset catalog..."
-if [[ -f "scripts/output/dataset_accessibility_catalog.json" ]]; then
+CATALOG_PATH="scripts/output/dataset_accessibility_catalog.json"
+if [[ -f "$CATALOG_PATH" ]]; then
     echo "   ✅ Catalog found"
-    python3 -c "
+    if command -v uv &> /dev/null; then
+        cd /home/vivi/pixelated
+        uv run python3 -c "
 import json
-with open('scripts/output/dataset_accessibility_catalog.json') as f:
+with open('ai/training_ready/$CATALOG_PATH') as f:
     d = json.load(f)
     print(f'   Total datasets: {d[\"summary\"][\"total\"]}')
     print(f'   Local-only: {d[\"summary\"][\"local_only\"]}')
     print(f'   HuggingFace IDs: {d[\"summary\"].get(\"huggingface_unique_ids\", 0)}')
 " 2>/dev/null || echo "   ⚠️  Could not read catalog"
+        cd /home/vivi/pixelated/ai/training_ready
+    else
+        python3 -c "
+import json
+with open('$CATALOG_PATH') as f:
+    d = json.load(f)
+    print(f'   Total datasets: {d[\"summary\"][\"total\"]}')
+    print(f'   Local-only: {d[\"summary\"][\"local_only\"]}')
+    print(f'   HuggingFace IDs: {d[\"summary\"].get(\"huggingface_unique_ids\", 0)}')
+" 2>/dev/null || echo "   ⚠️  Could not read catalog"
+    fi
 else
-    echo "   ⚠️  Catalog not found - run catalog script first"
+    echo "   ⚠️  Catalog not found"
+    if command -v uv &> /dev/null; then
+        echo "   🔄 Generating catalog..."
+        cd /home/vivi/pixelated
+        uv run python3 ai/training_ready/scripts/catalog_local_only_datasets.py && echo "   ✅ Catalog generated" || echo "   ⚠️  Catalog generation failed"
+        cd /home/vivi/pixelated/ai/training_ready
+    else
+        echo "   Run: python3 scripts/catalog_local_only_datasets.py"
+    fi
 fi
 echo ""
 
