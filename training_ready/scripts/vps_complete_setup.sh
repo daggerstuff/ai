@@ -45,16 +45,16 @@ echo ""
 # Step 2: Install Python dependencies
 echo "📦 Step 2: Installing Python dependencies..."
 if command -v uv &> /dev/null; then
-    echo "   Using uv to install dependencies..."
+    echo "   Using uv to sync dependencies from pyproject.toml..."
     cd /home/vivi/pixelated
     
-    # Install core dependencies
-    uv pip install boto3 datasets requests || true
+    # Sync all dependencies from pyproject.toml (includes torch, datasets, boto3, etc.)
+    uv sync || {
+        echo "   ⚠️  uv sync failed, trying with index strategy..."
+        uv sync --index-strategy unsafe-best-match || true
+    }
     
-    # Install torch (CPU version for now, can upgrade to GPU later)
-    uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu || true
-    
-    echo "   ✅ Dependencies installed"
+    echo "   ✅ Dependencies synced"
 else
     echo "   ⚠️  uv not available, using pip3..."
     pip3 install boto3 datasets requests || true
@@ -64,13 +64,22 @@ echo ""
 
 # Step 3: Verify environment
 echo "🔍 Step 3: Verifying environment..."
-python3 --version
-echo "   Python: $(python3 --version)"
-
-# Check key packages
-python3 -c "import boto3; print('   ✅ boto3')" 2>/dev/null || echo "   ❌ boto3 missing"
-python3 -c "import datasets; print('   ✅ datasets')" 2>/dev/null || echo "   ❌ datasets missing"
-python3 -c "import torch; print('   ✅ torch')" 2>/dev/null || echo "   ⚠️  torch missing (optional)"
+if command -v uv &> /dev/null; then
+    echo "   Python: $(uv run python3 --version)"
+    
+    # Check key packages using uv run
+    uv run python3 -c "import boto3; print('   ✅ boto3')" 2>/dev/null || echo "   ❌ boto3 missing"
+    uv run python3 -c "import datasets; print('   ✅ datasets')" 2>/dev/null || echo "   ❌ datasets missing"
+    uv run python3 -c "import torch; print('   ✅ torch')" 2>/dev/null || echo "   ⚠️  torch missing (optional)"
+else
+    python3 --version
+    echo "   Python: $(python3 --version)"
+    
+    # Check key packages
+    python3 -c "import boto3; print('   ✅ boto3')" 2>/dev/null || echo "   ❌ boto3 missing"
+    python3 -c "import datasets; print('   ✅ datasets')" 2>/dev/null || echo "   ❌ datasets missing"
+    python3 -c "import torch; print('   ✅ torch')" 2>/dev/null || echo "   ⚠️  torch missing (optional)"
+fi
 
 echo ""
 
@@ -101,11 +110,19 @@ if [[ -f "../.env" ]]; then
     
     if [[ -n "$OVH_S3_ACCESS_KEY" && -n "$OVH_S3_SECRET_KEY" ]]; then
         cd /home/vivi/pixelated
-        python3 -c "
+        if command -v uv &> /dev/null; then
+            uv run python3 -c "
 from ai.training_ready.scripts.test_ovh_s3 import *
 import sys
 sys.exit(main())
 " 2>&1 | head -20 || echo "   ⚠️  S3 test failed (may need credentials)"
+        else
+            python3 -c "
+from ai.training_ready.scripts.test_ovh_s3 import *
+import sys
+sys.exit(main())
+" 2>&1 | head -20 || echo "   ⚠️  S3 test failed (may need credentials)"
+        fi
     else
         echo "   ⚠️  OVH S3 credentials not set in .env"
     fi
