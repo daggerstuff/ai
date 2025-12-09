@@ -77,22 +77,27 @@ class HuggingFaceIngestor:
 
     DATASETS: ClassVar[dict] = {
         # Foundation
-        "Amod/mental_health_counseling_conversations": {"target": "stage1_foundation"},
-        "heliosbrahma/mental_health_chatbot_dataset": {"target": "stage1_foundation"},
+        "Amod/mental_health_counseling_conversations": {"target": "tier2_professional"},
+        "heliosbrahma/mental_health_chatbot_dataset": {"target": "tier1_foundation"},
         # Addiction
-        "fadodr/mental_health_therapy": {"target": "stage2_specialist_addiction"},
+        "fadodr/mental_health_therapy": {"target": "tier2_professional"},
         # PTSD/Trauma
-        "yenopoya/thousand-voices-trauma": {"target": "stage2_specialist_ptsd"},
+        "yenopoya/thousand-voices-trauma": {"target": "tier2_professional"},
         # Personality Disorders
-        "Kanakmi/mental-disorders": {"target": "stage2_specialist_personality"},
-        # Roleplay & Persona (NEW)
-        "google/Synthetic-Persona-Chat": {"target": "stage4_voice_persona"},
-        "nazlicanto/persona-based-chat": {"target": "stage4_voice_persona"},
-        "hieunguyenminh/roleplay": {"target": "stage4_voice_persona"},
-        "NousResearch/CharacterCodex": {"target": "stage4_voice_persona"},
-        # Model Selection / Evaluation (NEW)
-        "HuggingFaceH4/ultrafeedback_binarized": {"target": "stage_model_selection"},
-        "argilla/ultrafeedback-multi-binarized": {"target": "stage_model_selection"},
+        "Kanakmi/mental-disorders": {"target": "tier2_professional"},
+        # Chain-of-Thought Reasoning (NEW - from spec, 30K+ entries)
+        "Cartinoe5930/CoT-Clinical-Reasoning": {"target": "tier3_cot_reasoning"},
+        "Cartinoe5930/CoT-Emotional-Reasoning": {"target": "tier3_cot_reasoning"},
+        "WizardLM/WizardLM-70b-V1.0-evol-cot": {"target": "tier3_cot_reasoning"},
+        "jondurbin/bagel-dpo-34b-v0.2": {"target": "tier3_cot_reasoning"},
+        # Roleplay & Persona
+        "google/Synthetic-Persona-Chat": {"target": "tier4_voice_persona"},
+        "nazlicanto/persona-based-chat": {"target": "tier4_voice_persona"},
+        "hieunguyenminh/roleplay": {"target": "tier4_voice_persona"},
+        "NousResearch/CharacterCodex": {"target": "tier4_voice_persona"},
+        # Model Selection / Evaluation
+        "HuggingFaceH4/ultrafeedback_binarized": {"target": "tier5_research"},
+        "argilla/ultrafeedback-multi-binarized": {"target": "tier5_research"},
     }
 
     def process_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
@@ -377,7 +382,10 @@ def run_all_ingestors(bucket: str = "pixel-data", prefix: str = "datasets/traini
 
     # Local Consolidated (NEW - highest priority, 3.2GB of finalized data)
     try:
-        from ai.dataset_pipeline.sourcing.local_consolidated_ingestor import LocalConsolidatedIngestor
+        from ai.dataset_pipeline.sourcing.local_consolidated_ingestor import (
+            LocalConsolidatedIngestor,
+        )
+
         local = LocalConsolidatedIngestor()
         local_results = local.run_full_upload(bucket, "datasets/consolidated/", skip_large=True)
         results["local_consolidated"] = local_results.get("total_success", 0)
