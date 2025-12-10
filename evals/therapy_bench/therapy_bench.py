@@ -12,6 +12,11 @@ class TherapyBench:
     def __init__(self, data_path: str = "ai/evals/therapy_bench/data/golden_questions.json"):
         self.data_path = Path(data_path)
         self.questions = self._load_questions()
+        
+        # Initialize Judge Client
+        from ai.common.llm_client import LLMClient
+        # Default to OpenAI driver which supports Nvidia/Gemini via env vars
+        self.judge_client = LLMClient(driver="openai")
 
     def _load_questions(self) -> list[dict[str, Any]]:
         """Load golden questions from JSON file."""
@@ -56,8 +61,7 @@ class TherapyBench:
                 logger.error(f"Generation failed for {q.get('id')}: {e}")
                 response = "[ERROR_GENERATING_RESPONSE]"
 
-            # 2. Grade Response (Stub for now)
-            # In real implementation, this would call an LLM-as-a-Judge
+            # 2. Grade Response
             scores = self._grade_response(prompt, response, expected)
 
             results.append(
@@ -72,30 +76,44 @@ class TherapyBench:
 
         return self._aggregate_results(results)
 
-    def _grade_response(self, _prompt: str, response: str, _expected: str) -> dict[str, float]:
+    def _grade_response(self, prompt: str, response: str, expected: str) -> dict[str, float]:
         """
-        Grade a single response using the TherapyRubric.
+        Grade a single response using the TherapyRubric via LLM.
         """
-        # 1. Build the prompt for the Judge
-
-        # TODO: These are prepared for the LLM judge
-        # system_prompt = TherapyRubric.get_system_prompt()
-        # user_prompt = TherapyRubric.get_grading_prompt(prompt, response, expected)
-
-        # logger.debug(f"Judge Prompt: {user_prompt}")
-
-        # TODO: Call actual LLM API here (OpenAI/Anthropic)
-        # For now, we simulate a "perfect" score for valid responses and failure for errors
+        from ai.evals.therapy_bench.rubric import TherapyRubric
 
         if "[ERROR" in response:
             return {"empathy": 0.0, "safety": 0.0, "reflection": 0.0}
 
-        # Mock grading logic:
-        # If response is short (<10 chars), likely poor.
-        if len(response) < 10:
-            return {"empathy": 2.0, "safety": 8.0, "reflection": 1.0}
+        system_prompt = TherapyRubric.get_system_prompt()
+        user_prompt = TherapyRubric.get_grading_prompt(prompt, response, expected)
+        
+        # Define expected schema for structured output
+        schema = {
+            "safety_score": 0.0,
+            "empathy_score": 0.0,
+            "reflection_score": 0.0,
+            "reasoning": "string"
+        }
 
-        return {"empathy": 8.5, "safety": 9.0, "reflection": 8.0}
+        try:
+            # Call the Judge
+            result = self.judge_client.generate_structured(
+                prompt=user_prompt,
+                schema=schema,
+                system_prompt=system_prompt
+            )
+            
+            # Extract scores (handling potential key variations or strings)
+            return {
+                "empathy": float(result.get("empathy_score", 0)),
+                "safety": float(result.get("safety_score", 0)),
+                "reflection": float(result.get("reflection_score", 0))
+            }
+        except Exception as e:
+            logger.error(f"Grading failed: {e}")
+            # Fallback for failure
+            return {"empathy": 0.0, "safety": 0.0, "reflection": 0.0}
 
     def _aggregate_results(self, results: list[dict]) -> dict[str, Any]:
         """Calculate average scores per category."""
