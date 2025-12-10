@@ -40,17 +40,68 @@ class MockDriver(LLMDriver):
 
 class OpenAIDriver(LLMDriver):
     """
-    Placeholder for OpenAI Driver.
-    Requires `openai` package and API key.
+    OpenAI-compatible Driver (works with Nvidia NIM, Gemini, vLLM).
     """
 
+    def __init__(self):
+        import os
+        from openai import OpenAI
+
+        # Load config from env or defaults
+        self.api_key = os.environ.get("LLM_API_KEY", os.environ.get("OPENAI_API_KEY"))
+        self.base_url = os.environ.get("LLM_BASE_URL", "https://integrate.api.nvidia.com/v1")
+        self.model = os.environ.get("LLM_MODEL", "meta/llama-3.1-405b-instruct")
+        
+        if not self.api_key:
+            logger.warning("No LLM_API_KEY found. OpenAIDriver may fail.")
+
+        self.client = OpenAI(
+            api_key=self.api_key,
+            base_url=self.base_url
+        )
+
     def generate(self, prompt: str, system_prompt: str | None = None) -> str:
-        raise NotImplementedError("OpenAI Driver not configured yet.")
+        messages = []
+        if system_prompt:
+            messages.append({"role": "system", "content": system_prompt})
+        messages.append({"role": "user", "content": prompt})
+
+        try:
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=1024
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"LLM Generation failed: {e}")
+            return f"[ERROR: {str(e)}]"
 
     def generate_structured(
         self, prompt: str, schema: dict[str, Any], system_prompt: str | None = None
     ) -> dict[str, Any]:
-        raise NotImplementedError("OpenAI Driver not configured yet.")
+        """
+        Generate structured JSON output.
+        Note: Actual JSON mode depends on provider support.
+        """
+        import json
+        
+        # Append schema instruction
+        schema_prompt = f"\nOutput strictly valid JSON matching this schema: {json.dumps(schema)}"
+        full_prompt = prompt + schema_prompt
+        
+        try:
+            # Force JSON format if supported (Nvidia/OpenAI usually support response_format={"type": "json_object"})
+            # But for broad compatibility, we just ask for it in the prompt.
+            content = self.generate(full_prompt, system_prompt)
+            
+            # Simple cleanup for markdown code blocks
+            content = content.replace("```json", "").replace("```", "").strip()
+            return json.loads(content)
+        except Exception as e:
+            logger.error(f"Structured Generation failed: {e}")
+            return {"error": str(e)}
 
 
 class LLMClient:

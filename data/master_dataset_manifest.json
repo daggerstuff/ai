@@ -105,34 +105,34 @@
         "quality_profile": "foundation"
       },
       "wendy_priority_1": {
-        "path": "~/datasets/consolidated/priority_wendy/priority_1_FINAL.jsonl",
+        "path": "s3://pixel-data/datasets/consolidated/raw/priority/priority_1.jsonl",
         "size_mb": 462,
         "format": "jsonl",
         "tier": 1,
-        "status": "unavailable",
-        "note": "Dataset no longer available in Google Drive (removed 2025-11)",
+        "status": "available",
+        "note": "Consolidated and Uploaded to S3",
         "description": "Top-tier curated therapeutic conversations",
         "stage": "stage1_foundation",
         "quality_profile": "foundation"
       },
       "wendy_priority_2": {
-        "path": "~/datasets/consolidated/priority_wendy/priority_2_FINAL.jsonl",
+        "path": "s3://pixel-data/datasets/consolidated/raw/priority/priority_2.jsonl",
         "size_mb": 330,
         "format": "jsonl",
         "tier": 1,
-        "status": "unavailable",
-        "note": "Dataset no longer available in Google Drive (removed 2025-11)",
+        "status": "available",
+        "note": "Consolidated and Uploaded to S3",
         "description": "High-quality mental health data",
         "stage": "stage1_foundation",
         "quality_profile": "foundation"
       },
       "wendy_priority_3": {
-        "path": "~/datasets/consolidated/priority_wendy/priority_3_FINAL.jsonl",
+        "path": "s3://pixel-data/datasets/consolidated/raw/priority/priority_3.jsonl",
         "size_mb": 370,
         "format": "jsonl",
         "tier": 1,
-        "status": "unavailable",
-        "note": "Dataset no longer available in Google Drive (removed 2025-11)",
+        "status": "available",
+        "note": "Consolidated and Uploaded to S3",
         "description": "Specialized therapeutic content",
         "stage": "stage1_foundation",
         "quality_profile": "foundation"
