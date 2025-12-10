@@ -312,7 +312,7 @@ def load_pixel_voice_training_data(pipeline_dir: str | None = None) -> list[dict
     Returns:
         List of training examples in standard format
     """
-    loader = PixelVoiceLoader(pipeline_dir) if pipeline_dir else PixelVoiceLoader()
+    loader = PixelVoiceLoader(file_path=Path(pipeline_dir)) if pipeline_dir else PixelVoiceLoader()
 
     if not loader.check_pipeline_output_exists():
         logger.warning("Pixel Voice training data not found!")
@@ -326,39 +326,39 @@ if __name__ == "__main__":
     # Test the loader
     loader = PixelVoiceLoader()
 
-    print("Pixel Voice Training Data Loader")
-    print("=" * 60)
+    logger.info("Pixel Voice Training Data Loader")
+    logger.info("=" * 60)
 
     if not loader.check_pipeline_output_exists():
-        print("\n❌ Pixel Voice training data not found!")
-        print(loader.get_pipeline_instructions())
+        logger.warning("\n❌ Pixel Voice training data not found!")
+        logger.info(loader.get_pipeline_instructions())
     else:
-        print("\n✅ Pixel Voice training data found!")
+        logger.info("\n✅ Pixel Voice training data found!")
 
         # Load and show statistics
         stats = loader.get_statistics()
-        print("\n📊 Statistics:")
-        print(f"   Total pairs: {stats['total_pairs']}")
-        print(f"   Avg transcription quality: {stats['avg_transcription_quality']:.2f}")
-        print(f"   Avg naturalness score: {stats['avg_naturalness_score']:.2f}")
+        logger.info("\n📊 Statistics:")
+        logger.info(f"   Total pairs: {stats['total_pairs']}")
+        logger.info(f"   Avg transcription quality: {stats['avg_transcription_quality']:.2f}")
+        logger.info(f"   Avg naturalness score: {stats['avg_naturalness_score']:.2f}")
 
         if stats["personality_markers"]:
-            print("\n👤 Personality Markers:")
+            logger.info("\n👤 Personality Markers:")
             for marker, count in list(stats["personality_markers"].items())[:5]:
-                print(f"   {marker}: {count}")
+                logger.info(f"   {marker}: {count}")
 
         if stats["emotional_patterns"]:
-            print("\n😊 Emotional Patterns:")
+            logger.info("\n😊 Emotional Patterns:")
             for emotion, count in list(stats["emotional_patterns"].items())[:5]:
-                print(f"   {emotion}: {count}")
+                logger.info(f"   {emotion}: {count}")
 
         # Load training data
         training_data = loader.convert_to_training_format()
-        print(f"\n✅ Loaded {len(training_data)} training examples")
+        logger.info(f"\n✅ Loaded {len(training_data)} training examples")
 
         if training_data:
-            print("\n📝 Sample example:")
+            logger.info("\n📝 Sample example:")
             sample = training_data[0]
-            print(f"   Source: {sample['metadata']['source']}")
-            print(f"   Transcription quality: {sample['metadata']['transcription_quality']:.2f}")
-            print(f"   Text: {sample['text'][:200]}...")
+            logger.info(f"   Source: {sample['metadata']['source']}")
+            logger.info(f"   Transcription quality: {sample['metadata']['transcription_quality']:.2f}")
+            logger.info(f"   Text: {sample['text'][:200]}...")

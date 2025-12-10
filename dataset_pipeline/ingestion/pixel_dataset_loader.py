@@ -11,12 +11,12 @@ import threading
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from logger import get_logger
+from ai.dataset_pipeline.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -59,8 +59,8 @@ class DatasetInfo:
     record_count: int = 0
     format: str = "json"
     metadata: dict[str, Any] = field(default_factory=dict)
-    created_at: datetime = field(default_factory=datetime.now)
-    updated_at: datetime = field(default_factory=datetime.now)
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 @dataclass
@@ -74,7 +74,7 @@ class LoadingProgress:
     total_bytes: int = 0
     records_processed: int = 0
     total_records: int = 0
-    start_time: datetime = field(default_factory=datetime.now)
+    start_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     end_time: datetime | None = None
     error_message: str | None = None
     current_operation: str = ""
@@ -90,7 +90,7 @@ class ValidationResult:
     issues: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
-    validation_time: datetime = field(default_factory=datetime.now)
+    validation_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class PixelDatasetLoader:
@@ -152,7 +152,7 @@ class PixelDatasetLoader:
             return False
 
         dataset_info = self.datasets[dataset_id]
-        progress = self.progress[dataset_id]
+
 
         try:
             # Update status
@@ -161,7 +161,7 @@ class PixelDatasetLoader:
             )
 
             # Download phase
-            success = await self._download_dataset(dataset_info, progress)
+            success = await self._download_dataset(dataset_info)
             if not success:
                 return False
 
@@ -170,7 +170,7 @@ class PixelDatasetLoader:
                 self._update_progress(
                     dataset_id, DatasetStatus.VALIDATING, 50.0, "Validating dataset"
                 )
-                validation_result = await self._validate_dataset(dataset_info, progress)
+                validation_result = await self._validate_dataset(dataset_info)
                 self.validation_results[dataset_id] = validation_result
 
                 if not validation_result.is_valid:
@@ -187,7 +187,7 @@ class PixelDatasetLoader:
                 self._update_progress(
                     dataset_id, DatasetStatus.PROCESSING, 75.0, "Processing dataset"
                 )
-                success = await self._process_dataset(dataset_info, progress)
+                success = await self._process_dataset(dataset_info)
                 if not success:
                     return False
 
@@ -253,7 +253,7 @@ class PixelDatasetLoader:
             return results
 
     async def _download_dataset(
-        self, dataset_info: DatasetInfo, progress: LoadingProgress
+        self, dataset_info: DatasetInfo
     ) -> bool:
         """Download dataset (mock implementation)."""
         try:
@@ -300,7 +300,7 @@ class PixelDatasetLoader:
             return False
 
     async def _validate_dataset(
-        self, dataset_info: DatasetInfo, progress: LoadingProgress
+        self, dataset_info: DatasetInfo
     ) -> ValidationResult:
         """Validate downloaded dataset."""
         validation_result = ValidationResult(
@@ -350,7 +350,7 @@ class PixelDatasetLoader:
             return validation_result
 
     async def _process_dataset(
-        self, dataset_info: DatasetInfo, progress: LoadingProgress
+        self, dataset_info: DatasetInfo
     ) -> bool:
         """Process validated dataset."""
         try:
@@ -358,9 +358,9 @@ class PixelDatasetLoader:
             await asyncio.sleep(0.5)
 
             # Update metadata
-            dataset_info.updated_at = datetime.now()
+            dataset_info.updated_at = datetime.now(timezone.utc)
             dataset_info.metadata["processed"] = True
-            dataset_info.metadata["processing_time"] = datetime.now().isoformat()
+            dataset_info.metadata["processing_time"] = datetime.now(timezone.utc).isoformat()
 
             return True
 
@@ -384,7 +384,7 @@ class PixelDatasetLoader:
                 progress.current_operation = operation
 
                 if status in [DatasetStatus.COMPLETED, DatasetStatus.FAILED]:
-                    progress.end_time = datetime.now()
+                    progress.end_time = datetime.now(timezone.utc)
 
         # Notify progress callbacks
         for callback in self.progress_callbacks:
@@ -455,7 +455,7 @@ class PixelDatasetLoader:
                 "failed_downloads": failed_count,
                 "success_rate": completed_count / max(total_datasets, 1),
                 "average_quality_score": avg_quality,
-                "last_updated": datetime.now().isoformat(),
+                "last_updated": datetime.now(timezone.utc).isoformat(),
             }
 
     def cancel_dataset(self, dataset_id: str) -> bool:
@@ -470,7 +470,7 @@ class PixelDatasetLoader:
                     DatasetStatus.PROCESSING,
                 ]:
                     progress.status = DatasetStatus.CANCELLED
-                    progress.end_time = datetime.now()
+                    progress.end_time = datetime.now(timezone.utc)
 
                     self.active_downloads.discard(dataset_id)
 
