@@ -1,8 +1,8 @@
-import os
-import json
-import glob
-import logging
 import csv
+import glob
+import json
+import logging
+import os
 from collections import Counter, defaultdict
 
 # Configuration
@@ -30,54 +30,66 @@ def count_files(directory, pattern="*.json"):
     return len(glob.glob(os.path.join(directory, pattern)))
 
 
-def aggregate_metrics():
+def _load_json_list(file_path):
+    if os.path.exists(file_path):
+        with open(file_path, encoding="utf-8") as f:
+            return json.load(f)
+    return []
 
-    report = {}
-    # Quality control
-    if os.path.exists(DATA_DIRS["quality"]):
-        report["audio_quality_files"] = count_files(DATA_DIRS["quality"])
-    # Transcripts
-    if os.path.exists(DATA_DIRS["transcripts"]):
-        report["filtered_transcripts"] = count_files(DATA_DIRS["transcripts"])
-    # Features
-    if os.path.exists(DATA_DIRS["features"]):
-        report["feature_files"] = count_files(DATA_DIRS["features"])
-    # Clusters
-    if os.path.exists(DATA_DIRS["clusters"]):
-        cluster_file = os.path.join(DATA_DIRS["clusters"], "personality_emotion_clusters.json")
-        if os.path.exists(cluster_file):
-            with open(cluster_file, "r", encoding="utf-8") as f:
-                clusters = json.load(f)
-            cluster_counts = Counter([c.get("cluster") for c in clusters])
-            report["cluster_counts"] = dict(cluster_counts)
-            report["total_clustered_segments"] = len(clusters)
-    # Dialogue pairs
-    if os.path.exists(DATA_DIRS["pairs"]):
-        pair_file = os.path.join(DATA_DIRS["pairs"], "dialogue_pairs.json")
-        validated_file = os.path.join(DATA_DIRS["pairs"], "dialogue_pairs_validated.json")
-        if os.path.exists(pair_file):
-            with open(pair_file, "r", encoding="utf-8") as f:
-                pairs = json.load(f)
-            report["dialogue_pairs"] = len(pairs)
-        if os.path.exists(validated_file):
-            with open(validated_file, "r", encoding="utf-8") as f:
-                validated = json.load(f)
-            report["validated_pairs"] = len(validated)
-    # Therapeutic pairs
-    if os.path.exists(DATA_DIRS["therapeutic"]):
-        therapeutic_file = os.path.join(DATA_DIRS["therapeutic"], "therapeutic_pairs.json")
-        if os.path.exists(therapeutic_file):
-            with open(therapeutic_file, "r", encoding="utf-8") as f:
-                therapeutic = json.load(f)
-            report["therapeutic_pairs"] = len(therapeutic)
-    # Error summary from logs
+
+def _count_errors_in_logs():
     error_counts = defaultdict(int)
     for log_file in glob.glob(os.path.join(LOGS_DIR, "*.log")):
-        with open(log_file, "r", encoding="utf-8") as f:
+        with open(log_file, encoding="utf-8") as f:
             for line in f:
                 if "[ERROR]" in line:
                     error_counts[os.path.basename(log_file)] += 1
-    report["error_counts"] = dict(error_counts)
+    return dict(error_counts)
+
+
+def aggregate_metrics():
+    report = {}
+
+    # Quality control
+    if os.path.exists(DATA_DIRS["quality"]):
+        report["audio_quality_files"] = count_files(DATA_DIRS["quality"])
+
+    # Transcripts
+    if os.path.exists(DATA_DIRS["transcripts"]):
+        report["filtered_transcripts"] = count_files(DATA_DIRS["transcripts"])
+
+    # Features
+    if os.path.exists(DATA_DIRS["features"]):
+        report["feature_files"] = count_files(DATA_DIRS["features"])
+
+    # Clusters
+    cluster_file = os.path.join(DATA_DIRS["clusters"], "personality_emotion_clusters.json")
+    clusters = _load_json_list(cluster_file)
+    if clusters:
+        cluster_counts = Counter([c.get("cluster") for c in clusters])
+        report["cluster_counts"] = dict(cluster_counts)
+        report["total_clustered_segments"] = len(clusters)
+
+    # Dialogue pairs
+    pair_file = os.path.join(DATA_DIRS["pairs"], "dialogue_pairs.json")
+    pairs = _load_json_list(pair_file)
+    if pairs:
+        report["dialogue_pairs"] = len(pairs)
+
+    validated_file = os.path.join(DATA_DIRS["pairs"], "dialogue_pairs_validated.json")
+    validated = _load_json_list(validated_file)
+    if validated:
+        report["validated_pairs"] = len(validated)
+
+    # Therapeutic pairs
+    therapeutic_file = os.path.join(DATA_DIRS["therapeutic"], "therapeutic_pairs.json")
+    therapeutic = _load_json_list(therapeutic_file)
+    if therapeutic:
+        report["therapeutic_pairs"] = len(therapeutic)
+
+    # Error summary from logs
+    report["error_counts"] = _count_errors_in_logs()
+
     return report
 
 
