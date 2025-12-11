@@ -38,7 +38,6 @@ def run_stage(name, script):
             logging.warning(f"Stderr: {result.stderr}")
     except subprocess.CalledProcessError as e:
         logging.error(f"Stage '{name}' failed: {e}\nStderr: {e.stderr}")
-        print(f"Error in stage '{name}'. Check logs for details.")
         sys.exit(1)
 
 
@@ -46,7 +45,6 @@ def main():
     for name, script in PIPELINE_STAGES:
         run_stage(name, script)
     logging.info("Full pipeline completed successfully.")
-    print("Full pipeline completed successfully.")
 
 
 if __name__ == "__main__":
