@@ -1,13 +1,14 @@
-import os
-import json
 import glob
+import json
 import logging
-import numpy as np
+import os
 from pathlib import Path
-from sklearn.cluster import KMeans, DBSCAN
+
+import numpy as np
+from scipy.stats import entropy
+from sklearn.cluster import DBSCAN, KMeans
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import silhouette_score
-from scipy.stats import entropy
 
 # Configuration
 FEATURES_DIR = "data/voice_features"
@@ -26,7 +27,7 @@ def load_features(features_dir):
     all_features = []
     meta = []
     for fpath in feature_files:
-        with open(fpath, "r", encoding="utf-8") as f:
+        with open(fpath, encoding="utf-8") as f:
             feats = json.load(f)
             for seg in feats:
                 # Flatten and collect relevant features
@@ -61,59 +62,60 @@ def load_features(features_dir):
 
 
 def feature_matrix(features, keys):
-    X = []
+    x_data = []
     for f in features:
         row = []
         for k in keys:
             row.append(f.get(k, 0.0))
-        X.append(row)
-    return np.array(X)
+        x_data.append(row)
+    return np.array(x_data)
 
 
-def cluster_features(X, method="kmeans", n_clusters=5):
+def cluster_features(x_data, method="kmeans", n_clusters=5):
     if method == "kmeans":
         model = KMeans(n_clusters=n_clusters, random_state=42)
-        labels = model.fit_predict(X)
-        score = silhouette_score(X, labels) if len(set(labels)) > 1 else None
+        labels = model.fit_predict(x_data)
+        score = silhouette_score(x_data, labels) if len(set(labels)) > 1 else None
         return labels, model, score
-    elif method == "dbscan":
+    if method == "dbscan":
         model = DBSCAN(eps=0.5, min_samples=5)
-        labels = model.fit_predict(X)
-        score = silhouette_score(X, labels) if len(set(labels)) > 1 else None
+        labels = model.fit_predict(x_data)
+        score = silhouette_score(x_data, labels) if len(set(labels)) > 1 else None
         return labels, model, score
-    else:
-        raise ValueError("Unknown clustering method")
+    raise ValueError("Unknown clustering method")
 
 
-def detect_outliers(X):
+def detect_outliers(x_data):
     iso = IsolationForest(contamination=0.05, random_state=42)
-    outlier_labels = iso.fit_predict(X)
-    return outlier_labels
+    return iso.fit_predict(x_data)
 
 
-def drift_detection(X, prev_dist=None, bins=20):
+def drift_detection(x_data, bins=20):
     # Simple drift: compare histograms of first and second halves
-    mid = len(X) // 2
+    mid = len(x_data) // 2
     if mid == 0:
         return None
-    hist1, _ = np.histogram(X[:mid], bins=bins, range=(np.min(X), np.max(X)), density=True)
-    hist2, _ = np.histogram(X[mid:], bins=bins, range=(np.min(X), np.max(X)), density=True)
-    kl_div = entropy(hist1 + 1e-8, hist2 + 1e-8)
-    return kl_div
+    hist1, _ = np.histogram(
+        x_data[:mid], bins=bins, range=(np.min(x_data), np.max(x_data)), density=True
+    )
+    hist2, _ = np.histogram(
+        x_data[mid:], bins=bins, range=(np.min(x_data), np.max(x_data)), density=True
+    )
+    return entropy(hist1 + 1e-8, hist2 + 1e-8)
 
 
 def main():
-    features, meta = load_features(FEATURES_DIR)
+    features, _ = load_features(FEATURES_DIR)
     # Select numeric features for clustering
-    emotion_keys = [k for k in features[0].keys() if k.startswith("emotion_")]
-    cluster_keys = ["length", "num_words", "avg_word_length"] + emotion_keys
-    X = feature_matrix(features, cluster_keys)
+    emotion_keys = [k for k in features[0] if k.startswith("emotion_")]
+    cluster_keys = ["length", "num_words", "avg_word_length", *emotion_keys]
+    x_data = feature_matrix(features, cluster_keys)
     # Clustering
-    labels, model, sil_score = cluster_features(X, method="kmeans", n_clusters=5)
+    labels, _, sil_score = cluster_features(x_data, method="kmeans", n_clusters=5)
     # Outlier detection
-    outlier_labels = detect_outliers(X)
+    outlier_labels = detect_outliers(x_data)
     # Drift detection (on emotion features)
-    drift = drift_detection(X[:, -len(emotion_keys) :]) if emotion_keys else None
+    drift = drift_detection(x_data[:, -len(emotion_keys) :]) if emotion_keys else None
     # Save results
     results = []
     for i, f in enumerate(features):
