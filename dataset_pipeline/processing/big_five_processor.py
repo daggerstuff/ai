@@ -12,14 +12,15 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from conversation_schema import Conversation, Message
-from logger import get_logger
+from ai.dataset_pipeline.schemas.conversation_schema import Conversation, Message
+from ai.dataset_pipeline.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.big_five_processor")
 
 
 class PersonalityFactor(Enum):
     """Big Five personality factors (OCEAN model)."""
+
     OPENNESS = "openness"
     CONSCIENTIOUSNESS = "conscientiousness"
     EXTRAVERSION = "extraversion"
@@ -29,6 +30,7 @@ class PersonalityFactor(Enum):
 
 class AssessmentType(Enum):
     """Types of Big Five assessments."""
+
     NEO_PI_R = "neo_pi_r"  # NEO Personality Inventory-Revised
     BFI = "big_five_inventory"  # Big Five Inventory
     TIPI = "ten_item_personality_inventory"  # Ten-Item Personality Inventory
@@ -38,6 +40,7 @@ class AssessmentType(Enum):
 
 class ScoreLevel(Enum):
     """Personality trait score levels."""
+
     VERY_LOW = "very_low"
     LOW = "low"
     AVERAGE = "average"
@@ -48,6 +51,7 @@ class ScoreLevel(Enum):
 @dataclass
 class PersonalityFacet:
     """Individual facet within a Big Five factor."""
+
     name: str
     factor: PersonalityFactor
     description: str
@@ -60,6 +64,7 @@ class PersonalityFacet:
 @dataclass
 class AssessmentItem:
     """Individual assessment item/question."""
+
     id: str
     text: str
     factor: PersonalityFactor
@@ -72,6 +77,7 @@ class AssessmentItem:
 @dataclass
 class PersonalityProfile:
     """Complete Big Five personality profile."""
+
     factor: PersonalityFactor
     name: str
     description: str
@@ -87,6 +93,7 @@ class PersonalityProfile:
 @dataclass
 class BigFiveAssessment:
     """Complete Big Five assessment instrument."""
+
     name: str
     type: AssessmentType
     description: str
@@ -103,6 +110,7 @@ class BigFiveAssessment:
 @dataclass
 class BigFiveKnowledgeBase:
     """Complete Big Five knowledge base."""
+
     personality_profiles: list[PersonalityProfile]
     assessments: list[BigFiveAssessment]
     clinical_guidelines: dict[str, list[str]] = field(default_factory=dict)
@@ -137,13 +145,10 @@ class BigFiveProcessor:
             self._create_conscientiousness_profile(),
             self._create_extraversion_profile(),
             self._create_agreeableness_profile(),
-            self._create_neuroticism_profile()
+            self._create_neuroticism_profile(),
         ]
 
-        assessments = [
-            self._create_bfi_assessment(),
-            self._create_tipi_assessment()
-        ]
+        assessments = [self._create_bfi_assessment(), self._create_tipi_assessment()]
 
         clinical_guidelines = self._create_clinical_guidelines()
         research_findings = self._create_research_findings()
@@ -154,10 +159,12 @@ class BigFiveProcessor:
             clinical_guidelines=clinical_guidelines,
             research_findings=research_findings,
             version="Big Five Clinical Framework v1.0",
-            created_at="2024-01-01"
+            created_at="2024-01-01",
         )
 
-        logger.info(f"Initialized {len(personality_profiles)} personality profiles and {len(assessments)} assessments")
+        logger.info(
+            f"Initialized {len(personality_profiles)} personality profiles and {len(assessments)} assessments"
+        )
 
     def _create_openness_profile(self) -> PersonalityProfile:
         """Create Openness to Experience personality profile."""
@@ -169,17 +176,17 @@ class BigFiveProcessor:
                 high_score_characteristics=[
                     "Vivid imagination and fantasy life",
                     "Daydreaming and creative thinking",
-                    "Appreciation for unrealistic or unconventional ideas"
+                    "Appreciation for unrealistic or unconventional ideas",
                 ],
                 low_score_characteristics=[
                     "Practical and realistic thinking",
                     "Preference for concrete over abstract",
-                    "Limited imagination or fantasy"
+                    "Limited imagination or fantasy",
                 ],
                 clinical_implications=[
                     "High fantasy may indicate creative potential or escapism",
-                    "Low fantasy may suggest practical problem-solving style"
-                ]
+                    "Low fantasy may suggest practical problem-solving style",
+                ],
             ),
             PersonalityFacet(
                 name="Aesthetics",
@@ -188,13 +195,13 @@ class BigFiveProcessor:
                 high_score_characteristics=[
                     "Deep appreciation for art and beauty",
                     "Moved by poetry, music, and artistic expression",
-                    "Aesthetic sensitivity and artistic interests"
+                    "Aesthetic sensitivity and artistic interests",
                 ],
                 low_score_characteristics=[
                     "Limited interest in art or aesthetic experiences",
                     "Practical rather than aesthetic focus",
-                    "May find artistic pursuits unimportant"
-                ]
+                    "May find artistic pursuits unimportant",
+                ],
             ),
             PersonalityFacet(
                 name="Feelings",
@@ -203,14 +210,14 @@ class BigFiveProcessor:
                 high_score_characteristics=[
                     "Access to and awareness of feelings",
                     "Values emotional experiences",
-                    "Differentiated emotional states"
+                    "Differentiated emotional states",
                 ],
                 low_score_characteristics=[
                     "Limited emotional awareness",
                     "May suppress or ignore feelings",
-                    "Preference for rational over emotional"
-                ]
-            )
+                    "Preference for rational over emotional",
+                ],
+            ),
         ]
 
         return PersonalityProfile(
@@ -224,26 +231,26 @@ class BigFiveProcessor:
                     "Intellectually curious",
                     "Open to new experiences",
                     "Appreciates art and beauty",
-                    "Values intellectual pursuits"
+                    "Values intellectual pursuits",
                 ],
                 "low": [
                     "Conventional and traditional",
                     "Prefers familiar and routine",
                     "Practical and down-to-earth",
                     "Conservative in beliefs",
-                    "Resistant to change"
-                ]
+                    "Resistant to change",
+                ],
             },
             clinical_considerations=[
                 "High openness may correlate with creativity but also unconventional thinking",
                 "Low openness may indicate stability but potential rigidity",
-                "Consider cultural factors in interpretation"
+                "Consider cultural factors in interpretation",
             ],
             therapeutic_implications=[
                 "High openness clients may benefit from creative therapeutic approaches",
                 "Low openness clients may prefer structured, traditional interventions",
-                "Explore balance between openness and stability"
-            ]
+                "Explore balance between openness and stability",
+            ],
         )
 
     def _create_conscientiousness_profile(self) -> PersonalityProfile:
@@ -256,13 +263,13 @@ class BigFiveProcessor:
                 high_score_characteristics=[
                     "Feels capable and effective",
                     "Confident in ability to accomplish tasks",
-                    "Self-efficacious and prepared"
+                    "Self-efficacious and prepared",
                 ],
                 low_score_characteristics=[
                     "Feels unprepared or inadequate",
                     "Lacks confidence in abilities",
-                    "May avoid challenging tasks"
-                ]
+                    "May avoid challenging tasks",
+                ],
             ),
             PersonalityFacet(
                 name="Order",
@@ -271,14 +278,14 @@ class BigFiveProcessor:
                 high_score_characteristics=[
                     "Well-organized and methodical",
                     "Keeps things neat and tidy",
-                    "Plans and structures activities"
+                    "Plans and structures activities",
                 ],
                 low_score_characteristics=[
                     "Disorganized and scattered",
                     "Comfortable with mess and chaos",
-                    "Spontaneous rather than planned"
-                ]
-            )
+                    "Spontaneous rather than planned",
+                ],
+            ),
         ]
 
         return PersonalityProfile(
@@ -292,26 +299,26 @@ class BigFiveProcessor:
                     "Strong self-discipline",
                     "Achievement-oriented",
                     "Reliable and dependable",
-                    "Plans ahead and follows through"
+                    "Plans ahead and follows through",
                 ],
                 "low": [
                     "Spontaneous and flexible",
                     "May be disorganized",
                     "Difficulty with long-term goals",
                     "Prefers immediate gratification",
-                    "May procrastinate"
-                ]
+                    "May procrastinate",
+                ],
             },
             clinical_considerations=[
                 "High conscientiousness associated with better health outcomes",
                 "Low conscientiousness may indicate ADHD or impulse control issues",
-                "Consider perfectionism in high scorers"
+                "Consider perfectionism in high scorers",
             ],
             therapeutic_implications=[
                 "High conscientiousness clients may benefit from goal-setting approaches",
                 "Low conscientiousness clients may need structure and accountability",
-                "Address perfectionism or self-criticism in high scorers"
-            ]
+                "Address perfectionism or self-criticism in high scorers",
+            ],
         )
 
     def _create_extraversion_profile(self) -> PersonalityProfile:
@@ -324,13 +331,13 @@ class BigFiveProcessor:
                 high_score_characteristics=[
                     "Affectionate and friendly",
                     "Forms close attachments easily",
-                    "Genuinely likes people"
+                    "Genuinely likes people",
                 ],
                 low_score_characteristics=[
                     "Reserved and formal",
                     "Difficulty forming close relationships",
-                    "May appear cold or distant"
-                ]
+                    "May appear cold or distant",
+                ],
             ),
             PersonalityFacet(
                 name="Gregariousness",
@@ -339,14 +346,14 @@ class BigFiveProcessor:
                 high_score_characteristics=[
                     "Seeks out social situations",
                     "Enjoys being around people",
-                    "Feels comfortable in groups"
+                    "Feels comfortable in groups",
                 ],
                 low_score_characteristics=[
                     "Prefers solitude",
                     "Avoids social gatherings",
-                    "Comfortable being alone"
-                ]
-            )
+                    "Comfortable being alone",
+                ],
+            ),
         ]
 
         return PersonalityProfile(
@@ -360,26 +367,26 @@ class BigFiveProcessor:
                     "Assertive and energetic",
                     "Seeks stimulation and excitement",
                     "Talkative and expressive",
-                    "Optimistic and positive"
+                    "Optimistic and positive",
                 ],
                 "low": [
                     "Reserved and quiet",
                     "Prefers solitude",
                     "Thoughtful and reflective",
                     "Independent and self-sufficient",
-                    "May appear shy or withdrawn"
-                ]
+                    "May appear shy or withdrawn",
+                ],
             },
             clinical_considerations=[
                 "High extraversion may mask underlying issues",
                 "Low extraversion not necessarily problematic",
-                "Consider social anxiety vs. introversion"
+                "Consider social anxiety vs. introversion",
             ],
             therapeutic_implications=[
                 "High extraversion clients may benefit from group therapy",
                 "Low extraversion clients may prefer individual therapy",
-                "Respect introverted processing styles"
-            ]
+                "Respect introverted processing styles",
+            ],
         )
 
     def _create_agreeableness_profile(self) -> PersonalityProfile:
@@ -392,13 +399,13 @@ class BigFiveProcessor:
                 high_score_characteristics=[
                     "Assumes others have good intentions",
                     "Trusting and forgiving",
-                    "Believes people are fundamentally good"
+                    "Believes people are fundamentally good",
                 ],
                 low_score_characteristics=[
                     "Skeptical of others' motives",
                     "Suspicious and cynical",
-                    "Assumes others are selfish or dishonest"
-                ]
+                    "Assumes others are selfish or dishonest",
+                ],
             ),
             PersonalityFacet(
                 name="Altruism",
@@ -407,14 +414,14 @@ class BigFiveProcessor:
                 high_score_characteristics=[
                     "Genuinely concerned for others",
                     "Willing to help those in need",
-                    "Self-sacrificing and generous"
+                    "Self-sacrificing and generous",
                 ],
                 low_score_characteristics=[
                     "Self-centered and selfish",
                     "Reluctant to help others",
-                    "Puts own needs first"
-                ]
-            )
+                    "Puts own needs first",
+                ],
+            ),
         ]
 
         return PersonalityProfile(
@@ -428,26 +435,26 @@ class BigFiveProcessor:
                     "Sympathetic and helpful",
                     "Considerate of others",
                     "Avoids conflict",
-                    "Forgiving and generous"
+                    "Forgiving and generous",
                 ],
                 "low": [
                     "Competitive and skeptical",
                     "Direct and frank",
                     "Self-interested",
                     "May be argumentative",
-                    "Tough-minded"
-                ]
+                    "Tough-minded",
+                ],
             },
             clinical_considerations=[
                 "High agreeableness may indicate people-pleasing",
                 "Low agreeableness may suggest interpersonal difficulties",
-                "Consider cultural factors in interpretation"
+                "Consider cultural factors in interpretation",
             ],
             therapeutic_implications=[
                 "High agreeableness clients may need assertiveness training",
                 "Low agreeableness clients may benefit from empathy building",
-                "Address boundary issues in high scorers"
-            ]
+                "Address boundary issues in high scorers",
+            ],
         )
 
     def _create_neuroticism_profile(self) -> PersonalityProfile:
@@ -460,13 +467,13 @@ class BigFiveProcessor:
                 high_score_characteristics=[
                     "Frequently anxious and worried",
                     "Anticipates problems and dangers",
-                    "Feels tense and jittery"
+                    "Feels tense and jittery",
                 ],
                 low_score_characteristics=[
                     "Generally calm and relaxed",
                     "Rarely feels anxious",
-                    "Handles stress well"
-                ]
+                    "Handles stress well",
+                ],
             ),
             PersonalityFacet(
                 name="Depression",
@@ -475,14 +482,14 @@ class BigFiveProcessor:
                 high_score_characteristics=[
                     "Prone to feelings of sadness",
                     "Often feels hopeless or discouraged",
-                    "May experience guilt and loneliness"
+                    "May experience guilt and loneliness",
                 ],
                 low_score_characteristics=[
                     "Generally optimistic and hopeful",
                     "Rarely feels sad or discouraged",
-                    "Resilient to setbacks"
-                ]
-            )
+                    "Resilient to setbacks",
+                ],
+            ),
         ]
 
         return PersonalityProfile(
@@ -496,26 +503,26 @@ class BigFiveProcessor:
                     "Prone to anxiety and worry",
                     "May experience mood swings",
                     "Stress-sensitive",
-                    "Self-conscious and vulnerable"
+                    "Self-conscious and vulnerable",
                 ],
                 "low": [
                     "Emotionally stable and calm",
                     "Resilient to stress",
                     "Even-tempered",
                     "Self-confident",
-                    "Rarely experiences negative emotions"
-                ]
+                    "Rarely experiences negative emotions",
+                ],
             },
             clinical_considerations=[
                 "High neuroticism strongly associated with mental health issues",
                 "Low neuroticism indicates emotional resilience",
-                "Consider as risk factor for anxiety and depression"
+                "Consider as risk factor for anxiety and depression",
             ],
             therapeutic_implications=[
                 "High neuroticism clients may need emotion regulation skills",
                 "Focus on stress management and coping strategies",
-                "Address underlying anxiety and mood issues"
-            ]
+                "Address underlying anxiety and mood issues",
+            ],
         )
 
     def _create_bfi_assessment(self) -> BigFiveAssessment:
@@ -526,36 +533,36 @@ class BigFiveProcessor:
                 text="I see myself as someone who is talkative",
                 factor=PersonalityFactor.EXTRAVERSION,
                 facet="gregariousness",
-                reverse_scored=False
+                reverse_scored=False,
             ),
             AssessmentItem(
                 id="BFI_2",
                 text="I see myself as someone who tends to find fault with others",
                 factor=PersonalityFactor.AGREEABLENESS,
                 facet="trust",
-                reverse_scored=True
+                reverse_scored=True,
             ),
             AssessmentItem(
                 id="BFI_3",
                 text="I see myself as someone who does a thorough job",
                 factor=PersonalityFactor.CONSCIENTIOUSNESS,
                 facet="competence",
-                reverse_scored=False
+                reverse_scored=False,
             ),
             AssessmentItem(
                 id="BFI_4",
                 text="I see myself as someone who is depressed, blue",
                 factor=PersonalityFactor.NEUROTICISM,
                 facet="depression",
-                reverse_scored=False
+                reverse_scored=False,
             ),
             AssessmentItem(
                 id="BFI_5",
                 text="I see myself as someone who is original, comes up with new ideas",
                 factor=PersonalityFactor.OPENNESS,
                 facet="fantasy",
-                reverse_scored=False
-            )
+                reverse_scored=False,
+            ),
         ]
 
         return BigFiveAssessment(
@@ -570,19 +577,19 @@ class BigFiveProcessor:
                 "conscientiousness": 0.82,
                 "extraversion": 0.88,
                 "agreeableness": 0.79,
-                "neuroticism": 0.84
+                "neuroticism": 0.84,
             },
             scoring_guidelines=[
                 "Rate each item on 1-5 scale (strongly disagree to strongly agree)",
                 "Reverse score negatively keyed items",
                 "Sum items for each factor",
-                "Convert to percentile scores using norms"
+                "Convert to percentile scores using norms",
             ],
             clinical_applications=[
                 "Personality assessment in therapy",
                 "Treatment planning and matching",
-                "Research on personality and psychopathology"
-            ]
+                "Research on personality and psychopathology",
+            ],
         )
 
     def _create_tipi_assessment(self) -> BigFiveAssessment:
@@ -592,32 +599,32 @@ class BigFiveProcessor:
                 id="TIPI_1",
                 text="I see myself as extraverted, enthusiastic",
                 factor=PersonalityFactor.EXTRAVERSION,
-                reverse_scored=False
+                reverse_scored=False,
             ),
             AssessmentItem(
                 id="TIPI_2",
                 text="I see myself as critical, quarrelsome",
                 factor=PersonalityFactor.AGREEABLENESS,
-                reverse_scored=True
+                reverse_scored=True,
             ),
             AssessmentItem(
                 id="TIPI_3",
                 text="I see myself as dependable, self-disciplined",
                 factor=PersonalityFactor.CONSCIENTIOUSNESS,
-                reverse_scored=False
+                reverse_scored=False,
             ),
             AssessmentItem(
                 id="TIPI_4",
                 text="I see myself as anxious, easily upset",
                 factor=PersonalityFactor.NEUROTICISM,
-                reverse_scored=False
+                reverse_scored=False,
             ),
             AssessmentItem(
                 id="TIPI_5",
                 text="I see myself as open to new experiences, complex",
                 factor=PersonalityFactor.OPENNESS,
-                reverse_scored=False
-            )
+                reverse_scored=False,
+            ),
         ]
 
         return BigFiveAssessment(
@@ -632,18 +639,18 @@ class BigFiveProcessor:
                 "conscientiousness": 0.50,
                 "extraversion": 0.68,
                 "agreeableness": 0.40,
-                "neuroticism": 0.73
+                "neuroticism": 0.73,
             },
             scoring_guidelines=[
                 "Rate each item on 1-7 scale (strongly disagree to strongly agree)",
                 "Average paired items for each factor",
-                "Reverse score negatively keyed items"
+                "Reverse score negatively keyed items",
             ],
             clinical_applications=[
                 "Quick personality screening",
                 "Research applications",
-                "Time-limited assessments"
-            ]
+                "Time-limited assessments",
+            ],
         )
 
     def _create_clinical_guidelines(self) -> dict[str, list[str]]:
@@ -654,29 +661,29 @@ class BigFiveProcessor:
                 "Consider cultural and developmental factors",
                 "Interpret scores in context of client's life circumstances",
                 "Avoid pathologizing normal personality variations",
-                "Use personality data to inform treatment planning"
+                "Use personality data to inform treatment planning",
             ],
             "interpretation_guidelines": [
                 "Scores represent relative standing, not absolute traits",
                 "Consider measurement error and confidence intervals",
                 "Look for patterns across factors, not isolated scores",
                 "Integrate with clinical interview and behavioral observations",
-                "Consider stability and change over time"
+                "Consider stability and change over time",
             ],
             "therapeutic_applications": [
                 "Match therapeutic approach to personality style",
                 "Use personality insights for rapport building",
                 "Address personality-related treatment barriers",
                 "Incorporate strengths-based interventions",
-                "Monitor personality change during treatment"
+                "Monitor personality change during treatment",
             ],
             "ethical_considerations": [
                 "Obtain informed consent for personality assessment",
                 "Protect confidentiality of personality data",
                 "Avoid discriminatory use of personality information",
                 "Provide clear, understandable feedback",
-                "Consider cultural bias in assessment instruments"
-            ]
+                "Consider cultural bias in assessment instruments",
+            ],
         }
 
     def _create_research_findings(self) -> dict[str, list[str]]:
@@ -687,29 +694,29 @@ class BigFiveProcessor:
                 "Low conscientiousness associated with ADHD and substance use",
                 "High openness may correlate with creativity but also psychosis risk",
                 "Low agreeableness linked to antisocial and narcissistic traits",
-                "Extraversion shows complex relationship with well-being"
+                "Extraversion shows complex relationship with well-being",
             ],
             "treatment_outcomes": [
                 "Personality factors predict therapy engagement and outcomes",
                 "High conscientiousness associated with better treatment adherence",
                 "High neuroticism may require longer treatment duration",
                 "Personality-matched interventions show improved effectiveness",
-                "Big Five factors moderate response to different therapy types"
+                "Big Five factors moderate response to different therapy types",
             ],
             "developmental_patterns": [
                 "Personality shows moderate stability across lifespan",
                 "Mean-level changes occur with age and life experiences",
                 "Conscientiousness and agreeableness tend to increase with age",
                 "Neuroticism typically decreases in adulthood",
-                "Openness may decline in later life"
+                "Openness may decline in later life",
             ],
             "cultural_considerations": [
                 "Big Five structure replicated across many cultures",
                 "Mean levels vary significantly between cultures",
                 "Cultural values influence personality expression",
                 "Assessment instruments may show cultural bias",
-                "Interpretation requires cultural competence"
-            ]
+                "Interpretation requires cultural competence",
+            ],
         }
 
     def get_personality_profiles(self) -> list[PersonalityProfile]:
@@ -758,7 +765,7 @@ class BigFiveProcessor:
             Message(
                 role="therapist",
                 content=f"I'd like to explore your {profile.name.lower()} with you. This will help me understand your personality style better.",
-                meta={"type": "introduction", "factor": factor.value}
+                meta={"type": "introduction", "factor": factor.value},
             )
         ]
 
@@ -767,34 +774,40 @@ class BigFiveProcessor:
         profile.score_interpretations.get("low", [])
 
         if high_chars:
-            assessment_messages.append(Message(
-                role="therapist",
-                content=f"Some people describe themselves as {high_chars[0].lower()}. How would you describe yourself in this area?",
-                meta={"characteristic_type": "high", "factor": factor.value}
-            ))
+            assessment_messages.append(
+                Message(
+                    role="therapist",
+                    content=f"Some people describe themselves as {high_chars[0].lower()}. How would you describe yourself in this area?",
+                    meta={"characteristic_type": "high", "factor": factor.value},
+                )
+            )
 
-            assessment_messages.append(Message(
-                role="client",
-                content=f"I think I am fairly {high_chars[0].lower()}. For example, I often find myself engaging in activities that reflect this trait.",
-                meta={"response_type": "high_agreement", "factor": factor.value}
-            ))
+            assessment_messages.append(
+                Message(
+                    role="client",
+                    content=f"I think I am fairly {high_chars[0].lower()}. For example, I often find myself engaging in activities that reflect this trait.",
+                    meta={"response_type": "high_agreement", "factor": factor.value},
+                )
+            )
 
         # Create therapeutic conversation
         therapeutic_messages = [
             Message(
                 role="therapist",
                 content=f"Based on our discussion about your {profile.name.lower()}, I'd like to explore how this affects your daily life and relationships.",
-                meta={"type": "therapeutic_exploration", "factor": factor.value}
+                meta={"type": "therapeutic_exploration", "factor": factor.value},
             )
         ]
 
         if profile.therapeutic_implications:
             implication = profile.therapeutic_implications[0]
-            therapeutic_messages.append(Message(
-                role="therapist",
-                content=f"Given your personality style, {implication.lower()}. How does this resonate with your experience?",
-                meta={"therapeutic_implication": True, "factor": factor.value}
-            ))
+            therapeutic_messages.append(
+                Message(
+                    role="therapist",
+                    content=f"Given your personality style, {implication.lower()}. How does this resonate with your experience?",
+                    meta={"therapeutic_implication": True, "factor": factor.value},
+                )
+            )
 
         # Create assessment conversation
         assessment_conversation = Conversation(
@@ -803,13 +816,13 @@ class BigFiveProcessor:
             context={
                 "factor": factor.value,
                 "profile_name": profile.name,
-                "type": "personality_assessment"
+                "type": "personality_assessment",
             },
             source="big_five_processor",
             meta={
                 "clinical_considerations": profile.clinical_considerations,
-                "therapeutic_implications": profile.therapeutic_implications
-            }
+                "therapeutic_implications": profile.therapeutic_implications,
+            },
         )
 
         # Create therapeutic conversation
@@ -819,13 +832,13 @@ class BigFiveProcessor:
             context={
                 "factor": factor.value,
                 "profile_name": profile.name,
-                "type": "therapeutic_exploration"
+                "type": "therapeutic_exploration",
             },
             source="big_five_processor",
             meta={
                 "clinical_considerations": profile.clinical_considerations,
-                "therapeutic_implications": profile.therapeutic_implications
-            }
+                "therapeutic_implications": profile.therapeutic_implications,
+            },
         )
 
         conversations.extend([assessment_conversation, therapeutic_conversation])
@@ -847,7 +860,7 @@ class BigFiveProcessor:
                 "personality_profiles": [],
                 "assessments": [],
                 "clinical_guidelines": self.knowledge_base.clinical_guidelines,
-                "research_findings": self.knowledge_base.research_findings
+                "research_findings": self.knowledge_base.research_findings,
             }
 
             # Convert personality profiles
@@ -905,7 +918,7 @@ class BigFiveProcessor:
             "assessment_types": [],
             "total_facets": 0,
             "total_assessment_items": 0,
-            "version": self.knowledge_base.version
+            "version": self.knowledge_base.version,
         }
 
         for profile in self.knowledge_base.personality_profiles:

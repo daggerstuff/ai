@@ -1,192 +1,207 @@
 """
-Tier Balancer
+6-Tier Dataset Balancer.
 
-Balances datasets across tiers according to training ratio strategy.
-Ensures proper distribution per tier weights.
+Implements the training ratio strategy from TRAINING_DATA.md spec:
+- Tier 1: Curated Priority (40%)
+- Tier 2: Professional Therapeutic (25%)
+- Tier 3: Chain-of-Thought Reasoning (20%)
+- Tier 4: Voice/Persona (10%)
+- Tier 5: Research & Specialized (4%)
+- Tier 6: Knowledge Base (1%)
 """
 
+import json
 import logging
 import random
-from typing import Dict, List, Optional
-
-from conversation_schema import Conversation
+from collections.abc import Iterator
+from dataclasses import dataclass
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
+@dataclass
+class TierConfig:
+    """Configuration for a dataset tier."""
+
+    name: str
+    quality_threshold: float  # 0-1
+    training_weight: float  # 0-1, sum should = 1
+    description: str
+
+
 class TierBalancer:
     """
-    Balances datasets across tiers according to training ratio strategy.
-
-    Training Ratio Strategy:
-    - Tier 1: 40% weight
-    - Tier 2: 25% weight
-    - Tier 3: 20% weight
-    - Tier 4: 10% weight
-    - Tier 5: 4% weight
-    - Tier 6: 1% weight (reference)
+    Balances datasets across 6 tiers according to training ratio strategy.
     """
 
-    # Tier weights for training ratio strategy
-    TIER_WEIGHTS = {
-        1: 0.40,
-        2: 0.25,
-        3: 0.20,
-        4: 0.10,
-        5: 0.04,
-        6: 0.01,
+    TIERS: dict[str, TierConfig] = {
+        "tier1_priority": TierConfig(
+            name="Curated Priority",
+            quality_threshold=0.99,
+            training_weight=0.40,
+            description="Gold-standard therapeutic conversations",
+        ),
+        "tier2_professional": TierConfig(
+            name="Professional Therapeutic",
+            quality_threshold=0.95,
+            training_weight=0.25,
+            description="Clinical-grade professional therapy",
+        ),
+        "tier3_cot_reasoning": TierConfig(
+            name="Chain-of-Thought Reasoning",
+            quality_threshold=0.90,
+            training_weight=0.20,
+            description="Advanced therapeutic reasoning patterns",
+        ),
+        "tier4_voice_persona": TierConfig(
+            name="Voice & Persona",
+            quality_threshold=0.85,
+            training_weight=0.10,
+            description="Tim Fletcher, YouTube transcripts, persona data",
+        ),
+        "tier5_research": TierConfig(
+            name="Research & Specialized",
+            quality_threshold=0.80,
+            training_weight=0.04,
+            description="Academic research datasets",
+        ),
+        "tier6_knowledge": TierConfig(
+            name="Knowledge Base",
+            quality_threshold=1.0,  # Reference quality
+            training_weight=0.01,
+            description="DSM-5, psychology concepts, reference",
+        ),
     }
 
-    def __init__(self, random_seed: Optional[int] = None):
+    def __init__(self, base_path: Path = Path("ai/training_ready/datasets")):
+        self.base_path = base_path
+        self.tier_data: dict[str, list[dict]] = {tier: [] for tier in self.TIERS}
+
+    def load_tier(self, tier_name: str) -> list[dict]:
+        """Load all data from a tier directory."""
+        tier_path = self.base_path / tier_name
+        data = []
+
+        if not tier_path.exists():
+            logger.warning(f"Tier path not found: {tier_path}")
+            return data
+
+        for file_path in tier_path.glob("*.jsonl"):
+            with open(file_path) as f:
+                for line in f:
+                    try:
+                        data.append(json.loads(line))
+                    except json.JSONDecodeError:
+                        continue
+
+        for file_path in tier_path.glob("*.json"):
+            with open(file_path) as f:
+                try:
+                    content = json.load(f)
+                    if isinstance(content, list):
+                        data.extend(content)
+                    else:
+                        data.append(content)
+                except json.JSONDecodeError:
+                    continue
+
+        logger.info(f"Loaded {len(data)} records from {tier_name}")
+        return data
+
+    def load_all_tiers(self) -> dict[str, list[dict]]:
+        """Load all tier data."""
+        for tier_name in self.TIERS:
+            self.tier_data[tier_name] = self.load_tier(tier_name)
+        return self.tier_data
+
+    def sample_balanced(self, total_samples: int) -> Iterator[tuple[str, dict]]:
         """
-        Initialize tier balancer.
+        Sample data according to tier weights.
 
-        Args:
-            random_seed: Optional random seed for reproducibility
+        Yields (tier_name, record) tuples balanced by training weights.
         """
-        if random_seed is not None:
-            random.seed(random_seed)
+        samples_per_tier = {}
 
-        logger.info("Initialized TierBalancer")
+        for tier_name, config in self.TIERS.items():
+            target_count = int(total_samples * config.training_weight)
+            available = len(self.tier_data.get(tier_name, []))
 
-    def balance_datasets(
-        self,
-        tier_datasets: Dict[int, List[Conversation]],
-        target_total: Optional[int] = None,
-    ) -> List[Conversation]:
-        """
-        Balance conversations across tiers according to training ratio strategy.
-
-        Args:
-            tier_datasets: Dictionary mapping tier number to list of conversations
-            target_total: Optional target total number of conversations
-
-        Returns:
-            Balanced list of conversations
-        """
-        logger.info("Balancing datasets across tiers")
-
-        # Calculate available conversations per tier
-        tier_counts = {
-            tier: len(convs) for tier, convs in tier_datasets.items()
-        }
-
-        total_available = sum(tier_counts.values())
-        logger.info(f"Total available conversations: {total_available}")
-
-        # Determine target counts per tier
-        if target_total is None:
-            target_total = total_available
-
-        tier_targets = {}
-        for tier, weight in self.TIER_WEIGHTS.items():
-            if tier in tier_datasets:
-                target_count = int(target_total * weight)
-                available_count = tier_counts[tier]
-                # Don't exceed available
-                tier_targets[tier] = min(target_count, available_count)
-            else:
-                tier_targets[tier] = 0
-
-        logger.info(f"Tier targets: {tier_targets}")
-
-        # Sample conversations from each tier
-        balanced_conversations = []
-
-        for tier, target_count in tier_targets.items():
-            if tier not in tier_datasets:
+            if available == 0:
+                samples_per_tier[tier_name] = 0
                 continue
 
-            conversations = tier_datasets[tier]
+            # Take min of target and available
+            samples_per_tier[tier_name] = min(target_count, available)
 
-            if target_count >= len(conversations):
-                # Use all conversations
-                balanced_conversations.extend(conversations)
-                logger.info(
-                    f"Tier {tier}: Using all {len(conversations)} conversations"
-                )
-            else:
-                # Sample target_count conversations
-                sampled = random.sample(conversations, target_count)
-                balanced_conversations.extend(sampled)
-                logger.info(
-                    f"Tier {tier}: Sampled {target_count} from {len(conversations)} conversations"
-                )
+        logger.info(f"Sampling distribution: {samples_per_tier}")
 
-        logger.info(
-            f"Balanced dataset: {len(balanced_conversations)} total conversations"
-        )
+        # Yield samples from each tier
+        for tier_name, count in samples_per_tier.items():
+            tier_samples = self.tier_data.get(tier_name, [])
+            if not tier_samples:
+                continue
 
-        return balanced_conversations
+            # Random sample
+            selected = random.sample(tier_samples, min(count, len(tier_samples)))
+            for record in selected:
+                yield (tier_name, record)
 
-    def get_tier_distribution(
-        self, conversations: List[Conversation]
-    ) -> Dict[int, int]:
+    def create_balanced_dataset(self, total_samples: int, output_path: Path) -> dict:
         """
-        Get distribution of conversations across tiers.
+        Create a balanced mixed dataset.
 
-        Args:
-            conversations: List of conversations
-
-        Returns:
-            Dictionary mapping tier number to count
+        Returns statistics about the created dataset.
         """
-        distribution = {}
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
-        for conv in conversations:
-            tier = conv.metadata.get("tier", 0)
-            distribution[tier] = distribution.get(tier, 0) + 1
+        stats = dict.fromkeys(self.TIERS, 0)
 
-        return distribution
+        with open(output_path, "w") as f:
+            for tier_name, record in self.sample_balanced(total_samples):
+                # Add tier metadata
+                record["_tier"] = tier_name
+                record["_tier_weight"] = self.TIERS[tier_name].training_weight
+                f.write(json.dumps(record) + "\n")
+                stats[tier_name] += 1
 
-    def validate_distribution(
-        self, conversations: List[Conversation], tolerance: float = 0.05
-    ) -> tuple[bool, Dict[str, Any]]:
-        """
-        Validate that distribution matches training ratio strategy.
+        total = sum(stats.values())
+        logger.info(f"Created balanced dataset with {total} samples at {output_path}")
+        logger.info(f"Distribution: {stats}")
 
-        Args:
-            conversations: List of conversations
-            tolerance: Tolerance for deviation from target weights
-
-        Returns:
-            Tuple of (is_valid, validation_details)
-        """
-        total = len(conversations)
-        if total == 0:
-            return False, {"error": "No conversations provided"}
-
-        distribution = self.get_tier_distribution(conversations)
-
-        validation_details = {
-            "total": total,
-            "distribution": distribution,
-            "target_weights": self.TIER_WEIGHTS,
-            "actual_weights": {},
-            "deviations": {},
-            "within_tolerance": {},
+        return {
+            "output_path": str(output_path),
+            "total_samples": total,
+            "distribution": stats,
+            "weights": {t: c.training_weight for t, c in self.TIERS.items()},
         }
 
-        all_valid = True
+    def get_tier_stats(self) -> dict[str, dict]:
+        """Get statistics for each tier."""
+        stats = {}
+        for tier_name, config in self.TIERS.items():
+            data = self.tier_data.get(tier_name, [])
+            stats[tier_name] = {
+                "name": config.name,
+                "count": len(data),
+                "target_weight": config.training_weight,
+                "quality_threshold": config.quality_threshold,
+            }
+        return stats
 
-        for tier, target_weight in self.TIER_WEIGHTS.items():
-            actual_count = distribution.get(tier, 0)
-            actual_weight = actual_count / total if total > 0 else 0.0
 
-            deviation = abs(actual_weight - target_weight)
-            within_tolerance = deviation <= tolerance
+def create_balanced_training_set(total_samples: int = 50000) -> dict:
+    """
+    Create a balanced training set using the 6-tier system.
+    """
+    balancer = TierBalancer()
+    balancer.load_all_tiers()
 
-            validation_details["actual_weights"][tier] = actual_weight
-            validation_details["deviations"][tier] = deviation
-            validation_details["within_tolerance"][tier] = within_tolerance
+    output_path = Path("ai/training_ready/datasets/final_balanced/balanced_train.jsonl")
+    return balancer.create_balanced_dataset(total_samples, output_path)
 
-            if not within_tolerance:
-                all_valid = False
-                logger.warning(
-                    f"Tier {tier} distribution out of tolerance: "
-                    f"target={target_weight:.2%}, actual={actual_weight:.2%}, "
-                    f"deviation={deviation:.2%}"
-                )
 
-        return all_valid, validation_details
-
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    result = create_balanced_training_set(10000)
+    print(json.dumps(result, indent=2))

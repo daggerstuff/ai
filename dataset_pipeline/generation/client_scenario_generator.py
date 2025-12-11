@@ -14,11 +14,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from big_five_processor import BigFiveProcessor, PersonalityFactor
-from conversation_schema import Conversation, Message
-from dsm5_parser import DSM5Parser, DSMCategory, DSMDisorder
-from logger import get_logger
-from pdm2_parser import PDM2Parser
+from ai.dataset_pipeline.processing.big_five_processor import BigFiveProcessor, PersonalityFactor
+from ai.dataset_pipeline.processing.dsm5_parser import DSM5Parser, DSMCategory, DSMDisorder
+from ai.dataset_pipeline.processing.pdm2_parser import PDM2Parser
+from ai.dataset_pipeline.schemas.conversation_schema import Conversation, Message
+from ai.dataset_pipeline.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.client_scenario_generator")
 
@@ -361,7 +361,7 @@ class ClientScenarioGenerator:
         )
 
         # Generate session context
-        session_context = self._generate_session_context(scenario_type, demographics)
+        session_context = self._generate_session_context(scenario_type)
 
         # Generate therapeutic considerations
         therapeutic_considerations = self._generate_therapeutic_considerations(
@@ -389,7 +389,9 @@ class ClientScenarioGenerator:
             therapeutic_considerations=therapeutic_considerations,
             learning_objectives=learning_objectives,
             complexity_factors=complexity_factors,
-            created_at=datetime.now(timezone.utc).isoformat(),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+            created_at=datetime.now(
+                timezone.utc
+            ).isoformat(),  # DEBUG: timezone.utc used, flagged by Ruff UP017
         )
 
         logger.info(
@@ -643,7 +645,8 @@ class ClientScenarioGenerator:
 
         # Presenting problem risk factors
         if (
-            "severe" in presenting_problem.duration.lower()  # DEBUG: W503 - line break before binary operator
+            "severe"
+            in presenting_problem.duration.lower()  # DEBUG: W503 - line break before binary operator
             or "chronic" in presenting_problem.duration.lower()
         ):
             risk_factors.append("Chronic nature of symptoms")
@@ -738,7 +741,8 @@ class ClientScenarioGenerator:
         return goals[:4]  # Limit to 4 goals
 
     def _generate_session_context(
-        self, scenario_type: ScenarioType, demographics: ClientDemographics  # DEBUG: demographics argument is unused (Ruff ARG002)
+        self,
+        scenario_type: ScenarioType,
     ) -> dict[str, Any]:
         """Generate session context information."""
         context = {
@@ -936,7 +940,9 @@ class ClientScenarioGenerator:
                 "scenarios": [],
                 "metadata": {
                     "total_scenarios": len(scenarios),
-                    "generated_at": datetime.now(timezone.utc).isoformat(),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+                    "generated_at": datetime.now(
+                        timezone.utc
+                    ).isoformat(),  # DEBUG: timezone.utc used, flagged by Ruff UP017
                     "generator_version": "1.0",
                 },
             }
@@ -973,19 +979,25 @@ class ClientScenarioGenerator:
                 Message(
                     role="therapist",
                     content="Hello, I'm glad you decided to come in today. What brings you to therapy?",
-                    timestamp=datetime.now(timezone.utc),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+                    timestamp=datetime.now(
+                        timezone.utc
+                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
                     meta={"type": "opening", "scenario_id": scenario.id},
                 ),
                 Message(
                     role="client",
                     content=f"I've been struggling with {scenario.presenting_problem.primary_concern.lower()}. It's been going on for {scenario.presenting_problem.duration.lower()}.",
-                    timestamp=datetime.now(timezone.utc),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+                    timestamp=datetime.now(
+                        timezone.utc
+                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
                     meta={"presenting_problem": True, "scenario_id": scenario.id},
                 ),
                 Message(
                     role="therapist",
                     content="I can hear that this has been difficult for you. Can you tell me more about when these feelings started?",
-                    timestamp=datetime.now(timezone.utc),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+                    timestamp=datetime.now(
+                        timezone.utc
+                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
                     meta={"technique": "reflection", "scenario_id": scenario.id},
                 ),
             ]
@@ -997,7 +1009,9 @@ class ClientScenarioGenerator:
                     Message(
                         role="client",
                         content=f"I've been experiencing {symptom.lower()}, and it's really affecting my daily life.",
-                        timestamp=datetime.now(timezone.utc),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+                        timestamp=datetime.now(
+                            timezone.utc
+                        ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
                         meta={"symptom_disclosure": True, "scenario_id": scenario.id},
                     )
                 )
@@ -1007,13 +1021,17 @@ class ClientScenarioGenerator:
                 Message(
                     role="therapist",
                     content="I understand you're going through a very difficult time right now. I want you to know that you're safe here, and we're going to work through this together.",
-                    timestamp=datetime.now(timezone.utc),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+                    timestamp=datetime.now(
+                        timezone.utc
+                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
                     meta={"type": "crisis_opening", "scenario_id": scenario.id},
                 ),
                 Message(
                     role="client",
                     content="I don't know what to do anymore. Everything feels overwhelming and I can't handle it.",
-                    timestamp=datetime.now(timezone.utc),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+                    timestamp=datetime.now(
+                        timezone.utc
+                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
                     meta={"crisis_expression": True, "scenario_id": scenario.id},
                 ),
             ]
@@ -1023,13 +1041,17 @@ class ClientScenarioGenerator:
                 Message(
                     role="therapist",
                     content="How have you been since our last session?",
-                    timestamp=datetime.now(timezone.utc),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+                    timestamp=datetime.now(
+                        timezone.utc
+                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
                     meta={"type": "check_in", "scenario_id": scenario.id},
                 ),
                 Message(
                     role="client",
                     content=f"I've been working on what we discussed, but I'm still dealing with {scenario.presenting_problem.primary_concern.lower()}.",
-                    timestamp=datetime.now(timezone.utc),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+                    timestamp=datetime.now(
+                        timezone.utc
+                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
                     meta={"progress_update": True, "scenario_id": scenario.id},
                 ),
             ]
@@ -1045,7 +1067,9 @@ class ClientScenarioGenerator:
                 "clinical_formulation": asdict(scenario.clinical_formulation),
             },
             source="client_scenario_generator",
-            created_at=datetime.now(timezone.utc),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+            created_at=datetime.now(
+                timezone.utc
+            ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
             meta={
                 "learning_objectives": scenario.learning_objectives,
                 "therapeutic_considerations": scenario.therapeutic_considerations,
@@ -1262,7 +1286,8 @@ class ClientScenarioGenerator:
         strengths = []
         if (
             len(scenario.presenting_problem.symptoms) >= MINIMUM_SYMPTOMS
-            and len(scenario.presenting_problem.triggers) >= MINIMUM_TRIGGERS  # DEBUG: W503 - line break before binary operator
+            and len(scenario.presenting_problem.triggers)
+            >= MINIMUM_TRIGGERS  # DEBUG: W503 - line break before binary operator
             and scenario.presenting_problem.duration  # DEBUG: W503 - line break before binary operator
         ):
             points += 2
@@ -1280,7 +1305,8 @@ class ClientScenarioGenerator:
         strengths = []
         if (
             len(scenario.clinical_formulation.dsm5_considerations) >= 1
-            and len(scenario.clinical_formulation.treatment_goals) >= MINIMUM_GOALS  # DEBUG: W503 - line break before binary operator
+            and len(scenario.clinical_formulation.treatment_goals)
+            >= MINIMUM_GOALS  # DEBUG: W503 - line break before binary operator
         ):
             points += 2
             strengths.append("Comprehensive clinical formulation")
@@ -1313,7 +1339,8 @@ class ClientScenarioGenerator:
         strengths = []
         if (
             len(scenario.complexity_factors) >= MINIMUM_COMPLEXITY_FACTORS
-            and len(scenario.therapeutic_considerations) >= MINIMUM_CONSIDERATIONS  # DEBUG: W503 - line break before binary operator
+            and len(scenario.therapeutic_considerations)
+            >= MINIMUM_CONSIDERATIONS  # DEBUG: W503 - line break before binary operator
         ):
             points += 2
             strengths.append("Realistic complexity and considerations")

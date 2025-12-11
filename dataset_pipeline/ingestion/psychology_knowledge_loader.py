@@ -5,11 +5,10 @@ Loads 4,867+ psychology concepts, DSM-5 definitions, and therapeutic techniques
 """
 
 import json
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Dict, Optional
-from dataclasses import dataclass
 
-from ..utils.logger import get_logger
+from ai.dataset_pipeline.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.psychology_knowledge_loader")
 
@@ -17,13 +16,14 @@ logger = get_logger("dataset_pipeline.psychology_knowledge_loader")
 @dataclass
 class PsychologyConcept:
     """Structured psychology knowledge concept"""
+
     concept_id: str
     title: str
     content: str
     category: str
-    subcategory: Optional[str] = None
-    related_concepts: List[str] = None
-    therapeutic_approaches: List[str] = None
+    subcategory: str | None = None
+    related_concepts: list[str] = None
+    therapeutic_approaches: list[str] = None
     source: str = "psychology_knowledge"
 
     def __post_init__(self):
@@ -32,7 +32,7 @@ class PsychologyConcept:
         if self.therapeutic_approaches is None:
             self.therapeutic_approaches = []
 
-    def to_training_format(self) -> Dict:
+    def to_training_format(self) -> dict:
         """Convert to standard training format"""
         # Create Q&A format for knowledge
         prompt = f"Explain {self.title} in a therapeutic context."
@@ -53,41 +53,67 @@ class PsychologyConcept:
                 "related_concepts": self.related_concepts,
                 "therapeutic_approaches": self.therapeutic_approaches,
                 "is_knowledge_base": True,
-                "is_edge_case": False
-            }
+                "is_edge_case": False,
+            },
         }
+
+
+@dataclass
+class PsychologyKnowledgeConfig:
+    """Configuration for PsychologyKnowledgeLoader"""
+
+    knowledge_base_paths: list[Path] = field(
+        default_factory=lambda: [
+            Path("ai/pixel/knowledge/psychology_knowledge_base_optimized.json"),
+            Path("ai/training_data_consolidated/psychology_knowledge_base_optimized.json"),
+            Path("ai/dataset_pipeline/data/psychology_knowledge_base.json"),
+        ]
+    )
 
 
 class PsychologyKnowledgeLoader:
     """Loader for psychology knowledge base"""
 
-    def __init__(self, knowledge_base_path: Optional[str] = None):
-        if knowledge_base_path:
-            self.knowledge_file = Path(knowledge_base_path)
+    def __init__(
+        self, config: PsychologyKnowledgeConfig | None = None, file_path: Path | None = None
+    ):
+        self.config = config or PsychologyKnowledgeConfig()
+
+        # Use provided file path or find it in default locations
+        if file_path:
+            path = Path(file_path)
+            if path.is_dir():
+                candidates = [
+                    path / "psychology_knowledge_base_optimized.json",
+                    path / "psychology_knowledge_base.json",
+                ]
+                self.knowledge_file = candidates[0]
+                for candidate in candidates:
+                    if candidate.exists():
+                        self.knowledge_file = candidate
+                        break
+            else:
+                self.knowledge_file = path
         else:
-            # Try multiple possible locations
-            possible_paths = [
-                Path("ai/pixel/knowledge/psychology_knowledge_base_optimized.json"),
-                Path("ai/training_data_consolidated/psychology_knowledge_base_optimized.json"),
-                Path("ai/dataset_pipeline/data/psychology_knowledge_base.json"),
-            ]
             self.knowledge_file = None
-            for path in possible_paths:
+            for path in self.config.knowledge_base_paths:
                 if path.exists():
                     self.knowledge_file = path
                     break
 
-    def load_concepts(self) -> List[PsychologyConcept]:
+    def load_concepts(self) -> list[PsychologyConcept]:
         """Load all psychology concepts"""
         if not self.knowledge_file or not self.knowledge_file.exists():
-            logger.warning(f"Psychology knowledge base not found")
+            logger.warning("Psychology knowledge base not found")
             logger.info("Searched locations:")
             logger.info("  - ai/pixel/knowledge/psychology_knowledge_base_optimized.json")
-            logger.info("  - ai/training_data_consolidated/psychology_knowledge_base_optimized.json")
+            logger.info(
+                "  - ai/training_data_consolidated/psychology_knowledge_base_optimized.json"
+            )
             return []
 
         try:
-            with open(self.knowledge_file, 'r') as f:
+            with open(self.knowledge_file) as f:
                 data = json.load(f)
 
             concepts = []
@@ -97,14 +123,16 @@ class PsychologyKnowledgeLoader:
                 items = data
             elif isinstance(data, dict):
                 # Get concepts - could be a list or a dict
-                concepts_data = data.get('concepts', data.get('knowledge', []))
+                concepts_data = data.get("concepts", data.get("knowledge", []))
                 if isinstance(concepts_data, dict):
                     # Convert dict to list of values
                     items = list(concepts_data.values())
                 elif isinstance(concepts_data, list):
                     items = concepts_data
                 else:
-                    logger.error(f"Unexpected concepts format in {self.knowledge_file}: {type(concepts_data)}")
+                    logger.error(
+                        f"Unexpected concepts format in {self.knowledge_file}: {type(concepts_data)}"
+                    )
                     return []
             else:
                 logger.error(f"Unexpected data format in {self.knowledge_file}: {type(data)}")
@@ -118,14 +146,18 @@ class PsychologyKnowledgeLoader:
                         continue
 
                     concept = PsychologyConcept(
-                        concept_id=item.get('id', item.get('concept_id', f"psych_{idx:04d}")),
-                        title=item.get('title', item.get('name', item.get('concept', ''))),
-                        content=item.get('content', item.get('description', item.get('definition', ''))),
-                        category=item.get('category', item.get('type', 'general')),
-                        subcategory=item.get('subcategory', item.get('subtype')),
-                        related_concepts=item.get('related_concepts', item.get('related', [])),
-                        therapeutic_approaches=item.get('therapeutic_approaches', item.get('approaches', [])),
-                        source=item.get('source', 'psychology_knowledge')
+                        concept_id=item.get("id", item.get("concept_id", f"psych_{idx:04d}")),
+                        title=item.get("title", item.get("name", item.get("concept", ""))),
+                        content=item.get(
+                            "content", item.get("description", item.get("definition", ""))
+                        ),
+                        category=item.get("category", item.get("type", "general")),
+                        subcategory=item.get("subcategory", item.get("subtype")),
+                        related_concepts=item.get("related_concepts", item.get("related", [])),
+                        therapeutic_approaches=item.get(
+                            "therapeutic_approaches", item.get("approaches", [])
+                        ),
+                        source=item.get("source", "psychology_knowledge"),
                     )
 
                     # Only add if has meaningful content
@@ -143,14 +175,14 @@ class PsychologyKnowledgeLoader:
             logger.error(f"Failed to load psychology knowledge: {e}")
             return []
 
-    def load_by_category(self, category: str) -> List[PsychologyConcept]:
+    def load_by_category(self, category: str) -> list[PsychologyConcept]:
         """Load concepts filtered by category"""
         all_concepts = self.load_concepts()
         filtered = [c for c in all_concepts if c.category == category]
         logger.info(f"Loaded {len(filtered)} concepts for category '{category}'")
         return filtered
 
-    def get_statistics(self) -> Dict:
+    def get_statistics(self) -> dict:
         """Get statistics about loaded psychology knowledge"""
         concepts = self.load_concepts()
 
@@ -159,7 +191,7 @@ class PsychologyKnowledgeLoader:
                 "total_concepts": 0,
                 "categories": {},
                 "subcategories": {},
-                "therapeutic_approaches": {}
+                "therapeutic_approaches": {},
             }
 
         # Count by category
@@ -184,10 +216,12 @@ class PsychologyKnowledgeLoader:
             "categories": categories,
             "subcategories": subcategories,
             "therapeutic_approaches": approaches,
-            "file_path": str(self.knowledge_file) if self.knowledge_file else None
+            "file_path": str(self.knowledge_file) if self.knowledge_file else None,
         }
 
-    def convert_to_training_format(self, concepts: Optional[List[PsychologyConcept]] = None) -> List[Dict]:
+    def convert_to_training_format(
+        self, concepts: list[PsychologyConcept] | None = None
+    ) -> list[dict]:
         """Convert psychology concepts to standard training format"""
         if concepts is None:
             concepts = self.load_concepts()
@@ -239,7 +273,7 @@ To set up the psychology knowledge base:
 """
 
 
-def load_psychology_knowledge(knowledge_base_path: Optional[str] = None) -> List[Dict]:
+def load_psychology_knowledge(knowledge_base_path: str | None = None) -> list[dict]:
     """
     Convenience function to load psychology knowledge
 
@@ -263,37 +297,41 @@ if __name__ == "__main__":
     # Test the loader
     loader = PsychologyKnowledgeLoader()
 
-    print("Psychology Knowledge Base Loader")
-    print("=" * 60)
+    logger.info("Psychology Knowledge Base Loader")
+    logger.info("=" * 60)
 
     if not loader.check_knowledge_base_exists():
-        print("\n❌ Psychology knowledge base not found!")
-        print(loader.get_setup_instructions())
+        logger.warning("\n❌ Psychology knowledge base not found!")
+        logger.info(loader.get_setup_instructions())
     else:
-        print(f"\n✅ Psychology knowledge base found: {loader.knowledge_file}")
+        logger.info(f"\n✅ Psychology knowledge base found: {loader.knowledge_file}")
 
         # Load and show statistics
         stats = loader.get_statistics()
-        print(f"\n📊 Statistics:")
-        print(f"   Total concepts: {stats['total_concepts']}")
-        print(f"   Categories: {len(stats['categories'])}")
+        logger.info("\n📊 Statistics:")
+        logger.info(f"   Total concepts: {stats['total_concepts']}")
+        logger.info(f"   Categories: {len(stats['categories'])}")
 
-        print(f"\n📚 Top Categories:")
-        for category, count in sorted(stats['categories'].items(), key=lambda x: x[1], reverse=True)[:10]:
-            print(f"   {category}: {count}")
+        logger.info("\n📚 Top Categories:")
+        for category, count in sorted(
+            stats["categories"].items(), key=lambda x: x[1], reverse=True
+        )[:10]:
+            logger.info(f"   {category}: {count}")
 
-        if stats['therapeutic_approaches']:
-            print(f"\n🔧 Therapeutic Approaches:")
-            for approach, count in sorted(stats['therapeutic_approaches'].items(), key=lambda x: x[1], reverse=True)[:10]:
-                print(f"   {approach}: {count}")
+        if stats["therapeutic_approaches"]:
+            logger.info("\n🔧 Therapeutic Approaches:")
+            for approach, count in sorted(
+                stats["therapeutic_approaches"].items(), key=lambda x: x[1], reverse=True
+            )[:10]:
+                logger.info(f"   {approach}: {count}")
 
         # Load training data
         training_data = loader.convert_to_training_format()
-        print(f"\n✅ Loaded {len(training_data)} training examples")
+        logger.info(f"\n✅ Loaded {len(training_data)} training examples")
 
         if training_data:
-            print(f"\n📝 Sample example:")
+            logger.info("\n📝 Sample example:")
             sample = training_data[0]
-            print(f"   Category: {sample['metadata']['category']}")
-            print(f"   Concept: {sample['metadata']['concept_id']}")
-            print(f"   Text: {sample['text'][:200]}...")
+            logger.info(f"   Category: {sample['metadata']['category']}")
+            logger.info(f"   Concept: {sample['metadata']['concept_id']}")
+            logger.info(f"   Text: {sample['text'][:200]}...")

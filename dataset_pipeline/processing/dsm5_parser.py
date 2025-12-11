@@ -11,14 +11,15 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from conversation_schema import Conversation, Message
-from logger import get_logger
+from ai.dataset_pipeline.schemas.conversation_schema import Conversation, Message
+from ai.dataset_pipeline.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.dsm5_parser")
 
 
 class DSMCategory(Enum):
     """DSM-5 diagnostic categories."""
+
     NEURODEVELOPMENTAL = "neurodevelopmental_disorders"
     SCHIZOPHRENIA_SPECTRUM = "schizophrenia_spectrum_psychotic_disorders"
     BIPOLAR = "bipolar_related_disorders"
@@ -43,6 +44,7 @@ class DSMCategory(Enum):
 
 class SeverityLevel(Enum):
     """Severity levels for disorders."""
+
     MILD = "mild"
     MODERATE = "moderate"
     SEVERE = "severe"
@@ -52,6 +54,7 @@ class SeverityLevel(Enum):
 @dataclass
 class DSMCriterion:
     """Individual DSM-5 diagnostic criterion."""
+
     id: str
     description: str
     category: str = ""
@@ -63,6 +66,7 @@ class DSMCriterion:
 @dataclass
 class DSMSpecifier:
     """DSM-5 specifiers for disorders."""
+
     name: str
     description: str
     options: list[str] = field(default_factory=list)
@@ -72,6 +76,7 @@ class DSMSpecifier:
 @dataclass
 class DSMDisorder:
     """Complete DSM-5 disorder definition."""
+
     code: str
     name: str
     category: DSMCategory
@@ -92,6 +97,7 @@ class DSMDisorder:
 @dataclass
 class DSMKnowledgeBase:
     """Complete DSM-5 knowledge base."""
+
     disorders: list[DSMDisorder]
     categories: dict[str, list[str]] = field(default_factory=dict)
     cross_references: dict[str, list[str]] = field(default_factory=dict)
@@ -127,14 +133,14 @@ class DSM5Parser:
             self._create_ocd(),
             self._create_bipolar_disorder(),
             self._create_adhd(),
-            self._create_autism_spectrum_disorder()
+            self._create_autism_spectrum_disorder(),
         ]
 
         self.knowledge_base = DSMKnowledgeBase(
             disorders=sample_disorders,
             categories=self._build_category_mapping(sample_disorders),
             version="DSM-5-TR Sample",
-            created_at="2024-01-01"
+            created_at="2024-01-01",
         )
 
         logger.info(f"Initialized {len(sample_disorders)} sample DSM-5 disorders")
@@ -149,8 +155,8 @@ class DSM5Parser:
                 examples=[
                     "Feeling sad, empty, or hopeless",
                     "Appears tearful to others",
-                    "Irritable mood in children and adolescents"
-                ]
+                    "Irritable mood in children and adolescents",
+                ],
             ),
             DSMCriterion(
                 id="A2",
@@ -159,8 +165,8 @@ class DSM5Parser:
                 examples=[
                     "Loss of interest in hobbies",
                     "Withdrawal from social activities",
-                    "Decreased sexual interest"
-                ]
+                    "Decreased sexual interest",
+                ],
             ),
             DSMCriterion(
                 id="A3",
@@ -168,8 +174,8 @@ class DSM5Parser:
                 category="physical_symptoms",
                 examples=[
                     "Weight change of more than 5% in a month",
-                    "Decreased or increased appetite nearly every day"
-                ]
+                    "Decreased or increased appetite nearly every day",
+                ],
             ),
             DSMCriterion(
                 id="A4",
@@ -178,8 +184,8 @@ class DSM5Parser:
                 examples=[
                     "Difficulty falling asleep",
                     "Early morning awakening",
-                    "Sleeping too much"
-                ]
+                    "Sleeping too much",
+                ],
             ),
             DSMCriterion(
                 id="A5",
@@ -187,8 +193,8 @@ class DSM5Parser:
                 category="motor_symptoms",
                 examples=[
                     "Restlessness or feeling slowed down",
-                    "Observable by others, not merely subjective"
-                ]
+                    "Observable by others, not merely subjective",
+                ],
             ),
             DSMCriterion(
                 id="A6",
@@ -196,8 +202,8 @@ class DSM5Parser:
                 category="energy_symptoms",
                 examples=[
                     "Feeling tired without physical exertion",
-                    "Decreased efficiency in tasks"
-                ]
+                    "Decreased efficiency in tasks",
+                ],
             ),
             DSMCriterion(
                 id="A7",
@@ -205,17 +211,14 @@ class DSM5Parser:
                 category="cognitive_symptoms",
                 examples=[
                     "Self-blame for things beyond control",
-                    "Feelings of personal inadequacy"
-                ]
+                    "Feelings of personal inadequacy",
+                ],
             ),
             DSMCriterion(
                 id="A8",
                 description="Diminished ability to think or concentrate, or indecisiveness",
                 category="cognitive_symptoms",
-                examples=[
-                    "Difficulty making decisions",
-                    "Problems with memory or concentration"
-                ]
+                examples=["Difficulty making decisions", "Problems with memory or concentration"],
             ),
             DSMCriterion(
                 id="A9",
@@ -224,9 +227,9 @@ class DSM5Parser:
                 examples=[
                     "Fear of dying",
                     "Suicidal thoughts without specific plan",
-                    "Suicide attempt or specific plan"
-                ]
-            )
+                    "Suicide attempt or specific plan",
+                ],
+            ),
         ]
 
         specifiers = [
@@ -234,21 +237,33 @@ class DSM5Parser:
                 name="severity",
                 description="Severity of current episode",
                 options=["mild", "moderate", "severe"],
-                required=True
+                required=True,
             ),
             DSMSpecifier(
                 name="course",
                 description="Course specifiers",
-                options=["single_episode", "recurrent", "in_partial_remission", "in_full_remission"]
+                options=[
+                    "single_episode",
+                    "recurrent",
+                    "in_partial_remission",
+                    "in_full_remission",
+                ],
             ),
             DSMSpecifier(
                 name="features",
                 description="Additional features",
-                options=["with_anxious_distress", "with_mixed_features", "with_melancholic_features",
-                        "with_atypical_features", "with_mood_congruent_psychotic_features",
-                        "with_mood_incongruent_psychotic_features", "with_catatonia",
-                        "with_peripartum_onset", "with_seasonal_pattern"]
-            )
+                options=[
+                    "with_anxious_distress",
+                    "with_mixed_features",
+                    "with_melancholic_features",
+                    "with_atypical_features",
+                    "with_mood_congruent_psychotic_features",
+                    "with_mood_incongruent_psychotic_features",
+                    "with_catatonia",
+                    "with_peripartum_onset",
+                    "with_seasonal_pattern",
+                ],
+            ),
         ]
 
         return DSMDisorder(
@@ -263,13 +278,13 @@ class DSM5Parser:
             exclusions=[
                 "Symptoms not attributable to physiological effects of substance or medical condition",
                 "Not better explained by schizoaffective, schizophrenia, or other psychotic disorders",
-                "No history of manic or hypomanic episodes"
+                "No history of manic or hypomanic episodes",
             ],
             differential_diagnosis=[
                 "Bipolar Disorder",
                 "Persistent Depressive Disorder",
                 "Adjustment Disorder with Depressed Mood",
-                "Substance-Induced Mood Disorder"
+                "Substance-Induced Mood Disorder",
             ],
             prevalence="Approximately 7% in the United States",
             onset_pattern="Can occur at any age, with peak in 20s",
@@ -278,14 +293,14 @@ class DSM5Parser:
                 "Family history of depression",
                 "Stressful life events",
                 "Medical conditions",
-                "Substance use"
+                "Substance use",
             ],
             functional_consequences=[
                 "Impaired work performance",
                 "Relationship difficulties",
                 "Increased medical morbidity",
-                "Suicide risk"
-            ]
+                "Suicide risk",
+            ],
         )
 
     def _create_generalized_anxiety_disorder(self) -> DSMDisorder:
@@ -298,8 +313,8 @@ class DSM5Parser:
                 examples=[
                     "Worry about work performance",
                     "Concern about family safety",
-                    "Anxiety about future events"
-                ]
+                    "Anxiety about future events",
+                ],
             ),
             DSMCriterion(
                 id="B",
@@ -308,34 +323,24 @@ class DSM5Parser:
                 examples=[
                     "Unable to stop worrying",
                     "Worry interferes with concentration",
-                    "Worry feels overwhelming"
-                ]
+                    "Worry feels overwhelming",
+                ],
             ),
             DSMCriterion(
                 id="C1",
                 description="Restlessness or feeling keyed up or on edge",
-                category="physical_symptoms"
+                category="physical_symptoms",
             ),
             DSMCriterion(
-                id="C2",
-                description="Being easily fatigued",
-                category="physical_symptoms"
+                id="C2", description="Being easily fatigued", category="physical_symptoms"
             ),
             DSMCriterion(
                 id="C3",
                 description="Difficulty concentrating or mind going blank",
-                category="cognitive_symptoms"
+                category="cognitive_symptoms",
             ),
-            DSMCriterion(
-                id="C4",
-                description="Irritability",
-                category="emotional_symptoms"
-            ),
-            DSMCriterion(
-                id="C5",
-                description="Muscle tension",
-                category="physical_symptoms"
-            ),
+            DSMCriterion(id="C4", description="Irritability", category="emotional_symptoms"),
+            DSMCriterion(id="C5", description="Muscle tension", category="physical_symptoms"),
             DSMCriterion(
                 id="C6",
                 description="Sleep disturbance",
@@ -343,9 +348,9 @@ class DSM5Parser:
                 examples=[
                     "Difficulty falling asleep",
                     "Staying asleep",
-                    "Restless, unsatisfying sleep"
-                ]
-            )
+                    "Restless, unsatisfying sleep",
+                ],
+            ),
         ]
 
         return DSMDisorder(
@@ -358,13 +363,13 @@ class DSM5Parser:
             severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
             exclusions=[
                 "Not attributable to physiological effects of substance or medical condition",
-                "Not better explained by another mental disorder"
+                "Not better explained by another mental disorder",
             ],
             differential_diagnosis=[
                 "Panic Disorder",
                 "Social Anxiety Disorder",
                 "Obsessive-Compulsive Disorder",
-                "Adjustment Disorder with Anxiety"
+                "Adjustment Disorder with Anxiety",
             ],
             prevalence="Approximately 2.9% annually in the United States",
             onset_pattern="Can begin in childhood, adolescence, or adulthood",
@@ -373,8 +378,8 @@ class DSM5Parser:
                 "Family history of anxiety",
                 "Stressful life events",
                 "Chronic medical conditions",
-                "Substance use"
-            ]
+                "Substance use",
+            ],
         )
 
     def _create_panic_disorder(self) -> DSMDisorder:
@@ -387,13 +392,13 @@ class DSM5Parser:
                 examples=[
                     "Sudden onset of intense fear",
                     "Peak within minutes",
-                    "Four or more panic attack symptoms"
-                ]
+                    "Four or more panic attack symptoms",
+                ],
             ),
             DSMCriterion(
                 id="B1",
                 description="Persistent concern about additional panic attacks",
-                category="worry_symptoms"
+                category="worry_symptoms",
             ),
             DSMCriterion(
                 id="B2",
@@ -402,8 +407,8 @@ class DSM5Parser:
                 examples=[
                     "Fear of losing control",
                     "Fear of having a heart attack",
-                    "Fear of going crazy"
-                ]
+                    "Fear of going crazy",
+                ],
             ),
             DSMCriterion(
                 id="B3",
@@ -412,9 +417,9 @@ class DSM5Parser:
                 examples=[
                     "Avoidance of exercise",
                     "Avoidance of unfamiliar situations",
-                    "Avoidance of being alone"
-                ]
-            )
+                    "Avoidance of being alone",
+                ],
+            ),
         ]
 
         return DSMDisorder(
@@ -427,17 +432,17 @@ class DSM5Parser:
             severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
             exclusions=[
                 "Not attributable to physiological effects of substance or medical condition",
-                "Not better explained by another mental disorder"
+                "Not better explained by another mental disorder",
             ],
             differential_diagnosis=[
                 "Generalized Anxiety Disorder",
                 "Specific Phobia",
                 "Social Anxiety Disorder",
-                "Agoraphobia"
+                "Agoraphobia",
             ],
             prevalence="Approximately 2-3% annually in the United States",
             onset_pattern="Typically begins in late adolescence or early adulthood",
-            course="Variable; may be episodic or persistent"
+            course="Variable; may be episodic or persistent",
         )
 
     def _create_ptsd(self) -> DSMDisorder:
@@ -451,8 +456,8 @@ class DSM5Parser:
                     "Directly experiencing traumatic event",
                     "Witnessing traumatic event",
                     "Learning of traumatic event to close family/friend",
-                    "Repeated exposure to aversive details"
-                ]
+                    "Repeated exposure to aversive details",
+                ],
             ),
             DSMCriterion(
                 id="B",
@@ -463,17 +468,14 @@ class DSM5Parser:
                     "Recurrent distressing dreams",
                     "Dissociative reactions (flashbacks)",
                     "Intense psychological distress at cues",
-                    "Marked physiological reactions to cues"
-                ]
+                    "Marked physiological reactions to cues",
+                ],
             ),
             DSMCriterion(
                 id="C",
                 description="Persistent avoidance of stimuli associated with traumatic event",
                 category="avoidance_symptoms",
-                examples=[
-                    "Avoidance of distressing memories",
-                    "Avoidance of external reminders"
-                ]
+                examples=["Avoidance of distressing memories", "Avoidance of external reminders"],
             ),
             DSMCriterion(
                 id="D",
@@ -486,8 +488,8 @@ class DSM5Parser:
                     "Persistent negative emotional state",
                     "Diminished interest in activities",
                     "Feelings of detachment from others",
-                    "Inability to experience positive emotions"
-                ]
+                    "Inability to experience positive emotions",
+                ],
             ),
             DSMCriterion(
                 id="E",
@@ -499,9 +501,9 @@ class DSM5Parser:
                     "Hypervigilance",
                     "Exaggerated startle response",
                     "Problems with concentration",
-                    "Sleep disturbance"
-                ]
-            )
+                    "Sleep disturbance",
+                ],
+            ),
         ]
 
         return DSMDisorder(
@@ -516,17 +518,17 @@ class DSM5Parser:
                 DSMSpecifier(
                     name="dissociative_symptoms",
                     description="With dissociative symptoms",
-                    options=["depersonalization", "derealization"]
+                    options=["depersonalization", "derealization"],
                 ),
                 DSMSpecifier(
                     name="delayed_expression",
                     description="With delayed expression",
-                    options=["delayed_onset"]
-                )
+                    options=["delayed_onset"],
+                ),
             ],
             prevalence="Approximately 3.5% annually in the United States",
             onset_pattern="Can occur at any age",
-            course="Variable; may be acute or chronic"
+            course="Variable; may be acute or chronic",
         )
 
     def _create_ocd(self) -> DSMDisorder:
@@ -538,8 +540,8 @@ class DSM5Parser:
                 category="core_symptoms",
                 examples=[
                     "Obsessions: recurrent, persistent thoughts/urges/images",
-                    "Compulsions: repetitive behaviors or mental acts"
-                ]
+                    "Compulsions: repetitive behaviors or mental acts",
+                ],
             )
         ]
 
@@ -550,7 +552,7 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=1,
             duration_requirement="Time-consuming or cause distress",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE]
+            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
         )
 
     def _create_bipolar_disorder(self) -> DSMDisorder:
@@ -559,7 +561,7 @@ class DSM5Parser:
             DSMCriterion(
                 id="A",
                 description="Criteria have been met for at least one manic episode",
-                category="manic_episode"
+                category="manic_episode",
             )
         ]
 
@@ -570,7 +572,7 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=1,
             duration_requirement="Variable",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE]
+            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
         )
 
     def _create_adhd(self) -> DSMDisorder:
@@ -579,7 +581,7 @@ class DSM5Parser:
             DSMCriterion(
                 id="A",
                 description="Persistent pattern of inattention and/or hyperactivity-impulsivity",
-                category="core_symptoms"
+                category="core_symptoms",
             )
         ]
 
@@ -590,7 +592,7 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=1,
             duration_requirement="6 months",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE]
+            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
         )
 
     def _create_autism_spectrum_disorder(self) -> DSMDisorder:
@@ -599,13 +601,13 @@ class DSM5Parser:
             DSMCriterion(
                 id="A",
                 description="Persistent deficits in social communication and social interaction",
-                category="social_communication"
+                category="social_communication",
             ),
             DSMCriterion(
                 id="B",
                 description="Restricted, repetitive patterns of behavior, interests, or activities",
-                category="restricted_repetitive"
-            )
+                category="restricted_repetitive",
+            ),
         ]
 
         return DSMDisorder(
@@ -615,7 +617,7 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=2,
             duration_requirement="Early developmental period",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE]
+            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
         )
 
     def _build_category_mapping(self, disorders: list[DSMDisorder]) -> dict[str, list[str]]:
@@ -690,14 +692,16 @@ class DSM5Parser:
                 "created_at": self.knowledge_base.created_at,
                 "disorders": [],
                 "categories": self.knowledge_base.categories,
-                "cross_references": self.knowledge_base.cross_references
+                "cross_references": self.knowledge_base.cross_references,
             }
 
             for disorder in self.knowledge_base.disorders:
                 disorder_dict = asdict(disorder)
                 # Convert enums to strings
                 disorder_dict["category"] = disorder.category.value
-                disorder_dict["severity_levels"] = [level.value for level in disorder.severity_levels]
+                disorder_dict["severity_levels"] = [
+                    level.value for level in disorder.severity_levels
+                ]
                 export_data["disorders"].append(disorder_dict)
 
             # Ensure output directory exists
@@ -728,7 +732,9 @@ class DSM5Parser:
             for disorder_data in data.get("disorders", []):
                 # Convert string enums back to enum objects
                 disorder_data["category"] = DSMCategory(disorder_data["category"])
-                disorder_data["severity_levels"] = [SeverityLevel(level) for level in disorder_data.get("severity_levels", [])]
+                disorder_data["severity_levels"] = [
+                    SeverityLevel(level) for level in disorder_data.get("severity_levels", [])
+                ]
 
                 # Convert criteria
                 criteria = []
@@ -749,7 +755,7 @@ class DSM5Parser:
                 categories=data.get("categories", {}),
                 cross_references=data.get("cross_references", {}),
                 version=data.get("version", "Unknown"),
-                created_at=data.get("created_at")
+                created_at=data.get("created_at"),
             )
 
             logger.info(f"Loaded DSM-5 knowledge base from {input_path}")
@@ -773,26 +779,30 @@ class DSM5Parser:
             Message(
                 role="therapist",
                 content=f"I'd like to ask you some questions to better understand what you've been experiencing. These questions relate to {disorder.name}.",
-                meta={"type": "introduction", "disorder": disorder.name}
+                meta={"type": "introduction", "disorder": disorder.name},
             )
         ]
 
         for criterion in disorder.criteria:
             # Therapist question
-            diagnostic_messages.append(Message(
-                role="therapist",
-                content=f"Have you experienced: {criterion.description}?",
-                meta={"criterion_id": criterion.id, "category": criterion.category}
-            ))
+            diagnostic_messages.append(
+                Message(
+                    role="therapist",
+                    content=f"Have you experienced: {criterion.description}?",
+                    meta={"criterion_id": criterion.id, "category": criterion.category},
+                )
+            )
 
             # Sample client response
             if criterion.examples:
                 example = criterion.examples[0]
-                diagnostic_messages.append(Message(
-                    role="client",
-                    content=f"Yes, I have been experiencing {example.lower()}.",
-                    meta={"criterion_id": criterion.id, "example": True}
-                ))
+                diagnostic_messages.append(
+                    Message(
+                        role="client",
+                        content=f"Yes, I have been experiencing {example.lower()}.",
+                        meta={"criterion_id": criterion.id, "example": True},
+                    )
+                )
 
         diagnostic_conversation = Conversation(
             id=f"dsm5_diagnostic_{disorder.code}",
@@ -801,13 +811,13 @@ class DSM5Parser:
                 "disorder": disorder.name,
                 "code": disorder.code,
                 "category": disorder.category.value,
-                "type": "diagnostic_assessment"
+                "type": "diagnostic_assessment",
             },
             source="dsm5_parser",
             meta={
                 "minimum_criteria": disorder.minimum_criteria_count,
-                "duration_requirement": disorder.duration_requirement
-            }
+                "duration_requirement": disorder.duration_requirement,
+            },
         )
 
         conversations.append(diagnostic_conversation)
@@ -825,7 +835,7 @@ class DSM5Parser:
             "categories": {},
             "total_criteria": 0,
             "disorders_by_severity": {},
-            "version": self.knowledge_base.version
+            "version": self.knowledge_base.version,
         }
 
         for disorder in self.knowledge_base.disorders:
