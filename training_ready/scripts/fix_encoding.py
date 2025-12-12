@@ -5,11 +5,16 @@ Converts files to UTF-8 encoding
 """
 
 import argparse
+import codecs
+import contextlib
 import json
 import logging
 import sys
+import tempfile
 import time
+from collections.abc import Iterator
 from datetime import datetime, timezone
+from io import BytesIO
 from pathlib import Path
 from typing import Any
 
@@ -29,6 +34,8 @@ DEFAULT_S3_BUCKET = "pixel-data"
 MAX_RETRIES = 3
 INITIAL_RETRY_DELAY = 5  # seconds
 PROGRESS_INTERVAL = 10000  # Show progress every N lines
+DETECT_SAMPLE_BYTES = 64 * 1024
+INVALID_LINE_SAMPLE_LIMIT = 25
 
 
 class OutputHandler:
@@ -77,6 +84,44 @@ def detect_encoding(content: bytes) -> tuple[str, float]:
     encoding = result.get("encoding") or "utf-8"
     confidence = result.get("confidence", 0.0)
     return encoding, confidence
+
+
+def _unique_encodings(encodings: list[str]) -> list[str]:
+    """Return encodings list de-duped while preserving order."""
+    seen: set[str] = set()
+    result: list[str] = []
+    for enc in encodings:
+        normalized = enc.strip()
+        if not normalized:
+            continue
+        key = normalized.lower()
+        if key in seen:
+            continue
+        seen.add(key)
+        result.append(normalized)
+    return result
+
+
+def build_decode_candidates(*, detected_encoding: str) -> list[str]:
+    """
+    Build a prioritized list of encodings to attempt.
+
+    Notes:
+    - Always try utf-8 first.
+    - Include the detector suggestion early (chardet often guesses MacRoman/cp1252).
+    - Keep latin-1 last since it never fails but may misinterpret characters.
+    """
+    common = [
+        "utf-8",
+        detected_encoding,
+        "macroman",
+        "cp1252",
+        "windows-1252",
+        "iso-8859-1",
+        "latin-1",
+        "utf-16",
+    ]
+    return _unique_encodings(common)
 
 
 def try_decode(content: bytes, encodings: list[str] | None = None) -> tuple[str | None, str | None]:
@@ -131,6 +176,232 @@ def download_with_retry(
                 continue
             return None
     return None
+
+
+def download_sample_with_retry(
+    *,
+    loader: S3DatasetLoader,
+    bucket: str,
+    key: str,
+    output: OutputHandler,
+    sample_bytes: int = DETECT_SAMPLE_BYTES,
+) -> bytes | None:
+    """Download a small prefix sample from S3 (for encoding detection)."""
+    retry_delay = INITIAL_RETRY_DELAY
+
+    # S3 Range header is inclusive.
+    range_header = f"bytes=0-{max(sample_bytes - 1, 0)}"
+
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            if attempt > 1:
+                output.info(f"Retry {attempt}/{MAX_RETRIES}...", end="", flush=True)
+
+            try:
+                response = loader.s3_client.get_object(Bucket=bucket, Key=key, Range=range_header)
+                return response["Body"].read()
+            except ClientError:
+                # Some S3 compatibles may not support Range consistently; fallback.
+                response = loader.s3_client.get_object(Bucket=bucket, Key=key)
+                body = response["Body"]
+                try:
+                    return body.read(sample_bytes)
+                finally:
+                    with contextlib.suppress(Exception):
+                        body.close()
+        except (EndpointConnectionError, ReadTimeoutError, ClientError) as e:
+            if attempt < MAX_RETRIES:
+                error_msg = str(e)[:50]
+                output.warning(f"Connection error (attempt {attempt}): {error_msg}...")
+                output.info(f"Waiting {retry_delay}s...", end="", flush=True)
+                time.sleep(retry_delay)
+                retry_delay *= 2
+                continue
+            return None
+
+    return None
+
+
+def iter_s3_jsonl_lines_bytes(
+    *,
+    loader: S3DatasetLoader,
+    bucket: str,
+    key: str,
+) -> Iterator[bytes]:
+    """
+    Yield JSONL lines as raw bytes from an S3 object body.
+
+    Uses body.iter_lines() when available; falls back to manual buffering.
+    """
+    response = loader.s3_client.get_object(Bucket=bucket, Key=key)
+    body = response["Body"]
+
+    iter_lines = getattr(body, "iter_lines", None)
+    if callable(iter_lines):
+        for raw_line in body.iter_lines():
+            if raw_line:
+                yield raw_line
+        return
+
+    # Fallback: manual buffering across chunks.
+    buffer = BytesIO()
+    for chunk in body.iter_chunks(chunk_size=8192):
+        buffer.write(chunk)
+        while True:
+            buffer.seek(0)
+            line = buffer.readline()
+            if not line:
+                buffer = BytesIO()
+                break
+            if not line.endswith(b"\n"):
+                rest = buffer.read()
+                buffer = BytesIO(line + rest)
+                break
+            if stripped := line.rstrip(b"\r\n"):
+                yield stripped
+
+            rest = buffer.read()
+            buffer = BytesIO(rest)
+
+
+def check_jsonl_utf8_streaming(
+    *,
+    loader: S3DatasetLoader,
+    bucket: str,
+    key: str,
+) -> bool:
+    """Check UTF-8 validity without loading entire file into memory."""
+    for raw_line in iter_s3_jsonl_lines_bytes(loader=loader, bucket=bucket, key=key):
+        raw_line.decode("utf-8")  # strict
+    return True
+
+
+def convert_jsonl_streaming_to_utf8(
+    *,
+    loader: S3DatasetLoader,
+    bucket: str,
+    key: str,
+    encoding_used: str,
+    dry_run: bool,
+    output: OutputHandler,
+) -> dict[str, Any]:
+    """
+    Convert a JSONL file from `encoding_used` to UTF-8 in a streaming manner.
+
+    - Never stores full file content in memory.
+    - In live mode, writes utf-8 JSONL to a temp file and uploads via multipart.
+    """
+    invalid_samples: list[dict[str, Any]] = []
+    invalid_count = 0
+    valid_count = 0
+    line_num = 0
+
+    tmp_path: str | None = None
+    tmp_file = None
+
+    try:
+        if not dry_run:
+            tmp_file = tempfile.NamedTemporaryFile("wb", delete=False)
+            tmp_path = tmp_file.name
+
+        encoder = codecs.getincrementalencoder("utf-8")()
+
+        for raw_line in iter_s3_jsonl_lines_bytes(loader=loader, bucket=bucket, key=key):
+            line_num += 1
+
+            try:
+                decoded_line = raw_line.decode(encoding_used)
+            except (UnicodeDecodeError, LookupError) as e:
+                raise UnicodeDecodeError(
+                    encoding_used,
+                    raw_line,
+                    getattr(e, "start", 0),
+                    getattr(e, "end", 1),
+                    str(e),
+                ) from e
+
+            stripped_line = decoded_line.strip()
+            if not stripped_line:
+                continue
+
+            try:
+                entry = json.loads(stripped_line)
+                valid_count += 1
+
+                if not dry_run and tmp_file is not None:
+                    out_line = json.dumps(entry, ensure_ascii=False) + "\n"
+                    tmp_file.write(encoder.encode(out_line))
+            except json.JSONDecodeError as e:
+                invalid_count += 1
+                if len(invalid_samples) < INVALID_LINE_SAMPLE_LIMIT:
+                    invalid_samples.append(
+                        {
+                            "line": line_num,
+                            "error": str(e),
+                            "preview": stripped_line[:100],
+                        }
+                    )
+                if line_num <= 5:
+                    output.warning(f"Line {line_num}: JSON decode error - {e}")
+
+            if line_num % PROGRESS_INTERVAL == 0:
+                output.info(f" ({line_num:,} lines)...", end="", flush=True)
+
+        if dry_run:
+            return {
+                "success": True,
+                "dry_run": True,
+                "original_encoding": encoding_used,
+                "entries_count": valid_count,
+                "invalid_lines": invalid_count,
+                "invalid_line_samples": invalid_samples,
+            }
+
+        if tmp_file is None or tmp_path is None:
+            return {"success": False, "error": "Internal error: temp file not created"}
+
+        tmp_file.flush()
+        tmp_file.close()
+
+        # Upload with retry using multipart transfer manager.
+        retry_delay = INITIAL_RETRY_DELAY
+        for upload_attempt in range(1, MAX_RETRIES + 1):
+            try:
+                output.info("Uploading to S3...", end="", flush=True)
+                with open(tmp_path, "rb") as f:
+                    loader.s3_client.upload_fileobj(
+                        Fileobj=f,
+                        Bucket=bucket,
+                        Key=key,
+                        ExtraArgs={"ContentType": "application/x-ndjson"},
+                    )
+                output.info(" ✅")
+                break
+            except (EndpointConnectionError, ReadTimeoutError, ClientError):
+                if upload_attempt < MAX_RETRIES:
+                    output.info("Upload failed, retrying...", end="", flush=True)
+                    time.sleep(retry_delay)
+                    retry_delay *= 2
+                    continue
+                raise
+
+        bytes_after = Path(tmp_path).stat().st_size
+        return {
+            "success": True,
+            "dry_run": False,
+            "original_encoding": encoding_used,
+            "entries_count": valid_count,
+            "invalid_lines": invalid_count,
+            "invalid_line_samples": invalid_samples,
+            "bytes_after": bytes_after,
+        }
+    finally:
+        if tmp_file is not None:
+            with contextlib.suppress(Exception):
+                tmp_file.close()
+        if tmp_path is not None:
+            with contextlib.suppress(Exception):
+                Path(tmp_path).unlink(missing_ok=True)
 
 
 class UploadConfig:
@@ -236,29 +507,21 @@ def process_jsonl_file(
 
     output.info(f"\n  📝 Processing: {filename}")
 
-    # Download with retry
-    content = download_with_retry(loader, bucket, key, output)
-    if content is None:
-        return {
-            "success": False,
-            "error": f"Connection failed after {MAX_RETRIES} attempts",
-        }
-
     try:
-        # Detect and decode
-        detected_encoding, confidence = detect_encoding(content)
-        output.info(f"     Detected encoding: {detected_encoding} (confidence: {confidence:.2%})")
-
-        text, encoding_used = try_decode(content)
-        if text is None or encoding_used is None:
+        # Detect encoding from a small sample (memory safe)
+        sample = download_sample_with_retry(loader=loader, bucket=bucket, key=key, output=output)
+        if sample is None:
             return {
                 "success": False,
-                "error": "Could not decode with any known encoding",
-                "detected_encoding": detected_encoding,
+                "error": f"Connection failed after {MAX_RETRIES} attempts",
             }
 
-        # Check if already UTF-8
-        if check_utf8_validity(content, encoding_used):
+        detected_encoding, confidence = detect_encoding(sample)
+        output.info(f"     Detected encoding: {detected_encoding} (confidence: {confidence:.2%})")
+
+        # Stream-check UTF-8 validity (doesn't build the whole file in RAM)
+        with contextlib.suppress(UnicodeDecodeError):
+            check_jsonl_utf8_streaming(loader=loader, bucket=bucket, key=key)
             output.success("Already UTF-8")
             return {
                 "success": True,
@@ -267,53 +530,34 @@ def process_jsonl_file(
                 "encoding": "utf-8",
             }
 
-        if encoding_used != "utf-8":
-            output.warning(f"File is {encoding_used}, converting to UTF-8...")
-        else:
-            output.warning(f"UTF-8 detection failed, but content decoded as {encoding_used}")
-
-        # Parse JSONL
-        valid_entries, invalid_lines = parse_jsonl_lines(text, output)
-
-        if dry_run:
-            output.info(f"[DRY RUN] Would convert {len(valid_entries)} entries to UTF-8")
-            return {
-                "success": True,
-                "dry_run": True,
-                "original_encoding": encoding_used,
-                "entries_count": len(valid_entries),
-                "invalid_lines": len(invalid_lines),
-            }
-
-        # Re-encode as UTF-8
-        output.info("Encoding to UTF-8...", end="", flush=True)
-        utf8_content = "\n".join(
-            json.dumps(entry, ensure_ascii=False) for entry in valid_entries
-        ).encode("utf-8")
-        output.info(" ✅")
-
-        # Upload with retry
-        output.info("Uploading to S3...", end="", flush=True)
-        upload_config = UploadConfig(
-            loader=loader,
-            bucket=bucket,
-            key=key,
-            content=utf8_content,
-            content_type="application/x-ndjson",
+        candidates = build_decode_candidates(detected_encoding=detected_encoding)
+        output.warning(
+            f"File is not valid UTF-8, attempting conversion ({', '.join(candidates)})..."
         )
-        upload_with_retry(upload_config, output)
-        output.info(" ✅")
 
-        output.info(f"Converted {len(valid_entries)} entries to UTF-8")
+        last_error: str | None = None
+        for encoding_used in candidates:
+            if encoding_used.lower() == "utf-8":
+                continue
+            try:
+                result = convert_jsonl_streaming_to_utf8(
+                    loader=loader,
+                    bucket=bucket,
+                    key=key,
+                    encoding_used=encoding_used,
+                    dry_run=dry_run,
+                    output=output,
+                )
+                result["detected_encoding"] = detected_encoding
+                return result
+            except UnicodeDecodeError as e:
+                last_error = f"{encoding_used}: {e}"
+                continue
 
         return {
-            "success": True,
-            "dry_run": False,
-            "original_encoding": encoding_used,
-            "entries_count": len(valid_entries),
-            "invalid_lines": len(invalid_lines),
-            "bytes_before": len(content),
-            "bytes_after": len(utf8_content),
+            "success": False,
+            "error": last_error or "Could not decode with any known encoding",
+            "detected_encoding": detected_encoding,
         }
 
     except Exception as e:
