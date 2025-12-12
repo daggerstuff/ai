@@ -4,41 +4,41 @@ S3 Dataset Loader - Streaming JSON/JSONL loader for S3 training data
 S3 is the training mecca - all training data should be loaded from S3
 """
 
+import contextlib
 import json
-import os
 import logging
-from pathlib import Path
-from typing import Iterator, Dict, Any, Optional, Union
+import os
+from collections.abc import Iterator
 from io import BytesIO
+from pathlib import Path
+from typing import Any
 
 try:
     import boto3
-    from botocore.exceptions import ClientError, NoCredentialsError
+    from botocore.exceptions import ClientError
+
     BOTO3_AVAILABLE = True
 except ImportError:
     BOTO3_AVAILABLE = False
     boto3 = None
 
 # Load .env file if available
-try:
+with contextlib.suppress(ImportError):
     from dotenv import load_dotenv
+
     # Try loading from ai/ directory first (where .env actually is), then project root
     # Module is at: ai/training_ready/utils/s3_dataset_loader.py
     # So parents[0] = ai/training_ready/utils/, parents[1] = ai/training_ready/,
     #    parents[2] = ai/, parents[3] = project root
     module_path = Path(__file__).resolve()
     env_paths = [
-        module_path.parents[2] / '.env',  # ai/.env (actual location)
-        module_path.parents[3] / '.env',  # project root/.env (fallback)
+        module_path.parents[2] / ".env",  # ai/.env (actual location)
+        module_path.parents[3] / ".env",  # project root/.env (fallback)
     ]
-    loaded = False
     for env_path in env_paths:
         if env_path.exists() and env_path.is_file():  # Check it's a file, not a pipe
             load_dotenv(env_path, override=False)  # Don't override existing env vars
-            loaded = True
             break
-except ImportError:
-    pass  # python-dotenv not installed, rely on environment variables
 
 logger = logging.getLogger(__name__)
 
@@ -52,10 +52,10 @@ class S3DatasetLoader:
     def __init__(
         self,
         bucket: str = "pixelated-training-data",
-        endpoint_url: Optional[str] = None,
-        aws_access_key_id: Optional[str] = None,
-        aws_secret_access_key: Optional[str] = None,
-        region_name: str = "us-east-va"
+        endpoint_url: str | None = None,
+        aws_access_key_id: str | None = None,
+        aws_secret_access_key: str | None = None,
+        region_name: str = "us-east-va",
     ):
         """
         Initialize S3 client for dataset loading.
@@ -69,47 +69,46 @@ class S3DatasetLoader:
         """
         if not BOTO3_AVAILABLE:
             raise ImportError(
-                "boto3 is required for S3 dataset loading. "
-                "Install with: uv pip install boto3"
+                "boto3 is required for S3 dataset loading. Install with: uv pip install boto3"
             )
 
         # Allow env to override only when using the default bucket argument
         if bucket == "pixelated-training-data":
-            self.bucket = os.getenv('OVH_S3_BUCKET', bucket)
+            self.bucket = os.getenv("OVH_S3_BUCKET", bucket)
         else:
             self.bucket = bucket
         self.endpoint_url = endpoint_url or os.getenv(
-            'OVH_S3_ENDPOINT',
-            'https://s3.us-east-va.cloud.ovh.us'
+            "OVH_S3_ENDPOINT", "https://s3.us-east-va.cloud.ovh.us"
         )
 
         # Get credentials from params or environment
         access_key = (
             aws_access_key_id
-            or os.getenv('OVH_S3_ACCESS_KEY')
-            or os.getenv('OVH_ACCESS_KEY')
-            or os.getenv('AWS_ACCESS_KEY_ID')
+            or os.getenv("OVH_S3_ACCESS_KEY")
+            or os.getenv("OVH_ACCESS_KEY")
+            or os.getenv("AWS_ACCESS_KEY_ID")
         )
         secret_key = (
             aws_secret_access_key
-            or os.getenv('OVH_S3_SECRET_KEY')
-            or os.getenv('OVH_SECRET_KEY')
-            or os.getenv('AWS_SECRET_ACCESS_KEY')
+            or os.getenv("OVH_S3_SECRET_KEY")
+            or os.getenv("OVH_SECRET_KEY")
+            or os.getenv("AWS_SECRET_ACCESS_KEY")
         )
 
         if not access_key or not secret_key:
             raise ValueError(
                 "S3 credentials not found. Set OVH_S3_ACCESS_KEY/OVH_S3_SECRET_KEY "
-                "(or OVH_ACCESS_KEY/OVH_SECRET_KEY, or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY)."
+                "(or OVH_ACCESS_KEY/OVH_SECRET_KEY, "
+                "or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY)."
             )
 
         # Initialize S3 client (OVH S3 compatible)
         self.s3_client = boto3.client(
-            's3',
+            "s3",
             endpoint_url=self.endpoint_url,
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
-            region_name=region_name or os.getenv('OVH_S3_REGION', 'us-east-va')
+            region_name=region_name or os.getenv("OVH_S3_REGION", "us-east-va"),
         )
 
         logger.info(f"S3DatasetLoader initialized for bucket: {bucket}")
@@ -124,10 +123,10 @@ class S3DatasetLoader:
         Returns:
             Tuple of (bucket, key)
         """
-        s3_path = s3_path.removeprefix('s3://')
+        s3_path = s3_path.removeprefix("s3://")
 
-        if '/' in s3_path:
-            parts = s3_path.split('/', 1)
+        if "/" in s3_path:
+            parts = s3_path.split("/", 1)
             return parts[0], parts[1]
 
         # Just key, use default bucket
@@ -140,11 +139,15 @@ class S3DatasetLoader:
             self.s3_client.head_object(Bucket=bucket, Key=key)
             return True
         except ClientError as e:
-            if e.response['Error']['Code'] == '404':
+            if e.response["Error"]["Code"] == "404":
                 return False
             raise
 
-    def load_json(self, s3_path: str, cache_local: Optional[Path] = None) -> Dict[str, Any]:
+    def load_json(
+        self,
+        s3_path: str,
+        cache_local: Path | None = None,
+    ) -> dict[str, Any]:
         """
         Load JSON dataset from S3.
 
@@ -160,29 +163,29 @@ class S3DatasetLoader:
         # Check local cache first
         if cache_local and cache_local.exists():
             logger.info(f"Loading from local cache: {cache_local}")
-            with open(cache_local, 'r') as f:
+            with open(cache_local) as f:
                 return json.load(f)
 
         # Load from S3
         logger.info(f"Loading from S3: s3://{bucket}/{key}")
         try:
             response = self.s3_client.get_object(Bucket=bucket, Key=key)
-            data = json.loads(response['Body'].read())
+            data = json.loads(response["Body"].read())
 
             # Cache locally if requested
             if cache_local:
                 cache_local.parent.mkdir(parents=True, exist_ok=True)
-                with open(cache_local, 'w') as f:
+                with open(cache_local, "w") as f:
                     json.dump(data, f)
                 logger.info(f"Cached to: {cache_local}")
 
             return data
         except ClientError as e:
-            if e.response['Error']['Code'] == 'NoSuchKey':
+            if e.response["Error"]["Code"] == "NoSuchKey":
                 raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}")
             raise
 
-    def stream_jsonl(self, s3_path: str) -> Iterator[Dict[str, Any]]:
+    def stream_jsonl(self, s3_path: str) -> Iterator[dict[str, Any]]:
         """
         Stream JSONL dataset from S3 (memory-efficient for large files).
 
@@ -200,7 +203,7 @@ class S3DatasetLoader:
 
             # Stream line by line
             buffer = BytesIO()
-            for chunk in response['Body'].iter_chunks(chunk_size=8192):
+            for chunk in response["Body"].iter_chunks(chunk_size=8192):
                 buffer.write(chunk)
                 buffer.seek(0)
 
@@ -209,9 +212,9 @@ class S3DatasetLoader:
                     line = buffer.readline()
                     if not line:
                         break
-                    if line.endswith(b'\n'):
+                    if line.endswith(b"\n"):
                         try:
-                            yield json.loads(line.decode('utf-8'))
+                            yield json.loads(line.decode("utf-8"))
                         except json.JSONDecodeError as e:
                             logger.warning(f"Failed to parse JSONL line: {e}")
                     else:
@@ -229,12 +232,12 @@ class S3DatasetLoader:
                 for line in buffer:
                     if line.strip():
                         try:
-                            yield json.loads(line.decode('utf-8'))
+                            yield json.loads(line.decode("utf-8"))
                         except json.JSONDecodeError as e:
                             logger.warning(f"Failed to parse JSONL line: {e}")
 
         except ClientError as e:
-            if e.response['Error']['Code'] == 'NoSuchKey':
+            if e.response["Error"]["Code"] == "NoSuchKey":
                 raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}")
             raise
 
@@ -249,18 +252,18 @@ class S3DatasetLoader:
             List of S3 paths
         """
         logger.info(f"Listing datasets with prefix: {prefix}")
-        datasets = []
+        datasets: list[str] = []
 
         try:
-            paginator = self.s3_client.get_paginator('list_objects_v2')
+            paginator = self.s3_client.get_paginator("list_objects_v2")
             pages = paginator.paginate(Bucket=self.bucket, Prefix=prefix)
 
             for page in pages:
-                if 'Contents' in page:
+                if "Contents" in page:
                     datasets.extend(
                         f"s3://{self.bucket}/{obj['Key']}"
-                        for obj in page['Contents']
-                        if obj['Key'].endswith(('.json', '.jsonl'))
+                        for obj in page["Contents"]
+                        if obj["Key"].endswith((".json", ".jsonl"))
                     )
 
         except ClientError as e:
@@ -272,9 +275,9 @@ class S3DatasetLoader:
 
 def get_s3_dataset_path(
     dataset_name: str,
-    category: Optional[str] = None,
+    category: str | None = None,
     bucket: str = "pixelated-training-data",
-    prefer_processed: bool = True
+    prefer_processed: bool = True,
 ) -> str:
     """
     Get S3 path for dataset - S3 is canonical training data location.
@@ -316,10 +319,10 @@ def get_s3_dataset_path(
 
 def load_dataset_from_s3(
     dataset_name: str,
-    category: Optional[str] = None,
-    cache_local: Optional[Path] = None,
-    bucket: str = "pixelated-training-data"
-) -> Dict[str, Any]:
+    category: str | None = None,
+    cache_local: Path | None = None,
+    bucket: str = "pixelated-training-data",
+) -> dict[str, Any]:
     """
     Load dataset from S3 with automatic path resolution.
 
@@ -335,8 +338,7 @@ def load_dataset_from_s3(
     loader = S3DatasetLoader(bucket=bucket)
     s3_path = get_s3_dataset_path(dataset_name, category, bucket)
 
-    if dataset_name.endswith('.jsonl'):
+    if dataset_name.endswith(".jsonl"):
         # For JSONL, convert to list
         return {"conversations": list(loader.stream_jsonl(s3_path))}
-    else:
-        return loader.load_json(s3_path, cache_local)
+    return loader.load_json(s3_path, cache_local)
