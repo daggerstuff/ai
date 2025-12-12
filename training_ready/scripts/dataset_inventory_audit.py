@@ -8,9 +8,9 @@ import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -45,7 +45,7 @@ class DatasetInventoryAuditor:
     """Audits S3 manifest against required dataset families"""
 
     # Required dataset families based on user requirements
-    REQUIRED_FAMILIES = {
+    REQUIRED_FAMILIES: ClassVar[dict[str, DatasetFamily]] = {
         "edge_case_generator": DatasetFamily(
             name="edge_case_generator",
             description="Edge case generator outputs (nightmare fuel scenarios)",
@@ -101,7 +101,7 @@ class DatasetInventoryAuditor:
     }
 
     # Keywords to match S3 keys to families
-    KEYWORD_MAPPINGS = {
+    KEYWORD_MAPPINGS: ClassVar[dict[str, list[str]]] = {
         "edge_case_generator": [
             "edge_case",
             "edge-case",
@@ -240,8 +240,11 @@ class DatasetInventoryAuditor:
         for s3_obj in self.s3_objects:
             key_lower = s3_obj.key.lower()
 
-            # Skip non-data files
-            if any(key_lower.endswith(ext) for ext in [".lock", ".md", ".txt", ".py", ".sh"]):
+            # Skip non-data files.
+            #
+            # NOTE: We intentionally DO NOT skip .txt because transcript corpora
+            # (voice/persona/CPTSD) are commonly stored as .txt in S3.
+            if any(key_lower.endswith(ext) for ext in [".lock", ".py", ".sh"]):
                 continue
 
             # Match against each family
@@ -253,9 +256,26 @@ class DatasetInventoryAuditor:
                         self.REQUIRED_FAMILIES[family_name].s3_evidence.append(s3_obj.key)
                         break
 
+    def incorporate_local_generated(self, generated_dir: Path) -> None:
+        """
+        Consider locally generated datasets as evidence for coverage.
+
+        This helps the coverage report reflect that we've already generated the
+        missing families locally (even before uploading back to S3).
+        """
+        mapping = {
+            "edge_case_synthetic": generated_dir / "edge_case_synthetic.jsonl",
+            "long_running_therapy": generated_dir / "long_running_therapy.jsonl",
+            "cptsd": generated_dir / "cptsd_transcripts.jsonl",
+        }
+
+        for family, path in mapping.items():
+            if path.exists() and (fam := self.REQUIRED_FAMILIES.get(family)):
+                fam.s3_evidence.append(f"local:{path}")
+
     def assess_family_status(self) -> None:
         """Assess status of each required family"""
-        for family_name, family in self.REQUIRED_FAMILIES.items():
+        for family in self.REQUIRED_FAMILIES.values():
             evidence_count = len(family.s3_evidence)
 
             if evidence_count == 0:
@@ -271,7 +291,7 @@ class DatasetInventoryAuditor:
     def generate_coverage_report(self) -> dict[str, Any]:
         """Generate comprehensive coverage report"""
         report = {
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "manifest_path": str(self.manifest_path),
             "total_s3_objects": len(self.s3_objects),
             "families": {},
@@ -308,6 +328,10 @@ class DatasetInventoryAuditor:
             self.load_registry()
 
         self.match_objects_to_families()
+        # Add local generated evidence (if present)
+        project_root = self.manifest_path.parents[3]
+        generated_dir = project_root / "ai" / "training_ready" / "data" / "generated"
+        self.incorporate_local_generated(generated_dir)
         self.assess_family_status()
 
         report = self.generate_coverage_report()
@@ -341,26 +365,26 @@ def main():
     logger.info(f"Coverage report saved to {output_path}")
 
     # Print summary
-    print("\n" + "=" * 60)
-    print("DATASET COVERAGE SUMMARY")
-    print("=" * 60)
+    logger.info("\n" + "=" * 60)
+    logger.info("DATASET COVERAGE SUMMARY")
+    logger.info("=" * 60)
     for family_name, family_data in report["families"].items():
         status_icon = {"present": "✅", "partial": "⚠️", "missing": "❌"}.get(
             family_data["status"], "❓"
         )
 
-        print(
+        logger.info(
             f"{status_icon} {family_name:30s} {family_data['status']:10s} "
             f"({family_data['evidence_count']} objects)"
         )
 
-    print("=" * 60)
-    print(
+    logger.info("=" * 60)
+    logger.info(
         f"Total: {report['summary']['present']} present, "
         f"{report['summary']['partial']} partial, "
         f"{report['summary']['missing']} missing"
     )
-    print("=" * 60)
+    logger.info("=" * 60)
 
 
 if __name__ == "__main__":
