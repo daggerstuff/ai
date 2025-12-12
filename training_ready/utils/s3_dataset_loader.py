@@ -11,16 +11,24 @@ import os
 from collections.abc import Iterator
 from io import BytesIO
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 try:
     import boto3
-    from botocore.exceptions import ClientError
-
-    BOTO3_AVAILABLE = True
+    from botocore.exceptions import ClientError as _BotocoreClientError
 except ImportError:
-    BOTO3_AVAILABLE = False
-    boto3 = None
+    # Keep runtime behavior (error on use) while making type checkers happy.
+    boto3 = None  # type: ignore[assignment]
+    _BotocoreClientError = None  # type: ignore[assignment]
+
+if TYPE_CHECKING:
+    # Minimal shape we rely on in this module.
+    class ClientError(Exception):
+        response: dict[str, Any]
+else:
+    ClientError = _BotocoreClientError if _BotocoreClientError is not None else Exception  # type: ignore[assignment]
+
+BOTO3_AVAILABLE = boto3 is not None
 
 # Load .env file if available
 with contextlib.suppress(ImportError):
@@ -67,7 +75,7 @@ class S3DatasetLoader:
             aws_secret_access_key: AWS secret key (from env if not provided)
             region_name: AWS region (default: us-east-va for OVH)
         """
-        if not BOTO3_AVAILABLE:
+        if boto3 is None:
             raise ImportError(
                 "boto3 is required for S3 dataset loading. Install with: uv pip install boto3"
             )
@@ -182,8 +190,115 @@ class S3DatasetLoader:
             return data
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}")
+                raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}") from e
             raise
+
+    def load_bytes(self, s3_path: str) -> bytes:
+        """
+        Load raw bytes from S3.
+
+        Args:
+            s3_path: S3 path (s3://bucket/key or just key)
+
+        Returns:
+            Raw bytes of the object body
+        """
+        bucket, key = self._parse_s3_path(s3_path)
+        logger.info(f"Loading bytes from S3: s3://{bucket}/{key}")
+
+        try:
+            response = self.s3_client.get_object(Bucket=bucket, Key=key)
+            return response["Body"].read()
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}") from e
+            raise
+
+    def load_text(
+        self,
+        s3_path: str,
+        *,
+        encoding: str = "utf-8",
+        errors: str = "replace",
+    ) -> str:
+        """
+        Load a text object from S3.
+
+        This is primarily for transcript corpora (e.g. .txt) that need to be
+        converted into ChatML examples.
+        """
+        data = self.load_bytes(s3_path)
+        return data.decode(encoding, errors=errors)
+
+    def _parse_jsonl_line(self, line: bytes) -> dict[str, Any] | None:
+        """
+        Parse a single JSONL line with robust error handling.
+
+        Args:
+            line: Raw bytes of a JSONL line
+
+        Returns:
+            Parsed JSON object or None if parsing failed
+        """
+        try:
+            return json.loads(line.decode("utf-8"))
+        except UnicodeDecodeError:
+            try:
+                return json.loads(line.decode("utf-8", errors="replace"))
+            except json.JSONDecodeError as e:
+                logger.warning(f"Failed to parse JSONL line: {e}")
+        except json.JSONDecodeError as e:
+            logger.warning(f"Failed to parse JSONL line: {e}")
+        return None
+
+    def _stream_with_iter_lines(self, body) -> Iterator[dict[str, Any]]:
+        """
+        Stream JSONL using iter_lines() method.
+
+        Args:
+            body: S3 response body with iter_lines capability
+
+        Yields:
+            Parsed JSON objects
+        """
+        for raw_line in body.iter_lines():
+            if not raw_line:
+                continue
+            parsed = self._parse_jsonl_line(raw_line)
+            if parsed is not None:
+                yield parsed
+
+    def _stream_with_manual_buffering(self, body) -> Iterator[dict[str, Any]]:
+        """
+        Stream JSONL using manual buffering as fallback.
+
+        Args:
+            body: S3 response body
+
+        Yields:
+            Parsed JSON objects
+        """
+        buffer = BytesIO()
+        for chunk in body.iter_chunks(chunk_size=8192):
+            buffer.write(chunk)
+            while True:
+                buffer.seek(0)
+                line = buffer.readline()
+                if not line:
+                    buffer = BytesIO()
+                    break
+                if not line.endswith(b"\n"):
+                    # Keep incomplete tail in buffer
+                    rest = buffer.read()
+                    buffer = BytesIO(line + rest)
+                    break
+
+                parsed = self._parse_jsonl_line(line)
+                if parsed is not None:
+                    yield parsed
+
+                rest = buffer.read()
+                buffer = BytesIO(rest)
 
     def stream_jsonl(self, s3_path: str) -> Iterator[dict[str, Any]]:
         """
@@ -200,45 +315,19 @@ class S3DatasetLoader:
         logger.info(f"Streaming JSONL from S3: s3://{bucket}/{key}")
         try:
             response = self.s3_client.get_object(Bucket=bucket, Key=key)
+            body = response["Body"]
 
-            # Stream line by line
-            buffer = BytesIO()
-            for chunk in response["Body"].iter_chunks(chunk_size=8192):
-                buffer.write(chunk)
-                buffer.seek(0)
-
-                # Process complete lines
-                while True:
-                    line = buffer.readline()
-                    if not line:
-                        break
-                    if line.endswith(b"\n"):
-                        try:
-                            yield json.loads(line.decode("utf-8"))
-                        except json.JSONDecodeError as e:
-                            logger.warning(f"Failed to parse JSONL line: {e}")
-                    else:
-                        # Incomplete line, put back
-                        buffer.seek(-len(line), 1)
-                        break
-
-                # Reset buffer for next chunk
-                remaining = buffer.read()
-                buffer = BytesIO(remaining)
-
-            # Process any remaining data
-            if buffer.tell() > 0:
-                buffer.seek(0)
-                for line in buffer:
-                    if line.strip():
-                        try:
-                            yield json.loads(line.decode("utf-8"))
-                        except json.JSONDecodeError as e:
-                            logger.warning(f"Failed to parse JSONL line: {e}")
+            # Prefer iter_lines() which handles chunk boundaries robustly
+            iter_lines = getattr(body, "iter_lines", None)
+            if callable(iter_lines):
+                yield from self._stream_with_iter_lines(body)
+            else:
+                # Fallback to manual buffering
+                yield from self._stream_with_manual_buffering(body)
 
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}")
+                raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}") from e
             raise
 
     def list_datasets(self, prefix: str = "gdrive/processed/") -> list[str]:

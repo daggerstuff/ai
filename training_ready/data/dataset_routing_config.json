@@ -1,0 +1,131 @@
+{
+  "generated_at": "2025-12-12T14:16:47.334090",
+  "families": {
+    "edge_case_generator": {
+      "family_name": "edge_case_generator",
+      "loader_type": "s3_direct",
+      "status": "available",
+      "s3_path": "datasets/gdrive/raw/dataset_pipeline/crisis_intervention_conversations_dataset.json",
+      "pipeline_path": null,
+      "notes": "Available in S3: 10 objects",
+      "action_required": "none"
+    },
+    "edge_case_resulting_chats": {
+      "family_name": "edge_case_resulting_chats",
+      "loader_type": "s3_direct",
+      "status": "available",
+      "s3_path": "datasets/gdrive/tier3_edge_crisis/crisis_detection_conversations.jsonl",
+      "pipeline_path": null,
+      "notes": "Partial coverage: 1 objects - may need expansion",
+      "action_required": "none"
+    },
+    "edge_case_synthetic": {
+      "family_name": "edge_case_synthetic",
+      "loader_type": "synthetic",
+      "status": "needs_generation",
+      "s3_path": null,
+      "pipeline_path": null,
+      "notes": "Synthetic edge case dataset needs to be generated",
+      "action_required": "generate"
+    },
+    "long_running_therapy": {
+      "family_name": "long_running_therapy",
+      "loader_type": "s3_direct",
+      "status": "needs_generation",
+      "s3_path": null,
+      "pipeline_path": null,
+      "notes": "Need to identify/extract long-running therapy sessions from existing datasets",
+      "action_required": "generate"
+    },
+    "mental_health_datasets": {
+      "family_name": "mental_health_datasets",
+      "loader_type": "s3_direct",
+      "status": "available",
+      "s3_path": "datasets/gdrive/raw/Amod___mental_health_counseling_conversations/default/0.0.0/9a117aa09aa90868d74ba68ed0d5702f64cc3109/dataset_info.json",
+      "pipeline_path": null,
+      "notes": "Available in S3: 10 objects",
+      "action_required": "none"
+    },
+    "video_transcripts": {
+      "family_name": "video_transcripts",
+      "loader_type": "s3_direct",
+      "status": "available",
+      "s3_path": "datasets/training_v2/stage4_voice/processed_transcripts/voice_training_data_001.json",
+      "pipeline_path": null,
+      "notes": "Partial coverage: 1 objects - may need expansion",
+      "action_required": "none"
+    },
+    "voice_persona": {
+      "family_name": "voice_persona",
+      "loader_type": "s3_direct",
+      "status": "available",
+      "s3_path": "datasets/gdrive/raw/dataset_pipeline/voice_quality_filter_test_report.json",
+      "pipeline_path": null,
+      "notes": "Available in S3: 10 objects",
+      "action_required": "none"
+    },
+    "safety_guardrails_annihilator": {
+      "family_name": "safety_guardrails_annihilator",
+      "loader_type": "s3_direct",
+      "status": "available",
+      "s3_path": "datasets/gdrive/raw/Original Reddit Data/raw data/2019/apr/mentalhealthapr19.csv",
+      "pipeline_path": null,
+      "notes": "Available in S3: 10 objects",
+      "action_required": "none"
+    },
+    "sarcasm": {
+      "family_name": "sarcasm",
+      "loader_type": "s3_direct",
+      "status": "available",
+      "s3_path": "datasets/consolidated/datasets/sarcasm_data.json",
+      "pipeline_path": null,
+      "notes": "Partial coverage: 1 objects - may need expansion",
+      "action_required": "none"
+    },
+    "cptsd": {
+      "family_name": "cptsd",
+      "loader_type": "s3_direct",
+      "status": "needs_generation",
+      "s3_path": null,
+      "pipeline_path": null,
+      "notes": "CPTSD datasets need to be identified/tagged from existing content",
+      "action_required": "generate"
+    },
+    "addiction": {
+      "family_name": "addiction",
+      "loader_type": "s3_direct",
+      "status": "available",
+      "s3_path": "datasets/gdrive/raw/formatted_annotated_addiction_counseling_csv_SFT/formatted_annotated_addiction_counseling_csv_SFT (1).csv",
+      "pipeline_path": null,
+      "notes": "Available in S3: 10 objects",
+      "action_required": "none"
+    },
+    "experimental": {
+      "family_name": "experimental",
+      "loader_type": "s3_direct",
+      "status": "available",
+      "s3_path": "datasets/gdrive/raw/CoT_Reasoning_Scientific_Discovery_and_Research/CoT_Reasoning_Scientific Discovery and Research.json",
+      "pipeline_path": null,
+      "notes": "Available in S3: 10 objects",
+      "action_required": "none"
+    },
+    "roleplay_simulator": {
+      "family_name": "roleplay_simulator",
+      "loader_type": "s3_direct",
+      "status": "available",
+      "s3_path": "datasets/huggingface/huggingface/flammenai_character-roleplay-DPO.jsonl",
+      "pipeline_path": null,
+      "notes": "Partial coverage: 2 objects - may need expansion",
+      "action_required": "none"
+    },
+    "dpo_preference": {
+      "family_name": "dpo_preference",
+      "loader_type": "s3_direct",
+      "status": "available",
+      "s3_path": "datasets/gdrive/raw/Anthropic_hh-rlhf/dataset_dict.json",
+      "pipeline_path": null,
+      "notes": "Available in S3: 10 objects",
+      "action_required": "none"
+    }
+  }
+}
