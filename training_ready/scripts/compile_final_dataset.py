@@ -7,9 +7,10 @@ import hashlib
 import json
 import logging
 import random
+import sys
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -42,29 +43,35 @@ class SplitInfo:
     total_tokens_approx: int = 0
 
 
+@dataclass(frozen=True)
+class CompilerConfig:
+    routing_config_path: Path
+    coverage_report_path: Path
+    output_dir: Path
+    s3_manifest_path: Path
+    train_split: float = 0.9
+    val_split: float = 0.05
+    test_split: float = 0.05
+    shard_size_mb: int = 1000
+
+
 class FinalDatasetCompiler:
     """Compiles final training dataset with manifest + compiled export"""
 
-    def __init__(
-        self,
-        routing_config_path: Path,
-        coverage_report_path: Path,
-        output_dir: Path,
-        train_split: float = 0.9,
-        val_split: float = 0.05,
-        test_split: float = 0.05,
-        shard_size_mb: int = 1000,
-    ):
-        self.routing_config_path = routing_config_path
-        self.coverage_report_path = coverage_report_path
-        self.output_dir = output_dir
-        self.train_split = train_split
-        self.val_split = val_split
-        self.test_split = test_split
-        self.shard_size_mb = shard_size_mb
+    def __init__(self, config: CompilerConfig):
+        self.routing_config_path = config.routing_config_path
+        self.coverage_report_path = config.coverage_report_path
+        self.output_dir = config.output_dir
+        self.s3_manifest_path = config.s3_manifest_path
+        self.train_split = config.train_split
+        self.val_split = config.val_split
+        self.test_split = config.test_split
+        self.shard_size_mb = config.shard_size_mb
 
         self.routing_config: dict[str, Any] = {}
         self.coverage_data: dict[str, Any] = {}
+        self.s3_manifest: dict[str, Any] = {}
+        self.s3_bucket: str = "pixel-data"
         self.all_conversations: list[dict[str, Any]] = []
         self.deduplicator = EnhancedDeduplicator(similarity_threshold=0.95)
 
@@ -84,6 +91,52 @@ class FinalDatasetCompiler:
         with open(self.coverage_report_path, encoding="utf-8") as f:
             self.coverage_data = json.load(f)
 
+        with open(self.s3_manifest_path, encoding="utf-8") as f:
+            self.s3_manifest = json.load(f)
+        bucket = self.s3_manifest.get("bucket")
+        if isinstance(bucket, str) and bucket:
+            self.s3_bucket = bucket
+
+    def _load_local_jsonl(self, path: Path) -> list[dict[str, Any]]:
+        items: list[dict[str, Any]] = []
+        with open(path, encoding="utf-8") as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line:
+                    continue
+                try:
+                    obj = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if isinstance(obj, dict):
+                    items.append(obj)
+        return items
+
+    def collect_local_generated_conversations(self) -> None:
+        """
+        Add locally generated datasets (missing families) into the compilation inputs.
+        """
+        generated_dir = self.s3_manifest_path.parent / "generated"
+        candidates = [
+            generated_dir / "edge_case_synthetic.jsonl",
+            generated_dir / "long_running_therapy.jsonl",
+            generated_dir / "cptsd_transcripts.jsonl",
+        ]
+
+        for path in candidates:
+            if not path.exists():
+                continue
+            convs = self._load_local_jsonl(path)
+            for conv in convs:
+                conv["metadata"] = conv.get("metadata", {})
+                # Ensure content_hash exists
+                if not conv["metadata"].get("content_hash"):
+                    conv["metadata"]["content_hash"] = compute_content_hash(
+                        conv.get("messages", [])
+                    )
+            self.all_conversations.extend(convs)
+            logger.info("Loaded %s conversations from local %s", len(convs), path)
+
     def load_conversations_from_s3(
         self, family_name: str, s3_paths: list[str]
     ) -> list[dict[str, Any]]:
@@ -99,6 +152,9 @@ class FinalDatasetCompiler:
     def collect_all_conversations(self) -> None:
         """Collect all conversations from all dataset families"""
         logger.info("Collecting conversations from all dataset families...")
+
+        # Always include locally generated missing families (edge_case_synthetic, long_running_therapy, cptsd)
+        self.collect_local_generated_conversations()
 
         families = self.routing_config.get("families", {})
 
@@ -252,12 +308,12 @@ class FinalDatasetCompiler:
 
                 shard_size = shard_path.stat().st_size
                 source_families = list(
-                    set(c.get("metadata", {}).get("source_family", "") for c in current_shard)
+                    {c.get("metadata", {}).get("source_family", "") for c in current_shard}
                 )
 
                 shard = DatasetShard(
                     shard_id=shard_id,
-                    s3_path=f"s3://pixelated-training-data/final_dataset/{split_name}/{shard_id}.jsonl",
+                    s3_path=f"s3://{self.s3_bucket}/final_dataset/{split_name}/{shard_id}.jsonl",
                     size_bytes=shard_size,
                     sha256=f"sha256:{shard_hash}",
                     conversation_count=len(current_shard),
@@ -275,33 +331,36 @@ class FinalDatasetCompiler:
 
         # Save final shard
         if current_shard:
-            shard_id = f"{split_name}_{shard_num:03d}"
-            shard_path = self.output_dir / "shards" / f"{shard_id}.jsonl"
-            shard_path.parent.mkdir(parents=True, exist_ok=True)
-
-            with open(shard_path, "w", encoding="utf-8") as f:
-                for c in current_shard:
-                    f.write(json.dumps(c, ensure_ascii=False) + "\n")
-
-            with open(shard_path, "rb") as f:
-                shard_hash = hashlib.sha256(f.read()).hexdigest()
-
-            shard_size = shard_path.stat().st_size
-            source_families = list(
-                set(c.get("metadata", {}).get("source_family", "") for c in current_shard)
-            )
-
-            shard = DatasetShard(
-                shard_id=shard_id,
-                s3_path=f"s3://pixelated-training-data/final_dataset/{split_name}/{shard_id}.jsonl",
-                size_bytes=shard_size,
-                sha256=f"sha256:{shard_hash}",
-                conversation_count=len(current_shard),
-                source_families=source_families,
-            )
-            shards.append(shard)
-
+            self._extracted_from_create_shards_55(split_name, shard_num, current_shard, shards)
         return shards
+
+    # TODO Rename this here and in `create_shards`
+    def _extracted_from_create_shards_55(self, split_name, shard_num, current_shard, shards):
+        shard_id = f"{split_name}_{shard_num:03d}"
+        shard_path = self.output_dir / "shards" / f"{shard_id}.jsonl"
+        shard_path.parent.mkdir(parents=True, exist_ok=True)
+
+        with open(shard_path, "w", encoding="utf-8") as f:
+            for c in current_shard:
+                f.write(json.dumps(c, ensure_ascii=False) + "\n")
+
+        with open(shard_path, "rb") as f:
+            shard_hash = hashlib.sha256(f.read()).hexdigest()
+
+        shard_size = shard_path.stat().st_size
+        source_families = list(
+            {c.get("metadata", {}).get("source_family", "") for c in current_shard}
+        )
+
+        shard = DatasetShard(
+            shard_id=shard_id,
+            s3_path=f"s3://{self.s3_bucket}/final_dataset/{split_name}/{shard_id}.jsonl",
+            size_bytes=shard_size,
+            sha256=f"sha256:{shard_hash}",
+            conversation_count=len(current_shard),
+            source_families=source_families,
+        )
+        shards.append(shard)
 
     def generate_manifest(self) -> dict[str, Any]:
         """Generate dataset manifest"""
@@ -341,8 +400,7 @@ class FinalDatasetCompiler:
         # Build provenance map
         provenance_map = {}
         for conv in self.all_conversations:
-            content_hash = conv.get("metadata", {}).get("content_hash", "")
-            if content_hash:
+            if content_hash := conv.get("metadata", {}).get("content_hash", ""):
                 provenance_map[content_hash] = {
                     "source_key": conv.get("metadata", {}).get("source_key", ""),
                     "source_family": conv.get("metadata", {}).get("source_family", ""),
@@ -350,9 +408,9 @@ class FinalDatasetCompiler:
                     "processing_steps": ["encoding_fix", "dedup", "chatml_convert"],
                 }
 
-        manifest = {
+        return {
             "manifest_version": "1.0",
-            "generated_at": datetime.now().isoformat(),
+            "generated_at": datetime.now(timezone.utc).isoformat(),
             "total_conversations": len(self.all_conversations),
             "total_tokens_approx": 0,  # TODO: Compute actual token count
             "splits": splits_info,
@@ -366,8 +424,6 @@ class FinalDatasetCompiler:
                 for family in self.holdout_families
             },
         }
-
-        return manifest
 
     def create_compiled_export(self) -> Path:
         """Create compiled single-file export"""
@@ -430,12 +486,16 @@ def main():
     coverage_report_path = (
         project_root / "ai" / "training_ready" / "data" / "dataset_coverage_report.json"
     )
+    s3_manifest_path = project_root / "ai" / "training_ready" / "data" / "s3_manifest.json"
     output_dir = project_root / "ai" / "training_ready" / "data" / "final_dataset"
 
     compiler = FinalDatasetCompiler(
-        routing_config_path=routing_config_path,
-        coverage_report_path=coverage_report_path,
-        output_dir=output_dir,
+        CompilerConfig(
+            routing_config_path=routing_config_path,
+            coverage_report_path=coverage_report_path,
+            output_dir=output_dir,
+            s3_manifest_path=s3_manifest_path,
+        )
     )
 
     result = compiler.compile()
@@ -453,4 +513,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())

@@ -1,63 +1,105 @@
 {
-  "verification_timestamp": "2025-12-12T14:16:47.334090",
+  "verification_timestamp": "2025-12-12T15:19:25.114164",
   "all_gates_passed": false,
   "gate_results": {
-    "coverage": false,
-    "leakage": false,
+    "coverage": true,
+    "leakage": true,
     "distribution": false,
-    "pii": false,
-    "provenance": false,
+    "pii": true,
+    "provenance": true,
     "hash": true,
-    "split": false,
-    "stats": false
+    "split": true,
+    "stats": true
   },
   "verification_details": {
     "coverage_gate": {
-      "passed": false,
-      "errors": [
-        "Missing required families: edge_case_synthetic, long_running_therapy, cptsd"
-      ]
+      "passed": true,
+      "errors": []
     },
     "leakage_gate": {
-      "passed": false,
-      "errors": [
-        "Manifest not found"
-      ]
+      "passed": true,
+      "errors": []
     },
     "distribution_gate": {
       "passed": false,
       "errors": [
-        "Manifest not loaded"
+        "Train split ratio out of range: 17.48% (expected ~90%)",
+        "Val split ratio out of range: 0.81% (expected ~5%)",
+        "Test split ratio out of range: 81.72% (expected ~5%)"
       ]
     },
     "pii_gate": {
-      "passed": false,
-      "errors": [
-        "Manifest not found"
-      ]
+      "passed": true,
+      "errors": []
     },
     "provenance_gate": {
-      "passed": false,
-      "errors": [
-        "Manifest not loaded"
-      ]
+      "passed": true,
+      "errors": []
     },
     "hash_gate": {
       "passed": true,
       "errors": []
     },
     "split_gate": {
-      "passed": false,
-      "errors": [
-        "Manifest not loaded"
-      ]
+      "passed": true,
+      "errors": []
     },
     "stats_gate": {
-      "passed": false,
-      "errors": [
-        "Manifest not loaded"
-      ]
+      "passed": true,
+      "errors": []
     }
   },
-  "statistics": {}
+  "statistics": {
+    "total_conversations": 618,
+    "total_tokens_approx": 0,
+    "splits": {
+      "train": {
+        "conversations": 108,
+        "shards": 1,
+        "total_size_bytes": 2213357
+      },
+      "val": {
+        "conversations": 5,
+        "shards": 1,
+        "total_size_bytes": 103973
+      },
+      "test": {
+        "conversations": 505,
+        "shards": 1,
+        "total_size_bytes": 4677095
+      }
+    },
+    "source_families": {
+      "edge_case_synthetic": {
+        "total_conversations": 27,
+        "splits": {
+          "train": 25,
+          "val": 1,
+          "test": 1
+        }
+      },
+      "long_running_therapy": {
+        "total_conversations": 500,
+        "splits": {
+          "train": 0,
+          "val": 0,
+          "test": 500
+        }
+      },
+      "cptsd": {
+        "total_conversations": 91,
+        "splits": {
+          "train": 83,
+          "val": 4,
+          "test": 4
+        }
+      }
+    },
+    "holdout_families": [
+      "long_running_therapy",
+      "edge_case_crisis",
+      "sarcasm",
+      "voice_persona"
+    ]
+  }
 }
