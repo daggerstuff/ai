@@ -59,6 +59,13 @@ dependencies = [
     "faiss-cpu>=1.8.0",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "onnxruntime-gpu>=1.18.0",
+]
+
 [build-system]
 requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
@@ -67,11 +74,6 @@ build-backend = "setuptools.build_meta"
 find = {where = ["."], include = ["monitoring*"]}
 
 [tool.uv]
-dev-dependencies = [
-    "pytest>=7.0.0",
-    "pytest-cov>=4.0.0",
-    "onnxruntime-gpu>=1.18.0"
-]
 index-strategy = "unsafe-best-match"
 
 [tool.uv.sources]
