@@ -1,54 +1,54 @@
 {
   "manifest_version": "1.0",
-  "generated_at": "2025-12-12T15:22:07.843612",
+  "generated_at": "2025-12-12T20:28:20.145947+00:00",
   "total_conversations": 618,
   "total_tokens_approx": 0,
   "splits": {
     "train": {
-      "conversations": 108,
+      "conversations": 105,
       "shards": [
         {
           "shard_id": "train_000",
           "s3_path": "s3://pixel-data/final_dataset/train/train_000.jsonl",
-          "size_bytes": 2213357,
-          "sha256": "sha256:c0612856d5511ec21b11c9a77cd92451bb12602957b9c71faccaaa8b110527c0",
-          "conversation_count": 108,
+          "size_bytes": 2142656,
+          "sha256": "sha256:c6a8acec3fc2db7c69ca100816324ec4da8e477aea7c3addea41d8c8ae419f67",
+          "conversation_count": 105,
           "source_families": [
-            "edge_case_synthetic",
-            "cptsd"
+            "cptsd",
+            "edge_case_synthetic"
           ]
         }
       ]
     },
     "val": {
-      "conversations": 5,
+      "conversations": 6,
       "shards": [
         {
           "shard_id": "val_000",
           "s3_path": "s3://pixel-data/final_dataset/val/val_000.jsonl",
-          "size_bytes": 103973,
-          "sha256": "sha256:baca0b2c9638e726afe88f2af90b4b1e5d8e5e0a74d51f43a627a9959b45133f",
-          "conversation_count": 5,
+          "size_bytes": 172372,
+          "sha256": "sha256:45c0ef3c1350b4fcc0d051f681eb5324a1b6ecb7049ff493c84c6466d2412e7d",
+          "conversation_count": 6,
           "source_families": [
-            "edge_case_synthetic",
-            "cptsd"
+            "cptsd",
+            "edge_case_synthetic"
           ]
         }
       ]
     },
     "test": {
-      "conversations": 505,
+      "conversations": 507,
       "shards": [
         {
           "shard_id": "test_000",
           "s3_path": "s3://pixel-data/final_dataset/test/test_000.jsonl",
-          "size_bytes": 4677095,
-          "sha256": "sha256:bb68041f954340d5b07361e74fbe24a937f94f3ac4bad862b2b6cc97feeb2a0a",
-          "conversation_count": 505,
+          "size_bytes": 4679393,
+          "sha256": "sha256:a377acea9038bcbb3c0905ade8fd6015a03980c55e1a3fec3c7ff1b165f5dc6b",
+          "conversation_count": 507,
           "source_families": [
-            "edge_case_synthetic",
+            "cptsd",
             "long_running_therapy",
-            "cptsd"
+            "edge_case_synthetic"
           ]
         }
       ]
@@ -74,9 +74,9 @@
     "cptsd": {
       "conversations": 91,
       "splits": {
-        "train": 83,
-        "val": 4,
-        "test": 4
+        "train": 80,
+        "val": 5,
+        "test": 6
       }
     }
   },
