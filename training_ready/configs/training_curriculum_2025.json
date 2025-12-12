@@ -1,0 +1,175 @@
+{
+  "curriculum_version": "2025.12",
+  "training_flow": "continued_pretrain_plus",
+  "base_model": "LatitudeGames/Wayfarer-2-12B",
+  
+  "phase_a_pretraining": {
+    "purpose": "Domain-adaptive pretraining on mental health text",
+    "datasets": {
+      "video_transcripts": {
+        "weight": 1.0,
+        "s3_paths": [
+          "s3://pixelated-training-data/gdrive/processed/voice_persona/tim_fletcher/",
+          "s3://pixelated-training-data/gdrive/processed/voice_persona/doc_snipes/",
+          "s3://pixelated-training-data/gdrive/processed/voice_persona/heidi_priebe/"
+        ]
+      },
+      "mental_health_text": {
+        "weight": 1.0,
+        "s3_paths": [
+          "s3://pixelated-training-data/gdrive/processed/professional_therapeutic/"
+        ]
+      }
+    },
+    "training_params": {
+      "learning_rate": 1e-4,
+      "epochs": 1,
+      "context_length": 8192,
+      "objective": "causal_lm"
+    },
+    "output_checkpoint": "s3://pixelated-checkpoints/foundation/pretrained/"
+  },
+  
+  "phase_b_sft_curriculum": {
+    "stages": {
+      "stage1_foundation": {
+        "purpose": "Natural therapeutic dialogue patterns",
+        "datasets": {
+          "professional_therapeutic": 0.4,
+          "priority_datasets": 0.4,
+          "mental_health_counseling": 0.2
+        },
+        "epochs": 2,
+        "learning_rate": 3e-4,
+        "context_length": 4096,
+        "checkpoint": "s3://pixelated-checkpoints/foundation/stage1_foundation/"
+      },
+      "stage2_therapeutic_expertise": {
+        "purpose": "Clinical reasoning patterns (CoT)",
+        "datasets": {
+          "cot_reasoning": 1.0
+        },
+        "epochs": 1,
+        "learning_rate": 3e-4,
+        "context_length": 4096,
+        "checkpoint": "s3://pixelated-checkpoints/foundation/stage2_therapeutic_expertise/"
+      },
+      "stage3_edge_stress_test": {
+        "purpose": "Crisis robustness and edge case handling",
+        "datasets": {
+          "edge_case_generator": 0.3,
+          "edge_case_resulting_chats": 0.3,
+          "edge_case_synthetic": 0.2,
+          "safety_guardrails_annihilator": 0.2
+        },
+        "epochs": 1,
+        "learning_rate": 2e-4,
+        "context_length": 4096,
+        "checkpoint": "s3://pixelated-checkpoints/foundation/stage3_edge_stress_test/"
+      },
+      "stage4_voice_persona": {
+        "purpose": "Tim Fletcher teaching style",
+        "datasets": {
+          "voice_persona": 1.0
+        },
+        "epochs": 1,
+        "learning_rate": 3e-4,
+        "context_length": 8192,
+        "checkpoint": "s3://pixelated-checkpoints/foundation/stage4_voice_persona/"
+      },
+      "stage5_long_running_therapy": {
+        "purpose": "Long-running therapy session continuity",
+        "datasets": {
+          "long_running_therapy": 1.0
+        },
+        "epochs": 1,
+        "learning_rate": 2e-4,
+        "context_length": 8192,
+        "checkpoint": "s3://pixelated-checkpoints/foundation/stage5_long_running/"
+      },
+      "stage6_specialized_domains": {
+        "purpose": "CPTSD, addiction, sarcasm specialization",
+        "datasets": {
+          "cptsd": 0.4,
+          "addiction": 0.3,
+          "sarcasm": 0.2,
+          "experimental": 0.1
+        },
+        "epochs": 1,
+        "learning_rate": 2e-4,
+        "context_length": 4096,
+        "checkpoint": "s3://pixelated-checkpoints/foundation/stage6_specialized/"
+      },
+      "stage7_roleplay_simulator": {
+        "purpose": "Roleplay and training simulator capabilities",
+        "datasets": {
+          "roleplay_simulator": 1.0
+        },
+        "epochs": 1,
+        "learning_rate": 2e-4,
+        "context_length": 4096,
+        "checkpoint": "s3://pixelated-checkpoints/foundation/stage7_roleplay/"
+      }
+    }
+  },
+  
+  "phase_c_preference_alignment": {
+    "purpose": "Preference optimization using DPO/ORPO/SimPO/KTO",
+    "algorithm": "ORPO",
+    "algorithm_options": {
+      "orpo": {
+        "learning_rate": 3e-5,
+        "beta": 0.1,
+        "description": "Odds Ratio Preference Optimization - combines SFT + preference in one stage"
+      },
+      "simpo": {
+        "learning_rate": 3e-5,
+        "beta": 0.1,
+        "description": "Simple Preference Optimization - no reference model needed"
+      },
+      "dpo": {
+        "learning_rate": 1e-5,
+        "beta": 0.1,
+        "description": "Direct Preference Optimization - requires reference model"
+      },
+      "kto": {
+        "learning_rate": 3e-5,
+        "beta": 0.1,
+        "description": "Kahneman-Tversky Optimization - binary preferences"
+      }
+    },
+    "datasets": {
+      "dpo_preference": 0.5,
+      "roleplay_simulator_preferences": 0.3,
+      "edge_case_adversarial": 0.2
+    },
+    "training_params": {
+      "epochs": 1,
+      "context_length": 4096
+    },
+    "output_checkpoint": "s3://pixelated-checkpoints/final_model/"
+  },
+  
+  "validation": {
+    "per_stage_validation_split": 0.05,
+    "early_stopping_patience": 3,
+    "test_holdout_families": [
+      "long_running_therapy",
+      "edge_case_crisis",
+      "sarcasm",
+      "voice_persona"
+    ]
+  },
+  
+  "training_order": [
+    "phase_a_pretraining",
+    "phase_b_sft_curriculum.stage1_foundation",
+    "phase_b_sft_curriculum.stage2_therapeutic_expertise",
+    "phase_b_sft_curriculum.stage3_edge_stress_test",
+    "phase_b_sft_curriculum.stage4_voice_persona",
+    "phase_b_sft_curriculum.stage5_long_running_therapy",
+    "phase_b_sft_curriculum.stage6_specialized_domains",
+    "phase_b_sft_curriculum.stage7_roleplay_simulator",
+    "phase_c_preference_alignment"
+  ]
+}
