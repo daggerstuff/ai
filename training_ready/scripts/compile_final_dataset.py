@@ -16,6 +16,8 @@ from typing import Any
 
 from enhanced_deduplication import ConversationEntry, EnhancedDeduplicator, compute_content_hash
 
+from ai.training_ready.utils.s3_dataset_loader import S3DatasetLoader
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -97,6 +99,12 @@ class FinalDatasetCompiler:
         if isinstance(bucket, str) and bucket:
             self.s3_bucket = bucket
 
+        endpoint = self.s3_manifest.get("endpoint")
+        if not isinstance(endpoint, str) or not endpoint:
+            raise ValueError("s3_manifest.json missing endpoint")
+        self.s3_endpoint = endpoint
+        self.s3_loader = S3DatasetLoader(bucket=self.s3_bucket, endpoint_url=self.s3_endpoint)
+
     def _load_local_jsonl(self, path: Path) -> list[dict[str, Any]]:
         items: list[dict[str, Any]] = []
         with open(path, encoding="utf-8") as f:
@@ -141,13 +149,131 @@ class FinalDatasetCompiler:
         self, family_name: str, s3_paths: list[str]
     ) -> list[dict[str, Any]]:
         """
-        Load conversations from S3 for a dataset family.
-        In production, this would use S3DatasetLoader.
+        Load ChatML JSONL datasets from S3.
+
+        This intentionally supports only ChatML-like records:
+        - Each JSONL line is a dict with `messages: [{role, content}, ...]`
+        - Optional `metadata`
         """
-        # Placeholder - in production, load from S3
-        logger.info(f"Loading conversations for {family_name} from {len(s3_paths)} S3 paths")
-        # TODO: Implement actual S3 loading
-        return []
+        logger.info("Loading conversations for %s from %s S3 paths", family_name, len(s3_paths))
+        out: list[dict[str, Any]] = []
+
+        for s3_path in s3_paths:
+            # Accept either full s3://bucket/key or a raw key.
+            if s3_path.startswith("s3://"):
+                resolved = s3_path
+            else:
+                resolved = f"s3://{self.s3_bucket}/{s3_path.lstrip('/')}"
+
+            # Retry streaming reads (OVH S3 can occasionally drop large streams).
+            seen_hashes: set[str] = set()
+            max_attempts = 4
+            attempt = 1
+            while True:
+                try:
+                    for rec in self.s3_loader.stream_jsonl(resolved):
+                        if not isinstance(rec, dict):
+                            continue
+                        msgs = rec.get("messages")
+                        if not isinstance(msgs, list) or not msgs:
+                            continue
+                        # Minimal structural check
+                        if not all(
+                            isinstance(m, dict)
+                            and isinstance(m.get("role"), str)
+                            and isinstance(m.get("content"), str)
+                            for m in msgs
+                        ):
+                            continue
+
+                        # Dedup within this load to protect against retry duplicates
+                        meta = rec.get("metadata")
+                        if not isinstance(meta, dict):
+                            meta = {}
+                            rec["metadata"] = meta
+                        ch = meta.get("content_hash")
+                        if not isinstance(ch, str) or not ch:
+                            ch = compute_content_hash(msgs)
+                            meta["content_hash"] = ch
+                        if ch in seen_hashes:
+                            continue
+                        seen_hashes.add(ch)
+                        out.append(rec)
+                    break
+                except Exception as e:
+                    if attempt >= max_attempts:
+                        raise
+                    logger.warning(
+                        "S3 stream error for %s (%s) attempt %s/%s: %s",
+                        family_name,
+                        resolved,
+                        attempt,
+                        max_attempts,
+                        e,
+                    )
+                    time.sleep(1.5 * attempt)
+                    attempt += 1
+
+        return out
+
+    def load_conversations_for_family(self, family_name: str) -> list[dict[str, Any]]:
+        """
+        Prefer known-good ChatML JSONL S3 keys for each family.
+
+        This is what lets us compile from the *real* S3 training outputs after
+        encoding fixes, rather than relying on placeholder loader logic.
+        """
+        # Keys are relative to the bucket in ai/training_ready/data/s3_manifest.json
+        family_keys: dict[str, list[str]] = {
+            "mental_health_datasets": [
+                "datasets/training_v3/stage1_foundation/Amod_mental_health_counseling_conversations.jsonl",
+                "datasets/training_v3/stage1_foundation/heliosbrahma_mental_health_chatbot_dataset.jsonl",
+                "datasets/training_v2/stage1_foundation/Amod_mental_health_counseling_conversations.jsonl",
+                "datasets/training_v2/stage1_foundation/heliosbrahma_mental_health_chatbot_dataset.jsonl",
+            ],
+            "edge_case_generator": [
+                "datasets/consolidated/conversations/edge_case_dialogues.jsonl",
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_30_crisis_detection/crisis_detection_conversations.jsonl",
+            ],
+            "edge_case_resulting_chats": [
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_30_crisis_detection/crisis_detection_conversations.jsonl",
+                "datasets/gdrive/tier3_edge_crisis/crisis_detection_conversations.jsonl",
+            ],
+            "sarcasm": [
+                # NOTE: this is JSON (not JSONL). We'll keep it out of ChatML ingestion for now.
+            ],
+            "professional_therapeutic": [
+                "datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+                "datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+                "datasets/gdrive/processed/phase_2_professional_datasets/task_5_12_therapist_sft/therapist_sft_conversations.jsonl",
+                "datasets/gdrive/processed/phase_2_professional_datasets/task_5_13_neuro_qa_sft/neuro_qa_sft_conversations.jsonl",
+                "datasets/gdrive/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+            ],
+            "priority_datasets": [
+                "datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+                "datasets/gdrive/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+                "datasets/gdrive/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+                "datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+            ],
+            "cot_reasoning": [
+                "datasets/gdrive/processed/phase_3_cot_reasoning/task_5_25_tot_reasoning/tot_reasoning_conversations.jsonl",
+            ],
+            "safety_guardrails_annihilator": [
+                # These are large/raw; ChatML outputs are already captured in phase_4_reddit_mental_health
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl",
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_28_specialized_populations/specialized_populations_conversations.jsonl",
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl",
+            ],
+            "addiction": [
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_28_specialized_populations/specialized_populations_conversations.jsonl",
+            ],
+            "experimental": [
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl",
+            ],
+        }
+
+        keys = family_keys.get(family_name, [])
+        return self.load_conversations_from_s3(family_name, keys) if keys else []
 
     def collect_all_conversations(self) -> None:
         """Collect all conversations from all dataset families"""
@@ -155,6 +281,32 @@ class FinalDatasetCompiler:
 
         # Always include locally generated missing families (edge_case_synthetic, long_running_therapy, cptsd)
         self.collect_local_generated_conversations()
+
+        # Also include known-good S3 ChatML exports (post encoding-fix).
+        # These will massively increase coverage and fix distribution ratios.
+        for family_name in (
+            "mental_health_datasets",
+            "professional_therapeutic",
+            "priority_datasets",
+            "cot_reasoning",
+            "edge_case_generator",
+            "edge_case_resulting_chats",
+            "safety_guardrails_annihilator",
+        ):
+            convs = self.load_conversations_for_family(family_name)
+            for conv in convs:
+                conv["metadata"] = conv.get("metadata", {})
+                conv["metadata"]["source_family"] = family_name
+                conv["metadata"]["source_key"] = conv["metadata"].get(
+                    "source_key",
+                    f"s3://{self.s3_bucket}/{conv.get('metadata', {}).get('source_key', '')}",
+                )
+                if not conv["metadata"].get("content_hash"):
+                    conv["metadata"]["content_hash"] = compute_content_hash(
+                        conv.get("messages", [])
+                    )
+            self.all_conversations.extend(convs)
+            logger.info("Loaded %s conversations from S3 family %s", len(convs), family_name)
 
         families = self.routing_config.get("families", {})
 
