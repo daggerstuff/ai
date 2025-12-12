@@ -327,105 +327,107 @@ def process_json_file(
     dry_run: bool,
     output: OutputHandler,
 ) -> dict[str, Any]:
-    """Process a JSON file for encoding fixes"""
-    bucket, key = loader._parse_s3_path(s3_path)
-    filename = Path(key).name
+    """Process a JSON file for encoding fixes."""
+    # ruff: noqa: PLR0911
 
-    output.info(f"\n  📝 Processing: {filename}")
+    def _warn_about_encoding(*, encoding_used: str) -> None:
+        if encoding_used != "utf-8":
+            output.warning(f"File is {encoding_used}, converting to UTF-8...")
+        else:
+            output.warning(f"UTF-8 detection failed, but content decoded as {encoding_used}")
 
-    # Download with retry
-    content = download_with_retry(loader, bucket, key, output)
-    result: dict[str, Any] = {
-        "success": False,
-        "error": f"Connection failed after {MAX_RETRIES} attempts",
-    }
-
-    if content is not None:
+    def _parse_json(*, text: str, encoding_used: str) -> dict[str, Any]:
         try:
-            detected_encoding, confidence = detect_encoding(content)
-            output.info(
-                f"     Detected encoding: {detected_encoding} (confidence: {confidence:.2%})"
-            )
+            return {"success": True, "data": json.loads(text), "encoding_used": encoding_used}
+        except json.JSONDecodeError as e:
+            return {"success": False, "error": f"JSON decode error: {e}", "encoding": encoding_used}
 
-            text, encoding_used = try_decode(content)
-            if text is None or encoding_used is None:
-                result = {
-                    "success": False,
-                    "error": "Could not decode with any known encoding",
-                    "detected_encoding": detected_encoding,
-                }
-            elif check_utf8_validity(content, encoding_used):
-                output.success("Already UTF-8")
-                result = {
-                    "success": True,
-                    "skipped": True,
-                    "reason": "Already UTF-8",
-                    "encoding": "utf-8",
-                }
-            else:
-                if encoding_used != "utf-8":
-                    output.warning(f"File is {encoding_used}, converting to UTF-8...")
-                else:
-                    output.warning(
-                        f"UTF-8 detection failed, but content decoded as {encoding_used}"
-                    )
+    def _encode_utf8(*, data: Any) -> bytes:
+        return json.dumps(data, indent=2, ensure_ascii=False).encode("utf-8")
 
-                try:
-                    data = json.loads(text)
-                except json.JSONDecodeError as e:
-                    result = {
-                        "success": False,
-                        "error": f"JSON decode error: {e}",
-                        "encoding": encoding_used,
-                    }
-                else:
-                    entries_count = len(data) if isinstance(data, list) else 1
-                    if dry_run:
-                        output.info("[DRY RUN] Would convert to UTF-8")
-                        result = {
-                            "success": True,
-                            "dry_run": True,
-                            "original_encoding": encoding_used,
-                            "entries_count": entries_count,
-                        }
-                    else:
-                        output.info("Encoding to UTF-8...", end="", flush=True)
-                        utf8_content = json.dumps(
-                            data,
-                            indent=2,
-                            ensure_ascii=False,
-                        ).encode("utf-8")
-                        output.info(" ✅")
+    bucket, key = loader._parse_s3_path(s3_path)
+    output.info(f"\n  📝 Processing: {Path(key).name}")
 
-                        output.info("Uploading to S3...", end="", flush=True)
-                        upload_config = UploadConfig(
-                            loader=loader,
-                            bucket=bucket,
-                            key=key,
-                            content=utf8_content,
-                            content_type="application/json",
-                        )
-                        upload_with_retry(upload_config, output)
-                        output.info(" ✅")
+    content = download_with_retry(loader, bucket, key, output)
+    if content is None:
+        return {"success": False, "error": f"Connection failed after {MAX_RETRIES} attempts"}
 
-                        output.info(f"Converted to UTF-8 ({entries_count} entries)")
-                        result = {
-                            "success": True,
-                            "dry_run": False,
-                            "original_encoding": encoding_used,
-                            "entries_count": entries_count,
-                            "bytes_before": len(content),
-                            "bytes_after": len(utf8_content),
-                        }
-        except Exception as e:
-            output.error(f"Error: {e}")
-            result = {"success": False, "error": str(e)}
+    try:
+        detected_encoding, confidence = detect_encoding(content)
+        output.info(f"     Detected encoding: {detected_encoding} (confidence: {confidence:.2%})")
 
-    return result
+        text, encoding_used = try_decode(content)
+        if text is None or encoding_used is None:
+            return {
+                "success": False,
+                "error": "Could not decode with any known encoding",
+                "detected_encoding": detected_encoding,
+            }
+
+        if check_utf8_validity(content, encoding_used):
+            output.success("Already UTF-8")
+            return {
+                "success": True,
+                "skipped": True,
+                "reason": "Already UTF-8",
+                "encoding": "utf-8",
+            }
+
+        _warn_about_encoding(encoding_used=encoding_used)
+
+        parse_result = _parse_json(text=text, encoding_used=encoding_used)
+        if not parse_result.get("success"):
+            return parse_result
+
+        data = parse_result["data"]
+        entries_count = len(data) if isinstance(data, list) else 1
+
+        if dry_run:
+            output.info("[DRY RUN] Would convert to UTF-8")
+            return {
+                "success": True,
+                "dry_run": True,
+                "original_encoding": encoding_used,
+                "entries_count": entries_count,
+            }
+
+        output.info("Encoding to UTF-8...", end="", flush=True)
+        utf8_content = _encode_utf8(data=data)
+        output.info(" ✅")
+
+        output.info("Uploading to S3...", end="", flush=True)
+        upload_config = UploadConfig(
+            loader=loader,
+            bucket=bucket,
+            key=key,
+            content=utf8_content,
+            content_type="application/json",
+        )
+        upload_with_retry(upload_config, output)
+        output.info(" ✅")
+
+        output.info(f"Converted to UTF-8 ({entries_count} entries)")
+        return {
+            "success": True,
+            "dry_run": False,
+            "original_encoding": encoding_used,
+            "entries_count": entries_count,
+            "bytes_before": len(content),
+            "bytes_after": len(utf8_content),
+        }
+    except Exception as e:
+        output.error(f"Error: {e}")
+        return {"success": False, "error": str(e)}
 
 
-def find_files_with_encoding_issues(manifest_path: Path) -> list[dict[str, Any]]:
-    """Find files that likely have encoding issues based on previous scan results"""
+def find_files_with_encoding_issues() -> list[dict[str, Any]]:
+    """
+    Find files that likely have encoding issues based on previous scan results.
+
+    NOTE: This function used to consult a local `s3_manifest.json`. We now keep the
+    fix workflow fully S3-backed so it can be run from machines that do not have
+    local dataset artifacts.
+    """
     problematic_files = [
         "datasets/gdrive/processed/phase_1_priority_conversations/"
         "task_5_1_priority_1/priority_1_conversations.jsonl",
@@ -455,37 +457,39 @@ def find_files_with_encoding_issues(manifest_path: Path) -> list[dict[str, Any]]
         "soulchat_2_0_complete_no_limits.jsonl",
         "datasets/gdrive/processed/soulchat_complete/soulchat_2_0_complete_no_limits.jsonl",
     ]
+    return [{"key": key, "category": "known_problematic", "size": 0} for key in problematic_files]
 
-    with open(manifest_path) as f:
-        manifest = json.load(f)
 
-    files_to_fix = []
-    categories = manifest.get("categories", {})
-    gdrive = categories.get("gdrive", {})
-    processed_cats = gdrive.get("processed", {})
+def list_s3_files_in_prefix(
+    *,
+    loader: S3DatasetLoader,
+    prefix: str,
+    category: str,
+    output: OutputHandler,
+) -> list[dict[str, Any]]:
+    """List JSON/JSONL files in S3 under a prefix (no local manifest required)."""
+    paginator = loader.s3_client.get_paginator("list_objects_v2")
+    pages = paginator.paginate(Bucket=loader.bucket, Prefix=prefix)
+    results: list[dict[str, Any]] = []
 
-    # Build lookup of all files
-    all_files = {}
-    for category, files_info in processed_cats.items():
-        if isinstance(files_info, dict) and "objects" in files_info:
-            for obj in files_info["objects"]:
-                key = obj["key"]
-                if key.endswith((".json", ".jsonl")):
-                    all_files[key] = {
-                        "key": key,
-                        "category": category,
-                        "size": obj["size"],
-                    }
+    output.info(f"Listing S3 prefix: s3://{loader.bucket}/{prefix}")
 
-    # Find problematic files
-    for file_path in problematic_files:
-        if file_path in all_files:
-            files_to_fix.append(all_files[file_path])
-        elif file_path.replace("datasets/", "") in all_files:
-            alt_path = file_path.replace("datasets/", "")
-            files_to_fix.append(all_files[alt_path])
+    for page in pages:
+        for obj in page.get("Contents", []) or []:
+            key = obj.get("Key")
+            if not isinstance(key, str):
+                continue
+            if not key.endswith((".json", ".jsonl")):
+                continue
+            results.append(
+                {
+                    "key": key,
+                    "category": category,
+                    "size": int(obj.get("Size", 0) or 0),
+                }
+            )
 
-    return files_to_fix
+    return results
 
 
 def parse_args() -> argparse.Namespace:
@@ -499,12 +503,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--file",
         type=str,
-        help="Fix specific file (S3 key path)",
+        help="Fix specific file (S3 key path, or full s3://bucket/key)",
     )
     parser.add_argument(
         "--category",
         type=str,
-        help="Fix all files in a category",
+        help="Fix all .json/.jsonl files under S3 prefix datasets/gdrive/processed/<category>/",
     )
     parser.add_argument(
         "--all-problematic",
@@ -520,49 +524,31 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def load_manifest(manifest_path: Path) -> dict[str, Any]:
-    """Load the S3 manifest file"""
-    with open(manifest_path) as f:
-        return json.load(f)
-
-
 def collect_files_to_fix(
     *,
     args: argparse.Namespace,
-    manifest_path: Path,
+    loader: S3DatasetLoader,
+    output: OutputHandler,
 ) -> list[dict[str, Any]]:
     """Collect files that need to be fixed based on arguments"""
-    if args.file:
-        return [{"key": args.file, "category": "manual", "size": 0}]
-
-    if args.category:
-        return _collect_files_from_category(manifest_path, args.category)
-    if args.all_problematic:
-        return find_files_with_encoding_issues(manifest_path)
-
-    return []
-
-
-def _collect_files_from_category(manifest_path: Path, category: str) -> list[dict[str, Any]]:
-    manifest = load_manifest(manifest_path)
-    categories = manifest.get("categories", {})
-    gdrive = categories.get("gdrive", {})
-    processed_cats = gdrive.get("processed", {})
     files_to_fix: list[dict[str, Any]] = []
 
-    if category in processed_cats:
-        files_info = processed_cats[category]
-        if isinstance(files_info, dict) and "objects" in files_info:
-            for obj in files_info["objects"]:
-                key = obj["key"]
-                if key.endswith((".json", ".jsonl")):
-                    files_to_fix.append(
-                        {
-                            "key": key,
-                            "category": category,
-                            "size": obj["size"],
-                        }
-                    )
+    if args.file:
+        # Allow either a full s3:// path or a bucket-relative key.
+        # Downstream processing normalizes this before download/upload.
+        files_to_fix = [{"key": args.file, "category": "manual", "size": 0}]
+    elif args.category:
+        # Category maps to a known processed prefix in the bucket.
+        prefix = f"datasets/gdrive/processed/{args.category.strip().strip('/')}/"
+        files_to_fix = list_s3_files_in_prefix(
+            loader=loader,
+            prefix=prefix,
+            category=args.category,
+            output=output,
+        )
+    elif args.all_problematic:
+        # Fully S3-backed list: no local manifest required.
+        files_to_fix = find_files_with_encoding_issues()
 
     return files_to_fix
 
@@ -594,16 +580,20 @@ def process_files(
 
     for idx, file_info in enumerate(files_to_fix, 1):
         output.info(f"\n[{idx}/{total_files}] ", end="", flush=True)
-        s3_path = f"s3://{loader.bucket}/{file_info['key']}"
+        raw_key = str(file_info["key"])
+        if raw_key.startswith("s3://"):
+            s3_path = raw_key
+        else:
+            s3_path = f"s3://{loader.bucket}/{raw_key.lstrip('/')}"
 
-        if file_info["key"].endswith(".jsonl"):
+        if s3_path.endswith(".jsonl"):
             result = process_jsonl_file(loader, s3_path, dry_run, output)
-        elif file_info["key"].endswith(".json"):
+        elif s3_path.endswith(".json"):
             result = process_json_file(loader, s3_path, dry_run, output)
         else:
             result = {"success": False, "error": "Unknown file type"}
 
-        result["file"] = Path(file_info["key"]).name
+        result["file"] = Path(raw_key).name
         result["category"] = file_info["category"]
         results.append(result)
 
@@ -696,10 +686,10 @@ def main() -> None:
     loader = S3DatasetLoader(bucket=DEFAULT_S3_BUCKET)
 
     # Determine files to fix
-    manifest_path = project_root / "ai/training_ready/data/s3_manifest.json"
     files_to_fix = collect_files_to_fix(
         args=args,
-        manifest_path=manifest_path,
+        loader=loader,
+        output=output,
     )
 
     if not (args.file or args.category or args.all_problematic):
