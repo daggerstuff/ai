@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 import uvicorn
 
 from inference_optimizer import OptimizedInferenceEngine, InferenceConfig, create_optimized_engine
-from therapeutic_progress_tracker import TherapeuticProgressTracker
+from models.therapeutic_progress_tracker import TherapeuticProgressTracker
 import logging
 
 logger = logging.getLogger(__name__)
@@ -32,10 +32,10 @@ progress_tracker: Optional[TherapeuticProgressTracker] = None
 async def lifespan(app: FastAPI):
     """Lifecycle manager for FastAPI app"""
     global inference_engine, progress_tracker
-    
+
     # Startup
     print("🚀 Starting Therapeutic AI Inference Service...")
-    
+
     # Load model
     model_path = "./therapeutic_moe_model"
     inference_engine = create_optimized_engine(
@@ -44,15 +44,15 @@ async def lifespan(app: FastAPI):
         enable_cache=True,
         compile_model=True
     )
-    
+
     # Initialize progress tracker
     progress_tracker = TherapeuticProgressTracker(db_path="therapeutic_progress.db")
     print("✅ Progress tracker initialized")
-    
+
     print("✅ Service ready!")
-    
+
     yield
-    
+
     # Shutdown
     print("🛑 Shutting down service...")
     if progress_tracker:
@@ -178,12 +178,12 @@ async def root():
 async def inference(request: InferenceRequest, background_tasks: BackgroundTasks):
     """
     Generate therapeutic response with progress tracking
-    
+
     Target latency: <2 seconds (p95)
     """
     if inference_engine is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
-    
+
     try:
         # Convert conversation history
         conversation_history = None
@@ -192,7 +192,7 @@ async def inference(request: InferenceRequest, background_tasks: BackgroundTasks
                 {"role": msg.role, "content": msg.content}
                 for msg in request.conversation_history
             ]
-        
+
         # Generate response
         response_text, metadata = await inference_engine.generate_async(
             user_input=request.user_input,
@@ -200,7 +200,7 @@ async def inference(request: InferenceRequest, background_tasks: BackgroundTasks
             system_prompt=request.system_prompt,
             use_cache=request.use_cache
         )
-        
+
         # Track progress if enabled and client_id provided
         if request.track_progress and request.client_id and progress_tracker:
             background_tasks.add_task(
@@ -211,7 +211,7 @@ async def inference(request: InferenceRequest, background_tasks: BackgroundTasks
                 ai_response=response_text,
                 conversation_history=conversation_history
             )
-        
+
         return InferenceResponse(
             response=response_text,
             latency=metadata['latency'],
@@ -219,7 +219,7 @@ async def inference(request: InferenceRequest, background_tasks: BackgroundTasks
             tokens_generated=metadata['tokens_generated'],
             metadata=metadata
         )
-    
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Inference failed: {str(e)}")
 
@@ -235,13 +235,13 @@ async def _log_session_progress(
     try:
         if progress_tracker is None:
             return
-        
+
         # Create conversation summary
         summary = f"User: {user_input[:100]}... | AI: {ai_response[:100]}..."
-        
+
         # Analyze emotional state (simple heuristic for now)
         emotional_state = _analyze_emotional_state(user_input)
-        
+
         # Log the session
         progress_tracker.log_session(
             client_id=client_id,
@@ -253,33 +253,33 @@ async def _log_session_progress(
             therapist_observations="",
             next_session_focus=""
         )
-        
+
     except Exception as e:
         logger.error(f"Failed to log progress: {e}")
 
 
 def _analyze_emotional_state(text: str) -> str:
     """Simple emotional state analysis"""
-    from therapeutic_progress_tracker import EmotionalState
-    
+    from models.therapeutic_progress_tracker import EmotionalState
+
     text_lower = text.lower()
-    
+
     # Very negative indicators
     if any(word in text_lower for word in ['suicidal', 'hopeless', 'worthless', 'hate myself']):
         return EmotionalState.VERY_NEGATIVE.value
-    
+
     # Negative indicators
     if any(word in text_lower for word in ['anxious', 'depressed', 'sad', 'worried', 'stressed']):
         return EmotionalState.NEGATIVE.value
-    
+
     # Positive indicators
     if any(word in text_lower for word in ['better', 'good', 'happy', 'hopeful', 'improving']):
         return EmotionalState.POSITIVE.value
-    
+
     # Very positive indicators
     if any(word in text_lower for word in ['great', 'wonderful', 'amazing', 'fantastic', 'excellent']):
         return EmotionalState.VERY_POSITIVE.value
-    
+
     # Default to neutral
     return EmotionalState.NEUTRAL.value
 
@@ -298,9 +298,9 @@ async def health():
             cache_hit_rate=0.0,
             meets_sla=False
         )
-    
+
     metrics = inference_engine.get_metrics()
-    
+
     return HealthResponse(
         status="healthy",
         model_loaded=True,
@@ -318,9 +318,9 @@ async def metrics():
     """Get detailed metrics"""
     if inference_engine is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
-    
+
     metrics_data = inference_engine.get_metrics()
-    
+
     return MetricsResponse(**metrics_data)
 
 
@@ -329,7 +329,7 @@ async def clear_cache():
     """Clear response cache"""
     if inference_engine is None:
         raise HTTPException(status_code=503, detail="Model not loaded")
-    
+
     if inference_engine.response_cache:
         inference_engine.response_cache.clear()
         return {"status": "success", "message": "Cache cleared"}

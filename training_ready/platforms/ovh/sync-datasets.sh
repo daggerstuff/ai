@@ -144,20 +144,39 @@ upload_datasets() {
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             log_info "Uploading Google Drive datasets..."
             
-            # Upload key datasets from gdrive
-            for dataset in "CoT_Reasoning_Clinical_Diagnosis_Mental_Health" "Psych8k" "mental_health_counseling_conversations" "therapist-sft-format"; do
-                if [ -d "$GDRIVE_MOUNT/$dataset" ]; then
-                    log_info "  Uploading $dataset..."
-                    ovhai data push "$DATA_BUCKET" "$GDRIVE_MOUNT/$dataset/" --prefix "gdrive/$dataset/" || log_warn "Failed to upload $dataset"
-                elif [ -f "$GDRIVE_MOUNT/$dataset"* ]; then
-                    log_info "  Uploading $dataset..."
-                    ovhai data push "$DATA_BUCKET" "$GDRIVE_MOUNT/$dataset"* --prefix "gdrive/" || log_warn "Failed to upload $dataset"
-                fi
-            done
+            # Try canonical structure first, fallback to legacy
+            if [ -d "$GDRIVE_MOUNT/cot_reasoning" ]; then
+                log_info "  Uploading CoT reasoning (canonical structure)..."
+                ovhai data push "$DATA_BUCKET" "$GDRIVE_MOUNT/cot_reasoning/" --prefix "gdrive/cot_reasoning/" || log_warn "Failed to upload CoT reasoning"
+            else
+                # Fallback to legacy structure
+                for dataset in "CoT_Reasoning_Clinical_Diagnosis_Mental_Health" "CoT_Heartbreak_and_Breakups_downloaded.json" "CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json"; do
+                    if [ -d "$GDRIVE_MOUNT/$dataset" ] || [ -f "$GDRIVE_MOUNT/$dataset" ]; then
+                        log_info "  Uploading $dataset (legacy)..."
+                        ovhai data push "$DATA_BUCKET" "$GDRIVE_MOUNT/$dataset" --prefix "gdrive/cot_reasoning/" || log_warn "Failed to upload $dataset"
+                    fi
+                done
+            fi
             
-            # Upload priority datasets
-            if [ -d "$GDRIVE_MOUNT/datasets-wendy" ]; then
-                log_info "  Uploading priority datasets (datasets-wendy)..."
+            if [ -d "$GDRIVE_MOUNT/professional_therapeutic" ]; then
+                log_info "  Uploading professional therapeutic (canonical structure)..."
+                ovhai data push "$DATA_BUCKET" "$GDRIVE_MOUNT/professional_therapeutic/" --prefix "gdrive/professional_therapeutic/" || log_warn "Failed to upload professional therapeutic"
+            else
+                # Fallback to legacy structure
+                for dataset in "Psych8k" "mental_health_counseling_conversations" "therapist-sft-format" "SoulChat2.0"; do
+                    if [ -d "$GDRIVE_MOUNT/$dataset" ]; then
+                        log_info "  Uploading $dataset (legacy)..."
+                        ovhai data push "$DATA_BUCKET" "$GDRIVE_MOUNT/$dataset/" --prefix "gdrive/professional_therapeutic/" || log_warn "Failed to upload $dataset"
+                    fi
+                done
+            fi
+            
+            # Upload priority datasets (try both canonical and legacy names)
+            if [ -d "$GDRIVE_MOUNT/priority" ]; then
+                log_info "  Uploading priority datasets (canonical structure)..."
+                ovhai data push "$DATA_BUCKET" "$GDRIVE_MOUNT/priority/" --prefix "gdrive/priority/" || log_warn "Failed to upload priority datasets"
+            elif [ -d "$GDRIVE_MOUNT/datasets-wendy" ]; then
+                log_info "  Uploading priority datasets (legacy: datasets-wendy)..."
                 ovhai data push "$DATA_BUCKET" "$GDRIVE_MOUNT/datasets-wendy/" --prefix "gdrive/priority/" || log_warn "Failed to upload priority datasets"
             fi
         else
