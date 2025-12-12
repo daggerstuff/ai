@@ -1,23 +1,23 @@
 # H100 MoE Upgrade (Therapeutic AI Package v5.0)
 
-This folder links the production-ready H100 MoE training bundle (`ai/therapeutic_ai_training_package_20251028_204104`) into the `training_ready` workflow so we can run the upgraded training, inference, and progress-tracking stack without hunting for files.
+This folder documents the consolidated H100 MoE training system now located in `ai/training_ready/`. All training, inference, and progress-tracking scripts have been consolidated into the canonical `training_ready` structure.
 
 ## What you get
-- H100-optimized training scripts: `train_optimized.py`, `train_moe_h100.py`, `training_optimizer.py`
-- MoE model + inference pieces: `moe_architecture.py`, `inference_optimizer.py`, `inference_service.py`
-- Progress tracking: `therapeutic_progress_tracker.py`, `progress_tracking_api.py`
-- Specialized loaders + orchestrator: `integrated_training_pipeline.py` and edge/dual-persona/voice/psychology loaders
+- H100-optimized training scripts: `scripts/train_optimized.py`, `scripts/train_moe_h100.py`, `scripts/training_optimizer.py`
+- MoE model + inference pieces: `models/moe_architecture.py`, `scripts/inference_optimizer.py`, `scripts/inference_service.py`
+- Progress tracking: `models/therapeutic_progress_tracker.py`, `scripts/progress_tracking_api.py`
+- Specialized loaders + orchestrator: `pipelines/integrated_training_pipeline.py` and edge/dual-persona/voice/psychology loaders
 - Config + deps: `configs/moe_training_config.json`, `configs/requirements_moe.txt`
 - Docs: `docs/LIGHTNING_H100_QUICK_DEPLOY.md`, `docs/QUICK_START_GUIDE.md`
 
 ## Where the source lives
-All upgrade assets remain in place to avoid duplication:
+All assets are now consolidated in `ai/training_ready/`:
 ```
-ai/therapeutic_ai_training_package_20251028_204104/
-├── training_scripts/…              # training/inference/progress scripts
+ai/training_ready/
+├── scripts/…                      # training/inference/progress scripts
 ├── configs/moe_training_config.json
 ├── configs/requirements_moe.txt
-├── data_pipeline/…                 # loaders + integrated orchestrator
+├── pipelines/…                     # loaders + integrated orchestrator
 ├── docs/…                          # quick deploy guides
 └── utils/logger.py
 ```
@@ -25,8 +25,8 @@ ai/therapeutic_ai_training_package_20251028_204104/
 ## Run the H100 MoE path with training_ready data
 1) Prepare a dataset JSON the scripts expect (single `conversations` list of `{text}` entries). You can export from our unified pipeline, e.g.:
 ```
-uv run python ai/training_ready/pipelines/integrated/assemble_final_dataset.py \
-  --output ai/therapeutic_ai_training_package_20251028_204104/training_dataset.json
+uv run python ai/training_ready/pipelines/integrated_training_pipeline.py \
+  --output ai/training_ready/data/training_dataset.json
 ```
 Adjust the export path/flags to match your actual integrated output.
 
@@ -66,19 +66,19 @@ Adjust the export path/flags to match your actual integrated output.
 
 3) Install the H100-specific dependencies (from repo root):
 ```
-uv pip install -r ai/therapeutic_ai_training_package_20251028_204104/configs/requirements_moe.txt
+uv pip install -r ai/training_ready/configs/requirements_moe.txt
 ```
 
-4) Launch training (from the package dir so relative imports work):
+4) Launch training (from training_ready dir so relative imports work):
 ```
-cd ai/therapeutic_ai_training_package_20251028_204104
-uv run python training_scripts/train_optimized.py
-# or: uv run python training_scripts/train_moe_h100.py
+cd ai/training_ready
+uv run python scripts/train_optimized.py
+# or: uv run python scripts/train_moe_h100.py
 ```
 
 5) Serve the trained model:
 ```
-uv run python training_scripts/inference_service.py
+uv run python scripts/inference_service.py
 ```
 
 ## Notes

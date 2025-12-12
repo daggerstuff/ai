@@ -28,10 +28,10 @@ from pydantic import BaseModel, Field
 
 # Import MoE architecture
 try:
-    from moe_architecture import MoEConfig, TherapeuticMoEModel
+    from models.moe_architecture import MoEConfig, TherapeuticMoEModel
 except ImportError:
     sys.path.insert(0, '/app')
-    from moe_architecture import MoEConfig, TherapeuticMoEModel
+    from models.moe_architecture import MoEConfig, TherapeuticMoEModel
 
 from transformers import AutoTokenizer, AutoModelForCausalLM
 
