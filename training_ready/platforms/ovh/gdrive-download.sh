@@ -205,18 +205,26 @@ download_cot_datasets() {
     local target_dir="$DATASETS_DIR/cot_reasoning"
     mkdir -p "$target_dir"
     
-    # If you have a shared folder with all CoT datasets
-    # download_gdrive_folder "datasets/CoT_Reasoning" "$target_dir"
-    
-    # Or download individual datasets
-    for name in "${!COT_DATASETS[@]}"; do
-        local folder_id="${COT_DATASETS[$name]}"
-        if [ "$folder_id" != "FOLDER_ID_HERE" ]; then
-            download_with_gdown "$folder_id" "$target_dir/$name" "$name"
-        else
-            log_warn "Skipping $name - no folder ID configured"
-        fi
-    done
+    # Try canonical structure first (if reorganized)
+    if rclone lsd "${GDRIVE_REMOTE}:datasets/cot_reasoning" &>/dev/null; then
+        log_info "Using canonical structure: datasets/cot_reasoning/"
+        download_gdrive_folder "datasets/cot_reasoning" "$target_dir"
+    else
+        # Fallback to old structure
+        log_info "Using legacy structure - downloading individual CoT datasets"
+        # If you have a shared folder with all CoT datasets
+        # download_gdrive_folder "datasets/CoT_Reasoning" "$target_dir"
+        
+        # Or download individual datasets
+        for name in "${!COT_DATASETS[@]}"; do
+            local folder_id="${COT_DATASETS[$name]}"
+            if [ "$folder_id" != "FOLDER_ID_HERE" ]; then
+                download_with_gdown "$folder_id" "$target_dir/$name" "$name"
+            else
+                log_warn "Skipping $name - no folder ID configured"
+            fi
+        done
+    fi
     
     log_success "CoT datasets downloaded to: $target_dir"
 }
@@ -227,32 +235,52 @@ download_professional_datasets() {
     local target_dir="$DATASETS_DIR/professional_therapeutic"
     mkdir -p "$target_dir"
     
-    for name in "${!PROFESSIONAL_DATASETS[@]}"; do
-        local folder_id="${PROFESSIONAL_DATASETS[$name]}"
-        if [ "$folder_id" != "FOLDER_ID_HERE" ]; then
-            download_with_gdown "$folder_id" "$target_dir/$name" "$name"
-        else
-            log_warn "Skipping $name - no folder ID configured"
-        fi
-    done
+    # Try canonical structure first (if reorganized)
+    if rclone lsd "${GDRIVE_REMOTE}:datasets/professional_therapeutic" &>/dev/null; then
+        log_info "Using canonical structure: datasets/professional_therapeutic/"
+        download_gdrive_folder "datasets/professional_therapeutic" "$target_dir"
+    else
+        # Fallback to old structure
+        log_info "Using legacy structure - downloading individual professional datasets"
+        for name in "${!PROFESSIONAL_DATASETS[@]}"; do
+            local folder_id="${PROFESSIONAL_DATASETS[$name]}"
+            if [ "$folder_id" != "FOLDER_ID_HERE" ]; then
+                download_with_gdown "$folder_id" "$target_dir/$name" "$name"
+            else
+                log_warn "Skipping $name - no folder ID configured"
+            fi
+        done
+    fi
     
     log_success "Professional datasets downloaded to: $target_dir"
 }
 
 download_priority_datasets() {
-    log_header "Downloading Priority Datasets (datasets-wendy)"
+    log_header "Downloading Priority Datasets"
     
     local target_dir="$DATASETS_DIR/priority"
     mkdir -p "$target_dir"
     
-    for name in "${!PRIORITY_DATASETS[@]}"; do
-        local folder_id="${PRIORITY_DATASETS[$name]}"
-        if [ "$folder_id" != "FOLDER_ID_HERE" ]; then
-            download_with_gdown "$folder_id" "$target_dir/$name.jsonl" "$name"
-        else
-            log_warn "Skipping $name - no folder ID configured"
-        fi
-    done
+    # Try canonical structure first (priority/ renamed from datasets-wendy/)
+    if rclone lsd "${GDRIVE_REMOTE}:datasets/priority" &>/dev/null; then
+        log_info "Using canonical structure: datasets/priority/"
+        download_gdrive_folder "datasets/priority" "$target_dir"
+    elif rclone lsd "${GDRIVE_REMOTE}:datasets/datasets-wendy" &>/dev/null; then
+        # Fallback to old structure
+        log_info "Using legacy structure: datasets/datasets-wendy/"
+        download_gdrive_folder "datasets/datasets-wendy" "$target_dir"
+    else
+        # Fallback to individual downloads
+        log_info "Downloading individual priority datasets"
+        for name in "${!PRIORITY_DATASETS[@]}"; do
+            local folder_id="${PRIORITY_DATASETS[$name]}"
+            if [ "$folder_id" != "FOLDER_ID_HERE" ]; then
+                download_with_gdown "$folder_id" "$target_dir/$name.jsonl" "$name"
+            else
+                log_warn "Skipping $name - no folder ID configured"
+            fi
+        done
+    fi
     
     log_success "Priority datasets downloaded to: $target_dir"
 }
