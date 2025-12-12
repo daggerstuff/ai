@@ -1,0 +1,92 @@
+{
+  "timestamp": "2025-12-12T01:12:37.713296",
+  "dry_run": true,
+  "results": [
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "priority_1_conversations.jsonl",
+      "category": "phase_1_priority_conversations"
+    },
+    {
+      "success": false,
+      "error": "Read timeout on endpoint URL: \"None\"",
+      "file": "priority_2_conversations.jsonl",
+      "category": "phase_1_priority_conversations"
+    },
+    {
+      "success": false,
+      "error": "Could not connect to the endpoint URL: \"https://s3.us-east-va.io.cloud.ovh.us/pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl\"",
+      "file": "priority_3_conversations.jsonl",
+      "category": "phase_1_priority_conversations"
+    },
+    {
+      "success": false,
+      "error": "Could not connect to the endpoint URL: \"https://s3.us-east-va.io.cloud.ovh.us/pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl\"",
+      "file": "unified_priority_conversations.jsonl",
+      "category": "phase_1_priority_conversations"
+    },
+    {
+      "success": false,
+      "error": "Could not connect to the endpoint URL: \"https://s3.us-east-va.io.cloud.ovh.us/pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl\"",
+      "file": "soulchat_2_0_conversations.jsonl",
+      "category": "phase_2_professional_datasets"
+    },
+    {
+      "success": false,
+      "error": "Could not connect to the endpoint URL: \"https://s3.us-east-va.io.cloud.ovh.us/pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl\"",
+      "file": "llama3_mental_counseling_conversations.jsonl",
+      "category": "phase_2_professional_datasets"
+    },
+    {
+      "success": false,
+      "error": "Could not connect to the endpoint URL: \"https://s3.us-east-va.io.cloud.ovh.us/pixel-data/datasets/gdrive/processed/phase_3_cot_reasoning/task_5_25_tot_reasoning/tot_reasoning_conversations.jsonl\"",
+      "file": "tot_reasoning_conversations.jsonl",
+      "category": "phase_3_cot_reasoning"
+    },
+    {
+      "success": false,
+      "error": "Could not connect to the endpoint URL: \"https://s3.us-east-va.io.cloud.ovh.us/pixel-data/datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl\"",
+      "file": "condition_specific_conversations.jsonl",
+      "category": "phase_4_reddit_mental_health"
+    },
+    {
+      "success": false,
+      "error": "Could not connect to the endpoint URL: \"https://s3.us-east-va.io.cloud.ovh.us/pixel-data/datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_28_specialized_populations/specialized_populations_conversations.jsonl\"",
+      "file": "specialized_populations_conversations.jsonl",
+      "category": "phase_4_reddit_mental_health"
+    },
+    {
+      "success": false,
+      "error": "Could not connect to the endpoint URL: \"https://s3.us-east-va.io.cloud.ovh.us/pixel-data/datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl\"",
+      "file": "temporal_analysis_conversations.jsonl",
+      "category": "phase_4_reddit_mental_health"
+    },
+    {
+      "success": false,
+      "error": "Could not connect to the endpoint URL: \"https://s3.us-east-va.io.cloud.ovh.us/pixel-data/datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl\"",
+      "file": "temporal_analysis_data.jsonl",
+      "category": "phase_4_reddit_mental_health"
+    },
+    {
+      "success": false,
+      "error": "Could not connect to the endpoint URL: \"https://s3.us-east-va.io.cloud.ovh.us/pixel-data/datasets/gdrive/processed/professional_datasets_final/soulchat_2_0_complete_no_limits.jsonl\"",
+      "file": "soulchat_2_0_complete_no_limits.jsonl",
+      "category": "professional_datasets_final"
+    },
+    {
+      "success": false,
+      "error": "Could not connect to the endpoint URL: \"https://s3.us-east-va.io.cloud.ovh.us/pixel-data/datasets/gdrive/processed/soulchat_complete/soulchat_2_0_complete_no_limits.jsonl\"",
+      "file": "soulchat_2_0_complete_no_limits.jsonl",
+      "category": "soulchat_complete"
+    }
+  ],
+  "summary": {
+    "total": 13,
+    "fixed": 0,
+    "skipped": 1,
+    "failed": 12
+  }
+}

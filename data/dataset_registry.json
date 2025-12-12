@@ -2,6 +2,8 @@
     "description": "Dataset registry pointing to Google Drive datasets - NO COPYING REQUIRED",
     "gdrive_mount": "/mnt/gdrive/datasets",
     "total_size_gb": 10,
+    "consolidation_status": "audited_2025-12-11",
+    "canonical_structure": "See ai/training_ready/docs/GDRIVE_STRUCTURE.md",
     "datasets": {
         "cot_reasoning": {
             "CoT_Clinical_Diagnosis_Mental_Health": {
@@ -232,9 +234,11 @@
         }
     },
     "usage_notes": {
-        "no_copy_needed": "All datasets accessible via /mnt/gdrive/datasets mount point",
-        "bandwidth_friendly": "Training scripts can read directly from Google Drive",
+        "s3_is_canonical": "S3 (s3://pixelated-training-data/) is the training mecca - all training scripts should read from S3",
+        "gdrive_is_source": "Google Drive is source/staging area that syncs to S3 via rclone",
+        "no_local_copy_needed": "All datasets accessible via S3 - no local copying required",
         "total_conversations": "500K+ therapeutic conversations available",
-        "lightning_ai": "Can upload dataset registry + point to specific files for training"
+        "sync_status": "Active rclone syncs: processed tier DONE, raw tier IN PROGRESS (per .notes/markdown/one.md)",
+        "s3_structure": "See ai/training_ready/docs/S3_TRAINING_DATA_STRUCTURE.md for canonical S3 organization"
     }
 }
