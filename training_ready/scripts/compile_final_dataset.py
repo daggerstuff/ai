@@ -3,13 +3,16 @@
 Compile Final Training Dataset - Creates manifest + compiled ChatML JSONL export
 """
 
+import argparse
 import hashlib
 import json
 import logging
 import random
+import shutil
 import sys
 import time
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -184,8 +187,8 @@ class FinalDatasetCompiler:
 
         conversations = []
         with open(cache_file, encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
+            for raw_line in f:
+                line = raw_line.strip()
                 if not line:
                     continue
                 try:
@@ -560,6 +563,94 @@ class FinalDatasetCompiler:
         logger.info("Loading family %s from %s S3 keys", family_name, len(keys))
         return self.load_conversations_from_s3(family_name, keys)
 
+    def _add_metadata_to_conversations(
+        self, conversations: list[dict[str, Any]], family_name: str, source_key: str | None = None
+    ) -> None:
+        """Add metadata to conversations"""
+        for conv in conversations:
+            conv["metadata"] = conv.get("metadata", {})
+            conv["metadata"]["source_family"] = family_name
+            if source_key:
+                conv["metadata"]["source_key"] = source_key
+            elif "source_key" not in conv["metadata"]:
+                conv["metadata"]["source_key"] = (
+                    f"s3://{self.s3_bucket}/{conv.get('metadata', {}).get('source_key', '')}"
+                )
+            if not conv["metadata"].get("content_hash"):
+                conv["metadata"]["content_hash"] = compute_content_hash(conv.get("messages", []))
+
+    def _load_or_get_cached_family(
+        self, family_name: str, loader_func: Callable[[], list[dict[str, Any]]]
+    ) -> list[dict[str, Any]]:
+        """Load family conversations from cache or loader function"""
+        if self.resume and (cached := self.load_family_conversations(family_name)):
+            logger.info("  Using cached conversations for %s", family_name)
+            return cached
+
+        conversations = loader_func()
+        if conversations:
+            self.save_family_conversations(family_name, conversations)
+        return conversations
+
+    def _process_s3_family(self, family_name: str, idx: int, total: int) -> None:
+        """Process a single S3 family"""
+        if family_name in self.processed_families:
+            logger.info("  Skipping family %s/%s: %s (already processed)", idx, total, family_name)
+            if cached := self.load_family_conversations(family_name):
+                self.all_conversations.extend(cached)
+            return
+
+        logger.info("  Loading family %s/%s: %s", idx, total, family_name)
+        family_start = time.time()
+
+        convs = self._load_or_get_cached_family(
+            family_name, lambda: self.load_conversations_for_family(family_name)
+        )
+
+        self._add_metadata_to_conversations(convs, family_name)
+        self.all_conversations.extend(convs)
+        self.processed_families.add(family_name)
+
+        family_elapsed = time.time() - family_start
+        logger.info("  ✓ %s: %s conversations (%.1fs)", family_name, len(convs), family_elapsed)
+        logger.info("  Total so far: %s conversations", len(self.all_conversations))
+        self.save_checkpoint("collection")
+
+    def _process_routing_family(
+        self, family_name: str, family_config: dict[str, Any], idx: int, total: int
+    ) -> None:
+        """Process a single routing family"""
+        if family_name in self.processed_families:
+            logger.info(
+                "  Skipping routing family %s/%s: %s (already processed)", idx, total, family_name
+            )
+            if cached := self.load_family_conversations(family_name):
+                self.all_conversations.extend(cached)
+            return
+
+        logger.info("  Loading routing family %s/%s: %s", idx, total, family_name)
+        family_start = time.time()
+        s3_path_raw = family_config.get("s3_path")
+        if not isinstance(s3_path_raw, str):
+            logger.warning("  Invalid s3_path for family %s, skipping", family_name)
+            return
+
+        s3_path: str = s3_path_raw
+        conversations = self._load_or_get_cached_family(
+            family_name, lambda: self.load_conversations_from_s3(family_name, [s3_path])
+        )
+
+        self._add_metadata_to_conversations(conversations, family_name, s3_path)
+        self.all_conversations.extend(conversations)
+        self.processed_families.add(family_name)
+
+        family_elapsed = time.time() - family_start
+        logger.info(
+            "  ✓ %s: %s conversations (%.1fs)", family_name, len(conversations), family_elapsed
+        )
+        logger.info("  Total so far: %s conversations", len(self.all_conversations))
+        self.save_checkpoint("collection")
+
     def collect_all_conversations(self) -> None:
         """Collect all conversations from all dataset families"""
         logger.info("Collecting conversations from all dataset families...")
@@ -584,52 +675,7 @@ class FinalDatasetCompiler:
         )
 
         for idx, family_name in enumerate(s3_families, 1):
-            # Check if already processed
-            if family_name in self.processed_families:
-                logger.info(
-                    "  Skipping family %s/%s: %s (already processed)",
-                    idx,
-                    len(s3_families),
-                    family_name,
-                )
-                # Still load from cache to include in final dataset
-                cached = self.load_family_conversations(family_name)
-                if cached:
-                    self.all_conversations.extend(cached)
-                continue
-
-            logger.info("  Loading family %s/%s: %s", idx, len(s3_families), family_name)
-            family_start = time.time()
-
-            # Try cache first
-            cached = self.load_family_conversations(family_name) if self.resume else None
-            if cached is not None:
-                convs = cached
-                logger.info("  Using cached conversations for %s", family_name)
-            else:
-                convs = self.load_conversations_for_family(family_name)
-                # Cache the results
-                if convs:
-                    self.save_family_conversations(family_name, convs)
-
-            family_elapsed = time.time() - family_start
-
-            for conv in convs:
-                conv["metadata"] = conv.get("metadata", {})
-                conv["metadata"]["source_family"] = family_name
-                conv["metadata"]["source_key"] = conv["metadata"].get(
-                    "source_key",
-                    f"s3://{self.s3_bucket}/{conv.get('metadata', {}).get('source_key', '')}",
-                )
-                if not conv["metadata"].get("content_hash"):
-                    conv["metadata"]["content_hash"] = compute_content_hash(
-                        conv.get("messages", [])
-                    )
-            self.all_conversations.extend(convs)
-            self.processed_families.add(family_name)
-            logger.info("  ✓ %s: %s conversations (%.1fs)", family_name, len(convs), family_elapsed)
-            logger.info("  Total so far: %s conversations", len(self.all_conversations))
-            self.save_checkpoint("collection")
+            self._process_s3_family(family_name, idx, len(s3_families))
 
         logger.info("Step 3/3: Loading from routing config families...")
         families = self.routing_config.get("families", {})
@@ -640,52 +686,7 @@ class FinalDatasetCompiler:
         ]
 
         for idx, (family_name, family_config) in enumerate(routing_families, 1):
-            # Check if already processed
-            if family_name in self.processed_families:
-                logger.info(
-                    "  Skipping routing family %s/%s: %s (already processed)",
-                    idx,
-                    len(routing_families),
-                    family_name,
-                )
-                cached = self.load_family_conversations(family_name)
-                if cached:
-                    self.all_conversations.extend(cached)
-                continue
-
-            logger.info(
-                "  Loading routing family %s/%s: %s", idx, len(routing_families), family_name
-            )
-            family_start = time.time()
-            s3_path = family_config.get("s3_path")
-
-            # Try cache first
-            cached = self.load_family_conversations(family_name) if self.resume else None
-            if cached is not None:
-                conversations = cached
-                logger.info("  Using cached conversations for %s", family_name)
-            else:
-                # Load conversations from S3
-                conversations = self.load_conversations_from_s3(family_name, [s3_path])
-                # Cache the results
-                if conversations:
-                    self.save_family_conversations(family_name, conversations)
-
-            # Add metadata
-            for conv in conversations:
-                conv["metadata"] = conv.get("metadata", {})
-                conv["metadata"]["source_family"] = family_name
-                conv["metadata"]["source_key"] = s3_path
-                conv["metadata"]["content_hash"] = compute_content_hash(conv.get("messages", []))
-
-            self.all_conversations.extend(conversations)
-            self.processed_families.add(family_name)
-            family_elapsed = time.time() - family_start
-            logger.info(
-                "  ✓ %s: %s conversations (%.1fs)", family_name, len(conversations), family_elapsed
-            )
-            logger.info("  Total so far: %s conversations", len(self.all_conversations))
-            self.save_checkpoint("collection")
+            self._process_routing_family(family_name, family_config, idx, len(routing_families))
 
         total_elapsed = time.time() - total_start
         logger.info(
@@ -959,16 +960,14 @@ class FinalDatasetCompiler:
 
         self.load_configs()
 
-        # Load checkpoint if resuming
-        checkpoint = self.load_checkpoint()
-        if checkpoint:
+        if checkpoint := self.load_checkpoint():
             logger.info("Resuming from checkpoint at stage: %s", checkpoint.get("stage"))
             # Load cached conversations from processed families
             for family in self.processed_families:
-                if family != "local_generated":  # Already handled
-                    cached = self.load_family_conversations(family)
-                    if cached:
-                        self.all_conversations.extend(cached)
+                if family != "local_generated" and (
+                    cached := self.load_family_conversations(family)
+                ):
+                    self.all_conversations.extend(cached)
             logger.info("Loaded %s conversations from checkpoint", len(self.all_conversations))
 
         self.collect_all_conversations()
@@ -1005,8 +1004,6 @@ class FinalDatasetCompiler:
 
 def main():
     """Main entry point"""
-    import argparse
-
     parser = argparse.ArgumentParser(
         description="Compile final training dataset with checkpoint/resume support"
     )
@@ -1037,8 +1034,6 @@ def main():
     if args.clear_checkpoint:
         checkpoint_dir = output_dir / "checkpoints"
         if checkpoint_dir.exists():
-            import shutil
-
             shutil.rmtree(checkpoint_dir)
             logger.info("Cleared checkpoint directory")
         return 0
