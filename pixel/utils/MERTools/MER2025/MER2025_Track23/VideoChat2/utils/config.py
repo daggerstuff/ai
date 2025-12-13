@@ -132,7 +132,7 @@ class Config:
                     if "tmp_config" in k:
                         del sys.modules[k]
         elif filepath.endswith((".yml", ".yaml")):
-            cfg_dict = yaml.load(open(filepath), Loader=yaml.Loader)
+            cfg_dict = yaml.safe_load(open(filepath))
         elif filepath.endswith(".json"):
             cfg_dict = json.load(open(filepath))
         else:
