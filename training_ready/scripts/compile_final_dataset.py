@@ -4,6 +4,7 @@ Compile Final Training Dataset - Creates manifest + compiled ChatML JSONL export
 """
 
 import argparse
+import gc
 import hashlib
 import json
 import logging
@@ -13,10 +14,22 @@ import sys
 import time
 from collections import defaultdict
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
+from rich.table import Table
 
 from ai.training_ready.scripts.enhanced_deduplication import (
     ConversationEntry,
@@ -29,6 +42,8 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
+
+console = Console()
 
 
 @dataclass
@@ -52,6 +67,29 @@ class SplitInfo:
     total_tokens_approx: int = 0
 
 
+@dataclass
+class ProgressCounters:
+    """Counters for progress tracking"""
+
+    raw_count: int
+    normalized_count: int
+    skipped_count: int
+
+
+@dataclass
+class CheckpointInfo:
+    """Enhanced checkpoint information"""
+
+    stage: str
+    processed_families: list[str] = field(default_factory=list)
+    processed_files: list[str] = field(default_factory=list)
+    total_conversations: int = 0
+    timestamp: str = ""
+    family_stats: dict[str, int] = field(default_factory=dict)
+    estimated_progress: float = 0.0
+    errors: list[str] = field(default_factory=list)
+
+
 @dataclass(frozen=True)
 class CompilerConfig:
     routing_config_path: Path
@@ -64,6 +102,79 @@ class CompilerConfig:
     shard_size_mb: int = 1000
     checkpoint_dir: Path | None = None
     resume: bool = True
+
+
+# Constants for S3 streaming
+PROGRESS_LOG_INTERVAL = 1000  # Log every N records
+PROGRESS_LOG_TIME_INTERVAL = 30  # Log every N seconds
+LOW_RATE_THRESHOLD = 100  # records/second
+LOW_RATE_MEMORY_THRESHOLD = 50000  # records before triggering GC
+
+
+class CompilationTUI:
+    """Beautiful TUI for dataset compilation progress"""
+
+    def __init__(self):
+        self.console = Console()
+        self.main_progress = Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            TimeElapsedColumn(),
+            TimeRemainingColumn(),
+            console=self.console,
+        )
+        self.family_progress = Progress(
+            TextColumn("[cyan]{task.description}"),
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            console=self.console,
+        )
+        self.stats_table = Table(show_header=True, header_style="bold magenta")
+        self.stats_table.add_column("Metric", style="cyan", no_wrap=True)
+        self.stats_table.add_column("Value", style="green")
+
+    def display_checkpoint_info(self, checkpoint: CheckpointInfo) -> None:
+        """Display checkpoint information in a beautiful panel"""
+        checkpoint_time = (
+            datetime.fromisoformat(checkpoint.timestamp).strftime("%Y-%m-%d %H:%M:%S UTC")
+            if checkpoint.timestamp
+            else "Unknown"
+        )
+
+        content = f"""\
+[bold cyan]Stage:[/bold cyan] {checkpoint.stage}
+[bold cyan]Timestamp:[/bold cyan] {checkpoint_time}
+[bold cyan]Progress:[/bold cyan] {checkpoint.estimated_progress:.1f}%
+[bold cyan]Conversations:[/bold cyan] {checkpoint.total_conversations:,}
+[bold cyan]Families Processed:[/bold cyan] {len(checkpoint.processed_families)}
+[bold cyan]Files Processed:[/bold cyan] {len(checkpoint.processed_files)}
+"""
+        if checkpoint.family_stats:
+            content += "\n[bold yellow]Family Statistics:[/bold yellow]\n"
+            for family, count in sorted(
+                checkpoint.family_stats.items(), key=lambda x: x[1], reverse=True
+            )[:10]:
+                content += f"  • {family}: {count:,} conversations\n"
+
+        panel = Panel(
+            content, title="[bold green]✓ Checkpoint Loaded[/bold green]", border_style="green"
+        )
+        self.console.print(panel)
+
+    def create_status_table(self, stats: dict[str, Any]) -> Table:
+        """Create a live status table"""
+        table = Table(show_header=True, header_style="bold blue", box=None)
+        table.add_column("Metric", style="cyan", width=25)
+        table.add_column("Value", style="green", width=20)
+
+        for key, value in stats.items():
+            if isinstance(value, (int, float)) and value > 1000:
+                value = f"{value:,}"
+            table.add_row(key, str(value))
+
+        return table
 
 
 class FinalDatasetCompiler:
@@ -97,6 +208,11 @@ class FinalDatasetCompiler:
         # Track processed families for resume
         self.processed_families: set[str] = set()
         self.processed_files: set[str] = set()
+        self.family_stats: dict[str, int] = {}
+
+        # TUI
+        self.tui = CompilationTUI()
+        self.use_tui = True  # Enable TUI by default
 
         # Hard holdout families (only in test)
         self.holdout_families = [
@@ -126,49 +242,83 @@ class FinalDatasetCompiler:
         self.s3_endpoint = endpoint
         self.s3_loader = S3DatasetLoader(bucket=self.s3_bucket, endpoint_url=self.s3_endpoint)
 
-    def load_checkpoint(self) -> dict[str, Any] | None:
-        """Load checkpoint if it exists"""
+    def load_checkpoint(self) -> CheckpointInfo | None:
+        """Load checkpoint if it exists with enhanced information"""
         if not self.resume or not self.checkpoint_file.exists():
             return None
 
         try:
             with open(self.checkpoint_file, encoding="utf-8") as f:
-                checkpoint = json.load(f)
+                checkpoint_data = json.load(f)
 
-            self.processed_families = set(checkpoint.get("processed_families", []))
-            self.processed_files = set(checkpoint.get("processed_files", []))
+            self.processed_families = set(checkpoint_data.get("processed_families", []))
+            self.processed_files = set(checkpoint_data.get("processed_files", []))
+            self.family_stats = checkpoint_data.get("family_stats", {})
 
-            logger.info(
-                "Resuming from checkpoint: %s families, %s files already processed",
-                len(self.processed_families),
-                len(self.processed_files),
+            checkpoint_info = CheckpointInfo(
+                stage=checkpoint_data.get("stage", "unknown"),
+                processed_families=list(self.processed_families),
+                processed_files=list(self.processed_files),
+                total_conversations=checkpoint_data.get("total_conversations", 0),
+                timestamp=checkpoint_data.get("timestamp", ""),
+                family_stats=self.family_stats,
+                estimated_progress=checkpoint_data.get("estimated_progress", 0.0),
+                errors=checkpoint_data.get("errors", []),
             )
-            return checkpoint
+
+            if self.use_tui:
+                self.tui.display_checkpoint_info(checkpoint_info)
+            else:
+                logger.info(
+                    "Resuming from checkpoint: %s families, %s files already processed",
+                    len(self.processed_families),
+                    len(self.processed_files),
+                )
+
+            return checkpoint_info
         except Exception as e:
             logger.warning("Failed to load checkpoint: %s - starting fresh", e)
+            if self.use_tui:
+                self.tui.console.print(
+                    f"[yellow]⚠ Warning:[/yellow] Failed to load checkpoint: {e} - starting fresh"
+                )
             return None
 
-    def save_checkpoint(self, stage: str = "collection") -> None:
-        """Save checkpoint with current progress"""
+    def save_checkpoint(self, stage: str = "collection", estimated_progress: float = 0.0) -> None:
+        """Save checkpoint with enhanced progress tracking"""
         checkpoint = {
             "stage": stage,
             "processed_families": list(self.processed_families),
             "processed_files": list(self.processed_files),
             "total_conversations": len(self.all_conversations),
             "timestamp": datetime.now(timezone.utc).isoformat(),
+            "family_stats": self.family_stats,
+            "estimated_progress": estimated_progress,
+            "checkpoint_version": "2.0",  # Version for future compatibility
         }
 
         # Use atomic write
         temp_file = self.checkpoint_file.with_suffix(".tmp")
-        with open(temp_file, "w", encoding="utf-8") as f:
-            json.dump(checkpoint, f, indent=2)
-        temp_file.replace(self.checkpoint_file)
+        try:
+            with open(temp_file, "w", encoding="utf-8") as f:
+                json.dump(checkpoint, f, indent=2)
+            temp_file.replace(self.checkpoint_file)
 
-        logger.debug(
-            "Checkpoint saved: %s conversations, %s families processed",
-            len(self.all_conversations),
-            len(self.processed_families),
-        )
+            if self.use_tui:
+                self.tui.console.print(
+                    f"[dim]💾 Checkpoint saved: {len(self.all_conversations):,} conversations, "
+                    f"{len(self.processed_families)} families[/dim]"
+                )
+            else:
+                logger.debug(
+                    "Checkpoint saved: %s conversations, %s families processed",
+                    len(self.all_conversations),
+                    len(self.processed_families),
+                )
+        except Exception as e:
+            logger.error("Failed to save checkpoint: %s", e)
+            if self.use_tui:
+                self.tui.console.print(f"[red]❌ Failed to save checkpoint: {e}[/red]")
 
     def save_family_conversations(
         self, family_name: str, conversations: list[dict[str, Any]]
@@ -291,12 +441,34 @@ class FinalDatasetCompiler:
 
         return messages
 
+    def _check_and_add_hash(self, content_hash: str, seen_hashes: set[str]) -> bool:
+        """Check if hash is duplicate and add to set. Returns False if duplicate."""
+        if content_hash in seen_hashes:
+            return False
+        seen_hashes.add(content_hash)
+        return True
+
     def _normalize_chatml_record(
         self, record: Any, *, seen_hashes: set[str]
     ) -> dict[str, Any] | None:
         if not isinstance(record, dict):
             return None
 
+        # Fast path: check hash first if it exists AND messages are already in correct format
+        metadata = record.get("metadata")
+        messages = record.get("messages")
+        if (
+            isinstance(metadata, dict)
+            and isinstance(messages, list)
+            and messages
+            and self._messages_are_chatml(messages)
+        ):
+            content_hash = metadata.get("content_hash")
+            if isinstance(content_hash, str) and content_hash:
+                # Hash exists and messages are valid - check duplicate immediately
+                return record if self._check_and_add_hash(content_hash, seen_hashes) else None
+
+        # Normal path: normalize messages first
         messages = record.get("messages")
         if (
             not isinstance(messages, list)
@@ -310,21 +482,54 @@ class FinalDatasetCompiler:
             messages = converted
             record["messages"] = messages
 
-        metadata = record.get("metadata")
         if not isinstance(metadata, dict):
             metadata = {}
             record["metadata"] = metadata
 
+        # Compute hash if not already present
         content_hash = metadata.get("content_hash")
         if not isinstance(content_hash, str) or not content_hash:
             content_hash = compute_content_hash(messages)
             metadata["content_hash"] = content_hash
 
-        if content_hash in seen_hashes:
-            return None
+        # Check for duplicates
+        return record if self._check_and_add_hash(content_hash, seen_hashes) else None
 
-        seen_hashes.add(content_hash)
-        return record
+    def _calculate_memory_size(self, out: list[dict[str, Any]]) -> float:
+        """Calculate approximate memory size of output list in MB."""
+        if not out or not hasattr(sys, "getsizeof"):
+            return 0.0
+        sample_size = sum(sys.getsizeof(item) for item in out[:1000])
+        return (sample_size * len(out) / 1000) / (1024 * 1024)
+
+    def _log_progress(
+        self,
+        counters: ProgressCounters,
+        seen_hashes: set[str],
+        out: list[dict[str, Any]],
+        elapsed: float,
+        last_log_count: int,
+    ) -> tuple[int, float]:
+        """Log progress and return updated last_log_count and reset stream_start."""
+        rate = (counters.raw_count - last_log_count) / elapsed if elapsed > 0 else 0
+        out_size_mb = self._calculate_memory_size(out)
+
+        # Trigger GC if rate is very low (possible memory pressure)
+        if rate < LOW_RATE_THRESHOLD and counters.raw_count > LOW_RATE_MEMORY_THRESHOLD:
+            gc.collect()
+            logger.debug("  Triggered GC due to low rate")
+
+        logger.info(
+            "  Progress: %s raw, %s normalized, %s skipped (elapsed: %.1fs, rate: %.0f rec/s, seen_hashes: %s, out_size: ~%.1fMB)",
+            counters.raw_count,
+            counters.normalized_count,
+            counters.skipped_count,
+            elapsed,
+            rate,
+            len(seen_hashes),
+            out_size_mb,
+        )
+        return counters.raw_count, time.time()
 
     def _load_chatml_jsonl_from_s3(self, *, family_name: str, s3_uri: str) -> list[dict[str, Any]]:
         # Retry streaming reads (OVH S3 can occasionally drop large streams).
@@ -351,20 +556,19 @@ class FinalDatasetCompiler:
                     else:
                         skipped_count += 1
 
-                    # Log progress every 1000 records or every 30 seconds
+                    # Log progress every N records or every N seconds
                     elapsed = time.time() - stream_start
-                    if (raw_count - last_log_count >= 1000) or (
-                        elapsed >= 30 and raw_count > last_log_count
+                    if (raw_count - last_log_count >= PROGRESS_LOG_INTERVAL) or (
+                        elapsed >= PROGRESS_LOG_TIME_INTERVAL and raw_count > last_log_count
                     ):
-                        logger.info(
-                            "  Progress: %s raw, %s normalized, %s skipped (elapsed: %.1fs)",
-                            raw_count,
-                            normalized_count,
-                            skipped_count,
-                            elapsed,
+                        counters = ProgressCounters(
+                            raw_count=raw_count,
+                            normalized_count=normalized_count,
+                            skipped_count=skipped_count,
                         )
-                        last_log_count = raw_count
-                        stream_start = time.time()  # Reset timer
+                        last_log_count, stream_start = self._log_progress(
+                            counters, seen_hashes, out, elapsed, last_log_count
+                        )
 
                 logger.info(
                     "Loaded %s/%s conversations from %s (skipped %s duplicates/invalid)",
@@ -461,7 +665,13 @@ class FinalDatasetCompiler:
             self.all_conversations.extend(convs)
             self.processed_files.add(file_key)
             total_convs += len(convs)
-            logger.info("Loaded %s conversations from local %s", len(convs), path)
+            self.family_stats[family_name] = len(convs)
+            if self.use_tui:
+                self.tui.console.print(
+                    f"[green]✓[/green] {family_name}: [bold]{len(convs):,}[/bold] conversations from {path.name}"
+                )
+            else:
+                logger.info("Loaded %s conversations from local %s", len(convs), path)
             self.save_checkpoint("collection")
 
         if total_convs > 0:
@@ -595,12 +805,20 @@ class FinalDatasetCompiler:
     def _process_s3_family(self, family_name: str, idx: int, total: int) -> None:
         """Process a single S3 family"""
         if family_name in self.processed_families:
-            logger.info("  Skipping family %s/%s: %s (already processed)", idx, total, family_name)
+            if self.use_tui:
+                self.tui.console.print(f"[dim]⏭  Skipping {family_name} (already processed)[/dim]")
+            else:
+                logger.info(
+                    "  Skipping family %s/%s: %s (already processed)", idx, total, family_name
+                )
             if cached := self.load_family_conversations(family_name):
                 self.all_conversations.extend(cached)
             return
 
-        logger.info("  Loading family %s/%s: %s", idx, total, family_name)
+        if self.use_tui:
+            self.tui.console.print(f"[cyan]📦 Loading family {idx}/{total}: {family_name}[/cyan]")
+        else:
+            logger.info("  Loading family %s/%s: %s", idx, total, family_name)
         family_start = time.time()
 
         convs = self._load_or_get_cached_family(
@@ -610,25 +828,46 @@ class FinalDatasetCompiler:
         self._add_metadata_to_conversations(convs, family_name)
         self.all_conversations.extend(convs)
         self.processed_families.add(family_name)
+        self.family_stats[family_name] = len(convs)
 
         family_elapsed = time.time() - family_start
-        logger.info("  ✓ %s: %s conversations (%.1fs)", family_name, len(convs), family_elapsed)
-        logger.info("  Total so far: %s conversations", len(self.all_conversations))
-        self.save_checkpoint("collection")
+        estimated_progress = (idx / total) * 100 if total > 0 else 0
+
+        if self.use_tui:
+            self.tui.console.print(
+                f"[green]✓[/green] {family_name}: [bold]{len(convs):,}[/bold] conversations "
+                f"({family_elapsed:.1fs}) | Total: {len(self.all_conversations):,}"
+            )
+        else:
+            logger.info("  ✓ %s: %s conversations (%.1fs)", family_name, len(convs), family_elapsed)
+            logger.info("  Total so far: %s conversations", len(self.all_conversations))
+
+        self.save_checkpoint("collection", estimated_progress=estimated_progress)
 
     def _process_routing_family(
         self, family_name: str, family_config: dict[str, Any], idx: int, total: int
     ) -> None:
         """Process a single routing family"""
         if family_name in self.processed_families:
-            logger.info(
-                "  Skipping routing family %s/%s: %s (already processed)", idx, total, family_name
-            )
+            if self.use_tui:
+                self.tui.console.print(f"[dim]⏭  Skipping {family_name} (already processed)[/dim]")
+            else:
+                logger.info(
+                    "  Skipping routing family %s/%s: %s (already processed)",
+                    idx,
+                    total,
+                    family_name,
+                )
             if cached := self.load_family_conversations(family_name):
                 self.all_conversations.extend(cached)
             return
 
-        logger.info("  Loading routing family %s/%s: %s", idx, total, family_name)
+        if self.use_tui:
+            self.tui.console.print(
+                f"[cyan]📦 Loading routing family {idx}/{total}: {family_name}[/cyan]"
+            )
+        else:
+            logger.info("  Loading routing family %s/%s: %s", idx, total, family_name)
         family_start = time.time()
         s3_path_raw = family_config.get("s3_path")
         if not isinstance(s3_path_raw, str):
@@ -643,13 +882,22 @@ class FinalDatasetCompiler:
         self._add_metadata_to_conversations(conversations, family_name, s3_path)
         self.all_conversations.extend(conversations)
         self.processed_families.add(family_name)
+        self.family_stats[family_name] = len(conversations)
 
         family_elapsed = time.time() - family_start
-        logger.info(
-            "  ✓ %s: %s conversations (%.1fs)", family_name, len(conversations), family_elapsed
-        )
-        logger.info("  Total so far: %s conversations", len(self.all_conversations))
-        self.save_checkpoint("collection")
+        estimated_progress = (idx / total) * 100 if total > 0 else 0
+
+        if self.use_tui:
+            self.tui.console.print(
+                f"[green]✓[/green] {family_name}: [bold]{len(conversations):,}[/bold] conversations "
+                f"({family_elapsed:.1fs}) | Total: {len(self.all_conversations):,}"
+            )
+        else:
+            logger.info(
+                "  ✓ %s: %s conversations (%.1fs)", family_name, len(conversations), family_elapsed
+            )
+            logger.info("  Total so far: %s conversations", len(self.all_conversations))
+        self.save_checkpoint("collection", estimated_progress=estimated_progress)
 
     def collect_all_conversations(self) -> None:
         """Collect all conversations from all dataset families"""
@@ -956,42 +1204,107 @@ class FinalDatasetCompiler:
 
     def compile(self) -> dict[str, Any]:
         """Run complete compilation process"""
-        logger.info("Starting final dataset compilation...")
+        if self.use_tui:
+            self.tui.console.print(
+                Panel(
+                    "[bold cyan]🚀 Starting Final Dataset Compilation[/bold cyan]",
+                    border_style="cyan",
+                )
+            )
+        else:
+            logger.info("Starting final dataset compilation...")
 
         self.load_configs()
 
         if checkpoint := self.load_checkpoint():
-            logger.info("Resuming from checkpoint at stage: %s", checkpoint.get("stage"))
+            if not self.use_tui:
+                logger.info("Resuming from checkpoint at stage: %s", checkpoint.stage)
             # Load cached conversations from processed families
             for family in self.processed_families:
                 if family != "local_generated" and (
                     cached := self.load_family_conversations(family)
                 ):
                     self.all_conversations.extend(cached)
-            logger.info("Loaded %s conversations from checkpoint", len(self.all_conversations))
+            if not self.use_tui:
+                logger.info("Loaded %s conversations from checkpoint", len(self.all_conversations))
 
-        self.collect_all_conversations()
-        self.assign_splits()
-        self.deduplicate()
+        if self.use_tui:
+            self.tui.main_progress.start()
+            task = self.tui.main_progress.add_task("[cyan]Collecting conversations...", total=None)
+        try:
+            task = None
+            if self.use_tui:
+                task = self.tui.main_progress.add_task(
+                    "[cyan]Collecting conversations...", total=None
+                )
 
-        # Check for leakage
-        violations = self.check_split_leakage()
-        if violations["holdout_family_leakage"]:
-            logger.error("Holdout family leakage detected! Fix before proceeding.")
-            return {"error": "Holdout family leakage", "violations": violations}
+            self.collect_all_conversations()
 
-        # Generate manifest
-        manifest = self.generate_manifest()
+            if self.use_tui:
+                self.tui.main_progress.update(task, description="[yellow]Assigning splits...")
+            self.assign_splits()
 
-        # Create compiled export
-        compiled_path = self.create_compiled_export()
+            if self.use_tui:
+                self.tui.main_progress.update(task, description="[yellow]Deduplicating...")
+            self.deduplicate()
 
-        # Save manifest
-        manifest_path = self.output_dir / "manifest.json"
-        with open(manifest_path, "w", encoding="utf-8") as f:
-            json.dump(manifest, f, indent=2, ensure_ascii=False)
+            # Check for leakage
+            if self.use_tui:
+                self.tui.main_progress.update(task, description="[yellow]Checking for leakage...")
+            violations = self.check_split_leakage()
+            if violations["holdout_family_leakage"]:
+                if self.use_tui:
+                    self.tui.console.print(
+                        "[red]❌ Holdout family leakage detected! Fix before proceeding.[/red]"
+                    )
+                logger.error("Holdout family leakage detected! Fix before proceeding.")
+                return {"error": "Holdout family leakage", "violations": violations}
 
-        logger.info(f"Manifest saved: {manifest_path}")
+            # Generate manifest
+            if self.use_tui:
+                self.tui.main_progress.update(task, description="[yellow]Generating manifest...")
+            manifest = self.generate_manifest()
+
+            # Create compiled export
+            if self.use_tui:
+                self.tui.main_progress.update(
+                    task, description="[yellow]Creating compiled export..."
+                )
+            compiled_path = self.create_compiled_export()
+
+            # Save manifest
+            manifest_path = self.output_dir / "manifest.json"
+            with open(manifest_path, "w", encoding="utf-8") as f:
+                json.dump(manifest, f, indent=2, ensure_ascii=False)
+
+            if self.use_tui:
+                self.tui.main_progress.update(task, description="[green]✓ Complete!")
+                self.tui.main_progress.stop()
+                self.tui.console.print(f"\n[green]✓ Manifest saved:[/green] {manifest_path}")
+            else:
+                logger.info(f"Manifest saved: {manifest_path}")
+        finally:
+            if self.use_tui:
+                self.tui.main_progress.stop()
+
+        # Final summary
+        if self.use_tui:
+            summary_table = self.tui.create_status_table(
+                {
+                    "Total Conversations": f"{len(self.all_conversations):,}",
+                    "Families Processed": len(self.processed_families),
+                    "Manifest Path": str(manifest_path),
+                    "Compiled Export": str(compiled_path),
+                }
+            )
+            self.tui.console.print("\n")
+            self.tui.console.print(
+                Panel(
+                    summary_table,
+                    title="[bold green]✓ Compilation Complete[/bold green]",
+                    border_style="green",
+                )
+            )
 
         return {
             "manifest": manifest,
