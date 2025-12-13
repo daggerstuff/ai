@@ -159,7 +159,9 @@ class CompilationTUI:
                 content += f"  • {family}: {count:,} conversations\n"
 
         panel = Panel(
-            content, title="[bold green]✓ Checkpoint Loaded[/bold green]", border_style="green"
+            content,
+            title="[bold green]✓ Checkpoint Loaded[/bold green]",
+            border_style="green",
         )
         self.console.print(panel)
 
@@ -170,9 +172,10 @@ class CompilationTUI:
         table.add_column("Value", style="green", width=20)
 
         for key, value in stats.items():
+            display_value = value
             if isinstance(value, (int, float)) and value > 1000:
-                value = f"{value:,}"
-            table.add_row(key, str(value))
+                display_value = f"{value:,}"
+            table.add_row(key, str(display_value))
 
         return table
 
@@ -242,6 +245,23 @@ class FinalDatasetCompiler:
         self.s3_endpoint = endpoint
         self.s3_loader = S3DatasetLoader(bucket=self.s3_bucket, endpoint_url=self.s3_endpoint)
 
+    def _parse_checkpoint_data(self, checkpoint_data: dict[str, Any]) -> CheckpointInfo:
+        """Parse checkpoint data into CheckpointInfo object"""
+        self.processed_families = set(checkpoint_data.get("processed_families", []))
+        self.processed_files = set(checkpoint_data.get("processed_files", []))
+        self.family_stats = checkpoint_data.get("family_stats", {})
+
+        return CheckpointInfo(
+            stage=checkpoint_data.get("stage", "unknown"),
+            processed_families=list(self.processed_families),
+            processed_files=list(self.processed_files),
+            total_conversations=checkpoint_data.get("total_conversations", 0),
+            timestamp=checkpoint_data.get("timestamp", ""),
+            family_stats=self.family_stats,
+            estimated_progress=checkpoint_data.get("estimated_progress", 0.0),
+            errors=checkpoint_data.get("errors", []),
+        )
+
     def load_checkpoint(self) -> CheckpointInfo | None:
         """Load checkpoint if it exists with enhanced information"""
         if not self.resume or not self.checkpoint_file.exists():
@@ -251,20 +271,7 @@ class FinalDatasetCompiler:
             with open(self.checkpoint_file, encoding="utf-8") as f:
                 checkpoint_data = json.load(f)
 
-            self.processed_families = set(checkpoint_data.get("processed_families", []))
-            self.processed_files = set(checkpoint_data.get("processed_files", []))
-            self.family_stats = checkpoint_data.get("family_stats", {})
-
-            checkpoint_info = CheckpointInfo(
-                stage=checkpoint_data.get("stage", "unknown"),
-                processed_families=list(self.processed_families),
-                processed_files=list(self.processed_files),
-                total_conversations=checkpoint_data.get("total_conversations", 0),
-                timestamp=checkpoint_data.get("timestamp", ""),
-                family_stats=self.family_stats,
-                estimated_progress=checkpoint_data.get("estimated_progress", 0.0),
-                errors=checkpoint_data.get("errors", []),
-            )
+            checkpoint_info = self._parse_checkpoint_data(checkpoint_data)
 
             if self.use_tui:
                 self.tui.display_checkpoint_info(checkpoint_info)
@@ -346,7 +353,11 @@ class FinalDatasetCompiler:
                 except json.JSONDecodeError:
                     continue
 
-        logger.info("Loaded %s cached conversations for family %s", len(conversations), family_name)
+        logger.info(
+            "Loaded %s cached conversations for family %s",
+            len(conversations),
+            family_name,
+        )
         return conversations
 
     def _resolve_s3_uri(self, s3_path: str) -> str:
@@ -774,7 +785,10 @@ class FinalDatasetCompiler:
         return self.load_conversations_from_s3(family_name, keys)
 
     def _add_metadata_to_conversations(
-        self, conversations: list[dict[str, Any]], family_name: str, source_key: str | None = None
+        self,
+        conversations: list[dict[str, Any]],
+        family_name: str,
+        source_key: str | None = None,
     ) -> None:
         """Add metadata to conversations"""
         for conv in conversations:
@@ -809,7 +823,10 @@ class FinalDatasetCompiler:
                 self.tui.console.print(f"[dim]⏭  Skipping {family_name} (already processed)[/dim]")
             else:
                 logger.info(
-                    "  Skipping family %s/%s: %s (already processed)", idx, total, family_name
+                    "  Skipping family %s/%s: %s (already processed)",
+                    idx,
+                    total,
+                    family_name,
                 )
             if cached := self.load_family_conversations(family_name):
                 self.all_conversations.extend(cached)
@@ -839,7 +856,12 @@ class FinalDatasetCompiler:
                 f"({family_elapsed:.1fs}) | Total: {len(self.all_conversations):,}"
             )
         else:
-            logger.info("  ✓ %s: %s conversations (%.1fs)", family_name, len(convs), family_elapsed)
+            logger.info(
+                "  ✓ %s: %s conversations (%.1fs)",
+                family_name,
+                len(convs),
+                family_elapsed,
+            )
             logger.info("  Total so far: %s conversations", len(self.all_conversations))
 
         self.save_checkpoint("collection", estimated_progress=estimated_progress)
@@ -894,7 +916,10 @@ class FinalDatasetCompiler:
             )
         else:
             logger.info(
-                "  ✓ %s: %s conversations (%.1fs)", family_name, len(conversations), family_elapsed
+                "  ✓ %s: %s conversations (%.1fs)",
+                family_name,
+                len(conversations),
+                family_elapsed,
             )
             logger.info("  Total so far: %s conversations", len(self.all_conversations))
         self.save_checkpoint("collection", estimated_progress=estimated_progress)
@@ -1183,7 +1208,10 @@ class FinalDatasetCompiler:
             },
             "provenance_map": provenance_map,
             "holdout_families": {
-                family: {"test_split_only": True, "rationale": "Hard holdout for evaluation"}
+                family: {
+                    "test_split_only": True,
+                    "rationale": "Hard holdout for evaluation",
+                }
                 for family in self.holdout_families
             },
         }
@@ -1202,8 +1230,55 @@ class FinalDatasetCompiler:
         logger.info(f"Compiled export created: {output_path}")
         return output_path
 
-    def compile(self) -> dict[str, Any]:
-        """Run complete compilation process"""
+    def _load_cached_conversations_from_checkpoint(self) -> None:
+        """Load cached conversations from processed families in checkpoint"""
+        for family in self.processed_families:
+            if family != "local_generated" and (cached := self.load_family_conversations(family)):
+                self.all_conversations.extend(cached)
+
+    def _update_progress(self, task: int | None, description: str) -> None:
+        """Update progress bar if TUI is enabled"""
+        if self.use_tui and task is not None:
+            self.tui.main_progress.update(task, description=description)  # type: ignore[arg-type]
+
+    def _process_compilation_steps(
+        self, task: int | None
+    ) -> tuple[dict[str, Any], Path, Path, dict[str, Any]]:
+        """Process all compilation steps and return results"""
+        self._update_progress(task, "[cyan]Collecting conversations...")
+        self.collect_all_conversations()
+
+        self._update_progress(task, "[yellow]Assigning splits...")
+        self.assign_splits()
+
+        self._update_progress(task, "[yellow]Deduplicating...")
+        self.deduplicate()
+
+        self._update_progress(task, "[yellow]Checking for leakage...")
+        violations = self.check_split_leakage()
+        if violations["holdout_family_leakage"]:
+            if self.use_tui:
+                self.tui.console.print(
+                    "[red]❌ Holdout family leakage detected! Fix before proceeding.[/red]"
+                )
+            logger.error("Holdout family leakage detected! Fix before proceeding.")
+            raise ValueError("Holdout family leakage detected")
+
+        self._update_progress(task, "[yellow]Generating manifest...")
+        manifest = self.generate_manifest()
+
+        self._update_progress(task, "[yellow]Creating compiled export...")
+        compiled_path = self.create_compiled_export()
+
+        # Save manifest
+        manifest_path = self.output_dir / "manifest.json"
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, indent=2, ensure_ascii=False)
+
+        return manifest, manifest_path, compiled_path, violations
+
+    def _display_startup_message(self) -> None:
+        """Display startup message"""
         if self.use_tui:
             self.tui.console.print(
                 Panel(
@@ -1214,97 +1289,89 @@ class FinalDatasetCompiler:
         else:
             logger.info("Starting final dataset compilation...")
 
+    def _handle_checkpoint_resume(self, checkpoint: CheckpointInfo) -> None:
+        """Handle checkpoint resume logic"""
+        if not self.use_tui:
+            logger.info("Resuming from checkpoint at stage: %s", checkpoint.stage)
+        self._load_cached_conversations_from_checkpoint()
+        if not self.use_tui:
+            logger.info(
+                "Loaded %s conversations from checkpoint",
+                len(self.all_conversations),
+            )
+
+    def _start_progress_tracking(self) -> int | None:
+        """Start progress tracking and return task ID"""
+        if not self.use_tui:
+            return None
+        self.tui.main_progress.start()
+        return self.tui.main_progress.add_task("[cyan]Collecting conversations...", total=None)
+
+    def _complete_progress_tracking(self, task: int | None, manifest_path: Path) -> None:
+        """Complete progress tracking and display completion message"""
+        if self.use_tui:
+            if task is not None:
+                self.tui.main_progress.update(task, description="[green]✓ Complete!")  # type: ignore[arg-type]
+            self.tui.main_progress.stop()
+            self.tui.console.print(f"\n[green]✓ Manifest saved:[/green] {manifest_path}")
+        else:
+            logger.info(f"Manifest saved: {manifest_path}")
+
+    def _handle_leakage_error(self) -> dict[str, Any]:
+        """Handle leakage detection error"""
+        violations = self.check_split_leakage()
+        return {"error": "Holdout family leakage", "violations": violations}
+
+    def _display_final_summary(self, manifest_path: Path, compiled_path: Path) -> None:
+        """Display final compilation summary"""
+        if not self.use_tui:
+            return
+
+        summary_table = self.tui.create_status_table(
+            {
+                "Total Conversations": f"{len(self.all_conversations):,}",
+                "Families Processed": len(self.processed_families),
+                "Manifest Path": str(manifest_path),
+                "Compiled Export": str(compiled_path),
+            }
+        )
+        self.tui.console.print("\n")
+        self.tui.console.print(
+            Panel(
+                summary_table,
+                title="[bold green]✓ Compilation Complete[/bold green]",
+                border_style="green",
+            )
+        )
+
+    def _stop_progress_tracking(self) -> None:
+        """Stop progress tracking"""
+        if self.use_tui:
+            self.tui.main_progress.stop()
+
+    def compile(self) -> dict[str, Any]:
+        """Run complete compilation process"""
+        self._display_startup_message()
         self.load_configs()
 
         if checkpoint := self.load_checkpoint():
-            if not self.use_tui:
-                logger.info("Resuming from checkpoint at stage: %s", checkpoint.stage)
-            # Load cached conversations from processed families
-            for family in self.processed_families:
-                if family != "local_generated" and (
-                    cached := self.load_family_conversations(family)
-                ):
-                    self.all_conversations.extend(cached)
-            if not self.use_tui:
-                logger.info("Loaded %s conversations from checkpoint", len(self.all_conversations))
+            self._handle_checkpoint_resume(checkpoint)
 
-        if self.use_tui:
-            self.tui.main_progress.start()
-            task = self.tui.main_progress.add_task("[cyan]Collecting conversations...", total=None)
+        task = self._start_progress_tracking()
+
         try:
-            task = None
-            if self.use_tui:
-                task = self.tui.main_progress.add_task(
-                    "[cyan]Collecting conversations...", total=None
-                )
-
-            self.collect_all_conversations()
-
-            if self.use_tui:
-                self.tui.main_progress.update(task, description="[yellow]Assigning splits...")
-            self.assign_splits()
-
-            if self.use_tui:
-                self.tui.main_progress.update(task, description="[yellow]Deduplicating...")
-            self.deduplicate()
-
-            # Check for leakage
-            if self.use_tui:
-                self.tui.main_progress.update(task, description="[yellow]Checking for leakage...")
-            violations = self.check_split_leakage()
-            if violations["holdout_family_leakage"]:
-                if self.use_tui:
-                    self.tui.console.print(
-                        "[red]❌ Holdout family leakage detected! Fix before proceeding.[/red]"
-                    )
-                logger.error("Holdout family leakage detected! Fix before proceeding.")
-                return {"error": "Holdout family leakage", "violations": violations}
-
-            # Generate manifest
-            if self.use_tui:
-                self.tui.main_progress.update(task, description="[yellow]Generating manifest...")
-            manifest = self.generate_manifest()
-
-            # Create compiled export
-            if self.use_tui:
-                self.tui.main_progress.update(
-                    task, description="[yellow]Creating compiled export..."
-                )
-            compiled_path = self.create_compiled_export()
-
-            # Save manifest
-            manifest_path = self.output_dir / "manifest.json"
-            with open(manifest_path, "w", encoding="utf-8") as f:
-                json.dump(manifest, f, indent=2, ensure_ascii=False)
-
-            if self.use_tui:
-                self.tui.main_progress.update(task, description="[green]✓ Complete!")
-                self.tui.main_progress.stop()
-                self.tui.console.print(f"\n[green]✓ Manifest saved:[/green] {manifest_path}")
-            else:
-                logger.info(f"Manifest saved: {manifest_path}")
+            manifest, manifest_path, compiled_path, violations = self._process_compilation_steps(
+                task
+            )
+            self._complete_progress_tracking(task, manifest_path)
+        except ValueError as e:
+            if "leakage" not in str(e):
+                raise
+            return self._handle_leakage_error()
         finally:
-            if self.use_tui:
-                self.tui.main_progress.stop()
+            self._stop_progress_tracking()
 
-        # Final summary
-        if self.use_tui:
-            summary_table = self.tui.create_status_table(
-                {
-                    "Total Conversations": f"{len(self.all_conversations):,}",
-                    "Families Processed": len(self.processed_families),
-                    "Manifest Path": str(manifest_path),
-                    "Compiled Export": str(compiled_path),
-                }
-            )
-            self.tui.console.print("\n")
-            self.tui.console.print(
-                Panel(
-                    summary_table,
-                    title="[bold green]✓ Compilation Complete[/bold green]",
-                    border_style="green",
-                )
-            )
+        self._display_final_summary(manifest_path, compiled_path)
 
         return {
             "manifest": manifest,
