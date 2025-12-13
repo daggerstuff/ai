@@ -3,18 +3,27 @@
 Compile Final Training Dataset - Creates manifest + compiled ChatML JSONL export
 """
 
+import argparse
 import hashlib
 import json
 import logging
 import random
+import shutil
 import sys
+import time
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from enhanced_deduplication import ConversationEntry, EnhancedDeduplicator, compute_content_hash
+from ai.training_ready.scripts.enhanced_deduplication import (
+    ConversationEntry,
+    EnhancedDeduplicator,
+    compute_content_hash,
+)
+from ai.training_ready.utils.s3_dataset_loader import S3DatasetLoader
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -53,6 +62,8 @@ class CompilerConfig:
     val_split: float = 0.05
     test_split: float = 0.05
     shard_size_mb: int = 1000
+    checkpoint_dir: Path | None = None
+    resume: bool = True
 
 
 class FinalDatasetCompiler:
@@ -67,6 +78,14 @@ class FinalDatasetCompiler:
         self.val_split = config.val_split
         self.test_split = config.test_split
         self.shard_size_mb = config.shard_size_mb
+        self.resume = config.resume
+
+        # Setup checkpoint directory
+        self.checkpoint_dir = config.checkpoint_dir or (self.output_dir / "checkpoints")
+        self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
+        self.checkpoint_file = self.checkpoint_dir / "collection_checkpoint.json"
+        self.conversations_cache_dir = self.checkpoint_dir / "conversations_cache"
+        self.conversations_cache_dir.mkdir(parents=True, exist_ok=True)
 
         self.routing_config: dict[str, Any] = {}
         self.coverage_data: dict[str, Any] = {}
@@ -74,6 +93,10 @@ class FinalDatasetCompiler:
         self.s3_bucket: str = "pixel-data"
         self.all_conversations: list[dict[str, Any]] = []
         self.deduplicator = EnhancedDeduplicator(similarity_threshold=0.95)
+
+        # Track processed families for resume
+        self.processed_families: set[str] = set()
+        self.processed_files: set[str] = set()
 
         # Hard holdout families (only in test)
         self.holdout_families = [
@@ -97,6 +120,285 @@ class FinalDatasetCompiler:
         if isinstance(bucket, str) and bucket:
             self.s3_bucket = bucket
 
+        endpoint = self.s3_manifest.get("endpoint")
+        if not isinstance(endpoint, str) or not endpoint:
+            raise ValueError("s3_manifest.json missing endpoint")
+        self.s3_endpoint = endpoint
+        self.s3_loader = S3DatasetLoader(bucket=self.s3_bucket, endpoint_url=self.s3_endpoint)
+
+    def load_checkpoint(self) -> dict[str, Any] | None:
+        """Load checkpoint if it exists"""
+        if not self.resume or not self.checkpoint_file.exists():
+            return None
+
+        try:
+            with open(self.checkpoint_file, encoding="utf-8") as f:
+                checkpoint = json.load(f)
+
+            self.processed_families = set(checkpoint.get("processed_families", []))
+            self.processed_files = set(checkpoint.get("processed_files", []))
+
+            logger.info(
+                "Resuming from checkpoint: %s families, %s files already processed",
+                len(self.processed_families),
+                len(self.processed_files),
+            )
+            return checkpoint
+        except Exception as e:
+            logger.warning("Failed to load checkpoint: %s - starting fresh", e)
+            return None
+
+    def save_checkpoint(self, stage: str = "collection") -> None:
+        """Save checkpoint with current progress"""
+        checkpoint = {
+            "stage": stage,
+            "processed_families": list(self.processed_families),
+            "processed_files": list(self.processed_files),
+            "total_conversations": len(self.all_conversations),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
+        # Use atomic write
+        temp_file = self.checkpoint_file.with_suffix(".tmp")
+        with open(temp_file, "w", encoding="utf-8") as f:
+            json.dump(checkpoint, f, indent=2)
+        temp_file.replace(self.checkpoint_file)
+
+        logger.debug(
+            "Checkpoint saved: %s conversations, %s families processed",
+            len(self.all_conversations),
+            len(self.processed_families),
+        )
+
+    def save_family_conversations(
+        self, family_name: str, conversations: list[dict[str, Any]]
+    ) -> None:
+        """Save conversations for a family to cache file"""
+        cache_file = self.conversations_cache_dir / f"{family_name}.jsonl"
+        with open(cache_file, "w", encoding="utf-8") as f:
+            for conv in conversations:
+                f.write(json.dumps(conv, ensure_ascii=False) + "\n")
+
+    def load_family_conversations(self, family_name: str) -> list[dict[str, Any]] | None:
+        """Load cached conversations for a family"""
+        cache_file = self.conversations_cache_dir / f"{family_name}.jsonl"
+        if not cache_file.exists():
+            return None
+
+        conversations = []
+        with open(cache_file, encoding="utf-8") as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line:
+                    continue
+                try:
+                    conversations.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+
+        logger.info("Loaded %s cached conversations for family %s", len(conversations), family_name)
+        return conversations
+
+    def _resolve_s3_uri(self, s3_path: str) -> str:
+        if s3_path.startswith("s3://"):
+            return s3_path
+        return f"s3://{self.s3_bucket}/{s3_path.lstrip('/')}"
+
+    @staticmethod
+    def _messages_are_chatml(messages: list[Any]) -> bool:
+        return all(
+            isinstance(m, dict)
+            and isinstance(m.get("role"), str)
+            and isinstance(m.get("content"), str)
+            for m in messages
+        )
+
+    @staticmethod
+    def _coerce_role(value: Any) -> str | None:
+        if not isinstance(value, str):
+            return None
+        v = value.strip().lower()
+        if v in {"system"}:
+            return "system"
+        if v in {"user", "human", "client", "patient"}:
+            return "user"
+        if v in {"assistant", "bot", "gpt", "therapist", "counselor"}:
+            return "assistant"
+        return None
+
+    def _conversation_to_messages(self, record: dict[str, Any]) -> list[dict[str, str]] | None:
+        """
+        Convert common `conversation` formats into ChatML `messages`.
+
+        Many of our S3 JSONLs are shaped as:
+        { conversation: [ {from/role/speaker, content/text}, ... ], metadata: {...} }
+        """
+        conv = record.get("conversation")
+        if not isinstance(conv, list) or not conv:
+            return None
+
+        messages: list[dict[str, str]] = []
+        next_role = "user"
+
+        for turn in conv:
+            if isinstance(turn, str):
+                content = turn.strip()
+                if not content:
+                    continue
+                role = next_role
+            elif isinstance(turn, dict):
+                content_val = (
+                    turn.get("content")
+                    or turn.get("text")
+                    or turn.get("message")
+                    or turn.get("utterance")
+                )
+                if not isinstance(content_val, str):
+                    continue
+                content = content_val.strip()
+                if not content:
+                    continue
+
+                role = (
+                    self._coerce_role(turn.get("role"))
+                    or self._coerce_role(turn.get("from"))
+                    or self._coerce_role(turn.get("speaker"))
+                    or self._coerce_role(turn.get("author"))
+                    or next_role
+                )
+            else:
+                continue
+
+            # Skip extra system turns; we can inject a single system prompt if desired.
+            if role == "system":
+                continue
+
+            messages.append({"role": role, "content": content})
+            next_role = "assistant" if role == "user" else "user"
+
+        if not messages:
+            return None
+
+        # Optional: ensure there's a system message at the top.
+        if all(m.get("role") != "system" for m in messages):
+            messages.insert(
+                0,
+                {
+                    "role": "system",
+                    "content": "You are a therapeutic AI assistant. Respond with empathy and practical support.",
+                },
+            )
+
+        return messages
+
+    def _normalize_chatml_record(
+        self, record: Any, *, seen_hashes: set[str]
+    ) -> dict[str, Any] | None:
+        if not isinstance(record, dict):
+            return None
+
+        messages = record.get("messages")
+        if (
+            not isinstance(messages, list)
+            or not messages
+            or not self._messages_are_chatml(messages)
+        ):
+            # Attempt conversion from `conversation` format.
+            converted = self._conversation_to_messages(record)
+            if converted is None:
+                return None
+            messages = converted
+            record["messages"] = messages
+
+        metadata = record.get("metadata")
+        if not isinstance(metadata, dict):
+            metadata = {}
+            record["metadata"] = metadata
+
+        content_hash = metadata.get("content_hash")
+        if not isinstance(content_hash, str) or not content_hash:
+            content_hash = compute_content_hash(messages)
+            metadata["content_hash"] = content_hash
+
+        if content_hash in seen_hashes:
+            return None
+
+        seen_hashes.add(content_hash)
+        return record
+
+    def _load_chatml_jsonl_from_s3(self, *, family_name: str, s3_uri: str) -> list[dict[str, Any]]:
+        # Retry streaming reads (OVH S3 can occasionally drop large streams).
+        max_attempts = 4
+        seen_hashes: set[str] = set()
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                out: list[dict[str, Any]] = []
+                raw_count = 0
+                normalized_count = 0
+                skipped_count = 0
+                last_log_count = 0
+
+                logger.info("Streaming from %s (attempt %s/%s)", s3_uri, attempt, max_attempts)
+                stream_start = time.time()
+
+                for rec in self.s3_loader.stream_jsonl(s3_uri):
+                    raw_count += 1
+                    normalized = self._normalize_chatml_record(rec, seen_hashes=seen_hashes)
+                    if normalized is not None:
+                        normalized_count += 1
+                        out.append(normalized)
+                    else:
+                        skipped_count += 1
+
+                    # Log progress every 1000 records or every 30 seconds
+                    elapsed = time.time() - stream_start
+                    if (raw_count - last_log_count >= 1000) or (
+                        elapsed >= 30 and raw_count > last_log_count
+                    ):
+                        logger.info(
+                            "  Progress: %s raw, %s normalized, %s skipped (elapsed: %.1fs)",
+                            raw_count,
+                            normalized_count,
+                            skipped_count,
+                            elapsed,
+                        )
+                        last_log_count = raw_count
+                        stream_start = time.time()  # Reset timer
+
+                logger.info(
+                    "Loaded %s/%s conversations from %s (skipped %s duplicates/invalid)",
+                    normalized_count,
+                    raw_count,
+                    s3_uri,
+                    skipped_count,
+                )
+                return out
+            except FileNotFoundError as e:
+                logger.warning("S3 file not found: %s - %s", s3_uri, e)
+                return []
+            except Exception as e:
+                if attempt >= max_attempts:
+                    logger.error(
+                        "S3 stream error for %s (%s) after %s attempts: %s",
+                        family_name,
+                        s3_uri,
+                        max_attempts,
+                        e,
+                    )
+                    raise
+                logger.warning(
+                    "S3 stream error for %s (%s) attempt %s/%s: %s",
+                    family_name,
+                    s3_uri,
+                    attempt,
+                    max_attempts,
+                    e,
+                )
+                time.sleep(1.5 * attempt)
+
+        return []
+
     def _load_local_jsonl(self, path: Path) -> list[dict[str, Any]]:
         items: list[dict[str, Any]] = []
         with open(path, encoding="utf-8") as f:
@@ -116,69 +418,282 @@ class FinalDatasetCompiler:
         """
         Add locally generated datasets (missing families) into the compilation inputs.
         """
+        family_key = "local_generated"
+        if family_key in self.processed_families:
+            logger.info("Skipping local generated (already processed)")
+            return
+
         generated_dir = self.s3_manifest_path.parent / "generated"
         candidates = [
-            generated_dir / "edge_case_synthetic.jsonl",
-            generated_dir / "long_running_therapy.jsonl",
-            generated_dir / "cptsd_transcripts.jsonl",
+            (generated_dir / "edge_case_synthetic.jsonl", "edge_case_synthetic"),
+            (generated_dir / "long_running_therapy.jsonl", "long_running_therapy"),
+            (generated_dir / "cptsd_transcripts.jsonl", "cptsd"),
         ]
 
-        for path in candidates:
+        total_convs = 0
+        for path, family_name in candidates:
+            file_key = f"{family_key}:{path}"
+            if file_key in self.processed_files:
+                logger.info("Skipping %s (already processed)", path.name)
+                continue
+
             if not path.exists():
                 continue
-            convs = self._load_local_jsonl(path)
-            for conv in convs:
-                conv["metadata"] = conv.get("metadata", {})
-                # Ensure content_hash exists
-                if not conv["metadata"].get("content_hash"):
-                    conv["metadata"]["content_hash"] = compute_content_hash(
-                        conv.get("messages", [])
-                    )
+
+            # Try to load from cache first
+            cached = self.load_family_conversations(family_name) if self.resume else None
+            if cached is not None:
+                convs = cached
+            else:
+                convs = self._load_local_jsonl(path)
+                for conv in convs:
+                    conv["metadata"] = conv.get("metadata", {})
+                    conv["metadata"]["source_family"] = family_name
+                    # Ensure content_hash exists
+                    if not conv["metadata"].get("content_hash"):
+                        conv["metadata"]["content_hash"] = compute_content_hash(
+                            conv.get("messages", [])
+                        )
+                # Cache it
+                if convs:
+                    self.save_family_conversations(family_name, convs)
+
             self.all_conversations.extend(convs)
+            self.processed_files.add(file_key)
+            total_convs += len(convs)
             logger.info("Loaded %s conversations from local %s", len(convs), path)
+            self.save_checkpoint("collection")
+
+        if total_convs > 0:
+            self.processed_families.add(family_key)
+            logger.info("Total local generated: %s conversations", total_convs)
 
     def load_conversations_from_s3(
         self, family_name: str, s3_paths: list[str]
     ) -> list[dict[str, Any]]:
         """
-        Load conversations from S3 for a dataset family.
-        In production, this would use S3DatasetLoader.
+        Load ChatML JSONL datasets from S3.
+
+        This intentionally supports only ChatML-like records:
+        - Each JSONL line is a dict with `messages: [{role, content}, ...]`
+        - Optional `metadata`
         """
-        # Placeholder - in production, load from S3
-        logger.info(f"Loading conversations for {family_name} from {len(s3_paths)} S3 paths")
-        # TODO: Implement actual S3 loading
-        return []
+        if not s3_paths:
+            logger.warning("No S3 paths provided for family %s", family_name)
+            return []
+
+        logger.info("Loading conversations for %s from %s S3 paths", family_name, len(s3_paths))
+        out: list[dict[str, Any]] = []
+
+        for s3_path in s3_paths:
+            resolved = self._resolve_s3_uri(s3_path)
+            logger.info("Processing S3 path: %s -> %s", s3_path, resolved)
+            loaded = self._load_chatml_jsonl_from_s3(family_name=family_name, s3_uri=resolved)
+            out.extend(loaded)
+            logger.info("Accumulated %s total conversations for %s", len(out), family_name)
+
+        logger.info(
+            "Total loaded for %s: %s conversations from %s paths",
+            family_name,
+            len(out),
+            len(s3_paths),
+        )
+        return out
+
+    def load_conversations_for_family(self, family_name: str) -> list[dict[str, Any]]:
+        """
+        Prefer known-good ChatML JSONL S3 keys for each family.
+
+        This is what lets us compile from the *real* S3 training outputs after
+        encoding fixes, rather than relying on placeholder loader logic.
+        """
+        # Keys are relative to the bucket in ai/training_ready/data/s3_manifest.json
+        family_keys: dict[str, list[str]] = {
+            "mental_health_datasets": [
+                "datasets/training_v3/stage1_foundation/Amod_mental_health_counseling_conversations.jsonl",
+                "datasets/training_v3/stage1_foundation/heliosbrahma_mental_health_chatbot_dataset.jsonl",
+                "datasets/training_v2/stage1_foundation/Amod_mental_health_counseling_conversations.jsonl",
+                "datasets/training_v2/stage1_foundation/heliosbrahma_mental_health_chatbot_dataset.jsonl",
+            ],
+            "edge_case_generator": [
+                "datasets/consolidated/conversations/edge_case_dialogues.jsonl",
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_30_crisis_detection/crisis_detection_conversations.jsonl",
+            ],
+            "edge_case_resulting_chats": [
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_30_crisis_detection/crisis_detection_conversations.jsonl",
+                "datasets/gdrive/tier3_edge_crisis/crisis_detection_conversations.jsonl",
+            ],
+            "sarcasm": [
+                # NOTE: this is JSON (not JSONL). We'll keep it out of ChatML ingestion for now.
+            ],
+            "professional_therapeutic": [
+                "datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+                "datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+                "datasets/gdrive/processed/phase_2_professional_datasets/task_5_12_therapist_sft/therapist_sft_conversations.jsonl",
+                "datasets/gdrive/processed/phase_2_professional_datasets/task_5_13_neuro_qa_sft/neuro_qa_sft_conversations.jsonl",
+                "datasets/gdrive/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+            ],
+            "priority_datasets": [
+                "datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+                "datasets/gdrive/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+                "datasets/gdrive/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+                "datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+            ],
+            "cot_reasoning": [
+                "datasets/gdrive/processed/phase_3_cot_reasoning/task_5_25_tot_reasoning/tot_reasoning_conversations.jsonl",
+            ],
+            "safety_guardrails_annihilator": [
+                # These are large/raw; ChatML outputs are already captured in phase_4_reddit_mental_health
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl",
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_28_specialized_populations/specialized_populations_conversations.jsonl",
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl",
+            ],
+            "addiction": [
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_28_specialized_populations/specialized_populations_conversations.jsonl",
+            ],
+            "experimental": [
+                "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl",
+            ],
+        }
+
+        keys = family_keys.get(family_name, [])
+        if not keys:
+            logger.warning("No S3 keys configured for family: %s", family_name)
+            return []
+        logger.info("Loading family %s from %s S3 keys", family_name, len(keys))
+        return self.load_conversations_from_s3(family_name, keys)
+
+    def _add_metadata_to_conversations(
+        self, conversations: list[dict[str, Any]], family_name: str, source_key: str | None = None
+    ) -> None:
+        """Add metadata to conversations"""
+        for conv in conversations:
+            conv["metadata"] = conv.get("metadata", {})
+            conv["metadata"]["source_family"] = family_name
+            if source_key:
+                conv["metadata"]["source_key"] = source_key
+            elif "source_key" not in conv["metadata"]:
+                conv["metadata"]["source_key"] = (
+                    f"s3://{self.s3_bucket}/{conv.get('metadata', {}).get('source_key', '')}"
+                )
+            if not conv["metadata"].get("content_hash"):
+                conv["metadata"]["content_hash"] = compute_content_hash(conv.get("messages", []))
+
+    def _load_or_get_cached_family(
+        self, family_name: str, loader_func: Callable[[], list[dict[str, Any]]]
+    ) -> list[dict[str, Any]]:
+        """Load family conversations from cache or loader function"""
+        if self.resume and (cached := self.load_family_conversations(family_name)):
+            logger.info("  Using cached conversations for %s", family_name)
+            return cached
+
+        conversations = loader_func()
+        if conversations:
+            self.save_family_conversations(family_name, conversations)
+        return conversations
+
+    def _process_s3_family(self, family_name: str, idx: int, total: int) -> None:
+        """Process a single S3 family"""
+        if family_name in self.processed_families:
+            logger.info("  Skipping family %s/%s: %s (already processed)", idx, total, family_name)
+            if cached := self.load_family_conversations(family_name):
+                self.all_conversations.extend(cached)
+            return
+
+        logger.info("  Loading family %s/%s: %s", idx, total, family_name)
+        family_start = time.time()
+
+        convs = self._load_or_get_cached_family(
+            family_name, lambda: self.load_conversations_for_family(family_name)
+        )
+
+        self._add_metadata_to_conversations(convs, family_name)
+        self.all_conversations.extend(convs)
+        self.processed_families.add(family_name)
+
+        family_elapsed = time.time() - family_start
+        logger.info("  ✓ %s: %s conversations (%.1fs)", family_name, len(convs), family_elapsed)
+        logger.info("  Total so far: %s conversations", len(self.all_conversations))
+        self.save_checkpoint("collection")
+
+    def _process_routing_family(
+        self, family_name: str, family_config: dict[str, Any], idx: int, total: int
+    ) -> None:
+        """Process a single routing family"""
+        if family_name in self.processed_families:
+            logger.info(
+                "  Skipping routing family %s/%s: %s (already processed)", idx, total, family_name
+            )
+            if cached := self.load_family_conversations(family_name):
+                self.all_conversations.extend(cached)
+            return
+
+        logger.info("  Loading routing family %s/%s: %s", idx, total, family_name)
+        family_start = time.time()
+        s3_path_raw = family_config.get("s3_path")
+        if not isinstance(s3_path_raw, str):
+            logger.warning("  Invalid s3_path for family %s, skipping", family_name)
+            return
+
+        s3_path: str = s3_path_raw
+        conversations = self._load_or_get_cached_family(
+            family_name, lambda: self.load_conversations_from_s3(family_name, [s3_path])
+        )
+
+        self._add_metadata_to_conversations(conversations, family_name, s3_path)
+        self.all_conversations.extend(conversations)
+        self.processed_families.add(family_name)
+
+        family_elapsed = time.time() - family_start
+        logger.info(
+            "  ✓ %s: %s conversations (%.1fs)", family_name, len(conversations), family_elapsed
+        )
+        logger.info("  Total so far: %s conversations", len(self.all_conversations))
+        self.save_checkpoint("collection")
 
     def collect_all_conversations(self) -> None:
         """Collect all conversations from all dataset families"""
         logger.info("Collecting conversations from all dataset families...")
+        total_start = time.time()
 
         # Always include locally generated missing families (edge_case_synthetic, long_running_therapy, cptsd)
+        logger.info("Step 1/3: Loading locally generated conversations...")
         self.collect_local_generated_conversations()
+        logger.info("  Total so far: %s conversations", len(self.all_conversations))
 
+        # Also include known-good S3 ChatML exports (post encoding-fix).
+        # These will massively increase coverage and fix distribution ratios.
+        logger.info("Step 2/3: Loading from S3 families...")
+        s3_families = (
+            "mental_health_datasets",
+            "professional_therapeutic",
+            "priority_datasets",
+            "cot_reasoning",
+            "edge_case_generator",
+            "edge_case_resulting_chats",
+            "safety_guardrails_annihilator",
+        )
+
+        for idx, family_name in enumerate(s3_families, 1):
+            self._process_s3_family(family_name, idx, len(s3_families))
+
+        logger.info("Step 3/3: Loading from routing config families...")
         families = self.routing_config.get("families", {})
+        routing_families = [
+            (name, config)
+            for name, config in families.items()
+            if config.get("status") == "available" and config.get("s3_path")
+        ]
 
-        for family_name, family_config in families.items():
-            if family_config.get("status") != "available":
-                logger.warning(f"Skipping {family_name} - status: {family_config.get('status')}")
-                continue
+        for idx, (family_name, family_config) in enumerate(routing_families, 1):
+            self._process_routing_family(family_name, family_config, idx, len(routing_families))
 
-            s3_path = family_config.get("s3_path")
-            if not s3_path:
-                continue
-
-            # Load conversations (placeholder - implement S3 loading)
-            conversations = self.load_conversations_from_s3(family_name, [s3_path])
-
-            # Add metadata
-            for conv in conversations:
-                conv["metadata"] = conv.get("metadata", {})
-                conv["metadata"]["source_family"] = family_name
-                conv["metadata"]["source_key"] = s3_path
-                conv["metadata"]["content_hash"] = compute_content_hash(conv.get("messages", []))
-
-            self.all_conversations.extend(conversations)
-            logger.info(f"Loaded {len(conversations)} conversations from {family_name}")
+        total_elapsed = time.time() - total_start
+        logger.info(
+            "✓ Collected %s total conversations from all families (%.1fs)",
+            len(self.all_conversations),
+            total_elapsed,
+        )
 
     def assign_splits(self) -> None:
         """Assign conversations to train/val/test splits"""
@@ -444,6 +959,17 @@ class FinalDatasetCompiler:
         logger.info("Starting final dataset compilation...")
 
         self.load_configs()
+
+        if checkpoint := self.load_checkpoint():
+            logger.info("Resuming from checkpoint at stage: %s", checkpoint.get("stage"))
+            # Load cached conversations from processed families
+            for family in self.processed_families:
+                if family != "local_generated" and (
+                    cached := self.load_family_conversations(family)
+                ):
+                    self.all_conversations.extend(cached)
+            logger.info("Loaded %s conversations from checkpoint", len(self.all_conversations))
+
         self.collect_all_conversations()
         self.assign_splits()
         self.deduplicate()
@@ -478,6 +1004,21 @@ class FinalDatasetCompiler:
 
 def main():
     """Main entry point"""
+    parser = argparse.ArgumentParser(
+        description="Compile final training dataset with checkpoint/resume support"
+    )
+    parser.add_argument(
+        "--no-resume",
+        action="store_true",
+        help="Start fresh, ignoring any existing checkpoints",
+    )
+    parser.add_argument(
+        "--clear-checkpoint",
+        action="store_true",
+        help="Clear existing checkpoint and start fresh",
+    )
+    args = parser.parse_args()
+
     project_root = Path(__file__).parents[3]
 
     routing_config_path = (
@@ -489,12 +1030,21 @@ def main():
     s3_manifest_path = project_root / "ai" / "training_ready" / "data" / "s3_manifest.json"
     output_dir = project_root / "ai" / "training_ready" / "data" / "final_dataset"
 
+    # Clear checkpoint if requested
+    if args.clear_checkpoint:
+        checkpoint_dir = output_dir / "checkpoints"
+        if checkpoint_dir.exists():
+            shutil.rmtree(checkpoint_dir)
+            logger.info("Cleared checkpoint directory")
+        return 0
+
     compiler = FinalDatasetCompiler(
         CompilerConfig(
             routing_config_path=routing_config_path,
             coverage_report_path=coverage_report_path,
             output_dir=output_dir,
             s3_manifest_path=s3_manifest_path,
+            resume=not args.no_resume,  # Enable resume by default
         )
     )
 
@@ -508,6 +1058,9 @@ def main():
     logger.info(f"   Total conversations: {result['total_conversations']}")
     logger.info(f"   Manifest: {result['manifest_path']}")
     logger.info(f"   Compiled export: {result['compiled_path']}")
+    logger.info("")
+    logger.info("💡 Tip: If interrupted, re-run the same command to resume from checkpoint")
+    logger.info("   Use --no-resume to start fresh, or --clear-checkpoint to clear checkpoints")
 
     return 0
 
