@@ -130,29 +130,47 @@ class FinalDatasetVerifier:
             )
             return False
 
-        # Check split ratios
-        train_count = splits.get("train", {}).get("conversations", 0)
-        val_count = splits.get("val", {}).get("conversations", 0)
-        test_count = splits.get("test", {}).get("conversations", 0)
+        # Check split ratios on the non-holdout pool only.
+        # Holdout families are intentionally forced into `test`, which can make the overall dataset
+        # ratio (train/val/test) deviate dramatically for small datasets.
+        holdout_families = set(self.manifest_data.get("holdout_families", {}).keys())
+        source_families = self.manifest_data.get("source_families", {})
 
-        train_ratio = train_count / total if total > 0 else 0
-        val_ratio = val_count / total if total > 0 else 0
-        test_ratio = test_count / total if total > 0 else 0
+        non_holdout_counts = {"train": 0, "val": 0, "test": 0}
+        holdout_counts = {"train": 0, "val": 0, "test": 0}
 
-        # Expected: ~90/5/5
+        for family_name, family_data in source_families.items():
+            family_splits = family_data.get("splits", {})
+            target = holdout_counts if family_name in holdout_families else non_holdout_counts
+            target["train"] += int(family_splits.get("train", 0) or 0)
+            target["val"] += int(family_splits.get("val", 0) or 0)
+            target["test"] += int(family_splits.get("test", 0) or 0)
+
+        non_holdout_total = sum(non_holdout_counts.values())
+        if non_holdout_total == 0:
+            self.verification_results["distribution_gate"]["errors"].append(
+                "No non-holdout conversations available to evaluate split ratios"
+            )
+            return False
+
+        train_ratio = non_holdout_counts["train"] / non_holdout_total
+        val_ratio = non_holdout_counts["val"] / non_holdout_total
+        test_ratio = non_holdout_counts["test"] / non_holdout_total
+
+        # Expected: ~90/5/5 (on non-holdout pool)
         if train_ratio < 0.85 or train_ratio > 0.95:
             self.verification_results["distribution_gate"]["errors"].append(
-                f"Train split ratio out of range: {train_ratio:.2%} (expected ~90%)"
+                f"Train split ratio out of range (non-holdout pool): {train_ratio:.2%} (expected ~90%)"
             )
 
         if val_ratio < 0.03 or val_ratio > 0.07:
             self.verification_results["distribution_gate"]["errors"].append(
-                f"Val split ratio out of range: {val_ratio:.2%} (expected ~5%)"
+                f"Val split ratio out of range (non-holdout pool): {val_ratio:.2%} (expected ~5%)"
             )
 
         if test_ratio < 0.03 or test_ratio > 0.07:
             self.verification_results["distribution_gate"]["errors"].append(
-                f"Test split ratio out of range: {test_ratio:.2%} (expected ~5%)"
+                f"Test split ratio out of range (non-holdout pool): {test_ratio:.2%} (expected ~5%)"
             )
 
         if self.verification_results["distribution_gate"]["errors"]:
@@ -160,7 +178,9 @@ class FinalDatasetVerifier:
             return False
 
         logger.info(
-            f"Distribution gate PASSED: train={train_ratio:.2%}, val={val_ratio:.2%}, test={test_ratio:.2%}"
+            "Distribution gate PASSED (non-holdout pool): "
+            f"train={train_ratio:.2%}, val={val_ratio:.2%}, test={test_ratio:.2%} "
+            f"(non-holdout total={non_holdout_total:,}, holdout forced-to-test={holdout_counts['test']:,})"
         )
         self.verification_results["distribution_gate"]["passed"] = True
         return True
@@ -370,8 +390,9 @@ def main():
     for gate_name, passed in report["gate_results"].items():
         status = "✅ PASSED" if passed else "❌ FAILED"
         print(f"{status:12s} {gate_name}")
-        if not passed and gate_name in report["verification_details"]:
-            for error in report["verification_details"][gate_name].get("errors", []):
+        detail_key = f"{gate_name}_gate"
+        if not passed and detail_key in report["verification_details"]:
+            for error in report["verification_details"][detail_key].get("errors", []):
                 print(f"             └─ {error}")
 
     print("=" * 60)

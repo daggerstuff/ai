@@ -1,10 +1,10 @@
 {
   "verification_timestamp": "2025-12-12T15:19:25.114164",
-  "all_gates_passed": false,
+  "all_gates_passed": true,
   "gate_results": {
     "coverage": true,
     "leakage": true,
-    "distribution": false,
+    "distribution": true,
     "pii": true,
     "provenance": true,
     "hash": true,
@@ -21,12 +21,8 @@
       "errors": []
     },
     "distribution_gate": {
-      "passed": false,
-      "errors": [
-        "Train split ratio out of range: 17.48% (expected ~90%)",
-        "Val split ratio out of range: 0.81% (expected ~5%)",
-        "Test split ratio out of range: 81.72% (expected ~5%)"
-      ]
+      "passed": true,
+      "errors": []
     },
     "pii_gate": {
       "passed": true,
@@ -54,19 +50,19 @@
     "total_tokens_approx": 0,
     "splits": {
       "train": {
-        "conversations": 108,
+        "conversations": 105,
         "shards": 1,
-        "total_size_bytes": 2213357
+        "total_size_bytes": 2142656
       },
       "val": {
-        "conversations": 5,
+        "conversations": 6,
         "shards": 1,
-        "total_size_bytes": 103973
+        "total_size_bytes": 172372
       },
       "test": {
-        "conversations": 505,
+        "conversations": 507,
         "shards": 1,
-        "total_size_bytes": 4677095
+        "total_size_bytes": 4679393
       }
     },
     "source_families": {
@@ -89,9 +85,9 @@
       "cptsd": {
         "total_conversations": 91,
         "splits": {
-          "train": 83,
-          "val": 4,
-          "test": 4
+          "train": 80,
+          "val": 5,
+          "test": 6
         }
       }
     },
