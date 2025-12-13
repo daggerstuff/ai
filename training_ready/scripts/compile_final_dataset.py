@@ -8,14 +8,18 @@ import json
 import logging
 import random
 import sys
+import time
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from enhanced_deduplication import ConversationEntry, EnhancedDeduplicator, compute_content_hash
-
+from ai.training_ready.scripts.enhanced_deduplication import (
+    ConversationEntry,
+    EnhancedDeduplicator,
+    compute_content_hash,
+)
 from ai.training_ready.utils.s3_dataset_loader import S3DatasetLoader
 
 logger = logging.getLogger(__name__)
@@ -105,6 +109,188 @@ class FinalDatasetCompiler:
         self.s3_endpoint = endpoint
         self.s3_loader = S3DatasetLoader(bucket=self.s3_bucket, endpoint_url=self.s3_endpoint)
 
+    def _resolve_s3_uri(self, s3_path: str) -> str:
+        if s3_path.startswith("s3://"):
+            return s3_path
+        return f"s3://{self.s3_bucket}/{s3_path.lstrip('/')}"
+
+    @staticmethod
+    def _messages_are_chatml(messages: list[Any]) -> bool:
+        return all(
+            isinstance(m, dict)
+            and isinstance(m.get("role"), str)
+            and isinstance(m.get("content"), str)
+            for m in messages
+        )
+
+    @staticmethod
+    def _coerce_role(value: Any) -> str | None:
+        if not isinstance(value, str):
+            return None
+        v = value.strip().lower()
+        if v in {"system"}:
+            return "system"
+        if v in {"user", "human", "client", "patient"}:
+            return "user"
+        if v in {"assistant", "bot", "gpt", "therapist", "counselor"}:
+            return "assistant"
+        return None
+
+    def _conversation_to_messages(self, record: dict[str, Any]) -> list[dict[str, str]] | None:
+        """
+        Convert common `conversation` formats into ChatML `messages`.
+
+        Many of our S3 JSONLs are shaped as:
+        { conversation: [ {from/role/speaker, content/text}, ... ], metadata: {...} }
+        """
+        conv = record.get("conversation")
+        if not isinstance(conv, list) or not conv:
+            return None
+
+        messages: list[dict[str, str]] = []
+        next_role = "user"
+
+        for turn in conv:
+            if isinstance(turn, str):
+                content = turn.strip()
+                if not content:
+                    continue
+                role = next_role
+            elif isinstance(turn, dict):
+                content_val = (
+                    turn.get("content")
+                    or turn.get("text")
+                    or turn.get("message")
+                    or turn.get("utterance")
+                )
+                if not isinstance(content_val, str):
+                    continue
+                content = content_val.strip()
+                if not content:
+                    continue
+
+                role = (
+                    self._coerce_role(turn.get("role"))
+                    or self._coerce_role(turn.get("from"))
+                    or self._coerce_role(turn.get("speaker"))
+                    or self._coerce_role(turn.get("author"))
+                    or next_role
+                )
+            else:
+                continue
+
+            # Skip extra system turns; we can inject a single system prompt if desired.
+            if role == "system":
+                continue
+
+            messages.append({"role": role, "content": content})
+            next_role = "assistant" if role == "user" else "user"
+
+        if not messages:
+            return None
+
+        # Optional: ensure there's a system message at the top.
+        if all(m.get("role") != "system" for m in messages):
+            messages.insert(
+                0,
+                {
+                    "role": "system",
+                    "content": "You are a therapeutic AI assistant. Respond with empathy and practical support.",
+                },
+            )
+
+        return messages
+
+    def _normalize_chatml_record(
+        self, record: Any, *, seen_hashes: set[str]
+    ) -> dict[str, Any] | None:
+        if not isinstance(record, dict):
+            return None
+
+        messages = record.get("messages")
+        if (
+            not isinstance(messages, list)
+            or not messages
+            or not self._messages_are_chatml(messages)
+        ):
+            # Attempt conversion from `conversation` format.
+            converted = self._conversation_to_messages(record)
+            if converted is None:
+                return None
+            messages = converted
+            record["messages"] = messages
+
+        metadata = record.get("metadata")
+        if not isinstance(metadata, dict):
+            metadata = {}
+            record["metadata"] = metadata
+
+        content_hash = metadata.get("content_hash")
+        if not isinstance(content_hash, str) or not content_hash:
+            content_hash = compute_content_hash(messages)
+            metadata["content_hash"] = content_hash
+
+        if content_hash in seen_hashes:
+            return None
+
+        seen_hashes.add(content_hash)
+        return record
+
+    def _load_chatml_jsonl_from_s3(self, *, family_name: str, s3_uri: str) -> list[dict[str, Any]]:
+        # Retry streaming reads (OVH S3 can occasionally drop large streams).
+        max_attempts = 4
+        seen_hashes: set[str] = set()
+
+        for attempt in range(1, max_attempts + 1):
+            try:
+                out: list[dict[str, Any]] = []
+                raw_count = 0
+                normalized_count = 0
+                skipped_count = 0
+
+                logger.info("Streaming from %s (attempt %s/%s)", s3_uri, attempt, max_attempts)
+                for rec in self.s3_loader.stream_jsonl(s3_uri):
+                    raw_count += 1
+                    normalized = self._normalize_chatml_record(rec, seen_hashes=seen_hashes)
+                    if normalized is not None:
+                        normalized_count += 1
+                        out.append(normalized)
+                    else:
+                        skipped_count += 1
+
+                logger.info(
+                    "Loaded %s/%s conversations from %s (skipped %s duplicates/invalid)",
+                    normalized_count,
+                    raw_count,
+                    s3_uri,
+                    skipped_count,
+                )
+                return out
+            except FileNotFoundError as e:
+                logger.warning("S3 file not found: %s - %s", s3_uri, e)
+                return []
+            except Exception as e:
+                if attempt >= max_attempts:
+                    logger.error(
+                        "S3 stream error for %s (%s) after %s attempts: %s",
+                        family_name,
+                        s3_uri,
+                        max_attempts,
+                        e,
+                    )
+                    raise
+                logger.warning(
+                    "S3 stream error for %s (%s) attempt %s/%s: %s",
+                    family_name,
+                    s3_uri,
+                    attempt,
+                    max_attempts,
+                    e,
+                )
+                time.sleep(1.5 * attempt)
+
+        return []
+
     def _load_local_jsonl(self, path: Path) -> list[dict[str, Any]]:
         items: list[dict[str, Any]] = []
         with open(path, encoding="utf-8") as f:
@@ -155,65 +341,26 @@ class FinalDatasetCompiler:
         - Each JSONL line is a dict with `messages: [{role, content}, ...]`
         - Optional `metadata`
         """
+        if not s3_paths:
+            logger.warning("No S3 paths provided for family %s", family_name)
+            return []
+
         logger.info("Loading conversations for %s from %s S3 paths", family_name, len(s3_paths))
         out: list[dict[str, Any]] = []
 
         for s3_path in s3_paths:
-            # Accept either full s3://bucket/key or a raw key.
-            if s3_path.startswith("s3://"):
-                resolved = s3_path
-            else:
-                resolved = f"s3://{self.s3_bucket}/{s3_path.lstrip('/')}"
+            resolved = self._resolve_s3_uri(s3_path)
+            logger.info("Processing S3 path: %s -> %s", s3_path, resolved)
+            loaded = self._load_chatml_jsonl_from_s3(family_name=family_name, s3_uri=resolved)
+            out.extend(loaded)
+            logger.info("Accumulated %s total conversations for %s", len(out), family_name)
 
-            # Retry streaming reads (OVH S3 can occasionally drop large streams).
-            seen_hashes: set[str] = set()
-            max_attempts = 4
-            attempt = 1
-            while True:
-                try:
-                    for rec in self.s3_loader.stream_jsonl(resolved):
-                        if not isinstance(rec, dict):
-                            continue
-                        msgs = rec.get("messages")
-                        if not isinstance(msgs, list) or not msgs:
-                            continue
-                        # Minimal structural check
-                        if not all(
-                            isinstance(m, dict)
-                            and isinstance(m.get("role"), str)
-                            and isinstance(m.get("content"), str)
-                            for m in msgs
-                        ):
-                            continue
-
-                        # Dedup within this load to protect against retry duplicates
-                        meta = rec.get("metadata")
-                        if not isinstance(meta, dict):
-                            meta = {}
-                            rec["metadata"] = meta
-                        ch = meta.get("content_hash")
-                        if not isinstance(ch, str) or not ch:
-                            ch = compute_content_hash(msgs)
-                            meta["content_hash"] = ch
-                        if ch in seen_hashes:
-                            continue
-                        seen_hashes.add(ch)
-                        out.append(rec)
-                    break
-                except Exception as e:
-                    if attempt >= max_attempts:
-                        raise
-                    logger.warning(
-                        "S3 stream error for %s (%s) attempt %s/%s: %s",
-                        family_name,
-                        resolved,
-                        attempt,
-                        max_attempts,
-                        e,
-                    )
-                    time.sleep(1.5 * attempt)
-                    attempt += 1
-
+        logger.info(
+            "Total loaded for %s: %s conversations from %s paths",
+            family_name,
+            len(out),
+            len(s3_paths),
+        )
         return out
 
     def load_conversations_for_family(self, family_name: str) -> list[dict[str, Any]]:
@@ -273,7 +420,11 @@ class FinalDatasetCompiler:
         }
 
         keys = family_keys.get(family_name, [])
-        return self.load_conversations_from_s3(family_name, keys) if keys else []
+        if not keys:
+            logger.warning("No S3 keys configured for family: %s", family_name)
+            return []
+        logger.info("Loading family %s from %s S3 keys", family_name, len(keys))
+        return self.load_conversations_from_s3(family_name, keys)
 
     def collect_all_conversations(self) -> None:
         """Collect all conversations from all dataset families"""
