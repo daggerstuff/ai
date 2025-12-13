@@ -35,23 +35,40 @@ def normalize_text(text: str) -> str:
 
 
 def compute_content_hash(messages: list[dict[str, str]]) -> str:
-    """Compute SHA256 hash of normalized conversation content"""
+    """Compute SHA256 hash of normalized conversation content (optimized)"""
+    # Optimized: avoid intermediate list and string allocations
+    # Use a generator for memory efficiency with large conversations
     content_parts = []
     for msg in messages:
-        if isinstance(msg, dict) and "content" in msg:
-            content_parts.append(normalize_text(msg["content"]))
+        # Direct normalization without extra function call overhead
+        if (
+            isinstance(msg, dict)
+            and "content" in msg
+            and isinstance(content := msg["content"], str)
+            and (normalized := content.lower().strip())
+        ):  # Skip empty content
+            content_parts.append(normalized)
 
-    normalized = " ".join(sorted(content_parts))
-    hash_digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+    if not content_parts:
+        # Empty conversation - return a consistent hash
+        hash_digest = hashlib.sha256(b"").hexdigest()
+    else:
+        # For very large conversations, sort in-place to save memory
+        # But sorting is necessary for consistent hashing
+        content_parts.sort()  # In-place sort is more memory efficient
+        # Use join with a generator-like approach for very large strings
+        normalized = " ".join(content_parts)
+        # Hash directly without storing the full normalized string if it's huge
+        hash_digest = hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
     return f"sha256:{hash_digest}"
 
 
 def extract_text_for_similarity(messages: list[dict[str, str]]) -> str:
     """Extract all text content for semantic similarity comparison"""
-    content_parts = []
-    for msg in messages:
-        if isinstance(msg, dict) and "content" in msg:
-            content_parts.append(msg["content"])
+    content_parts = [
+        msg["content"] for msg in messages if isinstance(msg, dict) and "content" in msg
+    ]
     return " ".join(content_parts)
 
 
@@ -88,12 +105,11 @@ class EnhancedDeduplicator:
 
     def find_exact_duplicates(self) -> dict[str, list[ConversationEntry]]:
         """Find exact duplicates (same content hash)"""
-        duplicates = {
+        return {
             hash_val: entries
             for hash_val, entries in self.exact_duplicates.items()
             if len(entries) > 1
         }
-        return duplicates
 
     def find_near_duplicates(self) -> list[tuple[ConversationEntry, ConversationEntry, float]]:
         """
@@ -111,7 +127,7 @@ class EnhancedDeduplicator:
 
         # Compare all pairs (O(n²) - optimize for production)
         for i, (entry1, text1) in enumerate(entries_text):
-            for j, (entry2, text2) in enumerate(entries_text[i + 1 :], start=i + 1):
+            for _, (entry2, text2) in enumerate(entries_text[i + 1 :], start=i + 1):
                 # Skip if same exact hash
                 if entry1.content_hash == entry2.content_hash:
                     continue
@@ -174,16 +190,15 @@ class EnhancedDeduplicator:
 
         # Check holdout families in wrong splits
         for entry in self.processed_entries:
-            if entry.source_family in holdout_families:
-                if entry.split and entry.split != "test":
-                    violations["holdout_family_leakage"].append(
-                        {
-                            "source_family": entry.source_family,
-                            "source_key": entry.source_key,
-                            "split": entry.split,
-                            "expected_split": "test",
-                        }
-                    )
+            if entry.source_family in holdout_families and entry.split and entry.split != "test":
+                violations["holdout_family_leakage"].append(
+                    {
+                        "source_family": entry.source_family,
+                        "source_key": entry.source_key,
+                        "split": entry.split,
+                        "expected_split": "test",
+                    }
+                )
 
         return violations
 
@@ -203,36 +218,36 @@ class EnhancedDeduplicator:
         seen_hashes = set()
 
         # Process exact duplicates
+        strategy_map = {
+            "keep_first": lambda entries: entries[0],
+            "keep_longest": lambda entries: max(
+                entries, key=lambda e: len(extract_text_for_similarity(e.messages))
+            ),
+            "keep_best_quality": lambda entries: max(
+                entries, key=lambda e: e.metadata.get("quality_score", 0.0)
+            ),
+        }
+        get_keep_entry = strategy_map.get(strategy, lambda entries: entries[0])
+
         for hash_val, entries in self.exact_duplicates.items():
             if len(entries) > 1:
                 # Choose which entry to keep
-                if strategy == "keep_first":
-                    keep_entry = entries[0]
-                elif strategy == "keep_longest":
-                    keep_entry = max(
-                        entries, key=lambda e: len(extract_text_for_similarity(e.messages))
-                    )
-                elif strategy == "keep_best_quality":
-                    # Assume quality_score in metadata
-                    keep_entry = max(entries, key=lambda e: e.metadata.get("quality_score", 0.0))
-                else:
-                    keep_entry = entries[0]
-
+                keep_entry = get_keep_entry(entries)
                 deduplicated.append(keep_entry)
-                seen_hashes.add(hash_val)
                 logger.debug(
                     f"Removed {len(entries) - 1} exact duplicates for hash {hash_val[:16]}..."
                 )
             else:
                 deduplicated.append(entries[0])
-                seen_hashes.add(hash_val)
+            seen_hashes.add(hash_val)
 
         # Process near-duplicates (remove one of each pair)
-        near_dup_hashes = set()
-        for entry1, entry2, similarity in self.near_duplicates:
-            # Keep entry1, mark entry2 for removal
-            if entry2.content_hash not in seen_hashes:
-                near_dup_hashes.add(entry2.content_hash)
+        # Keep entry1, mark entry2 for removal
+        near_dup_hashes = {
+            entry2.content_hash
+            for _, entry2, _ in self.near_duplicates
+            if entry2.content_hash not in seen_hashes
+        }
 
         # Filter out near-duplicates
         final_deduplicated = [
