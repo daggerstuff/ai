@@ -3,7 +3,6 @@ from __future__ import annotations
 import argparse
 import ast
 import json
-import os
 import os.path as osp
 import re
 import shutil
@@ -26,7 +25,7 @@ BASE_CONFIG = {}
 cfg = None
 
 
-class Config(object):
+class Config:
     """config"""
 
     @classmethod
@@ -44,7 +43,7 @@ class Config(object):
             if isinstance(v, dict):
                 v = cls.pretty_text(v, indent + 4)
             spaces = " " * indent
-            msg += spaces + "{}: {}".format(k, v)
+            msg += spaces + f"{k}: {v}"
             if i == len(cfg) - 1:
                 msg += " }"
             else:
@@ -118,10 +117,9 @@ class Config(object):
         """
         filepath = osp.abspath(osp.expanduser(filepath))
         if not osp.isfile(filepath):
-            raise IOError(f"File does not exist: {filepath}")
+            raise OSError(f"File does not exist: {filepath}")
         if filepath.endswith(".py"):
             with tempfile.TemporaryDirectory() as temp_config_dir:
-
                 shutil.copytree(osp.dirname(filepath), osp.join(temp_config_dir, "tmp_config"))
                 sys.path.insert(0, temp_config_dir)
                 mod = import_module("tmp_config." + osp.splitext(osp.basename(filepath))[0])
@@ -134,14 +132,14 @@ class Config(object):
                     if "tmp_config" in k:
                         del sys.modules[k]
         elif filepath.endswith((".yml", ".yaml")):
-            cfg_dict = yaml.load(open(filepath, "r"), Loader=yaml.Loader)
+            cfg_dict = yaml.safe_load(open(filepath))
         elif filepath.endswith(".json"):
-            cfg_dict = json.load(open(filepath, "r"))
+            cfg_dict = json.load(open(filepath))
         else:
-            raise IOError("Only py/yml/yaml/json type are supported now!")
+            raise OSError("Only py/yml/yaml/json type are supported now!")
 
         cfg_text = filepath + "\n"
-        with open(filepath, "r") as f:
+        with open(filepath) as f:
             cfg_text += f.read()
 
         if BASE_KEY in cfg_dict:  # load configs in `BASE_KEY`
@@ -257,18 +255,51 @@ def eval_string(string, d):
     """
     if not isinstance(string, str):
         return string
-    # if len(string) > 1 and string[0] == "[" and string[-1] == "]":
-    #     return eval(string)
-    if string[0:5] == "eval(":
-        return eval(string[5:-1])
 
-    s0 = string
-    s1 = re.sub(r"\${(.*)}", r"d.\1", s0)
-    if s1 != s0:
-        while s1 != s0:
-            s0 = s1
-            s1 = re.sub(r"\${(.*)}", r"d.\1", s0)
-        return eval(s1)
+    # Historically, this config supported `eval(...)` and `${...}` expressions.
+    # Using Python eval on untrusted input is an RCE risk, so we now only allow:
+    # - Python literals via `ast.literal_eval`
+    # - `${path.to.key}` placeholders resolved from the config object
+    placeholder_re = re.compile(r"\${([^}]+)}")
+
+    def get_by_path(root, path: str):
+        cur = root
+        for part in path.split("."):
+            part = part.strip()
+            if not re.match(r"^[A-Za-z_][A-Za-z0-9_]*$", part):
+                raise ValueError(f"Invalid placeholder path segment: {part!r}")
+            if isinstance(cur, dict):
+                cur = cur[part]
+            else:
+                # EasyDict supports both attribute and item access
+                cur = cur[part] if hasattr(cur, "__getitem__") else getattr(cur, part)
+        return cur
+
+    # Support `eval(...)` prefix in a restricted way: literals only, plus `range(...)`.
+    if string.startswith("eval(") and string.endswith(")"):
+        expr = string[5:-1].strip()
+        try:
+            return ast.literal_eval(expr)
+        except Exception:
+            m = re.fullmatch(
+                r"range\(\s*(\d+)\s*(?:,\s*(\d+)\s*)?(?:,\s*(\d+)\s*)?\)",
+                expr,
+            )
+            if m:
+                args = [int(g) for g in m.groups() if g is not None]
+                return list(range(*args))
+            return string
+
+    # Resolve placeholders without executing code.
+    matches = list(placeholder_re.finditer(string))
+    if matches:
+        if len(matches) == 1 and matches[0].span() == (0, len(string)):
+            return get_by_path(d, matches[0].group(1))
+
+        def repl(m):
+            return str(get_by_path(d, m.group(1)))
+
+        return placeholder_re.sub(repl, string)
 
     try:
         v = ast.literal_eval(string)
