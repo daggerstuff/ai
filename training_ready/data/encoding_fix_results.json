@@ -1,6 +1,6 @@
 {
-  "timestamp": "2025-12-12T17:11:19.467934+00:00",
-  "dry_run": true,
+  "timestamp": "2025-12-12T20:58:33.202770+00:00",
+  "dry_run": false,
   "results": [
     {
       "success": true,
@@ -8,85 +8,109 @@
       "reason": "Already UTF-8",
       "encoding": "utf-8",
       "file": "priority_1_conversations.jsonl",
-      "category": "phase_1_priority_conversations"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "priority_2_conversations.jsonl",
-      "category": "phase_1_priority_conversations"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "priority_3_conversations.jsonl",
-      "category": "phase_1_priority_conversations"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "unified_priority_conversations.jsonl",
-      "category": "phase_1_priority_conversations"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "soulchat_2_0_conversations.jsonl",
-      "category": "phase_2_professional_datasets"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "llama3_mental_counseling_conversations.jsonl",
-      "category": "phase_2_professional_datasets"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "tot_reasoning_conversations.jsonl",
-      "category": "phase_3_cot_reasoning"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "condition_specific_conversations.jsonl",
-      "category": "phase_4_reddit_mental_health"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "specialized_populations_conversations.jsonl",
-      "category": "phase_4_reddit_mental_health"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "temporal_analysis_conversations.jsonl",
-      "category": "phase_4_reddit_mental_health"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "temporal_analysis_data.jsonl",
-      "category": "phase_4_reddit_mental_health"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "soulchat_2_0_complete_no_limits.jsonl",
-      "category": "professional_datasets_final"
+      "category": "known_problematic"
     },
     {
-      "success": false,
-      "error": "Connection failed after 3 attempts",
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
       "file": "soulchat_2_0_complete_no_limits.jsonl",
-      "category": "soulchat_complete"
+      "category": "known_problematic"
     }
   ],
   "summary": {
     "total": 13,
     "fixed": 0,
-    "skipped": 1,
-    "failed": 12
+    "skipped": 13,
+    "failed": 0
   }
 }
