@@ -20,3 +20,8 @@ pandas>=2.0.0
 
 # Configuration
 pyyaml>=6.0
+
+# NGC CLI for NeMo resource downloads (optional, but recommended)
+# Note: NGC CLI is NOT a PyPI package - must be downloaded from:
+# https://catalog.ngc.nvidia.com
+# Install to ~/ngc-cli/ or add to system PATH

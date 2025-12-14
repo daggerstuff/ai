@@ -8,3 +8,8 @@ pymongo>=4.10.1,<5.0.0    # For MongoDB quarantine store; compatible with Mongoo
 bitarray>=3.0.0,<4.0.0   # For bloom filter deduplication
 mmh3>=5.0.1,<6.0.0       # For murmurhash in bloom filter
 redis>=5.2.1,<6.0.0      # For async redis queue support
+
+# NGC CLI for NGC catalog dataset downloads (optional)
+# Note: NGC CLI is NOT a PyPI package - must be downloaded from:
+# https://catalog.ngc.nvidia.com
+# Install to ~/ngc-cli/ or add to system PATH

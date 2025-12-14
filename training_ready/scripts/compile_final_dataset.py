@@ -244,6 +244,8 @@ class FinalDatasetCompiler:
             raise ValueError("s3_manifest.json missing endpoint")
         self.s3_endpoint = endpoint
         self.s3_loader = S3DatasetLoader(bucket=self.s3_bucket, endpoint_url=self.s3_endpoint)
+        # Access S3 client for uploads (S3DatasetLoader creates it in __init__)
+        self.s3_client = self.s3_loader.s3_client
 
     def _parse_checkpoint_data(self, checkpoint_data: dict[str, Any]) -> CheckpointInfo:
         """Parse checkpoint data into CheckpointInfo object"""
@@ -1123,6 +1125,27 @@ class FinalDatasetCompiler:
         return shards
 
     # TODO Rename this here and in `create_shards`
+    def _upload_to_s3(self, local_path: Path, s3_key: str) -> None:
+        """Upload a file to S3 and verify upload succeeded"""
+        try:
+            logger.debug(f"Uploading {local_path} to s3://{self.s3_bucket}/{s3_key}")
+            self.s3_client.upload_file(str(local_path), self.s3_bucket, s3_key)
+            logger.debug(f"✓ Uploaded {s3_key}")
+
+            # Verify upload succeeded before proceeding
+            try:
+                self.s3_client.head_object(Bucket=self.s3_bucket, Key=s3_key)
+                logger.debug(f"✓ Verified {s3_key} exists in S3")
+            except Exception as verify_error:
+                logger.error(
+                    f"Upload verification failed for {s3_key}: {verify_error}. "
+                    f"File may not be in S3 - local file will NOT be deleted."
+                )
+                raise RuntimeError(f"Upload verification failed: {verify_error}") from verify_error
+        except Exception as e:
+            logger.error(f"Failed to upload {local_path} to s3://{self.s3_bucket}/{s3_key}: {e}")
+            raise
+
     def _extracted_from_create_shards_55(self, split_name, shard_num, current_shard, shards):
         shard_id = f"{split_name}_{shard_num:03d}"
         shard_path = self.output_dir / "shards" / f"{shard_id}.jsonl"
@@ -1140,15 +1163,25 @@ class FinalDatasetCompiler:
             {c.get("metadata", {}).get("source_family", "") for c in current_shard}
         )
 
+        # Upload shard to S3
+        s3_key = f"final_dataset/{split_name}/{shard_id}.jsonl"
+        self._upload_to_s3(shard_path, s3_key)
+
         shard = DatasetShard(
             shard_id=shard_id,
-            s3_path=f"s3://{self.s3_bucket}/final_dataset/{split_name}/{shard_id}.jsonl",
+            s3_path=f"s3://{self.s3_bucket}/{s3_key}",
             size_bytes=shard_size,
             sha256=f"sha256:{shard_hash}",
             conversation_count=len(current_shard),
             source_families=source_families,
         )
         shards.append(shard)
+
+        # Remove local shard after successful upload and verification
+        # Note: _upload_to_s3() verifies upload with head_object() before returning
+        if shard_path.exists():
+            shard_path.unlink()
+            logger.debug(f"Removed local shard: {shard_path}")
 
     def generate_manifest(self) -> dict[str, Any]:
         """Generate dataset manifest"""
@@ -1217,7 +1250,7 @@ class FinalDatasetCompiler:
         }
 
     def create_compiled_export(self) -> Path:
-        """Create compiled single-file export"""
+        """Create compiled single-file export and upload to S3"""
         logger.info("Creating compiled export...")
 
         output_path = self.output_dir / "compiled" / "final_training_dataset.jsonl"
@@ -1228,6 +1261,18 @@ class FinalDatasetCompiler:
                 f.write(json.dumps(conv, ensure_ascii=False) + "\n")
 
         logger.info(f"Compiled export created: {output_path}")
+
+        # Upload to S3
+        s3_key = "final_dataset/compiled/final_training_dataset.jsonl"
+        self._upload_to_s3(output_path, s3_key)
+        logger.info(f"Uploaded compiled export to s3://{self.s3_bucket}/{s3_key}")
+
+        # Remove local copy after successful upload and verification
+        # Note: _upload_to_s3() verifies upload with head_object() before returning
+        if output_path.exists():
+            output_path.unlink()
+            logger.info(f"Removed local compiled export: {output_path}")
+
         return output_path
 
     def _load_cached_conversations_from_checkpoint(self) -> None:
@@ -1274,6 +1319,13 @@ class FinalDatasetCompiler:
         manifest_path = self.output_dir / "manifest.json"
         with open(manifest_path, "w", encoding="utf-8") as f:
             json.dump(manifest, f, indent=2, ensure_ascii=False)
+
+        # Upload manifest to S3
+        s3_key = "final_dataset/manifest.json"
+        self._upload_to_s3(manifest_path, s3_key)
+        logger.info(f"Uploaded manifest to s3://{self.s3_bucket}/{s3_key}")
+
+        # Keep local manifest for reference (small file, useful for debugging)
 
         return manifest, manifest_path, compiled_path, violations
 

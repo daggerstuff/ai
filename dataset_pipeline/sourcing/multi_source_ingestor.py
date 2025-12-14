@@ -3,6 +3,7 @@ Multi-Source Dataset Ingestor with Direct S3 Streaming.
 
 Supports:
 - HuggingFace Datasets
+- NGC (NVIDIA GPU Cloud) Catalog
 - Zenodo
 - GitHub Archives
 - Roleplay/Persona Datasets
@@ -18,21 +19,65 @@ import tempfile
 from collections.abc import Iterator
 from io import BytesIO
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar
+from typing import TYPE_CHECKING, Any, ClassVar
 
 from dotenv import load_dotenv
 
 if TYPE_CHECKING:
     import boto3
+else:
+    try:
+        import boto3
+    except ImportError:
+        boto3 = None  # type: ignore[assignment]
+
+try:
+    from datasets import load_dataset
+except ImportError:
+    load_dataset = None  # type: ignore[assignment]
+
+try:
+    import requests
+except ImportError:
+    requests = None  # type: ignore[assignment]
+
+try:
+    import kaggle
+except ImportError:
+    kaggle = None  # type: ignore[assignment]
+
+try:
+    import datadotworld as dw
+except ImportError:
+    dw = None  # type: ignore[assignment]
+
+try:
+    import openml
+except ImportError:
+    openml = None  # type: ignore[assignment]
+
+try:
+    from ai.dataset_pipeline.sourcing.local_consolidated_ingestor import (
+        LocalConsolidatedIngestor,
+    )
+except ImportError:
+    LocalConsolidatedIngestor = None  # type: ignore[assignment, misc]
+
+try:
+    from ai.dataset_pipeline.sourcing.ngc_ingestor import NGCIngestor
+except ImportError:
+    NGCIngestor = None  # type: ignore[assignment, misc]
 
 load_dotenv("ai/.env")
 
 logger = logging.getLogger(__name__)
 
 
-def get_s3_client() -> boto3.client | None:
+def get_s3_client() -> Any | None:
     """Creates an S3 client configured for OVH Object Storage."""
-    import boto3
+    if boto3 is None:
+        logger.error("boto3 not installed. Install with: uv pip install boto3")
+        return None
 
     endpoint = os.environ.get("OVH_S3_ENDPOINT")
     access_key = os.environ.get("OVH_S3_ACCESS_KEY")
@@ -102,7 +147,9 @@ class HuggingFaceIngestor:
 
     def process_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
         """Downloads from HF and streams directly to S3."""
-        from datasets import load_dataset
+        if load_dataset is None:
+            logger.warning("datasets library not installed. Skipping HuggingFace ingestion.")
+            return {}
 
         results = {}
         for ds_name, config in self.DATASETS.items():
@@ -155,7 +202,9 @@ class ZenodoIngestor:
 
     def fetch_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
         """Fetches from Zenodo API and streams to S3."""
-        import requests
+        if requests is None:
+            logger.warning("requests library not installed. Skipping Zenodo ingestion.")
+            return {}
 
         results = {}
         for record_id, config in self.DATASETS.items():
@@ -206,7 +255,9 @@ class GitHubDatasetIngestor:
 
     def fetch_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
         """Fetches from GitHub raw content."""
-        import requests
+        if requests is None:
+            logger.warning("requests library not installed. Skipping GitHub ingestion.")
+            return {}
 
         results = {}
         for repo, config in self.DATASETS.items():
@@ -219,8 +270,7 @@ class GitHubDatasetIngestor:
                 resp.raise_for_status()
 
                 s3_key = f"{prefix}{target}/github_{repo.replace('/', '_')}_{file_path.replace('/', '_')}"
-                s3 = get_s3_client()
-                if s3:
+                if s3 := get_s3_client():
                     s3.put_object(Bucket=bucket, Key=s3_key, Body=resp.content)
                     results[repo] = s3_key
                     logger.info(f"Uploaded {s3_key}")
@@ -244,9 +294,7 @@ class KaggleIngestor:
 
     def fetch_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
         """Fetches from Kaggle and streams to S3."""
-        try:
-            import kaggle
-        except ImportError:
+        if kaggle is None:
             logger.warning("Kaggle library not installed. Skipping.")
             return {}
 
@@ -291,9 +339,7 @@ class DataWorldIngestor:
 
     def fetch_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
         """Fetches from data.world and streams to S3."""
-        try:
-            import datadotworld as dw
-        except ImportError:
+        if dw is None:
             logger.warning("data.world library not installed. Skipping.")
             return {}
 
@@ -337,9 +383,7 @@ class OpenMLIngestor:
 
     def fetch_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
         """Fetches from OpenML and streams to S3."""
-        try:
-            import openml
-        except ImportError:
+        if openml is None:
             logger.warning("OpenML library not installed. Skipping.")
             return {}
 
@@ -381,21 +425,40 @@ def run_all_ingestors(bucket: str = "pixel-data", prefix: str = "datasets/traini
     results = {}
 
     # Local Consolidated (NEW - highest priority, 3.2GB of finalized data)
-    try:
-        from ai.dataset_pipeline.sourcing.local_consolidated_ingestor import (
-            LocalConsolidatedIngestor,
-        )
-
-        local = LocalConsolidatedIngestor()
-        local_results = local.run_full_upload(bucket, "datasets/consolidated/", skip_large=True)
-        results["local_consolidated"] = local_results.get("total_success", 0)
-    except Exception as e:
-        logger.warning(f"Local consolidated ingestion failed: {e}")
+    if LocalConsolidatedIngestor is not None:
+        try:
+            local = LocalConsolidatedIngestor()
+            local_results = local.run_full_upload(bucket, "datasets/consolidated/", skip_large=True)
+            results["local_consolidated"] = local_results.get("total_success", 0)
+        except Exception as e:
+            logger.warning(f"Local consolidated ingestion failed: {e}")
+            results["local_consolidated"] = 0
+    else:
+        logger.warning("LocalConsolidatedIngestor not available. Skipping.")
         results["local_consolidated"] = 0
 
     # HuggingFace
     hf = HuggingFaceIngestor()
     results["huggingface"] = hf.process_and_stream(bucket, prefix)
+
+    # NGC (NVIDIA GPU Cloud)
+    if NGCIngestor is not None:
+        try:
+            ngc = NGCIngestor()
+            if ngc.is_available():
+                ngc_results = ngc.process_all_configured()
+                results["ngc"] = len(
+                    [r for r in ngc_results.values() if r.get("status") == "success"]
+                )
+            else:
+                logger.info("NGC CLI not available, skipping NGC dataset ingestion")
+                results["ngc"] = 0
+        except Exception as e:
+            logger.warning(f"NGC ingestion failed: {e}")
+            results["ngc"] = 0
+    else:
+        logger.warning("NGCIngestor not available. Skipping.")
+        results["ngc"] = 0
 
     # Zenodo
     zenodo = ZenodoIngestor()
