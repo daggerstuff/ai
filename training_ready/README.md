@@ -1,7 +1,7 @@
 # Training Ready - Consolidated Training System
 
 **Status**: Single canonical home for all training packages, scripts, configs, and documentation  
-**Last Updated**: 2025-12-11
+**Last Updated**: 2025-12-13
 
 ## Architecture
 
@@ -30,25 +30,33 @@ ai/training_ready/
 │   ├── QUICK_START_GUIDE.md      # Quick start instructions
 │   └── [other docs...]
 │
-├── scripts/                       # All runnable training scripts
-│   ├── train_optimized.py        # Main training (S3-aware)
-│   ├── train_enhanced.py         # KAN-28 enhanced
-│   ├── train_moe_h100.py         # MoE training (S3-aware)
-│   ├── inference_service.py      # Inference service
-│   ├── [other scripts...]
-│   └── update_manifest_s3_paths.py  # Update registry with S3 paths
+├── scripts/                       # Data processing and utility scripts
+│   ├── compile_final_dataset.py  # Compile final training dataset
+│   ├── verify_final_dataset.py   # Verify dataset quality
+│   ├── [other data processing scripts...]
 │
-├── configs/                       # All configuration files
-│   ├── moe_training_config.json
-│   ├── enhanced_training_config.json
-│   └── requirements_*.txt
+├── packages/                      # Training packages
+│   ├── apex/                     # KAN-28 enhanced training
+│   │   └── scripts/train_enhanced.py
+│   └── velocity/                 # MoE optimized training
+│       └── training_scripts/
+│           ├── train_optimized.py
+│           ├── train_moe_h100.py
+│           └── inference_service.py
+│
+├── configs/                       # Shared configuration files
+│   └── training_curriculum_2025.json
+│
+├── packages/                      # Package-specific configs
+│   ├── apex/config/              # Apex configurations
+│   └── velocity/configs/          # Velocity configurations
 │
 ├── pipelines/                     # Data pipeline scripts
 │   └── integrated_training_pipeline.py  # Unified data pipeline (S3-aware)
 │
-├── models/                        # Model architecture files
-│   ├── moe_architecture.py
-│   └── therapeutic_progress_tracker.py
+├── models/                        # Shared model architecture files
+│   ├── moe_architecture.py        # (shared by both packages)
+│   └── therapeutic_progress_tracker.py  # (shared by both packages)
 │
 ├── utils/                         # Utility modules
 │   ├── s3_dataset_loader.py      # S3 dataset loader (streaming)
@@ -76,6 +84,11 @@ cd ai/training_ready
 # Install dependencies
 uv pip install -r configs/requirements_moe.txt
 
+# Optional: Install NGC CLI for NeMo resource downloads
+# Note: NGC CLI must be downloaded from https://catalog.ngc.nvidia.com
+# (It's not a PyPI package - download and extract to ~/ngc-cli/)
+export NGC_API_KEY="your-ngc-api-key"  # Get from https://catalog.ngc.nvidia.com
+
 # S3 credentials are loaded from .env automatically
 # Ensure .env has:
 # OVH_S3_ACCESS_KEY=...
@@ -89,7 +102,23 @@ uv pip install -r configs/requirements_moe.txt
 python scripts/verify_s3_access.py
 ```
 
-### 3. Load Dataset from S3
+### 3. Compile and Upload Final Dataset
+
+```bash
+# Compile final dataset (automatically uploads to S3 and removes local copies)
+python scripts/compile_final_dataset.py
+
+# Or upload existing local datasets to S3
+python scripts/upload_local_datasets_to_s3.py
+```
+
+**Note**: The compile script automatically:
+- Uploads shards to `s3://{bucket}/final_dataset/{split}/{shard_id}.jsonl`
+- Uploads compiled export to `s3://{bucket}/final_dataset/compiled/final_training_dataset.jsonl`
+- Uploads manifest to `s3://{bucket}/final_dataset/manifest.json`
+- Removes local copies after successful upload (keeps manifest for reference)
+
+### 4. Load Dataset from S3
 
 ```python
 from ai.training_ready.utils.s3_dataset_loader import load_dataset_from_s3
@@ -101,7 +130,7 @@ data = load_dataset_from_s3(
 )
 ```
 
-### 4. Run Training
+### 5. Run Training
 
 ```bash
 # Training script automatically uses S3 if available
@@ -119,8 +148,8 @@ python scripts/train_optimized.py
 - **Local is cache only** - Temporary caches, not source of truth
 
 ### Consolidated Packages
-- **Lightning Training Package** - KAN-28 enhanced training
-- **Therapeutic AI Package v5.0** - Complete H100 MoE system
+- **Apex** - KAN-28 enhanced training (comprehensive, all 6 components)
+- **Velocity** - MoE optimized training (fast iteration, flexible profiles)
 - **OVH Platform Integration** - OVHcloud AI Training
 - All merged into unified `training_ready/` structure
 
@@ -153,21 +182,33 @@ python scripts/train_optimized.py
 
 ## Training Scripts
 
+### Dataset Compilation & Upload
+
+- **`scripts/compile_final_dataset.py`** - Compile final training dataset
+  - Reads from S3, creates shards and compiled export
+  - **Automatically uploads to S3** and removes local copies
+  - Creates manifest with S3 paths
+  
+- **`scripts/upload_local_datasets_to_s3.py`** - Upload existing local datasets
+  - Uploads large dataset files to S3
+  - Removes local copies after successful upload
+  - Useful for migrating existing local datasets
+
 ### Main Training Scripts
 
-- **`scripts/train_optimized.py`** - Automatic optimization, S3-aware
-- **`scripts/train_moe_h100.py`** - MoE training on H100, S3-aware
-- **`scripts/train_enhanced.py`** - KAN-28 enhanced training
+**Apex Package** (KAN-28 Enhanced):
+- **`packages/apex/scripts/train_enhanced.py`** - KAN-28 enhanced training
 
-### Inference & Services
-
-- **`scripts/inference_service.py`** - FastAPI inference service
-- **`scripts/inference_optimizer.py`** - Inference optimization
-- **`scripts/progress_tracking_api.py`** - Progress tracking API
+**Velocity Package** (MoE Optimized):
+- **`packages/velocity/training_scripts/train_optimized.py`** - Automatic optimization, S3-aware
+- **`packages/velocity/training_scripts/train_moe_h100.py`** - MoE training on H100, S3-aware
+- **`packages/velocity/training_scripts/inference_service.py`** - FastAPI inference service
+- **`packages/velocity/training_scripts/inference_optimizer.py`** - Inference optimization
+- **`packages/velocity/training_scripts/progress_tracking_api.py`** - Progress tracking API
 
 ### Data Pipeline
 
-- **`pipelines/integrated_training_pipeline.py`** - Unified data pipeline (S3-aware)
+- **`packages/velocity/data_pipeline/integrated_training_pipeline.py`** - Unified data pipeline (S3-aware)
 
 ---
 
@@ -175,14 +216,14 @@ python scripts/train_optimized.py
 
 ### Training Configs
 
-- **`configs/moe_training_config.json`** - MoE training configuration
-- **`configs/enhanced_training_config.json`** - KAN-28 enhanced config
-- **`configs/lightning_deployment_config.json`** - Lightning.ai deployment
+**Apex Package**:
+- **`packages/apex/config/enhanced_training_config.json`** - KAN-28 enhanced config
+- **`packages/apex/config/lightning_deployment_config.json`** - Lightning.ai deployment
+- **`packages/apex/requirements.txt`** - Apex dependencies
 
-### Requirements
-
-- **`configs/requirements_moe.txt`** - MoE training dependencies
-- **`configs/requirements_lightning.txt`** - Lightning package dependencies
+**Velocity Package**:
+- **`packages/velocity/configs/moe_training_config.json`** - MoE training configuration
+- **`packages/velocity/configs/requirements_moe.txt`** - Velocity dependencies
 
 ---
 
@@ -218,6 +259,15 @@ export AWS_SECRET_ACCESS_KEY="your_secret_key"
 ```
 
 ---
+
+## NGC CLI Integration
+
+NGC CLI is integrated for downloading NeMo resources and training assets:
+
+- **`utils/ngc_resources.py`** - NGC resource downloader
+- **`docs/NGC_CLI_INTEGRATION.md`** - Complete NGC CLI setup and usage guide
+
+See [NGC CLI Integration Guide](docs/NGC_CLI_INTEGRATION.md) for details.
 
 ## Related Systems
 

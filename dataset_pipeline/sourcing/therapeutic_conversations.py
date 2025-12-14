@@ -64,9 +64,11 @@ class TherapeuticConversationAcquisition:
     def process_and_filter(self, raw_data: list[dict]) -> list[dict]:
         """Filters data based on ethical verification."""
         valid_data = []
-        for record in raw_data:
-            if self.verify_ethical_approval(record.get("source_id", "")):
-                valid_data.append(record)
+        valid_data.extend(
+            record
+            for record in raw_data
+            if self.verify_ethical_approval(record.get("source_id", ""))
+        )
         return valid_data
 
     def export_data(self, data: list[dict]):

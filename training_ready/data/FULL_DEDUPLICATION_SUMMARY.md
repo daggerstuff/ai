@@ -1,11 +1,13 @@
-# Full Deduplication Scan Results
+# Dataset Deduplication Summary
 
-**Scan Date**: 2025-12-11  
+**Last Updated**: 2025-12-11  
 **Total Entries Scanned**: 30,499  
 **Unique Conversations**: 28,049  
 **Duplicate Groups**: 1,557  
 **Total Duplicate Entries**: 4,007  
 **Potential Space Savings**: ~2,450 entries (8% reduction)
+
+> **Note**: This summary consolidates findings from multiple deduplication analyses. For detailed findings, see `DEDUPLICATION_FINDINGS.md`. For usage instructions, see `DEDUPLICATION_USAGE.md`.
 
 ## 🔍 Key Findings
 
