@@ -1,6 +1,7 @@
 {
   "manifest_version": "1.0",
   "generated_at": "2025-12-12T21:40:44.381049+00:00",
+  "note": "This is a template manifest. Run compile_final_dataset.py to populate with actual data.",
   "total_conversations": 0,
   "total_tokens_approx": 0,
   "splits": {

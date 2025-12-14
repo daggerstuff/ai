@@ -81,6 +81,9 @@ def categorize_objects(objects: list[dict[str, Any]]) -> dict[str, Any]:
         "lightning": [],
         "voice": [],
         "pixel_voice": [],
+        "metadata": {
+            "consolidation": [],
+        },
         "other": [],
     }
 
@@ -114,6 +117,10 @@ def categorize_objects(objects: list[dict[str, Any]]) -> dict[str, Any]:
 
         if normalized_key.startswith("pixel_voice/"):
             categories["pixel_voice"].append(obj)
+            continue
+
+        if normalized_key.startswith("metadata/consolidation/"):
+            categories["metadata"]["consolidation"].append(obj)
             continue
 
         if "raw" in normalized_key_lower or "gdrive" in normalized_key_lower:
@@ -186,6 +193,9 @@ def generate_manifest(loader: object) -> dict[str, Any]:
             "lightning": build_category_section(categories["lightning"]),
             "voice": build_category_section(categories["voice"]),
             "pixel_voice": build_category_section(categories["pixel_voice"]),
+            "metadata": {
+                "consolidation": build_category_section(categories["metadata"]["consolidation"]),
+            },
             "other": build_category_section(categories["other"]),
         },
     }
@@ -245,6 +255,13 @@ def print_summary(manifest: dict[str, Any]) -> None:
             )
     else:
         logger.info("   Status: ⏳ Not yet organized")
+
+    metadata = categories.get("metadata", {})
+    if metadata.get("consolidation", {}).get("count", 0) > 0:
+        logger.info("📋 Consolidation Metadata:")
+        logger.info("   Files: %s", f"{metadata['consolidation']['count']:,}")
+        logger.info("   Size: %s", metadata["consolidation"]["size_formatted"])
+        logger.info("   Location: s3://%s/datasets/metadata/consolidation/", manifest["bucket"])
 
     for name, key in [
         ("Acquired", "acquired"),
