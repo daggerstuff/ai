@@ -1,9 +1,9 @@
 {
   "bucket": "pixel-data",
   "endpoint": "https://s3.us-east-va.io.cloud.ovh.us",
-  "generated_at": "2025-12-11T21:49:47.604367",
-  "total_objects": 19323,
-  "total_size_bytes": 56053329404,
+  "generated_at": "2025-12-13T19:18:55.248263+00:00",
+  "total_objects": 19330,
+  "total_size_bytes": 56053379485,
   "total_size_formatted": "52.20 GB",
   "categories": {
     "gdrive": {
@@ -59480,10 +59480,10 @@
         ]
       },
       "processed": {
-        "PROFESSIONAL_DATASETS_UPDATE_SUMMARY.md": {
-          "count": 1,
-          "size_bytes": 4507,
-          "size_formatted": "4.40 KB",
+        "root": {
+          "count": 5,
+          "size_bytes": 27606,
+          "size_formatted": "26.96 KB",
           "objects": [
             {
               "key": "datasets/gdrive/processed/PROFESSIONAL_DATASETS_UPDATE_SUMMARY.md",
@@ -59491,34 +59491,34 @@
               "size_formatted": "4.40 KB",
               "last_modified": "2025-12-09T19:00:26+00:00",
               "etag": "66541db0fdde30bf901b469554fea3d6"
-            }
-          ]
-        },
-        "README.md": {
-          "count": 1,
-          "size_bytes": 8057,
-          "size_formatted": "7.87 KB",
-          "objects": [
+            },
             {
               "key": "datasets/gdrive/processed/README.md",
               "size": 8057,
               "size_formatted": "7.87 KB",
               "last_modified": "2025-12-09T19:00:27+00:00",
               "etag": "e366b831d16de01d14ddf296f18259a3"
-            }
-          ]
-        },
-        "conversations.db": {
-          "count": 1,
-          "size_bytes": 0,
-          "size_formatted": "0.00 B",
-          "objects": [
+            },
             {
               "key": "datasets/gdrive/processed/conversations.db",
               "size": 0,
               "size_formatted": "0.00 B",
               "last_modified": "2025-12-09T19:00:27+00:00",
               "etag": "d41d8cd98f00b204e9800998ecf8427e"
+            },
+            {
+              "key": "datasets/gdrive/processed/monitoring_report.json",
+              "size": 802,
+              "size_formatted": "802.00 B",
+              "last_modified": "2025-12-09T19:00:26+00:00",
+              "etag": "65f090bab0bb95ddb74efff52bb51311"
+            },
+            {
+              "key": "datasets/gdrive/processed/quality_validation_updated_report.json",
+              "size": 14240,
+              "size_formatted": "13.91 KB",
+              "last_modified": "2025-12-09T19:00:27+00:00",
+              "etag": "51da3d8a02db19045fbe853040596aa5"
             }
           ]
         },
@@ -59596,20 +59596,6 @@
               "size_formatted": "195.33 KB",
               "last_modified": "2025-12-09T19:00:56+00:00",
               "etag": "01b26dfc59dc5794ce4c194adef75805"
-            }
-          ]
-        },
-        "monitoring_report.json": {
-          "count": 1,
-          "size_bytes": 802,
-          "size_formatted": "802.00 B",
-          "objects": [
-            {
-              "key": "datasets/gdrive/processed/monitoring_report.json",
-              "size": 802,
-              "size_formatted": "802.00 B",
-              "last_modified": "2025-12-09T19:00:26+00:00",
-              "etag": "65f090bab0bb95ddb74efff52bb51311"
             }
           ]
         },
@@ -60124,20 +60110,6 @@
             }
           ]
         },
-        "quality_validation_updated_report.json": {
-          "count": 1,
-          "size_bytes": 14240,
-          "size_formatted": "13.91 KB",
-          "objects": [
-            {
-              "key": "datasets/gdrive/processed/quality_validation_updated_report.json",
-              "size": 14240,
-              "size_formatted": "13.91 KB",
-              "last_modified": "2025-12-09T19:00:27+00:00",
-              "etag": "51da3d8a02db19045fbe853040596aa5"
-            }
-          ]
-        },
         "soulchat_complete": {
           "count": 2,
           "size_bytes": 40850329,
@@ -60310,6 +60282,64 @@
       "size_bytes": 0,
       "size_formatted": "0.00 B",
       "objects": []
+    },
+    "metadata": {
+      "consolidation": {
+        "count": 7,
+        "size_bytes": 50081,
+        "size_formatted": "48.91 KB",
+        "objects": [
+          {
+            "key": "datasets/metadata/consolidation/findings/gdrive_consolidation_audit.md",
+            "size": 14999,
+            "size_formatted": "14.65 KB",
+            "last_modified": "2025-12-13T19:17:11+00:00",
+            "etag": "b8e26b82731420cfc0e98df7edd364c6"
+          },
+          {
+            "key": "datasets/metadata/consolidation/findings/s3_completion_summary.md",
+            "size": 4640,
+            "size_formatted": "4.53 KB",
+            "last_modified": "2025-12-13T19:17:11+00:00",
+            "etag": "2d775b3f0a90282e5afb962ddc99c475"
+          },
+          {
+            "key": "datasets/metadata/consolidation/findings/s3_implementation_summary.md",
+            "size": 4688,
+            "size_formatted": "4.58 KB",
+            "last_modified": "2025-12-13T19:17:11+00:00",
+            "etag": "98532b5a6dd1d692aaf774cfa71ec8e7"
+          },
+          {
+            "key": "datasets/metadata/consolidation/findings/training_package_consolidation_audit.md",
+            "size": 11906,
+            "size_formatted": "11.63 KB",
+            "last_modified": "2025-12-13T19:17:10+00:00",
+            "etag": "8d9c3ad3cd4bdfd959351e4e8f352a9b"
+          },
+          {
+            "key": "datasets/metadata/consolidation/manifest.json",
+            "size": 1541,
+            "size_formatted": "1.50 KB",
+            "last_modified": "2025-12-13T19:17:11+00:00",
+            "etag": "8c998fd7a24bc4c13d043789538dcbe5"
+          },
+          {
+            "key": "datasets/metadata/consolidation/reports/audit_report.md",
+            "size": 7892,
+            "size_formatted": "7.71 KB",
+            "last_modified": "2025-12-13T19:17:10+00:00",
+            "etag": "edea249d98732e83c26ad013ee104b94"
+          },
+          {
+            "key": "datasets/metadata/consolidation/reports/completion_summary.md",
+            "size": 4415,
+            "size_formatted": "4.31 KB",
+            "last_modified": "2025-12-13T19:17:10+00:00",
+            "etag": "313629d10ca9d55953d59ae9b275f1bb"
+          }
+        ]
+      }
     },
     "other": {
       "count": 10731,
@@ -86028,7 +86058,7 @@
           "etag": "5846cccd6bbfa026176e3683729192d9"
         },
         {
-          "key": "datasets/local/ai/lightning_training_package/scripts/data_preparation.py",
+          "key": "datasets/local/ai/apex/scripts/data_preparation.py",
           "size": 11300,
           "size_formatted": "11.04 KB",
           "last_modified": "2025-12-08T04:37:32+00:00",

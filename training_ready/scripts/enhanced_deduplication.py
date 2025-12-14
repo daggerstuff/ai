@@ -11,6 +11,15 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+# Try to import sentence-transformers for semantic similarity
+try:
+    from sentence_transformers import SentenceTransformer
+
+    SENTENCE_TRANSFORMERS_AVAILABLE = True
+except ImportError:
+    SENTENCE_TRANSFORMERS_AVAILABLE = False
+    SentenceTransformer = None  # type: ignore[assignment, misc]
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
@@ -72,10 +81,40 @@ def extract_text_for_similarity(messages: list[dict[str, str]]) -> str:
     return " ".join(content_parts)
 
 
+def compute_semantic_similarity(text1: str, text2: str, model: Any = None) -> float:
+    """
+    Compute semantic similarity score using sentence-transformers embeddings.
+    Falls back to word overlap if sentence-transformers is not available.
+
+    Args:
+        text1: First text to compare
+        text2: Second text to compare
+        model: Optional pre-loaded SentenceTransformer model (for efficiency)
+
+    Returns:
+        Similarity score between 0.0 and 1.0
+    """
+    if SENTENCE_TRANSFORMERS_AVAILABLE and model is not None:
+        # Use semantic embeddings for real similarity
+        embeddings = model.encode([text1, text2], convert_to_numpy=True)
+        # Compute cosine similarity
+        import numpy as np
+
+        similarity = np.dot(embeddings[0], embeddings[1]) / (
+            np.linalg.norm(embeddings[0]) * np.linalg.norm(embeddings[1])
+        )
+        # Normalize to [0, 1] range (cosine similarity is [-1, 1])
+        return float((similarity + 1.0) / 2.0)
+
+    # Fallback to word overlap if sentence-transformers not available
+    logger.warning("sentence-transformers not available, falling back to word overlap similarity")
+    return compute_simple_similarity(text1, text2)
+
+
 def compute_simple_similarity(text1: str, text2: str) -> float:
     """
-    Compute simple similarity score using word overlap.
-    For production, use sentence-transformers or similar.
+    Compute simple similarity score using word overlap (Jaccard similarity).
+    This is a fallback when sentence-transformers is not available.
     """
     words1 = set(normalize_text(text1).split())
     words2 = set(normalize_text(text2).split())
@@ -92,11 +131,44 @@ def compute_simple_similarity(text1: str, text2: str) -> float:
 class EnhancedDeduplicator:
     """Enhanced deduplication with exact + near-duplicate detection"""
 
-    def __init__(self, similarity_threshold: float = 0.95):
+    def __init__(
+        self,
+        similarity_threshold: float = 0.95,
+        use_semantic_similarity: bool = True,
+        model_name: str = "all-MiniLM-L6-v2",
+    ):
+        """
+        Initialize deduplicator.
+
+        Args:
+            similarity_threshold: Threshold for near-duplicate detection (0.0-1.0)
+            use_semantic_similarity: Whether to use sentence-transformers (default: True)
+            model_name: SentenceTransformer model name (default: all-MiniLM-L6-v2)
+        """
         self.similarity_threshold = similarity_threshold
         self.exact_duplicates: dict[str, list[ConversationEntry]] = defaultdict(list)
         self.near_duplicates: list[tuple[ConversationEntry, ConversationEntry, float]] = []
         self.processed_entries: list[ConversationEntry] = []
+
+        # Load semantic similarity model if available and requested
+        self.semantic_model = None
+        if use_semantic_similarity and SENTENCE_TRANSFORMERS_AVAILABLE:
+            try:
+                logger.info(f"Loading semantic similarity model: {model_name}")
+                self.semantic_model = SentenceTransformer(model_name)
+                logger.info("✓ Semantic similarity model loaded successfully")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to load semantic model {model_name}: {e}. "
+                    "Falling back to word overlap similarity."
+                )
+                self.semantic_model = None
+        elif use_semantic_similarity and not SENTENCE_TRANSFORMERS_AVAILABLE:
+            logger.warning(
+                "sentence-transformers not installed. Install with: "
+                "uv pip install sentence-transformers. "
+                "Falling back to word overlap similarity."
+            )
 
     def add_conversation(self, entry: ConversationEntry) -> None:
         """Add a conversation entry for deduplication"""
@@ -113,30 +185,40 @@ class EnhancedDeduplicator:
 
     def find_near_duplicates(self) -> list[tuple[ConversationEntry, ConversationEntry, float]]:
         """
-        Find near-duplicates using similarity threshold.
-        Note: This is a simple implementation. For production, use sentence-transformers.
+        Find near-duplicates using semantic similarity (sentence-transformers) or word overlap.
+
+        Uses semantic embeddings if available, otherwise falls back to word overlap.
         """
-        logger.info(
-            f"Finding near-duplicates (similarity threshold: {self.similarity_threshold})..."
-        )
+        if self.semantic_model is not None:
+            logger.info(
+                f"Finding near-duplicates using semantic similarity "
+                f"(threshold: {self.similarity_threshold})..."
+            )
+        else:
+            logger.info(
+                f"Finding near-duplicates using word overlap "
+                f"(threshold: {self.similarity_threshold})..."
+            )
 
         near_dups = []
         entries_text = [
             (entry, extract_text_for_similarity(entry.messages)) for entry in self.processed_entries
         ]
 
-        # Compare all pairs (O(n²) - optimize for production)
+        # Compare all pairs (O(n²) - optimize for production with batching if needed)
         for i, (entry1, text1) in enumerate(entries_text):
             for _, (entry2, text2) in enumerate(entries_text[i + 1 :], start=i + 1):
                 # Skip if same exact hash
                 if entry1.content_hash == entry2.content_hash:
                     continue
 
-                similarity = compute_simple_similarity(text1, text2)
+                # Use semantic similarity if model is available
+                similarity = compute_semantic_similarity(text1, text2, self.semantic_model)
                 if similarity >= self.similarity_threshold:
                     near_dups.append((entry1, entry2, similarity))
 
         self.near_duplicates = near_dups
+        logger.info(f"Found {len(near_dups)} near-duplicate pairs")
         return near_dups
 
     def check_split_leakage(self, holdout_families: list[str]) -> dict[str, Any]:

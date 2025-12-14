@@ -1,6 +1,7 @@
-# Lightning.ai Training Package Manifest
+# Apex Training Package Manifest
 ## KAN-28 Enhanced Therapeutic AI Training - Complete Package
 
+**Package Name:** Apex  
 **Package Version:** 1.0.0  
 **Created:** 2024-10-28  
 **KAN-28 Integration:** Complete (All 6 Components)  
@@ -126,7 +127,7 @@ validation_scripts/
 ### **Step 1: Upload to Lightning.ai**
 ```bash
 # Upload entire package to Lightning.ai Studio
-# Recommended: Zip the entire ai/lightning_training_package/ folder
+# Recommended: Zip the entire ai/training_ready/packages/apex/ folder
 ```
 
 ### **Step 2: One-Click Start**
