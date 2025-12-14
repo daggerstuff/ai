@@ -96,9 +96,9 @@ class NGCCLI:
         # Find uv
         if shutil.which("uv"):
             self.uv_cmd = "uv"
-        elif Path.home() / ".local" / "bin" / "uv".exists():
+        elif (Path.home() / ".local" / "bin" / "uv").exists():
             self.uv_cmd = str(Path.home() / ".local" / "bin" / "uv")
-        elif Path.home() / ".cargo" / "bin" / "uv".exists():
+        elif (Path.home() / ".cargo" / "bin" / "uv").exists():
             self.uv_cmd = str(Path.home() / ".cargo" / "bin" / "uv")
         else:
             logger.warning("uv not found, cannot use uv-based NGC CLI")
@@ -152,9 +152,11 @@ class NGCCLI:
         """
         self.ensure_available()
 
+        if self.ngc_cmd is None:
+            raise NGCCLINotFoundError("NGC CLI command not set")
         try:
             result = subprocess.run(
-                self.ngc_cmd.split() + ["config", "get"], capture_output=True, text=True, check=True
+                [*self.ngc_cmd.split(), "config", "get"], capture_output=True, text=True, check=True
             )
 
             config = {}
@@ -171,23 +173,25 @@ class NGCCLI:
 
             return config
         except subprocess.CalledProcessError as e:
-            raise NGCCLIAuthError(f"Failed to check NGC config: {e.stderr}")
+            raise NGCCLIAuthError(f"Failed to check NGC config: {e.stderr}") from e
 
-    def set_config(self, api_key: str, org: str | None = None, team: str | None = None) -> None:
+    def set_config(self, api_key: str, _org: str | None = None, _team: str | None = None) -> None:
         """
         Configure NGC CLI with API key.
 
         Args:
             api_key: NGC API key from https://catalog.ngc.nvidia.com
-            org: Optional organization name
-            team: Optional team name
+            _org: Optional organization name (reserved for future use)
+            _team: Optional team name (reserved for future use)
         """
         self.ensure_available()
 
+        if self.ngc_cmd is None:
+            raise NGCCLINotFoundError("NGC CLI command not set")
         # Set API key
         try:
             subprocess.run(
-                self.ngc_cmd.split() + ["config", "set"],
+                [*self.ngc_cmd.split(), "config", "set"],
                 input=f"{api_key}\n",
                 text=True,
                 check=True,
@@ -195,14 +199,14 @@ class NGCCLI:
             )
             logger.info("NGC CLI configured successfully")
         except subprocess.CalledProcessError as e:
-            raise NGCCLIAuthError(f"Failed to configure NGC CLI: {e.stderr}")
+            raise NGCCLIAuthError(f"Failed to configure NGC CLI: {e.stderr}") from e
 
     def download_resource(
         self,
         resource_path: str,
         version: str | None = None,
         output_dir: Path | None = None,
-        extract: bool = True,
+        extract: bool = True,  # noqa: ARG002
     ) -> Path:
         """
         Download a resource from NGC catalog.
@@ -235,42 +239,55 @@ class NGCCLI:
             output_dir = Path(output_dir)
             output_dir.mkdir(parents=True, exist_ok=True)
 
+        if self.ngc_cmd is None:
+            raise NGCCLINotFoundError("NGC CLI command not set")
         # Build download command
-        cmd = self.ngc_cmd.split() + ["registry", "resource", "download-version"]
+        cmd = [*self.ngc_cmd.split(), "registry", "resource", "download-version"]
 
-        if version:
-            resource_spec = f"{resource_path}:{version}"
-        else:
-            resource_spec = resource_path
+        resource_spec = f"{resource_path}:{version}" if version else resource_path
 
         cmd.append(resource_spec)
 
         # Change to output directory for download
         original_cwd = Path.cwd()
         try:
-            os.chdir(output_dir)
-            logger.info(f"Downloading {resource_spec} to {output_dir}...")
-
-            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
-
-            if result.returncode != 0:
-                error_msg = result.stderr or result.stdout
-                raise NGCCLIDownloadError(f"Failed to download {resource_spec}:\n{error_msg}")
-
-            logger.info(f"Successfully downloaded {resource_spec}")
-
-            # Find downloaded file/directory
-            # NGC CLI typically extracts automatically or creates a directory
-            downloaded_items = list(output_dir.iterdir())
-            if downloaded_items:
-                # Return the most recently modified item
-                latest = max(downloaded_items, key=lambda p: p.stat().st_mtime)
-                return latest
-
-            return output_dir
-
+            return self._execute_download_in_directory(output_dir, resource_spec, cmd)
         finally:
             os.chdir(original_cwd)
+
+    def _execute_download_in_directory(
+        self, output_dir: Path, resource_spec: str, cmd: list[str]
+    ) -> Path:
+        """
+        Execute download command in the specified directory and locate the downloaded resource.
+
+        Args:
+            output_dir: Directory to download into
+            resource_spec: Resource specification string for logging
+            cmd: Command to execute
+
+        Returns:
+            Path to the downloaded resource (most recently modified item, or output_dir if empty)
+
+        Raises:
+            NGCCLIDownloadError: If download fails
+        """
+        os.chdir(output_dir)
+        logger.info(f"Downloading {resource_spec} to {output_dir}...")
+
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+
+        if result.returncode != 0:
+            error_msg = result.stderr or result.stdout
+            raise NGCCLIDownloadError(f"Failed to download {resource_spec}:\n{error_msg}")
+
+        logger.info(f"Successfully downloaded {resource_spec}")
+
+        if downloaded_items := list(output_dir.iterdir()):
+            # Return the most recently modified item
+            return max(downloaded_items, key=lambda p: p.stat().st_mtime)
+
+        return output_dir
 
     def list_resources(
         self, org: str | None = None, team: str | None = None
@@ -287,7 +304,9 @@ class NGCCLI:
         """
         self.ensure_available()
 
-        cmd = self.ngc_cmd.split() + ["registry", "resource", "list"]
+        if self.ngc_cmd is None:
+            raise NGCCLINotFoundError("NGC CLI command not set")
+        cmd = [*self.ngc_cmd.split(), "registry", "resource", "list"]
 
         if org:
             cmd.extend(["--org", org])
@@ -295,12 +314,11 @@ class NGCCLI:
             cmd.extend(["--team", team])
 
         try:
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True)
 
             # Parse output (format may vary)
-            resources = []
             # TODO: Implement proper parsing based on actual NGC CLI output format
-            return resources
+            return []
         except subprocess.CalledProcessError as e:
             logger.warning(f"Failed to list resources: {e.stderr}")
             return []
@@ -346,11 +364,11 @@ def ensure_ngc_cli_configured(api_key: str | None = None) -> NGCCLI:
     try:
         cli.check_config()
         return cli
-    except NGCCLIAuthError:
+    except NGCCLIAuthError as err:
         if api_key:
             cli.set_config(api_key)
             return cli
         raise NGCCLIAuthError(
             "NGC CLI not configured. Provide API key or run: ngc config set\n"
             "Get API key from: https://catalog.ngc.nvidia.com"
-        )
+        ) from err
