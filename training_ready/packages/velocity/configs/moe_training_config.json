@@ -53,5 +53,11 @@
     "eval_steps": 500,
     "save_steps": 500,
     "save_total_limit": 5
+  },
+
+  "nemotron_teacher": {
+    "enabled": false,
+    "s3_path": "s3://pixelated-training-data/nemotron3/eval/nemotron3_nano_eval_run1.jsonl",
+    "max_samples": 2000
   }
 }

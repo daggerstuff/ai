@@ -209,6 +209,44 @@ Domain-adaptive pretraining on large-scale mental health and therapeutic text to
 
 ---
 
+## Optional Stage 0: Generic Reasoning Warmup (Nemotron-Derived)
+
+> **Status**: Optional extension – enabled only when Nemotron-derived datasets
+> have been ingested into S3 under `external/nemotron/`.
+
+**Purpose**: Light, non-clinical preconditioning on high-quality reasoning and
+instruction-following data (for example, Nemotron 3 open datasets) before
+entering the core therapeutic curriculum.
+
+**Datasets (Examples)**:
+- Generic instruction-following / structured-output corpora derived from
+  Nemotron HF datasets (mirrored via
+  `scripts/ingest_nemotron_datasets.py` into `external/nemotron/...`).
+- Reasoning-focused QA / MCQA sets that do **not** contain PHI or real
+  therapeutic conversations.
+
+**Mixing Weights**:
+- Nemotron-derived generic reasoning/instruction: 100% for this stage
+  (kept separate from clinical data).
+
+**Training Parameters**:
+- **Epochs**: 0.5–1 (short warmup only)
+- **Learning Rate**: 3e-4 (matched to early SFT stages)
+- **Context Length**: 2048–4096 tokens
+- **Focus**: Tool-agnostic reasoning, instruction adherence, JSON/structured
+  output reliability.
+
+**Output Checkpoint**:
+- Optional: `s3://pixelated-checkpoints/foundation/stage0_generic_reasoning/`
+
+**Safety & Separation**:
+- Nemotron-derived datasets must remain clearly labeled and stored under
+  `external/nemotron/` in S3.
+- These datasets are **never** mixed with PHI or real therapeutic logs.
+- This stage can be disabled entirely without impacting the main curriculum.
+
+---
+
 ## Phase C: Preference Alignment
 
 ### Purpose
