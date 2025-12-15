@@ -175,6 +175,36 @@ def setup_training_environment():
 - **Path**: `nvidia/nemo/nemo-megatron`
 - **Description**: NeMo Megatron for large-scale training
 
+### Nemotron & NeMo Gym (Pattern)
+
+Nemotron 3 models, RL training blends, and NeMo Gym containers are typically
+published as standard NGC catalog resources. While specific catalog paths
+may change over time, you can integrate them using the existing
+`NGCResourceDownloader.download_custom_resource(...)` API:
+
+```python
+from pathlib import Path
+from ai.training_ready.utils.ngc_resources import NGCResourceDownloader
+
+downloader = NGCResourceDownloader(output_base=Path("resources"))
+
+# Example pattern – replace resource_path/version with the exact values
+# from the Nemotron / NeMo Gym documentation or NGC catalog.
+nemotron_resource = downloader.download_custom_resource(
+    resource_path="nvidia/your-nemotron-resource",
+    version="1.0",
+    output_dir=Path("resources/nemotron")
+)
+
+print(f"Nemotron assets available at: {nemotron_resource}")
+```
+
+After download, mirror any datasets or RL rollouts into your canonical S3
+structure (for example `external/nemotron/` or `rl/pixelated/...`) using
+the same S3-first principles described in `S3_TRAINING_DATA_STRUCTURE.md`.
+This keeps NGC artifacts decoupled from the training code and avoids
+introducing local-path assumptions into training scripts.
+
 ## Troubleshooting
 
 ### "NGC CLI not found"
