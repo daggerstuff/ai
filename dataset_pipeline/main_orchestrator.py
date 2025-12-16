@@ -14,6 +14,9 @@ from pathlib import Path
 from typing import Dict, Any, Tuple
 from datetime import datetime
 
+# Centralized output root for runtime artifacts
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+
 # Import pipeline components
 from ai.dataset_pipeline.unified_preprocessing_pipeline import (
     create_default_pipeline,
@@ -99,7 +102,7 @@ class DatasetPipelineOrchestrator:
             manifest.hyperparameters.gradient_checkpointing = True
 
             # Save manifest
-            output_dir = Path("ai/dataset_pipeline/final_output")
+            output_dir = get_dataset_pipeline_output_root() / "final_output"
             output_dir.mkdir(exist_ok=True)
             manifest_path = output_dir / "training_manifest.json"
             manifest.save_to_file(str(manifest_path))
@@ -203,12 +206,12 @@ class DatasetPipelineOrchestrator:
             "dataset_composition_results": self.composition_results,
             "training_manifest": {
                 "created": self.manifest is not None,
-                "path": str(Path("ai/dataset_pipeline/final_output/training_manifest.json")) if self.manifest else None
+                "path": str((get_dataset_pipeline_output_root() / "final_output" / "training_manifest.json")) if self.manifest else None
             }
         }
 
         # Save final report
-        output_dir = Path("ai/dataset_pipeline/final_output")
+        output_dir = get_dataset_pipeline_output_root() / "final_output"
         output_dir.mkdir(exist_ok=True)
         report_path = output_dir / "final_pipeline_report.json"
 

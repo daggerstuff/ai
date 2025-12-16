@@ -38,7 +38,7 @@ Each line in the compiled JSONL export follows this schema:
   ],
   "metadata": {
     "source_family": "long_running_therapy",
-    "source_key": "s3://pixelated-training-data/gdrive/processed/professional_therapeutic/therapist_sft/...",
+    "source_key": "s3://pixel-data/gdrive/processed/professional_therapeutic/therapist_sft/...",
     "content_hash": "sha256:abc123...",
     "pii_status": "scrubbed",
     "license_tag": "therapeutic_license",
@@ -93,7 +93,7 @@ The manifest is a JSON file that provides an index to all sharded datasets:
       "shards": [
         {
           "shard_id": "train_000",
-          "s3_path": "s3://pixelated-training-data/final_dataset/train/train_000.jsonl",
+          "s3_path": "s3://pixel-data/final_dataset/train/train_000.jsonl",
           "size_bytes": 1048576000,
           "sha256": "abc123...",
           "conversation_count": 10000,
@@ -122,7 +122,7 @@ The manifest is a JSON file that provides an index to all sharded datasets:
   },
   "provenance_map": {
     "sha256:abc123...": {
-      "source_key": "s3://pixelated-training-data/gdrive/processed/...",
+      "source_key": "s3://pixel-data/gdrive/processed/...",
       "source_family": "mental_health_datasets",
       "original_format": "json",
       "processing_steps": ["encoding_fix", "dedup", "chatml_convert"]
@@ -248,22 +248,22 @@ Each conversation must have a license tag indicating source license:
 
 ### Manifest
 ```
-s3://pixelated-training-data/final_dataset/manifest.json
+s3://pixel-data/final_dataset/manifest.json
 ```
 
 ### Compiled Export
 ```
-s3://pixelated-training-data/final_dataset/compiled/final_training_dataset.jsonl
+s3://pixel-data/final_dataset/compiled/final_training_dataset.jsonl
 ```
 
 ### Sharded Datasets
 ```
-s3://pixelated-training-data/final_dataset/train/train_000.jsonl
-s3://pixelated-training-data/final_dataset/train/train_001.jsonl
+s3://pixel-data/final_dataset/train/train_000.jsonl
+s3://pixel-data/final_dataset/train/train_001.jsonl
 ...
-s3://pixelated-training-data/final_dataset/val/val_000.jsonl
+s3://pixel-data/final_dataset/val/val_000.jsonl
 ...
-s3://pixelated-training-data/final_dataset/test/test_000.jsonl
+s3://pixel-data/final_dataset/test/test_000.jsonl
 ...
 ```
 

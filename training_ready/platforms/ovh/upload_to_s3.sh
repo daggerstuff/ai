@@ -15,7 +15,7 @@
 set -e
 
 # Configuration
-BUCKET_NAME="pixelated-training-datasets"
+BUCKET_NAME="pixel-data"
 REGION="GRA"  # OVH region (GRA, BHS, SBG, etc.)
 LOCAL_DATA_DIR="${HOME}/datasets/consolidated"
 REMOTE_SERVER="vivi@146.71.78.184"
@@ -62,7 +62,7 @@ upload_from_remote() {
 #!/bin/bash
 # This runs on the remote server
 
-BUCKET_NAME="pixelated-training-datasets"
+BUCKET_NAME="pixel-data"
 REGION="GRA"
 DATA_DIR="${HOME}/datasets/consolidated"
 

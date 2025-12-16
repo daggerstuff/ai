@@ -8,16 +8,18 @@ import json
 import sys
 from pathlib import Path
 
-# Add parent directory to path
-sys.path.insert(0, str(Path(__file__).parent))
+# Ensure the outer workspace root is on sys.path so `ai.*` imports work reliably
+workspace_root = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(workspace_root))
 
-from orchestration.integrated_training_pipeline import (
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+from ai.dataset_pipeline.orchestration.integrated_training_pipeline import (
     IntegratedTrainingPipeline,
     IntegratedPipelineConfig
 )
-from ingestion.edge_case_jsonl_loader import EdgeCaseJSONLLoader
-from ingestion.dual_persona_loader import DualPersonaLoader
-from ingestion.psychology_knowledge_loader import PsychologyKnowledgeLoader
+from ai.dataset_pipeline.ingestion.edge_case_jsonl_loader import EdgeCaseJSONLLoader
+from ai.dataset_pipeline.ingestion.dual_persona_loader import DualPersonaLoader
+from ai.dataset_pipeline.ingestion.psychology_knowledge_loader import PsychologyKnowledgeLoader
 
 
 def test_individual_loaders():
@@ -63,9 +65,10 @@ def test_integrated_pipeline():
     print("=" * 80)
     
     # Create test configuration with smaller target
+    output_root = get_dataset_pipeline_output_root()
     config = IntegratedPipelineConfig(
         target_total_samples=100,  # Small test dataset
-        output_dir="ai/dataset_pipeline/test_output",
+        output_dir=str(output_root / "test_output"),
         output_filename="test_training_dataset.json",
         enable_bias_detection=False,  # Skip for faster testing
         enable_quality_validation=False

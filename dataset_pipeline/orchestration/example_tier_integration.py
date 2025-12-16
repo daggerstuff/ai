@@ -13,6 +13,7 @@ from ai.dataset_pipeline.orchestration.pipeline_orchestrator import (
     PipelineConfig,
     PipelineOrchestrator,
 )
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
 
 
 async def main():
@@ -20,7 +21,7 @@ async def main():
 
     # Configure pipeline with tier processing enabled
     config = PipelineConfig(
-        output_directory=Path("data/processed"),
+        output_directory=get_dataset_pipeline_output_root() / "processed",
         quality_threshold=0.7,
         # Tier processing configuration
         enable_tier_processing=True,

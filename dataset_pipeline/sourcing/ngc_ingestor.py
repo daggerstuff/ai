@@ -14,6 +14,8 @@ from typing import Any, ClassVar
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+
 from ai.utils.ngc_cli import (
     NGCCLIAuthError,
     NGCCLIDownloadError,
@@ -52,7 +54,7 @@ class NGCIngestor:
             api_key: Optional NGC API key
         """
         if output_base is None:
-            output_base = Path(__file__).parent.parent / "data" / "ngc"
+            output_base = get_dataset_pipeline_output_root() / "data" / "ngc"
         self.output_base = Path(output_base)
         self.output_base.mkdir(parents=True, exist_ok=True)
 

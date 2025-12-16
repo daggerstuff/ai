@@ -190,7 +190,7 @@ result = service.generate_custom_dataset(
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `NVIDIA_API_KEY` | Your NVIDIA API key (required) | - |
-| `NEMO_DATA_DESIGNER_BASE_URL` | Base URL for the API | `https://ai.api.nvidia.com/v1/nemo/dd` |
+| `NEMO_DATA_DESIGNER_BASE_URL` | Base URL for the Data Designer service | `http://localhost:8000` |
 | `NEMO_DATA_DESIGNER_TIMEOUT` | Request timeout in seconds | `300` |
 | `NEMO_DATA_DESIGNER_MAX_RETRIES` | Maximum retry attempts | `3` |
 | `NEMO_DATA_DESIGNER_BATCH_SIZE` | Batch size for processing | `1000` |
@@ -201,7 +201,7 @@ result = service.generate_custom_dataset(
 from ai.data_designer import NeMoDataDesignerService, DataDesignerConfig
 
 config = DataDesignerConfig(
-    base_url="https://ai.api.nvidia.com/v1/nemo/dd",
+    base_url="http://localhost:8000",
     api_key="your-api-key",
     timeout=600,
     max_retries=5,
@@ -282,10 +282,8 @@ Configuration class for the service.
 
 ## Deployment Options
 
-NeMo Data Designer can be deployed in two ways:
-
-1. **NVIDIA Cloud API** (default) - Use the hosted API at `https://ai.api.nvidia.com/v1/nemo/dd`
-2. **Self-hosted** - Deploy using Docker Compose or Kubernetes (see [NVIDIA Documentation](https://docs.nvidia.com/nemo/microservices/latest/set-up/deploy-as-microservices/data-designer/parent-chart.html))
+NeMo Data Designer is deployed on your infrastructure (local Docker Compose or Kubernetes/Helm) and then accessed via its REST API.
+See the [NVIDIA Documentation](https://docs.nvidia.com/nemo/microservices/latest/set-up/deploy-as-microservices/data-designer/parent-chart.html) for deployment details.
 
 ## Troubleshooting
 

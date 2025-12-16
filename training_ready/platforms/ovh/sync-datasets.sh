@@ -12,7 +12,7 @@ set -euo pipefail
 
 # Configuration
 OVH_REGION="${OVH_REGION:-US-EAST-VA}"
-DATA_BUCKET="${DATA_BUCKET:-pixelated-training-data}"
+DATA_BUCKET="${DATA_BUCKET:-pixel-data}"
 CHECKPOINT_BUCKET="${CHECKPOINT_BUCKET:-pixelated-checkpoints}"
 AI_DIR="/home/vivi/pixelated/ai"
 GDRIVE_MOUNT="${GDRIVE_MOUNT:-/mnt/gdrive/datasets}"
@@ -314,7 +314,7 @@ usage() {
     echo ""
     echo "Environment Variables:"
     echo "  OVH_REGION          OVH region (default: US-EAST-VA)"
-    echo "  DATA_BUCKET         Data bucket name (default: pixelated-training-data)"
+    echo "  DATA_BUCKET         Data bucket name (default: pixel-data)"
     echo "  CHECKPOINT_BUCKET   Checkpoint bucket name (default: pixelated-checkpoints)"
     echo "  GDRIVE_MOUNT        Google Drive mount point (default: /mnt/gdrive/datasets)"
     echo ""

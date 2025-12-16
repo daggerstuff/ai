@@ -31,6 +31,16 @@ database/conversations.db
 ai/config/security
 lightning/ghost
 
+# Dataset pipeline runtime artifacts (keep outside package tree; defaults to ../tmp/dataset_pipeline)
+dataset_pipeline/config/
+dataset_pipeline/data/
+dataset_pipeline/final_output/
+dataset_pipeline/production_exports/
+dataset_pipeline/test_output/
+dataset_pipeline/rag_index/
+dataset_pipeline/logs/
+dataset_pipeline/monitoring/metrics/
+
 # Large training files and artifacts
 *.tar.gz
 *.zip

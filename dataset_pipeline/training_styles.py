@@ -12,6 +12,8 @@ import uuid
 import torch
 from pathlib import Path
 
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+
 
 class TrainingStyle(Enum):
     """Available training styles"""
@@ -125,7 +127,7 @@ class BaseTrainingConfig:
 
     # Logging
     logging_steps: int = 10
-    logging_dir: str = "./logs"
+    logging_dir: str = field(default_factory=lambda: str(get_dataset_pipeline_output_root() / "logs"))
     report_to: List[str] = field(default_factory=lambda: ["wandb", "tensorboard"])
 
     # Hardware

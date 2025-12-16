@@ -86,9 +86,24 @@ def test_minimal_pipeline():
         )
 
         # Create minimal config
+        from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+        output_root = get_dataset_pipeline_output_root()
+
+        # Force local storage for this verification run so it works without cloud credentials.
+        from ai.dataset_pipeline.storage_config import (
+            StorageConfig,
+            StorageBackend,
+            set_storage_config,
+        )
+        set_storage_config(
+            StorageConfig(
+                backend=StorageBackend.LOCAL,
+                local_base_path=output_root / "data",
+            )
+        )
         config = IntegratedPipelineConfig(
             target_total_samples=10,  # Very small test
-            output_dir="ai/dataset_pipeline/test_output",
+            output_dir=str(output_root / "test_output"),
             output_filename="test_verify.json",
             enable_bias_detection=False,
             enable_quality_validation=False

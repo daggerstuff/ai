@@ -130,7 +130,7 @@ Registry: `ai/data/dataset_registry.json`
 ## OVH Object Storage Structure
 
 ```
-s3://pixelated-training-data/
+s3://pixel-data/
 ├── acquired/
 │   ├── cot_reasoning.json
 │   └── mental_health_counseling.json
@@ -182,7 +182,7 @@ s3://pixelated-checkpoints/
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `OVH_REGION` | `US-EAST-VA` | OVH region |
-| `DATA_BUCKET` | `pixelated-training-data` | Data bucket name |
+| `DATA_BUCKET` | `pixel-data` | Data bucket name |
 | `CHECKPOINT_BUCKET` | `pixelated-checkpoints` | Checkpoint bucket name |
 
 ## Azure Pipelines Integration

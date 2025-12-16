@@ -9,6 +9,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from ai.dataset_pipeline.utils.logger import get_logger
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
 
 logger = get_logger("dataset_pipeline.psychology_knowledge_loader")
 
@@ -66,7 +67,7 @@ class PsychologyKnowledgeConfig:
         default_factory=lambda: [
             Path("ai/pixel/knowledge/psychology_knowledge_base_optimized.json"),
             Path("ai/training_data_consolidated/psychology_knowledge_base_optimized.json"),
-            Path("ai/dataset_pipeline/data/psychology_knowledge_base.json"),
+            get_dataset_pipeline_output_root() / "data" / "psychology_knowledge_base.json",
         ]
     )
 

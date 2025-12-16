@@ -6,7 +6,7 @@ set -euo pipefail
 
 # Configuration
 OVH_REGION="${OVH_REGION:-US-EAST-VA}"
-DATA_BUCKET="${DATA_BUCKET:-pixelated-training-data}"
+DATA_BUCKET="${DATA_BUCKET:-pixel-data}"
 CHECKPOINT_BUCKET="${CHECKPOINT_BUCKET:-pixelated-checkpoints}"
 PROJECT_ROOT="/home/vivi/pixelated"
 IMAGE_NAME="${IMAGE_NAME:-pixelated-training}"
@@ -191,7 +191,7 @@ usage() {
     echo "  WANDB_API_KEY         Weights & Biases API key"
     echo "  HF_TOKEN              HuggingFace token"
     echo "  OVH_REGION            OVH region (default: US-EAST-VA)"
-    echo "  DATA_BUCKET           Data bucket (default: pixelated-training-data)"
+    echo "  DATA_BUCKET           Data bucket (default: pixel-data)"
     echo "  CHECKPOINT_BUCKET     Checkpoint bucket (default: pixelated-checkpoints)"
     echo "  IMAGE_NAME            Docker image name (default: pixelated-training)"
     echo "  IMAGE_TAG             Docker image tag (default: latest)"
