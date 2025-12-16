@@ -37,7 +37,7 @@ spec:
   volumes:
     - dataStore:
         alias: training-data
-        container: pixelated-training-data
+        container: pixel-data
         prefix: ""
       mountPath: /data
       permission: RO
@@ -104,7 +104,7 @@ spec:
   volumes:
     - dataStore:
         alias: training-data
-        container: pixelated-training-data
+        container: pixel-data
         prefix: ""
       mountPath: /data
       permission: RO
@@ -144,7 +144,7 @@ spec:
   volumes:
     - dataStore:
         alias: training-data
-        container: pixelated-training-data
+        container: pixel-data
         prefix: ""
       mountPath: /data
       permission: RO
@@ -178,7 +178,7 @@ spec:
   volumes:
     - dataStore:
         alias: training-data
-        container: pixelated-training-data
+        container: pixel-data
         prefix: ""
       mountPath: /data
       permission: RO

@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 from ..types.edge_categories import EdgeCategory, IntensityLevel
+from ..storage_config import get_dataset_pipeline_output_root
 from ..utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.monitoring.metrics_edge")
@@ -167,7 +168,7 @@ class EdgeMetricsCollector:
         Args:
             output_dir: Directory to save metrics reports
         """
-        self.output_dir = Path(output_dir) if output_dir else Path("ai/dataset_pipeline/monitoring/metrics")
+        self.output_dir = Path(output_dir) if output_dir else get_dataset_pipeline_output_root() / "monitoring" / "metrics"
         self.output_dir.mkdir(parents=True, exist_ok=True)
         
         self.metrics_history: List[EdgeTrainingMetrics] = []

@@ -13,6 +13,8 @@ import os
 import hashlib
 from pathlib import Path
 
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+
 
 class ComputeTarget(Enum):
     """Types of compute targets for training"""
@@ -171,9 +173,11 @@ class TrainingManifest:
     created_by: str = field(default_factory=lambda: os.environ.get("USER", "system"))
     
     # Output configuration
-    output_dir: str = "./model_output"
+    output_dir: str = field(
+        default_factory=lambda: str(get_dataset_pipeline_output_root() / "model_output")
+    )
     model_name: Optional[str] = None  # Name to save the trained model
-    log_dir: str = "./logs"
+    log_dir: str = field(default_factory=lambda: str(get_dataset_pipeline_output_root() / "logs"))
     
     # Advanced configuration
     evaluation_enabled: bool = True

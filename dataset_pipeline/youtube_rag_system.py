@@ -15,6 +15,9 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import logging
 
+# Centralized output root for runtime artifacts
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+
 # Handle optional dependencies gracefully
 try:
     from sentence_transformers import SentenceTransformer
@@ -63,7 +66,7 @@ class YouTubeRAGSystem:
 
     def __init__(self, model_name: str = 'all-MiniLM-L6-v2'):
         self.transcripts_dir = Path("ai/training_data_consolidated/transcripts")
-        self.index_dir = Path("ai/dataset_pipeline/rag_index")
+        self.index_dir = get_dataset_pipeline_output_root() / "rag_index"
         # Create the full directory path if it doesn't exist
         self.index_dir.parent.mkdir(parents=True, exist_ok=True)
         self.index_dir.mkdir(exist_ok=True)

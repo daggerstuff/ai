@@ -2,7 +2,7 @@
 set -e
 
 # Target Directory
-TARGET_DIR="/home/vivi/pixelated/ai/training_data_consolidated/raw/priority"
+TARGET_DIR="/home/vivi/pixelated/ai/training_data_consolidated/raw/wendy_curated_sets"
 mkdir -p "$TARGET_DIR"
 
 echo "📂 Starting Consolidation into $TARGET_DIR..."
@@ -33,14 +33,14 @@ safe_copy() {
     fi
 }
 
-echo "1️⃣  Consolidating Priority 1 (Therapeutic)..."
-safe_copy "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl" "priority_1.jsonl"
+echo "1️⃣  Consolidating Set Alpha (Therapeutic Core)..."
+safe_copy "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl" "wendy_set_alpha_therapeutic_core.jsonl"
 
-echo "2️⃣  Consolidating Priority 2 (Reasoning)..."
-safe_copy "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl" "priority_2.jsonl"
+echo "2️⃣  Consolidating Set Beta (High-Quality Core)..."
+safe_copy "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl" "wendy_set_beta_high_quality_core.jsonl"
 
-echo "3️⃣  Consolidating Priority 3 (Specialized)..."
-safe_copy "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl" "priority_3.jsonl"
+echo "3️⃣  Consolidating Set Gamma (Specialized Therapy)..."
+safe_copy "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl" "wendy_set_gamma_specialized_therapy.jsonl"
 
 echo "-----------------------------------"
 echo "🎉 Consolidation Complete."

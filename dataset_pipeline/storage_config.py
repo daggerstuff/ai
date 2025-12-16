@@ -45,7 +45,9 @@ class StorageConfig:
     logs_prefix: str = "logs"
 
     # Local fallback paths (used when backend is LOCAL or as cache)
-    local_base_path: Path = field(default_factory=lambda: Path("ai/dataset_pipeline/data"))
+    local_base_path: Path = field(
+        default_factory=lambda: get_dataset_pipeline_output_root() / "data"
+    )
 
     @classmethod
     def from_env(cls) -> "StorageConfig":
@@ -60,7 +62,13 @@ class StorageConfig:
             backend = StorageBackend.LOCAL
 
         # Local path
-        local_base = Path(os.getenv("DATASET_STORAGE_LOCAL_PATH", "ai/dataset_pipeline/data"))
+        # Prefer explicit storage path; otherwise derive from the dataset pipeline output root.
+        local_base = Path(
+            os.getenv(
+                "DATASET_STORAGE_LOCAL_PATH",
+                str(get_dataset_pipeline_output_root() / "data"),
+            )
+        )
 
         config = cls(
             backend=backend,
@@ -171,4 +179,41 @@ def set_storage_config(config: StorageConfig) -> None:
     """Set the default storage configuration"""
     global _default_config
     _default_config = config
+
+
+def _find_workspace_root(start: Path) -> Path:
+    """
+    Best-effort detection of the outer Pixelated workspace root.
+
+    We prefer the parent repo root (contains both `pyproject.toml` and `pnpm-lock.yaml`)
+    so dataset pipeline outputs land in the top-level ignored `tmp/` directory.
+
+    Falls back to the closest parent that looks like a git repo; finally falls back
+    to `start.parent`.
+    """
+    for candidate in [start, *start.parents]:
+        if (candidate / "pyproject.toml").exists() and (candidate / "pnpm-lock.yaml").exists():
+            return candidate
+
+    for candidate in [start, *start.parents]:
+        if (candidate / ".git").exists():
+            return candidate
+
+    return start.parent
+
+
+def get_dataset_pipeline_output_root() -> Path:
+    """
+    Root directory for all dataset pipeline *runtime artifacts* (logs, reports, caches, exports).
+
+    By default, outputs go to `<workspace>/tmp/dataset_pipeline` (outside the package tree).
+    Override with `DATASET_PIPELINE_OUTPUT_DIR`.
+    """
+    env_override = os.getenv("DATASET_PIPELINE_OUTPUT_DIR")
+    if env_override:
+        return Path(env_override).expanduser()
+
+    here = Path(__file__).resolve()
+    workspace_root = _find_workspace_root(here)
+    return workspace_root / "tmp" / "dataset_pipeline"
 

@@ -242,6 +242,6 @@ curl -I https://catalog.ngc.nvidia.com
 
 ## Related Documentation
 
-- [NeMo Deployment Troubleshooting](../../docs/nemo-deployment-troubleshooting.md)
+- [NeMo Deployment Troubleshooting](../../docs/guides/technical-guides/deployment/nemo-deployment-troubleshooting.md)
 - [NGC CLI Official Docs](https://docs.nvidia.com/ngc/)
 - [Training Ready README](../README.md)

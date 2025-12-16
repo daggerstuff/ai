@@ -9,15 +9,15 @@
       "video_transcripts": {
         "weight": 1.0,
         "s3_paths": [
-          "s3://pixelated-training-data/gdrive/processed/voice_persona/tim_fletcher/",
-          "s3://pixelated-training-data/gdrive/processed/voice_persona/doc_snipes/",
-          "s3://pixelated-training-data/gdrive/processed/voice_persona/heidi_priebe/"
+          "s3://pixel-data/gdrive/processed/voice_persona/tim_fletcher/",
+          "s3://pixel-data/gdrive/processed/voice_persona/doc_snipes/",
+          "s3://pixel-data/gdrive/processed/voice_persona/heidi_priebe/"
         ]
       },
       "mental_health_text": {
         "weight": 1.0,
         "s3_paths": [
-          "s3://pixelated-training-data/gdrive/processed/professional_therapeutic/"
+          "s3://pixel-data/gdrive/processed/professional_therapeutic/"
         ]
       }
     },

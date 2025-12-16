@@ -40,7 +40,7 @@ data = load_dataset_from_s3(
 from ai.training_ready.utils.s3_dataset_loader import S3DatasetLoader
 
 loader = S3DatasetLoader()
-data = loader.load_json("s3://pixelated-training-data/gdrive/processed/cot_reasoning/clinical_diagnosis_mental_health.json")
+data = loader.load_json("s3://pixel-data/gdrive/processed/cot_reasoning/clinical_diagnosis_mental_health.json")
 ```
 
 ---
@@ -78,9 +78,9 @@ pip install boto3
 
 The loader automatically resolves paths in this order:
 
-1. **Canonical processed structure**: `s3://pixelated-training-data/gdrive/processed/{category}/{dataset_name}`
-2. **Raw structure**: `s3://pixelated-training-data/gdrive/raw/{dataset_name}`
-3. **Acquired datasets**: `s3://pixelated-training-data/acquired/{dataset_name}`
+1. **Canonical processed structure**: `s3://pixel-data/gdrive/processed/{category}/{dataset_name}`
+2. **Raw structure**: `s3://pixel-data/gdrive/raw/{dataset_name}`
+3. **Acquired datasets**: `s3://pixel-data/acquired/{dataset_name}`
 
 ### Category Mapping
 
@@ -148,7 +148,7 @@ from ai.training_ready.utils.s3_dataset_loader import S3DatasetLoader
 loader = S3DatasetLoader()
 
 # Stream JSONL line by line
-for conversation in loader.stream_jsonl("s3://pixelated-training-data/gdrive/processed/cot_reasoning/clinical_diagnosis_mental_health.jsonl"):
+for conversation in loader.stream_jsonl("s3://pixel-data/gdrive/processed/cot_reasoning/clinical_diagnosis_mental_health.jsonl"):
     # Process one conversation at a time
     process_conversation(conversation)
 ```
@@ -221,7 +221,7 @@ from ai.training_ready.utils.s3_dataset_loader import S3DatasetLoader, FileNotFo
 
 try:
     loader = S3DatasetLoader()
-    data = loader.load_json("s3://pixelated-training-data/gdrive/processed/cot_reasoning/dataset.json")
+    data = loader.load_json("s3://pixel-data/gdrive/processed/cot_reasoning/dataset.json")
 except FileNotFoundError:
     print("Dataset not found in S3")
 except Exception as e:

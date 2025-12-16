@@ -1,0 +1,56 @@
+{
+  "beginner": {
+    "level": "Beginner",
+    "weight": 0.4,
+    "min_samples": 1000,
+    "max_samples": 15000,
+    "complexity_range": [
+      0.0,
+      0.4
+    ],
+    "characteristics": [
+      "Simple emotional expressions",
+      "Basic therapeutic techniques",
+      "Clear, straightforward issues",
+      "Single-topic focus",
+      "Minimal comorbidity",
+      "Standard interventions"
+    ]
+  },
+  "intermediate": {
+    "level": "Intermediate",
+    "weight": 0.45,
+    "min_samples": 1200,
+    "max_samples": 18000,
+    "complexity_range": [
+      0.4,
+      0.7
+    ],
+    "characteristics": [
+      "Moderate emotional intensity",
+      "Multiple therapeutic techniques",
+      "Interconnected issues",
+      "Some comorbidity",
+      "Nuanced interventions",
+      "Relationship dynamics"
+    ]
+  },
+  "advanced": {
+    "level": "Advanced",
+    "weight": 0.15,
+    "min_samples": 400,
+    "max_samples": 6000,
+    "complexity_range": [
+      0.7,
+      1.0
+    ],
+    "characteristics": [
+      "High emotional intensity",
+      "Complex therapeutic approaches",
+      "Multiple interconnected issues",
+      "Significant comorbidity",
+      "Crisis intervention elements",
+      "Advanced clinical skills required"
+    ]
+  }
+}

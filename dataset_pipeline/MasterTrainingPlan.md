@@ -85,7 +85,7 @@ Use `ConversationRecord` from `ai/dataset_pipeline/schemas/conversation_schema.p
 
 Modify `ai/dataset_pipeline/orchestration/integrated_training_pipeline.py`:
 
-1. **Stage manifests**: load from `ai/data/master_dataset_manifest.json` where each entry now includes `stage`, `target_percentage`, `quality_profile`.
+1. **Stage manifests**: load from `ai/data/training_policy_manifest.json` where each entry now includes `stage`, `target_percentage`, `quality_profile`.
 2. **Sampler**: introduce `StageSampler` helper that:
    - reads candidate files per stage,
    - enforces ratio using reservoir sampling,
@@ -190,7 +190,7 @@ kaggle kernels output rickyzou/nlp-for-mental-health-text-data -p datasets/tier4
 
 ## 9. References
 
-- `ai/data/master_dataset_manifest.json`
+- `ai/data/training_policy_manifest.json`
 - `ai/data/dataset_registry.json`
 - `ai/dataset_pipeline/ingestion_deduplication.py`
 - `ai/dataset_pipeline/quality/*`

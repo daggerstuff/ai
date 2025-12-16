@@ -183,7 +183,7 @@ def load_edge_case_resulting_chats():
 
     loader = S3DatasetLoader()
     # Load from edge case pipeline output
-    s3_path = "s3://pixelated-training-data/gdrive/processed/edge_cases/resulting_chats.jsonl"
+    s3_path = "s3://pixel-data/gdrive/processed/edge_cases/resulting_chats.jsonl"
 
     if loader.object_exists(s3_path):
         return list(loader.stream_jsonl(s3_path))
@@ -197,7 +197,7 @@ def load_edge_case_synthetic():
     from ai.training_ready.utils.s3_dataset_loader import S3DatasetLoader
 
     loader = S3DatasetLoader()
-    s3_path = "s3://pixelated-training-data/gdrive/processed/edge_cases/synthetic.jsonl"
+    s3_path = "s3://pixel-data/gdrive/processed/edge_cases/synthetic.jsonl"
 
     if loader.object_exists(s3_path):
         return list(loader.stream_jsonl(s3_path))
@@ -213,8 +213,8 @@ def load_long_running_therapy():
     loader = S3DatasetLoader()
     # Filter existing therapy datasets for long sessions (>20 turns)
     s3_paths = [
-        "s3://pixelated-training-data/gdrive/processed/professional_therapeutic/therapist_sft/...",
-        "s3://pixelated-training-data/gdrive/processed/professional_therapeutic/psych8k/..."
+        "s3://pixel-data/gdrive/processed/professional_therapeutic/therapist_sft/...",
+        "s3://pixel-data/gdrive/processed/professional_therapeutic/psych8k/..."
     ]
 
     long_sessions = []
@@ -234,8 +234,8 @@ def load_cptsd_datasets():
     loader = S3DatasetLoader()
     # Tim Fletcher transcripts are CPTSD-focused
     s3_paths = [
-        "s3://pixelated-training-data/gdrive/processed/voice_persona/tim_fletcher/...",
-        "s3://pixelated-training-data/gdrive/processed/edge_cases/cptsd/..."
+        "s3://pixel-data/gdrive/processed/voice_persona/tim_fletcher/...",
+        "s3://pixel-data/gdrive/processed/edge_cases/cptsd/..."
     ]
 
     cptsd_data = []

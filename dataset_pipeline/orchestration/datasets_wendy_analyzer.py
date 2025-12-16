@@ -2,9 +2,8 @@
 Datasets-Wendy Analyzer
 
 Analyzes and processes datasets-wendy priority files:
-- priority_1_FINAL.jsonl + summary.json (Top-tier therapeutic conversations)
-- priority_3_FINAL.jsonl + summary.json (Specialized therapeutic content)
-- priority_5_FINAL.jsonl + summary.json (N/A - no data)
+- wendy_set_alpha_therapeutic_core.jsonl
+- wendy_set_gamma_specialized_therapy.jsonl
 """
 
 import json
@@ -17,9 +16,11 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
+
 @dataclass
 class WendyDatasetAnalysis:
     """Analysis result for datasets-wendy files."""
+
     priority_level: int
     file_path: str
     summary_path: str
@@ -28,10 +29,13 @@ class WendyDatasetAnalysis:
     therapeutic_categories: list[str] = field(default_factory=list)
     analysis_metadata: dict[str, Any] = field(default_factory=dict)
 
+
 class DatasetsWendyAnalyzer:
     """Analyzes datasets-wendy priority files for therapeutic conversation processing."""
 
-    def __init__(self, datasets_wendy_path: str = "./datasets-wendy", output_dir: str = "./analyzed_datasets"):
+    def __init__(
+        self, datasets_wendy_path: str = "./datasets-wendy", output_dir: str = "./analyzed_datasets"
+    ):
         self.datasets_wendy_path = Path(datasets_wendy_path)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
@@ -41,26 +45,19 @@ class DatasetsWendyAnalyzer:
         # Priority file configurations
         self.priority_files = {
             1: {
-                "jsonl_file": "priority_1_FINAL.jsonl",
+                "jsonl_file": "wendy_set_alpha_therapeutic_core.jsonl",
                 "summary_file": "summary.json",
                 "description": "Top-tier therapeutic conversations",
                 "expected_quality": 0.95,
-                "therapeutic_value": "highest"
+                "therapeutic_value": "highest",
             },
             3: {
-                "jsonl_file": "priority_3_FINAL.jsonl",
+                "jsonl_file": "wendy_set_gamma_specialized_therapy.jsonl",
                 "summary_file": "summary.json",
                 "description": "Specialized therapeutic content",
                 "expected_quality": 0.85,
-                "therapeutic_value": "high"
+                "therapeutic_value": "high",
             },
-            5: {
-                "jsonl_file": "priority_5_FINAL.jsonl",
-                "summary_file": "summary.json",
-                "description": "N/A - no data",
-                "expected_quality": 0.75,
-                "therapeutic_value": "medium"
-            }
         }
 
         # Therapeutic categories for analysis
@@ -72,7 +69,7 @@ class DatasetsWendyAnalyzer:
             "cognitive_behavioral_therapy",
             "mindfulness_techniques",
             "crisis_intervention",
-            "grief_counseling"
+            "grief_counseling",
         ]
 
         logger.info("DatasetsWendyAnalyzer initialized")
@@ -101,7 +98,7 @@ class DatasetsWendyAnalyzer:
             "processing_time": (datetime.now() - start_time).total_seconds(),
             "individual_analyses": results,
             "therapeutic_categories": self.therapeutic_categories,
-            "analysis_timestamp": datetime.now().isoformat()
+            "analysis_timestamp": datetime.now().isoformat(),
         }
 
         # Save comprehensive analysis
@@ -131,12 +128,16 @@ class DatasetsWendyAnalyzer:
             summary_data = self._load_summary(summary_path)
 
             # Perform analysis
-            analysis = self._analyze_conversations(conversations, summary_data, priority_level, config)
+            analysis = self._analyze_conversations(
+                conversations, summary_data, priority_level, config
+            )
 
             # Save individual analysis
             self._save_individual_analysis(analysis)
 
-            logger.info(f"Successfully analyzed priority {priority_level}: {analysis.total_conversations} conversations")
+            logger.info(
+                f"Successfully analyzed priority {priority_level}: {analysis.total_conversations} conversations"
+            )
             return analysis
 
         except Exception as e:
@@ -157,20 +158,22 @@ class DatasetsWendyAnalyzer:
                 "messages": [
                     {
                         "role": "client",
-                        "content": f"I'm struggling with {self.therapeutic_categories[i % len(self.therapeutic_categories)].replace('_', ' ')}. Can you help me understand what's happening?"
+                        "content": f"I'm struggling with {self.therapeutic_categories[i % len(self.therapeutic_categories)].replace('_', ' ')}. Can you help me understand what's happening?",
                     },
                     {
                         "role": "therapist",
-                        "content": f"I hear that you're experiencing difficulties with {self.therapeutic_categories[i % len(self.therapeutic_categories)].replace('_', ' ')}. This is a common concern, and there are effective approaches we can explore together."
-                    }
+                        "content": f"I hear that you're experiencing difficulties with {self.therapeutic_categories[i % len(self.therapeutic_categories)].replace('_', ' ')}. This is a common concern, and there are effective approaches we can explore together.",
+                    },
                 ],
                 "metadata": {
                     "priority_level": priority_level,
-                    "therapeutic_category": self.therapeutic_categories[i % len(self.therapeutic_categories)],
+                    "therapeutic_category": self.therapeutic_categories[
+                        i % len(self.therapeutic_categories)
+                    ],
                     "quality_rating": config["expected_quality"] + (i % 10) * 0.01,
                     "session_type": ["initial", "follow_up", "crisis"][i % 3],
-                    "therapeutic_approach": ["CBT", "DBT", "Humanistic", "Psychodynamic"][i % 4]
-                }
+                    "therapeutic_approach": ["CBT", "DBT", "Humanistic", "Psychodynamic"][i % 4],
+                },
             }
             conversations.append(conversation)
 
@@ -189,11 +192,14 @@ class DatasetsWendyAnalyzer:
             "therapeutic_value": config["therapeutic_value"],
             "quality_metrics": {
                 "average_quality": config["expected_quality"],
-                "quality_range": [config["expected_quality"] - 0.1, config["expected_quality"] + 0.1]
+                "quality_range": [
+                    config["expected_quality"] - 0.1,
+                    config["expected_quality"] + 0.1,
+                ],
             },
             "therapeutic_categories": self.therapeutic_categories,
             "created_at": datetime.now().isoformat(),
-            "source": "datasets-wendy"
+            "source": "datasets-wendy",
         }
 
         summary_path = self.datasets_wendy_path / config["summary_file"]
@@ -223,10 +229,13 @@ class DatasetsWendyAnalyzer:
                 return json.load(f)
         return {}
 
-    def _analyze_conversations(self, conversations: list[dict[str, Any]],
-                             summary_data: dict[str, Any],
-                             priority_level: int,
-                             config: dict[str, Any]) -> WendyDatasetAnalysis:
+    def _analyze_conversations(
+        self,
+        conversations: list[dict[str, Any]],
+        summary_data: dict[str, Any],
+        priority_level: int,
+        config: dict[str, Any],
+    ) -> WendyDatasetAnalysis:
         """Analyze conversations and create analysis result."""
 
         # Calculate quality metrics
@@ -252,10 +261,14 @@ class DatasetsWendyAnalyzer:
         analysis_metadata = {
             "conversation_count": len(conversations),
             "average_quality": overall_quality,
-            "quality_variance": sum((q - overall_quality)**2 for q in quality_scores) / len(quality_scores) if quality_scores else 0,
-            "therapeutic_category_coverage": len(therapeutic_categories) / len(self.therapeutic_categories),
+            "quality_variance": sum((q - overall_quality) ** 2 for q in quality_scores)
+            / len(quality_scores)
+            if quality_scores
+            else 0,
+            "therapeutic_category_coverage": len(therapeutic_categories)
+            / len(self.therapeutic_categories),
             "summary_data": summary_data,
-            "analysis_timestamp": datetime.now().isoformat()
+            "analysis_timestamp": datetime.now().isoformat(),
         }
 
         return WendyDatasetAnalysis(
@@ -265,7 +278,7 @@ class DatasetsWendyAnalyzer:
             total_conversations=len(conversations),
             quality_score=overall_quality,
             therapeutic_categories=list(therapeutic_categories),
-            analysis_metadata=analysis_metadata
+            analysis_metadata=analysis_metadata,
         )
 
     def _save_individual_analysis(self, analysis: WendyDatasetAnalysis):
@@ -280,7 +293,7 @@ class DatasetsWendyAnalyzer:
             "quality_score": analysis.quality_score,
             "therapeutic_categories": analysis.therapeutic_categories,
             "analysis_metadata": analysis.analysis_metadata,
-            "analyzed_at": datetime.now().isoformat()
+            "analyzed_at": datetime.now().isoformat(),
         }
 
         with open(output_file, "w") as f:
@@ -304,7 +317,7 @@ class DatasetsWendyAnalyzer:
             "priority_levels_configured": list(self.priority_files.keys()),
             "therapeutic_categories": self.therapeutic_categories,
             "output_directory": str(self.output_dir),
-            "datasets_wendy_path": str(self.datasets_wendy_path)
+            "datasets_wendy_path": str(self.datasets_wendy_path),
         }
 
         # Check for existing analysis files

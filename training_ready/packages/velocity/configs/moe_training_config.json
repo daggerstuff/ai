@@ -57,7 +57,7 @@
 
   "nemotron_teacher": {
     "enabled": false,
-    "s3_path": "s3://pixelated-training-data/nemotron3/eval/nemotron3_nano_eval_run1.jsonl",
+    "s3_path": "s3://pixel-data/nemotron3/eval/nemotron3_nano_eval_run1.jsonl",
     "max_samples": 2000
   }
 }
