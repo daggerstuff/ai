@@ -59,7 +59,7 @@ class S3DatasetLoader:
 
     def __init__(
         self,
-        bucket: str = "pixelated-training-data",
+        bucket: str = "pixel-data",
         endpoint_url: str | None = None,
         aws_access_key_id: str | None = None,
         aws_secret_access_key: str | None = None,
@@ -69,7 +69,7 @@ class S3DatasetLoader:
         Initialize S3 client for dataset loading.
 
         Args:
-            bucket: S3 bucket name (default: pixelated-training-data)
+            bucket: S3 bucket name (default: pixel-data)
             endpoint_url: S3 endpoint URL (default: OVH S3 endpoint)
             aws_access_key_id: AWS access key (from env if not provided)
             aws_secret_access_key: AWS secret key (from env if not provided)
@@ -81,7 +81,7 @@ class S3DatasetLoader:
             )
 
         # Allow env to override only when using the default bucket argument
-        if bucket == "pixelated-training-data":
+        if bucket == "pixel-data":
             self.bucket = os.getenv("OVH_S3_BUCKET", bucket)
         else:
             self.bucket = bucket
@@ -365,7 +365,7 @@ class S3DatasetLoader:
 def get_s3_dataset_path(
     dataset_name: str,
     category: str | None = None,
-    bucket: str = "pixelated-training-data",
+    bucket: str = "pixel-data",
     prefer_processed: bool = True,
 ) -> str:
     """
@@ -410,7 +410,7 @@ def load_dataset_from_s3(
     dataset_name: str,
     category: str | None = None,
     cache_local: Path | None = None,
-    bucket: str = "pixelated-training-data",
+    bucket: str = "pixel-data",
 ) -> dict[str, Any]:
     """
     Load dataset from S3 with automatic path resolution.

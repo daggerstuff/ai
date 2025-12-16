@@ -8,12 +8,13 @@ import sys
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+
 LOG_FORMAT = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 LOG_LEVEL = logging.INFO
 
-# Resolve log file path relative to the dataset_pipeline directory
-_DATASET_PIPELINE_DIR = Path(__file__).parent.parent.resolve()
-LOG_FILE = str(_DATASET_PIPELINE_DIR / "logs" / "dataset_pipeline.log")
+# Resolve log file path under the dataset pipeline output root (outside the package tree)
+LOG_FILE = str(get_dataset_pipeline_output_root() / "logs" / "dataset_pipeline.log")
 MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 BACKUP_COUNT = 5
 

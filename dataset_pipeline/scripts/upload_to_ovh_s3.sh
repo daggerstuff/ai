@@ -13,7 +13,7 @@ set -euo pipefail
 # Configuration
 WORKSPACE_DIR="$HOME/pixelated-datasets"
 RAW_DIR="$WORKSPACE_DIR/raw"
-S3_BUCKET="pixelated-training-data"
+S3_BUCKET="pixel-data"
 S3_ENDPOINT="s3.gra.io.cloud.ovh.net"
 LOG_FILE="$WORKSPACE_DIR/upload.log"
 ERROR_LOG="$WORKSPACE_DIR/upload_errors.log"

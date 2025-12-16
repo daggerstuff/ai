@@ -9,11 +9,19 @@ and performance optimization for systematic, high-quality data processing.
 import asyncio
 import time
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
+
+try:
+    from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+except Exception:  # pragma: no cover - supports running as a standalone script
+
+    def get_dataset_pipeline_output_root() -> Path:  # type: ignore[misc]
+        return Path("tmp/dataset_pipeline")
+
 
 from acquisition_monitor import AcquisitionMonitor
 from conversation_schema import Conversation
@@ -34,6 +42,7 @@ try:
         AcquiredDataset,
         IntegrationPlan,
     )
+
     JOURNAL_RESEARCH_AVAILABLE = True
 except ImportError:
     JOURNAL_RESEARCH_AVAILABLE = False
@@ -42,8 +51,9 @@ except ImportError:
 
 # Tier processing integration
 try:
-    from ai.dataset_pipeline.orchestration.tier_processor import TierProcessor
     from ai.dataset_pipeline.composition.tier_balancer import TierBalancer
+    from ai.dataset_pipeline.orchestration.tier_processor import TierProcessor
+
     TIER_PROCESSING_AVAILABLE = True
 except ImportError:
     TIER_PROCESSING_AVAILABLE = False
@@ -90,9 +100,15 @@ class PipelineConfig:
     enable_auto_recovery: bool = True
     enable_performance_optimization: bool = True
     checkpoint_interval: int = 100  # conversations
-    output_directory: Path = Path("data/processed")
-    cache_directory: Path = Path("cache/pipeline")
-    report_directory: Path = Path("reports")
+    output_directory: Path = field(
+        default_factory=lambda: get_dataset_pipeline_output_root() / "processed"
+    )
+    cache_directory: Path = field(
+        default_factory=lambda: get_dataset_pipeline_output_root() / "cache" / "pipeline"
+    )
+    report_directory: Path = field(
+        default_factory=lambda: get_dataset_pipeline_output_root() / "reports"
+    )
     # Tier processing configuration
     enable_tier_processing: bool = True
     enable_tier_1: bool = True
@@ -102,7 +118,7 @@ class PipelineConfig:
     enable_tier_5: bool = True
     enable_tier_6: bool = True
     enable_tier_balancing: bool = True
-    tier_balancing_target_total: Optional[int] = None  # None = use all available
+    tier_balancing_target_total: int | None = None  # None = use all available
 
 
 @dataclass
@@ -242,7 +258,11 @@ class PipelineOrchestrator:
             # Stage 2: Dataset Registration
             await self._execute_stage(PipelineStage.DATASET_REGISTRATION)
             await self._register_datasets(
-                include_huggingface, include_local, include_generated, include_tiers, custom_datasets
+                include_huggingface,
+                include_local,
+                include_generated,
+                include_tiers,
+                custom_datasets,
             )
 
             # Stage 3: Quality Setup
@@ -282,9 +302,7 @@ class PipelineOrchestrator:
                 datasets={},
                 errors=[str(e)],
                 warnings=[],
-                recommendations=[
-                    "Review error logs and retry with adjusted configuration"
-                ],
+                recommendations=["Review error logs and retry with adjusted configuration"],
                 execution_report=self._generate_execution_report(),
             )
 
@@ -314,9 +332,7 @@ class PipelineOrchestrator:
                     prev_stage = prev_stages[prev_index]
                     if prev_stage in self.stage_timings:
                         duration = stage_start - self.stage_timings[prev_stage]
-                        logger.debug(
-                            f"Stage {prev_stage.value} completed in {duration:.2f}s"
-                        )
+                        logger.debug(f"Stage {prev_stage.value} completed in {duration:.2f}s")
 
         self.stage_timings[stage] = stage_start
 
@@ -362,11 +378,7 @@ class PipelineOrchestrator:
         if include_huggingface:
             self.dataset_loader.register_huggingface_datasets()
             hf_count = len(
-                [
-                    d
-                    for d in self.dataset_loader.datasets.values()
-                    if d.source_type == "huggingface"
-                ]
+                [d for d in self.dataset_loader.datasets.values() if d.source_type == "huggingface"]
             )
             registration_count += hf_count
             logger.info(f"Registered {hf_count} HuggingFace datasets")
@@ -375,11 +387,7 @@ class PipelineOrchestrator:
         if include_local:
             self.dataset_loader.register_local_datasets()
             local_count = len(
-                [
-                    d
-                    for d in self.dataset_loader.datasets.values()
-                    if d.source_type == "local"
-                ]
+                [d for d in self.dataset_loader.datasets.values() if d.source_type == "local"]
             )
             registration_count += local_count
             logger.info(f"Registered {local_count} local datasets")
@@ -388,11 +396,7 @@ class PipelineOrchestrator:
         if include_generated:
             self.dataset_loader.register_generated_datasets()
             gen_count = len(
-                [
-                    d
-                    for d in self.dataset_loader.datasets.values()
-                    if d.source_type == "generated"
-                ]
+                [d for d in self.dataset_loader.datasets.values() if d.source_type == "generated"]
             )
             registration_count += gen_count
             logger.info(f"Registered {gen_count} generated datasets")
@@ -459,8 +463,8 @@ class PipelineOrchestrator:
         self,
         dataset: AcquiredDataset,
         integration_plan: IntegrationPlan,
-        evaluation_score: Optional[float] = None,
-        evaluation_details: Optional[dict[str, Any]] = None,
+        evaluation_score: float | None = None,
+        evaluation_details: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Register and integrate a journal research dataset into the training pipeline.
@@ -550,7 +554,9 @@ class PipelineOrchestrator:
                         metadata={
                             "source_id": dataset.source_id,
                             "evaluation_score": evaluation_score,
-                            "integration_plan": integration_plan.__dict__ if hasattr(integration_plan, "__dict__") else {},
+                            "integration_plan": integration_plan.__dict__
+                            if hasattr(integration_plan, "__dict__")
+                            else {},
                         },
                     )
 
@@ -560,21 +566,24 @@ class PipelineOrchestrator:
                 )
             else:
                 error_msg = integration_result.get("error", "Unknown integration error")
-                logger.error(f"Failed to integrate journal research dataset {dataset.source_id}: {error_msg}")
+                logger.error(
+                    f"Failed to integrate journal research dataset {dataset.source_id}: {error_msg}"
+                )
                 self.failed_datasets.add(dataset.source_id)
                 self._log_error(dataset.source_id, Exception(error_msg))
 
             return integration_result
 
         except Exception as e:
-            logger.error(f"Error registering journal research dataset {dataset.source_id}: {e}", exc_info=True)
+            logger.error(
+                f"Error registering journal research dataset {dataset.source_id}: {e}",
+                exc_info=True,
+            )
             self.failed_datasets.add(dataset.source_id)
             self._log_error(dataset.source_id, e)
             raise
 
-    def get_journal_research_integration_status(
-        self, source_id: str
-    ) -> Optional[dict[str, Any]]:
+    def get_journal_research_integration_status(self, source_id: str) -> dict[str, Any] | None:
         """
         Get integration status for a journal research dataset.
 
@@ -597,14 +606,10 @@ class PipelineOrchestrator:
             # Update pipeline metrics based on quality metrics
             if metric.metric_type == MetricType.QUALITY_SCORE:
                 # Update running quality average
-                current_total = (
-                    self.metrics.quality_score * self.metrics.total_conversations
-                )
+                current_total = self.metrics.quality_score * self.metrics.total_conversations
                 new_total = current_total + metric.value
                 self.metrics.total_conversations += 1
-                self.metrics.quality_score = (
-                    new_total / self.metrics.total_conversations
-                )
+                self.metrics.quality_score = new_total / self.metrics.total_conversations
 
         def alert_callback(alert):
             # Log alerts and potentially trigger recovery actions
@@ -633,8 +638,7 @@ class PipelineOrchestrator:
                     / max(stats.conversations_processed, 1),
                     "average_quality": stats.average_quality_score,
                     "processing_rate": stats.current_rate,
-                    "error_rate": stats.error_count
-                    / max(stats.conversations_processed, 1),
+                    "error_rate": stats.error_count / max(stats.conversations_processed, 1),
                 }
             )
 
@@ -690,11 +694,15 @@ class PipelineOrchestrator:
                         f"Loaded {len(conversations)} conversations from journal research dataset {source_id}"
                     )
                 else:
-                    logger.warning(f"No conversations found for journal research dataset {source_id}")
+                    logger.warning(
+                        f"No conversations found for journal research dataset {source_id}"
+                    )
                     self.failed_datasets.add(source_id)
                     self.metrics.failed_datasets += 1
             except Exception as e:
-                logger.error(f"Error loading journal research dataset {source_id}: {e}", exc_info=True)
+                logger.error(
+                    f"Error loading journal research dataset {source_id}: {e}", exc_info=True
+                )
                 self.failed_datasets.add(source_id)
                 self.metrics.failed_datasets += 1
                 self._log_error(source_id, e)
@@ -744,9 +752,7 @@ class PipelineOrchestrator:
                 if is_valid:
                     logger.info("Tier balancing applied successfully")
                 else:
-                    logger.warning(
-                        f"Tier distribution validation failed: {validation_details}"
-                    )
+                    logger.warning(f"Tier distribution validation failed: {validation_details}")
 
                 # Add balanced dataset
                 datasets["tier_balanced"] = balanced_conversations
@@ -805,9 +811,7 @@ class PipelineOrchestrator:
     async def _execute_concurrent_loading(self) -> dict[str, list[Conversation]]:
         """Execute concurrent dataset loading."""
 
-        logger.info(
-            f"Loading datasets concurrently (max {self.config.max_concurrent_datasets})"
-        )
+        logger.info(f"Loading datasets concurrently (max {self.config.max_concurrent_datasets})")
 
         # Start monitoring for all datasets
         for dataset_name in self.dataset_loader.datasets:
@@ -821,9 +825,7 @@ class PipelineOrchestrator:
 
             # Update metrics
             self.metrics.completed_datasets = len(datasets)
-            self.metrics.failed_datasets = len(self.dataset_loader.datasets) - len(
-                datasets
-            )
+            self.metrics.failed_datasets = len(self.dataset_loader.datasets) - len(datasets)
 
             # Stop monitoring
             for dataset_name in self.dataset_loader.datasets:
@@ -881,9 +883,7 @@ class PipelineOrchestrator:
 
                 # Calculate performance
                 batch_time = time.time() - batch_start
-                conversations_loaded = sum(
-                    len(convs) for convs in batch_result.values()
-                )
+                conversations_loaded = sum(len(convs) for convs in batch_result.values())
                 batch_rate = conversations_loaded / batch_time if batch_time > 0 else 0
 
                 performance_window.append(batch_rate)
@@ -995,14 +995,13 @@ class PipelineOrchestrator:
             for conversation in conversations:
                 # Process conversation through quality monitor
                 quality_scores = self.acquisition_monitor.process_conversation(
-                    conversation, dataset_name, 0.1  # Placeholder processing time
+                    conversation,
+                    dataset_name,
+                    0.1,  # Placeholder processing time
                 )
 
                 # Check if conversation meets quality threshold
-                if (
-                    quality_scores.get("quality_score", 0)
-                    >= self.config.quality_threshold
-                ):
+                if quality_scores.get("quality_score", 0) >= self.config.quality_threshold:
                     validated_conversations.append(conversation)
                     accepted_conversations += 1
 
@@ -1011,9 +1010,7 @@ class PipelineOrchestrator:
             validated_datasets[dataset_name] = validated_conversations
 
             acceptance_rate = (
-                len(validated_conversations) / len(conversations)
-                if conversations
-                else 0
+                len(validated_conversations) / len(conversations) if conversations else 0
             )
             logger.info(
                 f"Dataset {dataset_name}: {len(validated_conversations)}/{len(conversations)} "
@@ -1023,14 +1020,10 @@ class PipelineOrchestrator:
         # Update metrics
         self.metrics.total_conversations = total_conversations
         self.metrics.accepted_conversations = accepted_conversations
-        self.metrics.rejected_conversations = (
-            total_conversations - accepted_conversations
-        )
+        self.metrics.rejected_conversations = total_conversations - accepted_conversations
 
         if total_conversations > 0:
-            self.metrics.error_rate = (
-                self.metrics.rejected_conversations / total_conversations
-            )
+            self.metrics.error_rate = self.metrics.rejected_conversations / total_conversations
 
         return validated_datasets
 
@@ -1084,9 +1077,7 @@ class PipelineOrchestrator:
 
         return recovered_datasets
 
-    async def _finalize_pipeline(
-        self, datasets: dict[str, list[Conversation]]
-    ) -> ExecutionResult:
+    async def _finalize_pipeline(self, datasets: dict[str, list[Conversation]]) -> ExecutionResult:
         """Finalize pipeline execution and generate results."""
 
         self.metrics.end_time = datetime.now()
@@ -1128,14 +1119,8 @@ class PipelineOrchestrator:
             success=success,
             metrics=self.metrics,
             datasets=datasets,
-            errors=[
-                error["message"] for error in self.error_log if error["type"] == "error"
-            ],
-            warnings=[
-                error["message"]
-                for error in self.error_log
-                if error["type"] == "warning"
-            ],
+            errors=[error["message"] for error in self.error_log if error["type"] == "error"],
+            warnings=[error["message"] for error in self.error_log if error["type"] == "warning"],
             recommendations=recommendations,
             execution_report=execution_report,
         )
@@ -1144,9 +1129,7 @@ class PipelineOrchestrator:
         """Calculate overall performance score."""
 
         # Factors: completion rate, quality score, processing rate, error rate
-        completion_rate = self.metrics.completed_datasets / max(
-            self.metrics.total_datasets, 1
-        )
+        completion_rate = self.metrics.completed_datasets / max(self.metrics.total_datasets, 1)
         quality_factor = self.metrics.quality_score
 
         # Normalize processing rate (assume 10 conv/s is excellent)
@@ -1157,12 +1140,8 @@ class PipelineOrchestrator:
 
         # Weighted average
         return (
-            completion_rate * 0.3
-            + quality_factor * 0.3
-            + rate_factor * 0.2
-            + error_penalty * 0.2
+            completion_rate * 0.3 + quality_factor * 0.3 + rate_factor * 0.2 + error_penalty * 0.2
         )
-
 
     def _generate_recommendations(self) -> list[str]:
         """Generate recommendations based on execution metrics."""
@@ -1177,9 +1156,7 @@ class PipelineOrchestrator:
 
         # Quality recommendations
         if self.metrics.quality_score < 0.8:
-            recommendations.append(
-                "Review quality thresholds and consider improving data sources"
-            )
+            recommendations.append("Review quality thresholds and consider improving data sources")
 
         # Performance recommendations
         if self.metrics.processing_rate < 5.0:
@@ -1209,9 +1186,7 @@ class PipelineOrchestrator:
 
         for dataset_name, conversations in datasets.items():
             if conversations:
-                output_path = (
-                    self.config.output_directory / f"{dataset_name}_processed.json"
-                )
+                output_path = self.config.output_directory / f"{dataset_name}_processed.json"
 
                 # Convert conversations to serializable format
                 serializable_data = {
@@ -1222,9 +1197,7 @@ class PipelineOrchestrator:
                 }
 
                 write_json(str(output_path), serializable_data)
-                logger.info(
-                    f"Saved {len(conversations)} conversations to {output_path}"
-                )
+                logger.info(f"Saved {len(conversations)} conversations to {output_path}")
 
     def _generate_execution_report(self) -> dict[str, Any]:
         """Generate comprehensive execution report."""
@@ -1232,9 +1205,7 @@ class PipelineOrchestrator:
         return {
             "execution_summary": {
                 "start_time": self.metrics.start_time.isoformat(),
-                "end_time": (
-                    self.metrics.end_time.isoformat() if self.metrics.end_time else None
-                ),
+                "end_time": (self.metrics.end_time.isoformat() if self.metrics.end_time else None),
                 "total_duration": (
                     str(self.metrics.end_time - self.metrics.start_time)
                     if self.metrics.end_time
@@ -1270,9 +1241,7 @@ class PipelineOrchestrator:
                 "retry_count": self.metrics.retry_count,
             },
             "dataset_performance": self.dataset_performance,
-            "stage_timings": {
-                stage.value: timing for stage, timing in self.stage_timings.items()
-            },
+            "stage_timings": {stage.value: timing for stage, timing in self.stage_timings.items()},
             "error_log": self.error_log,
             "configuration": {
                 "execution_mode": self.config.execution_mode.value,
@@ -1307,9 +1276,7 @@ class PipelineOrchestrator:
         """Add callback for pipeline stage changes."""
         self.stage_callbacks.append(callback)
 
-    def add_progress_callback(
-        self, callback: Callable[[PipelineMetrics], None]
-    ) -> None:
+    def add_progress_callback(self, callback: Callable[[PipelineMetrics], None]) -> None:
         """Add callback for progress updates."""
         self.progress_callbacks.append(callback)
 
@@ -1338,9 +1305,7 @@ class PipelineOrchestrator:
 
         for dataset_name, conversations in datasets.items():
             if conversations:
-                output_path = (
-                    self.config.output_directory / f"{dataset_name}_processed.json"
-                )
+                output_path = self.config.output_directory / f"{dataset_name}_processed.json"
 
                 # Convert conversations to serializable format
                 serializable_data = {
@@ -1351,9 +1316,7 @@ class PipelineOrchestrator:
                 }
 
                 write_json(str(output_path), serializable_data)
-                logger.info(
-                    f"Saved {len(conversations)} conversations to {output_path}"
-                )
+                logger.info(f"Saved {len(conversations)} conversations to {output_path}")
 
     def _generate_execution_report(self) -> dict[str, Any]:
         """Generate comprehensive execution report."""
@@ -1361,9 +1324,7 @@ class PipelineOrchestrator:
         return {
             "execution_summary": {
                 "start_time": self.metrics.start_time.isoformat(),
-                "end_time": (
-                    self.metrics.end_time.isoformat() if self.metrics.end_time else None
-                ),
+                "end_time": (self.metrics.end_time.isoformat() if self.metrics.end_time else None),
                 "total_duration": (
                     str(self.metrics.end_time - self.metrics.start_time)
                     if self.metrics.end_time
@@ -1399,9 +1360,7 @@ class PipelineOrchestrator:
                 "retry_count": self.metrics.retry_count,
             },
             "dataset_performance": self.dataset_performance,
-            "stage_timings": {
-                stage.value: timing for stage, timing in self.stage_timings.items()
-            },
+            "stage_timings": {stage.value: timing for stage, timing in self.stage_timings.items()},
             "error_log": self.error_log,
             "configuration": {
                 "execution_mode": self.config.execution_mode.value,
@@ -1436,9 +1395,7 @@ class PipelineOrchestrator:
         """Add callback for pipeline stage changes."""
         self.stage_callbacks.append(callback)
 
-    def add_progress_callback(
-        self, callback: Callable[[PipelineMetrics], None]
-    ) -> None:
+    def add_progress_callback(self, callback: Callable[[PipelineMetrics], None]) -> None:
         """Add callback for progress updates."""
         self.progress_callbacks.append(callback)
 
@@ -1489,16 +1446,10 @@ class PipelineOrchestrator:
             checkpoint_data = read_json(str(checkpoint_path))
 
             # Restore metrics
-            self.metrics.completed_datasets = checkpoint_data["metrics"][
-                "completed_datasets"
-            ]
+            self.metrics.completed_datasets = checkpoint_data["metrics"]["completed_datasets"]
             self.metrics.failed_datasets = checkpoint_data["metrics"]["failed_datasets"]
-            self.metrics.total_conversations = checkpoint_data["metrics"][
-                "total_conversations"
-            ]
-            self.current_stage = PipelineStage(
-                checkpoint_data["metrics"]["current_stage"]
-            )
+            self.metrics.total_conversations = checkpoint_data["metrics"]["total_conversations"]
+            self.current_stage = PipelineStage(checkpoint_data["metrics"]["current_stage"])
 
             # Restore state
             self.failed_datasets = set(checkpoint_data["failed_datasets"])

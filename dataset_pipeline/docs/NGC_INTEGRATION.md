@@ -149,7 +149,7 @@ NGC_DATASETS = {
 NGC datasets are downloaded to:
 
 ```
-ai/dataset_pipeline/data/ngc/
+tmp/dataset_pipeline/data/ngc/
 ├── therapeutic_conversations/
 │   └── [downloaded files]
 └── [other datasets]/

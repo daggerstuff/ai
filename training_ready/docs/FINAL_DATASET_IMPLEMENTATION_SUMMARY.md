@@ -147,9 +147,9 @@
 ### 4. Compile Final Dataset
 - Run `compile_final_dataset.py` to create manifest + compiled export
 - Upload to S3 canonical locations:
-  - `s3://pixelated-training-data/final_dataset/manifest.json`
-  - `s3://pixelated-training-data/final_dataset/compiled/final_training_dataset.jsonl`
-  - `s3://pixelated-training-data/final_dataset/{split}/{shard}.jsonl`
+  - `s3://pixel-data/final_dataset/manifest.json`
+  - `s3://pixel-data/final_dataset/compiled/final_training_dataset.jsonl`
+  - `s3://pixel-data/final_dataset/{split}/{shard}.jsonl`
 
 ### 5. Verify Final Dataset
 - Run `verify_final_dataset.py` to check all gates

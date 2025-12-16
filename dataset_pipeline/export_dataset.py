@@ -23,7 +23,7 @@ from .export_manifest import (
     QualitySummary
 )
 from .storage_manager import StorageManager
-from .storage_config import get_storage_config
+from .storage_config import get_dataset_pipeline_output_root, get_storage_config
 
 
 def export_to_jsonl(data: list, output_path: Path) -> int:
@@ -79,7 +79,7 @@ def export_dataset_v1(
 
     # Setup output directory
     if output_dir is None:
-        output_dir = Path(f"ai/dataset_pipeline/production_exports/v{version}")
+        output_dir = get_dataset_pipeline_output_root() / "production_exports" / f"v{version}"
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 

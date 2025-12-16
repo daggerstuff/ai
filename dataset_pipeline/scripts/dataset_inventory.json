@@ -4,7 +4,7 @@
   "description": "Complete dataset inventory for Pixelated Empathy training data consolidation",
   "vps_host": "vivi@146.71.78.184",
   "vps_ssh_key": "planet",
-  "s3_bucket": "pixelated-training-data",
+  "s3_bucket": "pixel-data",
   "s3_endpoint": "s3.gra.io.cloud.ovh.net",
   "datasets": {
     "huggingface": {
@@ -20,7 +20,7 @@
           "download_command": "huggingface-cli download iqrakiran/customized-mental-health-snli2 --local-dir ~/pixelated-datasets/raw/huggingface/customized-mental-health-snli2",
           "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='iqrakiran/customized-mental-health-snli2', local_dir='~/pixelated-datasets/raw/huggingface/customized-mental-health-snli2')",
           "vps_destination": "~/pixelated-datasets/raw/huggingface/customized-mental-health-snli2",
-          "s3_destination": "s3://pixelated-training-data/raw/huggingface/customized-mental-health-snli2/",
+          "s3_destination": "s3://pixel-data/raw/huggingface/customized-mental-health-snli2/",
           "format": "json/jsonl"
         },
         {
@@ -32,7 +32,7 @@
           "download_command": "huggingface-cli download typosonlr/MentalHealthPreProcessed --local-dir ~/pixelated-datasets/raw/huggingface/MentalHealthPreProcessed",
           "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='typosonlr/MentalHealthPreProcessed', local_dir='~/pixelated-datasets/raw/huggingface/MentalHealthPreProcessed')",
           "vps_destination": "~/pixelated-datasets/raw/huggingface/MentalHealthPreProcessed",
-          "s3_destination": "s3://pixelated-training-data/raw/huggingface/MentalHealthPreProcessed/",
+          "s3_destination": "s3://pixel-data/raw/huggingface/MentalHealthPreProcessed/",
           "format": "json"
         },
         {
@@ -44,7 +44,7 @@
           "download_command": "huggingface-cli download ShreyaR/DepressionDetection --local-dir ~/pixelated-datasets/raw/huggingface/DepressionDetection",
           "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='ShreyaR/DepressionDetection', local_dir='~/pixelated-datasets/raw/huggingface/DepressionDetection')",
           "vps_destination": "~/pixelated-datasets/raw/huggingface/DepressionDetection",
-          "s3_destination": "s3://pixelated-training-data/raw/huggingface/DepressionDetection/",
+          "s3_destination": "s3://pixel-data/raw/huggingface/DepressionDetection/",
           "format": "csv/json"
         },
         {
@@ -56,7 +56,7 @@
           "download_command": "huggingface-cli download mlx-community/Human-Like-DPO --local-dir ~/pixelated-datasets/raw/huggingface/Human-Like-DPO",
           "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='mlx-community/Human-Like-DPO', local_dir='~/pixelated-datasets/raw/huggingface/Human-Like-DPO')",
           "vps_destination": "~/pixelated-datasets/raw/huggingface/Human-Like-DPO",
-          "s3_destination": "s3://pixelated-training-data/raw/huggingface/Human-Like-DPO/",
+          "s3_destination": "s3://pixel-data/raw/huggingface/Human-Like-DPO/",
           "format": "jsonl"
         },
         {
@@ -68,7 +68,7 @@
           "download_command": "huggingface-cli download flammenai/character-roleplay-DPO --local-dir ~/pixelated-datasets/raw/huggingface/character-roleplay-DPO",
           "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='flammenai/character-roleplay-DPO', local_dir='~/pixelated-datasets/raw/huggingface/character-roleplay-DPO')",
           "vps_destination": "~/pixelated-datasets/raw/huggingface/character-roleplay-DPO",
-          "s3_destination": "s3://pixelated-training-data/raw/huggingface/character-roleplay-DPO/",
+          "s3_destination": "s3://pixel-data/raw/huggingface/character-roleplay-DPO/",
           "format": "jsonl"
         },
         {
@@ -80,7 +80,7 @@
           "download_command": "huggingface-cli download PJMixers/unalignment_toxic-dpo-v0.2-ShareGPT --local-dir ~/pixelated-datasets/raw/huggingface/unalignment_toxic-dpo",
           "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='PJMixers/unalignment_toxic-dpo-v0.2-ShareGPT', local_dir='~/pixelated-datasets/raw/huggingface/unalignment_toxic-dpo')",
           "vps_destination": "~/pixelated-datasets/raw/huggingface/unalignment_toxic-dpo",
-          "s3_destination": "s3://pixelated-training-data/raw/huggingface/unalignment_toxic-dpo/",
+          "s3_destination": "s3://pixel-data/raw/huggingface/unalignment_toxic-dpo/",
           "format": "jsonl",
           "edge_case_note": "Contains difficult client behavior patterns - preserve for training"
         },
@@ -93,7 +93,7 @@
           "download_command": "huggingface-cli download Amod/mental_health_counseling_conversations --local-dir ~/pixelated-datasets/raw/huggingface/mental_health_counseling_conversations",
           "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='Amod/mental_health_counseling_conversations', local_dir='~/pixelated-datasets/raw/huggingface/mental_health_counseling_conversations')",
           "vps_destination": "~/pixelated-datasets/raw/huggingface/mental_health_counseling_conversations",
-          "s3_destination": "s3://pixelated-training-data/raw/huggingface/mental_health_counseling_conversations/",
+          "s3_destination": "s3://pixel-data/raw/huggingface/mental_health_counseling_conversations/",
           "format": "json"
         },
         {
@@ -105,7 +105,7 @@
           "download_command": "huggingface-cli download thu-coai/esconv --local-dir ~/pixelated-datasets/raw/huggingface/esconv",
           "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='thu-coai/esconv', local_dir='~/pixelated-datasets/raw/huggingface/esconv')",
           "vps_destination": "~/pixelated-datasets/raw/huggingface/esconv",
-          "s3_destination": "s3://pixelated-training-data/raw/huggingface/esconv/",
+          "s3_destination": "s3://pixel-data/raw/huggingface/esconv/",
           "format": "json"
         },
         {
@@ -117,7 +117,7 @@
           "download_command": "huggingface-cli download nbertagnolli/counsel-chat --local-dir ~/pixelated-datasets/raw/huggingface/counsel-chat",
           "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='nbertagnolli/counsel-chat', local_dir='~/pixelated-datasets/raw/huggingface/counsel-chat')",
           "vps_destination": "~/pixelated-datasets/raw/huggingface/counsel-chat",
-          "s3_destination": "s3://pixelated-training-data/raw/huggingface/counsel-chat/",
+          "s3_destination": "s3://pixel-data/raw/huggingface/counsel-chat/",
           "format": "csv/json"
         },
         {
@@ -129,7 +129,7 @@
           "download_command": "huggingface-cli download facebook/empathetic_dialogues --local-dir ~/pixelated-datasets/raw/huggingface/empathetic_dialogues",
           "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='facebook/empathetic_dialogues', local_dir='~/pixelated-datasets/raw/huggingface/empathetic_dialogues')",
           "vps_destination": "~/pixelated-datasets/raw/huggingface/empathetic_dialogues",
-          "s3_destination": "s3://pixelated-training-data/raw/huggingface/empathetic_dialogues/",
+          "s3_destination": "s3://pixel-data/raw/huggingface/empathetic_dialogues/",
           "format": "csv"
         }
       ]
@@ -147,7 +147,7 @@
           "download_command": "kaggle kernels output rickyzou/nlp-for-mental-health-text-data -p ~/pixelated-datasets/raw/kaggle/nlp-mental-health-tfidf/",
           "kaggle_api_command": "kaggle datasets download -d rickyzou/nlp-for-mental-health-text-data -p ~/pixelated-datasets/raw/kaggle/nlp-mental-health-tfidf/ --unzip",
           "vps_destination": "~/pixelated-datasets/raw/kaggle/nlp-mental-health-tfidf/",
-          "s3_destination": "s3://pixelated-training-data/raw/kaggle/nlp-mental-health-tfidf/",
+          "s3_destination": "s3://pixel-data/raw/kaggle/nlp-mental-health-tfidf/",
           "format": "csv",
           "note": "Contains 19 condition-specific TF-IDF datasets: depression_2019, anxiety_2019, Suicide_Detection.csv, etc."
         }
@@ -167,7 +167,7 @@
           "sync_command": "rclone copy gdrive:datasets/therapist-sft-format ~/pixelated-datasets/raw/gdrive/therapist-sft-format -P",
           "gdrive_command": "gdrive download -r --path ~/pixelated-datasets/raw/gdrive/therapist-sft-format <gdrive_folder_id>",
           "vps_destination": "~/pixelated-datasets/raw/gdrive/therapist-sft-format",
-          "s3_destination": "s3://pixelated-training-data/raw/gdrive/therapist-sft-format/",
+          "s3_destination": "s3://pixel-data/raw/gdrive/therapist-sft-format/",
           "format": "csv",
           "note": "Requires gdrive folder ID or rclone remote name"
         },
@@ -180,7 +180,7 @@
           "stage": "stage1_foundation",
           "sync_command": "rclone copy gdrive:datasets/SoulChat2.0 ~/pixelated-datasets/raw/gdrive/SoulChat2.0 -P",
           "vps_destination": "~/pixelated-datasets/raw/gdrive/SoulChat2.0",
-          "s3_destination": "s3://pixelated-training-data/raw/gdrive/SoulChat2.0/",
+          "s3_destination": "s3://pixel-data/raw/gdrive/SoulChat2.0/",
           "format": "json"
         },
         {
@@ -192,7 +192,7 @@
           "stage": "stage1_foundation",
           "sync_command": "rclone copy gdrive:datasets/counsel-chat ~/pixelated-datasets/raw/gdrive/counsel-chat -P",
           "vps_destination": "~/pixelated-datasets/raw/gdrive/counsel-chat",
-          "s3_destination": "s3://pixelated-training-data/raw/gdrive/counsel-chat/",
+          "s3_destination": "s3://pixel-data/raw/gdrive/counsel-chat/",
           "format": "csv/json"
         },
         {
@@ -204,7 +204,7 @@
           "stage": "stage1_foundation",
           "sync_command": "rclone copy gdrive:datasets/Psych8k ~/pixelated-datasets/raw/gdrive/Psych8k -P",
           "vps_destination": "~/pixelated-datasets/raw/gdrive/Psych8k",
-          "s3_destination": "s3://pixelated-training-data/raw/gdrive/Psych8k/",
+          "s3_destination": "s3://pixel-data/raw/gdrive/Psych8k/",
           "format": "json"
         },
         {
@@ -216,7 +216,7 @@
           "stage": "stage1_foundation",
           "sync_command": "rclone copy gdrive:datasets/neuro_qa_SFT_Trainer ~/pixelated-datasets/raw/gdrive/neuro_qa_SFT_Trainer -P",
           "vps_destination": "~/pixelated-datasets/raw/gdrive/neuro_qa_SFT_Trainer",
-          "s3_destination": "s3://pixelated-training-data/raw/gdrive/neuro_qa_SFT_Trainer/",
+          "s3_destination": "s3://pixel-data/raw/gdrive/neuro_qa_SFT_Trainer/",
           "format": "json"
         },
         {
@@ -228,7 +228,7 @@
           "stage": "stage3_edge_stress_test",
           "sync_command": "rclone copy gdrive:datasets/scenario_prompts ~/pixelated-datasets/raw/gdrive/scenario_prompts -P",
           "vps_destination": "~/pixelated-datasets/raw/gdrive/scenario_prompts",
-          "s3_destination": "s3://pixelated-training-data/raw/gdrive/scenario_prompts/",
+          "s3_destination": "s3://pixel-data/raw/gdrive/scenario_prompts/",
           "format": "csv/xlsx",
           "note": "Seeds synthetic generation strategies - locate exact path in Google Drive"
         },
@@ -241,7 +241,7 @@
           "stage": "stage2_therapeutic_expertise",
           "sync_command": "rclone copy gdrive:datasets ~/pixelated-datasets/raw/gdrive/cot --include 'CoT_*' -P",
           "vps_destination": "~/pixelated-datasets/raw/gdrive/cot",
-          "s3_destination": "s3://pixelated-training-data/raw/gdrive/cot/",
+          "s3_destination": "s3://pixel-data/raw/gdrive/cot/",
           "format": "json",
           "note": "Multiple CoT datasets: Clinical_Diagnosis, Heartbreak, Mens_Mental_Health, Cultural_Nuances, Temporal_Reasoning, etc."
         }
@@ -260,7 +260,7 @@
           "stage": "stage3_edge_stress_test",
           "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/lightning/ghost/edge_case_pipeline_standalone/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/edge_case_generator/",
           "vps_destination": "~/pixelated-datasets/raw/local/edge_case_generator",
-          "s3_destination": "s3://pixelated-training-data/raw/local/edge_case_generator/",
+          "s3_destination": "s3://pixel-data/raw/local/edge_case_generator/",
           "format": "json/jsonl",
           "edge_case_note": "CRITICAL: Tag with is_training_edge_case=true, NO safety filtering"
         },
@@ -273,7 +273,7 @@
           "stage": "stage4_voice_persona",
           "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/training_data_consolidated/transcripts/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/tim_fletcher_transcripts/",
           "vps_destination": "~/pixelated-datasets/raw/local/tim_fletcher_transcripts",
-          "s3_destination": "s3://pixelated-training-data/raw/local/tim_fletcher_transcripts/",
+          "s3_destination": "s3://pixel-data/raw/local/tim_fletcher_transcripts/",
           "format": "txt/md"
         },
         {
@@ -285,24 +285,24 @@
           "stage": "stage4_voice_persona",
           "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/data/tim_fletcher_voice/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/tim_fletcher_voice/",
           "vps_destination": "~/pixelated-datasets/raw/local/tim_fletcher_voice",
-          "s3_destination": "s3://pixelated-training-data/raw/local/tim_fletcher_voice/",
+          "s3_destination": "s3://pixel-data/raw/local/tim_fletcher_voice/",
           "format": "json/md"
         },
         {
-          "id": "priority_datasets",
-          "name": "Priority Datasets (Wendy)",
+          "id": "wendy_curated_sets",
+          "name": "Curated Wendy Sets",
           "local_path": "ai/lightning/ghost/datasets/priority_*/",
           "size_estimate_mb": 1164,
           "purpose": "Top-tier curated therapeutic conversations",
           "stage": "stage1_foundation",
-          "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/lightning/ghost/datasets/priority_*/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/priority_datasets/",
-          "vps_destination": "~/pixelated-datasets/raw/local/priority_datasets",
-          "s3_destination": "s3://pixelated-training-data/raw/local/priority_datasets/",
+          "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/lightning/ghost/datasets/priority_*/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/wendy_curated_sets/",
+          "vps_destination": "~/pixelated-datasets/raw/local/wendy_curated_sets",
+          "s3_destination": "s3://pixel-data/raw/local/wendy_curated_sets/",
           "format": "jsonl",
           "files": [
-            "priority_1/priority_1_FINAL.jsonl (463MB)",
-            "priority_2/priority_2_FINAL.jsonl (330MB)",
-            "priority_3/priority_3_FINAL.jsonl (371MB)"
+            "wendy_set_alpha_therapeutic_core.jsonl (~463MB) [canonical name]",
+            "wendy_set_beta_high_quality_core.jsonl (~330MB) [canonical name]",
+            "wendy_set_gamma_specialized_therapy.jsonl (~371MB) [canonical name]"
           ]
         },
         {
@@ -314,7 +314,7 @@
           "stage": "stage1_foundation,stage2_therapeutic_expertise",
           "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/lightning/pixelated-training/processed/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/processed_phases/",
           "vps_destination": "~/pixelated-datasets/raw/local/processed_phases",
-          "s3_destination": "s3://pixelated-training-data/raw/local/processed_phases/",
+          "s3_destination": "s3://pixel-data/raw/local/processed_phases/",
           "format": "jsonl"
         },
         {
@@ -326,7 +326,7 @@
           "stage": "multiple",
           "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/training_data_consolidated/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/consolidated_data/",
           "vps_destination": "~/pixelated-datasets/raw/local/consolidated_data",
-          "s3_destination": "s3://pixelated-training-data/raw/local/consolidated_data/",
+          "s3_destination": "s3://pixel-data/raw/local/consolidated_data/",
           "format": "json/jsonl/csv",
           "note": "Large transfer - includes ULTIMATE_FINAL_DATASET.jsonl (2GB), merged_dataset.jsonl (1.5GB), psychology knowledge base (21MB)"
         },
@@ -339,7 +339,7 @@
           "stage": "stage2_therapeutic_expertise",
           "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/dataset_pipeline/cot_datasets/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/cot_datasets/",
           "vps_destination": "~/pixelated-datasets/raw/local/cot_datasets",
-          "s3_destination": "s3://pixelated-training-data/raw/local/cot_datasets/",
+          "s3_destination": "s3://pixel-data/raw/local/cot_datasets/",
           "format": "json",
           "note": "Note: Full CoT data is in processed Phase 3, these are small placeholders"
         },
@@ -352,7 +352,7 @@
           "stage": "reference",
           "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/lightning/ghost/books/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/books/",
           "vps_destination": "~/pixelated-datasets/raw/local/books",
-          "s3_destination": "s3://pixelated-training-data/raw/local/books/",
+          "s3_destination": "s3://pixel-data/raw/local/books/",
           "format": "pdf"
         },
         {
@@ -364,7 +364,7 @@
           "stage": "reference",
           "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/DSMV.pdf vivi@146.71.78.184:~/pixelated-datasets/raw/local/dsmv/",
           "vps_destination": "~/pixelated-datasets/raw/local/dsmv",
-          "s3_destination": "s3://pixelated-training-data/raw/local/dsmv/",
+          "s3_destination": "s3://pixel-data/raw/local/dsmv/",
           "format": "pdf"
         }
       ]

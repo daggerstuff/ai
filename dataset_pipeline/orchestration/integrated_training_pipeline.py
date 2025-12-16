@@ -139,11 +139,16 @@ class IntegratedTrainingPipeline:
 
         # Ensure we have a valid config for S3
         storage_config = get_storage_config()
-        if not storage_config.s3_bucket and os.getenv("USER") == "vivi":
-            # Fallback/Default for Pixelated Empathy VPS environment if env vars aren't fully set
+        backend_env = os.getenv("DATASET_STORAGE_BACKEND")
+        if (
+            backend_env
+            and backend_env.lower() == "s3"
+            and not storage_config.s3_bucket
+            and os.getenv("USER") == "vivi"
+        ):
+            # Convenience default for a known VPS environment when S3 is explicitly selected.
+            # Do not force S3 when the backend isn't explicitly configured.
             storage_config.s3_bucket = "pixel-data"
-            storage_config.backend = StorageBackend.S3
-            # Assuming credentials are provided via env or ~/.aws/credentials
 
         self.storage = StorageManager(storage_config)
 

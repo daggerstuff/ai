@@ -17,6 +17,8 @@ from typing import Dict, List, Any, Tuple
 from collections import defaultdict
 import logging
 
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -222,7 +224,7 @@ class DatasetComposer:
 
         # Save balanced dataset
         if not output_dataset_path:
-            output_dir = Path("ai/dataset_pipeline/final_output")
+            output_dir = get_dataset_pipeline_output_root() / "final_output"
             output_dir.mkdir(exist_ok=True)
             output_dataset_path = output_dir / "balanced_training_dataset.jsonl"
 

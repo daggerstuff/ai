@@ -206,8 +206,8 @@ def main() -> int:
     )
     parser.add_argument(
         "--bucket",
-        default="pixelated-training-data",
-        help="S3 bucket name (default: pixelated-training-data)",
+        default="pixel-data",
+        help="S3 bucket name (default: pixel-data)",
     )
     parser.add_argument(
         "--max-new-tokens",

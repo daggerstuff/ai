@@ -40,7 +40,11 @@ Expected output:
 
 ### Local Storage (Default)
 
-No configuration needed. Files are stored in `ai/dataset_pipeline/data/` by default.
+No configuration needed. By default, dataset pipeline runtime artifacts are stored under
+`tmp/dataset_pipeline/` (outside the package tree).
+
+- **Data**: `tmp/dataset_pipeline/data/`
+- Override with `DATASET_PIPELINE_OUTPUT_DIR` (see `ai/dataset_pipeline/storage.env.template`)
 
 ### S3 Storage
 
@@ -304,21 +308,21 @@ uv run python -m ai.dataset_pipeline.export_dataset \
 
 # Generate QA report
 uv run python -m ai.dataset_pipeline.qa_report_generator \
-    production_exports/v1.0.0/dataset_v1.0.0.jsonl --version 1.0.0
+    tmp/dataset_pipeline/production_exports/v1.0.0/dataset_v1.0.0.jsonl --version 1.0.0
 
 # Check manifest
 python -c "from ai.dataset_pipeline.export_manifest import DatasetManifest; \
     from pathlib import Path; \
-    m = DatasetManifest.load(Path('production_exports/v1.0.0/manifest_v1.0.0.json')); \
+    m = DatasetManifest.load(Path('tmp/dataset_pipeline/production_exports/v1.0.0/manifest_v1.0.0.json')); \
     print(m.to_dict())"
 ```
 
 ### File Locations
 
-- **Exports**: `ai/dataset_pipeline/production_exports/v{VERSION}/`
-- **Config Locks**: `ai/dataset_pipeline/production_exports/v{VERSION}/config_lock.json`
-- **Manifests**: `ai/dataset_pipeline/production_exports/v{VERSION}/manifest_v{VERSION}.json`
-- **QA Reports**: `ai/dataset_pipeline/production_exports/v{VERSION}/qa_report_v{VERSION}.json`
+- **Exports**: `tmp/dataset_pipeline/production_exports/v{VERSION}/`
+- **Config Locks**: `tmp/dataset_pipeline/production_exports/v{VERSION}/config_lock.json`
+- **Manifests**: `tmp/dataset_pipeline/production_exports/v{VERSION}/manifest_v{VERSION}.json`
+- **QA Reports**: `tmp/dataset_pipeline/production_exports/v{VERSION}/qa_report_v{VERSION}.json`
 - **Checkpoints**: `ai/lightning/checkpoints/v{VERSION}/`
 
 ## Support

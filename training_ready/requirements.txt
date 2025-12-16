@@ -1,0 +1,14 @@
+# Training Ready: Data Processing Pipeline Dependencies
+# CPU-only version for local execution
+
+# Core ML Framework (CPU-only)
+torch>=2.0.0,<3.0.0; platform_machine != "cuda"
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# Optional: HuggingFace datasets (for dataset sourcing)
+# datasets>=2.14.0
+
+# Standard dependencies (if not already in project)
+# numpy>=1.24.0
+# pandas>=2.0.0
+

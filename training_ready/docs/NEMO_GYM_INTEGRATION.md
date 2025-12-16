@@ -146,7 +146,7 @@ This is compatible with GRPO-style pipelines used in Nemotron RL recipes.
 Following Nemotron RL datasets on Hugging Face, we target a JSONL-based
 rollout format:
 
-Each line in `s3://pixelated-training-data/rl/pixelated/therapeutic_session/{run_id}.jsonl`
+Each line in `s3://pixel-data/rl/pixelated/therapeutic_session/{run_id}.jsonl`
 contains:
 
 ```json

@@ -153,7 +153,7 @@ def main() -> int:
         "   📋 Log: upload_raw_final.log",
         "",
         "⚠️  Note: Sync uses bucket 'pixel-data',",
-        "   but loader checks 'pixelated-training-data'",
+        "   but loader checks 'pixel-data'",
         "   If no data found, check if buckets are different",
         "   or sync target needs update",
     )

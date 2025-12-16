@@ -5,13 +5,17 @@ from pathlib import Path
 
 import requests
 
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
 class JournalResearchIngestor:
-    def __init__(self, output_dir: str = "ai/dataset_pipeline/data/tier5_research"):
+    def __init__(self, output_dir: str | Path | None = None):
+        if output_dir is None:
+            output_dir = get_dataset_pipeline_output_root() / "data" / "tier5_research"
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.output_file = self.output_dir / "journal_abstracts.jsonl"

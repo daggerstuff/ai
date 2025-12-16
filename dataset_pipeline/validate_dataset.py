@@ -11,13 +11,11 @@ from typing import Dict, List, Any
 import hashlib
 from datetime import datetime
 
-# Add the project root to the path
-project_root = os.path.join(os.path.dirname(__file__), '..', '..')
-sys.path.insert(0, project_root)
+# Ensure the outer workspace root is on sys.path so `ai.*` imports work reliably
+workspace_root = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(workspace_root))
 
-# Import the modules directly to avoid __init__.py issues
-dataset_pipeline_dir = os.path.join(os.path.dirname(__file__), '.')
-sys.path.insert(0, dataset_pipeline_dir)
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
 
 def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
     """
@@ -172,7 +170,7 @@ def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
 
 def find_latest_dataset() -> str:
     """Find the latest dataset file in the output directory"""
-    output_dir = Path("ai/dataset_pipeline/final_output")
+    output_dir = get_dataset_pipeline_output_root() / "final_output"
     if not output_dir.exists():
         return ""
 
@@ -195,9 +193,10 @@ def main():
 
     if not dataset_path:
         # Check common dataset locations
+        output_root = get_dataset_pipeline_output_root()
         common_paths = [
             "ai/training_data_consolidated/final_datasets/ULTIMATE_FINAL_DATASET.jsonl",
-            "ai/dataset_pipeline/final_output/unified_training_dataset.jsonl",
+            str(output_root / "final_output" / "unified_training_dataset.jsonl"),
             "ai/training_data_consolidated/datasets/merged_dataset.jsonl"
         ]
 
@@ -209,7 +208,7 @@ def main():
     if not dataset_path:
         print("❌ No dataset file found for validation")
         print("Please specify a dataset path or ensure datasets exist in:")
-        print("  - ai/dataset_pipeline/final_output/")
+        print(f"  - {get_dataset_pipeline_output_root() / 'final_output'}/")
         print("  - ai/training_data_consolidated/final_datasets/")
         return False
 
@@ -256,7 +255,7 @@ def main():
             print(f"  ... and {len(results['validation_errors']) - 10} more errors")
 
     # Save results
-    output_dir = Path("ai/dataset_pipeline/final_output")
+    output_dir = get_dataset_pipeline_output_root() / "final_output"
     output_dir.mkdir(exist_ok=True)
     results_file = output_dir / "dataset_validation_report.json"
 
