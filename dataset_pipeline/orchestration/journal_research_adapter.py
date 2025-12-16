@@ -10,6 +10,8 @@ import logging
 from pathlib import Path
 from typing import Any, Optional
 
+from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+
 from ai.journal_dataset_research.integration.pipeline_integration_service import (
     PipelineIntegrationService,
 )
@@ -54,7 +56,9 @@ class JournalResearchAdapter:
     def __init__(
         self,
         integration_service: Optional[PipelineIntegrationService] = None,
-        output_directory: Path = Path("data/processed/journal_research"),
+        output_directory: Path = get_dataset_pipeline_output_root()
+        / "processed"
+        / "journal_research",
     ):
         """
         Initialize the journal research adapter.

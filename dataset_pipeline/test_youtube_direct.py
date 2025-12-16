@@ -3,26 +3,22 @@ Direct test of YouTube RAG system without module imports
 """
 
 import sys
-import os
 from pathlib import Path
 
-# Add the dataset_pipeline directory to the path
-dataset_pipeline_dir = os.path.join(os.path.dirname(__file__), '.')
-sys.path.insert(0, dataset_pipeline_dir)
+# Ensure the repo root is on sys.path so `ai.*` imports work reliably
+repo_root = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(repo_root))
 
 def test_youtube_rag_direct():
     """Test YouTube RAG system directly"""
     print("Testing YouTube RAG system directly...")
 
     try:
-        # Ensure the RAG index directory exists
-        rag_index_dir = Path("rag_index")
-        if not rag_index_dir.exists():
-            rag_index_dir.mkdir(exist_ok=True)
-            print(f"✓ Created RAG index directory: {rag_index_dir}")
+        from ai.dataset_pipeline.storage_config import get_dataset_pipeline_output_root
+        from ai.dataset_pipeline import youtube_rag_system
 
-        # Import the module directly
-        import youtube_rag_system
+        rag_index_dir = get_dataset_pipeline_output_root() / "rag_index"
+        print(f"✓ Using RAG index directory: {rag_index_dir}")
 
         # Create RAG system
         rag_system = youtube_rag_system.YouTubeRAGSystem()

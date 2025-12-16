@@ -9,7 +9,7 @@
 ```
 Google Drive (Source/Staging)
     ↓ [rclone sync]
-S3: s3://pixelated-training-data/ (Training Mecca - Canonical)
+S3: s3://pixel-data/ (Training Mecca - Canonical)
     ↓ [Training Scripts Read From]
 Model Training
 ```
@@ -143,7 +143,7 @@ python scripts/train_optimized.py
 ## Key Features
 
 ### S3-First Architecture
-- **S3 is canonical** - All training data in `s3://pixelated-training-data/`
+- **S3 is canonical** - All training data in `s3://pixel-data/`
 - **Google Drive syncs to S3** - Source/staging area, not used directly
 - **Local is cache only** - Temporary caches, not source of truth
 
@@ -243,7 +243,7 @@ data = load_dataset_from_s3("dataset.json", category="cot_reasoning")
 
 # Or use loader directly
 loader = S3DatasetLoader()
-data = loader.load_json("s3://pixelated-training-data/gdrive/processed/cot_reasoning/dataset.json")
+data = loader.load_json("s3://pixel-data/gdrive/processed/cot_reasoning/dataset.json")
 ```
 
 ### Environment Variables

@@ -92,7 +92,7 @@ def update_dataset_registry_with_s3_paths(registry_path: Path) -> Dict[str, Any]
     # Add S3 metadata
     registry['s3_consolidation'] = {
         "status": "in_progress",
-        "canonical_bucket": "pixelated-training-data",
+        "canonical_bucket": "pixel-data",
         "canonical_structure": "gdrive/processed/",
         "raw_backup": "gdrive/raw/",
         "last_updated": str(Path(__file__).stat().st_mtime)

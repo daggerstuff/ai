@@ -3,9 +3,9 @@
 Upload generated datasets to S3 canonical locations.
 
 Uploads:
-- edge_case_synthetic.jsonl → s3://pixelated-training-data/gdrive/processed/edge_cases/synthetic.jsonl
-- long_running_therapy.jsonl → s3://pixelated-training-data/gdrive/processed/professional_therapeutic/long_running_therapy.jsonl
-- cptsd_transcripts.jsonl → s3://pixelated-training-data/gdrive/processed/edge_cases/cptsd/cptsd_transcripts.jsonl
+- edge_case_synthetic.jsonl → s3://pixel-data/gdrive/processed/edge_cases/synthetic.jsonl
+- long_running_therapy.jsonl → s3://pixel-data/gdrive/processed/professional_therapeutic/long_running_therapy.jsonl
+- cptsd_transcripts.jsonl → s3://pixel-data/gdrive/processed/edge_cases/cptsd/cptsd_transcripts.jsonl
 """
 
 import argparse

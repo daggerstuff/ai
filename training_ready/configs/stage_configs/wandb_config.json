@@ -1,0 +1,61 @@
+{
+  "project": "wayfarer-2-12b-finetuning",
+  "entity": "pixelated-empathy",
+  "name": "wayfarer-finetune-20250926-1903",
+  "tags": [
+    "wayfarer",
+    "mental-health",
+    "cot-reasoning",
+    "finetune"
+  ],
+  "notes": "Fine-tuning Wayfarer-2-12B on 40,525 real mental health + CoT conversations",
+  "config": {
+    "model_name": "LatitudeGames/Wayfarer-2-12B",
+    "model_size": "12B",
+    "base_model": "wayfarer",
+    "dataset_size": 40525,
+    "dataset_quality": 99.97,
+    "avg_conversation_length": 432.41739666872303,
+    "data_sources": [
+      "mental_health",
+      "cot_reasoning"
+    ],
+    "format": "ChatML",
+    "learning_rate": 2.5e-05,
+    "batch_size": 8,
+    "epochs": 2,
+    "warmup_steps": 1013,
+    "weight_decay": 0.01,
+    "gradient_accumulation_steps": 8,
+    "optimizer": "AdamW",
+    "lr_scheduler": "cosine",
+    "bf16": true,
+    "gradient_checkpointing": true,
+    "safety_monitoring": true,
+    "crisis_threshold": 0.7,
+    "safety_flag_rate": 1.0,
+    "gpu_type": "A100-80GB",
+    "num_gpus": 2,
+    "estimated_training_hours": 5.6
+  },
+  "logging": {
+    "log_model": true,
+    "log_code": true,
+    "log_gradients": true,
+    "log_parameters": true,
+    "watch_model": "all",
+    "log_freq": 50
+  },
+  "artifacts": {
+    "dataset": {
+      "name": "wayfarer-training-dataset",
+      "type": "dataset",
+      "description": "40,525 real mental health + CoT conversations in ChatML format"
+    },
+    "model": {
+      "name": "wayfarer-2-12b-finetuned",
+      "type": "model",
+      "description": "Fine-tuned Wayfarer-2-12B for mental health applications"
+    }
+  }
+}

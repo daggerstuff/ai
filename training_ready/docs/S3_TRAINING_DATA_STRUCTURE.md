@@ -20,10 +20,10 @@ Model Training
 
 ## S3 Bucket Structure
 
-### Primary Training Data Bucket: `pixelated-training-data` (OVH)
+### Primary Training Data Bucket: `pixel-data` (OVH)
 
 ```
-s3://pixelated-training-data/
+s3://pixel-data/
 ├── acquired/                          # Locally acquired datasets
 │   ├── cot_reasoning.json
 │   └── mental_health_counseling.json
@@ -90,10 +90,10 @@ s3://pixelated-training-data/
     └── moe_training_config.json
 ```
 
-### Checkpoint Bucket: `pixelated-checkpoints` (OVH)
+### Checkpoint Bucket: `pixel-checkpoints` (OVH)
 
 ```
-s3://pixelated-checkpoints/
+s3://pixel-checkpoints/
 ├── foundation/
 │   └── final/
 ├── reasoning/
@@ -137,8 +137,8 @@ s3://pixelated-checkpoints/
 2. **Processed Tier** (`gdrive/processed/`): Organized canonical structure (for training)
 
 **Migration Path**:
-- Current: Google Drive → `s3://pixelated-training-data/gdrive/raw/` (in progress)
-- Future: Process and organize → `s3://pixelated-training-data/gdrive/processed/` (canonical)
+- Current: Google Drive → `s3://pixel-data/gdrive/raw/` (in progress)
+- Future: Process and organize → `s3://pixel-data/gdrive/processed/` (canonical)
 
 ---
 
@@ -161,7 +161,7 @@ def get_s3_dataset_path(dataset_name: str, category: str = None) -> str:
     Returns:
         S3 path (s3://bucket/path)
     """
-    bucket = "pixelated-training-data"
+    bucket = "pixel-data"
     
     # Try processed/canonical structure first
     if category:
@@ -226,31 +226,31 @@ priority_data = load_dataset_from_s3(priority_path)
 
 ### Stage 1: Foundation (`stage1_foundation`)
 **S3 Paths**:
-- `s3://pixelated-training-data/gdrive/processed/professional_therapeutic/`
-- `s3://pixelated-training-data/gdrive/processed/priority/`
-- `s3://pixelated-training-data/acquired/mental_health_counseling.json`
+- `s3://pixel-data/gdrive/processed/professional_therapeutic/`
+- `s3://pixel-data/gdrive/processed/priority/`
+- `s3://pixel-data/acquired/mental_health_counseling.json`
 
 **Purpose**: Natural therapeutic dialogue patterns
 
 ### Stage 2: Therapeutic Expertise (`stage2_therapeutic_expertise`)
 **S3 Paths**:
-- `s3://pixelated-training-data/gdrive/processed/cot_reasoning/`
-- `s3://pixelated-training-data/acquired/cot_reasoning.json`
+- `s3://pixel-data/gdrive/processed/cot_reasoning/`
+- `s3://pixel-data/acquired/cot_reasoning.json`
 
 **Purpose**: Clinical reasoning patterns (Chain of Thought)
 
 ### Stage 3: Edge Stress Test (`stage3_edge_stress_test`)
 **S3 Paths**:
-- `s3://pixelated-training-data/gdrive/processed/edge_cases/raw/reddit/`
-- `s3://pixelated-training-data/edge_cases/`
+- `s3://pixel-data/gdrive/processed/edge_cases/raw/reddit/`
+- `s3://pixel-data/edge_cases/`
 
 **Purpose**: Crisis scenarios and edge cases
 
 ### Stage 4: Voice Persona (`stage4_voice_persona`)
 **S3 Paths**:
-- `s3://pixelated-training-data/voice/tim_fletcher_voice_profile.json`
-- `s3://pixelated-training-data/voice/synthetic_conversations.json`
-- `s3://pixelated-training-data/pixel_voice/`
+- `s3://pixel-data/voice/tim_fletcher_voice_profile.json`
+- `s3://pixel-data/voice/synthetic_conversations.json`
+- `s3://pixel-data/pixel_voice/`
 
 **Purpose**: Tim Fletcher teaching style/personality
 
@@ -268,7 +268,7 @@ priority_data = load_dataset_from_s3(priority_path)
 
 All training data should be organized under:
 ```
-s3://pixelated-training-data/
+s3://pixel-data/
 ├── gdrive/processed/          # Canonical organized structure (primary)
 │   ├── cot_reasoning/
 │   ├── professional_therapeutic/
@@ -308,13 +308,13 @@ s3://pixelated-training-data/
 
 ```bash
 # List S3 contents
-ovhai bucket list pixelated-training-data
+ovhai bucket list pixel-data
 
 # Download dataset
-ovhai data pull pixelated-training-data gdrive/processed/cot_reasoning/ ./local/
+ovhai data pull pixel-data gdrive/processed/cot_reasoning/ ./local/
 
 # Upload processed data
-ovhai data push pixelated-training-data ./processed/ gdrive/processed/
+ovhai data push pixel-data ./processed/ gdrive/processed/
 ```
 
 ### Using boto3 (Python)
@@ -322,24 +322,24 @@ ovhai data push pixelated-training-data ./processed/ gdrive/processed/
 ```python
 import boto3
 
-s3 = boto3.client('s3', 
-    endpoint_url='https://s3.us-east-va.cloud.ovh.us',
-    aws_access_key_id=os.getenv('OVH_S3_ACCESS_KEY'),
-    aws_secret_access_key=os.getenv('OVH_S3_SECRET_KEY')
-)
-
-# List datasets
-response = s3.list_objects_v2(
-    Bucket='pixelated-training-data',
-    Prefix='gdrive/processed/cot_reasoning/'
-)
-
-# Download dataset
-s3.download_file(
-    'pixelated-training-data',
-    'gdrive/processed/cot_reasoning/clinical_diagnosis_mental_health.json',
-    './local/dataset.json'
-)
+    s3 = boto3.client('s3', 
+        endpoint_url='https://s3.us-east-va.cloud.ovh.us',
+        aws_access_key_id=os.getenv('OVH_S3_ACCESS_KEY'),
+        aws_secret_access_key=os.getenv('OVH_S3_SECRET_KEY')
+    )
+    
+    # List datasets
+    response = s3.list_objects_v2(
+        Bucket='pixel-data',
+        Prefix='gdrive/processed/cot_reasoning/'
+    )
+    
+    # Download dataset
+    s3.download_file(
+        'pixel-data',
+        'gdrive/processed/cot_reasoning/clinical_diagnosis_mental_health.json',
+        './local/dataset.json'
+    )
 ```
 
 ### Using rclone
@@ -355,10 +355,10 @@ rclone config
 # Secret Access Key: [your secret]
 
 # List S3 contents
-rclone lsd ovh:pixelated-training-data/gdrive/processed/
+rclone lsd ovh:pixel-data/gdrive/processed/
 
 # Download dataset
-rclone copy ovh:pixelated-training-data/gdrive/processed/cot_reasoning/ ./local/
+rclone copy ovh:pixel-data/gdrive/processed/cot_reasoning/ ./local/
 ```
 
 ---
@@ -378,7 +378,7 @@ def get_training_dataset_path(dataset_name: str, stage: str) -> str:
     3. Local cache (if exists)
     4. Download from S3 to cache
     """
-    bucket = "pixelated-training-data"
+    bucket = "pixel-data"
     
     # Map stage to S3 category
     stage_to_category = {

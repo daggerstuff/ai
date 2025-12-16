@@ -1,0 +1,53 @@
+{
+  "manifest_version": "1.0",
+  "generated": "2025-11-27",
+  "description": "Training policy manifest for Pixelated Empathy datasets (policy/weights/thresholds; not dataset locations)",
+  "renamed_from": "ai/data/master_dataset_manifest.json",
+  "authoritative_dataset_locations": "ai/data/dataset_registry.json",
+  "archived_full_manifest": "ai/data/archive/training_policy_manifest.full.2025-12-15.json",
+  "notes": [
+    "S3 is canonical for training. Dataset *locations* should be sourced from ai/data/dataset_registry.json.",
+    "This manifest is policy/weights/quality thresholds only. The previous dataset lists/paths are archived (see archived_full_manifest)."
+  ],
+  "stages": {
+    "stage1_foundation": {
+      "target_percentage": 0.4,
+      "quality_profile": {
+        "min_empathy": 0.55,
+        "min_safety": 0.7,
+        "bias_max": 0.2
+      },
+      "notes": "Baseline therapeutic tone, rapport building, reflective listening"
+    },
+    "stage2_therapeutic_expertise": {
+      "target_percentage": 0.25,
+      "quality_profile": {
+        "min_empathy": 0.5,
+        "min_safety": 0.68,
+        "requires_reasoning_metadata": true
+      },
+      "notes": "Chain-of-thought clinical reasoning, MEMO summaries, psychology grounding"
+    },
+    "stage3_edge_stress_test": {
+      "target_percentage": 0.2,
+      "quality_profile": {
+        "min_empathy": 0.35,
+        "min_safety": 0.55,
+        "allow_crisis_override": true
+      },
+      "notes": "Nightmare fuel crisis simulations, Reddit edge cases, Safety DPO violations"
+    },
+    "stage4_voice_persona": {
+      "target_percentage": 0.15,
+      "quality_profile": {
+        "min_empathy": 0.6,
+        "min_safety": 0.75,
+        "requires_voice_signature": true
+      },
+      "notes": "Tim Fletcher voice alignment, dual persona delivery"
+    }
+  },
+  "datasets": {}
+}
+
+
