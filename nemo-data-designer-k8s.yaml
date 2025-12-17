@@ -1,0 +1,138 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: nemo
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: nemo-api-key
+  namespace: nemo
+type: Opaque
+data:
+  # This will be populated by the deployment script
+  api-key: ""
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nemo-data-designer
+  namespace: nemo
+  labels:
+    app: nemo-data-designer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nemo-data-designer
+  template:
+    metadata:
+      labels:
+        app: nemo-data-designer
+    spec:
+      containers:
+      - name: nemo-data-designer
+        image: nvcr.io/nemo/nemo-data-designer:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: NVIDIA_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: nemo-api-key
+              key: api-key
+        - name: DATA_DESIGNER_LOG_LEVEL
+          value: "INFO"
+        - name: DATA_DESIGNER_HOST
+          value: "0.0.0.0"
+        - name: DATA_DESIGNER_PORT
+          value: "8000"
+        volumeMounts:
+        - name: data-volume
+          mountPath: /data
+        - name: config-volume
+          mountPath: /config
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1"
+          limits:
+            memory: "4Gi"
+            cpu: "2"
+      volumes:
+      - name: data-volume
+        persistentVolumeClaim:
+          claimName: nemo-data-designer-data
+      - name: config-volume
+        persistentVolumeClaim:
+          claimName: nemo-data-designer-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nemo-data-designer
+  namespace: nemo
+spec:
+  selector:
+    app: nemo-data-designer
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nemo-data-designer-data
+  namespace: nemo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: nemo-data-designer-config
+  namespace: nemo
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nemo-data-designer
+  namespace: nemo
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: nemo-data-designer.your-cluster-domain.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nemo-data-designer
+            port:
+              number: 8000
