@@ -66,8 +66,18 @@ Build completely custom datasets with:
    ```
    
    **Option B: Kubernetes/Helm** (for production)
-   
-   See the [official deployment guide](https://docs.nvidia.com/nemo/microservices/latest/set-up/deploy-as-microservices/data-designer/parent-chart.html)
+
+   For Kubernetes deployment, use the new deployment script:
+   ```bash
+   ./scripts/infrastructure/deploy-nemo-data-designer-k8s.sh
+   ```
+
+   Or manually deploy using the provided Kubernetes manifest:
+   ```bash
+   kubectl apply -f ai/nemo-data-designer-k8s.yaml
+   ```
+
+   See the [official deployment guide](https://docs.nvidia.com/nemo/microservices/latest/set-up/deploy-as-microservices/data-designer/parent-chart.html) for more details.
 
 3. **Set environment variables**:
    ```bash
@@ -83,8 +93,8 @@ Build completely custom datasets with:
    NVIDIA_API_KEY=your-api-key-here
    # For local Docker Compose deployment
    NEMO_DATA_DESIGNER_BASE_URL=http://localhost:8000
-   # For Kubernetes, use your cluster ingress URL
-   # NEMO_DATA_DESIGNER_BASE_URL=http://nemo.test
+   # For Kubernetes deployment, use your cluster ingress URL
+   # NEMO_DATA_DESIGNER_BASE_URL=https://nemo-data-designer.your-cluster-domain.com
    NEMO_DATA_DESIGNER_TIMEOUT=300
    NEMO_DATA_DESIGNER_MAX_RETRIES=3
    NEMO_DATA_DESIGNER_BATCH_SIZE=1000
@@ -92,7 +102,7 @@ Build completely custom datasets with:
    
    **Note**: The `NEMO_DATA_DESIGNER_BASE_URL` depends on your deployment:
    - `http://localhost:8000` for local Docker Compose
-   - Your cluster ingress URL for Kubernetes (e.g., `http://nemo.test` for minikube)
+   - Your cluster ingress URL for Kubernetes (e.g., `https://nemo-data-designer.your-cluster-domain.com`)
 
 ## Quick Start
 
