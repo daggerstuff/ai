@@ -15,7 +15,7 @@ except ImportError:
 class DataDesignerConfig:
     """Configuration for NeMo Data Designer client."""
 
-    base_url: str = "http://localhost:8000"  # For local Docker Compose, use http://localhost:8000
+    base_url: str = "http://localhost:8000"  # Default for local Docker Compose
     api_key: Optional[str] = None
     timeout: int = 300  # 5 minutes default timeout
     max_retries: int = 3
@@ -23,7 +23,18 @@ class DataDesignerConfig:
 
     @classmethod
     def from_env(cls) -> "DataDesignerConfig":
-        """Create configuration from environment variables."""
+        """Create configuration from environment variables.
+
+        Environment Variables:
+        - NEMO_DATA_DESIGNER_BASE_URL: Base URL for the NeMo Data Designer service
+          - Local Docker Compose: http://localhost:8000
+          - Kubernetes deployment: https://nemo-data-designer.your-cluster-domain.com
+          - Remote server: http://your-server-ip:8080
+        - NVIDIA_API_KEY: Your NVIDIA API key for accessing NeMo services
+        - NEMO_DATA_DESIGNER_TIMEOUT: Request timeout in seconds (default: 300)
+        - NEMO_DATA_DESIGNER_MAX_RETRIES: Maximum retry attempts (default: 3)
+        - NEMO_DATA_DESIGNER_BATCH_SIZE: Batch size for data generation (default: 1000)
+        """
         return cls(
             base_url=os.getenv(
                 "NEMO_DATA_DESIGNER_BASE_URL",
