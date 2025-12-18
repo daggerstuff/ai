@@ -212,9 +212,20 @@ definitions:
           # Add your production deployment commands here
           - echo "Production deployment completed"
 
+    # Governance validation step for dataset expansion
+    - step: &governance-validate
+        name: Governance Matrix Validation
+        caches:
+          - uv
+        script:
+          - curl -LsSf https://astral.sh/uv/install.sh | sh
+          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
+          - uv run python scripts/governance/validate_data_source_matrix.py
+
 pipelines:
   default:
     - step: *install-dependencies
+    - step: *governance-validate
     - parallel:
         - step: *lint-and-format
         - step: *type-check
@@ -230,6 +241,7 @@ pipelines:
   branches:
     master:
       - step: *install-dependencies
+      - step: *governance-validate
       - parallel:
           - step: *lint-and-format
           - step: *type-check
@@ -260,6 +272,7 @@ pipelines:
   pull-requests:
     "**":
       - step: *install-dependencies
+      - step: *governance-validate
       - parallel:
           - step: *lint-and-format
           - step: *type-check
