@@ -1,7 +1,7 @@
-image: python:3.11-bookworm  # Python 3.11 with Debian Bookworm
+image: python:3.11-bookworm # Python 3.11 with Debian Bookworm
 
 clone:
-  depth: full  # SonarQube Cloud scanner needs full history
+  depth: full # SonarQube Cloud scanner needs full history
 
 definitions:
   caches:
@@ -9,11 +9,9 @@ definitions:
     uv: ~/.cache/uv
     pip: ~/.cache/pip
     huggingface: ~/.cache/huggingface
-  
   services:
     docker:
-      memory: 4096
-  
+      memory: 3072
   steps:
     - step: &install-dependencies
         name: Install Dependencies
@@ -31,7 +29,7 @@ definitions:
           - uv run python -c "import torch; print(f'PyTorch {torch.__version__}')"
         artifacts:
           - .venv/**
-    
+
     - step: &lint-and-format
         name: Lint and Format Check
         caches:
@@ -45,7 +43,7 @@ definitions:
           # Run nbqa for Jupyter notebooks
           - uv run nbqa ruff *.ipynb || true
           - uv run nbqa black --check *.ipynb || true
-    
+
     - step: &type-check
         name: Type Check with MyPy
         caches:
@@ -54,7 +52,7 @@ definitions:
           - export PATH="$HOME/.cargo/bin:$PATH"
           # Run mypy type checking
           - uv run mypy . --ignore-missing-imports --show-error-codes || true
-    
+
     - step: &security-scan
         name: Security Vulnerability Scan
         caches:
@@ -71,7 +69,7 @@ definitions:
           - uv run bandit -r . || true
         artifacts:
           - bandit-report.json
-    
+
     - step: &unit-tests
         name: Unit Tests with Coverage
         caches:
@@ -85,7 +83,7 @@ definitions:
         artifacts:
           - coverage.xml
           - htmlcov/**
-    
+
     - step: &integration-tests
         name: Integration Tests
         caches:
@@ -99,7 +97,7 @@ definitions:
             else
               echo "No integration tests found, skipping..."
             fi
-    
+
     - step: &data-validation
         name: Data Pipeline Validation
         caches:
@@ -119,7 +117,7 @@ definitions:
             if [ -f "dataset_pipeline/orchestration/integrated_training_pipeline.py" ]; then
               echo "Data pipeline validation would run here (skipped in CI)"
             fi
-    
+
     - step: &model-validation
         name: Model Architecture Validation
         caches:
@@ -137,7 +135,7 @@ definitions:
             if [ -f "lightning/inference_service.py" ]; then
               uv run python -c "import sys; sys.path.insert(0, 'lightning'); from inference_service import app" || echo "Inference service validation completed"
             fi
-    
+
     - step: &build-docker-image
         name: Build Docker Image
         services:
@@ -152,7 +150,7 @@ definitions:
           - docker save pixelated-ai:${BITBUCKET_COMMIT} | gzip > pixelated-ai-image.tar.gz
         artifacts:
           - pixelated-ai-image.tar.gz
-    
+
     - step: &sonarcloud-scan
         name: SonarCloud Analysis
         caches:
@@ -166,12 +164,12 @@ definitions:
                 -Dsonar.python.version=3.11
                 -Dsonar.sources=.
                 -Dsonar.exclusions=**/*.ipynb,**/__pycache__/**,**/tests/**,**/.venv/**,**/dist/**,**/build/**
-    
+
     - step: &quality-gate
         name: SonarCloud Quality Gate
         script:
           - pipe: sonarsource/sonarcloud-quality-gate:0.1.6
-    
+
     - step: &deploy-staging
         name: Deploy to Staging
         deployment: staging
@@ -183,7 +181,7 @@ definitions:
           # Add your staging deployment commands here
           # Example: kubectl apply -f kubernetes_deployment.yaml
           - echo "Deployment completed"
-    
+
     - step: &deploy-production
         name: Deploy to Production
         deployment: production
@@ -210,7 +208,7 @@ pipelines:
         - step: *model-validation
     - step: *sonarcloud-scan
     - step: *quality-gate
-  
+
   branches:
     master:
       - step: *install-dependencies
@@ -227,7 +225,7 @@ pipelines:
       - step: *sonarcloud-scan
       - step: *quality-gate
       - step: *deploy-staging
-    
+
     production:
       - step: *install-dependencies
       - parallel:
@@ -240,9 +238,9 @@ pipelines:
       - step: *sonarcloud-scan
       - step: *quality-gate
       - step: *deploy-production
-  
+
   pull-requests:
-    '**':
+    "**":
       - step: *install-dependencies
       - parallel:
           - step: *lint-and-format
@@ -251,14 +249,14 @@ pipelines:
       - step: *unit-tests
       - step: *sonarcloud-scan
       - step: *quality-gate
-  
+
   tags:
-    'v*':
+    "v*":
       - step: *install-dependencies
       - step: *unit-tests
       - step: *build-docker-image
       - step: *deploy-production
-  
+
   custom:
     full-test-suite:
       - step: *install-dependencies
@@ -273,11 +271,11 @@ pipelines:
           - step: *model-validation
       - step: *sonarcloud-scan
       - step: *quality-gate
-    
+
     security-audit:
       - step: *install-dependencies
       - step: *security-scan
-    
+
     quick-test:
       - step: *install-dependencies
       - step: *lint-and-format

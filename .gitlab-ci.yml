@@ -3,10 +3,10 @@
 # This configuration uses uv for Python package management
 
 stages:
-- validate
-- test
-- build
-- deploy
+  - validate
+  - test
+  - build
+  - deploy
 
 variables:
   # Python and uv configuration
@@ -21,58 +21,58 @@ variables:
 cache:
   key:
     files:
-    - pyproject.toml
-    - uv.lock
+      - pyproject.toml
+      - uv.lock
     prefix: $CI_COMMIT_REF_SLUG
   paths:
-  - .cache/pip
-  - .venv/
+    - .cache/pip
+    - .venv/
 
 # Install uv and Python dependencies
 .uv_setup: &uv_setup
   image: python:3.11-slim
   before_script:
-  - echo "📦 Installing uv package manager..."
-  - curl -LsSf https://astral.sh/uv/install.sh | sh
-  - export PATH="$HOME/.cargo/bin:$PATH"
-  - uv --version
-  - echo "📥 Installing project dependencies..."
-  - uv sync --frozen
-  - uv pip list
+    - echo "📦 Installing uv package manager..."
+    - curl -LsSf https://astral.sh/uv/install.sh | sh
+    - export PATH="$HOME/.cargo/bin:$PATH"
+    - uv --version
+    - echo "📥 Installing project dependencies..."
+    - uv sync --frozen
+    - uv pip list
 
 # Validate Python code syntax and configuration
 validate:python:
   <<: *uv_setup
   stage: validate
   script:
-  - echo "✅ Validating Python syntax and imports..."
-  - uv run python -m py_compile $(find . -name "*.py" -not -path "./.venv/*" -not -path "./.*")
-  - echo "✅ Checking pyproject.toml configuration..."
-  - uv run python -c "import tomllib; f = open('pyproject.toml', 'rb'); tomllib.load(f); f.close()"
+    - echo "✅ Validating Python syntax and imports..."
+    - uv run python -m py_compile $(find . -name "*.py" -not -path "./.venv/*" -not -path "./.*")
+    - echo "✅ Checking pyproject.toml configuration..."
+    - uv run python -c "import tomllib; f = open('pyproject.toml', 'rb'); tomllib.load(f); f.close()"
   only:
-  - branches
-  - merge_requests
+    - branches
+    - merge_requests
 
 # Run linting and formatting checks
 lint:python:
   <<: *uv_setup
   stage: validate
   script:
-  - echo "🔍 Running code quality checks..."
-  - uv run ruff check . || true
-  - uv run black --check . || true
+    - echo "🔍 Running code quality checks..."
+    - uv run ruff check . || true
+    - uv run black --check . || true
   allow_failure: true
   only:
-  - branches
-  - merge_requests
+    - branches
+    - merge_requests
 
 # Run unit tests with pytest
 test:unit:
   <<: *uv_setup
   stage: test
   script:
-  - echo "🧪 Running unit tests..."
-  - uv run pytest tests/ -v --tb=short --color=yes
+    - echo "🧪 Running unit tests..."
+    - uv run pytest tests/ -v --tb=short --color=yes
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:
     when: always
@@ -82,68 +82,69 @@ test:unit:
         coverage_format: cobertura
         path: coverage.xml
     paths:
-    - htmlcov/
+      - htmlcov/
     expire_in: 1 week
   only:
-  - branches
-  - merge_requests
+    - branches
+    - merge_requests
 
 # Type checking with mypy (optional, allow failure)
 test:typecheck:
   <<: *uv_setup
   stage: test
   script:
-  - echo "🔍 Running type checks..."
-  - uv run mypy . --ignore-missing-imports || true
+    - echo "🔍 Running type checks..."
+    - uv run mypy . --ignore-missing-imports || true
   allow_failure: true
   only:
-  - branches
-  - merge_requests
+    - branches
+    - merge_requests
 
 # Build Docker image for AI services
 build:docker:
   stage: build
   image: docker:27-dind
   services:
-  - docker:27-dind
+    - docker:27-dind
   variables:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_HOST: tcp://docker:2375
   before_script:
-  - echo "🔐 Logging in to GitLab Container Registry..."
-  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - echo "🔐 Logging in to GitLab Container Registry..."
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-  - echo "🏗️ Building Docker image for AI module..."
-  - |
-    if [ -f "Dockerfile" ]; then
-      docker build -t $CONTAINER_IMAGE -t $CONTAINER_IMAGE_LATEST .
-      docker push $CONTAINER_IMAGE
-      docker push $CONTAINER_IMAGE_LATEST
-      echo "✅ Docker images built and pushed successfully"
-    else
-      echo "⚠️ No Dockerfile found, skipping Docker build"
-    fi
+    - echo "🏗️ Building Docker image for AI module..."
+    - |
+      if [ -f "Dockerfile" ]; then
+        docker build -t $CONTAINER_IMAGE -t $CONTAINER_IMAGE_LATEST .
+        docker push $CONTAINER_IMAGE
+        docker push $CONTAINER_IMAGE_LATEST
+        echo "✅ Docker images built and pushed successfully"
+      else
+        echo "⚠️ No Dockerfile found, skipping Docker build"
+      fi
   only:
-  - master
-  - main
-  - tags
+    - master
+    - main
+    - tags
 
 # Deploy to staging (optional)
 deploy:staging:
   stage: deploy
   image: alpine:latest
   before_script:
-  - apk add --no-cache curl
-  script:
-  - echo "🚀 Deploying AI module to staging environment..."
-  - echo "Container image: $CONTAINER_IMAGE"
-  - echo "⚠️ Deployment logic not implemented yet"
+    - apk add --no-cache curl
+  script: |
+    echo "🚀 Deploying AI module to staging environment..."
+    echo "Container image: $CONTAINER_IMAGE"
+    echo "⚠️ Deployment logic not implemented yet"
+
   environment:
-    name: staging
-    url: https://staging.pixelatedempathy.com
+    name: "staging"
+    url: "https://staging.pixelatedempathy.com"
   only:
-  - master
-  - main
+    - master
+    - main
   when: manual
 
 # Deploy to production (manual trigger only)
@@ -151,14 +152,15 @@ deploy:production:
   stage: deploy
   image: alpine:latest
   before_script:
-  - apk add --no-cache curl
-  script:
-  - echo "🚀 Deploying AI module to production environment..."
-  - echo "Container image: $CONTAINER_IMAGE"
-  - echo "⚠️ Deployment logic not implemented yet"
+    - apk add --no-cache curl
+  script: |
+    echo "🚀 Deploying AI module to production environment..."
+    echo "Container image: $CONTAINER_IMAGE"
+    echo "⚠️ Deployment logic not implemented yet"
+
   environment:
-    name: production
-    url: https://pixelatedempathy.com
+    name: "production"
+    url: "https://pixelatedempathy.com"
   only:
-  - tags
+    - tags
   when: manual
