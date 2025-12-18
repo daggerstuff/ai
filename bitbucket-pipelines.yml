@@ -35,6 +35,8 @@ definitions:
         caches:
           - uv
         script:
+          # Install uv for fast Python dependency management
+          - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Run ruff linting
           - uv run ruff check . --output-format=github
@@ -49,6 +51,8 @@ definitions:
         caches:
           - uv
         script:
+          # Install uv for fast Python dependency management
+          - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Run mypy type checking
           - uv run mypy . --ignore-missing-imports --show-error-codes || true
@@ -59,6 +63,8 @@ definitions:
           - uv
           - pip
         script:
+          # Install uv for fast Python dependency management
+          - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Install security scanning tools
           - uv pip install pip-audit safety bandit
@@ -75,6 +81,8 @@ definitions:
         caches:
           - uv
         script:
+          # Install uv for fast Python dependency management
+          - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Run pytest with coverage
           - uv run pytest tests/ -v --cov=. --cov-report=xml --cov-report=html --cov-report=term
@@ -89,6 +97,8 @@ definitions:
         caches:
           - uv
         script:
+          # Install uv for fast Python dependency management
+          - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Run integration tests if they exist
           - |
@@ -104,6 +114,8 @@ definitions:
           - uv
           - huggingface
         script:
+          # Install uv for fast Python dependency management
+          - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Test data loaders
           - |
@@ -123,6 +135,8 @@ definitions:
         caches:
           - uv
         script:
+          # Install uv for fast Python dependency management
+          - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Validate model configurations
           - |
@@ -176,6 +190,8 @@ definitions:
         caches:
           - uv
         script:
+          # Install uv for fast Python dependency management
+          - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           - echo "Deploying to staging environment..."
           # Add your staging deployment commands here
@@ -189,6 +205,8 @@ definitions:
         caches:
           - uv
         script:
+          # Install uv for fast Python dependency management
+          - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           - echo "Deploying to production environment..."
           # Add your production deployment commands here
