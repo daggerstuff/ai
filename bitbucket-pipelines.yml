@@ -220,7 +220,18 @@ definitions:
         script:
           - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
-          - uv run python scripts/governance/validate_data_source_matrix.py
+          - |
+            if [ -f "scripts/governance/validate_data_source_matrix.py" ]; then
+              uv run python scripts/governance/validate_data_source_matrix.py
+            elif [ -f "../scripts/governance/validate_data_source_matrix.py" ]; then
+              uv run python ../scripts/governance/validate_data_source_matrix.py
+            else
+              echo "ERROR: Could not find validate_data_source_matrix.py"
+              echo "Current directory: $(pwd)"
+              echo "Looking for: scripts/governance/validate_data_source_matrix.py"
+              find . -name "validate_data_source_matrix.py" 2>/dev/null || echo "Script not found in repository"
+              exit 1
+            fi
 
 pipelines:
   default:
