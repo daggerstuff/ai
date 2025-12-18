@@ -21,7 +21,7 @@ definitions:
         script:
           # Install uv for fast Python dependency management
           - curl -LsSf https://astral.sh/uv/install.sh | sh
-          - export PATH="$HOME/.cargo/bin:$PATH"
+          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Sync dependencies from pyproject.toml
           - uv sync --frozen
           # Verify installation
@@ -35,7 +35,7 @@ definitions:
         caches:
           - uv
         script:
-          - export PATH="$HOME/.cargo/bin:$PATH"
+          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Run ruff linting
           - uv run ruff check . --output-format=github
           # Run black format check
@@ -49,7 +49,7 @@ definitions:
         caches:
           - uv
         script:
-          - export PATH="$HOME/.cargo/bin:$PATH"
+          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Run mypy type checking
           - uv run mypy . --ignore-missing-imports --show-error-codes || true
 
@@ -59,7 +59,7 @@ definitions:
           - uv
           - pip
         script:
-          - export PATH="$HOME/.cargo/bin:$PATH"
+          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Install security scanning tools
           - uv pip install pip-audit safety bandit
           # Run pip-audit for dependency vulnerabilities
@@ -75,7 +75,7 @@ definitions:
         caches:
           - uv
         script:
-          - export PATH="$HOME/.cargo/bin:$PATH"
+          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Run pytest with coverage
           - uv run pytest tests/ -v --cov=. --cov-report=xml --cov-report=html --cov-report=term
           # Display coverage summary
@@ -89,7 +89,7 @@ definitions:
         caches:
           - uv
         script:
-          - export PATH="$HOME/.cargo/bin:$PATH"
+          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Run integration tests if they exist
           - |
             if [ -d "tests/integration" ]; then
@@ -104,7 +104,7 @@ definitions:
           - uv
           - huggingface
         script:
-          - export PATH="$HOME/.cargo/bin:$PATH"
+          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Test data loaders
           - |
             if [ -d "dataset_pipeline/ingestion" ]; then
@@ -123,7 +123,7 @@ definitions:
         caches:
           - uv
         script:
-          - export PATH="$HOME/.cargo/bin:$PATH"
+          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Validate model configurations
           - |
             if [ -d "lightning" ]; then
@@ -176,7 +176,7 @@ definitions:
         caches:
           - uv
         script:
-          - export PATH="$HOME/.cargo/bin:$PATH"
+          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           - echo "Deploying to staging environment..."
           # Add your staging deployment commands here
           # Example: kubectl apply -f kubernetes_deployment.yaml
@@ -189,7 +189,7 @@ definitions:
         caches:
           - uv
         script:
-          - export PATH="$HOME/.cargo/bin:$PATH"
+          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           - echo "Deploying to production environment..."
           # Add your production deployment commands here
           - echo "Production deployment completed"
