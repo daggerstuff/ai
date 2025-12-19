@@ -67,7 +67,10 @@ def get_default_stage_policies() -> dict[str, StagePolicy]:
             name="stage1_foundation", min_empathy=0.55, min_safety=0.7, dedup_priority=1
         ),
         "stage2_therapeutic_expertise": StagePolicy(
-            name="stage2_therapeutic_expertise", min_empathy=0.5, min_safety=0.68, dedup_priority=2
+            name="stage2_therapeutic_expertise",
+            min_empathy=0.5,
+            min_safety=0.68,
+            dedup_priority=2,
         ),
         "stage3_edge_stress_test": StagePolicy(
             name="stage3_edge_stress_test",
@@ -166,7 +169,9 @@ class StageCatalog:
                         stem = Path(str(raw_path)).stem.lower()
                         self.stage_map[stem] = stage
 
-    def lookup(self, source_name: str, path: str | None, source_type: str | None) -> str:
+    def lookup(
+        self, source_name: str, path: str | None, source_type: str | None
+    ) -> str:
         """Return the best stage label for the provided source metadata."""
         candidates = [source_name or "", source_type or ""]
         if path:
@@ -184,10 +189,14 @@ class StageCatalog:
         """Heuristic stage inference when manifest metadata is missing."""
         text = f"{source_name} {source_type}".lower()
         if any(
-            token in text for token in ["edge_case", "reddit", "suicide", "kaggle_tf", "nightmare"]
+            token in text
+            for token in ["edge_case", "reddit", "suicide", "kaggle_tf", "nightmare"]
         ):
             return "stage3_edge_stress_test"
-        if any(token in text for token in ["voice", "tim_fletcher", "persona", "transcript"]):
+        if any(
+            token in text
+            for token in ["voice", "tim_fletcher", "persona", "transcript"]
+        ):
             return "stage4_voice_persona"
         if any(token in text for token in ["cot", "reasoning", "memo", "knowledge"]):
             return "stage2_therapeutic_expertise"
@@ -235,7 +244,9 @@ class UnifiedPreprocessingPipeline:
             re.compile(r"[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"),
         ]
 
-    def _is_crisis_override_active(self, metadata: dict[str, Any], policy: StagePolicy) -> bool:
+    def _is_crisis_override_active(
+        self, metadata: dict[str, Any], policy: StagePolicy
+    ) -> bool:
         crisis_flag = metadata.get("crisis_intensity")
         if not crisis_flag or not policy.allow_crisis_override:
             return False
@@ -260,7 +271,9 @@ class UnifiedPreprocessingPipeline:
     def register_data_source(self, source: DataSource):
         """Register a data source for processing"""
         if not source.stage:
-            source.stage = self.stage_catalog.lookup(source.name, source.path, source.source_type)
+            source.stage = self.stage_catalog.lookup(
+                source.name, source.path, source.source_type
+            )
         source.metadata.setdefault("stage", source.stage)
         self.data_sources.append(source)
         logger.info(f"Registered data source: {source.name} ({source.format})")
@@ -319,7 +332,9 @@ class UnifiedPreprocessingPipeline:
                     )
                 )
         except Exception as exc:
-            logger.warning(f"Skipping S3 registry discovery (will fallback to local): {exc}")
+            logger.warning(
+                f"Skipping S3 registry discovery (will fallback to local): {exc}"
+            )
 
     def _discover_local_sources(self) -> None:
         """Discover and register local datasets bundled in the repo/worktree."""
@@ -453,7 +468,9 @@ class UnifiedPreprocessingPipeline:
             (
                 legacy
                 for legacy in legacy_paths
-                if legacy and legacy.startswith("s3://") and loader.object_exists(legacy)
+                if legacy
+                and legacy.startswith("s3://")
+                and loader.object_exists(legacy)
             ),
             None,
         )
@@ -465,7 +482,9 @@ class UnifiedPreprocessingPipeline:
             if source.path.startswith("s3://"):
                 loader = self._get_s3_loader()
                 if loader is None:
-                    logger.warning("Cannot validate S3 path without S3 credentials/loader")
+                    logger.warning(
+                        "Cannot validate S3 path without S3 credentials/loader"
+                    )
                     return False
                 if not loader.object_exists(source.path):
                     logger.warning(f"S3 object does not exist: {source.path}")
@@ -522,13 +541,17 @@ class UnifiedPreprocessingPipeline:
                     records.append(processed_record)
                     processed_count += 1
                     if processed_count % self.PROGRESS_LOG_INTERVAL == 0:
-                        logger.info(f"Processed {processed_count} records from {source.name}")
+                        logger.info(
+                            f"Processed {processed_count} records from {source.name}"
+                        )
         else:
             with open(source.path) as f:
                 for line_num, line in enumerate(f, 1):
                     try:
                         record = json.loads(line.strip())
-                        if processed_record := self._process_single_record(record, source):
+                        if processed_record := self._process_single_record(
+                            record, source
+                        ):
                             records.append(processed_record)
                             processed_count += 1
                             if processed_count % self.PROGRESS_LOG_INTERVAL == 0:
@@ -536,7 +559,9 @@ class UnifiedPreprocessingPipeline:
                                     f"Processed {processed_count} records from {source.name}"
                                 )
                     except json.JSONDecodeError as e:
-                        logger.warning(f"Invalid JSON on line {line_num} of {source.name}: {e!s}")
+                        logger.warning(
+                            f"Invalid JSON on line {line_num} of {source.name}: {e!s}"
+                        )
 
         logger.info(f"Completed processing {source.name}: {len(records)} valid records")
         return records
@@ -574,7 +599,9 @@ class UnifiedPreprocessingPipeline:
         enhanced = self.enhance_record(record, source)
         return enhanced if self.validate_record(enhanced) else None
 
-    def enhance_record(self, record: dict[str, Any], source: DataSource) -> dict[str, Any]:
+    def enhance_record(
+        self, record: dict[str, Any], source: DataSource
+    ) -> dict[str, Any]:
         """Enhance a record with metadata and source information"""
         # Add source tracking
         record["_source"] = source.name
@@ -585,15 +612,54 @@ class UnifiedPreprocessingPipeline:
         if "metadata" not in record:
             record["metadata"] = {}
 
+        # Try Quality Scoring v1 first, fallback to estimate
         if "quality_score" not in record.get("metadata", {}):
-            record["metadata"]["quality_score"] = self.estimate_quality_score(record)
+            try:
+                from ai.dataset_pipeline.quality.quality_scoring_v1 import (
+                    QualityScoringV1,
+                )
+
+                if not hasattr(self, "_quality_scoring"):
+                    self._quality_scoring = QualityScoringV1(enabled=True)
+
+                # Extract text for scoring
+                text = ""
+                if "text" in record:
+                    text = record["text"]
+                elif "messages" in record:
+                    text = " ".join(
+                        msg.get("content", "") if isinstance(msg, dict) else str(msg)
+                        for msg in record["messages"]
+                    )
+
+                if text:
+                    scoring_result = self._quality_scoring.score_conversation_text(text)
+                    record["metadata"]["quality_score"] = scoring_result.get(
+                        "composite", 0.5
+                    )
+                    record["metadata"]["quality_scoring_v1"] = {
+                        "signals": scoring_result.get("signals", {}),
+                        "decision": scoring_result.get("decision", "curate"),
+                    }
+                else:
+                    record["metadata"]["quality_score"] = self.estimate_quality_score(
+                        record
+                    )
+
+            except ImportError:
+                # Fallback to estimate if Quality Scoring v1 not available
+                record["metadata"]["quality_score"] = self.estimate_quality_score(
+                    record
+                )
 
         # Ensure stage metadata is populated
         self.resolve_stage_for_record(record, source)
 
         return record
 
-    def resolve_stage_for_record(self, record: dict[str, Any], source: DataSource) -> str:
+    def resolve_stage_for_record(
+        self, record: dict[str, Any], source: DataSource
+    ) -> str:
         """Populate and return the stage associated with this record."""
         metadata = record.setdefault("metadata", {})
         stage = (
@@ -644,7 +710,8 @@ class UnifiedPreprocessingPipeline:
 
         # Basic validation
         if self.config.validation_enabled and (
-            ("messages" not in record and "text" not in record) or self._content_length(record) < 10
+            ("messages" not in record and "text" not in record)
+            or self._content_length(record) < 10
         ):
             return False
 
@@ -662,7 +729,9 @@ class UnifiedPreprocessingPipeline:
         ) and not crisis_override_active:
             return False
 
-        return bool(not policy.requires_voice_signature or metadata.get("voice_signature"))
+        return bool(
+            not policy.requires_voice_signature or metadata.get("voice_signature")
+        )
 
     def _content_length(self, record: dict[str, Any]) -> int:
         """Compute a minimal content length for validation."""
@@ -671,10 +740,14 @@ class UnifiedPreprocessingPipeline:
             return len(text)
         messages = record.get("messages")
         if isinstance(messages, list):
-            return sum(len(msg.get("content", "")) for msg in messages if isinstance(msg, dict))
+            return sum(
+                len(msg.get("content", "")) for msg in messages if isinstance(msg, dict)
+            )
         return 0
 
-    def deduplicate_records(self, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def deduplicate_records(
+        self, records: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Remove duplicate records"""
         if not self.config.deduplication_enabled:
             return records
@@ -689,7 +762,9 @@ class UnifiedPreprocessingPipeline:
             if "text" in record:
                 content_to_hash = record["text"]
             elif "messages" in record:
-                content_to_hash = "".join([msg.get("content", "") for msg in record["messages"]])
+                content_to_hash = "".join(
+                    [msg.get("content", "") for msg in record["messages"]]
+                )
 
             if content_to_hash:
                 content_hash = hashlib.md5(content_to_hash.encode()).hexdigest()
@@ -712,7 +787,9 @@ class UnifiedPreprocessingPipeline:
         )
         return [entry["record"] for entry in hash_map.values()]
 
-    def apply_safety_filtering(self, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def apply_safety_filtering(
+        self, records: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Apply safety filtering to records"""
         if not self.config.safety_filtering_enabled:
             return records
@@ -739,7 +816,9 @@ class UnifiedPreprocessingPipeline:
                 if safety_score < policy.min_safety and not crisis_override_active:
                     unsafe_filtered += 1
                     continue
-            elif safety_score < policy.min_safety or self._contains_disallowed_keywords(content):
+            elif safety_score < policy.min_safety or self._contains_disallowed_keywords(
+                content
+            ):
                 unsafe_filtered += 1
                 continue
 
@@ -753,7 +832,9 @@ class UnifiedPreprocessingPipeline:
         if "text" in record:
             return str(record["text"]).lower()
         if "messages" in record:
-            return " ".join([msg.get("content", "") for msg in record["messages"]]).lower()
+            return " ".join(
+                [msg.get("content", "") for msg in record["messages"]]
+            ).lower()
         return ""
 
     def _contains_disallowed_keywords(self, content: str) -> bool:
@@ -765,7 +846,9 @@ class UnifiedPreprocessingPipeline:
             return False
         return any(pattern.search(content) for pattern in self._pii_patterns)
 
-    def integrate_psychology_knowledge(self, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    def integrate_psychology_knowledge(
+        self, records: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """Integrate psychology knowledge base concepts into records"""
         if not self.config.psychology_integration_enabled:
             return records
@@ -785,7 +868,9 @@ class UnifiedPreprocessingPipeline:
                                 if isinstance(item, dict) and "concept_id" in item:
                                     psych_knowledge[item["concept_id"]] = item
                 except Exception as e:
-                    logger.warning(f"Failed to load psychology knowledge from {file_path}: {e!s}")
+                    logger.warning(
+                        f"Failed to load psychology knowledge from {file_path}: {e!s}"
+                    )
 
         if not psych_knowledge:
             logger.warning("No psychology knowledge base found for integration")
@@ -798,12 +883,14 @@ class UnifiedPreprocessingPipeline:
             if "metadata" not in record:
                 record["metadata"] = {}
 
-            record["metadata"]["psychology_concepts"] = self.extract_psychology_concepts(
-                record, psych_knowledge
+            record["metadata"]["psychology_concepts"] = (
+                self.extract_psychology_concepts(record, psych_knowledge)
             )
             enhanced_records.append(record)
 
-        logger.info(f"Integrated psychology knowledge into {len(enhanced_records)} records")
+        logger.info(
+            f"Integrated psychology knowledge into {len(enhanced_records)} records"
+        )
         return enhanced_records
 
     def extract_psychology_concepts(
@@ -816,13 +903,18 @@ class UnifiedPreprocessingPipeline:
         if "text" in record:
             content = record["text"].lower()
         elif "messages" in record:
-            content = " ".join([msg.get("content", "").lower() for msg in record["messages"]])
+            content = " ".join(
+                [msg.get("content", "").lower() for msg in record["messages"]]
+            )
 
         # Simple keyword matching for psychology concepts
         for concept_id, concept_data in psych_knowledge.items():
             concept_terms = []
             if isinstance(concept_data, dict):
-                concept_terms = [concept_data.get("category", ""), concept_data.get("content", "")]
+                concept_terms = [
+                    concept_data.get("category", ""),
+                    concept_data.get("content", ""),
+                ]
             elif isinstance(concept_data, str):
                 concept_terms = [concept_data]
 
@@ -867,7 +959,9 @@ class UnifiedPreprocessingPipeline:
             all_records = self.integrate_psychology_knowledge(all_records)
 
         # Final validation
-        final_records = [record for record in all_records if self.validate_record(record)]
+        final_records = [
+            record for record in all_records if self.validate_record(record)
+        ]
 
         logger.info(f"Final dataset contains {len(final_records)} records")
 
@@ -935,7 +1029,9 @@ if __name__ == "__main__":
     # Example usage
     try:
         final_dataset_path = run_pipeline()
-        logger.info("Pipeline completed successfully. Dataset saved to: %s", final_dataset_path)
+        logger.info(
+            "Pipeline completed successfully. Dataset saved to: %s", final_dataset_path
+        )
     except Exception as e:
         logger.exception("Pipeline failed: %s", e)
         raise
