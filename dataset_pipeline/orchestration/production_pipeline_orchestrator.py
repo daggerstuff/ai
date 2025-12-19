@@ -17,6 +17,7 @@ logger = get_logger(__name__)
 @dataclass
 class PipelineConfig:
     """Configuration for production pipeline."""
+
     target_conversation_count: int = 100000
     quality_threshold: float = 0.8
     personality_balancing: bool = True
@@ -31,6 +32,7 @@ class PipelineConfig:
 @dataclass
 class PipelineResult:
     """Result of production pipeline execution."""
+
     success: bool
     final_dataset_path: str
     statistics: dict[str, Any]
@@ -57,7 +59,7 @@ class ProductionPipelineOrchestrator:
             "quality_validator": None,
             "personality_balancer": None,
             "dataset_generator": None,
-            "export_system": None
+            "export_system": None,
         }
 
         self.execution_log = []
@@ -73,9 +75,12 @@ class ProductionPipelineOrchestrator:
         self.logger.error(f"Unknown component: {component_name}")
         return False
 
-    def execute_pipeline(self, config: PipelineConfig,
-                        data_sources: list[dict[str, Any]],
-                        output_path: str) -> PipelineResult:
+    def execute_pipeline(
+        self,
+        config: PipelineConfig,
+        data_sources: list[dict[str, Any]],
+        output_path: str,
+    ) -> PipelineResult:
         """Execute the complete production pipeline."""
         start_time = datetime.now()
         self.execution_log = []
@@ -91,14 +96,22 @@ class ProductionPipelineOrchestrator:
 
             # Step 2: Quality filtering
             self._log_step("Step 2: Quality filtering")
-            quality_conversations = self._filter_by_quality(raw_conversations, config.quality_threshold)
-            self._log_step(f"Quality filtered to {len(quality_conversations)} conversations")
+            quality_conversations = self._filter_by_quality(
+                raw_conversations, config.quality_threshold
+            )
+            self._log_step(
+                f"Quality filtered to {len(quality_conversations)} conversations"
+            )
 
             # Step 3: Personality balancing (if enabled)
             if config.personality_balancing:
                 self._log_step("Step 3: Personality balancing")
-                balanced_conversations = self._balance_personalities(quality_conversations)
-                self._log_step(f"Personality balanced to {len(balanced_conversations)} conversations")
+                balanced_conversations = self._balance_personalities(
+                    quality_conversations
+                )
+                self._log_step(
+                    f"Personality balanced to {len(balanced_conversations)} conversations"
+                )
             else:
                 balanced_conversations = quality_conversations
                 self._log_step("Step 3: Skipped personality balancing")
@@ -107,19 +120,27 @@ class ProductionPipelineOrchestrator:
             if config.safety_validation:
                 self._log_step("Step 4: Safety validation")
                 safe_conversations = self._validate_safety(balanced_conversations)
-                self._log_step(f"Safety validated to {len(safe_conversations)} conversations")
+                self._log_step(
+                    f"Safety validated to {len(safe_conversations)} conversations"
+                )
             else:
                 safe_conversations = balanced_conversations
                 self._log_step("Step 4: Skipped safety validation")
 
             # Step 5: Final dataset generation
             self._log_step("Step 5: Final dataset generation")
-            final_dataset = self._generate_production_dataset(safe_conversations, config)
-            self._log_step(f"Generated final dataset with {len(final_dataset.conversations)} conversations")
+            final_dataset = self._generate_production_dataset(
+                safe_conversations, config
+            )
+            self._log_step(
+                f"Generated final dataset with {len(final_dataset.conversations)} conversations"
+            )
 
             # Step 6: Export dataset
             self._log_step("Step 6: Exporting dataset")
-            export_success = self._export_dataset(final_dataset, output_path, config.export_formats)
+            export_success = self._export_dataset(
+                final_dataset, output_path, config.export_formats
+            )
             self._log_step(f"Export {'successful' if export_success else 'failed'}")
 
             # Step 7: Generate statistics and quality report
@@ -130,7 +151,9 @@ class ProductionPipelineOrchestrator:
             execution_time = (datetime.now() - start_time).total_seconds()
             self._log_step(f"Pipeline completed in {execution_time:.2f} seconds")
 
-            self.logger.info(f"Pipeline execution completed successfully in {execution_time:.2f}s")
+            self.logger.info(
+                f"Pipeline execution completed successfully in {execution_time:.2f}s"
+            )
 
             return PipelineResult(
                 success=True,
@@ -138,7 +161,7 @@ class ProductionPipelineOrchestrator:
                 statistics=statistics,
                 quality_report=quality_report,
                 execution_time=execution_time,
-                pipeline_log=self.execution_log.copy()
+                pipeline_log=self.execution_log.copy(),
             )
 
         except Exception as e:
@@ -153,7 +176,7 @@ class ProductionPipelineOrchestrator:
                 statistics={},
                 quality_report={},
                 execution_time=execution_time,
-                pipeline_log=self.execution_log.copy()
+                pipeline_log=self.execution_log.copy(),
             )
 
     def _log_step(self, message: str) -> None:
@@ -163,7 +186,9 @@ class ProductionPipelineOrchestrator:
         self.execution_log.append(log_entry)
         self.logger.info(message)
 
-    def _load_and_standardize_data(self, data_sources: list[dict[str, Any]]) -> list[Conversation]:
+    def _load_and_standardize_data(
+        self, data_sources: list[dict[str, Any]]
+    ) -> list[Conversation]:
         """Load and standardize data from sources."""
         # Placeholder implementation - would use actual data loader
         conversations = []
@@ -187,31 +212,57 @@ class ProductionPipelineOrchestrator:
                     {
                         "role": "user",
                         "content": f"Sample user message {i} from {source.get('name', 'unknown')}",
-                        "timestamp": datetime.now()
+                        "timestamp": datetime.now(),
                     },
                     {
                         "role": "assistant",
                         "content": f"Sample therapeutic response {i} with empathy and support",
-                        "timestamp": datetime.now()
-                    }
+                        "timestamp": datetime.now(),
+                    },
                 ],
                 title=f"Sample Conversation {i}",
                 metadata={"source": source.get("name", "unknown")},
                 tags=["sample", "therapeutic"],
-                quality_score=0.85
+                quality_score=0.85,
             )
             sample_conversations.append(conv)
 
         return sample_conversations
 
-    def _filter_by_quality(self, conversations: list[Conversation], threshold: float) -> list[Conversation]:
-        """Filter conversations by quality threshold."""
+    def _filter_by_quality(
+        self, conversations: list[Conversation], threshold: float
+    ) -> list[Conversation]:
+        """Filter conversations by quality threshold using Quality Scoring v1 if available."""
+        self.logger.info(
+            f"Filtering {len(conversations)} conversations by quality threshold: {threshold}"
+        )
+
+        # Try Quality Scoring v1 first
+        try:
+            from ai.dataset_pipeline.quality.quality_filter_v1 import QualityFilterV1
+
+            quality_filter = QualityFilterV1(
+                min_decision="curate", min_composite=threshold, enabled=True
+            )
+
+            filtered, _ = quality_filter.filter_batch(conversations)
+            self.logger.info(
+                f"Quality Scoring v1 filtered to {len(filtered)} conversations"
+            )
+            return filtered
+        except ImportError:
+            self.logger.debug("Quality Scoring v1 not available, using fallback")
+
+        # Fallback to existing quality_score attribute
         return [
-            conv for conv in conversations
+            conv
+            for conv in conversations
             if conv.quality_score and conv.quality_score >= threshold
         ]
 
-    def _balance_personalities(self, conversations: list[Conversation]) -> list[Conversation]:
+    def _balance_personalities(
+        self, conversations: list[Conversation]
+    ) -> list[Conversation]:
         """Balance personality representation."""
         # Placeholder - would use actual personality balancer
         return conversations  # Return as-is for now
@@ -221,7 +272,9 @@ class ProductionPipelineOrchestrator:
         # Placeholder - would use actual safety validator
         return conversations  # Return as-is for now
 
-    def _generate_production_dataset(self, conversations: list[Conversation], config: PipelineConfig):
+    def _generate_production_dataset(
+        self, conversations: list[Conversation], config: PipelineConfig
+    ):
         """Generate production dataset."""
         # Placeholder - would use actual dataset generator
         from production_dataset_generator import ProductionDataset
@@ -231,10 +284,10 @@ class ProductionPipelineOrchestrator:
             metadata={
                 "generated_at": datetime.now().isoformat(),
                 "config": config.__dict__,
-                "total_conversations": len(conversations)
+                "total_conversations": len(conversations),
             },
             quality_metrics={"overall_quality": 0.85},
-            generation_stats={"processed": len(conversations)}
+            generation_stats={"processed": len(conversations)},
         )
 
     def _export_dataset(self, dataset, output_path: str, formats: list[str]) -> bool:
@@ -243,10 +296,13 @@ class ProductionPipelineOrchestrator:
         try:
             # Simulate export
             with open(output_path, "w") as f:
-                json.dump({
-                    "conversations": len(dataset.conversations),
-                    "exported_at": datetime.now().isoformat()
-                }, f)
+                json.dump(
+                    {
+                        "conversations": len(dataset.conversations),
+                        "exported_at": datetime.now().isoformat(),
+                    },
+                    f,
+                )
             return True
         except Exception as e:
             self.logger.error(f"Export failed: {e}")
@@ -257,8 +313,11 @@ class ProductionPipelineOrchestrator:
         return {
             "total_conversations": len(conversations),
             "total_messages": sum(len(conv.messages) for conv in conversations),
-            "average_quality": sum(conv.quality_score or 0 for conv in conversations) / len(conversations) if conversations else 0,
-            "generated_at": datetime.now().isoformat()
+            "average_quality": sum(conv.quality_score or 0 for conv in conversations)
+            / len(conversations)
+            if conversations
+            else 0,
+            "generated_at": datetime.now().isoformat(),
         }
 
     def _generate_quality_report(self, dataset) -> dict[str, Any]:
@@ -266,7 +325,7 @@ class ProductionPipelineOrchestrator:
         return {
             "overall_quality": dataset.quality_metrics.get("overall_quality", 0),
             "validation_passed": True,
-            "report_generated_at": datetime.now().isoformat()
+            "report_generated_at": datetime.now().isoformat(),
         }
 
     def get_pipeline_status(self) -> dict[str, Any]:
@@ -277,7 +336,7 @@ class ProductionPipelineOrchestrator:
                 for name, component in self.pipeline_components.items()
             },
             "execution_log_entries": len(self.execution_log),
-            "last_execution": self.execution_log[-1] if self.execution_log else None
+            "last_execution": self.execution_log[-1] if self.execution_log else None,
         }
 
 
