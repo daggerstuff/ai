@@ -163,7 +163,8 @@ class BigFiveProcessor:
         )
 
         logger.info(
-            f"Initialized {len(personality_profiles)} personality profiles and {len(assessments)} assessments"
+            f"Initialized {len(personality_profiles)} personality profiles and "
+            f"{len(assessments)} assessments"
         )
 
     def _create_openness_profile(self) -> PersonalityProfile:
@@ -223,7 +224,8 @@ class BigFiveProcessor:
         return PersonalityProfile(
             factor=PersonalityFactor.OPENNESS,
             name="Openness to Experience",
-            description="Reflects the degree of intellectual curiosity, creativity, and preference for novelty and variety",
+            description="Reflects the degree of intellectual curiosity, creativity, and "
+            "preference for novelty and variety",
             facets=facets,
             score_interpretations={
                 "high": [
@@ -291,7 +293,8 @@ class BigFiveProcessor:
         return PersonalityProfile(
             factor=PersonalityFactor.CONSCIENTIOUSNESS,
             name="Conscientiousness",
-            description="Reflects the degree of organization, persistence, and motivation in goal-directed behavior",
+            description="Reflects the degree of organization, persistence, and motivation "
+            "in goal-directed behavior",
             facets=facets,
             score_interpretations={
                 "high": [
@@ -359,7 +362,8 @@ class BigFiveProcessor:
         return PersonalityProfile(
             factor=PersonalityFactor.EXTRAVERSION,
             name="Extraversion",
-            description="Reflects the degree of sociability, assertiveness, and positive emotionality",
+            description="Reflects the degree of sociability, assertiveness, and "
+            "positive emotionality",
             facets=facets,
             score_interpretations={
                 "high": [
@@ -427,7 +431,8 @@ class BigFiveProcessor:
         return PersonalityProfile(
             factor=PersonalityFactor.AGREEABLENESS,
             name="Agreeableness",
-            description="Reflects the degree of cooperation, trust, and concern for others",
+            description="Reflects the degree of cooperation, trust, and concern "
+            "for others",
             facets=facets,
             score_interpretations={
                 "high": [
@@ -495,7 +500,8 @@ class BigFiveProcessor:
         return PersonalityProfile(
             factor=PersonalityFactor.NEUROTICISM,
             name="Neuroticism",
-            description="Reflects the degree of emotional instability and tendency to experience negative emotions",
+            description="Reflects the degree of emotional instability and tendency "
+            "to experience negative emotions",
             facets=facets,
             score_interpretations={
                 "high": [
@@ -568,7 +574,8 @@ class BigFiveProcessor:
         return BigFiveAssessment(
             name="Big Five Inventory (BFI)",
             type=AssessmentType.BFI,
-            description="44-item self-report measure of Big Five personality dimensions",
+            description="44-item self-report measure of Big Five personality "
+            "dimensions",
             items=items,
             administration_time="5-10 minutes",
             target_population=["adults", "adolescents"],
@@ -630,7 +637,8 @@ class BigFiveProcessor:
         return BigFiveAssessment(
             name="Ten-Item Personality Inventory (TIPI)",
             type=AssessmentType.TIPI,
-            description="Brief 10-item measure of Big Five personality dimensions",
+            description="Brief 10-item measure of Big Five personality "
+            "dimensions",
             items=items,
             administration_time="1-2 minutes",
             target_population=["adults"],
@@ -764,7 +772,8 @@ class BigFiveProcessor:
         assessment_messages = [
             Message(
                 role="therapist",
-                content=f"I'd like to explore your {profile.name.lower()} with you. This will help me understand your personality style better.",
+                content=f"I'd like to explore your {profile.name.lower()} with you. "
+                f"This will help me understand your personality style better.",
                 meta={"type": "introduction", "factor": factor.value},
             )
         ]
@@ -777,7 +786,8 @@ class BigFiveProcessor:
             assessment_messages.append(
                 Message(
                     role="therapist",
-                    content=f"Some people describe themselves as {high_chars[0].lower()}. How would you describe yourself in this area?",
+                    content=f"Some people describe themselves as {high_chars[0].lower()}. "
+                    f"How would you describe yourself in this area?",
                     meta={"characteristic_type": "high", "factor": factor.value},
                 )
             )
@@ -785,7 +795,8 @@ class BigFiveProcessor:
             assessment_messages.append(
                 Message(
                     role="client",
-                    content=f"I think I am fairly {high_chars[0].lower()}. For example, I often find myself engaging in activities that reflect this trait.",
+                    content=f"I think I am fairly {high_chars[0].lower()}. For example, "
+                    f"I often find myself engaging in activities that reflect this trait.",
                     meta={"response_type": "high_agreement", "factor": factor.value},
                 )
             )
@@ -794,7 +805,8 @@ class BigFiveProcessor:
         therapeutic_messages = [
             Message(
                 role="therapist",
-                content=f"Based on our discussion about your {profile.name.lower()}, I'd like to explore how this affects your daily life and relationships.",
+                content=f"Based on our discussion about your {profile.name.lower()}, "
+                f"I'd like to explore how this affects your daily life and relationships.",
                 meta={"type": "therapeutic_exploration", "factor": factor.value},
             )
         ]
@@ -804,7 +816,8 @@ class BigFiveProcessor:
             therapeutic_messages.append(
                 Message(
                     role="therapist",
-                    content=f"Given your personality style, {implication.lower()}. How does this resonate with your experience?",
+                    content=f"Given your personality style, {implication.lower()}. "
+                    f"How does this resonate with your experience?",
                     meta={"therapeutic_implication": True, "factor": factor.value},
                 )
             )
@@ -843,7 +856,10 @@ class BigFiveProcessor:
 
         conversations.extend([assessment_conversation, therapeutic_conversation])
 
-        logger.info(f"Generated {len(conversations)} conversation templates for {profile.name}")
+        logger.info(
+            f"Generated {len(conversations)} conversation templates for "
+            f"{profile.name}"
+        )
         return conversations
 
     def export_to_json(self, output_path: Path) -> bool:

@@ -25,7 +25,7 @@ from ai.dataset_pipeline.ingestion.psychology_knowledge_loader import (
     PsychologyKnowledgeLoader,
 )
 from ai.dataset_pipeline.quality.evidence_based_practice_validator import validate_bias
-from ai.dataset_pipeline.storage_config import StorageBackend, get_storage_config
+from ai.dataset_pipeline.storage_config import get_storage_config
 from ai.dataset_pipeline.storage_manager import StorageManager
 from ai.dataset_pipeline.utils.logger import get_logger
 
@@ -213,7 +213,9 @@ class IntegratedTrainingPipeline:
             if s3_path.startswith(
                 f"s3://{self.storage.config.s3_bucket}/"
             ):  # Use self.storage.config.s3_bucket
-                download_key = s3_path.replace(f"s3://{self.storage.config.s3_bucket}/", "")
+                download_key = s3_path.replace(
+                    f"s3://{self.storage.config.s3_bucket}/", ""
+                )
             elif s3_path.startswith("datasets/"):
                 # This matches the S3 key structure directly
                 download_key = s3_path
@@ -246,7 +248,9 @@ class IntegratedTrainingPipeline:
         # 1. Load Edge Case Data
         if self.config.edge_cases.enabled:
             cached_path = self._cache_data(self.config.edge_cases.source_path)
-            edge_data = self._load_edge_cases(cached_path)  # Modified to pass cached_path
+            edge_data = self._load_edge_cases(
+                cached_path
+            )  # Modified to pass cached_path
             all_training_data.extend(edge_data)
             self.stats.samples_by_source["edge_cases"] = len(edge_data)
             logger.info(f"✅ Loaded {len(edge_data)} edge case examples")
@@ -254,7 +258,9 @@ class IntegratedTrainingPipeline:
         # 2. Load Pixel Voice Data
         if self.config.pixel_voice.enabled:
             cached_path = self._cache_data(self.config.pixel_voice.source_path)
-            voice_data = self._load_pixel_voice(cached_path)  # Modified to pass cached_path
+            voice_data = self._load_pixel_voice(
+                cached_path
+            )  # Modified to pass cached_path
             all_training_data.extend(voice_data)
             self.stats.samples_by_source["pixel_voice"] = len(voice_data)
             logger.info(f"✅ Loaded {len(voice_data)} voice-derived examples")
@@ -272,7 +278,9 @@ class IntegratedTrainingPipeline:
         # 4. Load Dual Persona Data
         if self.config.dual_persona.enabled:
             cached_path = self._cache_data(self.config.dual_persona.source_path)
-            persona_data = self._load_dual_persona(cached_path)  # Modified to pass cached_path
+            persona_data = self._load_dual_persona(
+                cached_path
+            )  # Modified to pass cached_path
             all_training_data.extend(persona_data)
             self.stats.samples_by_source["dual_persona"] = len(persona_data)
             logger.info(f"✅ Loaded {len(persona_data)} dual persona examples")
@@ -304,7 +312,9 @@ class IntegratedTrainingPipeline:
         # 10. Generate integration report
         self.stats.total_samples = len(balanced_data)
         self.stats.samples_by_category = dict(self.stats.samples_by_stage)
-        self.stats.integration_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+        self.stats.integration_time = (
+            datetime.now(timezone.utc) - start_time
+        ).total_seconds()
 
         report = self._generate_report()
 
@@ -396,7 +406,8 @@ class IntegratedTrainingPipeline:
         """Load standard therapeutic conversations with robust error handling"""
         # Try multiple file locations
         possible_files = [
-            Path(self.config.standard_therapeutic.source_path) / "training_dataset.json",
+            Path(self.config.standard_therapeutic.source_path)
+            / "training_dataset.json",
             Path("ai/lightning/pixelated-training/training_dataset.json"),
             Path("ai/dataset_pipeline/pixelated-training/training_dataset.json"),
         ]
@@ -446,21 +457,23 @@ class IntegratedTrainingPipeline:
             else:
                 logger.warning(f"Unexpected data type in {file_path}: {type(raw_data)}")
         except json.JSONDecodeError as e:
-            logger.warning(f"JSON parsing error in {file_path} at position {e.pos}: {e.msg}")
+            logger.warning(
+                f"JSON parsing error in {file_path} at position {e.pos}: {e.msg}"
+            )
             raise e
         except Exception as e:
             logger.warning(f"Error loading {file_path}: {e}")
             raise e
         return []
 
-    def _handle_load_error(self, possible_files: list[Path], last_error: Exception | None):
+    def _handle_load_error(
+        self, possible_files: list[Path], last_error: Exception | None
+    ):
         """Helper to handle load errors"""
         if last_error:
             error = f"Failed to load standard therapeutic data from any available file. Last error: {last_error}"
         else:
-            error = (
-                f"Standard therapeutic data not found in any of: {[str(f) for f in possible_files]}"
-            )
+            error = f"Standard therapeutic data not found in any of: {[str(f) for f in possible_files]}"
         logger.error(error)
         self.stats.errors.append(error)
 
@@ -476,7 +489,10 @@ class IntegratedTrainingPipeline:
                 training_data.append(
                     {
                         "text": text,
-                        "metadata": {"source": "standard_therapeutic", "is_edge_case": False},
+                        "metadata": {
+                            "source": "standard_therapeutic",
+                            "is_edge_case": False,
+                        },
                     }
                 )
 
@@ -548,9 +564,7 @@ class IntegratedTrainingPipeline:
             if len(bucket) <= target_count:
                 stage_sample = bucket
                 if len(bucket) < target_count:
-                    warning = (
-                        f"Stage '{stage}' has only {len(bucket)} samples (target: {target_count})."
-                    )
+                    warning = f"Stage '{stage}' has only {len(bucket)} samples (target: {target_count})."
                     logger.warning(warning)
                     self.stats.warnings.append(warning)
             else:
@@ -598,12 +612,39 @@ class IntegratedTrainingPipeline:
             return data
 
     def _run_quality_validation(self, data: list[dict]) -> list[dict]:
-        """Run quality validation on training data"""
+        """Run quality validation on training data using Quality Scoring v1"""
         logger.info("✓ Running quality validation...")
 
-        # TODO: Implement comprehensive quality validation
-        logger.info(f"   Validated {len(data)} samples")
-        return data
+        try:
+            from ai.dataset_pipeline.quality.quality_filter_v1 import QualityFilterV1
+
+            # Use Quality Scoring v1 for validation
+            quality_filter = QualityFilterV1(
+                min_decision="curate",
+                min_composite=0.6,  # Configurable threshold
+                enabled=True,
+            )
+
+            filtered, scoring_results = quality_filter.filter_batch(data)
+
+            # Add quality scores to metadata
+            for item, result in zip(data, scoring_results):
+                if "metadata" not in item:
+                    item["metadata"] = {}
+                item["metadata"]["quality_scoring_v1"] = result
+
+            logger.info(
+                f"   Validated {len(data)} samples, "
+                f"filtered to {len(filtered)} high-quality samples"
+            )
+            return filtered
+
+        except ImportError:
+            logger.warning(
+                "Quality Scoring v1 not available, skipping quality validation"
+            )
+            logger.info(f"   Validated {len(data)} samples (no filtering)")
+            return data
 
     def _save_dataset(self, data: list[dict]) -> str:
         """Save integrated dataset"""
@@ -644,7 +685,10 @@ class IntegratedTrainingPipeline:
         stage_dir = Path("ai/training_data_consolidated/final")
         stage_dir.mkdir(parents=True, exist_ok=True)
 
-        manifest = {"generated_at": datetime.now(timezone.utc).isoformat(), "stages": {}}
+        manifest = {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "stages": {},
+        }
 
         for stage, records in stage_segments.items():
             stage_file = stage_dir / f"MASTER_{stage}.jsonl"
@@ -675,7 +719,9 @@ class IntegratedTrainingPipeline:
             "stage_distribution_targets": self.config.stage_distribution,
             "stage_balance": self.stats.stage_balance,
             "actual_stage_percentages": {
-                stage: count / self.stats.total_samples if self.stats.total_samples > 0 else 0
+                stage: count / self.stats.total_samples
+                if self.stats.total_samples > 0
+                else 0
                 for stage, count in self.stats.samples_by_stage.items()
             },
             "integration_time_seconds": self.stats.integration_time,
