@@ -83,7 +83,9 @@ class VoiceConfig:
 class PixelVoiceLoader:
     """Loader for Pixel Voice pipeline therapeutic dialogue data"""
 
-    def __init__(self, config: VoiceConfig | None = None, file_path: Path | None = None):
+    def __init__(
+        self, config: VoiceConfig | None = None, file_path: Path | None = None
+    ):
         self.config = config or VoiceConfig()
 
         # Allow override
@@ -103,9 +105,13 @@ class PixelVoiceLoader:
             else:
                 self.therapeutic_pairs_file = path
         else:
-            self.therapeutic_pairs_file = Path("ai/data/tim_fletcher_voice/therapeutic_pairs.json")
+            self.therapeutic_pairs_file = Path(
+                "ai/data/tim_fletcher_voice/therapeutic_pairs.json"
+            )
 
-        self.voice_profile_path = Path("ai/data/tim_fletcher_voice/tim_fletcher_voice_profile.json")
+        self.voice_profile_path = Path(
+            "ai/data/tim_fletcher_voice/tim_fletcher_voice_profile.json"
+        )
         self.dialogue_pairs_file = Path(
             "ai/data/tim_fletcher_voice/dialogue_pairs_validated.json"
         )  # Assuming this is the intended replacement for the old dialogue_pairs_file
@@ -113,7 +119,9 @@ class PixelVoiceLoader:
     def load_therapeutic_pairs(self) -> list[VoiceDialoguePair]:
         """Load therapeutic dialogue pairs"""
         if not self.therapeutic_pairs_file.exists():
-            logger.warning(f"Therapeutic pairs file not found: {self.therapeutic_pairs_file}")
+            logger.warning(
+                f"Therapeutic pairs file not found: {self.therapeutic_pairs_file}"
+            )
             logger.info("Trying alternative: validated dialogue pairs")
             return self._load_validated_pairs()
 
@@ -149,7 +157,9 @@ class PixelVoiceLoader:
     def _load_validated_pairs(self) -> list[VoiceDialoguePair]:
         """Load validated dialogue pairs as fallback"""
         if not self.dialogue_pairs_file.exists():
-            logger.warning(f"Validated pairs file not found: {self.dialogue_pairs_file}")
+            logger.warning(
+                f"Validated pairs file not found: {self.dialogue_pairs_file}"
+            )
             return []
 
         try:
@@ -312,7 +322,11 @@ def load_pixel_voice_training_data(pipeline_dir: str | None = None) -> list[dict
     Returns:
         List of training examples in standard format
     """
-    loader = PixelVoiceLoader(file_path=Path(pipeline_dir)) if pipeline_dir else PixelVoiceLoader()
+    loader = (
+        PixelVoiceLoader(file_path=Path(pipeline_dir))
+        if pipeline_dir
+        else PixelVoiceLoader()
+    )
 
     if not loader.check_pipeline_output_exists():
         logger.warning("Pixel Voice training data not found!")
@@ -339,7 +353,9 @@ if __name__ == "__main__":
         stats = loader.get_statistics()
         logger.info("\n📊 Statistics:")
         logger.info(f"   Total pairs: {stats['total_pairs']}")
-        logger.info(f"   Avg transcription quality: {stats['avg_transcription_quality']:.2f}")
+        logger.info(
+            f"   Avg transcription quality: {stats['avg_transcription_quality']:.2f}"
+        )
         logger.info(f"   Avg naturalness score: {stats['avg_naturalness_score']:.2f}")
 
         if stats["personality_markers"]:
@@ -360,5 +376,8 @@ if __name__ == "__main__":
             logger.info("\n📝 Sample example:")
             sample = training_data[0]
             logger.info(f"   Source: {sample['metadata']['source']}")
-            logger.info(f"   Transcription quality: {sample['metadata']['transcription_quality']:.2f}")
+            logger.info(
+                f"   Transcription quality: "
+                f"{sample['metadata']['transcription_quality']:.2f}"
+            )
             logger.info(f"   Text: {sample['text'][:200]}...")
