@@ -498,20 +498,44 @@
       "stage": "stage2_therapeutic_expertise",
       "quality_profile": "knowledge_base",
       "status": "pending_sync"
+    },
+    "academic_psychology_books": {
+      "path": "s3://pixel-data/acquired/academic_psychology_books/academic_psychology_books.jsonl",
+      "fallback_paths": {
+        "local": "~/datasets/consolidated/academic_psychology_books/academic_psychology_books.jsonl"
+      },
+      "type": "knowledge_base",
+      "focus": "academic psychology and therapy books from publishers",
+      "stage": "stage2_therapeutic_expertise",
+      "quality_profile": "knowledge_base",
+      "status": "pending_sync"
+    },
+    "research_instruments": {
+      "path": "s3://pixel-data/acquired/research_instruments/research_instruments.jsonl",
+      "fallback_paths": {
+        "local": "~/datasets/consolidated/research_instruments/research_instruments.jsonl"
+      },
+      "type": "knowledge_base",
+      "focus": "validated psychological assessment tools (PHQ-9, GAD-7, etc.)",
+      "stage": "stage1_foundation",
+      "quality_profile": "foundation",
+      "status": "pending_sync"
     }
   },
   "training_strategy": {
     "stage_1_foundation": {
       "datasets": [
         "professional_therapeutic",
-        "wendy_curated_sets"
+        "wendy_curated_sets",
+        "research_instruments"
       ],
       "purpose": "Natural therapeutic dialogue patterns",
       "recommended_epochs": "2-3"
     },
     "stage_2_therapeutic_expertise": {
       "datasets": [
-        "cot_reasoning"
+        "cot_reasoning",
+        "academic_psychology_books"
       ],
       "purpose": "Clinical reasoning patterns",
       "recommended_epochs": "1-2",
