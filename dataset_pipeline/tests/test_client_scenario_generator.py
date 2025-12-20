@@ -10,7 +10,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from .client_scenario_generator import (
+from ai.dataset_pipeline.generation.client_scenario_generator import (
     ClientDemographics,
     ClientScenario,
     ClientScenarioGenerator,
@@ -20,7 +20,7 @@ from .client_scenario_generator import (
     ScenarioType,
     SeverityLevel,
 )
-from .conversation_schema import Conversation, Message
+from ai.dataset_pipeline.schemas.conversation_schema import Conversation, Message
 
 
 class TestClientScenarioGenerator(unittest.TestCase):
@@ -241,14 +241,14 @@ class TestClientScenarioGenerator(unittest.TestCase):
 
         for conversation in conversations:
             assert isinstance(conversation, Conversation)
-            assert isinstance(conversation.id, str)
+            assert isinstance(conversation.conversation_id, str)
             assert isinstance(conversation.messages, list)
             assert len(conversation.messages) > 0
             assert conversation.source == "client_scenario_generator"
 
-            # Check context
-            assert "scenario_id" in conversation.context
-            assert conversation.context["scenario_id"] == scenario.id
+            # Check metadata
+            assert "scenario_id" in conversation.metadata
+            assert conversation.metadata["scenario_id"] == scenario.id
 
             # Check messages
             for message in conversation.messages:
@@ -256,7 +256,7 @@ class TestClientScenarioGenerator(unittest.TestCase):
                 assert message.role in ["therapist", "client"]
                 assert isinstance(message.content, str)
                 assert len(message.content) > 0
-                assert "scenario_id" in message.meta
+                assert "scenario_id" in message.metadata
 
     def test_get_statistics(self):
         """Test scenario statistics generation."""
@@ -331,7 +331,7 @@ class TestClientScenarioGenerator(unittest.TestCase):
         # First message should address crisis
         first_message = crisis_conversation.messages[0]
         assert first_message.role == "therapist"
-        assert "crisis" in first_message.meta.get("type", "")
+        assert "crisis" in first_message.metadata.get("type", "")
 
 
 if __name__ == "__main__":

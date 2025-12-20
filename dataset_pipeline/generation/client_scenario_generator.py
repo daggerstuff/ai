@@ -1,21 +1,29 @@
 """
 Client scenario generator for psychology knowledge integration pipeline.
 
-This module creates realistic client scenarios by combining DSM-5 diagnostic criteria,
-PDM-2 psychodynamic patterns, and Big Five personality profiles to generate comprehensive
-client presentations for therapeutic conversation training data.
+This module creates realistic client scenarios by combining DSM-5 diagnostic
+criteria, PDM-2 psychodynamic patterns, and Big Five personality profiles to
+generate comprehensive client presentations for therapeutic conversation
+training data.
 """
 
 import json
 import random
 from dataclasses import asdict, dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from ai.dataset_pipeline.processing.big_five_processor import BigFiveProcessor, PersonalityFactor
-from ai.dataset_pipeline.processing.dsm5_parser import DSM5Parser, DSMCategory, DSMDisorder
+from ai.dataset_pipeline.processing.big_five_processor import (
+    BigFiveProcessor,
+    PersonalityFactor,
+)
+from ai.dataset_pipeline.processing.dsm5_parser import (
+    DSM5Parser,
+    DSMCategory,
+    DSMDisorder,
+)
 from ai.dataset_pipeline.processing.pdm2_parser import PDM2Parser
 from ai.dataset_pipeline.schemas.conversation_schema import Conversation, Message
 from ai.dataset_pipeline.utils.logger import get_logger
@@ -334,11 +342,15 @@ class ClientScenarioGenerator:
         # Set defaults if not specified
         scenario_type = scenario_type or random.choice(list(ScenarioType))
         severity_level = severity_level or random.choice(list(SeverityLevel))
-        demographic_category = demographic_category or random.choice(list(DemographicCategory))
+        demographic_category = (
+            demographic_category or random.choice(list(DemographicCategory))
+        )
 
         # Generate scenario ID
-        # DEBUG: Using timezone.utc here, flagged by Ruff UP017. Should use datetime.UTC for Python 3.11+.
-        scenario_id = f"scenario_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}_{random.randint(1000, 9999)}"
+        scenario_id = (
+            f"scenario_{datetime.now(UTC).strftime('%Y%m%d_%H%M%S')}_"
+            f"{random.randint(1000, 9999)}"
+        )
 
         # Generate demographics
         demographics = self._generate_demographics(demographic_category)
@@ -390,16 +402,19 @@ class ClientScenarioGenerator:
             learning_objectives=learning_objectives,
             complexity_factors=complexity_factors,
             created_at=datetime.now(
-                timezone.utc
-            ).isoformat(),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+                UTC
+            ).isoformat(),  # DEBUG: UTC used, flagged by Ruff UP017
         )
 
         logger.info(
-            f"Generated client scenario: {scenario_id} ({scenario_type.value}, {severity_level.value})"
+            f"Generated client scenario: {scenario_id} "
+            f"({scenario_type.value}, {severity_level.value})"
         )
         return scenario
 
-    def _generate_demographics(self, category: DemographicCategory) -> ClientDemographics:
+    def _generate_demographics(
+        self, category: DemographicCategory
+    ) -> ClientDemographics:
         """Generate realistic demographic information."""
         template = self.demographic_templates[category]
 
@@ -433,7 +448,9 @@ class ClientScenarioGenerator:
             living_situation=living_situation,
             cultural_background=cultural_background,
             socioeconomic_status=socioeconomic_status,
-            insurance_type=random.choice(["private", "public", "self-pay", "employee assistance"]),
+            insurance_type=random.choice(
+                ["private", "public", "self-pay", "employee assistance"]
+            ),
             previous_therapy=random.choice([True, False]),
         )
 
@@ -474,7 +491,9 @@ class ClientScenarioGenerator:
                     "Unable to work/maintain relationships",
                 ]
             else:  # CRISIS
-                duration = random.choice(["Acute onset", "Recent escalation", "Current crisis"])
+                duration = random.choice(
+                    ["Acute onset", "Recent escalation", "Current crisis"]
+                )
                 functional_impact = [
                     "Immediate safety concerns",
                     "Unable to function independently",
@@ -527,11 +546,17 @@ class ClientScenarioGenerator:
 
         # Age-based triggers
         if demographics.age < YOUNG_ADULT_THRESHOLD:
-            triggers.extend(["Academic pressure", "Peer relationships", "Family expectations"])
+            triggers.extend(
+                ["Academic pressure", "Peer relationships", "Family expectations"]
+            )
         elif demographics.age < MIDDLE_AGE_THRESHOLD:
-            triggers.extend(["Work stress", "Parenting responsibilities", "Financial pressure"])
+            triggers.extend(
+                ["Work stress", "Parenting responsibilities", "Financial pressure"]
+            )
         else:
-            triggers.extend(["Health concerns", "Retirement adjustment", "Loss of loved ones"])
+            triggers.extend(
+                ["Health concerns", "Retirement adjustment", "Loss of loved ones"]
+            )
 
         # Relationship-based triggers
         if demographics.relationship_status in ["Divorced", "Separated"]:
@@ -541,23 +566,33 @@ class ClientScenarioGenerator:
 
         # Disorder-specific triggers
         if disorder and disorder.category == DSMCategory.ANXIETY:
-            triggers.extend(["Performance situations", "Social interactions", "Uncertainty"])
+            triggers.extend(
+                ["Performance situations", "Social interactions", "Uncertainty"]
+            )
         elif disorder and disorder.category == DSMCategory.DEPRESSIVE:
             triggers.extend(["Loss events", "Rejection", "Failure experiences"])
 
         return random.sample(triggers, min(3, len(triggers)))
 
-    def _generate_current_stressors(self, demographics: ClientDemographics) -> list[str]:
+    def _generate_current_stressors(
+        self, demographics: ClientDemographics
+    ) -> list[str]:
         """Generate current stressors based on demographics."""
         stressors = []
 
         # Occupation-based stressors
         if "student" in demographics.occupation.lower():
-            stressors.extend(["Academic deadlines", "Financial concerns", "Future uncertainty"])
+            stressors.extend(
+                ["Academic deadlines", "Financial concerns", "Future uncertainty"]
+            )
         elif demographics.occupation in ["manager", "teacher", "nurse"]:
-            stressors.extend(["Work overload", "Responsibility pressure", "Time management"])
+            stressors.extend(
+                ["Work overload", "Responsibility pressure", "Time management"]
+            )
         elif demographics.occupation == "retired":
-            stressors.extend(["Health concerns", "Financial security", "Social isolation"])
+            stressors.extend(
+                ["Health concerns", "Financial security", "Social isolation"]
+            )
 
         # Life situation stressors
         if demographics.living_situation == "alone":
@@ -573,7 +608,10 @@ class ClientScenarioGenerator:
         demographics: ClientDemographics,
         presenting_problem: PresentingProblem,
     ) -> ClinicalFormulation:
-        """Generate comprehensive clinical formulation integrating all psychology knowledge."""
+        """
+        Generate comprehensive clinical formulation integrating all psychology
+        knowledge.
+        """
 
         # DSM-5 considerations
         dsm5_considerations = []
@@ -584,7 +622,9 @@ class ClientScenarioGenerator:
         # PDM-2 attachment and defense patterns
         attachment_patterns = self.pdm2_parser.get_attachment_patterns()
         attachment_style = (
-            random.choice(attachment_patterns).style.value if attachment_patterns else None
+            random.choice(attachment_patterns).style.value
+            if attachment_patterns
+            else None
         )
 
         defense_mechanisms = []
@@ -646,7 +686,7 @@ class ClientScenarioGenerator:
         # Presenting problem risk factors
         if (
             "severe"
-            in presenting_problem.duration.lower()  # DEBUG: W503 - line break before binary operator
+            in presenting_problem.duration.lower()
             or "chronic" in presenting_problem.duration.lower()
         ):
             risk_factors.append("Chronic nature of symptoms")
@@ -661,7 +701,9 @@ class ClientScenarioGenerator:
 
         return risk_factors[:4]  # Limit to 4 factors
 
-    def _generate_protective_factors(self, demographics: ClientDemographics) -> list[str]:
+    def _generate_protective_factors(
+        self, demographics: ClientDemographics
+    ) -> list[str]:
         """Generate protective factors based on client profile."""
         protective_factors = []
 
@@ -747,7 +789,9 @@ class ClientScenarioGenerator:
         """Generate session context information."""
         context = {
             "session_number": (
-                1 if scenario_type == ScenarioType.INITIAL_ASSESSMENT else random.randint(2, 12)
+                1
+                if scenario_type == ScenarioType.INITIAL_ASSESSMENT
+                else random.randint(2, 12)
             ),
             "setting": random.choice(
                 [
@@ -758,7 +802,9 @@ class ClientScenarioGenerator:
                 ]
             ),
             "modality": random.choice(["individual", "group", "family", "couples"]),
-            "duration": random.choice(["45 minutes", "50 minutes", "60 minutes", "90 minutes"]),
+            "duration": random.choice(
+                ["45 minutes", "50 minutes", "60 minutes", "90 minutes"]
+            ),
             "referral_source": random.choice(
                 ["self-referral", "physician", "family", "employer", "court-ordered"]
             ),
@@ -798,24 +844,32 @@ class ClientScenarioGenerator:
 
         # Cultural considerations
         if demographics.cultural_background != "Caucasian American":
-            considerations.append("Consider cultural factors in assessment and treatment")
+            considerations.append(
+                "Consider cultural factors in assessment and treatment"
+            )
 
         # Age-specific considerations
         if demographics.age < ADOLESCENT_THRESHOLD:
             considerations.append("Developmental considerations for adolescent client")
         elif demographics.age > SENIOR_THRESHOLD:
-            considerations.append("Geriatric considerations and potential medical comorbidities")
+            considerations.append(
+                "Geriatric considerations and potential medical comorbidities"
+            )
 
         # Attachment considerations
         if clinical_formulation.attachment_style:
             considerations.append(
-                f"Consider {clinical_formulation.attachment_style} attachment patterns in therapy"
+                f"Consider {clinical_formulation.attachment_style} "
+                "attachment patterns in therapy"
             )
 
         # Personality considerations
-        high_neuroticism = clinical_formulation.personality_profile.get("neuroticism") == "high"
+        profile = clinical_formulation.personality_profile
+        high_neuroticism = profile.get("neuroticism") == "high"
         if high_neuroticism:
-            considerations.append("High neuroticism may require emotion regulation focus")
+            considerations.append(
+                "High neuroticism may require emotion regulation focus"
+            )
 
         return considerations[:5]  # Limit to 5 considerations
 
@@ -856,7 +910,9 @@ class ClientScenarioGenerator:
 
         # Disorder-specific objectives
         if disorder:
-            objectives.append(f"Apply knowledge of {disorder.name} in clinical practice")
+            objectives.append(
+                f"Apply knowledge of {disorder.name} in clinical practice"
+            )
 
         # Severity-specific objectives
         if severity == SeverityLevel.SEVERE:
@@ -876,11 +932,17 @@ class ClientScenarioGenerator:
         # Demographic complexity
         if demographics.cultural_background != "Caucasian American":
             factors.append("Cross-cultural considerations")
-        if demographics.age < ADOLESCENT_THRESHOLD or demographics.age > ELDERLY_THRESHOLD:
+        if (
+            demographics.age < ADOLESCENT_THRESHOLD
+            or demographics.age > ELDERLY_THRESHOLD
+        ):
             factors.append("Age-specific developmental considerations")
 
         # Clinical complexity
-        if len(clinical_formulation.dsm5_considerations) > MULTIPLE_CONSIDERATIONS_THRESHOLD:
+        if (
+            len(clinical_formulation.dsm5_considerations)
+            > MULTIPLE_CONSIDERATIONS_THRESHOLD
+        ):
             factors.append("Multiple diagnostic considerations")
         if presenting_problem.previous_episodes:
             factors.append("Recurrent condition with treatment history")
@@ -892,8 +954,9 @@ class ClientScenarioGenerator:
             factors.append("Limited resources and access barriers")
 
         # Personality complexity
-        high_neuroticism = clinical_formulation.personality_profile.get("neuroticism") == "high"
-        low_agreeableness = clinical_formulation.personality_profile.get("agreeableness") == "low"
+        profile = clinical_formulation.personality_profile
+        high_neuroticism = profile.get("neuroticism") == "high"
+        low_agreeableness = profile.get("agreeableness") == "low"
         if high_neuroticism and low_agreeableness:
             factors.append("Challenging personality presentation")
 
@@ -932,7 +995,9 @@ class ClientScenarioGenerator:
         logger.info(f"Generated batch of {len(scenarios)} client scenarios")
         return scenarios
 
-    def export_scenarios_to_json(self, scenarios: list[ClientScenario], output_path: Path) -> bool:
+    def export_scenarios_to_json(
+        self, scenarios: list[ClientScenario], output_path: Path
+    ) -> bool:
         """Export scenarios to JSON format."""
         try:
             # Convert scenarios to dictionaries
@@ -941,8 +1006,8 @@ class ClientScenarioGenerator:
                 "metadata": {
                     "total_scenarios": len(scenarios),
                     "generated_at": datetime.now(
-                        timezone.utc
-                    ).isoformat(),  # DEBUG: timezone.utc used, flagged by Ruff UP017
+                        UTC
+                    ).isoformat(),  # DEBUG: UTC used, flagged by Ruff UP017
                     "generator_version": "1.0",
                 },
             }
@@ -952,8 +1017,9 @@ class ClientScenarioGenerator:
                 # Convert enums to strings
                 scenario_dict["scenario_type"] = scenario.scenario_type.value
                 scenario_dict["severity_level"] = scenario.severity_level.value
+                scenarios_list = export_data["scenarios"]
                 (
-                    export_data["scenarios"] if isinstance(export_data["scenarios"], list) else []
+                    scenarios_list if isinstance(scenarios_list, list) else []
                 ).append(scenario_dict)
 
             # Ensure output directory exists
@@ -969,7 +1035,9 @@ class ClientScenarioGenerator:
             logger.error(f"Failed to export scenarios: {e}")
             return False
 
-    def generate_conversation_templates(self, scenario: ClientScenario) -> list[Conversation]:
+    def generate_conversation_templates(
+        self, scenario: ClientScenario
+    ) -> list[Conversation]:
         """Generate conversation templates based on client scenario."""
         conversations = []
 
@@ -978,27 +1046,38 @@ class ClientScenarioGenerator:
             messages = [
                 Message(
                     role="therapist",
-                    content="Hello, I'm glad you decided to come in today. What brings you to therapy?",
+                    content=(
+                        "Hello, I'm glad you decided to come in today. "
+                        "What brings you to therapy?"
+                    ),
                     timestamp=datetime.now(
-                        timezone.utc
-                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
-                    meta={"type": "opening", "scenario_id": scenario.id},
+                        UTC
+                    ),  # DEBUG: UTC used, flagged by Ruff UP017
+                    metadata={"type": "opening", "scenario_id": scenario.id},
                 ),
                 Message(
                     role="client",
-                    content=f"I've been struggling with {scenario.presenting_problem.primary_concern.lower()}. It's been going on for {scenario.presenting_problem.duration.lower()}.",
+                    content=(
+                        f"I've been struggling with "
+                        f"{scenario.presenting_problem.primary_concern.lower()}. "
+                        f"It's been going on for "
+                        f"{scenario.presenting_problem.duration.lower()}."
+                    ),
                     timestamp=datetime.now(
-                        timezone.utc
-                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
-                    meta={"presenting_problem": True, "scenario_id": scenario.id},
+                        UTC
+                    ),  # DEBUG: UTC used, flagged by Ruff UP017
+                    metadata={"presenting_problem": True, "scenario_id": scenario.id},
                 ),
                 Message(
                     role="therapist",
-                    content="I can hear that this has been difficult for you. Can you tell me more about when these feelings started?",
+                    content=(
+                        "I can hear that this has been difficult for you. "
+                        "Can you tell me more about when these feelings started?"
+                    ),
                     timestamp=datetime.now(
-                        timezone.utc
-                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
-                    meta={"technique": "reflection", "scenario_id": scenario.id},
+                        UTC
+                    ),  # DEBUG: UTC used, flagged by Ruff UP017
+                    metadata={"technique": "reflection", "scenario_id": scenario.id},
                 ),
             ]
 
@@ -1008,11 +1087,17 @@ class ClientScenarioGenerator:
                 messages.append(
                     Message(
                         role="client",
-                        content=f"I've been experiencing {symptom.lower()}, and it's really affecting my daily life.",
+                        content=(
+                            f"I've been experiencing {symptom.lower()}, "
+                            "and it's really affecting my daily life."
+                        ),
                         timestamp=datetime.now(
-                            timezone.utc
-                        ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
-                        meta={"symptom_disclosure": True, "scenario_id": scenario.id},
+                            UTC
+                        ),  # DEBUG: UTC used, flagged by Ruff UP017
+                        metadata={
+                            "symptom_disclosure": True,
+                            "scenario_id": scenario.id,
+                        },
                     )
                 )
 
@@ -1020,19 +1105,26 @@ class ClientScenarioGenerator:
             messages = [
                 Message(
                     role="therapist",
-                    content="I understand you're going through a very difficult time right now. I want you to know that you're safe here, and we're going to work through this together.",
+                    content=(
+                        "I understand you're going through a very difficult time "
+                        "right now. I want you to know that you're safe here, "
+                        "and we're going to work through this together."
+                    ),
                     timestamp=datetime.now(
-                        timezone.utc
-                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
-                    meta={"type": "crisis_opening", "scenario_id": scenario.id},
+                        UTC
+                    ),  # DEBUG: UTC used, flagged by Ruff UP017
+                    metadata={"type": "crisis_opening", "scenario_id": scenario.id},
                 ),
                 Message(
                     role="client",
-                    content="I don't know what to do anymore. Everything feels overwhelming and I can't handle it.",
+                    content=(
+                        "I don't know what to do anymore. Everything feels "
+                        "overwhelming and I can't handle it."
+                    ),
                     timestamp=datetime.now(
-                        timezone.utc
-                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
-                    meta={"crisis_expression": True, "scenario_id": scenario.id},
+                        UTC
+                    ),  # DEBUG: UTC used, flagged by Ruff UP017
+                    metadata={"crisis_expression": True, "scenario_id": scenario.id},
                 ),
             ]
 
@@ -1042,41 +1134,40 @@ class ClientScenarioGenerator:
                     role="therapist",
                     content="How have you been since our last session?",
                     timestamp=datetime.now(
-                        timezone.utc
-                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
-                    meta={"type": "check_in", "scenario_id": scenario.id},
+                        UTC
+                    ),  # DEBUG: UTC used, flagged by Ruff UP017
+                    metadata={"type": "check_in", "scenario_id": scenario.id},
                 ),
                 Message(
                     role="client",
-                    content=f"I've been working on what we discussed, but I'm still dealing with {scenario.presenting_problem.primary_concern.lower()}.",
+                    content=(
+                        "I've been working on what we discussed, but I'm still "
+                        "dealing with "
+                        f"{scenario.presenting_problem.primary_concern.lower()}."
+                    ),
                     timestamp=datetime.now(
-                        timezone.utc
-                    ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
-                    meta={"progress_update": True, "scenario_id": scenario.id},
+                        UTC
+                    ),  # DEBUG: UTC used, flagged by Ruff UP017
+                    metadata={"progress_update": True, "scenario_id": scenario.id},
                 ),
             ]
 
         conversation = Conversation(
-            id=f"scenario_conversation_{scenario.id}",
+            conversation_id=f"scenario_conversation_{scenario.id}",
             messages=messages,
-            context={
+            source="client_scenario_generator",
+            created_at=datetime.now(UTC).isoformat(),
+            metadata={
+                "learning_objectives": scenario.learning_objectives,
+                "therapeutic_considerations": scenario.therapeutic_considerations,
+                "complexity_factors": scenario.complexity_factors,
                 "scenario_id": scenario.id,
                 "scenario_type": scenario.scenario_type.value,
                 "severity_level": scenario.severity_level.value,
                 "demographics": asdict(scenario.demographics),
                 "clinical_formulation": asdict(scenario.clinical_formulation),
             },
-            source="client_scenario_generator",
-            created_at=datetime.now(
-                timezone.utc
-            ),  # DEBUG: timezone.utc used, flagged by Ruff UP017
-            meta={
-                "learning_objectives": scenario.learning_objectives,
-                "therapeutic_considerations": scenario.therapeutic_considerations,
-                "complexity_factors": scenario.complexity_factors,
-            },
         )
-
         conversations.append(conversation)
 
         logger.info(f"Generated conversation template for scenario {scenario.id}")
@@ -1104,13 +1195,17 @@ class ClientScenarioGenerator:
             scenario_type = scenario.scenario_type.value
             scenario_types_dict = stats["scenario_types"]
             if isinstance(scenario_types_dict, dict):
-                scenario_types_dict[scenario_type] = scenario_types_dict.get(scenario_type, 0) + 1
+                scenario_types_dict[scenario_type] = (
+                    scenario_types_dict.get(scenario_type, 0) + 1
+                )
 
             # Severity levels
             severity = scenario.severity_level.value
             severity_levels_dict = stats["severity_levels"]
             if isinstance(severity_levels_dict, dict):
-                severity_levels_dict[severity] = severity_levels_dict.get(severity, 0) + 1
+                severity_levels_dict[severity] = (
+                    severity_levels_dict.get(severity, 0) + 1
+                )
 
             # Age distribution
             age_group = (
@@ -1122,13 +1217,17 @@ class ClientScenarioGenerator:
             )
             age_distribution_dict = stats["age_distribution"]
             if isinstance(age_distribution_dict, dict):
-                age_distribution_dict[age_group] = age_distribution_dict.get(age_group, 0) + 1
+                age_distribution_dict[age_group] = (
+                    age_distribution_dict.get(age_group, 0) + 1
+                )
 
             # Cultural backgrounds
             culture = scenario.demographics.cultural_background
             cultural_backgrounds_dict = stats["cultural_backgrounds"]
             if isinstance(cultural_backgrounds_dict, dict):
-                cultural_backgrounds_dict[culture] = cultural_backgrounds_dict.get(culture, 0) + 1
+                cultural_backgrounds_dict[culture] = (
+                    cultural_backgrounds_dict.get(culture, 0) + 1
+                )
 
             # Disorders
             if scenario.clinical_formulation.dsm5_considerations:
@@ -1142,7 +1241,9 @@ class ClientScenarioGenerator:
             # Complexity
             total_complexity += len(scenario.complexity_factors)
 
-        stats["average_complexity_factors"] = total_complexity / len(scenarios) if scenarios else 0
+        stats["average_complexity_factors"] = (
+            total_complexity / len(scenarios) if scenarios else 0
+        )
 
         return stats
 
@@ -1159,11 +1260,17 @@ class ClientScenarioGenerator:
             scenarios = []
             for scenario_data in data.get("scenarios", []):
                 # Convert string enums back to enum objects
-                scenario_data["scenario_type"] = ScenarioType(scenario_data["scenario_type"])
-                scenario_data["severity_level"] = SeverityLevel(scenario_data["severity_level"])
+                scenario_data["scenario_type"] = ScenarioType(
+                    scenario_data["scenario_type"]
+                )
+                scenario_data["severity_level"] = SeverityLevel(
+                    scenario_data["severity_level"]
+                )
 
                 # Convert nested dataclasses
-                scenario_data["demographics"] = ClientDemographics(**scenario_data["demographics"])
+                scenario_data["demographics"] = ClientDemographics(
+                    **scenario_data["demographics"]
+                )
                 scenario_data["presenting_problem"] = PresentingProblem(
                     **scenario_data["presenting_problem"]
                 )
@@ -1192,10 +1299,16 @@ class ClientScenarioGenerator:
         max_points = MAX_QUALITY_POINTS
 
         # Demographic completeness
-        demo_points, demo_issues, demo_strengths = self._check_demographic_completeness(scenario)
+        (
+            demo_points,
+            demo_issues,
+            demo_strengths,
+        ) = self._check_demographic_completeness(scenario)
         quality_points += demo_points
         (
-            validation_results["issues"] if isinstance(validation_results["issues"], list) else []
+            validation_results["issues"]
+            if isinstance(validation_results["issues"], list)
+            else []
         ).extend(demo_issues)
         (
             validation_results["strengths"]
@@ -1204,10 +1317,16 @@ class ClientScenarioGenerator:
         ).extend(demo_strengths)
 
         # Presenting problem detail
-        pp_points, pp_issues, pp_strengths = self._check_presenting_problem_detail(scenario)
+        (
+            pp_points,
+            pp_issues,
+            pp_strengths,
+        ) = self._check_presenting_problem_detail(scenario)
         quality_points += pp_points
         (
-            validation_results["issues"] if isinstance(validation_results["issues"], list) else []
+            validation_results["issues"]
+            if isinstance(validation_results["issues"], list)
+            else []
         ).extend(pp_issues)
         (
             validation_results["strengths"]
@@ -1216,10 +1335,16 @@ class ClientScenarioGenerator:
         ).extend(pp_strengths)
 
         # Clinical formulation depth
-        cf_points, cf_issues, cf_strengths = self._check_clinical_formulation_depth(scenario)
+        (
+            cf_points,
+            cf_issues,
+            cf_strengths,
+        ) = self._check_clinical_formulation_depth(scenario)
         quality_points += cf_points
         (
-            validation_results["issues"] if isinstance(validation_results["issues"], list) else []
+            validation_results["issues"]
+            if isinstance(validation_results["issues"], list)
+            else []
         ).extend(cf_issues)
         (
             validation_results["strengths"]
@@ -1231,7 +1356,9 @@ class ClientScenarioGenerator:
         lo_points, lo_issues, lo_strengths = self._check_learning_objectives(scenario)
         quality_points += lo_points
         (
-            validation_results["issues"] if isinstance(validation_results["issues"], list) else []
+            validation_results["issues"]
+            if isinstance(validation_results["issues"], list)
+            else []
         ).extend(lo_issues)
         (
             validation_results["strengths"]
@@ -1240,10 +1367,16 @@ class ClientScenarioGenerator:
         ).extend(lo_strengths)
 
         # Complexity and realism
-        cr_points, cr_issues, cr_strengths = self._check_complexity_and_realism(scenario)
+        (
+            cr_points,
+            cr_issues,
+            cr_strengths,
+        ) = self._check_complexity_and_realism(scenario)
         quality_points += cr_points
         (
-            validation_results["issues"] if isinstance(validation_results["issues"], list) else []
+            validation_results["issues"]
+            if isinstance(validation_results["issues"], list)
+            else []
         ).extend(cr_issues)
         (
             validation_results["strengths"]
@@ -1252,13 +1385,17 @@ class ClientScenarioGenerator:
         ).extend(cr_strengths)
 
         validation_results["quality_score"] = quality_points / max_points
-        validation_results["is_valid"] = quality_points >= QUALITY_THRESHOLD  # 60% threshold
+        # 60% threshold
+        validation_results["is_valid"] = (
+            quality_points >= QUALITY_THRESHOLD
+        )
 
         return validation_results
 
     def _check_demographic_completeness(self, scenario: ClientScenario):
         logger.info(
-            f"Checking demographic completeness for scenario {scenario.id}: {scenario.demographics}"
+            f"Checking demographic completeness for scenario {scenario.id}: "
+            f"{scenario.demographics}"
         )
         points = 0
         issues = []
@@ -1279,16 +1416,16 @@ class ClientScenarioGenerator:
 
     def _check_presenting_problem_detail(self, scenario: ClientScenario):
         logger.info(
-            f"Checking presenting problem detail for scenario {scenario.id}: {scenario.presenting_problem}"
+            f"Checking presenting problem detail for scenario {scenario.id}: "
+            f"{scenario.presenting_problem}"
         )
         points = 0
         issues = []
         strengths = []
         if (
             len(scenario.presenting_problem.symptoms) >= MINIMUM_SYMPTOMS
-            and len(scenario.presenting_problem.triggers)
-            >= MINIMUM_TRIGGERS  # DEBUG: W503 - line break before binary operator
-            and scenario.presenting_problem.duration  # DEBUG: W503 - line break before binary operator
+            and len(scenario.presenting_problem.triggers) >= MINIMUM_TRIGGERS
+            and scenario.presenting_problem.duration
         ):
             points += 2
             strengths.append("Detailed presenting problem")
@@ -1298,15 +1435,15 @@ class ClientScenarioGenerator:
 
     def _check_clinical_formulation_depth(self, scenario: ClientScenario):
         logger.info(
-            f"Checking clinical formulation depth for scenario {scenario.id}: {scenario.clinical_formulation}"
+            f"Checking clinical formulation depth for scenario {scenario.id}: "
+            f"{scenario.clinical_formulation}"
         )
         points = 0
         issues = []
         strengths = []
         if (
             len(scenario.clinical_formulation.dsm5_considerations) >= 1
-            and len(scenario.clinical_formulation.treatment_goals)
-            >= MINIMUM_GOALS  # DEBUG: W503 - line break before binary operator
+            and len(scenario.clinical_formulation.treatment_goals) >= MINIMUM_GOALS
         ):
             points += 2
             strengths.append("Comprehensive clinical formulation")
@@ -1316,7 +1453,8 @@ class ClientScenarioGenerator:
 
     def _check_learning_objectives(self, scenario: ClientScenario):
         logger.info(
-            f"Checking learning objectives for scenario {scenario.id}: {scenario.learning_objectives}"
+            f"Checking learning objectives for scenario {scenario.id}: "
+            f"{scenario.learning_objectives}"
         )
         points = 0
         issues = []
@@ -1339,8 +1477,7 @@ class ClientScenarioGenerator:
         strengths = []
         if (
             len(scenario.complexity_factors) >= MINIMUM_COMPLEXITY_FACTORS
-            and len(scenario.therapeutic_considerations)
-            >= MINIMUM_CONSIDERATIONS  # DEBUG: W503 - line break before binary operator
+            and len(scenario.therapeutic_considerations) >= MINIMUM_CONSIDERATIONS
         ):
             points += 2
             strengths.append("Realistic complexity and considerations")
@@ -1357,7 +1494,11 @@ class ClientScenarioGenerator:
         for i in range(count):
             # Create variation with different severity or demographic
             variation_severity = random.choice(
-                [level for level in SeverityLevel if level != base_scenario.severity_level]
+                [
+                    level
+                    for level in SeverityLevel
+                    if level != base_scenario.severity_level
+                ]
             )
             variation_demo_category = random.choice(list(DemographicCategory))
 
@@ -1371,5 +1512,7 @@ class ClientScenarioGenerator:
             variation.id = f"{base_scenario.id}_var_{i + 1}"
             variations.append(variation)
 
-        logger.info(f"Generated {len(variations)} variations of scenario {base_scenario.id}")
+        logger.info(
+            f"Generated {len(variations)} variations of scenario {base_scenario.id}"
+        )
         return variations
