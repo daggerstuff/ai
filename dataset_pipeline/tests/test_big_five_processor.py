@@ -2,7 +2,8 @@
 Unit tests for Big Five personality assessment processor.
 
 Tests the comprehensive Big Five personality assessment processing functionality
-including personality profiles, assessments, clinical guidelines, and conversation generation.
+including personality profiles, assessments, clinical guidelines, and
+conversation generation.
 """
 
 import json
@@ -11,14 +12,14 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from .big_five_processor import (
+from ai.dataset_pipeline.processing.big_five_processor import (
     AssessmentItem,
     AssessmentType,
     BigFiveProcessor,
     PersonalityFacet,
     PersonalityFactor,
 )
-from .conversation_schema import Conversation, Message
+from ai.dataset_pipeline.schemas.conversation_schema import Conversation, Message
 
 
 class TestBigFiveProcessor(unittest.TestCase):
@@ -33,8 +34,14 @@ class TestBigFiveProcessor(unittest.TestCase):
         assert self.processor.knowledge_base is not None
         assert len(self.processor.knowledge_base.personality_profiles) == 5
         assert len(self.processor.knowledge_base.assessments) == 2
-        assert "assessment_best_practices" in self.processor.knowledge_base.clinical_guidelines
-        assert "mental_health_correlations" in self.processor.knowledge_base.research_findings
+        assert (
+            "assessment_best_practices"
+            in self.processor.knowledge_base.clinical_guidelines
+        )
+        assert (
+            "mental_health_correlations"
+            in self.processor.knowledge_base.research_findings
+        )
 
     def test_personality_factors_enum(self):
         """Test PersonalityFactor enum values."""
@@ -67,7 +74,9 @@ class TestBigFiveProcessor(unittest.TestCase):
     def test_get_profile_by_factor(self):
         """Test getting specific personality profile by factor."""
         # Test valid factor
-        openness_profile = self.processor.get_profile_by_factor(PersonalityFactor.OPENNESS)
+        openness_profile = self.processor.get_profile_by_factor(
+            PersonalityFactor.OPENNESS
+        )
         assert openness_profile is not None
         assert openness_profile.factor == PersonalityFactor.OPENNESS
         assert openness_profile.name == "Openness to Experience"
@@ -104,7 +113,9 @@ class TestBigFiveProcessor(unittest.TestCase):
 
     def test_personality_profile_structure(self):
         """Test personality profile data structure."""
-        openness_profile = self.processor.get_profile_by_factor(PersonalityFactor.OPENNESS)
+        openness_profile = self.processor.get_profile_by_factor(
+            PersonalityFactor.OPENNESS
+        )
 
         # Check required fields
         assert isinstance(openness_profile.factor, PersonalityFactor)
@@ -199,22 +210,24 @@ class TestBigFiveProcessor(unittest.TestCase):
 
     def test_generate_conversation_templates(self):
         """Test conversation template generation."""
-        conversations = self.processor.generate_conversation_templates(PersonalityFactor.OPENNESS)
+        conversations = self.processor.generate_conversation_templates(
+            PersonalityFactor.OPENNESS
+        )
 
         assert len(conversations) == 2  # Assessment and therapeutic conversations
 
         for conversation in conversations:
             assert isinstance(conversation, Conversation)
-            assert isinstance(conversation.id, str)
+            assert isinstance(conversation.conversation_id, str)
             assert isinstance(conversation.messages, list)
             assert len(conversation.messages) > 0
-            assert isinstance(conversation.context, dict)
+            assert isinstance(conversation.metadata, dict)
             assert conversation.source == "big_five_processor"
 
-            # Check context
-            assert "factor" in conversation.context
-            assert conversation.context["factor"] == "openness"
-            assert "type" in conversation.context
+            # Check metadata
+            assert "factor" in conversation.metadata
+            assert conversation.metadata["factor"] == "openness"
+            assert "type" in conversation.metadata
 
             # Check messages
             for message in conversation.messages:
@@ -227,7 +240,9 @@ class TestBigFiveProcessor(unittest.TestCase):
         """Test conversation generation with invalid factor."""
         # Mock get_profile_by_factor to return None
         with patch.object(self.processor, "get_profile_by_factor", return_value=None):
-            conversations = self.processor.generate_conversation_templates(PersonalityFactor.OPENNESS)
+            conversations = self.processor.generate_conversation_templates(
+                PersonalityFactor.OPENNESS
+            )
             assert len(conversations) == 0
 
     def test_export_to_json(self):

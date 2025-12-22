@@ -224,8 +224,10 @@ class BigFiveProcessor:
         return PersonalityProfile(
             factor=PersonalityFactor.OPENNESS,
             name="Openness to Experience",
-            description="Reflects the degree of intellectual curiosity, creativity, and "
-            "preference for novelty and variety",
+            description=(
+                "Reflects the degree of intellectual curiosity, creativity, and "
+                "preference for novelty and variety"
+            ),
             facets=facets,
             score_interpretations={
                 "high": [
@@ -244,12 +246,14 @@ class BigFiveProcessor:
                 ],
             },
             clinical_considerations=[
-                "High openness may correlate with creativity but also unconventional thinking",
+                "High openness may correlate with creativity but also unconventional "
+                "thinking",
                 "Low openness may indicate stability but potential rigidity",
                 "Consider cultural factors in interpretation",
             ],
             therapeutic_implications=[
-                "High openness clients may benefit from creative therapeutic approaches",
+                "High openness clients may benefit from creative therapeutic "
+                "approaches",
                 "Low openness clients may prefer structured, traditional interventions",
                 "Explore balance between openness and stability",
             ],
@@ -293,8 +297,10 @@ class BigFiveProcessor:
         return PersonalityProfile(
             factor=PersonalityFactor.CONSCIENTIOUSNESS,
             name="Conscientiousness",
-            description="Reflects the degree of organization, persistence, and motivation "
-            "in goal-directed behavior",
+            description=(
+                "Reflects the degree of organization, persistence, and motivation "
+                "in goal-directed behavior"
+            ),
             facets=facets,
             score_interpretations={
                 "high": [
@@ -318,7 +324,8 @@ class BigFiveProcessor:
                 "Consider perfectionism in high scorers",
             ],
             therapeutic_implications=[
-                "High conscientiousness clients may benefit from goal-setting approaches",
+                "High conscientiousness clients may benefit from goal-setting "
+                "approaches",
                 "Low conscientiousness clients may need structure and accountability",
                 "Address perfectionism or self-criticism in high scorers",
             ],
@@ -399,7 +406,9 @@ class BigFiveProcessor:
             PersonalityFacet(
                 name="Trust",
                 factor=PersonalityFactor.AGREEABLENESS,
-                description="Tendency to believe others are honest and well-intentioned",
+                description=(
+                    "Tendency to believe others are honest and well-intentioned"
+                ),
                 high_score_characteristics=[
                     "Assumes others have good intentions",
                     "Trusting and forgiving",
@@ -483,7 +492,9 @@ class BigFiveProcessor:
             PersonalityFacet(
                 name="Depression",
                 factor=PersonalityFactor.NEUROTICISM,
-                description="Tendency to experience sadness, hopelessness, and discouragement",
+                description=(
+                    "Tendency to experience sadness, hopelessness, and discouragement"
+                ),
                 high_score_characteristics=[
                     "Prone to feelings of sadness",
                     "Often feels hopeless or discouraged",
@@ -733,7 +744,9 @@ class BigFiveProcessor:
             return []
         return self.knowledge_base.personality_profiles
 
-    def get_profile_by_factor(self, factor: PersonalityFactor) -> PersonalityProfile | None:
+    def get_profile_by_factor(
+        self, factor: PersonalityFactor
+    ) -> PersonalityProfile | None:
         """Get a specific personality profile by factor."""
         if not self.knowledge_base:
             return None
@@ -749,7 +762,9 @@ class BigFiveProcessor:
             return []
         return self.knowledge_base.assessments
 
-    def get_assessment_by_type(self, assessment_type: AssessmentType) -> BigFiveAssessment | None:
+    def get_assessment_by_type(
+        self, assessment_type: AssessmentType
+    ) -> BigFiveAssessment | None:
         """Get a specific assessment by type."""
         if not self.knowledge_base:
             return None
@@ -759,7 +774,9 @@ class BigFiveProcessor:
                 return assessment
         return None
 
-    def generate_conversation_templates(self, factor: PersonalityFactor) -> list[Conversation]:
+    def generate_conversation_templates(
+        self, factor: PersonalityFactor
+    ) -> list[Conversation]:
         """Generate conversation templates for a specific personality factor."""
         profile = self.get_profile_by_factor(factor)
         if not profile:
@@ -772,9 +789,11 @@ class BigFiveProcessor:
         assessment_messages = [
             Message(
                 role="therapist",
-                content=f"I'd like to explore your {profile.name.lower()} with you. "
-                f"This will help me understand your personality style better.",
-                meta={"type": "introduction", "factor": factor.value},
+                content=(
+                    f"I'd like to explore your {profile.name.lower()} with you. "
+                    f"This will help me understand your personality style better."
+                ),
+                metadata={"type": "introduction", "factor": factor.value},
             )
         ]
 
@@ -786,18 +805,30 @@ class BigFiveProcessor:
             assessment_messages.append(
                 Message(
                     role="therapist",
-                    content=f"Some people describe themselves as {high_chars[0].lower()}. "
-                    f"How would you describe yourself in this area?",
-                    meta={"characteristic_type": "high", "factor": factor.value},
+                    content=(
+                        f"Some people describe themselves as "
+                        f"{high_chars[0].lower()}. How would you describe "
+                        f"yourself in this area?"
+                    ),
+                    metadata={
+                        "characteristic_type": "high",
+                        "factor": factor.value,
+                    },
                 )
             )
 
             assessment_messages.append(
                 Message(
                     role="client",
-                    content=f"I think I am fairly {high_chars[0].lower()}. For example, "
-                    f"I often find myself engaging in activities that reflect this trait.",
-                    meta={"response_type": "high_agreement", "factor": factor.value},
+                    content=(
+                        f"I think I am fairly {high_chars[0].lower()}. For "
+                        f"example, I often find myself engaging in activities "
+                        f"that reflect this trait."
+                    ),
+                    metadata={
+                        "response_type": "high_agreement",
+                        "factor": factor.value,
+                    },
                 )
             )
 
@@ -805,9 +836,15 @@ class BigFiveProcessor:
         therapeutic_messages = [
             Message(
                 role="therapist",
-                content=f"Based on our discussion about your {profile.name.lower()}, "
-                f"I'd like to explore how this affects your daily life and relationships.",
-                meta={"type": "therapeutic_exploration", "factor": factor.value},
+                content=(
+                    f"Based on our discussion about your "
+                    f"{profile.name.lower()}, I'd like to explore how this "
+                    f"affects your daily life and relationships."
+                ),
+                metadata={
+                    "type": "therapeutic_exploration",
+                    "factor": factor.value,
+                },
             )
         ]
 
@@ -818,21 +855,22 @@ class BigFiveProcessor:
                     role="therapist",
                     content=f"Given your personality style, {implication.lower()}. "
                     f"How does this resonate with your experience?",
-                    meta={"therapeutic_implication": True, "factor": factor.value},
+                    metadata={
+                        "therapeutic_implication": True,
+                        "factor": factor.value,
+                    },
                 )
             )
 
         # Create assessment conversation
         assessment_conversation = Conversation(
-            id=f"bigfive_assessment_{factor.value}",
+            conversation_id=f"bigfive_assessment_{factor.value}",
             messages=assessment_messages,
-            context={
+            source="big_five_processor",
+            metadata={
                 "factor": factor.value,
                 "profile_name": profile.name,
                 "type": "personality_assessment",
-            },
-            source="big_five_processor",
-            meta={
                 "clinical_considerations": profile.clinical_considerations,
                 "therapeutic_implications": profile.therapeutic_implications,
             },
@@ -840,15 +878,13 @@ class BigFiveProcessor:
 
         # Create therapeutic conversation
         therapeutic_conversation = Conversation(
-            id=f"bigfive_therapeutic_{factor.value}",
+            conversation_id=f"bigfive_therapeutic_{factor.value}",
             messages=therapeutic_messages,
-            context={
+            source="big_five_processor",
+            metadata={
                 "factor": factor.value,
                 "profile_name": profile.name,
                 "type": "therapeutic_exploration",
-            },
-            source="big_five_processor",
-            meta={
                 "clinical_considerations": profile.clinical_considerations,
                 "therapeutic_implications": profile.therapeutic_implications,
             },

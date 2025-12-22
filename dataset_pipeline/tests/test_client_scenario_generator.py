@@ -68,7 +68,9 @@ class TestClientScenarioGenerator(unittest.TestCase):
 
     def test_generate_demographics(self):
         """Test demographic generation."""
-        demographics = self.generator._generate_demographics(DemographicCategory.YOUNG_ADULT)
+        demographics = self.generator._generate_demographics(
+            DemographicCategory.YOUNG_ADULT
+        )
 
         assert isinstance(demographics, ClientDemographics)
         assert isinstance(demographics.age, int)
@@ -121,9 +123,14 @@ class TestClientScenarioGenerator(unittest.TestCase):
         """Test presenting problem generation."""
         # Create test demographics
         demographics = ClientDemographics(
-            age=25, gender="Female", occupation="student", education_level="Bachelor's degree",
-            relationship_status="Single", living_situation="with parents",
-            cultural_background="Caucasian American", socioeconomic_status="Middle income"
+            age=25,
+            gender="Female",
+            occupation="student",
+            education_level="Bachelor's degree",
+            relationship_status="Single",
+            living_situation="with parents",
+            cultural_background="Caucasian American",
+            socioeconomic_status="Middle income"
         )
 
         # Get a test disorder
@@ -148,9 +155,14 @@ class TestClientScenarioGenerator(unittest.TestCase):
         """Test clinical formulation generation."""
         # Create test data
         demographics = ClientDemographics(
-            age=30, gender="Male", occupation="teacher", education_level="Master's degree",
-            relationship_status="Married", living_situation="with spouse",
-            cultural_background="Hispanic/Latino", socioeconomic_status="Middle income"
+            age=30,
+            gender="Male",
+            occupation="teacher",
+            education_level="Master's degree",
+            relationship_status="Married",
+            living_situation="with spouse",
+            cultural_background="Hispanic/Latino",
+            socioeconomic_status="Middle income"
         )
 
         presenting_problem = PresentingProblem(
