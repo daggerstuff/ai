@@ -1,5 +1,5 @@
 {
-  "total_concepts_available": 10,
+  "total_concepts_available": 10960,
   "concept_categories": [
     "therapeutic_modalities",
     "developmental_psychology",
@@ -9,8 +9,10 @@
     "body_psychology",
     "well_being_psychology",
     "postmodern_approaches",
-    "emotion_psychology"
+    "emotion_psychology",
+    "psychology_book_reference",
+    "therapeutic_conversation_example"
   ],
   "enhancement_complete": true,
-  "datasets_enhanced": 2
+  "datasets_enhanced": 4
 }
