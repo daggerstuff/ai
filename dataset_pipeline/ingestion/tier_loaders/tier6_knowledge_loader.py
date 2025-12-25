@@ -5,6 +5,7 @@ Loads foundational therapeutic knowledge (DSM-5, psychology-10k, etc.)
 and converts to training format (instruction-following examples).
 """
 
+import json
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -66,6 +67,8 @@ class Tier6KnowledgeLoader(BaseTierLoader):
             "psych_101": self.base_path / "Psych-101",
             "xmu_psych_books": self.base_path / "xmu_psych_books",
             "mental_health_snli": self.base_path / "customized-mental-health-snli2",
+            "enhanced_psychology_knowledge": self.base_path.parent / "pixel" / "knowledge" / "enhanced_psychology_knowledge_base.json",
+            "further_enhanced_psychology_knowledge": self.base_path.parent / "pixel" / "knowledge" / "further_enhanced_psychology_knowledge_base.json",
         }
 
         logger.info(
@@ -136,16 +139,98 @@ class Tier6KnowledgeLoader(BaseTierLoader):
         """
         conversations = []
 
-        # Look for processed knowledge files
-        jsonl_files = list(knowledge_path.rglob("*.jsonl"))
-        json_files = list(knowledge_path.rglob("*.json"))
-
-        for file_path in jsonl_files + json_files:
-            file_conversations = self._convert_knowledge_to_instructions(
-                file_path, dataset_name
+        # Handle single JSON file (like enhanced_psychology_knowledge_base.json)
+        if knowledge_path.is_file() and knowledge_path.suffix == ".json":
+            file_conversations = self._convert_json_knowledge_to_instructions(
+                knowledge_path, dataset_name
             )
             conversations.extend(file_conversations)
+        else:
+            # Look for processed knowledge files in directory
+            jsonl_files = list(knowledge_path.rglob("*.jsonl"))
+            json_files = list(knowledge_path.rglob("*.json"))
 
+            for file_path in jsonl_files + json_files:
+                file_conversations = self._convert_knowledge_to_instructions(
+                    file_path, dataset_name
+                )
+                conversations.extend(file_conversations)
+
+        return conversations
+
+    def _convert_json_knowledge_to_instructions(
+        self, file_path: Path, dataset_name: str
+    ) -> List[Conversation]:
+        """
+        Convert JSON knowledge base to instruction-following format.
+
+        Args:
+            file_path: Path to JSON knowledge base file
+            dataset_name: Name of the knowledge base
+
+        Returns:
+            List of Conversation objects in instruction format
+        """
+        conversations = []
+
+        try:
+            # Load knowledge base from JSON file
+            with open(file_path, "r", encoding="utf-8") as f:
+                knowledge_data = json.load(f)
+
+            # Handle different JSON structures
+            concepts = []
+            if isinstance(knowledge_data, dict):
+                # Check if it's the enhanced knowledge base format
+                if "concepts" in knowledge_data:
+                    concepts_data = knowledge_data["concepts"]
+                    if isinstance(concepts_data, dict):
+                        concepts = list(concepts_data.values())
+                    elif isinstance(concepts_data, list):
+                        concepts = concepts_data
+                else:
+                    # Assume it's a list of concepts directly
+                    concepts = list(knowledge_data.values()) if isinstance(knowledge_data, dict) else knowledge_data
+            elif isinstance(knowledge_data, list):
+                concepts = knowledge_data
+
+            # Convert each concept to instruction-following format
+            for i, concept in enumerate(concepts):
+                if not isinstance(concept, dict):
+                    continue
+
+                # Extract knowledge content
+                concept_name = concept.get("name", concept.get("title", f"Concept {i}"))
+                concept_definition = concept.get("definition", concept.get("content", concept.get("description", "")))
+
+                if not concept_definition:
+                    continue
+
+                # Create instruction-following conversation
+                # Format: "What is [concept]?" -> "[Knowledge content]"
+                instruction = f"What is {concept_name}?"
+
+                conversation = Conversation(
+                    conversation_id=f"{dataset_name}_{i}",
+                    source=f"tier6_knowledge_{dataset_name}",
+                    messages=[
+                        Message(role="user", content=instruction),
+                        Message(role="assistant", content=concept_definition),
+                    ],
+                    metadata={
+                        "tier": self.tier,
+                        "quality_threshold": self.quality_threshold,
+                        "knowledge_type": dataset_name,
+                        "original_entry": concept,
+                    },
+                )
+
+                conversations.append(conversation)
+
+        except Exception as e:
+            logger.error(f"Error converting JSON knowledge base {file_path}: {e}", exc_info=True)
+
+        logger.info(f"Converted {len(conversations)} entries from JSON knowledge base {file_path}")
         return conversations
 
     def _convert_knowledge_to_instructions(
