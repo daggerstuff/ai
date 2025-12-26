@@ -3,12 +3,12 @@
 Provenance Metadata Schema Implementation
 
 This module provides Python dataclasses and validation for the provenance
-metadata schema as defined in governance/provenance_schema.json.
+metadata schema as defined in docs/governance/provenance_schema.json.
 
 Related Documentation:
-- Schema Definition: governance/provenance_schema.json
-- Storage Plan: governance/provenance_storage_plan.md
-- Audit Report Example: governance/audit_report_example.json
+- Schema Definition: docs/governance/provenance_schema.json
+- Storage Plan: docs/governance/provenance_storage_plan.md
+- Audit Report Example: docs/governance/audit_report_example.json
 """
 
 import json

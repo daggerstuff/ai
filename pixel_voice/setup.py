@@ -2,6 +2,7 @@
 """
 Setup script for Pixel Voice API and MCP server using uv.
 """
+
 import os
 import subprocess
 import sys
@@ -19,11 +20,10 @@ def check_uv_installed():
     """Check if uv is installed."""
     try:
         result = subprocess.run(["uv", "--version"], capture_output=True, text=True)
-        if result.returncode == 0:
-            print(f"✓ uv is installed: {result.stdout.strip()}")
-            return True
-        else:
+        if result.returncode != 0:
             return False
+        print(f"✓ uv is installed: {result.stdout.strip()}")
+        return True
     except FileNotFoundError:
         return False
 
@@ -37,13 +37,12 @@ def install_uv():
             ["curl", "-LsSf", "https://astral.sh/uv/install.sh"], capture_output=True
         )
 
-        if result.returncode == 0:
-            # Run the installer
-            subprocess.run(["sh"], input=result.stdout, check=True)
-            return True
-        else:
+        if result.returncode != 0:
             # Fallback to pip installation
             return run_command([sys.executable, "-m", "pip", "install", "uv"])
+        # Run the installer
+        subprocess.run(["sh"], input=result.stdout, check=True)
+        return True
     except Exception as e:
         print(f"Failed to install uv: {e}")
         return False
@@ -76,9 +75,10 @@ def install_dependencies():
 
     # Install pipeline dependencies if requirements file exists
     pipeline_req = Path("requirements/pixel_voice_pipeline.txt")
-    if pipeline_req.exists():
-        if not run_command(["uv", "pip", "install", "-r", str(pipeline_req)]):
-            print("Warning: Failed to install pipeline dependencies")
+    if pipeline_req.exists() and not run_command(
+        ["uv", "pip", "install", "-r", str(pipeline_req)]
+    ):
+        print("Warning: Failed to install pipeline dependencies")
 
     return True
 
@@ -92,7 +92,7 @@ def create_directories():
         "data/voice_segments",
         "data/voice_transcripts",
         "data/voice_transcripts_filtered",
-        "data/voice_features",
+        "data/voice",
         "data/dialogue_pairs",
         "data/therapeutic_pairs",
         "data/voice_consistency",
@@ -157,44 +157,39 @@ def make_scripts_executable():
 
 def verify_installation():
     """Verify that the installation is working."""
+    import importlib.util
+
     print("Verifying installation...")
 
-    try:
-        # Test imports
-        import fastapi
-        import uvicorn
-        import pydantic
-
+    # Test FastAPI dependencies
+    fastapi_available = all(
+        importlib.util.find_spec(module) is not None
+        for module in ["fastapi", "pydantic", "uvicorn"]
+    )
+    if fastapi_available:
         print("✓ FastAPI dependencies available")
-
-        # Test MCP import (might not be available)
-        try:
-            import mcp
-
-            print("✓ MCP dependencies available")
-        except ImportError:
-            print("⚠ MCP dependencies not available (install with: pip install mcp)")
-
-        # Test pipeline dependencies
-        try:
-            import whisperx
-
-            print("✓ WhisperX available")
-        except ImportError:
-            print("⚠ WhisperX not available (install with: pip install whisperx)")
-
-        try:
-            import yt_dlp
-
-            print("✓ yt-dlp available")
-        except ImportError:
-            print("⚠ yt-dlp not available (install with: pip install yt-dlp)")
-
-        return True
-
-    except ImportError as e:
-        print(f"✗ Import error: {e}")
+    else:
+        print("✗ FastAPI dependencies missing")
         return False
+
+    # Test MCP import (might not be available)
+    if importlib.util.find_spec("mcp") is not None:
+        print("✓ MCP dependencies available")
+    else:
+        print("⚠ MCP dependencies not available (install with: pip install mcp)")
+
+    # Test pipeline dependencies
+    if importlib.util.find_spec("whisperx") is not None:
+        print("✓ WhisperX available")
+    else:
+        print("⚠ WhisperX not available (install with: pip install whisperx)")
+
+    if importlib.util.find_spec("yt_dlp") is not None:
+        print("✓ yt-dlp available")
+    else:
+        print("⚠ yt-dlp not available (install with: pip install yt-dlp)")
+
+    return True
 
 
 def print_usage_instructions():

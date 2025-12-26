@@ -1,23 +1,26 @@
-import os
-import json
 import glob
+import json
 import logging
-import numpy as np
+import os
 from pathlib import Path
-from sklearn.cluster import KMeans, DBSCAN
+
+import numpy as np
+from scipy.stats import entropy
+from sklearn.cluster import DBSCAN, KMeans
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import silhouette_score
-from scipy.stats import entropy
 
 # Configuration
-FEATURES_DIR = "data/voice_features"
+FEATURES_DIR = "data/voice"
 CLUSTER_DIR = "data/voice_clusters"
 LOG_FILE = "logs/personality_emotion_clustering.log"
 os.makedirs(CLUSTER_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 logging.basicConfig(
-    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
 
@@ -96,8 +99,12 @@ def drift_detection(X, prev_dist=None, bins=20):
     mid = len(X) // 2
     if mid == 0:
         return None
-    hist1, _ = np.histogram(X[:mid], bins=bins, range=(np.min(X), np.max(X)), density=True)
-    hist2, _ = np.histogram(X[mid:], bins=bins, range=(np.min(X), np.max(X)), density=True)
+    hist1, _ = np.histogram(
+        X[:mid], bins=bins, range=(np.min(X), np.max(X)), density=True
+    )
+    hist2, _ = np.histogram(
+        X[mid:], bins=bins, range=(np.min(X), np.max(X)), density=True
+    )
     kl_div = entropy(hist1 + 1e-8, hist2 + 1e-8)
     return kl_div
 
