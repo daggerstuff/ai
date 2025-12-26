@@ -53,7 +53,7 @@ build_image() {
     
     log_info "Building inference image..."
     cd /home/vivi/pixelated/ai
-    docker build -f ovh/Dockerfile.inference -t pixelated-inference:latest .
+    docker build -f docker/ovh/Dockerfile.inference -t pixelated-inference:latest .
     
     log_info "Logging into OVH registry..."
     ovhai registry login

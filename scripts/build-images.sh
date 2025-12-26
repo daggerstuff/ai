@@ -43,7 +43,7 @@ build_image() {
 }
 
 # Build main application image
-build_image "api" "Dockerfile" "."
+build_image "api" "docker/Dockerfile" "."
 
 # Build any additional component images if needed
 # build_image "component" "path/to/Dockerfile" "build/context"
