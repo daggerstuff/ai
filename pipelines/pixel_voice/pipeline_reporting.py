@@ -10,7 +10,7 @@ LOGS_DIR = "logs"
 DATA_DIRS = {
     "quality": "data/voice_quality",
     "transcripts": "data/voice_transcripts_filtered",
-    "features": "data/voice_features",
+    "features": "data/voice",
     "clusters": "data/voice_clusters",
     "pairs": "data/dialogue_pairs",
     "therapeutic": "data/therapeutic_pairs",
@@ -63,7 +63,9 @@ def aggregate_metrics():
         report["feature_files"] = count_files(DATA_DIRS["features"])
 
     # Clusters
-    cluster_file = os.path.join(DATA_DIRS["clusters"], "personality_emotion_clusters.json")
+    cluster_file = os.path.join(
+        DATA_DIRS["clusters"], "personality_emotion_clusters.json"
+    )
     clusters = _load_json_list(cluster_file)
     if clusters:
         cluster_counts = Counter([c.get("cluster") for c in clusters])

@@ -11,14 +11,16 @@ from sklearn.ensemble import IsolationForest
 from sklearn.metrics import silhouette_score
 
 # Configuration
-FEATURES_DIR = "data/voice_features"
+FEATURES_DIR = "data/voice"
 CLUSTER_DIR = "data/voice_clusters"
 LOG_FILE = "logs/personality_emotion_clustering.log"
 os.makedirs(CLUSTER_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 logging.basicConfig(
-    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
 

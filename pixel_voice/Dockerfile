@@ -40,7 +40,7 @@ COPY . .
 
 # Create necessary directories
 RUN mkdir -p data/voice_raw data/voice_segments data/voice_transcripts \
-    data/voice_transcripts_filtered data/voice_features data/dialogue_pairs \
+    data/voice_transcripts_filtered data/voice data/dialogue_pairs \
     data/therapeutic_pairs data/voice_consistency data/voice_optimized \
     logs reports
 
@@ -49,14 +49,14 @@ EXPOSE 8000 8001
 
 # Create startup script using uv
 RUN echo '#!/bin/bash\n\
-if [ "$1" = "api" ]; then\n\
+    if [ "$1" = "api" ]; then\n\
     uv run python start_api.py\n\
-elif [ "$1" = "mcp" ]; then\n\
+    elif [ "$1" = "mcp" ]; then\n\
     uv run python start_mcp.py\n\
-else\n\
+    else\n\
     echo "Usage: docker run <image> [api|mcp]"\n\
     exit 1\n\
-fi' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
+    fi' > /app/entrypoint.sh && chmod +x /app/entrypoint.sh
 
 # Set entrypoint
 ENTRYPOINT ["/app/entrypoint.sh"]

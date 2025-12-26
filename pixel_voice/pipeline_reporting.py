@@ -1,8 +1,8 @@
-import os
-import json
-import glob
-import logging
 import csv
+import glob
+import json
+import logging
+import os
 from collections import Counter, defaultdict
 
 # Configuration
@@ -10,7 +10,7 @@ LOGS_DIR = "logs"
 DATA_DIRS = {
     "quality": "data/voice_quality",
     "transcripts": "data/voice_transcripts_filtered",
-    "features": "data/voice_features",
+    "features": "data/voice",
     "clusters": "data/voice_clusters",
     "pairs": "data/dialogue_pairs",
     "therapeutic": "data/therapeutic_pairs",
@@ -31,7 +31,6 @@ def count_files(directory, pattern="*.json"):
 
 
 def aggregate_metrics():
-
     report = {}
     # Quality control
     if os.path.exists(DATA_DIRS["quality"]):
@@ -44,7 +43,9 @@ def aggregate_metrics():
         report["feature_files"] = count_files(DATA_DIRS["features"])
     # Clusters
     if os.path.exists(DATA_DIRS["clusters"]):
-        cluster_file = os.path.join(DATA_DIRS["clusters"], "personality_emotion_clusters.json")
+        cluster_file = os.path.join(
+            DATA_DIRS["clusters"], "personality_emotion_clusters.json"
+        )
         if os.path.exists(cluster_file):
             with open(cluster_file, "r", encoding="utf-8") as f:
                 clusters = json.load(f)
@@ -54,7 +55,9 @@ def aggregate_metrics():
     # Dialogue pairs
     if os.path.exists(DATA_DIRS["pairs"]):
         pair_file = os.path.join(DATA_DIRS["pairs"], "dialogue_pairs.json")
-        validated_file = os.path.join(DATA_DIRS["pairs"], "dialogue_pairs_validated.json")
+        validated_file = os.path.join(
+            DATA_DIRS["pairs"], "dialogue_pairs_validated.json"
+        )
         if os.path.exists(pair_file):
             with open(pair_file, "r", encoding="utf-8") as f:
                 pairs = json.load(f)
@@ -65,7 +68,9 @@ def aggregate_metrics():
             report["validated_pairs"] = len(validated)
     # Therapeutic pairs
     if os.path.exists(DATA_DIRS["therapeutic"]):
-        therapeutic_file = os.path.join(DATA_DIRS["therapeutic"], "therapeutic_pairs.json")
+        therapeutic_file = os.path.join(
+            DATA_DIRS["therapeutic"], "therapeutic_pairs.json"
+        )
         if os.path.exists(therapeutic_file):
             with open(therapeutic_file, "r", encoding="utf-8") as f:
                 therapeutic = json.load(f)
