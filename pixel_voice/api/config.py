@@ -2,9 +2,9 @@
 Configuration management for Pixel Voice API and MCP server.
 """
 
-import os
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
 from pydantic_settings import BaseSettings
 
@@ -27,7 +27,7 @@ class DirectoryConfig(BaseModel):
     voice_segments: str = "data/voice_segments"
     voice_transcripts: str = "data/voice_transcripts"
     voice_transcripts_filtered: str = "data/voice_transcripts_filtered"
-    voice_features: str = "data/voice_features"
+    voice_features: str = "data/voice"
     dialogue_pairs: str = "data/dialogue_pairs"
     therapeutic_pairs: str = "data/therapeutic_pairs"
     voice_consistency: str = "data/voice_consistency"
@@ -79,17 +79,20 @@ class PixelVoiceConfig(BaseSettings):
     pipeline_stages: List[PipelineStageConfig] = Field(
         default_factory=lambda: [
             PipelineStageConfig(
-                name="Audio Quality Control", script_path="pixel_voice/audio_quality_control.py"
+                name="Audio Quality Control",
+                script_path="pixel_voice/audio_quality_control.py",
             ),
             PipelineStageConfig(
-                name="Batch Transcription", script_path="pixel_voice/batch_transcribe.py"
+                name="Batch Transcription",
+                script_path="pixel_voice/batch_transcribe.py",
             ),
             PipelineStageConfig(
                 name="Transcription Quality Filtering",
                 script_path="pixel_voice/transcription_quality_filter.py",
             ),
             PipelineStageConfig(
-                name="Feature Extraction", script_path="pixel_voice/feature_extraction.py"
+                name="Feature Extraction",
+                script_path="pixel_voice/feature_extraction.py",
             ),
             PipelineStageConfig(
                 name="Personality & Emotion Clustering",
@@ -112,7 +115,8 @@ class PixelVoiceConfig(BaseSettings):
                 script_path="pixel_voice/voice_quality_consistency.py",
             ),
             PipelineStageConfig(
-                name="Voice Data Filtering", script_path="pixel_voice/voice_data_filtering.py"
+                name="Voice Data Filtering",
+                script_path="pixel_voice/voice_data_filtering.py",
             ),
         ]
     )
@@ -133,10 +137,9 @@ class PixelVoiceConfig(BaseSettings):
 
     def get_stage_by_name(self, name: str) -> Optional[PipelineStageConfig]:
         """Get pipeline stage configuration by name."""
-        for stage in self.pipeline_stages:
-            if stage.name == name:
-                return stage
-        return None
+        return next(
+            (stage for stage in self.pipeline_stages if stage.name == name), None
+        )
 
     def get_enabled_stages(self) -> List[PipelineStageConfig]:
         """Get list of enabled pipeline stages."""

@@ -6,8 +6,8 @@ Service layer for managing dataset provenance metadata.
 Provides CRUD operations, S3 integration, and audit logging.
 
 Related Documentation:
-- Schema: governance/provenance_schema.json
-- Storage Plan: governance/provenance_storage_plan.md
+- Schema: docs/governance/provenance_schema.json
+- Storage Plan: docs/governance/provenance_storage_plan.md
 - Schema Implementation: ai/dataset_pipeline/schemas/provenance_schema.py
 """
 
