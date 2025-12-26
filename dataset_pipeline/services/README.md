@@ -22,7 +22,7 @@ The Provenance Service provides complete provenance tracking for all datasets, i
 ### Schema
 
 - **`../schemas/provenance_schema.py`**: Python dataclasses for provenance data models
-- **`../../governance/provenance_schema.json`**: JSON schema definition
+- **`../../docs/governance/provenance_schema.json`**: JSON schema definition
 - **`../../db/provenance_schema.sql`**: Database schema migration
 
 ## Usage
@@ -180,7 +180,7 @@ See `provenance_pipeline_integration.py` for decorators and context managers.
 
 ## Related Documentation
 
-- Schema Definition: `governance/provenance_schema.json`
-- Storage Plan: `governance/provenance_storage_plan.md`
-- Audit Report Example: `governance/audit_report_example.json`
+- Schema Definition: `docs/governance/provenance_schema.json`
+- Storage Plan: `docs/governance/provenance_storage_plan.md`
+- Audit Report Example: `docs/governance/audit_report_example.json`
 - Jira Issue: KAN-9

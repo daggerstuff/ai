@@ -8,19 +8,27 @@ from transformers.pipelines import pipeline  # type: ignore[reportPrivateImportU
 
 # Configuration
 FILTERED_DIR = "data/voice_transcripts_filtered"
-FEATURES_DIR = "data/voice_features"
+FEATURES_DIR = "data/voice"
 LOG_FILE = "logs/feature_extraction.log"
 
 os.makedirs(FEATURES_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 logging.basicConfig(
-    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
 # Load ML/NLP pipelines (can be swapped for custom/fine-tuned models)
-emotion_classifier = pipeline("text-classification", model="j-hartmann/emotion-english-distilroberta-base", top_k=None)  # type: ignore
-sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")  # type: ignore
+emotion_classifier = pipeline(
+    "text-classification",
+    model="j-hartmann/emotion-english-distilroberta-base",
+    top_k=None,
+)  # type: ignore
+sentiment_pipeline = pipeline(
+    "sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english"
+)  # type: ignore
 # Placeholder for empathy detection, personality, etc.
 
 # Debug log added to validate input type and value
@@ -29,12 +37,15 @@ sentiment_pipeline = pipeline("sentiment-analysis", model="distilbert-base-uncas
 def extract_features(segment):
     import logging
 
-    logging.debug(f"extract_features called with segment: {segment} (type: {type(segment)})")
+    logging.debug(
+        f"extract_features called with segment: {segment} (type: {type(segment)})"
+    )
     text = segment.get("text", "")
     features = {
         "length": len(text),
         "num_words": len(text.split()),
-        "avg_word_length": sum(len(w) for w in text.split()) / max(1, len(text.split())),
+        "avg_word_length": sum(len(w) for w in text.split())
+        / max(1, len(text.split())),
         "emotion": None,
         "sentiment": None,
         # Add more features as needed

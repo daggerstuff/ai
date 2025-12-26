@@ -82,7 +82,7 @@ Complete implementation of the provenance metadata tracking system for the Datas
 /home/vivi/pixelated/
 ├── db/
 │   └── provenance_schema.sql          # Database migration
-├── governance/
+├── docs/governance/
 │   ├── provenance_schema.json         # JSON schema definition
 │   ├── provenance_storage_plan.md     # Storage strategy
 │   └── audit_report_example.json      # Example audit report
@@ -259,8 +259,8 @@ python -m ai.dataset_pipeline.cli.provenance_cli list
 
 ## Related Documentation
 
-- **Schema Definition**: `governance/provenance_schema.json`
-- **Storage Plan**: `governance/provenance_storage_plan.md`
+- **Schema Definition**: `docs/governance/provenance_schema.json`
+- **Storage Plan**: `docs/governance/provenance_storage_plan.md`
 - **Service README**: `ai/dataset_pipeline/services/README.md`
 - **Jira Issue**: [KAN-9](https://gemcityxyz.atlassian.net/browse/KAN-9)
 

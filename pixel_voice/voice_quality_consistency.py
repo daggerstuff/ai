@@ -7,14 +7,16 @@ import numpy as np
 
 # Configuration
 QUALITY_DIR = "data/voice_quality"
-FEATURES_DIR = "data/voice_features"
+FEATURES_DIR = "data/voice"
 CONSISTENCY_DIR = "data/voice_consistency"
 LOG_FILE = "logs/voice_quality_consistency.log"
 os.makedirs(CONSISTENCY_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 logging.basicConfig(
-    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
 # Scoring weights (tunable)
@@ -92,7 +94,9 @@ def main():
     out_path = os.path.join(CONSISTENCY_DIR, "voice_quality_consistency.json")
     with open(out_path, encoding="utf-8") as f:
         json.dump(results, f, indent=2)
-    logging.info(f"Voice quality and consistency assessment complete. Results saved to {out_path}")
+    logging.info(
+        f"Voice quality and consistency assessment complete. Results saved to {out_path}"
+    )
 
 
 if __name__ == "__main__":

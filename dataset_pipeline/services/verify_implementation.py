@@ -49,9 +49,9 @@ def verify_files():
 
     files_to_check = [
         "db/provenance_schema.sql",
-        "governance/provenance_schema.json",
-        "governance/provenance_storage_plan.md",
-        "governance/audit_report_example.json",
+        "docs/governance/provenance_schema.json",
+        "docs/governance/provenance_storage_plan.md",
+        "docs/governance/audit_report_example.json",
         "ai/dataset_pipeline/schemas/provenance_schema.py",
         "ai/dataset_pipeline/services/provenance_service.py",
         "ai/dataset_pipeline/services/provenance_integration.py",

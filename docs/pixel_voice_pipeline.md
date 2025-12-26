@@ -49,7 +49,7 @@ All stages can be run sequentially via [`pixel_voice/run_full_pipeline.py`](pixe
 ### [`pixel_voice/feature_extraction.py`](pixel_voice/feature_extraction.py)
 - **Purpose:** Extract emotion, sentiment, and text features from transcripts.
 - **Inputs:** Filtered transcripts
-- **Outputs:** Features JSON in `data/voice_features/`
+- **Outputs:** Features JSON in `data/voice/`
 - **Logging:** `logs/feature_extraction.log`
 
 ### [`pixel_voice/personality_emotion_clustering.py`](pixel_voice/personality_emotion_clustering.py)
@@ -114,7 +114,7 @@ All stages can be run sequentially via [`pixel_voice/run_full_pipeline.py`](pixe
 }
 ```
 
-### Transcript Features (`data/voice_features/*.json`)
+### Transcript Features (`data/voice/*.json`)
 ```json
 [
   {
