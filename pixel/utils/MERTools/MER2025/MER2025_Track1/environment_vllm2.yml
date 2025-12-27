@@ -208,7 +208,7 @@ dependencies:
       - pattern-singleton==1.2.0
       - peft==0.13.2
       - pexpect==4.9.0
-      - pillow==10.4.0
+      - pillow==10.2.0
       - platformdirs==4.3.6
       - pooch==1.8.2
       - portalocker==2.10.1
