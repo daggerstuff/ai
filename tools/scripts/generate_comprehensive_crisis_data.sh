@@ -102,7 +102,7 @@ for i in "${!prompts[@]}"; do
     echo "   Category: $category"
     
     # Make API call
-    response=$(curl -s -X POST https://api.pixelatedempathy.tech/v1/chat/completions \
+    response=$(curl -s -X POST https://api.pixelatedempathy.com/v1/chat/completions \
         -H "Content-Type: application/json" \
         -d "{
             \"model\": \"huihui_ai/qwen3-abliterated:4b-thinking-2507-q4_K_M\",
