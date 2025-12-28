@@ -19,7 +19,7 @@ class TestModule(unittest.TestCase):
     def test_crisis_generation():
         """Test basic crisis conversation generation"""
         
-        api_url = "https://api.pixelatedempathy.tech/v1/chat/completions"
+        api_url = "https://api.pixelatedempathy.com/v1/chat/completions"
         model_name = "huihui_ai/qwen3-abliterated:4b-thinking-2507-q4_K_M"
         
         # Simple test prompt first
