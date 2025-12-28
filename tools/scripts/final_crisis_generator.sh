@@ -45,7 +45,7 @@ for i in "${!client_prompts[@]}"; do
     echo "   Crisis: $client_prompt"
     
     # Generate client message
-    client_response=$(curl -s -X POST https://api.pixelatedempathy.tech/v1/chat/completions \
+    client_response=$(curl -s -X POST https://api.pixelatedempathy.com/v1/chat/completions \
         -H "Content-Type: application/json" \
         -d "{
             \"model\": \"huihui_ai/qwen3-abliterated:4b-thinking-2507-q4_K_M\",
@@ -63,7 +63,7 @@ for i in "${!client_prompts[@]}"; do
         echo "   ✅ Client response generated"
         
         # Generate counselor response
-        counselor_response=$(curl -s -X POST https://api.pixelatedempathy.tech/v1/chat/completions \
+        counselor_response=$(curl -s -X POST https://api.pixelatedempathy.com/v1/chat/completions \
             -H "Content-Type: application/json" \
             -d "{
                 \"model\": \"huihui_ai/qwen3-abliterated:4b-thinking-2507-q4_K_M\",
