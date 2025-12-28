@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Crisis Conversation Generator using Abliterated Models
-Generates authentic crisis intervention training data using models without safety filters.
+Generates authentic crisis intervention training data using models without
+safety filters.
 """
 
 import json
@@ -72,7 +73,9 @@ class AbliteratedCrisisGenerator:
             ),
             CrisisScenario(
                 name="Self-Harm Crisis",
-                description="Person engaging in self-injurious behavior as coping mechanism",
+                description=(
+                    "Person engaging in self-injurious behavior as coping mechanism"
+                ),
                 intensity_level=8,
                 demographics={
                     "age": "16-24",
@@ -138,7 +141,10 @@ class AbliteratedCrisisGenerator:
             ),
             CrisisScenario(
                 name="LGBTQ+ Identity Crisis",
-                description="Individual struggling with identity acceptance and family rejection",
+                description=(
+                    "Individual struggling with identity acceptance and "
+                    "family rejection"
+                ),
                 intensity_level=6,
                 demographics={
                     "age": "16-25",
@@ -160,7 +166,9 @@ class AbliteratedCrisisGenerator:
             ),
             CrisisScenario(
                 name="Substance Abuse Crisis",
-                description="Person in active addiction seeking help after overdose scare",
+                description=(
+                    "Person in active addiction seeking help after overdose scare"
+                ),
                 intensity_level=8,
                 demographics={
                     "age": "20-40",
@@ -411,11 +419,9 @@ class AbliteratedCrisisGenerator:
                 client_prompt = self._create_client_prompt(
                     scenario, exchange, conversation["conversation"]
                 )
-                client_response = self._call_model(
+                if client_response := self._call_model(
                     context_messages + [{"role": "user", "content": client_prompt}]
-                )
-
-                if client_response:
+                ):
                     conversation["conversation"].append(
                         {
                             "speaker": "client",
@@ -429,7 +435,7 @@ class AbliteratedCrisisGenerator:
                     counselor_prompt = self._create_counselor_prompt(
                         scenario, client_response
                     )
-                    counselor_response = self._call_model(
+                    if counselor_response := self._call_model(
                         context_messages
                         + [
                             {
@@ -438,9 +444,7 @@ class AbliteratedCrisisGenerator:
                             },
                             {"role": "user", "content": counselor_prompt},
                         ]
-                    )
-
-                    if counselor_response:
+                    ):
                         conversation["conversation"].append(
                             {
                                 "speaker": "counselor",
@@ -466,7 +470,9 @@ class AbliteratedCrisisGenerator:
 
     def _create_system_prompt(self, scenario: CrisisScenario) -> str:
         """Create system prompt for crisis conversation generation"""
-        return f"""You are generating realistic crisis intervention training data. Create authentic dialogue that demonstrates both the client's crisis state and appropriate therapeutic responses.
+        return f"""You are generating realistic crisis intervention training data. 
+Create authentic dialogue that demonstrates both the client's crisis state 
+and appropriate therapeutic responses.
 
 SCENARIO: {scenario.name}
 DESCRIPTION: {scenario.description}
@@ -482,7 +488,8 @@ Generate realistic, authentic dialogue that:
 4. Maintains clinical authenticity while being educational
 5. Shows progression through crisis intervention stages
 
-This is for training crisis counselors to recognize and respond to real crisis situations."""
+This is for training crisis counselors to recognize and respond to real 
+crisis situations."""
 
     def _create_client_prompt(
         self, scenario: CrisisScenario, exchange: int, conversation_history: List
@@ -492,7 +499,8 @@ This is for training crisis counselors to recognize and respond to real crisis s
             "initial" if exchange < 3 else "middle" if exchange < 7 else "resolution"
         )
 
-        return f"""Generate a realistic client message for a {scenario.name} crisis scenario.
+        return f"""Generate a realistic client message for a {scenario.name} 
+crisis scenario.
 Exchange #{exchange + 1} - {stage} stage
 Intensity level: {scenario.intensity_level}/10
 Demographics: {scenario.demographics}
@@ -503,13 +511,15 @@ The client should express:
 - Specific concerns related to {", ".join(scenario.crisis_indicators)}
 - Responses that show the crisis intervention process
 
-Make this realistic and authentic for training purposes. The client is in genuine distress and needs help."""
+Make this realistic and authentic for training purposes. The client is in 
+genuine distress and needs help."""
 
     def _create_counselor_prompt(
         self, scenario: CrisisScenario, client_message: str
     ) -> str:
         """Create prompt for counselor response generation"""
-        return f"""Generate a professional crisis counselor response to this client message: "{client_message}"
+        return f"""Generate a professional crisis counselor response to this 
+client message: "{client_message}"
 
 The counselor should demonstrate:
 - Crisis intervention techniques appropriate for {scenario.name}
@@ -518,7 +528,8 @@ The counselor should demonstrate:
 - Therapeutic goals: {", ".join(scenario.therapeutic_goals)}
 - Professional boundaries and ethical practice
 
-Provide a realistic counselor response that shows best practices in crisis intervention."""
+Provide a realistic counselor response that shows best practices in crisis 
+intervention."""
 
     def _call_model(self, messages: List[Dict], max_tokens: int = 200) -> Optional[str]:
         """Call the abliterated model API"""
@@ -613,7 +624,8 @@ Provide a realistic counselor response that shows best practices in crisis inter
     ) -> List[Dict]:
         """Generate a complete training dataset"""
         logger.info(
-            f"Generating training dataset with {num_conversations_per_scenario} conversations per scenario"
+            f"Generating training dataset with "
+            f"{num_conversations_per_scenario} conversations per scenario"
         )
 
         dataset = []
@@ -621,11 +633,12 @@ Provide a realistic counselor response that shows best practices in crisis inter
         for scenario in self.crisis_scenarios:
             for i in range(num_conversations_per_scenario):
                 logger.info(
-                    f"Generating conversation {i + 1}/{num_conversations_per_scenario} for {scenario.name}"
+                    f"Generating conversation "
+                    f"{i + 1}/{num_conversations_per_scenario} for "
+                    f"{scenario.name}"
                 )
 
-                conversation = self.generate_crisis_conversation(scenario)
-                if conversation:
+                if conversation := self.generate_crisis_conversation(scenario):
                     dataset.append(conversation)
 
                 # Pause between conversations to avoid overwhelming the API
@@ -654,33 +667,35 @@ def main():
     test_scenario = generator.crisis_scenarios[0]  # Acute Suicidal Ideation
     logger.info("Testing with single scenario...")
 
-    conversation = generator.generate_crisis_conversation(
+    if conversation := generator.generate_crisis_conversation(
         test_scenario, num_exchanges=5
-    )
-
-    if conversation:
-        print("\n" + "=" * 50)
-        print(f"GENERATED CONVERSATION: {conversation['scenario']}")
-        print("=" * 50)
-
-        for msg in conversation["conversation"]:
-            speaker = msg["speaker"].upper()
-            message = msg["message"]
-            print(f"\n{speaker}: {message}")
-
-        print("\n" + "=" * 50)
-        print("QUALITY ASSESSMENT:")
-        print(json.dumps(conversation["quality_assessment"], indent=2))
-        print("=" * 50)
-
-        # Save single conversation
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"test_crisis_conversation_{timestamp}.json"
-        with open(filename, "w", encoding="utf-8") as f:
-            json.dump(conversation, f, indent=2, ensure_ascii=False)
-        print(f"\nConversation saved to {filename}")
+    ):
+        print_and_save_conversation(conversation)
     else:
         print("Failed to generate conversation")
+
+
+def print_and_save_conversation(conversation):
+    print("\n" + "=" * 50)
+    print(f"GENERATED CONVERSATION: {conversation['scenario']}")
+    print("=" * 50)
+
+    for msg in conversation["conversation"]:
+        speaker = msg["speaker"].upper()
+        message = msg["message"]
+        print(f"\n{speaker}: {message}")
+
+    print("\n" + "=" * 50)
+    print("QUALITY ASSESSMENT:")
+    print(json.dumps(conversation["quality_assessment"], indent=2))
+    print("=" * 50)
+
+    # Save single conversation
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"test_crisis_conversation_{timestamp}.json"
+    with open(filename, "w", encoding="utf-8") as f:
+        json.dump(conversation, f, indent=2, ensure_ascii=False)
+    print(f"\nConversation saved to {filename}")
 
 
 if __name__ == "__main__":
