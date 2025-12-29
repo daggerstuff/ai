@@ -1,18 +1,20 @@
 #!/usr/bin/env python3
 """
 Storage Configuration for Dataset Pipeline
-Manages S3/GCS bucket configuration for raw data, processed data, exports, and checkpoints
+Manages S3/GCS bucket configuration for raw data, processed data, exports, and
+checkpoints
 """
 
 import os
 from dataclasses import dataclass, field
-from pathlib import Path
-from typing import Optional, Literal
 from enum import Enum
+from pathlib import Path
+from typing import Optional
 
 
 class StorageBackend(Enum):
     """Supported storage backends"""
+
     LOCAL = "local"
     S3 = "s3"
     GCS = "gcs"
@@ -62,7 +64,8 @@ class StorageConfig:
             backend = StorageBackend.LOCAL
 
         # Local path
-        # Prefer explicit storage path; otherwise derive from the dataset pipeline output root.
+        # Prefer explicit storage path; otherwise derive from the dataset pipeline
+        # output root.
         local_base = Path(
             os.getenv(
                 "DATASET_STORAGE_LOCAL_PATH",
@@ -70,12 +73,13 @@ class StorageConfig:
             )
         )
 
-        config = cls(
+        return cls(
             backend=backend,
             local_base_path=local_base,
             # S3 (OVH or AWS-compatible)
             s3_bucket=os.getenv("OVH_S3_BUCKET") or os.getenv("DATASET_S3_BUCKET"),
-            s3_region=os.getenv("OVH_S3_REGION") or os.getenv("DATASET_S3_REGION", "us-east-1"),
+            s3_region=os.getenv("OVH_S3_REGION")
+            or os.getenv("DATASET_S3_REGION", "us-east-1"),
             s3_access_key_id=(
                 os.getenv("OVH_S3_ACCESS_KEY")
                 or os.getenv("AWS_ACCESS_KEY_ID")
@@ -86,11 +90,14 @@ class StorageConfig:
                 or os.getenv("AWS_SECRET_ACCESS_KEY")
                 or os.getenv("DATASET_S3_SECRET_ACCESS_KEY")
             ),
-            s3_endpoint_url=os.getenv("OVH_S3_ENDPOINT") or os.getenv("DATASET_S3_ENDPOINT_URL"),
+            s3_endpoint_url=os.getenv("OVH_S3_ENDPOINT")
+            or os.getenv("DATASET_S3_ENDPOINT_URL"),
             # GCS
             gcs_bucket=os.getenv("DATASET_GCS_BUCKET"),
-            gcs_project_id=os.getenv("DATASET_GCS_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT"),
-            gcs_credentials_path=os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or os.getenv("DATASET_GCS_CREDENTIALS_PATH"),
+            gcs_project_id=os.getenv("DATASET_GCS_PROJECT_ID")
+            or os.getenv("GOOGLE_CLOUD_PROJECT"),
+            gcs_credentials_path=os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            or os.getenv("DATASET_GCS_CREDENTIALS_PATH"),
             # Prefixes
             raw_data_prefix=os.getenv("DATASET_RAW_PREFIX", "raw"),
             processed_data_prefix=os.getenv("DATASET_PROCESSED_PREFIX", "processed"),
@@ -99,17 +106,13 @@ class StorageConfig:
             logs_prefix=os.getenv("DATASET_LOGS_PREFIX", "logs"),
         )
 
-        return config
-
     def get_export_path(self, version: str, filename: str) -> str:
         """Get storage path for dataset export"""
         if self.backend == StorageBackend.LOCAL:
             export_dir = self.local_base_path / self.exports_prefix / version
             export_dir.mkdir(parents=True, exist_ok=True)
             return str(export_dir / filename)
-        elif self.backend == StorageBackend.S3:
-            return f"{self.exports_prefix}/{version}/{filename}"
-        elif self.backend == StorageBackend.GCS:
+        elif self.backend in [StorageBackend.S3, StorageBackend.GCS]:
             return f"{self.exports_prefix}/{version}/{filename}"
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
@@ -120,9 +123,7 @@ class StorageConfig:
             checkpoint_dir = self.local_base_path / self.checkpoints_prefix / run_id
             checkpoint_dir.mkdir(parents=True, exist_ok=True)
             return str(checkpoint_dir / checkpoint_name)
-        elif self.backend == StorageBackend.S3:
-            return f"{self.checkpoints_prefix}/{run_id}/{checkpoint_name}"
-        elif self.backend == StorageBackend.GCS:
+        elif self.backend in [StorageBackend.S3, StorageBackend.GCS]:
             return f"{self.checkpoints_prefix}/{run_id}/{checkpoint_name}"
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
@@ -133,9 +134,7 @@ class StorageConfig:
             log_dir = self.local_base_path / self.logs_prefix / run_id
             log_dir.mkdir(parents=True, exist_ok=True)
             return str(log_dir / log_filename)
-        elif self.backend == StorageBackend.S3:
-            return f"{self.logs_prefix}/{run_id}/{log_filename}"
-        elif self.backend == StorageBackend.GCS:
+        elif self.backend in [StorageBackend.S3, StorageBackend.GCS]:
             return f"{self.logs_prefix}/{run_id}/{log_filename}"
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
@@ -147,18 +146,29 @@ class StorageConfig:
                 return False, "S3 bucket name is required"
             if not self.s3_access_key_id or not self.s3_secret_access_key:
                 # Check if credentials are in environment
-                has_ovh = os.getenv("OVH_S3_ACCESS_KEY") and os.getenv("OVH_S3_SECRET_KEY")
-                has_aws = os.getenv("AWS_ACCESS_KEY_ID") and os.getenv("AWS_SECRET_ACCESS_KEY")
+                has_ovh = os.getenv("OVH_S3_ACCESS_KEY") and os.getenv(
+                    "OVH_S3_SECRET_KEY"
+                )
+                has_aws = os.getenv("AWS_ACCESS_KEY_ID") and os.getenv(
+                    "AWS_SECRET_ACCESS_KEY"
+                )
                 if not has_ovh and not has_aws:
                     return False, (
-                        "S3 credentials are required (OVH_S3_ACCESS_KEY/OVH_S3_SECRET_KEY "
-                        "or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY)"
+                        "S3 credentials are required "
+                        "(OVH_S3_ACCESS_KEY/OVH_S3_SECRET_KEY or "
+                        "AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY)"
                     )
         elif self.backend == StorageBackend.GCS:
             if not self.gcs_bucket:
                 return False, "GCS bucket name is required"
-            if not self.gcs_credentials_path and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
-                return False, "GCS credentials are required (GOOGLE_APPLICATION_CREDENTIALS or credentials_path)"
+            if not self.gcs_credentials_path and not os.getenv(
+                "GOOGLE_APPLICATION_CREDENTIALS"
+            ):
+                return (
+                    False,
+                    "GCS credentials are required "
+                    "(GOOGLE_APPLICATION_CREDENTIALS or credentials_path)",
+                )
 
         return True, None
 
@@ -192,28 +202,33 @@ def _find_workspace_root(start: Path) -> Path:
     to `start.parent`.
     """
     for candidate in [start, *start.parents]:
-        if (candidate / "pyproject.toml").exists() and (candidate / "pnpm-lock.yaml").exists():
+        if (candidate / "pyproject.toml").exists() and (
+            candidate / "pnpm-lock.yaml"
+        ).exists():
             return candidate
 
-    for candidate in [start, *start.parents]:
-        if (candidate / ".git").exists():
-            return candidate
-
-    return start.parent
+    return next(
+        (
+            candidate
+            for candidate in [start, *start.parents]
+            if (candidate / ".git").exists()
+        ),
+        start.parent,
+    )
 
 
 def get_dataset_pipeline_output_root() -> Path:
     """
-    Root directory for all dataset pipeline *runtime artifacts* (logs, reports, caches, exports).
+    Root directory for all dataset pipeline *runtime artifacts* (logs, reports,
+    caches, exports).
 
-    By default, outputs go to `<workspace>/tmp/dataset_pipeline` (outside the package tree).
+    By default, outputs go to
+    `<workspace>/tmp/dataset_pipeline` (outside the package tree).
     Override with `DATASET_PIPELINE_OUTPUT_DIR`.
     """
-    env_override = os.getenv("DATASET_PIPELINE_OUTPUT_DIR")
-    if env_override:
+    if env_override := os.getenv("DATASET_PIPELINE_OUTPUT_DIR"):
         return Path(env_override).expanduser()
 
     here = Path(__file__).resolve()
     workspace_root = _find_workspace_root(here)
     return workspace_root / "tmp" / "dataset_pipeline"
-
