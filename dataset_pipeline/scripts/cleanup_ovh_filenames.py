@@ -19,11 +19,13 @@ from pathlib import Path
 from typing import Dict, List
 
 import boto3
+from dotenv import load_dotenv
 
 
-# Load .env files
-def load_env():
-    """Load environment variables from .env files."""
+# Configuration - load after env files
+def get_config():
+    """Get S3 configuration from environment."""
+    # Load .env files
     env_files = [
         Path(__file__).parent.parent.parent / ".env",
         Path(__file__).parent.parent / ".env",
@@ -33,20 +35,8 @@ def load_env():
 
     for env_file in env_files:
         if env_file.exists():
-            with open(env_file) as f:
-                for line in f:
-                    line = line.strip()
-                    if line and not line.startswith("#") and "=" in line:
-                        key, value = line.split("=", 1)
-                        # Strip quotes if present
-                        value = value.strip().strip('"').strip("'")
-                        os.environ[key.strip()] = value
+            load_dotenv(env_file)
 
-
-# Configuration - load after env files
-def get_config():
-    """Get S3 configuration from environment."""
-    load_env()  # Load env files first
     bucket = (
         os.getenv("OVH_S3_BUCKET") or os.getenv("DATASET_S3_BUCKET") or "pixel-data"
     )
