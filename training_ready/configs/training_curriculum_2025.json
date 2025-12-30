@@ -1,25 +1,120 @@
 {
-  "curriculum_version": "2025.12",
-  "training_flow": "continued_pretrain_plus",
+  "curriculum_version": "2025.12.29",
+  "training_flow": "mental_health_specialization",
   "base_model": "LatitudeGames/Wayfarer-2-12B",
-  
-  "phase_a_pretraining": {
-    "purpose": "Domain-adaptive pretraining on mental health text",
-    "datasets": {
-      "video_transcripts": {
-        "weight": 1.0,
-        "s3_paths": [
-          "s3://pixel-data/gdrive/processed/voice_persona/tim_fletcher/",
-          "s3://pixel-data/gdrive/processed/voice_persona/doc_snipes/",
-          "s3://pixel-data/gdrive/processed/voice_persona/heidi_priebe/"
-        ]
-      },
-      "mental_health_text": {
-        "weight": 1.0,
-        "s3_paths": [
-          "s3://pixel-data/gdrive/processed/professional_therapeutic/"
-        ]
-      }
+  "canonical_bucket": "s3://pixel-data/",
+  "dataset_size_gb": 52.20,
+  "transcript_count": 913,
+  "phases": [
+    {
+      "name": "Phase A - Continued Pretraining",
+      "description": "Domain-adaptive pretraining on mental health text and Tim Fletcher transcripts",
+      "datasets": [
+        "s3://pixel-data/gdrive/processed/mental_health_text/",
+        "s3://pixel-data/voice/tim_fletcher_transcripts/"
+      ],
+      "duration_hours": 4,
+      "gpu_memory": "48GB",
+      "validation_steps": 500
+    },
+    {
+      "name": "Phase B - SFT Curriculum",
+      "description": "7-stage supervised fine-tuning with mental health specialization",
+      "total_duration": "8-12 hours",
+      "stages": [
+        {
+          "stage": 1,
+          "name": "Foundation Therapeutic Dialogue",
+          "description": "High-quality therapeutic conversations from professional sources",
+          "datasets": ["s3://pixel-data/gdrive/processed/professional_therapeutic/"],
+          "weight": 0.25,
+          "max_length": 2048,
+          "dataset_size_gb": 15.2
+        },
+        {
+          "stage": 2,
+          "name": "Clinical Reasoning",
+          "description": "Chain-of-thought clinical reasoning examples",
+          "datasets": ["s3://pixel-data/gdrive/processed/cot_reasoning/"],
+          "weight": 0.20,
+          "max_length": 4096,
+          "dataset_size_gb": 8.5
+        },
+        {
+          "stage": 3,
+          "name": "Crisis Stress Test",
+          "description": "Edge cases and crisis intervention scenarios",
+          "datasets": ["s3://pixel-data/gdrive/processed/edge_cases/"],
+          "weight": 0.15,
+          "safety_validation": true,
+          "dataset_size_gb": 12.8
+        },
+        {
+          "stage": 4,
+          "name": "Tim Fletcher Persona",
+          "description": "Voice training with Tim Fletcher therapeutic style (913 transcripts)",
+          "datasets": ["s3://pixel-data/voice/tim_fletcher_persona/"],
+          "weight": 0.15,
+          "voice_patterns": ["So...", "And so...", "Many people..."],
+          "dataset_size_gb": 7.1
+        },
+        {
+          "stage": 5,
+          "name": "Long Running Therapy",
+          "description": "Extended therapeutic sessions with continuity",
+          "datasets": ["s3://pixel-data/gdrive/processed/long_running_therapy/"],
+          "weight": 0.10,
+          "max_length": 8192,
+          "dataset_size_gb": 5.4
+        },
+        {
+          "stage": 6,
+          "name": "Specialized Domains",
+          "description": "CPTSD, addiction, trauma, cultural competency",
+          "datasets": [
+            "s3://pixel-data/gdrive/processed/cptsd/",
+            "s3://pixel-data/gdrive/processed/addiction/",
+            "s3://pixel-data/gdrive/processed/trauma/"
+          ],
+          "weight": 0.10,
+          "cultural_validation": true,
+          "dataset_size_gb": 8.9
+        },
+        {
+          "stage": 7,
+          "name": "Simulator Tasks",
+          "description": "Roleplay and therapeutic simulation scenarios",
+          "datasets": ["s3://pixel-data/gdrive/processed/simulator/"],
+          "weight": 0.05,
+          "evaluation_metrics": ["helpfulness", "safety", "appropriateness"],
+          "dataset_size_gb": 3.1
+        }
+      ]
+    },
+    {
+      "name": "Phase C - Preference Alignment",
+      "description": "Preference optimization using human feedback",
+      "algorithms": ["ORPO", "DPO", "KTO"],
+      "datasets": ["s3://pixel-data/gdrive/processed/preference_pairs/"],
+      "duration_hours": 2,
+      "safety_constraints": true
+    }
+  ],
+  "quality_gates": {
+    "pii_check": true,
+    "provenance_required": true,
+    "leakage_detection": true,
+    "distribution_validation": true,
+    "clinical_review": true
+  },
+  "success_metrics": {
+    "crisis_response_accuracy": ">=85%",
+    "voice_persona_matching": ">=90%",
+    "clinical_reasoning_score": ">=80%",
+    "cultural_competency": ">=75%",
+    "dataset_coverage": "100%"
+  }
+}
     },
     "training_params": {
       "learning_rate": 1e-4,
