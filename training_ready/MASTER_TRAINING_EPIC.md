@@ -175,7 +175,6 @@ We leverage **ALL available transcripts**, not just Tim Fletcher:
 | **Standalone Files** | Complex trauma characteristics, fears, gratification | `.notes/transcripts/*.txt` |
 
 **Total Transcript Files**: 150+ unique source files across all directories (Tim Fletcher alone has 80+ files, plus standalone transcript files)
-
 ### Phase C: Preference Alignment (2 hours)
 - ORPO/DPO/KTO implementation
 - Human preference feedback integration
@@ -664,6 +663,8 @@ python ai/data_designer/examples.py  # See integration examples
 4. **Deduplicate** → Remove near-duplicates across synthetic + real
 5. **Upload to S3** → `s3://pixel-data/synthetic/nemotron/`
 
+=======
+>>>>>>> a8fd681407008ce81ea790123dc81d030890f353
 ---
 
 ## 📝 CHANGE LOG

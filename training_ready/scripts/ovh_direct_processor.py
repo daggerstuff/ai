@@ -3,11 +3,11 @@
 OVH Direct S3 Processor - Uses OVH S3 format credentials
 """
 
-import subprocess
 import json
 import os
-from pathlib import Path
+import subprocess
 from datetime import datetime
+from pathlib import Path
 
 
 def run_s3cmd_command(cmd, access_key=None, secret_key=None):
@@ -50,7 +50,7 @@ def discover_pixel_data():
         print(f"🧪 Testing {name} credentials...")
 
         # Test with AWS CLI
-        cmd = f"aws s3 ls s3://pixel-data --recursive --endpoint-url https://s3.us-east-va.io.cloud.ovh.us"
+        cmd = "aws s3 ls s3://pixel-data --recursive --endpoint-url https://s3.us-east-va.io.cloud.ovh.us"
         stdout, stderr, code = run_s3cmd_command(cmd, access_key, secret_key)
 
         if code == 0:

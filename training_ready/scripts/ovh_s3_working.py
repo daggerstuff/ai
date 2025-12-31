@@ -183,6 +183,7 @@ for line in sys.stdin:
         text = re.sub(r'\\\\b\\\\d{3}-\\\\d{2}-\\\\d{4}\\\\b', '[SSN]', text)
         text = re.sub(r'\\\\b\\\\d{4}[\\\\s-]?\\\\d{4}[\\\\s-]?\\\\d{4}[\\\\s-]?\\\\d{4}\\\\b', '[CARD]', text)
 
+
         # Deduplication
         content_hash = hashlib.md5(text.encode()).hexdigest()
         if content_hash not in seen_hashes:
