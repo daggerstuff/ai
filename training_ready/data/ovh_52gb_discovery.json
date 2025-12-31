@@ -1,0 +1,2498 @@
+{
+  "timestamp": "2025-12-30T23:42:35.748172",
+  "total_files": 415,
+  "total_size_bytes": 25307629560,
+  "total_size_gb": 23.56956671923399,
+  "files": [
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl",
+      "size": 2981097891,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl",
+      "size": 1950869958,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl",
+      "size": 1264583670,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl",
+      "size": 1251454107,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_28_specialized_populations/specialized_populations_conversations.jsonl",
+      "size": 953786760,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_33_tfidf_integration/ml_ready_conversations.jsonl",
+      "size": 948198609,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/Reasoning_Problem_Solving_Dataset/RPSD.json",
+      "size": 683828453,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_30_crisis_detection/crisis_detection_conversations.jsonl",
+      "size": 667598670,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/mental_disorders_reddit.csv",
+      "size": 588850172,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/data-final.csv",
+      "size": 416273844,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/professional/therapist-sft-format/train.csv",
+      "size": 406284022,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_3_cot_reasoning/phase_3_cot_reasoning_consolidated.jsonl",
+      "size": 332449066,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
+      "size": 292592117,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_3_cot_reasoning/task_5_26_pattern_recognition/therapeutic_reasoning_pattern_database.json",
+      "size": 252670198,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/ToT_Reasoning_Problem_Solving_Dataset_V2/ToT-RPSD-V2.json",
+      "size": 240899480,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/Suicide_Detection.csv",
+      "size": 166902029,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+      "size": 159598319,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_33_tfidf_integration/ml_labels_and_metadata.json",
+      "size": 156877921,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+      "size": 149527524,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_31_additional_specialized/additional_specialized_conversations.jsonl",
+      "size": 132570279,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+      "size": 128897645,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/task_5_31_additional_specialized/additional_specialized_conversations.jsonl",
+      "size": 124554029,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/depression_post_features_tfidf_256.csv",
+      "size": 110805117,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000000_Some(1764218074379590152)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000001_Some(1764218076644136090)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000002_Some(1764218078172403428)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000003_Some(1764218079928140725)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000004_Some(1764218082161302660)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000005_Some(1764218083942612008)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000006_Some(1764218085482888479)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000007_Some(1764218087259795081)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000008_Some(1764218089105887615)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000009_Some(1764218091535553667)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000010_Some(1764218093256110441)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000011_Some(1764218094880187233)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000012_Some(1764218097576916053)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000013_Some(1764218099764641902)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000014_Some(1764218101601282395)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000015_Some(1764218103658612551)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000016_Some(1764218105468034964)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000017_Some(1764218107341024651)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000000_Some(1764218075782736551)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000001_Some(1764218077253163878)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000002_Some(1764218078966836994)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000003_Some(1764218080419762286)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000004_Some(1764218082115692121)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000005_Some(1764218083708314837)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000006_Some(1764218085599729217)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000007_Some(1764218087341956159)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000008_Some(1764218088993394104)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000009_Some(1764218090898656843)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000010_Some(1764218092897991532)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000000_Some(1764218077803482108)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000001_Some(1764218079879035572)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000002_Some(1764218081708024719)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000003_Some(1764218083442543735)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000004_Some(1764218085071229590)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000005_Some(1764218086790279849)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000006_Some(1764218088892393870)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000007_Some(1764218090801132013)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000008_Some(1764218092102325740)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000009_Some(1764218093562929009)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000010_Some(1764218095373012340)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000011_Some(1764218097952971169)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000012_Some(1764218099765533055)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000013_Some(1764218101547788982)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000014_Some(1764218103923251728)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000015_Some(1764218105701122155)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000016_Some(1764218107341041975)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000017_Some(1764218109148364741)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000018_Some(1764218110842421780)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000019_Some(1764218112485644839)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000020_Some(1764218114151130169)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000021_Some(1764218115833851510)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000022_Some(1764218117518289282)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000023_Some(1764218119056455301)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000024_Some(1764218120649293381)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000025_Some(1764218122780633400)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000026_Some(1764218124575409811)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000027_Some(1764218126129302002)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000000_Some(1764218091860849276)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000001_Some(1764218093507275187)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000002_Some(1764218095124281597)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000003_Some(1764218098340941477)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000004_Some(1764218100380934015)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000005_Some(1764218102205083585)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000006_Some(1764218105226407263)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000007_Some(1764218107016998580)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000008_Some(1764218108644980660)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000009_Some(1764218110195951366)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000010_Some(1764218111916817964)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000011_Some(1764218113886500739)",
+      "size": 104857600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/depression_2019_features_tfidf_256.csv",
+      "size": 99627780,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_conversations.jsonl/000011_Some(1764218094816864877)",
+      "size": 98020507,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/merged_mental_health_dataset.jsonl",
+      "size": 89723886,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/personalfinance_2018_features_tfidf_256.csv",
+      "size": 86826352,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/legaladvice_2018_features_tfidf_256.csv",
+      "size": 84253693,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_33_tfidf_integration/ml_conversations.jsonl",
+      "size": 82523598,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/depression_2018_features_tfidf_256.csv",
+      "size": 74323253,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/legaladvice_pre_features_tfidf_256.csv",
+      "size": 71350155,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT_Rare-Diseases_And_Health-Conditions/CoT_Rare Disseases_Health Conditions_9.8k.json",
+      "size": 67847393,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/personalfinance_pre_features_tfidf_256.csv",
+      "size": 63475295,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/condition_specific_conversations.jsonl/000018_Some(1764218109353927202)",
+      "size": 63433158,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/mentalhealth_pre_features_tfidf_256.csv",
+      "size": 60817058,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/depression_pre_features_tfidf_256.csv",
+      "size": 60485372,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/anxiety_pre_features_tfidf_256.csv",
+      "size": 56682294,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/fitness_pre_features_tfidf_256.csv",
+      "size": 54592214,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/parenting_pre_features_tfidf_256.csv",
+      "size": 52325434,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/professional/SoulChat2.0/PsyDTCorpus/PsyDTCorpus_train_mulit_turn_packing.json",
+      "size": 50092559,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/jokes_2019_features_tfidf_256.csv",
+      "size": 48294657,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/adhd_pre_features_tfidf_256.csv",
+      "size": 47313993,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/jokes_post_features_tfidf_256.csv",
+      "size": 45691299,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/temporal_analysis_data.jsonl/000028_Some(1764218128223333166)",
+      "size": 45085091,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/anxiety_post_features_tfidf_256.csv",
+      "size": 45027291,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT-Reasoning_Cultural_Nuances/CoT-Reasoning_Cultural_Nuances_Dataset.json",
+      "size": 43515136,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/mentalhealth_post_features_tfidf_256.csv",
+      "size": 42869653,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/soulchat_complete/soulchat_2_0_complete_no_limits.jsonl",
+      "size": 40849616,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/adhdwomen.csv",
+      "size": 40504235,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_3_cot_reasoning/task_5_25_tot_reasoning/tot_reasoning_conversations.jsonl",
+      "size": 39856949,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought/General_Inquiry_Thinking-Chain-Of-Thought_6K.json",
+      "size": 38636696,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/anxiety_2019_features_tfidf_256.csv",
+      "size": 38573569,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT_Heartbreak_and_Breakups/CoT-Breakups and heartbreak-9.8k.json",
+      "size": 38571023,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/adhd_post_features_tfidf_256.csv",
+      "size": 37900965,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold1/iemocap_qa_test_with_context.json",
+      "size": 35859518,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/fitness_2019_features_tfidf_256.csv",
+      "size": 34848216,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold1/dailydialog_qa_train_with_context.json",
+      "size": 34809899,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/jokes_2018_features_tfidf_256.csv",
+      "size": 34412381,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/jokes_pre_features_tfidf_256.csv",
+      "size": 32863326,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/bpd_pre_features_tfidf_256.csv",
+      "size": 32760901,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/mentalhealth_2019_features_tfidf_256.csv",
+      "size": 31332098,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold2/dailydialog_qa_train_with_context.json",
+      "size": 30761426,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/conspiracy_pre_features_tfidf_256.csv",
+      "size": 30655233,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT_Reasoning_The_Ancient_Past/CoT_Reasoning_The_Ancient_Past.json",
+      "size": 30438600,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/lonely_pre_features_tfidf_256.csv",
+      "size": 29853130,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold1/iemocap_classification_test_with_context.csv",
+      "size": 29466392,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/adhd_2019_features_tfidf_256.csv",
+      "size": 29407808,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/professional/SoulChat2.0/PsyDTCorpus/PsyDTCorpus_test_single_turn_split.json",
+      "size": 29182406,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold3/dailydialog_qa_train_with_context.json",
+      "size": 29138963,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold2/iemocap_qa_test_with_context.json",
+      "size": 25530702,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research/CoT_Reasoning_Scientific Discovery and Research.json",
+      "size": 25487750,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT_Legal_Issues_And_Laws/CoT_Legal_Issues_And_Laws.json",
+      "size": 25486617,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/anxiety_2018_features_tfidf_256.csv",
+      "size": 25362661,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+      "size": 25303165,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/fitness_post_features_tfidf_256.csv",
+      "size": 23949660,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold3/iemocap_qa_test_with_context.json",
+      "size": 23124651,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/guns_pre_features_tfidf_256.csv",
+      "size": 22864021,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT_Medical_Diagnosis/CoT_Medical_Diagnosis_3k.json",
+      "size": 21809358,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold2/iemocap_classification_test_with_context.csv",
+      "size": 21796928,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/divorce_pre_features_tfidf_256.csv",
+      "size": 21006057,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/parenting_post_features_tfidf_256.csv",
+      "size": 20675709,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold1/dailydialog_classification_train_with_context.csv",
+      "size": 20461769,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/lonely_post_features_tfidf_256.csv",
+      "size": 20274164,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+      "size": 20115638,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_33_tfidf_integration/feature_matrix.csv",
+      "size": 20005391,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/meditation_pre_features_tfidf_256.csv",
+      "size": 19827358,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold3/iemocap_classification_test_with_context.csv",
+      "size": 19398802,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold1/dailydialog_qa_train_without_context.json",
+      "size": 19305526,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/parenting_2019_features_tfidf_256.csv",
+      "size": 19184065,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold2/dailydialog_classification_train_with_context.csv",
+      "size": 19118378,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json",
+      "size": 18101153,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/bpd_post_features_tfidf_256.csv",
+      "size": 18007338,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT_Reasoning_Mens_Mental_Health/CoT_Reasoning_Mens_Mental_Health.json",
+      "size": 17836257,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold2/dailydialog_qa_train_without_context.json",
+      "size": 17779276,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold3/dailydialog_qa_train_without_context.json",
+      "size": 17766214,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold3/dailydialog_classification_train_with_context.csv",
+      "size": 17432461,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT_Reasoning_Quantom_Physics_And_Computing/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+      "size": 17316867,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/EDAnonymous_pre_features_tfidf_256.csv",
+      "size": 17301286,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/cot_reasoning/CoT_Temporal_Reasoning_Dataset/CoT_Temporal_Reasoning_Dataset.json",
+      "size": 15311076,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/adhd_2018_features_tfidf_256.csv",
+      "size": 15250342,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/bpd_2019_features_tfidf_256.csv",
+      "size": 14872099,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/MAy/depamay19.csv",
+      "size": 14453151,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/MAy/depamay19.csv",
+      "size": 14453151,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/ptsd_pre_features_tfidf_256.csv",
+      "size": 14014168,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/apr/depapr19.csv",
+      "size": 13834074,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/apr/depapr19.csv",
+      "size": 13834074,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/autism_pre_features_tfidf_256.csv",
+      "size": 12581774,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/addiction_pre_features_tfidf_256.csv",
+      "size": 12298267,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/schizophrenia_pre_features_tfidf_256.csv",
+      "size": 12058861,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/EDAnonymous_post_features_tfidf_256.csv",
+      "size": 12051392,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/healthanxiety_pre_features_tfidf_256.csv",
+      "size": 11900699,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/socialanxiety_2019_features_tfidf_256.csv",
+      "size": 11613665,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/mentalhealth_2018_features_tfidf_256.csv",
+      "size": 11324969,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/conspiracy_2019_features_tfidf_256.csv",
+      "size": 10289566,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/socialanxiety_post_features_tfidf_256.csv",
+      "size": 10265248,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/guns_post_features_tfidf_256.csv",
+      "size": 10230420,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_12_therapist_sft/therapist_sft_conversations.jsonl",
+      "size": 9717391,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold1/dailydialog_qa_test_with_context.json",
+      "size": 9446269,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/parenting_2018_features_tfidf_256.csv",
+      "size": 9427423,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/meditation_post_features_tfidf_256.csv",
+      "size": 9362305,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/divorce_post_features_tfidf_256.csv",
+      "size": 8866945,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/alcoholism_pre_features_tfidf_256.csv",
+      "size": 8860437,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/fitness_2018_features_tfidf_256.csv",
+      "size": 8800251,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold1/iemocap_qa_test_without_context.json",
+      "size": 8772019,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/conspiracy_2018_features_tfidf_256.csv",
+      "size": 8711431,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/guns_2019_features_tfidf_256.csv",
+      "size": 8270932,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/socialanxiety_2018_features_tfidf_256.csv",
+      "size": 8086541,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/bipolarreddit_pre_features_tfidf_256.csv",
+      "size": 7826343,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold2/dailydialog_qa_test_with_context.json",
+      "size": 7685970,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/lonely_2019_features_tfidf_256.csv",
+      "size": 7466464,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/divorce_2019_features_tfidf_256.csv",
+      "size": 7381139,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold3/dailydialog_qa_test_with_context.json",
+      "size": 7249504,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/professional_complete_integration/psychology_10k_complete.jsonl",
+      "size": 7224506,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/professional_datasets_final/psychology_10k_complete.jsonl",
+      "size": 7224506,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/bpd_2018_features_tfidf_256.csv",
+      "size": 7001567,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/meditation_2019_features_tfidf_256.csv",
+      "size": 6878263,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/guns_2018_features_tfidf_256.csv",
+      "size": 6825664,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/healthanxiety_post_features_tfidf_256.csv",
+      "size": 6692784,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/professional/Psych8k/Alexander_Street_shareGPT_2.0.json",
+      "size": 6575030,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/EDAnonymous_2019_features_tfidf_256.csv",
+      "size": 6522446,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/ptsd_post_features_tfidf_256.csv",
+      "size": 6476114,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data_segments",
+      "path": "seg/datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/control_group_conversations.jsonl/000012_Some(1764218115444491478)",
+      "size": 6292470,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_13_neuro_qa_sft/neuro_qa_sft_conversations.jsonl",
+      "size": 6143013,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/professional_datasets_final/neuro_qa_sft_complete.jsonl",
+      "size": 6143013,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/professional/neuro_qa_SFT_Trainer/train.json",
+      "size": 6125731,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold3/iemocap_qa_test_without_context.json",
+      "size": 6111458,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_33_tfidf_integration/ml_labels.csv",
+      "size": 6096145,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold2/iemocap_qa_test_without_context.json",
+      "size": 6093625,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+      "size": 5906483,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/merged_reddit_data.csv",
+      "size": 5875031,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/MAy/swmay19.csv",
+      "size": 5853630,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/MAy/swmay19.csv",
+      "size": 5853630,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/autism_post_features_tfidf_256.csv",
+      "size": 5829639,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold1/dailydialog_classification_test_with_context.csv",
+      "size": 5728530,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+      "size": 5655890,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/meditation_2018_features_tfidf_256.csv",
+      "size": 5648744,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/apr/swapr19.csv",
+      "size": 5638637,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/apr/swapr19.csv",
+      "size": 5638637,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold1/dailydialog_classification_train_without_context.csv",
+      "size": 5503591,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/addiction_post_features_tfidf_256.csv",
+      "size": 5417925,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/psychology-10k/Psychology-10K.json",
+      "size": 5208318,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold2/dailydialog_classification_train_without_context.csv",
+      "size": 5170718,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold3/dailydialog_classification_train_without_context.csv",
+      "size": 5151302,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/schizophrenia_post_features_tfidf_256.csv",
+      "size": 5084458,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold1/dailydialog_qa_test_without_context.json",
+      "size": 5064966,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/MAy/mhmay19.csv",
+      "size": 4958724,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/MAy/mhmay19.csv",
+      "size": 4958724,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/Entrepreneur_data.csv",
+      "size": 4802072,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/professional/mental_health_counseling_conversations/combined_dataset.json",
+      "size": 4790520,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold2/dailydialog_classification_test_with_context.csv",
+      "size": 4776586,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/apr/anxapr19.csv",
+      "size": 4534837,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/apr/anxapr19.csv",
+      "size": 4534837,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/MAy/animay19.csv",
+      "size": 4530268,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/MAy/animay19.csv",
+      "size": 4530268,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/apr/mentalhealthapr19.csv",
+      "size": 4520572,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/apr/mentalhealthapr19.csv",
+      "size": 4520572,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold3/dailydialog_qa_test_without_context.json",
+      "size": 4429791,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold2/dailydialog_qa_test_without_context.json",
+      "size": 4419904,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/ptsd_2019_features_tfidf_256.csv",
+      "size": 4379519,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold3/dailydialog_classification_test_with_context.csv",
+      "size": 4357314,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/schizophrenia_2019_features_tfidf_256.csv",
+      "size": 4336861,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+      "size": 4167364,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/professional/counsel-chat/data/counsel_chat_250-tokens_full.json",
+      "size": 4130021,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/alcoholism_post_features_tfidf_256.csv",
+      "size": 4073692,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/divorce_2018_features_tfidf_256.csv",
+      "size": 4016161,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/bipolarreddit_post_features_tfidf_256.csv",
+      "size": 3976660,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/autism_2019_features_tfidf_256.csv",
+      "size": 3792609,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/employment_reddit_data.csv",
+      "size": 3773020,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/addiction_2019_features_tfidf_256.csv",
+      "size": 3728731,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/original_annotation/dailydialog_train.json",
+      "size": 3569807,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/lonely_2018_features_tfidf_256.csv",
+      "size": 3427650,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/healthanxiety_2019_features_tfidf_256.csv",
+      "size": 3376506,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/professional/counsel-chat/data/20200325_counsel_chat.csv",
+      "size": 3281269,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/COVID19_support_post_features_tfidf_256.csv",
+      "size": 3110239,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/professional/counsel-chat/data/counselchat-data.csv",
+      "size": 3017048,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/schizophrenia_2018_features_tfidf_256.csv",
+      "size": 2870918,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/DepressionDetection/depression_dataset_reddit_twitter.csv",
+      "size": 2817080,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/depression_dataset_reddit_cleaned.csv",
+      "size": 2817080,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/natural_conversations/natural_multi_turn_conversations.json",
+      "size": 2772208,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/alcoholism_2019_features_tfidf_256.csv",
+      "size": 2730219,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_1_priority_conversations/task_5_2_priority_2/task_5_2_priority_2_report.json",
+      "size": 2658110,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/bipolarreddit_2019_features_tfidf_256.csv",
+      "size": 2640410,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold1/iemocap_classification_test_without_context.csv",
+      "size": 2620541,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_1_priority_conversations/task_5_3_priority_3/task_5_3_priority_3_report.json",
+      "size": 2593981,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_33_tfidf_integration/conversation_metadata.csv",
+      "size": 2424051,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/bipolarreddit_2018_features_tfidf_256.csv",
+      "size": 2366769,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/healthanxiety_2018_features_tfidf_256.csv",
+      "size": 2358212,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/priority_complete_fixed/priority_1_complete.jsonl",
+      "size": 2327272,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/priority_complete_fixed/priority_2_complete.jsonl",
+      "size": 2327272,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/priority_complete_fixed/priority_3_complete.jsonl",
+      "size": 2327272,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/professional_datasets_final/soulchat_2_0_complete_no_limits.jsonl",
+      "size": 2327272,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/ptsd_2018_features_tfidf_256.csv",
+      "size": 2311768,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/whatsbotheringyou_reddit_data.csv",
+      "size": 2194145,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_1_priority_conversations/task_5_1_priority_1/task_5_1_priority_1_report.json",
+      "size": 2082424,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/NeutralPolitics_data.csv",
+      "size": 2070183,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold3/iemocap_classification_test_without_context.csv",
+      "size": 1891270,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/autism_2018_features_tfidf_256.csv",
+      "size": 1889694,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold2/iemocap_classification_test_without_context.csv",
+      "size": 1875105,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/dating_data.csv",
+      "size": 1787634,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/careerguidance_data.csv",
+      "size": 1762379,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/Aug/lonaug19.csv",
+      "size": 1702667,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/Aug/lonaug19.csv",
+      "size": 1702667,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/Empathy-Mental-Health/dataset/interpretations-reddit.csv",
+      "size": 1661889,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/AdviceForTeens_data.csv",
+      "size": 1605367,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/jul/lonejul19.csv",
+      "size": 1554417,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/jul/lonejul19.csv",
+      "size": 1554417,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/addiction_2018_features_tfidf_256.csv",
+      "size": 1530914,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold1/dailydialog_qa_valid_with_context.json",
+      "size": 1519047,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold1/dailydialog_classification_test_without_context.csv",
+      "size": 1488894,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/Empathy-Mental-Health/dataset/emotional-reactions-reddit.csv",
+      "size": 1474606,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/depression_reddit_data.csv",
+      "size": 1415905,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/Empathy-Mental-Health/dataset/explorations-reddit.csv",
+      "size": 1408655,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold2/dailydialog_qa_valid_with_context.json",
+      "size": 1397793,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_33_tfidf_integration/labels.csv",
+      "size": 1384425,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/alcoholism_2018_features_tfidf_256.csv",
+      "size": 1365629,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/suicidewatch_data.csv",
+      "size": 1363848,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/ApplyingToCollege_data.csv",
+      "size": 1341626,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold3/dailydialog_qa_valid_with_context.json",
+      "size": 1323552,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold3/dailydialog_classification_test_without_context.csv",
+      "size": 1316611,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/june/lonejun19.csv",
+      "size": 1313254,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/june/lonejun19.csv",
+      "size": 1313254,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold2/dailydialog_classification_test_without_context.csv",
+      "size": 1308572,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/formatted_annotated_addiction_counseling_csv_SFT/formatted_annotated_addiction_counseling_csv_SFT (1).csv",
+      "size": 1300892,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/formatted_annotated_addiction_counseling_csv_SFT/formatted_annotated_addiction_counseling_csv_SFT.csv",
+      "size": 1300892,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/synthetic_conversations/additional_specialized_synthetic.json",
+      "size": 1128257,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/synthetic_conversations/priority_2_synthetic.json",
+      "size": 1127438,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/synthetic_conversations/professional_neuro_synthetic.json",
+      "size": 1119418,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/synthetic_conversations/priority_1_synthetic.json",
+      "size": 1109796,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/synthetic_conversations/cot_reasoning_synthetic.json",
+      "size": 1108994,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/synthetic_conversations/professional_soulchat_synthetic.json",
+      "size": 1096963,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/synthetic_conversations/research_datasets_synthetic.json",
+      "size": 1096844,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/college_data.csv",
+      "size": 1084273,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/MAy/lonemay19.csv",
+      "size": 1083294,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/MAy/lonemay19.csv",
+      "size": 1083294,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/synthetic_conversations/professional_psychology_synthetic.json",
+      "size": 1082715,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/povertyfinance_data.csv",
+      "size": 1064577,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/college.csv",
+      "size": 1058579,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/GradSchool_data.csv",
+      "size": 1028407,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/synthetic_conversations/reddit_mental_health_synthetic.json",
+      "size": 1007062,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/synthetic_conversations/priority_3_synthetic.json",
+      "size": 1003518,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/apr/loneapr19.csv",
+      "size": 986652,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/apr/loneapr19.csv",
+      "size": 986652,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/student_affairs.csv",
+      "size": 982654,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/original_annotation/dailydialog_test.json",
+      "size": 972369,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold1/dailydialog_classification_valid_with_context.csv",
+      "size": 907361,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/astrology_data.csv",
+      "size": 903896,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/Anxiety_reddit_data.csv",
+      "size": 894454,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/raw data/2019/JAN/lonejan19.csv",
+      "size": 865199,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/raw data/2019/JAN/lonejan19.csv",
+      "size": 865199,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold2/dailydialog_classification_valid_with_context.csv",
+      "size": 863904,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold1/dailydialog_qa_valid_without_context.json",
+      "size": 837660,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/computer_science_data.csv",
+      "size": 834825,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold3/dailydialog_qa_valid_without_context.json",
+      "size": 812143,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask1/fold2/dailydialog_qa_valid_without_context.json",
+      "size": 810267,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold3/dailydialog_classification_valid_with_context.csv",
+      "size": 799773,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/high_school.csv",
+      "size": 727217,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_33_tfidf_integration/metadata.csv",
+      "size": 657360,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/science_data.csv",
+      "size": 563736,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/COVID19_data.csv",
+      "size": 535858,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/youthrights_data.csv",
+      "size": 515145,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/engineering_data.csv",
+      "size": 468836,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/business_data.csv",
+      "size": 405021,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/original_annotation/iemocap_test.json",
+      "size": 376640,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/Labelled Data/LD EL1.csv",
+      "size": 363828,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/Labelled Data/LD EL1.csv",
+      "size": 363828,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/feminism_data.csv",
+      "size": 352417,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/Colombia_reddit_data.csv",
+      "size": 320708,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/teenagers.csv",
+      "size": 311439,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/Mexico_spanishlanguage_reddit_data.csv",
+      "size": 285387,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/Labelled Data/LD TS 1.csv",
+      "size": 254945,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/Labelled Data/LD TS 1.csv",
+      "size": 254945,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold1/dailydialog_classification_valid_without_context.csv",
+      "size": 249305,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold2/dailydialog_classification_valid_without_context.csv",
+      "size": 244283,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/subtask2/fold3/dailydialog_classification_valid_without_context.csv",
+      "size": 239103,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/Labelled Data/LD DA 1.csv",
+      "size": 216294,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/original_reddit_data/Original Reddit Data/Labelled Data/LD DA 1.csv",
+      "size": 216294,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/filtered_datasets/professional_psychology_filtered.json",
+      "size": 203629,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/filtered_datasets/additional_specialized_filtered.json",
+      "size": 203028,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/filtered_datasets/professional_soulchat_filtered.json",
+      "size": 202427,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/filtered_datasets/reddit_mental_health_filtered.json",
+      "size": 201826,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/filtered_datasets/professional_neuro_filtered.json",
+      "size": 200624,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/filtered_datasets/research_datasets_filtered.json",
+      "size": 200023,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/filtered_datasets/cot_reasoning_filtered.json",
+      "size": 197619,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/filtered_datasets/priority_1_filtered.json",
+      "size": 195816,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/filtered_datasets/priority_2_filtered.json",
+      "size": 195816,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/filtered_datasets/priority_3_filtered.json",
+      "size": 195816,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/RECCON/data/original_annotation/dailydialog_valid.json",
+      "size": 191861,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/kidsrights_data.csv",
+      "size": 164281,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/intents.json",
+      "size": 100392,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/xmu_psych_books/data.csv",
+      "size": 42848,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_3_cot_reasoning/task_5_26_pattern_recognition/pattern_recognition_system_report.json",
+      "size": 30696,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/youthknows_data.csv",
+      "size": 24936,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/Original Reddit Data/youthandgov_data.csv",
+      "size": 21148,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_14_quality_validation/quality_validation_report.json",
+      "size": 14240,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/quality_validation_updated_report.json",
+      "size": 14240,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/professional_complete_integration/task_5_2_2_complete_report.json",
+      "size": 8409,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_27_condition_specific/task_5_27_condition_specific_report.json",
+      "size": 7184,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_3_cot_reasoning/phase_3_completion_report.json",
+      "size": 7075,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_3_cot_reasoning/phase_3_analysis_report.json",
+      "size": 6277,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_28_specialized_populations/task_5_28_specialized_populations_report.json",
+      "size": 5233,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/.Suicide_Detection.csv.terabox.uploading.cfg",
+      "size": 4832,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_29_temporal_analysis/task_5_29_temporal_analysis_report.json",
+      "size": 4706,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/Empathy-Mental-Health/dataset/sample_input_ER.csv",
+      "size": 4690,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_14_quality_validation/quality_dashboard.json",
+      "size": 4654,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_32_control_groups/task_5_32_control_groups_report.json",
+      "size": 4495,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/task_5_3_cot_reasoning_report.json",
+      "size": 4322,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/.depression_post_features_tfidf_256.csv.terabox.uploading.cfg",
+      "size": 3508,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/task_5_33_tfidf_integration/task_5_33_tfidf_integration_report.json",
+      "size": 3220,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_1_priority_conversations/task_5_6_unified_priority/task_5_6_unified_priority_report.json",
+      "size": 3097,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/.legaladvice_2018_features_tfidf_256.csv.terabox.uploading.cfg",
+      "size": 2891,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_31_additional_specialized/task_5_31_additional_specialized_report.json",
+      "size": 2815,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/task_5_31_additional_specialized/task_5_31_additional_specialized_report.json",
+      "size": 2815,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_1_priority_conversations/task_5_6_unified_priority/priority_quality_dashboard.json",
+      "size": 2688,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_30_crisis_detection/task_5_31_crisis_detection_report.json",
+      "size": 2333,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_3_cot_reasoning/task_5_25_tot_reasoning/task_5_25_tot_reasoning_report.json",
+      "size": 2320,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/Anthropic_hh-rlhf/test/dataset_info.json",
+      "size": 2197,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/misc/Anthropic_hh-rlhf/train/dataset_info.json",
+      "size": 2197,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_3_cot_reasoning/task_5_16_reasoning/task_5_reasoning_processing_report.json",
+      "size": 2183,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_10_counsel_chat/task_5_10_counsel_chat_report.json",
+      "size": 1958,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/priority_complete_fixed/priority_gap_fix_report.json",
+      "size": 1795,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_4_reddit_mental_health/task_5_33_tfidf_integration/integration_report.json",
+      "size": 1718,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_9_soulchat/task_5_9_soulchat_report.json",
+      "size": 1328,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/task_5_11_llama3_mental_counseling_report.json",
+      "size": 1139,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_13_neuro_qa_sft/task_5_13_neuro_qa_sft_report.json",
+      "size": 1075,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/processed/phase_2_professional_datasets/task_5_12_therapist_sft/task_5_12_therapist_sft_report.json",
+      "size": 1074,
+      "type": "dataset"
+    },
+    {
+      "container": "pixelated-training-data",
+      "path": "datasets//home/vivi/datasets/consolidated/reddit/reddit_mental_health/.meditation_post_features_tfidf_256.csv.terabox.uploading.cfg",
+      "size": 1035,
+      "type": "dataset"
+    }
+  ]
+}
