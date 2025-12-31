@@ -1,0 +1,19 @@
+{
+  "started_at": "2025-12-31T09:57:08.153521+00:00",
+  "output_file": "/home/vivi/pixelated/ai/training_ready/data/generated/final_merged_training.jsonl",
+  "sources_processed": {
+    "transcripts": 14
+  },
+  "sources_kept": {
+    "transcripts": 14
+  },
+  "sources_skipped": {},
+  "duplicates_removed": 0,
+  "invalid_records": 0,
+  "total_records": 14,
+  "stage_distribution": {
+    "stage4_voice_personas": 14
+  },
+  "completed_at": "2025-12-31T09:57:08.158488+00:00",
+  "unique_hashes": 14
+}

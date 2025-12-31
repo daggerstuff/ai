@@ -1,6 +1,6 @@
 # 🎯 MASTER TRAINING EPIC: Mental Health Dataset Consolidation & Training Pipeline
 
-## Production Ready | December 29, 2025
+## Production Ready | January 2025
 
 > **Single Source of Truth** for all training dataset work, VPS execution, S3 streaming, and training curriculum.  
 > This EPIC supersedes all scattered documentation and provides actionable tasks for all coding agents.
@@ -11,12 +11,13 @@
 
 | Attribute | Value |
 |-----------|-------|
-| **Mission** | Deliver production-ready mental health training dataset with Tim Fletcher persona integration |
-| **Status** | 🟢 70% Complete - Ready for Training Launch |
+| **Mission** | Deliver production-ready mental health training dataset with multi-source transcript integration |
+| **Status** | 🟢 75% Complete - Ready for Training Launch |
 | **Dataset Size** | 52.20GB across 19,330 objects |
 | **Location** | `s3://pixel-data/` (OVH S3 canonical) |
 | **Format** | ChatML JSONL with metadata |
 | **Model Target** | Wayfarer-2-12B / Harbringer-24B mental health specialization |
+| **Synthetic Data** | Nemotron3 + NeMo Data Designer for cost-effective generation |
 
 ---
 
@@ -141,8 +142,9 @@ wandb login && ./ai/ovh/monitor-training.sh
 
 ### Phase A: Continued Pretraining (4 hours)
 - Mental health text corpus
-- Tim Fletcher transcripts (913 videos)
+- **ALL transcripts** from multiple sources (see Transcript Sources below)
 - Clinical documentation
+- Nemotron3-generated synthetic conversations
 
 ### Phase B: 7-Stage SFT Curriculum (8-12 hours)
 
@@ -151,10 +153,28 @@ wandb login && ./ai/ovh/monitor-training.sh
 | 1 | Foundation Therapeutic Dialogue | 25% | 15.2GB | High-quality therapeutic conversations |
 | 2 | Clinical Reasoning | 20% | 8.5GB | Chain-of-thought clinical reasoning |
 | 3 | Crisis Stress Test | 15% | 12.8GB | Edge cases, crisis intervention |
-| 4 | Tim Fletcher Persona | 15% | 7.1GB | Voice training, 913 transcripts |
+| 4 | Multi-Source Voice Personas | 15% | 7.1GB | ALL transcripts from diverse sources |
 | 5 | Long Running Therapy | 10% | 5.4GB | Extended sessions, continuity |
 | 6 | Specialized Domains | 10% | 8.9GB | CPTSD, addiction, trauma |
 | 7 | Simulator Tasks | 5% | 3.1GB | Roleplay, therapeutic simulation |
+
+### 📚 TRANSCRIPT SOURCES (ALL INCLUDED)
+
+We leverage **ALL available transcripts**, not just Tim Fletcher:
+
+| Source | Content Type | Location |
+|--------|-------------|----------|
+| **Tim Fletcher** | CPTSD, narcissism, trauma, shame, recovery | `.notes/transcripts/tim_fletcher/` |
+| **Understood** | ADHD, emotional dysregulation | `.notes/transcripts/Understood/` |
+| **Unfilteredd** | Narcissistic family dynamics | `.notes/transcripts/Unfilteredd/` |
+| **Wu Wei Wisdom** | Attention seeking, validation, inner child | `.notes/transcripts/Wu Wei Wisdom/` |
+| **Veritasium** | Human connection | `.notes/transcripts/Veritasium/` |
+| **WDR** | ADHD diagnosis, mental health | `.notes/transcripts/WDR/` |
+| **Y-Kollektiv** | Educational psychology | `.notes/transcripts/Y-Kollektiv/` |
+| **ZDFheute** | Current affairs/mental health | `.notes/transcripts/ZDFheute Nachrichten/` |
+| **Standalone Files** | Complex trauma characteristics, fears, gratification | `.notes/transcripts/*.txt` |
+
+**Total Transcript Files**: 150+ unique source files across all directories (Tim Fletcher alone has 80+ files, plus standalone transcript files)
 
 ### Phase C: Preference Alignment (2 hours)
 - ORPO/DPO/KTO implementation
@@ -533,8 +553,8 @@ python ai/training_ready/scripts/compile_final_dataset.py --s3-bucket pixel-data
 | `edge_case_resulting_chats` | ⚠️ Partial | 1 | 3 | Needs expansion |
 | `edge_case_synthetic` | ⚠️ Partial | 1 | 3 | Needs generation |
 | `safety_guardrails_annihilator` | ✅ Present | 257 | 3 | Reddit archives |
-| `voice_persona` | ✅ Present | 154 | 4 | Tim Fletcher |
-| `video_transcripts` | ✅ Present | 403 | 4 | 913 videos |
+| `voice_persona` | ✅ Present | 154+ | 4 | Multi-source (Tim Fletcher, Understood, Wu Wei, etc.) |
+| `video_transcripts` | ✅ Present | 403+ | 4 | ALL transcripts from .notes/transcripts/ |
 | `cptsd` | ✅ Present | 296 | 6 | Needs tagging |
 | `addiction` | ✅ Present | 32 | 6 | Adequate |
 | `long_running_therapy` | ✅ Script Ready | 1 | 5 | Extraction script enhanced |
@@ -544,8 +564,8 @@ python ai/training_ready/scripts/compile_final_dataset.py --s3-bucket pixel-data
 
 ## 🔗 JIRA & CONFLUENCE LINKS
 
-- **Jira Project**: https://gemcityxyz.atlassian.net/browse/KAN
-- **Confluence Index**: https://gemcityxyz.atlassian.net/wiki/spaces/PE/pages/7307265
+- **Jira Project**: https://metalpixel.atlassian.net/browse/KAN
+- **Confluence Index**: https://metalpixel.atlassian.net/wiki/spaces/PE/pages/7307265
   - Governance & Licensing: KAN-1
   - Ingestion & Quality Scoring: KAN-7
   - Quality-Aware Curriculum: KAN-2
@@ -554,12 +574,105 @@ python ai/training_ready/scripts/compile_final_dataset.py --s3-bucket pixel-data
   - Observability & Drift: KAN-4
   - Documentation: KAN-3
 
+> **Note**: All Jira/Confluence URLs use `metalpixel.atlassian.net` (configured via `JIRA_URL` env variable)
+
+---
+
+## 🤖 NEMOTRON3 & NEMO DATA DESIGNER INTEGRATION
+
+> **Cost-Effective Synthetic Data Generation**: Use Nemotron3 and NVIDIA NeMo Data Designer to generate high-quality synthetic therapeutic conversations at scale, saving significant time and money.
+
+### Why Nemotron3 + NeMo Data Designer?
+
+| Benefit | Description |
+|---------|-------------|
+| **Cost Savings** | Generate thousands of conversations without expensive API calls |
+| **Quality Control** | Built-in quality scoring and validation |
+| **Scalability** | Batch generate millions of training examples |
+| **Domain Expertise** | Pre-configured for therapeutic/mental health content |
+| **S3 Integration** | Direct pipeline to `s3://pixel-data/` |
+
+### Configuration (from .env)
+
+```bash
+# Nemotron3 API
+NEMOTRON3_BASE_URL=https://integrate.api.nvidia.com/v1
+NEMOTRON3_MODEL=nvidia/nemotron-3-nano-30b-a3b
+
+# NeMo Data Designer Service
+NEMO_DATA_DESIGNER_BASE_URL=http://212.2.244.60:8080
+NVIDIA_API_KEY=<from-env>
+```
+
+### Data Designer Client Usage
+
+```python
+# ai/data_designer/service.py - Already implemented!
+from ai.data_designer import NeMoDataDesignerService
+
+service = NeMoDataDesignerService()
+
+# Generate therapeutic dataset (bias-free, quality-scored)
+result = service.generate_therapeutic_dataset(
+    num_samples=10000,
+    include_demographics=True,
+    include_symptoms=True,
+    include_treatments=True,
+    include_outcomes=True,
+)
+
+# Generate bias detection dataset
+bias_data = service.generate_bias_detection_dataset(
+    num_samples=5000,
+    protected_attributes=["gender", "ethnicity", "age_group"],
+)
+```
+
+### Synthetic Conversation Pipeline
+
+```bash
+# 1. Ingest Nemotron datasets from HuggingFace
+python ai/training_ready/scripts/ingest_nemotron_datasets.py \
+  --hf-dataset nvidia/Nemotron-RL-knowledge-mcqa \
+  --subset default \
+  --split train
+
+# 2. Evaluate with Nemotron3 as teacher
+python ai/training_ready/scripts/nemotron3_evaluate.py \
+  --input-key gdrive/processed/professional_therapeutic/eval_split.jsonl \
+  --output-name nemotron3_nano_eval_run1.jsonl
+
+# 3. Generate synthetic therapeutic conversations
+python ai/data_designer/examples.py  # See integration examples
+```
+
+### Integration Points
+
+| Component | File | Purpose |
+|-----------|------|---------|
+| Service | `ai/data_designer/service.py` | Main NeMo Data Designer client |
+| Config | `ai/data_designer/config.py` | Environment-based configuration |
+| Integration | `ai/data_designer/integration.py` | Pipeline & bias detection hooks |
+| Ingestion | `ai/training_ready/scripts/ingest_nemotron_datasets.py` | HF → S3 mirroring |
+| Evaluation | `ai/training_ready/scripts/nemotron3_evaluate.py` | Teacher model evaluation |
+
+### Recommended Workflow
+
+1. **Start with transcripts** → Convert ALL `.notes/transcripts/` to ChatML
+2. **Augment with Nemotron3** → Generate synthetic variations
+3. **Quality score** → Use NeMo Data Designer's built-in scoring
+4. **Deduplicate** → Remove near-duplicates across synthetic + real
+5. **Upload to S3** → `s3://pixel-data/synthetic/nemotron/`
+
 ---
 
 ## 📝 CHANGE LOG
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2025-01-13 | Updated Jira URLs to metalpixel.atlassian.net | AI |
+| 2025-01-13 | Expanded transcripts to ALL sources (not just Tim Fletcher) | AI |
+| 2025-01-13 | Added Nemotron3 & NeMo Data Designer integration section | AI |
 | 2025-12-29 | Created MASTER_TRAINING_EPIC consolidating all scattered docs | AI |
 | 2025-12-29 | Tim Fletcher integration complete (913 transcripts) | Team |
 | 2025-12-29 | 52.20GB dataset confirmed in S3 | Team |

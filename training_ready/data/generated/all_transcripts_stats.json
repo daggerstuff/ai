@@ -1,0 +1,21 @@
+{
+  "started_at": "2025-12-31T09:49:36.979082+00:00",
+  "transcripts_dir": "/home/vivi/pixelated/.notes/transcripts",
+  "output_file": "/home/vivi/pixelated/ai/training_ready/data/generated/all_transcripts_chatml.jsonl",
+  "sources_processed": {
+    "10_ Happier": 2,
+    "tim_fletcher": 3
+  },
+  "files_processed": 5,
+  "files_skipped": 0,
+  "chunks_written": 14,
+  "total_chars": 174161,
+  "chunk_histogram": {
+    "1": 2,
+    "2": 2,
+    "8": 1
+  },
+  "completed_at": "2025-12-31T09:49:37.043467+00:00",
+  "examples_written": 14,
+  "unique_hashes": 14
+}
