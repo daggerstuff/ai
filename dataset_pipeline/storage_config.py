@@ -166,8 +166,11 @@ class StorageConfig:
             ):
                 return (
                     False,
-                    "GCS credentials are required "
-                    "(GOOGLE_APPLICATION_CREDENTIALS or credentials_path)",
+                    (
+                        "GCS credentials are required "
+                        "(GOOGLE_APPLICATION_CREDENTIALS or "
+                        "credentials_path)"
+                    ),
                 )
 
         return True, None
@@ -195,8 +198,9 @@ def _find_workspace_root(start: Path) -> Path:
     """
     Best-effort detection of the outer Pixelated workspace root.
 
-    We prefer the parent repo root (contains both `pyproject.toml` and `pnpm-lock.yaml`)
-    so dataset pipeline outputs land in the top-level ignored `tmp/` directory.
+    We prefer the parent repo root (contains both `pyproject.toml` and
+    `pnpm-lock.yaml`) so dataset pipeline outputs land in the top-level ignored
+    `tmp/` directory.
 
     Falls back to the closest parent that looks like a git repo; finally falls back
     to `start.parent`.
