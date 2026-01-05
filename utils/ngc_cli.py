@@ -107,7 +107,10 @@ class NGCCLI:
         # Check if ngc is installed via uv
         try:
             result = subprocess.run(
-                [self.uv_cmd, "pip", "list"], capture_output=True, text=True, check=False
+                [self.uv_cmd, "pip", "list"],
+                capture_output=True,
+                text=True,
+                check=False,
             )
             if "ngc" in result.stdout.lower():
                 self.ngc_cmd = f"{self.uv_cmd} run ngc"
@@ -156,26 +159,47 @@ class NGCCLI:
             raise NGCCLINotFoundError("NGC CLI command not set")
         try:
             result = subprocess.run(
-                [*self.ngc_cmd.split(), "config", "get"], capture_output=True, text=True, check=True
+                [*self.ngc_cmd.split(), "config", "current"],
+                capture_output=True,
+                text=True,
+                check=True,
             )
 
             config = {}
-            for line in result.stdout.split("\n"):
-                if ":" in line:
-                    key, value = line.split(":", 1)
-                    config[key.strip()] = value.strip()
+            # Parse the table format output
+            lines = result.stdout.strip().split("\n")
+            current_key = None
 
-            if "API key" not in config or not config.get("API key"):
-                raise NGCCLIAuthError(
-                    "NGC CLI not configured. Run: ngc config set\n"
-                    "Get your API key from: https://catalog.ngc.nvidia.com"
-                )
+            for line in lines:
+                if "|" in line and "| key " not in line.lower() and "---" not in line:
+                    parts = [part.strip() for part in line.split("|") if part.strip()]
+                    if len(parts) >= 3:  # key | value | source
+                        key, value, source = parts[0], parts[1], parts[2]
+                        if key:  # New key
+                            current_key = key
+                            config[key] = value
+                        elif current_key and value:  # Continuation of previous key
+                            config[current_key] += value
+                    elif len(parts) == 1 and current_key:  # Just a value continuation
+                        config[current_key] += parts[0]
+
+            # Check if API key is configured (it will be masked with asterisks)
+            # If we have any config and apikey exists (even masked), consider it configured
+            if config and ("apikey" in config or "API key" in config):
+                return config
+
+            raise NGCCLIAuthError(
+                "NGC CLI not configured. Run: ngc config set\n"
+                "Get your API key from: https://catalog.ngc.nvidia.com"
+            )
 
             return config
         except subprocess.CalledProcessError as e:
             raise NGCCLIAuthError(f"Failed to check NGC config: {e.stderr}") from e
 
-    def set_config(self, api_key: str, _org: str | None = None, _team: str | None = None) -> None:
+    def set_config(
+        self, api_key: str, _org: str | None = None, _team: str | None = None
+    ) -> None:
         """
         Configure NGC CLI with API key.
 
@@ -279,7 +303,9 @@ class NGCCLI:
 
         if result.returncode != 0:
             error_msg = result.stderr or result.stdout
-            raise NGCCLIDownloadError(f"Failed to download {resource_spec}:\n{error_msg}")
+            raise NGCCLIDownloadError(
+                f"Failed to download {resource_spec}:\n{error_msg}"
+            )
 
         logger.info(f"Successfully downloaded {resource_spec}")
 
