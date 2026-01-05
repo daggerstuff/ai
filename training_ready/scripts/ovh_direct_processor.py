@@ -74,7 +74,7 @@ def discover_pixel_data():
                             ):
                                 files.append({"path": path, "size": size})
                                 total_size += size
-                        except:
+                        except Exception:
                             continue
 
             report = {
@@ -145,19 +145,24 @@ export AWS_DEFAULT_REGION=us-east-va
 
 # Discover all objects
 echo "📊 Listing S3 objects..."
-aws s3 ls s3://$S3_BUCKET --recursive --endpoint-url $S3_ENDPOINT --human-readable --summarize > training_ready/data/pixel_data_60gb_discovery/s3_full_listing.txt 2>&1
+aws s3 ls s3://$S3_BUCKET --recursive --endpoint-url $S3_ENDPOINT \\
+    --human-readable --summarize \\
+    > training_ready/data/pixel_data_60gb_discovery/s3_full_listing.txt 2>&1
 
 # Extract therapeutic datasets
 echo "🔍 Filtering therapeutic datasets..."
 aws s3 ls s3://$S3_BUCKET --recursive --endpoint-url $S3_ENDPOINT | \
     grep -E '\.(json|jsonl|csv)$' | \
     grep -v -E '\.(lock|tmp|cache|git)' | \
-    sort -k3 -hr > training_ready/data/pixel_data_60gb_discovery/therapeutic_datasets.txt
+    sort -k3 -hr > \\
+    training_ready/data/pixel_data_60gb_discovery/therapeutic_datasets.txt
 
 # Count and summarize
 echo "📊 Processing discovery..."
-total_files=$(wc -l < training_ready/data/pixel_data_60gb_discovery/therapeutic_datasets.txt)
-total_size=$(aws s3 ls s3://$S3_BUCKET --recursive --endpoint-url $S3_ENDPOINT --summarize 2>/dev/null | \
+total_files=$(wc -l < \
+    training_ready/data/pixel_data_60gb_discovery/therapeutic_datasets.txt)
+total_size=$(aws s3 ls s3://$S3_BUCKET --recursive \
+    --endpoint-url $S3_ENDPOINT --summarize 2>/dev/null | \
     grep "Total Size" | awk '{print $3}' || echo "0")
 
 echo "📋 Discovery complete:"
@@ -189,7 +194,11 @@ for line in sys.stdin:
         # PII cleaning & deduplication
         import re
         text = str(data)
-        text = re.sub(r'\\\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Z|a-z]{2,}\\\\b', '[EMAIL_REDACTED]', text)
+        text = re.sub(
+            r'\\\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\\\.[A-Z|a-z]{2,}\\\\b',
+            '[EMAIL_REDACTED]',
+            text
+        )
         text = re.sub(r'\\\\b\\\\d{3}-\\\\d{2}-\\\\d{4}\\\\b', '[SSN_REDACTED]', text)
         print(text)
     except:
@@ -205,7 +214,9 @@ download_top() {
         sort -k3 -hr | \
         head -50 | \
         awk '{print $4}' | \
-        xargs -I {} -P 4 aws s3 cp s3://$S3_BUCKET/{} training_ready/data/remote_60gb_corpus/ --endpoint-url $S3_ENDPOINT
+        xargs -I {} -P 4 aws s3 cp s3://$S3_BUCKET/{} \\
+            training_ready/data/remote_60gb_corpus/ \\
+            --endpoint-url $S3_ENDPOINT
 }
 
 case "$1" in
