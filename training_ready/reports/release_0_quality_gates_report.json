@@ -1,0 +1,54 @@
+{
+  "release": "v2026-01-07",
+  "generated_at": "2026-01-07T07:43:17.031489+00:00",
+  "gates": {
+    "pii_detection": {
+      "gate_name": "PII Detection",
+      "status": "PASS",
+      "conversations_processed": 1,
+      "issues_found": 0,
+      "issues": [],
+      "execution_time_seconds": 3.4e-05,
+      "timestamp": "2026-01-07T07:43:17.031343+00:00"
+    },
+    "provenance_validation": {
+      "gate_name": "Provenance Validation",
+      "status": "WARNING",
+      "conversations_processed": 1,
+      "issues_found": 1,
+      "issues": [
+        {
+          "type": "MISSING_SOURCE",
+          "severity": "WARNING"
+        }
+      ],
+      "execution_time_seconds": 9e-06,
+      "timestamp": "2026-01-07T07:43:17.031373+00:00"
+    },
+    "deduplication": {
+      "gate_name": "Deduplication",
+      "status": "PASS",
+      "conversations_processed": 1,
+      "issues_found": 0,
+      "issues": [],
+      "execution_time_seconds": 3.1e-05,
+      "timestamp": "2026-01-07T07:43:17.031412+00:00"
+    },
+    "bias_detection": {
+      "gate_name": "Bias Detection",
+      "status": "PASS",
+      "conversations_processed": 1,
+      "issues_found": 0,
+      "issues": [],
+      "execution_time_seconds": 2.5e-05,
+      "timestamp": "2026-01-07T07:43:17.031443+00:00"
+    }
+  },
+  "summary": {
+    "total_gates": 4,
+    "passed": 3,
+    "warnings": 1,
+    "failed": 0,
+    "total_issues": 1
+  }
+}
