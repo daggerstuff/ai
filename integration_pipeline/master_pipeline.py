@@ -286,12 +286,27 @@ class MasterIntegrationPipeline:
         self.logger.info(f"🔀 Combining {len(components)} components for {integration_name}")
 
         if integration_name == "voice_enhanced_edge_cases":
-            voice_blender = next(
-                (c for c in components if isinstance(c, VoiceBlendIntegrator)), None
-            )
-            edge_case_integrator = next(
-                (c for c in components if isinstance(c, EdgeCaseIntegrator)), None
-            )
+            voice_blender = self.components.get("voice_blending")
+            if voice_blender is None:
+                voice_blender = next(
+                    (
+                        c
+                        for c in components
+                        if hasattr(c, "generate_tri_expert_responses")
+                    ),
+                    None,
+                )
+
+            edge_case_integrator = self.components.get("edge_cases")
+            if edge_case_integrator is None:
+                edge_case_integrator = next(
+                    (
+                        c
+                        for c in components
+                        if hasattr(c, "generate_crisis_and_cultural_edge_cases")
+                    ),
+                    None,
+                )
 
             if edge_case_integrator is None:
                 raise ValueError("EdgeCaseIntegrator is required for voice_enhanced_edge_cases")
