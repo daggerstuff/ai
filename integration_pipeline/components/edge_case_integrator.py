@@ -244,7 +244,8 @@ class EdgeCaseIntegrator:
 
         `crisis_ratio` must be between 0 and 1. `0.0` generates only cultural scenarios;
         `1.0` generates only crisis scenarios. The ratio is applied at the scenario
-        level (based on `target_records` and `turns_per_scenario`).
+        level (based on `target_records` and `turns_per_scenario`) using
+        `int(total_scenarios * crisis_ratio)`.
 
         `locale` is recorded in each record's metadata and the summary. It does not
         automatically change crisis validation. To localize crisis escalation
@@ -282,7 +283,9 @@ class EdgeCaseIntegrator:
         if crisis_required_terms is None:
             crisis_required_terms = ["988", "911"]
         if not crisis_required_terms:
-            raise ValueError("crisis_required_terms must not be empty")
+            raise ValueError(
+                "crisis_required_terms must be a non-empty list; use None to accept the default"
+            )
 
         total_scenarios = target_records // turns_per_scenario
         remainder = target_records % turns_per_scenario
@@ -346,6 +349,7 @@ class EdgeCaseIntegrator:
 
                     self._validate_record(record, crisis_required_terms=crisis_required_terms)
 
+                    # Apply heuristic stereotype checks to therapist responses.
                     stereotype_flags = self._detect_harmful_stereotypes(record["response"])
                     if stereotype_flags:
                         counts["stereotype_flags"] += 1
@@ -658,7 +662,7 @@ class EdgeCaseIntegrator:
         self,
         record: dict[str, Any],
         *,
-        crisis_required_terms: list[str] | None = None,
+        crisis_required_terms: list[str],
     ) -> None:
         if not record.get("prompt") or not record.get("response"):
             raise ValueError("Record is missing prompt/response")
@@ -674,10 +678,9 @@ class EdgeCaseIntegrator:
         self,
         response_text: str,
         *,
-        required_terms: list[str] | None = None,
+        required_terms: list[str],
     ) -> None:
-        if required_terms is None:
-            required_terms = ["988", "911"]
+        """Require at least one crisis escalation term (for example, an emergency number)."""
         if not required_terms:
             raise ValueError("required_terms must not be empty")
         if not any(term in response_text for term in required_terms):
