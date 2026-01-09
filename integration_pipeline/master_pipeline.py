@@ -143,6 +143,9 @@ class MasterIntegrationPipeline:
     async def _prepare_component(self, component_name: str, component: Any) -> Dict[str, Any]:
         """Prepare a component for integration.
 
+        This returns a fully resolved Phase 1 result. If `component.prepare()` is
+        awaitable, it is awaited here; otherwise its return value is used directly.
+
         Integrators in this repo are mostly synchronous; this helper normalizes them
         to a common Phase 1 output shape.
         """
