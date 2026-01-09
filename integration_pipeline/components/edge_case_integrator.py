@@ -228,6 +228,8 @@ class EdgeCaseIntegrator:
         seed: int = 1,
         turns_per_scenario: int = 3,
         crisis_ratio: float = 0.5,
+        locale: str = "US",
+        crisis_required_terms: list[str] | None = None,
         output_file: str | None = None,
         summary_file: str | None = None,
         voice_blender: Any | None = None,
@@ -317,11 +319,12 @@ class EdgeCaseIntegrator:
                             "evidence_based_tags": scenario["evidence_based_tags"],
                             "safety_triggers": turn.get("safety_triggers", []),
                             "cultural_context": scenario.get("cultural_context"),
+                            "locale": locale,
                             "generated_at": datetime.now(timezone.utc).isoformat(),
                         },
                     }
 
-                    self._validate_record(record)
+                    self._validate_record(record, crisis_required_terms=crisis_required_terms)
 
                     stereotype_flags = self._detect_harmful_stereotypes(
                         f"{record['prompt']}\n{record['response']}"
@@ -388,6 +391,7 @@ class EdgeCaseIntegrator:
             "seed": seed,
             "turns_per_scenario": turns_per_scenario,
             "crisis_ratio": crisis_ratio,
+            "locale": locale,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -631,19 +635,34 @@ class EdgeCaseIntegrator:
             "turns": turns,
         }
 
-    def _validate_record(self, record: dict[str, Any]) -> None:
+    def _validate_record(
+        self,
+        record: dict[str, Any],
+        *,
+        crisis_required_terms: list[str] | None = None,
+    ) -> None:
         if not record.get("prompt") or not record.get("response"):
             raise ValueError("Record is missing prompt/response")
 
         scenario_kind = record.get("scenario_kind")
         if scenario_kind == "crisis":
-            self._validate_crisis_response(record["response"])
+            self._validate_crisis_response(
+                record["response"],
+                required_terms=crisis_required_terms,
+            )
 
-    def _validate_crisis_response(self, response_text: str) -> None:
-        required_terms = ["988", "911"]
-        missing = [term for term in required_terms if term not in response_text]
-        if missing:
-            raise ValueError(f"Crisis response missing required safety triggers: {missing}")
+    def _validate_crisis_response(
+        self,
+        response_text: str,
+        *,
+        required_terms: list[str] | None = None,
+    ) -> None:
+        required_terms = required_terms or ["988", "911"]
+        if not any(term in response_text for term in required_terms):
+            raise ValueError(
+                "Crisis response missing emergency escalation guidance "
+                f"(expected one of: {required_terms})"
+            )
 
     def _detect_harmful_stereotypes(self, text: str) -> list[str]:
         lowered = text.lower()
