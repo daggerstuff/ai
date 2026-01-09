@@ -228,8 +228,8 @@ class EdgeCaseIntegrator:
         seed: int = 1,
         turns_per_scenario: int = 3,
         crisis_ratio: float = 0.5,
-        output_file: str = "ai/pipelines/edge_case_pipeline_standalone/edge_cases_crisis_cultural_15k.jsonl",
-        summary_file: str = "ai/pipelines/edge_case_pipeline_standalone/edge_cases_crisis_cultural_15k_summary.json",
+        output_file: str | None = None,
+        summary_file: str | None = None,
         voice_blender: Any | None = None,
         bias_detector: Any | None = None,
     ) -> Dict[str, Any]:
@@ -247,6 +247,15 @@ class EdgeCaseIntegrator:
             raise ValueError("turns_per_scenario must be > 0")
 
         rng = random.Random(seed)
+
+        repo_root = Path(__file__).resolve().parents[2]
+        default_output_dir = repo_root / "pipelines" / "edge_case_pipeline_standalone"
+        output_file = output_file or str(
+            default_output_dir / "edge_cases_crisis_cultural_15k.jsonl"
+        )
+        summary_file = summary_file or str(
+            default_output_dir / "edge_cases_crisis_cultural_15k_summary.json"
+        )
 
         total_scenarios = target_records // turns_per_scenario
         remainder = target_records % turns_per_scenario
