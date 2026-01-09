@@ -14,8 +14,8 @@ from dataclasses import dataclass
 from datetime import datetime
 
 # Component integrators
-from components.journaling_integrator import JournalingIntegrator
-from components.voice_blend_integrator import VoiceBlendIntegrator  
+from .components.journaling_integrator import JournalingIntegrator
+from .components.voice_blend_integrator import VoiceBlendIntegrator
 from .components.edge_case_integrator import EdgeCaseIntegrator
 from .components.dual_persona_integrator import DualPersonaIntegrator
 from .components.bias_detection_integrator import BiasDetectionIntegrator
@@ -79,39 +79,27 @@ class MasterIntegrationPipeline:
         self.logger.info("🚀 Initializing component integrators...")
         
         if self.config.enable_journaling:
-            self.components['journaling'] = JournalingIntegrator(
-                self.config.journaling_config or {}
-            )
+            self.components['journaling'] = JournalingIntegrator()
             self.logger.info("✅ Journaling integrator initialized")
             
         if self.config.enable_voice_blending:
-            self.components['voice_blending'] = VoiceBlendIntegrator(
-                self.config.voice_config or {}
-            )
+            self.components['voice_blending'] = VoiceBlendIntegrator()
             self.logger.info("✅ Voice blending integrator initialized")
             
         if self.config.enable_edge_cases:
-            self.components['edge_cases'] = EdgeCaseIntegrator(
-                self.config.edge_case_config or {}
-            )
+            self.components['edge_cases'] = EdgeCaseIntegrator()
             self.logger.info("✅ Edge case integrator initialized")
             
         if self.config.enable_dual_persona:
-            self.components['dual_persona'] = DualPersonaIntegrator(
-                self.config.dual_persona_config or {}
-            )
+            self.components['dual_persona'] = DualPersonaIntegrator()
             self.logger.info("✅ Dual persona integrator initialized")
             
         if self.config.enable_bias_detection:
-            self.components['bias_detection'] = BiasDetectionIntegrator(
-                self.config.bias_detection_config or {}
-            )
+            self.components['bias_detection'] = BiasDetectionIntegrator()
             self.logger.info("✅ Bias detection integrator initialized")
             
         if self.config.enable_psychology_kb:
-            self.components['psychology_kb'] = PsychologyKBIntegrator(
-                self.config.psychology_kb_config or {}
-            )
+            self.components['psychology_kb'] = PsychologyKBIntegrator()
             self.logger.info("✅ Psychology KB integrator initialized")
             
         self.logger.info(f"🎯 Initialized {len(self.components)} component integrators")
@@ -133,22 +121,62 @@ class MasterIntegrationPipeline:
         ]
         
         for component_name in component_order:
-            if component_name in self.components:
-                self.logger.info(f"🔧 Processing {component_name}...")
-                
-                try:
-                    component = self.components[component_name]
-                    result = await component.prepare()
-                    phase_1_results[component_name] = result
-                    
-                    self.logger.info(f"✅ {component_name} preparation complete")
-                    
-                except Exception as e:
-                    self.logger.error(f"❌ {component_name} preparation failed: {e}")
-                    phase_1_results[component_name] = {"error": str(e)}
+            if component_name not in self.components:
+                continue
+
+            self.logger.info(f"🔧 Processing {component_name}...")
+
+            try:
+                component = self.components[component_name]
+                result = self._prepare_component(component_name, component)
+                phase_1_results[component_name] = result
+                self.logger.info(f"✅ {component_name} preparation complete")
+
+            except Exception as e:
+                self.logger.error(f"❌ {component_name} preparation failed: {e}")
+                phase_1_results[component_name] = {"error": str(e)}
         
         self.integration_results['phase_1'] = phase_1_results
         return phase_1_results
+
+    def _prepare_component(self, component_name: str, component: Any) -> Dict[str, Any]:
+        """Prepare a component for integration.
+
+        Integrators in this repo are mostly synchronous; this helper normalizes them
+        to a common Phase 1 output shape.
+        """
+
+        if hasattr(component, "prepare") and callable(component.prepare):
+            return component.prepare()  # type: ignore[no-any-return]
+
+        if component_name == "psychology_kb":
+            kb = component.load_psychology_knowledge_base()
+            return {"status": "ready", "concept_count": len(kb) if isinstance(kb, dict) else 0}
+
+        if component_name == "journaling":
+            patterns = component.extract_progress_patterns()
+            return {"status": "ready", "patterns": len(patterns)}
+
+        if component_name == "voice_blending":
+            blended = component.create_blended_voice()
+            return {
+                "status": "ready",
+                "core_principles": len(blended.get("core_principles", [])),
+                "therapeutic_methods": len(blended.get("therapeutic_methods", [])),
+            }
+
+        if component_name == "edge_cases":
+            existing = component.load_existing_edge_cases()
+            return {"status": "ready", "existing_edge_cases": len(existing)}
+
+        if component_name == "dual_persona":
+            personas = component.load_existing_personas()
+            return {"status": "ready", "personas": len(personas)}
+
+        if component_name == "bias_detection":
+            return {"status": "ready", "categories": len(component.bias_categories)}
+
+        return {"status": "ready"}
     
     async def run_integration_phase_2(self) -> Dict[str, Any]:
         """Phase 2: Smart component combination"""
@@ -250,25 +278,64 @@ class MasterIntegrationPipeline:
     
     async def _combine_components(self, integration_name: str, components: List, description: str) -> Dict[str, Any]:
         """Combine multiple components intelligently"""
-        
+
         self.logger.info(f"🔀 Combining {len(components)} components for {integration_name}")
-        
-        # Placeholder for smart component combination logic
-        # This would contain the actual integration algorithms
-        
-        result = {
-            'integration_name': integration_name,
-            'description': description,
-            'components_count': len(components),
-            'status': 'success',
-            'output_files': [],
-            'metrics': {}
+
+        if integration_name == "voice_enhanced_edge_cases":
+            voice_blender = next(
+                (c for c in components if isinstance(c, VoiceBlendIntegrator)), None
+            )
+            edge_case_integrator = next(
+                (c for c in components if isinstance(c, EdgeCaseIntegrator)), None
+            )
+
+            if edge_case_integrator is None:
+                raise ValueError("EdgeCaseIntegrator is required for voice_enhanced_edge_cases")
+
+            edge_case_config = self.config.edge_case_config or {}
+            target_records = int(edge_case_config.get("target_records", 15_000))
+            seed = int(edge_case_config.get("seed", 1))
+            enable_bias_detection = bool(edge_case_config.get("enable_bias_detection", False))
+            bias_detector = self.components.get("bias_detection") if enable_bias_detection else None
+            output_file = str(
+                edge_case_config.get(
+                    "output_file",
+                    "ai/pipelines/edge_case_pipeline_standalone/edge_cases_crisis_cultural_15k.jsonl",
+                )
+            )
+            summary_file = str(
+                edge_case_config.get(
+                    "summary_file",
+                    "ai/pipelines/edge_case_pipeline_standalone/edge_cases_crisis_cultural_15k_summary.json",
+                )
+            )
+
+            metrics = edge_case_integrator.generate_crisis_and_cultural_edge_cases(
+                target_records=target_records,
+                seed=seed,
+                output_file=output_file,
+                summary_file=summary_file,
+                voice_blender=voice_blender,
+                bias_detector=bias_detector,
+            )
+
+            return {
+                "integration_name": integration_name,
+                "description": description,
+                "components_count": len(components),
+                "status": "success",
+                "output_files": [output_file, summary_file],
+                "metrics": metrics,
+            }
+
+        return {
+            "integration_name": integration_name,
+            "description": description,
+            "components_count": len(components),
+            "status": "skipped",
+            "output_files": [],
+            "metrics": {},
         }
-        
-        # TODO: Implement actual component combination logic
-        # This is where the magic happens - combining outputs from different components
-        
-        return result
     
     async def _build_integrated_dataset(self, dataset_config: Dict) -> Dict[str, Any]:
         """Build a final integrated dataset from component results"""
