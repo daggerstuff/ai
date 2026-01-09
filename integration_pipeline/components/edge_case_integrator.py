@@ -241,7 +241,14 @@ class EdgeCaseIntegrator:
         responses. Records are written to a location that can be uploaded to
         `s3://pixel-data/edge_cases/` via the existing OVH sync script.
 
-        `crisis_ratio` must be between 0 and 1.
+        `crisis_ratio` must be between 0 and 1. `0.0` generates only cultural scenarios;
+        `1.0` generates only crisis scenarios. The ratio is applied at the scenario
+        level (based on `target_records` and `turns_per_scenario`).
+
+        `locale` is recorded in each record's metadata and the summary. It does not
+        automatically change crisis validation. To localize crisis escalation
+        guidance, pass `crisis_required_terms` and include at least one of those
+        terms in every crisis response.
         """
 
         if target_records <= 0:
