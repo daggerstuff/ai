@@ -300,21 +300,21 @@ class MasterIntegrationPipeline:
             output_file = str(
                 edge_case_config.get(
                     "output_file",
-                    "ai/pipelines/edge_case_pipeline_standalone/edge_cases_crisis_cultural_15k.jsonl",
+                    "",
                 )
             )
             summary_file = str(
                 edge_case_config.get(
                     "summary_file",
-                    "ai/pipelines/edge_case_pipeline_standalone/edge_cases_crisis_cultural_15k_summary.json",
+                    "",
                 )
             )
 
             metrics = edge_case_integrator.generate_crisis_and_cultural_edge_cases(
                 target_records=target_records,
                 seed=seed,
-                output_file=output_file,
-                summary_file=summary_file,
+                output_file=output_file or None,
+                summary_file=summary_file or None,
                 voice_blender=voice_blender,
                 bias_detector=bias_detector,
             )
@@ -324,7 +324,10 @@ class MasterIntegrationPipeline:
                 "description": description,
                 "components_count": len(components),
                 "status": "success",
-                "output_files": [output_file, summary_file],
+                "output_files": [
+                    metrics.get("output_file"),
+                    metrics.get("summary_file"),
+                ],
                 "metrics": metrics,
             }
 
