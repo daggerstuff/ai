@@ -184,6 +184,98 @@ CREATE INDEX idx_perf_alerts_alert_type ON performance_alerts(alert_type);
 CREATE INDEX idx_perf_alerts_level ON performance_alerts(alert_level);
 CREATE INDEX idx_perf_alerts_created_at ON performance_alerts(created_at);
 
+-- Audio recordings table (multimodal)
+CREATE TABLE IF NOT EXISTS audio_recordings (
+    id SERIAL PRIMARY KEY,
+    session_id UUID REFERENCES inference_sessions(session_id),
+    request_id VARCHAR(255) REFERENCES inference_requests(request_id),
+    audio_format VARCHAR(20),  -- 'wav', 'mp3', 'flac', 'ogg'
+    sample_rate INTEGER,  -- Hz
+    duration_ms FLOAT,
+    channels INTEGER,
+    bit_depth INTEGER,
+    file_size_bytes BIGINT,
+    s3_uri VARCHAR(500),  -- Cloud storage path
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    metadata JSONB
+);
+
+CREATE INDEX idx_audio_recordings_session_id ON audio_recordings(session_id);
+CREATE INDEX idx_audio_recordings_request_id ON audio_recordings(request_id);
+CREATE INDEX idx_audio_recordings_created_at ON audio_recordings(created_at);
+
+-- Transcriptions table (speech-to-text results)
+CREATE TABLE IF NOT EXISTS transcriptions (
+    id SERIAL PRIMARY KEY,
+    audio_recording_id INTEGER REFERENCES audio_recordings(id),
+    session_id UUID REFERENCES inference_sessions(session_id),
+    text TEXT NOT NULL,
+    language VARCHAR(10),  -- ISO 639-1 code (e.g., 'en', 'es')
+    confidence FLOAT,  -- 0-1 confidence score
+    model_name VARCHAR(100),  -- Model used for transcription
+    processing_time_ms FLOAT,
+    error_message VARCHAR(500),
+    segments JSONB,  -- Array of {start, end, text, confidence}
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    metadata JSONB
+);
+
+CREATE INDEX idx_transcriptions_audio_id ON transcriptions(audio_recording_id);
+CREATE INDEX idx_transcriptions_session_id ON transcriptions(session_id);
+CREATE INDEX idx_transcriptions_language ON transcriptions(language);
+CREATE INDEX idx_transcriptions_created_at ON transcriptions(created_at);
+
+-- Audio emotions table (emotion detection results)
+CREATE TABLE IF NOT EXISTS audio_emotions (
+    id SERIAL PRIMARY KEY,
+    audio_recording_id INTEGER REFERENCES audio_recordings(id),
+    session_id UUID REFERENCES inference_sessions(session_id),
+    valence FLOAT,  -- -1 (negative) to +1 (positive)
+    arousal FLOAT,  -- 0 (calm) to 1 (excited)
+    dominance FLOAT,  -- 0 (submissive) to 1 (dominant)
+    emotion_class VARCHAR(50),  -- 'happy', 'sad', 'angry', 'fear', 'surprise', 'disgust', 'calm', 'neutral'
+    emotion_confidence FLOAT,  -- 0-1 confidence for classification
+    speaker_state VARCHAR(100),  -- Overall speaker state summary
+    model_name VARCHAR(100),  -- Model used for emotion detection
+    processing_time_ms FLOAT,
+    trajectory JSONB,  -- Array of {timestamp, valence, arousal, emotion} for tracking
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    metadata JSONB
+);
+
+CREATE INDEX idx_audio_emotions_audio_id ON audio_emotions(audio_recording_id);
+CREATE INDEX idx_audio_emotions_session_id ON audio_emotions(session_id);
+CREATE INDEX idx_audio_emotions_emotion_class ON audio_emotions(emotion_class);
+CREATE INDEX idx_audio_emotions_created_at ON audio_emotions(created_at);
+
+-- Multimodal fusion results table (fused emotional states)
+CREATE TABLE IF NOT EXISTS multimodal_fusion_results (
+    id SERIAL PRIMARY KEY,
+    session_id UUID REFERENCES inference_sessions(session_id),
+    request_id VARCHAR(255) REFERENCES inference_requests(request_id),
+    audio_emotion_id INTEGER REFERENCES audio_emotions(id),
+    transcription_id INTEGER REFERENCES transcriptions(id),
+    -- Fused EQ scores (from text + audio combination)
+    fused_eq_scores FLOAT8[],  -- Array of 5 fused EQ domain scores
+    text_weight FLOAT,  -- Text contribution weight (default 0.6)
+    audio_weight FLOAT,  -- Audio contribution weight (default 0.4)
+    -- Conflict detection
+    modality_conflict_score FLOAT,  -- 0-1 score indicating disagreement
+    conflict_detected BOOLEAN,
+    conflict_description VARCHAR(500),
+    -- Overall state
+    fused_emotion_class VARCHAR(50),
+    fused_confidence FLOAT,
+    processing_time_ms FLOAT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    metadata JSONB
+);
+
+CREATE INDEX idx_fusion_session_id ON multimodal_fusion_results(session_id);
+CREATE INDEX idx_fusion_request_id ON multimodal_fusion_results(request_id);
+CREATE INDEX idx_fusion_conflict ON multimodal_fusion_results(conflict_detected);
+CREATE INDEX idx_fusion_created_at ON multimodal_fusion_results(created_at);
+
 -- Create views for common queries
 
 -- View: Recent inference accuracy
