@@ -308,7 +308,7 @@ class EdgeCaseIntegrator:
 
         failures: list[dict[str, Any]] = []
 
-        with open(output_file, "w") as f:
+        with open(output_file, "w", encoding="utf-8") as f:
             for scenario_index in range(total_scenarios):
                 scenario_kind = "crisis" if scenario_index < crisis_scenarios else "cultural"
 
@@ -378,7 +378,7 @@ class EdgeCaseIntegrator:
                             context=scenario_kind,
                         )
 
-                    f.write(json.dumps(record) + "\n")
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
                     counts["records_total"] += 1
 
                     if scenario_kind == "crisis":
@@ -419,8 +419,8 @@ class EdgeCaseIntegrator:
             # this in the summary for troubleshooting.
             summary["failures"] = failures[:50]
 
-        with open(summary_file, "w") as f:
-            json.dump(summary, f, indent=2)
+        with open(summary_file, "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2, ensure_ascii=False)
 
         return summary
 
