@@ -6,7 +6,13 @@ Integrates nightmare fuel scenarios with expert voices and therapeutic framework
 
 import json
 import logging
+import math
+import random
 import re
+import uuid
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Set
@@ -575,6 +581,494 @@ class EdgeCaseIntegrator:
         )
         return integrated_datasets
 
+    def generate_crisis_and_cultural_edge_cases(
+        self,
+        *,
+        target_records: int = 15_000,
+        seed: int = 1,
+        turns_per_scenario: int = 3,
+        crisis_ratio: float = 0.5,
+        locale: str = "US",
+        crisis_required_terms: list[str] | None = None,
+        output_file: str | None = None,
+        summary_file: str | None = None,
+        voice_blender: Any | None = None,
+        bias_detector: Any | None = None,
+    ) -> Dict[str, Any]:
+        """Generate crisis + cultural edge case records and write them as JSONL.
+
+        This is designed to create a stage-3 "edge stress test" dataset of therapist
+        responses. Records are written to a location that can be uploaded to
+        `s3://pixel-data/edge_cases/` via the existing OVH sync script.
+
+        `crisis_ratio` must be between 0 and 1. `0.0` generates only cultural scenarios;
+        `1.0` generates only crisis scenarios. The ratio is applied at the scenario
+        level (based on `target_records` and `turns_per_scenario`) using
+        `int(total_scenarios * crisis_ratio)`.
+
+        `locale` is recorded in each record's metadata and the summary. It does not
+        automatically change crisis validation. To localize crisis escalation
+        guidance, pass `crisis_required_terms` and include at least one of those
+        terms in every crisis response.
+        """
+
+        if target_records <= 0:
+            raise ValueError("target_records must be > 0")
+
+        if turns_per_scenario <= 0:
+            raise ValueError("turns_per_scenario must be > 0")
+
+        locale = locale.strip()
+        if not locale:
+            raise ValueError("locale must be non-empty")
+
+        if not math.isfinite(crisis_ratio) or not 0.0 <= crisis_ratio <= 1.0:
+            raise ValueError(
+                "crisis_ratio must be a finite number between 0 and 1, "
+                f"got {crisis_ratio!r}"
+            )
+
+        rng = random.Random(seed)
+
+        repo_root = Path(__file__).resolve().parents[2]
+        default_output_dir = repo_root / "pipelines" / "edge_case_pipeline_standalone"
+        output_file = output_file or str(
+            default_output_dir / "edge_cases_crisis_cultural_15k.jsonl"
+        )
+        summary_file = summary_file or str(
+            default_output_dir / "edge_cases_crisis_cultural_15k_summary.json"
+        )
+
+        if crisis_required_terms is None:
+            crisis_required_terms = ["988", "911"]
+        if not crisis_required_terms:
+            raise ValueError(
+                "crisis_required_terms must be a non-empty list; use None to accept the default"
+            )
+
+        total_scenarios = target_records // turns_per_scenario
+        remainder = target_records % turns_per_scenario
+        if remainder != 0:
+            total_scenarios += 1
+
+        crisis_scenarios = int(total_scenarios * crisis_ratio)
+        cultural_scenarios = total_scenarios - crisis_scenarios
+
+        Path(output_file).parent.mkdir(parents=True, exist_ok=True)
+        Path(summary_file).parent.mkdir(parents=True, exist_ok=True)
+
+        counts = {
+            "records_total": 0,
+            "records_crisis": 0,
+            "records_cultural": 0,
+            "scenarios_total": total_scenarios,
+            "scenarios_crisis": crisis_scenarios,
+            "scenarios_cultural": cultural_scenarios,
+            "stereotype_flags": 0,
+            "bias_flags": 0,
+        }
+
+        failures: list[dict[str, Any]] = []
+
+        with open(output_file, "w", encoding="utf-8") as f:
+            for scenario_index in range(total_scenarios):
+                scenario_kind = "crisis" if scenario_index < crisis_scenarios else "cultural"
+
+                if scenario_kind == "crisis":
+                    scenario = self._generate_crisis_scenario(rng=rng)
+                else:
+                    scenario = self._generate_cultural_scenario(rng=rng)
+
+                scenario_id = scenario["scenario_id"]
+                turns: list[dict[str, Any]] = scenario["turns"]
+
+                for turn_index, turn in enumerate(turns, start=1):
+                    record = {
+                        "id": str(uuid.uuid4()),
+                        "scenario_id": scenario_id,
+                        "scenario_kind": scenario_kind,
+                        "scenario_subtype": scenario["scenario_subtype"],
+                        "turn_index": turn_index,
+                        "turns_total": len(turns),
+                        "prompt": turn["client"],
+                        "response": turn["therapist"],
+                        "conversation": {
+                            "client": turn["client"],
+                            "therapist": turn["therapist"],
+                        },
+                        "metadata": {
+                            "severity_level": scenario["severity_level"],
+                            "evidence_based_tags": scenario["evidence_based_tags"],
+                            "safety_triggers": turn.get("safety_triggers", []),
+                            "cultural_context": scenario.get("cultural_context"),
+                            "locale": locale,
+                            "generated_at": datetime.now(timezone.utc).isoformat(),
+                        },
+                    }
+
+                    self._validate_record(record, crisis_required_terms=crisis_required_terms)
+
+                    # Apply heuristic stereotype checks to therapist responses.
+                    stereotype_flags = self._detect_harmful_stereotypes(record["response"])
+                    if stereotype_flags:
+                        counts["stereotype_flags"] += 1
+                        failures.append(
+                            {
+                                "scenario_id": scenario_id,
+                                "id": record["id"],
+                                "type": "stereotype",
+                                "flags": stereotype_flags,
+                            }
+                        )
+
+                    if bias_detector is not None:
+                        bias_results = bias_detector.check_dataset_for_bias(record)
+                        record["bias_detection"] = bias_results
+                        if bias_results.get("overall_safety") != "safe":
+                            counts["bias_flags"] += 1
+                            failures.append(
+                                {
+                                    "scenario_id": scenario_id,
+                                    "id": record["id"],
+                                    "type": "bias_detection",
+                                    "overall_safety": bias_results.get("overall_safety"),
+                                }
+                            )
+
+                    if voice_blender is not None:
+                        record["expert_voices"] = voice_blender.generate_tri_expert_responses(
+                            record["prompt"],
+                            context=scenario_kind,
+                        )
+
+                    f.write(json.dumps(record, ensure_ascii=False) + "\n")
+                    counts["records_total"] += 1
+
+                    if scenario_kind == "crisis":
+                        counts["records_crisis"] += 1
+                    else:
+                        counts["records_cultural"] += 1
+
+                    if counts["records_total"] >= target_records:
+                        break
+
+                if counts["records_total"] >= target_records:
+                    break
+
+        if counts["stereotype_flags"] != 0:
+            raise ValueError(
+                f"Generated dataset contains stereotype flags: {counts['stereotype_flags']}"
+            )
+
+        if counts["bias_flags"] != 0:
+            raise ValueError(
+                f"Generated dataset contains bias flags: {counts['bias_flags']}"
+            )
+
+        summary = {
+            **counts,
+            "output_file": output_file,
+            "summary_file": summary_file,
+            "seed": seed,
+            "turns_per_scenario": turns_per_scenario,
+            "crisis_ratio": crisis_ratio,
+            "locale": locale,
+            "crisis_required_terms": crisis_required_terms,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }
+
+        if failures:
+            # Failures should not happen due to the strict checks above, but keep
+            # this in the summary for troubleshooting.
+            summary["failures"] = failures[:50]
+
+        with open(summary_file, "w", encoding="utf-8") as f:
+            json.dump(summary, f, indent=2, ensure_ascii=False)
+
+        return summary
+
+    def _generate_crisis_scenario(self, *, rng: random.Random) -> dict[str, Any]:
+        subtype = rng.choice(["suicidal_ideation", "panic", "severe_depression"])
+        scenario_id = f"crisis_{subtype}_{uuid.uuid4().hex[:10]}"
+
+        if subtype == "suicidal_ideation":
+            turns = [
+                {
+                    "client": "I've been having thoughts about ending my life. I feel scared by how intense they are.",
+                    "therapist": self._crisis_response(
+                        "Thank you for telling me. I'm really glad you shared this with me. "
+                        "Are you having thoughts of harming yourself right now, and are you alone? "
+                        "If you are in immediate danger, call 911 (or your local emergency number). "
+                        "In the U.S., you can also call or text 988 for the Suicide & Crisis Lifeline."
+                    ),
+                    "safety_triggers": ["risk_assessment", "988", "911"],
+                },
+                {
+                    "client": "The thoughts keep coming back, and I'm worried I might act on them.",
+                    "therapist": self._crisis_response(
+                        "I'm hearing how serious and exhausting this is. Let's slow this down together. "
+                        "Do you have a plan or access to anything you could use to hurt yourself? "
+                        "If the urge feels immediate, call 911 (or your local emergency number) right now. "
+                        "In the U.S., you can call or text 988, and we can also identify someone you trust to stay with you."
+                    ),
+                    "safety_triggers": ["means_check", "988", "911"],
+                },
+                {
+                    "client": "I don't want to die, but I don't know how to keep myself safe tonight.",
+                    "therapist": self._crisis_response(
+                        "We can make a short-term safety plan for tonight. First: if you feel at risk of acting on these thoughts, "
+                        "call 911 (or your local emergency number) or go to the nearest emergency department. "
+                        "In the U.S., you can call or text 988. "
+                        "Next, let's identify one person you can contact, and one way to reduce access to anything you could use to hurt yourself."
+                    ),
+                    "safety_triggers": ["safety_plan", "988", "911"],
+                },
+            ]
+            severity_level = 9
+            evidence_based_tags = ["crisis_risk_assessment", "safety_planning", "means_reduction"]
+
+        elif subtype == "panic":
+            turns = [
+                {
+                    "client": "I'm having a panic attack. My chest is tight and I feel like I can't breathe.",
+                    "therapist": self._crisis_response(
+                        "I'm here with you. Panic can feel terrifying, but it can pass. "
+                        "If you think you may be having a medical emergency, call 911 (or your local emergency number). "
+                        "If you're safe medically, let's try a grounding step: name 5 things you can see, 4 you can feel, 3 you can hear."
+                    ),
+                    "safety_triggers": ["medical_screen", "grounding", "911"],
+                },
+                {
+                    "client": "I feel like I'm going to die and I can't calm down.",
+                    "therapist": self._crisis_response(
+                        "That fear makes sense. Let's work with your nervous system. "
+                        "Breathe in for 4, hold for 2, out for 6, and repeat a few times. "
+                        "If the symptoms worsen or you feel unsafe, call 911 (or your local emergency number). "
+                        "In the U.S., 988 is also available if this panic is tied to feeling at risk of harming yourself."
+                    ),
+                    "safety_triggers": ["paced_breathing", "988", "911"],
+                },
+                {
+                    "client": "I'm scared I'll hurt myself just to make it stop.",
+                    "therapist": self._crisis_response(
+                        "I'm really glad you said that out loud. Your safety comes first. "
+                        "Are you having urges to harm yourself right now? "
+                        "If there is any immediate risk, call 911 (or your local emergency number). "
+                        "In the U.S., call or text 988. Let's also identify one person who can be with you while this wave passes."
+                    ),
+                    "safety_triggers": ["risk_assessment", "988", "911"],
+                },
+            ]
+            severity_level = 8
+            evidence_based_tags = ["panic_psychoeducation", "grounding", "paced_breathing"]
+
+        else:
+            turns = [
+                {
+                    "client": "I've been deeply depressed and can't get out of bed most days. Everything feels pointless.",
+                    "therapist": self._crisis_response(
+                        "I'm really sorry you're carrying that. Depression can make everything feel heavy and slow. "
+                        "Before we go further, I want to check on safety: have you had thoughts about ending your life? "
+                        "If you are in immediate danger, call 911 (or your local emergency number). In the U.S., you can also call or text 988."
+                    ),
+                    "safety_triggers": ["risk_assessment", "988", "911"],
+                },
+                {
+                    "client": "I keep thinking people would be better off without me.",
+                    "therapist": self._crisis_response(
+                        "That thought is a common depression distortion, and it's also a sign we should take this seriously. "
+                        "Do you have a plan, or access to anything you could use to hurt yourself? "
+                        "If the risk feels immediate, call 911 (or your local emergency number). In the U.S., call or text 988."
+                    ),
+                    "safety_triggers": ["means_check", "988", "911"],
+                },
+                {
+                    "client": "I want help, but I don't have energy to do anything.",
+                    "therapist": self._crisis_response(
+                        "We can keep this very small. One evidence-based approach is behavioral activation: "
+                        "a tiny action can sometimes create a small shift in mood. "
+                        "For today, what's one 2-minute step you can do, and who can you text to let them know you're struggling? "
+                        "If you feel at risk of harming yourself, call 911 (or your local emergency number). In the U.S., call or text 988."
+                    ),
+                    "safety_triggers": ["behavioral_activation", "988", "911"],
+                },
+            ]
+            severity_level = 7
+            evidence_based_tags = ["suicide_risk_assessment", "behavioral_activation", "cognitive_restructuring"]
+
+        return {
+            "scenario_id": scenario_id,
+            "scenario_subtype": subtype,
+            "severity_level": severity_level,
+            "evidence_based_tags": evidence_based_tags,
+            "turns": turns,
+        }
+
+    def _generate_cultural_scenario(self, *, rng: random.Random) -> dict[str, Any]:
+        subtype = rng.choice(["lgbtq_minority_stress", "religious_framework", "racial_discrimination"])
+        scenario_id = f"cultural_{subtype}_{uuid.uuid4().hex[:10]}"
+
+        if subtype == "lgbtq_minority_stress":
+            turns = [
+                {
+                    "client": "I'm gay, and I'm afraid my family will reject me if they find out.",
+                    "therapist": self._cultural_response(
+                        "That fear makes a lot of sense, and your safety matters. "
+                        "Do you want to explore what coming out would mean for you right now, or focus on coping with the stress? "
+                        "We can talk through support options, boundaries, and what would help you feel safer."
+                    ),
+                    "safety_triggers": ["affirmation", "safety_planning"],
+                },
+                {
+                    "client": "I feel ashamed, like I'm doing something wrong.",
+                    "therapist": self._cultural_response(
+                        "I'm hearing shame, and I want to name that shame often grows when we feel judged or unsafe. "
+                        "Your identity isn't wrong. What messages did you learn about being gay, and how do they show up in your body today?"
+                    ),
+                    "safety_triggers": ["shame_resilience", "values_exploration"],
+                },
+                {
+                    "client": "I want to tell my family, but I'm not sure it's safe.",
+                    "therapist": self._cultural_response(
+                        "We can make this decision based on your safety and your values. "
+                        "Let's consider: what are the best-case and worst-case outcomes, what supports you can have in place, and what boundaries you might need. "
+                        "If you ever feel at risk of harm or feel unsafe at home, it's okay to seek immediate help and support."
+                    ),
+                    "safety_triggers": ["risk_assessment", "support_network"],
+                },
+            ]
+            severity_level = 6
+            cultural_context = "lgbtq+ minority stress"
+            evidence_based_tags = ["affirmative_therapy", "minority_stress", "shame_resilience"]
+
+        elif subtype == "religious_framework":
+            turns = [
+                {
+                    "client": "My faith is important to me, but I feel guilty all the time and I'm not sure if therapy fits.",
+                    "therapist": self._cultural_response(
+                        "Thank you for sharing that. Many people want care that respects their faith. "
+                        "Would you like your spiritual beliefs to be part of our work together? "
+                        "We can also explore how guilt shows up for you and whether it's aligned with your values or more about fear and self-judgment."
+                    ),
+                    "safety_triggers": ["cultural_humility", "values_alignment"],
+                },
+                {
+                    "client": "My community says mental health struggles mean I'm not praying hard enough.",
+                    "therapist": self._cultural_response(
+                        "That message can feel heavy and isolating. Struggling doesn't mean you're failing spiritually. "
+                        "We can hold both: your faith as a source of strength, and evidence-based mental health care as support. "
+                        "What would compassionate support look like within your belief system?"
+                    ),
+                    "safety_triggers": ["psychoeducation", "self_compassion"],
+                },
+                {
+                    "client": "I want to keep my faith, but I also want to feel better.",
+                    "therapist": self._cultural_response(
+                        "Those goals can fit together. We can explore coping practices that honor your faith (if you want), "
+                        "alongside skills like grounding, cognitive reframing, and building social support. "
+                        "What parts of your faith feel supportive, and what parts feel painful or pressured?"
+                    ),
+                    "safety_triggers": ["integrative_care", "cultural_humility"],
+                },
+            ]
+            severity_level = 5
+            cultural_context = "religious frameworks"
+            evidence_based_tags = ["values_based", "cultural_humility", "integrative_care"]
+
+        else:
+            turns = [
+                {
+                    "client": "I'm facing discrimination at work, and it's affecting my sleep and mood.",
+                    "therapist": self._cultural_response(
+                        "I'm sorry you're dealing with that. Discrimination can have real mental and physical impacts. "
+                        "When this happens, what do you notice in your body, and what supports are available to you at work or outside of work?"
+                    ),
+                    "safety_triggers": ["systemic_validation", "somatic_awareness"],
+                },
+                {
+                    "client": "Sometimes I wonder if I'm overreacting, but it feels constant.",
+                    "therapist": self._cultural_response(
+                        "Questioning yourself is a common response when you're repeatedly invalidated. "
+                        "We can explore what happened, how it affected you, and what boundaries or resources might help. "
+                        "You don't have to carry this alone."
+                    ),
+                    "safety_triggers": ["validation", "support_network"],
+                },
+                {
+                    "client": "I want to speak up, but I'm afraid of retaliation.",
+                    "therapist": self._cultural_response(
+                        "That fear makes sense. We can plan in a way that protects you: "
+                        "clarify your goals, assess risk, and identify supports. "
+                        "We can also focus on coping skills for stress responses while you decide what, if anything, to do next."
+                    ),
+                    "safety_triggers": ["risk_assessment", "problem_solving"],
+                },
+            ]
+            severity_level = 6
+            cultural_context = "minority stress / discrimination"
+            evidence_based_tags = ["trauma_informed", "systemic_validation", "problem_solving"]
+
+        return {
+            "scenario_id": scenario_id,
+            "scenario_subtype": subtype,
+            "severity_level": severity_level,
+            "evidence_based_tags": evidence_based_tags,
+            "cultural_context": cultural_context,
+            "turns": turns,
+        }
+
+    def _validate_record(
+        self,
+        record: dict[str, Any],
+        *,
+        crisis_required_terms: list[str],
+    ) -> None:
+        if not record.get("prompt") or not record.get("response"):
+            raise ValueError("Record is missing prompt/response")
+
+        scenario_kind = record.get("scenario_kind")
+        if scenario_kind == "crisis":
+            self._validate_crisis_response(
+                record["response"],
+                required_terms=crisis_required_terms,
+            )
+
+    def _validate_crisis_response(
+        self,
+        response_text: str,
+        *,
+        required_terms: list[str],
+    ) -> None:
+        """Require at least one crisis escalation term (for example, an emergency number)."""
+        if not required_terms:
+            raise ValueError("required_terms must not be empty")
+        if not any(term in response_text for term in required_terms):
+            raise ValueError(
+                "Crisis response missing emergency escalation guidance "
+                f"(expected one of: {required_terms})"
+            )
+
+    def _detect_harmful_stereotypes(self, text: str) -> list[str]:
+        lowered = text.lower()
+
+        patterns: dict[str, str] = {
+            "blanket_group_generalization": r"\ball\s+(women|men|gay\s+people|trans\s+people|muslims|christians|jews|immigrants|black\s+people|asian\s+people|latinos)\s+(are|do|think)\b",
+            "typical_group_generalization": r"\btypical\s+(female|male|gay|trans|muslim|christian|jewish|immigrant|black|asian|latino)\b",
+            "you_people": r"\byou\s+people\b",
+        }
+
+        matches: list[str] = []
+        for name, pattern in patterns.items():
+            if re.search(pattern, lowered):
+                matches.append(name)
+
+        return matches
+
+    def _crisis_response(self, base: str) -> str:
+        return base.strip()
+
+    def _cultural_response(self, base: str) -> str:
+        return base.strip()
 
 def main():
     """Test the edge case integrator and generate keyword artifacts."""

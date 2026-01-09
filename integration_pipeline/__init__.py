@@ -3,9 +3,7 @@ Integration Pipeline for Pixelated Empathy Components
 Combines all built components into unified training datasets
 """
 
-from .master_pipeline import MasterIntegrationPipeline
-from .component_integrator import ComponentIntegrator
-from .dataset_builder import IntegratedDatasetBuilder
+from .master_pipeline import IntegrationConfig, MasterIntegrationPipeline
 
 __version__ = "1.0.0"
-__all__ = ["MasterIntegrationPipeline", "ComponentIntegrator", "IntegratedDatasetBuilder"]
+__all__ = ["IntegrationConfig", "MasterIntegrationPipeline"]
