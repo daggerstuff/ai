@@ -250,7 +250,7 @@ class EdgeCaseIntegrator:
         if turns_per_scenario <= 0:
             raise ValueError("turns_per_scenario must be > 0")
 
-        if not (0.0 <= crisis_ratio <= 1.0):
+        if not 0.0 <= crisis_ratio <= 1.0:
             raise ValueError(
                 f"crisis_ratio must be between 0 and 1, got {crisis_ratio!r}"
             )
@@ -265,6 +265,11 @@ class EdgeCaseIntegrator:
         summary_file = summary_file or str(
             default_output_dir / "edge_cases_crisis_cultural_15k_summary.json"
         )
+
+        if crisis_required_terms is None:
+            crisis_required_terms = ["988", "911"]
+        if not crisis_required_terms:
+            raise ValueError("crisis_required_terms must not be empty")
 
         total_scenarios = target_records // turns_per_scenario
         remainder = target_records % turns_per_scenario
@@ -328,9 +333,7 @@ class EdgeCaseIntegrator:
 
                     self._validate_record(record, crisis_required_terms=crisis_required_terms)
 
-                    stereotype_flags = self._detect_harmful_stereotypes(
-                        f"{record['prompt']}\n{record['response']}"
-                    )
+                    stereotype_flags = self._detect_harmful_stereotypes(record["response"])
                     if stereotype_flags:
                         counts["stereotype_flags"] += 1
                         failures.append(
@@ -394,6 +397,9 @@ class EdgeCaseIntegrator:
             "turns_per_scenario": turns_per_scenario,
             "crisis_ratio": crisis_ratio,
             "locale": locale,
+            "crisis_required_terms": crisis_required_terms,
+            "locale": locale,
+            "crisis_required_terms": crisis_required_terms,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -659,7 +665,10 @@ class EdgeCaseIntegrator:
         *,
         required_terms: list[str] | None = None,
     ) -> None:
-        required_terms = required_terms or ["988", "911"]
+        if required_terms is None:
+            required_terms = ["988", "911"]
+        if not required_terms:
+            raise ValueError("required_terms must not be empty")
         if not any(term in response_text for term in required_terms):
             raise ValueError(
                 "Crisis response missing emergency escalation guidance "

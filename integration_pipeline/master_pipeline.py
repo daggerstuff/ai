@@ -129,6 +129,8 @@ class MasterIntegrationPipeline:
             try:
                 component = self.components[component_name]
                 result = self._prepare_component(component_name, component)
+                if asyncio.iscoroutine(result):
+                    result = await result
                 phase_1_results[component_name] = result
                 self.logger.info(f"✅ {component_name} preparation complete")
 
