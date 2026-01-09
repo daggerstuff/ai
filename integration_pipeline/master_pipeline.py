@@ -7,6 +7,7 @@ Solves the core problem: 6 powerful components not being used in training datase
 import os
 import json
 import asyncio
+import inspect
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional, Any
@@ -128,9 +129,7 @@ class MasterIntegrationPipeline:
 
             try:
                 component = self.components[component_name]
-                result = self._prepare_component(component_name, component)
-                if asyncio.iscoroutine(result):
-                    result = await result
+                result = await self._prepare_component(component_name, component)
                 phase_1_results[component_name] = result
                 self.logger.info(f"✅ {component_name} preparation complete")
 
@@ -141,7 +140,7 @@ class MasterIntegrationPipeline:
         self.integration_results['phase_1'] = phase_1_results
         return phase_1_results
 
-    def _prepare_component(self, component_name: str, component: Any) -> Dict[str, Any]:
+    async def _prepare_component(self, component_name: str, component: Any) -> Dict[str, Any]:
         """Prepare a component for integration.
 
         Integrators in this repo are mostly synchronous; this helper normalizes them
@@ -149,7 +148,10 @@ class MasterIntegrationPipeline:
         """
 
         if hasattr(component, "prepare") and callable(component.prepare):
-            return component.prepare()  # type: ignore[no-any-return]
+            result = component.prepare()
+            if inspect.isawaitable(result):
+                return await result
+            return result
 
         if component_name == "psychology_kb":
             kb = component.load_psychology_knowledge_base()
