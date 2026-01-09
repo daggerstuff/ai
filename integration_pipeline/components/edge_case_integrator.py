@@ -251,7 +251,9 @@ class EdgeCaseIntegrator:
             raise ValueError("turns_per_scenario must be > 0")
 
         if not (0.0 <= crisis_ratio <= 1.0):
-            raise ValueError("crisis_ratio must be between 0 and 1")
+            raise ValueError(
+                f"crisis_ratio must be between 0 and 1, got {crisis_ratio!r}"
+            )
 
         rng = random.Random(seed)
 
