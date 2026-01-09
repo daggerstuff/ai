@@ -238,6 +238,8 @@ class EdgeCaseIntegrator:
         This is designed to create a stage-3 "edge stress test" dataset of therapist
         responses. Records are written to a location that can be uploaded to
         `s3://pixel-data/edge_cases/` via the existing OVH sync script.
+
+        `crisis_ratio` must be between 0 and 1.
         """
 
         if target_records <= 0:
