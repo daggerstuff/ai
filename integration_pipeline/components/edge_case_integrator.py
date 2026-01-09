@@ -411,8 +411,6 @@ class EdgeCaseIntegrator:
             "crisis_ratio": crisis_ratio,
             "locale": locale,
             "crisis_required_terms": crisis_required_terms,
-            "locale": locale,
-            "crisis_required_terms": crisis_required_terms,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
