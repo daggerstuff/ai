@@ -57,6 +57,8 @@ dependencies = [
     "uvicorn[standard]>=0.34.0",
     "sentence-transformers>=3.0.0",
     "faiss-cpu>=1.8.0",
+    # Memory & User Management
+    "zep-cloud>=1.2.0",
 ]
 
 [dependency-groups]
