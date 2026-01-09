@@ -1,0 +1,89 @@
+# Docker Compose configuration for Phase 1 therapeutic microservices.
+#
+# Extends NeMo quickstart with:
+# - PostgreSQL for conversation metadata
+# - Redis for session caching
+# - Jupyter for interactive development
+# - Prometheus for monitoring
+
+version: "3.9"
+
+services:
+  # PostgreSQL for therapeutic metadata and sessions
+  postgres:
+    image: postgres:17-alpine
+    container_name: pixelated-postgres
+    environment:
+      POSTGRES_DB: therapeutic_db
+      POSTGRES_USER: pixelated
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - therapeutic
+
+  # Redis for session caching and real-time state
+  redis:
+    image: redis:7-alpine
+    container_name: pixelated-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - therapeutic
+
+  # Jupyter Lab for interactive model development
+  jupyter:
+    image: jupyter/datascience-notebook:latest
+    container_name: pixelated-jupyter
+    environment:
+      JUPYTER_ENABLE_LAB: "yes"
+      JUPYTER_TOKEN: ${JUPYTER_TOKEN:-pixelated}
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./ai/notebooks:/home/jovyan/work
+      - ./data:/home/jovyan/data
+    networks:
+      - therapeutic
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: pixelated-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - therapeutic
+
+  # Grafana for visualization and dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: pixelated-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - therapeutic
+
+volumes:
+  postgres_data:
+  redis_data:
+  prometheus_data:
+  grafana_data:
+
+
+networks:
+  therapeutic:
+    driver: bridge
