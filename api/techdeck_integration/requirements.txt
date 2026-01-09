@@ -33,7 +33,7 @@ pyarrow==14.0.1
 # API & HTTP
 requests==2.32.4
 httpx==0.28.1
-aiohttp==3.12.14
+aiohttp==3.13.3
 
 # WebSocket & Real-time
 python-socketio==5.14.0
