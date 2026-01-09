@@ -1,0 +1,135 @@
+{
+    "schema_version": "1.0.0",
+    "release": "v2026-01-07",
+    "config_name": "release_0_routing",
+    "description": "Training pipeline routing configuration for Release 0 dataset families",
+    "generated_at": "2026-01-07T00:00:00Z",
+    "dataset_families": {
+        "priority": {
+            "enabled": true,
+            "weight": 0.40,
+            "description": "Core therapeutic conversations - highest quality",
+            "s3_paths": [
+                "s3://pixel-data/datasets/consolidated/datasets/priority_1_FINAL.jsonl",
+                "s3://pixel-data/datasets/consolidated/datasets/priority_2_FINAL.jsonl",
+                "s3://pixel-data/datasets/consolidated/datasets/priority_3_FINAL.jsonl"
+            ],
+            "estimated_conversations": 50000,
+            "quality_tier": "premium",
+            "sampling_strategy": "weighted_random"
+        },
+        "professional_therapeutic": {
+            "enabled": true,
+            "weight": 0.30,
+            "description": "Professional therapeutic frameworks and interventions",
+            "s3_paths": [
+                "s3://pixel-data/datasets/consolidated/datasets/professional/DBT_consolidated_FINAL.json",
+                "s3://pixel-data/datasets/consolidated/datasets/professional/CBT_consolidated_FINAL.json",
+                "s3://pixel-data/datasets/consolidated/datasets/professional/ACT_consolidated_FINAL.json",
+                "s3://pixel-data/datasets/consolidated/datasets/professional/somatic_consolidated_FINAL.json",
+                "s3://pixel-data/datasets/consolidated/datasets/professional/psychodynamic_consolidated_FINAL.json",
+                "s3://pixel-data/datasets/consolidated/datasets/professional/trauma_informed_consolidated_FINAL.json",
+                "s3://pixel-data/datasets/consolidated/datasets/professional/mindfulness_consolidated_FINAL.json",
+                "s3://pixel-data/datasets/consolidated/datasets/professional/attachment_consolidated_FINAL.json",
+                "s3://pixel-data/datasets/consolidated/datasets/professional/IFS_consolidated_FINAL.json",
+                "s3://pixel-data/datasets/consolidated/datasets/professional/narrative_consolidated_FINAL.json",
+                "s3://pixel-data/datasets/consolidated/datasets/professional/EMDR_consolidated_FINAL.json",
+                "s3://pixel-data/datasets/consolidated/datasets/professional/polyvagal_consolidated_FINAL.json"
+            ],
+            "estimated_conversations": 8000,
+            "quality_tier": "high",
+            "sampling_strategy": "balanced_modality"
+        },
+        "cot_reasoning": {
+            "enabled": true,
+            "weight": 0.20,
+            "description": "Chain-of-thought reasoning for therapeutic decision-making",
+            "s3_paths": [
+                "s3://pixel-data/datasets/consolidated/datasets/cot/cot_reasoning_1_FINAL.jsonl",
+                "s3://pixel-data/datasets/consolidated/datasets/cot/cot_reasoning_2_FINAL.jsonl",
+                "s3://pixel-data/datasets/consolidated/datasets/cot/cot_reasoning_3_FINAL.jsonl",
+                "s3://pixel-data/datasets/consolidated/datasets/cot/cot_reasoning_4_FINAL.jsonl"
+            ],
+            "estimated_conversations": 25000,
+            "quality_tier": "high",
+            "sampling_strategy": "sequential"
+        },
+        "edge_cases": {
+            "enabled": true,
+            "weight": 0.10,
+            "description": "Edge cases and challenging therapeutic scenarios",
+            "s3_paths": [
+                "s3://pixel-data/datasets/consolidated/datasets/edge/CPTSD_transcripts_FINAL.json"
+            ],
+            "estimated_conversations": 500,
+            "quality_tier": "critical",
+            "sampling_strategy": "full_coverage"
+        },
+        "voice": {
+            "enabled": false,
+            "weight": 0.00,
+            "description": "Voice interaction training data (INCOMPLETE - Phase 2)",
+            "s3_paths": [],
+            "estimated_conversations": 0,
+            "quality_tier": "experimental",
+            "sampling_strategy": "none",
+            "status": "awaiting_voice_data_generation"
+        }
+    },
+    "training_parameters": {
+        "total_estimated_conversations": 83500,
+        "batch_size": 32,
+        "gradient_accumulation_steps": 4,
+        "learning_rate": 2e-5,
+        "warmup_ratio": 0.1,
+        "max_seq_length": 2048,
+        "num_epochs": 3
+    },
+    "sampling_config": {
+        "strategy": "weighted_family_sampling",
+        "shuffle_within_family": true,
+        "deterministic_seed": 42,
+        "validation_split": 0.1,
+        "test_split": 0.05
+    },
+    "quality_gates": {
+        "pii_detection": {
+            "enabled": true,
+            "strict_mode": true,
+            "confidence_threshold": 0.85
+        },
+        "bias_detection": {
+            "enabled": true,
+            "categories": [
+                "gender",
+                "race",
+                "age",
+                "disability"
+            ],
+            "threshold": 0.7
+        },
+        "deduplication": {
+            "enabled": true,
+            "similarity_threshold": 0.9,
+            "method": "sentence_embeddings"
+        },
+        "provenance_validation": {
+            "enabled": true,
+            "require_source_metadata": true,
+            "verify_licenses": true
+        }
+    },
+    "output_format": {
+        "format": "chatml",
+        "include_metadata": true,
+        "conversation_delimiter": "\n",
+        "system_prompt_template": "You are Pixel, an empathetic AI therapist trained in evidence-based therapeutic frameworks."
+    },
+    "metadata": {
+        "created_by": "ChatML Export Generator",
+        "manifest_source": "s3://pixel-data/releases/v2026-01-07/RELEASE_0_UNIFIED_MANIFEST.json",
+        "total_s3_size_gb": 1.9,
+        "families_included": 4,
+        "families_pending": 1
+    }
+}

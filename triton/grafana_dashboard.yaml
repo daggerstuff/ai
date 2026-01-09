@@ -1,0 +1,136 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pixel-grafana-dashboard
+  namespace: default
+data:
+  pixel-dashboard.json: |
+    {
+      "dashboard": {
+        "title": "Pixel Triton Inference Server",
+        "description": "Real-time monitoring of Pixel model inference performance",
+        "timezone": "UTC",
+        "panels": [
+          {
+            "id": 1,
+            "title": "Inference Request Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(nv_inference_request_total[5m])",
+                "legendFormat": "Requests/sec"
+              }
+            ],
+            "yaxes": [
+              {
+                "label": "Requests/sec",
+                "format": "reqps"
+              }
+            ]
+          },
+          {
+            "id": 2,
+            "title": "Average Inference Latency",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(nv_inference_queue_duration_us[5m]) / rate(nv_inference_request_total[5m])",
+                "legendFormat": "Latency (ms)"
+              }
+            ],
+            "yaxes": [
+              {
+                "label": "Latency (ms)",
+                "format": "ms"
+              }
+            ]
+          },
+          {
+            "id": 3,
+            "title": "GPU Utilization",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "nv_gpu_utilization"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "max": 100,
+                "min": 0,
+                "unit": "percent",
+                "custom": {}
+              }
+            }
+          },
+          {
+            "id": 4,
+            "title": "GPU Memory Usage",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "nv_gpu_memory_used_mb / nv_gpu_memory_total_mb * 100"
+              }
+            ],
+            "fieldConfig": {
+              "defaults": {
+                "max": 100,
+                "min": 0,
+                "unit": "percent"
+              }
+            }
+          },
+          {
+            "id": 5,
+            "title": "Batch Size Distribution",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "avg(nv_inference_batch_size)"
+              }
+            ]
+          },
+          {
+            "id": 6,
+            "title": "Model Load Status",
+            "type": "stat",
+            "targets": [
+              {
+                "expr": "nv_model_loading_duration_us"
+              }
+            ]
+          },
+          {
+            "id": 7,
+            "title": "Queue Depth",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "nv_inference_queue_depth"
+              }
+            ]
+          },
+          {
+            "id": 8,
+            "title": "Cache Hit Rate",
+            "type": "gauge",
+            "targets": [
+              {
+                "expr": "rate(nv_cache_hit_total[5m]) / (rate(nv_cache_hit_total[5m]) + rate(nv_cache_miss_total[5m])) * 100"
+              }
+            ]
+          },
+          {
+            "id": 9,
+            "title": "Error Rate",
+            "type": "graph",
+            "targets": [
+              {
+                "expr": "rate(nv_inference_request_failure[5m])"
+              }
+            ],
+            "alert": true
+          }
+        ]
+      }
+    }
