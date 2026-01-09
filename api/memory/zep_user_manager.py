@@ -125,7 +125,7 @@ class ZepUserManager:
         self,
         email: str,
         name: str,
-        role: UserRole = UserRole.PATIENT,
+        role: UserRole | str = UserRole.PATIENT,
         metadata: Optional[Dict[str, Any]] = None,
     ) -> UserProfile:
         """
@@ -134,7 +134,7 @@ class ZepUserManager:
         Args:
             email: User email address
             name: User full name
-            role: User role in the system
+            role: User role in the system (UserRole enum or string)
             metadata: Optional metadata for the user
 
         Returns:
@@ -145,24 +145,25 @@ class ZepUserManager:
             RuntimeError: If Zep API error occurs
         """
         try:
+            # Convert string role to enum if needed
+            if isinstance(role, str):
+                role = UserRole(role)
+
             # Generate unique user ID
             user_id = str(uuid.uuid4())
 
             # Create user in Zep
-            user_data = {
-                "user_id": user_id,
-                "email": email,
-                "name": name,
-                "metadata": {
+            self.client.user.add(
+                user_id=user_id,
+                email=email,
+                first_name=name.split()[0] if " " in name else name,
+                last_name=" ".join(name.split()[1:]) if " " in name else "",
+                metadata={
                     "role": role.value,
                     "created_at": datetime.now(timezone.utc).isoformat(),
                     **(metadata or {}),
                 },
-            }
-
-            # Create Zep user
-            zep_user = User(**user_data)
-            self.client.user.add(zep_user)
+            )
 
             # Create user profile
             profile = UserProfile(
