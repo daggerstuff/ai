@@ -391,13 +391,13 @@ class EdgeCaseIntegrator:
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }
 
-        with open(summary_file, "w") as f:
-            json.dump(summary, f, indent=2)
-
         if failures:
             # Failures should not happen due to the strict checks above, but keep
             # this in the summary for troubleshooting.
             summary["failures"] = failures[:50]
+
+        with open(summary_file, "w") as f:
+            json.dump(summary, f, indent=2)
 
         return summary
 
