@@ -65,6 +65,20 @@ class CrisisResponse:
 class CrisisDetectionEngine:
     """Advanced crisis detection using therapeutic AI insights"""
 
+    # Risk scoring constants
+    DIRECT_STATEMENT_SCORE = 3.0
+    PREPARATION_SCORE = 2.5
+    SELF_HARM_SCORE = 2.0
+    HOPELESSNESS_SCORE = 1.5
+    ISOLATION_SCORE = 1.0
+    ESCALATION_SCORE = 0.5
+    PROTECTIVE_FACTOR_REDUCTION = -0.5
+
+    # Risk level thresholds
+    CRITICAL_THRESHOLD = 6.0
+    HIGH_THRESHOLD = 4.0
+    MEDIUM_THRESHOLD = 2.0
+
     def __init__(self):
         # Crisis indicators based on therapeutic AI training data insights
         self.suicide_indicators = {
@@ -160,72 +174,24 @@ class CrisisDetectionEngine:
         self, message: str, conversation_history: List[str] = None
     ) -> CrisisAssessment:
         """Comprehensive crisis risk assessment"""
+        message_lower = message.lower()
         risk_score = 0.0
         risk_factors = []
         protective_factors = []
 
-        # Analyze current message
-        message_lower = message.lower()
+        # Analyze current message for risk indicators
+        risk_score += self._assess_suicide_indicators(message_lower, risk_factors)
+        risk_score += self._assess_self_harm_indicators(message_lower, risk_factors)
+        risk_score += self._assess_protective_factors(message_lower, protective_factors)
 
-        # Check for direct suicide indicators
-        for category, patterns in self.suicide_indicators.items():
-            for pattern in patterns:
-                if re.search(pattern, message_lower):
-                    if category == "direct_statements":
-                        risk_score += 3.0
-                        risk_factors.append(f"Direct suicide ideation: {pattern}")
-                    elif category == "preparation_indicators":
-                        risk_score += 2.5
-                        risk_factors.append(f"Suicide preparation behavior: {pattern}")
-                    elif category == "hopelessness_expressions":
-                        risk_score += 1.5
-                        risk_factors.append(f"Hopelessness expression: {pattern}")
-                    elif category == "isolation_indicators":
-                        risk_score += 1.0
-                        risk_factors.append(f"Social isolation: {pattern}")
-
-        # Check for self-harm indicators
-        for pattern in self.self_harm_indicators:
-            if re.search(pattern, message_lower):
-                risk_score += 2.0
-                risk_factors.append(f"Self-harm indication: {pattern}")
-
-        # Check for protective factors
-        for factor in self.protective_factors_keywords:
-            if factor in message_lower:
-                risk_score -= 0.5
-                protective_factors.append(f"Protective factor: {factor}")
-
-        # Analyze conversation history if available
+        # Analyze conversation history for escalation patterns
         if conversation_history:
-            # Check for escalating risk over time
-            recent_messages = (
-                conversation_history[-3:]
-                if len(conversation_history) > 3
-                else conversation_history
+            risk_score += self._assess_conversation_history(
+                conversation_history, risk_factors
             )
-            for msg in recent_messages:
-                if any(
-                    re.search(pattern, msg.lower())
-                    for patterns in self.suicide_indicators.values()
-                    for pattern in patterns
-                ):
-                    risk_score += 0.5
-                    risk_factors.append("Escalating risk pattern in conversation")
 
-        # Determine risk level
-        if risk_score >= 6.0:
-            risk_level = RiskLevel.CRITICAL
-            intervention = InterventionType.EMERGENCY_SERVICES
-        elif risk_score >= 4.0:
-            risk_level = RiskLevel.HIGH
-            intervention = InterventionType.HUMAN_COUNSELOR
-        elif risk_score >= 2.0:
-            risk_level = RiskLevel.MEDIUM
-            intervention = InterventionType.CRISIS_HOTLINE
-        else:
-            risk_level = RiskLevel.LOW
-            intervention = InterventionType.AI_SUPPORT
+        # Determine risk level and intervention type
+        risk_level, intervention = self._determine_risk_level(risk_score)
 
         # Generate immediate actions
         immediate_actions = self._generate_immediate_actions(risk_level, risk_factors)
@@ -240,6 +206,93 @@ class CrisisDetectionEngine:
             confidence=0.85,  # Based on therapeutic AI training quality
             assessment_timestamp=datetime.now(),
         )
+
+    def _assess_suicide_indicators(
+        self, message_lower: str, risk_factors: List[str]
+    ) -> float:
+        """Assess suicide-related indicators and return risk score"""
+        score_map = {
+            "direct_statements": self.DIRECT_STATEMENT_SCORE,
+            "preparation_indicators": self.PREPARATION_SCORE,
+            "hopelessness_expressions": self.HOPELESSNESS_SCORE,
+            "isolation_indicators": self.ISOLATION_SCORE,
+        }
+
+        risk_score = 0.0
+        for category, patterns in self.suicide_indicators.items():
+            for pattern in patterns:
+                if re.search(pattern, message_lower):
+                    score = score_map.get(category, 0.0)
+                    risk_score += score
+                    risk_factors.append(
+                        f"{category.replace('_', ' ').title()}: {pattern}"
+                    )
+
+        return risk_score
+
+    def _assess_self_harm_indicators(
+        self, message_lower: str, risk_factors: List[str]
+    ) -> float:
+        """Assess self-harm indicators and return risk score"""
+        risk_score = 0.0
+        for pattern in self.self_harm_indicators:
+            if re.search(pattern, message_lower):
+                risk_score += self.SELF_HARM_SCORE
+                risk_factors.append(f"Self-harm indication: {pattern}")
+
+        return risk_score
+
+    def _assess_protective_factors(
+        self, message_lower: str, protective_factors: List[str]
+    ) -> float:
+        """Assess protective factors and return score adjustment"""
+        score_adjustment = 0.0
+        for factor in self.protective_factors_keywords:
+            if factor in message_lower:
+                score_adjustment += self.PROTECTIVE_FACTOR_REDUCTION
+                protective_factors.append(f"Protective factor: {factor}")
+
+        return score_adjustment
+
+    def _assess_conversation_history(
+        self, conversation_history: List[str], risk_factors: List[str]
+    ) -> float:
+        """Assess conversation history for escalating risk patterns"""
+        recent_messages = (
+            conversation_history[-3:]
+            if len(conversation_history) > 3
+            else conversation_history
+        )
+
+        risk_score = 0.0
+        for msg in recent_messages:
+            if self._contains_suicide_indicators(msg.lower()):
+                risk_score += self.ESCALATION_SCORE
+                risk_factors.append("Escalating risk pattern in conversation")
+                break  # Only add escalation factor once
+
+        return risk_score
+
+    def _contains_suicide_indicators(self, message: str) -> bool:
+        """Check if message contains any suicide indicators"""
+        return any(
+            re.search(pattern, message)
+            for patterns in self.suicide_indicators.values()
+            for pattern in patterns
+        )
+
+    def _determine_risk_level(
+        self, risk_score: float
+    ) -> tuple[RiskLevel, InterventionType]:
+        """Determine risk level and intervention type based on score"""
+        if risk_score >= self.CRITICAL_THRESHOLD:
+            return RiskLevel.CRITICAL, InterventionType.EMERGENCY_SERVICES
+        elif risk_score >= self.HIGH_THRESHOLD:
+            return RiskLevel.HIGH, InterventionType.HUMAN_COUNSELOR
+        elif risk_score >= self.MEDIUM_THRESHOLD:
+            return RiskLevel.MEDIUM, InterventionType.CRISIS_HOTLINE
+        else:
+            return RiskLevel.LOW, InterventionType.AI_SUPPORT
 
     def _generate_immediate_actions(
         self, risk_level: RiskLevel, risk_factors: List[str]
