@@ -6,6 +6,7 @@ Integrates nightmare fuel scenarios with expert voices and therapeutic framework
 
 import json
 import logging
+import math
 import random
 import re
 import uuid
@@ -257,9 +258,14 @@ class EdgeCaseIntegrator:
         if turns_per_scenario <= 0:
             raise ValueError("turns_per_scenario must be > 0")
 
-        if not 0.0 <= crisis_ratio <= 1.0:
+        locale = locale.strip()
+        if not locale:
+            raise ValueError("locale must be non-empty")
+
+        if not math.isfinite(crisis_ratio) or not 0.0 <= crisis_ratio <= 1.0:
             raise ValueError(
-                f"crisis_ratio must be between 0 and 1, got {crisis_ratio!r}"
+                "crisis_ratio must be a finite number between 0 and 1, "
+                f"got {crisis_ratio!r}"
             )
 
         rng = random.Random(seed)
