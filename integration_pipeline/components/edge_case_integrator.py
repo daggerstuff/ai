@@ -246,6 +246,9 @@ class EdgeCaseIntegrator:
         if turns_per_scenario <= 0:
             raise ValueError("turns_per_scenario must be > 0")
 
+        if not (0.0 <= crisis_ratio <= 1.0):
+            raise ValueError("crisis_ratio must be between 0 and 1")
+
         rng = random.Random(seed)
 
         repo_root = Path(__file__).resolve().parents[2]
