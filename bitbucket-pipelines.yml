@@ -142,7 +142,7 @@ definitions:
           - |
             if [ -d "lightning" ]; then
               echo "Validating model configurations..."
-              uv run python -c "import json; json.load(open('production_config.json'))" || echo "No production config found"
+              uv run python -c "import json; json.load(open('config/production_config.json'))" || echo "No production config found"
             fi
           # Test inference service imports
           - |
@@ -195,7 +195,7 @@ definitions:
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           - echo "Deploying to staging environment..."
           # Add your staging deployment commands here
-          # Example: kubectl apply -f kubernetes_deployment.yaml
+          # Example: kubectl apply -f deployment/kubernetes_deployment.yaml
           - echo "Deployment completed"
 
     - step: &deploy-production
