@@ -14,6 +14,7 @@ import time
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -42,7 +43,9 @@ class PreLaunchValidator:
     """Comprehensive pre-launch validation system for enterprise deployment."""
 
     def __init__(self):
-        self.db_path = "pre_launch_validation.db"
+        self.state_dir = Path(__file__).resolve().parent / "state"
+        self.state_dir.mkdir(parents=True, exist_ok=True)
+        self.db_path = str(self.state_dir / "pre_launch_validation.db")
         self.results: list[ValidationResult] = []
         self.start_time = time.time()
         self._init_database()
