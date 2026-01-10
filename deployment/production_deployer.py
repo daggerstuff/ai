@@ -14,6 +14,7 @@ import logging
 import sqlite3
 import subprocess
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, asdict
 from enum import Enum
@@ -38,6 +39,10 @@ class EnvironmentType(Enum):
     STAGING = "staging"
     PRODUCTION = "production"
 
+class CanaryMonitoringError(Exception):
+    """Raised when canary deployment monitoring fails."""
+    pass
+
 @dataclass
 class DeploymentStep:
     step_id: str
@@ -60,7 +65,9 @@ class ProductionDeployer:
     """Comprehensive production deployment system with blue-green deployment."""
     
     def __init__(self):
-        self.db_path = "production_deployment.db"
+        self.state_dir = Path(__file__).resolve().parent / "state"
+        self.state_dir.mkdir(parents=True, exist_ok=True)
+        self.db_path = str(self.state_dir / "production_deployment.db")
         self.deployment_id = f"deploy_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         self.steps: List[DeploymentStep] = []
         self.start_time = time.time()
@@ -160,20 +167,7 @@ class ProductionDeployer:
         
         try:
             logger.info("Preparing blue environment...")
-            
-            # Simulate blue environment preparation
-            preparation_steps = [
-                "Creating blue environment namespace",
-                "Deploying application containers to blue environment",
-                "Configuring environment variables and secrets",
-                "Setting up database connections",
-                "Initializing cache connections",
-                "Configuring monitoring and logging"
-            ]
-            
-            for prep_step in preparation_steps:
-                logger.info(f"  - {prep_step}")
-                time.sleep(0.5)  # Simulate work
+            self._execute_preparation_steps()
                 
             step.status = DeploymentStatus.COMPLETED
             step.end_time = datetime.now(timezone.utc)
@@ -203,20 +197,7 @@ class ProductionDeployer:
         
         try:
             logger.info("Executing database migration...")
-            
-            # Simulate database migration
-            migration_steps = [
-                "Backing up current database state",
-                "Validating migration scripts",
-                "Executing schema changes",
-                "Migrating data",
-                "Updating indexes",
-                "Validating migration success"
-            ]
-            
-            for migration_step in migration_steps:
-                logger.info(f"  - {migration_step}")
-                time.sleep(0.3)  # Simulate work
+            self._execute_migration_steps()
                 
             step.status = DeploymentStatus.COMPLETED
             step.end_time = datetime.now(timezone.utc)
@@ -246,29 +227,8 @@ class ProductionDeployer:
         
         try:
             logger.info("Validating blue environment...")
-            
-            # Define health checks
-            health_checks = [
-                HealthCheck("API Health", "/health", 200, 30, 3),
-                HealthCheck("Database Connectivity", "/health/db", 200, 30, 3),
-                HealthCheck("Cache Connectivity", "/health/cache", 200, 30, 3),
-                HealthCheck("Authentication Service", "/auth/health", 200, 30, 3),
-                HealthCheck("Safety Monitoring", "/safety/health", 200, 30, 3)
-            ]
-            
-            passed_checks = 0
-            total_checks = len(health_checks)
-            
-            for check in health_checks:
-                logger.info(f"  - Running health check: {check.check_name}")
-                
-                # Simulate health check
-                check_passed = self._simulate_health_check(check)
-                if check_passed:
-                    passed_checks += 1
-                    logger.info(f"    ✅ {check.check_name} passed")
-                else:
-                    logger.warning(f"    ❌ {check.check_name} failed")
+            health_checks = self._get_health_checks()
+            passed_checks, total_checks = self._run_health_checks(health_checks)
                     
             if passed_checks == total_checks:
                 step.status = DeploymentStatus.COMPLETED
@@ -300,51 +260,47 @@ class ProductionDeployer:
             details="Executing canary deployment with traffic shifting",
             rollback_command="kubectl patch service pixelated-empathy --patch '{\"spec\":{\"selector\":{\"version\":\"green\"}}}'"
         )
-        
+
         try:
-            logger.info("Executing canary deployment...")
-            
-            # Traffic shifting stages
-            traffic_stages = [
-                {"percentage": 5, "duration": 300},   # 5% for 5 minutes
-                {"percentage": 25, "duration": 600},  # 25% for 10 minutes
-                {"percentage": 50, "duration": 900},  # 50% for 15 minutes
-                {"percentage": 100, "duration": 0}    # 100% (complete switch)
-            ]
-            
-            for stage in traffic_stages:
-                percentage = stage["percentage"]
-                duration = stage["duration"]
-                
-                logger.info(f"  - Shifting {percentage}% traffic to blue environment")
-                
-                # Simulate traffic shifting
-                self._simulate_traffic_shift(percentage)
-                
-                if duration > 0:
-                    logger.info(f"  - Monitoring for {duration} seconds...")
-                    
-                    # Simulate monitoring period
-                    monitoring_result = self._monitor_canary_metrics(duration)
-                    
-                    if not monitoring_result["success"]:
-                        raise Exception(f"Canary monitoring failed: {monitoring_result['error']}")
-                        
-                logger.info(f"  - Stage {percentage}% completed successfully")
-                
-            step.status = DeploymentStatus.COMPLETED
-            step.end_time = datetime.now(timezone.utc)
-            step.details = "Canary deployment completed successfully - 100% traffic on blue"
-            
+            self._extracted_from_execute_canary_deployment_14(step)
         except Exception as e:
             logger.error(f"Canary deployment failed: {e}")
             step.status = DeploymentStatus.FAILED
             step.end_time = datetime.now(timezone.utc)
             step.details = f"Canary deployment failed: {str(e)}"
-            
+
         self.steps.append(step)
         self._save_deployment_step(step)
         return step
+
+    # TODO Rename this here and in `execute_canary_deployment`
+    def _extracted_from_execute_canary_deployment_14(self, step):
+        logger.info("Executing canary deployment...")
+        traffic_stages = self._get_traffic_stages()
+
+        for stage in traffic_stages:
+            percentage = stage["percentage"]
+            duration = stage["duration"]
+
+            logger.info(f"  - Shifting {percentage}% traffic to blue environment")
+
+            # Simulate traffic shifting
+            self._simulate_traffic_shift(percentage)
+
+            if duration > 0:
+                logger.info(f"  - Monitoring for {duration} seconds...")
+
+                # Simulate monitoring period
+                monitoring_result = self._monitor_canary_metrics(duration)
+
+                if not monitoring_result["success"]:
+                    raise CanaryMonitoringError(f"Canary monitoring failed: {monitoring_result['error']}")
+
+            logger.info(f"  - Stage {percentage}% completed successfully")
+
+        step.status = DeploymentStatus.COMPLETED
+        step.end_time = datetime.now(timezone.utc)
+        step.details = "Canary deployment completed successfully - 100% traffic on blue"
         
     def finalize_deployment(self) -> DeploymentStep:
         """Finalize deployment and decommission green environment."""
@@ -360,19 +316,7 @@ class ProductionDeployer:
         
         try:
             logger.info("Finalizing deployment...")
-            
-            finalization_steps = [
-                "Updating DNS records to point to blue environment",
-                "Updating load balancer configuration",
-                "Scaling down green environment",
-                "Cleaning up temporary resources",
-                "Updating deployment tags and labels",
-                "Sending deployment success notifications"
-            ]
-            
-            for final_step in finalization_steps:
-                logger.info(f"  - {final_step}")
-                time.sleep(0.3)  # Simulate work
+            self._execute_finalization_steps()
                 
             step.status = DeploymentStatus.COMPLETED
             step.end_time = datetime.now(timezone.utc)
@@ -388,13 +332,94 @@ class ProductionDeployer:
         self._save_deployment_step(step)
         return step
         
+    def _execute_preparation_steps(self):
+        """Execute blue environment preparation steps."""
+        preparation_steps = [
+            "Creating blue environment namespace",
+            "Deploying application containers to blue environment",
+            "Configuring environment variables and secrets",
+            "Setting up database connections",
+            "Initializing cache connections",
+            "Configuring monitoring and logging"
+        ]
+        
+        for prep_step in preparation_steps:
+            logger.info(f"  - {prep_step}")
+            time.sleep(0.5)  # Simulate work
+    
+    def _execute_migration_steps(self):
+        """Execute database migration steps."""
+        migration_steps = [
+            "Backing up current database state",
+            "Validating migration scripts",
+            "Executing schema changes",
+            "Migrating data",
+            "Updating indexes",
+            "Validating migration success"
+        ]
+        
+        for migration_step in migration_steps:
+            logger.info(f"  - {migration_step}")
+            time.sleep(0.3)  # Simulate work
+    
+    def _get_health_checks(self) -> List[HealthCheck]:
+        """Get list of health checks for blue environment validation."""
+        return [
+            HealthCheck("API Health", "/health", 200, 30, 3),
+            HealthCheck("Database Connectivity", "/health/db", 200, 30, 3),
+            HealthCheck("Cache Connectivity", "/health/cache", 200, 30, 3),
+            HealthCheck("Authentication Service", "/auth/health", 200, 30, 3),
+            HealthCheck("Safety Monitoring", "/safety/health", 200, 30, 3)
+        ]
+    
+    def _run_health_checks(self, health_checks: List[HealthCheck]) -> Tuple[int, int]:
+        """Run health checks and return passed and total counts."""
+        passed_checks = 0
+        total_checks = len(health_checks)
+        
+        for check in health_checks:
+            logger.info(f"  - Running health check: {check.check_name}")
+            
+            check_passed = self._simulate_health_check(check)
+            if check_passed:
+                passed_checks += 1
+                logger.info(f"    ✅ {check.check_name} passed")
+            else:
+                logger.warning(f"    ❌ {check.check_name} failed")
+        
+        return passed_checks, total_checks
+    
+    def _get_traffic_stages(self) -> List[Dict[str, int]]:
+        """Get traffic shifting stages for canary deployment."""
+        return [
+            {"percentage": 5, "duration": 300},   # 5% for 5 minutes
+            {"percentage": 25, "duration": 600},  # 25% for 10 minutes
+            {"percentage": 50, "duration": 900},  # 50% for 15 minutes
+            {"percentage": 100, "duration": 0}    # 100% (complete switch)
+        ]
+    
+    def _execute_finalization_steps(self):
+        """Execute deployment finalization steps."""
+        finalization_steps = [
+            "Updating DNS records to point to blue environment",
+            "Updating load balancer configuration",
+            "Scaling down green environment",
+            "Cleaning up temporary resources",
+            "Updating deployment tags and labels",
+            "Sending deployment success notifications"
+        ]
+        
+        for final_step in finalization_steps:
+            logger.info(f"  - {final_step}")
+            time.sleep(0.3)  # Simulate work
+    
     def _simulate_health_check(self, check: HealthCheck) -> bool:
         """Simulate health check execution."""
         try:
             # Simulate health check with high success rate
             import random
             return random.random() > 0.05  # 95% success rate
-        except:
+        except Exception:
             return False
             
     def _simulate_traffic_shift(self, percentage: int):
@@ -501,9 +526,7 @@ class ProductionDeployer:
             ]
             
             # Check if any step failed
-            failed_steps = [step for step in deployment_steps if step.status == DeploymentStatus.FAILED]
-            
-            if failed_steps:
+            if failed_steps := [step for step in deployment_steps if step.status == DeploymentStatus.FAILED]:
                 # Rollback on failure
                 rollback_result = self.rollback_deployment(f"Deployment failed at step: {failed_steps[0].name}")
                 overall_status = DeploymentStatus.ROLLED_BACK
@@ -585,17 +608,34 @@ class ProductionDeployer:
         recommendations = []
         
         if status == DeploymentStatus.COMPLETED:
-            recommendations.append("Deployment completed successfully - monitor system performance")
-            recommendations.append("Verify all monitoring and alerting systems are active")
-            recommendations.append("Conduct post-deployment validation and testing")
+            recommendations.extend([
+                "Deployment completed successfully - monitor system performance",
+                "Verify all monitoring and alerting systems are active",
+                "Conduct post-deployment validation and testing"
+            ])
         elif status == DeploymentStatus.ROLLED_BACK:
-            recommendations.append("Deployment was rolled back - investigate and fix issues")
-            recommendations.append("Review failed deployment steps and error logs")
-            recommendations.append("Test fixes in staging environment before retry")
+            recommendations.extend([
+                "Deployment was rolled back - investigate and fix issues",
+                "Review failed deployment steps and error logs",
+                "Test fixes in staging environment before retry"
+            ])
         else:
             recommendations.append("Deployment status unclear - manual investigation required")
             
         return recommendations
+
+def _print_deployment_results(results: Dict[str, Any]):
+    """Print deployment results to console."""
+    print(f"\nPRODUCTION DEPLOYMENT RESULTS")
+    print(f"Deployment ID: {results['deployment_id']}")
+    print(f"Status: {results['overall_status'].upper()}")
+    print(f"Success: {'✅ YES' if results.get('deployment_success', False) else '❌ NO'}")
+    print(f"Successful Steps: {results.get('successful_steps', 0)}/{results.get('total_steps', 0)}")
+    
+    if results.get('recommendations'):
+        print(f"\nRECOMMENDATIONS:")
+        for rec in results['recommendations']:
+            print(f"💡 {rec}")
 
 def main():
     """Main execution function."""
@@ -605,18 +645,7 @@ def main():
     try:
         deployer = ProductionDeployer()
         results = deployer.run_deployment()
-        
-        print(f"\nPRODUCTION DEPLOYMENT RESULTS")
-        print(f"Deployment ID: {results['deployment_id']}")
-        print(f"Status: {results['overall_status'].upper()}")
-        print(f"Success: {'✅ YES' if results.get('deployment_success', False) else '❌ NO'}")
-        print(f"Successful Steps: {results.get('successful_steps', 0)}/{results.get('total_steps', 0)}")
-        
-        if results.get('recommendations'):
-            print(f"\nRECOMMENDATIONS:")
-            for rec in results['recommendations']:
-                print(f"💡 {rec}")
-                
+        _print_deployment_results(results)
         return results
         
     except Exception as e:
