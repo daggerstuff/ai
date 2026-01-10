@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # Configure logging
 logging.basicConfig(
@@ -174,10 +174,17 @@ class ProductionDeployer:
             logger.info("Preparing blue environment...")
             self._execute_preparation_steps()
 
+<<<<<<< HEAD
             self._mark_step_as_completed(step, "Blue environment prepared successfully")
         except Exception as e:
             self._handle_step_failure("Blue environment preparation failed: ", e, step)
         return self._finalize_and_record_step(step)
+=======
+            self._mark_step_completed(step, "Blue environment prepared successfully")
+        except Exception as e:
+            self._mark_step_failed(step, "Blue environment preparation failed", e)
+        return self._finalize_step(step)
+>>>>>>> 0f234dc1da1794e9dc50d7e877d95a692d908cd7
 
     def execute_database_migration(self) -> DeploymentStep:
         """Execute database migration with rollback capability."""
@@ -195,12 +202,19 @@ class ProductionDeployer:
             logger.info("Executing database migration...")
             self._execute_migration_steps()
 
+<<<<<<< HEAD
             self._mark_step_as_completed(
                 step, "Database migration completed successfully"
             )
         except Exception as e:
             self._handle_step_failure("Database migration failed: ", e, step)
         return self._finalize_and_record_step(step)
+=======
+            self._mark_step_completed(step, "Database migration completed successfully")
+        except Exception as e:
+            self._mark_step_failed(step, "Database migration failed", e)
+        return self._finalize_step(step)
+>>>>>>> 0f234dc1da1794e9dc50d7e877d95a692d908cd7
 
     def validate_blue_environment(self) -> DeploymentStep:
         """Validate blue environment health and readiness."""
@@ -235,8 +249,13 @@ class ProductionDeployer:
                 )
 
         except Exception as e:
+<<<<<<< HEAD
             self._handle_step_failure("Blue environment validation failed: ", e, step)
         return self._finalize_and_record_step(step)
+=======
+            self._mark_step_failed(step, "Blue environment validation failed", e)
+        return self._finalize_step(step)
+>>>>>>> 0f234dc1da1794e9dc50d7e877d95a692d908cd7
 
     def execute_canary_deployment(self) -> DeploymentStep:
         """Execute canary deployment with gradual traffic shifting."""
@@ -256,8 +275,13 @@ class ProductionDeployer:
         try:
             self._execute_canary_traffic_stages(step)
         except Exception as e:
+<<<<<<< HEAD
             self._handle_step_failure("Canary deployment failed: ", e, step)
         return self._finalize_and_record_step(step)
+=======
+            self._mark_step_failed(step, "Canary deployment failed", e)
+        return self._finalize_step(step)
+>>>>>>> 0f234dc1da1794e9dc50d7e877d95a692d908cd7
 
     def _execute_canary_traffic_stages(self, step):
         logger.info("Executing canary deployment...")
@@ -307,12 +331,17 @@ class ProductionDeployer:
             logger.info("Finalizing deployment...")
             self._execute_finalization_steps()
 
+<<<<<<< HEAD
             self._mark_step_as_completed(
+=======
+            self._mark_step_completed(
+>>>>>>> 0f234dc1da1794e9dc50d7e877d95a692d908cd7
                 step,
                 "Deployment finalized successfully - "
                 "blue environment is now production",
             )
         except Exception as e:
+<<<<<<< HEAD
             self._handle_step_failure("Deployment finalization failed: ", e, step)
         return self._finalize_and_record_step(step)
 
@@ -320,21 +349,46 @@ class ProductionDeployer:
         self._update_step_status(step, DeploymentStatus.COMPLETED, details)
 
     def _update_step_status(self, step, status, details):
+=======
+            self._mark_step_failed(step, "Deployment finalization failed", e)
+        return self._finalize_step(step)
+
+    def _mark_step_completed(self, step: DeploymentStep, details: str) -> None:
+        self._update_step_status(step, DeploymentStatus.COMPLETED, details)
+
+    def _mark_step_failed(
+        self, step: DeploymentStep, message: str, exc: Exception
+    ) -> None:
+        detail_message = f"{message}: {type(exc).__name__}: {exc}"
+        logger.exception("%s", detail_message)
+        self._update_step_status(step, DeploymentStatus.FAILED, detail_message)
+
+    def _update_step_status(
+        self, step: DeploymentStep, status: DeploymentStatus, details: str
+    ) -> None:
+>>>>>>> 0f234dc1da1794e9dc50d7e877d95a692d908cd7
         step.status = status
         step.end_time = datetime.now(timezone.utc)
         step.details = details
 
+<<<<<<< HEAD
     def _finalize_and_record_step(self, step):
+=======
+    def _finalize_step(self, step: DeploymentStep) -> DeploymentStep:
+>>>>>>> 0f234dc1da1794e9dc50d7e877d95a692d908cd7
         self.steps.append(step)
         self._save_deployment_step(step)
         return step
 
+<<<<<<< HEAD
     def _handle_step_failure(self, error_prefix, e, step):
         logger.error(f"{error_prefix}{e}")
         step.status = DeploymentStatus.FAILED
         step.end_time = datetime.now(timezone.utc)
         step.details = f"{error_prefix}{str(e)}"
 
+=======
+>>>>>>> 0f234dc1da1794e9dc50d7e877d95a692d908cd7
     def _execute_preparation_steps(self):
         """Execute blue environment preparation steps."""
         preparation_steps = [
@@ -517,18 +571,30 @@ class ProductionDeployer:
         logger.info(f"Starting production deployment: {self.deployment_id}")
 
         try:
+<<<<<<< HEAD
             return self._execute_deployment_process()
+=======
+            return self._execute_deployment_pipeline()
+>>>>>>> 0f234dc1da1794e9dc50d7e877d95a692d908cd7
         except Exception as e:
-            logger.error(f"Production deployment failed: {e}")
+            logger.exception("Production deployment failed: %s", e)
             return {
                 "deployment_id": self.deployment_id,
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
+<<<<<<< HEAD
     def _execute_deployment_process(self):
+=======
+    def _execute_deployment_pipeline(self) -> Dict[str, Any]:
+        """Execute the ordered deployment pipeline.
+
+        Each step must return a `DeploymentStep`. Steps are order-dependent.
+        """
+>>>>>>> 0f234dc1da1794e9dc50d7e877d95a692d908cd7
         # Execute deployment steps
-        step_functions = [
+        step_functions: List[Callable[[], DeploymentStep]] = [
             self.prepare_blue_environment,
             self.execute_database_migration,
             self.validate_blue_environment,
@@ -536,9 +602,27 @@ class ProductionDeployer:
             self.finalize_deployment,
         ]
 
-        deployment_steps = []
-        for step_func in step_functions:
+        deployment_steps: List[DeploymentStep] = []
+        for index, step_func in enumerate(step_functions):
             step = step_func()
+            if not isinstance(step, DeploymentStep):
+                logger.error(
+                    "Deployment step at index %d (%s) returned invalid type %s",
+                    index,
+                    step_func.__name__,
+                    type(step).__name__,
+                )
+                deployment_steps.append(
+                    DeploymentStep(
+                        step_id=f"pipeline_invalid_{index}",
+                        name=f"Invalid step return type: {step_func.__name__}",
+                        status=DeploymentStatus.FAILED,
+                        start_time=datetime.now(timezone.utc),
+                        end_time=datetime.now(timezone.utc),
+                        details="Deployment step returned an invalid type",
+                    )
+                )
+                break
             deployment_steps.append(step)
             if step.status == DeploymentStatus.FAILED:
                 break  # Stop on first failure
