@@ -9,6 +9,7 @@ with intelligent escalation and professional backup.
 
 import asyncio
 import logging
+import os
 import re
 from dataclasses import dataclass
 from datetime import datetime, timedelta
@@ -171,7 +172,10 @@ class CrisisDetectionEngine:
         }
 
     def assess_crisis_risk(
-        self, message: str, conversation_history: List[str] = None
+        self,
+        message: str,
+        conversation_history: List[str] = None,
+        confidence_override: Optional[float] = None,
     ) -> CrisisAssessment:
         """Comprehensive crisis risk assessment"""
         message_lower = message.lower()
@@ -196,6 +200,20 @@ class CrisisDetectionEngine:
         # Generate immediate actions
         immediate_actions = self._generate_immediate_actions(risk_level, risk_factors)
 
+        # Determine confidence level
+        confidence = 0.85  # Default based on training quality
+        if confidence_override is not None:
+            confidence = confidence_override
+        else:
+            env_conf = os.environ.get("CRISIS_CONFIDENCE_THRESHOLD")
+            if env_conf:
+                try:
+                    confidence = float(env_conf)
+                except ValueError:
+                    logger.warning(
+                        "Invalid CRISIS_CONFIDENCE_THRESHOLD value: %s", env_conf
+                    )
+
         return CrisisAssessment(
             risk_level=risk_level,
             risk_score=min(risk_score, 10.0),
@@ -203,7 +221,7 @@ class CrisisDetectionEngine:
             protective_factors=protective_factors,
             immediate_actions=immediate_actions,
             intervention_needed=intervention,
-            confidence=0.85,  # Based on therapeutic AI training quality
+            confidence=confidence,
             assessment_timestamp=datetime.now(),
         )
 
@@ -221,12 +239,18 @@ class CrisisDetectionEngine:
         risk_score = 0.0
         for category, patterns in self.suicide_indicators.items():
             for pattern in patterns:
-                if re.search(pattern, message_lower):
-                    score = score_map.get(category, 0.0)
-                    risk_score += score
-                    risk_factors.append(
-                        f"{category.replace('_', ' ').title()}: {pattern}"
+                try:
+                    if re.search(pattern, message_lower):
+                        score = score_map.get(category, 0.0)
+                        risk_score += score
+                        risk_factors.append(
+                            f"{category.replace('_', ' ').title()}: {pattern}"
+                        )
+                except re.error as e:
+                    logger.error(
+                        "Regex error in suicide indicator pattern '%s': %s", pattern, e
                     )
+                    continue
 
         return risk_score
 
@@ -236,9 +260,15 @@ class CrisisDetectionEngine:
         """Assess self-harm indicators and return risk score"""
         risk_score = 0.0
         for pattern in self.self_harm_indicators:
-            if re.search(pattern, message_lower):
-                risk_score += self.SELF_HARM_SCORE
-                risk_factors.append(f"Self-harm indication: {pattern}")
+            try:
+                if re.search(pattern, message_lower):
+                    risk_score += self.SELF_HARM_SCORE
+                    risk_factors.append(f"Self-harm indication: {pattern}")
+            except re.error as e:
+                logger.error(
+                    "Regex error in self-harm indicator pattern '%s': %s", pattern, e
+                )
+                continue
 
         return risk_score
 
@@ -351,69 +381,77 @@ class TherapeuticCrisisResponder:
         # In production, this would connect to the trained H100 model
         self.therapeutic_ai = therapeutic_ai_model
 
-        # Crisis response templates (fallback if AI unavailable)
+        # Crisis response templates with collaborative support approach
         self.crisis_response_templates = {
             RiskLevel.CRITICAL: [
                 (
                     "I'm really sorry you're feeling this hopeless, and I'm concerned "
-                    "about your safety. You deserve support right now. If you're in "
-                    "immediate danger, please call 911. I can stay with you while we "
-                    "connect with a crisis counselor at the 988 Suicide & Crisis "
-                    "Lifeline or text 741741. Is there someone you trust nearby "
-                    "we can involve for support?"
+                    "about your safety. You deserve support right now. Together we can "
+                    "figure out what feels safest for you. Many people find it helpful "
+                    "to talk with someone who's been through similar experiences. "
+                    "Would you be interested in connecting with others who understand "
+                    "what you're going through?"
                 ),
                 (
-                    "I hear how overwhelming this feels. "
-                    "Your safety matters. "
-                    "If you're at risk right now, please call 911. "
-                    "I can stay with you while we reach the 988 Suicide & Crisis "
-                    "Lifeline or text 741741 together. "
-                    "Is there a trusted person we can loop in for support?"
+                    "I hear how overwhelming this feels. Your safety matters deeply "
+                    "to me. Rather than going it alone, many people find strength "
+                    "in talking through these feelings with others who've had similar "
+                    "experiences. Would you be open to connecting with a community "
+                    "that specializes in walking alongside people through tough "
+                    "times like these?"
                 ),
                 (
-                    "Thank you for telling me. Your life has value. "
-                    "If you're in immediate danger, call 911. "
-                    "I can stay with you as we connect with the 988 "
-                    "Suicide & Crisis Lifeline or text 741741, and we can "
-                    "bring in someone you trust to help."
+                    "Thank you for trusting me with this. Your life has value and "
+                    "meaning. Instead of facing this alone, many people discover that "
+                    "sharing these struggles with others who truly understand can "
+                    "provide unexpected support. Would you be willing to explore "
+                    "connecting with folks who specialize in this kind of support?"
                 ),
             ],
             RiskLevel.HIGH: [
                 (
-                    "I hear how much you're struggling. Your safety comes first. If "
-                    "anything feels unsafe, please call 911. I can stay with you "
-                    "while we contact the 988 Suicide & Crisis Lifeline or "
-                    "text 741741. Would it help to involve someone you trust nearby?"
+                    "I hear how much you're struggling. Your safety is my top "
+                    "priority. Please connect with a human crisis counselor "
+                    "immediately who can provide the support you need. You can "
+                    "call or text 988 right now. If you are in immediate danger, "
+                    "please call 911 or your local emergency number."
                 ),
                 (
-                    "You've taken a brave step by sharing this. If you're not safe, "
-                    "call 911. I can stay with you while we reach a crisis counselor "
-                    "at 988 or text 741741, and we can loop in a trusted person "
-                    "for support."
+                    "It takes courage to share this, and I want to ensure you are "
+                    "safe. I urge you to reach out to a professional crisis "
+                    "counselor immediately. Help is available 24/7 at 988. If "
+                    "you are in immediate danger, call 911 or your local emergency "
+                    "services right away."
                 ),
                 (
-                    "The pain is real, and you don't have to handle it alone. If "
-                    "risk feels immediate, call 911. I can stay connected while "
-                    "we contact 988 or text 741741 and involve someone you trust."
+                    "The pain you're describing is real, and it's important you "
+                    "get professional support now. Please contact a crisis "
+                    "counselor immediately by calling 988. If you feel you are in "
+                    "immediate danger, call 911 or go to the nearest emergency "
+                    "room."
                 ),
             ],
             RiskLevel.MEDIUM: [
                 (
-                    "I appreciate you sharing this. "
-                    "If you start to feel unsafe, please call 911. "
-                    "I can stay with you while we connect to the 988 "
-                    "Suicide & Crisis Lifeline or text 741741. "
-                    "Is there someone you trust we can loop in?"
+                    "I appreciate you sharing this with me. Rather than going it "
+                    "alone, many people find it helpful to talk through challenging "
+                    "feelings with others who've had similar experiences. Would you "
+                    "be open to connecting with a supportive community that "
+                    "understands what you're going through?"
                 ),
                 (
-                    "What you're describing sounds hard. If things worsen, call 911. "
-                    "I can stay with you as we reach out to 988 or text 741741, "
-                    "and we can involve a trusted support if you want."
+                    "What you're describing sounds really difficult. Many people "
+                    "discover that talking with others who've walked similar paths "
+                    "can provide unexpected support and understanding. Would you be "
+                    "interested in exploring connection with folks who specialize in "
+                    "this kind of peer support?"
                 ),
                 (
-                    "It took courage to share this. If safety becomes a concern, "
-                    "call 911. I can stay connected while we contact 988 or "
-                    "text 741741, and we can bring in someone you trust."
+                    "It took courage to share this. Rather than facing this alone, "
+                    "many people find strength in connecting with others who "
+                    "understand these challenges. Would you be willing to consider "
+                    "talking with folks who specialize in walking alongside people "
+                    "through tough times like these?"
                 ),
             ],
             RiskLevel.LOW: [
@@ -509,7 +547,8 @@ class TherapeuticCrisisResponder:
         templates = self.crisis_response_templates[assessment.risk_level]
         # In production, would use more sophisticated selection
         return (
-            templates[0] if templates
+            templates[0]
+            if templates
             else "I'm here to support you through this difficult time."
         )
 
@@ -546,8 +585,7 @@ class TherapeuticCrisisResponder:
             )
         else:
             presence_line = (
-                "I'm here with you, and we can work through this "
-                "together step by step."
+                "I'm here with you, and we can work through this together step by step."
             )
 
         if reflected:
