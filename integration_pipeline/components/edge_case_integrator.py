@@ -869,13 +869,11 @@ class EdgeCaseIntegrator:
                 },
             ]
             severity_level = 9
-            evidence_based_tags = (
-                [
-                    "crisis_risk_assessment",
-                    "safety_planning",
-                    "means_reduction",
-                ],
-            )
+            evidence_based_tags = [
+                "crisis_risk_assessment",
+                "safety_planning",
+                "means_reduction",
+            ]
 
         elif subtype == "panic":
             turns = [
@@ -931,13 +929,11 @@ class EdgeCaseIntegrator:
                 },
             ]
             severity_level = 8
-            evidence_based_tags = (
-                [
-                    "panic_psychoeducation",
-                    "grounding",
-                    "paced_breathing",
-                ],
-            )
+            evidence_based_tags = [
+                "panic_psychoeducation",
+                "grounding",
+                "paced_breathing",
+            ]
 
         else:
             turns = [
@@ -994,13 +990,11 @@ class EdgeCaseIntegrator:
                 },
             ]
             severity_level = 7
-            evidence_based_tags = (
-                [
-                    "suicide_risk_assessment",
-                    "behavioral_activation",
-                    "cognitive_restructuring",
-                ],
-            )
+            evidence_based_tags = [
+                "suicide_risk_assessment",
+                "behavioral_activation",
+                "cognitive_restructuring",
+            ]
 
         return {
             "scenario_id": scenario_id,
@@ -1073,13 +1067,11 @@ class EdgeCaseIntegrator:
             ]
             severity_level = 6
             cultural_context = "lgbtq+ minority stress"
-            evidence_based_tags = (
-                [
-                    "affirmative_therapy",
-                    "minority_stress",
-                    "shame_resilience",
-                ],
-            )
+            evidence_based_tags = [
+                "affirmative_therapy",
+                "minority_stress",
+                "shame_resilience",
+            ]
 
         elif subtype == "religious_framework":
             turns = [
@@ -1141,13 +1133,11 @@ class EdgeCaseIntegrator:
             ]
             severity_level = 5
             cultural_context = "religious frameworks"
-            evidence_based_tags = (
-                [
-                    "values_based",
-                    "cultural_humility",
-                    "integrative_care",
-                ],
-            )
+            evidence_based_tags = [
+                "values_based",
+                "cultural_humility",
+                "integrative_care",
+            ]
 
         else:
             turns = [
@@ -1202,13 +1192,11 @@ class EdgeCaseIntegrator:
             ]
             severity_level = 6
             cultural_context = "minority stress / discrimination"
-            evidence_based_tags = (
-                [
-                    "trauma_informed",
-                    "systemic_validation",
-                    "problem_solving",
-                ],
-            )
+            evidence_based_tags = [
+                "trauma_informed",
+                "systemic_validation",
+                "problem_solving",
+            ]
 
         return {
             "scenario_id": scenario_id,
