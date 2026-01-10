@@ -157,7 +157,7 @@ cd ai/lightning/
 python train_optimized.py
 
 # Monitor progress
-tail -f training.log
+tail -f logs/training.log
 watch -n 1 nvidia-smi
 ```
 
@@ -313,7 +313,7 @@ curl -X POST http://localhost:8000/api/v1/inference \
 For issues or questions:
 1. Check `ai/training_ready/docs/QUICK_START_GUIDE.md` troubleshooting section
 2. Review documentation in `ai/training_ready/docs/`
-3. Check logs in `training.log` or service logs
+3. Check logs in `logs/training.log` or service logs
 4. Run end-to-end test: `python ai/dataset_pipeline/test_end_to_end_pipeline.py`
 
 ---

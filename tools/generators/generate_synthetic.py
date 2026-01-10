@@ -188,8 +188,8 @@ if __name__ == "__main__":
     with open(log_path, 'w', encoding='utf-8') as log_file:
         try:
             # Use the new JSONL extraction function
-            prompt_ids, prompts = extract_prompts_jsonl("ai/edge_case_prompts_improved.jsonl", log_file)
-            with open("ai/edge_case_prompts_improved.jsonl.json", "w", encoding="utf-8") as f:
+            prompt_ids, prompts = extract_prompts_jsonl("ai/data/prompts/edge_case_prompts_improved.jsonl", log_file)
+            with open("ai/data/prompts/edge_case_prompts_improved.jsonl.json", "w", encoding="utf-8") as f:
                 json.dump([{ 'id': pid, 'prompt': p } for pid, p in zip(prompt_ids, prompts)], f, ensure_ascii=False, indent=2)
 
             templates = load_templates(args.templates)

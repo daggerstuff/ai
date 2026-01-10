@@ -14,6 +14,7 @@ import logging
 import sqlite3
 import threading
 from datetime import datetime, timezone, timedelta
+from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
 from dataclasses import dataclass, asdict
 from enum import Enum
@@ -73,7 +74,9 @@ class PostLaunchMonitor:
     """Comprehensive post-launch monitoring and operational handover system."""
     
     def __init__(self):
-        self.db_path = "post_launch_monitoring.db"
+        self.state_dir = Path(__file__).resolve().parent / "state"
+        self.state_dir.mkdir(parents=True, exist_ok=True)
+        self.db_path = str(self.state_dir / "post_launch_monitoring.db")
         self.monitoring_active = False
         self.alerts: List[Alert] = []
         self.metrics_history: Dict[str, List[MetricData]] = {}

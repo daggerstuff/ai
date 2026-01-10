@@ -422,7 +422,7 @@ class FullSystemValidator:
             # Test monitoring system
             logger.info("Testing monitoring system")
             monitoring_configs = [
-                project_root / "prometheus_config.yaml",
+                project_root / "ai" / "monitoring" / "prometheus_config.yaml",
                 project_root / "grafana_dashboard.yaml",
             ]
             

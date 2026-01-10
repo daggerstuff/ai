@@ -257,7 +257,7 @@ python train_optimized.py
 
 ```bash
 # Watch training log
-tail -f training.log
+    tail -f logs/training.log
 
 # Monitor GPU
 watch -n 1 nvidia-smi
@@ -309,7 +309,7 @@ watch -n 1 nvidia-smi
 For issues or questions:
 1. Check `docs/TRAINING_PROCEDURES.md` troubleshooting section
 2. Review `docs/QUICK_START_GUIDE.md`
-3. Check training logs in `training.log`
+3. Check training logs in `logs/training.log`
 
 ## Next Steps After Training
 
@@ -444,10 +444,9 @@ def create_training_package():
     )
     logger = logging.getLogger(__name__)
 
-    logger.info("=" * 80)
-    logger.info("CREATING TRAINING PACKAGE FOR H100 DEPLOYMENT")
-    logger.info("=" * 80)
-
+    _extracted_from_create_training_package_14(
+        logger, "CREATING TRAINING PACKAGE FOR H100 DEPLOYMENT"
+    )
     # Create package directory
     package_name = (
         f"therapeutic_ai_training_package_"
@@ -469,10 +468,7 @@ def create_training_package():
     _create_package_manifest(package_dir, copied_files, missing_files, files_config)
     compress_script_path = _create_compression_script(package_dir)
 
-    # Summary
-    logger.info("=" * 80)
-    logger.info("PACKAGE CREATION COMPLETE")
-    logger.info("=" * 80)
+    _extracted_from_create_training_package_14(logger, "PACKAGE CREATION COMPLETE")
     logger.info(f"📦 Package directory: {package_dir}")
     logger.info(f"📋 Total files: {len(copied_files)}")
     logger.info(f"⚠️  Missing files: {len(missing_files)} (will be generated)")
@@ -485,6 +481,13 @@ def create_training_package():
     logger.info("=" * 80)
 
     return package_dir, compress_script_path
+
+
+# TODO Rename this here and in `create_training_package`
+def _extracted_from_create_training_package_14(logger, arg1):
+    logger.info("=" * 80)
+    logger.info(arg1)
+    logger.info("=" * 80)
 
 
 if __name__ == "__main__":
