@@ -320,10 +320,9 @@ class ProductionDeployer:
     def _mark_step_failed(
         self, step: DeploymentStep, message: str, exc: Exception
     ) -> None:
-        combined_message = f"{message}: {exc}"
-        logger.exception("%s", combined_message)
-        step_details = f"{message}: {type(exc).__name__}: {exc}"
-        self._update_step_status(step, DeploymentStatus.FAILED, step_details)
+        detail_message = f"{message}: {type(exc).__name__}: {exc}"
+        logger.exception("%s", detail_message)
+        self._update_step_status(step, DeploymentStatus.FAILED, detail_message)
 
     def _update_step_status(
         self, step: DeploymentStep, status: DeploymentStatus, details: str
@@ -543,12 +542,12 @@ class ProductionDeployer:
         ]
 
         deployment_steps: List[DeploymentStep] = []
-        for step_func in step_functions:
+        for index, step_func in enumerate(step_functions):
             step = step_func()
             if not isinstance(step, DeploymentStep):
                 raise TypeError(
-                    "Deployment step function "
-                    f"{step_func.__name__} must return DeploymentStep, "
+                    "Deployment step function at index "
+                    f"{index} ({step_func.__name__}) must return DeploymentStep, "
                     f"got {type(step).__name__}"
                 )
             deployment_steps.append(step)
