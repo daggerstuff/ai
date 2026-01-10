@@ -1,0 +1,13 @@
+{
+  "safety_monitoring": {
+    "enabled": true,
+    "crisis_threshold": 0.7,
+    "halt_on_violations": false,
+    "log_violations": true
+  },
+  "calibration": {
+    "sample_flag_rate": 0.01,
+    "recommended_threshold": 0.7,
+    "training_impact": "Low"
+  }
+}
