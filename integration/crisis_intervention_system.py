@@ -359,11 +359,12 @@ class TherapeuticCrisisResponder:
                     "about your safety. You deserve support right now. If you're in "
                     "immediate danger, please call 911. I can stay with you while we "
                     "connect with a crisis counselor at the 988 Suicide & Crisis "
-                    "Lifeline or text 741741. Is there someone you trust nearby we can "
-                    "involve for support?"
+                    "Lifeline or text 741741. Is there someone you trust nearby "
+                    "we can involve for support?"
                 ),
                 (
-                    "I hear how overwhelming this feels. Your safety matters. "
+                    "I hear how overwhelming this feels. "
+                    "Your safety matters. "
                     "If you're at risk right now, please call 911. "
                     "I can stay with you while we reach the 988 Suicide & Crisis "
                     "Lifeline or text 741741 together. "
@@ -372,63 +373,64 @@ class TherapeuticCrisisResponder:
                 (
                     "Thank you for telling me. Your life has value. "
                     "If you're in immediate danger, call 911. "
-                    "I can stay with you as we connect with the 988 Suicide & Crisis "
-                    "Lifeline or text 741741, and we can bring in someone you trust "
-                    "to help."
+                    "I can stay with you as we connect with the 988 "
+                    "Suicide & Crisis Lifeline or text 741741, and we can "
+                    "bring in someone you trust to help."
                 ),
             ],
             RiskLevel.HIGH: [
                 (
                     "I hear how much you're struggling. Your safety comes first. If "
-                    "anything feels unsafe, please call 911. I can stay with you while "
-                    "we contact the 988 Suicide & Crisis Lifeline or text 741741. "
-                    "Would it help to involve someone you trust nearby?"
+                    "anything feels unsafe, please call 911. I can stay with you "
+                    "while we contact the 988 Suicide & Crisis Lifeline or "
+                    "text 741741. Would it help to involve someone you trust nearby?"
                 ),
                 (
                     "You've taken a brave step by sharing this. If you're not safe, "
                     "call 911. I can stay with you while we reach a crisis counselor "
-                    "at 988 or text 741741, and we can loop in a trusted person for "
-                    "support."
+                    "at 988 or text 741741, and we can loop in a trusted person "
+                    "for support."
                 ),
                 (
-                    "The pain is real, and you don't have to handle it alone. If risk "
-                    "feels immediate, call 911. I can stay connected while we contact "
-                    "988 or text 741741 and involve someone you trust."
+                    "The pain is real, and you don't have to handle it alone. If "
+                    "risk feels immediate, call 911. I can stay connected while "
+                    "we contact 988 or text 741741 and involve someone you trust."
                 ),
             ],
             RiskLevel.MEDIUM: [
                 (
                     "I appreciate you sharing this. "
                     "If you start to feel unsafe, please call 911. "
-                    "I can stay with you while we connect to the 988 Suicide & Crisis "
-                    "Lifeline or text 741741. "
+                    "I can stay with you while we connect to the 988 "
+                    "Suicide & Crisis Lifeline or text 741741. "
                     "Is there someone you trust we can loop in?"
                 ),
                 (
                     "What you're describing sounds hard. If things worsen, call 911. "
-                    "I can stay with you as we reach out to 988 or text 741741, and "
-                    "we can involve a trusted support if you want."
+                    "I can stay with you as we reach out to 988 or text 741741, "
+                    "and we can involve a trusted support if you want."
                 ),
                 (
-                    "It took courage to share this. If safety becomes a concern, call "
-                    "911. I can stay connected while we contact 988 or text 741741, "
-                    "and we can bring in someone you trust."
+                    "It took courage to share this. If safety becomes a concern, "
+                    "call 911. I can stay connected while we contact 988 or "
+                    "text 741741, and we can bring in someone you trust."
                 ),
             ],
             RiskLevel.LOW: [
                 (
-                    "Thank you for sharing what you're going through. It sounds like "
-                    "you're dealing with some difficult feelings right now."
+                    "Thank you for sharing what you're going through. "
+                    "It sounds like you're dealing with some difficult "
+                    "feelings right now."
                 ),
                 (
-                    "I hear that you're going through a tough time. Many people "
-                    "experience these kinds of difficult emotions, and support is "
-                    "available."
+                    "I hear that you're going through a tough time. "
+                    "Many people experience these kinds of difficult "
+                    "emotions, and support is available."
                 ),
                 (
-                    "What you're feeling is valid, and it's important that you're "
-                    "reaching out. Would you like to talk about what's been most "
-                    "challenging for you?"
+                    "What you're feeling is valid, and it's important "
+                    "that you're reaching out. Would you like to talk "
+                    "about what's been most challenging for you?"
                 ),
             ],
         }
@@ -506,7 +508,10 @@ class TherapeuticCrisisResponder:
         """Generate template-based response as fallback"""
         templates = self.crisis_response_templates[assessment.risk_level]
         # In production, would use more sophisticated selection
-        return templates[0]
+        return (
+            templates[0] if templates
+            else "I'm here to support you through this difficult time."
+        )
 
     def _generate_empathic_lead(
         self, message: str, assessment: CrisisAssessment
@@ -541,7 +546,8 @@ class TherapeuticCrisisResponder:
             )
         else:
             presence_line = (
-                "I'm here with you, and we can work through this together step by step."
+                "I'm here with you, and we can work through this "
+                "together step by step."
             )
 
         if reflected:
@@ -580,8 +586,8 @@ class TherapeuticCrisisResponder:
                 [
                     "I'm concerned about your safety. "
                     "If you're in immediate danger, please call 911.",
-                    "I can stay with you while we contact the 988 Suicide & Crisis ",
-                    "Lifeline or text 741741.",
+                    "I can stay with you while we contact the 988 "
+                    "Suicide & Crisis Lifeline or text 741741.",
                     "Is there someone you trust nearby we can involve for support?",
                 ]
             )
