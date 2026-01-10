@@ -14,7 +14,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 # Configure logging
 logging.basicConfig(
@@ -176,7 +176,7 @@ class ProductionDeployer:
 
             self._mark_step_completed(step, "Blue environment prepared successfully")
         except Exception as e:
-            self._mark_step_failed(step, "Blue environment preparation failed: ", e)
+            self._mark_step_failed(step, "Blue environment preparation failed", e)
         return self._finalize_step(step)
 
     def execute_database_migration(self) -> DeploymentStep:
@@ -197,7 +197,7 @@ class ProductionDeployer:
 
             self._mark_step_completed(step, "Database migration completed successfully")
         except Exception as e:
-            self._mark_step_failed(step, "Database migration failed: ", e)
+            self._mark_step_failed(step, "Database migration failed", e)
         return self._finalize_step(step)
 
     def validate_blue_environment(self) -> DeploymentStep:
@@ -233,7 +233,7 @@ class ProductionDeployer:
                 )
 
         except Exception as e:
-            self._mark_step_failed(step, "Blue environment validation failed: ", e)
+            self._mark_step_failed(step, "Blue environment validation failed", e)
         return self._finalize_step(step)
 
     def execute_canary_deployment(self) -> DeploymentStep:
@@ -254,7 +254,7 @@ class ProductionDeployer:
         try:
             self._execute_canary_traffic_stages(step)
         except Exception as e:
-            self._mark_step_failed(step, "Canary deployment failed: ", e)
+            self._mark_step_failed(step, "Canary deployment failed", e)
         return self._finalize_step(step)
 
     def _execute_canary_traffic_stages(self, step):
@@ -311,7 +311,7 @@ class ProductionDeployer:
                 "blue environment is now production",
             )
         except Exception as e:
-            self._mark_step_failed(step, "Deployment finalization failed: ", e)
+            self._mark_step_failed(step, "Deployment finalization failed", e)
         return self._finalize_step(step)
 
     def _mark_step_completed(self, step: DeploymentStep, details: str) -> None:
@@ -320,8 +320,9 @@ class ProductionDeployer:
     def _mark_step_failed(
         self, step: DeploymentStep, message: str, exc: Exception
     ) -> None:
-        logger.exception("%s%s", message, exc)
-        self._update_step_status(step, DeploymentStatus.FAILED, f"{message}{exc}")
+        combined_message = f"{message}: {exc}"
+        logger.exception("%s", combined_message)
+        self._update_step_status(step, DeploymentStatus.FAILED, combined_message)
 
     def _update_step_status(
         self, step: DeploymentStep, status: DeploymentStatus, details: str
@@ -519,7 +520,7 @@ class ProductionDeployer:
         try:
             return self._execute_deployment_pipeline()
         except Exception as e:
-            logger.exception("Production deployment failed")
+            logger.exception("Production deployment failed: %s", e)
             return {
                 "deployment_id": self.deployment_id,
                 "error": str(e),
@@ -527,8 +528,12 @@ class ProductionDeployer:
             }
 
     def _execute_deployment_pipeline(self) -> Dict[str, Any]:
+        """Execute the ordered deployment pipeline.
+
+        Each step must return a `DeploymentStep`. Steps are order-dependent.
+        """
         # Execute deployment steps
-        step_functions = [
+        step_functions: List[Callable[[], DeploymentStep]] = [
             self.prepare_blue_environment,
             self.execute_database_migration,
             self.validate_blue_environment,
