@@ -322,7 +322,7 @@ class ProductionDeployer:
     ) -> None:
         combined_message = f"{message}: {exc}"
         logger.exception("%s", combined_message)
-        step_details = f"{message}: {type(exc).__name__}"
+        step_details = f"{message}: {type(exc).__name__}: {exc}"
         self._update_step_status(step, DeploymentStatus.FAILED, step_details)
 
     def _update_step_status(
@@ -542,9 +542,15 @@ class ProductionDeployer:
             self.finalize_deployment,
         ]
 
-        deployment_steps = []
+        deployment_steps: List[DeploymentStep] = []
         for step_func in step_functions:
             step = step_func()
+            if not isinstance(step, DeploymentStep):
+                raise TypeError(
+                    "Deployment step function "
+                    f"{step_func.__name__} must return DeploymentStep, "
+                    f"got {type(step).__name__}"
+                )
             deployment_steps.append(step)
             if step.status == DeploymentStatus.FAILED:
                 break  # Stop on first failure
