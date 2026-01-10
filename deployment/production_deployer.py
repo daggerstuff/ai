@@ -164,24 +164,19 @@ class ProductionDeployer:
             details="Preparing blue environment for new deployment",
             rollback_command="kubectl delete deployment pixelated-empathy-blue"
         )
-        
+
         try:
             logger.info("Preparing blue environment...")
             self._execute_preparation_steps()
-                
-            step.status = DeploymentStatus.COMPLETED
-            step.end_time = datetime.now(timezone.utc)
-            step.details = "Blue environment prepared successfully"
-            
+
+            self._extracted_from_finalize_deployment_17(
+                step, "Blue environment prepared successfully"
+            )
         except Exception as e:
-            logger.error(f"Blue environment preparation failed: {e}")
-            step.status = DeploymentStatus.FAILED
-            step.end_time = datetime.now(timezone.utc)
-            step.details = f"Blue environment preparation failed: {str(e)}"
-            
-        self.steps.append(step)
-        self._save_deployment_step(step)
-        return step
+            self._extracted_from_finalize_deployment_22(
+                'Blue environment preparation failed: ', e, step
+            )
+        return self._extracted_from_finalize_deployment_27(step)
         
     def execute_database_migration(self) -> DeploymentStep:
         """Execute database migration with rollback capability."""
@@ -194,24 +189,19 @@ class ProductionDeployer:
             details="Executing database migration",
             rollback_command="python manage.py migrate --rollback"
         )
-        
+
         try:
             logger.info("Executing database migration...")
             self._execute_migration_steps()
-                
-            step.status = DeploymentStatus.COMPLETED
-            step.end_time = datetime.now(timezone.utc)
-            step.details = "Database migration completed successfully"
-            
+
+            self._extracted_from_finalize_deployment_17(
+                step, "Database migration completed successfully"
+            )
         except Exception as e:
-            logger.error(f"Database migration failed: {e}")
-            step.status = DeploymentStatus.FAILED
-            step.end_time = datetime.now(timezone.utc)
-            step.details = f"Database migration failed: {str(e)}"
-            
-        self.steps.append(step)
-        self._save_deployment_step(step)
-        return step
+            self._extracted_from_finalize_deployment_22(
+                'Database migration failed: ', e, step
+            )
+        return self._extracted_from_finalize_deployment_27(step)
         
     def validate_blue_environment(self) -> DeploymentStep:
         """Validate blue environment health and readiness."""
@@ -224,30 +214,26 @@ class ProductionDeployer:
             details="Validating blue environment health",
             rollback_command="kubectl scale deployment pixelated-empathy-blue --replicas=0"
         )
-        
+
         try:
             logger.info("Validating blue environment...")
             health_checks = self._get_health_checks()
             passed_checks, total_checks = self._run_health_checks(health_checks)
-                    
+
             if passed_checks == total_checks:
                 step.status = DeploymentStatus.COMPLETED
                 step.details = f"All health checks passed ({passed_checks}/{total_checks})"
             else:
                 step.status = DeploymentStatus.FAILED
                 step.details = f"Health checks failed ({passed_checks}/{total_checks} passed)"
-                
+
             step.end_time = datetime.now(timezone.utc)
-            
+
         except Exception as e:
-            logger.error(f"Blue environment validation failed: {e}")
-            step.status = DeploymentStatus.FAILED
-            step.end_time = datetime.now(timezone.utc)
-            step.details = f"Blue environment validation failed: {str(e)}"
-            
-        self.steps.append(step)
-        self._save_deployment_step(step)
-        return step
+            self._extracted_from_finalize_deployment_22(
+                'Blue environment validation failed: ', e, step
+            )
+        return self._extracted_from_finalize_deployment_27(step)
         
     def execute_canary_deployment(self) -> DeploymentStep:
         """Execute canary deployment with gradual traffic shifting."""
@@ -264,14 +250,10 @@ class ProductionDeployer:
         try:
             self._extracted_from_execute_canary_deployment_14(step)
         except Exception as e:
-            logger.error(f"Canary deployment failed: {e}")
-            step.status = DeploymentStatus.FAILED
-            step.end_time = datetime.now(timezone.utc)
-            step.details = f"Canary deployment failed: {str(e)}"
-
-        self.steps.append(step)
-        self._save_deployment_step(step)
-        return step
+            self._extracted_from_finalize_deployment_22(
+                'Canary deployment failed: ', e, step
+            )
+        return self._extracted_from_finalize_deployment_27(step)
 
     # TODO Rename this here and in `execute_canary_deployment`
     def _extracted_from_execute_canary_deployment_14(self, step):
@@ -298,9 +280,9 @@ class ProductionDeployer:
 
             logger.info(f"  - Stage {percentage}% completed successfully")
 
-        step.status = DeploymentStatus.COMPLETED
-        step.end_time = datetime.now(timezone.utc)
-        step.details = "Canary deployment completed successfully - 100% traffic on blue"
+        self._extracted_from__extracted_from_finalize_deployment_17_25(
+            step, "Canary deployment completed successfully - 100% traffic on blue"
+        )
         
     def finalize_deployment(self) -> DeploymentStep:
         """Finalize deployment and decommission green environment."""
@@ -313,24 +295,43 @@ class ProductionDeployer:
             details="Finalizing deployment and cleaning up",
             rollback_command="kubectl apply -f green-environment-backup.yaml"
         )
-        
+
         try:
             logger.info("Finalizing deployment...")
             self._execute_finalization_steps()
-                
-            step.status = DeploymentStatus.COMPLETED
-            step.end_time = datetime.now(timezone.utc)
-            step.details = "Deployment finalized successfully - blue environment is now production"
-            
+
+            self._extracted_from_finalize_deployment_17(
+                step,
+                "Deployment finalized successfully - blue environment is now production",
+            )
         except Exception as e:
-            logger.error(f"Deployment finalization failed: {e}")
-            step.status = DeploymentStatus.FAILED
-            step.end_time = datetime.now(timezone.utc)
-            step.details = f"Deployment finalization failed: {str(e)}"
-            
+            self._extracted_from_finalize_deployment_22(
+                'Deployment finalization failed: ', e, step
+            )
+        return self._extracted_from_finalize_deployment_27(step)
+
+    # TODO Rename this here and in `prepare_blue_environment`, `execute_database_migration`, `validate_blue_environment`, `execute_canary_deployment` and `finalize_deployment`
+    def _extracted_from_finalize_deployment_17(self, step, arg1):
+        self._extracted_from__extracted_from_finalize_deployment_17_25(step, arg1)
+
+    # TODO Rename this here and in `_extracted_from_execute_canary_deployment_14` and `_extracted_from_finalize_deployment_17`
+    def _extracted_from__extracted_from_finalize_deployment_17_25(self, step, arg1):
+        step.status = DeploymentStatus.COMPLETED
+        step.end_time = datetime.now(timezone.utc)
+        step.details = arg1
+
+    # TODO Rename this here and in `prepare_blue_environment`, `execute_database_migration`, `validate_blue_environment`, `execute_canary_deployment` and `finalize_deployment`
+    def _extracted_from_finalize_deployment_27(self, step):
         self.steps.append(step)
         self._save_deployment_step(step)
         return step
+
+    # TODO Rename this here and in `prepare_blue_environment`, `execute_database_migration`, `validate_blue_environment`, `execute_canary_deployment` and `finalize_deployment`
+    def _extracted_from_finalize_deployment_22(self, arg0, e, step):
+        logger.error(f"{arg0}{e}")
+        step.status = DeploymentStatus.FAILED
+        step.end_time = datetime.now(timezone.utc)
+        step.details = f"{arg0}{str(e)}"
         
     def _execute_preparation_steps(self):
         """Execute blue environment preparation steps."""
@@ -376,17 +377,16 @@ class ProductionDeployer:
         """Run health checks and return passed and total counts."""
         passed_checks = 0
         total_checks = len(health_checks)
-        
+
         for check in health_checks:
             logger.info(f"  - Running health check: {check.check_name}")
-            
-            check_passed = self._simulate_health_check(check)
-            if check_passed:
+
+            if check_passed := self._simulate_health_check(check):
                 passed_checks += 1
                 logger.info(f"    ✅ {check.check_name} passed")
             else:
                 logger.warning(f"    ❌ {check.check_name} failed")
-        
+
         return passed_checks, total_checks
     
     def _get_traffic_stages(self) -> List[Dict[str, int]]:
@@ -514,61 +514,9 @@ class ProductionDeployer:
     def run_deployment(self) -> Dict[str, Any]:
         """Run complete production deployment process."""
         logger.info(f"Starting production deployment: {self.deployment_id}")
-        
+
         try:
-            # Execute deployment steps
-            deployment_steps = [
-                self.prepare_blue_environment(),
-                self.execute_database_migration(),
-                self.validate_blue_environment(),
-                self.execute_canary_deployment(),
-                self.finalize_deployment()
-            ]
-            
-            # Check if any step failed
-            if failed_steps := [step for step in deployment_steps if step.status == DeploymentStatus.FAILED]:
-                # Rollback on failure
-                rollback_result = self.rollback_deployment(f"Deployment failed at step: {failed_steps[0].name}")
-                overall_status = DeploymentStatus.ROLLED_BACK
-            else:
-                rollback_result = None
-                overall_status = DeploymentStatus.COMPLETED
-                
-            # Calculate deployment metrics
-            total_time = (time.time() - self.start_time) * 1000
-            successful_steps = len([step for step in deployment_steps if step.status == DeploymentStatus.COMPLETED])
-            
-            # Generate deployment report
-            report = {
-                "deployment_id": self.deployment_id,
-                "timestamp": datetime.now(timezone.utc).isoformat(),
-                "overall_status": overall_status.value,
-                "deployment_success": overall_status == DeploymentStatus.COMPLETED,
-                "total_steps": len(deployment_steps),
-                "successful_steps": successful_steps,
-                "failed_steps": len(deployment_steps) - successful_steps,
-                "deployment_steps": [asdict(step) for step in deployment_steps],
-                "rollback_result": rollback_result,
-                "execution_time_ms": total_time,
-                "environment": "production",
-                "version": "v2.0.0",
-                "deployment_strategy": "blue-green with canary",
-                "recommendations": self._generate_deployment_recommendations(deployment_steps, overall_status)
-            }
-            
-            # Save deployment record
-            self._save_deployment_record(report)
-            
-            # Save report
-            report_file = f"production_deployment_report_{self.deployment_id}.json"
-            with open(report_file, 'w') as f:
-                json.dump(report, f, indent=2, default=str)
-                
-            logger.info(f"Production deployment completed. Status: {overall_status.value}")
-            logger.info(f"Report saved to: {report_file}")
-            
-            return report
-            
+            return self._extracted_from_run_deployment_7()
         except Exception as e:
             logger.error(f"Production deployment failed: {e}")
             return {
@@ -576,6 +524,61 @@ class ProductionDeployer:
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat()
             }
+
+    # TODO Rename this here and in `run_deployment`
+    def _extracted_from_run_deployment_7(self):
+        # Execute deployment steps
+        deployment_steps = [
+            self.prepare_blue_environment(),
+            self.execute_database_migration(),
+            self.validate_blue_environment(),
+            self.execute_canary_deployment(),
+            self.finalize_deployment()
+        ]
+
+        # Check if any step failed
+        if failed_steps := [step for step in deployment_steps if step.status == DeploymentStatus.FAILED]:
+            # Rollback on failure
+            rollback_result = self.rollback_deployment(f"Deployment failed at step: {failed_steps[0].name}")
+            overall_status = DeploymentStatus.ROLLED_BACK
+        else:
+            rollback_result = None
+            overall_status = DeploymentStatus.COMPLETED
+
+        # Calculate deployment metrics
+        total_time = (time.time() - self.start_time) * 1000
+        successful_steps = len([step for step in deployment_steps if step.status == DeploymentStatus.COMPLETED])
+
+        # Generate deployment report
+        report = {
+            "deployment_id": self.deployment_id,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "overall_status": overall_status.value,
+            "deployment_success": overall_status == DeploymentStatus.COMPLETED,
+            "total_steps": len(deployment_steps),
+            "successful_steps": successful_steps,
+            "failed_steps": len(deployment_steps) - successful_steps,
+            "deployment_steps": [asdict(step) for step in deployment_steps],
+            "rollback_result": rollback_result,
+            "execution_time_ms": total_time,
+            "environment": "production",
+            "version": "v2.0.0",
+            "deployment_strategy": "blue-green with canary",
+            "recommendations": self._generate_deployment_recommendations(deployment_steps, overall_status)
+        }
+
+        # Save deployment record
+        self._save_deployment_record(report)
+
+        # Save report
+        report_file = f"production_deployment_report_{self.deployment_id}.json"
+        with open(report_file, 'w') as f:
+            json.dump(report, f, indent=2, default=str)
+
+        logger.info(f"Production deployment completed. Status: {overall_status.value}")
+        logger.info(f"Report saved to: {report_file}")
+
+        return report
             
     def _save_deployment_record(self, report: Dict[str, Any]):
         """Save deployment record to database."""
