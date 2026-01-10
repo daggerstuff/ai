@@ -542,8 +542,7 @@ class ProductionDeployer:
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
-    # TODO Rename this here and in `run_deployment`
-    def _extracted_from_run_deployment_7(self):
+    def _execute_deployment_pipeline(self):
         # Execute deployment steps
         step_functions = [
             self.prepare_blue_environment,
