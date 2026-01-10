@@ -113,7 +113,7 @@ python train_optimized.py
 
 ```bash
 # Watch training log
-tail -f training.log
+tail -f logs/training.log
 
 # Monitor GPU
 watch -n 1 nvidia-smi
@@ -186,7 +186,7 @@ watch -n 1 nvidia-smi
 For issues or questions:
 1. Check `../../docs/QUICK_START_GUIDE.md` troubleshooting section
 2. Review `docs/LIGHTNING_H100_QUICK_DEPLOY.md`
-3. Check training logs in `training.log`
+3. Check training logs in `logs/training.log`
 
 ## Next Steps After Training
 
