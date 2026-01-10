@@ -322,7 +322,8 @@ class ProductionDeployer:
     ) -> None:
         combined_message = f"{message}: {exc}"
         logger.exception("%s", combined_message)
-        self._update_step_status(step, DeploymentStatus.FAILED, combined_message)
+        step_details = f"{message}: {type(exc).__name__}"
+        self._update_step_status(step, DeploymentStatus.FAILED, step_details)
 
     def _update_step_status(
         self, step: DeploymentStep, status: DeploymentStatus, details: str
