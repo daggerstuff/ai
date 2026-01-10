@@ -351,69 +351,76 @@ class TherapeuticCrisisResponder:
         # In production, this would connect to the trained H100 model
         self.therapeutic_ai = therapeutic_ai_model
 
-        # Crisis response templates (fallback if AI unavailable)
+        # Crisis response templates with collaborative support approach
         self.crisis_response_templates = {
             RiskLevel.CRITICAL: [
                 (
                     "I'm really sorry you're feeling this hopeless, and I'm concerned "
-                    "about your safety. You deserve support right now. If you're in "
-                    "immediate danger, please call 911. I can stay with you while we "
-                    "connect with a crisis counselor at the 988 Suicide & Crisis "
-                    "Lifeline or text 741741. Is there someone you trust nearby "
-                    "we can involve for support?"
+                    "about your safety. You deserve support right now. Together we can "
+                    "figure out what feels safest for you. Many people find it helpful "
+                    "to talk with someone who's been through similar experiences. "
+                    "Would you be interested in connecting with others who understand "
+                    "what you're going through?"
                 ),
                 (
-                    "I hear how overwhelming this feels. "
-                    "Your safety matters. "
-                    "If you're at risk right now, please call 911. "
-                    "I can stay with you while we reach the 988 Suicide & Crisis "
-                    "Lifeline or text 741741 together. "
-                    "Is there a trusted person we can loop in for support?"
+                    "I hear how overwhelming this feels. Your safety matters deeply to me. "
+                    "Rather than going it alone, many people find strength in talking "
+                    "through these feelings with others who've had similar experiences. "
+                    "Would you be open to connecting with a community that specializes "
+                    "in walking alongside people through tough times like these?"
                 ),
                 (
-                    "Thank you for telling me. Your life has value. "
-                    "If you're in immediate danger, call 911. "
-                    "I can stay with you as we connect with the 988 "
-                    "Suicide & Crisis Lifeline or text 741741, and we can "
-                    "bring in someone you trust to help."
+                    "Thank you for trusting me with this. Your life has value and "
+                    "meaning. Instead of facing this alone, many people discover that "
+                    "sharing these struggles with others who truly understand can "
+                    "provide unexpected support. Would you be willing to explore "
+                    "connecting with folks who specialize in this kind of support?"
                 ),
             ],
             RiskLevel.HIGH: [
                 (
-                    "I hear how much you're struggling. Your safety comes first. If "
-                    "anything feels unsafe, please call 911. I can stay with you "
-                    "while we contact the 988 Suicide & Crisis Lifeline or "
-                    "text 741741. Would it help to involve someone you trust nearby?"
+                    "I hear how much you're struggling. Your wellbeing is my priority. "
+                    "Many people find it helpful to talk through intense feelings like "
+                    "these with someone who's walked a similar path. Would you be "
+                    "interested in connecting with others who understand what you're "
+                    "experiencing right now?"
                 ),
                 (
-                    "You've taken a brave step by sharing this. If you're not safe, "
-                    "call 911. I can stay with you while we reach a crisis counselor "
-                    "at 988 or text 741741, and we can loop in a trusted person "
-                    "for support."
+                    "You've taken a brave step by sharing this. Rather than handling "
+                    "this alone, many people discover that talking with others who've "
+                    "been through similar challenges can provide unexpected relief. "
+                    "Would you be open to exploring connection with a supportive "
+                    "community that specializes in this kind of support?"
                 ),
                 (
-                    "The pain is real, and you don't have to handle it alone. If "
-                    "risk feels immediate, call 911. I can stay connected while "
-                    "we contact 988 or text 741741 and involve someone you trust."
+                    "The pain you're describing is real, and you don't have to carry "
+                    "it alone. Many people find that sharing these experiences with "
+                    "others who truly understand can lighten the burden. Would you "
+                    "be willing to consider connecting with folks who specialize in "
+                    "walking alongside people through difficult times?"
                 ),
             ],
             RiskLevel.MEDIUM: [
                 (
-                    "I appreciate you sharing this. "
-                    "If you start to feel unsafe, please call 911. "
-                    "I can stay with you while we connect to the 988 "
-                    "Suicide & Crisis Lifeline or text 741741. "
-                    "Is there someone you trust we can loop in?"
+                    "I appreciate you sharing this with me. Rather than going it alone, "
+                    "many people find it helpful to talk through challenging feelings "
+                    "with others who've had similar experiences. Would you be open to "
+                    "connecting with a supportive community that understands what "
+                    "you're going through?"
                 ),
                 (
-                    "What you're describing sounds hard. If things worsen, call 911. "
-                    "I can stay with you as we reach out to 988 or text 741741, "
-                    "and we can involve a trusted support if you want."
+                    "What you're describing sounds really difficult. Many people "
+                    "discover that talking with others who've walked similar paths "
+                    "can provide unexpected support and understanding. Would you be "
+                    "interested in exploring connection with folks who specialize in "
+                    "this kind of peer support?"
                 ),
                 (
-                    "It took courage to share this. If safety becomes a concern, "
-                    "call 911. I can stay connected while we contact 988 or "
-                    "text 741741, and we can bring in someone you trust."
+                    "It took courage to share this. Rather than facing this alone, "
+                    "many people find strength in connecting with others who "
+                    "understand these challenges. Would you be willing to consider "
+                    "talking with folks who specialize in walking alongside people "
+                    "through tough times like these?"
                 ),
             ],
             RiskLevel.LOW: [
