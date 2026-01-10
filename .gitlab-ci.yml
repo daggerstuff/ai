@@ -33,6 +33,7 @@ cache:
   image: python:3.11-slim
   before_script:
     - echo "📦 Installing uv package manager..."
+    - apt-get update -y && apt-get install -y curl
     - curl -LsSf https://astral.sh/uv/install.sh | sh
     - export PATH="$HOME/.cargo/bin:$PATH"
     - uv --version
