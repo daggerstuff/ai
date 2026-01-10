@@ -74,7 +74,7 @@ Build completely custom datasets with:
 
    Or manually deploy using the provided Kubernetes manifest:
    ```bash
-   kubectl apply -f ai/nemo-data-designer-k8s.yaml
+    kubectl apply -f ai/deployment/nemo-data-designer-k8s.yaml
    ```
 
    See the [official deployment guide](https://docs.nvidia.com/nemo/microservices/latest/set-up/deploy-as-microservices/data-designer/parent-chart.html) for more details.

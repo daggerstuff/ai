@@ -156,7 +156,7 @@ python scripts/train_optimized.py
 
 ```bash
 # In another terminal, monitor progress
-tail -f training.log
+tail -f logs/training.log
 
 # Watch GPU usage
 watch -n 1 nvidia-smi
@@ -346,7 +346,7 @@ ls -la ai/training_ready/models/
 For issues or questions:
 1. Check troubleshooting section above
 2. Review documentation in `ai/training_ready/docs/`
-3. Check logs in `training.log` or service logs
+3. Check logs in `logs/training.log` or service logs
 4. Review task list in `.kiro/specs/foundation-model-training/tasks.md`
 
 ---
