@@ -6,6 +6,7 @@ Integrates nightmare fuel scenarios with expert voices and therapeutic framework
 
 import json
 import logging
+import math
 import random
 import re
 import textwrap
@@ -21,8 +22,7 @@ _EXPERT_RESPONSE_SEGMENTS: Dict[str, Dict[str, Tuple[str, ...]]] = {
     "tim": {
         "suicidal_ideation": (
             "Right now, we need to create a systematic safety plan.",
-            "What would need to happen in the next 24 hours "
-            "for you to feel 1% safer?",
+            "What would need to happen in the next 24 hours for you to feel 1% safer?",
             "Let's design the minimum effective dose of support.",
         ),
         "trauma_flashback": (
@@ -39,8 +39,7 @@ _EXPERT_RESPONSE_SEGMENTS: Dict[str, Dict[str, Tuple[str, ...]]] = {
     "gabor": {
         "suicidal_ideation": (
             "Your pain is real and valid.",
-            "What happened to you that taught you that your life "
-            "doesn't matter?",
+            "What happened to you that taught you that your life doesn't matter?",
             "Your body is trying to protect you; let's listen to what it needs.",
         ),
         "trauma_flashback": (
@@ -74,18 +73,18 @@ _EXPERT_RESPONSE_SEGMENTS: Dict[str, Dict[str, Tuple[str, ...]]] = {
 
 def _dedent_and_flatten(text: str) -> str:
     return " ".join(
-        line.strip()
-        for line in textwrap.dedent(text).splitlines()
-        if line.strip()
+        line.strip() for line in textwrap.dedent(text).splitlines() if line.strip()
     )
 
 
 def _format_response(segments: Tuple[str, ...]) -> str:
     return " ".join(segment.strip() for segment in segments if segment).strip()
 
+
 @dataclass
 class EdgeCaseScenario:
     """Represents a challenging therapeutic edge case"""
+
     scenario_type: str
     severity_level: int  # 1-10 scale
     client_presentation: str
@@ -93,45 +92,44 @@ class EdgeCaseScenario:
     safety_considerations: List[str]
     therapeutic_goals: List[str]
 
+
 class EdgeCaseIntegrator:
     """Integrates edge case scenarios with expert therapeutic responses"""
-    
+
     def __init__(
         self,
         edge_case_dir: str = "ai/training_data_consolidated/edge_cases/",
     ):
         self.edge_case_dir = Path(edge_case_dir)
         self.scenarios = []
-        
+
     def load_existing_edge_cases(self) -> List[Dict[str, Any]]:
         """Load existing edge case scenarios from directory"""
-        
+
         edge_cases = []
-        
+
         # Check if directory exists
         if not self.edge_case_dir.exists():
             logger.warning(f"Edge case directory not found: {self.edge_case_dir}")
             # Create sample edge cases
             return self._create_sample_edge_cases()
-        
+
         # Load any existing edge case files
         for file_path in self.edge_case_dir.glob("*.json*"):
             try:
-                with open(file_path, 'r') as f:
-                    if file_path.suffix == '.jsonl':
-                        edge_cases.extend(
-                            json.loads(line.strip()) for line in f
-                        )
+                with open(file_path, "r") as f:
+                    if file_path.suffix == ".jsonl":
+                        edge_cases.extend(json.loads(line.strip()) for line in f)
                     else:
                         edge_cases.extend(json.load(f))
             except Exception as e:
                 logger.warning(f"Could not load edge case file {file_path}: {e}")
-        
+
         if not edge_cases:
             edge_cases = self._create_sample_edge_cases()
-            
+
         return edge_cases
-    
+
     def _create_sample_edge_cases(self) -> List[Dict[str, Any]]:
         """Create sample edge case scenarios for testing"""
 
@@ -227,22 +225,22 @@ class EdgeCaseIntegrator:
                 ],
             },
         ]
-    
+
     def integrate_with_expert_voices(
         self,
         edge_cases: List[Dict],
         expert_voices: Dict,
     ) -> List[Dict[str, Any]]:
         """Integrate edge cases with tri-expert therapeutic responses"""
-        
+
         integrated_scenarios = []
-        
+
         for case in edge_cases:
             # Generate expert responses for this edge case
             expert_responses = self._generate_expert_responses_for_case(
                 case, expert_voices
             )
-            
+
             # Create integrated scenario
             integrated = {
                 **case,
@@ -251,20 +249,20 @@ class EdgeCaseIntegrator:
                     case, expert_responses
                 ),
                 "safety_protocol": self._create_safety_protocol(case),
-                "therapeutic_framework": self._create_therapeutic_framework(case)
+                "therapeutic_framework": self._create_therapeutic_framework(case),
             }
-            
+
             integrated_scenarios.append(integrated)
-        
+
         return integrated_scenarios
-    
+
     def _generate_expert_responses_for_case(
         self,
         case: Dict,
         expert_voices: Dict,
     ) -> Dict[str, str]:
         """Generate responses from each expert for the edge case"""
-        
+
         scenario_type = case.get("scenario_type", "")
 
         responses = {}
@@ -281,10 +279,10 @@ class EdgeCaseIntegrator:
             responses[expert] = _format_response(segments)
 
         return responses
-    
+
     def _create_integrated_response(self, case: Dict, expert_responses: Dict) -> str:
         """Create a blended response using all three expert approaches"""
-        
+
         scenario_type = case.get("scenario_type", "")
 
         if scenario_type == "suicidal_ideation":
@@ -316,10 +314,10 @@ class EdgeCaseIntegrator:
             one small step at a time.
             """
         )
-    
+
     def _create_safety_protocol(self, case: Dict) -> Dict[str, Any]:
         """Create safety protocol for the edge case"""
-        
+
         return {
             "immediate_actions": case.get("safety_considerations", []),
             "risk_level": case.get("severity_level", 5),
@@ -328,14 +326,12 @@ class EdgeCaseIntegrator:
                 "emergency_services",
                 "trusted_support",
             ],
-            "follow_up_required": (
-                case.get("severity_level", 5) >= 7
-            )
+            "follow_up_required": (case.get("severity_level", 5) >= 7),
         }
-    
+
     def _create_therapeutic_framework(self, case: Dict) -> Dict[str, Any]:
         """Create therapeutic framework for the edge case"""
-        
+
         return {
             "primary_goals": case.get("therapeutic_goals", []),
             "therapeutic_modalities": [
@@ -348,36 +344,34 @@ class EdgeCaseIntegrator:
                 "safety_increase",
                 "symptom_reduction",
                 "functional_improvement",
-            ]
+            ],
         }
-    
+
     def create_edge_case_datasets(
         self,
-        output_path: str = (
-            "ai/training_data_consolidated/edge_cases_enhanced/"
-        ),
+        output_path: str = ("ai/training_data_consolidated/edge_cases_enhanced/"),
     ) -> List[Dict[str, Any]]:
         """Create integrated edge case datasets"""
-        
+
         # Load existing edge cases
         edge_cases = self.load_existing_edge_cases()
-        
+
         # For now, use simplified expert voices structure
         expert_voices = {
             "tim": {"style": "systematic_actionable"},
             "gabor": {"style": "trauma_informed_compassionate"},
             "brene": {"style": "shame_resilient_vulnerable"},
         }
-        
+
         # Integrate with expert voices
         integrated_datasets = self.integrate_with_expert_voices(
             edge_cases, expert_voices
         )
-        
+
         # Save datasets
         Path(output_path).mkdir(parents=True, exist_ok=True)
         output_file = Path(output_path) / "edge_cases_integrated.jsonl"
-        
+
         with open(output_file, "w") as f:
             for dataset in integrated_datasets:
                 f.write(json.dumps(dataset) + "\n")
@@ -409,39 +403,24 @@ class EdgeCaseIntegrator:
         responses. Records are written to a location that can be uploaded to
         `s3://pixel-data/edge_cases/` via the existing OVH sync script.
         """
-
-        if target_records <= 0:
-            raise ValueError("target_records must be > 0")
-
-        if turns_per_scenario <= 0:
-            raise ValueError("turns_per_scenario must be > 0")
-
-        locale = locale.strip()
-        if not locale:
-            raise ValueError("locale must be non-empty")
-
-        if crisis_required_terms is None:
-            crisis_required_terms = ["988", "911"]
-        if not crisis_required_terms:
-            raise ValueError(
-                "crisis_required_terms must be a non-empty list; use None to accept the default"
-            )
-
-        if not math.isfinite(crisis_ratio) or not 0.0 <= crisis_ratio <= 1.0:
-            raise ValueError(
-                "crisis_ratio must be a finite number between 0 and 1, "
-                f"got {crisis_ratio!r}"
-            )
+        # Validate and resolve parameters
+        locale, crisis_required_terms = self._validate_generation_params(
+            target_records=target_records,
+            turns_per_scenario=turns_per_scenario,
+            locale=locale,
+            crisis_ratio=crisis_ratio,
+            crisis_required_terms=crisis_required_terms,
+        )
 
         rng = random.Random(seed)
         output_file, summary_file = self._resolve_output_paths(
             output_file, summary_file
         )
-        total_scenarios, crisis_scenarios, cultural_scenarios = (
-            self._calculate_scenario_counts(
-                target_records, turns_per_scenario, crisis_ratio
-            )
+
+        counts_tuple = self._calculate_scenario_counts(
+            target_records, turns_per_scenario, crisis_ratio
         )
+        total_scenarios, crisis_scenarios, cultural_scenarios = counts_tuple
 
         self._ensure_output_directories(output_file, summary_file)
 
@@ -484,21 +463,56 @@ class EdgeCaseIntegrator:
 
         return summary
 
+    def _validate_generation_params(
+        self,
+        *,
+        target_records: int,
+        turns_per_scenario: int,
+        locale: str,
+        crisis_ratio: float,
+        crisis_required_terms: list[str] | None,
+    ) -> Tuple[str, list[str]]:
+        """Validate and normalize generation parameters."""
+        if target_records <= 0:
+            raise ValueError("target_records must be > 0")
+
+        if turns_per_scenario <= 0:
+            raise ValueError("turns_per_scenario must be > 0")
+
+        locale = locale.strip()
+        if not locale:
+            raise ValueError("locale must be non-empty")
+
+        # Resolve validation terms
+        resolved_terms = crisis_required_terms
+        if resolved_terms is None:
+            resolved_terms = ["988", "911"]
+
+        if not resolved_terms:
+            raise ValueError(
+                "crisis_required_terms must be a non-empty list; "
+                "use None to accept the default"
+            )
+
+        if not math.isfinite(crisis_ratio) or not 0.0 <= crisis_ratio <= 1.0:
+            raise ValueError(
+                "crisis_ratio must be a finite number between 0 and 1, "
+                f"got {crisis_ratio!r}"
+            )
+
+        return locale, resolved_terms
+
     def _resolve_output_paths(
         self, output_file: str | None, summary_file: str | None
     ) -> Tuple[str, str]:
         """Resolve output file paths with defaults."""
         repo_root = Path(__file__).resolve().parents[2]
-        default_output_dir = (
-            repo_root / "pipelines" / "edge_case_pipeline_standalone"
-        )
+        default_output_dir = repo_root / "pipelines" / "edge_case_pipeline_standalone"
         return (
-            output_file or str(
-                default_output_dir / "edge_cases_crisis_cultural_15k.jsonl"
-            ),
-            summary_file or str(
-                default_output_dir / "edge_cases_crisis_cultural_15k_summary.json"
-            ),
+            output_file
+            or str(default_output_dir / "edge_cases_crisis_cultural_15k.jsonl"),
+            summary_file
+            or str(default_output_dir / "edge_cases_crisis_cultural_15k_summary.json"),
         )
 
     def _calculate_scenario_counts(
@@ -514,9 +528,7 @@ class EdgeCaseIntegrator:
 
         return total_scenarios, crisis_scenarios, cultural_scenarios
 
-    def _ensure_output_directories(
-        self, output_file: str, summary_file: str
-    ) -> None:
+    def _ensure_output_directories(self, output_file: str, summary_file: str) -> None:
         """Ensure output directories exist."""
         Path(output_file).parent.mkdir(parents=True, exist_ok=True)
         Path(summary_file).parent.mkdir(parents=True, exist_ok=True)
@@ -674,14 +686,10 @@ class EdgeCaseIntegrator:
             crisis_required_terms=crisis_required_terms,
         )
 
-        self._check_stereotypes(
-            record, scenario_id, counts, failures
-        )
+        self._check_stereotypes(record, scenario_id, counts, failures)
 
         if bias_detector is not None:
-            self._check_bias(
-                record, scenario_id, counts, failures, bias_detector
-            )
+            self._check_bias(record, scenario_id, counts, failures, bias_detector)
 
     def _check_stereotypes(
         self,
@@ -733,11 +741,9 @@ class EdgeCaseIntegrator:
     ) -> None:
         """Apply voice blending if available."""
         if voice_blender is not None:
-            record["expert_voices"] = (
-                voice_blender.generate_tri_expert_responses(
-                    record["prompt"],
-                    context=scenario_kind,
-                )
+            record["expert_voices"] = voice_blender.generate_tri_expert_responses(
+                record["prompt"],
+                context=scenario_kind,
             )
 
     def _update_counts(
@@ -764,8 +770,7 @@ class EdgeCaseIntegrator:
 
         if counts["bias_flags"] != 0:
             raise ValueError(
-                f"Generated dataset contains bias flags: "
-                f"{counts['bias_flags']}"
+                f"Generated dataset contains bias flags: {counts['bias_flags']}"
             )
 
     def _create_summary(
@@ -799,9 +804,7 @@ class EdgeCaseIntegrator:
         return summary
 
     def _generate_crisis_scenario(self, *, rng: random.Random) -> dict[str, Any]:
-        subtype = rng.choice(
-            ["suicidal_ideation", "panic", "severe_depression"]
-        )
+        subtype = rng.choice(["suicidal_ideation", "panic", "severe_depression"])
         scenario_id = f"crisis_{subtype}_{uuid.uuid4().hex[:10]}"
 
         if subtype == "suicidal_ideation":
@@ -870,7 +873,7 @@ class EdgeCaseIntegrator:
                 "crisis_risk_assessment",
                 "safety_planning",
                 "means_reduction",
-            ],
+            ]
 
         elif subtype == "panic":
             turns = [
@@ -930,7 +933,7 @@ class EdgeCaseIntegrator:
                 "panic_psychoeducation",
                 "grounding",
                 "paced_breathing",
-            ],
+            ]
 
         else:
             turns = [
@@ -991,7 +994,7 @@ class EdgeCaseIntegrator:
                 "suicide_risk_assessment",
                 "behavioral_activation",
                 "cognitive_restructuring",
-            ],
+            ]
 
         return {
             "scenario_id": scenario_id,
@@ -1001,9 +1004,7 @@ class EdgeCaseIntegrator:
             "turns": turns,
         }
 
-    def _generate_cultural_scenario(
-        self, *, rng: random.Random
-    ) -> dict[str, Any]:
+    def _generate_cultural_scenario(self, *, rng: random.Random) -> dict[str, Any]:
         subtype = rng.choice(
             [
                 "lgbtq_minority_stress",
@@ -1070,7 +1071,7 @@ class EdgeCaseIntegrator:
                 "affirmative_therapy",
                 "minority_stress",
                 "shame_resilience",
-            ],
+            ]
 
         elif subtype == "religious_framework":
             turns = [
@@ -1114,8 +1115,7 @@ class EdgeCaseIntegrator:
                 },
                 {
                     "client": (
-                        "I want to keep my faith, but I also want to feel "
-                        "better."
+                        "I want to keep my faith, but I also want to feel better."
                     ),
                     "therapist": self._cultural_response(
                         _dedent_and_flatten(
@@ -1137,7 +1137,7 @@ class EdgeCaseIntegrator:
                 "values_based",
                 "cultural_humility",
                 "integrative_care",
-            ],
+            ]
 
         else:
             turns = [
@@ -1160,8 +1160,7 @@ class EdgeCaseIntegrator:
                 },
                 {
                     "client": (
-                        "Sometimes I wonder if I'm overreacting, but it feels "
-                        "constant."
+                        "Sometimes I wonder if I'm overreacting, but it feels constant."
                     ),
                     "therapist": self._cultural_response(
                         _dedent_and_flatten(
@@ -1197,7 +1196,7 @@ class EdgeCaseIntegrator:
                 "trauma_informed",
                 "systemic_validation",
                 "problem_solving",
-            ],
+            ]
 
         return {
             "scenario_id": scenario_id,
@@ -1257,9 +1256,7 @@ class EdgeCaseIntegrator:
         }
 
         return [
-            name
-            for name, pattern in patterns.items()
-            if re.search(pattern, lowered)
+            name for name, pattern in patterns.items() if re.search(pattern, lowered)
         ]
 
     def _crisis_response(self, base: str) -> str:
@@ -1268,11 +1265,13 @@ class EdgeCaseIntegrator:
     def _cultural_response(self, base: str) -> str:
         return base.strip()
 
+
 def main():
     """Test the edge case integrator"""
     integrator = EdgeCaseIntegrator()
     datasets = integrator.create_edge_case_datasets()
     print(f"Generated {len(datasets)} edge case integrated datasets")
+
 
 if __name__ == "__main__":
     main()
