@@ -6,6 +6,7 @@ Solves the core problem: 6 powerful components not being used in training datase
 
 import asyncio
 import inspect
+import json
 import logging
 import os
 from dataclasses import dataclass
@@ -14,14 +15,12 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 # Component integrators
-from .components.journaling_integrator import JournalingIntegrator
-from .components.voice_blend_integrator import VoiceBlendIntegrator
-from .components.edge_case_integrator import EdgeCaseIntegrator
-from .components.dual_persona_integrator import DualPersonaIntegrator
 from .components.bias_detection_integrator import BiasDetectionIntegrator
 from .components.dual_persona_integrator import DualPersonaIntegrator
 from .components.edge_case_integrator import EdgeCaseIntegrator
+from .components.journaling_integrator import JournalingIntegrator
 from .components.psychology_kb_integrator import PsychologyKBIntegrator
+from .components.voice_blend_integrator import VoiceBlendIntegrator
 
 
 @dataclass
@@ -106,32 +105,32 @@ class MasterIntegrationPipeline:
 
         return logger
 
-    async def initialize_components(self):
+    def initialize_components(self):
         """Initialize all enabled component integrators"""
         self.logger.info("🚀 Initializing component integrators...")
 
         if self.config.enable_journaling:
-            self.components['journaling'] = JournalingIntegrator()
+            self.components["journaling"] = JournalingIntegrator()
             self.logger.info("✅ Journaling integrator initialized")
 
         if self.config.enable_voice_blending:
-            self.components['voice_blending'] = VoiceBlendIntegrator()
+            self.components["voice_blending"] = VoiceBlendIntegrator()
             self.logger.info("✅ Voice blending integrator initialized")
 
         if self.config.enable_edge_cases:
-            self.components['edge_cases'] = EdgeCaseIntegrator()
+            self.components["edge_cases"] = EdgeCaseIntegrator()
             self.logger.info("✅ Edge case integrator initialized")
 
         if self.config.enable_dual_persona:
-            self.components['dual_persona'] = DualPersonaIntegrator()
+            self.components["dual_persona"] = DualPersonaIntegrator()
             self.logger.info("✅ Dual persona integrator initialized")
 
         if self.config.enable_bias_detection:
-            self.components['bias_detection'] = BiasDetectionIntegrator()
+            self.components["bias_detection"] = BiasDetectionIntegrator()
             self.logger.info("✅ Bias detection integrator initialized")
 
         if self.config.enable_psychology_kb:
-            self.components['psychology_kb'] = PsychologyKBIntegrator()
+            self.components["psychology_kb"] = PsychologyKBIntegrator()
             self.logger.info("✅ Psychology KB integrator initialized")
 
         self.logger.info(f"🎯 Initialized {len(self.components)} component integrators")
@@ -141,7 +140,6 @@ class MasterIntegrationPipeline:
         self.logger.info("📋 PHASE 1: Component Preparation")
 
         phase_1_results = {}
-        context = self.context["phase_1"]
 
         # Process components in dependency order
         component_order = [
@@ -168,11 +166,13 @@ class MasterIntegrationPipeline:
             except Exception as e:
                 self.logger.error(f"❌ {component_name} preparation failed: {e}")
                 phase_1_results[component_name] = {"error": str(e)}
-        
-        self.integration_results['phase_1'] = phase_1_results
+
+        self.integration_results["phase_1"] = phase_1_results
         return phase_1_results
 
-    async def _prepare_component(self, component_name: str, component: Any) -> Dict[str, Any]:
+    async def _prepare_component(
+        self, component_name: str, component: Any
+    ) -> Dict[str, Any]:
         """Prepare a component for integration.
 
         This returns a fully resolved Phase 1 result. If `component.prepare()` is
@@ -190,7 +190,10 @@ class MasterIntegrationPipeline:
 
         if component_name == "psychology_kb":
             kb = component.load_psychology_knowledge_base()
-            return {"status": "ready", "concept_count": len(kb) if isinstance(kb, dict) else 0}
+            return {
+                "status": "ready",
+                "concept_count": len(kb) if isinstance(kb, dict) else 0,
+            }
 
         if component_name == "journaling":
             patterns = component.extract_progress_patterns()
@@ -216,7 +219,7 @@ class MasterIntegrationPipeline:
             return {"status": "ready", "categories": len(component.bias_categories)}
 
         return {"status": "ready"}
-    
+
     async def run_integration_phase_2(self) -> Dict[str, Any]:
         """Phase 2: Smart component combination"""
         self.logger.info("🔗 PHASE 2: Smart Component Integration")
@@ -290,7 +293,11 @@ class MasterIntegrationPipeline:
 
         try:
             handler = integration["handler"]
-            records = await handler(phase_2_data)
+            handler_result = handler(phase_2_data)
+            if inspect.isawaitable(handler_result):
+                records = await handler_result
+            else:
+                records = handler_result
 
             # Write output and create result
             outfile = self._write_jsonl(records, f"{integration_name}.jsonl")
@@ -319,7 +326,7 @@ class MasterIntegrationPipeline:
         required = integration["components"]
         return set(required) - set(self.components.keys())
 
-    async def _integrate_voice_enhanced_edge_cases(
+    def _integrate_voice_enhanced_edge_cases(
         self, phase_2_data: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Create voice-enhanced edge cases with bias validation."""
@@ -341,7 +348,7 @@ class MasterIntegrationPipeline:
 
         return voice_integrated
 
-    async def _integrate_journaling_dual_persona(
+    def _integrate_journaling_dual_persona(
         self, phase_2_data: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Create journaling data with dual persona relationships."""
@@ -358,7 +365,7 @@ class MasterIntegrationPipeline:
 
         return integrated
 
-    async def _integrate_psychology_kb_bias_safe(
+    def _integrate_psychology_kb_bias_safe(
         self, phase_2_data: Dict[str, Any]
     ) -> List[Dict[str, Any]]:
         """Enhance records with psychology KB and bias validation."""
@@ -393,7 +400,7 @@ class MasterIntegrationPipeline:
         # Try to use previously integrated data; fallback to edge cases
         return phase_2_data.get("base_records") or phase_2_data["edge_cases"]
 
-    async def run_integration_phase_3(self) -> Dict[str, Any]:
+    def run_integration_phase_3(self) -> Dict[str, Any]:
         """Phase 3: Final dataset construction"""
         self.logger.info("🏗️ PHASE 3: Integrated Dataset Construction")
 
@@ -451,7 +458,7 @@ class MasterIntegrationPipeline:
             self.logger.info(f"📊 Building {dataset_config['name']}...")
 
             try:
-                dataset_result = await self._build_integrated_dataset(
+                dataset_result = self._build_integrated_dataset(
                     dataset_config,
                     {
                         "kb_bias": kb_bias_records,
@@ -468,17 +475,22 @@ class MasterIntegrationPipeline:
 
         self.integration_results["phase_3"] = phase_3_results
         return phase_3_results
-    
-    async def _combine_components(self, integration_name: str, components: List, description: str) -> Dict[str, Any]:
+
+    def _combine_components(
+        self, integration_name: str, components: List, description: str
+    ) -> Dict[str, Any]:
         """Combine multiple components intelligently"""
 
-        self.logger.info(f"🔀 Combining {len(components)} components for {integration_name}")
+        self.logger.info(
+            f"🔀 Combining {len(components)} components for {integration_name}"
+        )
 
         if integration_name == "voice_enhanced_edge_cases":
             voice_blender = self.components.get("voice_blending")
             if voice_blender is None:
                 self.logger.warning(
-                    "voice_blending component missing from registry; falling back to provided components"
+                    "voice_blending component missing from registry; "
+                    "falling back to provided components"
                 )
                 voice_blender = next(
                     (
@@ -492,7 +504,8 @@ class MasterIntegrationPipeline:
             edge_case_integrator = self.components.get("edge_cases")
             if edge_case_integrator is None:
                 self.logger.warning(
-                    "edge_cases component missing from registry; falling back to provided components"
+                    "edge_cases component missing from registry; "
+                    "falling back to provided components"
                 )
                 edge_case_integrator = next(
                     (
@@ -504,13 +517,19 @@ class MasterIntegrationPipeline:
                 )
 
             if edge_case_integrator is None:
-                raise ValueError("EdgeCaseIntegrator is required for voice_enhanced_edge_cases")
+                raise ValueError(
+                    "EdgeCaseIntegrator is required for voice_enhanced_edge_cases"
+                )
 
             edge_case_config = self.config.edge_case_config or {}
             target_records = int(edge_case_config.get("target_records", 15_000))
             seed = int(edge_case_config.get("seed", 1))
-            enable_bias_detection = bool(edge_case_config.get("enable_bias_detection", False))
-            bias_detector = self.components.get("bias_detection") if enable_bias_detection else None
+            enable_bias_detection = bool(
+                edge_case_config.get("enable_bias_detection", False)
+            )
+            bias_detector = (
+                self.components.get("bias_detection") if enable_bias_detection else None
+            )
             output_file = str(
                 edge_case_config.get(
                     "output_file",
@@ -553,8 +572,10 @@ class MasterIntegrationPipeline:
             "output_files": [],
             "metrics": {},
         }
-    
-    async def _build_integrated_dataset(self, dataset_config: Dict) -> Dict[str, Any]:
+
+    def _build_integrated_dataset(
+        self, dataset_config: Dict, source_records: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Build a final integrated dataset from component results"""
         dataset_name = dataset_config["name"]
         self.logger.info(f"🏗️ Building integrated dataset: {dataset_name}")
@@ -590,12 +611,12 @@ class MasterIntegrationPipeline:
 
         try:
             # Initialize all components
-            await self.initialize_components()
+            self.initialize_components()
 
             # Run integration phases
             await self.run_integration_phase_1()
             await self.run_integration_phase_2()
-            await self.run_integration_phase_3()
+            self.run_integration_phase_3()
 
             # Generate final report
             end_time = datetime.now()
