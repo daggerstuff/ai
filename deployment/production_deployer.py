@@ -174,14 +174,10 @@ class ProductionDeployer:
             logger.info("Preparing blue environment...")
             self._execute_preparation_steps()
 
-            self._extracted_from_finalize_deployment_17(
-                step, "Blue environment prepared successfully"
-            )
+            self._mark_step_completed(step, "Blue environment prepared successfully")
         except Exception as e:
-            self._extracted_from_finalize_deployment_22(
-                "Blue environment preparation failed: ", e, step
-            )
-        return self._extracted_from_finalize_deployment_27(step)
+            self._mark_step_failed(step, "Blue environment preparation failed: ", e)
+        return self._finalize_step(step)
 
     def execute_database_migration(self) -> DeploymentStep:
         """Execute database migration with rollback capability."""
@@ -199,14 +195,10 @@ class ProductionDeployer:
             logger.info("Executing database migration...")
             self._execute_migration_steps()
 
-            self._extracted_from_finalize_deployment_17(
-                step, "Database migration completed successfully"
-            )
+            self._mark_step_completed(step, "Database migration completed successfully")
         except Exception as e:
-            self._extracted_from_finalize_deployment_22(
-                "Database migration failed: ", e, step
-            )
-        return self._extracted_from_finalize_deployment_27(step)
+            self._mark_step_failed(step, "Database migration failed: ", e)
+        return self._finalize_step(step)
 
     def validate_blue_environment(self) -> DeploymentStep:
         """Validate blue environment health and readiness."""
@@ -241,10 +233,8 @@ class ProductionDeployer:
                 )
 
         except Exception as e:
-            self._extracted_from_finalize_deployment_22(
-                "Blue environment validation failed: ", e, step
-            )
-        return self._extracted_from_finalize_deployment_27(step)
+            self._mark_step_failed(step, "Blue environment validation failed: ", e)
+        return self._finalize_step(step)
 
     def execute_canary_deployment(self) -> DeploymentStep:
         """Execute canary deployment with gradual traffic shifting."""
@@ -264,10 +254,8 @@ class ProductionDeployer:
         try:
             self._execute_canary_traffic_stages(step)
         except Exception as e:
-            self._extracted_from_finalize_deployment_22(
-                "Canary deployment failed: ", e, step
-            )
-        return self._extracted_from_finalize_deployment_27(step)
+            self._mark_step_failed(step, "Canary deployment failed: ", e)
+        return self._finalize_step(step)
 
     def _execute_canary_traffic_stages(self, step):
         logger.info("Executing canary deployment...")
@@ -317,39 +305,35 @@ class ProductionDeployer:
             logger.info("Finalizing deployment...")
             self._execute_finalization_steps()
 
-            self._extracted_from_finalize_deployment_17(
+            self._mark_step_completed(
                 step,
                 "Deployment finalized successfully - "
                 "blue environment is now production",
             )
         except Exception as e:
-            self._extracted_from_finalize_deployment_22(
-                "Deployment finalization failed: ", e, step
-            )
-        return self._extracted_from_finalize_deployment_27(step)
+            self._mark_step_failed(step, "Deployment finalization failed: ", e)
+        return self._finalize_step(step)
 
-    # TODO: Rename in preparation and migration steps
-    def _extracted_from_finalize_deployment_17(self, step, arg1):
-        self._update_step_status(step, DeploymentStatus.COMPLETED, arg1)
+    def _mark_step_completed(self, step: DeploymentStep, details: str) -> None:
+        self._update_step_status(step, DeploymentStatus.COMPLETED, details)
 
-    # TODO: Rename in canary deployment steps
-    def _update_step_status(self, step, status, details):
+    def _mark_step_failed(
+        self, step: DeploymentStep, message: str, exc: Exception
+    ) -> None:
+        logger.exception("%s%s", message, exc)
+        self._update_step_status(step, DeploymentStatus.FAILED, f"{message}{exc}")
+
+    def _update_step_status(
+        self, step: DeploymentStep, status: DeploymentStatus, details: str
+    ) -> None:
         step.status = status
         step.end_time = datetime.now(timezone.utc)
         step.details = details
 
-    # TODO: Rename in all deployment steps
-    def _extracted_from_finalize_deployment_27(self, step):
+    def _finalize_step(self, step: DeploymentStep) -> DeploymentStep:
         self.steps.append(step)
         self._save_deployment_step(step)
         return step
-
-    # TODO: Rename in error handling steps
-    def _extracted_from_finalize_deployment_22(self, arg0, e, step):
-        logger.error(f"{arg0}{e}")
-        step.status = DeploymentStatus.FAILED
-        step.end_time = datetime.now(timezone.utc)
-        step.details = f"{arg0}{str(e)}"
 
     def _execute_preparation_steps(self):
         """Execute blue environment preparation steps."""
@@ -533,16 +517,16 @@ class ProductionDeployer:
         logger.info(f"Starting production deployment: {self.deployment_id}")
 
         try:
-            return self._extracted_from_run_deployment_7()
+            return self._execute_deployment_pipeline()
         except Exception as e:
-            logger.error(f"Production deployment failed: {e}")
+            logger.exception("Production deployment failed")
             return {
                 "deployment_id": self.deployment_id,
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat(),
             }
 
-    def _execute_deployment_pipeline(self):
+    def _execute_deployment_pipeline(self) -> Dict[str, Any]:
         # Execute deployment steps
         step_functions = [
             self.prepare_blue_environment,
