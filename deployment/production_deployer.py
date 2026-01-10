@@ -545,11 +545,23 @@ class ProductionDeployer:
         for index, step_func in enumerate(step_functions):
             step = step_func()
             if not isinstance(step, DeploymentStep):
-                raise TypeError(
-                    "Deployment step function at index "
-                    f"{index} ({step_func.__name__}) must return DeploymentStep, "
-                    f"got {type(step).__name__}"
+                logger.error(
+                    "Deployment step at index %d (%s) returned invalid type %s",
+                    index,
+                    step_func.__name__,
+                    type(step).__name__,
                 )
+                deployment_steps.append(
+                    DeploymentStep(
+                        step_id=f"pipeline_invalid_{index}",
+                        name=f"Invalid step return type: {step_func.__name__}",
+                        status=DeploymentStatus.FAILED,
+                        start_time=datetime.now(timezone.utc),
+                        end_time=datetime.now(timezone.utc),
+                        details="Deployment step returned an invalid type",
+                    )
+                )
+                break
             deployment_steps.append(step)
             if step.status == DeploymentStatus.FAILED:
                 break  # Stop on first failure
