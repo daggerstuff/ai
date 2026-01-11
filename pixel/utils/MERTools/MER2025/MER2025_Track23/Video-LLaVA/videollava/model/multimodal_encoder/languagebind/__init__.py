@@ -2,31 +2,26 @@ import torch
 from torch import nn
 from transformers import AutoConfig
 
-from .image.configuration_image import LanguageBindImageConfig
-from .image.modeling_image import LanguageBindImage
-from .image.tokenization_image import LanguageBindImageTokenizer
-from .image.processing_image import LanguageBindImageProcessor
-
-from .video.configuration_video import LanguageBindVideoConfig
-from .video.modeling_video import LanguageBindVideo
-from .video.tokenization_video import LanguageBindVideoTokenizer
-from .video.processing_video import LanguageBindVideoProcessor
-
-from .depth.configuration_depth import LanguageBindDepthConfig
-from .depth.modeling_depth import LanguageBindDepth
-from .depth.tokenization_depth import LanguageBindDepthTokenizer
-from .depth.processing_depth import LanguageBindDepthProcessor
-
 from .audio.configuration_audio import LanguageBindAudioConfig
 from .audio.modeling_audio import LanguageBindAudio
-from .audio.tokenization_audio import LanguageBindAudioTokenizer
 from .audio.processing_audio import LanguageBindAudioProcessor
-
+from .audio.tokenization_audio import LanguageBindAudioTokenizer
+from .depth.configuration_depth import LanguageBindDepthConfig
+from .depth.modeling_depth import LanguageBindDepth
+from .depth.processing_depth import LanguageBindDepthProcessor
+from .depth.tokenization_depth import LanguageBindDepthTokenizer
+from .image.configuration_image import LanguageBindImageConfig
+from .image.modeling_image import LanguageBindImage
+from .image.processing_image import LanguageBindImageProcessor
+from .image.tokenization_image import LanguageBindImageTokenizer
 from .thermal.configuration_thermal import LanguageBindThermalConfig
 from .thermal.modeling_thermal import LanguageBindThermal
-from .thermal.tokenization_thermal import LanguageBindThermalTokenizer
 from .thermal.processing_thermal import LanguageBindThermalProcessor
-
+from .thermal.tokenization_thermal import LanguageBindThermalTokenizer
+from .video.configuration_video import LanguageBindVideoConfig
+from .video.modeling_video import LanguageBindVideo
+from .video.processing_video import LanguageBindVideoProcessor
+from .video.tokenization_video import LanguageBindVideoTokenizer
 
 config_dict = {
     "thermal": LanguageBindThermalConfig,

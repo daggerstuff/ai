@@ -6,7 +6,8 @@ python3 -m llava.model.consolidate --src ~/model_weights/llava-7b --dst ~/model_
 import argparse
 
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
 from videollava.model import *
 from videollava.model.utils import auto_upgrade
 

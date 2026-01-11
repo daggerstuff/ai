@@ -23,13 +23,14 @@ from typing import List, Optional, Tuple, Union
 
 import torch
 import torch.utils.checkpoint
+from flash_attn import flash_attn_func
+from flash_attn.layers.rotary import apply_rotary_emb as fused_apply_rotary_emb
+from flash_attn.ops.fused_dense import fused_mlp_func
+from flash_attn.ops.layer_norm import layer_norm as fused_layer_norm
 from torch import nn
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
-from flash_attn.ops.layer_norm import layer_norm as fused_layer_norm
-from flash_attn.ops.fused_dense import fused_mlp_func
-from flash_attn.layers.rotary import apply_rotary_emb as fused_apply_rotary_emb
+from transformers import PersimmonConfig
 from transformers.activations import ACT2FN
-from flash_attn import flash_attn_func
 from transformers.modeling_outputs import (
     BaseModelOutputWithPast,
     CausalLMOutputWithPast,
@@ -42,8 +43,6 @@ from transformers.utils import (
     logging,
     replace_return_docstrings,
 )
-from transformers import PersimmonConfig
-
 
 logger = logging.get_logger(__name__)
 

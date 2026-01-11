@@ -1,33 +1,30 @@
 # This script is based on https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/modeling_llama.py
 
 """PyTorch LLaMA model."""
-import math
+import warnings
 from typing import List, Optional, Tuple, Union
 
 import torch
 import torch.utils.checkpoint
+from flash_attn.bert_padding import pad_input, unpad_input
+from flash_attn.flash_attn_interface import (
+    flash_attn_varlen_qkvpacked_func,  # flash_attnv2
+)
 from torch import nn
-from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, MSELoss
-
-import warnings
-from flash_attn.flash_attn_interface import flash_attn_varlen_qkvpacked_func  # flash_attnv2
-from flash_attn.bert_padding import unpad_input, pad_input
-
+from torch.nn import CrossEntropyLoss
 from transformers.activations import ACT2FN
 from transformers.modeling_outputs import (
     BaseModelOutputWithPast,
     CausalLMOutputWithPast,
-    SequenceClassifierOutputWithPast,
 )
 from transformers.modeling_utils import PreTrainedModel
+from transformers.models.llama.configuration_llama import LlamaConfig
 from transformers.utils import (
     add_start_docstrings,
     add_start_docstrings_to_model_forward,
     logging,
     replace_return_docstrings,
 )
-from transformers.models.llama.configuration_llama import LlamaConfig
-
 
 logger = logging.get_logger(__name__)
 

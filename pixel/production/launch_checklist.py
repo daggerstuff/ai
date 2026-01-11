@@ -3,12 +3,12 @@ Comprehensive Launch Checklist for Pixelated Empathy Therapeutic AI
 Production-ready launch validation and monitoring system.
 """
 
-import json
 import asyncio
-from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Optional
+import json
+from datetime import datetime
 from pathlib import Path
-import logging
+from typing import Dict
+
 
 class LaunchChecklist:
     def __init__(self):

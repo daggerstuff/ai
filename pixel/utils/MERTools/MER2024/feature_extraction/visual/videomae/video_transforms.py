@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 import math
-import numpy as np
+import numbers
 import random
+
+import numpy as np
+import PIL
 import torch
+import torchvision
 import torchvision.transforms.functional as F
+import videomae.functional as FF
 from PIL import Image
 from torchvision import transforms
-
-import videomae.functional as FF
 from videomae.rand_augment import rand_augment_transform
 from videomae.random_erasing import RandomErasing
-
-import PIL
-import numbers
-import torchvision
-
 
 _pil_interpolation_to_str = {
     Image.NEAREST: "PIL.Image.NEAREST",

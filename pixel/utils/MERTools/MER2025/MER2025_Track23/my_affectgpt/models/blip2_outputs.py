@@ -11,9 +11,9 @@ from typing import Optional
 
 import torch
 from transformers.modeling_outputs import (
-    ModelOutput,
     BaseModelOutputWithPoolingAndCrossAttentions,
     CausalLMOutputWithCrossAttentions,
+    ModelOutput,
 )
 
 

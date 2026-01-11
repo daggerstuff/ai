@@ -6,11 +6,10 @@ including FAISS indexes, clinical datasets, personality assessments, and therapy
 """
 
 import json
-import pickle
-from pathlib import Path
-from typing import List, Dict, Any, Optional, Union
 from dataclasses import dataclass
-import csv
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import pandas as pd
 
 try:
@@ -372,23 +371,23 @@ def main():
 
     loader = PsychologyKnowledgeLoader()
 
-    print(f"\nAvailable knowledge sources:")
+    print("\nAvailable knowledge sources:")
     sources = loader.get_available_knowledge_sources()
     for source in sources:
         print(f"  - {source['name']} ({source['type']})")
 
-    print(f"\nKnowledge statistics:")
+    print("\nKnowledge statistics:")
     stats = loader.get_knowledge_statistics()
     print(f"  Total sources: {stats['total_sources']}")
     print(f"  Available types: {', '.join(stats['available_types'])}")
     print(f"  Total size: {stats['total_size_bytes']:,} bytes")
 
-    print(f"\nLoading sample knowledge...")
+    print("\nLoading sample knowledge...")
     knowledge_items = loader.load_clinical_knowledge(limit=3)
 
     if knowledge_items:
         print(f"Loaded {len(knowledge_items)} knowledge items")
-        print(f"\nSample knowledge item:")
+        print("\nSample knowledge item:")
         sample = knowledge_items[0]
         print(f"  ID: {sample.id}")
         print(f"  Title: {sample.title}")

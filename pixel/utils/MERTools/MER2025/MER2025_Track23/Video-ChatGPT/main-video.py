@@ -1,29 +1,26 @@
-import os
-import json
-import time
-import datetime
 import argparse
+import os
+import sys
+
 import numpy as np
-
-from video_chatgpt.video_conversation import default_conversation  # 设置对话模版，
-from video_chatgpt.utils import build_logger, violates_moderation, moderation_msg
-
-# from video_chatgpt.demo.gradio_patch import Chatbot as grChatbot
-from video_chatgpt.utils import disable_torch_init
+from video_chatgpt.constants import *
 from video_chatgpt.demo.chat import Chat
 
 # from video_chatgpt.demo.template import tos_markdown, css, title, disclaimer, Seafoam
 from video_chatgpt.eval.model_utils import initialize_model
-from video_chatgpt.constants import *
 
-import sys
+# from video_chatgpt.demo.gradio_patch import Chatbot as grChatbot
+from video_chatgpt.utils import (
+    disable_torch_init,
+)
+from video_chatgpt.video_conversation import default_conversation  # 设置对话模版，
 
 sys.path.append("../")
-import config
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_affectgpt.datasets.builders.image_text_pair_builder import (
     get_name2cls,
 )  # 加载所有dataset cls
+
+import config
 
 
 def add_text(state, text, image, first_run):
@@ -151,7 +148,7 @@ if __name__ == "__main__":
             if args.subtitle_flag == "subtitle":
                 prompt = f"As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, acoustic information, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video. Subtitle content of the video: {subtitle} "
             elif args.subtitle_flag == "nosubtitle":
-                prompt = f"As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, acoustic information, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video. "
+                prompt = "As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, acoustic information, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video. "
 
             state, img_list, first_run = upload_image(video_path, state)
             state = add_text(state, prompt, video_path, first_run)

@@ -1,13 +1,13 @@
-import os
-import cv2
 import glob
-import tqdm
-import shutil
-import random
+import os
 import pickle
+import random
+import shutil
+
+import cv2
 import numpy as np
 import pandas as pd
-
+import tqdm
 from toolkit.globals import *
 from toolkit.utils.read_files import func_read_text_file
 

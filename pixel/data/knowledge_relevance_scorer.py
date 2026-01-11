@@ -5,15 +5,13 @@ Advanced scoring and ranking system for clinical knowledge relevance
 with multiple scoring algorithms, contextual weighting, and adaptive ranking.
 """
 
-from typing import List, Dict, Any, Optional, Tuple, Union, Callable
-from dataclasses import dataclass, field
-from pathlib import Path
-import json
 import logging
 import math
-from datetime import datetime
-from enum import Enum
 from collections import defaultdict
+from dataclasses import dataclass, field
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 try:
     import numpy as np
@@ -21,8 +19,8 @@ try:
 except ImportError:
     NUMPY_AVAILABLE = False
 
-from .clinical_similarity_search import EnhancedSearchResult, SearchQuery, SearchContext
 from .clinical_knowledge_embedder import KnowledgeItem
+from .clinical_similarity_search import EnhancedSearchResult, SearchContext, SearchQuery
 
 
 class ScoringAlgorithm(Enum):
@@ -684,7 +682,7 @@ def main():
         scorer = KnowledgeRelevanceScorer(config)
 
         # Create mock search results
-        from .clinical_similarity_search import SearchQuery, SearchContext
+        from .clinical_similarity_search import SearchContext, SearchQuery
 
         mock_results = []
         knowledge_items = [
@@ -699,7 +697,6 @@ def main():
              "case_study")]
 
         for item_id, content, knowledge_type in knowledge_items:
-            from .clinical_knowledge_embedder import KnowledgeItem
             from .clinical_similarity_search import EnhancedSearchResult
 
             knowledge_item = KnowledgeItem(
@@ -744,7 +741,7 @@ def main():
 
             # Get statistics
             stats = scorer.get_scoring_stats(ranked_results)
-            print(f"  Statistics:")
+            print("  Statistics:")
             print(
                 f"    Mean score: {stats['score_statistics']['mean_score']:.3f}")
             print(

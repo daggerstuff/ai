@@ -8,9 +8,9 @@ Security/Privacy/Compliance:
 - Subclasses must not log or store raw conversation data or PII.
 """
 
+import logging
 from abc import ABC, abstractmethod
 from typing import Any, Optional
-import logging
 
 # Placeholder for HIPAA logger import
 # from ai.pixel.logging.hipaa_logger import get_hipaa_logger

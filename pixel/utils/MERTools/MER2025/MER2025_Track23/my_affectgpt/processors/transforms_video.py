@@ -17,7 +17,6 @@ from torchvision.transforms import (
 
 import my_affectgpt.processors.functional_video as F
 
-
 __all__ = [
     "RandomCropVideo",
     "RandomResizedCropVideo",

@@ -13,14 +13,15 @@ from typing import List, Optional, Tuple
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from transformers import AutoTokenizer, PreTrainedModel
+from transformers import PreTrainedModel
 from transformers.modeling_outputs import CausalLMOutputWithPast
 
-from .attention import attn_bias as module_attn_bias, attn_bias_shape as module_attn_bias_shape
-from .gpt_blocks import GPTBlock
+from .attention import attn_bias as module_attn_bias
+from .attention import attn_bias_shape as module_attn_bias_shape
 from .configuration_mosaic_gpt import MosaicGPTConfig
-from .param_init_fns import MODEL_INIT_REGISTRY
+from .gpt_blocks import GPTBlock
 from .low_precision_layernorm import LPLayerNorm
+from .param_init_fns import MODEL_INIT_REGISTRY
 
 
 class MosaicGPT(PreTrainedModel):
@@ -287,7 +288,7 @@ class MosaicGPT(PreTrainedModel):
             if past_key_values is not None:
                 if len(past_key_values) != self.config.n_layers:
                     raise ValueError(
-                        f"past_key_values must provide a past_key_value for each attention "
+                        "past_key_values must provide a past_key_value for each attention "
                         + f"layer in the network ({len(past_key_values)=}; {self.config.n_layers=})."
                     )
                 # get the key tensor whose spec should be (batch, seq, dim), and

@@ -1,13 +1,12 @@
 import copy
 
+from falcon.configuration_RW import RWConfig
+from mpt.configuration_mpt import MPTConfig
+from mpt_redpajama.configuration_mosaic_gpt import MosaicGPTConfig
 from transformers.configuration_utils import PretrainedConfig
 from transformers.models.auto import CONFIG_MAPPING
 from transformers.models.clip import CLIPVisionConfig
 from transformers.utils import logging
-
-from falcon.configuration_RW import RWConfig
-from mpt.configuration_mpt import MPTConfig
-from mpt_redpajama.configuration_mosaic_gpt import MosaicGPTConfig
 
 logger = logging.get_logger(__name__)
 

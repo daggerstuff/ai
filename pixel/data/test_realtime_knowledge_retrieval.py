@@ -4,27 +4,27 @@ Unit Tests for Real-Time Knowledge Retrieval
 Tests real-time knowledge retrieval functionality for training integration.
 """
 
-import pytest
-import tempfile
 import shutil
+import tempfile
 import time
-import threading
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import Mock
 
+import pytest
+
+from .clinical_knowledge_embedder import KnowledgeItem
+from .clinical_similarity_search import EnhancedSearchResult
 from .realtime_knowledge_retrieval import (
     RealtimeKnowledgeRetrieval,
+    RetrievalMode,
     RetrievalRequest,
     RetrievalResponse,
     RetrievalStats,
-    RetrievalMode,
     TrainingPhase,
+    create_inference_retrieval_system,
     create_training_retrieval_system,
-    create_inference_retrieval_system
 )
-from .clinical_similarity_search import EnhancedSearchResult
-from .clinical_knowledge_embedder import KnowledgeItem
 
 
 class TestRetrievalMode:

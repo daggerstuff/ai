@@ -1,5 +1,4 @@
 import os as __os  # add "__" if not want to be exported
-from copy import deepcopy as __deepcopy
 
 data_dir = "your_annotation_path"
 if data_dir is None:

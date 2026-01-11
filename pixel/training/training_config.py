@@ -3,12 +3,12 @@ Pixel LLM Training Configuration
 Handles GPU/compute resource setup and training configuration
 """
 
-import os
 import json
 import logging
-from dataclasses import dataclass, asdict
-from typing import Dict, Optional, List
+import os
+from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Dict, List
 
 import torch
 import torch.distributed as dist

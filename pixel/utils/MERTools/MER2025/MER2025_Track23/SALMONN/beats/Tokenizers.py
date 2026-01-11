@@ -8,10 +8,13 @@
 # --------------------------------------------------------
 
 
+import logging
+from typing import Optional
+
 import torch
 import torch.nn as nn
-from torch.nn import LayerNorm
 import torchaudio.compliance.kaldi as ta_kaldi
+from torch.nn import LayerNorm
 
 from beats.backbone import (
     TransformerEncoder,
@@ -19,9 +22,6 @@ from beats.backbone import (
 from beats.quantizer import (
     NormEMAVectorQuantizer,
 )
-
-import logging
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

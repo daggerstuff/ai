@@ -16,12 +16,10 @@ Target: 10-15 licensed professionals across diverse specialties
 """
 from __future__ import annotations
 
-import json
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
-from enum import Enum
-from pathlib import Path
 import logging
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -321,7 +319,7 @@ class ProfessionalEvaluatorRecruitment:
         for specialty, coverage in specialty_coverage.items():
             report += f"- **{specialty.value.replace('_', ' ').title()}**: {coverage['evaluators']} evaluators\n"
         
-        report += f"""
+        report += """
 
 ## Recruitment Needs
 """

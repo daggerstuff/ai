@@ -7,14 +7,14 @@ safety incident response procedures document.
 """
 
 import asyncio
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Dict, List, Optional, Any, Callable
 import json
+import logging
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
 from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -702,7 +702,7 @@ if __name__ == "__main__":
         await asyncio.sleep(1)
         
         system_status = response_system.get_system_status()
-        print(f"\n=== SYSTEM STATUS ===")
+        print("\n=== SYSTEM STATUS ===")
         for key, value in system_status.items():
             print(f"{key}: {value}")
         
@@ -710,7 +710,7 @@ if __name__ == "__main__":
         await response_system.resolve_incident(incident_id, "Root cause identified and fixed", "safety_engineer")
         await response_system.resolve_incident(incident_id_2, "Detection parameters adjusted", "technical_team")
         
-        print(f"\nIncidents resolved. Final system status:")
+        print("\nIncidents resolved. Final system status:")
         final_status = response_system.get_system_status()
         print(f"Active incidents: {final_status['active_incidents']}")
         print(f"Total incidents handled: {final_status['total_incidents']}")

@@ -1,9 +1,8 @@
 # *_*coding:utf-8 *_*
-import os
-import re
-import pandas as pd
-import numpy as np
 import struct
+
+import numpy as np
+import pandas as pd
 
 
 ## for OPENFACE

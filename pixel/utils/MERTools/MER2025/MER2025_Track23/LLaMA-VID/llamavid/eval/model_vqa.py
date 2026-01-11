@@ -1,23 +1,26 @@
 import argparse
-import torch
-import os
 import json
-from tqdm import tqdm
-import shortuuid
-
-from llamavid.constants import (
-    IMAGE_TOKEN_INDEX,
-    DEFAULT_IMAGE_TOKEN,
-    DEFAULT_IM_START_TOKEN,
-    DEFAULT_IM_END_TOKEN,
-)
-from llamavid.conversation import conv_templates, SeparatorStyle
-from llamavid.model.builder import load_pretrained_model
-from llava.utils import disable_torch_init
-from llava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
-
-from PIL import Image
 import math
+import os
+
+import shortuuid
+import torch
+from llamavid.constants import (
+    DEFAULT_IM_END_TOKEN,
+    DEFAULT_IM_START_TOKEN,
+    DEFAULT_IMAGE_TOKEN,
+    IMAGE_TOKEN_INDEX,
+)
+from llamavid.conversation import SeparatorStyle, conv_templates
+from llamavid.model.builder import load_pretrained_model
+from llava.mm_utils import (
+    KeywordsStoppingCriteria,
+    get_model_name_from_path,
+    tokenizer_image_token,
+)
+from llava.utils import disable_torch_init
+from PIL import Image
+from tqdm import tqdm
 
 
 def split_list(lst, n):

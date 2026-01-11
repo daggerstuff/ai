@@ -5,19 +5,19 @@ link: https://github.com/thuiar/MMSA-FET/tree/master
 
 import torch.nn as nn
 
-from .tfn import TFN
-from .lmf import LMF
-from .mfn import MFN
-from .mfm import MFM
-from .mult import MULT
-from .misa import MISA
-from .mctn import MCTN
-from .mmim import MMIM
-from .lf_dnn import LF_DNN
-from .ef_lstm import EF_LSTM
-from .graph_mfn import Graph_MFN
 from .attention import Attention
 from .attention_topn import Attention_TOPN
+from .ef_lstm import EF_LSTM
+from .graph_mfn import Graph_MFN
+from .lf_dnn import LF_DNN
+from .lmf import LMF
+from .mctn import MCTN
+from .mfm import MFM
+from .mfn import MFN
+from .misa import MISA
+from .mmim import MMIM
+from .mult import MULT
+from .tfn import TFN
 
 
 class get_models(nn.Module):

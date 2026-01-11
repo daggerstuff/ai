@@ -1,8 +1,8 @@
-import os
-import cv2
-import tqdm
 import glob
+import os
+
 import numpy as np
+import tqdm
 
 
 # find error frames.npy

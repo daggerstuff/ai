@@ -1,20 +1,22 @@
 # *_*coding:utf-8 *_*
-import os
-import time
 import argparse
-import numpy as np
-import pandas as pd
-
-import torch
-from transformers import (
-    AutoModel,
-    BertTokenizer,
-    AutoTokenizer,
-)  # version: 4.5.1, pip install transformers
-from transformers import GPT2Tokenizer, GPT2Model, AutoModelForCausalLM
+import os
 
 # local folder
 import sys
+import time
+
+import numpy as np
+import pandas as pd
+import torch
+from transformers import (
+    AutoModel,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BertTokenizer,
+    GPT2Model,
+    GPT2Tokenizer,
+)  # version: 4.5.1, pip install transformers
 
 sys.path.append("../../")
 import config

@@ -11,17 +11,24 @@ from transformers.modeling_outputs import BaseModelOutput, BaseModelOutputWithPo
 from transformers.models.clip.modeling_clip import (
     CLIPMLP,
     CLIPAttention,
+    CLIPOutput,
     CLIPTextEmbeddings,
+    CLIPTextModelWithProjection,
     CLIPVisionEmbeddings,
     CLIPVisionModelWithProjection,
-    CLIPTextModelWithProjection,
     _expand_mask,
-    CLIPOutput,
     clip_loss,
 )
-from transformers.utils import add_start_docstrings_to_model_forward, replace_return_docstrings
+from transformers.utils import (
+    add_start_docstrings_to_model_forward,
+    replace_return_docstrings,
+)
 
-from .configuration_audio import LanguageBindAudioConfig, CLIPVisionConfig, CLIPTextConfig
+from .configuration_audio import (
+    CLIPTextConfig,
+    CLIPVisionConfig,
+    LanguageBindAudioConfig,
+)
 
 
 class PatchDropout(nn.Module):

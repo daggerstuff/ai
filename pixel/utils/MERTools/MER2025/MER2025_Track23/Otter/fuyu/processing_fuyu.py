@@ -19,10 +19,14 @@ import re
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
-
 from transformers.processing_utils import ProcessorMixin
-from transformers.utils import TensorType, is_torch_available, logging, requires_backends
-from transformers.tokenization_utils_base import TruncationStrategy, PaddingStrategy
+from transformers.tokenization_utils_base import PaddingStrategy, TruncationStrategy
+from transformers.utils import (
+    TensorType,
+    is_torch_available,
+    logging,
+    requires_backends,
+)
 
 if is_torch_available():
     # from .image_processing_fuyu import FuyuBatchFeature

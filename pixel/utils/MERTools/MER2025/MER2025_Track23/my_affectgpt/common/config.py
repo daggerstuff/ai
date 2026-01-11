@@ -1,9 +1,9 @@
-import os
 import json
-import glob
 import logging
-from typing import Dict
+import os
+
 from omegaconf import OmegaConf
+
 from my_affectgpt.common.registry import registry
 
 
@@ -150,7 +150,7 @@ class Config:
             else:
                 logging.warning(f"No dataset named '{dataset}' in config. Skipping")
 
-        logging.info(f"\n======  Model Attributes  ======")
+        logging.info("\n======  Model Attributes  ======")
         logging.info(self._convert_node_to_json(self.config.model))
 
     # write into logging

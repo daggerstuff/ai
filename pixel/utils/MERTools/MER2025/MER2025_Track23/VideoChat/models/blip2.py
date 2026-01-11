@@ -7,16 +7,14 @@ For full license text, see the LICENSE_Lavis file in the repo root or https://op
 
 import contextlib
 import os
-import logging
+import sys
 
 import torch
 import torch.nn as nn
-
-from .Qformer import BertConfig, BertLMHeadModel
-from .eva_vit import create_eva_vit_g
 from transformers import BertTokenizer
 
-import sys
+from .eva_vit import create_eva_vit_g
+from .Qformer import BertConfig, BertLMHeadModel
 
 sys.path.append("../")
 import config
@@ -47,7 +45,7 @@ class Blip2Base(nn.Module):
             elif torch.__version__.startswith("2.1.0"):
                 return torch.cuda.amp.autocast(dtype=dtype)
             else:
-                assert 1 == 0, f"unsupport torch version"
+                assert 1 == 0, "unsupport torch version"
         else:
             return contextlib.nullcontext()
 

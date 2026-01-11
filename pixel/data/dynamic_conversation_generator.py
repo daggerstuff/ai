@@ -6,27 +6,30 @@ client presentations, therapeutic goals, and contextual factors. Integrates
 with psychology knowledge base and clinical validation systems.
 """
 
-import asyncio
+import json
 import logging
+import random
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Union
-import json
-import random
-import numpy as np
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-from .therapeutic_conversation_schema import (
-    TherapeuticModality, ClinicalContext, ClinicalSeverity,
-    ConversationRole, TherapeuticConversation
-)
-from .therapist_response_generator import (
-    TherapistResponseGenerator, InterventionType, TherapistResponse
-)
-from .psychology_knowledge_processor import PsychologyKnowledgeProcessor
+import numpy as np
+
 from .clinical_knowledge_embedder import ClinicalKnowledgeEmbedder
 from .clinical_similarity_search import ClinicalSimilaritySearch
+from .psychology_knowledge_processor import PsychologyKnowledgeProcessor
+from .therapeutic_conversation_schema import (
+    ClinicalContext,
+    ConversationRole,
+    TherapeuticModality,
+)
+from .therapist_response_generator import (
+    InterventionType,
+    TherapistResponse,
+    TherapistResponseGenerator,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -470,7 +473,7 @@ class DynamicConversationGenerator:
             intervention_type = InterventionType.ASSESSMENT
         
         return ConversationTurn(
-            turn_id=f"turn_000",
+            turn_id="turn_000",
             speaker=ConversationRole.THERAPIST,
             content=content,
             clinical_rationale="Opening assessment to establish rapport and understand client's current state",
@@ -698,13 +701,13 @@ class DynamicConversationGenerator:
             # Add modality-appropriate language
             keyword = random.choice(expected_keywords)
             if modality == TherapeuticModality.CBT:
-                response.content += f" What thoughts come up for you about this?"
+                response.content += " What thoughts come up for you about this?"
             elif modality == TherapeuticModality.DBT:
-                response.content += f" Let's think about what skills might be helpful here."
+                response.content += " Let's think about what skills might be helpful here."
             elif modality == TherapeuticModality.PSYCHODYNAMIC:
-                response.content += f" I'm curious about the patterns you're noticing."
+                response.content += " I'm curious about the patterns you're noticing."
             elif modality == TherapeuticModality.HUMANISTIC:
-                response.content += f" How does this feel for you right now?"
+                response.content += " How does this feel for you right now?"
         
         return response
     
@@ -1309,12 +1312,12 @@ class DynamicConversationGenerator:
                 f.write(f"\nQuality Metrics: {conversation.quality_metrics}\n")
                 
                 if conversation.recommendations:
-                    f.write(f"\nRecommendations:\n")
+                    f.write("\nRecommendations:\n")
                     for rec in conversation.recommendations:
                         f.write(f"- {rec}\n")
                 
                 if conversation.warnings:
-                    f.write(f"\nWarnings:\n")
+                    f.write("\nWarnings:\n")
                     for warning in conversation.warnings:
                         f.write(f"- {warning}\n")
         

@@ -1,15 +1,13 @@
-import os
-import glob
-import tqdm
 import math
-import pickle
-import numpy as np
 import multiprocessing
+import os
+
+import numpy as np
+import tqdm
 
 from ..globals import *
 from .functions import *
 from .read_files import *
-from toolkit.models.modules.affectgpt.models.ImageBind.data import load_and_transform_audio_data
 
 
 ############################################################
@@ -65,7 +63,7 @@ def func_read_multiprocess(feature_root, names, processor=None, read_type="feat"
     feature_shape = np.array(features[0]).shape
     feature_name = os.path.basename(feature_root)
     print(f"Input feature {feature_name} ===> dim is {feature_shape}")
-    assert len(names) == len(features), f"Error: len(names) != len(features)"
+    assert len(names) == len(features), "Error: len(names) != len(features)"
     return features, feature_shape[-1]
 
 

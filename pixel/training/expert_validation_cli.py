@@ -18,20 +18,21 @@ from __future__ import annotations
 
 import argparse
 import json
-from dataclasses import asdict
-from pathlib import Path
-from typing import Dict, Iterable, List
 import random
 import uuid
+from pathlib import Path
+from typing import Dict, List
 
+from ai.dataset_pipeline.schemas.conversation_schema import Conversation
+from ai.dataset_pipeline.training_manifest import (
+    create_safety_aware_manifest,
+)
 from ai.pixel.training.expert_validation_dataset import (
     ExpertValidationDataset,
     ExpertValidationExample,
     ScenarioType,
     build_sample_conversations,
 )
-from ai.dataset_pipeline.schemas.conversation_schema import Conversation, Message
-from ai.dataset_pipeline.training_manifest import TrainingManifest, DatasetReference, create_safety_aware_manifest
 
 
 def read_conversations_jsonl(path: Path) -> List[Conversation]:

@@ -6,20 +6,24 @@ client state, therapeutic relationship, session dynamics, and treatment progress
 Integrates with modality integration system for contextually appropriate responses.
 """
 
-import asyncio
+import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Union
-import json
-import numpy as np
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-from .therapeutic_conversation_schema import TherapeuticModality, ClinicalContext
-from .therapist_response_generator import InterventionType, TherapistResponse
-from .dynamic_conversation_generator import ConversationTurn, ConversationRole, ConversationPhase
-from .therapeutic_modality_integrator import TherapeuticModalityIntegrator, IntegratedResponse
+import numpy as np
+
+from .dynamic_conversation_generator import (
+    ConversationPhase,
+    ConversationRole,
+    ConversationTurn,
+)
+from .therapeutic_conversation_schema import ClinicalContext
+from .therapeutic_modality_integrator import TherapeuticModalityIntegrator
+from .therapist_response_generator import TherapistResponse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -4,13 +4,13 @@ from torchvision import transforms
 from torchvision.transforms import InterpolationMode
 
 from dataset.dataloader import MetaLoader
-from dataset.pt_dataset import (
-    PTImgTrainDataset,
-    PTVidTrainDataset,
-    PTImgEvalDataset,
-    PTVidEvalDataset,
-)
 from dataset.it_dataset import ITImgTrainDataset, ITVidTrainDataset
+from dataset.pt_dataset import (
+    PTImgEvalDataset,
+    PTImgTrainDataset,
+    PTVidEvalDataset,
+    PTVidTrainDataset,
+)
 
 
 def get_media_type(dataset_config):

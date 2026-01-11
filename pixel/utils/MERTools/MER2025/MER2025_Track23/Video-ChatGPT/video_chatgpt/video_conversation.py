@@ -1,6 +1,7 @@
 import dataclasses
-from enum import auto, Enum
+from enum import Enum, auto
 from typing import List
+
 from video_chatgpt.eval.model_utils import load_video
 
 
@@ -91,7 +92,7 @@ class Conversation:
         try:
             if "<video>" in ret[0][0]:
                 ret[0][0] = ret[0][0].replace("<video>", "")
-        except Exception as e:
+        except Exception:
             pass
 
         return ret

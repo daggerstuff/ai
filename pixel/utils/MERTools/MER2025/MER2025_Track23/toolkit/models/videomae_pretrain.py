@@ -1,7 +1,8 @@
 import math
+
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 from transformers import VideoMAEForPreTraining
 
 from ..globals import *

@@ -1,18 +1,18 @@
-import os
-import time
-import glob
-import shutil
 import argparse
-import numpy as np
+import glob
+import os
 
 # import config
 import sys
+import time
+
+import numpy as np
 
 sys.path.append("../../")
-import config
-
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
+
+import config
 
 
 def extract(audio_files, save_dir, feature_level, finetune):

@@ -1,24 +1,23 @@
-import os
-import glob
 import argparse
+import os
+import sys
+
 import numpy as np
-from conversation import Chat
 
 # videochat
 import torch
+from conversation import Chat
+from models.videochat import VideoChat
 from utils.config import Config
 from utils.easydict import EasyDict
-from models.videochat import VideoChat
-
-import sys
 
 sys.path.append("../")
 
-import config
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_affectgpt.datasets.builders.image_text_pair_builder import (
     get_name2cls,
 )  # 加载所有dataset cls
+
+import config
 
 
 # ========================================
@@ -125,7 +124,7 @@ if __name__ == "__main__":
             if args.subtitle_flag == "subtitle":
                 text_input = f"Subtitle content of the video: {subtitle}; As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video. "
             elif args.subtitle_flag == "nosubtitle":
-                text_input = f"As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video. "
+                text_input = "As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video. "
 
             img_list = []
             chat_state = []

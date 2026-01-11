@@ -5,22 +5,20 @@ SPDX-License-Identifier: BSD-3-Clause
 For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 
+import random as rnd
+
 import cv2
 import decord
 import numpy as np
-import random as rnd
-from omegaconf import OmegaConf
-
 import torch
+from decord import VideoReader
+from omegaconf import OmegaConf
 from torchvision import transforms
 
-from decord import VideoReader
+from my_affectgpt.common.registry import registry
+from my_affectgpt.processors import functional_video as F
 from my_affectgpt.processors import transforms_video
 from my_affectgpt.processors.base_processor import BaseProcessor
-from my_affectgpt.processors.randaugment import VideoRandomAugment
-from my_affectgpt.processors import functional_video as F
-from my_affectgpt.common.registry import registry
-
 
 MAX_INT = registry.get("MAX_INT")
 decord.bridge.set_bridge("torch")

@@ -3,9 +3,9 @@ Test script for Pixel LLM training configuration
 Verifies GPU/compute resource setup
 """
 
-import sys
 import json
 import logging
+import sys
 from pathlib import Path
 
 logging.basicConfig(
@@ -82,7 +82,7 @@ def test_training_config():
         batch_size=16,
         output_dir="./custom_outputs"
     )
-    logger.info(f"✓ Created config with custom parameters")
+    logger.info("✓ Created config with custom parameters")
     logger.info(f"  Num epochs: {manager2.training_config.num_epochs}")
     logger.info(f"  Learning rate: {manager2.training_config.learning_rate}")
     logger.info(f"  Batch size: {manager2.training_config.per_device_train_batch_size}")

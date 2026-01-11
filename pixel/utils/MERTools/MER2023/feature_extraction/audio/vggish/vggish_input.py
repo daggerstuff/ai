@@ -15,11 +15,11 @@
 
 """Compute input examples for VGGish from audio waveform."""
 
+import math
+
 import numpy as np
 import resampy  # verison: 0.2.2, pip install resampy
-import math
-from vggish import mel_features
-from vggish import vggish_params
+from vggish import mel_features, vggish_params
 
 try:
     import soundfile as sf

@@ -13,9 +13,9 @@ from __future__ import annotations
 import argparse
 import json
 from pathlib import Path
-from typing import Any, Dict
+from typing import Dict
 
-from ai.pixel.training.expert_review_workflow import ExpertReviewWorkflow, Expert
+from ai.pixel.training.expert_review_workflow import Expert, ExpertReviewWorkflow
 
 
 def cmd_create_requests(args) -> None:

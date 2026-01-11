@@ -5,14 +5,11 @@ Implements advanced similarity search for relevant clinical knowledge retrieval
 with semantic matching, contextual relevance, and clinical domain expertise.
 """
 
-from typing import List, Dict, Any, Optional, Tuple, Union, Set
-from dataclasses import dataclass, field
-from pathlib import Path
-import json
 import logging
-from datetime import datetime
+from dataclasses import dataclass, field
 from enum import Enum
-import re
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple, Union
 
 try:
     import numpy as np
@@ -20,8 +17,8 @@ try:
 except ImportError:
     NUMPY_AVAILABLE = False
 
-from .faiss_knowledge_index import FAISSKnowledgeIndex, SearchResult, IndexConfig
 from .clinical_knowledge_embedder import ClinicalKnowledgeEmbedder, KnowledgeItem
+from .faiss_knowledge_index import FAISSKnowledgeIndex, SearchResult
 
 
 class SearchContext(Enum):

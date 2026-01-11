@@ -6,29 +6,25 @@ assessments, including trend analysis, expert feedback integration, and
 continuous improvement mechanisms.
 """
 
-import asyncio
+import base64
+import json
 import logging
+import sqlite3
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Union
-import json
-import numpy as np
-import pandas as pd
-from pathlib import Path
-import sqlite3
-from collections import defaultdict
-import matplotlib.pyplot as plt
-import seaborn as sns
 from io import BytesIO
-import base64
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import matplotlib.pyplot as plt
+import pandas as pd
 
 from .clinical_accuracy_validator import (
-    ClinicalAccuracyResult,
     ClinicalAccuracyLevel,
-    TherapeuticModality,
-    SafetyRiskLevel,
+    ClinicalAccuracyResult,
     ClinicalAccuracyValidator,
+    SafetyRiskLevel,
 )
 
 # Configure logging

@@ -1,8 +1,10 @@
 from pathlib import Path
-import json
 
-from ai.pixel.training.expert_validation_dataset import build_sample_conversations, ExpertValidationDataset
-from ai.pixel.training.expert_review_workflow import ExpertReviewWorkflow, Expert
+from ai.pixel.training.expert_review_workflow import Expert, ExpertReviewWorkflow
+from ai.pixel.training.expert_validation_dataset import (
+    ExpertValidationDataset,
+    build_sample_conversations,
+)
 
 
 def test_workflow_end_to_end(tmp_path: Path):

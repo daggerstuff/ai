@@ -4,7 +4,6 @@ test_memory_profiler.py
 Unit tests for the MemoryProfiler system covering snapshot capture, leak detection, component profiling, memory analysis, optimization workflows, and integration testing.
 """
 
-import pytest
 from ai.pixel.models.memory_profiler import MemoryProfiler
 
 

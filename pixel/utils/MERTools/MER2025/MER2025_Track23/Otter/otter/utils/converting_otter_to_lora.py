@@ -1,9 +1,8 @@
 import argparse
-import torch
-import sys
+
+from peft import LoraConfig, TaskType, get_peft_model
 
 from .modeling_otter import OtterForConditionalGeneration
-from peft import get_peft_model, LoraConfig, TaskType
 
 MODEL_CLASSES = {
     "LlamaForCausalLM": "llama",

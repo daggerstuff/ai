@@ -1,21 +1,20 @@
-import os
-import six
-import sys
 import argparse
-import numpy as np
+import os
+import sys
 
+import numpy as np
+import six
 import torch
 import torch._utils
 import torch.nn as nn
 import torch.utils.data
-from torch.nn import functional as F
 import torchvision.transforms as transforms
-
-import sys
+from torch.nn import functional as F
 
 sys.path.append("../../")
-import config
 from dataset import FaceDataset
+
+import config
 
 try:
     torch._utils._rebuild_tensor_v2
@@ -158,7 +157,7 @@ if __name__ == "__main__":
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = params.gpu
 
-    print(f"==> Extracting ferplus embedding...")
+    print("==> Extracting ferplus embedding...")
     face_dir = config.PATH_TO_RAW_FACE[params.dataset]
     save_name = f"{params.model_name.split('_')[0]}face_{params.feature_level[:3]}"
     save_dir = os.path.join(config.PATH_TO_FEATURES[params.dataset], save_name)

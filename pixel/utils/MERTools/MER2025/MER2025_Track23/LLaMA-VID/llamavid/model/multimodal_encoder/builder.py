@@ -1,4 +1,5 @@
 import os
+
 from .clip_encoder import CLIPVisionTower
 from .eva_vit import EVAVisionTowerLavis
 

@@ -2,8 +2,9 @@
 Hacked together by / Copyright 2020 Ross Wightman
 """
 
-from torch.optim import Optimizer
 import math
+
+from torch.optim import Optimizer
 from torch.optim.lr_scheduler import LambdaLR
 
 

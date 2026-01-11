@@ -13,18 +13,17 @@
 #    limitations under the License.
 
 
-from typing import List, Optional, Tuple
+import math
 import warnings
+from typing import List, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
-import math
-
 from transformers import AutoConfig, AutoModelForCausalLM
 from transformers.modeling_outputs import CausalLMOutputWithPast
+from videollava.model.llava_arch import LlavaMetaForCausalLM, LlavaMetaModel
 
 from .mpt.modeling_mpt import MPTConfig, MPTForCausalLM, MPTModel
-from videollava.model.llava_arch import LlavaMetaModel, LlavaMetaForCausalLM
 
 
 class LlavaMPTConfig(MPTConfig):

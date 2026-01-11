@@ -1,19 +1,20 @@
 import torch
 
 torch.manual_seed(1234)
-import os
 import argparse
-import numpy as np
-
+import os
 import sys
+
+import numpy as np
 
 sys.path.append("../")
 
-import config
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_affectgpt.datasets.builders.image_text_pair_builder import (
     get_name2cls,
 )  # 加载所有dataset cls
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+import config
 
 if __name__ == "__main__":
 
@@ -85,7 +86,7 @@ if __name__ == "__main__":
                     [
                         {"audio": audio_path},  # Either a local path or an url
                         {
-                            "text": f"As an expert in the field of emotions, please focus on the acoustic information and subtitle content in the audio to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the audio."
+                            "text": "As an expert in the field of emotions, please focus on the acoustic information and subtitle content in the audio to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the audio."
                         },
                     ]
                 )

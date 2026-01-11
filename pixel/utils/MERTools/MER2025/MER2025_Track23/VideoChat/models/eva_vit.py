@@ -5,11 +5,10 @@
 # https://github.com/facebookresearch/deit/
 # https://github.com/facebookresearch/dino
 # --------------------------------------------------------'
-import os
 import math
-import logging
-from functools import partial
+import os
 from collections import OrderedDict
+from functools import partial
 
 import torch
 import torch.nn as nn
@@ -746,9 +745,9 @@ def create_eva_vit_g(
 
 if __name__ == "__main__":
     import time
-    from fvcore.nn import FlopCountAnalysis
-    from fvcore.nn import flop_count_table
+
     import numpy as np
+    from fvcore.nn import FlopCountAnalysis, flop_count_table
 
     seed = 4217
     np.random.seed(seed)

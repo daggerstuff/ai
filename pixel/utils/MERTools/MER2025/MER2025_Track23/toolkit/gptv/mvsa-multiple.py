@@ -1,22 +1,20 @@
+import glob
 import os
 import re
-import glob
-import tqdm
 import shutil
-from sklearn.metrics import f1_score
 
-from toolkit.utils.read_files import *
+import matplotlib
+import tqdm
+from sklearn.metrics import f1_score
 from toolkit.utils.chatgpt import (
-    get_social_multi_batch,
     get_social_image_batch,
+    get_social_multi_batch,
     get_social_text_batch,
 )
 from toolkit.utils.functions import func_label_distribution, func_plot_confusion_matrix
-
-import matplotlib
+from toolkit.utils.read_files import *
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 
 emos = ["negative", "neutral", "positive"]
 emo2idx = {}

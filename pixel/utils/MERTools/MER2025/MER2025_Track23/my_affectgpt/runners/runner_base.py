@@ -15,6 +15,9 @@ from pathlib import Path
 import torch
 import torch.distributed as dist
 import webdataset as wds
+from torch.nn.parallel import DistributedDataParallel as DDP
+from torch.utils.data import DataLoader, DistributedSampler
+
 from my_affectgpt.common.dist_utils import (
     download_cached_file,
     get_rank,
@@ -24,19 +27,15 @@ from my_affectgpt.common.dist_utils import (
 )
 from my_affectgpt.common.registry import registry
 from my_affectgpt.common.utils import is_url
-from my_affectgpt.datasets.data_utils import concat_datasets, reorg_datasets_by_split, ChainDataset
+from my_affectgpt.datasets.data_utils import (
+    ChainDataset,
+    reorg_datasets_by_split,
+)
 from my_affectgpt.datasets.datasets.dataloader_utils import (
     IterLoader,
     MultiIterLoader,
     PrefetchLoader,
 )
-from my_affectgpt.common.optims import (
-    LinearWarmupCosineLRScheduler,
-    LinearWarmupStepLRScheduler,
-)
-
-from torch.utils.data import DataLoader, DistributedSampler
-from torch.nn.parallel import DistributedDataParallel as DDP
 
 
 @registry.register_runner("runner_base")
@@ -156,7 +155,7 @@ class RunnerBase:
                 elif torch.__version__.startswith("2.1.0"):
                     self._scaler = torch.cuda.amp.GradScaler()
                 else:
-                    assert 1 == 0, f"unsupport torch version"
+                    assert 1 == 0, "unsupport torch version"
         return self._scaler
 
     @property
@@ -236,7 +235,7 @@ class RunnerBase:
                     # mixed wds.DataPipeline and torch.utils.data.Dataset
                     num_records = sum(
                         [
-                            len(d) if not type(d) in [wds.DataPipeline, ChainDataset] else 0
+                            len(d) if type(d) not in [wds.DataPipeline, ChainDataset] else 0
                             for d in self.datasets[split_name]
                         ]
                     )
@@ -652,7 +651,7 @@ class RunnerBase:
         checkpoint = torch.load(checkpoint_path, map_location="cpu")
         try:
             model.load_state_dict(checkpoint["model"])
-        except RuntimeError as e:
+        except RuntimeError:
             logging.warning(
                 """
                 Key mismatch when loading checkpoint. This is expected if only part of the model is saved.

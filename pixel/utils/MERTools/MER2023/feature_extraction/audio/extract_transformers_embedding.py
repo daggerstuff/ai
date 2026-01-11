@@ -1,15 +1,15 @@
-import os
-import time
-import glob
-import torch
 import argparse
-import numpy as np
-import soundfile as sf
-
-from transformers import Wav2Vec2FeatureExtractor  # pip install transformers==4.16.2
+import glob
+import os
 
 # import config
 import sys
+import time
+
+import numpy as np
+import soundfile as sf
+import torch
+from transformers import Wav2Vec2FeatureExtractor  # pip install transformers==4.16.2
 
 sys.path.append("../../")
 import config

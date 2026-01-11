@@ -1,15 +1,13 @@
 import re
+
+import numpy as np
 import torch
 import torch.utils.checkpoint
-
+from decord import VideoReader
+from PIL import Image
+from transformers.models.clip.image_processing_clip import CLIPImageProcessor
 from transformers.processing_utils import ProcessorMixin
 from transformers.tokenization_utils_base import BatchEncoding
-from transformers.models.clip.image_processing_clip import CLIPImageProcessor
-from mplug_owl_video.tokenization_mplug_owl import MplugOwlTokenizer
-
-from decord import VideoReader
-import numpy as np
-from PIL import Image
 
 
 def get_index(num_frames, num_segments):

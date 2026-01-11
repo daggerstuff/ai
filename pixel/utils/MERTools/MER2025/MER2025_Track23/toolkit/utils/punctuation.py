@@ -3,16 +3,12 @@
 """
 
 import os
-import glob
-import shutil
-import random
-import numpy as np
+import string
 
+import numpy as np
+import zhon
 from toolkit.globals import *
 from toolkit.utils.read_files import *
-
-import zhon
-import string
 
 
 def is_chinese_character(_char):

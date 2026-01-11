@@ -1,20 +1,18 @@
-import re
-import os
 import copy
+import os
+
 import einops
-import random
-import logging
 import torch
 import torch.nn as nn
+from toolkit.globals import *
 from torch.cuda.amp import autocast as autocast
-from transformers import LlamaTokenizer, BertConfig
+from transformers import BertConfig, LlamaTokenizer
 
 from .blip2 import Blip2Base, disabled_train
-from .modeling_llama import LlamaForCausalLM
-from .Qformer import BertConfig, BertLMHeadModel
 from .ImageBind.models import imagebind_model
 from .ImageBind.models.imagebind_model import ModalityType
-from toolkit.globals import *
+from .modeling_llama import LlamaForCausalLM
+from .Qformer import BertConfig, BertLMHeadModel
 
 
 class VideoLLAMA(Blip2Base):

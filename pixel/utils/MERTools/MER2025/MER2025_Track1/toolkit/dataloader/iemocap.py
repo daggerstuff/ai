@@ -1,10 +1,10 @@
 import numpy as np
+from sklearn.metrics import accuracy_score, f1_score
+from toolkit.data import get_datasets
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
-from sklearn.metrics import f1_score, accuracy_score
 
 from ..globals import *
-from toolkit.data import get_datasets
 
 
 # MER 测试的时候，是将 train 随机分成5份进行cv，test包括 [test1, test2, test3]
@@ -91,7 +91,7 @@ class IEMOCAP:
             if session not in session_to_idx:
                 session_to_idx[session] = []
             session_to_idx[session].append(idx)
-        assert len(session_to_idx) == self.num_folder, f"Must split into five folder"
+        assert len(session_to_idx) == self.num_folder, "Must split into five folder"
 
         train_test_idxs = []
         for ii in range(self.num_folder):  # ii in [0, 4]

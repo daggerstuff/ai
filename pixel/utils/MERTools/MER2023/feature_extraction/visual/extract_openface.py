@@ -1,12 +1,13 @@
-import os
-import glob
-import shutil
 import argparse
-import numpy as np
-from util import read_hog, read_csv
+import glob
+import os
+import shutil
 
 # import config
 import sys
+
+import numpy as np
+from util import read_csv, read_hog
 
 sys.path.append("../../")
 import config
@@ -116,7 +117,7 @@ if __name__ == "__main__":
     )
     params = parser.parse_args()
 
-    print(f"==> Extracting openface features...")
+    print("==> Extracting openface features...")
 
     # in: face dir
     dataset = params.dataset
@@ -167,4 +168,4 @@ if __name__ == "__main__":
     # process
     extract(input_dir, process_type, save_dir, face_dir, hog_dir, pose_dir)
 
-    print(f"==> Finish")
+    print("==> Finish")

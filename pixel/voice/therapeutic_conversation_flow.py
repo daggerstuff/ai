@@ -17,11 +17,10 @@ Output: Structured therapeutic conversation with appropriate flow
 """
 from __future__ import annotations
 
-import json
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
-from enum import Enum
 import logging
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

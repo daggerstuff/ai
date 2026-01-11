@@ -1,12 +1,12 @@
+import glob
 import os
 import re
-import cv2
-import glob
-import tqdm
 import shutil
-from toolkit.utils.read_files import *
+
+import tqdm
 from toolkit.utils.chatgpt import get_evoke_emotion_batch
-from toolkit.utils.functions import func_label_distribution, func_plot_confusion_matrix
+from toolkit.utils.functions import func_plot_confusion_matrix
+from toolkit.utils.read_files import *
 
 emos = ["positive", "negative"]
 

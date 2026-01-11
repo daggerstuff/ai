@@ -1,20 +1,21 @@
-import os
 import argparse
-import numpy as np
+import os
 
+# import config
+import sys
+
+import numpy as np
 import torch
 import torch.nn.parallel
 import torch.optim
 import torch.utils.data
 import torchvision.transforms as transforms
 
-# import config
-import sys
-
 sys.path.append("../../")
-import config
 from dataset import FaceDataset
 from manet.model.manet import manet
+
+import config
 
 
 class RecorderMeter(object):
@@ -55,7 +56,7 @@ if __name__ == "__main__":
     params = parser.parse_args()
     os.environ["CUDA_VISIBLE_DEVICES"] = params.gpu
 
-    print(f"==> Extracting manet embedding...")
+    print("==> Extracting manet embedding...")
     face_dir = config.PATH_TO_RAW_FACE[params.dataset]
     save_dir = os.path.join(
         config.PATH_TO_FEATURES[params.dataset], f"manet_{params.feature_level[:3]}"

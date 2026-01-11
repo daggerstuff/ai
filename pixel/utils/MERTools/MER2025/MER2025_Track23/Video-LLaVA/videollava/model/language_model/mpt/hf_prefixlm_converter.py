@@ -11,6 +11,7 @@ import math
 import warnings
 from types import MethodType
 from typing import Any, Dict, List, Optional, Tuple, Union
+
 import torch
 from transformers.models.bloom.modeling_bloom import (
     BaseModelOutputWithPastAndCrossAttentions,
@@ -18,17 +19,21 @@ from transformers.models.bloom.modeling_bloom import (
     BloomModel,
     CausalLMOutputWithCrossAttentions,
     CrossEntropyLoss,
+    logging,
 )
 from transformers.models.bloom.modeling_bloom import _expand_mask as _expand_mask_bloom
-from transformers.models.bloom.modeling_bloom import _make_causal_mask as _make_causal_mask_bloom
-from transformers.models.bloom.modeling_bloom import logging
+from transformers.models.bloom.modeling_bloom import (
+    _make_causal_mask as _make_causal_mask_bloom,
+)
 from transformers.models.gpt2.modeling_gpt2 import GPT2LMHeadModel
 from transformers.models.gpt_neo.modeling_gpt_neo import GPTNeoForCausalLM
 from transformers.models.gpt_neox.modeling_gpt_neox import GPTNeoXForCausalLM
 from transformers.models.gptj.modeling_gptj import GPTJForCausalLM
 from transformers.models.opt.modeling_opt import OPTForCausalLM
 from transformers.models.opt.modeling_opt import _expand_mask as _expand_mask_opt
-from transformers.models.opt.modeling_opt import _make_causal_mask as _make_causal_mask_opt
+from transformers.models.opt.modeling_opt import (
+    _make_causal_mask as _make_causal_mask_opt,
+)
 
 logger = logging.get_logger(__name__)
 _SUPPORTED_GPT_MODELS = (GPT2LMHeadModel, GPTJForCausalLM, GPTNeoForCausalLM, GPTNeoXForCausalLM)
@@ -671,8 +676,8 @@ def convert_hf_causal_lm_to_prefix_lm(model: CAUSAL_LM_TYPES) -> CAUSAL_LM_TYPES
         return _convert_opt_causal_lm_to_prefix_lm(model)
     else:
         raise TypeError(
-            f"Cannot convert model to Prefix LM. "
-            + f"Model does not belong to set of supported HF models:"
+            "Cannot convert model to Prefix LM. "
+            + "Model does not belong to set of supported HF models:"
             + f"\n{_SUPPORTED_HF_MODELS}"
         )
 

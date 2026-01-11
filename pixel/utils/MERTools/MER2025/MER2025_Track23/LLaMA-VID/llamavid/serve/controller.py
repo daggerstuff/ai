@@ -4,24 +4,21 @@ It sends worker addresses to clients.
 """
 
 import argparse
-import asyncio
 import dataclasses
-from enum import Enum, auto
 import json
-import logging
-import time
-from typing import List, Union
 import threading
+import time
+from enum import Enum, auto
+from typing import List
 
-from fastapi import FastAPI, Request
-from fastapi.responses import StreamingResponse
 import numpy as np
 import requests
 import uvicorn
-
-from llamavid.constants import CONTROLLER_HEART_BEAT_EXPIRATION
+from fastapi import FastAPI, Request
+from fastapi.responses import StreamingResponse
 from llava.utils import build_logger, server_error_msg
 
+from llamavid.constants import CONTROLLER_HEART_BEAT_EXPIRATION
 
 logger = build_logger("controller", "controller.log")
 
@@ -37,7 +34,7 @@ class DispatchMethod(Enum):
         elif name == "shortest_queue":
             return cls.SHORTEST_QUEUE
         else:
-            raise ValueError(f"Invalid dispatch method")
+            raise ValueError("Invalid dispatch method")
 
 
 @dataclasses.dataclass
@@ -208,7 +205,7 @@ class Controller:
             for chunk in response.iter_lines(decode_unicode=False, delimiter=b"\0"):
                 if chunk:
                     yield chunk + b"\0"
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException:
             logger.info(f"worker timeout: {worker_addr}")
             ret = {
                 "text": server_error_msg,

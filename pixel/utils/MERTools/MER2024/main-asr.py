@@ -1,16 +1,16 @@
-import os
-import tqdm
 import glob
+import os
+
 import numpy as np
 import pandas as pd
+import tqdm
+from toolkit.utils.read_files import *
 
 import config
-from toolkit.utils.read_files import *
 
 
 # python main-asr.py generate_transcription_files_asr ./dataset-process/audio ./dataset-process/transcription.csv
 def generate_transcription_files_asr(audio_root, save_path):
-    import torch
     import wenetruntime as wenet  # must load torch first
 
     # from paddlespeech.cli.text.infer import TextExecutor

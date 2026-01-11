@@ -20,18 +20,18 @@ Output formats:
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
+import json
+import uuid
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
-import json
-import uuid
 
 try:
     # Local repo imports
     from ai.dataset_pipeline.schemas.conversation_schema import Conversation, Message
-    from ai.dataset_pipeline.schemas.metadata_schema import MetadataSchema, DatasetType
+    from ai.dataset_pipeline.schemas.metadata_schema import DatasetType, MetadataSchema
 except Exception:  # pragma: no cover - allow module import in isolation
     # Fallback simple shims to enable unit tests if imports are unavailable
     @dataclass

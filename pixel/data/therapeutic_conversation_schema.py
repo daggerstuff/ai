@@ -6,11 +6,11 @@ supporting Tiers 1.1, 1.2, and 1.3 functionality.
 """
 from __future__ import annotations
 
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
-import uuid
 
 
 class Role(Enum):

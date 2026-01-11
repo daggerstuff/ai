@@ -1,4 +1,3 @@
-import re
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
 

@@ -6,11 +6,12 @@ e.g.
 python run_imagenet_benchmarks.py --model_subset pt_tpu --gpus 2
 """
 
-import os
 import argparse
-from torchvision.models import densenet
-from imagenet.evaluation import imagenet_benchmark
+import os
 from pathlib import Path
+
+from imagenet.evaluation import imagenet_benchmark
+from torchvision.models import densenet
 from utils.benchmark_helpers import load_module_2or3
 
 # directory containing imported pytorch models

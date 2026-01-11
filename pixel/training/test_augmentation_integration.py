@@ -66,7 +66,7 @@ def test_augmentation_on_merged_dataset():
     logger.info("Starting augmentation...")
     augmented_records = pipeline.augment_dataset(records)
 
-    logger.info(f"Augmentation complete:")
+    logger.info("Augmentation complete:")
     logger.info(f"  Original records: {len(records)}")
     logger.info(f"  Augmented records: {len(augmented_records)}")
     logger.info(f"  Augmentation ratio: {len(augmented_records) / len(records):.2f}x")

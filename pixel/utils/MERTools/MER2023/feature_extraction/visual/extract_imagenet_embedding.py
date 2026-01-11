@@ -1,22 +1,20 @@
 # *_*coding:utf-8 *_*
-import os
 import argparse
-import numpy as np
-
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torch.utils.data as data
-import torchvision
-from torchvision import transforms
-import torchvision.models as models
+import os
 
 # import config
 import sys
 
+import numpy as np
+import torch
+import torch.nn as nn
+import torchvision
+from torchvision import transforms
+
 sys.path.append("../../")
-import config
 from dataset import FaceDataset
+
+import config
 
 
 class Flatten(nn.Module):

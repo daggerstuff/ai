@@ -4,12 +4,13 @@ Unit Tests for FAISS Knowledge Index
 Tests FAISS index building, search functionality, and performance optimization.
 """
 
-import pytest
-import tempfile
 import shutil
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+import tempfile
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import Mock
+
+import pytest
 
 try:
     import numpy as np
@@ -17,16 +18,16 @@ try:
 except ImportError:
     NUMPY_AVAILABLE = False
 
+from .clinical_knowledge_embedder import KnowledgeItem
 from .faiss_knowledge_index import (
+    FAISS_AVAILABLE,
     FAISSKnowledgeIndex,
     IndexConfig,
-    IndexType,
-    SearchResult,
     IndexStats,
+    IndexType,
     MockFAISSIndex,
-    FAISS_AVAILABLE
+    SearchResult,
 )
-from .clinical_knowledge_embedder import KnowledgeItem, ClinicalKnowledgeEmbedder
 
 
 class TestIndexConfig:

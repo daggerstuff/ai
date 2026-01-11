@@ -1,8 +1,9 @@
+import logging
+import random
+
 import torch
 import torch.distributed as dist
-from utils.distributed import get_rank, is_dist_avail_and_initialized, is_main_process
-import random
-import logging
+from utils.distributed import is_dist_avail_and_initialized
 
 logger = logging.getLogger(__name__)
 

@@ -4,11 +4,10 @@ import os
 import torch
 from tqdm import tqdm
 
-import sys
+from utils import rename_flamingo_checkpoint
 
 from ..configuration_flamingo import FlamingoConfig
 from ..modeling_flamingo import FlamingoForConditionalGeneration
-from utils import rename_flamingo_checkpoint
 
 parser = argparse.ArgumentParser(description="Convert MPT model")
 parser.add_argument(

@@ -1,26 +1,25 @@
 # *_*coding:utf-8 *_*
-import os
-import glob
-import math
-import pandas as pd
-import numpy as np
-import torch
-import time
-from tqdm import tqdm
-import itertools
-from transformers import (
-    AutoModel,
-    BertTokenizer,
-    AutoTokenizer,
-)  # version: 4.5.1, pip install transformers
-from transformers import GPT2Tokenizer, GPT2Model
-import re
 import argparse
-
-from util import write_feature_to_csv, load_word2vec, load_glove, strip_accent
+import itertools
+import math
+import os
+import re
 
 # import config
 import sys
+import time
+
+import numpy as np
+import pandas as pd
+import torch
+from transformers import (
+    AutoModel,
+    AutoTokenizer,
+    BertTokenizer,
+    GPT2Model,
+    GPT2Tokenizer,
+)  # version: 4.5.1, pip install transformers
+from util import load_glove, load_word2vec
 
 sys.path.append("../../")
 import config

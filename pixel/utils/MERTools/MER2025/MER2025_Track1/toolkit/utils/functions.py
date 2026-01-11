@@ -1,33 +1,33 @@
-import os
-import re
-import cv2
-import copy
-import math
-import tqdm
-import glob
-import shutil
-import random
 import argparse
+import copy
+import glob
 import itertools
-import torchaudio
+import math
+import os
+import random
+import re
+import shutil
 
+import cv2
+import matplotlib
+import numpy as np
+import torch
+import torchaudio
+import tqdm
 from PIL import Image
 from sklearn.metrics import confusion_matrix
-
-import torch
-import numpy as np
-
 from toolkit.globals import *
-from toolkit.utils.chatgpt import get_translate_eng2chi, get_translate_chi2eng
-from toolkit.utils.read_files import func_write_key_to_csv
-from toolkit.utils.read_files import func_read_key_from_csv
-from toolkit.utils.read_files import func_split_list_data
-
-import matplotlib
+from toolkit.utils.chatgpt import get_translate_chi2eng, get_translate_eng2chi
+from toolkit.utils.read_files import (
+    func_read_key_from_csv,
+    func_split_list_data,
+    func_write_key_to_csv,
+)
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 import multiprocessing
+
+import matplotlib.pyplot as plt
 
 
 # 用于win上加速人脸提取 => 将name均匀分成两部分
@@ -423,9 +423,8 @@ def func_discrte_label_distribution(labels):
 #######################################
 ## add noise into audio
 #######################################
-import cv2
-import wave
 import array
+import wave
 
 
 def cal_amp(wf):
@@ -502,7 +501,7 @@ def add_noise_multiprocess(audio_root, choice_snrs):
     if len(choice_snrs) == 1:
         save_root = audio_root + f"_snr{choice_snrs[0]}"
     elif len(choice_snrs) == 3:
-        save_root = audio_root + f"_snrmix"
+        save_root = audio_root + "_snrmix"
     else:
         print("Error: unsupported choice_snrs!!")
     if not os.path.exists(save_root):

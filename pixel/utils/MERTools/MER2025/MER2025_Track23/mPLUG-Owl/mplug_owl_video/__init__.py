@@ -20,7 +20,6 @@ from transformers.utils import (
     is_torch_available,
 )
 
-
 _import_structure = {
     "configuration_mplug_owl": ["MPLUG_OWL_PRETRAINED_CONFIG_ARCHIVE_MAP", "MplugOwlConfig"],
     "processing_mplug_owl": ["MplugOwlImageProcessor", "MplugOwlProcessor"],
@@ -48,7 +47,10 @@ else:
 
 
 if TYPE_CHECKING:
-    from .configuration_mplug_owl import MPLUG_OWL_PRETRAINED_CONFIG_ARCHIVE_MAP, MplugOwlConfig
+    from .configuration_mplug_owl import (
+        MPLUG_OWL_PRETRAINED_CONFIG_ARCHIVE_MAP,
+        MplugOwlConfig,
+    )
     from .tokenization_mplug_owl import MplugOwlTokenizer
 
     try:

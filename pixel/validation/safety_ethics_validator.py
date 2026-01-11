@@ -7,16 +7,19 @@ adherence, legal compliance, and professional standards verification.
 """
 
 import asyncio
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Set
 import json
+import logging
 import re
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-from .clinical_accuracy_validator import ClinicalAccuracyResult, ClinicalContext, SafetyRiskLevel
+from .clinical_accuracy_validator import (
+    ClinicalContext,
+    SafetyRiskLevel,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

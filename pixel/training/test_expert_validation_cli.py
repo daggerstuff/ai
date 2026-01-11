@@ -1,7 +1,7 @@
-from pathlib import Path
 import json
 import subprocess
 import sys
+from pathlib import Path
 
 
 def run_cli(tmp_path: Path, target_count: int = 600) -> dict:

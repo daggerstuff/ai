@@ -1,7 +1,8 @@
-import torch
 import numpy as np
-from torch.utils.data import Dataset
+import torch
 from toolkit.utils.read_data import *
+from torch.utils.data import Dataset
+
 
 class Data_Feat(Dataset):
     def __init__(self, args, names, labels):

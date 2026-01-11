@@ -17,13 +17,16 @@ from typing import List, Optional, Tuple, Union
 
 import torch
 import torch.nn as nn
+from llamavid.model.llamavid_arch import LLaMAVIDMetaForCausalLM, LLaMAVIDMetaModel
 from torch.nn import CrossEntropyLoss
-
-from transformers import AutoConfig, AutoModelForCausalLM, LlamaConfig, LlamaModel, LlamaForCausalLM
-
+from transformers import (
+    AutoConfig,
+    AutoModelForCausalLM,
+    LlamaConfig,
+    LlamaForCausalLM,
+    LlamaModel,
+)
 from transformers.modeling_outputs import CausalLMOutputWithPast
-
-from llamavid.model.llamavid_arch import LLaMAVIDMetaModel, LLaMAVIDMetaForCausalLM
 
 
 class LlavaConfig(LlamaConfig):

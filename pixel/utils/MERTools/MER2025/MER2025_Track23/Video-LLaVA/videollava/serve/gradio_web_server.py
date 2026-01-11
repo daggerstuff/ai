@@ -1,23 +1,20 @@
-import shutil
-import subprocess
-
-import torch
-import gradio as gr
-from fastapi import FastAPI
 import os
-from PIL import Image
+import shutil
 import tempfile
-from decord import VideoReader, cpu
-from transformers import TextStreamer
+
+import gradio as gr
+import torch
+from fastapi import FastAPI
+from PIL import Image
 
 from videollava.constants import DEFAULT_IMAGE_TOKEN
-from videollava.conversation import conv_templates, SeparatorStyle, Conversation
+from videollava.conversation import Conversation, conv_templates
 from videollava.serve.gradio_utils import (
     Chat,
-    tos_markdown,
+    block_css,
     learn_more_markdown,
     title_markdown,
-    block_css,
+    tos_markdown,
 )
 
 
