@@ -123,7 +123,7 @@ class PixelDataLoader:
         total = len(self.records)
         train_size = int(total * self.config.train_split)
         val_size = int(total * self.config.val_split)
-        test_size = total - train_size - val_size
+        total - train_size - val_size
 
         if self.config.shuffle:
             random.shuffle(self.records)

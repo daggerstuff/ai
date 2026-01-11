@@ -152,7 +152,7 @@ def extract_bert_embedding_chinese(
 
         # extract embedding from sentences
         embeddings = []
-        if pd.isna(sentence) == False and len(sentence) > 0:
+        if not pd.isna(sentence) and len(sentence) > 0:
             inputs = tokenizer(sentence, return_tensors="pt")
             # print (tokenizer.decode(inputs['input_ids'].cpu().numpy().tolist()[0])) # => 查看转换的token
             inputs = inputs.to(device)

@@ -539,7 +539,7 @@ class TestTherapeuticGoalTracker:
     @pytest.mark.asyncio
     async def test_analyze_conversation_for_progress_comprehensive(self, goal_tracker, progress_conversation, clinical_context, sample_goal_data):
         """Test comprehensive conversation analysis for progress"""
-        goal_id = goal_tracker.create_goal(**sample_goal_data)
+        goal_tracker.create_goal(**sample_goal_data)
         
         analysis = await goal_tracker.analyze_conversation_for_progress(
             progress_conversation, clinical_context, 5
@@ -561,7 +561,7 @@ class TestTherapeuticGoalTracker:
     @pytest.mark.asyncio
     async def test_analyze_conversation_with_barriers(self, goal_tracker, barrier_conversation, clinical_context, sample_goal_data):
         """Test conversation analysis with barriers"""
-        goal_id = goal_tracker.create_goal(**sample_goal_data)
+        goal_tracker.create_goal(**sample_goal_data)
         
         analysis = await goal_tracker.analyze_conversation_for_progress(
             barrier_conversation, clinical_context, 3

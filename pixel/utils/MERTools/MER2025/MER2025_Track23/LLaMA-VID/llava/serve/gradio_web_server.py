@@ -387,7 +387,7 @@ def build_demo(embed_mode, cur_dir=None, concurrency_count=10):
                     inputs=[imagebox, textbox],
                 )
 
-                with gr.Accordion("Parameters", open=False) as parameter_row:
+                with gr.Accordion("Parameters", open=False):
                     temperature = gr.Slider(
                         minimum=0.0,
                         maximum=1.0,
@@ -425,7 +425,7 @@ def build_demo(embed_mode, cur_dir=None, concurrency_count=10):
                         textbox.render()
                     with gr.Column(scale=1, min_width=50):
                         submit_btn = gr.Button(value="Send", variant="primary")
-                with gr.Row(elem_id="buttons") as button_row:
+                with gr.Row(elem_id="buttons"):
                     upvote_btn = gr.Button(value="👍  Upvote", interactive=False)
                     downvote_btn = gr.Button(value="👎  Downvote", interactive=False)
                     flag_btn = gr.Button(value="⚠️  Flag", interactive=False)

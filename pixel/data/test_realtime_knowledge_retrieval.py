@@ -455,7 +455,7 @@ class TestRealtimeKnowledgeRetrieval:
         assert initial_stats["cache_hits"] == 0
         
         # Make request
-        response = retrieval_system.retrieve(request)
+        retrieval_system.retrieve(request)
         
         # Check updated stats
         updated_stats = retrieval_system.get_stats()
@@ -465,7 +465,7 @@ class TestRealtimeKnowledgeRetrieval:
         assert updated_stats["avg_retrieval_time_ms"] > 0
         
         # Make same request again (should hit cache)
-        response2 = retrieval_system.retrieve(request)
+        retrieval_system.retrieve(request)
         
         final_stats = retrieval_system.get_stats()
         assert final_stats["total_requests"] == 2

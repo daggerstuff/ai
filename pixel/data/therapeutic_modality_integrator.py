@@ -762,7 +762,7 @@ class TherapeuticModalityIntegrator:
                 ratios[modality] = 0.3 / len(secondary_modalities)
         
         elif strategy == ModalityIntegrationStrategy.BLENDED:
-            total_modalities = 1 + len(secondary_modalities)
+            1 + len(secondary_modalities)
             ratios[primary_modality] = 0.5
             for modality in secondary_modalities:
                 ratios[modality] = 0.5 / len(secondary_modalities)
@@ -1478,7 +1478,7 @@ class TherapeuticModalityIntegrator:
                                        clinical_context: ClinicalContext) -> bool:
         """Detect if a specific transition trigger is present"""
         trigger_rules = self.transition_rules[trigger]
-        detection_criteria = trigger_rules['detection_criteria']
+        trigger_rules['detection_criteria']
         
         # Analyze client turns for trigger indicators
         combined_content = " ".join([turn.content.lower() for turn in client_turns])

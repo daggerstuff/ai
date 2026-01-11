@@ -255,7 +255,7 @@ class TestContentFilter(unittest.TestCase):
         self.assertIn("kill myself", filtered_text)  # Crisis content preserved
         
         # Test content validation
-        validation_results = self.content_filter.validate_content(text)
+        self.content_filter.validate_content(text)
         # Note: This text actually passes validation (has therapeutic context, good length, coherent)
         # So we don't expect validation errors for this specific text
         

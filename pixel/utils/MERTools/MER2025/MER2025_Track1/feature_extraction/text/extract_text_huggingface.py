@@ -281,7 +281,7 @@ def extract_embedding(
 
         # extract embedding from sentences
         embeddings = []
-        if pd.isna(sentence) == False and len(sentence) > 0:
+        if not pd.isna(sentence) and len(sentence) > 0:
             inputs = tokenizer(sentence, return_tensors="pt")
             if gpu != -1:
                 inputs = inputs.to("cuda")

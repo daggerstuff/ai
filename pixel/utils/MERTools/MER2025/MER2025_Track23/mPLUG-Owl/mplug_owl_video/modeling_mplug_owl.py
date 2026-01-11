@@ -224,7 +224,7 @@ class MplugOwlVisionLocalTemporal(nn.Module):
 
     def forward(self, x):
         # [b, t, s, c]
-        T = x.size(1)
+        x.size(1)
         H = int((self.num_patches - 1) ** 0.5)
         cls_token, x = x[:, :, 0:1], x[:, :, 1:]
         x = self.ln(x)
@@ -1610,7 +1610,7 @@ class MplugOwlForConditionalGeneration(MplugOwlPreTrainedModel):
             for i in range(batch_size)
         ]
 
-        media_token_types = [
+        [
             get_media_types(text_tokens_[i][:-1], media_token_indices[i]) for i in range(batch_size)
         ]
 
@@ -1650,10 +1650,10 @@ class MplugOwlForConditionalGeneration(MplugOwlPreTrainedModel):
                 encoder_hidden_states=video_embeds,
                 encoder_attention_mask=video_attention_mask,
             )["last_hidden_state"]
-            vid_seq_length = video_query_features.shape[1]
+            video_query_features.shape[1]
 
         num_images_per_sample = num_images.long().cpu().tolist()
-        num_videos_per_sample = num_videos.long().cpu().tolist()
+        num_videos.long().cpu().tolist()
 
         text_chunk_embeds = []
         img_idx = 0

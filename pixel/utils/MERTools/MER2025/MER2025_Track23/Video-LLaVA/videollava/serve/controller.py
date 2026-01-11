@@ -247,7 +247,7 @@ async def register_worker(request: Request):
 
 @app.post("/refresh_all_workers")
 async def refresh_all_workers():
-    models = controller.refresh_all_workers()
+    controller.refresh_all_workers()
 
 
 @app.post("/list_models")

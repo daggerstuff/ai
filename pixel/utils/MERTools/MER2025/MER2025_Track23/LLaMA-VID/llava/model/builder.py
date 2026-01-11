@@ -182,7 +182,6 @@ def load_pretrained_model(
             print("Convert to FP16...")
             model.to(torch.float16)
         else:
-            use_fast = False
             if "mpt" in model_name.lower():
                 tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=True)
                 model = AutoModelForCausalLM.from_pretrained(

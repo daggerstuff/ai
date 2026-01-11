@@ -238,12 +238,12 @@ class TestClinicalAccuracyAssessmentFramework:
     def test_get_assessments_by_domain(self, framework):
         """Test getting assessments by domain."""
         # Create assessments in different domains
-        dsm5_id = framework.create_assessment(
+        framework.create_assessment(
             content_id="dsm5_content",
             domain=ClinicalDomain.DSM5_DIAGNOSTIC,
             assessor_id="expert_001",
         )
-        crisis_id = framework.create_assessment(
+        framework.create_assessment(
             content_id="crisis_content",
             domain=ClinicalDomain.CRISIS_MANAGEMENT,
             assessor_id="expert_001",

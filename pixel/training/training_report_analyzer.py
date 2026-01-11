@@ -225,7 +225,7 @@ class MetricsAnalyzer:
             return {}
 
         values = data[metric_col].values
-        steps = data["step"].values
+        data["step"].values
 
         # Calculate trends
         moving_avg = pd.Series(values).rolling(window=min(window, len(values))).mean()

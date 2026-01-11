@@ -122,7 +122,6 @@ def load_pretrained_model(
             print("Convert to FP16...")
             model.to(torch.float16)
         else:
-            use_fast = False
             tokenizer = AutoTokenizer.from_pretrained(model_path, use_fast=False)
             model = AutoModelForCausalLM.from_pretrained(
                 model_path, low_cpu_mem_usage=True, **kwargs

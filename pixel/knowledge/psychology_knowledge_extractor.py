@@ -234,7 +234,7 @@ class PsychologyKnowledgeExtractor:
     
     def _build_knowledge_graph(self) -> None:
         """Build semantic relationships between concepts."""
-        concept_names = [c.name.lower() for c in self.concepts.values()]
+        [c.name.lower() for c in self.concepts.values()]
         
         for concept_id, concept in self.concepts.items():
             # Find related concepts by co-occurrence in clinical context

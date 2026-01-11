@@ -22,7 +22,7 @@ def train_or_eval_model(
     emo_probs, emo_labels = [], []
     losses = []
 
-    assert not train or optimizer != None
+    assert not train or optimizer is not None
     config.train = train  # 将 train 设置为全局变量影响后面 dataloader 信息
     if train:
         model.train()

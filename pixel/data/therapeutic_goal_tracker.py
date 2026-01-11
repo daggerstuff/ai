@@ -591,7 +591,7 @@ class TherapeuticGoalTracker:
     
     async def _detect_milestones(self, goal_id: str, session_number: int):
         """Detect and record milestones for a goal"""
-        goal = self.goals[goal_id]
+        self.goals[goal_id]
         goal_measurements = [m for m in self.progress_measurements if m.goal_id == goal_id]
         
         if not goal_measurements:

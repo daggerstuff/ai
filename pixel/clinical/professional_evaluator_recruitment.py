@@ -214,7 +214,7 @@ class ProfessionalEvaluatorRecruitment:
             self.recruitment_metrics["applications_approved"] += 1
             
             # Send approval and onboarding materials
-            onboarding_materials = self._create_onboarding_materials(application)
+            self._create_onboarding_materials(application)
             
             logger.info(f"Approved application from {application.applicant_name}")
             return "approved"
