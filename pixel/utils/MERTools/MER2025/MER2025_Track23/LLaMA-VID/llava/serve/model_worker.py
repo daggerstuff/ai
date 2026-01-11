@@ -200,7 +200,6 @@ class ModelWorker:
             .unsqueeze(0)
             .to(self.device)
         )
-        keywords = [stop_str]
         # stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
         streamer = TextIteratorStreamer(
             tokenizer, skip_prompt=True, skip_special_tokens=True, timeout=15

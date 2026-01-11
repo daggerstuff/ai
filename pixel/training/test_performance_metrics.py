@@ -33,7 +33,7 @@ def test_perf_cli(tmp_path: Path):
     js = tmp_path / "out.json"
     prom = tmp_path / "out.prom"
 
-    out = subprocess.run([sys.executable, "ai/pixel/training/performance_cli.py", "--input", str(inp), "--json", str(js), "--prom", str(prom)], capture_output=True, text=True, check=True)
+    subprocess.run([sys.executable, "ai/pixel/training/performance_cli.py", "--input", str(inp), "--json", str(js), "--prom", str(prom)], capture_output=True, text=True, check=True)
     assert js.exists() and prom.exists()
     m = json.loads(js.read_text(encoding="utf-8"))
     assert m["count"] == 3

@@ -94,7 +94,7 @@ class AffectNet(Dataset):
         self.average_per_class = int(np.mean(list(self.sample_per_class.values())))
 
         if self.verbose:
-            skipped = sum([len(self.skipped[key]) for key in self.skipped])
+            sum([len(self.skipped[key]) for key in self.skipped])
             msg = f' --  {len(self.keys)} images, skipped {len(self.skipped)} images ({len(self.skipped["pt_pt_error"])} with large errors).'
             print(msg)
             print(f'Samples per class : {self.sample_per_class}')

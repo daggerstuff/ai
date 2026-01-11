@@ -56,7 +56,7 @@ def eval_model(args):
     for i, line in enumerate(tqdm(questions)):
         idx = line["id"]
         question = line["conversations"][0]
-        gt_ans = line["conversations"][1]
+        line["conversations"][1]
         qs = question["value"].replace("<image>", "").strip()
         cur_prompt = qs
 

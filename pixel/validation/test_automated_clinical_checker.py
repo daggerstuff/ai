@@ -85,7 +85,7 @@ class TestAutomatedClinicalChecker:
         # Check that patterns are compiled for existing rules
         for rule in checker.rules.values():
             for pattern in rule.patterns:
-                pattern_key = f"{rule.rule_id}_{pattern}"
+                pass
                 # Pattern should exist or compilation should have been attempted
                 # (some patterns might fail compilation and be skipped)
 

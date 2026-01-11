@@ -145,7 +145,6 @@ def eval_model(args):
     # Iterate over each sample in the ground truth file
     for sample in tqdm(gt_contents):
         video_name = sample["video_name"]
-        sample_set = sample
         qs = sample["Q"]
 
         # Load the video file

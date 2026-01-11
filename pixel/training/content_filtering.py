@@ -349,7 +349,7 @@ class ContentFiltering:
             A list of safety gate results with recommendations.
         """
         safety_gate_results = []
-        text_lower = text.lower()
+        text.lower()
         
         # Check each safety gate type
         for gate_type, gate_config in self.safety_patterns.items():
@@ -427,7 +427,7 @@ class ContentFiltering:
         
         for result in pii_results:
             overlaps_crisis = False
-            result_text = text[result.start:result.end].lower()
+            text[result.start:result.end].lower()
             
             for crisis_keyword in self.crisis_keywords:
                 if crisis_keyword in text_lower:

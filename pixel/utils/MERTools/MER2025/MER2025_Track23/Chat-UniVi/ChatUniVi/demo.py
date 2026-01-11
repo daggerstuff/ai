@@ -91,7 +91,7 @@ class Chat:
 
     @torch.inference_mode()
     def generate(self, images_tensor: list, prompt: str, first_run: bool, state):
-        tokenizer, model, image_processor = self.tokenizer, self.model, self.image_processor
+        tokenizer, model, _image_processor = self.tokenizer, self.model, self.image_processor
 
         state = self.get_prompt(prompt, state)
         prompt = state.get_prompt()

@@ -66,7 +66,7 @@ def parse_args():
 
 def load_video(video_path):
     vr = VideoReader(video_path, ctx=cpu(0))
-    total_frame_num = len(vr)
+    len(vr)
     fps = round(vr.get_avg_fps())
     frame_idx = [i for i in range(0, len(vr), fps)]
     spare_frames = vr.get_batch(frame_idx).numpy()

@@ -72,7 +72,7 @@ class FlamingoConfig(PretrainedConfig):
             logger.info("text_config is None. Initializing the text config with default values.")
 
         self.vision_config = CLIPVisionConfig(**vision_config)
-        if "architectures" in text_config.keys() and text_config["architectures"] != None:
+        if "architectures" in text_config.keys() and text_config["architectures"] is not None:
             if text_config["architectures"][0] == "MPTForCausalLM":
                 self.text_config = MPTConfig(**text_config)
             elif text_config["architectures"][0] == "MosaicGPT":

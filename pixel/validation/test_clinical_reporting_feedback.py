@@ -605,12 +605,12 @@ class TestIntegrationScenarios:
         )
 
         # 3. Appropriateness check
-        appropriateness_result = appropriateness_checker.check_appropriateness(
+        appropriateness_checker.check_appropriateness(
             content_id="multi_test_content", content_text="Multi-system test content"
         )
 
         # 4. Compliance validation
-        compliance_result = compliance_validator.validate_compliance(
+        compliance_validator.validate_compliance(
             content_id="multi_test_content", content_text="Multi-system test content"
         )
 

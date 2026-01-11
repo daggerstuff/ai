@@ -46,7 +46,7 @@ def select_samples(data_root, save_root):
 
 def find_overlap_names(label_path):
     names = func_read_key_from_csv(label_path, "name")
-    labels = func_read_key_from_csv(label_path, "gt")
+    func_read_key_from_csv(label_path, "gt")
     name2count = {}
     for name in names:
         if name not in name2count:

@@ -16,7 +16,7 @@ def generate_submission(result_npz, save_csv):
     # label_csv = os.path.join(config.DATA_DIR['MER2025Raw'], 'track1_test_dis.csv') # w/ gt
     label_csv = os.path.join(config.DATA_DIR["MER2025Raw"], "track_all_candidates.csv")  # w/o gt
     names = func_read_key_from_csv(label_csv, "name")
-    emos = func_read_key_from_csv(label_csv, "discrete")
+    func_read_key_from_csv(label_csv, "discrete")
 
     # 3. save_csv
     name2key = {}

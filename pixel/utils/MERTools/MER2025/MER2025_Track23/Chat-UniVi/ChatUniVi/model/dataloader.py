@@ -20,7 +20,7 @@ def _get_rawvideo_dec(
     max_video_length = 0
 
     # T x 3 x H x W
-    video = np.zeros((max_frames, 3, image_resolution, image_resolution), dtype=np.float64)
+    np.zeros((max_frames, 3, image_resolution, image_resolution), dtype=np.float64)
 
     if s is None:
         start_time, end_time = None, None

@@ -217,7 +217,7 @@ class RealtimeKnowledgeRetrieval:
                 return
 
             # Remove oldest entries
-            current_time = datetime.now()
+            datetime.now()
             entries_to_remove = []
 
             # Sort by access time and remove oldest

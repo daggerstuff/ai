@@ -89,7 +89,7 @@ class DataAugmentor(object):
 
         if bb is None:
             # Resize the image and the shape
-            scalingFactor = self.target_height / image.shape[0]  # Image is square
+            self.target_height / image.shape[0]  # Image is square
             image = cv2.resize(image, (self.target_width, self.target_height))
 
             # Resize the shape
