@@ -333,7 +333,7 @@ class PersimmonAttention(nn.Module):
         output_attentions: bool = False,
         use_cache: bool = False,
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Optional[Tuple[torch.Tensor]]]:
-        assert past_key_value == None
+        assert past_key_value is None
 
         bsz, q_len, _ = hidden_states.size()
 

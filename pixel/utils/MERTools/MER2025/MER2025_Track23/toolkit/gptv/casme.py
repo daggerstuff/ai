@@ -117,14 +117,14 @@ def evaluate_performance_using_gpt4v(
             continue
         ## batch not exists -> how to deal with these false batches
         if batch_flag == "flag1":  # process the whole batch again # 20
-            response = get_micro_emotion_batch(batch, emos, sleeptime)
+            get_micro_emotion_batch(batch, emos, sleeptime)
             # np.savez_compressed(save_path, gpt4v=response, names=batch)
         elif batch_flag == "flag2":  # split and process # 10
             stores = func_get_segment_batch(batch, save_path, xishu=xishus[0])
             for segbatch, segsave in stores:
                 if os.path.exists(segsave):
                     continue
-                response = get_micro_emotion_batch(segbatch, emos, sleeptime)
+                get_micro_emotion_batch(segbatch, emos, sleeptime)
                 # np.savez_compressed(segsave, gpt4v=response, names=segbatch)
         elif batch_flag == "flag3":  # split and process # 5
             stores = func_get_segment_batch(batch, save_path, xishu=xishus[0])
@@ -135,7 +135,7 @@ def evaluate_performance_using_gpt4v(
                 for newbatch, newsave in newstores:
                     if os.path.exists(newsave):
                         continue
-                    response = get_micro_emotion_batch(newbatch, emos, sleeptime)
+                    get_micro_emotion_batch(newbatch, emos, sleeptime)
                     # np.savez_compressed(newsave, gpt4v=response, names=newbatch)
         elif batch_flag == "flag4":  # split and process # 5
             stores = func_get_segment_batch(batch, save_path, xishu=xishus[0])
@@ -150,7 +150,7 @@ def evaluate_performance_using_gpt4v(
                     for new2batch, new2save in new2stores:
                         if os.path.exists(new2save):
                             continue
-                        response = get_micro_emotion_batch(new2batch, emos, sleeptime)
+                        get_micro_emotion_batch(new2batch, emos, sleeptime)
                         # np.savez_compressed(new2save, gpt4v=response, names=new2batch)
 
 

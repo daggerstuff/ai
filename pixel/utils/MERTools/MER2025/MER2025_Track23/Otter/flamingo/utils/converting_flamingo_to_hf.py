@@ -14,7 +14,7 @@ def dump_hf_model(pretrained_model_path: str, old_ckpt_path: str, new_folder_pat
     if old_ckpt.get("model_state_dict", None) is not None:
         old_ckpt = old_ckpt["model_state_dict"]
     new_ckpt = old_ckpt
-    folder_path = os.path.dirname(old_ckpt_path)
+    os.path.dirname(old_ckpt_path)
     # config_path = os.path.join(folder_path, "config.json") if os.path.exists(os.path.join(folder_path, "config.json")) else "flamingo/config.json"
     model = FlamingoForConditionalGeneration.from_pretrained(
         args.pretrained_model_path,

@@ -114,7 +114,7 @@ def sample_frames_from_video(video_path, samplenum=3):
         cap = cv2.VideoCapture(video_path)
         while True:
             ret, frame = cap.read()
-            if ret == False:
+            if not ret:
                 break
             frames.append(frame)
         cap.release()

@@ -536,7 +536,7 @@ class AutomatedClinicalChecker:
 
         # Calculate severity score
         max_severity = max(v.severity for v in violations)
-        avg_severity = sum(v.severity for v in violations) / len(violations)
+        sum(v.severity for v in violations) / len(violations)
         violation_count = len(violations)
 
         # Determine appropriateness level based on severity and count

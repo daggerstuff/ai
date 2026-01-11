@@ -369,7 +369,6 @@ class KnowledgeRelevanceScorer:
         # In practice, this would consider the diversity of the entire result
         # set
 
-        knowledge_type = result.knowledge_item.knowledge_type
         clinical_domains = result.clinical_domains
 
         # Promote diversity in knowledge types

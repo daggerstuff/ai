@@ -38,7 +38,7 @@ def sample_vectors(samples, num):
 
 
 def kmeans(samples, num_clusters, num_iters=10, use_cosine_sim=False):
-    dim, dtype, device = samples.shape[-1], samples.dtype, samples.device
+    dim, dtype, _device = samples.shape[-1], samples.dtype, samples.device
 
     means = sample_vectors(samples, num_clusters)
 

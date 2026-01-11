@@ -216,7 +216,7 @@ class LlavaMetaForCausalLM(ABC):
             ]
         """
         image_idx = [idx for idx, img in enumerate(images) if img.ndim == 3]
-        is_all_image = len(image_idx) == len(images)
+        len(image_idx) == len(images)
         video_idx = [idx for idx, vid in enumerate(images) if vid.ndim == 4]
         images_minibatch = (
             torch.stack([images[idx] for idx in image_idx]) if len(image_idx) > 0 else []

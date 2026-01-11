@@ -479,7 +479,7 @@ class ClinicalAccuracyReporter:
             issues.append(("Low confidence assessments", low_confidence))
 
         # Expert validation needed
-        expert_validation = len(df[df["expert_validation_needed"] == True])
+        expert_validation = len(df[df["expert_validation_needed"]])
         if expert_validation > 0:
             issues.append(("Expert validation required", expert_validation))
 

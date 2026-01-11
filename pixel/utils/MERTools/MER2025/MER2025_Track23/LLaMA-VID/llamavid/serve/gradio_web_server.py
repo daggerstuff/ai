@@ -406,7 +406,7 @@ def build_demo(embed_mode):
                     visible=False,
                 )
 
-                with gr.Accordion("Movie Part", open=True) as parameter_row:
+                with gr.Accordion("Movie Part", open=True):
                     movie_part = gr.Radio(
                         choices=[0, 1, 2, 3, 4, 5],
                         value=0,
@@ -416,7 +416,7 @@ def build_demo(embed_mode):
 
                 videobox = gr.Video(label="Input Video")
 
-                with gr.Accordion("Parameters", open=False) as parameter_row:
+                with gr.Accordion("Parameters", open=False):
                     # movie_part = gr.Slider(minimum=0, maximum=5, value=1, step=1, interactive=True, label="Movie Part",)
                     temperature = gr.Slider(
                         minimum=0.0,
@@ -450,7 +450,7 @@ def build_demo(embed_mode):
                         textbox.render()
                     with gr.Column(scale=1, min_width=50):
                         submit_btn = gr.Button(value="Send", variant="primary")
-                with gr.Row(elem_id="buttons") as button_row:
+                with gr.Row(elem_id="buttons"):
                     upvote_btn = gr.Button(value="👍  Upvote", interactive=False)
                     downvote_btn = gr.Button(value="👎  Downvote", interactive=False)
                     flag_btn = gr.Button(value="⚠️  Flag", interactive=False)

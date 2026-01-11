@@ -699,7 +699,7 @@ class DynamicConversationGenerator:
         
         if keyword_count == 0 and len(expected_keywords) > 0:
             # Add modality-appropriate language
-            keyword = random.choice(expected_keywords)
+            random.choice(expected_keywords)
             if modality == TherapeuticModality.CBT:
                 response.content += " What thoughts come up for you about this?"
             elif modality == TherapeuticModality.DBT:
@@ -994,7 +994,7 @@ class DynamicConversationGenerator:
     async def _assess_therapeutic_progress(self, turns: List[ConversationTurn], 
                                          parameters: ConversationParameters) -> Dict[str, Any]:
         """Assess therapeutic progress made during conversation"""
-        therapist_turns = [turn for turn in turns if turn.speaker == ConversationRole.THERAPIST]
+        [turn for turn in turns if turn.speaker == ConversationRole.THERAPIST]
         client_turns = [turn for turn in turns if turn.speaker == ConversationRole.CLIENT]
         
         # Analyze progression through conversation phases

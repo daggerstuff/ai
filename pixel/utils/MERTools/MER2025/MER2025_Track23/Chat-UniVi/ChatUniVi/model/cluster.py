@@ -301,7 +301,7 @@ class TCBlock(nn.Module):
         if isinstance(inputs, tuple) or isinstance(inputs, list):
             q_dict, kv_dict = inputs
         else:
-            q_dict, kv_dict = inputs, None
+            q_dict, _kv_dict = inputs, None
 
-        x = q_dict["x"]
+        q_dict["x"]
         return q_dict

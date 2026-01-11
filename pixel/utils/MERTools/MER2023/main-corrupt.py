@@ -96,7 +96,7 @@ def add_noise_to_video(video_path, blur_rate, save_path):
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
     ret, frame = cap.read()
-    assert ret == True, "video should be readable"
+    assert ret, "video should be readable"
     blur_frame = func_blur(frame, blur_rate)
     height, width, _ = blur_frame.shape
     cap.release()
@@ -108,7 +108,7 @@ def add_noise_to_video(video_path, blur_rate, save_path):
     )
     while True:
         ret, frame = cap.read()
-        if ret == False:
+        if not ret:
             break
         blur_frame = func_blur(frame, blur_rate)
         videoWriter.write(blur_frame)
@@ -146,7 +146,7 @@ def func_mixture(
     save_root=None,
 ):
 
-    if argv != None:
+    if argv is not None:
         video_path, choice_snrs, choice_blurs, noise_paths, save_root = argv
 
     snr = choice_snrs[random.randint(0, len(choice_snrs) - 1)]

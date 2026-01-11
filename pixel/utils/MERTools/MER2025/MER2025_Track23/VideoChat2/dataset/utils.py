@@ -90,11 +90,11 @@ logger = logging.getLogger(__name__)
 def collect_result(result, result_dir, filename, is_json=True, is_list=True):
     if is_json:
         result_file = os.path.join(result_dir, "%s_rank%d.json" % (filename, get_rank()))
-        final_result_file = os.path.join(result_dir, "%s.json" % filename)
+        os.path.join(result_dir, "%s.json" % filename)
         json.dump(result, open(result_file, "w"))
     else:
         result_file = os.path.join(result_dir, "%s_rank%d.pth" % (filename, get_rank()))
-        final_result_file = os.path.join(result_dir, "%s.pth" % filename)
+        os.path.join(result_dir, "%s.pth" % filename)
         torch.save(result, result_file)
 
     dist.barrier()

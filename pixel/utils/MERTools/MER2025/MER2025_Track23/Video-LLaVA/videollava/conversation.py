@@ -70,8 +70,10 @@ class Conversation:
                 else:
                     ret += role
         elif self.sep_style == SeparatorStyle.LLAMA_2:
-            wrap_sys = lambda msg: f"<<SYS>>\n{msg}\n<</SYS>>\n\n"
-            wrap_inst = lambda msg: f"[INST] {msg} [/INST]"
+            def wrap_sys(msg):
+                return f"<<SYS>>\n{msg}\n<</SYS>>\n\n"
+            def wrap_inst(msg):
+                return f"[INST] {msg} [/INST]"
             ret = ""
 
             for i, (role, message) in enumerate(messages):
