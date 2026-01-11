@@ -428,7 +428,7 @@ class TokenFuser(nn.Module):
         self.norm2 = norm_layer(dim) if use_normalization else nn.Identity()
 
         self.temporal_seq_len = temporal_seq_len
-        num_patches = num_tokens * num_tokens
+        num_tokens * num_tokens
         self.proj = nn.Linear(
             num_tokens, num_tokens
         )  # Note: real implementation is different from the paper

@@ -54,7 +54,7 @@ def _convert_gpt_causal_lm_to_prefix_lm(model: CAUSAL_GPT_TYPES) -> CAUSAL_GPT_T
     if hasattr(model, "_prefix_lm_converted"):
         return model
     assert isinstance(model, _SUPPORTED_GPT_MODELS)
-    assert model.config.add_cross_attention == False, "Only supports GPT-style decoder-only models"
+    assert not model.config.add_cross_attention, "Only supports GPT-style decoder-only models"
 
     def _get_attn_modules(model: CAUSAL_GPT_TYPES) -> List[torch.nn.Module]:
         """Helper that gets a list of the model's attention modules.
@@ -185,7 +185,7 @@ def _convert_bloom_causal_lm_to_prefix_lm(model: BloomForCausalLM) -> BloomForCa
     if hasattr(model, "_prefix_lm_converted"):
         return model
     assert isinstance(model, BloomForCausalLM)
-    assert model.config.add_cross_attention == False, "Only supports BLOOM decoder-only models"
+    assert not model.config.add_cross_attention, "Only supports BLOOM decoder-only models"
 
     def _prepare_attn_mask(
         self: BloomModel,
@@ -497,7 +497,7 @@ def _convert_opt_causal_lm_to_prefix_lm(model: OPTForCausalLM) -> OPTForCausalLM
     if hasattr(model, "_prefix_lm_converted"):
         return model
     assert isinstance(model, OPTForCausalLM)
-    assert model.config.add_cross_attention == False, "Only supports OPT decoder-only models"
+    assert not model.config.add_cross_attention, "Only supports OPT decoder-only models"
     setattr(model, "_original_forward", getattr(model, "forward"))
     setattr(model, "_original_generate", getattr(model, "generate"))
     model.model.decoder.bidirectional_mask = None

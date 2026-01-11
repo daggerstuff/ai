@@ -474,7 +474,7 @@ class MPTForCausalLM(MPTPreTrainedModel):
             input_ids = input_ids[:, -1].unsqueeze(-1)
         if self.transformer.prefix_lm:
             prefix_mask = torch.ones_like(attention_mask)
-            if kwargs.get("use_cache") == False:
+            if not kwargs.get("use_cache"):
                 raise NotImplementedError(
                     "MPT with prefix_lm=True does not support use_cache=False."
                 )

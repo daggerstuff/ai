@@ -576,7 +576,6 @@ def func_majoremo_majorcount(labels):
     label2count = func_label_distribution(labels)
     maxcount = max([label2count[label] for label in label2count])
 
-    maxlabels = []
     for label in label2count:
         if label2count[label] == maxcount:
             return maxcount, label
@@ -917,7 +916,7 @@ def text_has_chinese_char(text):
 ##########################################################################
 ## 多进程视频转换
 def func_avi_to_webm(argv=None, video_path=None, save_path=None):
-    if argv != None:
+    if argv is not None:
         video_path, save_path = argv
 
     cmd = "%s -loglevel quiet -y -i %s %s" % (config.PATH_TO_FFMPEG, video_path, save_path)

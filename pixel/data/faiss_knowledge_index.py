@@ -627,7 +627,7 @@ class FAISSKnowledgeIndex:
 
             # Time the search
             start_time = time.time()
-            results = self.search(query, k)
+            self.search(query, k)
             search_time = (time.time() - start_time) * 1000  # Convert to ms
 
             search_times.append(search_time)

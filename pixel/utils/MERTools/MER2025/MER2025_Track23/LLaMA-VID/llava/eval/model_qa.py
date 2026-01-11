@@ -23,7 +23,7 @@ def eval_model(model_name, questions_file, answers_file):
     for i, line in enumerate(tqdm(ques_file)):
         idx = json.loads(line)["question_id"]
         qs = json.loads(line)["text"]
-        cat = json.loads(line)["category"]
+        json.loads(line)["category"]
         conv = default_conversation.copy()
         conv.append_message(conv.roles[0], qs)
         prompt = conv.get_prompt()

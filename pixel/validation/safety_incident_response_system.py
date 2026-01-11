@@ -431,7 +431,7 @@ class SafetyIncidentResponseSystem:
     async def _document_incident(self, incident: SafetyIncident) -> None:
         """Document incident details"""
         # In production, this would save to persistent storage
-        incident_record = {
+        {
             "incident_id": incident.incident_id,
             "level": incident.level.value,
             "title": incident.title,

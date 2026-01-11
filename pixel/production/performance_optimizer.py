@@ -527,7 +527,7 @@ if __name__ == "__main__":
             ]
             
             start_time = time.time()
-            batch_responses = await optimizer.batch_process_requests(batch_requests)
+            await optimizer.batch_process_requests(batch_requests)
             batch_time = (time.time() - start_time) * 1000
             
             print(f"✅ Batch of {len(batch_requests)} requests processed in {batch_time:.2f}ms")

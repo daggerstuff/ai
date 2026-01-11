@@ -141,7 +141,7 @@ def eval_model(args):
     # Load the ground truth file
     with open(args.question_file) as file:
         gt_contents = json.load(file)
-    answers_list = read_json(args.answers_list)
+    read_json(args.answers_list)
 
     answers_file = os.path.expanduser(args.answers_file)
     os.makedirs(os.path.dirname(answers_file), exist_ok=True)
@@ -151,7 +151,6 @@ def eval_model(args):
 
     # Iterate over each sample in the ground truth file
     for sample in tqdm(gt_contents):
-        sample_set = sample
         qs = sample["question"]
 
         # Load the video file

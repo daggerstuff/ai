@@ -176,7 +176,6 @@ class ModelWorker:
         ori_prompt = prompt
         images = params.get("images", None)
         videos = params.get("videos", None)
-        num_image_tokens = 0
 
         if len(videos) > 0 and len(images) == 0:
             yield json.dumps(
@@ -189,7 +188,7 @@ class ModelWorker:
             return
 
         self.load_model_from_cpu()
-        tokenizer, model, image_processor = self.tokenizer, self.model, self.image_processor
+        tokenizer, model, _image_processor = self.tokenizer, self.model, self.image_processor
 
         images = [load_image_from_base64(image) for image in images]
         image = np.array(images[0])

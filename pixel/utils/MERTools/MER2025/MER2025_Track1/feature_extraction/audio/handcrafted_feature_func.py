@@ -149,7 +149,7 @@ class OPENSMILE(object):
         # print(cmd)
         acoustic_feature = self.parse_acoustic_feature_csv_file(output_file, level=level)
         # del output file
-        if del_output_file == True:
+        if del_output_file:
             os.remove(output_file)
 
         return acoustic_feature

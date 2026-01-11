@@ -863,7 +863,6 @@ class ExpertValidationInterface:
 
     def _consolidate_feedback(self, responses: List[ValidationResponse]) -> str:
         """Consolidate feedback from multiple experts"""
-        feedback_sections = []
 
         # Common themes
         all_concerns = []

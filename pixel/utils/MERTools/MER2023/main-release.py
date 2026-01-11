@@ -346,7 +346,7 @@ def train_or_eval_model(args, model, reg_loss, cls_loss, dataloader, optimizer=N
     emo_probs, emo_labels = [], []
     embeddings = []
 
-    assert not train or optimizer != None
+    assert not train or optimizer is not None
     if train:
         model.train()
     else:

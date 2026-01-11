@@ -171,7 +171,6 @@ class ModelWorker:
         ori_prompt = prompt
         images = params.get("images", None)
         videos = params.get("videos", None)
-        num_image_tokens = 0
 
         if len(images) > 0 and len(videos) == 0:
             yield json.dumps(
