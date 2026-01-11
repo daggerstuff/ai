@@ -1,19 +1,18 @@
-import numpy as np
-import io
-import os
+import datetime
 import json
 import logging
+import os
 import random
 import time
 from collections import defaultdict, deque
-import datetime
 from pathlib import Path
 from typing import List, Union
 
+import numpy as np
 import torch
 import torch.distributed as dist
-from .distributed import is_dist_avail_and_initialized
 
+from .distributed import is_dist_avail_and_initialized
 
 logger = logging.getLogger(__name__)
 

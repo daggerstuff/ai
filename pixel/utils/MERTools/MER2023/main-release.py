@@ -1,39 +1,19 @@
-import re
-import os
-import sys
-import time
-import copy
-import tqdm
-import glob
-import json
-import math
-import scipy
-import shutil
-import random
-import pickle
 import argparse
+import glob
+import multiprocessing
+import os
+import random
+import time
+
 import numpy as np
 import pandas as pd
-import multiprocessing
-
-import sklearn
-from sklearn.svm import SVC
-from sklearn.svm import SVR
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.linear_model import SGDRegressor
-from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_validate
-from sklearn.metrics import confusion_matrix
-from sklearn.metrics import f1_score, accuracy_score
-from sklearn.metrics import mean_squared_error
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import Dataset
-from torch.utils.data import DataLoader
+import tqdm
+from sklearn.metrics import accuracy_score, f1_score, mean_squared_error
+from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 
 import config
@@ -117,7 +97,7 @@ def read_data_multiprocess(label_path, feature_root, task="emo", data_type="trai
 
     ## save (names, features)
     print(f"Input feature {feature_root} ===> dim is {feature_dim}")
-    assert len(names) == len(features), f"Error: len(names) != len(features)"
+    assert len(names) == len(features), "Error: len(names) != len(features)"
     name2feats, name2labels = {}, {}
     for ii in range(len(names)):
         name2feats[names[ii]] = features[ii]
@@ -522,7 +502,7 @@ def report_results_on_test1_test2(test_label, test_pred):
         val = row["valence"]
         name2pred[name] = {"emo": emo2idx[emo], "val": val}
     print(f"predict samples: {len(name2pred)}")
-    assert len(name2pred) == len(name2label), f"make sure len(name2pred)=len(name2label)"
+    assert len(name2pred) == len(name2label), "make sure len(name2pred)=len(name2label)"
 
     emo_labels, emo_preds, val_labels, val_preds = [], [], [], []
     for name in name2label:
@@ -661,12 +641,12 @@ if __name__ == "__main__":
     torch.cuda.set_device(args.gpu)
     print(args)
 
-    print(f"====== Reading Data =======")
+    print("====== Reading Data =======")
     train_loaders, eval_loaders, test_loaders, adim, tdim, vdim = get_loaders(args, config)
-    assert len(train_loaders) == args.num_folder, f"Error: folder number"
-    assert len(eval_loaders) == args.num_folder, f"Error: folder number"
+    assert len(train_loaders) == args.num_folder, "Error: folder number"
+    assert len(eval_loaders) == args.num_folder, "Error: folder number"
 
-    print(f"====== Training and Evaluation =======")
+    print("====== Training and Evaluation =======")
     folder_save = []
     folder_evalres = []
     for ii in range(args.num_folder):
@@ -676,7 +656,7 @@ if __name__ == "__main__":
         start_time = time.time()
         name_time = time.time()
 
-        print(f"Step1: build model (each folder has its own model)")
+        print("Step1: build model (each folder has its own model)")
         if args.model_type == "mlp":
             model = MLP(
                 input_dim=adim + tdim + vdim,
@@ -700,7 +680,7 @@ if __name__ == "__main__":
         cls_loss.cuda()
         optimizer = optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.l2)
 
-        print(f"Step2: training (multiple epoches)")
+        print("Step2: training (multiple epoches)")
         eval_metrics = []
         eval_fscores = []
         eval_valmses = []
@@ -755,7 +735,7 @@ if __name__ == "__main__":
             f">>>>> Finish: training on the {ii+1} folder, duration: {end_time - start_time} >>>>>"
         )
 
-    print(f"====== Gain predition on test data =======")
+    print("====== Gain predition on test data =======")
     assert len(folder_save) == args.num_folder
     assert len(folder_evalres) == args.num_folder
     save_modelroot = os.path.join(args.save_root, "model")

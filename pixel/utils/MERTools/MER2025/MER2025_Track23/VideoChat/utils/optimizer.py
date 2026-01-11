@@ -2,15 +2,16 @@
 Hacked together by / Copyright 2020 Ross Wightman
 """
 
+import logging
 import re
+
 import torch
 from torch import optim as optim
 from utils.distributed import is_main_process
-import logging
 
 logger = logging.getLogger(__name__)
 try:
-    from apex.optimizers import FusedNovoGrad, FusedAdam, FusedLAMB, FusedSGD
+    from apex.optimizers import FusedAdam, FusedLAMB, FusedNovoGrad, FusedSGD
 
     has_apex = True
 except ImportError:

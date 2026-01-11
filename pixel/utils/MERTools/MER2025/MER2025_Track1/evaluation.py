@@ -1,23 +1,9 @@
-import os
-import re
-import cv2
-import tqdm
-import glob
-import shutil
-import random
-import argparse
-import itertools
-import torchaudio
 
-from PIL import Image
-from sklearn.metrics import confusion_matrix
 
-import torch
-import numpy as np
 
+from sklearn.metrics import f1_score
 from toolkit.globals import *
 from toolkit.utils.functions import *
-from sklearn.metrics import f1_score, accuracy_score
 
 
 def score_calculation(label_csv, submission_csv):

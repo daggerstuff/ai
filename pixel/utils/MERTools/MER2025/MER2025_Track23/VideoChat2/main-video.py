@@ -1,26 +1,24 @@
-import os
-import glob
-import torch
 import argparse
+import os
+import sys
+
 import numpy as np
+import torch
 
 # videochat
 from conversation import Chat
+from models.videochat2_it import VideoChat2_it
+from peft import LoraConfig, TaskType, get_peft_model
 from utils.config import Config
 from utils.easydict import EasyDict
-from models.videochat2_it import VideoChat2_it
-from peft import get_peft_model, LoraConfig, TaskType
-
-
-import sys
 
 sys.path.append("../")
 
-import config
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_affectgpt.datasets.builders.image_text_pair_builder import (
     get_name2cls,
 )  # 加载所有dataset cls
+
+import config
 
 
 # ========================================
@@ -147,7 +145,7 @@ if __name__ == "__main__":
             if args.subtitle_flag == "subtitle":
                 text_input = f"Subtitle content of the video: {subtitle} As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video. "
             elif args.subtitle_flag == "nosubtitle":
-                text_input = f"As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video. "
+                text_input = "As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video. "
 
             chat_state, img_list = upload_img(video_path, chat_state, num_segments)
             chat_state = gradio_ask(text_input, chat_state)

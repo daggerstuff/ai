@@ -7,11 +7,11 @@ based on extracted psychology knowledge.
 """
 
 import json
-from typing import Dict, List, Any, Optional, Tuple
-from pathlib import Path
 import logging
-from dataclasses import dataclass, asdict
-from collections import defaultdict, Counter
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List
+
 
 @dataclass
 class ClinicalAssessment:

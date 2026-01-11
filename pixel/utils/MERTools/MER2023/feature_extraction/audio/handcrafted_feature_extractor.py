@@ -1,17 +1,17 @@
 # *_*coding:utf-8 *_*
-import os
-import time
-import glob
-import shutil
 import argparse
-
-import numpy as np
-from tqdm import tqdm
 import concurrent.futures
-from handcrafted_feature_func import OPENSMILE, Librosa
+import glob
+import os
+import shutil
 
 # import config
 import sys
+import time
+
+import numpy as np
+from handcrafted_feature_func import OPENSMILE, Librosa
+from tqdm import tqdm
 
 sys.path.append("../../")
 import config
@@ -86,7 +86,7 @@ class Worker(object):
         tmp_dir = None
         if feature_extractor.name == "opensmile":
             # make tmp dir in the current
-            tmp_dir = f"./saved/tmp_dir"  # used to store the feature file output by opensmile
+            tmp_dir = "./saved/tmp_dir"  # used to store the feature file output by opensmile
             if os.path.exists(tmp_dir):
                 shutil.rmtree(tmp_dir)
             os.makedirs(tmp_dir)

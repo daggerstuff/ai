@@ -7,7 +7,8 @@ import torch
 import torch.nn as nn
 from torch.nn.init import xavier_normal_
 from torch.nn.parameter import Parameter
-from .modules.encoder import MLPEncoder, LSTMEncoder
+
+from .modules.encoder import LSTMEncoder, MLPEncoder
 
 
 class LMF(nn.Module):

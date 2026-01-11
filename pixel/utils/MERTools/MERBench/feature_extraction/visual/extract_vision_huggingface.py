@@ -1,17 +1,17 @@
 # *_*coding:utf-8 *_*
-import os
-import cv2
-import math
 import argparse
-import numpy as np
-from PIL import Image
-
-import torch
-import timm  # pip install timm==0.9.7
-from transformers import AutoModel, AutoFeatureExtractor, AutoImageProcessor
+import math
+import os
 
 # import config
 import sys
+
+import cv2
+import numpy as np
+import timm  # pip install timm==0.9.7
+import torch
+from PIL import Image
+from transformers import AutoFeatureExtractor, AutoImageProcessor, AutoModel
 
 sys.path.append("../../")
 import config

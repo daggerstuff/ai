@@ -6,22 +6,21 @@ appropriateness checking system, covering rule validation, pattern matching,
 and appropriateness assessment.
 """
 
-import pytest
 import json
 import tempfile
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
+
+import pytest
 
 from .automated_clinical_checker import (
-    AutomatedClinicalChecker,
-    ClinicalRule,
-    AppropriatenessViolation,
     AppropriatenessCheckResult,
     AppropriatenessLevel,
-    ViolationType,
+    AutomatedClinicalChecker,
     CheckCategory,
+    ClinicalRule,
+    ViolationType,
 )
-
 from .clinical_accuracy_validator import ClinicalContext, TherapeuticModality
 
 

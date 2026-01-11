@@ -1,19 +1,17 @@
-import os
-import cv2
-import tqdm
-import glob
-import random
 import argparse
-import torchaudio
-from PIL import Image
+import glob
+import os
+import random
 
-import torch
+import cv2
 import numpy as np
-
+import torch
+import torchaudio
+import tqdm
+from PIL import Image
 from toolkit.globals import *
-from toolkit.utils.chatgpt import get_translate_eng2chi, get_translate_chi2eng
-from toolkit.utils.read_files import func_write_key_to_csv
-from toolkit.utils.read_files import func_read_key_from_csv
+from toolkit.utils.chatgpt import get_translate_chi2eng, get_translate_eng2chi
+from toolkit.utils.read_files import func_read_key_from_csv, func_write_key_to_csv
 
 
 def func_avi_to_mp4(video_root):
@@ -377,9 +375,8 @@ def func_discrte_label_distribution(labels):
 #######################################
 ## add noise into audio
 #######################################
-import cv2
-import wave
 import array
+import wave
 
 
 def cal_amp(wf):
@@ -459,7 +456,7 @@ def add_noise_multiprocess(audio_root, choice_snrs):
     if len(choice_snrs) == 1:
         save_root = audio_root + f"_snr{choice_snrs[0]}"
     elif len(choice_snrs) == 3:
-        save_root = audio_root + f"_snrmix"
+        save_root = audio_root + "_snrmix"
     else:
         print("Error: unsupported choice_snrs!!")
     if not os.path.exists(save_root):

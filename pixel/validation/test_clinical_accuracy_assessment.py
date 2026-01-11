@@ -2,21 +2,19 @@
 Unit tests for Clinical Accuracy Assessment Framework
 """
 
-import pytest
 import json
 import tempfile
-from datetime import datetime, timedelta
 from pathlib import Path
-from unittest.mock import Mock, patch
 
+import pytest
 from clinical_accuracy_assessment import (
-    ClinicalAccuracyAssessmentFramework,
-    ClinicalDomain,
     AccuracyLevel,
-    ValidationStatus,
-    ClinicalCriteria,
     AssessmentResult,
+    ClinicalAccuracyAssessmentFramework,
     ClinicalAssessment,
+    ClinicalCriteria,
+    ClinicalDomain,
+    ValidationStatus,
 )
 
 

@@ -1,9 +1,9 @@
 import os
-import glob
 import shutil
+
 from toolkit.globals import *
-from toolkit.utils.read_files import *
 from toolkit.utils.functions import *
+from toolkit.utils.read_files import *
 
 
 ## 解析 train_label
@@ -73,7 +73,7 @@ def normalize_dataset_format(data_root, save_root):
             whole_corpus[subset][name] = {"emo": label}
             # copy video
             video_path = os.path.join(video_root, f"{name}.mp4")
-            assert os.path.exists(video_path), f"video does not exist."
+            assert os.path.exists(video_path), "video does not exist."
             video_name = os.path.basename(video_path)
             new_path = os.path.join(save_root, video_name)
             shutil.copy(video_path, new_path)

@@ -4,12 +4,13 @@ Unit Tests for Clinical Knowledge Embedder
 Tests vector embedding generation for psychology knowledge items.
 """
 
-import pytest
-import tempfile
 import shutil
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
+import tempfile
 from datetime import datetime
+from pathlib import Path
+from unittest.mock import Mock, patch
+
+import pytest
 
 try:
     import numpy as np
@@ -21,9 +22,7 @@ from .clinical_knowledge_embedder import (
     ClinicalKnowledgeEmbedder,
     EmbeddingConfig,
     KnowledgeItem,
-    DEPENDENCIES_AVAILABLE
 )
-from .psychology_loader import PsychologyKnowledge
 
 
 class TestEmbeddingConfig:
@@ -168,8 +167,9 @@ class TestClinicalKnowledgeEmbedder:
     def test_extract_conversation_content(self):
         """Test extraction of conversation content."""
         from .therapeutic_conversation_schema import (
-            TherapeuticConversation, ConversationTurn, ConversationRole,
-            ClinicalContext, ClinicalSeverity
+            ClinicalContext,
+            ConversationRole,
+            TherapeuticConversation,
         )
         
         # Create mock conversation

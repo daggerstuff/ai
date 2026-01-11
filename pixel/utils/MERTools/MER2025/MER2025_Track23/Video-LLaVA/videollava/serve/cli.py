@@ -2,31 +2,23 @@ import argparse
 import os
 
 import torch
+from transformers import TextStreamer
 
 from videollava.constants import (
-    IMAGE_TOKEN_INDEX,
-    DEFAULT_IMAGE_TOKEN,
-    DEFAULT_IM_START_TOKEN,
     DEFAULT_IM_END_TOKEN,
-    DEFAULT_VIDEO_TOKEN,
+    DEFAULT_IM_START_TOKEN,
+    DEFAULT_IMAGE_TOKEN,
+    IMAGE_TOKEN_INDEX,
 )
-from videollava.conversation import conv_templates, SeparatorStyle
-from videollava.model.builder import load_pretrained_model
-from videollava.serve.utils import load_image, image_ext, video_ext
-from videollava.utils import disable_torch_init
+from videollava.conversation import SeparatorStyle, conv_templates
 from videollava.mm_utils import (
-    process_images,
-    tokenizer_image_token,
-    get_model_name_from_path,
     KeywordsStoppingCriteria,
+    get_model_name_from_path,
+    tokenizer_image_token,
 )
-
-from PIL import Image
-
-import requests
-from PIL import Image
-from io import BytesIO
-from transformers import TextStreamer
+from videollava.model.builder import load_pretrained_model
+from videollava.serve.utils import image_ext, video_ext
+from videollava.utils import disable_torch_init
 
 
 def main(args):

@@ -3,9 +3,8 @@ Test script for Pixel LLM data loader
 Verifies that all 608,458 records load correctly and splits are created
 """
 
-import sys
-import json
 import logging
+import sys
 from pathlib import Path
 
 # Setup logging
@@ -33,7 +32,7 @@ class MockTokenizer:
 
 def test_data_loader():
     """Test the data loader"""
-    from data_loader import PixelDataLoader, DataLoaderConfig
+    from data_loader import DataLoaderConfig, PixelDataLoader
     
     # Path to merged dataset
     dataset_path = "/home/vivi/pixelated/ai/lightning/processed_data/merged_dataset.jsonl"
@@ -99,7 +98,7 @@ def test_data_loader():
     # Create dataloaders
     logger.info("Creating DataLoaders...")
     train_loader, val_loader, test_loader = loader.create_dataloaders()
-    logger.info(f"✓ Created DataLoaders")
+    logger.info("✓ Created DataLoaders")
     logger.info(f"  - Train batches: {len(train_loader)}")
     logger.info(f"  - Val batches: {len(val_loader)}")
     logger.info(f"  - Test batches: {len(test_loader)}")
@@ -114,7 +113,7 @@ def test_data_loader():
     logger.info("\nTesting batch loading...")
     try:
         batch = next(iter(train_loader))
-        logger.info(f"✓ Successfully loaded batch")
+        logger.info("✓ Successfully loaded batch")
         logger.info(f"  - Batch keys: {list(batch.keys())}")
         logger.info(f"  - Input IDs shape: {batch['input_ids'].shape}")
         logger.info(f"  - Attention mask shape: {batch['attention_mask'].shape}")

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """This module evaluates imported PyTorch models on fer2013"""
 
-import os
 import argparse
+import os
 from os.path import join as pjoin
+
 from fer2013.fer import fer2013_benchmark
 from utils.benchmark_helpers import load_module_2or3
 

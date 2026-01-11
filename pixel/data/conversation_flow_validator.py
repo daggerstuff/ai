@@ -5,15 +5,15 @@ Validates therapeutic conversation flow for appropriateness, coherence,
 and adherence to therapeutic principles.
 """
 
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from .therapeutic_conversation_schema import (
-    TherapeuticConversation,
-    ConversationTurn,
     ConversationRole,
-    TherapeuticModality
+    ConversationTurn,
+    TherapeuticConversation,
+    TherapeuticModality,
 )
 
 
@@ -470,7 +470,6 @@ def main():
     from .therapeutic_conversation_schema import ClinicalContext, ClinicalSeverity
 
     # Create test conversation
-    from .therapeutic_conversation_schema import ClinicalContext, ClinicalSeverity
     conversation = TherapeuticConversation(
         title="Test Session",
         modality=TherapeuticModality.CBT,

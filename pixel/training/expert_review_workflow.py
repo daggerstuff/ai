@@ -11,11 +11,10 @@ Tier 1 lightweight and model-free.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
-from typing import Dict, List, Optional, Set, Any
-from pathlib import Path
 import json
-import uuid
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List, Set
 
 from ai.pixel.training.expert_validation_dataset import (
     ExpertValidationDataset,

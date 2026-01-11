@@ -6,7 +6,7 @@ Paper: Improving Multimodal Fusion with Hierarchical Mutual Information Maximiza
 import torch
 from torch import nn
 
-from .modules.encoder import MLPEncoder, LSTMEncoder
+from .modules.encoder import LSTMEncoder, MLPEncoder
 
 
 class MMILB(nn.Module):

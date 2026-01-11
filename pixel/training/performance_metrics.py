@@ -6,10 +6,10 @@ or in-process measurements. Provides Prometheus and JSON exporters.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from typing import Any, Dict, List, Optional
-import time
 import json
+import time
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, List, Optional
 
 
 @dataclass

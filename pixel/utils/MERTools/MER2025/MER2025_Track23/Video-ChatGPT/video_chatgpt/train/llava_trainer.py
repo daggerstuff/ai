@@ -1,8 +1,9 @@
 import os
+from typing import Optional
+
 import torch
 import torch.nn as nn
 from transformers import Trainer
-from typing import Optional
 
 
 def unwrap_model(model: nn.Module) -> nn.Module:
@@ -47,7 +48,7 @@ class VideoChatGPTTrainer(Trainer):
             else:
                 torch.save(
                     weight_to_save,
-                    os.path.join(output_dir, f"mm_projector.bin"),
+                    os.path.join(output_dir, "mm_projector.bin"),
                 )
 
         # super(VideoChatGPTTrainer, self)._save(output_dir, state_dict)

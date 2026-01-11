@@ -1,9 +1,10 @@
 # *_*coding:utf-8 *_*
-import os
 import glob
+import os
+
+import torch.utils.data as data
 from PIL import Image
 from skimage import io
-import torch.utils.data as data
 
 
 class FaceDataset(data.Dataset):

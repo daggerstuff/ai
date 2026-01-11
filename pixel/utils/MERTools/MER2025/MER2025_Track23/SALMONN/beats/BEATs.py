@@ -8,17 +8,17 @@
 # --------------------------------------------------------
 
 
+import logging
+from typing import Optional
+
 import torch
 import torch.nn as nn
-from torch.nn import LayerNorm
 import torchaudio.compliance.kaldi as ta_kaldi
+from torch.nn import LayerNorm
 
 from beats.backbone import (
     TransformerEncoder,
 )
-
-import logging
-from typing import Optional
 
 logger = logging.getLogger(__name__)
 

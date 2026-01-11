@@ -6,7 +6,8 @@ From: https://github.com/A2Zadeh/TensorFusionNetwork
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .modules.encoder import MLPEncoder, LSTMEncoder
+
+from .modules.encoder import LSTMEncoder, MLPEncoder
 
 
 class TFN(nn.Module):

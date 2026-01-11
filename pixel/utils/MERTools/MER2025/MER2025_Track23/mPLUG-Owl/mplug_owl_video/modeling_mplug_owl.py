@@ -25,22 +25,23 @@ try:
 except:
     flash_attn_func = None
     print("install flash-attn first.")
-import math
 from dataclasses import dataclass
-from typing import Any, Optional, Tuple, Union
 
+import einops
 import torch
 import torch.utils.checkpoint
 from torch import nn
-import einops
-
 from transformers.modeling_outputs import (
     BaseModelOutput,
-    BaseModelOutputWithPooling,
     BaseModelOutputWithPastAndCrossAttentions,
+    BaseModelOutputWithPooling,
 )
 from transformers.modeling_utils import PreTrainedModel
-from transformers.pytorch_utils import find_pruneable_heads_and_indices, prune_linear_layer
+from transformers.models.auto import AutoModelForCausalLM
+from transformers.pytorch_utils import (
+    find_pruneable_heads_and_indices,
+    prune_linear_layer,
+)
 from transformers.utils import (
     ModelOutput,
     add_start_docstrings,
@@ -48,13 +49,12 @@ from transformers.utils import (
     logging,
     replace_return_docstrings,
 )
-from transformers.models.auto import AutoModelForCausalLM
+
 from .configuration_mplug_owl import (
     MplugOwlConfig,
     MplugOwlVisionConfig,
     MplugOwlVisualAbstractorConfig,
 )
-
 
 logger = logging.get_logger(__name__)
 

@@ -1,9 +1,9 @@
 import argparse
 import json
 import os
-import requests
-import openai
 import time
+
+import openai
 
 NUM_SECONDS_TO_SLEEP = 0.5
 

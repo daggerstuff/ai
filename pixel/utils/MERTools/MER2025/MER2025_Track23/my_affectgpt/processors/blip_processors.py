@@ -7,12 +7,12 @@ For full license text, see the LICENSE_Lavis file in the repo root or https://op
 
 import re
 
-from my_affectgpt.common.registry import registry
-from my_affectgpt.processors.base_processor import BaseProcessor
-from my_affectgpt.processors.randaugment import RandomAugment
 from omegaconf import OmegaConf
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode
+
+from my_affectgpt.common.registry import registry
+from my_affectgpt.processors.base_processor import BaseProcessor
 
 
 class BlipImageBaseProcessor(BaseProcessor):

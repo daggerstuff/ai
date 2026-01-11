@@ -1,21 +1,19 @@
-import os
-import glob
-import random
 import argparse
-import numpy as np
-from collections import OrderedDict
-
-import torch
-import torch.backends.cudnn as cudnn
-from timm.models import create_model
-
-import videomae.modeling_finetune
-from videomae.datasets import build_dataset
-from videomae.engine_for_finetuning import final_test
-import videomae.utils as utils
+import glob
+import os
+import random
 
 # import config
 import sys
+from collections import OrderedDict
+
+import numpy as np
+import torch
+import torch.backends.cudnn as cudnn
+import videomae.utils as utils
+from timm.models import create_model
+from videomae.datasets import build_dataset
+from videomae.engine_for_finetuning import final_test
 
 sys.path.append("../../")
 import config

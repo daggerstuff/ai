@@ -1,5 +1,7 @@
 import argparse
+
 import torch
+
 from otter.modeling_otter import OtterForConditionalGeneration
 
 # Define argument parser

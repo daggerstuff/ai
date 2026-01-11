@@ -19,7 +19,6 @@ from typing import Any, Optional, Tuple, Union
 
 import torch
 
-
 try:
     from flash_attn.flash_attn_interface import flash_attn_unpadded_func
 
@@ -31,14 +30,17 @@ from dataclasses import dataclass
 
 import torch.utils.checkpoint
 from torch import nn
-
 from transformers.modeling_outputs import (
     BaseModelOutput,
-    BaseModelOutputWithPooling,
     BaseModelOutputWithPastAndCrossAttentions,
+    BaseModelOutputWithPooling,
 )
 from transformers.modeling_utils import PreTrainedModel
-from transformers.pytorch_utils import find_pruneable_heads_and_indices, prune_linear_layer
+from transformers.models.auto import AutoModelForCausalLM
+from transformers.pytorch_utils import (
+    find_pruneable_heads_and_indices,
+    prune_linear_layer,
+)
 from transformers.utils import (
     ModelOutput,
     add_start_docstrings,
@@ -46,13 +48,12 @@ from transformers.utils import (
     logging,
     replace_return_docstrings,
 )
-from transformers.models.auto import AutoModelForCausalLM
+
 from .configuration_mplug_owl import (
     MplugOwlConfig,
     MplugOwlVisionConfig,
     MplugOwlVisualAbstractorConfig,
 )
-
 
 logger = logging.get_logger(__name__)
 

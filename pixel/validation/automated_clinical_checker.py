@@ -7,21 +7,18 @@ and compliance verification against clinical standards.
 """
 
 import asyncio
+import json
 import logging
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Set, Pattern
-import json
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Pattern, Tuple
 
 from .clinical_accuracy_validator import (
-    ClinicalAccuracyResult,
     ClinicalContext,
     TherapeuticModality,
-    SafetyRiskLevel,
-    ClinicalAccuracyLevel,
 )
 
 # Configure logging

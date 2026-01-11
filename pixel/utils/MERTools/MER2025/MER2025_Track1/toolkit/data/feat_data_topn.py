@@ -1,9 +1,9 @@
-import torch
 import numpy as np
-from torch.utils.data import Dataset
-
+import torch
 from toolkit.globals import *
 from toolkit.utils.read_data import *
+from torch.utils.data import Dataset
+
 
 ## select top performed features for each modality
 class Data_Feat_TOPN(Dataset):

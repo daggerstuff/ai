@@ -2,16 +2,17 @@
 Modified from https://github.com/m-bain/frozen-in-time/blob/22a91d78405ec6032fdf521ae1ff5573358e632f/base/base_dataset.py
 """
 
-import random
 import io
+import math
+import random
+
 import av
 import cv2
 import decord
 import imageio
-from decord import VideoReader
-import torch
 import numpy as np
-import math
+import torch
+from decord import VideoReader
 
 decord.bridge.set_bridge("torch")
 

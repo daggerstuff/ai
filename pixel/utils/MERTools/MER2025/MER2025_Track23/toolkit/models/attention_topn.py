@@ -4,6 +4,7 @@ Description: unimodal encoder + concat + attention fusion
 
 import torch
 import torch.nn as nn
+
 from .modules.encoder import MLPEncoder
 
 
@@ -76,41 +77,41 @@ class Attention_TOPN(nn.Module):
         #     hiddens.append(encoder(batch[f'feat{ii}']))
         ## --------------------------------------------------- ##
         if len(self.feat_dims) >= 1:
-            hiddens.append(self.encoder0(batch[f"feat0"]))
+            hiddens.append(self.encoder0(batch["feat0"]))
         if len(self.feat_dims) >= 2:
-            hiddens.append(self.encoder1(batch[f"feat1"]))
+            hiddens.append(self.encoder1(batch["feat1"]))
         if len(self.feat_dims) >= 3:
-            hiddens.append(self.encoder2(batch[f"feat2"]))
+            hiddens.append(self.encoder2(batch["feat2"]))
         if len(self.feat_dims) >= 4:
-            hiddens.append(self.encoder3(batch[f"feat3"]))
+            hiddens.append(self.encoder3(batch["feat3"]))
         if len(self.feat_dims) >= 5:
-            hiddens.append(self.encoder4(batch[f"feat4"]))
+            hiddens.append(self.encoder4(batch["feat4"]))
         if len(self.feat_dims) >= 6:
-            hiddens.append(self.encoder5(batch[f"feat5"]))
+            hiddens.append(self.encoder5(batch["feat5"]))
         if len(self.feat_dims) >= 7:
-            hiddens.append(self.encoder6(batch[f"feat6"]))
+            hiddens.append(self.encoder6(batch["feat6"]))
         if len(self.feat_dims) >= 8:
-            hiddens.append(self.encoder7(batch[f"feat7"]))
+            hiddens.append(self.encoder7(batch["feat7"]))
         if len(self.feat_dims) >= 9:
-            hiddens.append(self.encoder8(batch[f"feat8"]))
+            hiddens.append(self.encoder8(batch["feat8"]))
         if len(self.feat_dims) >= 10:
-            hiddens.append(self.encoder9(batch[f"feat9"]))
+            hiddens.append(self.encoder9(batch["feat9"]))
         if len(self.feat_dims) >= 11:
-            hiddens.append(self.encoder10(batch[f"feat10"]))
+            hiddens.append(self.encoder10(batch["feat10"]))
         if len(self.feat_dims) >= 12:
-            hiddens.append(self.encoder11(batch[f"feat11"]))
+            hiddens.append(self.encoder11(batch["feat11"]))
         if len(self.feat_dims) >= 13:
-            hiddens.append(self.encoder12(batch[f"feat12"]))
+            hiddens.append(self.encoder12(batch["feat12"]))
         if len(self.feat_dims) >= 14:
-            hiddens.append(self.encoder13(batch[f"feat13"]))
+            hiddens.append(self.encoder13(batch["feat13"]))
         if len(self.feat_dims) >= 15:
-            hiddens.append(self.encoder14(batch[f"feat14"]))
+            hiddens.append(self.encoder14(batch["feat14"]))
         if len(self.feat_dims) >= 16:
-            hiddens.append(self.encoder15(batch[f"feat15"]))
+            hiddens.append(self.encoder15(batch["feat15"]))
         if len(self.feat_dims) >= 17:
-            hiddens.append(self.encoder16(batch[f"feat16"]))
+            hiddens.append(self.encoder16(batch["feat16"]))
         if len(self.feat_dims) >= 18:
-            hiddens.append(self.encoder17(batch[f"feat17"]))
+            hiddens.append(self.encoder17(batch["feat17"]))
 
         multi_hidden1 = torch.cat(hiddens, dim=1)  # [32, 384]
         attention = self.attention_mlp(multi_hidden1)

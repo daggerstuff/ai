@@ -1,21 +1,19 @@
-from PIL import Image
-
-import torch
-from transformers import StoppingCriteria, StoppingCriteriaList
-
-from enum import auto, Enum
+from enum import Enum, auto
 
 import numpy as np
-from decord import VideoReader, cpu
+import torch
 import torchvision.transforms as T
+from decord import VideoReader, cpu
 from models.video_transformers import (
+    GroupCenterCrop,
     GroupNormalize,
     GroupScale,
-    GroupCenterCrop,
     Stack,
     ToTorchFormatTensor,
 )
+from PIL import Image
 from torchvision.transforms.functional import InterpolationMode
+from transformers import StoppingCriteria, StoppingCriteriaList
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -182,7 +180,7 @@ class Chat:
         img = transform(img).unsqueeze(0).unsqueeze(0).cuda()
         image_emb, _ = self.model.encode_img(img)
         img_list.append(image_emb)
-        conv.messages.append([conv.roles[0], f"<Image><ImageHere></Image>\n"])
+        conv.messages.append([conv.roles[0], "<Image><ImageHere></Image>\n"])
         msg = "Received."
         # self.conv.append_message(self.conv.roles[1], msg)
         return msg, img_list, conv

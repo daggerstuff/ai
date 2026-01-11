@@ -14,27 +14,27 @@
 #    See the License for the specific language governing permissions and
 #    limitations under the License.
 
-import os
 import copy
-from dataclasses import dataclass, field
 import json
 import logging
+import os
 import pathlib
-from typing import Dict, Optional, Sequence, List
+import random
+from dataclasses import dataclass, field
+from typing import Dict, Optional, Sequence
+
+import numpy as np
 import torch
 import transformers
-from ChatUniVi.constants import *
-from torch.utils.data import Dataset
-from ChatUniVi.train.trainer import ChatUniViTrainer
 from ChatUniVi import conversation as conversation_lib
-from ChatUniVi.model import *
+from ChatUniVi.config import DataConfig, ModelConfig
+from ChatUniVi.constants import *
 from ChatUniVi.mm_utils import tokenizer_image_token
-from ChatUniVi.config import ModelConfig, DataConfig
-from PIL import Image
-import random
-import numpy as np
+from ChatUniVi.model import *
 from ChatUniVi.model.dataloader import _get_rawvideo_dec
-
+from ChatUniVi.train.trainer import ChatUniViTrainer
+from PIL import Image
+from torch.utils.data import Dataset
 
 local_rank = None
 
@@ -200,7 +200,7 @@ def safe_save_model_for_hf_trainer(trainer: transformers.Trainer, output_dir: st
                     weight_to_save, os.path.join(mm_projector_folder, f"{current_folder}.bin")
                 )
             else:
-                torch.save(weight_to_save, os.path.join(output_dir, f"mm_projector.bin"))
+                torch.save(weight_to_save, os.path.join(output_dir, "mm_projector.bin"))
 
     if trainer.deepspeed:
         torch.cuda.synchronize()
@@ -688,7 +688,7 @@ class LazySupervisedDataset(Dataset):
         for i in dataset_list:
             list_data_dict += json.load(open(i["chat_path"], "r"))
 
-            image_folder = [folder for folder in i if folder is not "chat_path"]
+            image_folder = [folder for folder in i if folder != "chat_path"]
 
             for folder in image_folder:
                 if folder not in self.folder_dict:

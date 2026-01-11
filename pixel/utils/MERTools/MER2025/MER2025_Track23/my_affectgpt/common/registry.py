@@ -34,7 +34,9 @@ class Registry:
         """
 
         def wrap(builder_cls):
-            from my_affectgpt.datasets.builders.base_dataset_builder import BaseDatasetBuilder
+            from my_affectgpt.datasets.builders.base_dataset_builder import (
+                BaseDatasetBuilder,
+            )
 
             assert issubclass(
                 builder_cls, BaseDatasetBuilder

@@ -9,7 +9,6 @@ for ii, emo in enumerate(emos_mer):
 import sys
 
 sys.path.append("../..")
-import config
 
 ################## Audio Model ######################
 # huggingface

@@ -13,15 +13,20 @@
 # limitations under the License.
 
 
-import torch
+import librosa
 import soundfile as sf
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from beats.BEATs import BEATs, BEATsConfig
 from peft import LoraConfig, TaskType, get_peft_model
-from transformers import WhisperFeatureExtractor, WhisperModel, LlamaForCausalLM, LlamaTokenizer
-import librosa
-from beats.BEATs import BEATsConfig, BEATs
 from qformer.Qformer import BertConfig, BertLMHeadModel
+from transformers import (
+    LlamaForCausalLM,
+    LlamaTokenizer,
+    WhisperFeatureExtractor,
+    WhisperModel,
+)
 
 
 class SALMONN(nn.Module):

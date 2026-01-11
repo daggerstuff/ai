@@ -6,6 +6,7 @@ Provides multimodal emotion feature extraction, vector encoding, and emotion-awa
 """
 
 from typing import Any, Dict, Optional
+
 import numpy as np
 
 # Placeholder for MERTools import

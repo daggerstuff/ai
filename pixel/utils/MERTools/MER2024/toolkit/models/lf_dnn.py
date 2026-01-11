@@ -8,7 +8,8 @@ Description: unimodal encoder + concat fusion
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from .modules.encoder import MLPEncoder, LSTMEncoder
+
+from .modules.encoder import LSTMEncoder, MLPEncoder
 
 
 class LF_DNN(nn.Module):

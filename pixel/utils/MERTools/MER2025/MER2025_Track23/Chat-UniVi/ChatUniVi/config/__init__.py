@@ -1,7 +1,6 @@
 from .dataset_config import *
 from .model_config import *
 
-
 ModelConfig = {
     "PRETUNE": model_config_pretune,
     "FINETUNE": model_config_finetune,

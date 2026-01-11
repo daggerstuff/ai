@@ -10,28 +10,18 @@ Adapted from salesforce@LAVIS. Below is the original copyright:
 """
 
 import math
-from typing import Tuple, Dict, Any
+from typing import Tuple
 
 import torch
-from torch import nn
 import torch.utils.checkpoint
-from torch.nn import CrossEntropyLoss
 from torch import Tensor, device, nn
-
+from torch.nn import CrossEntropyLoss
 from transformers.activations import ACT2FN
-from transformers.file_utils import (
-    ModelOutput,
-)
 from transformers.modeling_outputs import (
     BaseModelOutputWithPastAndCrossAttentions,
     BaseModelOutputWithPoolingAndCrossAttentions,
     CausalLMOutputWithCrossAttentions,
     MaskedLMOutput,
-    MultipleChoiceModelOutput,
-    NextSentencePredictorOutput,
-    QuestionAnsweringModelOutput,
-    SequenceClassifierOutput,
-    TokenClassifierOutput,
 )
 from transformers.modeling_utils import (
     PreTrainedModel,
@@ -39,8 +29,8 @@ from transformers.modeling_utils import (
     find_pruneable_heads_and_indices,
     prune_linear_layer,
 )
-from transformers.utils import logging
 from transformers.models.bert.configuration_bert import BertConfig
+from transformers.utils import logging
 
 logger = logging.get_logger(__name__)
 

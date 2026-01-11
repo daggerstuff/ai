@@ -1,9 +1,10 @@
-import openai
-import os
 import argparse
-import json
 import ast
+import json
+import os
 from multiprocessing.pool import Pool
+
+import openai
 from tqdm import tqdm
 
 

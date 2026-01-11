@@ -9,15 +9,15 @@
 
 ## 📋 EPIC SUMMARY
 
-| Attribute | Value |
-|-----------|-------|
-| **Mission** | Deliver production-ready mental health training dataset with multi-source transcript integration |
-| **Status** | 🟢 75% Complete - Ready for Training Launch |
-| **Dataset Size** | 52.20GB across 19,330 objects |
-| **Location** | `s3://pixel-data/` (OVH S3 canonical) |
-| **Format** | ChatML JSONL with metadata |
-| **Model Target** | Wayfarer-2-12B / Harbringer-24B mental health specialization |
-| **Synthetic Data** | Nemotron3 + NeMo Data Designer for cost-effective generation |
+| Attribute          | Value                                                                                            |
+|--------------------|--------------------------------------------------------------------------------------------------|
+| **Mission**        | Deliver production-ready mental health training dataset with multi-source transcript integration |
+| **Status**         | 🟢 75% Complete - Ready for Training Launch                                                      |
+| **Dataset Size**   | 52.20GB across 19,330 objects                                                                    |
+| **Location**       | `s3://pixel-data/` (OVH S3 canonical)                                                            |
+| **Format**         | ChatML JSONL with metadata                                                                       |
+| **Model Target**   | Wayfarer-2-12B / Harbringer-24B mental health specialization                                     |
+| **Synthetic Data** | Nemotron3 + NeMo Data Designer for cost-effective generation                                     |
 
 ---
 

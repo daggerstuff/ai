@@ -1,1 +1,1 @@
-from .language_model.llama import ChatUniViLlamaForCausalLM, ChatUniViConfig
+from .language_model.llama import ChatUniViConfig, ChatUniViLlamaForCausalLM

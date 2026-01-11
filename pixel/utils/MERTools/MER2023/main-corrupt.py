@@ -1,27 +1,19 @@
-import re
-import os
-import time
-import copy
-import tqdm
+import array
 import glob
-import json
 import math
-import scipy
-import shutil
-import random
-import pickle
-import numpy as np
-import pandas as pd
 import multiprocessing
-
-import config
+import os
+import random
+import wave
 
 #######################################
 ## add noise into audio + video
 #######################################
 import cv2
-import wave
-import array
+import numpy as np
+import tqdm
+
+import config
 
 
 def cal_amp(wf):
@@ -104,7 +96,7 @@ def add_noise_to_video(video_path, blur_rate, save_path):
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
     ret, frame = cap.read()
-    assert ret == True, f"video should be readable"
+    assert ret == True, "video should be readable"
     blur_frame = func_blur(frame, blur_rate)
     height, width, _ = blur_frame.shape
     cap.release()

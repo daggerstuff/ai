@@ -1,6 +1,7 @@
 import os
-import shutil
 import pickle
+import shutil
+
 from toolkit.utils.chatgpt import *
 from toolkit.utils.functions import *
 from toolkit.utils.read_files import *
@@ -50,7 +51,7 @@ def read_train_val_test(label_path, data_type):
 def normalize_dataset_format(data_root, save_root):
     # gain paths
     label_path = os.path.join(save_root, "CMUMOSI_features_raw_2way.pkl")
-    assert os.path.exists(label_path), f"must has a pre-processed label file"
+    assert os.path.exists(label_path), "must has a pre-processed label file"
     video_root = os.path.join(data_root, "Video/Segmented")
 
     # gain (names, labels)

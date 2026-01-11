@@ -1,6 +1,6 @@
-from .xbert import BertConfig, BertForMaskedLM, BertLMHeadModel, BertModel
-
 import logging
+
+from .xbert import BertConfig, BertForMaskedLM, BertLMHeadModel, BertModel
 
 logger = logging.getLogger(__name__)
 

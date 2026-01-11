@@ -6,26 +6,25 @@ Inspired by https://github.com/karpathy/minGPT/blob/master/mingpt/model.py
 import math
 import warnings
 from typing import List, Optional, Tuple, Union
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
-from transformers.modeling_outputs import BaseModelOutputWithPast, CausalLMOutputWithPast
+from transformers.modeling_outputs import (
+    BaseModelOutputWithPast,
+    CausalLMOutputWithPast,
+)
+
 from .attention import attn_bias_shape, build_attn_bias
 from .blocks import MPTBlock
+from .configuration_mpt import MPTConfig
 from .custom_embedding import SharedEmbedding
 from .norm import NORM_CLASS_REGISTRY
-from .configuration_mpt import MPTConfig
-from .adapt_tokenizer import AutoTokenizerForMOD, adapt_tokenizer_for_denoising
-from .hf_prefixlm_converter import (
-    add_bidirectional_mask_if_missing,
-    convert_hf_causal_lm_to_prefix_lm,
-)
-from .meta_init_context import init_empty_weights
-from .param_init_fns import MODEL_INIT_REGISTRY, generic_param_init_fn_
+from .param_init_fns import MODEL_INIT_REGISTRY
 
 try:
-    from .flash_attn_triton import flash_attn_func
+    pass
 except:
     pass
 Tokenizer = Union[PreTrainedTokenizer, PreTrainedTokenizerFast]
@@ -262,7 +261,7 @@ class MPTModel(MPTPreTrainedModel):
             if past_key_values is not None:
                 if len(past_key_values) != self.config.n_layers:
                     raise ValueError(
-                        f"past_key_values must provide a past_key_value for each attention "
+                        "past_key_values must provide a past_key_value for each attention "
                         + f"layer in the network (len(past_key_values)={len(past_key_values)!r}; self.config.n_layers={self.config.n_layers!r})."
                     )
                 past_position = past_key_values[0][0].size(1)

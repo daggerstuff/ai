@@ -1,11 +1,17 @@
 from typing import List, Optional, Tuple, Union
+
 import torch
 import torch.nn as nn
+from ChatUniVi.model.arch import ChatUniViMetaForCausalLM, MetaModel
 from torch.nn import CrossEntropyLoss
-from transformers import AutoConfig, AutoModelForCausalLM, LlamaConfig, LlamaModel, LlamaForCausalLM
+from transformers import (
+    AutoConfig,
+    AutoModelForCausalLM,
+    LlamaConfig,
+    LlamaForCausalLM,
+    LlamaModel,
+)
 from transformers.modeling_outputs import CausalLMOutputWithPast
-
-from ChatUniVi.model.arch import MetaModel, ChatUniViMetaForCausalLM
 
 
 class ChatUniViConfig(LlamaConfig):

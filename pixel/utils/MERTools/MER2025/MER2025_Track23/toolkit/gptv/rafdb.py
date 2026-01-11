@@ -1,11 +1,12 @@
+import glob
 import os
 import re
-import glob
-import tqdm
 import shutil
-from toolkit.utils.read_files import *
+
+import tqdm
 from toolkit.utils.chatgpt import get_image_emotion_batch
 from toolkit.utils.functions import func_label_distribution, func_plot_confusion_matrix
+from toolkit.utils.read_files import *
 
 id2emo = {
     "1": "Surprise",
@@ -267,6 +268,7 @@ def get_results_and_update_label(gpt4v_root, label_path, store_path):
 
 
 import itertools
+
 import matplotlib
 
 matplotlib.use("Agg")

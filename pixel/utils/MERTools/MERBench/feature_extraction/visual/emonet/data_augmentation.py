@@ -1,7 +1,7 @@
 # coding: utf8
-import numpy as np
+
 import cv2
-from random import randint
+import numpy as np
 
 
 def get_scale_center(bb):
@@ -191,8 +191,8 @@ class DataAugmentor(object):
 
 
 if __name__ == "__main__":
-    import skimage.io as io
     import matplotlib.pyplot as plt
+    import skimage.io as io
 
     img_file = "/data5/sunlicai/Dataset/MuSe/2021/raw-data-ulm-tsst/data/raw/faces/1/0.jpg"
     img = io.imread(img_file)

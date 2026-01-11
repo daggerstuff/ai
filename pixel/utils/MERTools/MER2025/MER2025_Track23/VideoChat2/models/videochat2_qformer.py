@@ -1,14 +1,13 @@
 import logging
 
 import torch
-from einops import rearrange
-from torch import nn
 import torch.nn.functional as F
-
-from .blip2.vit import build_vit
-from .blip2.builder import build_qformer
-from .criterions import VTC_VTM_Loss, get_sim
 from timm.models.layers import trunc_normal_
+from torch import nn
+
+from .blip2.builder import build_qformer
+from .blip2.vit import build_vit
+from .criterions import VTC_VTM_Loss, get_sim
 
 logger = logging.getLogger(__name__)
 

@@ -1,8 +1,5 @@
 # *_*coding:utf-8 *_*
 import os
-import sys
-import socket
-
 
 ############ For LINUX ##############
 # path

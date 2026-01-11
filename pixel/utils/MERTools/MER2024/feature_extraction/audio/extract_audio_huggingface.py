@@ -1,21 +1,20 @@
-import os
-import math
-import time
-import glob
-import torch
 import argparse
-import numpy as np
-import soundfile as sf
+import glob
+import math
+import os
 
 # import config
 import sys
+import time
+
+import numpy as np
+import soundfile as sf
+import torch
 
 sys.path.append("../../")
+from transformers import AutoModel, Wav2Vec2FeatureExtractor, WhisperFeatureExtractor
+
 import config
-
-from transformers import AutoModel
-from transformers import WhisperFeatureExtractor, Wav2Vec2FeatureExtractor
-
 
 # supported models
 ################## ENGLISH ######################

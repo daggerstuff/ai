@@ -7,14 +7,14 @@ Ensures only clinically sound content is used for training and generation.
 """
 
 import asyncio
+import json
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Union
-import json
-import re
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

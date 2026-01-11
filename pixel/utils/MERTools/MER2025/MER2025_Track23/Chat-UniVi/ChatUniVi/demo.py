@@ -1,13 +1,15 @@
+import os
+
+import numpy as np
 import torch
+from decord import VideoReader, cpu
+from PIL import Image
+
 from .constants import *
-from .conversation import conv_templates, SeparatorStyle
+from .conversation import SeparatorStyle, conv_templates
+from .mm_utils import KeywordsStoppingCriteria, tokenizer_image_token
 from .model.builder import load_pretrained_model
 from .utils import disable_torch_init
-from .mm_utils import tokenizer_image_token, KeywordsStoppingCriteria
-from PIL import Image
-import os
-from decord import VideoReader, cpu
-import numpy as np
 
 
 class Chat:

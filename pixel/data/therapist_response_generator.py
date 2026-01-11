@@ -5,17 +5,15 @@ Generates clinically appropriate therapist responses with detailed clinical rati
 based on therapeutic modalities, client presentations, and clinical context.
 """
 
-from typing import Dict, List, Optional, Tuple
+import random
 from dataclasses import dataclass
 from enum import Enum
-import re
-import random
+from typing import Dict, List
 
 from .therapeutic_conversation_schema import (
-    TherapeuticModality,
     ClinicalContext,
     ClinicalSeverity,
-    ConversationRole
+    TherapeuticModality,
 )
 
 

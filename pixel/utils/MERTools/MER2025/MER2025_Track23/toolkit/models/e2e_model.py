@@ -1,8 +1,9 @@
 import torch
 import torch.nn as nn
-from .modules.encoder import MLPEncoder
-from ..utils.e2e_utils import *
+
 from ..globals import *
+from ..utils.e2e_utils import *
+from .modules.encoder import MLPEncoder
 
 
 class E2E_MODEL(nn.Module):

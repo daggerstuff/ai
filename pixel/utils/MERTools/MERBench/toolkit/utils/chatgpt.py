@@ -1,9 +1,7 @@
-import os
-import cv2
-import glob
 import base64
-import numpy as np
 
+import cv2
+import numpy as np
 import openai
 
 # avoid RPD errors

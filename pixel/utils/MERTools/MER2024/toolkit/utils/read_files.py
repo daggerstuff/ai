@@ -1,10 +1,10 @@
-import os
 import json
 import math
+import os
 import random
+
 import numpy as np
 import pandas as pd
-
 
 ## read pkl
 # videoIDs, videoSpeakers, videoLabels, videoText, videoAudio, videoVisual1, videoSentence, trainVid, \

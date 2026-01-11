@@ -13,12 +13,12 @@ from __future__ import division
 import os
 import time
 
-from PIL import ImageFile
 import torch
+import torch.backends.cudnn as cudnn
 import torch.nn.parallel
 import torch.utils.data
-import torch.backends.cudnn as cudnn
 import torchvision.datasets as datasets
+from PIL import ImageFile
 from utils.benchmark_helpers import compose_transforms
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True

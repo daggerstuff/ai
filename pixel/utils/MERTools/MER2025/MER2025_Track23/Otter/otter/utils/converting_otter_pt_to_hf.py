@@ -4,7 +4,6 @@ import argparse
 import os
 
 import torch
-
 from modeling_otter import OtterForConditionalGeneration
 
 

@@ -1,16 +1,15 @@
+import glob
 import os
 import re
-import glob
-import tqdm
 import shutil
 import string
-from sklearn.metrics import confusion_matrix
-
-from toolkit.utils.read_files import *
-from toolkit.utils.chatgpt import get_video_emotion_batch
-from toolkit.utils.functions import func_label_distribution, func_plot_confusion_matrix
 
 import matplotlib
+import tqdm
+from sklearn.metrics import confusion_matrix
+from toolkit.utils.chatgpt import get_video_emotion_batch
+from toolkit.utils.functions import func_label_distribution, func_plot_confusion_matrix
+from toolkit.utils.read_files import *
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt

@@ -7,14 +7,15 @@ import torch.distributed as dist
 import torch.nn as nn
 from accelerate.hooks import AlignDevicesHook, add_hook_to_module
 from einops import rearrange, repeat
-from peft import LoraConfig, TaskType, get_peft_model
-from transformers.modeling_outputs import CausalLMOutputWithPast
-from transformers.modeling_utils import PreTrainedModel
-from transformers.models.auto import AutoTokenizer
-from transformers import LlamaTokenizer
 from falcon.modelling_RW import RWForCausalLM
 from mpt.modeling_mpt import MPTForCausalLM
 from mpt_redpajama.mosaic_gpt import MosaicGPT
+from peft import LoraConfig, TaskType, get_peft_model
+from transformers import LlamaTokenizer
+from transformers.modeling_outputs import CausalLMOutputWithPast
+from transformers.modeling_utils import PreTrainedModel
+from transformers.models.auto import AutoTokenizer
+
 from otter.configuration_otter import OtterConfig
 
 # The package importlib_metadata is in a different place, depending on the python version.
@@ -23,7 +24,6 @@ if sys.version_info < (3, 8):
 else:
     import importlib.metadata as importlib_metadata
 
-import torch.distributed as dist
 
 
 def master_print(*args, **kwargs):
@@ -44,7 +44,6 @@ try:
     if not XFORMERS_MSG_PRINTED:  # Check if the message has been master_printed before
         import xformers.ops as xops
         from transformers import LlamaTokenizer
-
         from xformers_model import CLIPVisionModel, LlamaForCausalLM
 
         _xformers_version = importlib_metadata.version("xformers")
@@ -94,7 +93,7 @@ def _infer_decoder_layers_attr_name(model: nn.Module):
             return __KNOWN_DECODER_LAYERS_ATTR_NAMES[k]
 
     raise ValueError(
-        f"We require the attribute name for the nn.ModuleList in the decoder storing the transformer block layers. Please supply this string manually."
+        "We require the attribute name for the nn.ModuleList in the decoder storing the transformer block layers. Please supply this string manually."
     )
 
 
