@@ -1,6 +1,7 @@
-from video_chatgpt.video_conversation import conv_templates, SeparatorStyle
-from video_chatgpt.model.utils import KeywordsStoppingCriteria
 import torch
+
+from video_chatgpt.model.utils import KeywordsStoppingCriteria
+from video_chatgpt.video_conversation import SeparatorStyle, conv_templates
 
 # Define constants
 DEFAULT_VIDEO_TOKEN = "<video>"

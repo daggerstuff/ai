@@ -2,21 +2,20 @@
 Unit tests for Expert Validation Workflow System
 """
 
-import pytest
-import asyncio
-from datetime import datetime, timedelta
-from unittest.mock import Mock, patch
 
-from clinical_accuracy_assessment import ClinicalAccuracyAssessmentFramework, ClinicalDomain
+import pytest
+from clinical_accuracy_assessment import (
+    ClinicalAccuracyAssessmentFramework,
+    ClinicalDomain,
+)
 from expert_validation_workflow import (
-    ExpertValidationWorkflow,
-    ExpertProfile,
     ExpertLevel,
+    ExpertProfile,
     ExpertSpecialty,
+    ExpertValidationWorkflow,
     ValidationPriority,
-    WorkflowStatus,
     ValidationRequest,
-    ConsensusResult,
+    WorkflowStatus,
 )
 
 

@@ -1,6 +1,5 @@
 import torch
-from transformers import FuyuPreTrainedModel, FuyuConfig, AutoModelForCausalLM
-
+from transformers import FuyuConfig, FuyuPreTrainedModel
 
 try:
     from .modeling_persimmon import PersimmonForCausalLM
@@ -12,8 +11,9 @@ except ImportError:
     print("Using transformers PersimmonForCausalLM without Flash Attention")
 
 from typing import List, Optional, Tuple, Union
-from transformers.modeling_outputs import BaseModelOutputWithPast
+
 import torch.nn as nn
+from transformers.modeling_outputs import BaseModelOutputWithPast
 
 
 class FuyuForCausalLM(FuyuPreTrainedModel):

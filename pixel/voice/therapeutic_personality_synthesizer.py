@@ -17,12 +17,10 @@ Output: Natural, empathetic therapeutic conversations
 from __future__ import annotations
 
 import json
-import random
-import re
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
-from pathlib import Path
 import logging
+import random
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

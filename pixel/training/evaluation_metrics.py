@@ -7,15 +7,19 @@ components when available and falls back to principled heuristics otherwise.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, asdict
-from typing import Any, Dict, List, Optional
+from dataclasses import asdict, dataclass
+from typing import Any, Dict, List
 
 # Reuse content filter for safety compliance, with a robust shim if unavailable
 try:
-    from ai.pixel.training.content_filtering import ContentFilter, SafetyGateType, ValidationSeverity  # type: ignore
+    from ai.pixel.training.content_filtering import (  # type: ignore
+        ContentFilter,
+        SafetyGateType,
+        ValidationSeverity,
+    )
 except Exception:  # pragma: no cover
-    from enum import Enum
     from dataclasses import dataclass
+    from enum import Enum
 
     class ValidationSeverity(Enum):
         INFO = "info"
@@ -71,7 +75,9 @@ except Exception:  # pragma: no cover
 
 # Optional dependencies: light wrappers if not present
 try:  # Clinical scoring (light use)
-    from ai.pixel.data.clinical_accuracy_scorer import ClinicalKnowledgeScorer  # type: ignore
+    from ai.pixel.data.clinical_accuracy_scorer import (
+        ClinicalKnowledgeScorer,  # type: ignore
+    )
 except Exception:  # pragma: no cover
     ClinicalKnowledgeScorer = None  # type: ignore
 

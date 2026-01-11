@@ -1,9 +1,9 @@
-from PIL import Image
-import math
-from decord import VideoReader, cpu
-import numpy as np
 import os
+
+import numpy as np
 import torch
+from decord import VideoReader, cpu
+from PIL import Image
 
 
 def _get_rawvideo_dec(

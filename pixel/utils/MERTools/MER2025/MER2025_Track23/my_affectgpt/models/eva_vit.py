@@ -13,9 +13,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 from timm.models.layers import drop_path, to_2tuple, trunc_normal_
-from timm.models.registry import register_model
-
-from my_affectgpt.common.dist_utils import download_cached_file
 
 
 def _cfg(url="", **kwargs):

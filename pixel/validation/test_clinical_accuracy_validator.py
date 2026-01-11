@@ -5,25 +5,24 @@ This module provides comprehensive unit tests for the clinical accuracy
 validator, covering all assessment components and edge cases.
 """
 
-import asyncio
-import pytest
 import json
 import tempfile
-from pathlib import Path
 from datetime import datetime
-from unittest.mock import Mock, patch
+from pathlib import Path
+
+import pytest
 
 from .clinical_accuracy_validator import (
+    ClinicalAccuracyLevel,
+    ClinicalAccuracyResult,
     ClinicalAccuracyValidator,
     ClinicalContext,
     DSM5Assessment,
     PDM2Assessment,
-    TherapeuticAppropriatenessScore,
     SafetyAssessment,
-    ClinicalAccuracyResult,
-    ClinicalAccuracyLevel,
-    TherapeuticModality,
     SafetyRiskLevel,
+    TherapeuticAppropriatenessScore,
+    TherapeuticModality,
 )
 
 

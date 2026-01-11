@@ -7,19 +7,19 @@ consensus evaluation.
 """
 
 import asyncio
+import json
 import logging
+import smtplib
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Union, Callable
-import json
-import uuid
-from pathlib import Path
-import smtplib
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional
 
-from .clinical_accuracy_validator import ClinicalAccuracyResult, ClinicalAccuracyLevel
+from .clinical_accuracy_validator import ClinicalAccuracyResult
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -1137,15 +1137,15 @@ if __name__ == "__main__":
 
         # Example: Create a mock assessment result for testing
         from .clinical_accuracy_validator import (
+            ClinicalAccuracyLevel,
             ClinicalAccuracyResult,
             ClinicalContext,
             DSM5Assessment,
             PDM2Assessment,
-            TherapeuticAppropriatenessScore,
             SafetyAssessment,
-            ClinicalAccuracyLevel,
-            TherapeuticModality,
             SafetyRiskLevel,
+            TherapeuticAppropriatenessScore,
+            TherapeuticModality,
         )
 
         mock_context = ClinicalContext(

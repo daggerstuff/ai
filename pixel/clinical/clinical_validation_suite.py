@@ -17,13 +17,11 @@ Output: Professional validation scores and recommendations
 """
 from __future__ import annotations
 
-import json
+import logging
 import uuid
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
 from enum import Enum
-from pathlib import Path
-import logging
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -299,7 +297,7 @@ class ClinicalValidationSuite:
             relevant_evaluations = list(self.evaluations.values())
         
         if not relevant_evaluations:
-            logger.warning(f"No evaluations found for analysis")
+            logger.warning("No evaluations found for analysis")
             return None
         
         # Calculate aggregate scores
@@ -373,7 +371,7 @@ class ClinicalValidationSuite:
         for metric, score in results.mean_scores.items():
             report += f"- **{metric.value.replace('_', ' ').title()}**: {score:.1f}/10\n"
         
-        report += f"""
+        report += """
 
 ## Qualitative Analysis
 
@@ -382,14 +380,14 @@ class ClinicalValidationSuite:
         for strength, count in results.common_strengths[:5]:
             report += f"- {strength} ({count} mentions)\n"
         
-        report += f"""
+        report += """
 
 ### Top Areas for Improvement (frequency)
 """
         for concern, count in results.common_concerns[:5]:
             report += f"- {concern} ({count} mentions)\n"
         
-        report += f"""
+        report += """
 
 ### Consensus Recommendations
 """
@@ -445,7 +443,6 @@ class ClinicalValidationSuite:
     
     def _create_scenario_session(self, ai_system, scenario: ClinicalScenario):
         """Create AI session for scenario testing."""
-        from ai.pixel.voice.unified_therapeutic_ai import ClientContext
         
         # Extract presenting concerns from scenario
         presenting_concerns = [scenario.scenario_type.value.split('_')[0]]  # e.g., 'depression' from 'depression_mild'

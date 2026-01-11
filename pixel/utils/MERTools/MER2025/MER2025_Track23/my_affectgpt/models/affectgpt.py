@@ -1,16 +1,20 @@
 import copy
+
 import einops
 import torch
 import torch.nn as nn
 from torch.cuda.amp import autocast as autocast
-from transformers import BertConfig
+from transformers import (
+    AutoModelForCausalLM,
+    BertConfig,
+)
+
+import config
 from my_affectgpt.common.registry import registry
-from my_affectgpt.models.blip2 import Blip2Base, disabled_train
-from transformers import AutoTokenizer, AutoModelForCausalLM, GenerationConfig
+from my_affectgpt.models.blip2 import Blip2Base
+from my_affectgpt.models.encoder import *  # 只有调用了，才能实现 registry 过程
 from my_affectgpt.models.Qformer import BertConfig, BertLMHeadModel
 from my_affectgpt.models.tokenizer import load_tokenizer_from_LLM
-from my_affectgpt.models.encoder import *  # 只有调用了，才能实现 registry 过程
-import config
 
 
 @registry.register_model("affectgpt")
@@ -96,7 +100,7 @@ class AffectGPT(Blip2Base):
             param.requires_grad = False
 
         print("====== Using LoRA on LLM ======")
-        from peft import get_peft_model, LoraConfig, TaskType
+        from peft import LoraConfig, TaskType, get_peft_model
 
         # freeze base model's layers
         for param in self.llama_model.parameters():
@@ -187,7 +191,7 @@ class AffectGPT(Blip2Base):
             self.video_attention_mlp = nn.Linear(self.visual_encoder.hidden_size, 1)
             video_hidden_size = self.visual_encoder.hidden_size
 
-        print(f"====== Loading Video LLAMA proj ======")
+        print("====== Loading Video LLAMA proj ======")
         self.affectgpt_proj = nn.Linear(video_hidden_size, self.llama_model.config.hidden_size)
         if frozen_video_proj:
             for name, param in self.affectgpt_proj.named_parameters():
@@ -198,7 +202,7 @@ class AffectGPT(Blip2Base):
                 param.requires_grad = True
             print("trainable: Video Q-Former LLaMA proj")
 
-        print(f"====== Loading Audio Encoder ======")
+        print("====== Loading Audio Encoder ======")
         self.acoustic_encoder = registry.get_acoustic_encoder_class(acoustic_encoder_name)()
 
         print("====== Loading Audio Q-Former: ======")
@@ -777,7 +781,7 @@ class AffectGPT(Blip2Base):
                 (self.IMAGE_PATCH_TOKEN_ID, self.num_image_query_token, image_llms),
             ]:
                 if (cur_input_ids == patch_token_id).sum() != 0:
-                    assert embeds is not None, f"Some input info is missing."
+                    assert embeds is not None, "Some input info is missing."
                     cur_features = embeds[cur_idx]
                     if (cur_input_ids == patch_token_id).sum() != query_token_number:
                         raise ValueError(

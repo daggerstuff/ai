@@ -1,23 +1,18 @@
-import os
-import glob
-import math
-import tqdm
-import torch
 import argparse
-import numpy as np
-import pandas as pd
-from model import SALMONN
-
+import os
 import sys
+
+import numpy as np
+import torch
+from model import SALMONN
 
 sys.path.append("../")
 
-import config
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_affectgpt.datasets.builders.image_text_pair_builder import (
     get_name2cls,
 )  # 加载所有dataset cls
 
+import config
 
 if __name__ == "__main__":
 
@@ -98,7 +93,7 @@ if __name__ == "__main__":
                         response = model.generate(
                             audio_path,
                             max_length=300,
-                            prompt=f"Please predict the emotional state of the individual in the audio. ",
+                            prompt="Please predict the emotional state of the individual in the audio. ",
                             device=args.device,
                         )[0]
                     response = response.replace("\n", " ").replace("\t", " ").strip()

@@ -1,9 +1,13 @@
 
 import unittest
+
 from .content_filtering import (
-    ContentFilter, PiiDetectionResult, ContentValidationResult, SafetyGateResult,
-    PiiType, ValidationSeverity, SafetyGateType
+    ContentFilter,
+    PiiType,
+    SafetyGateType,
+    ValidationSeverity,
 )
+
 
 class TestContentFilter(unittest.TestCase):
 

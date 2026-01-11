@@ -1,17 +1,12 @@
+import json
 import logging
 import os
-import json
-import sqlite3
 import random
-from os.path import basename
 
 import numpy as np
-import datetime
 
 from dataset.base_dataset import ImageVideoBaseDataset
-from dataset.utils import load_anno
 from dataset.video_utils import VIDEO_READER_FUNCS
-from utils.distributed import is_main_process
 
 logger = logging.getLogger(__name__)
 
@@ -163,7 +158,7 @@ class ITVidTrainDataset(ITImgTrainDataset):
 
         logger.info(f"Use {video_reader_type} for data in {ann_file}")
         if add_second_msg:
-            logger.info(f"Add second message: The video contains X frames sampled at T seconds.")
+            logger.info("Add second message: The video contains X frames sampled at T seconds.")
 
     def __getitem__(self, index):
         try:

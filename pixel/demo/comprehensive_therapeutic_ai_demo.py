@@ -14,10 +14,10 @@ This showcases everything we've built in Tier 2!
 from __future__ import annotations
 
 import asyncio
-import time
 import json
-from typing import Dict, List, Any
 import logging
+import time
+from typing import Any, Dict, List
 
 # Configure logging for demo
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -158,8 +158,10 @@ class TherapeuticAIDemoOrchestrator:
         
         # Initialize the unified therapeutic AI system
         try:
-            from ai.pixel.voice.unified_therapeutic_ai import create_therapeutic_ai_session
-            from ai.pixel.production.performance_optimizer import ProductionPerformanceOptimizer, OptimizationConfig
+            from ai.pixel.production.performance_optimizer import (
+                OptimizationConfig,
+                ProductionPerformanceOptimizer,
+            )
             
             # Initialize performance-optimized system
             config = OptimizationConfig(
@@ -320,7 +322,7 @@ class TherapeuticAIDemoOrchestrator:
         else:
             expert = preferred_expert or "Tim Fletcher"
             expert_pattern = expert_responses.get(expert, {})
-            content = expert_pattern.get(expected_focus, f"Thank you for sharing this with me. I can hear how difficult this is for you.")
+            content = expert_pattern.get(expected_focus, "Thank you for sharing this with me. I can hear how difficult this is for you.")
             crisis_indicators = []
         
         # Detect crisis in client input
@@ -411,7 +413,7 @@ async def run_therapeutic_ai_demo():
         results_serializable["expert_voices_demonstrated"] = list(results["expert_voices_demonstrated"])
         json.dump(results_serializable, f, indent=2)
     
-    print(f"💾 Demo results saved to: ai/pixel/demo/demo_results.json")
+    print("💾 Demo results saved to: ai/pixel/demo/demo_results.json")
     print()
     print("🎭 THERAPEUTIC AI DEMO SHOWCASE COMPLETE! 🎭")
     

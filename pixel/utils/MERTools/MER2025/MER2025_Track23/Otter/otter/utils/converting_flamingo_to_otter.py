@@ -1,9 +1,9 @@
 # This script is used to convert the huggingface format Open-Flamingo model to the Otter model.
 # You can use it in parent folder by running: python -m models.otter.converting_flamingo_to_otter --checkpoint_path <path_to_flamingo_checkpoint> --save_path <path_to_save_otter_checkpoint>
 import argparse
-import torch
-from otter_ai.models.otter.modeling_otter import OtterForConditionalGeneration
+
 from otter_ai.models.flamingo.modeling_flamingo import FlamingoForConditionalGeneration
+from otter_ai.models.otter.modeling_otter import OtterForConditionalGeneration
 
 # Define argument parser
 parser = argparse.ArgumentParser(

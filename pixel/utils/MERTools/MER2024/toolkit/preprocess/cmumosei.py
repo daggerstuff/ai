@@ -1,7 +1,8 @@
-import os
 import glob
-import tqdm
+import os
 import pickle
+
+import tqdm
 from toolkit.globals import *
 from toolkit.utils.chatgpt import *
 from toolkit.utils.functions import *
@@ -112,7 +113,7 @@ def read_train_val_test(label_path, data_type):
 def normalize_dataset_format(data_root, save_root):
     # gain paths
     label_path = os.path.join(save_root, "CMUMOSEI_features_raw_2way.pkl")
-    assert os.path.exists(label_path), f"must has a pre-processed label file"
+    assert os.path.exists(label_path), "must has a pre-processed label file"
 
     # # gain (names, labels)
     train_names, train_labels = read_train_val_test(label_path, "train")

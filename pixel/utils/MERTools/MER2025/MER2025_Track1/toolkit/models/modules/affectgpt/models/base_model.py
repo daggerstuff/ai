@@ -6,13 +6,13 @@ Adapted from salesforce@LAVIS. Below is the original copyright:
  For full license text, see the LICENSE_Lavis file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 
-import os
 import logging
-import numpy as np
-from omegaconf import OmegaConf
+import os
 
+import numpy as np
 import torch
 import torch.nn as nn
+
 from ..common.dist_utils import download_cached_file, is_dist_avail_and_initialized
 from ..common.utils import is_url
 

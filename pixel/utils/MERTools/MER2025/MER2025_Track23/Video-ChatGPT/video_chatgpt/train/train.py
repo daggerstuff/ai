@@ -1,18 +1,19 @@
 import copy
-from dataclasses import dataclass, field
 import json
 import logging
 import pathlib
+import pickle
+from dataclasses import dataclass, field
 from typing import Dict, Optional, Sequence
+
 import torch
+import torch.distributed as dist
 import transformers
 from torch.utils.data import Dataset
-from video_chatgpt.train.llava_trainer import VideoChatGPTTrainer
 from video_chatgpt import video_conversation as conversation_lib
-from video_chatgpt.model import *
-import torch.distributed as dist
 from video_chatgpt.constants import *
-import pickle
+from video_chatgpt.model import *
+from video_chatgpt.train.llava_trainer import VideoChatGPTTrainer
 
 IGNORE_INDEX = -100
 DEFAULT_PAD_TOKEN = "[PAD]"

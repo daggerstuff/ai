@@ -7,7 +7,6 @@ For full license text, see the LICENSE_Lavis file in the repo root or https://op
 
 import cv2
 import numpy as np
-
 import torch
 
 

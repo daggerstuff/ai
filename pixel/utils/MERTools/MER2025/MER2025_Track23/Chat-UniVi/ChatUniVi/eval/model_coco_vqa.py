@@ -1,23 +1,23 @@
 import argparse
-import torch
-import os
 import json
-from tqdm import tqdm
+import math
+import os
+from abc import ABC
+
+import jsonlines
+import numpy as np
 import shortuuid
+import torch
 from ChatUniVi.constants import *
-from ChatUniVi.conversation import conv_templates, SeparatorStyle
+from ChatUniVi.conversation import SeparatorStyle, conv_templates
+from ChatUniVi.mm_utils import (
+    KeywordsStoppingCriteria,
+    tokenizer_image_token,
+)
 from ChatUniVi.model.builder import load_pretrained_model
 from ChatUniVi.utils import disable_torch_init
-from ChatUniVi.mm_utils import (
-    tokenizer_image_token,
-    get_model_name_from_path,
-    KeywordsStoppingCriteria,
-)
 from PIL import Image
-import math
-from abc import ABC
-import numpy as np
-import jsonlines
+from tqdm import tqdm
 
 
 def get_acc(file):

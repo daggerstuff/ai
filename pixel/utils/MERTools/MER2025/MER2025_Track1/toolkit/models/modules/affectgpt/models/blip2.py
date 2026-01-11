@@ -6,27 +6,30 @@ Adapted from salesforce@LAVIS. Below is the original copyright:
  For full license text, see the LICENSE_Lavis file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 
+import contextlib
+import datetime
+import logging
 import os
 import time
-import logging
-import datetime
-import contextlib
 
 import torch
-import torch.nn as nn
 import torch.distributed as dist
+import torch.nn as nn
 import torch.nn.functional as F
+from toolkit.globals import *
 from transformers import BertTokenizer
 
-from ..common.utils import is_url
+from ..common.dist_utils import (
+    download_cached_file,
+    get_rank,
+    get_world_size,
+    is_dist_avail_and_initialized,
+)
 from ..common.logger import MetricLogger
-from ..common.dist_utils import download_cached_file
-from ..common.dist_utils import get_world_size, get_rank, is_dist_avail_and_initialized
-
+from ..common.utils import is_url
 from .base_model import BaseModel
 from .eva_vit import create_eva_vit_g
 from .Qformer import BertConfig, BertLMHeadModel
-from toolkit.globals import *
 
 
 class Blip2Base(BaseModel):

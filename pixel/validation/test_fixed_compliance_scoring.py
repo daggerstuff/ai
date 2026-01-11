@@ -1,4 +1,3 @@
-import pytest
 """
 Test Fixed Compliance Scoring for Safety Validator
 
@@ -6,22 +5,22 @@ This test verifies that the fixed compliance scoring properly detects harmful co
 """
 
 import asyncio
-import sys
 import os
+import sys
 
 # Add current directory to path
 sys.path.append(os.path.dirname(__file__))
 
-from .safety_ethics_validator import (
-    SafetyEthicsValidator,
-    ComplianceLevel,
-    ViolationSeverity,
-    SafetyAssessmentResult,
-    EthicsComplianceResult,
-    LegalComplianceResult,
-    ComplianceViolation,
+from .clinical_accuracy_validator import (
+    ClinicalContext,
+    SafetyRiskLevel,
+    TherapeuticModality,
 )
-from .clinical_accuracy_validator import ClinicalContext, SafetyRiskLevel, TherapeuticModality
+from .safety_ethics_validator import (
+    ComplianceLevel,
+    SafetyEthicsValidator,
+    ViolationSeverity,
+)
 
 
 class FixedSafetyValidator(SafetyEthicsValidator):
@@ -214,7 +213,7 @@ async def test_fixed_validator():
         })
     
     # Summary
-    print(f"\n=== SUMMARY ===")
+    print("\n=== SUMMARY ===")
     correct_count = sum(1 for r in results if r['correct'])
     total_count = len(results)
     accuracy = correct_count / total_count
@@ -232,7 +231,7 @@ async def test_fixed_validator():
     print(f"Harmful Content Detection Rate: {harmful_detected}/{len(harmful_cases)} = {harmful_detection_rate:.1%}")
     print(f"Appropriate Content Rate: {appropriate_correct}/{len(appropriate_cases)} = {appropriate_rate:.1%}")
     
-    print(f"\n=== DETAILED RESULTS ===")
+    print("\n=== DETAILED RESULTS ===")
     for r in results:
         status = "✅" if r['correct'] else "❌"
         print(f"{status} Case {r['test_case']}: {r['compliance']:20s} (conf: {r['confidence']:.2f}, violations: {r['violations']}) - {r['response']}")

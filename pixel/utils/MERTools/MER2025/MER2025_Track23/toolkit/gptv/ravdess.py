@@ -1,13 +1,13 @@
+import glob
 import os
 import re
+
 import cv2
-import glob
 import tqdm
 from sklearn.metrics import confusion_matrix
-
-from toolkit.utils.read_files import *
 from toolkit.utils.chatgpt import get_video_emotion_batch
 from toolkit.utils.functions import func_label_distribution, func_plot_confusion_matrix
+from toolkit.utils.read_files import *
 
 emos = ["surprised", "neutral", "disgust", "sad", "happy", "calm", "fearful", "angry"]
 emo2idx = {}

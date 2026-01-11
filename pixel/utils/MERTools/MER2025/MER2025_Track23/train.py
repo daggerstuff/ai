@@ -1,24 +1,21 @@
-import os
-import time
-import random
 import argparse
-import numpy as np
-
-import torch
+import os
+import random
 from datetime import datetime
-import torch.backends.cudnn as cudnn
 
 import my_affectgpt.tasks as tasks
+import numpy as np
+import torch
+import torch.backends.cudnn as cudnn
 from my_affectgpt.common.config import Config
 from my_affectgpt.common.dist_utils import get_rank, init_distributed_mode
 from my_affectgpt.common.logger import setup_logger
 from my_affectgpt.common.registry import registry
-from my_affectgpt.common.optims import LinearWarmupCosineLRScheduler, LinearWarmupStepLRScheduler
-from my_affectgpt.tasks import *
-from my_affectgpt.models import *
-from my_affectgpt.runners import *
-from my_affectgpt.processors import *
 from my_affectgpt.datasets.builders import *
+from my_affectgpt.models import *
+from my_affectgpt.processors import *
+from my_affectgpt.runners import *
+from my_affectgpt.tasks import *
 
 
 def setup_seeds(config):

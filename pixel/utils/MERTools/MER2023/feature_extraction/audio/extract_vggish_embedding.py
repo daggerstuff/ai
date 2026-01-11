@@ -4,16 +4,14 @@ VGGish: https://arxiv.org/abs/1609.09430
 official github repo: https://github.com/tensorflow/models/tree/master/research/audioset/vggish
 """
 
-import os
-import glob
-import time
-import numpy as np
 import argparse
+import glob
+import os
+import time
 
-from vggish import vggish_input
-from vggish import vggish_params
-from vggish import vggish_slim
+import numpy as np
 import tensorflow.compat.v1 as tf  # version: 1.15.0 (gpu)
+from vggish import vggish_input, vggish_params, vggish_slim
 
 tf.disable_v2_behavior()
 
@@ -34,7 +32,7 @@ def extract(audio_files, save_dir, feature_level, gpu, batch_size=2048):
 
     with tf.Graph().as_default(), tf.Session() as sess:
         vggish_slim.define_vggish_slim(training=False)
-        model_file = os.path.join(config.PATH_TO_PRETRAINED_MODELS, f"vggish/vggish_model.ckpt")
+        model_file = os.path.join(config.PATH_TO_PRETRAINED_MODELS, "vggish/vggish_model.ckpt")
         vggish_slim.load_vggish_slim_checkpoint(sess, model_file)
         features_tensor = sess.graph.get_tensor_by_name(vggish_params.INPUT_TENSOR_NAME)
         embedding_tensor = sess.graph.get_tensor_by_name(vggish_params.OUTPUT_TENSOR_NAME)

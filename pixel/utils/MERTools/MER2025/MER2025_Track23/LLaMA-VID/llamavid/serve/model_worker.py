@@ -5,40 +5,36 @@ A model worker executes the model.
 import argparse
 import asyncio
 import json
-import time
-import threading
-import uuid
-import pickle
 import os
-import numpy as np
+import pickle
+import threading
+import time
+import uuid
+from functools import partial
+from threading import Thread
 
-from fastapi import FastAPI, Request, BackgroundTasks
-from fastapi.responses import StreamingResponse
+import numpy as np
 import requests
 import torch
 import uvicorn
-from functools import partial
-
-from llamavid.constants import WORKER_HEART_BEAT_INTERVAL
-from llamavid.constants import (
-    IMAGE_TOKEN_INDEX,
-    DEFAULT_IMAGE_TOKEN,
-    DEFAULT_IM_START_TOKEN,
-    DEFAULT_IM_END_TOKEN,
-)
-from llamavid.model.builder import load_pretrained_model
+from fastapi import BackgroundTasks, FastAPI, Request
+from fastapi.responses import StreamingResponse
 from llava.mm_utils import (
-    process_images,
+    KeywordsStoppingCriteria,
     load_image_from_base64,
     tokenizer_image_token,
-    KeywordsStoppingCriteria,
 )
-from llava.utils import build_logger, server_error_msg, pretty_print_semaphore
+from llava.utils import build_logger, pretty_print_semaphore, server_error_msg
 from transformers import TextIteratorStreamer
-from threading import Thread
 
-from llamavid.train.llama_flash_attn_monkey_patch import replace_llama_attn_with_flash_attn
-
+from llamavid.constants import (
+    IMAGE_TOKEN_INDEX,
+    WORKER_HEART_BEAT_INTERVAL,
+)
+from llamavid.model.builder import load_pretrained_model
+from llamavid.train.llama_flash_attn_monkey_patch import (
+    replace_llama_attn_with_flash_attn,
+)
 
 GB = 1 << 30
 

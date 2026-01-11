@@ -34,7 +34,6 @@ import tensorflow.compat.v1 as tf
 
 tf.disable_v2_behavior()
 import tf_slim as slim  # version: 1.1.0, pip install tf-slim
-
 from vggish import vggish_params as params
 
 

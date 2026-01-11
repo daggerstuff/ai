@@ -1,21 +1,19 @@
-from PIL import Image
-
-import torch
-from transformers import StoppingCriteria, StoppingCriteriaList
-
-from enum import auto, Enum
+from enum import Enum, auto
 
 import numpy as np
-from decord import VideoReader, cpu
+import torch
 import torchvision.transforms as T
 from dataset.video_transforms import (
+    GroupCenterCrop,
     GroupNormalize,
     GroupScale,
-    GroupCenterCrop,
     Stack,
     ToTorchFormatTensor,
 )
+from decord import VideoReader, cpu
+from PIL import Image
 from torchvision.transforms.functional import InterpolationMode
+from transformers import StoppingCriteria, StoppingCriteriaList
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -174,7 +172,7 @@ class Chat:
             new_P = int((n_position // cur_frame) ** 0.5)  # testing size
             if new_P != 14:
                 print(f"Pretraining uses 14x14, but current version is {new_P}x{new_P}")
-                print(f"Interpolate the position embedding")
+                print("Interpolate the position embedding")
                 sinusoid_table = sinusoid_table.reshape(-1, T, P, P, C)
                 sinusoid_table = sinusoid_table.reshape(-1, P, P, C).permute(0, 3, 1, 2)
                 sinusoid_table = torch.nn.functional.interpolate(
@@ -186,7 +184,7 @@ class Chat:
 
         if cur_frame != ckpt_num_frame:
             print(f"Pretraining uses 4 frames, but current frame is {cur_frame}")
-            print(f"Interpolate the position embedding")
+            print("Interpolate the position embedding")
             T = ckpt_num_frame  # checkpoint frame
             new_T = cur_frame  # testing frame
             # interpolate
@@ -217,7 +215,7 @@ class Chat:
         self.model.vision_encoder.encoder.pos_embed = new_pos_emb
         image_emb, _ = self.model.encode_img(video, "Watch the video and answer the question.")
         img_list.append(image_emb)
-        conv.messages.append([conv.roles[0], f"<Video><VideoHere></Video>\n"])
+        conv.messages.append([conv.roles[0], "<Video><VideoHere></Video>\n"])
         msg = "Received."
         # self.conv.append_message(self.conv.roles[1], msg)
         return msg, img_list, conv
@@ -237,7 +235,7 @@ class Chat:
         img = transform(img).unsqueeze(0).unsqueeze(0).cuda()
         image_emb, _ = self.model.encode_img(img, "Observe the image and answer the question.")
         img_list.append(image_emb)
-        conv.messages.append([conv.roles[0], f"<Image><ImageHere></Image>\n"])
+        conv.messages.append([conv.roles[0], "<Image><ImageHere></Image>\n"])
         msg = "Received."
         # self.conv.append_message(self.conv.roles[1], msg)
         return msg, img_list, conv

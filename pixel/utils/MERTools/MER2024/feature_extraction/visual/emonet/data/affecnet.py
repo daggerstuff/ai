@@ -1,10 +1,12 @@
-from pathlib import Path 
-import pickle
-import numpy as np 
-import torch
 import math
-from torch.utils.data import Dataset
+import pickle
+from pathlib import Path
+
+import numpy as np
+import torch
 from skimage import io
+from torch.utils.data import Dataset
+
 
 class AffectNet(Dataset):
     _expressions = {0: 'neutral', 1:'happy', 2:'sad', 3:'surprise', 4:'fear', 5:'disgust', 6:'anger', 7:'contempt', 8:'none'}

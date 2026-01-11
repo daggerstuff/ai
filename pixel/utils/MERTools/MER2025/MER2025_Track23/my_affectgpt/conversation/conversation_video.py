@@ -1,20 +1,13 @@
-import re
 import copy
 import dataclasses
-from enum import auto, Enum
-from typing import List, Tuple, Any
-from PIL import Image
-import numpy as np
+from enum import Enum, auto
+from typing import Any, List
 
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM, LlamaTokenizer
 from transformers import StoppingCriteria, StoppingCriteriaList
-from my_affectgpt.common.registry import registry
-from my_affectgpt.processors import Blip2ImageEvalProcessor
-from my_affectgpt.processors.video_processor import ToTHWC, ToUint8, load_video, load_face
-from my_affectgpt.models.ImageBind.data import load_audio, transform_audio
-from my_affectgpt.datasets.builders.image_text_pair_builder import *
+
 import config
+from my_affectgpt.datasets.builders.image_text_pair_builder import *
 
 
 class SeparatorStyle(Enum):
@@ -261,7 +254,7 @@ class Chat:
             (IMAGE_PATCH_TOKEN_ID, self.num_image_query_token, img_list["image"]),
         ]:
             if (cur_input_ids == patch_token_id).sum() != 0:
-                assert embeds is not None, f"Some input info is missing."
+                assert embeds is not None, "Some input info is missing."
                 cur_features = embeds[cur_idx]
                 if (cur_input_ids == patch_token_id).sum() != query_token_number:
                     raise ValueError(

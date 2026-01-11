@@ -1,5 +1,3 @@
-import os as __os  # add "__" if not want to be exported
-from copy import deepcopy as __deepcopy
 
 anno_root_it = "your_annotation_path"
 

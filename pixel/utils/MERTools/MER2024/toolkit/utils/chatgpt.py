@@ -1,4 +1,5 @@
 import time
+
 import openai
 
 global_index = 0

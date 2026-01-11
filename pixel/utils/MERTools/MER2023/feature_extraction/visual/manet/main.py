@@ -1,19 +1,21 @@
 import argparse
+import datetime
 import os
-import time
 import shutil
+import time
+
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
+import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.nn.parallel
-import torch.backends.cudnn as cudnn
 import torch.optim
 import torch.utils.data
 import torch.utils.data.distributed
-import matplotlib.pyplot as plt
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-import numpy as np
-import datetime
+
 from .model.manet import manet
 
 now = datetime.datetime.now()

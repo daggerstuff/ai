@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import hashlib
 import json
 import os
 import time
@@ -7,11 +8,14 @@ import time
 import gradio as gr
 import requests
 
-from llava.conversation import default_conversation, conv_templates, SeparatorStyle
 from llava.constants import LOGDIR
-from llava.utils import build_logger, server_error_msg, violates_moderation, moderation_msg
-import hashlib
-
+from llava.conversation import SeparatorStyle, conv_templates, default_conversation
+from llava.utils import (
+    build_logger,
+    moderation_msg,
+    server_error_msg,
+    violates_moderation,
+)
 
 logger = build_logger("gradio_web_server", "gradio_web_server.log")
 
@@ -279,7 +283,7 @@ def http_bot(state, model_selector, temperature, top_p, max_new_tokens, request:
                     )
                     return
                 time.sleep(0.03)
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException:
         state.messages[-1][-1] = server_error_msg
         yield (state, state.to_gradio_chatbot()) + (
             disable_btn,

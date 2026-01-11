@@ -25,7 +25,7 @@ import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint
 import transformers
-from torch import Tensor, device, dtype, nn
+from torch import Tensor, device, nn
 from torch.nn import CrossEntropyLoss, MSELoss
 from transformers.activations import ACT2FN
 

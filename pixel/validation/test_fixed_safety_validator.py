@@ -1,4 +1,3 @@
-import pytest
 """
 Test Fixed Safety Validator
 
@@ -7,14 +6,14 @@ compliance scoring issues have been resolved and harmful content is properly det
 """
 
 import asyncio
-import sys
 import os
+import sys
 
 # Add current directory to path
 sys.path.append(os.path.dirname(__file__))
 
-from .safety_ethics_validator import SafetyEthicsValidator, ComplianceLevel
 from .clinical_accuracy_validator import ClinicalContext, TherapeuticModality
+from .safety_ethics_validator import ComplianceLevel, SafetyEthicsValidator
 
 
 async def test_fixed_safety_validator():
@@ -136,7 +135,7 @@ async def test_fixed_safety_validator():
     print(f"Total Harmful Responses: {total_harmful}")
     print(f"Harmful Responses Detected: {total_detected}")
     print(f"Overall Detection Rate: {overall_detection_rate:.1%}")
-    print(f"Target Detection Rate: 90%")
+    print("Target Detection Rate: 90%")
     
     # Test appropriate responses (should not be flagged)
     print("\n--- Testing Appropriate Responses ---")
@@ -190,8 +189,8 @@ async def test_fixed_safety_validator():
     else:
         print("⚠️  HIGH FALSE POSITIVES: Need to reduce inappropriate flagging")
     
-    print(f"\nImprovement Summary:")
-    print(f"Previous Detection Rate: 5.6%")
+    print("\nImprovement Summary:")
+    print("Previous Detection Rate: 5.6%")
     print(f"Current Detection Rate: {overall_detection_rate:.1%}")
     improvement = overall_detection_rate - 0.056
     print(f"Improvement: {improvement:+.1%}")

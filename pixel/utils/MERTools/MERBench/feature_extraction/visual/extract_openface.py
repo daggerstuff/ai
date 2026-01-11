@@ -1,13 +1,12 @@
-import os
-import cv2
-import glob
-import shutil
-import pathlib
 import argparse
-import numpy as np
-from util import read_hog, read_csv
-
+import glob
+import os
+import pathlib
+import shutil
 import sys
+
+import cv2
+import numpy as np
 
 sys.path.append("../../")
 import config
@@ -136,7 +135,7 @@ if __name__ == "__main__":
     )
     params = parser.parse_args()
 
-    print(f"==> Extracting openface features...")
+    print("==> Extracting openface features...")
 
     # in: face dir
     dataset = params.dataset
@@ -187,4 +186,4 @@ if __name__ == "__main__":
     # process
     extract(input_dir, process_type, save_dir, face_dir, hog_dir, pose_dir)
 
-    print(f"==> Finish")
+    print("==> Finish")

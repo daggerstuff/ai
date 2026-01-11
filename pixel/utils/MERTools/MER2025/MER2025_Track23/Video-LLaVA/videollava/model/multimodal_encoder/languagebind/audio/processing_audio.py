@@ -1,12 +1,10 @@
-import cv2
 import numpy as np
 import torch
+from torch.nn import functional as F
 
 # import torchaudio
 from torchvision import transforms
-from transformers import ProcessorMixin, BatchEncoding
-from transformers.image_processing_utils import BatchFeature
-from torch.nn import functional as F
+from transformers import ProcessorMixin
 
 
 def make_list_of_images(x):

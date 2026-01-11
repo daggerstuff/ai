@@ -5,26 +5,30 @@ Builds optimized FAISS indexes for clinical knowledge retrieval during training
 with multiple index types, performance optimization, and comprehensive search capabilities.
 """
 
-from typing import List, Dict, Any, Optional, Tuple, Union
-from dataclasses import dataclass, field
-from pathlib import Path
 import json
-import pickle
 import logging
-from datetime import datetime
+import pickle
 import time
+from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 try:
-    import numpy as np
     import faiss
+    import numpy as np
     FAISS_AVAILABLE = True
 except ImportError:
     FAISS_AVAILABLE = False
     logging.warning(
         "FAISS not available. Install: uv pip install faiss-cpu numpy")
 
-from .clinical_knowledge_embedder import ClinicalKnowledgeEmbedder, KnowledgeItem, EmbeddingConfig
+from .clinical_knowledge_embedder import (
+    ClinicalKnowledgeEmbedder,
+    EmbeddingConfig,
+    KnowledgeItem,
+)
 
 
 class IndexType(Enum):
@@ -155,7 +159,6 @@ class FAISSKnowledgeIndex:
 
     def _create_mock_data(self):
         """Create mock data for testing when real data isn't available."""
-        from .clinical_knowledge_embedder import EmbeddingConfig
 
         # Create mock embedder and generate data
         config = EmbeddingConfig(embedding_dimension=384)
@@ -740,7 +743,7 @@ def main():
         try:
             benchmark = faiss_index.benchmark_search_performance(
                 num_queries=10, k=5)
-            print(f"\nBenchmark Results:")
+            print("\nBenchmark Results:")
             for key, value in benchmark.items():
                 print(f"  {key}: {value:.4f}")
         except Exception as e:

@@ -1,13 +1,14 @@
-import os
-import cv2
 import glob
-import tqdm
-import pickle
 import multiprocessing
+import os
+import pickle
+
+import cv2
+import tqdm
+from toolkit.globals import *
 from toolkit.utils.chatgpt import *
 from toolkit.utils.functions import *
 from toolkit.utils.read_files import *
-from toolkit.globals import *
 
 
 # t: ms

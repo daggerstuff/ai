@@ -1,21 +1,21 @@
-import torch
 import cv2
 import decord
 import numpy as np
-from PIL import Image
+import torch
 from decord import VideoReader, cpu
-from torchvision import transforms
-from transformers import ProcessorMixin, BatchEncoding
-from transformers.image_processing_utils import BatchFeature
 from pytorchvideo.data.encoded_video import EncodedVideo
-from torchvision.transforms import Compose, Lambda, ToTensor
-from torchvision.transforms._transforms_video import (
-    NormalizeVideo,
-    RandomCropVideo,
-    RandomHorizontalFlipVideo,
-    CenterCropVideo,
+from pytorchvideo.transforms import (
+    ApplyTransformToKey,
+    ShortSideScale,
+    UniformTemporalSubsample,
 )
-from pytorchvideo.transforms import ApplyTransformToKey, ShortSideScale, UniformTemporalSubsample
+from torchvision.transforms import Compose, Lambda
+from torchvision.transforms._transforms_video import (
+    CenterCropVideo,
+    NormalizeVideo,
+    RandomHorizontalFlipVideo,
+)
+from transformers import ProcessorMixin
 
 decord.bridge.set_bridge("torch")
 

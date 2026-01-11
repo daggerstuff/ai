@@ -1,6 +1,6 @@
 import dataclasses
-from enum import auto, Enum
-from typing import List, Tuple
+from enum import Enum, auto
+from typing import List
 
 
 class SeparatorStyle(Enum):
@@ -127,6 +127,7 @@ class Conversation:
                 if type(msg) is tuple:
                     import base64
                     from io import BytesIO
+
                     from PIL import Image
 
                     msg, image, _, image_process_mode = msg

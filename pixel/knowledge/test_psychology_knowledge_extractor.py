@@ -4,15 +4,14 @@ Test suite for Psychology Knowledge Extractor
 Tests the extraction capabilities on sample transcripts and validates
 the clinical concept identification and knowledge graph construction.
 """
-import json
-import pytest
 from pathlib import Path
+
 from ai.pixel.knowledge.psychology_knowledge_extractor import (
-    PsychologyKnowledgeExtractor,
     ClinicalConcept,
-    TherapeuticTechnique,
     ExpertVoiceProfile,
-    extract_psychology_knowledge
+    PsychologyKnowledgeExtractor,
+    TherapeuticTechnique,
+    extract_psychology_knowledge,
 )
 
 
@@ -119,7 +118,6 @@ def test_extract_psychology_knowledge_function():
     """Test the main extraction function with a small sample."""
     # Create a temporary test directory with sample content
     import tempfile
-    import os
     
     with tempfile.TemporaryDirectory() as temp_dir:
         # Create a sample transcript file

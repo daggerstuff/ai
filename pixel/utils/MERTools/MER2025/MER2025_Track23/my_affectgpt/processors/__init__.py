@@ -5,17 +5,17 @@ SPDX-License-Identifier: BSD-3-Clause
 For full license text, see the LICENSE_Lavis file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 
+from my_affectgpt.common.registry import registry
 from my_affectgpt.processors.base_processor import BaseProcessor
 from my_affectgpt.processors.blip_processors import (
-    Blip2ImageTrainProcessor,
     Blip2ImageEvalProcessor,
+    Blip2ImageTrainProcessor,
     BlipCaptionProcessor,
 )
 from my_affectgpt.processors.video_processor import (
-    AlproVideoTrainProcessor,
     AlproVideoEvalProcessor,
+    AlproVideoTrainProcessor,
 )
-from my_affectgpt.common.registry import registry
 
 __all__ = [
     "BaseProcessor",

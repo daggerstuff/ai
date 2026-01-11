@@ -1,35 +1,35 @@
 import argparse
-import torch
-
-from llamavid.constants import (
-    IMAGE_TOKEN_INDEX,
-    DEFAULT_IMAGE_TOKEN,
-    DEFAULT_IM_START_TOKEN,
-    DEFAULT_IM_END_TOKEN,
-)
-from llamavid.conversation import conv_templates, SeparatorStyle
-from llamavid.model.builder import load_pretrained_model
-from llava.utils import disable_torch_init
-from llava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
-
-from PIL import Image
-from decord import VideoReader, cpu
-
 import os
+import sys
+from io import BytesIO
+
 import numpy as np
 import requests
+import torch
+from decord import VideoReader, cpu
+from llamavid.constants import (
+    DEFAULT_IM_END_TOKEN,
+    DEFAULT_IM_START_TOKEN,
+    DEFAULT_IMAGE_TOKEN,
+    IMAGE_TOKEN_INDEX,
+)
+from llamavid.conversation import SeparatorStyle, conv_templates
+from llamavid.model.builder import load_pretrained_model
+from llava.mm_utils import (
+    KeywordsStoppingCriteria,
+    get_model_name_from_path,
+    tokenizer_image_token,
+)
+from llava.utils import disable_torch_init
 from PIL import Image
-from io import BytesIO
 from transformers import TextStreamer
 
-import sys
-
 sys.path.append("../")
-import config
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_affectgpt.datasets.builders.image_text_pair_builder import (
     get_name2cls,
 )  # 加载所有dataset cls
+
+import config
 
 
 def load_image(image_file):
@@ -173,7 +173,7 @@ if __name__ == "__main__":
             if args.subtitle_flag == "subtitle":
                 inp = f"Subtitle content of this video: {subtitle}; As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video."
             elif args.subtitle_flag == "nosubtitle":
-                inp = f"As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video."
+                inp = "As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video."
 
             model.update_prompt([[inp]])
 

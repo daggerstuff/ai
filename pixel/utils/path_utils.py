@@ -1,5 +1,6 @@
 from pathlib import Path
 
+
 def get_project_root() -> Path:
     """Traverses up from the current file to find the project root.
 

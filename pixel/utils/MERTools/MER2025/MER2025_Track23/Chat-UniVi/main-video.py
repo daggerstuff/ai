@@ -1,24 +1,23 @@
-import os
-import torch
 import argparse
-import numpy as np
-from PIL import Image
-from decord import VideoReader, cpu
-
-from ChatUniVi.constants import *
-from ChatUniVi.conversation import conv_templates, SeparatorStyle
-from ChatUniVi.model.builder import load_pretrained_model
-from ChatUniVi.utils import disable_torch_init
-from ChatUniVi.mm_utils import tokenizer_image_token, KeywordsStoppingCriteria
-
+import os
 import sys
 
+import numpy as np
+import torch
+from ChatUniVi.constants import *
+from ChatUniVi.conversation import SeparatorStyle, conv_templates
+from ChatUniVi.mm_utils import KeywordsStoppingCriteria, tokenizer_image_token
+from ChatUniVi.model.builder import load_pretrained_model
+from ChatUniVi.utils import disable_torch_init
+from decord import VideoReader, cpu
+from PIL import Image
+
 sys.path.append("../")
-import config
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_affectgpt.datasets.builders.image_text_pair_builder import (
     get_name2cls,
 )  # 加载所有dataset cls
+
+import config
 
 
 # 这个是1s采样一帧，而不是固定采样的
@@ -165,7 +164,7 @@ if __name__ == "__main__":
             if args.subtitle_flag == "subtitle":
                 user_message = f"Subtitle content of this video: {subtitle}; As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video and recognize all possible emotional states of the individual."
             elif args.subtitle_flag == "nosubtitle":
-                user_message = f"As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video and recognize all possible emotional states of the individual."
+                user_message = "As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video and recognize all possible emotional states of the individual."
 
             # Sampling Parameter
             conv_mode = "simple"

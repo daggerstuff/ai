@@ -1,19 +1,20 @@
 # *_*coding:utf-8 *_*
-import os
 import argparse
-import numpy as np
+import os
 
+# import config
+import sys
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torchvision
 from torchvision import transforms
 
-# import config
-import sys
-
 sys.path.append("../../")
-import config
 from dataset import FaceDataset
+
+import config
 
 
 def extract(data_loader, model):

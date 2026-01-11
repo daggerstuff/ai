@@ -10,7 +10,6 @@ from typing import Optional
 import torch
 import torch.nn as nn
 from einops import rearrange
-from torch import nn
 
 from .low_precision_layernorm import LPLayerNorm
 
@@ -126,7 +125,7 @@ def flash_attn_fn(
     check_valid_inputs(query, key, value)
 
     if attn_bias is not None:
-        raise NotImplementedError(f"attn_bias not implemented for flash attn.")
+        raise NotImplementedError("attn_bias not implemented for flash attn.")
 
     batch_size, seqlen = query.shape[:2]
 
@@ -190,10 +189,10 @@ def triton_flash_attn_fn(
     check_valid_inputs(query, key, value)
 
     if dropout_p:
-        raise NotImplementedError(f"Dropout not implemented for attn_impl: triton.")
+        raise NotImplementedError("Dropout not implemented for attn_impl: triton.")
 
     if needs_weights:
-        raise NotImplementedError(f"attn_impl: triton cannot return attn weights.")
+        raise NotImplementedError("attn_impl: triton cannot return attn weights.")
 
     if key_padding_mask is not None:
         warnings.warn(

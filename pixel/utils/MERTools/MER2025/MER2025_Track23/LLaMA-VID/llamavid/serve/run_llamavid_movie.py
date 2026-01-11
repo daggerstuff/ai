@@ -1,18 +1,24 @@
 import argparse
-import torch
 import pickle
 
-from llamavid.constants import (
-    IMAGE_TOKEN_INDEX,
-    DEFAULT_IMAGE_TOKEN,
-    DEFAULT_IM_START_TOKEN,
-    DEFAULT_IM_END_TOKEN,
+import torch
+from llava.mm_utils import (
+    KeywordsStoppingCriteria,
+    get_model_name_from_path,
+    tokenizer_image_token,
 )
-from llamavid.conversation import conv_templates, SeparatorStyle
+
+from llamavid.constants import (
+    DEFAULT_IM_END_TOKEN,
+    DEFAULT_IM_START_TOKEN,
+    DEFAULT_IMAGE_TOKEN,
+    IMAGE_TOKEN_INDEX,
+)
+from llamavid.conversation import SeparatorStyle, conv_templates
 from llamavid.model.builder import load_pretrained_model
-from llamavid.train.llama_flash_attn_monkey_patch import replace_llama_attn_with_flash_attn
-from llava.utils import disable_torch_init
-from llava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
+from llamavid.train.llama_flash_attn_monkey_patch import (
+    replace_llama_attn_with_flash_attn,
+)
 
 
 def parse_args():

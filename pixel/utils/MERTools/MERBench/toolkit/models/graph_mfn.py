@@ -4,10 +4,11 @@ Reference From: https://github.com/pliang279/MFN & https://github.com/A2Zadeh/CM
 """
 
 import copy
+from itertools import chain, combinations
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from itertools import chain, combinations
 
 
 class DynamicFusionGraph(nn.Module):

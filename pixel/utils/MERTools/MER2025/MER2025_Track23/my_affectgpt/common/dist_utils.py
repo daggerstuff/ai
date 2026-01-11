@@ -9,9 +9,9 @@ import datetime
 import functools
 import os
 
+import timm.models.hub as timm_hub
 import torch
 import torch.distributed as dist
-import timm.models.hub as timm_hub
 
 
 def setup_for_distributed(is_master):

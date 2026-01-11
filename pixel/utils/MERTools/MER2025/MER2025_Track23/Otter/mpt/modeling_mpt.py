@@ -8,6 +8,7 @@ import warnings
 from typing import List, Optional, Tuple, Union
 
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import PreTrainedModel, PreTrainedTokenizer, PreTrainedTokenizerFast
@@ -21,12 +22,10 @@ from .blocks import MPTBlock
 from .configuration_mpt import MPTConfig
 from .custom_embedding import SharedEmbedding
 from .norm import NORM_CLASS_REGISTRY
-from .param_init_fns import MODEL_INIT_REGISTRY, generic_param_init_fn_
-
-import torch.distributed as dist
+from .param_init_fns import MODEL_INIT_REGISTRY
 
 try:
-    from .flash_attn_triton import flash_attn_func
+    pass
 except:
     pass
 Tokenizer = Union[PreTrainedTokenizer, PreTrainedTokenizerFast]
@@ -271,7 +270,7 @@ class MPTModel(MPTPreTrainedModel):
             if past_key_values is not None:
                 if len(past_key_values) != self.config.n_layers:
                     raise ValueError(
-                        f"past_key_values must provide a past_key_value for each attention "
+                        "past_key_values must provide a past_key_value for each attention "
                         + f"layer in the network ({len(past_key_values)=}; {self.config.n_layers=})."
                     )
                 # For attn_impl: triton and flash the past key tensor spec is (batch, seq, dim).

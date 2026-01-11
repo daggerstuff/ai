@@ -1,7 +1,7 @@
-from pathlib import Path
 import json
 import subprocess
 import sys
+from pathlib import Path
 
 
 def test_batch_evaluation_cli(tmp_path: Path):

@@ -9,17 +9,17 @@ Model-free, content-based safety monitoring utilities that:
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field, asdict
-from typing import Any, Callable, Dict, List, Optional
-from time import time
 import json
+from dataclasses import asdict, dataclass, field
+from time import time
+from typing import Any, Callable, Dict, List, Optional
 
 # Reuse the resilient shim path from evaluation metrics for ContentFilter
 try:
     from ai.pixel.training.content_filtering import ContentFilter, ValidationSeverity
 except Exception:  # pragma: no cover
-    from enum import Enum
     from dataclasses import dataclass
+    from enum import Enum
 
     class ValidationSeverity(Enum):
         INFO = "info"

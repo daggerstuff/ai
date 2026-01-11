@@ -1,5 +1,4 @@
 from .clip_encoder import CLIPVisionTower
-from .eva_encoder import EVAVisionTower
 
 
 def build_vision_tower(vision_tower_cfg, **kwargs):

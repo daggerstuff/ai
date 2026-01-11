@@ -1,11 +1,10 @@
-import torch
-import torchvision.transforms.functional as F
-import warnings
-import random
-import numpy as np
-import torchvision
-from PIL import Image, ImageOps
 import numbers
+import random
+
+import numpy as np
+import torch
+import torchvision
+from PIL import Image
 
 
 class GroupRandomCrop(object):

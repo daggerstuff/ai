@@ -1,18 +1,16 @@
+import argparse
 import os
 import time
-import argparse
-import numpy as np
-from omegaconf import OmegaConf
-from thop import profile
 
+import numpy as np
 import torch
 import torch.optim as optim
-
+from omegaconf import OmegaConf
+from toolkit.dataloader import get_dataloaders
+from toolkit.models import get_models
+from toolkit.utils.functions import *
 from toolkit.utils.loss import *
 from toolkit.utils.metric import *
-from toolkit.utils.functions import *
-from toolkit.models import get_models
-from toolkit.dataloader import get_dataloaders
 
 
 def train_or_eval_model(
@@ -278,7 +276,7 @@ if __name__ == "__main__":
         eval_loader = eval_loaders[ii]
         start_time = name_time = time.time()
 
-        print(f"Step1: build model (each folder has its own model)")
+        print("Step1: build model (each folder has its own model)")
         model = get_models(args).cuda()
         reg_loss = MSELoss().cuda()
         cls_loss = CELoss().cuda()
@@ -299,7 +297,7 @@ if __name__ == "__main__":
                 weight_decay=args.l2,
             )
 
-        print(f"Step2: training (multiple epoches)")
+        print("Step2: training (multiple epoches)")
         whole_store = []
         whole_metrics = []
         for epoch in range(args.epochs):

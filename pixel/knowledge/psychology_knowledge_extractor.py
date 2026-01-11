@@ -16,18 +16,16 @@ Output: Structured knowledge base with 50,000+ clinical concepts
 """
 from __future__ import annotations
 
-import json
-import re
-import os
-from dataclasses import dataclass, field, asdict
-from pathlib import Path
-from typing import Dict, List, Set, Optional, Tuple, Any
-from collections import defaultdict, Counter
 import concurrent.futures
-import multiprocessing
-from functools import partial
-import time
+import json
 import logging
+import multiprocessing
+import re
+import time
+from collections import Counter, defaultdict
+from dataclasses import asdict, dataclass, field
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

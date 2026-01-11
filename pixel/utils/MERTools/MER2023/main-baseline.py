@@ -1,21 +1,11 @@
-import re
-import os
-import sys
-import time
-import copy
-import tqdm
 import glob
-import json
-import math
-import scipy
+import os
 import shutil
-import random
-import pickle
-import argparse
+
 import numpy as np
 import pandas as pd
+import tqdm
 
-import cv2  # pip install opencv-python
 import config
 
 
@@ -96,7 +86,6 @@ def normalize_dataset_format(data_root, save_root):
 
 # generate transcription files using asr
 def generate_transcription_files_asr(audio_root, save_path):
-    import torch
     import wenetruntime as wenet
 
     decoder = wenet.Decoder("./tools/wenet/wenetspeech_u2pp_conformer_libtorch", lang="chs")

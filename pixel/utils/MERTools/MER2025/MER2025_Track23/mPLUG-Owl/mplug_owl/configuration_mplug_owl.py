@@ -18,10 +18,9 @@ import os
 from typing import Union
 
 from transformers.configuration_utils import PretrainedConfig
+from transformers.models.auto import CONFIG_MAPPING
 from transformers.models.auto.modeling_auto import MODEL_FOR_CAUSAL_LM_MAPPING_NAMES
 from transformers.utils import logging
-from transformers.models.auto import CONFIG_MAPPING
-
 
 logger = logging.get_logger(__name__)
 

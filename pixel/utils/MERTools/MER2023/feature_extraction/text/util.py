@@ -1,9 +1,10 @@
 # *_*coding:utf-8 *_*
 import os
 import re
-import pandas as pd
-import numpy as np
 import unicodedata
+
+import numpy as np
+import pandas as pd
 
 
 def write_feature_to_csv(

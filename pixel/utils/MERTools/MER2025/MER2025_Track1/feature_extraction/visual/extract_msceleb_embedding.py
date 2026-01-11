@@ -1,18 +1,19 @@
 # *_*coding:utf-8 *_*
-import os
 import argparse
-import numpy as np
-
-import torch
-import torch.nn as nn
-from torchvision import transforms
+import os
 
 # import config
 import sys
 
+import numpy as np
+import torch
+import torch.nn as nn
+from torchvision import transforms
+
 sys.path.append("../../")
-import config
 from dataset import FaceDataset
+
+import config
 
 
 ############## RESNET ##############

@@ -1,12 +1,12 @@
-import os
 import glob
-import scipy
+import os
+
 import numpy as np
 import pandas as pd
-
-from toolkit.utils.read_files import *
 from toolkit.utils.chatgpt import *
 from toolkit.utils.functions import *
+from toolkit.utils.read_files import *
+
 import config
 
 

@@ -5,21 +5,16 @@ SPDX-License-Identifier: BSD-3-Clause
 For full license text, see the LICENSE_Lavis file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 
-import io
 import json
 import logging
 import os
-import pickle
 import re
 import shutil
-import urllib
-import urllib.error
-import urllib.request
 from urllib.parse import urlparse
+
 from iopath.common.file_io import g_pathmgr
 
 from .registry import registry
-from torch.utils.model_zoo import tqdm
 
 
 def is_url(url_or_filename):

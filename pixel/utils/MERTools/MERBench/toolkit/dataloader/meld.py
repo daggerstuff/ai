@@ -1,9 +1,9 @@
 import numpy as np
+from sklearn.metrics import accuracy_score, f1_score
+from toolkit.data import get_datasets
 from torch.utils.data import DataLoader
-from sklearn.metrics import f1_score, accuracy_score
 
 from ..globals import *
-from toolkit.data import get_datasets
 
 
 class MELD:

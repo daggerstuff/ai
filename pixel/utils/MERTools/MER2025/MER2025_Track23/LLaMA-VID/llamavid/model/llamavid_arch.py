@@ -16,33 +16,29 @@
 # Copyright 2023 Yanwei Li
 # ------------------------------------------------------------------------
 
-from abc import ABC, abstractmethod
-import os
 import json
-import numpy as np
+import os
+import sys
+from abc import ABC, abstractmethod
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 from transformers import BertTokenizer
 from transformers.models.bert.modeling_bert import BertLMHeadModel as BertLMHeadModelRaw
 
-from .qformer import BertConfig
-from .qformer import BertLMHeadModel as BertLMHeadModelQF
+from llamavid.constants import (
+    DEFAULT_IM_END_TOKEN,
+    DEFAULT_IM_START_TOKEN,
+    DEFAULT_IMAGE_PATCH_TOKEN,
+    IGNORE_INDEX,
+    IMAGE_TOKEN_INDEX,
+)
 
 from .multimodal_encoder.builder import build_vision_tower
 from .multimodal_projector.builder import build_vision_projector
-
-from llamavid.constants import (
-    IGNORE_INDEX,
-    IMAGE_TOKEN_INDEX,
-    DEFAULT_IMAGE_PATCH_TOKEN,
-    DEFAULT_IM_START_TOKEN,
-    DEFAULT_IM_END_TOKEN,
-)
-
-import sys
+from .qformer import BertConfig
+from .qformer import BertLMHeadModel as BertLMHeadModelQF
 
 sys.path.append("..")
 import config

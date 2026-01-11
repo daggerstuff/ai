@@ -1,9 +1,12 @@
-from pathlib import Path
 import json
-import sys
 import subprocess
+import sys
+from pathlib import Path
 
-from ai.pixel.training.expert_validation_dataset import build_sample_conversations, ExpertValidationDataset
+from ai.pixel.training.expert_validation_dataset import (
+    ExpertValidationDataset,
+    build_sample_conversations,
+)
 
 
 def test_expert_review_cli_flow(tmp_path: Path):

@@ -1,7 +1,8 @@
 import os
+from typing import Optional
+
 import torch
 from transformers import Trainer
-from typing import Optional
 
 
 def maybe_zero_3(param, ignore_status=False, name=None):
@@ -48,7 +49,7 @@ class ChatUniViTrainer(Trainer):
 
             if self.args.local_rank == 0 or self.args.local_rank == -1:
                 self.model.config.save_pretrained(output_dir)
-                torch.save(weight_to_save, os.path.join(output_dir, f"mm_projector.bin"))
+                torch.save(weight_to_save, os.path.join(output_dir, "mm_projector.bin"))
         else:
             super(ChatUniViTrainer, self)._save_checkpoint(model, trial, metrics)
 
