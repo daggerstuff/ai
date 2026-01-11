@@ -5,27 +5,26 @@ Creates vector embeddings for all psychology knowledge items to enable
 efficient similarity search and retrieval during training.
 """
 
-from typing import List, Dict, Any, Optional, Tuple, Union
-from dataclasses import dataclass, field
-from pathlib import Path
-import json
-import pickle
-import logging
-from datetime import datetime
 import hashlib
+import logging
+import pickle
+from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 try:
+    import faiss
     import numpy as np
     import pandas as pd
     from sentence_transformers import SentenceTransformer
-    import faiss
     DEPENDENCIES_AVAILABLE = True
 except ImportError:
     DEPENDENCIES_AVAILABLE = False
     logging.warning(
         "Dependencies not available. Install: uv pip install faiss-cpu sentence-transformers numpy pandas")
 
-from .psychology_loader import PsychologyKnowledgeLoader, PsychologyKnowledge
+from .psychology_loader import PsychologyKnowledgeLoader
 from .therapeutic_conversation_schema import TherapeuticConversation
 
 

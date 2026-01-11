@@ -1,13 +1,12 @@
 # *_*coding:utf-8 *_*
 import os
 import subprocess
-import glob
 import sys
-import numpy as np
+
 import librosa  # version: 0.8.0 (pip install librosa), https://pypi.org/project/librosa/
+import numpy as np
 
 # import config
-import sys
 
 sys.path.append("../../")
 from config import PATH_TO_OPENSMILE

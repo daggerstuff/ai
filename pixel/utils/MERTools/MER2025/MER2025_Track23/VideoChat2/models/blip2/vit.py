@@ -1,11 +1,11 @@
 import logging
+from functools import partial
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
-from functools import partial
-
 from timm.models.layers import drop_path, to_2tuple, trunc_normal_
 
 logger = logging.getLogger(__name__)
@@ -211,7 +211,7 @@ def get_sinusoid_encoding_table(n_position, d_hid, ckpt_num_frame=-1, cur_frame=
         return [position / np.power(10000, 2 * (hid_j // 2) / d_hid) for hid_j in range(d_hid)]
 
     if ckpt_num_frame != -1 and ckpt_num_frame != cur_frame:
-        logger.info(f"Interpolate position embedding")
+        logger.info("Interpolate position embedding")
         logger.info(f"Testing frame: {cur_frame}")
         logger.info(f"Checkpoint frame: {ckpt_num_frame}")
 
@@ -268,7 +268,7 @@ def get_sinusoid_encoding_table2(
         C = d_hid
         new_P = int((n_position // cur_frame) ** 0.5)  # testing size
         print(f"Pretraining uses 14x14, but current version is {new_P}x{new_P}")
-        print(f"Interpolate the position embedding")
+        print("Interpolate the position embedding")
         sinusoid_table = sinusoid_table.reshape(-1, T, P, P, C)
         sinusoid_table = sinusoid_table.reshape(-1, P, P, C).permute(0, 3, 1, 2)
         sinusoid_table = torch.nn.functional.interpolate(
@@ -280,7 +280,7 @@ def get_sinusoid_encoding_table2(
 
     if cur_frame != ckpt_num_frame:
         print(f"Pretraining uses 4 frames, but current frame is {cur_frame}")
-        print(f"Interpolate the position embedding")
+        print("Interpolate the position embedding")
         T = ckpt_num_frame  # checkpoint frame
         new_T = cur_frame  # testing frame
         # interpolate
@@ -545,9 +545,6 @@ def build_vit(config):
 
 
 if __name__ == "__main__":
-    import time
-    from fvcore.nn import FlopCountAnalysis
-    from fvcore.nn import flop_count_table
     import numpy as np
 
     seed = 4217

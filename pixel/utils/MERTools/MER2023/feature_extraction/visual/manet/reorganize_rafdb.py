@@ -1,8 +1,8 @@
-import os
 import glob
-import pandas as pd
+import os
 import shutil
 
+import pandas as pd
 
 rafdb_path = "/data1/sunlicai/Affective Computing/Dataset/RAF-DB/basic"
 src_path = os.path.join(rafdb_path, "Image/aligned")

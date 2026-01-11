@@ -6,6 +6,7 @@ Paper: Multimodal Transformer for Unaligned Multimodal Language Sequences
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from .modules.transformers_encoder.transformer import TransformerEncoder
 
 

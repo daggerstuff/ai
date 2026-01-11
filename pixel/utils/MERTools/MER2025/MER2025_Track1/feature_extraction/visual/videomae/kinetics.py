@@ -1,11 +1,8 @@
-import glob
-import torch
-import warnings
 import numpy as np
-from PIL import Image
-from torch.utils.data import Dataset
 import videomae.video_transforms as video_transforms
 import videomae.volume_transforms as volume_transforms
+from PIL import Image
+from torch.utils.data import Dataset
 
 
 # only process one single file

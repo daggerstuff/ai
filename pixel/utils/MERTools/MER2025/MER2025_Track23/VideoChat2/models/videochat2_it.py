@@ -1,13 +1,12 @@
-import random
 import logging
 
 import torch
-from torch.cuda.amp import autocast as autocast
 import torch.nn as nn
-from peft import get_peft_model, LoraConfig, TaskType
+from peft import LoraConfig, TaskType, get_peft_model
+from torch.cuda.amp import autocast as autocast
+from transformers import LlamaConfig, LlamaTokenizer
 
 from .blip2.blip2 import Blip2Base, disabled_train
-from transformers import LlamaTokenizer, LlamaConfig
 
 logger = logging.getLogger(__name__)
 

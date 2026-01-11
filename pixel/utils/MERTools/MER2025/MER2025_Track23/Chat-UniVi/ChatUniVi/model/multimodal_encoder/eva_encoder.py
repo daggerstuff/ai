@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
-from .eva_vit import create_eva_vit_g, _cfg
-from .processor import ImageTrainProcessor, ImageEvalProcessor
+
+from .eva_vit import _cfg, create_eva_vit_g
+from .processor import ImageEvalProcessor, ImageTrainProcessor
 
 
 class EVAVisionTower(nn.Module):

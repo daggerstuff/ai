@@ -28,7 +28,6 @@ from transformers.tokenization_utils import (
 )
 from transformers.utils import logging
 
-
 logger = logging.get_logger(__name__)
 
 VOCAB_FILES_NAMES = {"vocab_file": "vocab.txt"}

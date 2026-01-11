@@ -6,20 +6,18 @@ into conversation generation with seamless switching, technique blending, and
 modality-specific intervention selection based on client needs and context.
 """
 
-import asyncio
+import json
 import logging
+import random
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Union, Set
-import json
-import random
-import numpy as np
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-from .therapeutic_conversation_schema import TherapeuticModality, ClinicalContext
+from .dynamic_conversation_generator import ConversationTurn
+from .therapeutic_conversation_schema import ClinicalContext, TherapeuticModality
 from .therapist_response_generator import InterventionType, TherapistResponse
-from .dynamic_conversation_generator import ConversationParameters, ConversationTurn
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

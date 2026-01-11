@@ -1,29 +1,25 @@
-import os
-import cv2
-import sys
-import glob
-import numpy as np
-
+import argparse
 import mimetypes
+import os
+import sys
+from typing import Union
+
+import cv2
+import numpy as np
 import requests
 import torch
-import argparse
 import transformers
-from PIL import Image
-from typing import Union
 
 # make sure you can properly access the otter folder
 from otter.modeling_otter import OtterForConditionalGeneration
-
-
-import sys
+from PIL import Image
 
 sys.path.append("../")
-import config
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_affectgpt.datasets.builders.image_text_pair_builder import (
     get_name2cls,
 )  # 加载所有dataset cls
+
+import config
 
 # Disable warnings
 requests.packages.urllib3.disable_warnings()
@@ -184,7 +180,7 @@ if __name__ == "__main__":
             if args.subtitle_flag == "subtitle":
                 prompts_input = f"Subtitle content of this video: {subtitle}; As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video."
             elif args.subtitle_flag == "nosubtitle":
-                prompts_input = f"As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video."
+                prompts_input = "As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video."
             response = get_response(
                 frames_list, prompts_input, model, image_processor, tensor_dtype
             )

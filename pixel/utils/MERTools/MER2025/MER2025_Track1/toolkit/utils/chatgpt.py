@@ -1,12 +1,10 @@
-import os
-import cv2
-import math
-import time
-import tqdm
-import glob
 import base64
-import numpy as np
+import glob
+import os
+import time
 
+import cv2
+import numpy as np
 import openai
 
 # avoid RPD errors
@@ -490,7 +488,7 @@ def get_text_emotion_batch(npy_paths, candidate_list, sleeptime=0, model="gpt-4-
     for ii, npy_path in enumerate(npy_paths):
         prompt.append(
             {
-                "type": f"text",
+                "type": "text",
                 "text": f"{func_nyp_to_text(npy_path)}",
             }
         )
@@ -732,11 +730,11 @@ def get_video_reason(video_path, sleeptime=0, samplenum=4, model="gpt-4-vision-p
         prompt = [
             {
                 "type": "text",
-                "text": f"请假设作为情感领域的专家，重点关注图像中人物面部表情、肢体动作、所处环境、发生事件等和人物情感相关的线索，并进行详细描述，最终预测人物的情感状态。\
+                "text": "请假设作为情感领域的专家，重点关注图像中人物面部表情、肢体动作、所处环境、发生事件等和人物情感相关的线索，并进行详细描述，最终预测人物的情感状态。\
                                 在描述过程中，请忽略人物的身份信息。在描述过程中，请忽略人物的身份信息。在描述过程中，请忽略人物的身份信息。尽量提供可能的情感线索。",
             },
             {
-                "type": f"image",
+                "type": "image",
                 "image": func_opencv_to_base64(frames[0]),
             },
         ]

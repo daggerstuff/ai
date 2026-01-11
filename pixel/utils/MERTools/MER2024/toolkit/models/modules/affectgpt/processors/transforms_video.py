@@ -15,8 +15,14 @@ from torchvision.transforms import (
     RandomResizedCrop,
 )
 
-from .functional_video import crop, resized_crop, center_crop, normalize, to_tensor, hflip
-
+from .functional_video import (
+    center_crop,
+    crop,
+    hflip,
+    normalize,
+    resized_crop,
+    to_tensor,
+)
 
 __all__ = [
     "RandomCropVideo",

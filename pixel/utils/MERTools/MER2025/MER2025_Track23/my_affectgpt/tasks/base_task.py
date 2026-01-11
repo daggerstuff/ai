@@ -5,16 +5,17 @@ SPDX-License-Identifier: BSD-3-Clause
 For full license text, see the LICENSE_Lavis file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 
-import os
 import logging
+import os
 
 import torch
 import torch.distributed as dist
+
 from my_affectgpt.common.dist_utils import (
     get_rank,
     get_world_size,
-    is_main_process,
     is_dist_avail_and_initialized,
+    is_main_process,
 )
 from my_affectgpt.common.logger import MetricLogger, SmoothedValue
 from my_affectgpt.common.registry import registry
@@ -163,7 +164,7 @@ class BaseTask:
                 with torch.cuda.amp.autocast(enabled=use_amp):
                     loss = self.train_step(model=model, samples=samples)
             else:
-                assert 1 == 0, f"unsupport torch version"
+                assert 1 == 0, "unsupport torch version"
 
             if use_amp:
                 scaler.scale(loss).backward()

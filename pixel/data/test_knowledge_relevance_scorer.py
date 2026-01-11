@@ -4,22 +4,22 @@ Unit Tests for Knowledge Relevance Scorer
 Tests advanced scoring and ranking functionality for clinical knowledge relevance.
 """
 
-import pytest
-import tempfile
 import shutil
+import tempfile
 from pathlib import Path
-from unittest.mock import Mock, patch
 
+import pytest
+
+from .clinical_knowledge_embedder import KnowledgeItem
+from .clinical_similarity_search import EnhancedSearchResult, SearchContext, SearchQuery
 from .knowledge_relevance_scorer import (
     KnowledgeRelevanceScorer,
-    ScoringConfig,
-    ScoringAlgorithm,
+    RankedResult,
     RankingStrategy,
     RelevanceScore,
-    RankedResult
+    ScoringAlgorithm,
+    ScoringConfig,
 )
-from .clinical_similarity_search import EnhancedSearchResult, SearchQuery, SearchContext
-from .clinical_knowledge_embedder import KnowledgeItem
 
 
 class TestScoringAlgorithm:

@@ -1,12 +1,12 @@
-import numpy as np
-
-import torch
 import random
+
+import numpy as np
+import torch
+from toolkit.utils.e2e_utils import *
+from toolkit.utils.functions import *
+from toolkit.utils.read_data import *
 from torch.utils.data import Dataset
 
-from toolkit.utils.functions import *
-from toolkit.utils.e2e_utils import *
-from toolkit.utils.read_data import *
 
 class Data_E2E(Dataset):
     def __init__(self, args, names, labels):

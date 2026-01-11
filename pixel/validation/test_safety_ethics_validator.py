@@ -6,27 +6,25 @@ compliance validation system, covering safety assessment, ethics compliance,
 legal requirements, and violation detection.
 """
 
-import pytest
-import json
-import tempfile
-from pathlib import Path
 from datetime import datetime
 
+import pytest
+
+from .clinical_accuracy_validator import (
+    ClinicalContext,
+    SafetyRiskLevel,
+    TherapeuticModality,
+)
 from .safety_ethics_validator import (
-    SafetyEthicsValidator,
-    SafetyIndicator,
-    EthicsGuideline,
-    LegalRequirement,
-    ComplianceViolation,
-    SafetyEthicsComplianceResult,
     ComplianceLevel,
-    SafetyCategory,
     EthicsCategory,
     LegalCategory,
+    SafetyCategory,
+    SafetyEthicsComplianceResult,
+    SafetyEthicsValidator,
+    SafetyIndicator,
     ViolationSeverity,
 )
-
-from .clinical_accuracy_validator import ClinicalContext, TherapeuticModality, SafetyRiskLevel
 
 
 class TestSafetyEthicsValidator:

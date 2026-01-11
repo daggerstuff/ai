@@ -1,17 +1,17 @@
-from utils.distributed import is_main_process, get_rank, get_world_size
-import logging
-import torch.distributed as dist
-import torch
 import io
-import os
 import json
+import logging
+import os
 import re
-import numpy as np
 from os.path import join
-from tqdm import trange
-from PIL import Image
-from PIL import ImageFile
+
+import numpy as np
+import torch
+import torch.distributed as dist
+from PIL import Image, ImageFile
 from torchvision.transforms import PILToTensor
+from tqdm import trange
+from utils.distributed import get_rank, get_world_size, is_main_process
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 Image.MAX_IMAGE_PIXELS = None

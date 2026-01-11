@@ -6,14 +6,14 @@ Adapted from salesforce@LAVIS. Below is the original copyright:
  For full license text, see the LICENSE_Lavis file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 
-import torch
-from typing import Optional
 from dataclasses import dataclass
+from typing import Optional
 
+import torch
 from transformers.modeling_outputs import (
-    ModelOutput,
     BaseModelOutputWithPoolingAndCrossAttentions,
     CausalLMOutputWithCrossAttentions,
+    ModelOutput,
 )
 
 

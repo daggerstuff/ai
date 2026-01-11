@@ -37,22 +37,23 @@ SOFTWARE.
 
 """
 from __future__ import print_function
-import torch
-import sys
-from PIL import Image
-import tqdm
-import cv2
+
 import argparse
-import numpy as np
-from scipy.optimize import brentq
-from scipy.interpolate import interp1d
-from sklearn.metrics import roc_curve
-import zipfile
 import os
+import sys
+import zipfile
+
+import cv2
+import numpy as np
 import six
+import torch
+import tqdm
 import utils.benchmark_helpers
 from matlab_cp2tform import get_similarity_transform_for_cv2
-
+from PIL import Image
+from scipy.interpolate import interp1d
+from scipy.optimize import brentq
+from sklearn.metrics import roc_curve
 from torch.autograd import Variable
 
 torch.backends.cudnn.bencmark = True

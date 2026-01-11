@@ -7,7 +7,7 @@ import torch
 import torch.nn as nn
 from torch.autograd import Function
 
-from .modules.encoder import MLPEncoder, LSTMEncoder
+from .modules.encoder import LSTMEncoder, MLPEncoder
 
 
 class ReverseLayerF(Function):

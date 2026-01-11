@@ -1,10 +1,9 @@
 import argparse
-import torch
-import sys
 
-from ..configuration_flamingo import FlamingoConfig
+import torch
+from peft import LoraConfig, TaskType, get_peft_model
+
 from ..modeling_flamingo import FlamingoForConditionalGeneration
-from peft import get_peft_model, LoraConfig, TaskType
 
 MODEL_CLASSES = {
     "LlamaForCausalLM": "llama",

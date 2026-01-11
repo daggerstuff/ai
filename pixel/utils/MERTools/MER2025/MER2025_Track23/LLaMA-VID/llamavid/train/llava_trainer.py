@@ -2,17 +2,19 @@
 # Modified from LLaVA (https://github.com/haotian-liu/LLaVA)
 # ------------------------------------------------------------------------
 import os
+
 import torch
 import torch.nn as nn
 
 try:
-    import smdistributed.modelparallel.torch as smp
+    pass
 except:
     print("no smdistributed.modelparallel.torch")
 
+from typing import List, Optional
+
 from fairscale.optim import OSS
 from torch.utils.data import Sampler
-
 from transformers import Trainer
 from transformers.pytorch_utils import ALL_LAYERNORM_LAYERS
 from transformers.trainer_pt_utils import (
@@ -23,8 +25,6 @@ from transformers.utils import (
     is_sagemaker_mp_enabled,
     logging,
 )
-
-from typing import List, Optional, Union, Dict, Any
 
 logger = logging.get_logger(__name__)
 
@@ -334,7 +334,7 @@ class LLaVATrainer(Trainer):
 
             if self.args.local_rank == 0 or self.args.local_rank == -1:
                 self.model.config.save_pretrained(output_dir)
-                torch.save(weight_to_save, os.path.join(output_dir, f"mm_projector.bin"))
+                torch.save(weight_to_save, os.path.join(output_dir, "mm_projector.bin"))
         else:
             super(LLaVATrainer, self)._save_checkpoint(model, trial, metrics)
 

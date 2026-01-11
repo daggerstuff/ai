@@ -1,9 +1,10 @@
-from PIL import Image
-from io import BytesIO
 import base64
+from io import BytesIO
 
 import torch
+from PIL import Image
 from transformers import StoppingCriteria
+
 from videollava.constants import IMAGE_TOKEN_INDEX
 
 

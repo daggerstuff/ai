@@ -1,15 +1,13 @@
-import os
-import tqdm
 import glob
-import shutil
+import os
 import random
+import shutil
 
 import numpy as np
-
+import tqdm
 from toolkit.globals import *
 from toolkit.utils.functions import *
-from toolkit.utils.read_files import func_write_key_to_csv
-from toolkit.utils.read_files import func_read_key_from_csv
+from toolkit.utils.read_files import func_read_key_from_csv, func_write_key_to_csv
 
 
 def merge_all_subtitles(language="chinese"):

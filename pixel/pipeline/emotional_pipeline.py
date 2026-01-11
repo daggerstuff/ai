@@ -3,8 +3,6 @@ import os
 
 import torch
 import yaml
-from torch import nn
-
 from ai.pixel.pipeline.schemas import (
     ContextualEmotions,
     EmotionFeatures,
@@ -20,9 +18,8 @@ from ai.pixel.research.emotional_cnn_layer import (
 from ai.pixel.research.emotional_flow_dynamics import EmotionalFlowDynamics
 from ai.pixel.research.emotional_resnet_memory import EmotionalResNetMemory
 from ai.pixel.research.meta_emotional_intelligence import MetaEmotionalIntelligence
-
-
 from ai.pixel.utils.path_utils import get_project_root
+from torch import nn
 
 
 class EmotionalPipeline(nn.Module):

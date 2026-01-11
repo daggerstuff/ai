@@ -1,21 +1,20 @@
-import io
-import os
-import math
-import time
-import json
-from collections import defaultdict, deque
 import datetime
-import numpy as np
-from timm.utils import get_state_dict
-from torch.utils.data._utils.collate import default_collate
+import io
+import json
+import math
+import os
+import random
+import time
+from collections import defaultdict, deque
 from pathlib import Path
-import subprocess
+
+import numpy as np
 import torch
 import torch.distributed as dist
-from torch._six import inf
-import random
-
 from tensorboardX import SummaryWriter
+from timm.utils import get_state_dict
+from torch._six import inf
+from torch.utils.data._utils.collate import default_collate
 
 
 class SmoothedValue(object):
@@ -463,7 +462,7 @@ def auto_load_model(args, model, model_without_ddp, optimizer, loss_scaler, mode
                 else:
                     assert (
                         args.eval
-                    ), f"Error: can not resume from 'best' checkpoint because checkpoint['epoch'] is not available. "
+                    ), "Error: can not resume from 'best' checkpoint because checkpoint['epoch'] is not available. "
                 if hasattr(args, "model_ema") and args.model_ema:
                     _load_checkpoint_for_ema(model_ema, checkpoint["model_ema"])
                 if "scaler" in checkpoint:

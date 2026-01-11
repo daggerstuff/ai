@@ -1,10 +1,10 @@
-import os
 import glob
-import numpy as np
+import os
 
-from toolkit.utils.read_files import *
-from toolkit.utils.functions import *
+import numpy as np
 from toolkit.utils.chatgpt import *
+from toolkit.utils.functions import *
+from toolkit.utils.read_files import *
 
 
 def func_get_name2reason(reason_root):

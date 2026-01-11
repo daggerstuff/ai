@@ -17,12 +17,10 @@ This completes Tier 2 by making everything production-ready!
 from __future__ import annotations
 
 import json
-import asyncio
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any
-from enum import Enum
 import logging
-from pathlib import Path
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 
@@ -535,7 +533,7 @@ class TherapeuticAIArchitecture:
     def generate_integration_documentation(self) -> str:
         """Generate comprehensive integration documentation."""
         
-        doc = f"""
+        doc = """
 # Therapeutic AI Production Architecture
 
 ## System Overview
@@ -556,7 +554,7 @@ The Therapeutic AI system is deployed as a microservices architecture integratin
 - **Health Check**: {config.health_check_path}
 """
         
-        doc += f"""
+        doc += """
 
 ## Tier 1 Integration Points
 
@@ -571,7 +569,7 @@ The following Tier 1 components are integrated with Tier 2 services:
 - **Priority**: {integration.priority}
 """
         
-        doc += f"""
+        doc += """
 
 ## Monitoring & Alerting
 

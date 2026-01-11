@@ -1,10 +1,11 @@
-import torch
-import torch.nn as nn
 import logging
 
+import torch
+import torch.nn as nn
+
+from models.utils import load_temp_embed_with_mismatch
 
 from .Qformer import BertConfig, BertLMHeadModel
-from models.utils import load_temp_embed_with_mismatch
 
 logger = logging.getLogger(__name__)
 

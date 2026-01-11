@@ -9,24 +9,29 @@ This pipeline implements the Tier 2 voice training requirements:
 - Clinical validation preparation
 """
 
-import json
 import asyncio
+import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
-import numpy as np
-from datetime import datetime
+import os
 
 # Import our existing voice components
 import sys
-import os
+from dataclasses import asdict, dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 
-from ai.pixel.voice.unified_therapeutic_ai import UnifiedTherapeuticAI
-from ai.pixel.voice.therapeutic_personality_synthesizer import TherapeuticPersonalitySynthesizer
-from ai.pixel.training.safety_monitoring import SafetyMonitor
 from ai.pixel.training.content_filtering import ContentFilter
+from ai.pixel.training.safety_monitoring import SafetyMonitor
+from ai.pixel.voice.therapeutic_personality_synthesizer import (
+    TherapeuticPersonalitySynthesizer,
+)
+from ai.pixel.voice.unified_therapeutic_ai import UnifiedTherapeuticAI
+
 
 @dataclass
 class TrainingConfig:
@@ -584,7 +589,7 @@ async def main():
         
         # Generate report
         report = await pipeline.generate_training_report()
-        print(f"📋 Training Report Generated")
+        print("📋 Training Report Generated")
         print(f"   - Therapeutic Accuracy: {report['performance_metrics']['therapeutic_accuracy']:.3f}")
         print(f"   - Knowledge Integration: {report['performance_metrics']['knowledge_integration_score']:.3f}")
         print(f"   - Ready for Clinical Testing: {report['model_evaluation']['ready_for_clinical_testing']}")

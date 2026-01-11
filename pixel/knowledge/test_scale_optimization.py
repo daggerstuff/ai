@@ -6,11 +6,12 @@ Tests the enhanced pattern recognition and parallel processing capabilities
 to achieve 10x scale improvement (target: 10,000+ concepts from 913 transcripts).
 """
 
-import pytest
 import time
-import json
 from pathlib import Path
+
+import pytest
 from psychology_knowledge_extractor import PsychologyKnowledgeExtractor
+
 
 class TestScaleOptimization:
     """Test suite for scale optimization features."""
@@ -127,7 +128,7 @@ class TestScaleOptimization:
         concepts_per_transcript = total_concepts / len(transcript_files)
         transcripts_per_second = len(transcript_files) / processing_time
         
-        print(f"Performance metrics:")
+        print("Performance metrics:")
         print(f"  Processed {len(transcript_files)} transcripts in {processing_time:.2f} seconds")
         print(f"  {transcripts_per_second:.2f} transcripts/second")
         print(f"  {total_concepts} total concepts extracted")
@@ -169,7 +170,7 @@ class TestScaleOptimization:
         total_concepts = knowledge_base['statistics']['total_concepts']
         total_techniques = knowledge_base['statistics']['total_techniques']
         
-        print(f"Full extraction results:")
+        print("Full extraction results:")
         print(f"  Processing time: {processing_time:.2f} seconds")
         print(f"  Total concepts: {total_concepts}")
         print(f"  Total techniques: {total_techniques}")

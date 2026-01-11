@@ -1,33 +1,26 @@
+import argparse
+import glob
 import os
 
 # os.environ['CUDA_VISIBLE_DEVICES'] = '2' ## 临时设置全局cuda环境
-import time
-import glob
-import argparse
-import numpy as np
-import pandas as pd
 from datetime import datetime
 from pathlib import Path
 
-import torch
-import torch.backends.cudnn as cudnn
-
 import decord
+import numpy as np
+import torch
 
 decord.bridge.set_bridge("torch")
 
-from my_affectgpt.tasks import *
-from my_affectgpt.models import *
-from my_affectgpt.runners import *
-from my_affectgpt.processors import *
-from my_affectgpt.datasets.builders import *
 from my_affectgpt.common.config import Config
-from my_affectgpt.common.dist_utils import get_rank
 from my_affectgpt.common.registry import registry
 from my_affectgpt.conversation.conversation_video import Chat
+from my_affectgpt.datasets.builders import *
 from my_affectgpt.datasets.builders.image_text_pair_builder import *  # 加载所有dataset cls
-
-import config
+from my_affectgpt.models import *
+from my_affectgpt.processors import *
+from my_affectgpt.runners import *
+from my_affectgpt.tasks import *
 from toolkit.utils.read_files import *
 
 
@@ -73,7 +66,7 @@ def get_ckpt3_candidates(ckpt3_root, inference_cfg):
     elif inference_cfg.test_epochs == "xxx-xxx":
         last_ckpt = sorted(glob.glob("%s/*.pth" % (ckpt3_root)))[-1]
         last_epoch = int(last_ckpt.split("_")[-3])
-        assert last_epoch > 10, f"Error: too less training time to conduct automatic inference!"
+        assert last_epoch > 10, "Error: too less training time to conduct automatic inference!"
         return [last_ckpt]
 
     else:
@@ -100,7 +93,7 @@ def get_face_or_frame(datasets_cfg, outside_face_or_frame):
         face_or_frame_candidates.append(datasets_cfg["mercaptionplus"].face_or_frame)
     if "ovmerd" in datasets_cfg:
         face_or_frame_candidates.append(datasets_cfg["ovmerd"].face_or_frame)
-    assert len(set(face_or_frame_candidates)) == 1, f"must has the unified face_or_frame type"
+    assert len(set(face_or_frame_candidates)) == 1, "must has the unified face_or_frame type"
     face_or_frame = list(set(face_or_frame_candidates))[0]
     return face_or_frame
 

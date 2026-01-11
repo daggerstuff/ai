@@ -1,5 +1,5 @@
-from videomae.transforms import *
 from videomae.kinetics import VideoClsDatasetFrame
+from videomae.transforms import *
 
 
 def build_dataset(args, face_npy):

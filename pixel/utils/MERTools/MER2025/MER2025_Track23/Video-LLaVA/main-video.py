@@ -1,28 +1,26 @@
-import torch
 import argparse
-from videollava.constants import IMAGE_TOKEN_INDEX, DEFAULT_IMAGE_TOKEN
-from videollava.conversation import conv_templates, SeparatorStyle
+import os
+import sys
+
+import numpy as np
+import torch
+from videollava.constants import DEFAULT_IMAGE_TOKEN, IMAGE_TOKEN_INDEX
+from videollava.conversation import SeparatorStyle, conv_templates
+from videollava.mm_utils import (
+    KeywordsStoppingCriteria,
+    get_model_name_from_path,
+    tokenizer_image_token,
+)
 from videollava.model.builder import load_pretrained_model
 from videollava.utils import disable_torch_init
-from videollava.mm_utils import (
-    tokenizer_image_token,
-    get_model_name_from_path,
-    KeywordsStoppingCriteria,
-)
-
-import os
-import numpy as np
-
-import sys
 
 sys.path.append("../")
 
-import config
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from my_affectgpt.datasets.builders.image_text_pair_builder import (
     get_name2cls,
 )  # 加载所有dataset cls
 
+import config
 
 if __name__ == "__main__":
 
@@ -87,7 +85,7 @@ if __name__ == "__main__":
             if args.subtitle_flag == "subtitle":
                 inp = f"Subtitle content of this video: {subtitle}; As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video."
             elif args.subtitle_flag == "nosubtitle":
-                inp = f"As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video."
+                inp = "As an expert in the field of emotions, please focus on the facial expressions, body movements, environment, subtitle content, etc., in the video to discern clues related to the emotions of the individual. Please provide a detailed description and ultimately predict the emotional state of the individual in the video."
 
             video_tensor = video_processor(video_path, return_tensors="pt")[
                 "pixel_values"

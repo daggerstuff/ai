@@ -1,7 +1,8 @@
 import os
+
 from toolkit.globals import *
-from toolkit.utils.read_files import *
 from toolkit.utils.functions import *
+from toolkit.utils.read_files import *
 
 
 ## 解析 train_label

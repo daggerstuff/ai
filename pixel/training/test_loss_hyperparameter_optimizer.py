@@ -5,6 +5,7 @@ Unit tests for LossHyperparameterOptimizer covering bounds, configurations, tria
 """
 
 import pytest
+
 from ai.pixel.training.loss_hyperparameter_optimizer import LossHyperparameterOptimizer
 
 

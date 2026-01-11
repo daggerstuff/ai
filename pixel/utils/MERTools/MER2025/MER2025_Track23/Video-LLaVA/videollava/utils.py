@@ -1,14 +1,12 @@
-import datetime
 import logging
 import logging.handlers
 import os
 import sys
-from torch import nn
+
 import numpy as np
 import requests
 
 from videollava.constants import LOGDIR
-
 
 server_error_msg = "**NETWORK ERROR DUE TO HIGH TRAFFIC. PLEASE REGENERATE OR REFRESH THIS PAGE.**"
 moderation_msg = "YOUR INPUT VIOLATES OUR CONTENT MODERATION GUIDELINES. PLEASE TRY AGAIN."
@@ -130,9 +128,9 @@ def violates_moderation(text):
     try:
         ret = requests.post(url, headers=headers, data=data, timeout=5)
         flagged = ret.json()["results"][0]["flagged"]
-    except requests.exceptions.RequestException as e:
+    except requests.exceptions.RequestException:
         flagged = False
-    except KeyError as e:
+    except KeyError:
         flagged = False
 
     return flagged

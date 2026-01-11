@@ -1,6 +1,7 @@
 """A HuggingFace-style model configuration."""
 
 from typing import Dict, Optional, Union
+
 from transformers import PretrainedConfig
 
 attn_config_defaults: Dict = {
@@ -186,5 +187,5 @@ class MPTConfig(PretrainedConfig):
             raise ValueError(f"self.init_config={self.init_config!r} 'name' needs to be set.")
         if not self.learned_pos_emb and (not self.attn_config["alibi"]):
             raise ValueError(
-                f"Positional information must be provided to the model using either learned_pos_emb or alibi."
+                "Positional information must be provided to the model using either learned_pos_emb or alibi."
             )

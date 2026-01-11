@@ -3,20 +3,20 @@
 wav2vec: https://arxiv.org/abs/1904.05862
 official github repo: https://github.com/pytorch/fairseq/tree/master/examples/wav2vec
 """
-import os
-import time
-import glob
-import torch
 import argparse
-import numpy as np
-import pandas as pd
-import soundfile as sf
-from fairseq.models.wav2vec import (
-    Wav2VecModel,
-)  # Note: use fairseq version of 0.10.1, error occurred when using the newest officical script and version of 0.10.2 (pip install fairseq==0.10.1)
+import glob
+import os
 
 # import config
 import sys
+import time
+
+import numpy as np
+import soundfile as sf
+import torch
+from fairseq.models.wav2vec import (
+    Wav2VecModel,
+)  # Note: use fairseq version of 0.10.1, error occurred when using the newest officical script and version of 0.10.2 (pip install fairseq==0.10.1)
 
 sys.path.append("../../")
 import config
@@ -120,7 +120,7 @@ if __name__ == "__main__":
 
     # load model
     device = torch.device(f"cuda:{args.gpu}")
-    model_file = os.path.join(config.PATH_TO_PRETRAINED_MODELS, f"wav2vec/wav2vec_large.pt")
+    model_file = os.path.join(config.PATH_TO_PRETRAINED_MODELS, "wav2vec/wav2vec_large.pt")
     cp = torch.load(model_file)
     model = Wav2VecModel.build_model(cp["args"], task=None)
     model.load_state_dict(cp["model"])

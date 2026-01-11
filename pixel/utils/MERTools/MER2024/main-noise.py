@@ -1,21 +1,13 @@
-import re
-import os
-import time
-import copy
-import tqdm
 import glob
-import json
 import math
-import scipy
-import shutil
-import random
-import pickle
-import numpy as np
-import pandas as pd
 import multiprocessing
+import os
+import random
 
-from toolkit.utils.read_files import *
+import numpy as np
+import tqdm
 from toolkit.utils.functions import *
+from toolkit.utils.read_files import *
 
 PATH_TO_FFMPEG = "/share/home/lianzheng/tools/ffmpeg-4.4.1-i686-static/ffmpeg"
 PATH_TO_NOISE = "/share/home/lianzheng/emotion-data/musan/audio-select"
@@ -23,9 +15,10 @@ PATH_TO_NOISE = "/share/home/lianzheng/emotion-data/musan/audio-select"
 #######################################
 ## add noise into audio + video
 #######################################
-import cv2
-import wave
 import array
+import wave
+
+import cv2
 
 
 def cal_amp(wf):
@@ -108,7 +101,7 @@ def add_noise_to_video(video_path, blur_rate, save_path):
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
     ret, frame = cap.read()
-    assert ret == True, f"video should be readable"
+    assert ret == True, "video should be readable"
     blur_frame = func_blur(frame, blur_rate)
     height, width, _ = blur_frame.shape
     cap.release()

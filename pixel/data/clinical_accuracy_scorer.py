@@ -7,15 +7,16 @@ best practices. Provides detailed scoring across multiple clinical dimensions.
 """
 
 import asyncio
-import logging
-from dataclasses import dataclass, field
-from datetime import datetime, timedelta
-from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Union
 import json
-import numpy as np
-from pathlib import Path
+import logging
 import re
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
+
+import numpy as np
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -759,7 +760,7 @@ class ClinicalAccuracyScorer:
                         severity=SeverityLevel.MEDIUM,
                         dimension=AccuracyDimension.THERAPEUTIC_APPROPRIATENESS,
                         description=f"Timing of '{intervention_type}' may be premature",
-                        location=f"intervention_timing",
+                        location="intervention_timing",
                         evidence=f"Early use of {intervention_type}",
                         recommendation="Consider building more rapport before advanced interventions",
                         clinical_rationale="Intervention timing affects therapeutic effectiveness",
@@ -808,7 +809,7 @@ class ClinicalAccuracyScorer:
                     severity=SeverityLevel.MEDIUM,
                     dimension=AccuracyDimension.CLINICAL_REASONING,
                     description="Clinical reasoning appears logically inconsistent",
-                    location=f"reasoning_statement",
+                    location="reasoning_statement",
                     evidence=reasoning.get('content', ''),
                     recommendation="Review and clarify clinical reasoning",
                     clinical_rationale="Logical consistency essential for clinical decision-making",

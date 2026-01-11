@@ -6,35 +6,24 @@ Adapted from salesforce@LAVIS. Below is the original copyright:
  For full license text, see the LICENSE_Lavis file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 
+import einops
+import numpy as np
 import torch
-import torch.nn as nn
-import torch.distributed as dist
-import torch.nn.functional as F
-
-import my_affectgpt.common.dist_utils as dist_utils
-from my_affectgpt.common.dist_utils import download_cached_file
-from my_affectgpt.common.utils import is_url
-from my_affectgpt.common.logger import MetricLogger
-from my_affectgpt.models.base_model import BaseModel
-from my_affectgpt.models.Qformer import BertConfig, BertLMHeadModel
-from my_affectgpt.models.eva_vit import create_eva_vit_g
+from PIL import Image
 from transformers import (
-    AutoTokenizer,
-    AutoModel,
     AutoFeatureExtractor,
     AutoImageProcessor,
+    AutoModel,
     Wav2Vec2FeatureExtractor,
 )
-import config
-from my_affectgpt.models.blip2 import Blip2Base, disabled_train
-import einops
 
-import cv2
-import numpy as np
-from PIL import Image
+import config
 from my_affectgpt.common.registry import registry
-from my_affectgpt.models.ImageBind.models.imagebind_model import ImageBindModel, ModalityType
+from my_affectgpt.models.blip2 import Blip2Base, disabled_train
 from my_affectgpt.models.ImageBind.models import imagebind_model
+from my_affectgpt.models.ImageBind.models.imagebind_model import (
+    ModalityType,
+)
 
 
 # frames: [(b t) h w c]

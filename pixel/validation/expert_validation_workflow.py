@@ -5,23 +5,17 @@ This module provides a comprehensive interface for expert validation of clinical
 content, including workflow management, expert assignment, and consensus building.
 """
 
-import asyncio
+import json
 import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional, Set, Any, Callable
-import json
-import uuid
-from pathlib import Path
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+from typing import Any, Callable, Dict, List, Optional, Set
 
 from clinical_accuracy_assessment import (
     ClinicalAccuracyAssessmentFramework,
     ClinicalDomain,
-    AccuracyLevel,
     ValidationStatus,
 )
 

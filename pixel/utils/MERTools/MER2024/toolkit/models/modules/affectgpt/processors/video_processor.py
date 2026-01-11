@@ -5,20 +5,19 @@ SPDX-License-Identifier: BSD-3-Clause
 For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
 """
 
-import os
-import cv2
-import torch
-from decord import VideoReader
+import random as rnd
+
 import decord
 import numpy as np
-import random as rnd
+import torch
+from decord import VideoReader
 from torchvision import transforms
 
 decord.bridge.set_bridge("torch")
 
-from .functional_video import resize
 from .base_processor import BaseProcessor
-from .transforms_video import NormalizeVideo, ToTensorVideo, RandomResizedCropVideo, ToTensorVideo
+from .functional_video import resize
+from .transforms_video import NormalizeVideo, RandomResizedCropVideo, ToTensorVideo
 
 
 # original video reader

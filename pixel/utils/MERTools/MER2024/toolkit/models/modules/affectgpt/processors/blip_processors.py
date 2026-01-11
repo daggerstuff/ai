@@ -6,6 +6,7 @@ For full license text, see the LICENSE_Lavis file in the repo root or https://op
 """
 
 import re
+
 from omegaconf import OmegaConf
 from torchvision import transforms
 from torchvision.transforms.functional import InterpolationMode

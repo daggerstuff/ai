@@ -1,21 +1,20 @@
 import random
-from dataclasses import dataclass
 from typing import Callable, Optional
 
 import torch
+import torch.distributed as dist
 import torch.nn as nn
 from accelerate.hooks import AlignDevicesHook, add_hook_to_module
 from einops import rearrange, repeat
-from transformers import CLIPVisionModel, LlamaForCausalLM, LlamaTokenizer
+from transformers import CLIPVisionModel, LlamaForCausalLM
 from transformers.modeling_outputs import CausalLMOutputWithPast
 from transformers.modeling_utils import PreTrainedModel
-from transformers.models.auto import AutoModel, AutoModelForCausalLM, AutoTokenizer
+from transformers.models.auto import AutoTokenizer
 
-from .configuration_flamingo import FlamingoConfig
 from ..falcon.modelling_RW import RWForCausalLM
 from ..mpt.modeling_mpt import MPTForCausalLM
 from ..mpt_redpajama.mosaic_gpt import MosaicGPT
-import torch.distributed as dist
+from .configuration_flamingo import FlamingoConfig
 
 # from .configuration_flamingo import FlamingoConfig
 
@@ -47,7 +46,7 @@ def _infer_decoder_layers_attr_name(model: nn.Module):
             return __KNOWN_DECODER_LAYERS_ATTR_NAMES[k]
 
     raise ValueError(
-        f"We require the attribute name for the nn.ModuleList in the decoder storing the transformer block layers. Please supply this string manually."
+        "We require the attribute name for the nn.ModuleList in the decoder storing the transformer block layers. Please supply this string manually."
     )
 
 

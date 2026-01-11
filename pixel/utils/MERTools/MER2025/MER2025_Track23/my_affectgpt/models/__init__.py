@@ -7,16 +7,16 @@ Adapted from salesforce@LAVIS Vision-CAIR@MiniGPT-4. Below is the original copyr
 """
 
 import logging
+
 import torch
 from omegaconf import OmegaConf
 
 from my_affectgpt.common.registry import registry
+from my_affectgpt.models.affectgpt import AffectGPT
 from my_affectgpt.models.base_model import BaseModel
 from my_affectgpt.models.blip2 import Blip2Base
-from my_affectgpt.models.affectgpt import AffectGPT
-from my_affectgpt.processors.base_processor import BaseProcessor
 from my_affectgpt.models.tokenizer import *
-
+from my_affectgpt.processors.base_processor import BaseProcessor
 
 __all__ = [
     "load_model",

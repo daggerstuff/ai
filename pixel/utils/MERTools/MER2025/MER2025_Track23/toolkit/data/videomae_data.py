@@ -1,12 +1,11 @@
-import numpy as np
-
-import torch
 import random
-from torch.utils.data import Dataset
 
-from toolkit.utils.functions import *
+import numpy as np
+import torch
 from toolkit.utils.e2e_utils import *
+from toolkit.utils.functions import *
 from toolkit.utils.read_data import *
+from torch.utils.data import Dataset
 
 
 # 如果预先全部加载，会出现内存爆炸的情况

@@ -1,10 +1,11 @@
-import openai
-import os
 import argparse
-import json
-import jsonlines
 import ast
+import json
+import os
 from multiprocessing.pool import Pool
+
+import jsonlines
+import openai
 
 
 def read_jsonl(file):

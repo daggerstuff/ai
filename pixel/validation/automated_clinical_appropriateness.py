@@ -5,15 +5,16 @@ This module provides automated validation of clinical content for appropriatenes
 safety, and adherence to professional standards before expert review.
 """
 
-import re
+import json
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Set, Any, Tuple
-import json
-import numpy as np
 from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import numpy as np
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

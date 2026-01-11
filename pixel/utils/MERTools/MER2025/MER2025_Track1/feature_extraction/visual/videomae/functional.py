@@ -1,8 +1,9 @@
+import numbers
+
 import cv2
+import numpy as np
 import PIL
 import torch
-import numbers
-import numpy as np
 
 
 def _is_tensor_clip(clip):

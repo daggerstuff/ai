@@ -5,18 +5,17 @@ Provides real-time clinical knowledge retrieval during model training
 with caching, batch processing, and training context awareness.
 """
 
-from typing import List, Dict, Any, Optional, Tuple, Union, Callable
-from dataclasses import dataclass, field
-from pathlib import Path
 import json
 import logging
-import time
 import threading
-from datetime import datetime, timedelta
-from enum import Enum
+import time
 from collections import defaultdict, deque
-import asyncio
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
 
 try:
     import numpy as np
@@ -24,9 +23,12 @@ try:
 except ImportError:
     NUMPY_AVAILABLE = False
 
-from .clinical_similarity_search import ClinicalSimilaritySearch, SearchQuery, SearchContext, EnhancedSearchResult
-from .faiss_knowledge_index import FAISSKnowledgeIndex
-from .clinical_knowledge_embedder import ClinicalKnowledgeEmbedder
+from .clinical_similarity_search import (
+    ClinicalSimilaritySearch,
+    EnhancedSearchResult,
+    SearchContext,
+    SearchQuery,
+)
 
 
 class RetrievalMode(Enum):

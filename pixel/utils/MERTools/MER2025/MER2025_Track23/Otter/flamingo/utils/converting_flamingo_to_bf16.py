@@ -3,7 +3,6 @@ import os
 
 import torch
 
-from ..configuration_flamingo import FlamingoConfig
 from ..modeling_flamingo import FlamingoForConditionalGeneration
 
 parser = argparse.ArgumentParser(description="Load model with precision")

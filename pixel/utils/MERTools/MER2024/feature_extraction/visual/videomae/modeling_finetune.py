@@ -1,11 +1,12 @@
 from functools import partial
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from einops import rearrange, repeat
 from timm.models.layers import drop_path, to_2tuple, trunc_normal_
 from timm.models.registry import register_model
-from einops import rearrange, repeat
 
 
 def _cfg(url="", **kwargs):
@@ -1650,7 +1651,7 @@ class VisionTransformer(nn.Module):
                             )
                     else:
                         print(
-                            f"==> Note: disable temporal pyramid, no temporal downsample and upsample!"
+                            "==> Note: disable temporal pyramid, no temporal downsample and upsample!"
                         )
                     # spatial downsample
                     if not self.st_pyr_disable_spatial_pyr:
@@ -1693,7 +1694,7 @@ class VisionTransformer(nn.Module):
                             block_idx += 1
                     else:
                         print(
-                            f"==> Note: disable spatial pyramid, use normal global attention block instead!"
+                            "==> Note: disable spatial pyramid, use normal global attention block instead!"
                         )
                         for _ in range(depth):
                             self.blocks.append(

@@ -1,6 +1,7 @@
 import logging
 import os
 import random
+
 from torch.utils.data import Dataset
 
 from dataset.utils import load_image_from_path

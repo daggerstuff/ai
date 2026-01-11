@@ -6,15 +6,14 @@ For full license text, see the LICENSE_Lavis file in the repo root or https://op
 """
 
 import contextlib
-import os
 import logging
 
 import torch
 import torch.nn as nn
+from transformers import BertTokenizer
 
 from .Qformer import BertConfig, BertLMHeadModel
 from .vit import build_vit
-from transformers import BertTokenizer
 
 logger = logging.getLogger(__name__)
 

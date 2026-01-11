@@ -16,38 +16,32 @@
 # ------------------------------------------------------------------------
 # Modified from LLaVA (https://github.com/haotian-liu/LLaVA)
 # ------------------------------------------------------------------------
-import os
 import copy
-import random
-from dataclasses import dataclass, field
 import json
 import logging
-import pathlib
-from typing import Dict, Optional, Sequence, List
-import pickle
 import math
+import os
+import pathlib
+import pickle
+import random
+from dataclasses import dataclass, field
+from typing import Dict, Optional, Sequence
 
 import torch
-
 import transformers
-
-from llamavid.constants import (
-    IGNORE_INDEX,
-    IMAGE_TOKEN_INDEX,
-    DEFAULT_IMAGE_TOKEN,
-    DEFAULT_IM_START_TOKEN,
-    DEFAULT_IM_END_TOKEN,
-)
-from torch.utils.data import Dataset
-from llamavid.train.llava_trainer import LLaVATrainer
-
-from llamavid import conversation as conversation_lib
-from llamavid.model import *
-from llava.mm_utils import tokenizer_image_token
-
-from PIL import Image
 from decord import VideoReader, cpu
-
+from llamavid import conversation as conversation_lib
+from llamavid.constants import (
+    DEFAULT_IM_END_TOKEN,
+    DEFAULT_IM_START_TOKEN,
+    DEFAULT_IMAGE_TOKEN,
+    IGNORE_INDEX,
+)
+from llamavid.model import *
+from llamavid.train.llava_trainer import LLaVATrainer
+from llava.mm_utils import tokenizer_image_token
+from PIL import Image
+from torch.utils.data import Dataset
 
 local_rank = None
 
@@ -224,7 +218,7 @@ def safe_save_model_for_hf_trainer(trainer: transformers.Trainer, output_dir: st
                     weight_to_save, os.path.join(mm_projector_folder, f"{current_folder}.bin")
                 )
             else:
-                torch.save(weight_to_save, os.path.join(output_dir, f"mm_projector.bin"))
+                torch.save(weight_to_save, os.path.join(output_dir, "mm_projector.bin"))
         return
 
     if trainer.deepspeed:

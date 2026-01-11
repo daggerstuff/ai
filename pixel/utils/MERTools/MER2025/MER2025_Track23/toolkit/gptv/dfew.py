@@ -1,19 +1,17 @@
+import glob
 import os
 import re
-import cv2
-import glob
-import tqdm
 import shutil
-from sklearn.metrics import confusion_matrix
 
-from toolkit.utils.read_files import *
+import cv2
+import matplotlib
+import tqdm
+from sklearn.metrics import confusion_matrix
 from toolkit.utils.chatgpt import get_video_emotion_batch
 from toolkit.utils.functions import func_label_distribution, func_plot_confusion_matrix
-
-import matplotlib
+from toolkit.utils.read_files import *
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
 
 emos = ["Sad", "Neutral", "Angry", "Fear", "Surprise", "Happy", "Disgust"]
 emo2idx = {}

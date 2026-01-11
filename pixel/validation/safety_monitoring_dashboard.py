@@ -8,15 +8,14 @@ and reporting capabilities for safety-critical operations.
 
 import asyncio
 import logging
+import statistics
+import threading
+import time
+from collections import deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional, Any, Callable
-import json
-import threading
-import time
-from collections import defaultdict, deque
-import statistics
+from typing import Any, Callable, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

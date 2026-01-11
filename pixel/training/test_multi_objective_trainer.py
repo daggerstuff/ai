@@ -5,7 +5,10 @@ from torch.utils.data import DataLoader, Dataset
 
 from ai.pixel.models.pixel_base_model import PixelBaseModel
 from ai.pixel.training.multi_objective_loss import MultiObjectiveLoss
-from ai.pixel.training.multi_objective_trainer import MultiObjectiveTrainer, TrainerConfig
+from ai.pixel.training.multi_objective_trainer import (
+    MultiObjectiveTrainer,
+    TrainerConfig,
+)
 
 
 class DummyPixelDataset(Dataset):

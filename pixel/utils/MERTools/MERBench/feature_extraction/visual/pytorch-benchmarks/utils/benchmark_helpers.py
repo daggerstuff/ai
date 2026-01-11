@@ -2,8 +2,8 @@
 """Utilties shared among the benchmarking protocols"""
 import os
 import sys
-import six
 
+import six
 import torchvision.transforms as transforms
 
 

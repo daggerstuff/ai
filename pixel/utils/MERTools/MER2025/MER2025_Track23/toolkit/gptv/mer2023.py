@@ -1,24 +1,22 @@
+import glob
 import os
 import re
-import glob
-import tqdm
 import shutil
+
 import librosa
-from toolkit.utils.read_files import *
+import matplotlib
+import tqdm
 from toolkit.utils.chatgpt import (
-    get_video_emotion_batch,
-    get_text_emotion_batch,
     get_multi_emotion_batch,
+    get_text_emotion_batch,
+    get_video_emotion_batch,
 )
 from toolkit.utils.functions import func_label_distribution, func_plot_confusion_matrix
-
-import matplotlib
+from toolkit.utils.read_files import *
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-
 from sklearn.metrics import f1_score
-
 from toolkit.globals import config
 
 FFMPEG_PATH = config.PATH_TO_FFMPEG_Win

@@ -14,14 +14,15 @@ Output: Production-optimized system with monitoring
 """
 from __future__ import annotations
 
-import time
-import json
 import asyncio
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple, Any, Union
-from enum import Enum
+import json
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import time
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
 # import caching  # Would use external caching library in production
 
 logger = logging.getLogger(__name__)
@@ -534,7 +535,7 @@ if __name__ == "__main__":
             
             # Performance report
             report = optimizer.get_performance_report()
-            print(f"✅ Performance Report:")
+            print("✅ Performance Report:")
             print(f"  - Average latency: {report['performance_summary']['avg_response_latency_ms']:.2f}ms")
             print(f"  - Meets target: {report['performance_summary']['meets_latency_target']}")
             print(f"  - Cache hit rate: {report['cache_performance']['hit_rate']:.2%}")

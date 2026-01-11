@@ -1,8 +1,9 @@
 
 import re
-from typing import Dict, List, NamedTuple, Optional, Set, Union
 from dataclasses import dataclass
 from enum import Enum
+from typing import Dict, List, Union
+
 
 class ContentFilter:
     """

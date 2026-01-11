@@ -5,14 +5,14 @@ This module provides comprehensive validation of clinical content for safety
 and ethical compliance according to professional standards and guidelines.
 """
 
+import json
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Dict, List, Optional, Set, Any, Tuple
-import json
-import re
 from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

@@ -10,12 +10,13 @@ from __future__ import division
 import os
 import time
 
-import torch
 import numpy as np
-import torch.utils.data
+import torch
 import torch.backends.cudnn as cudnn
-from fer2013.fer_loader import Fer2013Dataset, Fer2013PlusDataset
+import torch.utils.data
 from utils.benchmark_helpers import compose_transforms
+
+from fer2013.fer_loader import Fer2013Dataset, Fer2013PlusDataset
 
 
 def fer2013_benchmark(

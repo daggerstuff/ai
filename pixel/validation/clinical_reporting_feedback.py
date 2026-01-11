@@ -7,38 +7,33 @@ and continuous improvement loop.
 """
 
 import asyncio
+import json
 import logging
+import sqlite3
+from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional, Set, Any, Tuple, Callable
-import json
-import numpy as np
-from pathlib import Path
-import sqlite3
-from collections import defaultdict, Counter
+from typing import Any, Callable, Dict, List, Optional
 
+import numpy as np
+from automated_clinical_appropriateness import (
+    AppropriatenessResult,
+    ClinicalAppropriatenessChecker,
+)
 from clinical_accuracy_assessment import (
     ClinicalAccuracyAssessmentFramework,
     ClinicalAssessment,
     ClinicalDomain,
-    AccuracyLevel,
 )
 from expert_validation_workflow import (
     ExpertValidationWorkflow,
     ValidationRequest,
-    ConsensusResult,
     WorkflowStatus,
 )
-from automated_clinical_appropriateness import (
-    ClinicalAppropriatenessChecker,
-    AppropriatenessResult,
-    AppropriatenessLevel,
-)
 from safety_ethics_compliance import (
-    SafetyEthicsComplianceValidator,
     ComplianceResult,
-    ComplianceLevel,
+    SafetyEthicsComplianceValidator,
 )
 
 # Configure logging
@@ -787,9 +782,9 @@ if __name__ == "__main__":
     # This would typically be initialized with actual validation systems
     # For testing, we'll create mock instances
 
+    from automated_clinical_appropriateness import ClinicalAppropriatenessChecker
     from clinical_accuracy_assessment import ClinicalAccuracyAssessmentFramework
     from expert_validation_workflow import ExpertValidationWorkflow
-    from automated_clinical_appropriateness import ClinicalAppropriatenessChecker
     from safety_ethics_compliance import SafetyEthicsComplianceValidator
 
     # Initialize validation systems

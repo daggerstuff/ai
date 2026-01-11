@@ -7,22 +7,20 @@ improvement recommendations, and automated feedback loops.
 """
 
 import asyncio
+import json
 import logging
+import statistics
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, Any, Set
-import json
-import statistics
 from pathlib import Path
-import matplotlib.pyplot as plt
-import pandas as pd
-from collections import defaultdict, Counter
+from typing import Any, Dict, List, Optional, Tuple
 
-from .clinical_accuracy_validator import ClinicalAccuracyResult, ClinicalAccuracyLevel
-from .expert_validation_interface import ValidationRequest, ConsensusResult
 from .automated_clinical_checker import AppropriatenessCheckResult, AppropriatenessLevel
-from .safety_ethics_validator import SafetyEthicsComplianceResult, ComplianceLevel
+from .clinical_accuracy_validator import ClinicalAccuracyLevel, ClinicalAccuracyResult
+from .expert_validation_interface import ConsensusResult
+from .safety_ethics_validator import SafetyEthicsComplianceResult
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -948,15 +946,15 @@ if __name__ == "__main__":
 
         # Create sample assessment result
         from .clinical_accuracy_validator import (
+            ClinicalAccuracyLevel,
             ClinicalAccuracyResult,
             ClinicalContext,
             DSM5Assessment,
             PDM2Assessment,
-            TherapeuticAppropriatenessScore,
             SafetyAssessment,
-            ClinicalAccuracyLevel,
-            TherapeuticModality,
             SafetyRiskLevel,
+            TherapeuticAppropriatenessScore,
+            TherapeuticModality,
         )
 
         context = ClinicalContext(
@@ -1006,7 +1004,7 @@ if __name__ == "__main__":
 
         # Get performance snapshot
         snapshot = reporting_system.get_performance_snapshot()
-        print(f"\nCurrent Performance Snapshot:")
+        print("\nCurrent Performance Snapshot:")
         print(f"Overall Accuracy: {snapshot.overall_accuracy:.3f}")
         print(f"Total Assessments: {snapshot.total_assessments}")
 

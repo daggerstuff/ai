@@ -5,18 +5,21 @@ Tests the conversation complexity progression system including complexity assess
 readiness evaluation, progression triggers, and complexity level management.
 """
 
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import List
+
 import pytest
 import pytest_asyncio
-import asyncio
-from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
-from dataclasses import dataclass
-from typing import List, Dict, Any
 
 from .conversation_complexity_progression import (
-    ConversationComplexityProgression, ComplexityLevel, ComplexityDimension,
-    ProgressionTrigger, ProgressionDirection, ComplexityProfile, ProgressionCriteria,
-    ComplexityAssessment, ProgressionHistory
+    ComplexityAssessment,
+    ComplexityDimension,
+    ComplexityLevel,
+    ComplexityProfile,
+    ConversationComplexityProgression,
+    ProgressionDirection,
+    ProgressionTrigger,
 )
 
 

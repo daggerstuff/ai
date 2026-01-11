@@ -1,13 +1,11 @@
-import time
-import torch
-import gradio as gr
-from video_chatgpt.utils import build_logger
-from video_chatgpt.video_conversation import conv_templates, SeparatorStyle
-from video_chatgpt.video_conversation import load_video
-from video_chatgpt.model.utils import KeywordsStoppingCriteria
 import logging
-from video_chatgpt.constants import *
 
+import torch
+
+from video_chatgpt.constants import *
+from video_chatgpt.model.utils import KeywordsStoppingCriteria
+from video_chatgpt.utils import build_logger
+from video_chatgpt.video_conversation import SeparatorStyle, conv_templates, load_video
 
 logging.basicConfig(level=logging.WARNING)
 

@@ -2,18 +2,18 @@
 Unit tests for Automated Clinical Appropriateness Checking System
 """
 
-import pytest
 import json
 import tempfile
 from pathlib import Path
 
+import pytest
 from automated_clinical_appropriateness import (
-    ClinicalAppropriatenessChecker,
     AppropriatenessLevel,
-    ViolationType,
-    SeverityLevel,
-    AppropriatenessViolation,
     AppropriatenessResult,
+    AppropriatenessViolation,
+    ClinicalAppropriatenessChecker,
+    SeverityLevel,
+    ViolationType,
 )
 
 

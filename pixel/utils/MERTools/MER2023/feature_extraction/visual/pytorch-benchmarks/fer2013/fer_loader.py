@@ -17,16 +17,16 @@ https://arxiv.org/abs/1608.01041
 
 """
 
-import os
 import csv
-import tqdm
-import torch
+import os
 import pickle
-import numpy as np
 from copy import deepcopy
-import PIL.Image
-
 from os.path import join as pjoin
+
+import numpy as np
+import PIL.Image
+import torch
+import tqdm
 
 
 class Fer2013Dataset(torch.utils.data.Dataset):

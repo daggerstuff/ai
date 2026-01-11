@@ -5,7 +5,7 @@ Comprehensive hyperparameter optimization system for Pixel multi-objective loss 
 Uses Optuna for Bayesian optimization of loss weights, learning rates, and training strategies.
 """
 
-from typing import Dict, List, Callable, Any, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 try:
     import optuna

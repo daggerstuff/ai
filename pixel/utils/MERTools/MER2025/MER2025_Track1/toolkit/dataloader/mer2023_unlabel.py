@@ -1,11 +1,12 @@
 import os
 import random
+
 import numpy as np
+from toolkit.data import get_datasets
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
 
 from ..globals import *
-from toolkit.data import get_datasets
 
 
 # 直接读取所有人脸数据，并随机划分 train|test

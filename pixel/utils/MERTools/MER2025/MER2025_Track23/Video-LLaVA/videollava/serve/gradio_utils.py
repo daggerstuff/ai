@@ -2,10 +2,10 @@ import torch
 from transformers import TextStreamer
 
 from videollava.constants import IMAGE_TOKEN_INDEX
-from videollava.conversation import conv_templates, SeparatorStyle
+from videollava.conversation import SeparatorStyle, conv_templates
 from videollava.mm_utils import (
-    get_model_name_from_path,
     KeywordsStoppingCriteria,
+    get_model_name_from_path,
     tokenizer_image_token,
 )
 from videollava.model.builder import load_pretrained_model

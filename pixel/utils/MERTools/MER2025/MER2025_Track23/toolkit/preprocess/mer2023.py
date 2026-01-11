@@ -1,9 +1,10 @@
-import os
 import glob
+import os
 import shutil
+
 from toolkit.globals import *
-from toolkit.utils.read_files import *
 from toolkit.utils.functions import *
+from toolkit.utils.read_files import *
 
 
 def normalize_dataset_format(data_root, save_root):

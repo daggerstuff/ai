@@ -14,9 +14,8 @@
 # limitations under the License.
 """Tokenization classes for MplugOwl."""
 
-from transformers.utils import logging
 from transformers.models.llama.tokenization_llama import LlamaTokenizer
-
+from transformers.utils import logging
 
 logger = logging.get_logger(__name__)
 

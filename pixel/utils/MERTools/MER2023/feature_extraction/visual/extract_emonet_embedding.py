@@ -1,21 +1,20 @@
 # *_*coding:utf-8 *_*
-import os
 import argparse
-import numpy as np
+import os
 
+# import config
+import sys
+
+import numpy as np
 import torch
 import torch.nn.parallel
 import torch.optim
 import torch.utils.data
 import torch.utils.data.distributed
 import torchvision.transforms as transforms
-
-from emonet.models.emonet import EmoNet
 from dataset import FaceDatasetForEmoNet
 from emonet.data_augmentation import DataAugmentor
-
-# import config
-import sys
+from emonet.models.emonet import EmoNet
 
 sys.path.append("../../")
 import config
@@ -44,7 +43,7 @@ if __name__ == "__main__":
     params = parser.parse_args()
     os.environ["CUDA_VISIBLE_DEVICES"] = params.gpu
 
-    print(f"==> Extracting emonet embedding...")
+    print("==> Extracting emonet embedding...")
     face_dir = config.PATH_TO_RAW_FACE[params.dataset]
     save_dir = os.path.join(
         config.PATH_TO_FEATURES[params.dataset], f"temonet_{params.feature_level[:3]}"

@@ -1,9 +1,16 @@
 import os
-from toolkit.globals import *
 
-from transformers import GPT2Model, AutoModel
-from transformers import GPT2Tokenizer, BertTokenizer, AutoTokenizer
-from transformers import AutoFeatureExtractor, Wav2Vec2FeatureExtractor, AutoModelForCausalLM
+from toolkit.globals import *
+from transformers import (
+    AutoFeatureExtractor,
+    AutoModel,
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BertTokenizer,
+    GPT2Model,
+    GPT2Tokenizer,
+    Wav2Vec2FeatureExtractor,
+)
 
 
 def load_e2e_pretrain_processor(model_name):
@@ -41,7 +48,7 @@ def load_e2e_pretrain_processor(model_name):
     elif model_name in WHOLE_IMAGE:
         processor = AutoFeatureExtractor.from_pretrained(model_dir)
     else:
-        print(f"model_name has not been merged in e2e training!!")
+        print("model_name has not been merged in e2e training!!")
     return processor
 
 
@@ -80,7 +87,7 @@ def load_e2e_pretrain_model(model_name):
     elif model_name in WHOLE_IMAGE:
         model = AutoModel.from_pretrained(model_dir)
     else:
-        print(f"model_name has not been merged in e2e training!!")
+        print("model_name has not been merged in e2e training!!")
     return model
 
 

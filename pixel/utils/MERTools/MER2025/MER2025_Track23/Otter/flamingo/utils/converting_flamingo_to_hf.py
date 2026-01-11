@@ -1,15 +1,10 @@
 """convert from otter pt to otter hf. Will remove after we use otter hf model to train."""
 
-import re
 import argparse
 import os
 
 import torch
-import torch.nn as nn
-from transformers import CLIPVisionModel, LlamaForCausalLM, LlamaTokenizer
 
-import sys
-from ..configuration_flamingo import FlamingoConfig
 from ..modeling_flamingo import FlamingoForConditionalGeneration
 
 

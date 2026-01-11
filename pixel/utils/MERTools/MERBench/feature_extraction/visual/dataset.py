@@ -1,12 +1,10 @@
 # *_*coding:utf-8 *_*
 import os
+
 import cv2
-import glob
 import numpy as np
-from PIL import Image
-from skimage import io
-from skimage import img_as_float
 import torch.utils.data as data
+from PIL import Image
 
 
 class FaceDataset(data.Dataset):

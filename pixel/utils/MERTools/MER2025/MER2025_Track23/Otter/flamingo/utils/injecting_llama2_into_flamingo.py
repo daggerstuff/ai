@@ -4,8 +4,6 @@ import os
 import torch
 from tqdm import tqdm
 
-import sys
-
 from ..configuration_flamingo import FlamingoConfig
 from ..modeling_flamingo import FlamingoForConditionalGeneration
 

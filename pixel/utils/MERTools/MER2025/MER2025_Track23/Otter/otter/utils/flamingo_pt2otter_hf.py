@@ -2,23 +2,21 @@
 Deprecated and should change for MPT version OtterModel
 """
 
-import re
 import argparse
 import os
+import re
 
 import torch
 import torch.nn as nn
-from transformers import CLIPVisionModel, LlamaForCausalLM, LlamaTokenizer
-
-from otter_ai.models.otter.modeling_otter import (
-    OtterPreTrainedModel,
-    OtterLMMixin,
-    extend_instance,
-    _infer_decoder_layers_attr_name,
-    OtterPerceiverResampler,
-)
-
 from otter_ai.models.otter.configuration_otter import OtterConfig
+from otter_ai.models.otter.modeling_otter import (
+    OtterLMMixin,
+    OtterPerceiverResampler,
+    OtterPreTrainedModel,
+    _infer_decoder_layers_attr_name,
+    extend_instance,
+)
+from transformers import CLIPVisionModel, LlamaForCausalLM, LlamaTokenizer
 
 
 class OtterModel(OtterPreTrainedModel):

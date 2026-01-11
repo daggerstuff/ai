@@ -1,11 +1,12 @@
 import random
+
 import numpy as np
+from sklearn.metrics import accuracy_score, f1_score
+from toolkit.data import get_datasets
 from torch.utils.data import DataLoader
 from torch.utils.data.sampler import SubsetRandomSampler
-from sklearn.metrics import f1_score, accuracy_score
 
 from ..globals import *
-from toolkit.data import get_datasets
 
 # for crossdis, we only evaluate four class => [happy, sad, neutral, angry]
 emo2idx = {"happy": 0, "sad": 1, "neutral": 2, "angry": 3}

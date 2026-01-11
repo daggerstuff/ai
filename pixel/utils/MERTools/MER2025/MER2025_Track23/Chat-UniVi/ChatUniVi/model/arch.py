@@ -1,10 +1,13 @@
 from abc import ABC, abstractmethod
+from collections import OrderedDict
+
 import torch
 import torch.nn as nn
-from .multimodal_encoder.builder import build_vision_tower
+
 from ChatUniVi.constants import *
+
 from .cluster import CTM, TCBlock
-from collections import OrderedDict
+from .multimodal_encoder.builder import build_vision_tower
 from .multimodal_projector.builder import build_vision_projector
 
 

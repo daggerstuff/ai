@@ -1,13 +1,12 @@
-import random
 import logging
 
 import torch
-from torch.cuda.amp import autocast as autocast
 import torch.nn as nn
+from torch.cuda.amp import autocast as autocast
+from transformers import LlamaConfig, LlamaTokenizer
 
 from .blip2 import Blip2Base, disabled_train
 from .modeling_llama import LlamaForCausalLM
-from transformers import LlamaTokenizer, LlamaConfig
 
 logger = logging.getLogger(__name__)
 

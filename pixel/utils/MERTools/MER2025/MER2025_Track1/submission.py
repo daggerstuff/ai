@@ -1,15 +1,8 @@
-import itertools
-import torchaudio
 
-from PIL import Image
-from sklearn.metrics import confusion_matrix
 
-import torch
 import numpy as np
-
 from toolkit.globals import *
 from toolkit.utils.functions import *
-from sklearn.metrics import f1_score, accuracy_score
 
 
 def generate_submission(result_npz, save_csv):

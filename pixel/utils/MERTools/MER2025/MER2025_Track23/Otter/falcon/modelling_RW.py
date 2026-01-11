@@ -11,7 +11,6 @@ import torch.utils.checkpoint
 from torch import nn
 from torch.nn import BCEWithLogitsLoss, CrossEntropyLoss, LayerNorm, MSELoss
 from torch.nn import functional as F
-
 from transformers.modeling_outputs import (
     BaseModelOutputWithPastAndCrossAttentions,
     CausalLMOutputWithCrossAttentions,
@@ -21,6 +20,7 @@ from transformers.modeling_outputs import (
 )
 from transformers.modeling_utils import PreTrainedModel
 from transformers.utils import logging
+
 from .configuration_RW import RWConfig
 
 logger = logging.get_logger(__name__)
@@ -37,7 +37,6 @@ class Linear(nn.Linear):
             return ret + self.bias
 
 
-from einops import rearrange
 
 
 # rotary pos emb helpers (torch.jit.script does not seem to support staticmethod...)

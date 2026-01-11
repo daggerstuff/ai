@@ -6,20 +6,20 @@ Psychodynamic, Humanistic, and Systemic approaches with seamless switching,
 technique blending, and effectiveness assessment.
 """
 
+
 import pytest
 import pytest_asyncio
-import asyncio
-from datetime import datetime
-from unittest.mock import Mock, patch, AsyncMock
 
+from .dynamic_conversation_generator import ConversationRole, ConversationTurn
+from .therapeutic_conversation_schema import ClinicalContext, TherapeuticModality
 from .therapeutic_modality_integrator import (
-    TherapeuticModalityIntegrator, ModalityIntegrationPlan, ModalityProfile,
-    ModalityIntegrationStrategy, ModalityTransitionTrigger, ModalityTransition,
-    IntegratedResponse
+    ModalityIntegrationPlan,
+    ModalityIntegrationStrategy,
+    ModalityProfile,
+    ModalityTransitionTrigger,
+    TherapeuticModalityIntegrator,
 )
-from .therapeutic_conversation_schema import TherapeuticModality, ClinicalContext
 from .therapist_response_generator import InterventionType, TherapistResponse
-from .dynamic_conversation_generator import ConversationTurn, ConversationRole
 
 
 @pytest.fixture

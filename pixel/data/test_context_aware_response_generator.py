@@ -6,14 +6,15 @@ conversational context analysis, contextual adaptations, risk mitigation,
 and opportunity capitalization.
 """
 
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import List, Optional
+from unittest.mock import Mock, patch
+
 import pytest
 import pytest_asyncio
-import asyncio
-from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
-from dataclasses import dataclass
-from enum import Enum
-from typing import List, Optional, Dict, Any
+
 
 # Mock the missing imports
 @dataclass
@@ -81,8 +82,10 @@ with patch.dict('sys.modules', {
     sys.modules['ai.pixel.data.therapeutic_modality_integrator'].TherapeuticModalityIntegrator = Mock()
     
     from .context_aware_response_generator import (
-        ContextAwareResponseGenerator, ConversationalContext, ResponseContext,
-        ContextualResponse, ContextualFactor, ResponseContextType, ContextualPriority
+        ContextAwareResponseGenerator,
+        ContextualFactor,
+        ConversationalContext,
+        ResponseContextType,
     )
 
 

@@ -5,18 +5,22 @@ Tests the therapeutic goal tracking system including goal creation,
 progress tracking, milestone detection, and goal-oriented analysis.
 """
 
-import pytest
-import pytest_asyncio
-import asyncio
-from datetime import datetime, timedelta
-from unittest.mock import Mock, patch, AsyncMock
 from dataclasses import dataclass
-from typing import List, Dict, Any
+from datetime import datetime, timedelta
+from typing import List
+
+import pytest
 
 from .therapeutic_goal_tracker import (
-    TherapeuticGoalTracker, TherapeuticGoal, ProgressMeasurement, TherapeuticMilestone,
-    GoalProgressSummary, GoalCategory, GoalPriority, GoalStatus, ProgressIndicator,
-    MilestoneType
+    GoalCategory,
+    GoalPriority,
+    GoalProgressSummary,
+    GoalStatus,
+    MilestoneType,
+    ProgressIndicator,
+    ProgressMeasurement,
+    TherapeuticGoalTracker,
+    TherapeuticMilestone,
 )
 
 
