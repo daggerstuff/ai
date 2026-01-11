@@ -30,7 +30,7 @@ dataset_pipeline/pixelated-training/training_dataset.json
 database/conversations.db
 config/security
 lightning/ghost
-models/MERToolsels/
+models/
 
 # Dataset pipeline runtime artifacts (keep outside package tree; defaults to ../tmp/dataset_pipeline)
 dataset_pipeline/config/
