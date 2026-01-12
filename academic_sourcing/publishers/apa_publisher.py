@@ -6,13 +6,15 @@ for sourcing psychology and therapy books for AI training data expansion.
 """
 
 import logging
-from typing import Optional, List, Dict, Any, Tuple
 from datetime import datetime
-from ..base_publisher import BasePublisher, BookMetadata, BookContent, BookFormat
+from typing import Any, Dict, List, Optional, Tuple
+
+from .base_publisher import BasePublisher, BookContent, BookFormat, BookMetadata
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 class APAPublisher(BasePublisher):
     """Integration with American Psychological Association (APA) for book sourcing"""
@@ -24,25 +26,55 @@ class APAPublisher(BasePublisher):
         super().__init__(
             name="American Psychological Association",
             api_base_url="https://api.apa.org/v2",
-            requires_auth=True
+            requires_auth=True,
         )
 
         # APA-specific therapeutic topics mapping
         self.therapeutic_topics_map = {
-            "cbt": ["cognitive behavioral therapy", "cognitive therapy", "behavioral therapy"],
+            "cbt": [
+                "cognitive behavioral therapy",
+                "cognitive therapy",
+                "behavioral therapy",
+            ],
             "dbt": ["dialectical behavior therapy", "dialectical therapy"],
             "trauma": ["trauma", "ptsd", "post-traumatic stress", "childhood trauma"],
-            "anxiety": ["anxiety", "generalized anxiety", "social anxiety", "panic disorder"],
+            "anxiety": [
+                "anxiety",
+                "generalized anxiety",
+                "social anxiety",
+                "panic disorder",
+            ],
             "depression": ["depression", "major depressive disorder", "dysthymia"],
-            "personality": ["personality disorders", "borderline personality", "narcissistic personality"],
-            "addiction": ["addiction", "substance abuse", "alcoholism", "drug dependence"],
-            "child": ["child psychology", "adolescent psychology", "developmental psychology"],
+            "personality": [
+                "personality disorders",
+                "borderline personality",
+                "narcissistic personality",
+            ],
+            "addiction": [
+                "addiction",
+                "substance abuse",
+                "alcoholism",
+                "drug dependence",
+            ],
+            "child": [
+                "child psychology",
+                "adolescent psychology",
+                "developmental psychology",
+            ],
             "family": ["family therapy", "couples therapy", "marriage counseling"],
-            "cultural": ["cultural competence", "multicultural psychology", "diversity"],
+            "cultural": [
+                "cultural competence",
+                "multicultural psychology",
+                "diversity",
+            ],
             "ethics": ["ethics", "professional ethics", "confidentiality"],
             "assessment": ["assessment", "psychological testing", "diagnostic tools"],
-            "neuropsychology": ["neuropsychology", "brain injury", "cognitive rehabilitation"],
-            "mindfulness": ["mindfulness", "meditation", "stress reduction"]
+            "neuropsychology": [
+                "neuropsychology",
+                "brain injury",
+                "cognitive rehabilitation",
+            ],
+            "mindfulness": ["mindfulness", "meditation", "stress reduction"],
         }
 
     def _authenticate(self, api_key: Optional[str] = None, **kwargs) -> bool:
@@ -68,8 +100,8 @@ class APAPublisher(BasePublisher):
                 data={
                     "grant_type": "api_key",
                     "api_key": api_key,
-                    "client_id": kwargs.get("client_id", "pixelated-empathy")
-                }
+                    "client_id": kwargs.get("client_id", "pixelated-empathy"),
+                },
             )
 
             if auth_response and "access_token" in auth_response:
@@ -89,7 +121,7 @@ class APAPublisher(BasePublisher):
         year_range: Optional[Tuple[int, int]] = None,
         therapeutic_topics: Optional[List[str]] = None,
         limit: int = 20,
-        offset: int = 0
+        offset: int = 0,
     ) -> List[BookMetadata]:
         """
         Search for books in APA's catalog
@@ -109,12 +141,7 @@ class APAPublisher(BasePublisher):
             return []
 
         # Build search parameters
-        params = {
-            "q": query,
-            "limit": limit,
-            "offset": offset,
-            "format": "json"
-        }
+        params = {"q": query, "limit": limit, "offset": offset, "format": "json"}
 
         # Add year range filter
         if year_range:
@@ -136,9 +163,7 @@ class APAPublisher(BasePublisher):
         try:
             # Search for books
             search_response = self._make_request(
-                method="GET",
-                endpoint="/books/search",
-                params=params
+                method="GET", endpoint="/books/search", params=params
             )
 
             if not search_response or "results" not in search_response:
@@ -184,10 +209,7 @@ class APAPublisher(BasePublisher):
                 endpoint = f"/books/{identifier}"
 
             # Get book metadata
-            book_response = self._make_request(
-                method="GET",
-                endpoint=endpoint
-            )
+            book_response = self._make_request(method="GET", endpoint=endpoint)
 
             if not book_response:
                 logger.warning(f"No book found with identifier: {identifier}")
@@ -204,7 +226,9 @@ class APAPublisher(BasePublisher):
             logger.error(f"Error getting APA book metadata: {e}")
             return None
 
-    def get_book_content(self, identifier: str, format: BookFormat = BookFormat.PLAIN_TEXT) -> Optional[BookContent]:
+    def get_book_content(
+        self, identifier: str, format: BookFormat = BookFormat.PLAIN_TEXT
+    ) -> Optional[BookContent]:
         """
         Get content for a specific book from APA
 
@@ -239,7 +263,7 @@ class APAPublisher(BasePublisher):
             content_response = self._make_request(
                 method="GET",
                 endpoint=endpoint,
-                params={"format": "pdf"}  # APA typically provides PDFs
+                params={"format": "pdf"},  # APA typically provides PDFs
             )
 
             if not content_response or "content_url" not in content_response:
@@ -258,7 +282,7 @@ class APAPublisher(BasePublisher):
                 metadata=metadata,
                 content="",  # Will be populated after PDF conversion
                 format=BookFormat.PDF,
-                chapter_contents=[]
+                chapter_contents=[],
             )
 
             # Convert PDF to text (this would be implemented in a separate module)
@@ -297,13 +321,12 @@ class APAPublisher(BasePublisher):
                 endpoint = f"/books/{identifier}/chapters/{chapter_id}"
 
             # Get chapter content
-            chapter_response = self._make_request(
-                method="GET",
-                endpoint=endpoint
-            )
+            chapter_response = self._make_request(method="GET", endpoint=endpoint)
 
             if not chapter_response or "content" not in chapter_response:
-                logger.warning(f"No chapter content found for {identifier} chapter {chapter_id}")
+                logger.warning(
+                    f"No chapter content found for {identifier} chapter {chapter_id}"
+                )
                 return None
 
             return chapter_response["content"]
@@ -343,11 +366,13 @@ class APAPublisher(BasePublisher):
                 chapters = []
                 for chapter in book_data["chapters"]:
                     if isinstance(chapter, dict):
-                        chapters.append({
-                            "title": chapter.get("title", ""),
-                            "page_range": chapter.get("page_range", ""),
-                            "chapter_id": chapter.get("id", "")
-                        })
+                        chapters.append(
+                            {
+                                "title": chapter.get("title", ""),
+                                "page_range": chapter.get("page_range", ""),
+                                "chapter_id": chapter.get("id", ""),
+                            }
+                        )
 
             # Create metadata object
             metadata = BookMetadata(
@@ -365,7 +390,7 @@ class APAPublisher(BasePublisher):
                 license=book_data.get("license", None),
                 copyright_status=book_data.get("copyright_status", None),
                 source_publisher="apa",
-                raw_metadata=book_data
+                raw_metadata=book_data,
             )
 
             return metadata
@@ -386,9 +411,7 @@ class APAPublisher(BasePublisher):
         """
         try:
             response = self.session.get(
-                content_url,
-                headers=self._get_headers(),
-                timeout=60
+                content_url, headers=self._get_headers(), timeout=60
             )
 
             response.raise_for_status()

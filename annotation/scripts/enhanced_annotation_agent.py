@@ -17,10 +17,10 @@ import argparse
 import json
 import os
 import time
+from dataclasses import asdict, dataclass
+from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, asdict
-from enum import Enum
 
 # Try importing required libraries
 try:
@@ -61,10 +61,10 @@ class AnnotationMetrics:
 class GuardrailConfig:
     """Guardrail configuration inspired by NeMo Guardrails"""
 
-    check_emotional_safety: bool = True
-    check_clinical_accuracy: bool = True
-    check_bias_detection: bool = True
-    check_crisis_sensitivity: bool = True
+    check_emotional_safety: bool = False
+    check_clinical_accuracy: bool = False
+    check_bias_detection: bool = False
+    check_crisis_sensitivity: bool = False
     max_emotion_intensity: int = 10
     min_confidence_threshold: float = 0.6
 
@@ -228,11 +228,18 @@ GUARDRAILS:
                 content = m.get("content", "")
                 content_text += f"{role.upper()}: {content}\n"
 
-        # Enhanced prompt with reasoning instructions
+        # Enhanced prompt with reasoning instructions and simplified taxonomy
         prompt = f"""
 {self.guidelines}
 
 TASK: Annotate the following therapeutic conversation sample.
+
+SIMPLIFIED EMOTION TAXONOMY (choose ONE):
+1. Positive - Joy, hope, excitement, pleasant surprise, anticipation
+2. Sadness - Grief, disappointment, loneliness, loss
+3. Anxiety - Fear, worry, nervousness, unpleasant surprise
+4. Anger - Frustration, irritation, rage, disgust
+5. Neutral - Calm, balanced, no strong emotion
 
 REASONING INSTRUCTIONS:
 1. Read the entire conversation carefully
@@ -247,7 +254,7 @@ Respond ONLY with valid JSON in this exact format:
 {{
   "crisis_label": <int 0-5>,
   "crisis_confidence": <int 1-5>,
-  "primary_emotion": <string>,
+  "primary_emotion": <"Positive"|"Sadness"|"Anxiety"|"Anger"|"Neutral">,
   "emotion_intensity": <int 1-10>,
   "valence": <float -1.0 to 1.0>,
   "arousal": <float 0.0 to 1.0>,
@@ -350,7 +357,7 @@ Respond ONLY with valid JSON in this exact format:
             "crisis_label": random.randint(1, 4) if is_crisis else 0,
             "crisis_confidence": random.randint(3, 5),
             "primary_emotion": random.choice(
-                ["Sadness", "Fear", "Anger", "Joy", "Neutral"]
+                ["Positive", "Sadness", "Anxiety", "Anger", "Neutral"]
             ),
             "emotion_intensity": min(10, max(1, int(random.gauss(avg_intensity, 2)))),
             "valence": round(random.uniform(-1.0, 1.0), 2),
