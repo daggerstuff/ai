@@ -13,9 +13,7 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parents[3]
 sys.path.append(str(project_root))
 
-from ai.dataset_pipeline.sourcing.academic_sourcing import (  # noqa: E402
-    AcademicSourcingEngine,
-)
+from ai.academic_sourcing import AcademicSourcingEngine  # noqa: E402
 from ai.dataset_pipeline.sourcing.crisis_expansion import (  # noqa: E402
     CrisisScenarioExpander,
 )
