@@ -1,0 +1,69 @@
+{
+  "summary": {
+    "total_tasks": 50,
+    "agreements": {
+      "crisis_label": 50,
+      "primary_emotion": 45,
+      "emotion_intensity": 48,
+      "empathy_score": 49
+    },
+    "disagreement_counts": {
+      "crisis_label": 0,
+      "primary_emotion": 5,
+      "emotion_intensity": 2,
+      "empathy_score": 1
+    }
+  },
+  "disagreements": {
+    "crisis_label": [],
+    "primary_emotion": [
+      {
+        "task_id": "real_00024",
+        "dr_a": "Joy",
+        "dr_b": "Anger"
+      },
+      {
+        "task_id": "real_00025",
+        "dr_a": "Sadness",
+        "dr_b": "Anger"
+      },
+      {
+        "task_id": "real_00030",
+        "dr_a": "Sadness",
+        "dr_b": "Fear"
+      },
+      {
+        "task_id": "real_00033",
+        "dr_a": "Sadness",
+        "dr_b": "Anger"
+      },
+      {
+        "task_id": "real_00034",
+        "dr_a": "Sadness",
+        "dr_b": "Fear"
+      }
+    ],
+    "emotion_intensity": [
+      {
+        "task_id": "real_00024",
+        "dr_a": 6,
+        "dr_b": 3,
+        "diff": 3
+      },
+      {
+        "task_id": "real_00032",
+        "dr_a": 4,
+        "dr_b": 6,
+        "diff": 2
+      }
+    ],
+    "empathy_score": [
+      {
+        "task_id": "real_00024",
+        "dr_a": 3,
+        "dr_b": 5,
+        "diff": 2
+      }
+    ]
+  }
+}
