@@ -21,26 +21,36 @@ GUIDELINES_PATH = Path(__file__).resolve().parent.parent / "guidelines.md"
 
 
 class AnnotationAgent:
-    def __init__(self, persona_name: str, model: str = "gpt-4-turbo-preview"):
+    def __init__(self, persona_name: str, model: str | None = None):
         self.persona_name = persona_name
-        self.model = model
+        # Prioritize: CLI arg > NVIDIA_OPENAI_MODEL > OPENAI_MODEL > fallback
+        self.model = (
+            model
+            or os.getenv("NVIDIA_OPENAI_MODEL")
+            or os.getenv("OPENAI_MODEL")
+            or "gpt-4-turbo-preview"
+        )
         self.system_prompt = self._get_system_prompt(persona_name)
         self.guidelines = self._load_guidelines()
 
         self.client = None
-        base_url = os.getenv("OPENAI_BASE_URL")
+        base_url = os.getenv("OPENAI_BASE_URL") or os.getenv("NVIDIA_OPENAI_BASE_URL")
+        api_key = os.getenv("OPENAI_API_KEY") or os.getenv("NVIDIA_API_KEY")
 
-        if OPENAI_AVAILABLE and os.getenv("OPENAI_API_KEY"):
+        if OPENAI_AVAILABLE and api_key:
             # Explicitly pass base_url if present, otherwise default behavior
             if base_url:
-                self.client = OpenAI(base_url=base_url)
+                self.client = OpenAI(api_key=api_key, base_url=base_url)
                 print(
-                    f"[{persona_name}] OpenAI client initialized with model {model} "
-                    f"(Custom Base URL: {base_url})."
+                    f"[{persona_name}] OpenAI client initialized "
+                    f"with model {self.model} (Base URL: {base_url})."
                 )
             else:
-                self.client = OpenAI()
-                print(f"[{persona_name}] OpenAI client initialized with model {model}.")
+                self.client = OpenAI(api_key=api_key)
+                print(
+                    f"[{persona_name}] OpenAI client initialized "
+                    f"with model {self.model}."
+                )
         else:
             print(
                 f"[{persona_name}] OpenAI client NOT available "
@@ -114,7 +124,8 @@ format:
                     {"role": "system", "content": self.system_prompt},
                     {"role": "user", "content": prompt},
                 ],
-                response_format={"type": "json_object"},
+                # response_format={"type": "json_object"},
+                # Not supported by all endpoints
                 temperature=0.2,
             )
             content = response.choices[0].message.content
