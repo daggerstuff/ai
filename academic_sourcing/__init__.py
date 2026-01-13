@@ -20,6 +20,13 @@ from .academic_sourcing import (
     create_academic_sourcing_engine,
 )
 from .publishers.apa_publisher import APAPublisher
+from .publishers.cambridge_publisher import CambridgePublisher
+from .publishers.elsevier_publisher import ElsevierPublisher
+from .publishers.oxford_publisher import OxfordPublisher
+from .publishers.springer_publisher import SpringerPublisher
+from .publishers.taylor_francis_publisher import TaylorFrancisPublisher
+from .publishers.wiley_publisher import WileyPublisher
+from .publishers.elsevier_publisher import ElsevierPublisher
 from .publishers.base_publisher import BasePublisher, BookContent, BookFormat
 from .therapy_dataset_sourcing import (
     ConversationFormat,
@@ -29,19 +36,15 @@ from .therapy_dataset_sourcing import (
     find_therapy_datasets,
 )
 
-# TODO: Import these as they are implemented
-# from .publishers.elsevier_publisher import ElsevierPublisher
-# from .publishers.springer_publisher import SpringerPublisher
-# from .publishers.wiley_publisher import WileyPublisher
-# from .publishers.oup_publisher import OUPPublisher
-# from .publishers.cambridge_publisher import CambridgePublisher
-# from .publishers.taylor_francis_publisher import TaylorFrancisPublisher
+# DOI Resolution
+from .doi_resolution.doi_resolver import DOISearcher, DOIResolver
 
-# TODO: Import these modules as they are implemented
-# from .doi_resolution.doi_resolver import DOISearcher, DOIResolver
+# API Integration
+from .api.main import app as AcademicSourcingAPI
+
+# Note: The following modules are planned but not yet implemented in the directory structure:
 # from .metadata_extraction.metadata_extractor import MetadataExtractor
 # from .anonymization.anonymizer import ContentAnonymizer
-# from .api.academic_sourcing_api import AcademicSourcingAPI
 
 __all__ = [
     # Main engine
@@ -61,6 +64,17 @@ __all__ = [
     "BookContent",
     "BookFormat",
     "APAPublisher",
+    "ElsevierPublisher",
+    "SpringerPublisher",
+    "WileyPublisher",
+    "OxfordPublisher",
+    "CambridgePublisher",
+    "TaylorFrancisPublisher",
+    # DOI Resolution
+    "DOISearcher",
+    "DOIResolver",
+    # API
+    "AcademicSourcingAPI",
     # Utility functions
     "get_publisher",
     "get_all_publishers",
@@ -71,23 +85,28 @@ def get_publisher(publisher_name: str) -> BasePublisher:
     """Get a publisher instance by name"""
     publisher_map = {
         "apa": APAPublisher(),
-        # TODO: Add others as implemented
-        # 'elsevier': ElsevierPublisher(),
-        # 'springer': SpringerPublisher(),
-        # 'wiley': WileyPublisher(),
-        # 'oup': OUPPublisher(),
-        # 'cambridge': CambridgePublisher(),
-        # 'taylor_francis': TaylorFrancisPublisher()
+        "elsevier": ElsevierPublisher(),
+        "springer": SpringerPublisher(),
+        "wiley": WileyPublisher(),
+        "oup": OxfordPublisher(),
+        "oxford": OxfordPublisher(),
+        "cambridge": CambridgePublisher(),
+        "taylor_francis": TaylorFrancisPublisher(),
     }
-    publisher = publisher_map.get(publisher_name.lower())
-    if not publisher:
+    if publisher := publisher_map.get(publisher_name.lower()):
+        return publisher
+    else:
         raise ValueError(f"Publisher '{publisher_name}' not implemented yet")
-    return publisher
 
 
 def get_all_publishers() -> list[BasePublisher]:
     """Get all available publisher instances"""
     return [
         APAPublisher(),
-        # TODO: Add others as implemented
+        ElsevierPublisher(),
+        SpringerPublisher(),
+        WileyPublisher(),
+        OxfordPublisher(),
+        CambridgePublisher(),
+        TaylorFrancisPublisher(),
     ]
