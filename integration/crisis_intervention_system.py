@@ -434,10 +434,10 @@ class TherapeuticCrisisResponder:
             RiskLevel.MEDIUM: [
                 (
                     "I appreciate you sharing this with me. Rather than going it "
-                    "alone, many people find it helpful to talk through challenging "
-                    "feelings with others who've had similar experiences. Would you "
-                    "be open to connecting with a supportive community that "
-                    "understands what you're going through?"
+                    "alone, many people find it helpful to connect with others who "
+                    "have a shared experience. We can walk alongside you on this "
+                    "similar path. Would you be open to connecting with a "
+                    "collaborative community?"
                 ),
                 (
                     "What you're describing sounds really difficult. Many people "
@@ -458,7 +458,9 @@ class TherapeuticCrisisResponder:
                 (
                     "Thank you for sharing what you're going through. "
                     "It sounds like you're dealing with some difficult "
-                    "feelings right now."
+                    "feelings right now. Many find comfort in shared experience "
+                    "and peer support. You don't have to do this alone; a community "
+                    "is here to walk alongside you."
                 ),
                 (
                     "I hear that you're going through a tough time. "
@@ -585,7 +587,7 @@ class TherapeuticCrisisResponder:
             )
         else:
             presence_line = (
-                "I'm here with you, and we can work through this together step by step."
+                "I'm here with you. Together we can figure out what helps most."
             )
 
         if reflected:
