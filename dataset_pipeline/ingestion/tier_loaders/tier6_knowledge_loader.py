@@ -10,25 +10,10 @@ import logging
 from pathlib import Path
 from typing import Dict, List, Optional
 
-# Import conversation schema
-import sys
-from pathlib import Path as PathType
-
-loader_path = PathType(__file__).parent
-pipeline_root = loader_path.parent.parent.parent
-sys.path.insert(0, str(pipeline_root))
-
-try:
-    from schemas.conversation_schema import Conversation, Message
-except ImportError:
-    try:
-        from ai.dataset_pipeline.schemas.conversation_schema import Conversation, Message
-    except ImportError:
-        from conversation_schema import Conversation, Message
-
 from ai.dataset_pipeline.ingestion.tier_loaders.base_tier_loader import (
     BaseTierLoader,
 )
+from conversation_schema import Conversation, Message
 
 logger = logging.getLogger(__name__)
 
@@ -48,6 +33,7 @@ class Tier6KnowledgeLoader(BaseTierLoader):
         self,
         base_path: Optional[Path] = None,
         quality_threshold: float = 1.0,  # Reference quality
+        dataset_registry_path: str = "ai/data/dataset_registry.json",
     ):
         """
         Initialize Tier 6 knowledge loader.
@@ -55,8 +41,14 @@ class Tier6KnowledgeLoader(BaseTierLoader):
         Args:
             base_path: Optional base path to datasets directory
             quality_threshold: Quality threshold for Tier 6 (default: 1.0 = reference)
+            dataset_registry_path: Path to dataset_registry.json
         """
-        super().__init__(tier=6, quality_threshold=quality_threshold, base_path=base_path)
+        super().__init__(
+            tier=6,
+            quality_threshold=quality_threshold,
+            base_path=base_path,
+            dataset_registry_path=dataset_registry_path,
+        )
         self.base_path = Path(base_path) if base_path else Path("ai/datasets")
         self.training_data_path = Path("ai/training_data_consolidated")
 
@@ -67,19 +59,52 @@ class Tier6KnowledgeLoader(BaseTierLoader):
             "psych_101": self.base_path / "Psych-101",
             "xmu_psych_books": self.base_path / "xmu_psych_books",
             "mental_health_snli": self.base_path / "customized-mental-health-snli2",
-            "enhanced_psychology_knowledge": self.base_path.parent / "pixel" / "knowledge" / "enhanced_psychology_knowledge_base.json",
-            "further_enhanced_psychology_knowledge": self.base_path.parent / "pixel" / "knowledge" / "further_enhanced_psychology_knowledge_base.json",
+            "enhanced_psychology_knowledge": self.base_path.parent
+            / "pixel"
+            / "knowledge"
+            / "enhanced_psychology_knowledge_base.json",
+            "further_enhanced_psychology_knowledge": self.base_path.parent
+            / "pixel"
+            / "knowledge"
+            / "further_enhanced_psychology_knowledge_base.json",
         }
 
+        # Discover more from registry
+        self._discover_knowledge_datasets()
+
         logger.info(
-            f"Initialized Tier6KnowledgeLoader: quality_threshold={quality_threshold}"
+            f"Initialized Tier6KnowledgeLoader: quality_threshold={quality_threshold}, "
+            f"{len(self.dataset_paths)} datasets configured"
         )
+
+    def _discover_knowledge_datasets(self) -> None:
+        """Discover knowledge datasets from registry."""
+        # Check supplementary or specific knowledge sections
+        knowledge_datasets = self.registry.get("datasets", {}).get("supplementary", {})
+        for reg_name, entry in knowledge_datasets.items():
+            if not isinstance(entry, dict):
+                continue
+
+            # Focus on things that look like knowledge
+            if (
+                "psychology" in reg_name.lower()
+                or "knowledge" in reg_name.lower()
+                or "dsm" in reg_name.lower()
+            ):
+                key = reg_name.lower().replace("-", "_")
+                if key not in self.dataset_paths:
+                    path_val = entry.get("path", "")
+                    if path_val and not self._is_s3_path(path_val):
+                        self.dataset_paths[key] = Path(path_val).expanduser()
+                    else:
+                        self.dataset_paths[key] = self.base_path / reg_name
 
     def load_datasets(self) -> Dict[str, List[Conversation]]:
         """
         Load all Tier 6 knowledge base datasets.
 
-        Converts knowledge base content to training format (instruction-following examples).
+        Converts knowledge base content to training format
+        (instruction-following examples).
 
         Returns:
             Dictionary mapping dataset name to list of conversations
@@ -87,22 +112,32 @@ class Tier6KnowledgeLoader(BaseTierLoader):
         datasets = {}
 
         for dataset_name, dataset_path in self.dataset_paths.items():
+            # Ensure available locally (S3 fetch if needed)
+            dataset_path = self._ensure_dataset_locally(
+                dataset_name, dataset_path, registry_category="supplementary"
+            )
+
             if not dataset_path.exists():
                 logger.warning(f"Tier 6 dataset not found: {dataset_path}")
                 continue
 
-            logger.info(f"Loading Tier 6 knowledge base: {dataset_name}")
+            logger.info(
+                f"Loading Tier 6 knowledge base: {dataset_name} from {dataset_path}"
+            )
 
             try:
                 conversations = self._load_knowledge_base(dataset_path, dataset_name)
 
                 # Add tier metadata
-                self.add_tier_metadata(conversations, {
-                    "dataset_name": dataset_name,
-                    "source": f"tier6_knowledge_{dataset_name}",
-                    "data_type": "knowledge_base",
-                    "usage": "reference_validation",
-                })
+                self.add_tier_metadata(
+                    conversations,
+                    {
+                        "dataset_name": dataset_name,
+                        "source": f"tier6_knowledge_{dataset_name}",
+                        "data_type": "knowledge_base",
+                        "usage": "reference_validation",
+                    },
+                )
 
                 datasets[dataset_name] = conversations
                 logger.info(
@@ -150,7 +185,14 @@ class Tier6KnowledgeLoader(BaseTierLoader):
             jsonl_files = list(knowledge_path.rglob("*.jsonl"))
             json_files = list(knowledge_path.rglob("*.json"))
 
+            # Filter out duplicates if a file has both .json and .jsonl?
+            # (Unlikely, but let's be safe)
+            processed_paths = set()
             for file_path in jsonl_files + json_files:
+                if file_path in processed_paths:
+                    continue
+                processed_paths.add(file_path)
+
                 file_conversations = self._convert_knowledge_to_instructions(
                     file_path, dataset_name
                 )
@@ -190,7 +232,11 @@ class Tier6KnowledgeLoader(BaseTierLoader):
                         concepts = concepts_data
                 else:
                     # Assume it's a list of concepts directly
-                    concepts = list(knowledge_data.values()) if isinstance(knowledge_data, dict) else knowledge_data
+                    concepts = (
+                        list(knowledge_data.values())
+                        if isinstance(knowledge_data, dict)
+                        else knowledge_data
+                    )
             elif isinstance(knowledge_data, list):
                 concepts = knowledge_data
 
@@ -201,13 +247,14 @@ class Tier6KnowledgeLoader(BaseTierLoader):
 
                 # Extract knowledge content
                 concept_name = concept.get("name", concept.get("title", f"Concept {i}"))
-                concept_definition = concept.get("definition", concept.get("content", concept.get("description", "")))
+                concept_definition = concept.get(
+                    "definition", concept.get("content", concept.get("description", ""))
+                )
 
                 if not concept_definition:
                     continue
 
                 # Create instruction-following conversation
-                # Format: "What is [concept]?" -> "[Knowledge content]"
                 instruction = f"What is {concept_name}?"
 
                 conversation = Conversation(
@@ -228,9 +275,14 @@ class Tier6KnowledgeLoader(BaseTierLoader):
                 conversations.append(conversation)
 
         except Exception as e:
-            logger.error(f"Error converting JSON knowledge base {file_path}: {e}", exc_info=True)
+            logger.error(
+                f"Error converting JSON knowledge base {file_path}: {e}", exc_info=True
+            )
 
-        logger.info(f"Converted {len(conversations)} entries from JSON knowledge base {file_path}")
+        logger.info(
+            f"Converted {len(conversations)} entries from JSON knowledge base "
+            f"{file_path}"
+        )
         return conversations
 
     def _convert_knowledge_to_instructions(
@@ -249,23 +301,33 @@ class Tier6KnowledgeLoader(BaseTierLoader):
         conversations = []
 
         # Load knowledge entries
-        knowledge_entries = self.load_jsonl_file(file_path)
+        if file_path.suffix == ".jsonl":
+            knowledge_entries = self.load_jsonl_file(file_path)
+        else:
+            knowledge_entries = self.load_json_file(file_path)
 
         # Convert each entry to instruction-following format
         for entry in knowledge_entries:
             # Extract knowledge content
             knowledge_text = ""
             if entry.messages:
+                # If already a conversation, use the messages
                 knowledge_text = " ".join(msg.content for msg in entry.messages)
             else:
-                knowledge_text = str(entry.metadata.get("content", ""))
+                # Extract from metadata
+                knowledge_text = str(
+                    entry.metadata.get("content", entry.metadata.get("definition", ""))
+                )
 
             if not knowledge_text:
                 continue
 
             # Create instruction-following conversation
-            # Format: "What is [concept]?" -> "[Knowledge content]"
-            concept = entry.metadata.get("concept") or entry.metadata.get("title") or "this concept"
+            concept = (
+                entry.metadata.get("concept")
+                or entry.metadata.get("title")
+                or "this concept"
+            )
             instruction = f"What is {concept}?"
 
             conversation = Conversation(
@@ -286,5 +348,3 @@ class Tier6KnowledgeLoader(BaseTierLoader):
             conversations.append(conversation)
 
         return conversations
-
-
