@@ -6,6 +6,8 @@ Base class for tier-specific dataset loaders with common functionality.
 
 import json
 import logging
+import shutil
+import subprocess
 from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -18,7 +20,7 @@ logger = logging.getLogger(__name__)
 class BaseTierLoader(ABC):
     """
     Base class for tier-specific dataset loaders.
-    
+
     Provides common functionality:
     - JSONL file loading
     - Conversation conversion
@@ -31,28 +33,185 @@ class BaseTierLoader(ABC):
         tier: int,
         quality_threshold: float,
         base_path: Optional[Path] = None,
+        dataset_registry_path: str = "ai/data/dataset_registry.json",
     ):
         """
         Initialize base tier loader.
-        
+
         Args:
             tier: Tier number (1-6)
             quality_threshold: Quality threshold for this tier (0.0-1.0)
             base_path: Optional base path for datasets
+            dataset_registry_path: Path to dataset_registry.json
         """
         self.tier = tier
         self.quality_threshold = quality_threshold
         self.base_path = Path(base_path) if base_path else None
-        
+        self.registry_path = Path(dataset_registry_path)
+
+        # Load registry
+        self.registry = self._load_registry()
+
         logger.info(
             f"Initialized Tier{tier}Loader: quality_threshold={quality_threshold}"
         )
+
+    def _load_registry(self) -> Dict[str, Any]:
+        """Load dataset registry."""
+        if not self.registry_path.exists():
+            logger.warning(f"Dataset registry not found at {self.registry_path}")
+            return {}
+        try:
+            with open(self.registry_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            logger.error(f"Error loading registry: {e}")
+            return {}
+
+    def _is_ovhai_available(self) -> bool:
+        """Check if OVHAI CLI is available."""
+        return shutil.which("ovhai") is not None
+
+    def _is_s3_path(self, path_value: str | None) -> bool:
+        """Check if a path is an S3 URI."""
+        return bool(path_value and str(path_value).startswith("s3://"))
+
+    def _ensure_dataset_locally(
+        self,
+        dataset_name: str,
+        current_path: Path,
+        registry_category: Optional[str] = None,
+    ) -> Path:
+        """
+        Ensure dataset exists locally, download from S3 via OVHAI if needed.
+
+        Args:
+            dataset_name: Internal or registry name of the dataset
+            current_path: Current predicted local path
+            registry_category: Optional category in registry (e.g. 'cot_reasoning')
+
+        Returns:
+            The path where the dataset is located
+        """
+        if current_path.exists():
+            return current_path
+
+        # If we don't know the category, try all of them
+        categories = (
+            [registry_category]
+            if registry_category
+            else [
+                "cot_reasoning",
+                "professional_therapeutic",
+                "wendy_curated_sets",
+                "edge_case_sources",
+                "supplementary",
+                "voice_persona",
+            ]
+        )
+
+        registry_entry = None
+        datasets_in_reg = self.registry.get("datasets", {})
+
+        for cat in categories:
+            cat_data = datasets_in_reg.get(cat, {})
+            # Also check top level categories
+            if not cat_data and cat in self.registry:
+                cat_data = self.registry[cat]
+
+            if isinstance(cat_data, dict):
+                # Try exact match or case-insensitive match
+                registry_entry = cat_data.get(dataset_name)
+                if not registry_entry:
+                    # Search by lower case
+                    for name, entry in cat_data.items():
+                        if name.lower() == dataset_name.lower() or name.lower().replace(
+                            "-", "_"
+                        ) == dataset_name.lower().replace("-", "_"):
+                            registry_entry = entry
+                            break
+            if registry_entry:
+                break
+
+        if not registry_entry or not isinstance(registry_entry, dict):
+            return current_path
+
+        s3_path = registry_entry.get("path", "")
+        if not self._is_s3_path(s3_path):
+            return current_path
+
+        if not self._is_ovhai_available():
+            logger.warning(
+                f"Dataset {dataset_name} missing and ovhai CLI not found "
+                f"to fetch {s3_path}"
+            )
+            return current_path
+
+        logger.info(f"Downloading {dataset_name} from S3: {s3_path}")
+
+        # Determine if it's a file or directory
+        is_file = (
+            s3_path.endswith(".json")
+            or s3_path.endswith(".jsonl")
+            or s3_path.endswith(".csv")
+        )
+
+        target_dir = current_path if not is_file else current_path.parent
+        target_dir.mkdir(parents=True, exist_ok=True)
+
+        try:
+            cmd = ["ovhai", "cp", s3_path, str(current_path)]
+            subprocess.run(cmd, check=True, capture_output=True, text=True)
+            logger.info(f"Successfully downloaded {dataset_name} to {current_path}")
+            return current_path
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to download {dataset_name} from S3: {e.stderr}")
+            return current_path
+        except Exception as e:
+            logger.error(f"Error during S3 download: {e}")
+            return current_path
+
+    def _load_dataset_directory(
+        self, dataset_path: Path, dataset_name: str
+    ) -> List[Conversation]:
+        """
+        Load conversations recursively from a dataset directory.
+
+        Args:
+            dataset_path: Path to dataset directory
+            dataset_name: Name of the dataset for source metadata
+
+        Returns:
+            List of Conversation objects
+        """
+        conversations = []
+
+        if not dataset_path.exists():
+            return conversations
+
+        # Look for JSONL and JSON files
+        data_files = list(dataset_path.rglob("*.jsonl")) + list(
+            dataset_path.rglob("*.json")
+        )
+
+        for data_file in data_files:
+            try:
+                if data_file.suffix == ".jsonl":
+                    file_conversations = self.load_jsonl_file(data_file)
+                else:
+                    file_conversations = self.load_json_file(data_file)
+                conversations.extend(file_conversations)
+            except Exception as e:
+                logger.warning(f"Failed to load file {data_file}: {e}")
+                continue
+
+        return conversations
 
     @abstractmethod
     def load_datasets(self) -> Dict[str, List[Conversation]]:
         """
         Load datasets for this tier.
-        
+
         Returns:
             Dictionary mapping dataset name to list of conversations
         """
@@ -61,25 +220,25 @@ class BaseTierLoader(ABC):
     def load_jsonl_file(self, file_path: Path) -> List[Conversation]:
         """
         Load conversations from a JSONL file.
-        
+
         Args:
             file_path: Path to JSONL file
-        
+
         Returns:
             List of Conversation objects
         """
         conversations = []
-        
+
         if not file_path.exists():
             logger.warning(f"File not found: {file_path}")
             return conversations
-        
+
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 for line_num, line in enumerate(f, 1):
                     if not line.strip():
                         continue
-                    
+
                     try:
                         data = json.loads(line)
                         conversation = self._convert_to_conversation(data)
@@ -95,11 +254,52 @@ class BaseTierLoader(ABC):
                             f"Error converting line {line_num} in {file_path}: {e}"
                         )
                         continue
-        
+
         except Exception as e:
             logger.error(f"Error loading JSONL file {file_path}: {e}", exc_info=True)
             raise
-        
+
+        return conversations
+
+    def load_json_file(self, file_path: Path) -> List[Conversation]:
+        """
+        Load conversations from a standard JSON file (list of objects).
+
+        Args:
+            file_path: Path to JSON file
+
+        Returns:
+            List of Conversation objects
+        """
+        conversations = []
+
+        if not file_path.exists():
+            logger.warning(f"File not found: {file_path}")
+            return conversations
+
+        try:
+            with open(file_path, "r", encoding="utf-8") as f:
+                data_list = json.load(f)
+
+                if isinstance(data_list, dict):
+                    # Handle single object dataset
+                    conversation = self._convert_to_conversation(data_list)
+                    if conversation:
+                        conversations.append(conversation)
+                elif isinstance(data_list, list):
+                    for data in data_list:
+                        conversation = self._convert_to_conversation(data)
+                        if conversation:
+                            conversations.append(conversation)
+                else:
+                    logger.warning(
+                        f"Unexpected JSON format in {file_path}: expected list or dict"
+                    )
+
+        except Exception as e:
+            logger.error(f"Error loading JSON file {file_path}: {e}", exc_info=True)
+            raise
+
         return conversations
 
     def _convert_to_conversation(
@@ -107,17 +307,17 @@ class BaseTierLoader(ABC):
     ) -> Optional[Conversation]:
         """
         Convert data dictionary to Conversation object.
-        
+
         Args:
             data: Data dictionary from JSONL file
             source_name: Optional source name for metadata
-        
+
         Returns:
             Conversation object or None if conversion fails
         """
         try:
             messages = []
-            
+
             # Try various message formats
             if "messages" in data:
                 for msg_data in data["messages"]:
@@ -125,7 +325,7 @@ class BaseTierLoader(ABC):
                     content = msg_data.get("content", "")
                     if content:
                         messages.append(Message(role=role, content=content))
-            
+
             elif "conversation" in data:
                 conv_data = data["conversation"]
                 if isinstance(conv_data, list):
@@ -135,20 +335,22 @@ class BaseTierLoader(ABC):
                             content = msg_data.get("content", msg_data.get("text", ""))
                             if content:
                                 messages.append(Message(role=role, content=content))
-            
+
             elif "user" in data and "assistant" in data:
                 messages.append(Message(role="user", content=str(data["user"])))
-                messages.append(Message(role="assistant", content=str(data["assistant"])))
-            
+                messages.append(
+                    Message(role="assistant", content=str(data["assistant"]))
+                )
+
             elif "question" in data and "answer" in data:
                 messages.append(Message(role="user", content=str(data["question"])))
                 messages.append(Message(role="assistant", content=str(data["answer"])))
-            
+
             if not messages:
                 return None
-            
+
             source = source_name or data.get("source", f"tier{self.tier}")
-            
+
             conversation = Conversation(
                 conversation_id=data.get("id", data.get("conversation_id", "")),
                 source=source,
@@ -171,28 +373,32 @@ class BaseTierLoader(ABC):
                     },
                 },
             )
-            
+
             return conversation
-            
+
         except Exception as e:
             logger.warning(f"Error converting data to conversation: {e}")
             return None
 
     def add_tier_metadata(
-        self, conversations: List[Conversation], additional_metadata: Optional[Dict[str, Any]] = None
+        self,
+        conversations: List[Conversation],
+        additional_metadata: Optional[Dict[str, Any]] = None,
     ) -> None:
         """
         Add tier metadata to conversations.
-        
+
         Args:
             conversations: List of conversations to update
             additional_metadata: Optional additional metadata to add
         """
         for conv in conversations:
-            conv.metadata.update({
-                "tier": self.tier,
-                "quality_threshold": self.quality_threshold,
-            })
+            conv.metadata.update(
+                {
+                    "tier": self.tier,
+                    "quality_threshold": self.quality_threshold,
+                }
+            )
             if additional_metadata:
                 conv.metadata.update(additional_metadata)
 
@@ -203,5 +409,3 @@ class BaseTierLoader(ABC):
     def get_tier(self) -> int:
         """Get tier number."""
         return self.tier
-
-
