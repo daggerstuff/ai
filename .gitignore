@@ -61,3 +61,4 @@ training_ready/configs/hyperparameters/training_dataset.json
 # Weights & Biases (wandb) offline run artifacts
 **/wandb/offline-run-*/
 **/.wandb/training_ready/training_ready/configs/hyperparameters/training_dataset.json
+firebase-debug.log
