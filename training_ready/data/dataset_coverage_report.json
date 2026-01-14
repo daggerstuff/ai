@@ -1,28 +1,28 @@
 {
-  "generated_at": "2025-12-12T15:19:25.114164",
+  "generated_at": "2026-01-14T04:38:51.305502+00:00",
   "manifest_path": "/home/vivi/pixelated/ai/training_ready/data/s3_manifest.json",
-  "total_s3_objects": 19323,
+  "total_s3_objects": 19331,
   "families": {
     "edge_case_generator": {
       "name": "edge_case_generator",
       "description": "Edge case generator outputs (nightmare fuel scenarios)",
       "required": true,
       "status": "present",
-      "evidence_count": 33,
+      "evidence_count": 35,
       "s3_evidence": [
         "datasets/gdrive/raw/dataset_pipeline/crisis_intervention_conversations_dataset.json",
         "datasets/gdrive/tier3_edge_crisis/crisis_detection_conversations.jsonl",
+        "datasets/gdrive/processed/edge_cases/cptsd/cptsd_transcripts.jsonl",
+        "datasets/gdrive/processed/edge_cases/synthetic.jsonl",
         "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_30_crisis_detection/crisis_detection_conversations.jsonl",
         "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_30_crisis_detection/task_5_31_crisis_detection_report.json",
         "datasets/consolidated/conversations/edge_case_dialogues.jsonl",
         "datasets/consolidated/datasets/edge_case_dialogues.jsonl",
         "datasets/consolidated/edge_cases/EDGE_CASE_INTEGRATION_PLAN.md",
-        "datasets/consolidated/edge_cases/Edge_Case_Generation_Pipeline.ipynb",
-        "datasets/consolidated/edge_cases/README.md",
-        "datasets/consolidated/edge_cases/TRANSFER_READY.md"
+        "datasets/consolidated/edge_cases/Edge_Case_Generation_Pipeline.ipynb"
       ],
-      "total_evidence": 33,
-      "notes": "Found 33 matching object(s)"
+      "total_evidence": 35,
+      "notes": "Found 35 matching object(s)"
     },
     "edge_case_resulting_chats": {
       "name": "edge_case_resulting_chats",
@@ -41,31 +41,33 @@
       "description": "Synthetic edge case dataset",
       "required": true,
       "status": "partial",
-      "evidence_count": 1,
+      "evidence_count": 2,
       "s3_evidence": [
+        "datasets/gdrive/processed/edge_cases/synthetic.jsonl",
         "local:/home/vivi/pixelated/ai/training_ready/data/generated/edge_case_synthetic.jsonl"
       ],
-      "total_evidence": 1,
-      "notes": "Found 1 matching object(s) - may need more"
+      "total_evidence": 2,
+      "notes": "Found 2 matching object(s) - may need more"
     },
     "long_running_therapy": {
       "name": "long_running_therapy",
       "description": "Long-running therapy sessions (actual therapy sessions)",
       "required": true,
       "status": "partial",
-      "evidence_count": 1,
+      "evidence_count": 2,
       "s3_evidence": [
+        "datasets/gdrive/processed/professional_therapeutic/long_running_therapy.jsonl",
         "local:/home/vivi/pixelated/ai/training_ready/data/generated/long_running_therapy.jsonl"
       ],
-      "total_evidence": 1,
-      "notes": "Found 1 matching object(s) - may need more"
+      "total_evidence": 2,
+      "notes": "Found 2 matching object(s) - may need more"
     },
     "mental_health_datasets": {
       "name": "mental_health_datasets",
       "description": "All mental health datasets",
       "required": true,
       "status": "present",
-      "evidence_count": 450,
+      "evidence_count": 453,
       "s3_evidence": [
         "datasets/gdrive/raw/Amod___mental_health_counseling_conversations/default/0.0.0/9a117aa09aa90868d74ba68ed0d5702f64cc3109/dataset_info.json",
         "datasets/gdrive/raw/Amod___mental_health_counseling_conversations/default/0.0.0/9a117aa09aa90868d74ba68ed0d5702f64cc3109/mental_health_counseling_conversations-train.arrow",
@@ -78,15 +80,15 @@
         "datasets/gdrive/raw/Empathy-Mental-Health/Althoff academic license.docx",
         "datasets/gdrive/raw/Empathy-Mental-Health/Althoff attribution only license.docx"
       ],
-      "total_evidence": 450,
-      "notes": "Found 450 matching object(s)"
+      "total_evidence": 453,
+      "notes": "Found 453 matching object(s)"
     },
     "video_transcripts": {
       "name": "video_transcripts",
       "description": "Video transcripts (YouTube, podcasts, etc.)",
       "required": true,
       "status": "present",
-      "evidence_count": 403,
+      "evidence_count": 404,
       "s3_evidence": [
         "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/Five CRUCIAL PHASES OF HEALING Complex PTSD.txt",
         "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/Heal Dysregulation To Bring Calm To Your Emotions and Your Nervous System.txt",
@@ -99,8 +101,8 @@
         "datasets/gdrive/tier4_voice_persona/Doc Snipes/20 Signs of CoDependency and Tips to Address Them.txt",
         "datasets/gdrive/tier4_voice_persona/Doc Snipes/Insecure Attachment Linked to CoDependency and Addiction.txt"
       ],
-      "total_evidence": 403,
-      "notes": "Found 403 matching object(s)"
+      "total_evidence": 404,
+      "notes": "Found 404 matching object(s)"
     },
     "voice_persona": {
       "name": "voice_persona",
@@ -161,7 +163,7 @@
       "description": "CPTSD-specific datasets",
       "required": true,
       "status": "present",
-      "evidence_count": 296,
+      "evidence_count": 297,
       "s3_evidence": [
         "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/Five CRUCIAL PHASES OF HEALING Complex PTSD.txt",
         "datasets/gdrive/tier4_voice_persona/Heidi Priebe/10 ＂Survival Lies＂ You May Tell If You Have CPTSD.txt",
@@ -174,8 +176,8 @@
         "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Adult Children of Wounded Parents： Reclaiming Your Worth & Identity ｜ Mommy & Daddy Issues, Part 2.txt",
         "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Anger and Complex Trauma - Part 11⧸11 - Gaslighting.txt"
       ],
-      "total_evidence": 296,
-      "notes": "Found 296 matching object(s)"
+      "total_evidence": 297,
+      "notes": "Found 297 matching object(s)"
     },
     "addiction": {
       "name": "addiction",
