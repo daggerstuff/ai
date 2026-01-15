@@ -58,3 +58,15 @@
 [debug] [2026-01-14T10:58:12.084Z] Running auto auth
 [debug] [2026-01-14T10:58:12.086Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
 [debug] [2026-01-14T10:58:12.086Z] Running auto auth
+[debug] [2026-01-14T11:00:41.323Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-14T11:00:41.330Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-14T11:00:42.354Z] Running auto auth
+[debug] [2026-01-14T11:00:42.355Z] Running auto auth
+[debug] [2026-01-14T11:00:42.986Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-14T11:00:42.987Z] Running auto auth
+[debug] [2026-01-14T11:00:42.988Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-14T11:00:42.988Z] Running auto auth
+[debug] [2026-01-14T11:00:43.007Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-14T11:00:43.008Z] Running auto auth
+[debug] [2026-01-14T11:00:43.009Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-01-14T11:00:43.009Z] Running auto auth
