@@ -9,8 +9,6 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from conversation_schema import Conversation
-
 from ai.dataset_pipeline.ingestion.tier_loaders import (
     Tier1PriorityLoader,
     Tier2ProfessionalLoader,
@@ -19,6 +17,7 @@ from ai.dataset_pipeline.ingestion.tier_loaders import (
     Tier5ResearchLoader,
     Tier6KnowledgeLoader,
 )
+from conversation_schema import Conversation
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +40,7 @@ class TierProcessor:
         3: 0.90,  # Tier 3: 90%
         4: 0.85,  # Tier 4: 85%
         5: 0.80,  # Tier 5: 80%
-        6: 1.0,   # Tier 6: Reference (not scored)
+        6: 1.0,  # Tier 6: Reference (not scored)
     }
 
     # Training ratio strategy weights
@@ -135,9 +134,7 @@ class TierProcessor:
                 datasets = loader.load_datasets()
                 self.processed_datasets[tier_num] = datasets
 
-                total_conversations = sum(
-                    len(convs) for convs in datasets.values()
-                )
+                total_conversations = sum(len(convs) for convs in datasets.values())
                 logger.info(
                     f"Tier {tier_num} complete: {len(datasets)} datasets, "
                     f"{total_conversations} conversations"
@@ -263,3 +260,48 @@ class TierProcessor:
 
         return all_conversations
 
+    def process_sample_tiers(
+        self, max_conversations_per_tier: int = 100
+    ) -> Dict[int, List[Conversation]]:
+        """
+        Process a sample from all enabled tiers.
+
+        Args:
+            max_conversations_per_tier: Max conversations per tier
+
+        Returns:
+            Dictionary mapping tier number to list of sample conversations
+        """
+        logger.info(
+            f"Processing sample tiers (max {max_conversations_per_tier} per tier)"
+        )
+        samples = {}
+
+        for tier_num, loader in self.tier_loaders.items():
+            logger.info(f"Sampling Tier {tier_num}")
+            try:
+                # Check if loader has load_sample method
+                # (it should if inheriting from BaseTierLoader)
+                if hasattr(loader, "load_sample"):
+                    tier_sample = loader.load_sample(
+                        max_conversations=max_conversations_per_tier
+                    )
+                else:
+                    # Fallback
+                    datasets = loader.load_datasets()
+                    all_convs = []
+                    for convs in datasets.values():
+                        all_convs.extend(convs)
+                    tier_sample = all_convs[:max_conversations_per_tier]
+
+                samples[tier_num] = tier_sample
+                # Update processed_datasets for stats
+                self.processed_datasets[tier_num] = {"sample": tier_sample}
+
+                logger.info(f"Tier {tier_num} sample: {len(tier_sample)} conversations")
+
+            except Exception as e:
+                logger.error(f"Error sampling Tier {tier_num}: {e}", exc_info=True)
+                samples[tier_num] = []
+
+        return samples
