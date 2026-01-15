@@ -1,0 +1,86 @@
+{
+  "tier_statistics": {
+    "tiers_processed": 0,
+    "tier_details": {},
+    "total_conversations": 0
+  },
+  "tier_details": {
+    "1": {
+      "tier": 1,
+      "quality_threshold": 0.99,
+      "training_ratio": 0.4,
+      "loader_type": "Tier1PriorityLoader",
+      "has_registry": true,
+      "has_s3_support": true,
+      "configured_datasets": "Unknown"
+    },
+    "2": {
+      "tier": 2,
+      "quality_threshold": 0.95,
+      "training_ratio": 0.25,
+      "loader_type": "Tier2ProfessionalLoader",
+      "has_registry": true,
+      "has_s3_support": true,
+      "configured_datasets": 11
+    },
+    "3": {
+      "tier": 3,
+      "quality_threshold": 0.9,
+      "training_ratio": 0.2,
+      "loader_type": "Tier3CoTLoader",
+      "has_registry": true,
+      "has_s3_support": true,
+      "configured_datasets": 27
+    },
+    "4": {
+      "tier": 4,
+      "quality_threshold": 0.85,
+      "training_ratio": 0.1,
+      "loader_type": "Tier4RedditLoader",
+      "has_registry": true,
+      "has_s3_support": true,
+      "configured_datasets": 15
+    },
+    "5": {
+      "tier": 5,
+      "quality_threshold": 0.8,
+      "training_ratio": 0.04,
+      "loader_type": "Tier5ResearchLoader",
+      "has_registry": true,
+      "has_s3_support": true,
+      "configured_datasets": 8
+    },
+    "6": {
+      "tier": 6,
+      "quality_threshold": 1.0,
+      "training_ratio": 0.01,
+      "loader_type": "Tier6KnowledgeLoader",
+      "has_registry": true,
+      "has_s3_support": true,
+      "configured_datasets": 7
+    }
+  },
+  "complexity_analysis": {},
+  "quality_metrics": {},
+  "recommendations": [
+    {
+      "severity": "INFO",
+      "category": "Next Steps",
+      "message": "Infrastructure validated successfully",
+      "action": "Ready to process actual datasets from S3"
+    }
+  ],
+  "overall": {
+    "total_tiers_available": 6,
+    "tiers_enabled": 6,
+    "tiers_processed": 0,
+    "total_conversations": 0,
+    "training_ratio_sum": 1.0,
+    "training_ratio_valid": true,
+    "average_quality_threshold": 0.915,
+    "quality_range": {
+      "min": 0.8,
+      "max": 1.0
+    }
+  }
+}
