@@ -409,3 +409,170 @@ class BaseTierLoader(ABC):
     def get_tier(self) -> int:
         """Get tier number."""
         return self.tier
+
+    def load_sample(self, max_conversations: int = 100) -> List[Conversation]:
+        """
+        Load a sample of conversations for testing.
+        Attempts to stream from S3 if available, otherwise falls back to local.
+
+        Args:
+            max_conversations: Maximum number of conversations to return
+
+        Returns:
+            List of Conversation objects
+        """
+        # Try to find a dataset to sample from
+        sample_s3_path = self._get_sample_s3_key()
+
+        if sample_s3_path:
+            try:
+                logger.info(f"Attempting to stream sample from S3: {sample_s3_path}")
+                return self._stream_s3_sample(sample_s3_path, max_conversations)
+            except Exception as e:
+                logger.warning(f"S3 streaming failed, falling back to full load: {e}")
+
+        # Fallback to loading all (which triggers download)
+        sample = []
+        all_datasets = self.load_datasets()
+
+        for dataset_convs in all_datasets.values():
+            sample.extend(dataset_convs[:max_conversations])
+            if len(sample) >= max_conversations:
+                break
+
+        return sample[:max_conversations]
+
+    def _get_sample_s3_key(self) -> Optional[str]:
+        """
+        Get a single S3 key to sample from.
+        Can be overridden by subclasses or derived from registry.
+        """
+        # Dictionary of sample keys for known tiers
+        # This prevents us from having to refactor every subclass immediately
+        # These paths assume the standard bucket layout
+        sample_keys = {
+            1: "datasets-wendy/curated_high_quality.jsonl",
+            2: "professional_therapeutic/counseling_chat.jsonl",
+            3: "cot_reasoning/chain_of_thought.jsonl",
+            4: "old-datasets/anxiety.csv",
+            5: "research/academic_papers.jsonl",
+            6: "knowledge/dsm5_reference.jsonl",
+        }
+
+        key_suffix = sample_keys.get(self.tier)
+        if not key_suffix:
+            return None
+
+        # Try to match with registry if possible, otherwise use hardcoded guess
+        return key_suffix
+
+    def _stream_s3_sample(self, s3_key: str, limit: int) -> List[Conversation]:
+        """Stream first N lines/rows from S3 object."""
+        try:
+            import csv
+            import io
+
+            import boto3
+            from ai.dataset_pipeline.storage_config import (
+                StorageBackend,
+                get_storage_config,
+            )
+            from botocore.exceptions import ClientError
+        except ImportError:
+            logger.warning("boto3 not installed, cannot stream")
+            raise
+
+        config = get_storage_config()
+        if config.backend != StorageBackend.S3 or not config.s3_bucket:
+            raise ValueError("S3 storage not configured")
+
+        s3 = boto3.client(
+            "s3",
+            endpoint_url=config.s3_endpoint_url,
+            aws_access_key_id=config.s3_access_key_id,
+            aws_secret_access_key=config.s3_secret_access_key,
+            region_name=config.s3_region,
+        )
+
+        conversations = []
+        try:
+            # Range request for first 10MB should be enough for 100 samples
+            # Note: CSVs need careful line handling if cutting byte stream
+            resp = s3.get_object(
+                Bucket=config.s3_bucket,
+                Key=s3_key,
+                Range="bytes=0-10485760",  # 10MB
+            )
+
+            content = resp["Body"].read().decode("utf-8", errors="ignore")
+            lines = content.splitlines()
+
+            # Process based on file extension
+            if s3_key.endswith(".jsonl"):
+                for line in lines:
+                    if len(conversations) >= limit:
+                        break
+                    if not line.strip():
+                        continue
+                    try:
+                        data = json.loads(line)
+                        conv = self._convert_to_conversation(data)
+                        if conv:
+                            conversations.append(conv)
+                    except Exception:
+                        continue
+
+            elif s3_key.endswith(".csv"):
+                # Use io.StringIO to parse the CSV string
+                # We need to ensure we don't have a partial last line
+                if len(lines) > 1:  # Header + at least one line
+                    # standard safety: drop the last line in case it's incomplete bytes
+                    valid_lines = lines[:-1]
+                    csv_io = io.StringIO("\n".join(valid_lines))
+                    reader = csv.DictReader(csv_io)
+                    dataset_name = Path(s3_key).stem
+
+                    for row in reader:
+                        if len(conversations) >= limit:
+                            break
+                        try:
+                            # Basic CSV parsing logic replicated from Tier4
+                            text = (
+                                row.get("text")
+                                or row.get("post")
+                                or row.get("content")
+                                or row.get("message")
+                                or ""
+                            )
+                            if text:
+                                conv = Conversation(
+                                    conversation_id=f"sample_{len(conversations)}",
+                                    source=f"sample_{dataset_name}",
+                                    messages=[Message(role="user", content=text)],
+                                    metadata={"tier": self.tier, "sample": True},
+                                )
+                                conversations.append(conv)
+                        except Exception:
+                            continue
+
+            elif s3_key.endswith(".json"):
+                # JSON is hard to stream-parse without a proper streaming parser
+                # For now, if it's a huge JSON list, 10MB might be invalid JSON
+                # Check if we can parse it as complete JSON
+                try:
+                    data = json.loads(content)
+                    # If successful, great.
+                    # If not, we might be out of luck for streaming monolithic JSON
+                    if isinstance(data, list):
+                        for item in data[:limit]:
+                            conv = self._convert_to_conversation(item)
+                            if conv:
+                                conversations.append(conv)
+                except Exception:
+                    logger.warning("Could not parse partial JSON stream")
+
+        except ClientError as e:
+            logger.error(f"S3 Client Error: {e}")
+            raise
+
+        return conversations
