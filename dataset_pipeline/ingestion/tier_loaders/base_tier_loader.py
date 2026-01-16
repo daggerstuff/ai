@@ -142,12 +142,11 @@ class BaseTierLoader(ABC):
 
         if not self._is_ovhai_available():
             logger.warning(
-                f"Dataset {dataset_name} missing and ovhai CLI not found "
-                f"to fetch {s3_path}"
+                f"ovhai not found. attempting fallback to boto3 for {dataset_name}..."
             )
-            return current_path
+            return self._download_with_boto3(s3_path, current_path)
 
-        logger.info(f"Downloading {dataset_name} from S3: {s3_path}")
+        logger.info(f"Downloading {dataset_name} from S3 (ovhai): {s3_path}")
 
         # Determine if it's a file or directory
         is_file = (
@@ -165,11 +164,55 @@ class BaseTierLoader(ABC):
             logger.info(f"Successfully downloaded {dataset_name} to {current_path}")
             return current_path
         except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to download {dataset_name} from S3: {e.stderr}")
-            return current_path
+            logger.error(f"ovhai failed to download {dataset_name}: {e.stderr}")
+            logger.info("Retrying with boto3...")
+            return self._download_with_boto3(s3_path, current_path)
         except Exception as e:
             logger.error(f"Error during S3 download: {e}")
             return current_path
+
+    def _download_with_boto3(self, s3_uri: str, local_path: Path) -> Path:
+        """Download from S3 using boto3."""
+        try:
+            import boto3
+            from ai.dataset_pipeline.storage_config import (
+                get_storage_config,
+            )
+
+            config = get_storage_config()
+
+            # Use credentials from config if available (which load from .env)
+            s3_client = boto3.client(
+                "s3",
+                endpoint_url=config.s3_endpoint_url,
+                aws_access_key_id=config.s3_access_key_id,
+                aws_secret_access_key=config.s3_secret_access_key,
+                region_name=config.s3_region or "us-east-1",  # Default if missing
+            )
+
+            # Parse bucket and key from s3://bucket/key...
+            parts = s3_uri.replace("s3://", "").split("/", 1)
+            bucket_name = parts[0]
+            key_path = parts[1] if len(parts) > 1 else ""
+
+            # Check if it looks like a directory download (legacy check)
+            # Tier loader logic assumes directories for some, files for others.
+            # BaseTierLoader calls this with current_path as the target.
+
+            # Simple single file download
+            if not local_path.parent.exists():
+                local_path.parent.mkdir(parents=True, exist_ok=True)
+
+            logger.info(
+                f"Boto3 downloading {key_path} from {bucket_name} to {local_path}"
+            )
+            s3_client.download_file(bucket_name, key_path, str(local_path))
+
+            return local_path
+
+        except Exception as e:
+            logger.error(f"Boto3 download failed for {s3_uri}: {e}")
+            return local_path
 
     def _load_dataset_directory(
         self, dataset_path: Path, dataset_name: str

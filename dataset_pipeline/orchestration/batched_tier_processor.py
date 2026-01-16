@@ -166,13 +166,14 @@ class BatchedTierProcessor(TierProcessor):
 
             logger.info(f"Successfully wrote {count} conversations to {output_file}")
 
-            # Upload to S3 if a bucket is configured (regardless of backend mode setting)
+            # Upload to S3 if a bucket is configured
+            # (regardless of backend mode setting)
             # This ensures we always backup to S3 if possible
             if self.storage_config.s3_bucket:
                 s3_key = f"processed/{filename}"
                 self._upload_to_s3(output_file, s3_key)
             elif self.storage_config.backend == StorageBackend.S3:
-                # Fallback if backend says S3 but bucket might be missing from this check?
+                # Fallback if backend says S3 but bucket might be missing?
                 # (Should be caught by valid check, but good for safety)
                 logger.warning("StorageBackend is S3 but s3_bucket seems missing?")
 
