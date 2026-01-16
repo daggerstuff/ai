@@ -96,6 +96,16 @@ class BatchedTierProcessor(TierProcessor):
         logger.info("All tiers processed and offloaded.")
         return results_manifest
 
+    # Mapping for descriptive filenames
+    TIER_NAMES = {
+        1: "priority_curated",
+        2: "professional_therapeutic",
+        3: "clinical_cot",
+        4: "social_context",
+        5: "academic_research",
+        6: "knowledge_base",
+    }
+
     def _apply_persona_to_datasets(self, datasets: Dict[str, List[Any]]):
         """Apply the target persona to all conversations in the datasets."""
         logger.info(f"Applying persona '{self.target_persona}' to batch...")
@@ -134,7 +144,12 @@ class BatchedTierProcessor(TierProcessor):
 
     def _offload_tier_data(self, tier_num: int, datasets: Dict[str, List[Any]]) -> Path:
         """Save processed tier data to a JSONL file and return path."""
-        output_file = self.output_dir / f"tier_{tier_num}_processed.jsonl"
+        # Generate descriptive filename
+        tier_name = self.TIER_NAMES.get(tier_num, "generic")
+        persona_suffix = f"_{self.target_persona}" if self.target_persona else ""
+        filename = f"pixelated_tier{tier_num}_{tier_name}{persona_suffix}.jsonl"
+
+        output_file = self.output_dir / filename
         logger.info(f"Offloading Tier {tier_num} data to {output_file}...")
 
         count = 0
@@ -151,9 +166,15 @@ class BatchedTierProcessor(TierProcessor):
 
             logger.info(f"Successfully wrote {count} conversations to {output_file}")
 
-            # If S3 is configured, we could upload here too
-            if self.storage_config.backend == StorageBackend.S3:
-                self._upload_to_s3(output_file, f"processed/tier_{tier_num}.jsonl")
+            # Upload to S3 if a bucket is configured (regardless of backend mode setting)
+            # This ensures we always backup to S3 if possible
+            if self.storage_config.s3_bucket:
+                s3_key = f"processed/{filename}"
+                self._upload_to_s3(output_file, s3_key)
+            elif self.storage_config.backend == StorageBackend.S3:
+                # Fallback if backend says S3 but bucket might be missing from this check?
+                # (Should be caught by valid check, but good for safety)
+                logger.warning("StorageBackend is S3 but s3_bucket seems missing?")
 
             return output_file
 
