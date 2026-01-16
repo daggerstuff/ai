@@ -302,6 +302,14 @@ class BaseTierLoader(ABC):
 
         return conversations
 
+    def _format_instruction(self, data: Dict[str, Any]) -> str:
+        """Format Alpaca-style instruction and input."""
+        instruction = str(data.get("instruction", ""))
+        input_text = str(data.get("input", ""))
+        if input_text:
+            return f"{instruction}\n\n{input_text}"
+        return instruction
+
     def _convert_to_conversation(
         self, data: Dict[str, Any], source_name: Optional[str] = None
     ) -> Optional[Conversation]:
@@ -345,6 +353,22 @@ class BaseTierLoader(ABC):
             elif "question" in data and "answer" in data:
                 messages.append(Message(role="user", content=str(data["question"])))
                 messages.append(Message(role="assistant", content=str(data["answer"])))
+
+            elif "instruction" in data and "response" in data:
+                # Alpaca format variant 1
+                messages.append(
+                    Message(role="user", content=self._format_instruction(data))
+                )
+                messages.append(
+                    Message(role="assistant", content=str(data["response"]))
+                )
+
+            elif "instruction" in data and "output" in data:
+                # Alpaca format variant 2
+                messages.append(
+                    Message(role="user", content=self._format_instruction(data))
+                )
+                messages.append(Message(role="assistant", content=str(data["output"])))
 
             if not messages:
                 return None
@@ -451,12 +475,12 @@ class BaseTierLoader(ABC):
         # This prevents us from having to refactor every subclass immediately
         # These paths assume the standard bucket layout
         sample_keys = {
-            1: "datasets-wendy/curated_high_quality.jsonl",
-            2: "professional_therapeutic/counseling_chat.jsonl",
-            3: "cot_reasoning/chain_of_thought.jsonl",
-            4: "old-datasets/anxiety.csv",
-            5: "research/academic_papers.jsonl",
-            6: "knowledge/dsm5_reference.jsonl",
+            1: "datasets/consolidated/datasets/priority_1_FINAL.jsonl",
+            2: "datasets/consolidated/datasets/priority_2_FINAL.jsonl",
+            3: "datasets/consolidated/datasets/priority_3_FINAL.jsonl",
+            4: "datasets/consolidated/datasets/reddit_mental_health_filtered.json",
+            5: "datasets/consolidated/datasets/research_datasets_filtered.json",
+            6: "datasets/consolidated/datasets/Psychology-6K.json",
         }
 
         key_suffix = sample_keys.get(self.tier)
@@ -561,13 +585,25 @@ class BaseTierLoader(ABC):
                 # Check if we can parse it as complete JSON
                 try:
                     data = json.loads(content)
-                    # If successful, great.
-                    # If not, we might be out of luck for streaming monolithic JSON
+                    items_to_process = []
+
                     if isinstance(data, list):
-                        for item in data[:limit]:
-                            conv = self._convert_to_conversation(item)
-                            if conv:
-                                conversations.append(conv)
+                        items_to_process = data
+                    elif isinstance(data, dict):
+                        # Handle wrapped lists (e.g. "filtered_conversations")
+                        if "filtered_conversations" in data:
+                            items_to_process = data["filtered_conversations"]
+                        elif "conversations" in data:
+                            items_to_process = data["conversations"]
+                        else:
+                            # Single object
+                            items_to_process = [data]
+
+                    for item in items_to_process[:limit]:
+                        conv = self._convert_to_conversation(item)
+                        if conv:
+                            conversations.append(conv)
+
                 except Exception:
                     logger.warning("Could not parse partial JSON stream")
 
