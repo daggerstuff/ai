@@ -6,6 +6,7 @@ Base class for tier-specific dataset loaders with common functionality.
 
 import json
 import logging
+import os
 import shutil
 import subprocess
 from abc import ABC, abstractmethod
@@ -178,17 +179,49 @@ class BaseTierLoader(ABC):
             # NOTE: If we don't know the datastore, this is risky.
             # But 'pixel-data' is the container.
 
-            # Try to run with GRA as store
+            # Try to run with correct datastore alias
+            datastore_alias = "pixel-data" if bucket_name == "pixel-data" else "GRA"
+
+            # Prepare prefixes for file placement
+            # We want to download 'path/to/file.json' to 'local/dir/file.json'
+            # So we remove 'path/to/' and add 'local/dir/'
+
+            # Extract remote directory from key
+            remote_dir = str(Path(key_path).parent)
+            if remote_dir == ".":
+                remote_dir = ""
+            else:
+                remote_dir = f"{remote_dir}/"
+
+            # Extract local directory
+            local_dir = str(current_path.parent)
+            local_dir = f"{local_dir}/"
+
             cmd = [
                 "ovhai",
                 "data",
                 "download",
-                "GRA",  # Assumed datastore
+                datastore_alias,
                 bucket_name,
                 key_path,
                 "--output",
-                str(current_path),
+                local_dir,
+                "--disable-wizard",
             ]
+
+            if remote_dir:
+                cmd.extend(["--remove-prefix", remote_dir])
+
+            # Append token if available in env to ensure auth
+            ovh_ai_token = os.environ.get("OVH_AI_TOKEN")
+            if ovh_ai_token:
+                cmd.extend(["--token", ovh_ai_token])
+
+            # Log command (masking token)
+            cmd_log = list(cmd)
+            if ovh_ai_token:
+                cmd_log[cmd_log.index(ovh_ai_token)] = "********"
+            logger.info(f"Executing ovhai command: {' '.join(cmd_log)}")
 
             # Use run() but catch auth errors specifically
             result = subprocess.run(cmd, check=False, capture_output=True, text=True)
