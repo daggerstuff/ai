@@ -10,11 +10,10 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from conversation_schema import Conversation
-
 from ai.dataset_pipeline.ingestion.tier_loaders.base_tier_loader import (
     BaseTierLoader,
 )
+from conversation_schema import Conversation
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +44,9 @@ class Tier1PriorityLoader(BaseTierLoader):
             priority_numbers: Optional list of priority numbers to load (1-5).
                              If None, loads all available priority datasets.
         """
-        super().__init__(tier=1, quality_threshold=quality_threshold, base_path=base_path)
+        super().__init__(
+            tier=1, quality_threshold=quality_threshold, base_path=base_path
+        )
         # Ensure base_path is a Path object (base class may set it to None)
         if self.base_path is None:
             self.base_path = Path(base_path)
@@ -78,7 +79,9 @@ class Tier1PriorityLoader(BaseTierLoader):
         priority_numbers = self.priority_numbers or [1, 2, 3, 4, 5]
         return self._load_priority_datasets(priority_numbers)
 
-    def _load_priority_datasets(self, priority_numbers: list[int]) -> dict[str, list[Conversation]]:
+    def _load_priority_datasets(
+        self, priority_numbers: list[int]
+    ) -> dict[str, list[Conversation]]:
         """
         Load priority datasets (Wendy priority set).
 
@@ -92,6 +95,16 @@ class Tier1PriorityLoader(BaseTierLoader):
 
         datasets = {}
 
+        # Map integer priority numbers to registry keys
+        priority_map = {
+            1: "wendy_set_alpha_therapeutic_core",
+            2: "wendy_set_beta_high_quality_core",
+            3: "wendy_set_gamma_specialized_therapy",
+            4: "wendy_set_delta",
+            5: "wendy_set_epsilon",
+        }
+
+        # Legacy filename fallback map
         filename_candidates: dict[int, list[str]] = {
             1: ["wendy_set_alpha_therapeutic_core.jsonl"],
             2: ["wendy_set_beta_high_quality_core.jsonl"],
@@ -101,19 +114,54 @@ class Tier1PriorityLoader(BaseTierLoader):
         }
 
         for priority_num in priority_numbers:
-            candidates = filename_candidates.get(priority_num, [])
-            if not candidates:
-                logger.warning("No filename candidates configured for set %s", priority_num)
-                continue
-            priority_file = next(
-                (self.base_path / name for name in candidates if (self.base_path / name).exists()),
-                self.base_path / candidates[0],
-            )
+            dataset_name = priority_map.get(priority_num)
+
+            # 1. Determine local target path
+            if dataset_name:
+                # Try to resolve via registry first
+                # We need a dummy path to pass to _ensure_dataset_locally
+                # It will use the registry to find the S3 path and download it here
+                candidates = filename_candidates.get(priority_num, [])
+                if candidates:
+                    target_path = self.base_path / candidates[0]
+
+                    # This call will:
+                    # 1. Check if file exists
+                    # 2. If not, look up 'dataset_name' in registry
+                    # 3. If found in registry (which we just noticed has S3 paths),
+                    # download it
+                    priority_file = self._ensure_dataset_locally(
+                        dataset_name,
+                        target_path,
+                        registry_category="wendy_curated_sets",
+                    )
+                else:
+                    # Fallback for 4/5 if not in candidates (though they are above)
+                    priority_file = self.base_path / f"priority_{priority_num}.jsonl"
+            else:
+                # Standard legacy fallback
+                candidates = filename_candidates.get(priority_num, [])
+                if not candidates:
+                    logger.warning(
+                        "No filename candidates configured for set %s", priority_num
+                    )
+                    continue
+
+                priority_file = next(
+                    (
+                        self.base_path / name
+                        for name in candidates
+                        if (self.base_path / name).exists()
+                    ),
+                    self.base_path / candidates[0],
+                )
+
             summary_file = self.base_path / "summary.json"
 
             if not priority_file.exists():
                 logger.warning(
-                    f"Priority dataset file not found for {priority_num}: {priority_file}"
+                    f"Priority dataset file not found for {priority_num}: "
+                    f"{priority_file}"
                 )
                 continue
 
@@ -145,7 +193,8 @@ class Tier1PriorityLoader(BaseTierLoader):
 
                 datasets[f"priority_{priority_num}"] = conversations
                 logger.info(
-                    f"Loaded {len(conversations)} conversations from priority_{priority_num}"
+                    f"Loaded {len(conversations)} conversations from "
+                    f"prio_{priority_num}"
                 )
 
             except Exception as e:
@@ -177,7 +226,8 @@ class Tier1PriorityLoader(BaseTierLoader):
         invalid = [p for p in priority_numbers if p not in valid_range]
         if invalid:
             raise ValueError(
-                f"Invalid priority numbers: {invalid}. Priority numbers must be in range 1-5."
+                f"Invalid priority numbers: {invalid}. "
+                "Priority numbers must be in range 1-5."
             )
 
     def _load_summary(self, summary_file: Path) -> dict[str, Any]:
