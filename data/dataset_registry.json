@@ -236,6 +236,16 @@
         "stage": "stage2_therapeutic_expertise",
         "quality_profile": "cot_reasoning",
         "status": "pending_sync"
+      },
+      "cot_reasoning_consolidated": {
+        "path": "s3://pixel-data/datasets/consolidated/datasets/cot_reasoning_filtered.json",
+        "fallback_paths": {
+          "local": "~/datasets/consolidated/datasets/cot_reasoning_filtered.json"
+        },
+        "type": "chain_of_thought",
+        "focus": "Consolidated CoT reasoning datasets",
+        "stage": "stage2_therapeutic_expertise",
+        "quality_profile": "cot_reasoning"
       }
     },
     "professional_therapeutic": {
@@ -312,11 +322,41 @@
         "focus": "Alexander Street professional therapy conversations",
         "stage": "stage1_foundation",
         "quality_profile": "foundation"
+      },
+      "professional_psychology_consolidated": {
+        "path": "s3://pixel-data/datasets/consolidated/datasets/professional_psychology_filtered.json",
+        "fallback_paths": {
+          "local": "~/datasets/consolidated/datasets/professional_psychology_filtered.json"
+        },
+        "type": "professional",
+        "focus": "Consolidated professional psychology datasets",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
+      },
+      "professional_neuro_consolidated": {
+        "path": "s3://pixel-data/datasets/consolidated/datasets/professional_neuro_filtered.json",
+        "fallback_paths": {
+          "local": "~/datasets/consolidated/datasets/professional_neuro_filtered.json"
+        },
+        "type": "professional",
+        "focus": "Consolidated professional neuro datasets",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
+      },
+      "professional_soulchat_consolidated": {
+        "path": "s3://pixel-data/datasets/consolidated/datasets/professional_soulchat_filtered.json",
+        "fallback_paths": {
+          "local": "~/datasets/consolidated/datasets/professional_soulchat_filtered.json"
+        },
+        "type": "professional",
+        "focus": "Consolidated SoulChat datasets",
+        "stage": "stage1_foundation",
+        "quality_profile": "foundation"
       }
     },
     "wendy_curated_sets": {
       "wendy_set_alpha_therapeutic_core": {
-        "path": "s3://pixel-data/datasets/gdrive/processed/priority_datasets/alpha_therapeutic_core.jsonl",
+        "path": "s3://pixel-data/datasets/consolidated/datasets/priority_1_FINAL.jsonl",
         "fallback_paths": {
           "gdrive_dir": "/mnt/gdrive/datasets/datasets-wendy"
         },
@@ -328,7 +368,7 @@
         "status": "active"
       },
       "wendy_set_beta_high_quality_core": {
-        "path": "s3://pixel-data/datasets/gdrive/processed/priority_datasets/beta_high_quality_core.jsonl",
+        "path": "s3://pixel-data/datasets/consolidated/datasets/priority_2_FINAL.jsonl",
         "fallback_paths": {
           "gdrive_dir": "/mnt/gdrive/datasets/datasets-wendy"
         },
@@ -340,7 +380,7 @@
         "status": "active"
       },
       "wendy_set_gamma_specialized_therapy": {
-        "path": "s3://pixel-data/datasets/gdrive/processed/priority_datasets/gamma_specialized_therapy.jsonl",
+        "path": "s3://pixel-data/datasets/consolidated/datasets/priority_3_FINAL.jsonl",
         "fallback_paths": {
           "gdrive_dir": "/mnt/gdrive/datasets/datasets-wendy"
         },
@@ -441,6 +481,16 @@
         "stage": "stage3_edge_stress_test",
         "quality_profile": "edge_raw",
         "status": "pending_sync"
+      },
+      "reddit_consolidated": {
+        "path": "s3://pixel-data/datasets/consolidated/datasets/reddit_mental_health_filtered.json",
+        "fallback_paths": {
+          "local": "~/datasets/consolidated/datasets/reddit_mental_health_filtered.json"
+        },
+        "type": "raw_forum",
+        "focus": "Consolidated Reddit mental health archive",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_raw"
       }
     }
   },
@@ -489,7 +539,7 @@
       "status": "pending_s3_rename"
     },
     "psychology_10k": {
-      "path": "s3://pixel-data/gdrive/processed/misc/psychology-10k/Psychology-10K.json",
+      "path": "s3://pixel-data/datasets/consolidated/datasets/psychology_dataset.json",
       "fallback_paths": {
         "local": "~/datasets/consolidated/misc/psychology-10k/Psychology-10K.json"
       },
@@ -520,6 +570,16 @@
       "stage": "stage1_foundation",
       "quality_profile": "foundation",
       "status": "pending_sync"
+    },
+    "research_consolidated": {
+      "path": "s3://pixel-data/datasets/consolidated/datasets/research_datasets_filtered.json",
+      "fallback_paths": {
+        "local": "~/datasets/consolidated/datasets/research_datasets_filtered.json"
+      },
+      "type": "research",
+      "focus": "Consolidated research datasets",
+      "stage": "stage2_therapeutic_expertise",
+      "quality_profile": "foundation"
     }
   },
   "training_strategy": {
