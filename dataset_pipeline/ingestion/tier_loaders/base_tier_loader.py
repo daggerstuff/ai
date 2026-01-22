@@ -425,10 +425,31 @@ class BaseTierLoader(ABC):
                 data_list = json.load(f)
 
                 if isinstance(data_list, dict):
-                    # Handle single object dataset
-                    conversation = self._convert_to_conversation(data_list)
-                    if conversation:
-                        conversations.append(conversation)
+                    # Check for wrapped lists
+                    # (e.g. "filtered_conversations", "conversations")
+                    wrapped_keys = [
+                        "filtered_conversations",
+                        "conversations",
+                        "data",
+                        "items",
+                    ]
+                    found_list = None
+
+                    for key in wrapped_keys:
+                        if key in data_list and isinstance(data_list[key], list):
+                            found_list = data_list[key]
+                            break
+
+                    if found_list:
+                        for data in found_list:
+                            conversation = self._convert_to_conversation(data)
+                            if conversation:
+                                conversations.append(conversation)
+                    else:
+                        # Handle single object dataset (fallback)
+                        conversation = self._convert_to_conversation(data_list)
+                        if conversation:
+                            conversations.append(conversation)
                 elif isinstance(data_list, list):
                     for data in data_list:
                         conversation = self._convert_to_conversation(data)
