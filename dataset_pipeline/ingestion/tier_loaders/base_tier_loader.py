@@ -161,9 +161,10 @@ class BaseTierLoader(ABC):
         try:
             # New syntax: ovhai data download <DATA_STORE> <CONTAINER> [OBJECTS]...
             # We assume DATA_STORE is 'GRA' (common default) or verify env
-            # However, since we can't easily list datastores without auth, we'll try 'GRA'
-            # and fallback if it fails.
-            # Also, s3_path includes "s3://pixel-data/...", we need pixel-data and the key.
+            # However, since we can't easily list datastores without auth,
+            # we'll try 'GRA' and fallback if it fails.
+            # Also, s3_path includes "s3://pixel-data/...",
+            # we need pixel-data and the key.
 
             parts = s3_path.replace("s3://", "").split("/", 1)
             bucket_name = parts[0]
@@ -171,7 +172,8 @@ class BaseTierLoader(ABC):
 
             # Since ovhai data download requires container and object,
             # and potentially the datastore name (GRA).
-            # Command: ovhai data download GRA pixel-data <key_path> --output <local_path>
+            # Command:
+            # ovhai data download GRA pixel-data <key_path> --output <local_path>
 
             # NOTE: If we don't know the datastore, this is risky.
             # But 'pixel-data' is the container.
