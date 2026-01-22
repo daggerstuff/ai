@@ -93,7 +93,7 @@ class Tier4RedditLoader(BaseTierLoader):
         # Ensure dataset is available locally (downloads from S3 if needed)
         try:
             dataset_path = self._ensure_dataset_locally(
-                dataset_name, dataset_path, registry_category="edge_case_sources"
+                dataset_name, dataset_path, registry_category="reddit_mental_health"
             )
 
             if not dataset_path.exists():
