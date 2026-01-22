@@ -159,17 +159,64 @@ class BaseTierLoader(ABC):
         target_dir.mkdir(parents=True, exist_ok=True)
 
         try:
-            cmd = ["ovhai", "cp", s3_path, str(current_path)]
-            subprocess.run(cmd, check=True, capture_output=True, text=True)
+            # New syntax: ovhai data download <DATA_STORE> <CONTAINER> [OBJECTS]...
+            # We assume DATA_STORE is 'GRA' (common default) or verify env
+            # However, since we can't easily list datastores without auth, we'll try 'GRA'
+            # and fallback if it fails.
+            # Also, s3_path includes "s3://pixel-data/...", we need pixel-data and the key.
+
+            parts = s3_path.replace("s3://", "").split("/", 1)
+            bucket_name = parts[0]
+            key_path = parts[1] if len(parts) > 1 else ""
+
+            # Since ovhai data download requires container and object,
+            # and potentially the datastore name (GRA).
+            # Command: ovhai data download GRA pixel-data <key_path> --output <local_path>
+
+            # NOTE: If we don't know the datastore, this is risky.
+            # But 'pixel-data' is the container.
+
+            # Try to run with GRA as store
+            cmd = [
+                "ovhai",
+                "data",
+                "download",
+                "GRA",  # Assumed datastore
+                bucket_name,
+                key_path,
+                "--output",
+                str(current_path),
+            ]
+
+            # Use run() but catch auth errors specifically
+            result = subprocess.run(cmd, check=False, capture_output=True, text=True)
+
+            if result.returncode != 0:
+                # Check for "unrecognized subcommand" which implies wrong version/alias
+                if "unrecognized subcommand" in result.stderr:
+                    logger.warning(
+                        "ovhai CLI syntax mismatch (unrecognized subcommand). "
+                        "Used 'data download'. Falling back to boto3."
+                    )
+                else:
+                    logger.warning(
+                        f"ovhai download failed (code {result.returncode}): "
+                        f"{result.stderr.strip()}. "
+                        "This may be due to missing auth token or wrong region."
+                    )
+
+                # Check for specific 401/Auth error to inform user
+                if "401" in result.stderr or "unauthorized" in result.stderr.lower():
+                    logger.info("Tip: Ensure OVH_AI_TOKEN is set for ovhai CLI.")
+
+                return self._download_with_boto3(s3_path, current_path)
+
             logger.info(f"Successfully downloaded {dataset_name} to {current_path}")
             return current_path
-        except subprocess.CalledProcessError as e:
-            logger.error(f"ovhai failed to download {dataset_name}: {e.stderr}")
-            logger.info("Retrying with boto3...")
-            return self._download_with_boto3(s3_path, current_path)
+
         except Exception as e:
-            logger.error(f"Error during S3 download: {e}")
-            return current_path
+            logger.error(f"Error during ovhai execution: {e}")
+            return self._download_with_boto3(s3_path, current_path)
 
     def _download_with_boto3(self, s3_uri: str, local_path: Path) -> Path:
         """Download from S3 using boto3."""
@@ -187,7 +234,8 @@ class BaseTierLoader(ABC):
                 endpoint_url=config.s3_endpoint_url,
                 aws_access_key_id=config.s3_access_key_id,
                 aws_secret_access_key=config.s3_secret_access_key,
-                region_name=config.s3_region or "us-east-1",  # Default if missing
+                # Default if missing
+                region_name=config.s3_region or "us-east-1",
             )
 
             # Parse bucket and key from s3://bucket/key...

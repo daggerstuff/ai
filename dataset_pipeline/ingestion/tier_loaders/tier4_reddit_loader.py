@@ -4,33 +4,31 @@ Tier 4 Reddit Mental Health Archive Loader
 Loads comprehensive Reddit mental health archive (50+ condition-specific datasets).
 """
 
-import csv
 import logging
-from pathlib import Path
-from typing import Dict, List, Optional
 
 # Import conversation schema - adjust path based on where this file is located
 import sys
-from pathlib import Path as PathType
-
-# Add parent directory to path to find conversation_schema
-loader_path = PathType(__file__).parent
-pipeline_root = loader_path.parent.parent.parent
-sys.path.insert(0, str(pipeline_root))
-
-try:
-    from schemas.conversation_schema import Conversation, Message
-except ImportError:
-    # Fallback: try relative import
-    try:
-        from ai.dataset_pipeline.schemas.conversation_schema import Conversation, Message
-    except ImportError:
-        # Last resort: try direct import
-        from conversation_schema import Conversation, Message
+from pathlib import Path
+from typing import Dict, List, Optional
 
 from ai.dataset_pipeline.ingestion.tier_loaders.base_tier_loader import (
     BaseTierLoader,
 )
+
+# Add parent directory to path to find conversation_schema
+loader_path = Path(__file__).parent
+pipeline_root = loader_path.parent.parent.parent
+sys.path.insert(0, str(pipeline_root))
+
+try:
+    from schemas.conversation_schema import Conversation
+except ImportError:
+    # Fallback: try relative import
+    try:
+        from ai.dataset_pipeline.schemas.conversation_schema import Conversation
+    except ImportError:
+        # Last resort: try direct import
+        from conversation_schema import Conversation
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +48,7 @@ class Tier4RedditLoader(BaseTierLoader):
         self,
         base_path: Optional[Path] = None,
         quality_threshold: float = 0.85,
+        dataset_registry_path: str = "ai/data/dataset_registry.json",
     ):
         """
         Initialize Tier 4 Reddit loader.
@@ -57,20 +56,25 @@ class Tier4RedditLoader(BaseTierLoader):
         Args:
             base_path: Optional base path to datasets directory
             quality_threshold: Quality threshold for Tier 4 (default: 0.85 = 85%)
+            dataset_registry_path: Path to dataset_registry.json
         """
-        super().__init__(tier=4, quality_threshold=quality_threshold, base_path=base_path)
-        self.base_path = Path(base_path) if base_path else Path("ai/datasets/old-datasets")
+        super().__init__(
+            tier=4,
+            quality_threshold=quality_threshold,
+            base_path=base_path,
+            dataset_registry_path=dataset_registry_path,
+        )
+        self.base_path = Path(base_path) if base_path else Path("ai/datasets")
 
-        # Condition-specific datasets
-        self.condition_datasets = [
-            "addiction", "ADHD", "anxiety", "autism", "bipolar", "BPD",
-            "depression", "PTSD", "schizophrenia", "social_anxiety",
-            "health_anxiety", "eating_disorders", "loneliness",
-            "parenting_stress", "divorce_recovery",
-        ]
+        # Consolidated dataset key in registry
+        self.consolidated_key = "reddit_consolidated"
+        self.dataset_paths = {
+            self.consolidated_key: self.base_path / "reddit_mental_health_filtered.json"
+        }
 
         logger.info(
-            f"Initialized Tier4RedditLoader: quality_threshold={quality_threshold}"
+            f"Initialized Tier4RedditLoader: quality_threshold={quality_threshold}, "
+            "configured for consolidated Reddit dataset"
         )
 
     def load_datasets(self) -> Dict[str, List[Conversation]]:
@@ -82,63 +86,50 @@ class Tier4RedditLoader(BaseTierLoader):
         """
         datasets = {}
 
-        # Load condition-specific datasets
-        for condition in self.condition_datasets:
-            condition_path = self.base_path / f"{condition}.csv"
-            if condition_path.exists():
-                logger.info(f"Loading Tier 4 Reddit dataset: {condition}")
-                try:
-                    conversations = self._load_csv_dataset(condition_path, condition)
+        # Load consolidated dataset
+        dataset_name = self.consolidated_key
+        dataset_path = self.dataset_paths[dataset_name]
 
-                    # Add tier metadata
-                    self.add_tier_metadata(conversations, {
-                        "condition": condition,
-                        "source": f"tier4_reddit_{condition}",
-                        "data_type": "reddit_archive",
-                    })
+        # Ensure dataset is available locally (downloads from S3 if needed)
+        try:
+            dataset_path = self._ensure_dataset_locally(
+                dataset_name, dataset_path, registry_category="edge_case_sources"
+            )
 
-                    datasets[condition] = conversations
-                    logger.info(
-                        f"Loaded {len(conversations)} conversations from {condition}"
-                    )
-                except Exception as e:
-                    logger.error(
-                        f"Error loading Tier 4 dataset {condition}: {e}",
-                        exc_info=True,
-                    )
-                    continue
+            if not dataset_path.exists():
+                logger.warning(f"Tier 4 consolidated dataset not found: {dataset_path}")
+                return datasets
 
-        # Load special datasets
-        special_datasets = {
-            "suicide_detection": self.base_path / "Suicide_Detection.csv",
-            "covid19_support": self.base_path / "COVID19_support_post_features",
-            "adhd_women": self.base_path / "adhdwomen.csv",
-        }
+            logger.info(
+                f"Loading Tier 4 Reddit dataset: {dataset_name} from {dataset_path}"
+            )
 
-        for dataset_name, dataset_path in special_datasets.items():
-            if dataset_path.exists():
-                logger.info(f"Loading Tier 4 special dataset: {dataset_name}")
-                try:
-                    if dataset_path.suffix == ".csv":
-                        conversations = self._load_csv_dataset(dataset_path, dataset_name)
-                    else:
-                        conversations = self._load_jsonl_file(dataset_path)
+            # Handle single file or directory
+            if dataset_path.suffix == ".jsonl":
+                conversations = self.load_jsonl_file(dataset_path)
+            else:
+                conversations = self.load_json_file(dataset_path)
 
-                    self.add_tier_metadata(conversations, {
-                        "dataset_name": dataset_name,
-                        "source": f"tier4_reddit_{dataset_name}",
-                    })
+            # Add tier metadata
+            self.add_tier_metadata(
+                conversations,
+                {
+                    "dataset_name": dataset_name,
+                    "source": f"tier4_reddit_{dataset_name}",
+                    "data_type": "reddit_archive",
+                },
+            )
 
-                    datasets[dataset_name] = conversations
-                    logger.info(
-                        f"Loaded {len(conversations)} conversations from {dataset_name}"
-                    )
-                except Exception as e:
-                    logger.error(
-                        f"Error loading Tier 4 dataset {dataset_name}: {e}",
-                        exc_info=True,
-                    )
-                    continue
+            datasets[dataset_name] = conversations
+            logger.info(
+                f"Loaded {len(conversations)} conversations from {dataset_name}"
+            )
+
+        except Exception as e:
+            logger.error(
+                f"Error loading Tier 4 dataset {dataset_name}: {e}",
+                exc_info=True,
+            )
 
         total_conversations = sum(len(convs) for convs in datasets.values())
         logger.info(
@@ -147,65 +138,3 @@ class Tier4RedditLoader(BaseTierLoader):
         )
 
         return datasets
-
-    def _load_csv_dataset(
-        self, csv_path: Path, dataset_name: str
-    ) -> List[Conversation]:
-        """
-        Load conversations from a CSV file.
-
-        Args:
-            csv_path: Path to CSV file
-            dataset_name: Name of the dataset
-
-        Returns:
-            List of Conversation objects
-        """
-        conversations = []
-
-        try:
-            with open(csv_path, "r", encoding="utf-8") as f:
-                reader = csv.DictReader(f)
-                for row_num, row in enumerate(reader, 1):
-                    try:
-                        # Try to extract conversation from CSV row
-                        # Common CSV formats: text, post, content, message, etc.
-                        text = (
-                            row.get("text")
-                            or row.get("post")
-                            or row.get("content")
-                            or row.get("message")
-                            or row.get("body")
-                            or ""
-                        )
-
-                        if not text:
-                            continue
-
-                        # Create conversation from text
-                        # Assume single message format for Reddit posts
-                        conversation = Conversation(
-                            conversation_id=f"{dataset_name}_{row_num}",
-                            source=f"tier4_reddit_{dataset_name}",
-                            messages=[Message(role="user", content=text)],
-                            metadata={
-                                "tier": self.tier,
-                                "quality_threshold": self.quality_threshold,
-                                "row_data": row,
-                            },
-                        )
-
-                        conversations.append(conversation)
-
-                    except Exception as e:
-                        logger.warning(
-                            f"Error processing row {row_num} in {csv_path}: {e}"
-                        )
-                        continue
-
-        except Exception as e:
-            logger.error(f"Error loading CSV dataset {csv_path}: {e}", exc_info=True)
-            raise
-
-        return conversations
-
