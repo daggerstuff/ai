@@ -246,6 +246,23 @@ class BaseTierLoader(ABC):
 
                 return self._download_with_boto3(s3_path, current_path)
 
+            # Post-processing: Handle filename mismatch
+            # ovhai downloads with original filename to local_dir
+            # We need to ensure it matches current_path.name
+
+            s3_filename = Path(key_path).name
+            downloaded_file = current_path.parent / s3_filename
+
+            if not current_path.exists() and downloaded_file.exists():
+                logger.info(f"Renaming {downloaded_file.name} to {current_path.name}")
+                shutil.move(str(downloaded_file), str(current_path))
+
+            if not current_path.exists():
+                logger.error(
+                    f"Download seemingly succeeded but file missing: {current_path}"
+                )
+                return self._download_with_boto3(s3_path, current_path)
+
             logger.info(f"Successfully downloaded {dataset_name} to {current_path}")
             return current_path
 
