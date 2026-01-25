@@ -563,8 +563,8 @@ python ai/training_ready/scripts/compile_final_dataset.py --s3-bucket pixel-data
 
 ## 🔗 JIRA & CONFLUENCE LINKS
 
-- **Jira Project**: https://metalpixel.atlassian.net/browse/KAN
-- **Confluence Index**: https://metalpixel.atlassian.net/wiki/spaces/PE/pages/7307265
+- **Jira Project**: https://ratchetaf.atlassian.net/browse/KAN
+- **Confluence Index**: https://ratchetaf.atlassian.net/wiki/spaces/PE/pages/7307265
   - Governance & Licensing: KAN-1
   - Ingestion & Quality Scoring: KAN-7
   - Quality-Aware Curriculum: KAN-2
@@ -573,7 +573,7 @@ python ai/training_ready/scripts/compile_final_dataset.py --s3-bucket pixel-data
   - Observability & Drift: KAN-4
   - Documentation: KAN-3
 
-> **Note**: All Jira/Confluence URLs use `metalpixel.atlassian.net` (configured via `JIRA_URL` env variable)
+> **Note**: All Jira/Confluence URLs use `ratchetaf.atlassian.net` (configured via `JIRA_URL` env variable)
 
 ---
 

@@ -1,0 +1,59 @@
+base_model: meta-llama/Llama-2-7b-chat-hf
+model_type: LlamaForCausalLM
+tokenizer_type: LlamaTokenizer
+trust_remote_code: true
+
+load_in_4bit: true
+bnb_4bit_use_double_quant: true
+bnb_4bit_quant_type: nf4
+bnb_4bit_compute_dtype: bfloat16
+
+datasets:
+  - path: ./ai/training_data/pixelated_empathy_train.jsonl
+    type: chatml
+  - path: ./ai/training_data/pixelated_empathy_val.jsonl
+    type: chatml
+    split: validation
+
+chat_template: chatml
+sequence_len: 2048
+
+lora_r: 16
+lora_alpha: 32
+lora_dropout: 0.1
+lora_target_modules:
+  - q_proj
+  - v_proj
+  - k_proj
+  - o_proj
+  - gate_proj
+  - up_proj
+  - down_proj
+lora_bias: none
+lora_task_type: CAUSAL_LM
+
+batch_size: 4
+gradient_accumulation_steps: 4
+num_train_epochs: 3
+learning_rate: 0.0002
+lr_scheduler_type: cosine
+warmup_ratio: 0.03
+weight_decay: 0.001
+
+logging_steps: 10
+eval_steps: 500
+save_steps: 1000
+save_total_limit: 3
+load_best_model_at_end: true
+metric_for_best_model: eval_loss
+greater_is_better: false
+
+report_to: wandb
+run_name: pixelated_empathy_training
+
+fp16: true
+bf16: false
+gradient_checkpointing: true
+remove_unused_columns: false
+dataloader_num_workers: 4
+dataloader_pin_memory: true
