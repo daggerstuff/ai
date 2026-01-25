@@ -262,7 +262,7 @@ python -m ai.dataset_pipeline.cli.provenance_cli list
 - **Schema Definition**: `docs/governance/provenance_schema.json`
 - **Storage Plan**: `docs/governance/provenance_storage_plan.md`
 - **Service README**: `ai/dataset_pipeline/services/README.md`
-- **Jira Issue**: [KAN-9](https://metalpixel.atlassian.net/browse/KAN-9)
+- **Jira Issue**: [KAN-9](https://ratchetaf.atlassian.net/browse/KAN-9)
 
 ---
 
