@@ -2,7 +2,7 @@
 
 ## Production Ready | January 2025
 
-> **Single Source of Truth** for all training dataset work, VPS execution, S3 streaming, and training curriculum.  
+> **Single Source of Truth** for all training dataset work, VPS execution, S3 streaming, and training curriculum.
 > This EPIC supersedes all scattered documentation and provides actionable tasks for all coding agents.
 
 ---
@@ -12,7 +12,7 @@
 | Attribute          | Value                                                                                            |
 |--------------------|--------------------------------------------------------------------------------------------------|
 | **Mission**        | Deliver production-ready mental health training dataset with multi-source transcript integration |
-| **Status**         | 🟢 75% Complete - Ready for Training Launch                                                      |
+| **Status**         | 🟡 75% Complete - **Dataset Completion Focus**                                                    |
 | **Dataset Size**   | 52.20GB across 19,330 objects                                                                    |
 | **Location**       | `s3://pixel-data/` (OVH S3 canonical)                                                            |
 | **Format**         | ChatML JSONL with metadata                                                                       |
@@ -30,12 +30,12 @@
 │  Google Drive   │────▶│   VPS Server    │────▶│   OVH S3       │
 │  (Staging)      │     │  (Processing)   │     │  (Canonical)    │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
-                               │                        │
-                               ▼                        ▼
-                        ┌─────────────────┐     ┌─────────────────┐
-                        │  Dedup/Clean/   │     │  Training       │
-                        │  Convert/Align  │     │  Scripts        │
-                        └─────────────────┘     └─────────────────┘
+                                │                        │
+                                ▼                        ▼
+                         ┌─────────────────┐     ┌─────────────────┐
+                         │  Dedup/Clean/   │     │  Training       │
+                         │  Convert/Align  │     │  Scripts        │
+                         └─────────────────┘     └─────────────────┘
 ```
 
 ### S3 Canonical Structure
@@ -301,7 +301,7 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
 
 ## ✅ TASK CHECKLIST
 
-### Phase 1: Foundation Completion (Weeks 1-2)
+### Phase 1: Foundation Completion (Weeks 1-2) - **CURRENT FOCUS**
 
 #### 1.1 Download Missing GDrive Data
 - [ ] **Tier 1 Priority** (1.16GB, 40% training weight) - CRITICAL
@@ -393,7 +393,7 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
 
 ---
 
-### Phase 2: Baseline Validation (Weeks 3-4)
+### Phase 2: Baseline Validation (Weeks 3-4) - **PENDING**
 
 #### 2.1 Stage 1 Training
 - [ ] **Launch Foundation Training**
@@ -415,7 +415,7 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
 
 ---
 
-### Phase 3: Conditional Strategic Expansion (Weeks 5-8)
+### Phase 3: Conditional Strategic Expansion (Weeks 5-8) - **PENDING**
 
 *Only triggered if Phase 2 metrics show specific gaps*
 
@@ -505,37 +505,37 @@ All gates must pass before training launch:
 
 ## 🎯 IMMEDIATE ACTIONS (Copy-Paste Ready)
 
-### For VPS Setup
+### For Dataset Completion
 ```bash
-# SSH to VPS
-ssh user@vps-server
+# 1. Download priority datasets (CRITICAL)
+rclone copy gdrive:datasets/datasets-wendy ~/datasets/consolidated/priority_wendy/
 
-# Clone and setup
-git clone <repo> ~/pixelated && cd ~/pixelated
-pnpm install && cd ai && uv sync
+# 2. Download CoT and Reddit data
+rclone copy gdrive:datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions ~/datasets/consolidated/cot/
+rclone copy gdrive:datasets/CoT_Philosophical_Understanding ~/datasets/consolidated/cot/
+rclone copy gdrive:datasets/reddit_mental_health/mental_disorders_reddit.csv ~/datasets/consolidated/reddit/
+rclone copy gdrive:datasets/reddit_mental_health/Suicide_Detection.csv ~/datasets/consolidated/reddit/
 
-# Configure S3
-cat >> ~/.bashrc << 'EOF'
-export OVH_S3_BUCKET=pixel-data
-export OVH_S3_ENDPOINT=https://s3.us-east-va.io.cloud.ovh.us
-export OVH_S3_ACCESS_KEY=<your-key>
-export OVH_S3_SECRET_KEY=<your-secret>
-export DATASET_STORAGE_BACKEND=s3
-EOF
-source ~/.bashrc
-```
+# 3. Generate synthetic datasets
+python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
+  --output ai/training_ready/data/generated/edge_case_synthetic.jsonl \
+  --categories all --count 10000
 
-### For Dataset Verification
-```bash
-cd ~/pixelated
+python ai/training_ready/scripts/build_cptsd_dataset_from_transcripts.py \
+  --input-dir ~/datasets/gdrive/tier4_voice_persona/Tim\ Fletcher/ \
+  --output ai/training_ready/data/generated/cptsd_transcripts.jsonl
+
+# 4. Quality optimization
+uv run python ai/training_ready/scripts/enhanced_deduplication.py --dry-run
+uv run python ai/training_ready/scripts/enhanced_deduplication.py --confirm
+python ai/training_ready/scripts/fix_encoding.py \
+  --input-dir ~/datasets/consolidated/ \
+  --output-dir ~/datasets/consolidated/fixed/
 python ai/training_ready/scripts/verify_final_dataset.py --report
-```
 
-### For Training Launch
-```bash
-cd ~/pixelated
-python ai/training_ready/scripts/compile_final_dataset.py --s3-bucket pixel-data
-./ai/ovh/run-training.sh launch --curriculum 2025
+# 5. Compile and verify
+python ai/training_ready/scripts/compile_final_dataset.py --s3-bucket pixel-data --upload-canonical
+aws s3 ls s3://pixel-data/final_dataset/ --recursive
 ```
 
 ---
@@ -546,15 +546,15 @@ python ai/training_ready/scripts/compile_final_dataset.py --s3-bucket pixel-data
 |--------|--------|-------|-------|-------|
 | `mental_health_datasets` | ✅ Present | 450 | 1 | Largest family |
 | `professional_therapeutic` | ✅ Present | 3,512 | 1 | High quality |
-| `priority_datasets` | ✅ Present | - | 1 | Wendy curated |
-| `cot_reasoning` | ✅ Present | - | 2 | Clinical CoT |
+| `priority_datasets` | ⚠️ Incomplete | - | 1 | Wendy curated |
+| `cot_reasoning` | ⚠️ Incomplete | - | 2 | Clinical CoT |
 | `edge_case_generator` | ✅ Present | 33 | 3 | Crisis scenarios |
 | `edge_case_resulting_chats` | ⚠️ Partial | 1 | 3 | Needs expansion |
 | `edge_case_synthetic` | ⚠️ Partial | 1 | 3 | Needs generation |
 | `safety_guardrails_annihilator` | ✅ Present | 257 | 3 | Reddit archives |
 | `voice_persona` | ✅ Present | 154+ | 4 | Multi-source (Tim Fletcher, Understood, Wu Wei, etc.) |
 | `video_transcripts` | ✅ Present | 403+ | 4 | ALL transcripts from .notes/transcripts/ |
-| `cptsd` | ✅ Present | 296 | 6 | Needs tagging |
+| `cptsd` | ⚠️ Incomplete | - | 6 | Needs building from transcripts |
 | `addiction` | ✅ Present | 32 | 6 | Adequate |
 | `long_running_therapy` | ✅ Script Ready | 1 | 5 | Extraction script enhanced |
 | `sarcasm` | ⚠️ Partial | 1 | 6 | Needs expansion |
@@ -663,14 +663,13 @@ python ai/data_designer/examples.py  # See integration examples
 4. **Deduplicate** → Remove near-duplicates across synthetic + real
 5. **Upload to S3** → `s3://pixel-data/synthetic/nemotron/`
 
-=======
->>>>>>> a8fd681407008ce81ea790123dc81d030890f353
 ---
 
 ## 📝 CHANGE LOG
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-01-25 | Updated status to focus on dataset completion; marked Phase 1 as in progress | AI |
 | 2025-01-13 | Updated Jira URLs to metalpixel.atlassian.net | AI |
 | 2025-01-13 | Expanded transcripts to ALL sources (not just Tim Fletcher) | AI |
 | 2025-01-13 | Added Nemotron3 & NeMo Data Designer integration section | AI |
@@ -682,6 +681,6 @@ python ai/data_designer/examples.py  # See integration examples
 
 ---
 
-**Status: READY FOR IMMEDIATE TRAINING LAUNCH**
+**Status: DATASET COMPLETION IN PROGRESS**
 
 *This EPIC is the single source of truth for all training dataset work. Update this document when new stages, validators, or data sources are introduced.*
