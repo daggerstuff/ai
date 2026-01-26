@@ -669,6 +669,7 @@ python ai/data_designer/examples.py  # See integration examples
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-01-25 | Expanded edge cases with Nightmare Fuel & Ultra Nightmares; added crisis quality filters | AI |
 | 2026-01-25 | Updated status to focus on dataset completion; marked Phase 1 as in progress | AI |
 | 2025-01-13 | Updated Jira URLs to metalpixel.atlassian.net | AI |
 | 2025-01-13 | Expanded transcripts to ALL sources (not just Tim Fletcher) | AI |

@@ -99,6 +99,8 @@ Edge case data is intentionally difficult/scary/horrible for training purposes. 
 - Borderline crisis
 - Domestic violence
 - Eating disorders
+- **Nightmare Fuel Scenarios** (High-intensity traumatic narratives)
+- **Ultra Nightmares** (Extreme violation scenarios for guardrail testing)
 
 **Moderate Difficulty:**
 - Paranoid accusations
