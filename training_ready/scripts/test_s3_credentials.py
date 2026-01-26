@@ -3,17 +3,30 @@
 Test S3 credentials for OVH S3
 """
 
-import boto3
 import os
+
+import boto3
 from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+
+load_dotenv("ai/.env")  # Try loading explicitly
 
 
 def test_credentials():
     """Test different credential formats for OVH S3"""
 
     # Check if credentials are set
-    access_key = os.environ.get("AWS_ACCESS_KEY_ID")
-    secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY")
+    access_key = os.environ.get("AWS_ACCESS_KEY_ID") or os.environ.get(
+        "OVH_S3_ACCESS_KEY"
+    )
+    secret_key = os.environ.get("AWS_SECRET_ACCESS_KEY") or os.environ.get(
+        "OVH_S3_SECRET_KEY"
+    )
+
+    print("DEBUG: Checking Env Keys:")
+    for k, v in os.environ.items():
+        if any(x in k for x in ["AWS", "OVH", "KEY", "SECRET"]):
+            print(f"  {k}: {v[:4]}...")
 
     if not access_key or not secret_key:
         print("❌ AWS credentials not found in environment")
@@ -22,7 +35,7 @@ def test_credentials():
         print("  AWS_SECRET_ACCESS_KEY=your-secret-key")
         return
 
-    print(f"🔑 Using credentials:")
+    print("🔑 Using credentials:")
     print(f"   Access Key: {access_key[:8]}...")
     print(f"   Secret: {'*' * min(len(secret_key), 8)}...")
 
