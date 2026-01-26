@@ -25,7 +25,6 @@ class NightmareHydrator:
         self.models = models or [
             "meta/llama-4-maverick-17b-128e-instruct",
             "meta/llama-4-scout-17b-16e-instruct",
-            "nvidia/llama-3.1-nemotron-70b-instruct",
             "meta/llama-3.3-70b-instruct",
         ]
         self.model_cycle = itertools.cycle(self.models)
