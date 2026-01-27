@@ -14,7 +14,7 @@
 **/dist/
 **/build/
 **/.DS_Store
-command:gitlens.ai.explainBranch:home?%7B%22webview%22%3A%22gitlens.views.home%22%2C%22webviewInstance%22%3A%22273a4ab9-faff-4d11-8ddb-f9324204a3c4%22%2C%22repoPath%22%3A%22%2Fhome%2Fvivi%2Fpixelated%22%2C%22branchId%22%3A%22%2Fhome%2Fvivi%2Fpixelated%7Cheads%2Fstaging%22%2C%22branchName%22%3A%22staging%22%2C%22worktree%22%3A%7B%22name%22%3A%22staging%22%2C%22isDefault%22%3Atrue%7D%7D**/.vscode/
+**/.vscode/
 **/.idea/
 **/.aiassistant
 **/.amazonq
