@@ -1,10 +1,10 @@
 {
   "bucket": "pixel-data",
   "endpoint": "https://s3.us-east-va.io.cloud.ovh.us",
-  "generated_at": "2026-01-14T04:38:38.315320+00:00",
-  "total_objects": 19331,
-  "total_size_bytes": 56060363547,
-  "total_size_formatted": "52.21 GB",
+  "generated_at": "2026-01-27T21:03:27.100662+00:00",
+  "total_objects": 19356,
+  "total_size_bytes": 58227098282,
+  "total_size_formatted": "54.23 GB",
   "categories": {
     "gdrive": {
       "raw": {
@@ -59524,15 +59524,15 @@
         },
         "edge_cases": {
           "count": 2,
-          "size_bytes": 2482119,
-          "size_formatted": "2.37 MB",
+          "size_bytes": 4768061,
+          "size_formatted": "4.55 MB",
           "objects": [
             {
               "key": "datasets/gdrive/processed/edge_cases/cptsd/cptsd_transcripts.jsonl",
-              "size": 2408889,
-              "size_formatted": "2.30 MB",
-              "last_modified": "2025-12-13T23:33:53+00:00",
-              "etag": "34b32475247ce0d8ade7f1ff2a39d1ed"
+              "size": 4694831,
+              "size_formatted": "4.48 MB",
+              "last_modified": "2026-01-27T20:56:29+00:00",
+              "etag": "3adcf86a57311b1dba41ba417adffdfb"
             },
             {
               "key": "datasets/gdrive/processed/edge_cases/synthetic.jsonl",
@@ -59635,10 +59635,17 @@
           ]
         },
         "phase_1_priority_conversations": {
-          "count": 6,
-          "size_bytes": 156867824,
-          "size_formatted": "149.60 MB",
+          "count": 9,
+          "size_bytes": 451019678,
+          "size_formatted": "430.13 MB",
           "objects": [
+            {
+              "key": "datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+              "size": 5655890,
+              "size_formatted": "5.39 MB",
+              "last_modified": "2026-01-27T20:56:13+00:00",
+              "etag": "ea93e9b19e0aae07c8b4705c1e96c1e0"
+            },
             {
               "key": "datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/task_5_1_priority_1_report.json",
               "size": 2082424,
@@ -59647,11 +59654,25 @@
               "etag": "39d6907fb2062e862aa4f21473ce744d"
             },
             {
+              "key": "datasets/gdrive/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+              "size": 128897645,
+              "size_formatted": "122.93 MB",
+              "last_modified": "2026-01-27T20:56:14+00:00",
+              "etag": "3f056421c1ef99fe14f27c620a2f7feb"
+            },
+            {
               "key": "datasets/gdrive/processed/phase_1_priority_conversations/task_5_2_priority_2/task_5_2_priority_2_report.json",
               "size": 2658110,
               "size_formatted": "2.53 MB",
               "last_modified": "2025-12-09T19:16:00+00:00",
               "etag": "3bd14e97f8fd25fb24c07836739b0052"
+            },
+            {
+              "key": "datasets/gdrive/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+              "size": 159598319,
+              "size_formatted": "152.20 MB",
+              "last_modified": "2026-01-27T20:56:15+00:00",
+              "etag": "5d0ee25e0d1cf91ca3d156c963318c68"
             },
             {
               "key": "datasets/gdrive/processed/phase_1_priority_conversations/task_5_3_priority_3/task_5_3_priority_3_report.json",
@@ -60298,6 +60319,27 @@
               "etag": "d41d8cd98f00b204e9800998ecf8427e"
             }
           ]
+        },
+        "long_running_therapy": {
+          "count": 2,
+          "size_bytes": 69590700,
+          "size_formatted": "66.37 MB",
+          "objects": [
+            {
+              "key": "gdrive/processed/long_running_therapy/long_running_therapy.jsonl",
+              "size": 69585525,
+              "size_formatted": "66.36 MB",
+              "last_modified": "2026-01-27T20:57:54+00:00",
+              "etag": "92d808161ceff48a378ae1e9686ad373-9"
+            },
+            {
+              "key": "gdrive/processed/long_running_therapy/long_running_therapy_stats.json",
+              "size": 5175,
+              "size_formatted": "5.05 KB",
+              "last_modified": "2026-01-27T20:57:55+00:00",
+              "etag": "3c6b93f8a092e32fd88f6b7a4b36c4f5"
+            }
+          ]
         }
       }
     },
@@ -60384,9 +60426,9 @@
       }
     },
     "other": {
-      "count": 10729,
-      "size_bytes": 30086000199,
-      "size_formatted": "28.02 GB",
+      "count": 10749,
+      "size_bytes": 31886706438,
+      "size_formatted": "29.70 GB",
       "objects": [
         {
           "key": "datasets/consolidated/CONSOLIDATION_COMPLETE.md",
@@ -90613,6 +90655,111 @@
           "size_formatted": "35.69 KB",
           "last_modified": "2025-12-08T06:42:12+00:00",
           "etag": "be23ede4294065f698868b155a7c82dc"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/download_log.json",
+          "size": 1597,
+          "size_formatted": "1.56 KB",
+          "last_modified": "2026-01-15T10:09:42+00:00",
+          "etag": "72c70339054c1074f1e4763d0fab6cc5"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/Psych8k-Modified/train.jsonl",
+          "size": 6207411,
+          "size_formatted": "5.92 MB",
+          "last_modified": "2026-01-15T10:10:08+00:00",
+          "etag": "8768f67f9181fad5b263c83e6b7e5f21"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/Synthetic_Therapy_Conversations/test.jsonl",
+          "size": 25370,
+          "size_formatted": "24.78 KB",
+          "last_modified": "2026-01-15T10:09:57+00:00",
+          "etag": "554ec623a22fc326f416e36e0195b834"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/Synthetic_Therapy_Conversations/train.jsonl",
+          "size": 3400866,
+          "size_formatted": "3.24 MB",
+          "last_modified": "2026-01-15T10:09:56+00:00",
+          "etag": "2e93644797e00a54b4e41fb447386b2a"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/Synthetic_Therapy_Conversations/validation.jsonl",
+          "size": 18862,
+          "size_formatted": "18.42 KB",
+          "last_modified": "2026-01-15T10:09:57+00:00",
+          "etag": "0926e687f605e75af27668383e086655"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/counsel-chat/train.jsonl",
+          "size": 4594431,
+          "size_formatted": "4.38 MB",
+          "last_modified": "2026-01-14T05:14:11+00:00",
+          "etag": "3f302ca5fe7fa2d578be4b00ac92e400"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/mental_health_chatbot_dataset/train.jsonl",
+          "size": 192228,
+          "size_formatted": "187.72 KB",
+          "last_modified": "2026-01-15T10:10:09+00:00",
+          "etag": "48c29e9b5f33b54106be6a401bee65b6"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/mental_health_counseling_conversations/train.jsonl",
+          "size": 4790520,
+          "size_formatted": "4.57 MB",
+          "last_modified": "2026-01-14T05:14:02+00:00",
+          "etag": "cb0ba9d275f39f1310059f5182bc9e13"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/motivational-interviewing-therapy/train.jsonl",
+          "size": 1073556,
+          "size_formatted": "1.02 MB",
+          "last_modified": "2026-01-14T05:14:14+00:00",
+          "etag": "7fc4518697e38039b4613a46c6c8f928"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/neuro_qa_SFT_Trainer/train.jsonl",
+          "size": 5859080,
+          "size_formatted": "5.59 MB",
+          "last_modified": "2026-01-15T10:09:52+00:00",
+          "etag": "e9bfaca2e5f3ad7498d241a7983e4d0f"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/phr-mental-therapy-dataset/test.jsonl",
+          "size": 74403875,
+          "size_formatted": "70.96 MB",
+          "last_modified": "2026-01-14T05:11:44+00:00",
+          "etag": "9cb4edc4110d2ce6d36138e0337add98-9"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/phr-mental-therapy-dataset/train.jsonl",
+          "size": 347810295,
+          "size_formatted": "331.70 MB",
+          "last_modified": "2026-01-14T05:09:33+00:00",
+          "etag": "ed2369dfdad5b4386d30bfa6977dc2e2-42"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier2_professional/phr-mental-therapy-dataset/val.jsonl",
+          "size": 74607731,
+          "size_formatted": "71.15 MB",
+          "last_modified": "2026-01-14T05:13:56+00:00",
+          "etag": "aa75b01714b91887e28b4fa0fd15dc57-9"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier6_knowledge/psychology-10k/train.jsonl",
+          "size": 4814603,
+          "size_formatted": "4.59 MB",
+          "last_modified": "2026-01-14T05:14:23+00:00",
+          "etag": "48c89b87c1150a4433ebea07a81348ff"
+        },
+        {
+          "key": "datasets/local_sync/ai/datasets/tier6_knowledge/xmu_psych_books/train.jsonl",
+          "size": 103048,
+          "size_formatted": "100.63 KB",
+          "last_modified": "2026-01-14T05:14:15+00:00",
+          "etag": "fc51ba2490da5fc9b1294f339e12760c"
         },
         {
           "key": "datasets/training_v2/final_instruct/final_dpo.jsonl",
@@ -135483,6 +135630,41 @@
           "size_formatted": "351.00 B",
           "last_modified": "2025-12-10T05:11:53+00:00",
           "etag": "d130d605dce7745d68cdd6d6112958b8"
+        },
+        {
+          "key": "processed/pixelated_tier1_priority_curated_dark_humor.jsonl",
+          "size": 1245236900,
+          "size_formatted": "1.16 GB",
+          "last_modified": "2026-01-22T16:07:08+00:00",
+          "etag": "738fc7621a79133f7a923ffa9b67cb6d-149"
+        },
+        {
+          "key": "processed/pixelated_tier2_professional_therapeutic_dark_humor.jsonl",
+          "size": 1017806,
+          "size_formatted": "993.95 KB",
+          "last_modified": "2026-01-22T16:07:19+00:00",
+          "etag": "3a3f51fad45aaf8e9e6d71d5b37811eb"
+        },
+        {
+          "key": "processed/pixelated_tier3_clinical_cot_dark_humor.jsonl",
+          "size": 340157,
+          "size_formatted": "332.18 KB",
+          "last_modified": "2026-01-22T16:07:23+00:00",
+          "etag": "62971f904b4dc58766a7acafc70fb34f"
+        },
+        {
+          "key": "processed/pixelated_tier5_academic_research_dark_humor.jsonl",
+          "size": 338631,
+          "size_formatted": "330.69 KB",
+          "last_modified": "2026-01-22T16:07:26+00:00",
+          "etag": "aec88e363029679095cb90d5d5c0e818"
+        },
+        {
+          "key": "processed/pixelated_tier6_knowledge_base_dark_humor.jsonl",
+          "size": 25869272,
+          "size_formatted": "24.67 MB",
+          "last_modified": "2026-01-22T16:07:55+00:00",
+          "etag": "f95e994658a2edbc3aa1ec19adf8ffe0-4"
         },
         {
           "key": "releases/v2026-01-07/RELEASE_0_UNIFIED_MANIFEST.json",
