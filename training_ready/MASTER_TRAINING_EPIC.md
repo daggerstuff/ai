@@ -304,15 +304,12 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
 ### Phase 1: Foundation Completion (Weeks 1-2) - **CURRENT FOCUS**
 
 #### 1.1 Download Missing GDrive Data
-- [ ] **Tier 1 Priority** (1.16GB, 40% training weight) - CRITICAL
+- [x] **Tier 1 Priority** (1.16GB, 40% training weight) - CRITICAL
   ```bash
-  rclone copy gdrive:datasets/datasets-wendy ~/datasets/consolidated/priority_wendy/
+  rclone copy gdrive:processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl ~/datasets/consolidated/priority_wendy/
+  rclone copy gdrive:processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl ~/datasets/consolidated/priority_wendy/
+  rclone copy gdrive:processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl ~/datasets/consolidated/priority_wendy/
   ```
-  - [ ] `priority_1_FINAL.jsonl` (462MB)
-  - [ ] `priority_2_FINAL.jsonl` (330MB)
-  - [ ] `priority_3_FINAL.jsonl` (370MB)
-  - [ ] `priority_4_FINAL.jsonl`
-  - [ ] `priority_5_FINAL.jsonl`
 
 - [ ] **Tier 3 CoT Datasets** (86MB)
   ```bash
@@ -327,9 +324,9 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
   ```
 
 #### 1.2 Generate Missing Datasets
-- [ ] **Edge Case Synthetic Dataset**
+- [x] **Edge Case Stress Test Generation** (8,000 examples)
   ```bash
-  python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
+  uv run python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
     --output ai/training_ready/data/generated/edge_case_synthetic.jsonl \
     --categories all --count 10000
   ```
@@ -344,17 +341,17 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
     --verbose
   ```
 
-- [ ] **CPTSD Dataset from Tim Fletcher Transcripts**
+- [x] **CPTSD Dataset from Tim Fletcher Transcripts**
   ```bash
   python ai/training_ready/scripts/build_cptsd_dataset_from_transcripts.py \
-    --input-dir ~/datasets/gdrive/tier4_voice_persona/Tim\ Fletcher/ \
+    --input-dir ~/.notes/transcripts/tim_fletcher/ \
     --output ai/training_ready/data/generated/cptsd_transcripts.jsonl
   ```
 
 #### 1.3 Quality Optimization
-- [ ] **Deduplication** (target: <1% duplicate rate)
+- [x] **High-Intensity Session Extraction** (Long-running therapy)
   ```bash
-  uv run python ai/training_ready/scripts/enhanced_deduplication.py --dry-run
+  uv run python ai/training_ready/scripts/extract_long_running_therapy.py --upload-s3
   uv run python ai/training_ready/scripts/enhanced_deduplication.py --confirm
   ```
 
