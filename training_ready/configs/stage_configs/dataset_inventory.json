@@ -277,6 +277,16 @@
           "format": "txt/md"
         },
         {
+          "id": "tim_fletcher_cptsd_jsonl",
+          "name": "Tim Fletcher CPTSD Dataset (ChatML)",
+          "s3_destination": "s3://pixel-data/datasets/gdrive/processed/edge_cases/cptsd/cptsd_transcripts.jsonl",
+          "size_estimate_mb": 4.5,
+          "purpose": "Fine-tuning for CPTSD-specific therapeutic style",
+          "stage": "stage4_voice_persona",
+          "format": "jsonl",
+          "note": "Generated from YouTube transcripts on 2026-01-27"
+        },
+        {
           "id": "tim_fletcher_voice_profile",
           "name": "Tim Fletcher Voice Profile",
           "local_path": "ai/data/tim_fletcher_voice/",
