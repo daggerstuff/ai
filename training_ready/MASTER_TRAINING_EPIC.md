@@ -12,7 +12,7 @@
 | Attribute          | Value                                                                                            |
 |--------------------|--------------------------------------------------------------------------------------------------|
 | **Mission**        | Deliver production-ready mental health training dataset with multi-source transcript integration |
-| **Status**         | 🟡 75% Complete - **Dataset Completion Focus**                                                    |
+| **Status**         | 🟡 75% Complete - **Dataset Completion Focus**                                                   |
 | **Dataset Size**   | 52.20GB across 19,330 objects                                                                    |
 | **Location**       | `s3://pixel-data/` (OVH S3 canonical)                                                            |
 | **Format**         | ChatML JSONL with metadata                                                                       |
@@ -27,7 +27,7 @@
 
 ```
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  Google Drive   │────▶│   VPS Server    │────▶│   OVH S3       │
+│  Google Drive   │────▶│   VPS Server    │────▶│   OVH S3        │
 │  (Staging)      │     │  (Processing)   │     │  (Canonical)    │
 └─────────────────┘     └─────────────────┘     └─────────────────┘
                                 │                        │
@@ -679,6 +679,17 @@ python ai/data_designer/examples.py  # See integration examples
 | 2025-12-29 | 52.20GB dataset confirmed in S3 | Team |
 | 2025-12-29 | Training curriculum 2025 finalized | Team |
 | 2025-12-29 | Enhanced extract_long_running_therapy.py with S3 streaming, upload, and dir scanning | AI |
+
+---
+
+## Infrastructure Issue
+- **Azure Host Platform**: LOST - Need to find alternative hosting solution
+- **Current Options to Explore**:
+  - OVHcloud AI Training (existing S3 integration)
+  - RunPod (GPU-optimized, pay-as-you-go)
+  - Lambda Labs (high-performance GPUs)
+  - Google Cloud AI Platform
+  - AWS SageMaker
 
 ---
 
