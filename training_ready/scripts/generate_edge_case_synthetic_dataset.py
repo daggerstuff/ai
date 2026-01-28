@@ -24,8 +24,13 @@ from pathlib import Path
 from typing import Any
 
 from ai.training_ready.utils.s3_dataset_loader import S3DatasetLoader
+from dotenv import load_dotenv
 
-DEFAULT_PROMPTS_KEY = "datasets/consolidated/edge_cases/edge_case_output/edge_case_prompts.jsonl"
+load_dotenv()
+
+DEFAULT_PROMPTS_KEY = (
+    "datasets/consolidated/edge_cases/edge_case_output/edge_case_prompts.jsonl"
+)
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +43,10 @@ _CRISIS_RE = re.compile(
 
 def _safe_system_prompt() -> str:
     return (
-        "You are a therapeutic AI assistant. Respond with empathy, clarity, and practical support. "
-        "Do not provide instructions for self-harm, violence, illegal acts, or doxxing. "
+        "You are a therapeutic AI assistant. Respond with empathy, "
+        "clarity, and practical support. "
+        "Do not provide instructions for self-harm, violence, illegal "
+        "acts, or doxxing. "
         "Do not include personal identifying information."
     )
 
@@ -48,21 +55,31 @@ def _safe_assistant_response(user_text: str) -> str:
     # Deterministic, template-based synthesis (no external model calls).
     if _CRISIS_RE.search(user_text):
         return (
-            "I'm really sorry you're feeling this overwhelmed. You don't have to carry this alone. "
-            "If you feel in immediate danger or might act on these thoughts, please contact your local emergency number right now, "
-            "or reach out to a crisis line in your country. If you're in the U.S. or Canada you can call or text 988. "
-            "If you're elsewhere, tell me your country and I can help you find a local option.\n\n"
-            "For the next few minutes, let's focus on getting you through this moment safely. "
-            "Are you alone right now, and is there a person you trust you can contact? "
-            "Also, what's the strongest feeling in your body right now (panic, numbness, shame, anger, fear)?"
+            "I'm really sorry you're feeling this overwhelmed. You don't "
+            "have to carry this alone. "
+            "If you feel in immediate danger or might act on these "
+            "thoughts, please contact your local emergency number right "
+            "now, or reach out to a crisis line in your country. If "
+            "you're in the U.S. or Canada you can call or text 988. "
+            "If you're elsewhere, tell me your country and I can help you "
+            "find a local option.\n\n"
+            "For the next few minutes, let's focus on getting you through "
+            "this moment safely. "
+            "Are you alone right now, and is there a person you trust you "
+            "can contact? "
+            "Also, what's the strongest feeling in your body right now "
+            "(panic, numbness, shame, anger, fear)?"
         )
 
     return (
-        "That sounds really heavy, and it makes sense that you're feeling pulled in multiple directions. "
+        "That sounds really heavy, and it makes sense that you're "
+        "feeling pulled in multiple directions. "
         "Before we problem-solve, can we slow down for a second?\n\n"
         "1) What happened most recently that made this spike?\n"
-        "2) What are you afraid it means about you, your future, or your relationships?\n\n"
-        "We can then choose one small next step for the next 24 hours—something realistic that reduces harm and increases support."
+        "2) What are you afraid it means about you, your future, or your "
+        "relationships?\n\n"
+        "We can then choose one small next step for the next 24 hours—"
+        "something realistic that reduces harm and increases support."
     )
 
 
@@ -147,7 +164,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output",
-        default=str(Path(__file__).parents[1] / "data" / "generated" / "edge_case_synthetic.jsonl"),
+        default=str(
+            Path(__file__).parents[1]
+            / "data"
+            / "generated"
+            / "edge_case_synthetic.jsonl"
+        ),
         help="Output JSONL path",
     )
     parser.add_argument(
@@ -202,7 +224,10 @@ def _write_synthetic_jsonl(
                 "messages": [
                     {"role": "system", "content": _safe_system_prompt()},
                     {"role": "user", "content": prompt_text},
-                    {"role": "assistant", "content": _safe_assistant_response(prompt_text)},
+                    {
+                        "role": "assistant",
+                        "content": _safe_assistant_response(prompt_text),
+                    },
                 ],
                 "metadata": {
                     "source_family": "edge_case_synthetic",
@@ -213,8 +238,8 @@ def _write_synthetic_jsonl(
                     "phase": "stage3_edge_stress_test",
                     "provenance": {
                         "original_s3_key": prompts_s3_path,
-                        "processing_pipeline": "generate_edge_case_synthetic_dataset",
-                        "processed_at": datetime.now(timezone.utc).isoformat(),
+                        "processing_pipeline": ("generate_edge_case_synthetic_dataset"),
+                        "processed_at": (datetime.now(timezone.utc).isoformat()),
                         "dedup_status": "unique",
                         "processing_steps": ["template_synthesis"],
                     },
@@ -280,7 +305,9 @@ def main() -> int:
     }
 
     stats_path = out_path.with_name("edge_case_synthetic_stats.json")
-    stats_path.write_text(json.dumps(stats, indent=2, ensure_ascii=False), encoding="utf-8")
+    stats_path.write_text(
+        json.dumps(stats, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
     logger.info("Wrote %s synthetic edge-case examples to %s", generated, out_path)
     logger.info("Stats: %s", stats_path)
