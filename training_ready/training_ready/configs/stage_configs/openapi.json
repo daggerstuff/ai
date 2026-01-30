@@ -6,7 +6,7 @@
     "description": "Comprehensive API for therapeutic conversation validation, dataset export, and analytics",
     "contact": {
       "name": "API Support",
-      "email": "api-support@pixelated-empathy.com"
+      "email": "api-support@pixelatedempathy.com"
     },
     "license": {
       "name": "MIT",
@@ -15,7 +15,7 @@
   },
   "servers": [
     {
-      "url": "https://api.pixelated-empathy.com",
+      "url": "https://api.pixelatedempathy.com",
       "description": "Production server"
     }
   ],

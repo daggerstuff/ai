@@ -33,7 +33,7 @@ conversation = {
 ### 2. Submit for Validation
 ```python
 response = requests.post(
-    "https://api.pixelated-empathy.com/api/v1/validate/conversation",
+    "https://api.pixelatedempathy.com/api/v1/validate/conversation",
     headers={"Authorization": "Bearer your_api_key"},
     json={
         "conversation": conversation,

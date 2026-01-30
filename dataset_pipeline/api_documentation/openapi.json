@@ -6,7 +6,7 @@
     "description": "Comprehensive API for therapeutic conversation validation, dataset export, and analytics",
     "contact": {
       "name": "API Support",
-      "email": "api-support@pixelated-empathy.com"
+      "email": "api-support@pixelatedempathy.com"
     },
     "license": {
       "name": "MIT",
@@ -15,7 +15,7 @@
   },
   "servers": [
     {
-      "url": "https://api.pixelated-empathy.com",
+      "url": "https://api.pixelatedempathy.com",
       "description": "Production server"
     }
   ],
@@ -35,11 +35,7 @@
     "schemas": {
       "Conversation": {
         "type": "object",
-        "required": [
-          "id",
-          "content",
-          "turns"
-        ],
+        "required": ["id", "content", "turns"],
         "properties": {
           "id": {
             "type": "string"
@@ -223,12 +219,7 @@
                       "compliance_rate": 0.94
                     },
                     "performance_trends": {
-                      "quality_scores": [
-                        0.78,
-                        0.79,
-                        0.81,
-                        0.82
-                      ]
+                      "quality_scores": [0.78, 0.79, 0.81, 0.82]
                     }
                   },
                   "summary_report": {

@@ -14,7 +14,7 @@
 
 ### API (First Request)
 ```bash
-curl -X POST https://api.pixelated-empathy.com/v1/chat \
+curl -X POST https://api.pixelatedempathy.com/v1/chat \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"message": "Hello, I need some support today"}'
@@ -117,10 +117,10 @@ curl -X POST https://api.pixelated-empathy.com/v1/chat \
 
 | Issue Type | Contact Method | Response Time |
 |------------|----------------|---------------|
-| **Technical Problems** | tech-support@pixelated-empathy.com | 24 hours |
-| **Account Issues** | support@pixelated-empathy.com | 24 hours |
-| **Billing Questions** | billing@pixelated-empathy.com | 48 hours |
-| **Feature Requests** | feedback@pixelated-empathy.com | 1 week |
+| **Technical Problems** | tech-support@pixelatedempathy.com | 24 hours |
+| **Account Issues** | support@pixelatedempathy.com | 24 hours |
+| **Billing Questions** | billing@pixelatedempathy.com | 48 hours |
+| **Feature Requests** | feedback@pixelatedempathy.com | 1 week |
 | **Urgent Issues** | Live chat (business hours) | Immediate |
 
 ## 💡 Pro Tips
