@@ -1,7 +1,7 @@
 # Pixelated Empathy Dataset Pipeline API
 
 Version: 1.0.0
-Base URL: https://api.pixelated-empathy.com
+Base URL: https://api.pixelatedempathy.com
 
 ## Overview
 This API provides comprehensive access to therapeutic conversation validation, dataset export, analytics, and system management capabilities.
@@ -21,9 +21,9 @@ This API provides comprehensive access to therapeutic conversation validation, d
 4. Explore export capabilities for your use case
 
 ## Support
-- Documentation: https://docs.pixelated-empathy.com
-- API Support: api-support@pixelated-empathy.com
-- Developer Portal: https://developers.pixelated-empathy.com
+- Documentation: https://docs.pixelatedempathy.com
+- API Support: api-support@pixelatedempathy.com
+- Developer Portal: https://developers.pixelatedempathy.com
 
 ## Rate Limits
 - Validation: 100 requests/minute

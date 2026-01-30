@@ -71,7 +71,7 @@ Pixelated Empathy AI is an advanced conversational AI system designed to provide
 
 **API Request:**
 ```bash
-curl -X POST https://api.pixelated-empathy.com/v1/chat \
+curl -X POST https://api.pixelatedempathy.com/v1/chat \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -151,7 +151,7 @@ An API (Application Programming Interface) allows you to interact with Pixelated
 **Using Postman (Recommended for Beginners):**
 1. Download Postman (free application)
 2. Create a new POST request
-3. Set URL to: `https://api.pixelated-empathy.com/v1/chat`
+3. Set URL to: `https://api.pixelatedempathy.com/v1/chat`
 4. Add your API key in Headers
 5. Send JSON message in Body
 
@@ -462,13 +462,13 @@ A: No, we never share personal conversation data with third parties. Anonymized,
 ### Support Questions
 
 **Q: How do I get help if I'm stuck?**
-A: Use the in-app help system, check our documentation, or contact support at support@pixelated-empathy.com.
+A: Use the in-app help system, check our documentation, or contact support at support@pixelatedempathy.com.
 
 **Q: Do you offer training or workshops?**
 A: Yes, we provide training sessions for organizations and educational institutions. Contact our education team for details.
 
 **Q: Can I suggest new features?**
-A: We welcome feature suggestions! Use the feedback form in the app or email us at feedback@pixelated-empathy.com.
+A: We welcome feature suggestions! Use the feedback form in the app or email us at feedback@pixelatedempathy.com.
 
 ---
 
@@ -490,10 +490,10 @@ A: We welcome feature suggestions! Use the feedback form in the app or email us 
 
 ### Contact Information
 
-- **General Support**: support@pixelated-empathy.com
-- **Technical Issues**: tech-support@pixelated-empathy.com
-- **Business Inquiries**: sales@pixelated-empathy.com
-- **Feedback**: feedback@pixelated-empathy.com
+- **General Support**: support@pixelatedempathy.com
+- **Technical Issues**: tech-support@pixelatedempathy.com
+- **Business Inquiries**: sales@pixelatedempathy.com
+- **Feedback**: feedback@pixelatedempathy.com
 
 ---
 

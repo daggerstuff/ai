@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 
 class APIEndpoint(Enum):
     """Available API endpoints."""
+
     VALIDATE_CONVERSATION = "/api/v1/validate/conversation"
     EXPORT_DATASET = "/api/v1/export/dataset"
     GET_ANALYTICS = "/api/v1/analytics/dashboard"
@@ -32,6 +33,7 @@ class APIEndpoint(Enum):
 @dataclass
 class APIDocumentation:
     """API endpoint documentation."""
+
     endpoint: str
     method: str
     description: str
@@ -51,7 +53,7 @@ class ComprehensiveAPI:
     def __init__(self):
         """Initialize the comprehensive API system."""
         self.api_version = "1.0.0"
-        self.base_url = "https://api.pixelated-empathy.com"
+        self.base_url = "https://api.pixelatedempathy.com"
         self.documentation = self._generate_api_documentation()
         self.usage_examples = self._generate_usage_examples()
         self.integration_guides = self._generate_integration_guides()
@@ -69,19 +71,19 @@ class ComprehensiveAPI:
                 "conversation": {
                     "type": "object",
                     "required": True,
-                    "description": "Conversation object with id, content, turns, and metadata"
+                    "description": "Conversation object with id, content, turns, and metadata",
                 },
                 "validation_level": {
                     "type": "string",
                     "required": False,
                     "default": "comprehensive",
-                    "options": ["basic", "standard", "comprehensive", "clinical"]
+                    "options": ["basic", "standard", "comprehensive", "clinical"],
                 },
                 "include_recommendations": {
                     "type": "boolean",
                     "required": False,
-                    "default": True
-                }
+                    "default": True,
+                },
             },
             request_example={
                 "conversation": {
@@ -89,16 +91,19 @@ class ComprehensiveAPI:
                     "content": "I understand you're feeling anxious. Let's explore some coping strategies.",
                     "turns": [
                         {"speaker": "user", "text": "I'm feeling anxious lately."},
-                        {"speaker": "therapist", "text": "I understand. Let's explore coping strategies."}
+                        {
+                            "speaker": "therapist",
+                            "text": "I understand. Let's explore coping strategies.",
+                        },
                     ],
                     "metadata": {
                         "source": "professional",
                         "condition": "anxiety",
-                        "approach": "CBT"
-                    }
+                        "approach": "CBT",
+                    },
                 },
                 "validation_level": "comprehensive",
-                "include_recommendations": True
+                "include_recommendations": True,
             },
             response_example={
                 "validation_id": "val_12345",
@@ -109,23 +114,29 @@ class ComprehensiveAPI:
                     "dsm5_accuracy": {"passed": True, "score": 0.83},
                     "safety_ethics": {"passed": True, "score": 0.91},
                     "effectiveness_prediction": {"score": 0.78, "confidence": "high"},
-                    "coherence_validation": {"score": 0.82, "level": "moderately_coherent"}
+                    "coherence_validation": {
+                        "score": 0.82,
+                        "level": "moderately_coherent",
+                    },
                 },
                 "issues": [],
                 "recommendations": [
                     "Consider adding more specific therapeutic techniques",
-                    "Enhance empathetic responses"
+                    "Enhance empathetic responses",
                 ],
-                "processing_time_ms": 245
+                "processing_time_ms": 245,
             },
             error_codes=[
                 {"code": "400", "description": "Invalid conversation format"},
-                {"code": "422", "description": "Validation failed - conversation quality too low"},
+                {
+                    "code": "422",
+                    "description": "Validation failed - conversation quality too low",
+                },
                 {"code": "429", "description": "Rate limit exceeded"},
-                {"code": "500", "description": "Internal validation error"}
+                {"code": "500", "description": "Internal validation error"},
             ],
             rate_limits="100 requests per minute",
-            authentication="API key required"
+            authentication="API key required",
         )
 
         # Dataset Export API
@@ -137,13 +148,13 @@ class ComprehensiveAPI:
                 "export_config": {
                     "type": "object",
                     "required": True,
-                    "description": "Export configuration including formats, tiers, and options"
+                    "description": "Export configuration including formats, tiers, and options",
                 },
                 "filters": {
                     "type": "object",
                     "required": False,
-                    "description": "Optional filters for conversation selection"
-                }
+                    "description": "Optional filters for conversation selection",
+                },
             },
             request_example={
                 "export_config": {
@@ -151,15 +162,12 @@ class ComprehensiveAPI:
                     "access_tiers": ["priority", "professional"],
                     "quality_threshold": 0.8,
                     "include_metadata": True,
-                    "compress_output": True
+                    "compress_output": True,
                 },
                 "filters": {
                     "conditions": ["anxiety", "depression"],
-                    "date_range": {
-                        "start": "2025-01-01",
-                        "end": "2025-08-10"
-                    }
-                }
+                    "date_range": {"start": "2025-01-01", "end": "2025-08-10"},
+                },
             },
             response_example={
                 "export_id": "exp_67890",
@@ -170,20 +178,23 @@ class ComprehensiveAPI:
                         "tier": "priority",
                         "conversations": 1542,
                         "file_path": "/exports/v1/priority/conversations.json.zip",
-                        "checksum": "sha256:abc123..."
+                        "checksum": "sha256:abc123...",
                     }
                 ],
                 "total_conversations": 4626,
-                "export_time_seconds": 45.2
+                "export_time_seconds": 45.2,
             },
             error_codes=[
                 {"code": "400", "description": "Invalid export configuration"},
-                {"code": "403", "description": "Insufficient access permissions for requested tier"},
+                {
+                    "code": "403",
+                    "description": "Insufficient access permissions for requested tier",
+                },
                 {"code": "413", "description": "Export size exceeds limits"},
-                {"code": "500", "description": "Export processing error"}
+                {"code": "500", "description": "Export processing error"},
             ],
             rate_limits="10 exports per hour",
-            authentication="API key with export permissions required"
+            authentication="API key with export permissions required",
         )
 
         # Analytics Dashboard API
@@ -196,13 +207,13 @@ class ComprehensiveAPI:
                     "type": "string",
                     "required": False,
                     "default": "24h",
-                    "options": ["1h", "24h", "7d", "30d"]
+                    "options": ["1h", "24h", "7d", "30d"],
                 },
                 "include_trends": {
                     "type": "boolean",
                     "required": False,
-                    "default": True
-                }
+                    "default": True,
+                },
             },
             request_example={},
             response_example={
@@ -212,26 +223,27 @@ class ComprehensiveAPI:
                         "excellent": 3084,
                         "good": 6168,
                         "acceptable": 4626,
-                        "poor": 1542
+                        "poor": 1542,
                     },
                     "safety_metrics": {
                         "overall_safety_score": 0.91,
-                        "compliance_rate": 0.94
+                        "compliance_rate": 0.94,
                     },
-                    "performance_trends": {
-                        "quality_scores": [0.78, 0.79, 0.81, 0.82]
-                    }
+                    "performance_trends": {"quality_scores": [0.78, 0.79, 0.81, 0.82]},
                 },
                 "summary_report": {
                     "performance_status": "🟢 EXCELLENT",
-                    "key_insights": ["High quality conversations", "Excellent safety compliance"]
-                }
+                    "key_insights": [
+                        "High quality conversations",
+                        "Excellent safety compliance",
+                    ],
+                },
             },
             error_codes=[
                 {"code": "400", "description": "Invalid time range parameter"},
-                {"code": "500", "description": "Analytics processing error"}
+                {"code": "500", "description": "Analytics processing error"},
             ],
-            rate_limits="60 requests per minute"
+            rate_limits="60 requests per minute",
         )
 
         # System Status API
@@ -244,23 +256,32 @@ class ComprehensiveAPI:
             response_example={
                 "system_status": "healthy",
                 "components": {
-                    "validation_pipeline": {"status": "operational", "response_time_ms": 150},
+                    "validation_pipeline": {
+                        "status": "operational",
+                        "response_time_ms": 150,
+                    },
                     "export_system": {"status": "operational", "queue_size": 2},
-                    "analytics_engine": {"status": "operational", "last_update": "2025-08-10T07:30:00Z"},
-                    "maintenance_system": {"status": "operational", "next_maintenance": "2025-08-10T12:00:00Z"}
+                    "analytics_engine": {
+                        "status": "operational",
+                        "last_update": "2025-08-10T07:30:00Z",
+                    },
+                    "maintenance_system": {
+                        "status": "operational",
+                        "next_maintenance": "2025-08-10T12:00:00Z",
+                    },
                 },
                 "performance_metrics": {
                     "total_conversations_processed": 15420,
                     "average_processing_time_ms": 245,
                     "success_rate": 0.998,
-                    "uptime_hours": 168.5
+                    "uptime_hours": 168.5,
                 },
-                "alerts": []
+                "alerts": [],
             },
             error_codes=[
                 {"code": "503", "description": "System temporarily unavailable"}
             ],
-            rate_limits="120 requests per minute"
+            rate_limits="120 requests per minute",
         )
 
         return docs
@@ -277,7 +298,7 @@ import json
 
 # API configuration
 API_KEY = "your_api_key_here"
-BASE_URL = "https://api.pixelated-empathy.com"
+BASE_URL = "https://api.pixelatedempathy.com"
 
 headers = {
     "Authorization": f"Bearer {API_KEY}",
@@ -317,7 +338,6 @@ if response.status_code == 200:
 else:
     print(f"Error: {response.status_code} - {response.text}")
             """,
-
             "export_dataset": """
 import requests
 import time
@@ -355,7 +375,7 @@ if response.status_code == 200:
             with open(filename, 'wb') as f:
                 f.write(file_response.content)
             print(f"Downloaded: {filename}")
-            """
+            """,
         }
 
         # JavaScript examples
@@ -364,7 +384,7 @@ if response.status_code == 200:
 const axios = require('axios');
 
 const API_KEY = 'your_api_key_here';
-const BASE_URL = 'https://api.pixelated-empathy.com';
+const BASE_URL = 'https://api.pixelatedempathy.com';
 
 const headers = {
     'Authorization': `Bearer ${API_KEY}`,
@@ -411,7 +431,7 @@ validateConversation();
         # cURL examples
         examples["curl"] = {
             "validate_conversation": """
-curl -X POST "https://api.pixelated-empathy.com/api/v1/validate/conversation" \\
+curl -X POST "https://api.pixelatedempathy.com/api/v1/validate/conversation" \\
   -H "Authorization: Bearer your_api_key_here" \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -452,7 +472,7 @@ Authorization: Bearer your_api_key_here
 ## 2. Base URL
 All API endpoints are available at:
 ```
-https://api.pixelated-empathy.com
+https://api.pixelatedempathy.com
 ```
 
 ## 3. Rate Limits
@@ -520,7 +540,7 @@ conversation = {
 ### 2. Submit for Validation
 ```python
 response = requests.post(
-    "https://api.pixelated-empathy.com/api/v1/validate/conversation",
+    "https://api.pixelatedempathy.com/api/v1/validate/conversation",
     headers={"Authorization": "Bearer your_api_key"},
     json={
         "conversation": conversation,
@@ -601,7 +621,7 @@ filters = {
 ### 2. Request Export
 ```python
 response = requests.post(
-    "https://api.pixelated-empathy.com/api/v1/export/dataset",
+    "https://api.pixelatedempathy.com/api/v1/export/dataset",
     headers={"Authorization": "Bearer your_api_key"},
     json={
         "export_config": export_config,
@@ -617,7 +637,7 @@ if response.status_code == 200:
 
     for metadata in export_data["export_metadata"]:
         # Download each export file
-        file_url = f"https://api.pixelated-empathy.com{metadata['file_path']}"
+        file_url = f"https://api.pixelatedempathy.com{metadata['file_path']}"
         file_response = requests.get(file_url, headers=headers)
 
         # Verify checksum
@@ -650,28 +670,21 @@ if response.status_code == 200:
                 "description": "Comprehensive API for therapeutic conversation validation, dataset export, and analytics",
                 "contact": {
                     "name": "API Support",
-                    "email": "api-support@pixelated-empathy.com"
+                    "email": "api-support@pixelatedempathy.com",
                 },
                 "license": {
                     "name": "MIT",
-                    "url": "https://opensource.org/licenses/MIT"
-                }
+                    "url": "https://opensource.org/licenses/MIT",
+                },
             },
-            "servers": [
-                {
-                    "url": self.base_url,
-                    "description": "Production server"
-                }
-            ],
-            "security": [
-                {"BearerAuth": []}
-            ],
+            "servers": [{"url": self.base_url, "description": "Production server"}],
+            "security": [{"BearerAuth": []}],
             "components": {
                 "securitySchemes": {
                     "BearerAuth": {
                         "type": "http",
                         "scheme": "bearer",
-                        "bearerFormat": "JWT"
+                        "bearerFormat": "JWT",
                     }
                 },
                 "schemas": {
@@ -687,12 +700,12 @@ if response.status_code == 200:
                                     "type": "object",
                                     "properties": {
                                         "speaker": {"type": "string"},
-                                        "text": {"type": "string"}
-                                    }
-                                }
+                                        "text": {"type": "string"},
+                                    },
+                                },
                             },
-                            "metadata": {"type": "object"}
-                        }
+                            "metadata": {"type": "object"},
+                        },
                     },
                     "ValidationResult": {
                         "type": "object",
@@ -702,12 +715,15 @@ if response.status_code == 200:
                             "tier_assessment": {"type": "string"},
                             "validation_results": {"type": "object"},
                             "issues": {"type": "array", "items": {"type": "string"}},
-                            "recommendations": {"type": "array", "items": {"type": "string"}}
-                        }
-                    }
-                }
+                            "recommendations": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                            },
+                        },
+                    },
+                },
             },
-            "paths": {}
+            "paths": {},
         }
 
         # Add paths from documentation
@@ -725,12 +741,10 @@ if response.status_code == 200:
                     "200": {
                         "description": "Successful response",
                         "content": {
-                            "application/json": {
-                                "example": doc.response_example
-                            }
-                        }
+                            "application/json": {"example": doc.response_example}
+                        },
                     }
-                }
+                },
             }
 
             # Add error responses
@@ -760,10 +774,10 @@ if response.status_code == 200:
                     "response_example": doc.response_example,
                     "error_codes": doc.error_codes,
                     "rate_limits": doc.rate_limits,
-                    "authentication": doc.authentication
+                    "authentication": doc.authentication,
                 }
                 for name, doc in self.documentation.items()
-            }
+            },
         }
 
         with open(output_path / "api_documentation.json", "w") as f:
@@ -807,9 +821,9 @@ This API provides comprehensive access to therapeutic conversation validation, d
 4. Explore export capabilities for your use case
 
 ## Support
-- Documentation: https://docs.pixelated-empathy.com
-- API Support: api-support@pixelated-empathy.com
-- Developer Portal: https://developers.pixelated-empathy.com
+- Documentation: https://docs.pixelatedempathy.com
+- API Support: api-support@pixelatedempathy.com
+- Developer Portal: https://developers.pixelatedempathy.com
 
 ## Rate Limits
 - Validation: 100 requests/minute
@@ -832,7 +846,7 @@ This API provides comprehensive access to therapeutic conversation validation, d
             "available_endpoints": list(self.documentation.keys()),
             "supported_languages": list(self.usage_examples.keys()),
             "integration_guides": list(self.integration_guides.keys()),
-            "documentation_generated": datetime.now(timezone.utc).isoformat()
+            "documentation_generated": datetime.now(timezone.utc).isoformat(),
         }
 
 
@@ -840,12 +854,10 @@ def main():
     """Example usage of the ComprehensiveAPI system."""
     api_system = ComprehensiveAPI()
 
-
     # Get API summary
     summary = api_system.get_api_summary()
     for _endpoint in summary["available_endpoints"]:
         pass
-
 
     # Export documentation
     api_system.export_documentation("./api_documentation")

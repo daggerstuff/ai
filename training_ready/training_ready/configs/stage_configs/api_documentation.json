@@ -1,6 +1,6 @@
 {
   "api_version": "1.0.0",
-  "base_url": "https://api.pixelated-empathy.com",
+  "base_url": "https://api.pixelatedempathy.com",
   "endpoints": {
     "validate_conversation": {
       "endpoint": "/api/v1/validate/conversation",

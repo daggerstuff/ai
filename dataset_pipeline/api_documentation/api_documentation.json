@@ -1,6 +1,6 @@
 {
   "api_version": "1.0.0",
-  "base_url": "https://api.pixelated-empathy.com",
+  "base_url": "https://api.pixelatedempathy.com",
   "endpoints": {
     "validate_conversation": {
       "endpoint": "/api/v1/validate/conversation",
@@ -16,12 +16,7 @@
           "type": "string",
           "required": false,
           "default": "comprehensive",
-          "options": [
-            "basic",
-            "standard",
-            "comprehensive",
-            "clinical"
-          ]
+          "options": ["basic", "standard", "comprehensive", "clinical"]
         },
         "include_recommendations": {
           "type": "boolean",
@@ -124,23 +119,14 @@
       },
       "request_example": {
         "export_config": {
-          "formats": [
-            "json",
-            "csv"
-          ],
-          "access_tiers": [
-            "priority",
-            "professional"
-          ],
+          "formats": ["json", "csv"],
+          "access_tiers": ["priority", "professional"],
           "quality_threshold": 0.8,
           "include_metadata": true,
           "compress_output": true
         },
         "filters": {
-          "conditions": [
-            "anxiety",
-            "depression"
-          ],
+          "conditions": ["anxiety", "depression"],
           "date_range": {
             "start": "2025-01-01",
             "end": "2025-08-10"
@@ -192,12 +178,7 @@
           "type": "string",
           "required": false,
           "default": "24h",
-          "options": [
-            "1h",
-            "24h",
-            "7d",
-            "30d"
-          ]
+          "options": ["1h", "24h", "7d", "30d"]
         },
         "include_trends": {
           "type": "boolean",
@@ -220,12 +201,7 @@
             "compliance_rate": 0.94
           },
           "performance_trends": {
-            "quality_scores": [
-              0.78,
-              0.79,
-              0.81,
-              0.82
-            ]
+            "quality_scores": [0.78, 0.79, 0.81, 0.82]
           }
         },
         "summary_report": {

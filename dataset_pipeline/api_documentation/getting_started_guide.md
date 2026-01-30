@@ -10,7 +10,7 @@ Authorization: Bearer your_api_key_here
 ## 2. Base URL
 All API endpoints are available at:
 ```
-https://api.pixelated-empathy.com
+https://api.pixelatedempathy.com
 ```
 
 ## 3. Rate Limits
