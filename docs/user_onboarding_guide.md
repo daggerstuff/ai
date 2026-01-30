@@ -244,7 +244,7 @@ Context Settings:
 
 **Basic API Usage:**
 ```bash
-curl -X POST https://api.pixelated-empathy.com/v1/chat \
+curl -X POST https://api.pixelatedempathy.com/v1/chat \
   -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -391,10 +391,10 @@ Congratulations on completing your onboarding! You're now ready to explore the f
 
 ## 📞 Support Contacts
 
-**General Questions**: support@pixelated-empathy.com  
-**Technical Issues**: tech-support@pixelated-empathy.com  
-**Billing**: billing@pixelated-empathy.com  
-**Feedback**: feedback@pixelated-empathy.com
+**General Questions**: support@pixelatedempathy.com  
+**Technical Issues**: tech-support@pixelatedempathy.com  
+**Billing**: billing@pixelatedempathy.com  
+**Feedback**: feedback@pixelatedempathy.com
 
 **Live Chat**: Available in-app during business hours  
 **Community Forum**: [Forum URL]  

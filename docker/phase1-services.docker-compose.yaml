@@ -6,7 +6,6 @@
 # - Jupyter for interactive development
 # - Prometheus for monitoring
 
-version: "3.9"
 
 services:
   # PostgreSQL for therapeutic metadata and sessions

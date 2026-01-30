@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class QualityTier(Enum):
     """Quality assessment tiers."""
+
     PRIORITY = ("priority", 0.99, "Highest quality therapeutic conversations")
     PROFESSIONAL = ("professional", 0.90, "Professional-grade therapeutic content")
     COT = ("cot", 0.85, "Chain-of-thought reasoning conversations")
@@ -32,6 +33,7 @@ class QualityTier(Enum):
 
 class QualityDimension(Enum):
     """Quality assessment dimensions."""
+
     THERAPEUTIC_RELEVANCE = "therapeutic_relevance"
     CONVERSATION_COHERENCE = "conversation_coherence"
     EMOTIONAL_APPROPRIATENESS = "emotional_appropriateness"
@@ -44,6 +46,7 @@ class QualityDimension(Enum):
 @dataclass
 class QualityMetrics:
     """Quality metrics for a conversation."""
+
     therapeutic_relevance: float = 0.0
     conversation_coherence: float = 0.0
     emotional_appropriateness: float = 0.0
@@ -58,6 +61,7 @@ class QualityMetrics:
 @dataclass
 class QualityAssessment:
     """Complete quality assessment result."""
+
     conversation_id: str
     metrics: QualityMetrics
     assigned_tier: QualityTier
@@ -81,7 +85,7 @@ class QualityAssessmentFramework:
             QualityDimension.SAFETY_COMPLIANCE: 0.15,
             QualityDimension.LINGUISTIC_QUALITY: 0.10,
             QualityDimension.ENGAGEMENT_LEVEL: 0.10,
-            QualityDimension.PROFESSIONAL_STANDARDS: 0.05
+            QualityDimension.PROFESSIONAL_STANDARDS: 0.05,
         }
 
         self.therapeutic_keywords = self._load_therapeutic_keywords()
@@ -94,73 +98,169 @@ class QualityAssessmentFramework:
         """Load therapeutic keywords for relevance assessment."""
         return {
             "emotions": [
-                "feel", "feeling", "emotion", "emotional", "mood", "angry", "sad",
-                "happy", "anxious", "worried", "stressed", "depressed", "excited"
+                "feel",
+                "feeling",
+                "emotion",
+                "emotional",
+                "mood",
+                "angry",
+                "sad",
+                "happy",
+                "anxious",
+                "worried",
+                "stressed",
+                "depressed",
+                "excited",
             ],
             "therapeutic_terms": [
-                "therapy", "counseling", "support", "help", "understand", "cope",
-                "manage", "process", "explore", "discuss", "share", "express"
+                "therapy",
+                "counseling",
+                "support",
+                "help",
+                "understand",
+                "cope",
+                "manage",
+                "process",
+                "explore",
+                "discuss",
+                "share",
+                "express",
             ],
             "mental_health": [
-                "anxiety", "depression", "stress", "trauma", "ptsd", "bipolar",
-                "ocd", "adhd", "panic", "phobia", "addiction", "recovery"
+                "anxiety",
+                "depression",
+                "stress",
+                "trauma",
+                "ptsd",
+                "bipolar",
+                "ocd",
+                "adhd",
+                "panic",
+                "phobia",
+                "addiction",
+                "recovery",
             ],
             "therapeutic_techniques": [
-                "mindfulness", "breathing", "relaxation", "cognitive", "behavioral",
-                "exposure", "grounding", "coping strategies", "thought challenging"
+                "mindfulness",
+                "breathing",
+                "relaxation",
+                "cognitive",
+                "behavioral",
+                "exposure",
+                "grounding",
+                "coping strategies",
+                "thought challenging",
             ],
             "relationship_terms": [
-                "relationship", "family", "partner", "friend", "communication",
-                "conflict", "boundary", "trust", "intimacy", "support"
-            ]
+                "relationship",
+                "family",
+                "partner",
+                "friend",
+                "communication",
+                "conflict",
+                "boundary",
+                "trust",
+                "intimacy",
+                "support",
+            ],
         }
 
     def _load_safety_patterns(self) -> dict[str, list[str]]:
         """Load safety patterns for compliance assessment."""
         return {
             "crisis_indicators": [
-                "suicide", "kill myself", "end it all", "not worth living",
-                "hurt myself", "self-harm", "cutting", "overdose"
+                "suicide",
+                "kill myself",
+                "end it all",
+                "not worth living",
+                "hurt myself",
+                "self-harm",
+                "cutting",
+                "overdose",
             ],
             "violence_indicators": [
-                "hurt someone", "kill them", "violence", "weapon", "gun",
-                "knife", "attack", "harm others"
+                "hurt someone",
+                "kill them",
+                "violence",
+                "weapon",
+                "gun",
+                "knife",
+                "attack",
+                "harm others",
             ],
             "inappropriate_content": [
-                "sexual", "explicit", "inappropriate", "harassment",
-                "discrimination", "hate speech", "offensive"
+                "sexual",
+                "explicit",
+                "inappropriate",
+                "harassment",
+                "discrimination",
+                "hate speech",
+                "offensive",
             ],
             "medical_advice": [
-                "diagnose", "medication dosage", "stop taking", "medical advice",
-                "prescription", "doctor said", "medical condition"
-            ]
+                "diagnose",
+                "medication dosage",
+                "stop taking",
+                "medical advice",
+                "prescription",
+                "doctor said",
+                "medical condition",
+            ],
         }
 
     def _load_quality_patterns(self) -> dict[str, list[str]]:
         """Load quality patterns for linguistic assessment."""
         return {
             "positive_indicators": [
-                "I understand", "tell me more", "how does that make you feel",
-                "that sounds difficult", "you're not alone", "it's okay to feel",
-                "let's explore", "what do you think", "how can I help"
+                "I understand",
+                "tell me more",
+                "how does that make you feel",
+                "that sounds difficult",
+                "you're not alone",
+                "it's okay to feel",
+                "let's explore",
+                "what do you think",
+                "how can I help",
             ],
             "negative_indicators": [
-                "you should", "just get over it", "that's wrong", "don't feel",
-                "stop thinking", "you're overreacting", "it's not that bad"
+                "you should",
+                "just get over it",
+                "that's wrong",
+                "don't feel",
+                "stop thinking",
+                "you're overreacting",
+                "it's not that bad",
             ],
             "professional_language": [
-                "therapeutic", "intervention", "assessment", "treatment",
-                "clinical", "evidence-based", "approach", "technique"
+                "therapeutic",
+                "intervention",
+                "assessment",
+                "treatment",
+                "clinical",
+                "evidence-based",
+                "approach",
+                "technique",
             ],
             "engagement_indicators": [
-                "?", "tell me", "share", "describe", "explain", "how",
-                "what", "when", "where", "why", "feel free"
-            ]
+                "?",
+                "tell me",
+                "share",
+                "describe",
+                "explain",
+                "how",
+                "what",
+                "when",
+                "where",
+                "why",
+                "feel free",
+            ],
         }
 
     def assess_conversation(self, conversation: dict[str, Any]) -> QualityAssessment:
         """Assess quality of a conversation."""
-        conversation_id = conversation.get("id", "unknown")
+        conversation_id = (
+            conversation.get("conversation_id") or conversation.get("id") or "unknown"
+        )
 
         # Calculate quality metrics
         metrics = self._calculate_quality_metrics(conversation)
@@ -181,13 +281,17 @@ class QualityAssessmentFramework:
             assigned_tier=assigned_tier,
             quality_issues=issues,
             quality_strengths=strengths,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
-        logger.info(f"Quality assessment completed for {conversation_id}: {assigned_tier.tier_name} tier")
+        logger.info(
+            f"Quality assessment completed for {conversation_id}: {assigned_tier.tier_name} tier"
+        )
         return assessment
 
-    def _calculate_quality_metrics(self, conversation: dict[str, Any]) -> QualityMetrics:
+    def _calculate_quality_metrics(
+        self, conversation: dict[str, Any]
+    ) -> QualityMetrics:
         """Calculate quality metrics for conversation."""
         content = self._extract_content(conversation)
         turns = self._extract_turns(conversation)
@@ -201,7 +305,9 @@ class QualityAssessmentFramework:
         metrics.conversation_coherence = self._assess_conversation_coherence(turns)
 
         # Emotional appropriateness
-        metrics.emotional_appropriateness = self._assess_emotional_appropriateness(content)
+        metrics.emotional_appropriateness = self._assess_emotional_appropriateness(
+            content
+        )
 
         # Safety compliance
         metrics.safety_compliance = self._assess_safety_compliance(content)
@@ -225,6 +331,11 @@ class QualityAssessmentFramework:
 
     def _extract_content(self, conversation: dict[str, Any]) -> str:
         """Extract content from conversation."""
+        # Handle messages list (OpenAI format)
+        if "messages" in conversation:
+            messages = conversation["messages"]
+            return " ".join(msg.get("content", "") for msg in messages)
+
         content = conversation.get("content", "")
         if isinstance(content, list):
             content = " ".join(str(turn) for turn in content)
@@ -236,10 +347,23 @@ class QualityAssessmentFramework:
 
     def _extract_turns(self, conversation: dict[str, Any]) -> list[dict[str, Any]]:
         """Extract turns from conversation."""
+        # Handle messages list (OpenAI format)
+        if "messages" in conversation:
+            return [
+                {
+                    "content": msg.get("content", ""),
+                    "speaker": msg.get("role", "unknown"),
+                }
+                for msg in conversation["messages"]
+            ]
+
         if "turns" in conversation:
             return conversation["turns"]
         if "content" in conversation and isinstance(conversation["content"], list):
-            return [{"content": turn, "speaker": "unknown"} for turn in conversation["content"]]
+            return [
+                {"content": turn, "speaker": "unknown"}
+                for turn in conversation["content"]
+            ]
         return [{"content": conversation.get("content", ""), "speaker": "unknown"}]
 
     def _assess_therapeutic_relevance(self, content: str) -> float:
@@ -260,11 +384,14 @@ class QualityAssessmentFramework:
                 "therapeutic_terms": 0.25,
                 "mental_health": 0.2,
                 "therapeutic_techniques": 0.15,
-                "relationship_terms": 0.1
+                "relationship_terms": 0.1,
             }
 
             weight = weights.get(category, 0.1)
-            total_score += min(1.0, category_score / len(keywords)) * weight
+            # Cap the denominator to avoid penalizing short texts that don't use every keyword
+            # We expect maybe 1-3 keywords from a category to show relevance
+            denominator = min(len(keywords), 3)
+            total_score += min(1.0, category_score / denominator) * weight
 
         return min(1.0, total_score)
 
@@ -281,20 +408,23 @@ class QualityAssessmentFramework:
             next_turn = turns[i + 1].get("content", "").lower()
 
             # Simple coherence indicators
-            if any(indicator in next_turn for indicator in ["yes", "no", "i understand", "that's"]):
-                coherence_score += 0.2
-
-            # Check for question-answer patterns
-            if "?" in current_turn and len(next_turn) > 10:
+            if any(
+                indicator in next_turn
+                for indicator in ["yes", "no", "i understand", "that's", "it feels"]
+            ):
                 coherence_score += 0.3
 
+            # Check for question-answer patterns
+            if "?" in current_turn and len(next_turn) > 5:
+                coherence_score += 0.4
+
             # Check for topic continuity (simplified)
-            current_words = set(current_turn.split())
-            next_words = set(next_turn.split())
+            current_words = set(w for w in current_turn.split() if len(w) > 3)
+            next_words = set(w for w in next_turn.split() if len(w) > 3)
             overlap = len(current_words.intersection(next_words))
 
-            if overlap > 2:
-                coherence_score += 0.1
+            if overlap >= 1:
+                coherence_score += 0.3
 
         return min(1.0, coherence_score / (len(turns) - 1))
 
@@ -308,8 +438,12 @@ class QualityAssessmentFramework:
 
         # Positive emotional indicators
         positive_patterns = [
-            "i understand", "that sounds difficult", "it's okay to feel",
-            "you're not alone", "i'm here for you", "that makes sense"
+            "i understand",
+            "that sounds difficult",
+            "it's okay to feel",
+            "you're not alone",
+            "i'm here for you",
+            "that makes sense",
         ]
 
         for pattern in positive_patterns:
@@ -318,8 +452,12 @@ class QualityAssessmentFramework:
 
         # Negative emotional indicators
         negative_patterns = [
-            "you're wrong", "that's stupid", "get over it", "stop complaining",
-            "you're overreacting", "that's not important"
+            "you're wrong",
+            "that's stupid",
+            "get over it",
+            "stop complaining",
+            "you're overreacting",
+            "that's not important",
         ]
 
         for pattern in negative_patterns:
@@ -346,7 +484,7 @@ class QualityAssessmentFramework:
                     "crisis_indicators": 0.5,
                     "violence_indicators": 0.6,
                     "inappropriate_content": 0.3,
-                    "medical_advice": 0.2
+                    "medical_advice": 0.2,
                 }
 
                 penalty = penalties.get(category, 0.3)
@@ -368,7 +506,7 @@ class QualityAssessmentFramework:
         # Length appropriateness
         if 20 <= word_count <= 500:
             score += 0.2
-        elif word_count < 10 or word_count > 1000:
+        elif word_count < 5 or word_count > 1000:
             score -= 0.2
 
         # Sentence structure
@@ -386,14 +524,17 @@ class QualityAssessmentFramework:
 
         # Professional language
         professional_count = sum(
-            1 for pattern in self.quality_patterns["professional_language"]
+            1
+            for pattern in self.quality_patterns["professional_language"]
             if pattern in content.lower()
         )
         score += min(0.15, professional_count * 0.05)
 
         return min(1.0, max(0.0, score))
 
-    def _assess_engagement_level(self, content: str, turns: list[dict[str, Any]]) -> float:
+    def _assess_engagement_level(
+        self, content: str, turns: list[dict[str, Any]]
+    ) -> float:
         """Assess engagement level of conversation."""
         if not content:
             return 0.0
@@ -407,7 +548,8 @@ class QualityAssessmentFramework:
 
         # Engagement patterns
         engagement_count = sum(
-            1 for pattern in self.quality_patterns["engagement_indicators"]
+            1
+            for pattern in self.quality_patterns["engagement_indicators"]
             if pattern in content_lower
         )
         score += min(0.4, engagement_count * 0.05)
@@ -430,21 +572,24 @@ class QualityAssessmentFramework:
 
         # Professional language indicators
         professional_count = sum(
-            1 for pattern in self.quality_patterns["professional_language"]
+            1
+            for pattern in self.quality_patterns["professional_language"]
             if pattern in content_lower
         )
         score += min(0.2, professional_count * 0.05)
 
         # Positive professional patterns
         positive_count = sum(
-            1 for pattern in self.quality_patterns["positive_indicators"]
+            1
+            for pattern in self.quality_patterns["positive_indicators"]
             if pattern in content_lower
         )
         score += min(0.3, positive_count * 0.1)
 
         # Negative professional patterns
         negative_count = sum(
-            1 for pattern in self.quality_patterns["negative_indicators"]
+            1
+            for pattern in self.quality_patterns["negative_indicators"]
             if pattern in content_lower
         )
         score -= min(0.4, negative_count * 0.2)
@@ -462,7 +607,7 @@ class QualityAssessmentFramework:
             QualityDimension.SAFETY_COMPLIANCE: metrics.safety_compliance,
             QualityDimension.LINGUISTIC_QUALITY: metrics.linguistic_quality,
             QualityDimension.ENGAGEMENT_LEVEL: metrics.engagement_level,
-            QualityDimension.PROFESSIONAL_STANDARDS: metrics.professional_standards
+            QualityDimension.PROFESSIONAL_STANDARDS: metrics.professional_standards,
         }
 
         for dimension, value in dimension_values.items():
@@ -501,15 +646,22 @@ class QualityAssessmentFramework:
         overall_score = metrics.overall_score
 
         # Check tiers in order of quality (highest first)
-        for tier in [QualityTier.PRIORITY, QualityTier.PROFESSIONAL, QualityTier.COT,
-                    QualityTier.REDDIT, QualityTier.SYNTHETIC, QualityTier.ARCHIVE]:
+        for tier in [
+            QualityTier.PRIORITY,
+            QualityTier.PROFESSIONAL,
+            QualityTier.COT,
+            QualityTier.REDDIT,
+            QualityTier.SYNTHETIC,
+            QualityTier.ARCHIVE,
+        ]:
             if overall_score >= tier.min_score:
                 return tier
 
         return QualityTier.ARCHIVE  # Fallback to lowest tier
 
-    def _identify_quality_issues(self, conversation: dict[str, Any],
-                                metrics: QualityMetrics) -> list[str]:
+    def _identify_quality_issues(
+        self, conversation: dict[str, Any], metrics: QualityMetrics
+    ) -> list[str]:
         """Identify quality issues in conversation."""
         issues = []
 
@@ -536,8 +688,9 @@ class QualityAssessmentFramework:
 
         return issues
 
-    def _identify_quality_strengths(self, conversation: dict[str, Any],
-                                  metrics: QualityMetrics) -> list[str]:
+    def _identify_quality_strengths(
+        self, conversation: dict[str, Any], metrics: QualityMetrics
+    ) -> list[str]:
         """Identify quality strengths in conversation."""
         strengths = []
 
@@ -564,22 +717,29 @@ class QualityAssessmentFramework:
 
         return strengths
 
-    def _generate_recommendations(self, metrics: QualityMetrics,
-                                issues: list[str]) -> list[str]:
+    def _generate_recommendations(
+        self, metrics: QualityMetrics, issues: list[str]
+    ) -> list[str]:
         """Generate recommendations for improvement."""
         recommendations = []
 
         if metrics.therapeutic_relevance < 0.6:
-            recommendations.append("Include more therapeutic language and mental health terminology")
+            recommendations.append(
+                "Include more therapeutic language and mental health terminology"
+            )
 
         if metrics.conversation_coherence < 0.6:
-            recommendations.append("Improve conversation flow with better turn transitions")
+            recommendations.append(
+                "Improve conversation flow with better turn transitions"
+            )
 
         if metrics.emotional_appropriateness < 0.8:
             recommendations.append("Use more empathetic and supportive language")
 
         if metrics.safety_compliance < 0.9:
-            recommendations.append("Review content for safety violations and harmful language")
+            recommendations.append(
+                "Review content for safety violations and harmful language"
+            )
 
         if metrics.engagement_level < 0.5:
             recommendations.append("Add more questions and interactive elements")
@@ -589,7 +749,9 @@ class QualityAssessmentFramework:
 
         return recommendations
 
-    def assess_batch(self, conversations: list[dict[str, Any]]) -> list[QualityAssessment]:
+    def assess_batch(
+        self, conversations: list[dict[str, Any]]
+    ) -> list[QualityAssessment]:
         """Assess quality of multiple conversations."""
         assessments = []
 
@@ -600,7 +762,9 @@ class QualityAssessmentFramework:
         logger.info(f"Batch assessment completed: {len(assessments)} conversations")
         return assessments
 
-    def get_quality_summary(self, assessments: list[QualityAssessment]) -> dict[str, Any]:
+    def get_quality_summary(
+        self, assessments: list[QualityAssessment]
+    ) -> dict[str, Any]:
         """Get summary of quality assessments."""
         if not assessments:
             return {"status": "empty"}
@@ -613,10 +777,16 @@ class QualityAssessmentFramework:
 
         # Average scores
         avg_scores = {
-            "overall": sum(a.metrics.overall_score for a in assessments) / len(assessments),
-            "therapeutic_relevance": sum(a.metrics.therapeutic_relevance for a in assessments) / len(assessments),
-            "safety_compliance": sum(a.metrics.safety_compliance for a in assessments) / len(assessments),
-            "engagement": sum(a.metrics.engagement_level for a in assessments) / len(assessments)
+            "overall": sum(a.metrics.overall_score for a in assessments)
+            / len(assessments),
+            "therapeutic_relevance": sum(
+                a.metrics.therapeutic_relevance for a in assessments
+            )
+            / len(assessments),
+            "safety_compliance": sum(a.metrics.safety_compliance for a in assessments)
+            / len(assessments),
+            "engagement": sum(a.metrics.engagement_level for a in assessments)
+            / len(assessments),
         }
 
         # Common issues
@@ -628,14 +798,19 @@ class QualityAssessmentFramework:
         for issue in all_issues:
             issue_counts[issue] = issue_counts.get(issue, 0) + 1
 
-        common_issues = sorted(issue_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        common_issues = sorted(issue_counts.items(), key=lambda x: x[1], reverse=True)[
+            :5
+        ]
 
         return {
             "total_assessments": len(assessments),
             "tier_distribution": tier_counts,
             "average_scores": avg_scores,
             "common_issues": common_issues,
-            "high_quality_rate": len([a for a in assessments if a.metrics.overall_score > 0.8]) / len(assessments)
+            "high_quality_rate": len(
+                [a for a in assessments if a.metrics.overall_score > 0.8]
+            )
+            / len(assessments),
         }
 
 
@@ -649,11 +824,23 @@ def main():
             "id": "conv_1",
             "content": "I'm feeling really anxious about my upcoming presentation. I keep having negative thoughts about failing. Can you help me work through this?",
             "turns": [
-                {"speaker": "user", "content": "I'm feeling really anxious about my upcoming presentation."},
-                {"speaker": "therapist", "content": "I understand that presentations can be anxiety-provoking. Tell me more about what specifically worries you."},
-                {"speaker": "user", "content": "I keep thinking I'll forget what to say and everyone will judge me."},
-                {"speaker": "therapist", "content": "Those thoughts sound really distressing. Let's explore some coping strategies to help manage this anxiety."}
-            ]
+                {
+                    "speaker": "user",
+                    "content": "I'm feeling really anxious about my upcoming presentation.",
+                },
+                {
+                    "speaker": "therapist",
+                    "content": "I understand that presentations can be anxiety-provoking. Tell me more about what specifically worries you.",
+                },
+                {
+                    "speaker": "user",
+                    "content": "I keep thinking I'll forget what to say and everyone will judge me.",
+                },
+                {
+                    "speaker": "therapist",
+                    "content": "Those thoughts sound really distressing. Let's explore some coping strategies to help manage this anxiety.",
+                },
+            ],
         },
         {
             "id": "conv_2",
@@ -661,17 +848,15 @@ def main():
         },
         {
             "id": "conv_3",
-            "content": "I understand you're feeling anxious about your presentation. That's a very common experience. Let's work together to develop some strategies that can help you feel more confident and prepared. What aspects of the presentation worry you most?"
-        }
+            "content": "I understand you're feeling anxious about your presentation. That's a very common experience. Let's work together to develop some strategies that can help you feel more confident and prepared. What aspects of the presentation worry you most?",
+        },
     ]
-
 
     # Assess individual conversations
     assessments = []
     for conv in test_conversations:
         assessment = framework.assess_conversation(conv)
         assessments.append(assessment)
-
 
         if assessment.quality_issues:
             pass
@@ -681,7 +866,6 @@ def main():
 
     # Generate summary
     summary = framework.get_quality_summary(assessments)
-
 
     if summary["common_issues"]:
         pass

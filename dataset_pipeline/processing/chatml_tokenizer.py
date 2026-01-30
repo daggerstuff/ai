@@ -20,6 +20,7 @@ import pandas as pd
 # Handle optional dependencies
 try:
     import datasets
+
     _datasets_available = True
 except ImportError:
     datasets = None
@@ -28,6 +29,7 @@ except ImportError:
 try:
     from transformers import AutoTokenizer, PreTrainedTokenizerBase
 except ImportError:
+
     class AutoTokenizer:
         @staticmethod
         def from_pretrained(*args, **kwargs):
@@ -35,6 +37,7 @@ except ImportError:
 
     class PreTrainedTokenizerBase:
         pass
+
 
 # Configure module logger
 logger = logging.getLogger("ai.dataset_pipeline.tokenize")
@@ -46,11 +49,12 @@ if not logger.hasHandlers():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+
 def _get_tokenizer(
     model_name_or_path: str,
     use_fast: bool = True,
     trust_remote_code: bool = False,
-    **kwargs
+    **kwargs,
 ) -> Any:
     """
     Load a HuggingFace tokenizer for the specified model.
@@ -61,7 +65,7 @@ def _get_tokenizer(
             model_name_or_path,
             use_fast=use_fast,
             trust_remote_code=trust_remote_code,
-            **kwargs
+            **kwargs,
         )
         logger.info(f"Loaded tokenizer from {model_name_or_path}")
         return tokenizer
@@ -69,10 +73,8 @@ def _get_tokenizer(
         logger.error(f"Failed to load tokenizer: {e}")
         raise
 
-def _format_chatml(
-    record: dict[str, Any],
-    chat_key: str = "messages"
-) -> str:
+
+def _format_chatml(record: dict[str, Any], chat_key: str = "messages") -> str:
     """
     Convert a ChatML-formatted record to a single string for tokenization.
     Expects a list of message dicts under `chat_key`, each with 'role' and 'content'.
@@ -90,7 +92,10 @@ def _format_chatml(
         formatted += f"<|{role}|>\n{content}\n"
     return formatted.strip()
 
-def _validate_input_data(data: list[dict[str, Any]] | pd.DataFrame) -> list[dict[str, Any]]:
+
+def _validate_input_data(
+    data: list[dict[str, Any]] | pd.DataFrame,
+) -> list[dict[str, Any]]:
     """Validate and normalize input data to list of records."""
     if isinstance(data, pd.DataFrame):
         records = data.to_dict(orient="records")
@@ -99,6 +104,7 @@ def _validate_input_data(data: list[dict[str, Any]] | pd.DataFrame) -> list[dict
         return data
     logger.error("Input data must be a list of dicts or a pandas DataFrame.")
     raise TypeError("Input data must be a list of dicts or a pandas DataFrame.")
+
 
 def _format_texts(records: list[dict[str, Any]], chat_key: str) -> list[str]:
     """Format ChatML records to text strings."""
@@ -112,11 +118,15 @@ def _format_texts(records: list[dict[str, Any]], chat_key: str) -> list[str]:
             texts.append("")
     return texts
 
+
 def _log_tokenization_stats(tokenized: dict[str, Any], num_texts: int) -> None:
     """Log tokenization statistics."""
     lengths = [len(ids) for ids in tokenized["input_ids"]]
     logger.info(f"Tokenized {num_texts} records.")
-    logger.info(f"Token count: min={min(lengths)}, max={max(lengths)}, mean={sum(lengths)//len(lengths)}")
+    logger.info(
+        f"Token count: min={min(lengths)}, max={max(lengths)}, mean={sum(lengths) // len(lengths)}"
+    )
+
 
 def _prepare_output(tokenized: dict[str, Any], return_type: str) -> Any:
     """Convert tokenized data to requested output format."""
@@ -124,7 +134,9 @@ def _prepare_output(tokenized: dict[str, Any], return_type: str) -> Any:
         return pd.DataFrame(tokenized)
     if return_type == "dataset":
         if not _datasets_available:
-            logger.error("datasets is not installed. Please install it to return a HuggingFace Dataset.")
+            logger.error(
+                "datasets is not installed. Please install it to return a HuggingFace Dataset."
+            )
             raise ImportError("datasets is required for return_type='dataset'.")
         dataset_class = getattr(datasets, "Dataset", None)
         if dataset_class is None:
@@ -134,6 +146,7 @@ def _prepare_output(tokenized: dict[str, Any], return_type: str) -> Any:
         return tokenized
     logger.error(f"Invalid return_type: {return_type}")
     raise ValueError(f"Invalid return_type: {return_type}")
+
 
 def tokenize_chatml(
     data: list[dict[str, Any]] | pd.DataFrame,
@@ -146,7 +159,7 @@ def tokenize_chatml(
     add_special_tokens: bool = True,
     tokenizer_kwargs: dict[str, Any] | None = None,
     log_stats: bool = True,
-    **kwargs
+    **kwargs,
 ) -> Any:
     """
     Tokenize ChatML-formatted data for SFT with Wayfarer-2-12B.
@@ -173,7 +186,13 @@ def tokenize_chatml(
 
     if not records:
         logger.warning("No records to tokenize.")
-        return [] if return_type == "dict" else pd.DataFrame() if return_type == "dataframe" else None
+        return (
+            []
+            if return_type == "dict"
+            else pd.DataFrame()
+            if return_type == "dataframe"
+            else None
+        )
 
     tokenizer = _get_tokenizer(model_name_or_path, **tokenizer_kwargs)
     texts = _format_texts(records, chat_key)
@@ -196,20 +215,25 @@ def tokenize_chatml(
 
     return _prepare_output(tokenized, return_type)
 
+
 # === London School TDD: Minimal public stubs for test discovery ===
+
 
 def get_tokenizer(tokenizer_name: str, **kwargs):
     """London School TDD: public stub for test patching."""
     # Delegate to internal _get_tokenizer if available
     return _get_tokenizer(tokenizer_name, **kwargs)
 
+
 def privacy_bias_hook(*args, **kwargs):
     """London School TDD: minimal no-op for privacy/bias compliance hook (for test patching)."""
     return
 
+
 def log_tokenization_stats(*args, **kwargs):
     """London School TDD: minimal no-op for logging tokenization statistics (for test patching)."""
     return
+
 
 def tokenize_dataset(
     df,
@@ -217,7 +241,7 @@ def tokenize_dataset(
     text_fields: list,
     max_length: int | None = None,
     truncation: bool = False,
-    **kwargs
+    **kwargs,
 ):
     """
     Tokenize specified text fields in a DataFrame using the provided tokenizer.
@@ -225,11 +249,12 @@ def tokenize_dataset(
     - The "tokens" column contains lists of token ids (from tokenizer["input_ids"]).
     - Enforces max_length/truncation, logs stats, calls privacy/bias hook, and raises on missing fields.
     """
-    from ai.dataset_pipeline.chatml_tokenizer import (
+    from ai.dataset_pipeline.processing.chatml_tokenizer import (
         get_tokenizer,
         log_tokenization_stats,
         privacy_bias_hook,
     )
+
     tokenizer = get_tokenizer(tokenizer_name)
     df = df.copy()
 
@@ -244,7 +269,11 @@ def tokenize_dataset(
         # Privacy/bias hook called for each row
         privacy_bias_hook(row)
         text = concat_fields(row)
-        result = tokenizer(text, max_length=max_length, truncation=truncation) if max_length is not None else tokenizer(text)
+        result = (
+            tokenizer(text, max_length=max_length, truncation=truncation)
+            if max_length is not None
+            else tokenizer(text)
+        )
         # Accept both dict with "input_ids" or list (for test mocks)
         if isinstance(result, dict) and "input_ids" in result:
             tokens = result["input_ids"]
