@@ -1,3 +1,0 @@
-"""
-Academic Sourcing API
-"""
