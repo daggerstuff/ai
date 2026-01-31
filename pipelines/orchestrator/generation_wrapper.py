@@ -1,3 +1,4 @@
+import json
 import logging
 import subprocess
 from pathlib import Path
@@ -17,6 +18,11 @@ try:
     from ai.sourcing.academic.academic_sourcing import AcademicSourcingEngine
 except ImportError:
     AcademicSourcingEngine = None
+
+try:
+    from ai.sourcing.journal.main import WorkflowExecutor
+except ImportError:
+    WorkflowExecutor = None
 
 logger = logging.getLogger(__name__)
 
@@ -89,8 +95,6 @@ class GenerationWrapper:
             )
 
             # Save to disk
-            import json
-
             data = result.get("data", [])
             with open(output_file, "w") as f:
                 if isinstance(data, list):
@@ -198,6 +202,41 @@ class GenerationWrapper:
             logger.error(f"Academic sourcing failed: {e}")
             return False
 
+    def ensure_journal_research(self, keywords: list[str] | None = None) -> bool:
+        """
+        Ensure journal research findings are sourced.
+        Uses WorkflowExecutor from journal sourcing.
+        """
+        if keywords is None:
+            keywords = [
+                "trauma informed care",
+                "therapeutic dialogue",
+                "empathetic response",
+                "clinical psychology conversation",
+            ]
+
+        logger.info(f"Ensuring Journal research (keywords={keywords})...")
+
+        if not WorkflowExecutor:
+            logger.error("WorkflowExecutor could not be imported from journal sourcing.")
+            return False
+
+        try:
+            executor = WorkflowExecutor(dry_run=False, interactive=False)
+            search_keywords = {
+                "therapeutic": keywords,
+                "dataset": keywords,
+            }
+            # This triggers discovery, evaluation, acquisition, and integration
+            executor.execute_workflow(
+                search_keywords=search_keywords,
+                target_sources=["pubmed", "doaj"],
+            )
+            return True
+        except Exception as e:
+            logger.error(f"Journal research workflow failed: {e}")
+            return False
+
     def run_all_checks(self) -> None:
         """Run all generation checks in sequence."""
         self.ensure_nemo_synthetic(target_count=10000)
@@ -205,3 +244,4 @@ class GenerationWrapper:
         self.ensure_edge_cases(count=10000)
         self.ensure_long_running_extraction()
         self.ensure_academic_sourcing()
+        self.ensure_journal_research()
