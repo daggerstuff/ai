@@ -22,10 +22,12 @@ class FinalDatasetVerifier:
         coverage_report_path: Path,
         manifest_path: Path | None = None,
         routing_config_path: Path | None = None,
+        skip_missing: bool = False,
     ):
         self.coverage_report_path = coverage_report_path
         self.manifest_path = manifest_path
         self.routing_config_path = routing_config_path
+        self.skip_missing = skip_missing
 
         self.coverage_data: dict[str, Any] = {}
         self.manifest_data: dict[str, Any] = {}
@@ -50,10 +52,14 @@ class FinalDatasetVerifier:
         if self.manifest_path and self.manifest_path.exists():
             with open(self.manifest_path, encoding="utf-8") as f:
                 self.manifest_data = json.load(f)
+        elif self.skip_missing:
+            logger.warning("Manifest not found - skipping manifest-dependent gates")
 
         if self.routing_config_path and self.routing_config_path.exists():
             with open(self.routing_config_path, encoding="utf-8") as f:
                 self.routing_config = json.load(f)
+        elif self.skip_missing:
+            logger.warning("Routing config not found - skipping routing-dependent gates")
 
     def check_coverage_gate(self) -> bool:
         """Check coverage gate: all required families present"""
@@ -353,6 +359,21 @@ class FinalDatasetVerifier:
 
 def main():
     """Main entry point"""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Verify final dataset against all gates")
+    parser.add_argument(
+        "--skip-missing",
+        action="store_true",
+        help="Skip verification of gates that depend on missing files",
+    )
+    parser.add_argument(
+        "--report",
+        action="store_true",
+        help="Generate and save verification report",
+    )
+    args = parser.parse_args()
+
     project_root = Path(__file__).parents[3]
 
     coverage_report_path = (
@@ -369,18 +390,20 @@ def main():
         coverage_report_path=coverage_report_path,
         manifest_path=manifest_path,
         routing_config_path=routing_config_path,
+        skip_missing=args.skip_missing,
     )
 
     report = verifier.run_all_verifications()
 
-    # Save verification report
-    output_path = project_root / "ai" / "training_ready" / "data" / "verification_report.json"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    # Save verification report if --report flag is provided
+    if args.report:
+        output_path = project_root / "ai" / "training_ready" / "data" / "verification_report.json"
+        output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_path, "w", encoding="utf-8") as f:
-        json.dump(report, f, indent=2, ensure_ascii=False)
+        with open(output_path, "w", encoding="utf-8") as f:
+            json.dump(report, f, indent=2, ensure_ascii=False)
 
-    logger.info(f"Verification report saved to {output_path}")
+        logger.info(f"Verification report saved to {output_path}")
 
     # Print summary
     print("\n" + "=" * 60)

@@ -664,10 +664,42 @@ python ai/data_designer/examples.py  # See integration examples
 
 ---
 
+## 🎯 QUALITY & COMPLETENESS STANDARDS FOR PHASE 1
+
+### Therapeutic Data Requirements
+Before any data enters training pipeline:
+1. **Authenticity**: Real conversations or ethically synthesized scenarios
+2. **Coherence**: Q&A pairs are genuinely related, not topic-adjacent
+3. **Value**: Responses provide genuine therapeutic insight/support
+4. **Safety**: All responses meet crisis intervention standards
+5. **Relevance**: Data specifically serves mental health support use case
+6. **Diversity**: Multiple therapeutic perspectives (CPTSD, ADHD, family dynamics, research, literature)
+7. **Evidence-Based**: Research-backed recommendations with citations
+
+### Rejection Criteria
+- Buzword-heavy without substance ❌
+- Q&A with unrelated or tangential responses ❌
+- Auto-generated content lacking empathy ❌
+- Data that could mislead vulnerable users ❌
+- Responses that prioritize "sounding professional" over being helpful ❌
+- Single-perspective data without diverse therapeutic voices ❌
+
+### Completeness Requirements (Phase 1 Extended)
+- [x] Tim Fletcher (CPTSD education - 91 files)
+- [ ] Understood (ADHD support - NEW)
+- [ ] Unfilteredd (Family dynamics - NEW)
+- [ ] Wu Wei Wisdom (Inner child validation - NEW)
+- [ ] Academic research (PubMed, Scholar - NEW)
+- [ ] Therapeutic books (Brené Brown, Gabor Maté, DSM - NEW)
+- [ ] NeMo synthetic (validated - NEW)
+
+---
+
 ## 📝 CHANGE LOG
 
 | Date | Change | Author |
 |------|--------|--------|
+| 2026-01-30 | Added Quality Standards section; all Phase 1 data must meet therapeutic efficacy requirements | Rovo Dev |
 | 2026-01-30 | **MAJOR UPDATE**: Verified Phase 1 completion (85%); corrected task statuses against actual artifacts; Tier 1, CPTSD, dedup, encoding all COMPLETE; edge cases need scaling; nightmare fuel infrastructure ready | Rovo Dev |
 | 2026-01-30 | Created `.memory/48-completion-verification.md` with artifact-based verification | Rovo Dev |
 | 2026-01-25 | Expanded edge cases with Nightmare Fuel & Ultra Nightmares; added crisis quality filters | AI |
