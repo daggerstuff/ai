@@ -294,18 +294,18 @@ class FinalDatasetCompiler:
         logger.info("PHASE 2: DEDUPLICATION")
         logger.info("=" * 80)
 
-        # Convert to deduplication format
-        entries = []
+        # Convert to deduplication format and add to deduplicator
+        logger.info(f"Input: {len(self.all_conversations):,} conversations")
         for conv in self.all_conversations:
             entry = ConversationEntry(
                 id=conv.get("id", hashlib.sha256(str(conv).encode()).hexdigest()[:8]),
                 messages=conv.get("messages", []),
                 metadata=conv.get("metadata", {}),
             )
-            entries.append(entry)
+            self.deduplicator.add_conversation(entry)
 
-        logger.info(f"Input: {len(entries):,} conversations")
-        deduplicated = self.deduplicator.deduplicate(entries)
+        # Run deduplication
+        deduplicated = self.deduplicator.deduplicate()
         logger.info(f"Output: {len(deduplicated):,} conversations after deduplication")
 
         # Update all_conversations with deduplicated results
@@ -337,7 +337,8 @@ class FinalDatasetCompiler:
         self.splits["test"] = self.all_conversations[train_count + val_count :]
 
         for split, convs in self.splits.items():
-            logger.info(f"  {split}: {len(convs):,} conversations ({len(convs)/total*100:.1f}%)")
+            pct = (len(convs)/total*100) if total > 0 else 0.0
+            logger.info(f"  {split}: {len(convs):,} conversations ({pct:.1f}%)")
 
         self.save_checkpoint("splits", progress=100.0)
 
