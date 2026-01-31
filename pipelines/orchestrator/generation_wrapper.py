@@ -53,8 +53,15 @@ class GenerationWrapper:
             return False
 
         try:
-            generator = UltraNightmareGenerator()
-            # This generates directly to ai/training_ready/data/generated/ultra_nightmares/
+            # Configure storage to go into the new training ready area
+            storage_path = (
+                self.workspace_root
+                / "ai/training/ready_packages/datasets/cache/local/nightmare_fuel"
+            )
+            storage_path.mkdir(parents=True, exist_ok=True)
+
+            generator = UltraNightmareGenerator(output_dir=str(storage_path))
+            # This generates directly to high-intensity edge cases area
             generator.generate_all(count_per_category=count_per_category)
             return True
         except Exception as e:
@@ -73,11 +80,13 @@ class GenerationWrapper:
             logger.error("NeMoDataDesignerService could not be imported.")
             return False
 
-        output_dir = self.workspace_root / "ai/training_ready/data/generated/nemo_synthetic"
+        output_dir = (
+            self.workspace_root / "ai/training/ready_packages/datasets/cache/local/nemo_synthetic"
+        )
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / "nemo_synthetic_dataset.jsonl"
 
-        if output_file.exists():
+        if output_file.exists() and output_file.stat().st_size > 1024:
             # Check count? For now simple existence check or we could assume it's good.
             # Ideally we check line count.
             logger.info(f"NeMo dataset exists at {output_file}. Skipping generation.")
@@ -122,6 +131,12 @@ class GenerationWrapper:
             logger.error(f"Script not found: {script_path}")
             return False
 
+        output_dir = (
+            self.workspace_root
+            / "ai/training/ready_packages/datasets/cache/local/edge_case_synthetic"
+        )
+        output_dir.mkdir(parents=True, exist_ok=True)
+
         cmd = [
             "uv",
             "run",
@@ -131,6 +146,8 @@ class GenerationWrapper:
             str(count),
             "--categories",
             "all",
+            "--output-dir",
+            str(output_dir),
         ]
 
         try:
@@ -151,9 +168,12 @@ class GenerationWrapper:
         """
         logger.info("Ensuring Long Running Therapy extraction (Stage 5)...")
         script_path = self.scripts_dir / "extract_long_running_therapy.py"
-        output_file = (
-            self.workspace_root / "ai/training_ready/data/generated/long_running_therapy.jsonl"
+        output_dir = (
+            self.workspace_root
+            / "ai/training/ready_packages/datasets/cache/local/long_running_therapy"
         )
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = output_dir / "long_running_therapy.jsonl"
 
         # Check if already exists (skip if substantial size)
         if output_file.exists() and output_file.stat().st_size > 1024:
@@ -167,6 +187,8 @@ class GenerationWrapper:
             str(script_path),
             "--min-turns",
             "20",
+            "--output-dir",
+            str(output_dir),
             # We don't necessarily upload to S3 here, local cache for pipeline is sufficient
             # But script supports --upload-s3 if needed
         ]
@@ -178,8 +200,22 @@ class GenerationWrapper:
         except subprocess.CalledProcessError as e:
             logger.error(f"Long running extraction failed: {e}")
             return False
+
+    def ensure_hydration(self) -> bool:
+        """Run the hydration script for unused material."""
+        logger.info("Ensuring Unused Material Hydration...")
+        script_path = self.scripts_dir / "hydrate_unused_material.py"
+        if not script_path.exists():
+            logger.error(f"Hydration script not found: {script_path}")
+            return False
+
+        cmd = ["uv", "run", "python", str(script_path)]
+        try:
+            logger.info(f"Running command: {' '.join(cmd)}")
+            subprocess.check_call(cmd, cwd=self.workspace_root)
+            return True
         except Exception as e:
-            logger.error(f"Long running extraction failed: {e}")
+            logger.error(f"Hydration failed: {e}")
             return False
 
     def ensure_academic_sourcing(self, limit_per_query: int = 10) -> bool:
@@ -222,7 +258,14 @@ class GenerationWrapper:
             return False
 
         try:
-            executor = WorkflowExecutor(dry_run=False, interactive=False)
+            # Configure storage to go into the training ready area
+            storage_path = (
+                self.workspace_root
+                / "ai/training/ready_packages/datasets/cache/local/journal_research"
+            )
+            config = {"acquisition": {"storage_base_path": str(storage_path)}}
+
+            executor = WorkflowExecutor(config=config, dry_run=False, interactive=False)
             search_keywords = {
                 "therapeutic": keywords,
                 "dataset": keywords,
@@ -237,11 +280,74 @@ class GenerationWrapper:
             logger.error(f"Journal research workflow failed: {e}")
             return False
 
+    def ensure_books_extraction(self) -> bool:
+        """
+        Ensure therapeutic book content is extracted (Stage 2).
+        """
+        logger.info("Ensuring Book Content extraction (Stage 2)...")
+        script_path = self.scripts_dir / "extract_all_books_to_training.py"
+
+        if not script_path.exists():
+            logger.error(f"Script not found: {script_path}")
+            return False
+
+        cmd = [
+            "uv",
+            "run",
+            "python",
+            str(script_path),
+            "--all",
+        ]
+
+        try:
+            logger.info(f"Running command: {' '.join(cmd)}")
+            subprocess.check_call(cmd, cwd=self.workspace_root)
+            return True
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Book extraction failed: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Book extraction failed: {e}")
+            return False
+
+    def ensure_transcripts_extraction(self) -> bool:
+        """
+        Ensure YouTube transcripts are extracted (Stage 4).
+        """
+        logger.info("Ensuring YouTube Transcripts extraction (Stage 4)...")
+        script_path = self.scripts_dir / "extract_all_youtube_transcripts.py"
+
+        if not script_path.exists():
+            logger.error(f"Script not found: {script_path}")
+            return False
+
+        cmd = [
+            "uv",
+            "run",
+            "python",
+            str(script_path),
+            "--all",
+        ]
+
+        try:
+            logger.info(f"Running command: {' '.join(cmd)}")
+            subprocess.check_call(cmd, cwd=self.workspace_root)
+            return True
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Transcript extraction failed: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Transcript extraction failed: {e}")
+            return False
+
     def run_all_checks(self) -> None:
         """Run all generation checks in sequence."""
+        self.ensure_hydration()
         self.ensure_nemo_synthetic(target_count=10000)
-        self.ensure_ultra_nightmares(count_per_category=5)  # Start small for safety/speed
+        self.ensure_ultra_nightmares(count_per_category=5)
         self.ensure_edge_cases(count=10000)
         self.ensure_long_running_extraction()
         self.ensure_academic_sourcing()
         self.ensure_journal_research()
+        self.ensure_books_extraction()
+        self.ensure_transcripts_extraction()

@@ -65,7 +65,7 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output-dir",
-        default=str(Path(__file__).parents[1] / "data" / "generated" / "nemo_synthetic"),
+        default=str(Path(__file__).parents[1] / "datasets" / "cache" / "local" / "nemo_synthetic"),
         help="Output directory",
     )
     parser.add_argument(

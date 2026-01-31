@@ -26,6 +26,15 @@ from ai.common.dataset_registry import iter_dataset_refs, load_registry
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
 from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader
 
+# Try to import quality scoring (optional dependency)
+try:
+    from ai.pipelines.orchestrator.quality.quality_scoring_v1 import QualityScoringV1
+
+    QUALITY_SCORING_AVAILABLE = True
+except ImportError:
+    QualityScoringV1 = None
+    QUALITY_SCORING_AVAILABLE = False
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -329,13 +338,14 @@ class UnifiedPreprocessingPipeline:
         self._discover_local_main_datasets()
         self._discover_local_psychology_knowledge()
         self._discover_local_youtube_transcripts()
-        self._discover_local_main_datasets()
-        self._discover_local_psychology_knowledge()
-        self._discover_local_youtube_transcripts()
         self._discover_local_conversations()
         self._discover_local_generated_synthetic()
         self._discover_local_nightmares()
         self._discover_local_academic_findings()
+        self._discover_local_journal_research()
+        self._discover_local_therapeutic_books()
+        self._discover_local_generated_youtube_transcripts()
+        self._discover_local_journal_findings()
 
     def _discover_local_main_datasets(self) -> None:
         datasets_dir = Path("ai/training_data_consolidated/final_datasets")
@@ -408,43 +418,31 @@ class UnifiedPreprocessingPipeline:
 
     def _discover_local_generated_synthetic(self) -> None:
         """Discover locally generated synthetic datasets (NeMo, Edge Cases)."""
-        generated_dir = Path("ai/training_ready/data/generated")
+        generated_dir = Path("ai/training/ready_packages/datasets/cache/local")
         if not generated_dir.exists():
             return
 
-        # Edge Case Synthetic
-        edge_case_path = generated_dir / "edge_case_synthetic.jsonl"
-        if edge_case_path.exists():
-            self.register_data_source(
-                DataSource(
-                    name="edge_case_synthetic",
-                    path=str(edge_case_path),
-                    format="jsonl",
-                    size_bytes=edge_case_path.stat().st_size,
-                    source_type="synthetic_edge_cases",
-                    stage="stage3_edge_stress_test",
-                    metadata={"synthetic_source": "template_generator"},
-                )
-            )
+        # Look for nemo_synthetic, edge_case_synthetic, etc.
+        for sub_dir in generated_dir.iterdir():
+            if not sub_dir.is_dir():
+                continue
 
-        # NeMo Synthetic
-        nemo_path = generated_dir / "nemo_synthetic" / "nemo_synthetic_dataset.jsonl"
-        if nemo_path.exists():
-            self.register_data_source(
-                DataSource(
-                    name="nemo_synthetic_therapeutic",
-                    path=str(nemo_path),
-                    format="jsonl",
-                    size_bytes=nemo_path.stat().st_size,
-                    source_type="synthetic_nemo",
-                    stage="stage2_therapeutic_expertise",  # High quality synthetic
-                    metadata={"synthetic_source": "nemo_data_designer"},
+            for file_path in sub_dir.rglob("*.jsonl"):
+                self.register_data_source(
+                    DataSource(
+                        name=f"synthetic_{sub_dir.name}_{file_path.stem}",
+                        path=str(file_path),
+                        format="jsonl",
+                        size_bytes=file_path.stat().st_size,
+                        source_type="generated_synthetic",
+                        stage="stage1_foundation",
+                        metadata={"generator": sub_dir.name},
+                    )
                 )
-            )
 
     def _discover_local_nightmares(self) -> None:
         """Discover generated Ultra Nightmare datasets."""
-        nightmares_dir = Path("ai/training_ready/data/generated/ultra_nightmares")
+        nightmares_dir = Path("ai/training/ready_packages/datasets/cache/local/nightmare_fuel")
         if not nightmares_dir.exists():
             return
 
@@ -455,9 +453,9 @@ class UnifiedPreprocessingPipeline:
                     path=str(file_path),
                     format="jsonl",
                     size_bytes=file_path.stat().st_size,
-                    source_type="synthetic_nightmares",
-                    stage="stage3_edge_stress_test",
-                    metadata={"synthetic_source": "ultra_nightmare_generator"},
+                    source_type="edge_case_nightmare",
+                    stage="stage3_edge_crisis",
+                    metadata={"intensity": "ultra_high"},
                 )
             )
 
@@ -479,6 +477,103 @@ class UnifiedPreprocessingPipeline:
                     source_type="academic_findings",
                     stage="stage2_therapeutic_expertise",
                     metadata={"sourcing_engine": "AcademicSourcingEngine"},
+                )
+            )
+
+    def _discover_local_journal_research(self) -> None:
+        """Discover datasets from journal research system."""
+        journal_dir = Path("ai/training/ready_packages/datasets/cache/local/journal_research")
+        if not journal_dir.exists():
+            return
+
+        for file_path in journal_dir.rglob("*.jsonl"):
+            self.register_data_source(
+                DataSource(
+                    name=f"journal_{file_path.stem}",
+                    path=str(file_path),
+                    format="jsonl",
+                    size_bytes=file_path.stat().st_size,
+                    source_type="journal_research",
+                    stage="stage2_therapeutic_expertise",
+                    metadata={"source": "scholarly_ingestion"},
+                )
+            )
+
+    def _discover_local_therapeutic_books(self) -> None:
+        """Discover generated book content (Stage 2)."""
+        books_dir = Path("ai/training/ready_packages/datasets/cache/local/therapeutic_books")
+        if not books_dir.exists():
+            return
+
+        # Look in author subdirectories
+        for author_dir in books_dir.iterdir():
+            if not author_dir.is_dir():
+                continue
+
+            for file_path in author_dir.glob("*.jsonl"):
+                self.register_data_source(
+                    DataSource(
+                        name=f"book_{author_dir.name}",
+                        path=str(file_path),
+                        format="jsonl",
+                        size_bytes=file_path.stat().st_size,
+                        source_type="therapeutic_book",
+                        stage="stage2_therapeutic_expertise",
+                    )
+                )
+
+    def _discover_local_generated_youtube_transcripts(self) -> None:
+        """Discover generated YouTube transcript content (Stage 4)."""
+        youtube_dir = Path("ai/training/ready_packages/datasets/cache/local/youtube_transcripts")
+        if not youtube_dir.exists():
+            return
+
+        # Look in creator subdirectories
+        for creator_dir in youtube_dir.iterdir():
+            if not creator_dir.is_dir():
+                continue
+
+            for file_path in creator_dir.glob("*.jsonl"):
+                self.register_data_source(
+                    DataSource(
+                        name=f"youtube_{creator_dir.name}",
+                        path=str(file_path),
+                        format="jsonl",
+                        size_bytes=file_path.stat().st_size,
+                        source_type="youtube_transcript_generated",
+                        stage="stage4_voice_persona",
+                    )
+                )
+
+    def _discover_local_journal_findings(self) -> None:
+        """Discover sourced journal research findings (Stage 2)."""
+        journal_dir = Path("ai/training/ready_packages/datasets/stage2_reasoning/journal_research")
+        if not journal_dir.exists():
+            return
+
+        # Journal pipeline saves both metadata and raw datasets
+        dataset_dir = journal_dir / "datasets"
+        if not dataset_dir.exists():
+            return
+
+        # Journal datasets can be in various formats
+        for file_path in dataset_dir.rglob("*.*"):
+            if file_path.name.startswith(".") or file_path.is_dir():
+                continue
+
+            suffix = file_path.suffix.lower().lstrip(".")
+            if suffix not in ["json", "jsonl", "csv", "parquet"]:
+                continue
+
+            self.register_data_source(
+                DataSource(
+                    name=f"journal_{file_path.stem}",
+                    path=str(file_path),
+                    format=suffix,
+                    size_bytes=file_path.stat().st_size,
+                    source_type="journal_findings",
+                    stage="stage2_therapeutic_expertise",
+                    metadata={"sourcing_engine": "JournalResearchPipeline"},
                 )
             )
 
@@ -672,35 +767,35 @@ class UnifiedPreprocessingPipeline:
 
         # Try Quality Scoring v1 first, fallback to estimate
         if "quality_score" not in record.get("metadata", {}):
-            try:
-                from ai.pipelines.orchestrator.quality.quality_scoring_v1 import (
-                    QualityScoringV1,
-                )
+            if QUALITY_SCORING_AVAILABLE:
+                try:
+                    if not hasattr(self, "_quality_scoring"):
+                        self._quality_scoring = QualityScoringV1(enabled=True)
 
-                if not hasattr(self, "_quality_scoring"):
-                    self._quality_scoring = QualityScoringV1(enabled=True)
+                    # Extract text for scoring
+                    text = ""
+                    if "text" in record:
+                        text = record["text"]
+                    elif "messages" in record:
+                        text = " ".join(
+                            msg.get("content", "") if isinstance(msg, dict) else str(msg)
+                            for msg in record["messages"]
+                        )
 
-                # Extract text for scoring
-                text = ""
-                if "text" in record:
-                    text = record["text"]
-                elif "messages" in record:
-                    text = " ".join(
-                        msg.get("content", "") if isinstance(msg, dict) else str(msg)
-                        for msg in record["messages"]
-                    )
+                    if text:
+                        scoring_result = self._quality_scoring.score_conversation_text(text)
+                        record["metadata"]["quality_score"] = scoring_result.get("composite", 0.5)
+                        record["metadata"]["quality_scoring_v1"] = {
+                            "signals": scoring_result.get("signals", {}),
+                            "decision": scoring_result.get("decision", "curate"),
+                        }
+                    else:
+                        record["metadata"]["quality_score"] = self.estimate_quality_score(record)
 
-                if text:
-                    scoring_result = self._quality_scoring.score_conversation_text(text)
-                    record["metadata"]["quality_score"] = scoring_result.get("composite", 0.5)
-                    record["metadata"]["quality_scoring_v1"] = {
-                        "signals": scoring_result.get("signals", {}),
-                        "decision": scoring_result.get("decision", "curate"),
-                    }
-                else:
+                except Exception:
+                    # Fallback to estimate if Quality Scoring v1 fails
                     record["metadata"]["quality_score"] = self.estimate_quality_score(record)
-
-            except ImportError:
+            else:
                 # Fallback to estimate if Quality Scoring v1 not available
                 record["metadata"]["quality_score"] = self.estimate_quality_score(record)
 

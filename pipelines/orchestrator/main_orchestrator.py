@@ -72,10 +72,14 @@ class DatasetPipelineOrchestrator:
         # 4. Academic Sourcing (PubMed/Scholar)
         results["academic_sourcing"] = self.generator.ensure_academic_sourcing(limit_per_query=10)
 
-        # 5. Journal Research (Trigger specific queries)
-        results["journal_research"] = self.generator.ensure_journal_research(
-            queries=["trauma informed care", "empathetic dialogue datasets"]
-        )
+        # 5. Journal Research
+        results["journal_research"] = self.generator.ensure_journal_research()
+
+        # 6. Unused Material Hydration (Books & PDFs)
+        results["books_extraction"] = self.generator.ensure_books_extraction()
+
+        # 7. Tim Fletcher & Transcripts
+        results["transcripts_extraction"] = self.generator.ensure_transcripts_extraction()
 
         logger.info(f"Data completeness check results: {results}")
         return results
@@ -322,29 +326,31 @@ def main():
         results = orchestrator.execute_complete_pipeline()
 
         if results["success"]:
-            print("\n🎉 Pipeline Execution Successful!")
-            print("=" * 50)
-            print(f"📊 Unified Dataset: {results['results']['unified_dataset_path']}")
-            print(f"⚖️  Balanced Dataset: {results['results']['balanced_dataset_path']}")
-            print(f"📋 Training Manifest: {results['results']['training_manifest_path']}")
-            print(f"📄 Final Report: {results['results']['final_report_path']}")
+            logger.info("\n🎉 Pipeline Execution Successful!")
+            logger.info("=" * 50)
+            logger.info(f"📊 Unified Dataset: {results['results']['unified_dataset_path']}")
+            logger.info(f"⚖️  Balanced Dataset: {results['results']['balanced_dataset_path']}")
+            logger.info(f"📋 Training Manifest: {results['results']['training_manifest_path']}")
+            logger.info(f"📄 Final Report: {results['results']['final_report_path']}")
 
             # Print composition summary
             composition_report = results["results"]["composition_report"]
-            print("\n📈 Dataset Composition Summary:")
-            print(f"   Total Records: {composition_report['final_dataset_stats']['total_records']}")
+            logger.info("\n📈 Dataset Composition Summary:")
+            logger.info(
+                f"   Total Records: {composition_report['final_dataset_stats']['total_records']}"
+            )
             if "quality_scores" in composition_report["final_dataset_stats"]:
                 avg_quality = composition_report["final_dataset_stats"]["quality_scores"]["avg"]
-                print(f"   Average Quality Score: {avg_quality:.3f}")
+                logger.info(f"   Average Quality Score: {avg_quality:.3f}")
 
-            print("\n✅ Ready for Lightning.ai H100 training deployment!")
+            logger.info("\n✅ Ready for Lightning.ai H100 training deployment!")
         else:
-            print(f"\n❌ Pipeline Execution Failed: {results['error']}")
+            logger.error(f"\n❌ Pipeline Execution Failed: {results['error']}")
             return 1
 
     except Exception as e:
         logger.error(f"Pipeline orchestrator failed: {e!s}")
-        print(f"\n💥 Critical Error: {e!s}")
+        logger.critical(f"\n💥 Critical Error: {e!s}")
         return 1
 
     return 0
