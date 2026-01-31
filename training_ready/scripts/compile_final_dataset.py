@@ -104,6 +104,7 @@ class CheckpointInfo:
     total_conversations: int = 0
     timestamp: str = ""
     family_stats: dict[str, int] = field(default_factory=dict)
+    progress: float = 0.0  # Progress percentage
 
 
 # ============================================================================
@@ -181,7 +182,9 @@ class FinalDatasetCompiler:
             f"✓ Resumed from checkpoint: {len(self.processed_families)} families, "
             f"{len(self.processed_files)} files already processed"
         )
-        return CheckpointInfo(stage=data["stage"], **data)
+        # Don't pass stage twice - it's in data already
+        checkpoint_data = {k: v for k, v in data.items() if k != "stage"}
+        return CheckpointInfo(stage=data["stage"], **checkpoint_data)
 
     def collect_conversations_from_family(self, family_name: str) -> list[dict[str, Any]]:
         """Load all conversations for a family from S3 or local"""
@@ -233,6 +236,9 @@ class FinalDatasetCompiler:
         """Stream JSONL from S3"""
         convs = []
         try:
+            # Prepend bucket name if not already a full S3 path
+            if not s3_path.startswith("s3://"):
+                s3_path = f"s3://{self.s3_loader.bucket}/{s3_path}"
             for line in self.s3_loader.stream_jsonl(s3_path):
                 if line and isinstance(line, dict):
                     convs.append(line)
@@ -243,6 +249,9 @@ class FinalDatasetCompiler:
     def _load_json_from_s3(self, s3_path: str) -> list[dict[str, Any]]:
         """Load JSON from S3"""
         try:
+            # Prepend bucket name if not already a full S3 path
+            if not s3_path.startswith("s3://"):
+                s3_path = f"s3://{self.s3_loader.bucket}/{s3_path}"
             data = self.s3_loader.load_json(s3_path)
             if isinstance(data, list):
                 return data
