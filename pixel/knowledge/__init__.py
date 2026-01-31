@@ -1,1 +1,0 @@
-# Psychology Knowledge Extraction and Processing

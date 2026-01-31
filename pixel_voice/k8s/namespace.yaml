@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: pixel-voice
-  labels:
-    name: pixel-voice
-    app: pixel-voice-pipeline

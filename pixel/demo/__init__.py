@@ -1,1 +1,0 @@
-# Therapeutic AI Demo and Showcase Systems
