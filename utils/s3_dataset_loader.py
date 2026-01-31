@@ -83,11 +83,10 @@ class S3DatasetLoader:
                 "Install with: uv pip install boto3"
             )
 
-        # Allow env to override only when using the default bucket argument
-        if bucket == "pixel-data":
-            self.bucket = os.getenv("OVH_S3_BUCKET", bucket)
-        else:
-            self.bucket = bucket
+        # Always allow env to override bucket for OVH S3
+        # This ensures OVH_S3_BUCKET is always used when set
+        self.bucket = os.getenv("OVH_S3_BUCKET", bucket)
+        print(f"[DEBUG] S3Loader: env OVH_S3_BUCKET={os.getenv('OVH_S3_BUCKET')}, input bucket={bucket}, final={self.bucket}", flush=True)
         self.endpoint_url = endpoint_url or os.getenv(
             "OVH_S3_ENDPOINT", "https://s3.us-east-va.io.cloud.ovh.us"
         )
@@ -114,12 +113,14 @@ class S3DatasetLoader:
             )
 
         # Initialize S3 client (OVH S3 compatible)
+        # OVH uses self-signed certificates, so verify=False is required
         self.s3_client = boto3.client(
             "s3",
             endpoint_url=self.endpoint_url,
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
             region_name=region_name or os.getenv("OVH_S3_REGION", "us-east-va"),
+            verify=False,  # OVH uses self-signed certificates
         )
 
         logger.info(f"S3DatasetLoader initialized for bucket: {bucket}")

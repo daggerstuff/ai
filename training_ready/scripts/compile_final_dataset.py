@@ -243,6 +243,12 @@ class FinalDatasetCompiler:
         if not isinstance(endpoint, str) or not endpoint:
             raise ValueError("s3_manifest.json missing endpoint")
         self.s3_endpoint = endpoint
+        
+        # Allow environment to override bucket/endpoint for OVH S3
+        import os
+        self.s3_bucket = os.getenv("OVH_S3_BUCKET", self.s3_bucket)
+        self.s3_endpoint = os.getenv("OVH_S3_ENDPOINT", self.s3_endpoint)
+        
         self.s3_loader = S3DatasetLoader(bucket=self.s3_bucket, endpoint_url=self.s3_endpoint)
         # Access S3 client for uploads (S3DatasetLoader creates it in __init__)
         self.s3_client = self.s3_loader.s3_client
