@@ -129,7 +129,7 @@ class PixelInferenceEngine:
         self.inference_count = 0
         self.total_inference_time = 0.0
         self.model_path = os.getenv(
-            "PIXEL_MODEL_PATH", "ai/pixel/models/pixel_base_model.pt"
+            "PIXEL_MODEL_PATH", "ai/models/pixel_core/models/pixel_base_model.pt"
         )
 
     def load_model(self) -> bool:

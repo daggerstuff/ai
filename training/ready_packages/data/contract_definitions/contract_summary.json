@@ -1,0 +1,43 @@
+{
+  "contract_version": "1.0",
+  "created_at": "2025-12-12T14:19:05.477767",
+  "schemas": {
+    "chatml_conversation": "chatml_conversation_schema.json",
+    "manifest": "manifest_schema.json"
+  },
+  "required_fields": {
+    "messages": [
+      "role",
+      "content"
+    ],
+    "metadata": [
+      "source_family",
+      "source_key",
+      "content_hash",
+      "pii_status",
+      "license_tag",
+      "split",
+      "phase",
+      "provenance"
+    ]
+  },
+  "validation_rules": {
+    "pii_status": [
+      "scrubbed",
+      "none_detected",
+      "requires_review"
+    ],
+    "split": [
+      "train",
+      "val",
+      "test"
+    ],
+    "content_hash_format": "sha256:<64_hex_chars>"
+  },
+  "holdout_families": [
+    "long_running_therapy",
+    "edge_case_crisis",
+    "sarcasm",
+    "voice_persona"
+  ]
+}

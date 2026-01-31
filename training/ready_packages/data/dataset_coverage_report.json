@@ -1,0 +1,267 @@
+{
+  "generated_at": "2026-01-14T04:38:51.305502+00:00",
+  "manifest_path": "/home/vivi/pixelated/ai/training_ready/data/s3_manifest.json",
+  "total_s3_objects": 19331,
+  "families": {
+    "edge_case_generator": {
+      "name": "edge_case_generator",
+      "description": "Edge case generator outputs (nightmare fuel scenarios)",
+      "required": true,
+      "status": "present",
+      "evidence_count": 35,
+      "s3_evidence": [
+        "datasets/gdrive/raw/dataset_pipeline/crisis_intervention_conversations_dataset.json",
+        "datasets/gdrive/tier3_edge_crisis/crisis_detection_conversations.jsonl",
+        "datasets/gdrive/processed/edge_cases/cptsd/cptsd_transcripts.jsonl",
+        "datasets/gdrive/processed/edge_cases/synthetic.jsonl",
+        "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_30_crisis_detection/crisis_detection_conversations.jsonl",
+        "datasets/gdrive/processed/phase_4_reddit_mental_health/task_5_30_crisis_detection/task_5_31_crisis_detection_report.json",
+        "datasets/consolidated/conversations/edge_case_dialogues.jsonl",
+        "datasets/consolidated/datasets/edge_case_dialogues.jsonl",
+        "datasets/consolidated/edge_cases/EDGE_CASE_INTEGRATION_PLAN.md",
+        "datasets/consolidated/edge_cases/Edge_Case_Generation_Pipeline.ipynb"
+      ],
+      "total_evidence": 35,
+      "notes": "Found 35 matching object(s)"
+    },
+    "edge_case_resulting_chats": {
+      "name": "edge_case_resulting_chats",
+      "description": "Resulting chats from edge case generator",
+      "required": true,
+      "status": "partial",
+      "evidence_count": 1,
+      "s3_evidence": [
+        "datasets/gdrive/tier3_edge_crisis/crisis_detection_conversations.jsonl"
+      ],
+      "total_evidence": 1,
+      "notes": "Found 1 matching object(s) - may need more"
+    },
+    "edge_case_synthetic": {
+      "name": "edge_case_synthetic",
+      "description": "Synthetic edge case dataset",
+      "required": true,
+      "status": "partial",
+      "evidence_count": 2,
+      "s3_evidence": [
+        "datasets/gdrive/processed/edge_cases/synthetic.jsonl",
+        "local:/home/vivi/pixelated/ai/training_ready/data/generated/edge_case_synthetic.jsonl"
+      ],
+      "total_evidence": 2,
+      "notes": "Found 2 matching object(s) - may need more"
+    },
+    "long_running_therapy": {
+      "name": "long_running_therapy",
+      "description": "Long-running therapy sessions (actual therapy sessions)",
+      "required": true,
+      "status": "partial",
+      "evidence_count": 2,
+      "s3_evidence": [
+        "datasets/gdrive/processed/professional_therapeutic/long_running_therapy.jsonl",
+        "local:/home/vivi/pixelated/ai/training_ready/data/generated/long_running_therapy.jsonl"
+      ],
+      "total_evidence": 2,
+      "notes": "Found 2 matching object(s) - may need more"
+    },
+    "mental_health_datasets": {
+      "name": "mental_health_datasets",
+      "description": "All mental health datasets",
+      "required": true,
+      "status": "present",
+      "evidence_count": 453,
+      "s3_evidence": [
+        "datasets/gdrive/raw/Amod___mental_health_counseling_conversations/default/0.0.0/9a117aa09aa90868d74ba68ed0d5702f64cc3109/dataset_info.json",
+        "datasets/gdrive/raw/Amod___mental_health_counseling_conversations/default/0.0.0/9a117aa09aa90868d74ba68ed0d5702f64cc3109/mental_health_counseling_conversations-train.arrow",
+        "datasets/gdrive/raw/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+        "datasets/gdrive/raw/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/README.md",
+        "datasets/gdrive/raw/CoT_Reasoning_Clinical_Diagnosis_Mental_Health_downloaded.json",
+        "datasets/gdrive/raw/CoT_Reasoning_Mens_Mental_Health/CoT_Reasoning_Mens_Mental_Health.json",
+        "datasets/gdrive/raw/CoT_Reasoning_Mens_Mental_Health/README.md",
+        "datasets/gdrive/raw/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+        "datasets/gdrive/raw/Empathy-Mental-Health/Althoff academic license.docx",
+        "datasets/gdrive/raw/Empathy-Mental-Health/Althoff attribution only license.docx"
+      ],
+      "total_evidence": 453,
+      "notes": "Found 453 matching object(s)"
+    },
+    "video_transcripts": {
+      "name": "video_transcripts",
+      "description": "Video transcripts (YouTube, podcasts, etc.)",
+      "required": true,
+      "status": "present",
+      "evidence_count": 404,
+      "s3_evidence": [
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/Five CRUCIAL PHASES OF HEALING Complex PTSD.txt",
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/Heal Dysregulation To Bring Calm To Your Emotions and Your Nervous System.txt",
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/Here are Signs No One Listened To You in Childhood.txt",
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/How to Heal Your Wounded Soul After Trauma (4-Video Compilation).txt",
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/I Had No Friends… But Here’s What Finally Changed.txt",
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/If You See These Early Signs… RUN.txt",
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/Try These Emergency Measures to Re-Regulate Anywhere.txt",
+        "datasets/gdrive/tier4_voice_persona/Doc Snipes/15 Signs You are Hitting Bottom in Codependency.txt",
+        "datasets/gdrive/tier4_voice_persona/Doc Snipes/20 Signs of CoDependency and Tips to Address Them.txt",
+        "datasets/gdrive/tier4_voice_persona/Doc Snipes/Insecure Attachment Linked to CoDependency and Addiction.txt"
+      ],
+      "total_evidence": 404,
+      "notes": "Found 404 matching object(s)"
+    },
+    "voice_persona": {
+      "name": "voice_persona",
+      "description": "Personality/voice datasets from video transcripts",
+      "required": true,
+      "status": "present",
+      "evidence_count": 154,
+      "s3_evidence": [
+        "datasets/gdrive/raw/dataset_pipeline/voice_quality_filter_test_report.json",
+        "datasets/gdrive/raw/dataset_pipeline/voice_training_optimizer_test_report.json",
+        "datasets/gdrive/raw/five-personality-clusters-k-means.ipynb",
+        "datasets/gdrive/raw/five-personality-clusters.ipynb",
+        "datasets/gdrive/raw/reddit_mental_health/personalfinance_2018_features_tfidf_256.csv",
+        "datasets/gdrive/raw/reddit_mental_health/personalfinance_pre_features_tfidf_256.csv",
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/Five CRUCIAL PHASES OF HEALING Complex PTSD.txt",
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/Heal Dysregulation To Bring Calm To Your Emotions and Your Nervous System.txt",
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/Here are Signs No One Listened To You in Childhood.txt",
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/How to Heal Your Wounded Soul After Trauma (4-Video Compilation).txt"
+      ],
+      "total_evidence": 154,
+      "notes": "Found 154 matching object(s)"
+    },
+    "safety_guardrails_annihilator": {
+      "name": "safety_guardrails_annihilator",
+      "description": "Unrestricted content for robust handling of nasty content",
+      "required": true,
+      "status": "present",
+      "evidence_count": 257,
+      "s3_evidence": [
+        "datasets/gdrive/raw/Original Reddit Data/raw data/2019/apr/mentalhealthapr19.csv",
+        "datasets/gdrive/raw/original_reddit_data/Original Reddit Data/raw data/2019/apr/mentalhealthapr19.csv",
+        "datasets/gdrive/raw/reddit_mental_health/.Suicide_Detection.csv.terabox.uploading.cfg",
+        "datasets/gdrive/raw/reddit_mental_health/.depression_post_features_tfidf_256.csv.terabox.uploading.cfg",
+        "datasets/gdrive/raw/reddit_mental_health/.legaladvice_2018_features_tfidf_256.csv.terabox.uploading.cfg",
+        "datasets/gdrive/raw/reddit_mental_health/.meditation_post_features_tfidf_256.csv.terabox.uploading.cfg",
+        "datasets/gdrive/raw/reddit_mental_health/COVID19_support_post_features_tfidf_256.csv",
+        "datasets/gdrive/raw/reddit_mental_health/EDAnonymous_2019_features_tfidf_256.csv",
+        "datasets/gdrive/raw/reddit_mental_health/EDAnonymous_post_features_tfidf_256.csv",
+        "datasets/gdrive/raw/reddit_mental_health/EDAnonymous_pre_features_tfidf_256.csv"
+      ],
+      "total_evidence": 257,
+      "notes": "Found 257 matching object(s)"
+    },
+    "sarcasm": {
+      "name": "sarcasm",
+      "description": "Sarcasm datasets",
+      "required": true,
+      "status": "partial",
+      "evidence_count": 1,
+      "s3_evidence": [
+        "datasets/consolidated/datasets/sarcasm_data.json"
+      ],
+      "total_evidence": 1,
+      "notes": "Found 1 matching object(s) - may need more"
+    },
+    "cptsd": {
+      "name": "cptsd",
+      "description": "CPTSD-specific datasets",
+      "required": true,
+      "status": "present",
+      "evidence_count": 297,
+      "s3_evidence": [
+        "datasets/gdrive/tier4_voice_persona/Crappy Childhood Fairy/Five CRUCIAL PHASES OF HEALING Complex PTSD.txt",
+        "datasets/gdrive/tier4_voice_persona/Heidi Priebe/10 ＂Survival Lies＂ You May Tell If You Have CPTSD.txt",
+        "datasets/gdrive/tier4_voice_persona/Heidi Priebe/C-PTSD Survivors： 10 Important Messages You May Have Missed In Childhood.txt",
+        "datasets/gdrive/tier4_voice_persona/Heidi Priebe/CPTSD： Breaking The Toxic Shame⧸Procrastination Cycle With Self-Compassion.txt",
+        "datasets/gdrive/tier4_voice_persona/Heidi Priebe/Complex PTSD： 10 Realistic Signs Of Healing.txt",
+        "datasets/gdrive/tier4_voice_persona/Patrick Teahan /9 Random Examples of Shame from PTSD & CPTSD.txt",
+        "datasets/gdrive/tier4_voice_persona/Tim Fletcher/'Big T' vs 'Little t' Trauma ｜ Understanding Trauma - Part 28 ｜ #complextrauma.txt",
+        "datasets/gdrive/tier4_voice_persona/Tim Fletcher/26 Signs of Emotional Depletion.txt",
+        "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Adult Children of Wounded Parents： Reclaiming Your Worth & Identity ｜ Mommy & Daddy Issues, Part 2.txt",
+        "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Anger and Complex Trauma - Part 11⧸11 - Gaslighting.txt"
+      ],
+      "total_evidence": 297,
+      "notes": "Found 297 matching object(s)"
+    },
+    "addiction": {
+      "name": "addiction",
+      "description": "Addiction-specific datasets",
+      "required": true,
+      "status": "present",
+      "evidence_count": 32,
+      "s3_evidence": [
+        "datasets/gdrive/raw/formatted_annotated_addiction_counseling_csv_SFT/formatted_annotated_addiction_counseling_csv_SFT (1).csv",
+        "datasets/gdrive/raw/formatted_annotated_addiction_counseling_csv_SFT/formatted_annotated_addiction_counseling_csv_SFT.csv",
+        "datasets/gdrive/raw/reddit_mental_health/addiction_2018_features_tfidf_256.csv",
+        "datasets/gdrive/raw/reddit_mental_health/addiction_2019_features_tfidf_256.csv",
+        "datasets/gdrive/raw/reddit_mental_health/addiction_post_features_tfidf_256.csv",
+        "datasets/gdrive/raw/reddit_mental_health/addiction_pre_features_tfidf_256.csv",
+        "datasets/gdrive/tier4_voice_persona/Doc Snipes/Insecure Attachment Linked to CoDependency and Addiction.txt",
+        "datasets/gdrive/tier4_voice_persona/Tim Fletcher/How to Spot a Narcissist - 18 Characteristics of Narcissism ｜ Complex Trauma Recovery.txt",
+        "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Realistic Recovery - Part 1⧸13 - Seven Levels of Change.txt",
+        "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Recovery and Letting Go ｜ Re-Parenting - Part 93 ｜ #complextrauma.txt"
+      ],
+      "total_evidence": 32,
+      "notes": "Found 32 matching object(s)"
+    },
+    "experimental": {
+      "name": "experimental",
+      "description": "Experimental datasets",
+      "required": true,
+      "status": "present",
+      "evidence_count": 24,
+      "s3_evidence": [
+        "datasets/gdrive/raw/CoT_Reasoning_Scientific_Discovery_and_Research/CoT_Reasoning_Scientific Discovery and Research.json",
+        "datasets/gdrive/raw/CoT_Reasoning_Scientific_Discovery_and_Research/README.md",
+        "datasets/gdrive/processed/filtered_datasets/research_datasets_filtered.json",
+        "datasets/gdrive/processed/synthetic_conversations/research_datasets_synthetic.json",
+        "datasets/consolidated/datasets/research_datasets_filtered.json",
+        "datasets/local/ai/journal_dataset_research/cli/README.md",
+        "datasets/local/ai/journal_dataset_research/compliance/README.md",
+        "datasets/local/ai/journal_dataset_research/docs/API_REFERENCE.md",
+        "datasets/local/ai/journal_dataset_research/docs/ARCHITECTURE.md",
+        "datasets/local/ai/journal_dataset_research/docs/README.md"
+      ],
+      "total_evidence": 24,
+      "notes": "Found 24 matching object(s)"
+    },
+    "roleplay_simulator": {
+      "name": "roleplay_simulator",
+      "description": "Roleplaying guide/training simulator designer datasets",
+      "required": true,
+      "status": "present",
+      "evidence_count": 4,
+      "s3_evidence": [
+        "datasets/huggingface/huggingface/flammenai_character-roleplay-DPO.jsonl",
+        "datasets/local/ai/data_designer/EDGE_CASE_INTEGRATION.md",
+        "datasets/local/ai/data_designer/README.md",
+        "datasets/training_v3/stage4_voice_persona/hieunguyenminh_roleplay.jsonl"
+      ],
+      "total_evidence": 4,
+      "notes": "Found 4 matching object(s)"
+    },
+    "dpo_preference": {
+      "name": "dpo_preference",
+      "description": "DPO/preference training datasets",
+      "required": true,
+      "status": "present",
+      "evidence_count": 18,
+      "s3_evidence": [
+        "datasets/gdrive/raw/Anthropic_hh-rlhf/dataset_dict.json",
+        "datasets/gdrive/raw/Anthropic_hh-rlhf/test/data-00000-of-00001.arrow",
+        "datasets/gdrive/raw/Anthropic_hh-rlhf/test/dataset_info.json",
+        "datasets/gdrive/raw/Anthropic_hh-rlhf/test/state.json",
+        "datasets/gdrive/raw/Anthropic_hh-rlhf/train/data-00000-of-00001.arrow",
+        "datasets/gdrive/raw/Anthropic_hh-rlhf/train/dataset_info.json",
+        "datasets/gdrive/raw/Anthropic_hh-rlhf/train/state.json",
+        "datasets/huggingface/huggingface/PJMixers_unalignment_toxic-dpo-v0.2-ShareGPT.jsonl",
+        "datasets/huggingface/huggingface/flammenai_character-roleplay-DPO.jsonl",
+        "datasets/huggingface/huggingface/mlx-community_Human-Like-DPO.jsonl"
+      ],
+      "total_evidence": 18,
+      "notes": "Found 18 matching object(s)"
+    }
+  },
+  "summary": {
+    "total_families": 14,
+    "present": 10,
+    "partial": 4,
+    "missing": 0
+  }
+}

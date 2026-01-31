@@ -18,7 +18,7 @@ import pytest
 
 # TDD Anchor: Import the function under test
 try:
-    from ai.dataset_pipeline.processing.chatml_tokenizer import tokenize_dataset
+    from ai.pipelines.orchestrator.processing.chatml_tokenizer import tokenize_dataset
 except ImportError:
     tokenize_dataset = None
 
@@ -30,7 +30,7 @@ class TestTokenizePipeline:
         mock_tokenizer = MagicMock()
         mock_tokenizer.side_effect = lambda x, **kwargs: {"input_ids": [1, 2, 3]}
         with patch(
-            "ai.dataset_pipeline.processing.chatml_tokenizer.get_tokenizer",
+            "ai.pipelines.orchestrator.processing.chatml_tokenizer.get_tokenizer",
             return_value=mock_tokenizer,
         ):
             result = tokenize_dataset(
@@ -45,7 +45,7 @@ class TestTokenizePipeline:
         mock_tokenizer = MagicMock()
         mock_tokenizer.side_effect = lambda x, **kwargs: {"input_ids": [42, 43]}
         with patch(
-            "ai.dataset_pipeline.processing.chatml_tokenizer.get_tokenizer",
+            "ai.pipelines.orchestrator.processing.chatml_tokenizer.get_tokenizer",
             return_value=mock_tokenizer,
         ):
             result = tokenize_dataset(
@@ -57,7 +57,7 @@ class TestTokenizePipeline:
         """Given a missing tokenizer, when tokenizing, then an ImportError or ValueError is raised."""
         df = pd.DataFrame([{"prompt": "test", "response": "test"}])
         with patch(
-            "ai.dataset_pipeline.processing.chatml_tokenizer.get_tokenizer",
+            "ai.pipelines.orchestrator.processing.chatml_tokenizer.get_tokenizer",
             side_effect=ImportError("not found"),
         ):
             with pytest.raises(ImportError):
@@ -71,7 +71,7 @@ class TestTokenizePipeline:
         mock_tokenizer = MagicMock()
         mock_tokenizer.side_effect = lambda x, **kwargs: {"input_ids": list(range(50))}
         with patch(
-            "ai.dataset_pipeline.processing.chatml_tokenizer.get_tokenizer",
+            "ai.pipelines.orchestrator.processing.chatml_tokenizer.get_tokenizer",
             return_value=mock_tokenizer,
         ):
             result = tokenize_dataset(
@@ -89,11 +89,11 @@ class TestTokenizePipeline:
         mock_tokenizer = MagicMock()
         mock_tokenizer.side_effect = lambda x, **kwargs: {"input_ids": [1, 2, 3, 4]}
         with patch(
-            "ai.dataset_pipeline.processing.chatml_tokenizer.get_tokenizer",
+            "ai.pipelines.orchestrator.processing.chatml_tokenizer.get_tokenizer",
             return_value=mock_tokenizer,
         ):
             with patch(
-                "ai.dataset_pipeline.processing.chatml_tokenizer.log_tokenization_stats"
+                "ai.pipelines.orchestrator.processing.chatml_tokenizer.log_tokenization_stats"
             ) as mock_log:
                 tokenize_dataset(
                     df, tokenizer_name="mock", text_fields=["prompt", "response"]
@@ -105,7 +105,7 @@ class TestTokenizePipeline:
         df = pd.DataFrame([{"foo": "bar"}])
         mock_tokenizer = MagicMock()
         with patch(
-            "ai.dataset_pipeline.processing.chatml_tokenizer.get_tokenizer",
+            "ai.pipelines.orchestrator.processing.chatml_tokenizer.get_tokenizer",
             return_value=mock_tokenizer,
         ):
             with pytest.raises(ValueError):
@@ -119,11 +119,11 @@ class TestTokenizePipeline:
         mock_tokenizer = MagicMock()
         mock_tokenizer.side_effect = lambda x, **kwargs: {"input_ids": [1, 2]}
         with patch(
-            "ai.dataset_pipeline.processing.chatml_tokenizer.get_tokenizer",
+            "ai.pipelines.orchestrator.processing.chatml_tokenizer.get_tokenizer",
             return_value=mock_tokenizer,
         ):
             with patch(
-                "ai.dataset_pipeline.processing.chatml_tokenizer.privacy_bias_hook"
+                "ai.pipelines.orchestrator.processing.chatml_tokenizer.privacy_bias_hook"
             ) as mock_hook:
                 tokenize_dataset(
                     df, tokenizer_name="mock", text_fields=["prompt", "response"]
@@ -135,7 +135,7 @@ class TestTokenizePipeline:
         df = pd.DataFrame(columns=["prompt", "response"])
         mock_tokenizer = MagicMock()
         with patch(
-            "ai.dataset_pipeline.processing.chatml_tokenizer.get_tokenizer",
+            "ai.pipelines.orchestrator.processing.chatml_tokenizer.get_tokenizer",
             return_value=mock_tokenizer,
         ):
             result = tokenize_dataset(

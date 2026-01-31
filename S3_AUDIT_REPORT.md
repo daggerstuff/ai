@@ -25,7 +25,7 @@ These files exist locally but were not found in the S3 bucket:
 - `pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-*/optimizer.pt`
 - `pixelated/ai/lightning/h100_deployment/therapeutic_ai_h100_deployment_*.zip`
 
-**Datasets (`ai/training_ready/data/`):**
+**Datasets (`ai/training/ready_packages/data/`):**
 - `ULTIMATE_FINAL_DATASET.jsonl` (>100MB)
 - `ULTIMATE_FINAL_DATASET_cleaned.jsonl`
 - `final_corpus/merged_dataset_raw.jsonl` (Local is newer/larger than S3 equivalent)
@@ -44,7 +44,7 @@ The S3 bucket `pixel-data` currently contains:
 - `releases/v2026-01-07/RELEASE_0_UNIFIED_MANIFEST.json`
 
 ## 📋 Manifest Analysis
-The file `ai/training_ready/TRAINING_MANIFEST.json` currently references **Local Paths** (e.g., `/home/vivi/pixelated/ai/...`).
+The file `ai/training/ready_packages/TRAINING_MANIFEST.json` currently references **Local Paths** (e.g., `/home/vivi/pixelated/ai/...`).
 It does **not** map to S3 URIs, confirming that the system setup is currently detached from S3 for these artifacts.
 
 ## 🛠 Recommended Actions

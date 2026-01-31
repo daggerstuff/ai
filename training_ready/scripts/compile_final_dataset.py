@@ -34,7 +34,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from ai.training_ready.scripts.enhanced_deduplication import (
+from ai.training.ready_packages.scripts.enhanced_deduplication import (
     ConversationEntry,
     EnhancedDeduplicator,
     compute_content_hash,

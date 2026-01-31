@@ -1,0 +1,57 @@
+{
+  "validation_summary": {
+    "timestamp": "2025-08-24T14:17:51.298426+00:00",
+    "total_scenarios": 567,
+    "target_accuracy": 0.95,
+    "achieved_accuracy": 0.9717813051146384,
+    "meets_requirements": true,
+    "false_positive_rate": 0,
+    "false_negative_rate": 0
+  },
+  "detailed_metrics": {
+    "overall_accuracy": 0.9717813051146384,
+    "precision": 0.9725560620711884,
+    "recall": 0.9717813051146384,
+    "f1_score": 0.9718103334222102,
+    "false_positive_rate": 0,
+    "false_negative_rate": 0,
+    "auc_roc": 0.9998380304502754,
+    "sensitivity": 0,
+    "specificity": 0,
+    "demographic_bias_score": 0.9382716049382716,
+    "language_bias_score": 0.9417989417989419,
+    "age_bias_score": 0.9417989417989419,
+    "clinical_validation_score": 0.96,
+    "statistical_significance": 1.0,
+    "confidence_interval": [
+      0.9581506329125211,
+      0.9854119773167558
+    ]
+  },
+  "bias_analysis": {
+    "demographic_bias_score": 0.9382716049382716,
+    "language_bias_score": 0.9417989417989419,
+    "age_bias_score": 0.9417989417989419,
+    "bias_threshold": 0.95,
+    "passes_bias_test": false
+  },
+  "clinical_validation": {
+    "clinical_validation_score": 0.96,
+    "clinical_threshold": 0.95,
+    "passes_clinical_validation": true,
+    "clinical_reviewers": [
+      "clinical_validator_001",
+      "clinical_validator_002"
+    ],
+    "medical_advisory_board_approval": "pending"
+  },
+  "statistical_analysis": {
+    "statistical_significance": 1.0,
+    "confidence_interval": [
+      0.9581506329125211,
+      0.9854119773167558
+    ],
+    "sample_size": 567,
+    "power_analysis": "adequate"
+  }
+}

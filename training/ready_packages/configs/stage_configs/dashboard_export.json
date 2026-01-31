@@ -1,0 +1,161 @@
+{
+  "dashboard_config": {
+    "refresh_interval": 300,
+    "metrics_retention_days": 30,
+    "chart_types": {
+      "quality_distribution": "pie",
+      "tier_distribution": "bar",
+      "performance_trends": "line",
+      "safety_metrics": "gauge"
+    },
+    "alert_thresholds": {
+      "low_quality_percentage": 0.2,
+      "safety_score_minimum": 0.8,
+      "export_failure_rate": 0.05
+    }
+  },
+  "metrics_history": [
+    {
+      "timestamp": "2025-08-24T13:45:30.729582",
+      "total_conversations": 15420,
+      "quality_distribution": {
+        "excellent": 3084,
+        "good": 6168,
+        "acceptable": 4626,
+        "poor": 1542
+      },
+      "tier_distribution": {
+        "priority": 1542,
+        "professional": 3084,
+        "cot": 4626,
+        "reddit": 4626,
+        "research": 1542,
+        "archive": 0
+      },
+      "source_distribution": {
+        "priority_clinical": 1542,
+        "professional_therapists": 3084,
+        "chain_of_thought": 4626,
+        "reddit_mentalhealth": 4626,
+        "research_papers": 1542
+      },
+      "condition_distribution": {
+        "anxiety": 4626,
+        "depression": 4626,
+        "ptsd": 1542,
+        "bipolar": 1542,
+        "ocd": 1542,
+        "adhd": 1542
+      },
+      "approach_distribution": {
+        "cbt": 6168,
+        "dbt": 3084,
+        "mindfulness": 2313,
+        "psychodynamic": 1542,
+        "humanistic": 1542,
+        "emdr": 771
+      },
+      "safety_metrics": {
+        "overall_safety_score": 0.91,
+        "harmful_content_detected": 0.03,
+        "ethics_violations": 0.02,
+        "crisis_content_handled": 0.98,
+        "boundary_violations": 0.01,
+        "safety_compliance_rate": 0.94
+      },
+      "effectiveness_metrics": {
+        "predicted_effectiveness": 0.78,
+        "therapeutic_accuracy": 0.85,
+        "intervention_appropriateness": 0.82,
+        "outcome_prediction_confidence": 0.76,
+        "evidence_based_compliance": 0.88,
+        "clinical_validity": 0.83
+      },
+      "export_statistics": {
+        "total_exports": 24,
+        "successful_exports": 23,
+        "failed_exports": 1,
+        "export_success_rate": 0.958,
+        "formats_used": {
+          "json": 8,
+          "csv": 6,
+          "parquet": 5,
+          "huggingface": 3,
+          "jsonl": 2
+        },
+        "total_conversations_exported": 142380,
+        "average_export_time": 45.2,
+        "last_export": "2025-08-10T07:15:00Z"
+      },
+      "performance_trends": {
+        "quality_scores": [
+          0.78,
+          0.79,
+          0.81,
+          0.82,
+          0.83,
+          0.82,
+          0.84
+        ],
+        "safety_scores": [
+          0.89,
+          0.9,
+          0.91,
+          0.92,
+          0.91,
+          0.93,
+          0.91
+        ],
+        "effectiveness_scores": [
+          0.75,
+          0.76,
+          0.77,
+          0.78,
+          0.79,
+          0.78,
+          0.78
+        ],
+        "processing_times": [
+          12.5,
+          11.8,
+          11.2,
+          10.9,
+          11.1,
+          10.7,
+          10.5
+        ],
+        "export_volumes": [
+          8420,
+          9150,
+          9680,
+          10200,
+          11500,
+          12800,
+          15420
+        ]
+      }
+    }
+  ],
+  "summary_report": {
+    "report_timestamp": "2025-08-24T13:45:30.729702",
+    "executive_summary": {
+      "total_conversations": 15420,
+      "average_quality_score": 0.813,
+      "safety_compliance": 0.91,
+      "predicted_effectiveness": 0.78,
+      "high_quality_percentage": 0.6,
+      "priority_tier_percentage": 0.1,
+      "export_success_rate": 0.958
+    },
+    "key_insights": [
+      "\u26a0\ufe0f Quality improvement needed - consider raising standards",
+      "\u2705 Excellent safety compliance",
+      "\u2705 Export pipeline performing excellently",
+      "\ud83d\udcc8 Opportunity to improve therapeutic effectiveness"
+    ],
+    "recommendations": [
+      "Investigate and resolve export failures"
+    ],
+    "performance_status": "\ud83d\udfe1 GOOD - System performing well with minor areas for improvement"
+  }
+}

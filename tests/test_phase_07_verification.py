@@ -14,33 +14,33 @@ from typing import Dict, Any
 sys.path.insert(0, '/root/pixelated')
 
 # Import all the modules we've created
-from ai.dataset_pipeline.training_manifest import (
+from ai.pipelines.orchestrator.training_manifest import (
     create_default_manifest,
     TrainingManifest,
     DatasetReference,
     Hyperparameters
 )
 
-from ai.dataset_pipeline.training_runner import (
+from ai.pipelines.orchestrator.training_runner import (
     TrainingRunner,
     HealthCheckManager,
     ContainerizedTrainingRunner
 )
 
-from ai.dataset_pipeline.evaluation_system import (
+from ai.pipelines.orchestrator.evaluation_system import (
     ComprehensiveEvaluator,
     SafetyEvaluator,
     FairnessEvaluator,
     TherapeuticResponseEvaluator
 )
 
-from ai.dataset_pipeline.evaluation_gates import (
+from ai.pipelines.orchestrator.evaluation_gates import (
     create_default_gates_system,
     ModelPromotionManager,
     PromotionStage
 )
 
-from ai.dataset_pipeline.dataset_access_api import (
+from ai.pipelines.orchestrator.dataset_access_api import (
     DatasetAccessManager,
     User,
     UserRole,

@@ -1,0 +1,26 @@
+{
+  "dataset_cleaning_completed": "2025-12-30",
+  "original_conversations": 618,
+  "cleaned_conversations": 611,
+  "pii_instances_removed": 69987,
+  "duplicates_removed": 7,
+  "split_distribution": {
+    "train": 98,
+    "test": 507,
+    "val": 6
+  },
+  "source_families": {
+    "edge_case_synthetic": 20,
+    "long_running_therapy": 500,
+    "cptsd": 91
+  },
+  "format_validation": "PASSED",
+  "metadata_completeness": "100%",
+  "processing_stages": [
+    "PII Detection & Removal",
+    "Enhanced Deduplication",
+    "ChatML Format Validation",
+    "Metadata Completeness Check",
+    "Split Distribution Analysis"
+  ]
+}

@@ -11,10 +11,10 @@ from typing import Dict, List, Optional, Union, Any
 
 # Import the module being tested
 try:
-    from ai.dataset_pipeline.analytics_dashboard import AnalyticsDashboard
+    from ai.pipelines.orchestrator.analytics_dashboard import AnalyticsDashboard
 except ImportError:
     try:
-        from ai.pixel.validation.analytics_dashboard import AnalyticsDashboard
+        from ai.models.pixel_core.validation.analytics_dashboard import AnalyticsDashboard
     except ImportError:
         try:
             from ai.inference.analytics_dashboard import AnalyticsDashboard

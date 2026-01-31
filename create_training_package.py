@@ -43,15 +43,15 @@ def _get_package_config():
             ],
             # Data pipeline scripts
             "data_pipeline": [
-                "ai/dataset_pipeline/orchestration/integrated_training_pipeline.py",
-                "ai/dataset_pipeline/ingestion/edge_case_jsonl_loader.py",
-                "ai/dataset_pipeline/ingestion/dual_persona_loader.py",
-                "ai/dataset_pipeline/ingestion/psychology_knowledge_loader.py",
-                "ai/dataset_pipeline/ingestion/pixel_voice_loader.py",
+                "ai/pipelines/orchestrator/orchestration/integrated_training_pipeline.py",
+                "ai/pipelines/orchestrator/ingestion/edge_case_jsonl_loader.py",
+                "ai/pipelines/orchestrator/ingestion/dual_persona_loader.py",
+                "ai/pipelines/orchestrator/ingestion/psychology_knowledge_loader.py",
+                "ai/pipelines/orchestrator/ingestion/pixel_voice_loader.py",
             ],
             # Utility files
             "utils": [
-                "ai/dataset_pipeline/utils/logger.py",
+                "ai/pipelines/orchestrator/utils/logger.py",
             ],
         },
         "data_files": {
@@ -59,11 +59,11 @@ def _get_package_config():
                 "ai/lightning/training_dataset.json",
             ],
             "edge_cases": [
-                "ai/pipelines/edge_case_pipeline_standalone/output/edge_cases_training_format.jsonl",
+                "ai/pipelines/edge_case/output/edge_cases_training_format.jsonl",
             ],
             "dual_persona": [
-                "ai/pipelines/dual_persona_training/dual_persona_training_data.jsonl",
-                "ai/pipelines/dual_persona_training/training_config.json",
+                "ai/pipelines/dual_persona/dual_persona_training_data.jsonl",
+                "ai/pipelines/dual_persona/training_config.json",
             ],
             "psychology_knowledge": [
                 "ai/training_data_consolidated/psychology_knowledge_base.json",
