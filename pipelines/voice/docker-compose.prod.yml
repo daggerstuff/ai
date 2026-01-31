@@ -1,0 +1,190 @@
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: pixel_voice
+      POSTGRES_USER: pixel_voice
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pixel_voice_secure_password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pixel_voice"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - pixel-voice-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - pixel-voice-network
+
+  # Pixel Voice API
+  pixel-voice-api:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: api
+    ports:
+      - "8000:8000"
+    environment:
+      - PIXEL_VOICE_ENV=production
+      - PIXEL_VOICE_DEBUG=false
+      - PIXEL_VOICE_API_HOST=0.0.0.0
+      - PIXEL_VOICE_API_PORT=8000
+      - DATABASE_URL=postgresql://pixel_voice:${POSTGRES_PASSWORD:-pixel_voice_secure_password}@postgres:5432/pixel_voice
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-pixel-voice-secure-key-change-in-production}
+      - JWT_SECRET=${JWT_SECRET:-pixel-voice-jwt-secret-change-in-production}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - pixel-voice-network
+
+  # Pixel Voice MCP Server
+  pixel-voice-mcp:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    command: mcp
+    ports:
+      - "8001:8001"
+    environment:
+      - PIXEL_VOICE_ENV=production
+      - PIXEL_VOICE_DEBUG=false
+      - PIXEL_VOICE_MCP_HOST=0.0.0.0
+      - PIXEL_VOICE_MCP_PORT=8001
+      - DATABASE_URL=postgresql://pixel_voice:${POSTGRES_PASSWORD:-pixel_voice_secure_password}@postgres:5432/pixel_voice
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-your-super-secret-key-change-in-production}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      pixel-voice-api:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - pixel-voice-network
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - pixel-voice-api
+    restart: unless-stopped
+    networks:
+      - pixel-voice-network
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - pixel-voice-network
+
+  # Grafana Dashboard
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+    networks:
+      - pixel-voice-network
+
+  # Alertmanager
+  alertmanager:
+    image: prom/alertmanager:latest
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+      - '--web.external-url=http://localhost:9093'
+    restart: unless-stopped
+    networks:
+      - pixel-voice-network
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  alertmanager_data:
+    driver: local
+
+networks:
+  pixel-voice-network:
+    driver: bridge
