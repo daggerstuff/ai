@@ -10,7 +10,8 @@ This module orchestrates the complete dataset pipeline:
 
 import json
 import logging
-from datetime import datetime
+import sys
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -71,6 +72,11 @@ class DatasetPipelineOrchestrator:
         # 4. Academic Sourcing (PubMed/Scholar)
         results["academic_sourcing"] = self.generator.ensure_academic_sourcing(limit_per_query=10)
 
+        # 5. Journal Research (Trigger specific queries)
+        results["journal_research"] = self.generator.ensure_journal_research(
+            queries=["trauma informed care", "empathetic dialogue datasets"]
+        )
+
         logger.info(f"Data completeness check results: {results}")
         return results
 
@@ -108,7 +114,7 @@ class DatasetPipelineOrchestrator:
             raise
 
     def create_training_manifest(
-        self, dataset_path: str, composition_report_path: str = None
+        self, dataset_path: str, composition_report_path: str | None = None
     ) -> str:
         """Create the training manifest with safety protocols"""
         logger.info("Creating training manifest with safety protocols...")
@@ -152,7 +158,7 @@ class DatasetPipelineOrchestrator:
         logger.info("Performing final dataset validation...")
 
         validation_report = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "dataset_path": dataset_path,
             "validation_results": {},
         }
@@ -184,7 +190,7 @@ class DatasetPipelineOrchestrator:
 
             if sample_size > 0:
                 with open(dataset_path) as f:
-                    for i, line in enumerate(f):
+                    for _line_idx, line in enumerate(f):
                         if sample_checked >= sample_size:
                             break
                         if line.strip():
@@ -220,7 +226,7 @@ class DatasetPipelineOrchestrator:
 
         final_report = {
             "pipeline_execution_report": {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "pipeline_version": "1.0",
                 "components_executed": [
                     "unified_preprocessing_pipeline",
@@ -345,4 +351,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())
+    sys.exit(main())
