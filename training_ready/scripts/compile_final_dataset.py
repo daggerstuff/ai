@@ -193,15 +193,17 @@ class FinalDatasetCompiler:
             return []
 
         logger.info(f"[{len(self.processed_families)+1}/14] Loading {family_name}...")
+        family_config = self.routing_config.get("families", {}).get(family_name, {})
+        s3_path = family_config.get("s3_path")
+        logger.info(f"  Config for {family_name}: s3_path={s3_path}, status={family_config.get('status')}")
         convs = self._load_family_from_routing(family_name)
 
-        # Add metadata
+        # Add source_family and metadata
         for conv in convs:
+            conv["source_family"] = family_name
             if "metadata" not in conv:
                 conv["metadata"] = {}
             conv["metadata"]["source_family"] = family_name
-            if "content_hash" not in conv["metadata"]:
-                conv["metadata"]["content_hash"] = compute_content_hash(conv.get("messages", []))
 
         self.processed_families.add(family_name)
         self.family_stats[family_name] = len(convs)
@@ -219,15 +221,19 @@ class FinalDatasetCompiler:
             return []
 
         try:
+            logger.info(f"  Loading {family_name} from {s3_path}")
             if s3_path.endswith(".jsonl"):
-                return self._load_jsonl_from_s3(s3_path)
+                convs = self._load_jsonl_from_s3(s3_path)
             elif s3_path.endswith(".json"):
-                return self._load_json_from_s3(s3_path)
+                convs = self._load_json_from_s3(s3_path)
             elif s3_path.endswith(".csv"):
-                return self._load_csv_from_s3(s3_path)
+                convs = self._load_csv_from_s3(s3_path)
             else:
                 logger.warning(f"Unknown format for {s3_path}")
                 return []
+            
+            logger.info(f"  Loaded {len(convs)} conversations from {family_name}")
+            return convs
         except Exception as e:
             logger.error(f"Error loading {family_name} from {s3_path}: {e}")
             return []
@@ -240,8 +246,29 @@ class FinalDatasetCompiler:
             if not s3_path.startswith("s3://"):
                 s3_path = f"s3://{self.s3_loader.bucket}/{s3_path}"
             for line in self.s3_loader.stream_jsonl(s3_path):
-                if line and isinstance(line, dict):
-                    convs.append(line)
+                if not line or not isinstance(line, dict):
+                    continue
+                    
+                # Normalize to messages format - handle actual S3 data structure
+                conv = line.copy()
+                
+                # The actual S3 files have 'conversation' key with list of message dicts
+                if "conversation" in conv and isinstance(conv["conversation"], list):
+                    # Already in correct format - rename for consistency
+                    conv["messages"] = conv.pop("conversation")
+                elif "messages" not in conv:
+                    # Fallback for other formats
+                    if "prompt" in conv:
+                        conv["messages"] = [{"role": "user", "content": conv["prompt"]}]
+                    elif "text" in conv:
+                        conv["messages"] = [{"role": "user", "content": conv["text"]}]
+                    else:
+                        # Skip if we can't find message-like data
+                        continue
+                
+                # Ensure we have required fields
+                if "messages" in conv and conv["messages"]:
+                    convs.append(conv)
         except Exception as e:
             logger.warning(f"Error streaming {s3_path}: {e}")
         return convs
@@ -285,6 +312,34 @@ class FinalDatasetCompiler:
             if idx % 3 == 0:
                 gc.collect()
 
+        # ALSO load locally generated Phase 1a data
+        logger.info("=" * 80)
+        logger.info("LOADING LOCALLY GENERATED PHASE 1a DATA")
+        logger.info("=" * 80)
+        generated_dir = self.config.output_dir.parent / "generated"
+        if generated_dir.exists():
+            for jsonl_file in generated_dir.glob("*.jsonl"):
+                # Map filename to family name
+                family_name = jsonl_file.stem.replace("_", "-")
+                logger.info(f"Loading {jsonl_file.name} as family: {family_name}...")
+                try:
+                    with open(jsonl_file) as f:
+                        for line in f:
+                            if line.strip():
+                                conv = json.loads(line)
+                                if "messages" not in conv and "conversation" in conv:
+                                    conv["messages"] = conv.pop("conversation")
+                                if "messages" in conv and conv["messages"]:
+                                    conv["source_family"] = family_name
+                                    if "metadata" not in conv:
+                                        conv["metadata"] = {}
+                                    conv["metadata"]["source_family"] = family_name
+                                    self.all_conversations.append(conv)
+                                    self.family_stats[family_name] = self.family_stats.get(family_name, 0) + 1
+                    logger.info(f"✓ Loaded {jsonl_file.name}")
+                except Exception as e:
+                    logger.warning(f"Error loading {jsonl_file.name}: {e}")
+
         logger.info(f"✓ Total conversations collected: {len(self.all_conversations):,}")
         self.save_checkpoint("collection", progress=100.0)
 
@@ -297,10 +352,13 @@ class FinalDatasetCompiler:
         # Convert to deduplication format and add to deduplicator
         logger.info(f"Input: {len(self.all_conversations):,} conversations")
         for conv in self.all_conversations:
+            # Compute content hash
+            content_hash = hashlib.sha256(json.dumps(conv.get("messages", []), sort_keys=True).encode()).hexdigest()
             entry = ConversationEntry(
-                id=conv.get("id", hashlib.sha256(str(conv).encode()).hexdigest()[:8]),
                 messages=conv.get("messages", []),
-                metadata=conv.get("metadata", {}),
+                source_family=conv.get("source_family", "unknown"),
+                source_key=conv.get("source_key", hashlib.sha256(str(conv).encode()).hexdigest()[:8]),
+                content_hash=content_hash,
             )
             self.deduplicator.add_conversation(entry)
 
@@ -311,9 +369,9 @@ class FinalDatasetCompiler:
         # Update all_conversations with deduplicated results
         self.all_conversations = [
             {
-                "id": e.id,
                 "messages": e.messages,
-                "metadata": e.metadata,
+                "source_family": e.source_family,
+                "source_key": e.source_key,
             }
             for e in deduplicated
         ]
@@ -416,9 +474,11 @@ class FinalDatasetCompiler:
         size_bytes = shard_path.stat().st_size
         sha256 = hashlib.sha256(shard_path.read_bytes()).hexdigest()
 
+        # Extract source families from conversations
         families = set()
         for conv in conversations:
-            fam = conv.get("metadata", {}).get("source_family")
+            # Try direct source_family first, then metadata
+            fam = conv.get("source_family") or conv.get("metadata", {}).get("source_family")
             if fam:
                 families.add(fam)
 
@@ -428,7 +488,7 @@ class FinalDatasetCompiler:
             size_bytes=size_bytes,
             sha256=sha256,
             conversation_count=len(conversations),
-            source_families=list(families),
+            source_families=list(sorted(families)),
         )
 
     def upload_to_s3(self, shards: dict[str, list[DatasetShard]]) -> None:
