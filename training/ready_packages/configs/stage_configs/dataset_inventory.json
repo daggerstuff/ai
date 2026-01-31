@@ -1,0 +1,440 @@
+{
+  "inventory_version": "1.0",
+  "generated": "2025-12-01",
+  "description": "Complete dataset inventory for Pixelated Empathy training data consolidation",
+  "vps_host": "vivi@146.71.78.184",
+  "vps_ssh_key": "planet",
+  "s3_bucket": "pixel-data",
+  "s3_endpoint": "s3.gra.io.cloud.ovh.net",
+  "datasets": {
+    "huggingface": {
+      "description": "HuggingFace datasets to download via huggingface_hub",
+      "authentication": "HF_TOKEN environment variable or huggingface-cli login",
+      "items": [
+        {
+          "id": "iqrakiran/customized-mental-health-snli2",
+          "name": "Mental Health SNLI",
+          "size_estimate_mb": 50,
+          "purpose": "NLI inference for MH statements",
+          "stage": "stage1_foundation",
+          "download_command": "huggingface-cli download iqrakiran/customized-mental-health-snli2 --local-dir ~/pixelated-datasets/raw/huggingface/customized-mental-health-snli2",
+          "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='iqrakiran/customized-mental-health-snli2', local_dir='~/pixelated-datasets/raw/huggingface/customized-mental-health-snli2')",
+          "vps_destination": "~/pixelated-datasets/raw/huggingface/customized-mental-health-snli2",
+          "s3_destination": "s3://pixel-data/raw/huggingface/customized-mental-health-snli2/",
+          "format": "json/jsonl"
+        },
+        {
+          "id": "typosonlr/MentalHealthPreProcessed",
+          "name": "MentalHealth Preprocessed",
+          "size_estimate_mb": 10,
+          "purpose": "Conversational agent training",
+          "stage": "stage1_foundation",
+          "download_command": "huggingface-cli download typosonlr/MentalHealthPreProcessed --local-dir ~/pixelated-datasets/raw/huggingface/MentalHealthPreProcessed",
+          "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='typosonlr/MentalHealthPreProcessed', local_dir='~/pixelated-datasets/raw/huggingface/MentalHealthPreProcessed')",
+          "vps_destination": "~/pixelated-datasets/raw/huggingface/MentalHealthPreProcessed",
+          "s3_destination": "s3://pixel-data/raw/huggingface/MentalHealthPreProcessed/",
+          "format": "json"
+        },
+        {
+          "id": "ShreyaR/DepressionDetection",
+          "name": "Depression Detection",
+          "size_estimate_mb": 5,
+          "purpose": "Depression indicator detection",
+          "stage": "stage1_foundation",
+          "download_command": "huggingface-cli download ShreyaR/DepressionDetection --local-dir ~/pixelated-datasets/raw/huggingface/DepressionDetection",
+          "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='ShreyaR/DepressionDetection', local_dir='~/pixelated-datasets/raw/huggingface/DepressionDetection')",
+          "vps_destination": "~/pixelated-datasets/raw/huggingface/DepressionDetection",
+          "s3_destination": "s3://pixel-data/raw/huggingface/DepressionDetection/",
+          "format": "csv/json"
+        },
+        {
+          "id": "mlx-community/Human-Like-DPO",
+          "name": "Human-Like DPO",
+          "size_estimate_mb": 200,
+          "purpose": "Natural conversation style for DPO training",
+          "stage": "stage5_safety_dpo",
+          "download_command": "huggingface-cli download mlx-community/Human-Like-DPO --local-dir ~/pixelated-datasets/raw/huggingface/Human-Like-DPO",
+          "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='mlx-community/Human-Like-DPO', local_dir='~/pixelated-datasets/raw/huggingface/Human-Like-DPO')",
+          "vps_destination": "~/pixelated-datasets/raw/huggingface/Human-Like-DPO",
+          "s3_destination": "s3://pixel-data/raw/huggingface/Human-Like-DPO/",
+          "format": "jsonl"
+        },
+        {
+          "id": "flammenai/character-roleplay-DPO",
+          "name": "Character Roleplay DPO",
+          "size_estimate_mb": 150,
+          "purpose": "Persona consistency for DPO training",
+          "stage": "stage5_safety_dpo",
+          "download_command": "huggingface-cli download flammenai/character-roleplay-DPO --local-dir ~/pixelated-datasets/raw/huggingface/character-roleplay-DPO",
+          "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='flammenai/character-roleplay-DPO', local_dir='~/pixelated-datasets/raw/huggingface/character-roleplay-DPO')",
+          "vps_destination": "~/pixelated-datasets/raw/huggingface/character-roleplay-DPO",
+          "s3_destination": "s3://pixel-data/raw/huggingface/character-roleplay-DPO/",
+          "format": "jsonl"
+        },
+        {
+          "id": "PJMixers/unalignment_toxic-dpo-v0.2-ShareGPT",
+          "name": "Toxic Safety DPO",
+          "size_estimate_mb": 100,
+          "purpose": "Safety alignment for edge case training",
+          "stage": "stage3_edge_stress_test",
+          "download_command": "huggingface-cli download PJMixers/unalignment_toxic-dpo-v0.2-ShareGPT --local-dir ~/pixelated-datasets/raw/huggingface/unalignment_toxic-dpo",
+          "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='PJMixers/unalignment_toxic-dpo-v0.2-ShareGPT', local_dir='~/pixelated-datasets/raw/huggingface/unalignment_toxic-dpo')",
+          "vps_destination": "~/pixelated-datasets/raw/huggingface/unalignment_toxic-dpo",
+          "s3_destination": "s3://pixel-data/raw/huggingface/unalignment_toxic-dpo/",
+          "format": "jsonl",
+          "edge_case_note": "Contains difficult client behavior patterns - preserve for training"
+        },
+        {
+          "id": "Amod/mental_health_counseling_conversations",
+          "name": "Mental Health Counseling Conversations",
+          "size_estimate_mb": 50,
+          "purpose": "Real therapeutic conversations",
+          "stage": "stage1_foundation",
+          "download_command": "huggingface-cli download Amod/mental_health_counseling_conversations --local-dir ~/pixelated-datasets/raw/huggingface/mental_health_counseling_conversations",
+          "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='Amod/mental_health_counseling_conversations', local_dir='~/pixelated-datasets/raw/huggingface/mental_health_counseling_conversations')",
+          "vps_destination": "~/pixelated-datasets/raw/huggingface/mental_health_counseling_conversations",
+          "s3_destination": "s3://pixel-data/raw/huggingface/mental_health_counseling_conversations/",
+          "format": "json"
+        },
+        {
+          "id": "thu-coai/esconv",
+          "name": "ESConv Emotional Support",
+          "size_estimate_mb": 20,
+          "purpose": "Emotional support conversation dataset",
+          "stage": "stage1_foundation",
+          "download_command": "huggingface-cli download thu-coai/esconv --local-dir ~/pixelated-datasets/raw/huggingface/esconv",
+          "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='thu-coai/esconv', local_dir='~/pixelated-datasets/raw/huggingface/esconv')",
+          "vps_destination": "~/pixelated-datasets/raw/huggingface/esconv",
+          "s3_destination": "s3://pixel-data/raw/huggingface/esconv/",
+          "format": "json"
+        },
+        {
+          "id": "nbertagnolli/counsel-chat",
+          "name": "Counsel Chat",
+          "size_estimate_mb": 15,
+          "purpose": "Counseling chat dataset",
+          "stage": "stage1_foundation",
+          "download_command": "huggingface-cli download nbertagnolli/counsel-chat --local-dir ~/pixelated-datasets/raw/huggingface/counsel-chat",
+          "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='nbertagnolli/counsel-chat', local_dir='~/pixelated-datasets/raw/huggingface/counsel-chat')",
+          "vps_destination": "~/pixelated-datasets/raw/huggingface/counsel-chat",
+          "s3_destination": "s3://pixel-data/raw/huggingface/counsel-chat/",
+          "format": "csv/json"
+        },
+        {
+          "id": "facebook/empathetic_dialogues",
+          "name": "Empathetic Dialogues",
+          "size_estimate_mb": 30,
+          "purpose": "Empathetic dialogue dataset",
+          "stage": "stage1_foundation",
+          "download_command": "huggingface-cli download facebook/empathetic_dialogues --local-dir ~/pixelated-datasets/raw/huggingface/empathetic_dialogues",
+          "python_command": "from huggingface_hub import snapshot_download; snapshot_download(repo_id='facebook/empathetic_dialogues', local_dir='~/pixelated-datasets/raw/huggingface/empathetic_dialogues')",
+          "vps_destination": "~/pixelated-datasets/raw/huggingface/empathetic_dialogues",
+          "s3_destination": "s3://pixel-data/raw/huggingface/empathetic_dialogues/",
+          "format": "csv"
+        }
+      ]
+    },
+    "kaggle": {
+      "description": "Kaggle datasets to download via kaggle CLI",
+      "authentication": "kaggle.json config file in ~/.kaggle/",
+      "items": [
+        {
+          "id": "rickyzou/nlp-for-mental-health-text-data",
+          "name": "NLP for Mental Health TF-IDF Archive",
+          "size_estimate_mb": 1500,
+          "purpose": "Reddit TF-IDF feature vectors (19 datasets)",
+          "stage": "stage3_edge_stress_test",
+          "download_command": "kaggle kernels output rickyzou/nlp-for-mental-health-text-data -p ~/pixelated-datasets/raw/kaggle/nlp-mental-health-tfidf/",
+          "kaggle_api_command": "kaggle datasets download -d rickyzou/nlp-for-mental-health-text-data -p ~/pixelated-datasets/raw/kaggle/nlp-mental-health-tfidf/ --unzip",
+          "vps_destination": "~/pixelated-datasets/raw/kaggle/nlp-mental-health-tfidf/",
+          "s3_destination": "s3://pixel-data/raw/kaggle/nlp-mental-health-tfidf/",
+          "format": "csv",
+          "note": "Contains 19 condition-specific TF-IDF datasets: depression_2019, anxiety_2019, Suicide_Detection.csv, etc."
+        }
+      ]
+    },
+    "google_drive": {
+      "description": "Google Drive datasets to sync via rclone or gdrive CLI",
+      "authentication": "rclone config or gdrive CLI setup",
+      "items": [
+        {
+          "id": "therapist-sft-format",
+          "name": "Therapist SFT Format",
+          "gdrive_path": "/mnt/gdrive/datasets/therapist-sft-format",
+          "size_estimate_mb": 388,
+          "purpose": "Structured therapist training conversations",
+          "stage": "stage1_foundation",
+          "sync_command": "rclone copy gdrive:datasets/therapist-sft-format ~/pixelated-datasets/raw/gdrive/therapist-sft-format -P",
+          "gdrive_command": "gdrive download -r --path ~/pixelated-datasets/raw/gdrive/therapist-sft-format <gdrive_folder_id>",
+          "vps_destination": "~/pixelated-datasets/raw/gdrive/therapist-sft-format",
+          "s3_destination": "s3://pixel-data/raw/gdrive/therapist-sft-format/",
+          "format": "csv",
+          "note": "Requires gdrive folder ID or rclone remote name"
+        },
+        {
+          "id": "SoulChat2.0",
+          "name": "SoulChat 2.0",
+          "gdrive_path": "/mnt/gdrive/datasets/SoulChat2.0",
+          "size_estimate_mb": 76,
+          "purpose": "Advanced psychological counselor digital twin data",
+          "stage": "stage1_foundation",
+          "sync_command": "rclone copy gdrive:datasets/SoulChat2.0 ~/pixelated-datasets/raw/gdrive/SoulChat2.0 -P",
+          "vps_destination": "~/pixelated-datasets/raw/gdrive/SoulChat2.0",
+          "s3_destination": "s3://pixel-data/raw/gdrive/SoulChat2.0/",
+          "format": "json"
+        },
+        {
+          "id": "counsel-chat",
+          "name": "Counsel Chat",
+          "gdrive_path": "/mnt/gdrive/datasets/counsel-chat",
+          "size_estimate_mb": 10,
+          "purpose": "Professional counseling conversation archive",
+          "stage": "stage1_foundation",
+          "sync_command": "rclone copy gdrive:datasets/counsel-chat ~/pixelated-datasets/raw/gdrive/counsel-chat -P",
+          "vps_destination": "~/pixelated-datasets/raw/gdrive/counsel-chat",
+          "s3_destination": "s3://pixel-data/raw/gdrive/counsel-chat/",
+          "format": "csv/json"
+        },
+        {
+          "id": "Psych8k",
+          "name": "Psych8k",
+          "gdrive_path": "/mnt/gdrive/datasets/Psych8k",
+          "size_estimate_mb": 6.3,
+          "purpose": "Alexander Street professional therapy conversations",
+          "stage": "stage1_foundation",
+          "sync_command": "rclone copy gdrive:datasets/Psych8k ~/pixelated-datasets/raw/gdrive/Psych8k -P",
+          "vps_destination": "~/pixelated-datasets/raw/gdrive/Psych8k",
+          "s3_destination": "s3://pixel-data/raw/gdrive/Psych8k/",
+          "format": "json"
+        },
+        {
+          "id": "neuro_qa_SFT_Trainer",
+          "name": "Neuro QA SFT Trainer",
+          "gdrive_path": "/mnt/gdrive/datasets/neuro_qa_SFT_Trainer",
+          "size_estimate_mb": 5.9,
+          "purpose": "Neurology/psychology Q&A training data",
+          "stage": "stage1_foundation",
+          "sync_command": "rclone copy gdrive:datasets/neuro_qa_SFT_Trainer ~/pixelated-datasets/raw/gdrive/neuro_qa_SFT_Trainer -P",
+          "vps_destination": "~/pixelated-datasets/raw/gdrive/neuro_qa_SFT_Trainer",
+          "s3_destination": "s3://pixel-data/raw/gdrive/neuro_qa_SFT_Trainer/",
+          "format": "json"
+        },
+        {
+          "id": "scenario_prompts",
+          "name": "Edge Case Scenario Prompts",
+          "gdrive_path": "/mnt/gdrive/datasets/scenario_prompts",
+          "size_estimate_mb": 10,
+          "purpose": "Scenario prompt spreadsheets for edge case generation",
+          "stage": "stage3_edge_stress_test",
+          "sync_command": "rclone copy gdrive:datasets/scenario_prompts ~/pixelated-datasets/raw/gdrive/scenario_prompts -P",
+          "vps_destination": "~/pixelated-datasets/raw/gdrive/scenario_prompts",
+          "s3_destination": "s3://pixel-data/raw/gdrive/scenario_prompts/",
+          "format": "csv/xlsx",
+          "note": "Seeds synthetic generation strategies - locate exact path in Google Drive"
+        },
+        {
+          "id": "CoT_datasets",
+          "name": "Chain of Thought Reasoning Datasets",
+          "gdrive_path": "/mnt/gdrive/datasets/CoT_*",
+          "size_estimate_mb": 400,
+          "purpose": "Various CoT reasoning datasets",
+          "stage": "stage2_therapeutic_expertise",
+          "sync_command": "rclone copy gdrive:datasets ~/pixelated-datasets/raw/gdrive/cot --include 'CoT_*' -P",
+          "vps_destination": "~/pixelated-datasets/raw/gdrive/cot",
+          "s3_destination": "s3://pixel-data/raw/gdrive/cot/",
+          "format": "json",
+          "note": "Multiple CoT datasets: Clinical_Diagnosis, Heartbreak, Mens_Mental_Health, Cultural_Nuances, Temporal_Reasoning, etc."
+        }
+      ]
+    },
+    "local": {
+      "description": "Local datasets to transfer from current machine to VPS",
+      "transfer_method": "rsync or scp with progress monitoring",
+      "items": [
+        {
+          "id": "edge_case_generator",
+          "name": "Edge Case Generator Outputs",
+          "local_path": "ai/lightning/ghost/edge_case_pipeline_standalone/",
+          "size_estimate_mb": 50,
+          "purpose": "Edge case crisis scenarios (25 categories)",
+          "stage": "stage3_edge_stress_test",
+          "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/lightning/ghost/edge_case_pipeline_standalone/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/edge_case_generator/",
+          "vps_destination": "~/pixelated-datasets/raw/local/edge_case_generator",
+          "s3_destination": "s3://pixel-data/raw/local/edge_case_generator/",
+          "format": "json/jsonl",
+          "edge_case_note": "CRITICAL: Tag with is_training_edge_case=true, NO safety filtering"
+        },
+        {
+          "id": "tim_fletcher_transcripts",
+          "name": "Tim Fletcher YouTube Transcripts",
+          "local_path": "ai/training_data_consolidated/transcripts/",
+          "size_estimate_mb": 1.5,
+          "purpose": "42 Tim Fletcher transcripts for voice/personality",
+          "stage": "stage4_voice_persona",
+          "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/training_data_consolidated/transcripts/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/tim_fletcher_transcripts/",
+          "vps_destination": "~/pixelated-datasets/raw/local/tim_fletcher_transcripts",
+          "s3_destination": "s3://pixel-data/raw/local/tim_fletcher_transcripts/",
+          "format": "txt/md"
+        },
+        {
+          "id": "tim_fletcher_cptsd_jsonl",
+          "name": "Tim Fletcher CPTSD Dataset (ChatML)",
+          "s3_destination": "s3://pixel-data/datasets/gdrive/processed/edge_cases/cptsd/cptsd_transcripts.jsonl",
+          "size_estimate_mb": 4.5,
+          "purpose": "Fine-tuning for CPTSD-specific therapeutic style",
+          "stage": "stage4_voice_persona",
+          "format": "jsonl",
+          "note": "Generated from YouTube transcripts on 2026-01-27"
+        },
+        {
+          "id": "tim_fletcher_voice_profile",
+          "name": "Tim Fletcher Voice Profile",
+          "local_path": "ai/data/tim_fletcher_voice/",
+          "size_estimate_mb": 0.02,
+          "purpose": "Extracted voice profile and personality markers",
+          "stage": "stage4_voice_persona",
+          "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/data/tim_fletcher_voice/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/tim_fletcher_voice/",
+          "vps_destination": "~/pixelated-datasets/raw/local/tim_fletcher_voice",
+          "s3_destination": "s3://pixel-data/raw/local/tim_fletcher_voice/",
+          "format": "json/md"
+        },
+        {
+          "id": "priority_datasets",
+          "name": "Priority Datasets (Wendy)",
+          "local_path": "ai/lightning/ghost/datasets/priority_*/",
+          "size_estimate_mb": 1164,
+          "purpose": "Top-tier curated therapeutic conversations",
+          "stage": "stage1_foundation",
+          "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/lightning/ghost/datasets/priority_*/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/priority_datasets/",
+          "vps_destination": "~/pixelated-datasets/raw/local/priority_datasets",
+          "s3_destination": "s3://pixel-data/raw/local/priority_datasets/",
+          "format": "jsonl",
+          "files": [
+            "priority_1/priority_1_FINAL.jsonl (463MB)",
+            "priority_2/priority_2_FINAL.jsonl (330MB)",
+            "priority_3/priority_3_FINAL.jsonl (371MB)"
+          ]
+        },
+        {
+          "id": "processed_phases",
+          "name": "Processed Training Phases",
+          "local_path": "ai/lightning/pixelated-training/processed/",
+          "size_estimate_mb": 753,
+          "purpose": "Pre-processed training phases (Phase 1-3)",
+          "stage": "stage1_foundation,stage2_therapeutic_expertise",
+          "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/lightning/pixelated-training/processed/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/processed_phases/",
+          "vps_destination": "~/pixelated-datasets/raw/local/processed_phases",
+          "s3_destination": "s3://pixel-data/raw/local/processed_phases/",
+          "format": "jsonl"
+        },
+        {
+          "id": "consolidated_data",
+          "name": "Consolidated Training Data",
+          "local_path": "ai/training_data_consolidated/",
+          "size_estimate_mb": 7200,
+          "purpose": "Final consolidated datasets and psychology knowledge base",
+          "stage": "multiple",
+          "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/training_data_consolidated/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/consolidated_data/",
+          "vps_destination": "~/pixelated-datasets/raw/local/consolidated_data",
+          "s3_destination": "s3://pixel-data/raw/local/consolidated_data/",
+          "format": "json/jsonl/csv",
+          "note": "Large transfer - includes ULTIMATE_FINAL_DATASET.jsonl (2GB), merged_dataset.jsonl (1.5GB), psychology knowledge base (21MB)"
+        },
+        {
+          "id": "cot_datasets",
+          "name": "CoT Reasoning Datasets (Local)",
+          "local_path": "ai/dataset_pipeline/cot_datasets/",
+          "size_estimate_mb": 0.04,
+          "purpose": "Small CoT reasoning datasets",
+          "stage": "stage2_therapeutic_expertise",
+          "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/dataset_pipeline/cot_datasets/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/cot_datasets/",
+          "vps_destination": "~/pixelated-datasets/raw/local/cot_datasets",
+          "s3_destination": "s3://pixel-data/raw/local/cot_datasets/",
+          "format": "json",
+          "note": "Note: Full CoT data is in processed Phase 3, these are small placeholders"
+        },
+        {
+          "id": "ghost_books",
+          "name": "Psychology Books (PDFs)",
+          "local_path": "ai/lightning/ghost/books/",
+          "size_estimate_mb": 126,
+          "purpose": "Psychology reference books",
+          "stage": "reference",
+          "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/lightning/ghost/books/ vivi@146.71.78.184:~/pixelated-datasets/raw/local/books/",
+          "vps_destination": "~/pixelated-datasets/raw/local/books",
+          "s3_destination": "s3://pixel-data/raw/local/books/",
+          "format": "pdf"
+        },
+        {
+          "id": "dsmv_pdf",
+          "name": "DSM-V PDF",
+          "local_path": "ai/DSMV.pdf",
+          "size_estimate_mb": 20,
+          "purpose": "Diagnostic manual reference",
+          "stage": "reference",
+          "rsync_command": "rsync -avzP --progress -e 'ssh -i ~/.ssh/planet' ai/DSMV.pdf vivi@146.71.78.184:~/pixelated-datasets/raw/local/dsmv/",
+          "vps_destination": "~/pixelated-datasets/raw/local/dsmv",
+          "s3_destination": "s3://pixel-data/raw/local/dsmv/",
+          "format": "pdf"
+        }
+      ]
+    }
+  },
+  "summary": {
+    "total_datasets": 30,
+    "huggingface_count": 10,
+    "kaggle_count": 1,
+    "google_drive_count": 7,
+    "local_count": 10,
+    "total_size_estimate_gb": 12.5,
+    "download_on_vps": {
+      "huggingface_gb": 0.58,
+      "kaggle_gb": 1.5,
+      "google_drive_gb": 0.89
+    },
+    "transfer_from_local": {
+      "total_gb": 9.2,
+      "note": "Slow transfer expected - use rsync with progress monitoring"
+    }
+  },
+  "stages": {
+    "stage1_foundation": {
+      "datasets": [
+        "HuggingFace: Mental Health SNLI, MentalHealth Preprocessed, Depression Detection, Mental Health Counseling, ESConv, Counsel Chat, Empathetic Dialogues",
+        "Google Drive: Therapist SFT, SoulChat2.0, Counsel Chat, Psych8k, Neuro QA SFT",
+        "Local: Priority datasets, Processed phases (Phase 1-2), Consolidated data"
+      ],
+      "size_estimate_gb": 5.0
+    },
+    "stage2_therapeutic_expertise": {
+      "datasets": [
+        "Google Drive: CoT datasets (Clinical Diagnosis, Heartbreak, Mens Mental Health, Cultural Nuances, Temporal Reasoning, etc.)",
+        "Local: Processed Phase 3 (CoT Reasoning), CoT datasets folder"
+      ],
+      "size_estimate_gb": 0.7
+    },
+    "stage3_edge_stress_test": {
+      "datasets": [
+        "HuggingFace: Toxic Safety DPO",
+        "Kaggle: NLP Mental Health TF-IDF Archive",
+        "Google Drive: Scenario prompts",
+        "Local: Edge case generator outputs"
+      ],
+      "size_estimate_gb": 1.56,
+      "critical_note": "NO safety filtering - tag with is_training_edge_case=true"
+    },
+    "stage4_voice_persona": {
+      "datasets": [
+        "Local: Tim Fletcher transcripts (42 files), Tim Fletcher voice profile"
+      ],
+      "size_estimate_gb": 0.0015
+    },
+    "stage5_safety_dpo": {
+      "datasets": [
+        "HuggingFace: Human-Like DPO, Character Roleplay DPO"
+      ],
+      "size_estimate_gb": 0.35
+    }
+  }
+}
+

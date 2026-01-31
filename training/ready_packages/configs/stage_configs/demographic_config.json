@@ -1,0 +1,234 @@
+{
+  "age": {
+    "category": "Age Groups",
+    "subcategories": {
+      "young_adult": 0.25,
+      "adult": 0.35,
+      "middle_aged": 0.25,
+      "older_adult": 0.15
+    },
+    "keywords": {
+      "young_adult": [
+        "young",
+        "college",
+        "university",
+        "twenties",
+        "early career",
+        "student"
+      ],
+      "adult": [
+        "adult",
+        "career",
+        "thirties",
+        "forties",
+        "working",
+        "professional"
+      ],
+      "middle_aged": [
+        "middle-aged",
+        "fifties",
+        "midlife",
+        "experienced",
+        "senior"
+      ],
+      "older_adult": [
+        "elderly",
+        "senior",
+        "retired",
+        "older",
+        "sixties",
+        "seventies"
+      ]
+    },
+    "min_samples_per_subcategory": 100,
+    "bias_indicators": [
+      "ageism",
+      "age discrimination",
+      "generational bias"
+    ]
+  },
+  "gender": {
+    "category": "Gender Identity",
+    "subcategories": {
+      "female": 0.45,
+      "male": 0.45,
+      "non_binary": 0.05,
+      "other": 0.05
+    },
+    "keywords": {
+      "female": [
+        "woman",
+        "female",
+        "she",
+        "her",
+        "mother",
+        "daughter",
+        "wife"
+      ],
+      "male": [
+        "man",
+        "male",
+        "he",
+        "him",
+        "father",
+        "son",
+        "husband"
+      ],
+      "non_binary": [
+        "non-binary",
+        "nonbinary",
+        "they",
+        "them",
+        "genderqueer"
+      ],
+      "other": [
+        "transgender",
+        "trans",
+        "gender fluid",
+        "questioning"
+      ]
+    },
+    "min_samples_per_subcategory": 80,
+    "bias_indicators": [
+      "sexism",
+      "gender bias",
+      "misogyny",
+      "transphobia"
+    ]
+  },
+  "cultural_background": {
+    "category": "Cultural Background",
+    "subcategories": {
+      "western": 0.4,
+      "hispanic_latino": 0.2,
+      "african": 0.15,
+      "asian": 0.15,
+      "indigenous": 0.05,
+      "middle_eastern": 0.05
+    },
+    "keywords": {
+      "western": [
+        "american",
+        "european",
+        "western",
+        "caucasian",
+        "white"
+      ],
+      "hispanic_latino": [
+        "hispanic",
+        "latino",
+        "latina",
+        "mexican",
+        "spanish",
+        "puerto rican"
+      ],
+      "african": [
+        "african",
+        "black",
+        "african american",
+        "caribbean"
+      ],
+      "asian": [
+        "asian",
+        "chinese",
+        "japanese",
+        "korean",
+        "indian",
+        "vietnamese"
+      ],
+      "indigenous": [
+        "native",
+        "indigenous",
+        "tribal",
+        "first nations"
+      ],
+      "middle_eastern": [
+        "middle eastern",
+        "arab",
+        "persian",
+        "turkish"
+      ]
+    },
+    "min_samples_per_subcategory": 60,
+    "bias_indicators": [
+      "racism",
+      "cultural bias",
+      "xenophobia",
+      "stereotyping"
+    ]
+  },
+  "socioeconomic": {
+    "category": "Socioeconomic Status",
+    "subcategories": {
+      "low_income": 0.25,
+      "middle_income": 0.5,
+      "high_income": 0.25
+    },
+    "keywords": {
+      "low_income": [
+        "poor",
+        "poverty",
+        "low income",
+        "struggling financially",
+        "unemployed",
+        "welfare"
+      ],
+      "middle_income": [
+        "middle class",
+        "working class",
+        "average income",
+        "stable job"
+      ],
+      "high_income": [
+        "wealthy",
+        "rich",
+        "high income",
+        "affluent",
+        "executive",
+        "professional"
+      ]
+    },
+    "min_samples_per_subcategory": 70,
+    "bias_indicators": [
+      "classism",
+      "economic bias",
+      "poverty stigma"
+    ]
+  },
+  "geographic": {
+    "category": "Geographic Distribution",
+    "subcategories": {
+      "urban": 0.45,
+      "suburban": 0.35,
+      "rural": 0.2
+    },
+    "keywords": {
+      "urban": [
+        "city",
+        "urban",
+        "downtown",
+        "metropolitan",
+        "apartment"
+      ],
+      "suburban": [
+        "suburban",
+        "suburbs",
+        "neighborhood",
+        "community"
+      ],
+      "rural": [
+        "rural",
+        "country",
+        "farm",
+        "small town",
+        "village"
+      ]
+    },
+    "min_samples_per_subcategory": 60,
+    "bias_indicators": [
+      "urban bias",
+      "rural stereotypes",
+      "geographic discrimination"
+    ]
+  }
+}

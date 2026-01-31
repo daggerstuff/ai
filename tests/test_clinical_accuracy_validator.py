@@ -11,10 +11,10 @@ from typing import Dict, List, Optional, Union, Any
 
 # Import the module being tested
 try:
-    from ai.dataset_pipeline.clinical_accuracy_validator import ClinicalAccuracyValidator
+    from ai.pipelines.orchestrator.clinical_accuracy_validator import ClinicalAccuracyValidator
 except ImportError:
     try:
-        from ai.pixel.validation.clinical_accuracy_validator import ClinicalAccuracyValidator
+        from ai.models.pixel_core.validation.clinical_accuracy_validator import ClinicalAccuracyValidator
     except ImportError:
         try:
             from ai.inference.clinical_accuracy_validator import ClinicalAccuracyValidator

@@ -3,8 +3,8 @@
 ## ✅ What's Done
 
 - ✅ NGC CLI utility module created (`ai/utils/ngc_cli.py`)
-- ✅ Training Ready integration (`ai/training_ready/utils/ngc_resources.py`)
-- ✅ Dataset Pipeline integration (`ai/dataset_pipeline/sourcing/ngc_ingestor.py`)
+- ✅ Training Ready integration (`ai/training/ready_packages/utils/ngc_resources.py`)
+- ✅ Dataset Pipeline integration (`ai/pipelines/orchestrator/sourcing/ngc_ingestor.py`)
 - ✅ Documentation created
 - ✅ Integrated into multi-source ingestor
 
@@ -68,7 +68,7 @@ This will verify:
 
 **Training Ready:**
 ```python
-from ai.training_ready.utils.ngc_resources import download_nemo_quickstart
+from ai.training.ready_packages.utils.ngc_resources import download_nemo_quickstart
 
 # Download NeMo Microservices quickstart
 quickstart_path = download_nemo_quickstart(version="25.10")
@@ -77,7 +77,7 @@ print(f"Downloaded to: {quickstart_path}")
 
 **Dataset Pipeline:**
 ```python
-from ai.dataset_pipeline.sourcing.ngc_ingestor import ingest_ngc_datasets
+from ai.pipelines.orchestrator.sourcing.ngc_ingestor import ingest_ngc_datasets
 
 # Ingest all configured NGC datasets
 results = ingest_ngc_datasets()
@@ -88,7 +88,7 @@ print(f"Results: {results}")
 
 Edit the configuration files to add more resources:
 
-**For Training Ready** (`ai/training_ready/utils/ngc_resources.py`):
+**For Training Ready** (`ai/training/ready_packages/utils/ngc_resources.py`):
 ```python
 NEMO_RESOURCES = {
     'your-resource': {
@@ -99,7 +99,7 @@ NEMO_RESOURCES = {
 }
 ```
 
-**For Dataset Pipeline** (`ai/dataset_pipeline/sourcing/ngc_ingestor.py`):
+**For Dataset Pipeline** (`ai/pipelines/orchestrator/sourcing/ngc_ingestor.py`):
 ```python
 NGC_DATASETS = {
     'nvidia/nemo/datasets/your-dataset': {
@@ -132,14 +132,14 @@ ngc registry resource download-version "nvidia/nemo-microservices/nemo-microserv
 
 **After:**
 ```python
-from ai.training_ready.utils.ngc_resources import download_nemo_quickstart
+from ai.training.ready_packages.utils.ngc_resources import download_nemo_quickstart
 quickstart = download_nemo_quickstart(version="25.10")
 ```
 
 ## 📚 Documentation
 
-- **Training Ready**: `ai/training_ready/docs/NGC_CLI_INTEGRATION.md`
-- **Dataset Pipeline**: `ai/dataset_pipeline/docs/NGC_INTEGRATION.md`
+- **Training Ready**: `ai/training/ready_packages/docs/NGC_CLI_INTEGRATION.md`
+- **Dataset Pipeline**: `ai/pipelines/orchestrator/docs/NGC_INTEGRATION.md`
 - **Summary**: `ai/NGC_CLI_INTEGRATION_SUMMARY.md`
 
 ## 🔍 Troubleshooting
@@ -171,5 +171,5 @@ quickstart = download_nemo_quickstart(version="25.10")
 ## 💡 Usage Examples
 
 See the documentation files for complete usage examples:
-- Training resources: `ai/training_ready/docs/NGC_CLI_INTEGRATION.md`
-- Dataset ingestion: `ai/dataset_pipeline/docs/NGC_INTEGRATION.md`
+- Training resources: `ai/training/ready_packages/docs/NGC_CLI_INTEGRATION.md`
+- Dataset ingestion: `ai/pipelines/orchestrator/docs/NGC_INTEGRATION.md`

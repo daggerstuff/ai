@@ -8,19 +8,19 @@ generation, from sourcing to deployment. Run from project root:
 
 import logging
 
-import ai.training_ready.scripts.upload_to_s3 as s3_uploader
-from ai.academic_sourcing import AcademicSourcingEngine
-from ai.dataset_pipeline.alignment.dpo_generator import DPOGenerator
-from ai.dataset_pipeline.orchestration.pipeline_runner import PipelineRunner
-from ai.dataset_pipeline.processing.transcript_ingestor import TranscriptIngestor
-from ai.dataset_pipeline.simulation.session_simulator import SessionSimulator
-from ai.dataset_pipeline.sourcing.multi_source_ingestor import run_all_ingestors
-from ai.dataset_pipeline.synthesis.dataset_synthesizer import DatasetSynthesizer
-from ai.dataset_pipeline.therapies.act_integration import ACTIntegration
-from ai.dataset_pipeline.therapies.cbt_integration import CBTIntegration
-from ai.dataset_pipeline.therapies.crisis_expansion import CrisisScenarioExpander
-from ai.dataset_pipeline.therapies.dbt_integration import DBTIntegration
-from ai.dataset_pipeline.therapies.emdr_integration import EMDRIntegration
+import ai.training.ready_packages.scripts.upload_to_s3 as s3_uploader
+from ai.sourcing.academic import AcademicSourcingEngine
+from ai.pipelines.orchestrator.alignment.dpo_generator import DPOGenerator
+from ai.pipelines.orchestrator.orchestration.pipeline_runner import PipelineRunner
+from ai.pipelines.orchestrator.processing.transcript_ingestor import TranscriptIngestor
+from ai.pipelines.orchestrator.simulation.session_simulator import SessionSimulator
+from ai.pipelines.orchestrator.sourcing.multi_source_ingestor import run_all_ingestors
+from ai.pipelines.orchestrator.synthesis.dataset_synthesizer import DatasetSynthesizer
+from ai.pipelines.orchestrator.therapies.act_integration import ACTIntegration
+from ai.pipelines.orchestrator.therapies.cbt_integration import CBTIntegration
+from ai.pipelines.orchestrator.therapies.crisis_expansion import CrisisScenarioExpander
+from ai.pipelines.orchestrator.therapies.dbt_integration import DBTIntegration
+from ai.pipelines.orchestrator.therapies.emdr_integration import EMDRIntegration
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -113,7 +113,7 @@ def run_dpo_generation():
     """Run DPO Pair Generation."""
     dpo = DPOGenerator()
     voice_file = (
-        "ai/training_ready/datasets/stage4_voice/"
+        "ai/training/ready_packages/datasets/stage4_voice/"
         "processed_transcripts/voice_training_data_001.json"
     )
     data = dpo.process_voice_data(voice_file)

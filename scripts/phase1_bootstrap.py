@@ -15,9 +15,9 @@ Usage:
 import sys
 from pathlib import Path
 
-from ai.foundation.dev_environment import initialize_dev_environment
-from ai.foundation.nemo_orchestration import NeMoMicroservicesManager
-from ai.foundation.therapeutic_data_pipeline import TherapeuticDataPipeline
+from ai.models.foundation.dev_environment import initialize_dev_environment
+from ai.models.foundation.nemo_orchestration import NeMoMicroservicesManager
+from ai.models.foundation.therapeutic_data_pipeline import TherapeuticDataPipeline
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
