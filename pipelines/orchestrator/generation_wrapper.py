@@ -13,6 +13,11 @@ try:
 except ImportError:
     NeMoDataDesignerService = None
 
+try:
+    from ai.sourcing.academic.academic_sourcing import AcademicSourcingEngine
+except ImportError:
+    AcademicSourcingEngine = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -173,9 +178,30 @@ class GenerationWrapper:
             logger.error(f"Long running extraction failed: {e}")
             return False
 
+    def ensure_academic_sourcing(self, limit_per_query: int = 10) -> bool:
+        """
+        Ensure academic findings are sourced (PubMed/Scholar).
+        Uses AcademicSourcingEngine.
+        """
+        logger.info(f"Ensuring Academic findings (limit_per_query={limit_per_query})...")
+
+        if not AcademicSourcingEngine:
+            logger.error("AcademicSourcingEngine could not be imported.")
+            return False
+
+        try:
+            # We use the default output path defined in the engine
+            engine = AcademicSourcingEngine()
+            engine.run_sourcing_pipeline(limit_per_query=limit_per_query)
+            return True
+        except Exception as e:
+            logger.error(f"Academic sourcing failed: {e}")
+            return False
+
     def run_all_checks(self) -> None:
         """Run all generation checks in sequence."""
         self.ensure_nemo_synthetic(target_count=10000)
         self.ensure_ultra_nightmares(count_per_category=5)  # Start small for safety/speed
         self.ensure_edge_cases(count=10000)
         self.ensure_long_running_extraction()
+        self.ensure_academic_sourcing()

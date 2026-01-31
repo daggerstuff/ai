@@ -68,6 +68,9 @@ class DatasetPipelineOrchestrator:
         # 3. Edge Case Synthetic (Target: 10,000)
         results["edge_cases"] = self.generator.ensure_edge_cases(count=10000)
 
+        # 4. Academic Sourcing (PubMed/Scholar)
+        results["academic_sourcing"] = self.generator.ensure_academic_sourcing(limit_per_query=10)
+
         logger.info(f"Data completeness check results: {results}")
         return results
 
