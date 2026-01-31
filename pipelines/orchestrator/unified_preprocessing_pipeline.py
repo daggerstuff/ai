@@ -335,6 +335,7 @@ class UnifiedPreprocessingPipeline:
         self._discover_local_conversations()
         self._discover_local_generated_synthetic()
         self._discover_local_nightmares()
+        self._discover_local_academic_findings()
 
     def _discover_local_main_datasets(self) -> None:
         datasets_dir = Path("ai/training_data_consolidated/final_datasets")
@@ -457,6 +458,27 @@ class UnifiedPreprocessingPipeline:
                     source_type="synthetic_nightmares",
                     stage="stage3_edge_stress_test",
                     metadata={"synthetic_source": "ultra_nightmare_generator"},
+                )
+            )
+
+    def _discover_local_academic_findings(self) -> None:
+        """Discover sourced academic findings (Stage 2)."""
+        academic_dir = Path(
+            "ai/training/ready_packages/datasets/stage2_reasoning/academic_literature"
+        )
+        if not academic_dir.exists():
+            return
+
+        for file_path in academic_dir.glob("*.json"):
+            self.register_data_source(
+                DataSource(
+                    name=f"academic_{file_path.stem}",
+                    path=str(file_path),
+                    format="json",
+                    size_bytes=file_path.stat().st_size,
+                    source_type="academic_findings",
+                    stage="stage2_therapeutic_expertise",
+                    metadata={"sourcing_engine": "AcademicSourcingEngine"},
                 )
             )
 
