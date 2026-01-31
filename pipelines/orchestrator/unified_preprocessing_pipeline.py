@@ -26,6 +26,12 @@ from ai.common.dataset_registry import iter_dataset_refs, load_registry
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
 from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader
 
+# Subsume legacy PII scrubbing
+try:
+    from ai.pipelines.orchestrator.processing.pii_scrubber import PIIScrubber
+except ImportError:
+    PIIScrubber = None
+
 # Try to import quality scoring (optional dependency)
 try:
     from ai.pipelines.orchestrator.quality.quality_scoring_v1 import QualityScoringV1
@@ -223,6 +229,9 @@ class ProcessingConfig:
     therapeutic_conversation_weight: float = 1.0
     knowledge_base_weight: float = 1.2
     stage_policy_overrides: dict[str, dict[str, Any]] = field(default_factory=dict)
+    scrub_pii_enabled: bool = True
+    normalize_text_enabled: bool = True
+    convert_chatml_enabled: bool = True
 
 
 class UnifiedPreprocessingPipeline:
@@ -240,6 +249,12 @@ class UnifiedPreprocessingPipeline:
         self.stage_catalog = StageCatalog()
         self.stage_policies = self._build_stage_policies()
         self._s3_loader: S3DatasetLoader | None = None
+
+        if PIIScrubber:
+            self._pii_scrubber = PIIScrubber()
+        else:
+            self._pii_scrubber = None
+
         self._pii_patterns = [
             re.compile(r"\b\d{3}-\d{3}-\d{4}\b"),
             re.compile(r"\b\(?\d{3}\)?\s*\d{3}[-.\s]?\d{4}\b"),
@@ -751,8 +766,50 @@ class UnifiedPreprocessingPipeline:
         self, record: dict[str, Any], source: DataSource
     ) -> dict[str, Any] | None:
         """Process a single record: enhance and validate"""
+        # Legacy subsumption: handle prompt/response and normalization early
+        if self.config.convert_chatml_enabled:
+            record = self._convert_to_chatml_structure(record)
+
+        if self.config.normalize_text_enabled:
+            record = self._normalize_record_text(record)
+
         enhanced = self.enhance_record(record, source)
         return enhanced if self.validate_record(enhanced) else None
+
+    def _convert_to_chatml_structure(self, record: dict[str, Any]) -> dict[str, Any]:
+        """Convert legacy 'prompt'/'response' keys to ChatML 'messages' structure."""
+        if "messages" not in record and "prompt" in record and "response" in record:
+            prompt = record.get("prompt")
+            response = record.get("response")
+            if isinstance(prompt, str) and isinstance(response, str):
+                record["messages"] = [
+                    {"role": "user", "content": prompt},
+                    {"role": "assistant", "content": response},
+                ]
+        return record
+
+    def _normalize_record_text(self, record: dict[str, Any]) -> dict[str, Any]:
+        """Subsumes legacy clean.py normalization (whitespace collapsing)."""
+
+        def _clean_field(text: Any) -> Any:
+            if not isinstance(text, str):
+                return text
+            # Collapse whitespace and strip (as in ai/pipelines/orchestrator/processing/clean.py)
+            return re.sub(r"\s+", " ", text).strip()
+
+        if "text" in record:
+            record["text"] = _clean_field(record["text"])
+
+        if "messages" in record and isinstance(record["messages"], list):
+            for msg in record["messages"]:
+                if isinstance(msg, dict) and "content" in msg:
+                    msg["content"] = _clean_field(msg["content"])
+
+        for fld_name in ["prompt", "response"]:
+            if fld_name in record:
+                record[fld_name] = _clean_field(record[fld_name])
+
+        return record
 
     def enhance_record(self, record: dict[str, Any], source: DataSource) -> dict[str, Any]:
         """Enhance a record with metadata and source information"""
@@ -931,17 +988,26 @@ class UnifiedPreprocessingPipeline:
         safe_records = []
         unsafe_filtered = 0
 
-        for record in records:
-            metadata = record.get("metadata", {})
+        for rec in records:
+            metadata = rec.get("metadata", {})
             stage = metadata.get("stage", "stage1_foundation")
             policy = self.get_stage_policy(stage)
 
-            content = self._collect_record_content(record)
+            content = self._collect_record_content(rec)
             safety_score = metadata.get("safety_score", 0.7)
+            active_rec = rec
 
             if self._contains_pii(content):
-                unsafe_filtered += 1
-                continue
+                if self.config.scrub_pii_enabled and self._pii_scrubber:
+                    active_rec = self._scrub_pii_in_record(rec)
+                    # Re-check if scrubbing worked or if we should still drop if too risky
+                    content = self._collect_record_content(active_rec)
+                    if self._contains_pii(content):  # Still contains PII after scrubbing
+                        unsafe_filtered += 1
+                        continue
+                else:
+                    unsafe_filtered += 1
+                    continue
 
             crisis_override_active = self._is_crisis_override_active(metadata, policy)
 
@@ -954,7 +1020,7 @@ class UnifiedPreprocessingPipeline:
                 unsafe_filtered += 1
                 continue
 
-            safe_records.append(record)
+            safe_records.append(active_rec)
 
         self.safety_filtered_records += unsafe_filtered
         logger.info(f"Filtered {unsafe_filtered} unsafe records (stage-aware)")
@@ -975,6 +1041,25 @@ class UnifiedPreprocessingPipeline:
         if not content:
             return False
         return any(pattern.search(content) for pattern in self._pii_patterns)
+
+    def _scrub_pii_in_record(self, record: dict[str, Any]) -> dict[str, Any]:
+        """Use the legacy PII scrubber to redact sensitive info."""
+        if not self._pii_scrubber:
+            return record
+
+        if "text" in record:
+            record["text"] = self._pii_scrubber.scrub_text(record["text"])
+
+        if "messages" in record and isinstance(record["messages"], list):
+            for msg in record["messages"]:
+                if isinstance(msg, dict) and "content" in msg:
+                    msg["content"] = self._pii_scrubber.scrub_text(msg["content"])
+
+        for fld_name in ["prompt", "response"]:
+            if fld_name in record:
+                record[fld_name] = self._pii_scrubber.scrub_text(record[fld_name])
+
+        return record
 
     def integrate_psychology_knowledge(self, records: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Integrate psychology knowledge base concepts into records"""
