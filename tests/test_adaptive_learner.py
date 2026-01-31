@@ -11,10 +11,10 @@ from typing import Dict, List, Optional, Union, Any
 
 # Import the module being tested
 try:
-    from ai.dataset_pipeline.adaptive_learner import AdaptiveLearner
+    from ai.pipelines.orchestrator.adaptive_learner import AdaptiveLearner
 except ImportError:
     try:
-        from ai.pixel.validation.adaptive_learner import AdaptiveLearner
+        from ai.models.pixel_core.validation.adaptive_learner import AdaptiveLearner
     except ImportError:
         try:
             from ai.inference.adaptive_learner import AdaptiveLearner

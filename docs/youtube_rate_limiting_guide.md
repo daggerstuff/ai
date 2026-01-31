@@ -73,7 +73,7 @@ class AntiDetectionConfig:
 
 ### Basic Rate Limiting
 ```python
-from ai.dataset_pipeline.youtube_processor import (
+from ai.pipelines.orchestrator.youtube_processor import (
     YouTubePlaylistProcessor,
     RateLimitConfig
 )
@@ -96,7 +96,7 @@ processor = YouTubePlaylistProcessor(
 
 ### Proxy Rotation
 ```python
-from ai.dataset_pipeline.youtube_processor import (
+from ai.pipelines.orchestrator.youtube_processor import (
     YouTubePlaylistProcessor,
     ProxyConfig
 )

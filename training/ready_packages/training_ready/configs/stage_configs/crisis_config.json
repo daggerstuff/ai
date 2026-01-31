@@ -1,0 +1,94 @@
+{
+  "routine": {
+    "level": "Routine",
+    "severity": "low",
+    "target_ratio": 0.75,
+    "min_samples": 2000,
+    "max_samples": 30000,
+    "risk_indicators": [
+      "mild stress",
+      "general anxiety",
+      "relationship concerns",
+      "work stress",
+      "adjustment issues",
+      "self-improvement"
+    ],
+    "safety_protocols": [
+      "standard_care",
+      "regular_monitoring"
+    ]
+  },
+  "elevated_concern": {
+    "level": "Elevated Concern",
+    "severity": "moderate",
+    "target_ratio": 0.15,
+    "min_samples": 400,
+    "max_samples": 6000,
+    "risk_indicators": [
+      "moderate depression",
+      "significant anxiety",
+      "substance use",
+      "relationship breakdown",
+      "job loss",
+      "financial stress",
+      "family conflict",
+      "health concerns"
+    ],
+    "safety_protocols": [
+      "increased_monitoring",
+      "safety_planning",
+      "resource_referral"
+    ]
+  },
+  "crisis": {
+    "level": "Crisis",
+    "severity": "high",
+    "target_ratio": 0.08,
+    "min_samples": 200,
+    "max_samples": 3000,
+    "risk_indicators": [
+      "suicidal ideation",
+      "self-harm",
+      "severe depression",
+      "panic attacks",
+      "psychotic symptoms",
+      "domestic violence",
+      "substance abuse",
+      "eating disorder",
+      "trauma response"
+    ],
+    "safety_protocols": [
+      "immediate_assessment",
+      "safety_planning",
+      "crisis_intervention",
+      "emergency_contacts",
+      "hospitalization_consideration"
+    ]
+  },
+  "emergency": {
+    "level": "Emergency",
+    "severity": "extreme",
+    "target_ratio": 0.02,
+    "min_samples": 50,
+    "max_samples": 800,
+    "risk_indicators": [
+      "active suicidal plan",
+      "suicide attempt",
+      "homicidal ideation",
+      "severe psychosis",
+      "acute intoxication",
+      "imminent danger",
+      "medical emergency",
+      "severe self-harm",
+      "complete breakdown"
+    ],
+    "safety_protocols": [
+      "immediate_intervention",
+      "emergency_services",
+      "hospitalization",
+      "crisis_team_activation",
+      "family_notification",
+      "continuous_monitoring"
+    ]
+  }
+}

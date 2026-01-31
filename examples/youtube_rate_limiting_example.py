@@ -13,7 +13,7 @@ from pathlib import Path
 # Add the project root to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ai.dataset_pipeline.youtube_processor import (
+from ai.pipelines.orchestrator.youtube_processor import (
     YouTubePlaylistProcessor,
     RateLimitConfig,
     ProxyConfig,

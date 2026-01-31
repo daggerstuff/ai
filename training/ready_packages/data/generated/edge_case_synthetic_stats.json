@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-01-26T01:01:04.648997+00:00",
+  "started_at": "2026-01-26T01:01:03.942621+00:00",
+  "bucket": "pixel-data",
+  "endpoint": "https://s3.us-east-va.io.cloud.ovh.us",
+  "prompts_key": "datasets/consolidated/edge_cases/edge_case_output/edge_case_prompts.jsonl",
+  "output": "ai/training_ready/data/generated/edge_case_synthetic.jsonl",
+  "generated": 50,
+  "crisis_keyword_hits": 4,
+  "prompt_parse_failures": 0,
+  "counts": {
+    "edge_case_prompts": 50
+  }
+}

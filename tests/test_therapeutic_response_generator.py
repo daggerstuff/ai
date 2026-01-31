@@ -11,10 +11,10 @@ from typing import Dict, List, Optional, Union, Any
 
 # Import the module being tested
 try:
-    from ai.dataset_pipeline.therapeutic_response_generator import TherapeuticResponseGenerator
+    from ai.pipelines.orchestrator.therapeutic_response_generator import TherapeuticResponseGenerator
 except ImportError:
     try:
-        from ai.pixel.validation.therapeutic_response_generator import TherapeuticResponseGenerator
+        from ai.models.pixel_core.validation.therapeutic_response_generator import TherapeuticResponseGenerator
     except ImportError:
         try:
             from ai.inference.therapeutic_response_generator import TherapeuticResponseGenerator

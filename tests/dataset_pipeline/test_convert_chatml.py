@@ -7,7 +7,7 @@ import pytest
 
 # TDD Anchor: Import target function (to be implemented)
 try:
-    from ai.dataset_pipeline.processing.convert_chatml import convert_to_chatml
+    from ai.pipelines.orchestrator.processing.convert_chatml import convert_to_chatml
 except ImportError:
     convert_to_chatml = None
 
@@ -70,7 +70,7 @@ class TestChatMLConversion:
         redacted_df = df.copy()
         redacted_df["prompt"] = "My email is [REDACTED]"
         with patch(
-            "ai.dataset_pipeline.processing.clean.redact_pii_in_text_fields",
+            "ai.pipelines.orchestrator.processing.clean.redact_pii_in_text_fields",
             return_value=redacted_df,
         ):
             chatml = convert_to_chatml(df)

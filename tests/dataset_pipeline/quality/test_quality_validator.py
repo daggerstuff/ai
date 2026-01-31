@@ -1,7 +1,7 @@
 import unittest
 
-from ai.dataset_pipeline.quality.conversation_schema import Conversation
-from ai.dataset_pipeline.quality.quality_validator import QualityValidator
+from ai.pipelines.orchestrator.quality.conversation_schema import Conversation
+from ai.pipelines.orchestrator.quality.quality_validator import QualityValidator
 
 
 class TestQualityValidator(unittest.TestCase):

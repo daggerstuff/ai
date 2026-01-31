@@ -1,6 +1,6 @@
 from ai.inference
-from ai.pixel
-from ai.dataset_pipeline
+from ai.models.pixel_core
+from ai.pipelines.orchestrator
 from .\1 import
 from typing import Dict, List, Optional, Union, Any, Tuple, Callable
 import pytest

@@ -11,10 +11,10 @@ from typing import Dict, List, Optional, Union, Any
 
 # Import the module being tested
 try:
-    from ai.dataset_pipeline.production_exporter import ProductionExporter
+    from ai.pipelines.orchestrator.production_exporter import ProductionExporter
 except ImportError:
     try:
-        from ai.pixel.validation.production_exporter import ProductionExporter
+        from ai.models.pixel_core.validation.production_exporter import ProductionExporter
     except ImportError:
         try:
             from ai.inference.production_exporter import ProductionExporter

@@ -101,10 +101,10 @@ Before running `sync-datasets.sh`, run the validation:
 
 ```bash
 # Make the script executable
-chmod +x ai/training_ready/platforms/ovh/validate-before-sync.sh
+chmod +x ai/training/ready_packages/platforms/ovh/validate-before-sync.sh
 
 # Run validation
-./ai/training_ready/platforms/ovh/validate-before-sync.sh ai/pipelines/edge_case_pipeline_standalone
+./ai/training/ready_packages/platforms/ovh/validate-before-sync.sh ai/pipelines/edge_case
 
 # Check results
 cat pre_sync_validation_report.json | jq '.'
@@ -121,7 +121,7 @@ Add to your CI pipeline before the sync-datasets step:
 python3 ai/safety/dataset_validation.py
 
 # Or run the bash script
-./ai/training_ready/platforms/ovh/validate-before-sync.sh
+./ai/training/ready_packages/platforms/ovh/validate-before-sync.sh
 VALIDATION_RESULT=$?
 
 if [ $VALIDATION_RESULT -ne 0 ]; then
@@ -130,14 +130,14 @@ if [ $VALIDATION_RESULT -ne 0 ]; then
 fi
 
 # Only if validation passes, proceed with sync
-./ai/training_ready/platforms/ovh/sync-datasets.sh upload
+./ai/training/ready_packages/platforms/ovh/sync-datasets.sh upload
 ```
 
 ## Files Created/Modified
 
 1. **ai/safety/dataset_validation.py** - Bias detection and validation module
-2. **ai/training_ready/platforms/ovh/validate-before-sync.sh** - Pre-sync validation script
-3. **ai/pipelines/edge_case_pipeline_standalone/edge_case_generator.py** - Updated with validation
+2. **ai/training/ready_packages/platforms/ovh/validate-before-sync.sh** - Pre-sync validation script
+3. **ai/pipelines/edge_case/edge_case_generator.py** - Updated with validation
 
 ## Validation Rules
 
