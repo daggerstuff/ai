@@ -55,7 +55,7 @@ def main():
     search_dirs = [
         '/home/vivi/pixelated/ai/docs',
         '/home/vivi/pixelated/ai/inference/api',
-        '/home/vivi/pixelated/ai/qa/reports'
+        '/home/vivi/pixelated/ai/infrastructure/qa/reports'
     ]
     
     # File extensions to process

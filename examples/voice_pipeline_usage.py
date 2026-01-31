@@ -13,7 +13,7 @@ from pathlib import Path
 # Add the project root to the Python path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ai.dataset_pipeline.voice_pipeline_integration import (
+from ai.pipelines.orchestrator.voice_pipeline_integration import (
     VoiceTrainingPipeline,
     VoicePipelineConfig,
     process_youtube_voice_data

@@ -16,13 +16,13 @@ MAX_WORKERS = 1
 # We will auto-generate the S3 keys to maintain structure under the prefix
 FILES_TO_UPLOAD = [
     # The Large Datasets
-    "ai/training_ready/data/final_corpus/merged_dataset_raw.jsonl",
-    "ai/training_ready/data/ULTIMATE_FINAL_DATASET_cleaned.jsonl",
-    "ai/training_ready/data/ULTIMATE_FINAL_DATASET.jsonl",
-    "ai/training_ready/configs/stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
+    "ai/training/ready_packages/data/final_corpus/merged_dataset_raw.jsonl",
+    "ai/training/ready_packages/data/ULTIMATE_FINAL_DATASET_cleaned.jsonl",
+    "ai/training/ready_packages/data/ULTIMATE_FINAL_DATASET.jsonl",
+    "ai/training/ready_packages/configs/stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
     # The Model Checkpoints (Iterate these directories)
     "ai/lightning/pixelated-training/wayfarer-balanced",
-    "ai/dataset_pipeline/pixelated-training/training_dataset.json",
+    "ai/pipelines/orchestrator/pixelated-training/training_dataset.json",
     "ai/lightning/pixelated-training/training_dataset.json",
     # The large zips
     "ai/data/compress/RealLifeDeceptionDetection.2016.zip",

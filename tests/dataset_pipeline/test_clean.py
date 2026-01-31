@@ -17,7 +17,7 @@ from unittest import mock
 import pandas as pd
 import pytest
 
-from ai.dataset_pipeline.processing import clean
+from ai.pipelines.orchestrator.processing import clean
 
 
 @pytest.fixture

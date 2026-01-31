@@ -1,0 +1,19 @@
+{
+  "generated_at": "2026-01-26T01:06:52.265680+00:00",
+  "started_at": "2026-01-26T01:06:51.696499+00:00",
+  "bucket": "pixel-data",
+  "endpoint": "https://s3.us-east-va.io.cloud.ovh.us",
+  "input_dir": "/home/vivi/datasets/gdrive/tier4_voice_persona/Tim Fletcher/",
+  "prefix": null,
+  "source_keys_provided": 0,
+  "output": "ai/training_ready/data/generated/cptsd_transcripts.jsonl",
+  "files_discovered": 91,
+  "files_processed": 91,
+  "files_skipped": 0,
+  "examples_written": 91,
+  "max_chunks_per_file": 6,
+  "voice_profile_used": true,
+  "chunk_histogram_capped_25": {
+    "1": 91
+  }
+}

@@ -33,7 +33,7 @@ The Pixel Model Inference API provides:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ TypeScript API Layer (src/pages/api/ai/pixel/)              │
+│ TypeScript API Layer (src/pages/api/ai/models/pixel_core/)              │
 │ - Authentication & Rate Limiting                             │
 │ - Request Validation                                         │
 │ - Audit Logging                                              │
@@ -50,7 +50,7 @@ The Pixel Model Inference API provides:
                           │
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ PyTorch Pixel Model (ai/pixel/models/pixel_base_model.py)   │
+│ PyTorch Pixel Model (ai/models/pixel_core/models/pixel_base_model.py)   │
 │ - Qwen3-30B Base                                             │
 │ - EQ Heads (5 domains)                                       │
 │ - Persona Classifier                                         │
@@ -83,7 +83,7 @@ uv pip install fastapi uvicorn pydantic torch
 # .env.local or environment
 export PIXEL_API_URL=http://localhost:8001
 export PIXEL_API_KEY=your-api-key  # Optional
-export PIXEL_MODEL_PATH=ai/pixel/models/pixel_base_model.pt
+export PIXEL_MODEL_PATH=ai/models/pixel_core/models/pixel_base_model.pt
 export PIXEL_API_PORT=8001
 ```
 
@@ -206,7 +206,7 @@ Response:
 ### Via API Endpoint
 
 ```bash
-POST /api/ai/pixel/infer
+POST /api/ai/models/pixel_core/infer
 
 Headers:
 - Authorization: Bearer <session-token>
@@ -296,7 +296,7 @@ uv run pytest ai/api/test_pixel_inference.py::TestPixelInferencePerformance -v
 uv run ai/api/pixel_inference_service.py &
 
 # Run tests
-pnpm test src/pages/api/ai/pixel/
+pnpm test src/pages/api/ai/models/pixel_core/
 ```
 
 ## Deployment
@@ -379,13 +379,13 @@ All inferences are logged with:
 
 ```bash
 # Check model file exists
-ls -la ai/pixel/models/pixel_base_model.pt
+ls -la ai/models/pixel_core/models/pixel_base_model.pt
 
 # Check PyTorch installation
 python -c "import torch; print(torch.__version__); print(torch.cuda.is_available())"
 
 # Recreate model
-python -c "from ai.pixel.models.pixel_base_model import PixelBaseModel; m = PixelBaseModel(); m.save('ai/pixel/models/pixel_base_model.pt')"
+python -c "from ai.models.pixel_core.models.pixel_base_model import PixelBaseModel; m = PixelBaseModel(); m.save('ai/models/pixel_core/models/pixel_base_model.pt')"
 ```
 
 ### High Latency
