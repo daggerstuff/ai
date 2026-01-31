@@ -40,7 +40,10 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 from collections import Counter
+from collections.abc import Iterator
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -181,7 +184,7 @@ Examples:
     parser.add_argument(
         "--manifest",
         default=str(Path(__file__).parents[1] / "data" / "s3_manifest.json"),
-        help="Path to s3_manifest.json for bucket/endpoint config (default: ai/training_ready/data/s3_manifest.json)",
+        help="Path to s3_manifest.json for bucket/endpoint config (default: ai/training/ready_packages/data/s3_manifest.json)",
     )
     parser.add_argument(
         "--source-key",
@@ -212,10 +215,15 @@ Examples:
     parser.add_argument(
         "--output",
         default=str(
-            Path(__file__).parents[1] / "data" / "generated" / "long_running_therapy.jsonl"
+            Path(__file__).parents[1]
+            / "datasets"
+            / "cache"
+            / "local"
+            / "long_running_therapy"
+            / "long_running_therapy.jsonl"
         ),
         metavar="PATH",
-        help="Output JSONL file path (default: ai/training_ready/data/generated/long_running_therapy.jsonl)",
+        help="Output JSONL file path (default: ai/training/ready_packages/datasets/cache/local/long_running_therapy/long_running_therapy.jsonl)",
     )
     parser.add_argument(
         "--upload-s3",
@@ -260,19 +268,15 @@ def _iter_payload_records(payload: Any) -> Any:
 
 def _is_local_path(path: str) -> bool:
     """Check if path is a local filesystem path (not S3).
-    
+
     Uses path prefix patterns to determine locality without filesystem calls.
     """
     if path.startswith("s3://"):
         return False
     # Check if it looks like a local path by prefix patterns
     # Avoid filesystem existence checks for performance
-    return (
-        path.startswith("/")
-        or path.startswith("./")
-        or path.startswith("../")
-        or path.startswith("~")
-        or (len(path) > 1 and path[1] == ":")  # Windows drive letter
+    return path.startswith(("/", "./", "../", "~")) or (
+        len(path) > 1 and path[1] == ":"  # Windows drive letter
     )
 
 
@@ -282,17 +286,17 @@ def _iter_local_records(path: str) -> Iterator[dict[str, Any]]:
     if not local_path.exists():
         logger.warning(f"Local file not found: {path}")
         return iter([])
-    
+
     lower = path.lower()
     if lower.endswith(".jsonl"):
         try:
-            with open(local_path, "r", encoding="utf-8", errors="replace") as f:
+            with open(local_path, encoding="utf-8", errors="replace") as f:
                 for line in f:
-                    line = line.strip()
-                    if not line:
+                    stripped_line = line.strip()
+                    if not stripped_line:
                         continue
                     try:
-                        yield json.loads(line)
+                        yield json.loads(stripped_line)
                     except json.JSONDecodeError as e:
                         logger.warning(f"Failed to parse JSONL line: {e}")
                         continue
@@ -301,7 +305,7 @@ def _iter_local_records(path: str) -> Iterator[dict[str, Any]]:
             return
     elif lower.endswith(".json"):
         try:
-            with open(local_path, "r", encoding="utf-8", errors="replace") as f:
+            with open(local_path, encoding="utf-8", errors="replace") as f:
                 payload = json.load(f)
             yield from _iter_payload_records(payload)
         except (OSError, json.JSONDecodeError) as e:
@@ -322,19 +326,52 @@ def _iter_source_records(
     # Check if this is a local path
     if _is_local_path(key):
         return _iter_local_records(key)
-    
+
     # Handle S3 paths
-    if key.startswith("s3://"):
-        s3_path = key
-    else:
-        s3_path = f"s3://{bucket}/{key}"
-    
+    s3_path = key if key.startswith("s3://") else f"s3://{bucket}/{key}"
+
     lower = key.lower()
     if lower.endswith(".jsonl"):
         return loader.stream_jsonl(s3_path)
     if lower.endswith(".json"):
         return _iter_payload_records(loader.load_json(s3_path))
     return iter([])
+
+
+def _list_s3_jsonl_files(loader: S3DatasetLoader, bucket: str, prefix: str) -> list[str]:
+    """List JSONL files from S3 bucket with given prefix."""
+    files: list[str] = []
+    try:
+        paginator = loader.s3_client.get_paginator("list_objects_v2")
+        pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
+
+        for page in pages:
+            for obj in page.get("Contents", []):
+                key = obj["Key"]
+                if key.lower().endswith(".jsonl"):
+                    files.append(f"s3://{bucket}/{key}")
+    except Exception as e:
+        logger.error(f"Failed to list S3 objects: {e}")
+    return files
+
+
+def _list_local_jsonl_files(input_dir: str) -> list[str]:
+    """List JSONL files from local directory."""
+    local_dir = Path(input_dir)
+    if not local_dir.is_dir():
+        logger.warning(f"Local directory not found: {input_dir}")
+        return []
+
+    logger.info(f"Scanning local directory: {local_dir}")
+    return [str(f) for f in local_dir.rglob("*.jsonl")]
+
+
+def _parse_s3_uri(s3_uri: str) -> tuple[str, str]:
+    """Parse S3 URI into bucket and prefix."""
+    without_prefix = s3_uri[5:]  # Remove s3://
+    if "/" in without_prefix:
+        return without_prefix.split("/", 1)
+    return without_prefix, ""
 
 
 def _list_jsonl_files_in_dir(
@@ -344,56 +381,17 @@ def _list_jsonl_files_in_dir(
     input_dir: str,
 ) -> list[str]:
     """List all .jsonl files in a directory (S3 prefix or local)."""
-    files: list[str] = []
-    
     if input_dir.startswith("s3://"):
-        # Parse S3 URI
-        without_prefix = input_dir[5:]  # Remove s3://
-        if "/" in without_prefix:
-            s3_bucket, prefix = without_prefix.split("/", 1)
-        else:
-            s3_bucket = without_prefix
-            prefix = ""
-        
+        s3_bucket, prefix = _parse_s3_uri(input_dir)
         logger.info(f"Scanning S3 prefix: s3://{s3_bucket}/{prefix}")
-        try:
-            paginator = loader.s3_client.get_paginator("list_objects_v2")
-            pages = paginator.paginate(Bucket=s3_bucket, Prefix=prefix)
-            
-            for page in pages:
-                if "Contents" in page:
-                    for obj in page["Contents"]:
-                        key = obj["Key"]
-                        if key.lower().endswith(".jsonl"):
-                            files.append(f"s3://{s3_bucket}/{key}")
-        except Exception as e:
-            logger.error(f"Failed to list S3 objects: {e}")
+        files = _list_s3_jsonl_files(loader, s3_bucket, prefix)
     elif _is_local_path(input_dir):
-        # Local directory
-        local_dir = Path(input_dir)
-        if local_dir.is_dir():
-            logger.info(f"Scanning local directory: {local_dir}")
-            for f in local_dir.rglob("*.jsonl"):
-                files.append(str(f))
-        else:
-            logger.warning(f"Local directory not found: {input_dir}")
+        files = _list_local_jsonl_files(input_dir)
     else:
         # Treat as S3 prefix without s3:// prefix
-        prefix = input_dir
-        logger.info(f"Scanning S3 prefix: s3://{bucket}/{prefix}")
-        try:
-            paginator = loader.s3_client.get_paginator("list_objects_v2")
-            pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
-            
-            for page in pages:
-                if "Contents" in page:
-                    for obj in page["Contents"]:
-                        key = obj["Key"]
-                        if key.lower().endswith(".jsonl"):
-                            files.append(key)
-        except Exception as e:
-            logger.error(f"Failed to list S3 objects: {e}")
-    
+        logger.info(f"Scanning S3 prefix: s3://{bucket}/{input_dir}")
+        files = _list_s3_jsonl_files(loader, bucket, input_dir)
+
     logger.info(f"Found {len(files)} JSONL files")
     return files
 
@@ -451,121 +449,119 @@ def _limit_reached(*, kept: int, limit: int) -> bool:
     return limit > 0 and kept >= limit
 
 
-def main() -> int:
-    parser = _build_arg_parser()
-    args = parser.parse_args()
+@dataclass
+class ExtractionStats:
+    """Statistics for extraction process."""
 
-    # Configure logging based on verbosity
-    log_level = logging.DEBUG if args.verbose else logging.INFO
-    logging.basicConfig(
-        level=log_level,
-        format="%(asctime)s - %(levelname)s - %(message)s" if args.verbose else "%(message)s",
-    )
+    kept: int = 0
+    seen: int = 0
+    failures: int = 0
+    skipped_short: int = 0
+    turn_hist: Counter = field(default_factory=Counter)
+    sources_used: Counter = field(default_factory=Counter)
+    sources_kept: Counter = field(default_factory=Counter)
+    last_progress_log: int = 0
 
+
+def _setup_environment(args: argparse.Namespace) -> tuple[str, str, S3DatasetLoader]:
+    """Setup S3 environment and return bucket, endpoint, and loader."""
     bucket, endpoint = _load_s3_manifest(Path(args.manifest))
-    
-    # Allow environment to override bucket for OVH S3
-    import os
     bucket = os.getenv("OVH_S3_BUCKET", bucket)
     endpoint = os.getenv("OVH_S3_ENDPOINT", endpoint)
-    
     loader = S3DatasetLoader(bucket=bucket, endpoint_url=endpoint)
+    return bucket, endpoint, loader
 
-    # Determine source keys
+
+def _determine_source_keys(
+    args: argparse.Namespace, loader: S3DatasetLoader, bucket: str
+) -> list[str] | None:
+    """Determine which source keys to process."""
     if args.input_dir:
-        # Scan directory for all JSONL files
         source_keys = _list_jsonl_files_in_dir(loader, bucket=bucket, input_dir=args.input_dir)
         if not source_keys:
             logger.error(f"No JSONL files found in {args.input_dir}")
-            return 1
-    elif args.source_key:
-        source_keys = args.source_key
-    else:
-        source_keys = DEFAULT_SOURCE_KEYS
+            return None
+        return source_keys
+    return args.source_key if args.source_key else DEFAULT_SOURCE_KEYS
 
-    logger.info(f"Processing {len(source_keys)} source(s) with min_turns={args.min_turns}")
 
-    out_path = Path(args.output)
-    out_path.parent.mkdir(parents=True, exist_ok=True)
+def _process_single_source(
+    loader: S3DatasetLoader,
+    bucket: str,
+    key: str,
+    key_idx: int,
+    total_keys: int,
+    args: argparse.Namespace,
+    stats: ExtractionStats,
+    output_file,
+) -> int:
+    """Process a single data source and return count of kept records."""
+    display_path = (
+        key if (key.startswith("s3://") or _is_local_path(key)) else f"s3://{bucket}/{key}"
+    )
 
-    kept = 0
-    seen = 0
-    failures = 0
-    skipped_short = 0
-    turn_hist: Counter = Counter()
-    sources_used: Counter = Counter()
-    sources_kept: Counter = Counter()
-    last_progress_log = 0
+    logger.info(f"[{key_idx}/{total_keys}] Processing: {display_path}")
+    stats.sources_used[key] += 1
+    source_kept = 0
 
-    started_at = datetime.now(timezone.utc).isoformat()
+    try:
+        iterator = _iter_source_records(loader, bucket=bucket, key=key)
+    except FileNotFoundError as e:
+        logger.warning(f"  ⚠ Source not found: {e}")
+        return 0
+    except Exception as e:
+        logger.warning(f"  ⚠ Error opening source: {e}")
+        return 0
 
-    with out_path.open("w", encoding="utf-8") as f:
-        for key_idx, key in enumerate(source_keys, 1):
-            # Determine display path
-            if key.startswith("s3://"):
-                display_path = key
-            elif _is_local_path(key):
-                display_path = key
-            else:
-                display_path = f"s3://{bucket}/{key}"
-            
-            logger.info(f"[{key_idx}/{len(source_keys)}] Processing: {display_path}")
-            sources_used[key] += 1
-            source_kept = 0
+    for rec in iterator:
+        stats.seen += 1
 
-            try:
-                iterator = _iter_source_records(loader, bucket=bucket, key=key)
-            except FileNotFoundError as e:
-                logger.warning(f"  ⚠ Source not found: {e}")
-                continue
-            except Exception as e:
-                logger.warning(f"  ⚠ Error opening source: {e}")
-                continue
+        # Progress logging
+        if stats.seen - stats.last_progress_log >= PROGRESS_LOG_INTERVAL:
+            logger.info(
+                f"  Progress: {stats.seen:,} seen, {stats.kept:,} kept, {stats.failures:,} failed"
+            )
+            stats.last_progress_log = stats.seen
 
-            for rec in iterator:
-                seen += 1
-                
-                # Progress logging
-                if seen - last_progress_log >= PROGRESS_LOG_INTERVAL:
-                    logger.info(f"  Progress: {seen:,} seen, {kept:,} kept, {failures:,} failed")
-                    last_progress_log = seen
+        if not isinstance(rec, dict):
+            stats.failures += 1
+            continue
 
-                if not isinstance(rec, dict):
-                    failures += 1
-                    continue
-                messages = _to_chatml_messages(rec)
-                if not messages:
-                    failures += 1
-                    continue
+        messages = _to_chatml_messages(rec)
+        if not messages:
+            stats.failures += 1
+            continue
 
-                turns = _count_user_assistant_turns(messages)
-                turn_hist[str(min(turns, 200))] += 1
+        turns = _count_user_assistant_turns(messages)
+        stats.turn_hist[str(min(turns, 200))] += 1
 
-                if turns < args.min_turns:
-                    skipped_short += 1
-                    continue
+        if turns < args.min_turns:
+            stats.skipped_short += 1
+            continue
 
-                out = _build_output_record(
-                    messages=messages,
-                    s3_path=display_path,
-                    turns=turns,
-                )
-                f.write(json.dumps(out, ensure_ascii=False) + "\n")
-                kept += 1
-                source_kept += 1
+        out = _build_output_record(messages=messages, s3_path=display_path, turns=turns)
+        output_file.write(json.dumps(out, ensure_ascii=False) + "\n")
+        stats.kept += 1
+        source_kept += 1
 
-                if _limit_reached(kept=kept, limit=args.limit):
-                    break
+        if _limit_reached(kept=stats.kept, limit=args.limit):
+            break
 
-            sources_kept[key] = source_kept
-            logger.info(f"  ✓ Extracted {source_kept:,} long-running conversations from this source")
+    stats.sources_kept[key] = source_kept
+    logger.info(f"  ✓ Extracted {source_kept:,} long-running conversations from this source")
+    return source_kept
 
-            if _limit_reached(kept=kept, limit=args.limit):
-                logger.info(f"Limit of {args.limit} reached, stopping")
-                break
 
-    # Build stats
-    stats = {
+def _generate_stats(
+    stats: ExtractionStats,
+    bucket: str,
+    endpoint: str,
+    source_keys: list[str],
+    args: argparse.Namespace,
+    started_at: str,
+) -> dict:
+    """Generate statistics dictionary."""
+    return {
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "started_at": started_at,
         "bucket": bucket,
@@ -573,49 +569,117 @@ def main() -> int:
         "source_keys": source_keys,
         "min_turns": args.min_turns,
         "limit": args.limit,
-        "seen_records": seen,
-        "kept_records": kept,
-        "skipped_short": skipped_short,
-        "parse_failures": failures,
-        "sources_used": dict(sources_used),
-        "sources_kept": dict(sources_kept),
-        "turn_histogram_capped_200": dict(sorted(turn_hist.items(), key=lambda x: int(x[0]))),
+        "seen_records": stats.seen,
+        "kept_records": stats.kept,
+        "skipped_short": stats.skipped_short,
+        "parse_failures": stats.failures,
+        "sources_used": dict(stats.sources_used),
+        "sources_kept": dict(stats.sources_kept),
+        "turn_histogram_capped_200": dict(sorted(stats.turn_hist.items(), key=lambda x: int(x[0]))),
     }
 
+
+def _save_stats(stats_dict: dict, out_path: Path) -> Path:
+    """Save statistics to JSON file."""
     stats_path = out_path.with_name("long_running_therapy_stats.json")
     stats_path.write_text(
-        json.dumps(stats, indent=2, ensure_ascii=False),
+        json.dumps(stats_dict, indent=2, ensure_ascii=False),
         encoding="utf-8",
     )
+    return stats_path
 
-    # Summary
+
+def _log_summary(
+    stats: ExtractionStats, args: argparse.Namespace, out_path: Path, stats_path: Path
+):
+    """Log extraction summary."""
     logger.info("")
     logger.info("=" * 60)
-    logger.info(f"✓ Extracted {kept:,} long-running therapy sessions (≥{args.min_turns} turns)")
-    logger.info(f"  Total records seen: {seen:,}")
-    logger.info(f"  Skipped (too short): {skipped_short:,}")
-    logger.info(f"  Parse failures: {failures:,}")
+    logger.info(
+        f"✓ Extracted {stats.kept:,} long-running therapy sessions (≥{args.min_turns} turns)"
+    )
+    logger.info(f"  Total records seen: {stats.seen:,}")
+    logger.info(f"  Skipped (too short): {stats.skipped_short:,}")
+    logger.info(f"  Parse failures: {stats.failures:,}")
     logger.info(f"  Output: {out_path}")
     logger.info(f"  Stats: {stats_path}")
 
-    # Upload to S3 if requested
-    if args.upload_s3:
-        logger.info("")
-        logger.info("Uploading to S3...")
-        
-        # Upload main output
-        output_s3_key = f"{args.s3_output_prefix}/long_running_therapy.jsonl"
-        success1 = _upload_to_s3(loader, local_path=out_path, s3_key=output_s3_key, bucket=bucket)
-        
-        # Upload stats
-        stats_s3_key = f"{args.s3_output_prefix}/long_running_therapy_stats.json"
-        success2 = _upload_to_s3(loader, local_path=stats_path, s3_key=stats_s3_key, bucket=bucket)
-        
-        if success1 and success2:
-            logger.info(f"✓ Uploaded to s3://{bucket}/{args.s3_output_prefix}/")
-        else:
-            logger.error("Some uploads failed")
-            return 1
+
+def _handle_s3_upload(
+    args: argparse.Namespace,
+    loader: S3DatasetLoader,
+    bucket: str,
+    out_path: Path,
+    stats_path: Path,
+) -> bool:
+    """Handle S3 upload if requested. Returns True on success."""
+    if not args.upload_s3:
+        return True
+
+    logger.info("")
+    logger.info("Uploading to S3...")
+
+    output_s3_key = f"{args.s3_output_prefix}/long_running_therapy.jsonl"
+    success1 = _upload_to_s3(loader, local_path=out_path, s3_key=output_s3_key, bucket=bucket)
+
+    stats_s3_key = f"{args.s3_output_prefix}/long_running_therapy_stats.json"
+    success2 = _upload_to_s3(loader, local_path=stats_path, s3_key=stats_s3_key, bucket=bucket)
+
+    if success1 and success2:
+        logger.info(f"✓ Uploaded to s3://{bucket}/{args.s3_output_prefix}/")
+        return True
+
+    logger.error("Some uploads failed")
+    return False
+
+
+def main() -> int:
+    parser = _build_arg_parser()
+    args = parser.parse_args()
+
+    # Configure logging
+    log_level = logging.DEBUG if args.verbose else logging.INFO
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s - %(levelname)s - %(message)s" if args.verbose else "%(message)s",
+    )
+
+    # Setup environment
+    bucket, endpoint, loader = _setup_environment(args)
+
+    # Determine source keys
+    source_keys = _determine_source_keys(args, loader, bucket)
+    if source_keys is None:
+        return 1
+
+    logger.info(f"Processing {len(source_keys)} source(s) with min_turns={args.min_turns}")
+
+    # Prepare output
+    out_path = Path(args.output)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    stats = ExtractionStats()
+    started_at = datetime.now(timezone.utc).isoformat()
+
+    # Process all sources
+    with out_path.open("w", encoding="utf-8") as f:
+        for key_idx, key in enumerate(source_keys, 1):
+            _process_single_source(loader, bucket, key, key_idx, len(source_keys), args, stats, f)
+
+            if _limit_reached(kept=stats.kept, limit=args.limit):
+                logger.info(f"Limit of {args.limit} reached, stopping")
+                break
+
+    # Generate and save statistics
+    stats_dict = _generate_stats(stats, bucket, endpoint, source_keys, args, started_at)
+    stats_path = _save_stats(stats_dict, out_path)
+
+    # Log summary
+    _log_summary(stats, args, out_path, stats_path)
+
+    # Handle S3 upload
+    if not _handle_s3_upload(args, loader, bucket, out_path, stats_path):
+        return 1
 
     logger.info("=" * 60)
     return 0
