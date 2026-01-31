@@ -1,1 +1,0 @@
-# Clinical Validation and Professional Evaluation Systems
