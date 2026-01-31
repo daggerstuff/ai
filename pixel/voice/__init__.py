@@ -1,1 +1,0 @@
-# Therapeutic Voice and Personality Synthesis
