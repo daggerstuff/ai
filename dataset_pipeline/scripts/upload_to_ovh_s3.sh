@@ -14,7 +14,7 @@ set -euo pipefail
 WORKSPACE_DIR="$HOME/pixelated-datasets"
 RAW_DIR="$WORKSPACE_DIR/raw"
 S3_BUCKET="pixel-data"
-S3_ENDPOINT="s3.gra.io.cloud.ovh.net"
+S3_ENDPOINT="s3.us-east-va.io.cloud.ovh.us"
 LOG_FILE="$WORKSPACE_DIR/upload.log"
 ERROR_LOG="$WORKSPACE_DIR/upload_errors.log"
 
@@ -198,7 +198,7 @@ from botocore.config import Config
 # Configure S3 client
 config = Config(
     endpoint_url="https://$S3_ENDPOINT",
-    region_name="gra"
+    region_name="us-east-va"
 )
 
 s3_client = boto3.client(
@@ -299,7 +299,7 @@ from botocore.config import Config
 
 config = Config(
     endpoint_url="https://$S3_ENDPOINT",
-    region_name="gra"
+    region_name="us-east-va"
 )
 
 s3_client = boto3.client(

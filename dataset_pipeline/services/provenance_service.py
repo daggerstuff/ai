@@ -46,6 +46,7 @@ class ProvenanceService:
         database_url: Optional[str] = None,
         s3_bucket: Optional[str] = None,
         s3_region: Optional[str] = None,
+        s3_endpoint_url: Optional[str] = None,
     ):
         """
         Initialize ProvenanceService.
@@ -54,12 +55,14 @@ class ProvenanceService:
             database_url: PostgreSQL connection string (defaults to env var)
             s3_bucket: S3 bucket name for file storage (defaults to env var)
             s3_region: S3 region (defaults to env var)
+            s3_endpoint_url: S3 endpoint URL (defaults to env var)
         """
         self.database_url = (
             database_url or os.getenv("DATABASE_URL") or os.getenv("SUPABASE_DB_URL")
         )
-        self.s3_bucket = s3_bucket or os.getenv("S3_BUCKET", "pixelated-datasets")
-        self.s3_region = s3_region or os.getenv("S3_REGION", "us-east-1")
+        self.s3_bucket = s3_bucket or os.getenv("OVH_S3_BUCKET", os.getenv("S3_BUCKET", "pixel-data"))
+        self.s3_region = s3_region or os.getenv("OVH_S3_REGION", os.getenv("S3_REGION", "us-east-1"))
+        self.s3_endpoint_url = s3_endpoint_url or os.getenv("OVH_S3_ENDPOINT", os.getenv("S3_ENDPOINT_URL", "https://s3.us-east-va.io.cloud.ovh.us"))
         self.pg_pool: Optional[asyncpg.Pool] = None
         self.is_connected = False
         self._s3_client = None
@@ -490,6 +493,9 @@ class ProvenanceService:
                 self._s3_client = boto3.client(
                     "s3",
                     region_name=self.s3_region,
+                    endpoint_url=self.s3_endpoint_url,
+                    aws_access_key_id=os.getenv("OVH_S3_ACCESS_KEY", os.getenv("AWS_ACCESS_KEY_ID")),
+                    aws_secret_access_key=os.getenv("OVH_S3_SECRET_KEY", os.getenv("AWS_SECRET_ACCESS_KEY")),
                 )
 
             # S3 key: provenance/{dataset_id}/v{version}/provenance.json
