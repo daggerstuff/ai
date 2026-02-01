@@ -22,7 +22,9 @@ project_root = Path(__file__).parents[4]
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from ai.pipelines.orchestrator.processing.pdf_processor import PDFProcessor  # noqa: E402
+from ai.pipelines.orchestrator.processing.pdf_processor import (
+    PDFProcessor,  # noqa: E402
+)
 
 logger = logging.getLogger(__name__)
 
