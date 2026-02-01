@@ -9,18 +9,17 @@ This module orchestrates the complete dataset pipeline:
 """
 
 import json
-import logging
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from ai.pipelines.orchestrator.data_splitter import DataSplitter
 from ai.pipelines.orchestrator.dataset_composition_strategy import (
     run_composition_strategy as run_composition,
 )
 from ai.pipelines.orchestrator.generation_wrapper import GenerationWrapper
-
-# Centralized output root for runtime artifacts
+from ai.pipelines.orchestrator.logger import get_logger
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
 from ai.pipelines.orchestrator.training_manifest import (
     create_safety_aware_manifest,
@@ -32,8 +31,7 @@ from ai.pipelines.orchestrator.unified_preprocessing_pipeline import (
 )
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 
 class DatasetPipelineOrchestrator:
@@ -50,6 +48,7 @@ class DatasetPipelineOrchestrator:
         # /home/vivi/pixelated/ai/pipelines/orchestrator -> /home/vivi/pixelated
         self.workspace_root = Path(__file__).resolve().parents[3]
         self.generator = GenerationWrapper(self.workspace_root)
+        self.splitter = DataSplitter(train_ratio=0.70, val_ratio=0.15, test_ratio=0.15)
 
     def ensure_data_completeness(self) -> dict[str, bool]:
         """
@@ -115,6 +114,37 @@ class DatasetPipelineOrchestrator:
             return balanced_dataset_path, composition_report
         except Exception as e:
             logger.error(f"Dataset composition failed: {e!s}")
+            raise
+
+    def run_data_splitting(self, balanced_dataset_path: str) -> dict[str, Any]:
+        """Split the balanced dataset into train/val/test sets"""
+        logger.info("Starting data splitting (70/15/15)...")
+
+        try:
+            # Load balanced records
+            records = []
+            with open(balanced_dataset_path) as f:
+                for line in f:
+                    records.append(json.loads(line.strip()))
+
+            # Perform split
+            split_result = self.splitter.split(records)
+
+            # Save split files
+            output_dir = Path(balanced_dataset_path).parent
+            split_paths = {}
+            for set_name in ["train", "val", "test"]:
+                subset = getattr(split_result, set_name)
+                path = output_dir / f"{set_name}_dataset.jsonl"
+                with open(path, "w") as f:
+                    for record in subset:
+                        f.write(json.dumps(record) + "\n")
+                split_paths[set_name] = str(path)
+
+            logger.info(f"Data splitting completed. Paths: {split_paths}")
+            return split_paths
+        except Exception as e:
+            logger.error(f"Data splitting failed: {e!s}")
             raise
 
     def create_training_manifest(
@@ -284,14 +314,20 @@ class DatasetPipelineOrchestrator:
             results["results"]["balanced_dataset_path"] = balanced_dataset_path
             results["results"]["composition_report"] = composition_report
 
+            # Step 2.5: Run data splitting
+            split_paths = self.run_data_splitting(balanced_dataset_path)
+            results["results"]["split_paths"] = split_paths
+
             # Step 3: Create training manifest
+            # Use the train set for manifest
+            manifest_dataset_path = split_paths["train"]
             composition_report_path = str(
                 Path(balanced_dataset_path).with_name(
                     Path(balanced_dataset_path).stem + "_composition_report.json"
                 )
             )
             manifest_path = self.create_training_manifest(
-                balanced_dataset_path, composition_report_path
+                manifest_dataset_path, composition_report_path
             )
             results["results"]["training_manifest_path"] = manifest_path
 
