@@ -19,12 +19,13 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-# Add project root to sys.path
+# Add project root to sys.path for local imports
 project_root = Path(__file__).parents[4]
 if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader
+# Project imports (after sys.path setup)
+from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
