@@ -25,7 +25,9 @@ if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 # Project imports (after sys.path setup)
-from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader  # noqa: E402
+from ai.training.ready_packages.utils.s3_dataset_loader import (
+    S3DatasetLoader,  # noqa: E402
+)
 
 logger = logging.getLogger(__name__)
 
