@@ -13,7 +13,6 @@ from ai.sourcing.journal.api.dependencies import (
     get_training_pipeline_service,
     require_permission_dependency,
 )
-from ai.sourcing.journal.api.models.responses import ErrorResponse
 from ai.sourcing.journal.api.services.training_pipeline_service import (
     TrainingPipelineService,
 )
@@ -50,4 +49,3 @@ async def get_pipeline_status(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get pipeline status: {str(e)}",
         )
-
