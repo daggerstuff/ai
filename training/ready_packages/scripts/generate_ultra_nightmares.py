@@ -24,9 +24,13 @@ class UltraNightmareGenerator:
         output_dir="ai/training/ready_packages/datasets/cache/local/nightmare_fuel/",
     ):
         self.api_key = (
-            os.getenv("NIM_API_KEY") or os.getenv("NVIDIA_API_KEY") or os.getenv("OPENAI_API_KEY")
+            os.getenv("NIM_API_KEY")
+            or os.getenv("NVIDIA_API_KEY")
+            or os.getenv("OPENAI_API_KEY")
         )
-        self.base_url = os.getenv("OPENAI_BASE_URL", "https://integrate.api.nvidia.com/v1")
+        self.base_url = os.getenv(
+            "OPENAI_BASE_URL", "https://integrate.api.nvidia.com/v1"
+        )
         self.model_name = model_name
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
@@ -109,12 +113,16 @@ class UltraNightmareGenerator:
                             "category": cat_key,
                             "difficulty": "cosmic_horror",
                             "model": self.model_name,
-                            "stephen_king_factor": details.get("stephen_king_factor", 10),
+                            "stephen_king_factor": details.get(
+                                "stephen_king_factor", 10
+                            ),
                             "generated_at": datetime.now(timezone.utc).isoformat(),
                         },
                     }
             else:
-                logger.error(f"Error from Nvidia API ({response.status_code}): {response.text}")
+                logger.error(
+                    f"Error from Nvidia API ({response.status_code}): {response.text}"
+                )
         except Exception as e:
             logger.error(f"Error generating {cat_key}: {e}")
 
@@ -129,9 +137,13 @@ class UltraNightmareGenerator:
                 continue
 
             if line.lower().startswith("therapist:"):
-                messages.append({"role": "assistant", "content": line[len("therapist:") :].strip()})
+                messages.append(
+                    {"role": "assistant", "content": line[len("therapist:") :].strip()}
+                )
             elif line.lower().startswith("client:"):
-                messages.append({"role": "user", "content": line[len("client:") :].strip()})
+                messages.append(
+                    {"role": "user", "content": line[len("client:") :].strip()}
+                )
         return messages
 
     def _save_jsonl(self, data):
