@@ -5,7 +5,7 @@ Provides endpoints for integrating journal research datasets into the training p
 """
 
 import logging
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -155,7 +155,10 @@ async def get_training_status(
         return status_result
 
     except Exception as e:
-        logger.error(f"Error getting training status for session {session_id}: {e}", exc_info=True)
+        logger.error(
+            f"Error getting training status for session {session_id}: {e}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get training status: {str(e)}",
@@ -238,11 +241,13 @@ async def integrate_all_datasets(
                     auto_integrate=auto_integrate,
                 )
 
-                results.append({
-                    "source_id": source_id,
-                    "success": result.get("success", False),
-                    "result": result,
-                })
+                results.append(
+                    {
+                        "source_id": source_id,
+                        "success": result.get("success", False),
+                        "result": result,
+                    }
+                )
 
                 if result.get("success"):
                     integrated_count += 1
@@ -250,12 +255,16 @@ async def integrate_all_datasets(
                     failed_count += 1
 
             except Exception as e:
-                logger.error(f"Error integrating dataset {source_id}: {e}", exc_info=True)
-                results.append({
-                    "source_id": source_id,
-                    "success": False,
-                    "error": str(e),
-                })
+                logger.error(
+                    f"Error integrating dataset {source_id}: {e}", exc_info=True
+                )
+                results.append(
+                    {
+                        "source_id": source_id,
+                        "success": False,
+                        "error": str(e),
+                    }
+                )
                 failed_count += 1
 
         return {
@@ -267,7 +276,10 @@ async def integrate_all_datasets(
         }
 
     except Exception as e:
-        logger.error(f"Error integrating all datasets for session {session_id}: {e}", exc_info=True)
+        logger.error(
+            f"Error integrating all datasets for session {session_id}: {e}",
+            exc_info=True,
+        )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to integrate datasets: {str(e)}",
@@ -301,4 +313,3 @@ async def get_pipeline_status(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to get pipeline status: {str(e)}",
         )
-

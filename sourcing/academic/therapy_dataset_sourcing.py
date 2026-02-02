@@ -58,6 +58,7 @@ class DatasetMetadata:
     min_turns: Optional[int] = None
     max_turns: Optional[int] = None
     conversation_format: Optional[str] = None
+
     languages: List[str] = None
     license: Optional[str] = None
     created_at: Optional[str] = None
@@ -83,7 +84,9 @@ class TherapyDatasetSourcing:
     """
 
     def __init__(self, output_path: Optional[str] = None):
-        self.output_path = Path(output_path or "ai/training/ready_packages/datasets/sourced")
+        self.output_path = Path(
+            output_path or "ai/training/ready_packages/datasets/sourced"
+        )
         self.output_path.mkdir(parents=True, exist_ok=True)
 
         # API Configuration

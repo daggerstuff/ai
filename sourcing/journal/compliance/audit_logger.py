@@ -9,7 +9,7 @@ import hashlib
 import json
 import logging
 import os
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
@@ -46,6 +46,7 @@ class AuditLogEntry:
     source_id: Optional[str] = None
     user_id: Optional[str] = None
     action: str = ""
+
     details: Dict = None
     outcome: str = ""
     ip_address: Optional[str] = None
@@ -153,9 +154,7 @@ class AuditLogger:
         if self.enable_hash_chain:
             self._update_hash_chain(entry)
 
-        logger.debug(
-            f"Audit event logged: {event_type.value} - {action} - {outcome}"
-        )
+        logger.debug(f"Audit event logged: {event_type.value} - {action} - {outcome}")
 
         return entry
 
@@ -336,9 +335,7 @@ class AuditLogger:
                         if entry.entry_hash != calculated_hash:
                             entries_failed += 1
                             results["hash_chain_valid"] = False
-                            logger.warning(
-                                f"Entry hash mismatch at: {entry.timestamp}"
-                            )
+                            logger.warning(f"Entry hash mismatch at: {entry.timestamp}")
 
                         previous_hash = entry.entry_hash
 
@@ -436,4 +433,3 @@ class AuditLogger:
                 json.dump(data, f, indent=2)
         except Exception as e:
             logger.error(f"Error updating hash chain: {e}")
-
