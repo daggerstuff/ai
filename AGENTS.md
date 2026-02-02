@@ -1,143 +1,175 @@
-<!-- PRPM_MANIFEST_START -->
+# AGENTS.md
 
-<skills_system priority="1">
-<usage>
-When users ask you to perform tasks, check if any of the available skills below can help complete the task more effectively. Skills provide specialized capabilities and domain knowledge.
+> **AI Coding Assistant Instructions (AI Sub-Repo)** - This document guides AI tools (GitHub Copilot, Cursor, Claude, Gemini, etc.) on how to work with the **`ai/`** repository.
+>
+> This repository is a standalone git repo, but it is an integral component of **`pixelated`** and **Pixelated Empathy** as a whole.
+>
+> 🎭 *"We don't just process conversations. We understand them."*
 
-How to use skills (loaded into main context):
-- Use the <path> from the skill entry below
-- Invoke: Bash("cat <path>")
-- The skill content will load into your current context
-- Example: Bash("cat .claude/skills/backend-architect/SKILL.md")
+---
 
-Usage notes:
-- Skills share your context window
-- Do not invoke a skill that is already loaded in your context
-</usage>
+## Project Overview
 
-<available_skills>
+**What this repo is**: The Pixelated Empathy AI / ML codebase: data sourcing pipelines, dataset generation, training, evaluation, safety/quality gates, and inference services.
 
-<skill activation="lazy">
-<name>skill-using-superpowers</name>
-<description>Use when starting any conversation - establishes mandatory workflows for finding and using skills, including using Read tool before announcing usage, following brainstorming before coding, and creating TodoWrite todos for checklists</description>
-<path>.claude/skills/skill-using-superpowers/SKILL.md</path>
-</skill>
+**Primary goals**:
+- Produce **reproducible** datasets and model artifacts
+- Enforce **safety, privacy, and crisis-aware behavior** in all AI outputs
+- Support **production-grade** inference and monitoring
 
-<skill activation="lazy">
-<name>skill-brainstorming</name>
-<description>Use when creating or developing anything, before writing code or implementation plans - refines rough ideas into fully-formed designs through structured Socratic questioning, alternative exploration, and incremental validation</description>
-<path>.claude/skills/skill-brainstorming/SKILL.md</path>
-</skill>
+**Tech stack (AI repo)**:
+- **Language**: Python (>= 3.11)
+- **Package manager**: **uv** (do not use pip/conda/poetry)
+- **API**: FastAPI + Uvicorn
+- **ML**: PyTorch, Transformers, Datasets, PEFT/TRL, sentence-transformers
+- **Audio**: openai-whisper / faster-whisper, librosa, pydub
+- **Memory**: Zep (`zep-cloud`)
+- **Quality**: Ruff, Black, Pytest, Pytest-Cov, NBQA
 
-<skill activation="lazy">
-<name>skill-writing-plans</name>
-<description>Use when design is complete and you need detailed implementation tasks for engineers with zero codebase context - creates comprehensive implementation plans with exact file paths, complete code examples, and verification steps assuming engineer has minimal domain knowledge</description>
-<path>.claude/skills/skill-writing-plans/SKILL.md</path>
-</skill>
+---
 
-<skill activation="lazy">
-<name>skill-executing-plans</name>
-<description>Use when partner provides a complete implementation plan to execute in controlled batches with review checkpoints - loads plan, reviews critically, executes tasks in batches, reports for review between batches</description>
-<path>.claude/skills/skill-executing-plans/SKILL.md</path>
-</skill>
+## ⛔ ABSOLUTE PROHIBITION: No Stubs or Filler
 
-<skill activation="lazy">
-<name>skill-test-driven-development</name>
-<description>Use when implementing any feature or bugfix, before writing implementation code - write the test first, watch it fail, write minimal code to pass; ensures tests actually verify behavior by requiring failure first</description>
-<path>.claude/skills/skill-test-driven-development/SKILL.md</path>
-</skill>
+**Every implementation MUST be complete and production-ready.**
+- ❌ No `pass`, `...`, `TODO`, `NotImplementedError`, `# FIXME`
+- ❌ No placeholder returns (`return True`, `return []`, hardcoded dummies)
+- ❌ No mock implementations disguised as real code
+- ✅ If it can't be fully implemented, it must not be committed
 
-<skill activation="lazy">
-<name>skill-systematic-debugging</name>
-<description>Use when encountering any bug, test failure, or unexpected behavior, before proposing fixes - four-phase framework (root cause investigation, pattern analysis, hypothesis testing, implementation) that ensures understanding before attempting solutions</description>
-<path>.claude/skills/skill-systematic-debugging/SKILL.md</path>
-</skill>
+---
 
-<skill activation="lazy">
-<name>skill-requesting-code-review</name>
-<description>Use when completing tasks, implementing major features, or before merging to verify work meets requirements - dispatches code-reviewer subagent to review implementation against plan or requirements before proceeding</description>
-<path>.claude/skills/skill-requesting-code-review/SKILL.md</path>
-</skill>
+## Repo Layout (Authoritative)
 
-<skill activation="lazy">
-<name>skill-receiving-code-review</name>
-<description>Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation</description>
-<path>.claude/skills/skill-receiving-code-review/SKILL.md</path>
-</skill>
+This repo is large; when in doubt, prefer these entry points and domains:
 
-<skill activation="lazy">
-<name>skill-verification-before-completion</name>
-<description>Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always</description>
-<path>.claude/skills/skill-verification-before-completion/SKILL.md</path>
-</skill>
+- **`sourcing/`**: raw data ingestion
+- **`pipelines/`**: dataset transformation and orchestration
+- **`training/`**: training scripts/configs and packaging
+- **`evals/`** and **`tests/`**: evaluation harnesses and test suites
+- **`api/`** and **`main.py`**: service entry points
+- **`safety/`** and **`security/`**: safety filters, policy, remediation, audits
+- **`docs/`**: AI-specific documentation
 
-<skill activation="lazy">
-<name>skill-using-git-worktrees</name>
-<description>Use when starting feature work that needs isolation from current workspace or before executing implementation plans - creates isolated git worktrees with smart directory selection and safety verification</description>
-<path>.claude/skills/skill-using-git-worktrees/SKILL.md</path>
-</skill>
+Also see: `ARCHITECTURE.md` for the consolidation plan and canonical responsibilities.
 
-<skill activation="lazy">
-<name>skill-subagent-driven-development</name>
-<description>Use when executing implementation plans with independent tasks in the current session - dispatches fresh subagent for each task with code review between tasks, enabling fast iteration with quality gates</description>
-<path>.claude/skills/skill-subagent-driven-development/SKILL.md</path>
-</skill>
+---
 
-<skill activation="lazy">
-<name>skill-dispatching-parallel-agents</name>
-<description>Use when facing 3+ independent failures that can be investigated without shared state or dependencies - dispatches multiple Claude agents to investigate and fix independent problems concurrently</description>
-<path>.claude/skills/skill-dispatching-parallel-agents/SKILL.md</path>
-</skill>
+## Quick Start (uv)
 
-<skill activation="lazy">
-<name>skill-root-cause-tracing</name>
-<description>Use when errors occur deep in execution and you need to trace back to find the original trigger - systematically traces bugs backward through call stack, adding instrumentation when needed, to identify source of invalid data or incorrect behavior</description>
-<path>.claude/skills/skill-root-cause-tracing/SKILL.md</path>
-</skill>
+**Install dependencies** (from the `ai/` repo root):
 
-<skill activation="lazy">
-<name>skill-defense-in-depth</name>
-<description>Use when invalid data causes failures deep in execution, requiring validation at multiple system layers - validates at every layer data passes through to make bugs structurally impossible</description>
-<path>.claude/skills/skill-defense-in-depth/SKILL.md</path>
-</skill>
+```bash
+uv install
+```
 
-<skill activation="lazy">
-<name>skill-condition-based-waiting</name>
-<description>Use when tests have race conditions, timing dependencies, or inconsistent pass/fail behavior - replaces arbitrary timeouts with condition polling to wait for actual state changes, eliminating flaky tests from timing guesses</description>
-<path>.claude/skills/skill-condition-based-waiting/SKILL.md</path>
-</skill>
+**Run a script**:
 
-<skill activation="lazy">
-<name>skill-testing-anti-patterns</name>
-<description>Use when writing or changing tests, adding mocks, or tempted to add test-only methods to production code - prevents testing mock behavior, production pollution with test-only methods, and mocking without understanding dependencies</description>
-<path>.claude/skills/skill-testing-anti-patterns/SKILL.md</path>
-</skill>
+```bash
+uv run python <script>.py
+```
 
-<skill activation="lazy">
-<name>skill-testing-skills-with-subagents</name>
-<description>Use when creating or editing skills, before deployment, to verify they work under pressure and resist rationalization - applies RED-GREEN-REFACTOR cycle to process documentation by running baseline without skill, writing to address failures, iterating to close loopholes</description>
-<path>.claude/skills/skill-testing-skills-with-subagents/SKILL.md</path>
-</skill>
+**Run the FastAPI service** (if applicable for your change):
 
-<skill activation="lazy">
-<name>skill-writing-skills</name>
-<description>Use when creating new skills, editing existing skills, or verifying skills work before deployment - applies TDD to process documentation by testing with subagents before writing, iterating until bulletproof against rationalization</description>
-<path>.claude/skills/skill-writing-skills/SKILL.md</path>
-</skill>
+```bash
+uv run uvicorn main:app --reload
+```
 
-<skill activation="lazy">
-<name>skill-sharing-skills</name>
-<description>Use when you&apos;ve developed a broadly useful skill and want to contribute it upstream via pull request - guides process of branching, committing, pushing, and creating PR to contribute skills back to upstream repository</description>
-<path>.claude/skills/skill-sharing-skills/SKILL.md</path>
-</skill>
+---
 
-<skill activation="lazy">
-<name>skill-finishing-a-development-branch</name>
-<description>Use when implementation is complete, all tests pass, and you need to decide how to integrate the work - guides completion of development work by presenting structured options for merge, PR, or cleanup</description>
-<path>.claude/skills/skill-finishing-a-development-branch/SKILL.md</path>
-</skill>
+## Engineering Conventions (AI Repo)
 
-</available_skills>
-</skills_system>
+- **Type safety**:
+  - Prefer explicit types and dataclasses / Pydantic models where appropriate.
+  - Avoid `Any` unless there is no reasonable alternative.
+- **Determinism**:
+  - Make randomness explicit (seed where needed).
+  - Log configuration inputs that materially affect outputs (datasets, sampling, model versions).
+- **I/O discipline**:
+  - Never implicitly write large artifacts into the repo.
+  - Keep data/model outputs under the appropriate data/artifacts directories and ensure `.gitignore` rules are respected.
+- **Notebooks**:
+  - Treat notebooks as analysis artifacts.
+  - Prefer moving reusable logic into importable modules; keep notebooks thin.
 
-<!-- PRPM_MANIFEST_END -->
+---
+
+## 🔒 Security, Privacy, and Psychological Safety
+
+This platform handles sensitive mental health data and safety-critical outputs. In this repo, that means:
+
+### Zero-Leak Policy
+- **Never expose** API keys, tokens, secrets, PII/PHI, or raw private transcripts.
+- **Never commit** `.env` files or secrets.
+- If you add new configuration:
+  - Use environment variables.
+  - Update `.env.example` (never real secrets).
+
+### Crisis and Harm Signals
+- Do not ignore potential self-harm / crisis indicators.
+- Safety-related changes should be conservative and include tests.
+
+### Data Handling Rules
+- Minimize retention of raw user text/audio.
+- Prefer derived/aggregated features when possible.
+- Ensure any exports/redactions are explicit and documented.
+
+### Reporting
+If you discover a security vulnerability, follow `SECURITY.md` (do not file public issues).
+
+---
+
+## Testing & Quality Gates
+
+**Preferred workflow** (from repo root):
+
+```bash
+uv run pytest
+```
+
+**Coverage** (if configured by the change):
+
+```bash
+uv run pytest --cov
+```
+
+**Lint/format** (repo uses Ruff + Black):
+
+```bash
+uv run ruff check .
+uv run black .
+```
+
+**Notebooks** (repo uses NBQA; run only when you touched notebooks):
+
+```bash
+uv run nbqa ruff .
+uv run nbqa black .
+```
+
+---
+
+## Critical Rules (Non-Negotiable)
+
+```
+❌ NEVER use pip, conda, or poetry (use uv)
+❌ NEVER commit .env files or secrets
+❌ NEVER introduce stubs, placeholders, or unfinished implementations
+❌ NEVER ignore safety or crisis-related edge cases
+
+✅ ALWAYS validate inputs at module boundaries (API, CLI, pipeline stage)
+✅ ALWAYS keep runs reproducible (configs + seeds)
+✅ ALWAYS add/adjust tests for behavior-changing edits
+✅ ALWAYS run lint + tests before committing
+```
+
+---
+
+## Mission Reminder
+
+> **We don't just process conversations. We understand them.**
+
+Every decision in this repo should prioritize:
+- 🛡️ **Psychological Safety**
+- 🔐 **Privacy & Confidentiality**
+- 🧠 **Ethical AI Practices**
+- 💜 **Genuine Human Connection**
