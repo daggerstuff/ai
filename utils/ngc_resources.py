@@ -13,7 +13,11 @@ from pathlib import Path
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from ai.utils.ngc_cli import NGCCLIAuthError, NGCCLINotFoundError, ensure_ngc_cli_configured
+from ai.utils.ngc_cli import (
+    NGCCLIAuthError,
+    NGCCLINotFoundError,
+    ensure_ngc_cli_configured,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -63,6 +67,7 @@ class NGCResourceDownloader:
             self.cli = ensure_ngc_cli_configured(api_key=api_key)
         except (NGCCLINotFoundError, NGCCLIAuthError) as e:
             logger.warning(f"NGC CLI not available: {e}")
+
             self.cli = None
 
     def download_nemo_quickstart(
@@ -82,7 +87,9 @@ class NGCResourceDownloader:
             raise NGCCLINotFoundError("NGC CLI not available")
 
         if version is None:
-            version = self.NEMO_RESOURCES["nemo-microservices-quickstart"]["default_version"]
+            version = self.NEMO_RESOURCES["nemo-microservices-quickstart"][
+                "default_version"
+            ]
 
         if output_dir is None:
             output_dir = self.output_base / "nemo-microservices"
@@ -91,7 +98,10 @@ class NGCResourceDownloader:
 
         logger.info(f"Downloading NeMo Microservices quickstart v{version}...")
         return self.cli.download_resource(
-            resource_path=resource_path, version=version, output_dir=output_dir, extract=True
+            resource_path=resource_path,
+            version=version,
+            output_dir=output_dir,
+            extract=True,
         )
 
     def download_nemo_framework(
@@ -117,11 +127,17 @@ class NGCResourceDownloader:
 
         logger.info("Downloading NeMo framework...")
         return self.cli.download_resource(
-            resource_path=resource_path, version=version, output_dir=output_dir, extract=True
+            resource_path=resource_path,
+            version=version,
+            output_dir=output_dir,
+            extract=True,
         )
 
     def download_custom_resource(
-        self, resource_path: str, version: str | None = None, output_dir: Path | None = None
+        self,
+        resource_path: str,
+        version: str | None = None,
+        output_dir: Path | None = None,
     ) -> Path:
         """
         Download a custom resource from NGC catalog.
@@ -144,11 +160,16 @@ class NGCResourceDownloader:
 
         logger.info(f"Downloading {resource_path}...")
         return self.cli.download_resource(
-            resource_path=resource_path, version=version, output_dir=output_dir, extract=True
+            resource_path=resource_path,
+            version=version,
+            output_dir=output_dir,
+            extract=True,
         )
 
 
-def download_nemo_quickstart(version: str | None = None, output_dir: Path | None = None) -> Path:
+def download_nemo_quickstart(
+    version: str | None = None, output_dir: Path | None = None
+) -> Path:
     """
     Convenience function to download NeMo Microservices quickstart.
 
