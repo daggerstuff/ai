@@ -9,15 +9,15 @@ import logging
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from ai.sourcing.journal.compliance.audit_logger import AuditLogger, AuditEventType
+from ai.sourcing.journal.compliance.audit_logger import AuditLogger
 from ai.sourcing.journal.compliance.encryption_manager import EncryptionManager
 from ai.sourcing.journal.compliance.hipaa_validator import (
     HIPAAComplianceResult,
     HIPAAValidator,
 )
 from ai.sourcing.journal.compliance.license_checker import (
-    LicenseCheckResult,
     LicenseChecker,
+    LicenseCheckResult,
 )
 from ai.sourcing.journal.compliance.privacy_verifier import (
     PrivacyAssessment,
@@ -38,7 +38,9 @@ class ComplianceResult:
     hipaa_compliance: Optional[HIPAAComplianceResult] = None
     overall_compliance_score: float = 0.0  # 0.0-1.0
     compliance_status: str = "unknown"  # compliant, partially_compliant, non_compliant
+
     issues: List[str] = None
+
     recommendations: List[str] = None
     requires_review: bool = False
 
@@ -113,7 +115,9 @@ class ComplianceChecker:
         # 1. Check license compatibility
         try:
             license_text_to_check = license_text or source.url or ""
-            result.license_check = self.license_checker.check_license(license_text_to_check)
+            result.license_check = self.license_checker.check_license(
+                license_text_to_check
+            )
 
             # Log license check
             if self.audit_logger:
@@ -196,11 +200,15 @@ class ComplianceChecker:
                 )
 
         except Exception as e:
-            logger.error(f"Error validating HIPAA compliance for {source.source_id}: {e}")
+            logger.error(
+                f"Error validating HIPAA compliance for {source.source_id}: {e}"
+            )
             result.issues.append(f"HIPAA validation failed: {str(e)}")
 
         # 4. Calculate overall compliance score
-        result.overall_compliance_score = self._calculate_overall_compliance_score(result)
+        result.overall_compliance_score = self._calculate_overall_compliance_score(
+            result
+        )
 
         # 5. Determine compliance status
         result.compliance_status = self._determine_compliance_status(result)
@@ -230,7 +238,10 @@ class ComplianceChecker:
             license_score = 0.0
             if result.license_check.ai_training_compatible.value == "compatible":
                 license_score = 1.0
-            elif result.license_check.ai_training_compatible.value == "compatible_with_conditions":
+            elif (
+                result.license_check.ai_training_compatible.value
+                == "compatible_with_conditions"
+            ):
                 license_score = 0.7
             elif result.license_check.ai_training_compatible.value == "requires_review":
                 license_score = 0.5
@@ -352,4 +363,3 @@ class ComplianceChecker:
             return True
 
         return False
-

@@ -6,7 +6,7 @@ This module implements the Model Context Protocol (MCP) over JSON-RPC 2.0.
 
 import json
 import logging
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, Optional, Union
 
 logger = logging.getLogger(__name__)
 
@@ -168,6 +168,7 @@ class MCPResponse:
             raise ValueError("Response cannot have both result and error")
 
         self.result = result
+
         self.error = error
         self.id = id
         self.jsonrpc = jsonrpc
@@ -323,4 +324,3 @@ class MCPProtocolHandler:
         """
         response = MCPResponse.error(code, message, data, request_id)
         return MCPProtocolHandler.format_response(response)
-

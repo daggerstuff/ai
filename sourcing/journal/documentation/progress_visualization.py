@@ -6,7 +6,7 @@ distributions for research activities.
 """
 
 import json
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
@@ -17,15 +17,17 @@ from ai.sourcing.journal.models.dataset_models import (
 )
 
 try:
-    import matplotlib.pyplot as plt
     import matplotlib.dates as mdates
+    import matplotlib.pyplot as plt
     import numpy as np
+
     MATPLOTLIB_AVAILABLE = True
 except ImportError:
     MATPLOTLIB_AVAILABLE = False
 
 try:
     from jinja2 import Template
+
     JINJA2_AVAILABLE = True
 except ImportError:
     JINJA2_AVAILABLE = False
@@ -51,10 +53,11 @@ class ProgressVisualization:
 
         if not MATPLOTLIB_AVAILABLE:
             import warnings
+
             warnings.warn(
                 "matplotlib is not available. Visualization features will be limited. "
                 "Install it with: pip install matplotlib",
-                ImportWarning
+                ImportWarning,
             )
 
     def generate_progress_metrics_chart(
@@ -88,9 +91,7 @@ class ProgressVisualization:
             datetime.fromisoformat(entry["timestamp"]) for entry in progress_history
         ]
         sources = [entry.get("sources_identified", 0) for entry in progress_history]
-        evaluated = [
-            entry.get("datasets_evaluated", 0) for entry in progress_history
-        ]
+        evaluated = [entry.get("datasets_evaluated", 0) for entry in progress_history]
         acquired = [entry.get("datasets_acquired", 0) for entry in progress_history]
 
         # Create chart
@@ -160,7 +161,9 @@ class ProgressVisualization:
         y_positions = {phase: i for i, phase in enumerate(phases)}
         for i, transition in enumerate(phase_transitions):
             phase = transition.get("phase", session.current_phase)
-            timestamp = datetime.fromisoformat(transition.get("timestamp", datetime.now().isoformat()))
+            timestamp = datetime.fromisoformat(
+                transition.get("timestamp", datetime.now().isoformat())
+            )
             y_pos = y_positions.get(phase, 0)
             # Convert datetime to matplotlib date number
             date_num = mdates.date2num(timestamp)
@@ -186,7 +189,9 @@ class ProgressVisualization:
             # Convert datetimes to matplotlib date numbers
             start_date_num = mdates.date2num(start_time)
             end_date_num = mdates.date2num(end_time)
-            ax.plot([start_date_num, end_date_num], [1, 1], "k-", linewidth=2, alpha=0.3)
+            ax.plot(
+                [start_date_num, end_date_num], [1, 1], "k-", linewidth=2, alpha=0.3
+            )
 
         ax.set_yticks(range(len(phases)))
         ax.set_yticklabels([phase.title() for phase in phases])
@@ -249,28 +254,36 @@ class ProgressVisualization:
         axes[0].grid(True, alpha=0.3)
 
         # Therapeutic relevance
-        axes[1].hist(therapeutic_scores, bins=10, edgecolor="black", alpha=0.7, color="#e74c3c")
+        axes[1].hist(
+            therapeutic_scores, bins=10, edgecolor="black", alpha=0.7, color="#e74c3c"
+        )
         axes[1].set_title("Therapeutic Relevance Distribution")
         axes[1].set_xlabel("Score")
         axes[1].set_ylabel("Frequency")
         axes[1].grid(True, alpha=0.3)
 
         # Data structure quality
-        axes[2].hist(structure_scores, bins=10, edgecolor="black", alpha=0.7, color="#3498db")
+        axes[2].hist(
+            structure_scores, bins=10, edgecolor="black", alpha=0.7, color="#3498db"
+        )
         axes[2].set_title("Data Structure Quality Distribution")
         axes[2].set_xlabel("Score")
         axes[2].set_ylabel("Frequency")
         axes[2].grid(True, alpha=0.3)
 
         # Training integration
-        axes[3].hist(integration_scores, bins=10, edgecolor="black", alpha=0.7, color="#2ecc71")
+        axes[3].hist(
+            integration_scores, bins=10, edgecolor="black", alpha=0.7, color="#2ecc71"
+        )
         axes[3].set_title("Training Integration Distribution")
         axes[3].set_xlabel("Score")
         axes[3].set_ylabel("Frequency")
         axes[3].grid(True, alpha=0.3)
 
         # Ethical accessibility
-        axes[4].hist(ethical_scores, bins=10, edgecolor="black", alpha=0.7, color="#f39c12")
+        axes[4].hist(
+            ethical_scores, bins=10, edgecolor="black", alpha=0.7, color="#f39c12"
+        )
         axes[4].set_title("Ethical Accessibility Distribution")
         axes[4].set_xlabel("Score")
         axes[4].set_ylabel("Frequency")
@@ -398,7 +411,9 @@ class ProgressVisualization:
                 datasets_evaluated=progress.datasets_evaluated,
                 datasets_acquired=progress.datasets_acquired,
                 integration_plans=progress.integration_plans_created,
-                progress_chart=progress_chart_path.name if progress_chart_path else None,
+                progress_chart=progress_chart_path.name
+                if progress_chart_path
+                else None,
                 score_chart=score_chart_path.name if score_chart_path else None,
             )
         else:
@@ -420,7 +435,8 @@ class ProgressVisualization:
                 "{{ integration_plans }}", str(progress.integration_plans_created)
             )
             html_content = html_content.replace(
-                "{{ progress_chart }}", progress_chart_path.name if progress_chart_path else ""
+                "{{ progress_chart }}",
+                progress_chart_path.name if progress_chart_path else "",
             )
             html_content = html_content.replace(
                 "{{ score_chart }}", score_chart_path.name if score_chart_path else ""
@@ -501,14 +517,16 @@ class ProgressVisualization:
                 else:
                     phase = "discovery"
 
-                phase_transitions.append({
-                    "phase": phase,
-                    "timestamp": (
-                        progress.last_updated.isoformat()
-                        if progress.last_updated
-                        else datetime.now().isoformat()
-                    ),
-                })
+                phase_transitions.append(
+                    {
+                        "phase": phase,
+                        "timestamp": (
+                            progress.last_updated.isoformat()
+                            if progress.last_updated
+                            else datetime.now().isoformat()
+                        ),
+                    }
+                )
 
         # If output_path is provided, generate image
         if output_path:
@@ -522,16 +540,22 @@ class ProgressVisualization:
         timeline = []
         if phase_transitions:
             for transition in phase_transitions:
-                timeline.append({
-                    "phase": transition.get("phase", session.current_phase),
-                    "timestamp": transition.get("timestamp", datetime.now().isoformat()),
-                })
+                timeline.append(
+                    {
+                        "phase": transition.get("phase", session.current_phase),
+                        "timestamp": transition.get(
+                            "timestamp", datetime.now().isoformat()
+                        ),
+                    }
+                )
         else:
             # Default timeline based on session
-            timeline.append({
-                "phase": session.current_phase,
-                "timestamp": session.start_date.isoformat(),
-            })
+            timeline.append(
+                {
+                    "phase": session.current_phase,
+                    "timestamp": session.start_date.isoformat(),
+                }
+            )
 
         return {"timeline": timeline}
 
@@ -588,7 +612,9 @@ class ProgressVisualization:
             Path to the generated HTML file
         """
         # Use the most recent progress
-        current_progress = progress_history[-1] if progress_history else ResearchProgress()
+        current_progress = (
+            progress_history[-1] if progress_history else ResearchProgress()
+        )
 
         # Generate chart data
         chart_data = self.generate_progress_chart_data(session, progress_history)
@@ -614,7 +640,7 @@ class ProgressVisualization:
         <div class="header">
             <h1>Research Progress Visualization</h1>
             <p>Session ID: {session.session_id}</p>
-            <p>Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}</p>
+            <p>Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
         </div>
 
         <div class="chart-container">
@@ -727,4 +753,3 @@ class ProgressVisualization:
         plt.close()
 
         return output_path
-
