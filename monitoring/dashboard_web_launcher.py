@@ -11,35 +11,34 @@ Features:
 - Export capabilities
 """
 
-from flask import Flask, render_template, jsonify, send_file, request
 import os
-import json
 from datetime import datetime
-from pathlib import Path
-import subprocess
+
+from flask import Flask, jsonify, send_file
 
 app = Flask(__name__)
+
 
 class DashboardWebLauncher:
     def __init__(self):
         self.dashboard_dir = "/home/vivi/pixelated/ai/monitoring/dashboards"
         self.reports_dir = "/home/vivi/pixelated/ai/monitoring/reports"
         self.analytics_systems = {
-            'Dataset Statistics': 'dataset_statistics_dashboard.py',
-            'Content Analyzer': 'conversation_content_analyzer.py',
-            'Tier Optimizer': 'tier_distribution_optimizer.py',
-            'Topic Analyzer': 'topic_theme_analyzer.py',
-            'Complexity Analyzer': 'conversation_complexity_analyzer.py',
-            'Quality Pattern': 'conversation_quality_pattern_analyzer.py',
-            'Diversity Coverage': 'conversation_diversity_coverage_analyzer.py',
-            'Effectiveness Predictor': 'conversation_effectiveness_predictor.py',
-            'Recommendation Optimizer': 'conversation_recommendation_optimizer.py',
-            'Performance Impact': 'dataset_performance_impact_analyzer.py'
+            "Dataset Statistics": "dataset_statistics_dashboard.py",
+            "Content Analyzer": "conversation_content_analyzer.py",
+            "Tier Optimizer": "tier_distribution_optimizer.py",
+            "Topic Analyzer": "topic_theme_analyzer.py",
+            "Complexity Analyzer": "conversation_complexity_analyzer.py",
+            "Quality Pattern": "conversation_quality_pattern_analyzer.py",
+            "Diversity Coverage": "conversation_diversity_coverage_analyzer.py",
+            "Effectiveness Predictor": "conversation_effectiveness_predictor.py",
+            "Recommendation Optimizer": "conversation_recommendation_optimizer.py",
+            "Performance Impact": "dataset_performance_impact_analyzer.py",
         }
-    
+
     def create_web_interface(self):
         """Create the web interface HTML"""
-        
+
         html_template = """
 <!DOCTYPE html>
 <html lang="en">
@@ -393,32 +392,35 @@ class DashboardWebLauncher:
 </body>
 </html>
 """
-        
+
         # Save HTML template
         template_path = f"{self.dashboard_dir}/web_interface.html"
-        with open(template_path, 'w') as f:
+        with open(template_path, "w") as f:
             f.write(html_template)
-        
+
         return template_path
+
 
 launcher = DashboardWebLauncher()
 
-@app.route('/')
+
+@app.route("/")
 def index():
     """Main dashboard page"""
     template_path = launcher.create_web_interface()
-    with open(template_path, 'r') as f:
+    with open(template_path, "r") as f:
         return f.read()
 
-@app.route('/dashboard/<dashboard_type>')
+
+@app.route("/dashboard/<dashboard_type>")
 def view_dashboard(dashboard_type):
     """View specific dashboard"""
     dashboard_dir = f"{launcher.dashboard_dir}/{dashboard_type}"
-    
+
     # Get latest dashboard file
     try:
         files = os.listdir(dashboard_dir)
-        png_files = [f for f in files if f.endswith('.png')]
+        png_files = [f for f in files if f.endswith(".png")]
         if png_files:
             latest_file = sorted(png_files)[-1]
             return send_file(f"{dashboard_dir}/{latest_file}")
@@ -427,17 +429,21 @@ def view_dashboard(dashboard_type):
     except FileNotFoundError:
         return jsonify({"error": "Dashboard not found"}), 404
 
-@app.route('/api/status')
+
+@app.route("/api/status")
 def api_status():
     """API endpoint for system status"""
-    return jsonify({
-        "status": "operational",
-        "systems": len(launcher.analytics_systems),
-        "last_updated": datetime.now().isoformat(),
-        "analytics_systems": list(launcher.analytics_systems.keys())
-    })
+    return jsonify(
+        {
+            "status": "operational",
+            "systems": len(launcher.analytics_systems),
+            "last_updated": datetime.now().isoformat(),
+            "analytics_systems": list(launcher.analytics_systems.keys()),
+        }
+    )
 
-@app.route('/run/<analysis_type>')
+
+@app.route("/run/<analysis_type>")
 def run_analysis(analysis_type):
     """Run specific analysis"""
     if analysis_type == "full-analysis":
@@ -445,15 +451,16 @@ def run_analysis(analysis_type):
     else:
         return jsonify({"error": "Unknown analysis type"}), 400
 
+
 def main():
     """Launch the web dashboard"""
     print("🌐 Starting Web-Based Dashboard Launcher...")
     print("=" * 50)
-    
+
     # Create web interface
     template_path = launcher.create_web_interface()
     print(f"✅ Web interface created: {template_path}")
-    
+
     print("\n🚀 Dashboard Web Launcher Ready!")
     print("📊 Access your dashboards at: http://localhost:5000")
     print("🔧 API endpoints available at: http://localhost:5000/api/")
@@ -464,12 +471,13 @@ def main():
     print("  • Analytics Systems Status - All 10 systems monitoring")
     print("  • Quick Actions - One-click analysis and reporting")
     print("  • Export Capabilities - PDF and data exports")
-    
+
     print("\n🎯 Starting Flask web server...")
     print("   Press Ctrl+C to stop the server")
-    
+
     # Start Flask app
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    app.run(host="0.0.0.0", port=5000, debug=False)
+
 
 if __name__ == "__main__":
     main()
