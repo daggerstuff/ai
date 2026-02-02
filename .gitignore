@@ -4,7 +4,7 @@
 **/__pycache__/
 **/*.csv
 **/*.jsonl
-**/.env
+**/*.env
 **/mandy
 **data/processed/**/*.json
 **data/processed/**/*.jsonl
@@ -23,12 +23,11 @@
 **/techdeck/
 **/.venv/
 **/pixelated_ai.egg-info/
-pipelines/youtube-transcription-pipeline
-pipelines/data
-dataset_pipeline/pixelated-training/training_dataset.json
-database/conversations.db
-config/security
-lightning/ghost
+pipelines/youtube-transcription-pipeline/
+pipelines/data/
+lightning/
+data/conversation_system.db
+config/security/
 models/
 
 # Dataset pipeline runtime artifacts (keep outside package tree; defaults to ../tmp/dataset_pipeline)
@@ -44,21 +43,12 @@ dataset_pipeline/monitoring/metrics/
 # Large training files and artifacts
 *.tar.gz
 *.zip
+*.log
+*.notes
+*.txt
 **/checkpoint-*/optimizer.pt
 **/checkpoint-*/adapter_model.safetensors
-lightning/pixelated-training/training_dataset.json
-lightning/pixelated-training/training_dataset_enhanced.json
-lightning/pixelated-training/wayfarer-balanced/gha-key.json
-lightning/
-data/lightning_h100
-data/unified_training/
-lightning/production/deployment_package/data/
-therapeutic_ai_training_package_20251028_204104
-training_data_consolidated
-training_ready/configs/hyperparameters/training_dataset.json
 
 # Weights & Biases (wandb) offline run artifacts
-**/wandb/offline-run-*/
-**/.wandb/training_ready/training_ready/configs/hyperparameters/training_dataset.json
 firebase-debug.log
-training_ready/data/generated/edge_case_expanded/crisis_detection_conversations.jsonl.de83F1d6
+data/tim_fletcher_voice/conversation_generation_prompt.txt
