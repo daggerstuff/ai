@@ -31,8 +31,6 @@ import logging
 import os
 import time
 import traceback
-from concurrent.futures import ThreadPoolExecutor
-from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -40,7 +38,6 @@ from typing import (
     Any,
     Callable,
     Dict,
-    Generator,
     Iterable,
     List,
     Optional,
@@ -52,10 +49,8 @@ from typing import (
 import ray
 
 # Import local checkpoint system
-from checkpoint_system import CheckpointManager, CheckpointType, ProcessingState
-from ray import remote
+from checkpoint_system import CheckpointManager
 from ray.exceptions import RayActorError, RayTaskError, WorkerCrashedError
-from ray.util.queue import Queue as RayQueue
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -125,7 +120,9 @@ class TaskResult:
     worker_id: Optional[str] = None
     memory_usage_mb: float = 0.0
     cpu_time: float = 0.0
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
 
 
 @dataclass
@@ -256,9 +253,6 @@ class WorkerActor:
         kwargs: Dict[str, Any],
     ) -> TaskResult:
         """Execute a single task and return result."""
-        import time
-        import traceback
-        from datetime import datetime, timezone
         from typing import TYPE_CHECKING
 
         if TYPE_CHECKING:
@@ -392,9 +386,7 @@ class RayExecutor:
 
         # Initialize checkpoint manager if enabled
         if self.config.enable_checkpointing:
-            self.checkpoint_manager = CheckpointManager(
-                self.config.checkpoint_dir
-            )
+            self.checkpoint_manager = CheckpointManager(self.config.checkpoint_dir)
             self.logger.info(
                 f"Checkpoint manager initialized at {self.config.checkpoint_dir}"
             )
@@ -546,7 +538,8 @@ class RayExecutor:
 
         # Create batches
         batches = [
-            items_list[i : i + batch_size] for i in range(0, len(items_list), batch_size)
+            items_list[i : i + batch_size]
+            for i in range(0, len(items_list), batch_size)
         ]
 
         # Process batches in parallel
@@ -604,7 +597,9 @@ class RayExecutor:
 
             # Wait for some tasks to complete before submitting more
             while len(pending_futures) >= max_concurrent:
-                results.extend(self._collect_results(pending_futures, completed_task_ids))
+                results.extend(
+                    self._collect_results(pending_futures, completed_task_ids)
+                )
 
                 # Create checkpoint if enabled
                 if checkpoint_enabled and self._should_create_checkpoint(task_name):
@@ -650,7 +645,9 @@ class RayExecutor:
                             self.logger.warning(
                                 f"Retrying task {task_id} (attempt {task_result.retry_count + 1})"
                             )
-                            still_pending.append((task_id, future))  # Will be re-submitted
+                            still_pending.append(
+                                (task_id, future)
+                            )  # Will be re-submitted
                         else:
                             self.logger.error(
                                 f"Task {task_id} failed after {self.config.max_retries} retries"
@@ -692,7 +689,7 @@ class RayExecutor:
             self.checkpoint_manager.register_process(
                 process_id=task_name,
                 task_id=task_name,
-                current_step=f"progress_update",
+                current_step="progress_update",
                 total_steps=self.stats.total_items,
                 completed_steps=self.stats.completed_items + self.stats.failed_items,
                 metadata={
@@ -708,9 +705,7 @@ class RayExecutor:
         except Exception as e:
             self.logger.warning(f"Failed to create checkpoint: {e}")
 
-    def _restore_from_checkpoint(
-        self, task_name: str, items_list: List[T]
-    ) -> int:
+    def _restore_from_checkpoint(self, task_name: str, items_list: List[T]) -> int:
         """Restore from checkpoint and return start index."""
         if not self.checkpoint_manager:
             return 0
@@ -816,7 +811,6 @@ def process_dataset_parallel(
     Returns:
         List of processed results
     """
-    import json
     import pickle
     from pathlib import Path
 

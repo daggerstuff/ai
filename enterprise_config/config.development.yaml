@@ -1,0 +1,5 @@
+batch_size: 100
+debug_mode: true
+environment: development
+log_level: DEBUG
+validation_sample_rate: 1.0

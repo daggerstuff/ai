@@ -11,13 +11,13 @@ from pathlib import Path
 # Add the qa directory to the path
 sys.path.append(str(Path(__file__).parent))
 
+
 from improved_crisis_detector import enhanced_model_predictor
 from safety_accuracy_validator_simple import EnterpriseSafetyAccuracyValidator
 
 
 async def main():
     """Run full validation with improved crisis detector"""
-
 
     # Initialize validator
     validator = EnterpriseSafetyAccuracyValidator()
@@ -44,7 +44,6 @@ async def main():
         if result.false_positive_rate >= 5:
             # TODO: Add implementation
             pass
-
 
 
 if __name__ == "__main__":
