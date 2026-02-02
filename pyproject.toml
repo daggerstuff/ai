@@ -30,14 +30,13 @@ dependencies = [
   "ruff>=0.12.11",
   "black>=25.1.0",
   "nbqa>=1.7.0",
-
   "torch>=2.8.0",
   "torchvision>=0.23.0",
   "torchaudio>=2.8.0",
   "packaging>=25.0",
   "setuptools>=80.9.0",
   "wheel>=0.45.1",
-  "huggingface-hub[cli]>=0.34.4",
+  "huggingface-hub>=0.34.4",
   # CLI dependencies
   "click>=8.1.0",
   "pyyaml>=6.0",
