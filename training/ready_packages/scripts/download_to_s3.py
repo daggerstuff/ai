@@ -7,16 +7,17 @@ bypassing local storage and VPS.
 """
 
 import json
+import logging
 import os
 import sys
-from pathlib import Path
-from typing import Dict, List, Any, Optional
 from datetime import datetime
-import logging
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 try:
     import boto3
     from botocore.exceptions import ClientError
+
     BOTO3_AVAILABLE = True
 except ImportError:
     BOTO3_AVAILABLE = False
@@ -24,6 +25,7 @@ except ImportError:
 
 try:
     from datasets import load_dataset
+
     HF_AVAILABLE = True
 except ImportError:
     HF_AVAILABLE = False
@@ -31,6 +33,7 @@ except ImportError:
 
 try:
     import kaggle
+
     KAGGLE_AVAILABLE = True
 except ImportError:
     KAGGLE_AVAILABLE = False
@@ -43,14 +46,19 @@ logger = logging.getLogger(__name__)
 class S3DatasetDownloader:
     """Downloads datasets directly to S3"""
 
-    def __init__(self, s3_bucket: str, s3_prefix: str = "datasets/", catalog_path: Optional[Path] = None):
+    def __init__(
+        self,
+        s3_bucket: str,
+        s3_prefix: str = "datasets/",
+        catalog_path: Optional[Path] = None,
+    ):
         self.s3_bucket = s3_bucket
         self.s3_prefix = s3_prefix.rstrip("/") + "/"
         self.catalog_path = catalog_path
 
         # Initialize S3 client
         if BOTO3_AVAILABLE:
-            self.s3_client = boto3.client('s3')
+            self.s3_client = boto3.client("s3")
         else:
             self.s3_client = None
             logger.error("boto3 not available. Cannot upload to S3.")
@@ -70,7 +78,12 @@ class S3DatasetDownloader:
             logger.error(f"  ❌ Failed to upload {local_path}: {e}")
             return False
 
-    def download_hf_to_s3(self, dataset_name: str, config: Optional[str] = None, s3_key: Optional[str] = None) -> Dict[str, Any]:
+    def download_hf_to_s3(
+        self,
+        dataset_name: str,
+        config: Optional[str] = None,
+        s3_key: Optional[str] = None,
+    ) -> Dict[str, Any]:
         """Download HuggingFace dataset directly to S3"""
         if not HF_AVAILABLE:
             return {
@@ -96,7 +109,10 @@ class S3DatasetDownloader:
 
             # Convert to JSONL and upload in chunks
             import tempfile
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.jsonl', delete=False) as tmp:
+
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".jsonl", delete=False
+            ) as tmp:
                 tmp_path = Path(tmp.name)
 
                 # Write dataset to temp file
@@ -131,7 +147,9 @@ class S3DatasetDownloader:
                 "error": str(e),
             }
 
-    def download_kaggle_to_s3(self, dataset_name: str, s3_key: Optional[str] = None) -> Dict[str, Any]:
+    def download_kaggle_to_s3(
+        self, dataset_name: str, s3_key: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Download Kaggle dataset directly to S3"""
         if not KAGGLE_AVAILABLE:
             return {
@@ -150,6 +168,7 @@ class S3DatasetDownloader:
 
             # Download from Kaggle
             import tempfile
+
             with tempfile.TemporaryDirectory() as tmpdir:
                 kaggle.api.dataset_download_files(dataset_name, path=tmpdir, unzip=True)
 
@@ -163,7 +182,9 @@ class S3DatasetDownloader:
                         s3_file_key = f"{self.s3_prefix}kaggle/{dataset_name.replace('/', '_')}/{relative_path}"
 
                         if self.upload_to_s3(file_path, s3_file_key):
-                            uploaded_files.append(f"s3://{self.s3_bucket}/{s3_file_key}")
+                            uploaded_files.append(
+                                f"s3://{self.s3_bucket}/{s3_file_key}"
+                            )
 
                 if uploaded_files:
                     return {
@@ -183,7 +204,9 @@ class S3DatasetDownloader:
                 "error": str(e),
             }
 
-    def download_url_to_s3(self, url: str, s3_key: Optional[str] = None) -> Dict[str, Any]:
+    def download_url_to_s3(
+        self, url: str, s3_key: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Download from URL directly to S3"""
         if not self.s3_client:
             return {
@@ -192,8 +215,9 @@ class S3DatasetDownloader:
             }
 
         try:
-            import requests
             from urllib.parse import urlparse
+
+            import requests
 
             logger.info(f"📥 Downloading from URL: {url}")
 
@@ -205,6 +229,7 @@ class S3DatasetDownloader:
 
             # Download to temp file
             import tempfile
+
             with tempfile.NamedTemporaryFile(delete=False) as tmp:
                 tmp_path = Path(tmp.name)
 
@@ -256,26 +281,32 @@ class S3DatasetDownloader:
         # Process HuggingFace datasets
         for dataset in catalog.get("catalog", {}).get("huggingface", []):
             result = self.download_hf_to_s3(dataset.get("name", ""))
-            results["huggingface"].append({
-                "dataset": dataset,
-                "result": result,
-            })
+            results["huggingface"].append(
+                {
+                    "dataset": dataset,
+                    "result": result,
+                }
+            )
 
         # Process Kaggle datasets
         for dataset in catalog.get("catalog", {}).get("kaggle", []):
             result = self.download_kaggle_to_s3(dataset.get("name", ""))
-            results["kaggle"].append({
-                "dataset": dataset,
-                "result": result,
-            })
+            results["kaggle"].append(
+                {
+                    "dataset": dataset,
+                    "result": result,
+                }
+            )
 
         # Process URL datasets
         for dataset in catalog.get("catalog", {}).get("url", []):
             result = self.download_url_to_s3(dataset.get("path", ""))
-            results["url"].append({
-                "dataset": dataset,
-                "result": result,
-            })
+            results["url"].append(
+                {
+                    "dataset": dataset,
+                    "result": result,
+                }
+            )
 
         return {
             "timestamp": datetime.now().isoformat(),
@@ -291,7 +322,9 @@ def main():
 
     parser = argparse.ArgumentParser(description="Download datasets directly to S3")
     parser.add_argument("--bucket", required=True, help="S3 bucket name")
-    parser.add_argument("--prefix", default="datasets/", help="S3 prefix (default: datasets/)")
+    parser.add_argument(
+        "--prefix", default="datasets/", help="S3 prefix (default: datasets/)"
+    )
     parser.add_argument("--catalog", help="Path to accessibility catalog JSON")
     parser.add_argument("--hf-dataset", help="Download specific HuggingFace dataset")
     parser.add_argument("--kaggle-dataset", help="Download specific Kaggle dataset")
@@ -301,7 +334,9 @@ def main():
 
     # Check for AWS credentials
     if not os.getenv("AWS_ACCESS_KEY_ID") or not os.getenv("AWS_SECRET_ACCESS_KEY"):
-        logger.error("❌ AWS credentials not found. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY")
+        logger.error(
+            "❌ AWS credentials not found. Set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY"
+        )
         return 1
 
     downloader = S3DatasetDownloader(
@@ -334,5 +369,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
-

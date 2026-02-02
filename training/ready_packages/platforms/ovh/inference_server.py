@@ -10,18 +10,18 @@ Features:
 - Streaming responses support
 """
 
+import asyncio
+import json
 import os
 import sys
-import json
 import time
-import asyncio
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Dict, Any
-from contextlib import asynccontextmanager
+from typing import Any, Dict, List, Optional
 
 import torch
-from fastapi import FastAPI, HTTPException, BackgroundTasks
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -30,16 +30,16 @@ from pydantic import BaseModel, Field
 try:
     from models.moe_architecture import MoEConfig, TherapeuticMoEModel
 except ImportError:
-    sys.path.insert(0, '/app')
-    from models.moe_architecture import MoEConfig, TherapeuticMoEModel
+    sys.path.insert(0, "/app")
 
-from transformers import AutoTokenizer, AutoModelForCausalLM
+    from models.moe_architecture import TherapeuticMoEModel
 
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 # Configuration
-MODEL_DIR = os.environ.get('MODEL_DIR', '/models')
-MAX_LENGTH = int(os.environ.get('MAX_LENGTH', 2048))
-DEFAULT_MAX_TOKENS = int(os.environ.get('DEFAULT_MAX_TOKENS', 512))
+MODEL_DIR = os.environ.get("MODEL_DIR", "/models")
+MAX_LENGTH = int(os.environ.get("MAX_LENGTH", 2048))
+DEFAULT_MAX_TOKENS = int(os.environ.get("DEFAULT_MAX_TOKENS", 512))
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
@@ -52,12 +52,14 @@ model_info = {}
 # Pydantic models
 class ConversationMessage(BaseModel):
     """Single message in a conversation"""
+
     role: str = Field(..., description="Message role: 'user', 'assistant', or 'system'")
     content: str = Field(..., description="Message content")
 
 
 class InferenceRequest(BaseModel):
     """Request for therapeutic inference"""
+
     messages: List[ConversationMessage] = Field(..., description="Conversation history")
     max_tokens: int = Field(default=DEFAULT_MAX_TOKENS, ge=1, le=2048)
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
@@ -68,6 +70,7 @@ class InferenceRequest(BaseModel):
 
 class InferenceResponse(BaseModel):
     """Response from therapeutic inference"""
+
     response: str
     model: str
     usage: Dict[str, int]
@@ -78,6 +81,7 @@ class InferenceResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Health check response"""
+
     status: str
     model_loaded: bool
     device: str
@@ -118,42 +122,38 @@ def load_model():
     if has_moe:
         # Load base model first
         base_model = AutoModelForCausalLM.from_pretrained(
-            str(model_path),
-            torch_dtype=torch.bfloat16,
-            device_map="auto"
+            str(model_path), torch_dtype=torch.bfloat16, device_map="auto"
         )
 
         # Load MoE state
         moe_state = torch.load(str(moe_path), map_location=DEVICE)
-        moe_config = moe_state['config']
+        moe_config = moe_state["config"]
 
         # Create therapeutic MoE model
         model = TherapeuticMoEModel(base_model, moe_config)
 
         # Load MoE layer weights
-        for layer, state_dict in zip(model.moe_layers, moe_state['moe_layers']):
+        for layer, state_dict in zip(model.moe_layers, moe_state["moe_layers"]):
             layer.load_state_dict(state_dict)
 
         model.eval()
-        model_info['architecture'] = 'MoE'
-        model_info['num_experts'] = moe_config.num_experts
-        model_info['expert_domains'] = moe_config.expert_domains
+        model_info["architecture"] = "MoE"
+        model_info["num_experts"] = moe_config.num_experts
+        model_info["expert_domains"] = moe_config.expert_domains
     else:
         # Load standard model
         model = AutoModelForCausalLM.from_pretrained(
-            str(model_path),
-            torch_dtype=torch.bfloat16,
-            device_map="auto"
+            str(model_path), torch_dtype=torch.bfloat16, device_map="auto"
         )
         model.eval()
-        model_info['architecture'] = 'Standard'
+        model_info["architecture"] = "Standard"
 
     # Get model info
     total_params = sum(p.numel() for p in model.parameters())
-    model_info['total_parameters'] = total_params
-    model_info['device'] = str(next(model.parameters()).device)
+    model_info["total_parameters"] = total_params
+    model_info["device"] = str(next(model.parameters()).device)
 
-    print(f"Model loaded successfully!")
+    print("Model loaded successfully!")
     print(f"  Architecture: {model_info['architecture']}")
     print(f"  Parameters: {total_params:,}")
 
@@ -184,7 +184,7 @@ app = FastAPI(
     title="Pixelated Empathy Therapeutic AI",
     description="OVHcloud AI Deploy inference server for therapeutic conversation AI",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # Add CORS middleware
@@ -214,24 +214,17 @@ def format_messages(messages: List[ConversationMessage]) -> str:
 
 
 def generate_response(
-    prompt: str,
-    max_tokens: int,
-    temperature: float,
-    top_p: float,
-    do_sample: bool
+    prompt: str, max_tokens: int, temperature: float, top_p: float, do_sample: bool
 ) -> Dict[str, Any]:
     """Generate response from model"""
     global model, tokenizer
 
     # Tokenize
     inputs = tokenizer(
-        prompt,
-        return_tensors="pt",
-        truncation=True,
-        max_length=MAX_LENGTH - max_tokens
+        prompt, return_tensors="pt", truncation=True, max_length=MAX_LENGTH - max_tokens
     )
     inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
-    input_length = inputs['input_ids'].shape[1]
+    input_length = inputs["input_ids"].shape[1]
 
     # Generate
     with torch.no_grad():
@@ -255,28 +248,21 @@ def generate_response(
         response_text = response_text.split("User:")[0].strip()
 
     return {
-        'text': response_text,
-        'input_tokens': input_length,
-        'output_tokens': len(generated_tokens),
+        "text": response_text,
+        "input_tokens": input_length,
+        "output_tokens": len(generated_tokens),
     }
 
 
 async def stream_response(
-    prompt: str,
-    max_tokens: int,
-    temperature: float,
-    top_p: float,
-    do_sample: bool
+    prompt: str, max_tokens: int, temperature: float, top_p: float, do_sample: bool
 ):
     """Stream response tokens"""
     global model, tokenizer
 
     # Tokenize
     inputs = tokenizer(
-        prompt,
-        return_tensors="pt",
-        truncation=True,
-        max_length=MAX_LENGTH - max_tokens
+        prompt, return_tensors="pt", truncation=True, max_length=MAX_LENGTH - max_tokens
     )
     inputs = {k: v.to(DEVICE) for k, v in inputs.items()}
 
@@ -292,7 +278,7 @@ async def stream_response(
             eos_token_id=tokenizer.eos_token_id,
         )
 
-    generated_tokens = outputs[0][inputs['input_ids'].shape[1]:]
+    generated_tokens = outputs[0][inputs["input_ids"].shape[1] :]
     response_text = tokenizer.decode(generated_tokens, skip_special_tokens=True)
 
     # Simulate streaming by yielding chunks
@@ -302,7 +288,7 @@ async def stream_response(
         yield f"data: {json.dumps({'text': chunk})}\n\n"
         await asyncio.sleep(0.01)
 
-    yield f"data: [DONE]\n\n"
+    yield "data: [DONE]\n\n"
 
 
 @app.get("/health", response_model=HealthResponse)
@@ -315,7 +301,7 @@ async def health_check():
         model_loaded=model is not None,
         device=DEVICE,
         gpu_available=torch.cuda.is_available(),
-        uptime_seconds=uptime
+        uptime_seconds=uptime,
     )
 
     if torch.cuda.is_available():
@@ -337,7 +323,7 @@ async def root():
             "health": "/health",
             "inference": "/v1/inference",
             "docs": "/docs",
-        }
+        },
     }
 
 
@@ -366,9 +352,9 @@ async def inference(request: InferenceRequest):
                     max_tokens=request.max_tokens,
                     temperature=request.temperature,
                     top_p=request.top_p,
-                    do_sample=request.do_sample
+                    do_sample=request.do_sample,
                 ),
-                media_type="text/event-stream"
+                media_type="text/event-stream",
             )
 
         # Generate response
@@ -377,20 +363,20 @@ async def inference(request: InferenceRequest):
             max_tokens=request.max_tokens,
             temperature=request.temperature,
             top_p=request.top_p,
-            do_sample=request.do_sample
+            do_sample=request.do_sample,
         )
 
         latency_ms = (time.time() - start_time) * 1000
 
         return InferenceResponse(
-            response=result['text'],
-            model=model_info.get('architecture', 'Unknown'),
+            response=result["text"],
+            model=model_info.get("architecture", "Unknown"),
             usage={
-                'prompt_tokens': result['input_tokens'],
-                'completion_tokens': result['output_tokens'],
-                'total_tokens': result['input_tokens'] + result['output_tokens'],
+                "prompt_tokens": result["input_tokens"],
+                "completion_tokens": result["output_tokens"],
+                "total_tokens": result["input_tokens"] + result["output_tokens"],
             },
-            latency_ms=latency_ms
+            latency_ms=latency_ms,
         )
 
     except Exception as e:
@@ -419,6 +405,5 @@ if __name__ == "__main__":
         host=host,
         port=port,
         workers=1,  # Single worker for GPU
-        reload=False
+        reload=False,
     )
-

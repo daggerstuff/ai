@@ -5,14 +5,12 @@ S3 Dataset Processor - Pulls actual 52.20GB from S3 and processes
 
 import json
 import logging
-import re
-import hashlib
-import sys
-from pathlib import Path
+import os
 from datetime import datetime
+from pathlib import Path
+
 import boto3
 from botocore.exceptions import ClientError
-import os
 
 # Configure logging
 logging.basicConfig(
@@ -134,6 +132,7 @@ class S3DatasetProcessor:
         for unit in ["B", "KB", "MB", "GB"]:
             if size_bytes < 1024.0:
                 return f"{size_bytes:.1f}{unit}"
+
             size_bytes /= 1024.0
         return f"{size_bytes:.1f}TB"
 
@@ -252,12 +251,12 @@ def main():
             print(f"{category}: {len(files)} files, {size / 1024**3:.2f}GB")
 
         if manifest["files"]:
-            print(f"\nTop 5 largest files:")
+            print("\nTop 5 largest files:")
             for f in manifest["files"][:5]:
                 print(f"  {f['key']}: {f['size'] / 1024**3:.2f}GB")
 
         print(
-            f"\nManifest saved to: /home/vivi/pixelated/ai/training_ready/data/s3_processing_report.json"
+            "\nManifest saved to: /home/vivi/pixelated/ai/training_ready/data/s3_processing_report.json"
         )
 
         # Ask for confirmation to proceed

@@ -31,7 +31,7 @@ class TestConfigClasses:
             huggingface_datasets=custom_datasets,
             download_path="custom/path",
             cache_dir="custom/cache",
-            max_retries=5
+            max_retries=5,
         )
 
         assert config.huggingface_datasets == custom_datasets
@@ -54,7 +54,7 @@ class TestConfigClasses:
             max_workers=16,
             batch_size=500,
             enable_monitoring=False,
-            output_dir="custom/output"
+            output_dir="custom/output",
         )
 
         assert config.max_workers == 16
@@ -77,7 +77,7 @@ class TestConfigClasses:
             log_level="DEBUG",
             log_file="custom/logs.log",
             max_bytes=5 * 1024 * 1024,
-            backup_count=3
+            backup_count=3,
         )
 
         assert config.log_level == "DEBUG"
