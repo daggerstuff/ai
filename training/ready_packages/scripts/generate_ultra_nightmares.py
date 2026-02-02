@@ -68,7 +68,10 @@ class UltraNightmareGenerator:
             "Client: ...\n"
         ).format(category=cat_key, template=details["template"])
 
-        user_prompt = "Start the session. The client has just walked in or started the video call."
+        user_prompt = (
+            "Start the session. The client has just walked in or "
+            "started the video call."
+        )
 
         try:
             response = requests.post(

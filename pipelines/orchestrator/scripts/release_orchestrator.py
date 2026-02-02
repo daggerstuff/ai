@@ -22,9 +22,9 @@ from typing import Any, Dict, List, Optional, Tuple
 # Add the dataset_pipeline to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from storage_config import StorageConfig, get_storage_config
-from safety_ethics_audit_trail import get_audit_trail, AuditEventType
 from main_orchestrator import DatasetPipelineOrchestrator
+from safety_ethics_audit_trail import get_audit_trail
+from storage_config import StorageConfig, get_storage_config
 
 # Configure enterprise logging
 logging.basicConfig(
@@ -42,12 +42,16 @@ class EnterpriseReleaseOrchestrator:
     """Enterprise-grade orchestrator for the complete Release 0 process"""
 
     def __init__(
-        self, storage_config: StorageConfig, release_version: Optional[str] = None
+        self,
+        storage_config: StorageConfig,
+        release_version: Optional[str] = None,
+        resume: bool = False,
     ):
         self.config = storage_config
         self.release_version = (
             release_version or f"v{datetime.utcnow().strftime('%Y-%m-%d')}"
         )
+        self.resume = resume
         self.scripts_dir = Path(__file__).parent
         self.results = {}
         self.audit_trail = get_audit_trail()
@@ -89,7 +93,9 @@ class EnterpriseReleaseOrchestrator:
             if success:
                 logger.info(f"Script {script_name} completed successfully")
             else:
-                logger.error(f"Script {script_name} failed with return code {result.returncode}")
+                logger.error(
+                    f"Script {script_name} failed with return code {result.returncode}"
+                )
 
             return success, result.stdout, result.stderr
 
@@ -97,7 +103,7 @@ class EnterpriseReleaseOrchestrator:
             logger.error(f"Script {script_name} timed out after 10 minutes")
             return False, "", "Script timed out after 10 minutes"
         except Exception as e:
-.error(f"Failed to run script {script_name}: {e}")
+            logger.error(f"Failed to run script {script_name}: {e}")
             return False, "", f"Failed to run script: {str(e)}"
 
     def issue_1_dataset_pipeline_integration(self) -> Dict[str, Any]:
@@ -108,13 +114,15 @@ class EnterpriseReleaseOrchestrator:
             "issue": "Issue 1: Dataset Pipeline Integration",
             "success": False,
             "timestamp": datetime.utcnow().isoformat(),
-            "integration_details": {}
+            "integration_details": {},
         }
 
         if self.main_orchestrator:
             try:
                 # Run the complete dataset pipeline
-                pipeline_results = self.main_orchestrator.execute_complete_pipeline()
+                pipeline_results = self.main_orchestrator.execute_complete_pipeline(
+                    resume=self.resume
+                )
 
                 result["success"] = pipeline_results["success"]
                 result["integration_details"] = pipeline_results["results"]
@@ -122,8 +130,7 @@ class EnterpriseReleaseOrchestrator:
                 # Log integration success
                 if self.audit_trail:
                     self.audit_trail.log_validation_started(
-                        self.release_version,
-                        user_id="enterprise_release_orchestrator"
+                        self.release_version, user_id="enterprise_release_orchestrator"
                     )
 
                 logger.info("Dataset pipeline integration completed successfully")
@@ -135,17 +142,17 @@ class EnterpriseReleaseOrchestrator:
                 if self.audit_trail:
                     self.audit_trail.log_safety_issue(
                         self.release_version,
-                        {
-                            "issue_type": "pipeline_integration_failure",
-                            "error": str(e)
-                        }
+                        {"issue_type": "pipeline_integration_failure", "error": str(e)},
                     )
         else:
             logger.warning("Main orchestrator unavailable - skipping integration")
             result["success"] = True  # Don't block release for missing integration
-            result["integration_details"] = {"status": "skipped", "reason": "main_orchestrator_unavailable"}
+            result["integration_details"] = {
+                "status": "skipped",
+                "reason": "main_orchestrator_unavailable",
+            }
 
-eturn result
+        return result
 
     def issue_2_coverage_matrix(self) -> Dict[str, Any]:
         """Issue 2: Build coverage matrix from S3 inventory"""
@@ -214,7 +221,9 @@ eturn result
         if success:
             logger.info("✅ Enterprise privacy and provenance gates passed")
         else:
-            logger.error("❌ Enterprise privacy and provenance gates failed - RELEASE BLOCKED")
+            logger.error(
+                "❌ Enterprise privacy and provenance gates failed - RELEASE BLOCKED"
+            )
             logger.error(f"Error: {stderr}")
 
             # Log critical gate failure
@@ -222,7 +231,7 @@ eturn result
                 self.audit_trail.log_intervention_required(
                     self.release_version,
                     "Enterprise privacy/provenance gates failed",
-                    "critical"
+                    "critical",
                 )
 
         return result
@@ -246,7 +255,9 @@ eturn result
         if success:
             logger.info("✅ Enterprise deduplication and leakage gates passed")
         else:
-            logger.error("❌ Enterprise deduplication and leakage gates failed - RELEASE BLOCKED")
+            logger.error(
+                "❌ Enterprise deduplication and leakage gates failed - RELEASE BLOCKED"
+            )
             logger.error(f"Error: {stderr}")
 
             # Log critical gate failure
@@ -254,7 +265,7 @@ eturn result
                 self.audit_trail.log_intervention_required(
                     self.release_version,
                     "Enterprise dedup/leakage gates failed",
-                    "critical"
+                    "critical",
                 )
 
         return result
@@ -339,7 +350,9 @@ eturn result
 
     def run_complete_release(self, fail_fast: bool = True) -> Dict[str, Any]:
         """Run the complete enterprise Release 0 process"""
-        logger.info("🚀 STARTING ENTERPRISE MENTAL HEALTH DATASETS EXPANSION - RELEASE 0")
+        logger.info(
+            "🚀 STARTING ENTERPRISE MENTAL HEALTH DATASETS EXPANSION - RELEASE 0"
+        )
         logger.info(f"Release Version: {self.release_version}")
         logger.info(f"Timestamp: {datetime.utcnow().isoformat()}")
         logger.info(f"S3 Bucket: {self.config.s3_bucket}")
@@ -352,7 +365,7 @@ eturn result
                 "s3_bucket": self.config.s3_bucket,
                 "enterprise_grade": True,
                 "audit_trail_enabled": self.audit_trail is not None,
-                "main_orchestrator_integrated": self.main_orchestrator is not None
+                "main_orchestrator_integrated": self.main_orchestrator is not None,
             },
             "issues": {},
             "overall_success": True,
@@ -364,13 +377,16 @@ eturn result
         # Log release start
         if self.audit_trail:
             self.audit_trail.log_validation_started(
-                self.release_version,
-                user_id="enterprise_release_orchestrator"
+                self.release_version, user_id="enterprise_release_orchestrator"
             )
 
         # Define the enterprise issue execution order
         issues = [
-            ("issue_1", self.issue_1_dataset_pipeline_integration, False),  # Non-blocking integration
+            (
+                "issue_1",
+                self.issue_1_dataset_pipeline_integration,
+                False,
+            ),  # Non-blocking integration
             ("issue_2", self.issue_2_coverage_matrix, True),  # Blocking
             ("issue_3", self.issue_3_manifest_export, True),  # Blocking
             ("issue_4", self.issue_4_privacy_provenance_gates, True),  # Blocking
@@ -382,9 +398,9 @@ eturn result
 
         # Execute issues in sequence with enhanced error handling
         for issue_id, issue_func, is_blocking in issues:
-            logger.info(f"\n{'='*60}")
+            logger.info(f"\n{'=' * 60}")
             logger.info(f"EXECUTING {issue_id.upper()}")
-            logger.info(f"{'='*60}")
+            logger.info(f"{'=' * 60}")
 
             try:
                 result = issue_func()
@@ -403,7 +419,7 @@ eturn result
                             self.audit_trail.log_intervention_required(
                                 self.release_version,
                                 f"Blocking issue failed: {issue_id}",
-                                "critical"
+                                "critical",
                             )
 
                         if fail_fast:
@@ -440,8 +456,8 @@ eturn result
                             {
                                 "issue_type": "orchestrator_crash",
                                 "issue_id": issue_id,
-                                "error": str(e)
-                            }
+                                "error": str(e),
+                            },
                         )
 
                     if fail_fast:
@@ -458,10 +474,10 @@ eturn result
                 self.release_version,
                 {
                     "overall_success": release_results["overall_success"],
-            "enterprise_ready": release_results["enterprise_ready"],
+                    "enterprise_ready": release_results["enterprise_ready"],
                     "blocking_failures": release_results["blocking_failures"],
-                    "warnings": release_results["warnings"]
-                }
+                    "warnings": release_results["warnings"],
+                },
             )
 
         return release_results
@@ -470,7 +486,10 @@ eturn result
         """Save release summary to S3"""
         import boto3
 
-        summary_key = f"{self.config.exports_prefix}/releases/{self.release_version}/release_summary.json"
+        summary_key = (
+            f"{self.config.exports_prefix}/releases/"
+            f"{self.release_version}/release_summary.json"
+        )
 
         try:
             s3_client = boto3.client(
@@ -507,12 +526,32 @@ eturn result
         print(f"Start Time: {metadata['start_time']}")
         print(f"End Time: {metadata.get('end_time', 'In Progress')}")
         print(f"S3 Bucket: {metadata['s3_bucket']}")
-        print(f"Enterprise Grade: {'✅' if metadata.get('enterprise_grade', False) else '❌'}")
-        print(f"Audit Trail: {'✅ ENABLED' if metadata.get('audit_trail_enabled', False) else '⚠️  DISABLED'}")
-        print(f"Main Orchestrator: {'✅ INTEGRATED' if metadata.get('main_orchestrator_integrated', False) else '⚠️  STANDALONE'}")
+        print(
+            "Enterprise Grade: "
+            f"{'✅' if metadata.get('enterprise_grade', False) else '❌'}"
+        )
+        audit_status = (
+            "✅ ENABLED"
+            if metadata.get("audit_trail_enabled", False)
+            else "⚠️  DISABLED"
+        )
+        print(f"Audit Trail: {audit_status}")
 
-        overall_status = "✅ SUCCESS" if release_results["overall_success"] else "❌ FAILED"
-        enterprise_status = "🏢 ENTERPRISE READY" if release_results.get("enterprise_ready", False) else "⚠️  STANDARD GRADE"
+        orch_status = (
+            "✅ INTEGRATED"
+            if metadata.get("main_orchestrator_integrated", False)
+            else "⚠️  STANDALONE"
+        )
+        print(f"Main Orchestrator: {orch_status}")
+
+        overall_status = (
+            "✅ SUCCESS" if release_results["overall_success"] else "❌ FAILED"
+        )
+        enterprise_status = (
+            "🏢 ENTERPRISE READY"
+            if release_results.get("enterprise_ready", False)
+            else "⚠️  STANDARD GRADE"
+        )
 
         print(f"\nOverall Status: {overall_status}")
         print(f"Enterprise Readiness: {enterprise_status}")
@@ -535,13 +574,19 @@ eturn result
 
         if release_results["overall_success"]:
             if release_results.get("enterprise_ready", False):
-                print(f"\n🏢 ENTERPRISE RELEASE {metadata['release_version']} COMPLETED SUCCESSFULLY!")
+                print(
+                    f"\n🏢 ENTERPRISE RELEASE {metadata['release_version']} "
+                    "COMPLETED SUCCESSFULLY!"
+                )
                 print("✅ All critical gates passed with enterprise-grade components")
                 print("✅ Dataset ready for production training consumption")
                 print("✅ Human QA signoff obtained with clinical validation")
                 print("✅ Comprehensive audit trail maintained")
             else:
-                print(f"\n🎉 STANDARD RELEASE {metadata['release_version']} COMPLETED SUCCESSFULLY!")
+                print(
+                    f"\n🎉 STANDARD RELEASE {metadata['release_version']} "
+                    "COMPLETED SUCCESSFULLY!"
+                )
                 print("✅ All critical gates passed")
                 print("✅ Dataset ready for training consumption")
                 print("⚠️  Consider upgrading to enterprise-grade components")
@@ -562,7 +607,10 @@ eturn result
 
             if not release_results.get("enterprise_ready", False):
                 print("\n💼 ENTERPRISE UPGRADE RECOMMENDED:")
-                print("  Consider upgrading infrastructure components for enterprise-grade operations")
+                print(
+                    "  Consider upgrading infrastructure components "
+                    "for enterprise-grade operations"
+                )
 
         print("\n" + "=" * 80)
 
@@ -570,7 +618,9 @@ eturn result
 def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(
-        description="Enterprise Mental Health Datasets Expansion - Release 0 Orchestrator"
+        description=(
+            "Enterprise Mental Health Datasets Expansion - Release 0 Orchestrator"
+        )
     )
     parser.add_argument(
         "--release-version", help="Release version (default: vYYYY-MM-DD)", default=None
@@ -584,6 +634,11 @@ def main():
         "--dry-run",
         action="store_true",
         help="Show what would be executed without running",
+    )
+    parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume from existing artifacts if found",
     )
 
     args = parser.parse_args()
@@ -614,26 +669,41 @@ def main():
         print("🔍 DRY RUN MODE - Showing execution plan:")
         print("  Issue 1: Dataset pipeline integration (NON-BLOCKING)")
         print("  Issue 2: Build coverage matrix from S3 inventory (BLOCKING)")
-        print("  Issue 3: Generate versioned manifest + compiled ChatML export (BLOCKING)")
+        print(
+            "  Issue 3: Generate versioned manifest + compiled ChatML export (BLOCKING)"
+        )
         print("  Issue 4: Enforce enterprise privacy and provenance gates (BLOCKING)")
-        print("  Issue 5: Run enterprise dedup and cross-split leakage gates (BLOCKING)")
+        print(
+            "  Issue 5: Run enterprise dedup and cross-split leakage gates (BLOCKING)"
+        )
         print("  Issue 6: Record distribution stats by family and split (NON-BLOCKING)")
         print("  Issue 7: Clinician QA + bias/cultural review signoff (BLOCKING)")
-        print("  Issue 8: Smoke test training consumes S3 release artifacts (NON-BLOCKING)")
+        print(
+            "  Issue 8: Smoke test training consumes S3 release artifacts "
+            "(NON-BLOCKING)"
+        )
         print("\n✅ Dry run complete - use without --dry-run to execute")
         sys.exit(0)
 
     try:
         # Create enterprise orchestrator
-        orchestrator = EnterpriseReleaseOrchestrator(config, args.release_version)
+        orchestrator = EnterpriseReleaseOrchestrator(
+            config, args.release_version, resume=args.resume
+        )
 
         print("📋 ENTERPRISE CONFIGURATION:")
         print(f"  Release Version: {orchestrator.release_version}")
         print(f"  S3 Bucket: {config.s3_bucket}")
         print(f"  S3 Endpoint: {config.s3_endpoint_url}")
         print(f"  Fail Fast: {not args.no_fail_fast}")
-        print(f"  Audit Trail: {'✅ ENABLED' if orchestrator.audit_trail else '⚠️  DISABLED'}")
-        print(f"  Main Orchestrator: {'✅ INTEGRATED' if orchestrator.main_orchestrator else '⚠️  STANDALONE'}")
+        print(
+            f"  Audit Trail: "
+            f"{'✅ ENABLED' if orchestrator.audit_trail else '⚠️  DISABLED'}"
+        )
+        print(
+            f"  Main Orchestrator: "
+            f"{'✅ INTEGRATED' if orchestrator.main_orchestrator else '⚠️  STANDALONE'}"
+        )
 
         # Run complete release process
         results = orchestrator.run_complete_release(fail_fast=not args.no_fail_fast)

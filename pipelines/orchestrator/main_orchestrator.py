@@ -8,7 +8,9 @@ This module orchestrates the complete dataset pipeline:
 4. Final validation and reporting
 """
 
+import argparse
 import json
+import os
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,7 +21,7 @@ from ai.pipelines.orchestrator.dataset_composition_strategy import (
     run_composition_strategy as run_composition,
 )
 from ai.pipelines.orchestrator.generation_wrapper import GenerationWrapper
-from ai.pipelines.orchestrator.logger import get_logger
+from ai.pipelines.orchestrator.logger import get_logger, setup_pipeline_logging
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
 from ai.pipelines.orchestrator.training_manifest import (
     create_safety_aware_manifest,
@@ -38,17 +40,33 @@ class DatasetPipelineOrchestrator:
     """Main orchestrator for the complete dataset pipeline"""
 
     def __init__(self):
+        # Configure file logging
+        self.output_root = get_dataset_pipeline_output_root()
+        setup_pipeline_logging(self.output_root / "logs")
+
         self.pipeline_results = {}
         self.composition_results = {}
         self.manifest = None
 
         # Initialize generation wrapper
-        self.output_root = get_dataset_pipeline_output_root()
-        # Assuming workspace root is 3 levels up from orchestrator (ai/pipelines/orchestrator)
+        # Assuming workspace root is 3 levels up from orchestrator
+        # (ai/pipelines/orchestrator)
         # /home/vivi/pixelated/ai/pipelines/orchestrator -> /home/vivi/pixelated
         self.workspace_root = Path(__file__).resolve().parents[3]
         self.generator = GenerationWrapper(self.workspace_root)
         self.splitter = DataSplitter(train_ratio=0.70, val_ratio=0.15, test_ratio=0.15)
+
+    def _get_latest_artifact(self, search_dir: Path, pattern: str) -> Path | None:
+        """Find the latest file matching pattern in search_dir"""
+        if not search_dir.exists():
+            return None
+
+        candidates = list(search_dir.glob(pattern))
+        if not candidates:
+            return None
+
+        # Return most recently modified file
+        return max(candidates, key=lambda p: p.stat().st_mtime)
 
     def ensure_data_completeness(self) -> dict[str, bool]:
         """
@@ -60,16 +78,22 @@ class DatasetPipelineOrchestrator:
 
         # 1. NeMo Synthetic Data (Target: 10,000)
         # We can pass specific counts or rely on defaults
-        results["nemo_synthetic"] = self.generator.ensure_nemo_synthetic(target_count=10000)
+        results["nemo_synthetic"] = self.generator.ensure_nemo_synthetic(
+            target_count=10000
+        )
 
         # 2. Ultra Nightmare Scenarios (Target: 5 per category initially)
-        results["ultra_nightmares"] = self.generator.ensure_ultra_nightmares(count_per_category=5)
+        results["ultra_nightmares"] = self.generator.ensure_ultra_nightmares(
+            count_per_category=5
+        )
 
         # 3. Edge Case Synthetic (Target: 10,000)
         results["edge_cases"] = self.generator.ensure_edge_cases(count=10000)
 
         # 4. Academic Sourcing (PubMed/Scholar)
-        results["academic_sourcing"] = self.generator.ensure_academic_sourcing(limit_per_query=10)
+        results["academic_sourcing"] = self.generator.ensure_academic_sourcing(
+            limit_per_query=10
+        )
 
         # 5. Journal Research
         results["journal_research"] = self.generator.ensure_journal_research()
@@ -78,47 +102,130 @@ class DatasetPipelineOrchestrator:
         results["books_extraction"] = self.generator.ensure_books_extraction()
 
         # 7. Tim Fletcher & Transcripts
-        results["transcripts_extraction"] = self.generator.ensure_transcripts_extraction()
+        results["transcripts_extraction"] = (
+            self.generator.ensure_transcripts_extraction()
+        )
 
         logger.info(f"Data completeness check results: {results}")
         return results
 
-    def run_unified_preprocessing(self) -> str:
+    def run_unified_preprocessing(self, resume: bool = False) -> str:
         """Run the unified preprocessing pipeline"""
         logger.info("Starting unified preprocessing pipeline...")
+
+        if resume:
+            output_dir = self.output_root / "final_output"
+            existing = self._get_latest_artifact(
+                output_dir, "unified_training_dataset_*.jsonl"
+            )
+            if existing:
+                logger.info(f"RESUME: Found existing unified dataset at {existing}")
+                self.pipeline_results["unified_dataset_path"] = str(existing)
+                return str(existing)
 
         try:
             # Run the unified preprocessing pipeline
             final_dataset_path = run_unified_pipeline()
 
             self.pipeline_results["unified_dataset_path"] = final_dataset_path
-            logger.info(f"Unified preprocessing completed. Dataset saved to: {final_dataset_path}")
+            logger.info(
+                "Unified preprocessing completed. "
+                f"Dataset saved to: {final_dataset_path}"
+            )
 
             return final_dataset_path
         except Exception as e:
             logger.error(f"Unified preprocessing failed: {e!s}")
             raise
 
-    def run_dataset_composition(self, input_dataset_path: str) -> tuple[str, dict[str, Any]]:
+    def run_dataset_composition(
+        self, input_dataset_path: str, resume: bool = False
+    ) -> tuple[str, dict[str, Any]]:
         """Run the dataset composition and balancing strategy"""
         logger.info("Starting dataset composition and balancing...")
 
+        if resume:
+            # Look for likely output location in output_root
+            balanced_dir = self.output_root
+            existing_balanced = None
+            # Helper search
+            for p in balanced_dir.rglob("balanced_dataset_*.jsonl"):
+                if (
+                    not existing_balanced
+                    or p.stat().st_mtime > existing_balanced.stat().st_mtime
+                ):
+                    existing_balanced = p
+
+            if existing_balanced:
+                # Try to find report next to it
+                report_path = existing_balanced.parent / "composition_report.json"
+                if not report_path.exists():
+                    # try derived name
+                    report_path = (
+                        existing_balanced.parent
+                        / f"{existing_balanced.stem}_composition_report.json"
+                    )
+
+                if report_path.exists():
+                    logger.info(
+                        "RESUME: Found existing balanced dataset at "
+                        f"{existing_balanced}"
+                    )
+                    try:
+                        with open(report_path) as f:
+                            report = json.load(f)
+                        self.composition_results["balanced_dataset_path"] = str(
+                            existing_balanced
+                        )
+                        self.composition_results["composition_report"] = report
+                        return str(existing_balanced), report
+                    except Exception as e:
+                        logger.warning(
+                            f"Could not load existing composition report: {e}"
+                        )
+
         try:
             # Run the composition strategy
-            balanced_dataset_path, composition_report = run_composition(input_dataset_path)
+            balanced_dataset_path, composition_report = run_composition(
+                input_dataset_path
+            )
 
             self.composition_results["balanced_dataset_path"] = balanced_dataset_path
             self.composition_results["composition_report"] = composition_report
 
-            logger.info(f"Dataset composition completed. Balanced dataset: {balanced_dataset_path}")
+            logger.info(
+                "Dataset composition completed. "
+                f"Balanced dataset: {balanced_dataset_path}"
+            )
             return balanced_dataset_path, composition_report
         except Exception as e:
             logger.error(f"Dataset composition failed: {e!s}")
             raise
 
-    def run_data_splitting(self, balanced_dataset_path: str) -> dict[str, Any]:
+    def run_data_splitting(
+        self, balanced_dataset_path: str, resume: bool = False
+    ) -> dict[str, Any]:
         """Split the balanced dataset into train/val/test sets"""
         logger.info("Starting data splitting (70/15/15)...")
+
+        output_dir = Path(balanced_dataset_path).parent
+
+        if resume:
+            # Check if all splits exist
+            expected_splits = ["train", "val", "test"]
+            existing_paths = {}
+            all_exist = True
+            for set_name in expected_splits:
+                path = output_dir / f"{set_name}_dataset.jsonl"
+                if path.exists():
+                    existing_paths[set_name] = str(path)
+                else:
+                    all_exist = False
+                    break
+
+            if all_exist:
+                logger.info(f"RESUME: Found existing data splits at {output_dir}")
+                return existing_paths
 
         try:
             # Load balanced records
@@ -148,10 +255,20 @@ class DatasetPipelineOrchestrator:
             raise
 
     def create_training_manifest(
-        self, dataset_path: str, composition_report_path: str | None = None
+        self,
+        dataset_path: str,
+        composition_report_path: str | None = None,
+        resume: bool = False,
     ) -> str:
         """Create the training manifest with safety protocols"""
         logger.info("Creating training manifest with safety protocols...")
+
+        output_dir = get_dataset_pipeline_output_root() / "final_output"
+        manifest_path = output_dir / "training_manifest.json"
+
+        if resume and manifest_path.exists():
+            logger.info(f"RESUME: Found existing training manifest at {manifest_path}")
+            return str(manifest_path)
 
         try:
             # Create safety-aware manifest
@@ -211,13 +328,20 @@ class DatasetPipelineOrchestrator:
                             json.loads(line.strip())
                             record_count += 1
                         except json.JSONDecodeError:
-                            logger.warning(f"Invalid JSON record at line {record_count + 1}")
+                            logger.warning(
+                                f"Invalid JSON record at line {record_count + 1}"
+                            )
 
             validation_report["validation_results"]["record_count"] = record_count
             validation_report["validation_results"]["file_readable"] = True
 
             # Check for required fields in sample records
-            required_fields_found = {"messages": 0, "metadata": 0, "_source": 0, "_source_type": 0}
+            required_fields_found = {
+                "messages": 0,
+                "metadata": 0,
+                "_source": 0,
+                "_source_type": 0,
+            }
 
             sample_size = min(100, record_count) if record_count > 0 else 0
             sample_checked = 0
@@ -241,10 +365,14 @@ class DatasetPipelineOrchestrator:
             # Calculate percentages
             for field, count in required_fields_found.items():
                 percentage = (count / sample_size * 100) if sample_size > 0 else 0
-                validation_report["validation_results"][f"{field}_coverage"] = f"{percentage:.1f}%"
+                validation_report["validation_results"][f"{field}_coverage"] = (
+                    f"{percentage:.1f}%"
+                )
 
             validation_report["validation_results"]["overall_validation"] = "PASSED"
-            logger.info(f"Final dataset validation completed. Record count: {record_count}")
+            logger.info(
+                f"Final dataset validation completed. Record count: {record_count}"
+            )
 
         except Exception as e:
             validation_report["validation_results"]["overall_validation"] = "FAILED"
@@ -274,7 +402,9 @@ class DatasetPipelineOrchestrator:
             "training_manifest": {
                 "created": self.manifest is not None,
                 "path": str(
-                    get_dataset_pipeline_output_root() / "final_output" / "training_manifest.json"
+                    get_dataset_pipeline_output_root()
+                    / "final_output"
+                    / "training_manifest.json"
                 )
                 if self.manifest
                 else None,
@@ -292,9 +422,11 @@ class DatasetPipelineOrchestrator:
         logger.info(f"Final pipeline report generated: {report_path}")
         return str(report_path)
 
-    def execute_complete_pipeline(self) -> dict[str, Any]:
+    def execute_complete_pipeline(self, resume: bool = False) -> dict[str, Any]:
         """Execute the complete dataset pipeline from start to finish"""
-        logger.info("Starting complete dataset pipeline execution...")
+        logger.info(
+            f"Starting complete dataset pipeline execution (resume={resume})..."
+        )
 
         results = {"success": False, "results": {}, "error": None}
 
@@ -304,18 +436,18 @@ class DatasetPipelineOrchestrator:
             results["results"]["generation_completeness"] = generation_results
 
             # Step 1: Run unified preprocessing pipeline
-            unified_dataset_path = self.run_unified_preprocessing()
+            unified_dataset_path = self.run_unified_preprocessing(resume=resume)
             results["results"]["unified_dataset_path"] = unified_dataset_path
 
             # Step 2: Run dataset composition and balancing
             balanced_dataset_path, composition_report = self.run_dataset_composition(
-                unified_dataset_path
+                unified_dataset_path, resume=resume
             )
             results["results"]["balanced_dataset_path"] = balanced_dataset_path
             results["results"]["composition_report"] = composition_report
 
             # Step 2.5: Run data splitting
-            split_paths = self.run_data_splitting(balanced_dataset_path)
+            split_paths = self.run_data_splitting(balanced_dataset_path, resume=resume)
             results["results"]["split_paths"] = split_paths
 
             # Step 3: Create training manifest
@@ -327,7 +459,7 @@ class DatasetPipelineOrchestrator:
                 )
             )
             manifest_path = self.create_training_manifest(
-                manifest_dataset_path, composition_report_path
+                manifest_dataset_path, composition_report_path, resume=resume
             )
             results["results"]["training_manifest_path"] = manifest_path
 
@@ -350,33 +482,127 @@ class DatasetPipelineOrchestrator:
         return results
 
 
+def _daemonize(output_dir: Path):
+    """
+    Detach from the controlling terminal and run in the background.
+    Redirects stdout/stderr to a general daemon log in the output directory.
+    """
+    # First fork (detaches from parent)
+    try:
+        pid = os.fork()
+        if pid > 0:
+            sys.exit(0)  # Exit first parent
+    except OSError as e:
+        sys.stderr.write(f"fork #1 failed: {e}\n")
+        sys.exit(1)
+
+    # Decouple from parent environment
+    os.chdir("/")
+    os.setsid()
+    os.umask(0)
+
+    # Second fork (relinquish session leadership)
+    try:
+        pid = os.fork()
+        if pid > 0:
+            sys.exit(0)  # Exit second parent
+    except OSError as e:
+        sys.stderr.write(f"fork #2 failed: {e}\n")
+        sys.exit(1)
+
+    # Redirect standard file descriptors
+    sys.stdout.flush()
+    sys.stderr.flush()
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    log_path = output_dir / "orchestrator_daemon.log"
+
+    si = open(os.devnull, "r")
+    so = open(log_path, "a+")
+    se = open(log_path, "a+")
+
+    os.dup2(si.fileno(), sys.stdin.fileno())
+    os.dup2(so.fileno(), sys.stdout.fileno())
+    os.dup2(se.fileno(), sys.stderr.fileno())
+
+    # Write a marker to the log
+    sys.stdout.write(f"\n--- Daemon started at {datetime.now(timezone.utc)} ---\n")
+    sys.stdout.flush()
+
+
 def main():
     """Main entry point for the dataset pipeline orchestrator"""
+    parser = argparse.ArgumentParser(
+        description="Pixelated Empathy AI Dataset Pipeline Orchestrator"
+    )
+    # Default is now resume=True. We provide a restart flag to disable it.
+    parser.add_argument(
+        "--restart",
+        action="store_true",
+        help="Force a fresh start (ignore existing artifacts)",
+    )
+    # Legacy flag for compatibility, does nothing as it's default
+    parser.add_argument(
+        "--resume", action="store_true", help="Resume (now enabled by default)"
+    )
+    parser.add_argument(
+        "--foreground",
+        action="store_true",
+        help="Run in the foreground (do not daemonize)",
+    )
+    args = parser.parse_args()
+
+    # Determine execution mode
+    run_resume = not args.restart
+    run_background = not args.foreground
+
+    if run_background:
+        output_root = get_dataset_pipeline_output_root()
+        print("🚀 Launching Orchestrator in BACKGROUND mode.")
+        print(f"   Logs will be available at: {output_root}/logs")
+        print(f"   Daemon output redirected to: {output_root}/orchestrator_daemon.log")
+        _daemonize(output_root)
+
+    # --- Daemon Context Starts Here (if backgrounded) ---
+
     orchestrator = DatasetPipelineOrchestrator()
 
     try:
         logger.info("Pixelated Empathy AI Dataset Pipeline Orchestrator")
         logger.info("=" * 50)
+        logger.info(
+            f"Execution Mode: {'Background' if run_background else 'Foreground'}"
+        )
+        logger.info(f"Resume Enabled: {run_resume}")
 
         # Execute the complete pipeline
-        results = orchestrator.execute_complete_pipeline()
+        results = orchestrator.execute_complete_pipeline(resume=run_resume)
 
         if results["success"]:
             logger.info("\n🎉 Pipeline Execution Successful!")
             logger.info("=" * 50)
-            logger.info(f"📊 Unified Dataset: {results['results']['unified_dataset_path']}")
-            logger.info(f"⚖️  Balanced Dataset: {results['results']['balanced_dataset_path']}")
-            logger.info(f"📋 Training Manifest: {results['results']['training_manifest_path']}")
+            logger.info(
+                f"📊 Unified Dataset: {results['results']['unified_dataset_path']}"
+            )
+            logger.info(
+                f"⚖️  Balanced Dataset: {results['results']['balanced_dataset_path']}"
+            )
+            logger.info(
+                f"📋 Training Manifest: {results['results']['training_manifest_path']}"
+            )
             logger.info(f"📄 Final Report: {results['results']['final_report_path']}")
 
             # Print composition summary
             composition_report = results["results"]["composition_report"]
             logger.info("\n📈 Dataset Composition Summary:")
             logger.info(
-                f"   Total Records: {composition_report['final_dataset_stats']['total_records']}"
+                f"   Total Records: "
+                f"{composition_report['final_dataset_stats']['total_records']}"
             )
             if "quality_scores" in composition_report["final_dataset_stats"]:
-                avg_quality = composition_report["final_dataset_stats"]["quality_scores"]["avg"]
+                avg_quality = composition_report["final_dataset_stats"][
+                    "quality_scores"
+                ]["avg"]
                 logger.info(f"   Average Quality Score: {avg_quality:.3f}")
 
             logger.info("\n✅ Ready for Lightning.ai H100 training deployment!")
