@@ -5,22 +5,20 @@ This module implements the Flask application factory pattern with comprehensive
 configuration management, middleware registration, and blueprint initialization.
 """
 
-import os
 import logging
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional
 
-from flask import Flask, request, g
+from flask import Flask, g, request
 from flask_cors import CORS
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .config import TechDeckServiceConfig
 from .auth.middleware import JWTAuthMiddleware
-from .utils.logger import setup_logging
-from .utils.error_handler import TechDeckErrorHandler
-from .websocket.manager import WebSocketManager
-from .integration.redis_client import RedisClient
+from .config import TechDeckServiceConfig
 from .error_handling.error_handler import ErrorHandler
+from .integration.redis_client import RedisClient
+from .utils.logger import setup_logging
+from .websocket.manager import WebSocketManager
 
 
 def create_app(config: Optional[TechDeckServiceConfig] = None) -> Flask:
