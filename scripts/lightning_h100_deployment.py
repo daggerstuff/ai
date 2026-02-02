@@ -14,27 +14,29 @@ import json
 import logging
 import shutil
 from pathlib import Path
-from typing import Dict, List, Optional
-import subprocess
-import sys
+from typing import Dict
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
+
 
 class LightningH100Deployer:
     """Lightning.ai H100 deployment system for therapeutic AI training"""
-    
+
     def __init__(self, unified_dataset_path: Path = None):
-        from path_utils import get_unified_training_dir, get_lightning_dir
+        from path_utils import get_lightning_dir, get_unified_training_dir
+
         self.unified_dataset_path = unified_dataset_path or get_unified_training_dir()
         self.lightning_workspace = get_lightning_dir() / "production"
         self.lightning_workspace.mkdir(parents=True, exist_ok=True)
-        
+
     def validate_unified_dataset(self) -> Dict:
         """Validate the unified dataset is ready for deployment"""
         logger.info("🔍 Validating unified dataset for Lightning.ai deployment...")
-        
+
         validation_results = {
             "dataset_ready": False,
             "config_valid": False,
@@ -42,75 +44,90 @@ class LightningH100Deployer:
             "missing_files": [],
             "total_conversations": 0,
             "expert_distribution": {},
-            "quality_metrics": {}
+            "quality_metrics": {},
         }
-        
+
         required_files = [
             "train.json",
-            "validation.json", 
+            "validation.json",
             "expert_therapeutic.json",
             "expert_educational.json",
             "expert_empathetic.json",
             "expert_practical.json",
-            "unified_lightning_config.json"
+            "unified_lightning_config.json",
         ]
-        
+
         # Check for required files
         for filename in required_files:
             file_path = self.unified_dataset_path / filename
             if file_path.exists():
                 validation_results["files_present"].append(filename)
-                
+
                 # Count conversations in data files
-                if filename.endswith('.json') and filename != 'unified_lightning_config.json':
+                if (
+                    filename.endswith(".json")
+                    and filename != "unified_lightning_config.json"
+                ):
                     try:
-                        with open(file_path, 'r', encoding='utf-8') as f:
+                        with open(file_path, "r", encoding="utf-8") as f:
                             data = json.load(f)
                         if isinstance(data, list):
                             validation_results["total_conversations"] += len(data)
-                            if filename.startswith('expert_'):
-                                expert_name = filename.replace('expert_', '').replace('.json', '')
-                                validation_results["expert_distribution"][expert_name] = len(data)
+                            if filename.startswith("expert_"):
+                                expert_name = filename.replace("expert_", "").replace(
+                                    ".json", ""
+                                )
+                                validation_results["expert_distribution"][
+                                    expert_name
+                                ] = len(data)
                     except Exception as e:
                         logger.warning(f"Error reading {filename}: {e}")
             else:
                 validation_results["missing_files"].append(filename)
-        
+
         # Validate configuration
         config_path = self.unified_dataset_path / "unified_lightning_config.json"
         if config_path.exists():
             try:
-                with open(config_path, 'r', encoding='utf-8') as f:
+                with open(config_path, "r", encoding="utf-8") as f:
                     config = json.load(f)
-                
+
                 validation_results["config_valid"] = True
-                validation_results["quality_metrics"] = config.get("dataset_stats", {}).get("processing_stats", {})
-                
+                validation_results["quality_metrics"] = config.get(
+                    "dataset_stats", {}
+                ).get("processing_stats", {})
+
             except Exception as e:
                 logger.error(f"Error validating config: {e}")
-        
+
         validation_results["dataset_ready"] = (
-            len(validation_results["missing_files"]) == 0 and 
-            validation_results["config_valid"] and
-            validation_results["total_conversations"] > 100
+            len(validation_results["missing_files"]) == 0
+            and validation_results["config_valid"]
+            and validation_results["total_conversations"] > 100
         )
-        
+
         # Log validation results
         if validation_results["dataset_ready"]:
             logger.info("✅ Dataset validation successful!")
-            logger.info(f"   Total conversations: {validation_results['total_conversations']}")
-            logger.info(f"   Expert distribution: {validation_results['expert_distribution']}")
+            logger.info(
+                f"   Total conversations: {validation_results['total_conversations']}"
+            )
+            logger.info(
+                f"   Expert distribution: {validation_results['expert_distribution']}"
+            )
         else:
             logger.warning("⚠️  Dataset validation issues detected")
             if validation_results["missing_files"]:
-                logger.warning(f"   Missing files: {validation_results['missing_files']}")
-        
+                logger.warning(
+                    f"   Missing files: {validation_results['missing_files']}"
+                )
+
         return validation_results
-    
+
     def create_lightning_training_script(self) -> Path:
         """Create Lightning.ai training script for H100 LoRA"""
         logger.info("📝 Creating Lightning.ai H100 training script...")
-        
+
         training_script = '''#!/usr/bin/env python3
 """
 Lightning.ai H100 Therapeutic AI Training Script
@@ -356,84 +373,78 @@ def main():
 if __name__ == "__main__":
     main()
 '''
-        
+
         script_path = self.lightning_workspace / "train_therapeutic_ai.py"
-        with open(script_path, 'w', encoding='utf-8') as f:
+        with open(script_path, "w", encoding="utf-8") as f:
             f.write(training_script)
-        
+
         # Make executable
         script_path.chmod(0o755)
-        
+
         logger.info(f"✅ Training script created: {script_path}")
         return script_path
-    
+
     def create_deployment_config(self, validation_results: Dict) -> Path:
         """Create Lightning.ai deployment configuration"""
         logger.info("⚙️  Creating Lightning.ai deployment configuration...")
-        
+
         # Load unified config
-        with open(self.unified_dataset_path / "unified_lightning_config.json", 'r') as f:
+        with open(
+            self.unified_dataset_path / "unified_lightning_config.json", "r"
+        ) as f:
             unified_config = json.load(f)
-        
+
         deployment_config = {
             "lightning_app": {
                 "name": "therapeutic-ai-training",
                 "description": "H100 LoRA training for therapeutic conversation AI with intelligent multi-pattern dataset",
-                "compute": {
-                    "type": "gpu-h100",
-                    "count": 1,
-                    "memory": "80GB"
-                }
+                "compute": {"type": "gpu-h100", "count": 1, "memory": "80GB"},
             },
             "environment": {
                 "python_version": "3.11",
                 "requirements": [
                     "torch>=2.0.0",
-                    "lightning>=2.1.0", 
+                    "lightning>=2.1.0",
                     "transformers>=4.35.0",
                     "peft>=0.6.0",
                     "datasets>=2.14.0",
                     "accelerate>=0.24.0",
-                    "bitsandbytes>=0.41.0"
-                ]
+                    "bitsandbytes>=0.41.0",
+                ],
             },
             "training_config": unified_config["training_config"],
             "model_config": unified_config["model_config"],
             "data_config": {
                 **unified_config["data_config"],
                 "dataset_path": "/teamspace/studios/this_studio/data",
-                "validation_results": validation_results
+                "validation_results": validation_results,
             },
             "deployment": {
                 "auto_scale": False,
                 "max_runtime_hours": 24,
                 "checkpoint_interval": 100,
-                "early_stopping": {
-                    "patience": 3,
-                    "monitor": "val_loss",
-                    "mode": "min"
-                }
+                "early_stopping": {"patience": 3, "monitor": "val_loss", "mode": "min"},
             },
             "monitoring": {
                 "wandb_project": "therapeutic-ai-training",
                 "log_level": "INFO",
-                "save_top_k": 3
-            }
+                "save_top_k": 3,
+            },
         }
-        
+
         config_path = self.lightning_workspace / "lightning_deployment_config.json"
-        with open(config_path, 'w', encoding='utf-8') as f:
+        with open(config_path, "w", encoding="utf-8") as f:
             json.dump(deployment_config, f, indent=2)
-        
+
         logger.info(f"✅ Deployment config created: {config_path}")
         return config_path
-    
+
     def create_requirements_file(self) -> Path:
         """Create requirements.txt for Lightning.ai"""
         requirements = [
             "torch>=2.0.0",
             "lightning>=2.1.0",
-            "transformers>=4.35.0", 
+            "transformers>=4.35.0",
             "peft>=0.6.0",
             "datasets>=2.14.0",
             "accelerate>=0.24.0",
@@ -442,16 +453,16 @@ if __name__ == "__main__":
             "numpy>=1.24.0",
             "scikit-learn>=1.3.0",
             "matplotlib>=3.7.0",
-            "seaborn>=0.12.0"
+            "seaborn>=0.12.0",
         ]
-        
+
         req_path = self.lightning_workspace / "requirements.txt"
-        with open(req_path, 'w') as f:
-            f.write('\\n'.join(requirements))
-        
+        with open(req_path, "w") as f:
+            f.write("\\n".join(requirements))
+
         logger.info(f"✅ Requirements file created: {req_path}")
         return req_path
-    
+
     def create_data_preparation_script(self) -> Path:
         """Create script to prepare data for Lightning.ai upload"""
         script_content = '''#!/usr/bin/env python3
@@ -515,18 +526,18 @@ def prepare_lightning_data():
 if __name__ == "__main__":
     prepare_lightning_data()
 '''
-        
+
         script_path = self.lightning_workspace / "prepare_data.py"
-        with open(script_path, 'w') as f:
+        with open(script_path, "w") as f:
             f.write(script_content)
-        
+
         script_path.chmod(0o755)
         logger.info(f"✅ Data preparation script created: {script_path}")
         return script_path
-    
+
     def create_deployment_instructions(self, validation_results: Dict) -> Path:
         """Create comprehensive deployment instructions"""
-        instructions = f'''# Lightning.ai H100 Therapeutic AI Deployment Guide
+        instructions = f"""# Lightning.ai H100 Therapeutic AI Deployment Guide
 
 ## 🎯 **Mission: Deploy Intelligent Therapeutic AI Training**
 
@@ -627,102 +638,109 @@ After training completion:
 - Training Issues: Check lightning logs and reduce batch size if needed
 - Quality Issues: The intelligent agent has solved the generic question problem
 - Performance Issues: H100 should complete training in 6-12 hours
-'''
-        
+"""
+
         instructions_path = self.lightning_workspace / "DEPLOYMENT_GUIDE.md"
-        with open(instructions_path, 'w', encoding='utf-8') as f:
+        with open(instructions_path, "w", encoding="utf-8") as f:
             f.write(instructions)
-        
+
         logger.info(f"✅ Deployment guide created: {instructions_path}")
         return instructions_path
-    
+
     def package_for_deployment(self) -> Path:
         """Package everything for Lightning.ai deployment"""
         logger.info("📦 Packaging deployment for Lightning.ai...")
-        
+
         # Create deployment package structure
         package_dir = self.lightning_workspace / "deployment_package"
         package_dir.mkdir(exist_ok=True)
-        
+
         # Copy unified dataset
         if self.unified_dataset_path.exists():
             data_dir = package_dir / "data"
             data_dir.mkdir(exist_ok=True)
-            
+
             for file in self.unified_dataset_path.glob("*.json"):
                 shutil.copy2(file, data_dir / file.name)
-        
+
         # Copy deployment files to package
         deployment_files = [
             "train_therapeutic_ai.py",
-            "requirements.txt", 
+            "requirements.txt",
             "lightning_deployment_config.json",
             "prepare_data.py",
-            "DEPLOYMENT_GUIDE.md"
+            "DEPLOYMENT_GUIDE.md",
         ]
-        
+
         for filename in deployment_files:
             source = self.lightning_workspace / filename
             if source.exists():
                 shutil.copy2(source, package_dir / filename)
-        
+
         # Create package manifest
         manifest = {
             "package_type": "lightning_ai_h100_deployment",
             "created_for": "therapeutic_ai_training",
             "contains": [
                 "H100 LoRA training script",
-                "Unified intelligent dataset", 
+                "Unified intelligent dataset",
                 "Lightning.ai configuration",
                 "Deployment instructions",
-                "Requirements and dependencies"
+                "Requirements and dependencies",
             ],
             "ready_for_upload": True,
             "estimated_training_time": "6-12 hours on H100",
-            "expected_model_size": "~1.5GB LoRA adapters"
+            "expected_model_size": "~1.5GB LoRA adapters",
         }
-        
-        with open(package_dir / "package_manifest.json", 'w') as f:
+
+        with open(package_dir / "package_manifest.json", "w") as f:
             json.dump(manifest, f, indent=2)
-        
+
         logger.info(f"✅ Deployment package ready: {package_dir}")
         return package_dir
+
 
 def main():
     """Main deployment preparation function"""
     logger.info("🚀 Preparing Lightning.ai H100 deployment for therapeutic AI training")
-    
+
     deployer = LightningH100Deployer()
-    
+
     # Step 1: Validate unified dataset
     validation_results = deployer.validate_unified_dataset()
-    
+
     if not validation_results["dataset_ready"]:
         logger.error("❌ Unified dataset not ready for deployment!")
-        logger.error("   Run the multi-dataset pipeline first to create unified training data")
+        logger.error(
+            "   Run the multi-dataset pipeline first to create unified training data"
+        )
         return False
-    
+
     # Step 2: Create all deployment components
     logger.info("📝 Creating Lightning.ai deployment components...")
-    
+
     training_script = deployer.create_lightning_training_script()
     config_file = deployer.create_deployment_config(validation_results)
     requirements_file = deployer.create_requirements_file()
     data_prep_script = deployer.create_data_preparation_script()
     deployment_guide = deployer.create_deployment_instructions(validation_results)
-    
+
     # Step 3: Package for deployment
     package_dir = deployer.package_for_deployment()
-    
+
     # Step 4: Final summary
     logger.info("🎉 Lightning.ai H100 deployment preparation complete!")
     logger.info(f"📁 Deployment package: {package_dir}")
-    logger.info(f"📊 Dataset: {validation_results['total_conversations']:,} conversations")
+    logger.info(
+        f"📊 Dataset: {validation_results['total_conversations']:,} conversations"
+    )
     logger.info(f"🧠 Expert distribution: {validation_results['expert_distribution']}")
     logger.info("🚀 Ready to upload to Lightning.ai Studio and start H100 training!")
-    
+
     return True
+
 
 if __name__ == "__main__":
     import shutil
+
     main()
