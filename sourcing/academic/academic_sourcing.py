@@ -114,7 +114,9 @@ class AcademicSourcingEngine:
         output_base_path: Optional[str] = None,
         strategy: SourcingStrategy = SourcingStrategy.HYBRID,
     ):
-        self.output_base_path = Path(output_base_path or "ai/training/ready_packages/datasets")
+        self.output_base_path = Path(
+            output_base_path or "ai/training/ready_packages/datasets"
+        )
         self.academic_literature_path = (
             self.output_base_path / "stage2_reasoning" / "academic_literature"
         )

@@ -2,25 +2,18 @@
 
 from datetime import datetime
 
-import pytest
-
 from research_system.models import (
     AccessRequest,
-    AcquiredDataset,
     DatasetEvaluation,
     DatasetSource,
-    IntegrationPlan,
-    ResearchLog,
     ResearchProgress,
     ResearchSession,
-    TransformationSpec,
-    WeeklyReport,
 )
 
 
 class TestDatasetSource:
     """Tests for DatasetSource model."""
-    
+
     def test_valid_dataset_source(self):
         """Test creating a valid dataset source."""
         source = DatasetSource(
@@ -36,13 +29,13 @@ class TestDatasetSource:
             open_access=True,
             data_availability="available",
             discovery_date=datetime.now(),
-            discovery_method="pubmed_search"
+            discovery_method="pubmed_search",
         )
-        
+
         is_valid, errors = source.validate()
         assert is_valid
         assert len(errors) == 0
-    
+
     def test_invalid_source_type(self):
         """Test validation fails for invalid source type."""
         source = DatasetSource(
@@ -58,9 +51,9 @@ class TestDatasetSource:
             open_access=True,
             data_availability="available",
             discovery_date=datetime.now(),
-            discovery_method="pubmed_search"
+            discovery_method="pubmed_search",
         )
-        
+
         is_valid, errors = source.validate()
         assert not is_valid
         assert any("source_type" in error for error in errors)
@@ -68,7 +61,7 @@ class TestDatasetSource:
 
 class TestDatasetEvaluation:
     """Tests for DatasetEvaluation model."""
-    
+
     def test_calculate_overall_score(self):
         """Test overall score calculation."""
         evaluation = DatasetEvaluation(
@@ -84,14 +77,14 @@ class TestDatasetEvaluation:
             overall_score=0.0,
             priority_tier="high",
             evaluation_date=datetime.now(),
-            evaluator="test_user"
+            evaluator="test_user",
         )
-        
+
         score = evaluation.calculate_overall_score()
-        
+
         # Expected: 9*0.35 + 8*0.25 + 7*0.20 + 9*0.20 = 8.35
         assert score == 8.35
-    
+
     def test_invalid_score_range(self):
         """Test validation fails for scores outside 1-10 range."""
         evaluation = DatasetEvaluation(
@@ -107,9 +100,9 @@ class TestDatasetEvaluation:
             overall_score=8.0,
             priority_tier="high",
             evaluation_date=datetime.now(),
-            evaluator="test_user"
+            evaluator="test_user",
         )
-        
+
         is_valid, errors = evaluation.validate()
         assert not is_valid
         assert any("therapeutic_relevance" in error for error in errors)
@@ -117,7 +110,7 @@ class TestDatasetEvaluation:
 
 class TestAccessRequest:
     """Tests for AccessRequest model."""
-    
+
     def test_valid_access_request(self):
         """Test creating a valid access request."""
         request = AccessRequest(
@@ -129,9 +122,9 @@ class TestAccessRequest:
             credentials_required=False,
             institutional_affiliation_required=False,
             estimated_access_date=None,
-            notes="Test request"
+            notes="Test request",
         )
-        
+
         is_valid, errors = request.validate()
         assert is_valid
         assert len(errors) == 0
@@ -139,7 +132,7 @@ class TestAccessRequest:
 
 class TestResearchProgress:
     """Tests for ResearchProgress model."""
-    
+
     def test_valid_progress(self):
         """Test creating valid research progress."""
         progress = ResearchProgress(
@@ -148,13 +141,13 @@ class TestResearchProgress:
             access_established=3,
             datasets_acquired=2,
             integration_plans_created=2,
-            last_updated=datetime.now()
+            last_updated=datetime.now(),
         )
-        
+
         is_valid, errors = progress.validate()
         assert is_valid
         assert len(errors) == 0
-    
+
     def test_negative_counts_invalid(self):
         """Test validation fails for negative counts."""
         progress = ResearchProgress(
@@ -163,9 +156,9 @@ class TestResearchProgress:
             access_established=3,
             datasets_acquired=2,
             integration_plans_created=2,
-            last_updated=datetime.now()
+            last_updated=datetime.now(),
         )
-        
+
         is_valid, errors = progress.validate()
         assert not is_valid
         assert any("sources_identified" in error for error in errors)
@@ -173,7 +166,7 @@ class TestResearchProgress:
 
 class TestResearchSession:
     """Tests for ResearchSession model."""
-    
+
     def test_valid_session(self):
         """Test creating a valid research session."""
         session = ResearchSession(
@@ -183,13 +176,13 @@ class TestResearchSession:
             search_keywords={"therapy": ["therapy transcript"]},
             weekly_targets={"sources_identified": 10},
             current_phase="discovery",
-            progress_metrics={"sources_found": 5}
+            progress_metrics={"sources_found": 5},
         )
-        
+
         is_valid, errors = session.validate()
         assert is_valid
         assert len(errors) == 0
-    
+
     def test_invalid_phase(self):
         """Test validation fails for invalid phase."""
         session = ResearchSession(
@@ -199,9 +192,9 @@ class TestResearchSession:
             search_keywords={},
             weekly_targets={},
             current_phase="invalid_phase",
-            progress_metrics={}
+            progress_metrics={},
         )
-        
+
         is_valid, errors = session.validate()
         assert not is_valid
         assert any("current_phase" in error for error in errors)
