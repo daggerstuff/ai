@@ -164,19 +164,27 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output",
-        default=str(
-            Path(__file__).parents[1]
-            / "data"
-            / "generated"
-            / "edge_case_synthetic.jsonl"
-        ),
-        help="Output JSONL path",
+        help="Output JSONL path (takes precedence over --output-dir)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        help="Output directory (used if --output is not provided)",
     )
     parser.add_argument(
         "--limit",
         type=int,
         default=0,
         help="Optional max number of examples to generate (0 = no limit)",
+    )
+    parser.add_argument(
+        "--count",
+        type=int,
+        help="Alias for --limit (for pipeline compatibility)",
+    )
+    parser.add_argument(
+        "--categories",
+        default="all",
+        help="Categories to generate (for pipeline compatibility)",
     )
     return parser
 
@@ -263,19 +271,36 @@ def main() -> int:
     args = parser.parse_args()
 
     bucket, endpoint = _load_s3_manifest(Path(args.manifest))
-    
+
     # Allow environment to override bucket for OVH S3
     import os
+
     bucket = os.getenv("OVH_S3_BUCKET", bucket)
     endpoint = os.getenv("OVH_S3_ENDPOINT", endpoint)
 
     loader = S3DatasetLoader(bucket=bucket, endpoint_url=endpoint)
 
-    prompts_s3_path = f"s3://{bucket}/{args.prompts_key}"
+    # Determine output path
+    if args.output:
+        out_path = Path(args.output)
+    elif args.output_dir:
+        out_path = Path(args.output_dir) / "edge_case_synthetic.jsonl"
+    else:
+        out_path = (
+            Path(__file__).parents[1]
+            / "data"
+            / "generated"
+            / "edge_case_synthetic.jsonl"
+        )
 
-    out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Determine limit
+    limit = args.limit
+    if args.count is not None:
+        limit = args.count
+
+    prompts_s3_path = f"s3://{bucket}/{args.prompts_key}"
     stats_started = datetime.now(timezone.utc).isoformat()
 
     # This object is commonly a JSON wrapper, not true JSONL.
@@ -293,7 +318,7 @@ def main() -> int:
         out_path=out_path,
         prompt_items=prompt_items,
         prompts_s3_path=prompts_s3_path,
-        limit=args.limit,
+        limit=limit,
     )
 
     stats = {

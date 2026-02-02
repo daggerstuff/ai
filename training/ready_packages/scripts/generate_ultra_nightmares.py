@@ -154,7 +154,21 @@ class UltraNightmareGenerator:
 
 
 if __name__ == "__main__":
-    generator = UltraNightmareGenerator()
-    generator.generate_all(
-        count_per_category=2
-    )  # Start with 2 per category (40 total) to test quality
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--count_per_category", type=int, default=5)
+    parser.add_argument(
+        "--output_dir",
+        type=str,
+        default="ai/training/ready_packages/datasets/cache/local/nightmare_fuel/",
+    )
+    parser.add_argument(
+        "--model_name", type=str, default="meta/llama-4-maverick-17b-128e-instruct"
+    )
+    args = parser.parse_args()
+
+    generator = UltraNightmareGenerator(
+        model_name=args.model_name, output_dir=args.output_dir
+    )
+    generator.generate_all(count_per_category=args.count_per_category)
