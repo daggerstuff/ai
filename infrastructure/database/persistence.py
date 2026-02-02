@@ -35,32 +35,27 @@ Usage:
         )
 """
 
-import asyncio
-import hashlib
 import json
 import logging
 import sqlite3
 import threading
 import time
 import uuid
-from abc import ABC, abstractmethod
-from collections import defaultdict
-from contextlib import asynccontextmanager, contextmanager
+from abc import ABC
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
 from typing import (
     Any,
-    AsyncGenerator,
     AsyncIterator,
     Callable,
     Dict,
     Generic,
-    Iterable,
-    Iterator,
     List,
     Optional,
+    Sequence,
     Tuple,
     TypeVar,
     Union,
@@ -77,6 +72,7 @@ logger = logging.getLogger(__name__)
 
 class DatabaseType(Enum):
     """Supported database types."""
+
     SQLITE = "sqlite"
     POSTGRESQL = "postgresql"
     MYSQL = "mysql"
@@ -84,6 +80,7 @@ class DatabaseType(Enum):
 
 class QueryOperator(Enum):
     """Query operators for filtering."""
+
     EQ = "="
     NE = "!="
     GT = ">"
@@ -104,7 +101,7 @@ class PersistenceConfig:
 
     # Database connection
     database_type: DatabaseType = DatabaseType.SQLITE
-    database_path: str = "/home/vivi/pixelated/ai/database/consolidated.db"
+    database_path: Union[str, Path] = "/home/vivi/pixelated/ai/database/consolidated.db"
 
     # For PostgreSQL/MySQL
     host: Optional[str] = None
@@ -148,7 +145,7 @@ class PersistenceConfig:
         """Validate configuration and set defaults."""
         if self.database_type == DatabaseType.SQLITE:
             self.database_path = Path(self.database_path)
-            self.database_path.parent.mkdir(parents=True, exist_ok=True)
+            Path(self.database_path).parent.mkdir(parents=True, exist_ok=True)
         elif self.database_type in (DatabaseType.POSTGRESQL, DatabaseType.MYSQL):
             if not all([self.host, self.port, self.username, self.database_name]):
                 raise ValueError(
@@ -160,6 +157,7 @@ class PersistenceConfig:
 @dataclass
 class QueryFilter:
     """Filter for database queries."""
+
     field: str
     operator: QueryOperator = QueryOperator.EQ
     value: Any = None
@@ -177,10 +175,10 @@ class QueryFilter:
                 params.extend(self.value)
                 return (
                     f"{self.field} {self.operator.value} ({', '.join(placeholders)})",
-                    params
+                    params,
                 )
             else:
-                raise ValueError(f"IN/NOT IN operator requires list or tuple value")
+                raise ValueError("IN/NOT IN operator requires list or tuple value")
         else:
             if isinstance(self.value, (list, tuple)):
                 raise ValueError(
@@ -192,6 +190,7 @@ class QueryFilter:
 @dataclass
 class QueryOptions:
     """Options for database queries."""
+
     filters: List[QueryFilter] = field(default_factory=list)
     order_by: Optional[str] = None
     order_desc: bool = False
@@ -238,6 +237,7 @@ class QueryOptions:
 @dataclass
 class BatchResult:
     """Result of batch operations."""
+
     success_count: int
     failed_count: int
     errors: List[Tuple[int, str]] = field(default_factory=list)
@@ -465,9 +465,7 @@ class BaseModelRepository(ABC, Generic[ModelT]):
         """Delete a record."""
         raise NotImplementedError()
 
-    async def list(
-        self, options: Optional[QueryOptions] = None
-    ) -> List[ModelT]:
+    async def list(self, options: Optional[QueryOptions] = None) -> List[ModelT]:
         """List records with optional filtering."""
         raise NotImplementedError()
 
@@ -480,9 +478,7 @@ class BaseModelRepository(ABC, Generic[ModelT]):
         """Full-text search across records."""
         raise NotImplementedError()
 
-    async def bulk_create(
-        self, items: List[Dict[str, Any]]
-    ) -> BatchResult:
+    async def bulk_create(self, items: List[Dict[str, Any]]) -> BatchResult:
         """Bulk create records."""
         raise NotImplementedError()
 
@@ -492,9 +488,7 @@ class BaseModelRepository(ABC, Generic[ModelT]):
         """Bulk update records."""
         raise NotImplementedError()
 
-    async def bulk_delete(
-        self, ids: List[ID], soft_delete: bool = True
-    ) -> BatchResult:
+    async def bulk_delete(self, ids: List[ID], soft_delete: bool = True) -> BatchResult:
         """Bulk delete records."""
         raise NotImplementedError()
 
@@ -605,7 +599,7 @@ class ConversationRepository(BaseModelRepository[Dict]):
 
         sql = f"""
         UPDATE conversations
-        SET {', '.join(build_clauses)}
+        SET {", ".join(build_clauses)}
         WHERE conversation_id = ? AND deleted_at IS NULL
         """
 
@@ -642,11 +636,9 @@ class ConversationRepository(BaseModelRepository[Dict]):
         cache_key = f"conversation:{id}"
         self.db_manager.cache.invalidate(cache_key)
 
-        return result > 0  # type: ignore
+        return result > 0
 
-    async def list(
-        self, options: Optional[QueryOptions] = None
-    ) -> List[Dict]:
+    async def list(self, options: Optional[QueryOptions] = None) -> List[Dict]:
         """List conversations with optional filtering."""
         options = options or QueryOptions()
 
@@ -678,13 +670,13 @@ class ConversationRepository(BaseModelRepository[Dict]):
 
         like_clauses = [f"{field} LIKE ?" for field in search_fields]
         search_term = f"%{query}%"
-        params = [search_term] * len(like_clauses)
+        params: List[Any] = [search_term] * len(like_clauses)
 
         sql = f"""
         SELECT conversation_id, messages, metadata, tier, processing_status,
                emotion_tags, crisis_detected, created_at, updated_at
         FROM conversations
-        WHERE {' OR '.join(like_clauses)}
+        WHERE {" OR ".join(like_clauses)}
         AND deleted_at IS NULL
         LIMIT ?
         """
@@ -695,9 +687,7 @@ class ConversationRepository(BaseModelRepository[Dict]):
 
         return [self._row_to_dict(row) for row in results]
 
-    async def bulk_create(
-        self, items: List[Dict[str, Any]]
-    ) -> BatchResult:
+    async def bulk_create(self, items: List[Dict[str, Any]]) -> BatchResult:
         """Bulk create conversations."""
         start_time = time.time()
         success_count = 0
@@ -733,7 +723,9 @@ class ConversationRepository(BaseModelRepository[Dict]):
 
                 # Cache the new conversation
                 cache_key = f"conversation:{conversation_id}"
-                self.db_manager.cache.set(cache_key, {**item, "conversation_id": conversation_id})
+                self.db_manager.cache.set(
+                    cache_key, {**item, "conversation_id": conversation_id}
+                )
 
             except Exception as e:
                 failed_count += 1
@@ -753,7 +745,6 @@ class ConversationRepository(BaseModelRepository[Dict]):
         success_count = 0
         failed_count = 0
         errors = []
-        timestamp = datetime.now(timezone.utc).isoformat()
 
         async for idx, (conversation_id, data) in self._async_enumerate(updates):
             try:
@@ -771,21 +762,20 @@ class ConversationRepository(BaseModelRepository[Dict]):
             except Exception as e:
                 failed_count += 1
                 errors.append((idx, str(e)))
-                self.logger.error(f"Failed to update conversation {conversation_id}: {e}")
+                self.logger.error(
+                    f"Failed to update conversation {conversation_id}: {e}"
+                )
 
         total_time = time.time() - start_time
 
         return BatchResult(success_count, failed_count, errors, total_time)
 
-    async def bulk_delete(
-        self, ids: List[ID], soft_delete: bool = True
-    ) -> BatchResult:
+    async def bulk_delete(self, ids: List[ID], soft_delete: bool = True) -> BatchResult:
         """Bulk delete conversations."""
         start_time = time.time()
         success_count = 0
         failed_count = 0
         errors = []
-        timestamp = datetime.now(timezone.utc).isoformat()
 
         async for idx, conversation_id in self._async_enumerate(ids):
             try:
@@ -803,7 +793,9 @@ class ConversationRepository(BaseModelRepository[Dict]):
             except Exception as e:
                 failed_count += 1
                 errors.append((idx, str(e)))
-                self.logger.error(f"Failed to delete conversation {conversation_id}: {e}")
+                self.logger.error(
+                    f"Failed to delete conversation {conversation_id}: {e}"
+                )
 
         total_time = time.time() - start_time
 
@@ -817,9 +809,9 @@ class ConversationRepository(BaseModelRepository[Dict]):
         sql = f"SELECT COUNT(*) FROM conversations {where_sql}"
 
         result = await self.db_manager.fetch_one(sql, params)
-        return result[0] if result else 0  # type: ignore
+        return int(result[0]) if result else 0
 
-    def _row_to_dict(self, row: Tuple) -> Dict:
+    def _row_to_dict(self, row: tuple[Any, ...]) -> Dict:
         """Convert database row to dictionary."""
         return {
             "conversation_id": row[0],
@@ -881,13 +873,13 @@ class DatabaseManager:
             if self._initialized:
                 return
 
-            self.logger.info(f"Initializing {self.config.database_type.value} database...")
+            self.logger.info(
+                f"Initializing {self.config.database_type.value} database..."
+            )
 
             # Create connection pool
             if self.config.database_type == DatabaseType.SQLITE:
-                self._pool = ConnectionPool(
-                    self.config, self._create_sqlite_connection
-                )
+                self._pool = ConnectionPool(self.config, self._create_sqlite_connection)
 
             # Initialize schema
             self._initialize_schema()
@@ -913,7 +905,7 @@ class DatabaseManager:
     def _create_sqlite_connection(self) -> sqlite3.Connection:
         """Create a new SQLite connection with optimizations."""
         conn = sqlite3.connect(str(self.config.database_path), check_same_thread=False)
-        conn._created_at = time.time()
+        setattr(conn, "_created_at", time.time())
 
         # Set optimization pragmas
         if self.config.enable_wal_mode:
@@ -931,6 +923,8 @@ class DatabaseManager:
 
     def _initialize_schema(self):
         """Initialize database schema."""
+        if self._pool is None:
+            raise RuntimeError("Database not initialized")
         conn = self._pool.get_connection()
         try:
             # Create conversations table
@@ -972,12 +966,16 @@ class DatabaseManager:
                 try:
                     conn.execute("""
                         CREATE VIRTUAL TABLE IF NOT EXISTS conversations_fts
-                        USING fts5(conversation_id, messages, metadata, content=conversations, content_rowid=rowid)
+                        USING fts5(conversation_id, messages, metadata,
+                        content=conversations, content_rowid=rowid)
                     """)
-                    # Note: content_rowid mapping would need rowid to be added to conversations table
+                    # Note: content_rowid mapping would need rowid to be
+                    # added to conversations table
                 except sqlite3.Error:
                     # FTS5 might not be available
-                    self.logger.warning("FTS5 not available, falling back to LIKE searches")
+                    self.logger.warning(
+                        "FTS5 not available, falling back to LIKE searches"
+                    )
 
             conn.commit()
             self.logger.info("Database schema initialized")
@@ -992,17 +990,17 @@ class DatabaseManager:
         return ConversationRepository(self)
 
     # Database operations
-    async def execute(
-        self, sql: str, params: Optional[List[Any]] = None
-    ) -> int:
+    async def execute(self, sql: str, params: Optional[Sequence[Any]] = None) -> int:
         """Execute a SQL statement and return affected row count."""
         if not self._initialized:
             self.initialize()
 
+        if self._pool is None:
+            raise RuntimeError("Database not initialized")
         conn = self._pool.get_connection()
         try:
             start_time = time.time()
-            cursor = conn.execute(sql, params or [])
+            cursor = conn.execute(str(sql), list(params) if params is not None else [])
             row_count = cursor.rowcount
             conn.commit()
 
@@ -1020,7 +1018,7 @@ class DatabaseManager:
                     f"Slow query ({execution_time:.3f}s): {sql[:200]}..."
                 )
 
-            return row_count  # type: ignore
+            return int(row_count)
 
         except Exception as e:
             self.metrics.queries_failed += 1
@@ -1031,16 +1029,18 @@ class DatabaseManager:
             self._pool.release_connection(conn)
 
     async def fetch_one(
-        self, sql: str, params: Optional[List[Any]] = None
-    ) -> Optional[Tuple]:
+        self, sql: str, params: Optional[Sequence[Any]] = None
+    ) -> Optional[tuple[Any, ...]]:
         """Fetch a single row from the database."""
         if not self._initialized:
             self.initialize()
 
+        if self._pool is None:
+            raise RuntimeError("Database not initialized")
         conn = self._pool.get_connection()
         try:
             start_time = time.time()
-            cursor = conn.execute(sql, params or [])
+            cursor = conn.execute(str(sql), list(params) if params is not None else [])
             row = cursor.fetchone()
 
             execution_time = time.time() - start_time
@@ -1051,7 +1051,7 @@ class DatabaseManager:
             if self.config.log_queries:
                 self.logger.debug(f"Fetched: {sql[:100]}... in {execution_time:.3f}s")
 
-            return row
+            return row if row is None else tuple(row)
 
         except Exception as e:
             self.metrics.queries_failed += 1
@@ -1061,16 +1061,18 @@ class DatabaseManager:
             self._pool.release_connection(conn)
 
     async def fetch_all(
-        self, sql: str, params: Optional[List[Any]] = None
-    ) -> List[Tuple]:
+        self, sql: str, params: Optional[Sequence[Any]] = None
+    ) -> list[tuple[Any, ...]]:
         """Fetch all rows from the database."""
         if not self._initialized:
             self.initialize()
 
+        if self._pool is None:
+            raise RuntimeError("Database not initialized")
         conn = self._pool.get_connection()
         try:
             start_time = time.time()
-            cursor = conn.execute(sql, params or [])
+            cursor = conn.execute(str(sql), list(params) if params is not None else [])
             rows = cursor.fetchall()
 
             execution_time = time.time() - start_time
@@ -1079,11 +1081,9 @@ class DatabaseManager:
             self.metrics.total_query_time += execution_time
 
             if self.config.log_queries:
-                self.logger.debug(
-                    f"Fetched {len(rows)} rows in {execution_time:.3f}s"
-                )
+                self.logger.debug(f"Fetched {len(rows)} rows in {execution_time:.3f}s")
 
-            return rows
+            return [tuple(row) for row in rows]
 
         except Exception as e:
             self.metrics.queries_failed += 1
@@ -1093,23 +1093,28 @@ class DatabaseManager:
             self._pool.release_connection(conn)
 
     async def execute_transaction(
-        self, operations: List[Tuple[str, Optional[List[Any]]]]
+        self, operations: List[Tuple[str, Optional[Sequence[Any]]]]
     ) -> List[int]:
         """Execute multiple operations in a single transaction."""
         if not self._initialized:
             self.initialize()
 
+        if self._pool is None:
+            raise RuntimeError("Database not initialized")
         conn = self._pool.get_connection()
         try:
             start_time = time.time()
-            row_counts = []
+            row_counts: list[int] = []
 
             # Begin transaction
             conn.execute("BEGIN")
 
             for sql, params in operations:
-                cursor = conn.execute(sql, params or [])
-                row_counts.append(cursor.rowcount)
+                cursor = conn.execute(
+                    str(sql),
+                    list(params) if params is not None else [],
+                )
+                row_counts.append(int(cursor.rowcount))
 
             conn.commit()
 
@@ -1119,10 +1124,13 @@ class DatabaseManager:
             self.metrics.total_query_time += execution_time
 
             self.logger.debug(
-                f"Transaction completed: {len(operations)} operations in {execution_time:.3f}s"
+                (
+                    f"Transaction completed: {len(operations)} operations "
+                    f"in {execution_time:.3f}s"
+                )
             )
 
-            return row_counts  # type: ignore
+            return row_counts
 
         except Exception as e:
             conn.rollback()
@@ -1137,6 +1145,8 @@ class DatabaseManager:
         if not self._initialized:
             self.initialize()
 
+        if self._pool is None:
+            raise RuntimeError("Database not initialized")
         conn = self._pool.get_connection()
         try:
             conn.execute("BEGIN")
@@ -1151,8 +1161,8 @@ class DatabaseManager:
     def get_metrics(self) -> DatabaseMetrics:
         """Get database metrics."""
         if self._pool:
-            self.metrics.connection_pool_size = (
-                len(self._pool._pool) + len(self._pool._in_use)
+            self.metrics.connection_pool_size = len(self._pool._pool) + len(
+                self._pool._in_use
             )
             self.metrics.active_connections = len(self._pool._in_use)
 
@@ -1170,6 +1180,8 @@ class DatabaseManager:
     def vacuum_database(self):
         """Vacuum the database (SQLite only)."""
         if self.config.database_type == DatabaseType.SQLITE:
+            if self._pool is None:
+                raise RuntimeError("Database not initialized")
             conn = self._pool.get_connection()
             try:
                 conn.execute("VACUUM")
@@ -1185,9 +1197,7 @@ _global_db_manager: Optional[DatabaseManager] = None
 _db_lock = threading.Lock()
 
 
-def get_database_manager(
-    config: Optional[PersistenceConfig] = None
-) -> DatabaseManager:
+def get_database_manager(config: Optional[PersistenceConfig] = None) -> DatabaseManager:
     """Get or create the global database manager instance."""
     global _global_db_manager
 
@@ -1254,9 +1264,7 @@ async def search_conversations(
     return await db.conversations.search(query, fields, limit)
 
 
-async def bulk_create_conversations(
-    items: List[Dict[str, Any]]
-) -> BatchResult:
+async def bulk_create_conversations(items: List[Dict[str, Any]]) -> BatchResult:
     """Bulk create conversations."""
     db = get_database_manager()
     return await db.conversations.bulk_create(items)
