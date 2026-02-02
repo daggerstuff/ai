@@ -7,71 +7,73 @@ Web-based dashboard for monitoring and managing alert fatigue prevention
 import asyncio
 import json
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
-from flask import Flask, render_template_string, jsonify, request, redirect, url_for
 import sqlite3
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+
 import plotly.graph_objs as go
 import plotly.utils
 from alert_fatigue_prevention import AlertFatiguePreventionSystem, FatigueRule
+from flask import Flask, jsonify, render_template_string, request
 from intelligent_grouping import IntelligentGroupingEngine
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class FatigueDashboard:
     """Web dashboard for alert fatigue management"""
-    
+
     def __init__(self, afp_system: AlertFatiguePreventionSystem):
         self.afp_system = afp_system
         self.grouping_engine = IntelligentGroupingEngine()
         self.app = Flask(__name__)
         self.setup_routes()
-    
+
     def setup_routes(self):
         """Setup Flask routes for the dashboard"""
-        
-        @self.app.route('/')
+
+        @self.app.route("/")
         def dashboard():
             return render_template_string(DASHBOARD_TEMPLATE)
-        
-        @self.app.route('/api/summary')
+
+        @self.app.route("/api/summary")
         def api_summary():
             """Get dashboard summary data"""
             try:
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                
+
                 # Get summary data
-                summary = loop.run_until_complete(self.afp_system.get_group_summary(hours=24))
-                
+                summary = loop.run_until_complete(
+                    self.afp_system.get_group_summary(hours=24)
+                )
+
                 # Get additional metrics
                 metrics = self.get_dashboard_metrics()
-                
+
                 loop.close()
-                
-                return jsonify({
-                    "summary": summary,
-                    "metrics": metrics,
-                    "status": "success"
-                })
+
+                return jsonify(
+                    {"summary": summary, "metrics": metrics, "status": "success"}
+                )
             except Exception as e:
                 logger.error(f"Error getting summary: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
-        
-        @self.app.route('/api/groups')
+
+        @self.app.route("/api/groups")
         def api_groups():
             """Get active alert groups"""
             try:
-                hours = request.args.get('hours', 24, type=int)
+                hours = request.args.get("hours", 24, type=int)
                 groups = self.get_active_groups(hours)
                 return jsonify({"groups": groups, "status": "success"})
             except Exception as e:
                 logger.error(f"Error getting groups: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
-        
-        @self.app.route('/api/rules')
+
+        @self.app.route("/api/rules")
         def api_rules():
             """Get fatigue prevention rules"""
             try:
@@ -80,71 +82,86 @@ class FatigueDashboard:
             except Exception as e:
                 logger.error(f"Error getting rules: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
-        
-        @self.app.route('/api/rules', methods=['POST'])
+
+        @self.app.route("/api/rules", methods=["POST"])
         def api_create_rule():
             """Create new fatigue prevention rule"""
             try:
                 data = request.json
                 rule = FatigueRule(
-                    rule_id=data['rule_id'],
-                    name=data['name'],
-                    description=data.get('description', ''),
-                    conditions=data['conditions'],
-                    actions=data['actions'],
-                    enabled=data.get('enabled', True),
-                    priority=data.get('priority', 100)
+                    rule_id=data["rule_id"],
+                    name=data["name"],
+                    description=data.get("description", ""),
+                    conditions=data["conditions"],
+                    actions=data["actions"],
+                    enabled=data.get("enabled", True),
+                    priority=data.get("priority", 100),
                 )
-                
+
                 self.afp_system.add_fatigue_rule(rule)
-                return jsonify({"status": "success", "message": "Rule created successfully"})
+                return jsonify(
+                    {"status": "success", "message": "Rule created successfully"}
+                )
             except Exception as e:
                 logger.error(f"Error creating rule: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
-        
-        @self.app.route('/api/rules/<rule_id>', methods=['PUT'])
+
+        @self.app.route("/api/rules/<rule_id>", methods=["PUT"])
         def api_update_rule(rule_id):
             """Update fatigue prevention rule"""
             try:
                 data = request.json
-                
+
                 # Update rule in database
                 with sqlite3.connect(self.afp_system.db_path) as conn:
-                    conn.execute("""
+                    conn.execute(
+                        """
                         UPDATE fatigue_rules 
                         SET name=?, description=?, conditions=?, actions=?, enabled=?, priority=?, updated_at=?
                         WHERE rule_id=?
-                    """, (
-                        data['name'], data.get('description', ''),
-                        json.dumps(data['conditions']), json.dumps(data['actions']),
-                        data.get('enabled', True), data.get('priority', 100),
-                        datetime.utcnow().isoformat(), rule_id
-                    ))
-                
+                    """,
+                        (
+                            data["name"],
+                            data.get("description", ""),
+                            json.dumps(data["conditions"]),
+                            json.dumps(data["actions"]),
+                            data.get("enabled", True),
+                            data.get("priority", 100),
+                            datetime.utcnow().isoformat(),
+                            rule_id,
+                        ),
+                    )
+
                 # Reload rules
                 self.afp_system.load_fatigue_rules()
-                
-                return jsonify({"status": "success", "message": "Rule updated successfully"})
+
+                return jsonify(
+                    {"status": "success", "message": "Rule updated successfully"}
+                )
             except Exception as e:
                 logger.error(f"Error updating rule: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
-        
-        @self.app.route('/api/rules/<rule_id>', methods=['DELETE'])
+
+        @self.app.route("/api/rules/<rule_id>", methods=["DELETE"])
         def api_delete_rule(rule_id):
             """Delete fatigue prevention rule"""
             try:
                 with sqlite3.connect(self.afp_system.db_path) as conn:
-                    conn.execute("DELETE FROM fatigue_rules WHERE rule_id=?", (rule_id,))
-                
+                    conn.execute(
+                        "DELETE FROM fatigue_rules WHERE rule_id=?", (rule_id,)
+                    )
+
                 # Reload rules
                 self.afp_system.load_fatigue_rules()
-                
-                return jsonify({"status": "success", "message": "Rule deleted successfully"})
+
+                return jsonify(
+                    {"status": "success", "message": "Rule deleted successfully"}
+                )
             except Exception as e:
                 logger.error(f"Error deleting rule: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
-        
-        @self.app.route('/api/charts/alert_trends')
+
+        @self.app.route("/api/charts/alert_trends")
         def api_alert_trends():
             """Get alert trends chart data"""
             try:
@@ -153,8 +170,8 @@ class FatigueDashboard:
             except Exception as e:
                 logger.error(f"Error generating chart: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
-        
-        @self.app.route('/api/charts/suppression_stats')
+
+        @self.app.route("/api/charts/suppression_stats")
         def api_suppression_stats():
             """Get suppression statistics chart data"""
             try:
@@ -163,88 +180,107 @@ class FatigueDashboard:
             except Exception as e:
                 logger.error(f"Error generating chart: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
-        
-        @self.app.route('/api/test_grouping', methods=['POST'])
+
+        @self.app.route("/api/test_grouping", methods=["POST"])
         def api_test_grouping():
             """Test alert grouping with sample data"""
             try:
                 data = request.json
-                alerts = data.get('alerts', [])
-                algorithm = data.get('algorithm', 'hybrid_approach')
-                
+                alerts = data.get("alerts", [])
+                algorithm = data.get("algorithm", "hybrid_approach")
+
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
-                
+
                 groups = loop.run_until_complete(
                     self.grouping_engine.suggest_groups(alerts, algorithm)
                 )
-                
+
                 quality = loop.run_until_complete(
                     self.grouping_engine.evaluate_grouping_quality(alerts, groups)
                 )
-                
+
                 loop.close()
-                
-                return jsonify({
-                    "groups": groups,
-                    "quality": quality,
-                    "status": "success"
-                })
+
+                return jsonify(
+                    {"groups": groups, "quality": quality, "status": "success"}
+                )
             except Exception as e:
                 logger.error(f"Error testing grouping: {e}")
                 return jsonify({"error": str(e), "status": "error"}), 500
-    
+
     def get_dashboard_metrics(self) -> Dict[str, Any]:
         """Get key metrics for dashboard"""
-        
+
         with sqlite3.connect(self.afp_system.db_path) as conn:
             # Total groups in last 24 hours
             cutoff_24h = (datetime.utcnow() - timedelta(hours=24)).isoformat()
-            total_groups = conn.execute("""
+            total_groups = conn.execute(
+                """
                 SELECT COUNT(*) FROM alert_groups WHERE last_seen > ?
-            """, (cutoff_24h,)).fetchone()[0]
-            
+            """,
+                (cutoff_24h,),
+            ).fetchone()[0]
+
             # Suppressed alerts in last 24 hours
-            suppressed_alerts = conn.execute("""
+            suppressed_alerts = (
+                conn.execute(
+                    """
                 SELECT SUM(count) FROM alert_groups 
                 WHERE state = 'suppressed' AND last_seen > ?
-            """, (cutoff_24h,)).fetchone()[0] or 0
-            
+            """,
+                    (cutoff_24h,),
+                ).fetchone()[0]
+                or 0
+            )
+
             # Active rules
             active_rules = conn.execute("""
                 SELECT COUNT(*) FROM fatigue_rules WHERE enabled = 1
             """).fetchone()[0]
-            
+
             # Top suppression reasons
-            top_suppressions = conn.execute("""
+            top_suppressions = conn.execute(
+                """
                 SELECT rule_id, COUNT(*) as count
                 FROM suppression_history 
                 WHERE suppressed_at > ?
                 GROUP BY rule_id
                 ORDER BY count DESC
                 LIMIT 5
-            """, (cutoff_24h,)).fetchall()
-            
+            """,
+                (cutoff_24h,),
+            ).fetchall()
+
             # Average group size
-            avg_group_size = conn.execute("""
+            avg_group_size = (
+                conn.execute(
+                    """
                 SELECT AVG(count) FROM alert_groups WHERE last_seen > ?
-            """, (cutoff_24h,)).fetchone()[0] or 0
-        
+            """,
+                    (cutoff_24h,),
+                ).fetchone()[0]
+                or 0
+            )
+
         return {
             "total_groups_24h": total_groups,
             "suppressed_alerts_24h": suppressed_alerts,
             "active_rules": active_rules,
-            "top_suppressions": [{"rule": r[0], "count": r[1]} for r in top_suppressions],
-            "avg_group_size": round(avg_group_size, 2)
+            "top_suppressions": [
+                {"rule": r[0], "count": r[1]} for r in top_suppressions
+            ],
+            "avg_group_size": round(avg_group_size, 2),
         }
-    
+
     def get_active_groups(self, hours: int = 24) -> List[Dict[str, Any]]:
         """Get active alert groups"""
-        
+
         cutoff_time = (datetime.utcnow() - timedelta(hours=hours)).isoformat()
-        
+
         with sqlite3.connect(self.afp_system.db_path) as conn:
-            groups = conn.execute("""
+            groups = conn.execute(
+                """
                 SELECT group_id, fingerprint_hash, source, alert_type, severity,
                        first_seen, last_seen, count, state, suppression_count,
                        escalation_level, metadata
@@ -252,8 +288,10 @@ class FatigueDashboard:
                 WHERE last_seen > ?
                 ORDER BY last_seen DESC
                 LIMIT 100
-            """, (cutoff_time,)).fetchall()
-            
+            """,
+                (cutoff_time,),
+            ).fetchall()
+
             result = []
             for group in groups:
                 group_dict = {
@@ -268,22 +306,22 @@ class FatigueDashboard:
                     "state": group[8],
                     "suppression_count": group[9],
                     "escalation_level": group[10],
-                    "metadata": json.loads(group[11]) if group[11] else {}
+                    "metadata": json.loads(group[11]) if group[11] else {},
                 }
                 result.append(group_dict)
-            
+
             return result
-    
+
     def get_fatigue_rules(self) -> List[Dict[str, Any]]:
         """Get all fatigue prevention rules"""
-        
+
         with sqlite3.connect(self.afp_system.db_path) as conn:
             rules = conn.execute("""
                 SELECT rule_id, name, description, conditions, actions, enabled, priority, created_at
                 FROM fatigue_rules
                 ORDER BY priority ASC
             """).fetchall()
-            
+
             result = []
             for rule in rules:
                 rule_dict = {
@@ -294,64 +332,73 @@ class FatigueDashboard:
                     "actions": json.loads(rule[4]),
                     "enabled": bool(rule[5]),
                     "priority": rule[6],
-                    "created_at": rule[7]
+                    "created_at": rule[7],
                 }
                 result.append(rule_dict)
-            
+
             return result
-    
+
     def generate_alert_trends_chart(self) -> str:
         """Generate alert trends chart"""
-        
+
         # Get hourly alert counts for last 24 hours
         with sqlite3.connect(self.afp_system.db_path) as conn:
             cutoff_time = datetime.utcnow() - timedelta(hours=24)
-            
+
             # Generate hourly buckets
             hours = []
             counts = []
-            
+
             for i in range(24):
                 hour_start = cutoff_time + timedelta(hours=i)
                 hour_end = hour_start + timedelta(hours=1)
-                
-                count = conn.execute("""
+
+                count = (
+                    conn.execute(
+                        """
                     SELECT SUM(count) FROM alert_groups 
                     WHERE last_seen >= ? AND last_seen < ?
-                """, (hour_start.isoformat(), hour_end.isoformat())).fetchone()[0] or 0
-                
-                hours.append(hour_start.strftime('%H:%M'))
+                """,
+                        (hour_start.isoformat(), hour_end.isoformat()),
+                    ).fetchone()[0]
+                    or 0
+                )
+
+                hours.append(hour_start.strftime("%H:%M"))
                 counts.append(count)
-        
+
         # Create Plotly chart
         fig = go.Figure()
-        fig.add_trace(go.Scatter(
-            x=hours,
-            y=counts,
-            mode='lines+markers',
-            name='Alert Count',
-            line=dict(color='#1f77b4', width=2),
-            marker=dict(size=6)
-        ))
-        
-        fig.update_layout(
-            title='Alert Trends (Last 24 Hours)',
-            xaxis_title='Time',
-            yaxis_title='Alert Count',
-            height=400,
-            margin=dict(l=50, r=50, t=50, b=50)
+        fig.add_trace(
+            go.Scatter(
+                x=hours,
+                y=counts,
+                mode="lines+markers",
+                name="Alert Count",
+                line=dict(color="#1f77b4", width=2),
+                marker=dict(size=6),
+            )
         )
-        
+
+        fig.update_layout(
+            title="Alert Trends (Last 24 Hours)",
+            xaxis_title="Time",
+            yaxis_title="Alert Count",
+            height=400,
+            margin=dict(l=50, r=50, t=50, b=50),
+        )
+
         return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    
+
     def generate_suppression_stats_chart(self) -> str:
         """Generate suppression statistics chart"""
-        
+
         with sqlite3.connect(self.afp_system.db_path) as conn:
             cutoff_time = (datetime.utcnow() - timedelta(hours=24)).isoformat()
-            
+
             # Get suppression counts by rule
-            suppressions = conn.execute("""
+            suppressions = conn.execute(
+                """
                 SELECT fr.name, COUNT(*) as count
                 FROM suppression_history sh
                 JOIN fatigue_rules fr ON sh.rule_id = fr.rule_id
@@ -359,38 +406,42 @@ class FatigueDashboard:
                 GROUP BY fr.name
                 ORDER BY count DESC
                 LIMIT 10
-            """, (cutoff_time,)).fetchall()
-        
+            """,
+                (cutoff_time,),
+            ).fetchall()
+
         if not suppressions:
             # Return empty chart
             fig = go.Figure()
             fig.add_annotation(
                 text="No suppression data available",
-                xref="paper", yref="paper",
-                x=0.5, y=0.5, showarrow=False
+                xref="paper",
+                yref="paper",
+                x=0.5,
+                y=0.5,
+                showarrow=False,
             )
         else:
             names = [s[0] for s in suppressions]
             counts = [s[1] for s in suppressions]
-            
-            fig = go.Figure(data=[
-                go.Bar(x=names, y=counts, marker_color='#ff7f0e')
-            ])
-        
+
+            fig = go.Figure(data=[go.Bar(x=names, y=counts, marker_color="#ff7f0e")])
+
         fig.update_layout(
-            title='Suppression Statistics (Last 24 Hours)',
-            xaxis_title='Rule Name',
-            yaxis_title='Suppression Count',
+            title="Suppression Statistics (Last 24 Hours)",
+            xaxis_title="Rule Name",
+            yaxis_title="Suppression Count",
             height=400,
-            margin=dict(l=50, r=50, t=50, b=50)
+            margin=dict(l=50, r=50, t=50, b=50),
         )
-        
+
         return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
-    
-    def run(self, host='0.0.0.0', port=5000, debug=False):
+
+    def run(self, host="0.0.0.0", port=5000, debug=False):
         """Run the dashboard server"""
         logger.info(f"Starting Alert Fatigue Dashboard on {host}:{port}")
         self.app.run(host=host, port=port, debug=debug)
+
 
 # HTML Template for the dashboard
 DASHBOARD_TEMPLATE = """
@@ -646,16 +697,18 @@ DASHBOARD_TEMPLATE = """
 </html>
 """
 
+
 # Example usage
 async def run_dashboard():
     """Run the alert fatigue dashboard"""
-    
+
     # Initialize systems
     afp_system = AlertFatiguePreventionSystem()
     dashboard = FatigueDashboard(afp_system)
-    
+
     # Run dashboard
-    dashboard.run(host='0.0.0.0', port=5000, debug=True)
+    dashboard.run(host="0.0.0.0", port=5000, debug=True)
+
 
 if __name__ == "__main__":
     asyncio.run(run_dashboard())
