@@ -27,7 +27,9 @@ class Mem0Migration:
     target_system: str = "zep"
     migrated_users: int = 0
     migrated_memories: int = 0
+
     migration_timestamp: datetime = None
+
     errors: List[str] = None
 
     def __post_init__(self):

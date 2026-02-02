@@ -7,17 +7,20 @@ including quality checks, bias detection, and compliance validation.
 
 import logging
 from datetime import datetime
-from typing import Dict, Any, Optional, List
-from flask import Blueprint, request, jsonify, g
-from werkzeug.exceptions import BadRequest, NotFound
+from typing import Any, Dict, List, Optional
 
-from ..utils.validation import validate_validation_request, sanitize_input
-from ..utils.logger import get_request_logger
+from flask import Blueprint, g, jsonify, request
+
+from ..auth.decorators import require_auth
 from ..error_handling.custom_errors import (
-    ValidationError, ResourceNotFoundError, BiasDetectionError
+    BiasDetectionError,
+    ResourceNotFoundError,
+    ValidationError,
 )
 from ..integration.redis_client import RedisClient
-from ..auth.decorators import require_auth, require_role
+from ..utils.logger import get_request_logger
+
+from ..utils.validation import sanitize_input, validate_validation_request
 
 # Initialize blueprint
 validation_bp = Blueprint('validation', __name__)

@@ -6,6 +6,7 @@ is in progress; here we provide enough for imports during pytest
 collection.
 """
 from typing import Any, Optional
+
 from flask import Flask
 
 

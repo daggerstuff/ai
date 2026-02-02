@@ -22,8 +22,8 @@ __description__ = "MCP Server for Agent Interaction Management"
 from .app import create_mcp_app
 from .config import MCPConfig, get_mcp_config
 from .core.agent_manager import AgentManager
-from .core.task_orchestrator import TaskOrchestrator
 from .core.pipeline_integration import PipelineIntegrationManager
+from .core.task_orchestrator import TaskOrchestrator
 
 __all__ = [
     "create_mcp_app",

@@ -51,6 +51,7 @@ class MemoryMessage:
     role: MessageRole
     timestamp: datetime
     message_id: Optional[str] = None
+
     metadata: Dict[str, Any] = None
 
     def __post_init__(self):
@@ -69,6 +70,7 @@ class MemoryContext:
     created_at: datetime
     updated_at: datetime
     summary: Optional[str] = None
+
     metadata: Dict[str, Any] = None
 
     def __post_init__(self):
