@@ -34,7 +34,6 @@ import hashlib
 import json
 import logging
 import os
-import shutil
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
@@ -90,6 +89,7 @@ class ExportConfig:
         """Validate configuration and set defaults."""
         self.source_path = Path(self.source_path)
         self.export_dir = Path(self.export_dir)
+
         self.checkpoint_dir = Path(self.checkpoint_dir)
 
         if self.dataset_name is None:
@@ -123,7 +123,9 @@ class ExportResult:
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
     checksum: str = ""
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     metadata: Dict[str, Any] = field(default_factory=dict)
 
 
@@ -170,7 +172,9 @@ class DatasetValidator:
 
         return True, errors
 
-    def validate_record(self, record: Dict[str, Any], index: int) -> Tuple[bool, List[str]]:
+    def validate_record(
+        self, record: Dict[str, Any], index: int
+    ) -> Tuple[bool, List[str]]:
         """Validate a single record."""
         errors = []
 
@@ -250,7 +254,7 @@ class DatasetExporter:
         """Context manager exit."""
         if self._lock_file and self._lock_file.exists():
             try:
-                fcntl.flock(self._lock_file.open('rb'), fcntl.LOCK_UN)
+                fcntl.flock(self._lock_file.open("rb"), fcntl.LOCK_UN)
                 self._lock_file.unlink()
             except Exception as e:
                 self.logger.warning(f"Failed to release lock: {e}")
@@ -273,7 +277,7 @@ class DatasetExporter:
         self._lock_file = self.config.export_dir / lock_name
 
         try:
-            with open(self._lock_file, 'w') as f:
+            with open(self._lock_file, "w") as f:
                 fcntl.flock(f.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 f.write(f"{os.getpid()}\n")
                 f.write(f"{datetime.now(timezone.utc).isoformat()}\n")
@@ -324,9 +328,7 @@ class DatasetExporter:
             raise ValueError(f"Unsupported source format: {suffix}")
 
     def _write_output(
-        self,
-        output_path: Path,
-        records: Iterator[Dict[str, Any]]
+        self, output_path: Path, records: Iterator[Dict[str, Any]]
     ) -> ExportResult:
         """Write records to output file in specified format."""
         exported_records = 0
@@ -343,6 +345,7 @@ class DatasetExporter:
 
         if self.config.compress_output and self.config.compression_format == "gzip":
             import gzip
+
             open_func = lambda: gzip.open(output_path, mode, encoding=encoding)
         else:
             open_func = lambda: open(output_path, mode, encoding=encoding)
@@ -359,7 +362,9 @@ class DatasetExporter:
                         errors.extend(record_errors[:3])  # Limit errors per record
 
                         if failed_records >= 100:
-                            errors.append("... and more validation errors (stopped recording)")
+                            errors.append(
+                                "... and more validation errors (stopped recording)"
+                            )
                             break
 
                         continue
@@ -399,13 +404,13 @@ class DatasetExporter:
             export_time_seconds=export_time,
             errors=errors,
             warnings=warnings,
-            checksum=self._calculate_checksum(output_path) if output_path.exists() else ""
+            checksum=self._calculate_checksum(output_path)
+            if output_path.exists()
+            else "",
         )
 
     def _create_manifest(
-        self,
-        export_result: ExportResult,
-        metadata: Optional[ExportMetadata] = None
+        self, export_result: ExportResult, metadata: Optional[ExportMetadata] = None
     ) -> Optional[Path]:
         """Create manifest for exported dataset."""
         if not self.config.create_manifest:
@@ -430,7 +435,7 @@ class DatasetExporter:
                 created_at=export_result.timestamp,
                 source_checksum=source_checksum,
                 export_checksum=export_result.checksum,
-                file_size_bytes=export_result.file_size_bytes
+                file_size_bytes=export_result.file_size_bytes,
             )
 
         # Build manifest
@@ -454,7 +459,7 @@ class DatasetExporter:
             "schema": metadata.schema,
             "statistics": metadata.statistics,
             "tags": metadata.tags,
-            "description": metadata.description
+            "description": metadata.description,
         }
 
         # Write manifest
@@ -498,9 +503,9 @@ class DatasetExporter:
 
             # Add metadata
             export_result.total_records = (
-                export_result.exported_records +
-                export_result.skipped_records +
-                export_result.failed_records
+                export_result.exported_records
+                + export_result.skipped_records
+                + export_result.failed_records
             )
 
             if export_result.export_time_seconds == 0:
@@ -511,7 +516,7 @@ class DatasetExporter:
                 self.logger.info(
                     f"Export successful: {export_result.exported_records} records "
                     f"in {export_result.export_time_seconds:.2f}s "
-                    f"({export_result.file_size_bytes / (1024*1024):.2f} MB)"
+                    f"({export_result.file_size_bytes / (1024 * 1024):.2f} MB)"
                 )
             else:
                 self.logger.error(
@@ -522,7 +527,9 @@ class DatasetExporter:
                     for error in export_result.errors[:5]:
                         self.logger.error(f"  - {error}")
                     if len(export_result.errors) > 5:
-                        self.logger.error(f"  ... and {len(export_result.errors) - 5} more")
+                        self.logger.error(
+                            f"  ... and {len(export_result.errors) - 5} more"
+                        )
 
             return export_result
 
@@ -538,7 +545,7 @@ def export_dataset(
     export_format: str = "jsonl",
     validate: bool = True,
     compress: bool = False,
-    **kwargs
+    **kwargs,
 ) -> ExportResult:
     """
     Convenience function to export a dataset.
@@ -562,7 +569,7 @@ def export_dataset(
         export_format=export_format,
         validate_before_export=validate,
         compress_output=compress,
-        **kwargs
+        **kwargs,
     )
 
     with DatasetExporter(config) as exporter:
@@ -575,7 +582,7 @@ def export_batch(
     export_format: str = "jsonl",
     parallel: bool = True,
     max_workers: int = 4,
-    **kwargs
+    **kwargs,
 ) -> List[ExportResult]:
     """
     Export multiple datasets in batch.
@@ -602,8 +609,9 @@ def export_batch(
                     source,
                     export_dir=export_dir_str,
                     export_format=export_format,
-                    **kwargs
-                ): source for source in sources
+                    **kwargs,
+                ): source
+                for source in sources
             }
 
             for future in as_completed(futures):
@@ -613,13 +621,15 @@ def export_batch(
                     results.append(result)
                 except Exception as e:
                     logger.error(f"Failed to export {source}: {e}")
-                    results.append(ExportResult(
-                        success=False,
-                        export_path="",
-                        source_path=str(source),
-                        format=export_format,
-                        errors=[str(e)]
-                    ))
+                    results.append(
+                        ExportResult(
+                            success=False,
+                            export_path="",
+                            source_path=str(source),
+                            format=export_format,
+                            errors=[str(e)],
+                        )
+                    )
     else:
         # Sequential export
         for source in sources:
@@ -628,18 +638,20 @@ def export_batch(
                     source,
                     export_dir=export_dir_str,
                     export_format=export_format,
-                    **kwargs
+                    **kwargs,
                 )
                 results.append(result)
             except Exception as e:
                 logger.error(f"Failed to export {source}: {e}")
-                results.append(ExportResult(
-                    success=False,
-                    export_path="",
-                    source_path=str(source),
-                    format=export_format,
-                    errors=[str(e)]
-                ))
+                results.append(
+                    ExportResult(
+                        success=False,
+                        export_path="",
+                        source_path=str(source),
+                        format=export_format,
+                        errors=[str(e)],
+                    )
+                )
 
     # Log summary
     successful = sum(1 for r in results if r.success)
@@ -654,7 +666,7 @@ def export_batch(
 
 
 def list_exported_datasets(
-    export_dir: Optional[Union[str, Path]] = None
+    export_dir: Optional[Union[str, Path]] = None,
 ) -> List[Dict[str, Any]]:
     """
     List all exported datasets with their metadata.
@@ -683,8 +695,7 @@ def list_exported_datasets(
 
 
 def get_dataset_status(
-    dataset_name: str,
-    export_dir: Optional[Union[str, Path]] = None
+    dataset_name: str, export_dir: Optional[Union[str, Path]] = None
 ) -> Optional[Dict[str, Any]]:
     """
     Get status of a specific exported dataset.
@@ -725,14 +736,14 @@ if __name__ == "__main__":
         source_path=source_file,
         dataset_name=dataset_name,
         export_format="jsonl",
-        validate=True
+        validate=True,
     )
 
-    print(f"\nExport Result:")
+    print("\nExport Result:")
     print(f"  Success: {result.success}")
     print(f"  Export Path: {result.export_path}")
     print(f"  Records: {result.exported_records}")
-    print(f"  File Size: {result.file_size_bytes / (1024*1024):.2f} MB")
+    print(f"  File Size: {result.file_size_bytes / (1024 * 1024):.2f} MB")
     print(f"  Time: {result.export_time_seconds:.2f}s")
     print(f"  Manifest: {result.manifest_path}")
 
