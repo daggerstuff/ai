@@ -9,16 +9,16 @@ __version__ = "0.1.0"
 __author__ = "Pixelated Empathy Team"
 __description__ = "CLI for TechDeck-Python Pipeline Integration"
 
-from .main import cli
-from .config import CLIConfig
 from .auth import AuthManager
+from .config import CLIConfig
+from .main import cli
 from .pipeline import PipelineManager
 from .progress import ProgressTracker
 from .utils import setup_logging, validate_environment
 
 __all__ = [
     "cli",
-    "CLIConfig", 
+    "CLIConfig",
     "AuthManager",
     "PipelineManager",
     "ProgressTracker",
