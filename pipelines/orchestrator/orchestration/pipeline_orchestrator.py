@@ -16,7 +16,9 @@ from pathlib import Path
 from typing import Any
 
 try:
-    from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
+    from ai.pipelines.orchestrator.storage_config import (
+        get_dataset_pipeline_output_root,
+    )
 except Exception:  # pragma: no cover - supports running as a standalone script
 
     def get_dataset_pipeline_output_root() -> Path:  # type: ignore[misc]
@@ -179,7 +181,9 @@ class PipelineOrchestrator:
 
         # Quality Scoring v1 integration (KAN-12)
         try:
-            from ai.pipelines.orchestrator.quality.quality_scoring_v1 import QualityScoringV1
+            from ai.pipelines.orchestrator.quality.quality_scoring_v1 import (
+                QualityScoringV1,
+            )
 
             quality_scoring_config = getattr(
                 self.config, "quality_scoring_config", None
@@ -191,6 +195,7 @@ class PipelineOrchestrator:
             logger.info("Quality Scoring v1 integrated into pipeline")
         except ImportError as e:
             logger.warning(f"Quality Scoring v1 not available: {e}")
+
             self.quality_scoring = None
 
         # Journal research integration (optional)

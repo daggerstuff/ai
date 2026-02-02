@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from logger import get_logger
+from ai.pipelines.orchestrator.logger import get_logger
 
 
 class PersonalityFramework(Enum):
@@ -653,9 +653,7 @@ class PersonalityExtractor:
 
         return final_scores
 
-    def _determine_enneagram_type(
-        self, markers: list[PersonalityMarker]
-    ) -> int | None:
+    def _determine_enneagram_type(self, markers: list[PersonalityMarker]) -> int | None:
         """Determine most likely Enneagram type from markers."""
         type_scores = defaultdict(float)
 
@@ -1048,4 +1046,3 @@ class PersonalityExtractor:
             + conversational_flow * 0.15
             + emotional_authenticity * 0.15
         )
-

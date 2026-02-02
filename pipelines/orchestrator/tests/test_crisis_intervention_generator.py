@@ -43,7 +43,7 @@ class TestCrisisInterventionGenerator:
             dsm5_considerations=["Major Depressive Disorder with suicidal ideation"],
             attachment_style="anxious",
             defense_mechanisms=["denial"],
-            psychodynamic_themes=["hopelessness"]
+            psychodynamic_themes=["hopelessness"],
         )
 
         return ClientScenario(
@@ -53,7 +53,7 @@ class TestCrisisInterventionGenerator:
             presenting_problem="Suicidal ideation with plan",
             clinical_formulation=clinical_formulation,
             demographics={"age": 32, "gender": "female"},
-            session_context="Crisis intervention session"
+            session_context="Crisis intervention session",
         )
 
     @pytest.fixture
@@ -63,7 +63,7 @@ class TestCrisisInterventionGenerator:
             dsm5_considerations=["Intermittent Explosive Disorder"],
             attachment_style="disorganized",
             defense_mechanisms=["projection"],
-            psychodynamic_themes=["anger_management"]
+            psychodynamic_themes=["anger_management"],
         )
 
         return ClientScenario(
@@ -73,7 +73,7 @@ class TestCrisisInterventionGenerator:
             presenting_problem="Threats of violence toward others",
             clinical_formulation=clinical_formulation,
             demographics={"age": 28, "gender": "male"},
-            session_context="Emergency intervention"
+            session_context="Emergency intervention",
         )
 
     def test_initialization(self, generator):
@@ -210,17 +210,30 @@ class TestCrisisInterventionGenerator:
 
         # Should include de-escalation techniques
         technique_values = [t.value for t in conversation.intervention_techniques_used]
-        assert "de_escalation" in technique_values or "active_listening" in technique_values
+        assert (
+            "de_escalation" in technique_values
+            or "active_listening" in technique_values
+        )
 
     def test_safety_assessment_questions(self, generator):
         """Test safety assessment question generation."""
-        suicide_question = generator._generate_safety_assessment_question(CrisisType.SUICIDE_IDEATION)
-        violence_question = generator._generate_safety_assessment_question(CrisisType.VIOLENCE_THREAT)
+        suicide_question = generator._generate_safety_assessment_question(
+            CrisisType.SUICIDE_IDEATION
+        )
+        violence_question = generator._generate_safety_assessment_question(
+            CrisisType.VIOLENCE_THREAT
+        )
 
         assert isinstance(suicide_question, str)
         assert isinstance(violence_question, str)
-        assert "hurt yourself" in suicide_question.lower() or "ending your life" in suicide_question.lower()
-        assert "hurt someone" in violence_question.lower() or "hurting someone" in violence_question.lower()
+        assert (
+            "hurt yourself" in suicide_question.lower()
+            or "ending your life" in suicide_question.lower()
+        )
+        assert (
+            "hurt someone" in violence_question.lower()
+            or "hurting someone" in violence_question.lower()
+        )
 
     def test_client_crisis_response_generation(self, generator, suicide_scenario):
         """Test client crisis response generation."""
@@ -233,20 +246,29 @@ class TestCrisisInterventionGenerator:
 
         # Should be appropriate for suicide crisis
         response_lower = response.lower()
-        assert any(word in response_lower for word in ["hopeless", "can't", "pain", "take", "anymore"])
+        assert any(
+            word in response_lower
+            for word in ["hopeless", "can't", "pain", "take", "anymore"]
+        )
 
     def test_risk_indicator_identification(self, generator):
         """Test risk indicator identification from client responses."""
         # Test suicide risk indicators
         suicide_content = "I have a plan. I've been thinking about this for weeks."
-        suicide_indicators = generator._identify_risk_indicators(suicide_content, CrisisType.SUICIDE_IDEATION)
+        suicide_indicators = generator._identify_risk_indicators(
+            suicide_content, CrisisType.SUICIDE_IDEATION
+        )
 
         assert "specific_plan" in suicide_indicators
         assert "chronic_ideation" in suicide_indicators
 
         # Test violence risk indicators
-        violence_content = "I'm so angry I could hurt someone. They deserve what's coming."
-        violence_indicators = generator._identify_risk_indicators(violence_content, CrisisType.VIOLENCE_THREAT)
+        violence_content = (
+            "I'm so angry I could hurt someone. They deserve what's coming."
+        )
+        violence_indicators = generator._identify_risk_indicators(
+            violence_content, CrisisType.VIOLENCE_THREAT
+        )
 
         assert "violence_intent" in violence_indicators
         assert "high_anger" in violence_indicators
@@ -256,13 +278,23 @@ class TestCrisisInterventionGenerator:
         # Mock exchanges with risk indicators
         exchanges = [
             {"speaker": "therapist", "content": "test"},
-            {"speaker": "client", "content": "test", "risk_indicators": ["specific_plan", "hopelessness"]},
+            {
+                "speaker": "client",
+                "content": "test",
+                "risk_indicators": ["specific_plan", "hopelessness"],
+            },
             {"speaker": "therapist", "content": "test"},
-            {"speaker": "client", "content": "test", "risk_indicators": ["chronic_ideation"]}
+            {
+                "speaker": "client",
+                "content": "test",
+                "risk_indicators": ["chronic_ideation"],
+            },
         ]
 
         protocol = generator.crisis_protocols[CrisisType.SUICIDE_IDEATION]
-        assessment = generator._conduct_crisis_assessment(exchanges, protocol, suicide_scenario)
+        assessment = generator._conduct_crisis_assessment(
+            exchanges, protocol, suicide_scenario
+        )
 
         assert isinstance(assessment, dict)
         assert "crisis_type" in assessment
@@ -281,10 +313,7 @@ class TestCrisisInterventionGenerator:
     def test_safety_plan_creation(self, generator, suicide_scenario):
         """Test safety plan creation."""
         # Mock crisis assessment
-        crisis_assessment = {
-            "immediate_safety": True,
-            "current_risk_level": "moderate"
-        }
+        crisis_assessment = {"immediate_safety": True, "current_risk_level": "moderate"}
 
         safety_plan = generator._create_safety_plan(
             crisis_assessment, suicide_scenario, CrisisType.SUICIDE_IDEATION
@@ -320,7 +349,7 @@ class TestCrisisInterventionGenerator:
             {"speaker": "therapist", "content": "test"},
             {"speaker": "client", "emotional_state": "desperate"},
             {"speaker": "therapist", "content": "test"},
-            {"speaker": "client", "emotional_state": "calmer"}
+            {"speaker": "client", "emotional_state": "calmer"},
         ]
 
         success = generator._assess_de_escalation_success(successful_exchanges)
@@ -330,7 +359,7 @@ class TestCrisisInterventionGenerator:
         unsuccessful_exchanges = [
             {"speaker": "client", "emotional_state": "hopeless"},
             {"speaker": "therapist", "content": "test"},
-            {"speaker": "client", "emotional_state": "desperate"}
+            {"speaker": "client", "emotional_state": "desperate"},
         ]
 
         no_success = generator._assess_de_escalation_success(unsuccessful_exchanges)
@@ -352,7 +381,9 @@ class TestCrisisInterventionGenerator:
             temp_file = f.name
 
         try:
-            export_result = generator.export_crisis_conversations(conversations, temp_file)
+            export_result = generator.export_crisis_conversations(
+                conversations, temp_file
+            )
 
             # Check export result
             assert export_result["exported_conversations"] == 3
@@ -381,7 +412,9 @@ class TestCrisisInterventionGenerator:
             if os.path.exists(temp_file):
                 os.unlink(temp_file)
 
-    def test_different_crisis_types(self, generator, suicide_scenario, violence_scenario):
+    def test_different_crisis_types(
+        self, generator, suicide_scenario, violence_scenario
+    ):
         """Test handling of different crisis types."""
         # Test suicide ideation
         suicide_conv = generator.generate_crisis_conversation(

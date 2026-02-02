@@ -26,6 +26,7 @@ logger = get_logger("dataset_pipeline.therapeutic_response_generator")
 
 class TherapeuticTechnique(Enum):
     """Evidence-based therapeutic techniques."""
+
     ACTIVE_LISTENING = "active_listening"
     EMPATHIC_REFLECTION = "empathic_reflection"
     OPEN_ENDED_QUESTIONING = "open_ended_questioning"
@@ -43,6 +44,7 @@ class TherapeuticTechnique(Enum):
 
 class ResponseType(Enum):
     """Types of therapeutic responses."""
+
     ASSESSMENT_QUESTION = "assessment_question"
     EMPATHIC_RESPONSE = "empathic_response"
     PSYCHOEDUCATIONAL = "psychoeducational"
@@ -55,6 +57,7 @@ class ResponseType(Enum):
 
 class TherapeuticModality(Enum):
     """Therapeutic modalities and approaches."""
+
     COGNITIVE_BEHAVIORAL = "cognitive_behavioral"
     PSYCHODYNAMIC = "psychodynamic"
     HUMANISTIC = "humanistic"
@@ -68,6 +71,7 @@ class TherapeuticModality(Enum):
 @dataclass
 class TherapeuticResponse:
     """Individual therapeutic response with metadata."""
+
     id: str
     content: str
     technique: TherapeuticTechnique
@@ -83,6 +87,7 @@ class TherapeuticResponse:
 @dataclass
 class ResponseContext:
     """Context for generating therapeutic responses."""
+
     client_scenario: ClientScenario
     conversation_history: list[Message] = field(default_factory=list)
     session_phase: str = "opening"  # opening, exploration, intervention, closing
@@ -122,47 +127,71 @@ class TherapeuticResponseGenerator:
             TherapeuticTechnique.ACTIVE_LISTENING: [
                 "I hear you saying that {client_statement}. That sounds {emotion_reflection}.",
                 "It sounds like {client_concern} is really important to you.",
-                "I'm listening. Please tell me more about {topic}."
+                "I'm listening. Please tell me more about {topic}.",
             ],
             TherapeuticTechnique.EMPATHIC_REFLECTION: [
                 "It sounds like you're feeling {emotion} about {situation}.",
                 "I can sense that this is {intensity_word} for you.",
-                "That must be {emotion_validation} to experience."
+                "That must be {emotion_validation} to experience.",
             ],
             TherapeuticTechnique.OPEN_ENDED_QUESTIONING: [
                 "Can you help me understand what {topic} means to you?",
                 "What has your experience been like with {situation}?",
-                "How do you make sense of {client_concern}?"
+                "How do you make sense of {client_concern}?",
             ],
             TherapeuticTechnique.VALIDATION: [
                 "Your feelings about {situation} make complete sense.",
                 "It's understandable that you would feel {emotion} given what you've experienced.",
-                "Many people in your situation would feel similarly."
+                "Many people in your situation would feel similarly.",
             ],
             TherapeuticTechnique.PSYCHOEDUCATION: [
                 "What you're describing sounds consistent with {clinical_concept}.",
                 "It might be helpful to understand that {educational_content}.",
-                "Research shows that {evidence_based_information}."
-            ]
+                "Research shows that {evidence_based_information}.",
+            ],
         }
 
         # Modality-specific approaches
         self.modality_approaches = {
             TherapeuticModality.COGNITIVE_BEHAVIORAL: {
-                "focus": ["thoughts", "behaviors", "thought patterns", "behavioral changes"],
-                "techniques": [TherapeuticTechnique.COGNITIVE_RESTRUCTURING, TherapeuticTechnique.BEHAVIORAL_ACTIVATION],
-                "language_style": "structured and goal-oriented"
+                "focus": [
+                    "thoughts",
+                    "behaviors",
+                    "thought patterns",
+                    "behavioral changes",
+                ],
+                "techniques": [
+                    TherapeuticTechnique.COGNITIVE_RESTRUCTURING,
+                    TherapeuticTechnique.BEHAVIORAL_ACTIVATION,
+                ],
+                "language_style": "structured and goal-oriented",
             },
             TherapeuticModality.PSYCHODYNAMIC: {
-                "focus": ["unconscious patterns", "early relationships", "defense mechanisms", "transference"],
-                "techniques": [TherapeuticTechnique.EMPATHIC_REFLECTION, TherapeuticTechnique.CLARIFICATION],
-                "language_style": "exploratory and insight-oriented"
+                "focus": [
+                    "unconscious patterns",
+                    "early relationships",
+                    "defense mechanisms",
+                    "transference",
+                ],
+                "techniques": [
+                    TherapeuticTechnique.EMPATHIC_REFLECTION,
+                    TherapeuticTechnique.CLARIFICATION,
+                ],
+                "language_style": "exploratory and insight-oriented",
             },
             TherapeuticModality.HUMANISTIC: {
-                "focus": ["personal growth", "self-acceptance", "authentic self", "present experience"],
-                "techniques": [TherapeuticTechnique.EMPATHIC_REFLECTION, TherapeuticTechnique.VALIDATION],
-                "language_style": "warm and person-centered"
-            }
+                "focus": [
+                    "personal growth",
+                    "self-acceptance",
+                    "authentic self",
+                    "present experience",
+                ],
+                "techniques": [
+                    TherapeuticTechnique.EMPATHIC_REFLECTION,
+                    TherapeuticTechnique.VALIDATION,
+                ],
+                "language_style": "warm and person-centered",
+            },
         }
 
         # Crisis response protocols
@@ -170,27 +199,29 @@ class TherapeuticResponseGenerator:
             "suicidal_ideation": [
                 "I'm concerned about your safety. Are you having thoughts of hurting yourself?",
                 "Thank you for sharing that with me. Let's work together to keep you safe.",
-                "It sounds like you're in a lot of pain right now. We need to make sure you're safe."
+                "It sounds like you're in a lot of pain right now. We need to make sure you're safe.",
             ],
             "panic_attack": [
                 "Let's focus on your breathing right now. Can you take slow, deep breaths with me?",
                 "You're safe here. This feeling will pass. Let's use some grounding techniques.",
-                "I can see you're experiencing intense anxiety. Let's work on calming your nervous system."
+                "I can see you're experiencing intense anxiety. Let's work on calming your nervous system.",
             ],
             "psychotic_episode": [
                 "I want to understand your experience. Can you tell me what you're noticing right now?",
                 "It sounds like you're having some unusual experiences. Let's talk about what's happening.",
-                "I'm here to help you feel more grounded and safe."
-            ]
+                "I'm here to help you feel more grounded and safe.",
+            ],
         }
 
-        logger.info("Initialized therapeutic knowledge base with techniques, modalities, and crisis protocols")
+        logger.info(
+            "Initialized therapeutic knowledge base with techniques, modalities, and crisis protocols"
+        )
 
     def generate_therapeutic_response(
         self,
         context: ResponseContext,
         target_technique: TherapeuticTechnique = None,
-        target_modality: TherapeuticModality = None
+        target_modality: TherapeuticModality = None,
     ) -> TherapeuticResponse:
         """Generate a single therapeutic response based on context."""
 
@@ -226,66 +257,93 @@ class TherapeuticResponseGenerator:
             target_symptoms=target_symptoms,
             contraindications=contraindications,
             follow_up_suggestions=follow_ups,
-            effectiveness_indicators=effectiveness_indicators
+            effectiveness_indicators=effectiveness_indicators,
         )
 
-        logger.info(f"Generated therapeutic response: {technique.value} - {response_type.value}")
+        logger.info(
+            f"Generated therapeutic response: {technique.value} - {response_type.value}"
+        )
         return response
 
-    def _select_appropriate_technique(self, context: ResponseContext) -> TherapeuticTechnique:
+    def _select_appropriate_technique(
+        self, context: ResponseContext
+    ) -> TherapeuticTechnique:
         """Select appropriate therapeutic technique based on context."""
 
         # Crisis scenarios require specific techniques
         if context.client_scenario.scenario_type == ScenarioType.CRISIS_INTERVENTION:
-            return random.choice([
-                TherapeuticTechnique.SAFETY_PLANNING,
-                TherapeuticTechnique.GROUNDING_TECHNIQUES,
-                TherapeuticTechnique.VALIDATION
-            ])
+            return random.choice(
+                [
+                    TherapeuticTechnique.SAFETY_PLANNING,
+                    TherapeuticTechnique.GROUNDING_TECHNIQUES,
+                    TherapeuticTechnique.VALIDATION,
+                ]
+            )
 
         # Initial assessment scenarios
         if context.client_scenario.scenario_type == ScenarioType.INITIAL_ASSESSMENT:
-            return random.choice([
-                TherapeuticTechnique.ACTIVE_LISTENING,
-                TherapeuticTechnique.OPEN_ENDED_QUESTIONING,
-                TherapeuticTechnique.EMPATHIC_REFLECTION
-            ])
+            return random.choice(
+                [
+                    TherapeuticTechnique.ACTIVE_LISTENING,
+                    TherapeuticTechnique.OPEN_ENDED_QUESTIONING,
+                    TherapeuticTechnique.EMPATHIC_REFLECTION,
+                ]
+            )
 
         # Consider severity level
         if context.client_scenario.severity_level == SeverityLevel.SEVERE:
-            return random.choice([
-                TherapeuticTechnique.VALIDATION,
-                TherapeuticTechnique.PSYCHOEDUCATION,
-                TherapeuticTechnique.GROUNDING_TECHNIQUES
-            ])
+            return random.choice(
+                [
+                    TherapeuticTechnique.VALIDATION,
+                    TherapeuticTechnique.PSYCHOEDUCATION,
+                    TherapeuticTechnique.GROUNDING_TECHNIQUES,
+                ]
+            )
 
         # Default to common therapeutic techniques
-        return random.choice([
-            TherapeuticTechnique.EMPATHIC_REFLECTION,
-            TherapeuticTechnique.OPEN_ENDED_QUESTIONING,
-            TherapeuticTechnique.CLARIFICATION,
-            TherapeuticTechnique.SUMMARIZATION
-        ])
+        return random.choice(
+            [
+                TherapeuticTechnique.EMPATHIC_REFLECTION,
+                TherapeuticTechnique.OPEN_ENDED_QUESTIONING,
+                TherapeuticTechnique.CLARIFICATION,
+                TherapeuticTechnique.SUMMARIZATION,
+            ]
+        )
 
-    def _select_appropriate_modality(self, context: ResponseContext) -> TherapeuticModality:
+    def _select_appropriate_modality(
+        self, context: ResponseContext
+    ) -> TherapeuticModality:
         """Select appropriate therapeutic modality based on context."""
 
         # Consider DSM-5 diagnostic categories
-        dsm5_considerations = context.client_scenario.clinical_formulation.dsm5_considerations
+        dsm5_considerations = (
+            context.client_scenario.clinical_formulation.dsm5_considerations
+        )
 
-        if any("anxiety" in consideration.lower() for consideration in dsm5_considerations):
-            return random.choice([
-                TherapeuticModality.COGNITIVE_BEHAVIORAL,
-                TherapeuticModality.MINDFULNESS_BASED
-            ])
+        if any(
+            "anxiety" in consideration.lower() for consideration in dsm5_considerations
+        ):
+            return random.choice(
+                [
+                    TherapeuticModality.COGNITIVE_BEHAVIORAL,
+                    TherapeuticModality.MINDFULNESS_BASED,
+                ]
+            )
 
-        if any("depression" in consideration.lower() for consideration in dsm5_considerations):
-            return random.choice([
-                TherapeuticModality.COGNITIVE_BEHAVIORAL,
-                TherapeuticModality.BEHAVIORAL_ACTIVATION
-            ])
+        if any(
+            "depression" in consideration.lower()
+            for consideration in dsm5_considerations
+        ):
+            return random.choice(
+                [
+                    TherapeuticModality.COGNITIVE_BEHAVIORAL,
+                    TherapeuticModality.BEHAVIORAL_ACTIVATION,
+                ]
+            )
 
-        if any("trauma" in consideration.lower() for consideration in dsm5_considerations):
+        if any(
+            "trauma" in consideration.lower() for consideration in dsm5_considerations
+        ):
             return TherapeuticModality.TRAUMA_INFORMED
 
         # Consider attachment style from PDM-2
@@ -294,23 +352,27 @@ class TherapeuticResponseGenerator:
             return TherapeuticModality.PSYCHODYNAMIC
 
         # Default modality
-        return random.choice([
-            TherapeuticModality.HUMANISTIC,
-            TherapeuticModality.COGNITIVE_BEHAVIORAL,
-            TherapeuticModality.PSYCHODYNAMIC
-        ])
+        return random.choice(
+            [
+                TherapeuticModality.HUMANISTIC,
+                TherapeuticModality.COGNITIVE_BEHAVIORAL,
+                TherapeuticModality.PSYCHODYNAMIC,
+            ]
+        )
 
     def _generate_response_content(
         self,
         context: ResponseContext,
         technique: TherapeuticTechnique,
-        modality: TherapeuticModality
+        modality: TherapeuticModality,
     ) -> str:
         """Generate the actual response content."""
 
         # Handle crisis scenarios first
         if context.client_scenario.scenario_type == ScenarioType.CRISIS_INTERVENTION:
-            crisis_type = context.client_scenario.session_context.get("crisis_type", "general")
+            crisis_type = context.client_scenario.session_context.get(
+                "crisis_type", "general"
+            )
             if crisis_type in self.crisis_responses:
                 return random.choice(self.crisis_responses[crisis_type])
 
@@ -332,7 +394,6 @@ class TherapeuticResponseGenerator:
 
         # Adjust language style based on modality
         return self._adjust_for_modality(content, modality)
-
 
     def _extract_template_variables(self, context: ResponseContext) -> dict[str, str]:
         """Extract variables for template filling from context."""
@@ -370,11 +431,17 @@ class TherapeuticResponseGenerator:
 
         # Clinical concepts from DSM-5
         if context.client_scenario.clinical_formulation.dsm5_considerations:
-            variables["clinical_concept"] = context.client_scenario.clinical_formulation.dsm5_considerations[0]
+            variables["clinical_concept"] = (
+                context.client_scenario.clinical_formulation.dsm5_considerations[0]
+            )
 
         # Educational content based on symptoms
-        variables["educational_content"] = "these symptoms are treatable with proper support"
-        variables["evidence_based_information"] = "effective treatments are available for these concerns"
+        variables["educational_content"] = (
+            "these symptoms are treatable with proper support"
+        )
+        variables["evidence_based_information"] = (
+            "effective treatments are available for these concerns"
+        )
 
         # Client statement (placeholder for conversation context)
         variables["client_statement"] = "you're experiencing these difficulties"
@@ -392,16 +459,22 @@ class TherapeuticResponseGenerator:
         elif modality == TherapeuticModality.PSYCHODYNAMIC:
             # Add psychodynamic exploration
             if "pattern" not in content.lower():
-                content += " I wonder if this connects to patterns in your relationships."
+                content += (
+                    " I wonder if this connects to patterns in your relationships."
+                )
 
         elif modality == TherapeuticModality.HUMANISTIC:
             # Add person-centered warmth
-            if not any(word in content.lower() for word in ["feel", "experience", "sense"]):
+            if not any(
+                word in content.lower() for word in ["feel", "experience", "sense"]
+            ):
                 content += " How does this feel for you right now?"
 
         return content
 
-    def _determine_response_type(self, context: ResponseContext, technique: TherapeuticTechnique) -> ResponseType:
+    def _determine_response_type(
+        self, context: ResponseContext, technique: TherapeuticTechnique
+    ) -> ResponseType:
         """Determine the type of therapeutic response."""
 
         if context.client_scenario.scenario_type == ScenarioType.CRISIS_INTERVENTION:
@@ -410,13 +483,19 @@ class TherapeuticResponseGenerator:
         if technique == TherapeuticTechnique.PSYCHOEDUCATION:
             return ResponseType.PSYCHOEDUCATIONAL
 
-        if technique in [TherapeuticTechnique.EMPATHIC_REFLECTION, TherapeuticTechnique.VALIDATION]:
+        if technique in [
+            TherapeuticTechnique.EMPATHIC_REFLECTION,
+            TherapeuticTechnique.VALIDATION,
+        ]:
             return ResponseType.EMPATHIC_RESPONSE
 
         if technique == TherapeuticTechnique.OPEN_ENDED_QUESTIONING:
             return ResponseType.ASSESSMENT_QUESTION
 
-        if technique in [TherapeuticTechnique.COGNITIVE_RESTRUCTURING, TherapeuticTechnique.BEHAVIORAL_ACTIVATION]:
+        if technique in [
+            TherapeuticTechnique.COGNITIVE_RESTRUCTURING,
+            TherapeuticTechnique.BEHAVIORAL_ACTIVATION,
+        ]:
             return ResponseType.INTERVENTION_SUGGESTION
 
         return ResponseType.SUPPORTIVE_STATEMENT
@@ -425,7 +504,7 @@ class TherapeuticResponseGenerator:
         self,
         context: ResponseContext,
         technique: TherapeuticTechnique,
-        modality: TherapeuticModality
+        modality: TherapeuticModality,
     ) -> str:
         """Generate clinical rationale for the response."""
 
@@ -438,7 +517,7 @@ class TherapeuticResponseGenerator:
             TherapeuticTechnique.VALIDATION: "normalizes client experience and reduces shame",
             TherapeuticTechnique.PSYCHOEDUCATION: "provides understanding and reduces anxiety about symptoms",
             TherapeuticTechnique.ACTIVE_LISTENING: "demonstrates therapist presence and attention",
-            TherapeuticTechnique.SAFETY_PLANNING: "addresses immediate safety concerns and risk management"
+            TherapeuticTechnique.SAFETY_PLANNING: "addresses immediate safety concerns and risk management",
         }
 
         if technique in technique_rationales:
@@ -455,19 +534,27 @@ class TherapeuticResponseGenerator:
         modality_rationales = {
             TherapeuticModality.COGNITIVE_BEHAVIORAL: "addresses thought-behavior connections",
             TherapeuticModality.PSYCHODYNAMIC: "explores unconscious patterns and relationships",
-            TherapeuticModality.HUMANISTIC: "emphasizes client self-determination and growth"
+            TherapeuticModality.HUMANISTIC: "emphasizes client self-determination and growth",
         }
 
         if modality in modality_rationales:
             rationale_parts.append(modality_rationales[modality])
 
-        return "; ".join(rationale_parts) if rationale_parts else "evidence-based therapeutic response"
+        return (
+            "; ".join(rationale_parts)
+            if rationale_parts
+            else "evidence-based therapeutic response"
+        )
 
     def _extract_target_symptoms(self, context: ResponseContext) -> list[str]:
         """Extract target symptoms from client scenario."""
-        return context.client_scenario.presenting_problem.symptoms[:3]  # First 3 symptoms
+        return context.client_scenario.presenting_problem.symptoms[
+            :3
+        ]  # First 3 symptoms
 
-    def _identify_contraindications(self, context: ResponseContext, technique: TherapeuticTechnique) -> list[str]:
+    def _identify_contraindications(
+        self, context: ResponseContext, technique: TherapeuticTechnique
+    ) -> list[str]:
         """Identify contraindications for the technique."""
         contraindications = []
 
@@ -484,11 +571,15 @@ class TherapeuticResponseGenerator:
         personality = context.client_scenario.clinical_formulation.personality_profile
         if personality.get("neuroticism") == "high":
             if technique == TherapeuticTechnique.THERAPEUTIC_CHALLENGE:
-                contraindications.append("High neuroticism may not tolerate challenges well")
+                contraindications.append(
+                    "High neuroticism may not tolerate challenges well"
+                )
 
         return contraindications
 
-    def _suggest_follow_ups(self, context: ResponseContext, technique: TherapeuticTechnique) -> list[str]:
+    def _suggest_follow_ups(
+        self, context: ResponseContext, technique: TherapeuticTechnique
+    ) -> list[str]:
         """Suggest follow-up interventions."""
         follow_ups = []
 
@@ -506,38 +597,42 @@ class TherapeuticResponseGenerator:
 
         return follow_ups
 
-    def _define_effectiveness_indicators(self, technique: TherapeuticTechnique) -> list[str]:
+    def _define_effectiveness_indicators(
+        self, technique: TherapeuticTechnique
+    ) -> list[str]:
         """Define indicators of technique effectiveness."""
         indicators = {
             TherapeuticTechnique.EMPATHIC_REFLECTION: [
                 "Client feels heard and understood",
                 "Increased emotional expression",
-                "Stronger therapeutic alliance"
+                "Stronger therapeutic alliance",
             ],
             TherapeuticTechnique.OPEN_ENDED_QUESTIONING: [
                 "Client provides more detailed responses",
                 "Increased self-exploration",
-                "New insights or perspectives emerge"
+                "New insights or perspectives emerge",
             ],
             TherapeuticTechnique.VALIDATION: [
                 "Reduced client defensiveness",
                 "Increased emotional regulation",
-                "Greater willingness to share"
+                "Greater willingness to share",
             ],
             TherapeuticTechnique.PSYCHOEDUCATION: [
                 "Improved understanding of symptoms",
                 "Reduced anxiety about condition",
-                "Increased treatment engagement"
-            ]
+                "Increased treatment engagement",
+            ],
         }
 
-        return indicators.get(technique, ["Positive therapeutic engagement", "Symptom improvement"])
+        return indicators.get(
+            technique, ["Positive therapeutic engagement", "Symptom improvement"]
+        )
 
     def generate_conversation_with_responses(
         self,
         client_scenario: ClientScenario,
         num_exchanges: int = 5,
-        target_modality: TherapeuticModality = None
+        target_modality: TherapeuticModality = None,
     ) -> Conversation:
         """Generate a complete therapeutic conversation with appropriate responses."""
 
@@ -548,19 +643,21 @@ class TherapeuticResponseGenerator:
         opening_response = self.generate_therapeutic_response(
             context,
             target_technique=TherapeuticTechnique.OPEN_ENDED_QUESTIONING,
-            target_modality=target_modality
+            target_modality=target_modality,
         )
 
-        messages.append(Message(
-            role="therapist",
-            content=opening_response.content,
-            meta={
-                "technique": opening_response.technique.value,
-                "response_type": opening_response.response_type.value,
-                "modality": opening_response.modality.value,
-                "clinical_rationale": opening_response.clinical_rationale
-            }
-        ))
+        messages.append(
+            Message(
+                role="therapist",
+                content=opening_response.content,
+                meta={
+                    "technique": opening_response.technique.value,
+                    "response_type": opening_response.response_type.value,
+                    "modality": opening_response.modality.value,
+                    "clinical_rationale": opening_response.clinical_rationale,
+                },
+            )
+        )
 
         # Generate alternating client-therapist exchanges
         for _i in range(num_exchanges):
@@ -573,21 +670,22 @@ class TherapeuticResponseGenerator:
 
             # Therapist response
             therapist_response = self.generate_therapeutic_response(
-                context,
-                target_modality=target_modality
+                context, target_modality=target_modality
             )
 
-            messages.append(Message(
-                role="therapist",
-                content=therapist_response.content,
-                meta={
-                    "technique": therapist_response.technique.value,
-                    "response_type": therapist_response.response_type.value,
-                    "modality": therapist_response.modality.value,
-                    "clinical_rationale": therapist_response.clinical_rationale,
-                    "target_symptoms": therapist_response.target_symptoms
-                }
-            ))
+            messages.append(
+                Message(
+                    role="therapist",
+                    content=therapist_response.content,
+                    meta={
+                        "technique": therapist_response.technique.value,
+                        "response_type": therapist_response.response_type.value,
+                        "modality": therapist_response.modality.value,
+                        "clinical_rationale": therapist_response.clinical_rationale,
+                        "target_symptoms": therapist_response.target_symptoms,
+                    },
+                )
+            )
 
         # Create conversation
         conversation = Conversation(
@@ -597,28 +695,34 @@ class TherapeuticResponseGenerator:
                 "client_scenario_id": client_scenario.id,
                 "scenario_type": client_scenario.scenario_type.value,
                 "severity_level": client_scenario.severity_level.value,
-                "therapeutic_modality": target_modality.value if target_modality else "mixed",
-                "num_exchanges": num_exchanges
+                "therapeutic_modality": target_modality.value
+                if target_modality
+                else "mixed",
+                "num_exchanges": num_exchanges,
             },
             source="therapeutic_response_generator",
             meta={
                 "clinical_formulation": asdict(client_scenario.clinical_formulation),
                 "learning_objectives": client_scenario.learning_objectives,
-                "therapeutic_considerations": client_scenario.therapeutic_considerations
-            }
+                "therapeutic_considerations": client_scenario.therapeutic_considerations,
+            },
         )
 
         logger.info(f"Generated therapeutic conversation with {len(messages)} messages")
         return conversation
 
-    def _generate_client_response(self, scenario: ClientScenario, conversation_history: list[Message]) -> Message:
+    def _generate_client_response(
+        self, scenario: ClientScenario, conversation_history: list[Message]
+    ) -> Message:
         """Generate a realistic client response based on scenario and conversation context."""
 
         # Determine response based on conversation length and scenario
         if len(conversation_history) == 1:  # First client response
             content = self._generate_initial_client_response(scenario)
         else:
-            content = self._generate_follow_up_client_response(scenario, conversation_history)
+            content = self._generate_follow_up_client_response(
+                scenario, conversation_history
+            )
 
         return Message(
             role="client",
@@ -626,8 +730,8 @@ class TherapeuticResponseGenerator:
             meta={
                 "scenario_id": scenario.id,
                 "response_type": "authentic_client_response",
-                "severity_level": scenario.severity_level.value
-            }
+                "severity_level": scenario.severity_level.value,
+            },
         )
 
     def _generate_initial_client_response(self, scenario: ClientScenario) -> str:
@@ -647,7 +751,9 @@ class TherapeuticResponseGenerator:
 
         return f"I've been having trouble with {primary_concern.lower()}. It's been going on for {scenario.presenting_problem.duration.lower()}."
 
-    def _generate_follow_up_client_response(self, scenario: ClientScenario, history: list[Message]) -> str:
+    def _generate_follow_up_client_response(
+        self, scenario: ClientScenario, history: list[Message]
+    ) -> str:
         """Generate follow-up client response based on conversation flow."""
 
         last_therapist_message = None
@@ -681,9 +787,7 @@ class TherapeuticResponseGenerator:
         return "I hadn't thought about it that way before. Can you tell me more?"
 
     def generate_response_batch(
-        self,
-        scenarios: list[ClientScenario],
-        responses_per_scenario: int = 3
+        self, scenarios: list[ClientScenario], responses_per_scenario: int = 3
     ) -> list[TherapeuticResponse]:
         """Generate a batch of therapeutic responses for multiple scenarios."""
 
@@ -696,10 +800,14 @@ class TherapeuticResponseGenerator:
                 response = self.generate_therapeutic_response(context)
                 all_responses.append(response)
 
-        logger.info(f"Generated {len(all_responses)} therapeutic responses for {len(scenarios)} scenarios")
+        logger.info(
+            f"Generated {len(all_responses)} therapeutic responses for {len(scenarios)} scenarios"
+        )
         return all_responses
 
-    def export_responses_to_json(self, responses: list[TherapeuticResponse], output_path: Path) -> bool:
+    def export_responses_to_json(
+        self, responses: list[TherapeuticResponse], output_path: Path
+    ) -> bool:
         """Export therapeutic responses to JSON format."""
         try:
             export_data = {
@@ -707,8 +815,8 @@ class TherapeuticResponseGenerator:
                 "metadata": {
                     "total_responses": len(responses),
                     "generated_at": datetime.now().isoformat(),
-                    "generator_version": "1.0"
-                }
+                    "generator_version": "1.0",
+                },
             }
 
             for response in responses:
@@ -722,7 +830,7 @@ class TherapeuticResponseGenerator:
                     "target_symptoms": response.target_symptoms,
                     "contraindications": response.contraindications,
                     "follow_up_suggestions": response.follow_up_suggestions,
-                    "effectiveness_indicators": response.effectiveness_indicators
+                    "effectiveness_indicators": response.effectiveness_indicators,
                 }
                 export_data["responses"].append(response_dict)
 
@@ -732,7 +840,9 @@ class TherapeuticResponseGenerator:
             with open(output_path, "w", encoding="utf-8") as f:
                 json.dump(export_data, f, indent=2, ensure_ascii=False)
 
-            logger.info(f"Exported {len(responses)} therapeutic responses to {output_path}")
+            logger.info(
+                f"Exported {len(responses)} therapeutic responses to {output_path}"
+            )
             return True
 
         except Exception as e:
@@ -750,7 +860,7 @@ class TherapeuticResponseGenerator:
             "response_types": {},
             "modalities_used": {},
             "average_contraindications": 0,
-            "average_follow_ups": 0
+            "average_follow_ups": 0,
         }
 
         total_contraindications = 0
@@ -759,15 +869,21 @@ class TherapeuticResponseGenerator:
         for response in responses:
             # Techniques
             technique = response.technique.value
-            stats["techniques_used"][technique] = stats["techniques_used"].get(technique, 0) + 1
+            stats["techniques_used"][technique] = (
+                stats["techniques_used"].get(technique, 0) + 1
+            )
 
             # Response types
             response_type = response.response_type.value
-            stats["response_types"][response_type] = stats["response_types"].get(response_type, 0) + 1
+            stats["response_types"][response_type] = (
+                stats["response_types"].get(response_type, 0) + 1
+            )
 
             # Modalities
             modality = response.modality.value
-            stats["modalities_used"][modality] = stats["modalities_used"].get(modality, 0) + 1
+            stats["modalities_used"][modality] = (
+                stats["modalities_used"].get(modality, 0) + 1
+            )
 
             # Averages
             total_contraindications += len(response.contraindications)

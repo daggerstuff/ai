@@ -27,12 +27,18 @@ from complexity_scorer import ComplexityMetrics, ComplexityScorer
 from pattern_recognition_engine import ConversationAnalysis, PatternRecognitionEngine
 
 sys.path.append(str(Path(__file__).parent.parent / "streaming"))
-from real_time_processor import FileWatcherDataSource, StreamingEvent, StreamingProcessor
+
+from real_time_processor import (
+    FileWatcherDataSource,
+    StreamingEvent,
+    StreamingProcessor,
+)
 
 
 @dataclass
 class AnalyticsResult:
     """Combined analytics result for a conversation."""
+
     conversation_id: str
     timestamp: datetime
 
@@ -63,9 +69,11 @@ class AnalyticsResult:
 @dataclass
 class AnalyticsMetrics:
     """System-wide analytics metrics."""
+
     total_conversations_analyzed: int = 0
     average_quality_score: float = 0.0
     average_complexity_score: float = 0.0
+
     sophistication_distribution: dict[str, int] = None
     processing_rate: float = 0.0
     error_rate: float = 0.0
@@ -73,7 +81,10 @@ class AnalyticsMetrics:
     def __post_init__(self):
         if self.sophistication_distribution is None:
             self.sophistication_distribution = {
-                "basic": 0, "intermediate": 0, "advanced": 0, "expert": 0
+                "basic": 0,
+                "intermediate": 0,
+                "advanced": 0,
+                "expert": 0,
             }
 
 
@@ -96,7 +107,9 @@ class AdvancedAnalyticsEngine:
         self.error_count = 0
 
         # Threading
-        self.executor = ThreadPoolExecutor(max_workers=self.config.get("worker_threads", 4))
+        self.executor = ThreadPoolExecutor(
+            max_workers=self.config.get("worker_threads", 4)
+        )
 
         # Setup logging
         self.logger = logging.getLogger(__name__)
@@ -111,7 +124,9 @@ class AdvancedAnalyticsEngine:
             pattern_analysis = self.pattern_engine.analyze_conversation(conversation)
 
             # Run complexity scoring
-            complexity_metrics = self.complexity_scorer.score_conversation_complexity(conversation)
+            complexity_metrics = self.complexity_scorer.score_conversation_complexity(
+                conversation
+            )
 
             # Combine results
             result = self._combine_analysis_results(
@@ -128,7 +143,9 @@ class AdvancedAnalyticsEngine:
             processing_time = time.time() - start_time
             self.processing_times.append(processing_time)
 
-            self.logger.info(f"Analyzed conversation {conversation_id} in {processing_time:.3f}s")
+            self.logger.info(
+                f"Analyzed conversation {conversation_id} in {processing_time:.3f}s"
+            )
 
             return result
 
@@ -152,69 +169,76 @@ class AdvancedAnalyticsEngine:
                 clinical_sophistication=0.0,
                 quality_score=0.0,
                 sophistication_level="basic",
-                recommendations=["Analysis failed - check conversation format"]
+                recommendations=["Analysis failed - check conversation format"],
             )
 
-    def _combine_analysis_results(self, conversation_id: str,
-                                pattern_analysis: ConversationAnalysis,
-                                complexity_metrics: ComplexityMetrics) -> AnalyticsResult:
+    def _combine_analysis_results(
+        self,
+        conversation_id: str,
+        pattern_analysis: ConversationAnalysis,
+        complexity_metrics: ComplexityMetrics,
+    ) -> AnalyticsResult:
         """Combine pattern recognition and complexity analysis results."""
 
         # Calculate combined quality score
-        quality_score = self._calculate_combined_quality(pattern_analysis, complexity_metrics)
+        quality_score = self._calculate_combined_quality(
+            pattern_analysis, complexity_metrics
+        )
 
         # Determine sophistication level
         sophistication_level = self._determine_sophistication_level(complexity_metrics)
 
         # Combine recommendations
-        recommendations = self._combine_recommendations(pattern_analysis, complexity_metrics)
+        recommendations = self._combine_recommendations(
+            pattern_analysis, complexity_metrics
+        )
 
         return AnalyticsResult(
             conversation_id=conversation_id,
             timestamp=datetime.now(tz=datetime.timezone.utc),
-
             # Pattern recognition metrics
             patterns_detected=len(pattern_analysis.patterns),
             therapeutic_quality=pattern_analysis.therapeutic_quality,
             flow_coherence=pattern_analysis.flow_coherence,
             emotional_depth=pattern_analysis.emotional_depth,
             clinical_accuracy=pattern_analysis.clinical_accuracy,
-
             # Complexity metrics
             overall_complexity=complexity_metrics.overall_complexity,
             linguistic_complexity=complexity_metrics.linguistic_complexity,
             therapeutic_depth_complexity=complexity_metrics.therapeutic_depth,
             emotional_complexity=complexity_metrics.emotional_complexity,
             clinical_sophistication=complexity_metrics.clinical_sophistication,
-
             # Combined metrics
             quality_score=quality_score,
             sophistication_level=sophistication_level,
             recommendations=recommendations,
-
             # Raw analysis objects
             pattern_analysis=pattern_analysis,
-            complexity_metrics=complexity_metrics
+            complexity_metrics=complexity_metrics,
         )
 
-    def _calculate_combined_quality(self, pattern_analysis: ConversationAnalysis,
-                                  complexity_metrics: ComplexityMetrics) -> float:
+    def _calculate_combined_quality(
+        self,
+        pattern_analysis: ConversationAnalysis,
+        complexity_metrics: ComplexityMetrics,
+    ) -> float:
         """Calculate combined quality score from both analyses."""
 
         # Weight pattern analysis components
         pattern_quality = (
-            pattern_analysis.therapeutic_quality * 0.4 +
-            pattern_analysis.flow_coherence * 0.2 +
-            pattern_analysis.emotional_depth * 0.2 +
-            pattern_analysis.clinical_accuracy * 0.2
+            pattern_analysis.therapeutic_quality * 0.4
+            + pattern_analysis.flow_coherence * 0.2
+            + pattern_analysis.emotional_depth * 0.2
+            + pattern_analysis.clinical_accuracy * 0.2
         )
 
         # Weight complexity components (higher complexity can indicate higher quality)
         complexity_quality = (
-            complexity_metrics.therapeutic_depth * 0.4 +
-            complexity_metrics.clinical_sophistication * 0.3 +
-            complexity_metrics.emotional_complexity * 0.2 +
-            min(complexity_metrics.linguistic_complexity, 0.8) * 0.1  # Cap linguistic complexity
+            complexity_metrics.therapeutic_depth * 0.4
+            + complexity_metrics.clinical_sophistication * 0.3
+            + complexity_metrics.emotional_complexity * 0.2
+            + min(complexity_metrics.linguistic_complexity, 0.8)
+            * 0.1  # Cap linguistic complexity
         )
 
         # Combine with weights favoring pattern analysis
@@ -222,15 +246,17 @@ class AdvancedAnalyticsEngine:
 
         return min(combined_quality, 1.0)
 
-    def _determine_sophistication_level(self, complexity_metrics: ComplexityMetrics) -> str:
+    def _determine_sophistication_level(
+        self, complexity_metrics: ComplexityMetrics
+    ) -> str:
         """Determine sophistication level based on complexity metrics."""
 
         # Calculate weighted sophistication score
         sophistication_score = (
-            complexity_metrics.therapeutic_depth * 0.4 +
-            complexity_metrics.clinical_sophistication * 0.3 +
-            complexity_metrics.emotional_complexity * 0.2 +
-            complexity_metrics.overall_complexity * 0.1
+            complexity_metrics.therapeutic_depth * 0.4
+            + complexity_metrics.clinical_sophistication * 0.3
+            + complexity_metrics.emotional_complexity * 0.2
+            + complexity_metrics.overall_complexity * 0.1
         )
 
         # Map to sophistication levels
@@ -242,8 +268,11 @@ class AdvancedAnalyticsEngine:
             return "intermediate"
         return "basic"
 
-    def _combine_recommendations(self, pattern_analysis: ConversationAnalysis,
-                               complexity_metrics: ComplexityMetrics) -> list[str]:
+    def _combine_recommendations(
+        self,
+        pattern_analysis: ConversationAnalysis,
+        complexity_metrics: ComplexityMetrics,
+    ) -> list[str]:
         """Combine recommendations from both analyses."""
         recommendations = []
 
@@ -252,16 +281,22 @@ class AdvancedAnalyticsEngine:
 
         # Add complexity-based recommendations
         if complexity_metrics.therapeutic_depth < 0.5:
-            recommendations.append("Consider incorporating more advanced therapeutic concepts")
+            recommendations.append(
+                "Consider incorporating more advanced therapeutic concepts"
+            )
 
         if complexity_metrics.emotional_complexity < 0.4:
             recommendations.append("Explore emotional depth and range more thoroughly")
 
         if complexity_metrics.clinical_sophistication < 0.3:
-            recommendations.append("Consider using more clinical terminology where appropriate")
+            recommendations.append(
+                "Consider using more clinical terminology where appropriate"
+            )
 
         if complexity_metrics.linguistic_complexity > 0.8:
-            recommendations.append("Consider simplifying language for better accessibility")
+            recommendations.append(
+                "Consider simplifying language for better accessibility"
+            )
 
         # Remove duplicates and limit to top 5
         unique_recommendations = list(dict.fromkeys(recommendations))
@@ -274,11 +309,12 @@ class AdvancedAnalyticsEngine:
         # Update running averages
         total = self.metrics.total_conversations_analyzed
         self.metrics.average_quality_score = (
-            (self.metrics.average_quality_score * (total - 1) + result.quality_score) / total
-        )
+            self.metrics.average_quality_score * (total - 1) + result.quality_score
+        ) / total
         self.metrics.average_complexity_score = (
-            (self.metrics.average_complexity_score * (total - 1) + result.overall_complexity) / total
-        )
+            self.metrics.average_complexity_score * (total - 1)
+            + result.overall_complexity
+        ) / total
 
         # Update sophistication distribution
         self.metrics.sophistication_distribution[result.sophistication_level] += 1
@@ -286,7 +322,9 @@ class AdvancedAnalyticsEngine:
         # Update processing rate
         if self.processing_times:
             avg_processing_time = statistics.mean(self.processing_times)
-            self.metrics.processing_rate = 1.0 / avg_processing_time if avg_processing_time > 0 else 0
+            self.metrics.processing_rate = (
+                1.0 / avg_processing_time if avg_processing_time > 0 else 0
+            )
 
         # Update error rate
         total_processed = self.metrics.total_conversations_analyzed + self.error_count
@@ -300,21 +338,34 @@ class AdvancedAnalyticsEngine:
             "system_metrics": asdict(self.metrics),
             "recent_performance": {
                 "conversations_analyzed": len(recent_results),
-                "average_quality": statistics.mean([r.quality_score for r in recent_results]) if recent_results else 0,
-                "average_complexity": statistics.mean([r.overall_complexity for r in recent_results]) if recent_results else 0,
-                "sophistication_trends": self._calculate_sophistication_trends(recent_results)
+                "average_quality": statistics.mean(
+                    [r.quality_score for r in recent_results]
+                )
+                if recent_results
+                else 0,
+                "average_complexity": statistics.mean(
+                    [r.overall_complexity for r in recent_results]
+                )
+                if recent_results
+                else 0,
+                "sophistication_trends": self._calculate_sophistication_trends(
+                    recent_results
+                ),
             },
             "top_patterns": self._get_top_patterns(recent_results),
             "quality_distribution": self._get_quality_distribution(recent_results),
             "processing_performance": {
-                "average_processing_time": statistics.mean(self.processing_times) if self.processing_times else 0,
+                "average_processing_time": statistics.mean(self.processing_times)
+                if self.processing_times
+                else 0,
                 "processing_rate": self.metrics.processing_rate,
-                "error_rate": self.metrics.error_rate
-            }
+                "error_rate": self.metrics.error_rate,
+            },
         }
 
-
-    def _calculate_sophistication_trends(self, results: list[AnalyticsResult]) -> dict[str, float]:
+    def _calculate_sophistication_trends(
+        self, results: list[AnalyticsResult]
+    ) -> dict[str, float]:
         """Calculate sophistication trends over recent results."""
         if not results:
             return {}
@@ -327,12 +378,20 @@ class AdvancedAnalyticsEngine:
         trends = {}
 
         if last_hour:
-            trends["last_hour_avg_quality"] = statistics.mean([r.quality_score for r in last_hour])
-            trends["last_hour_avg_complexity"] = statistics.mean([r.overall_complexity for r in last_hour])
+            trends["last_hour_avg_quality"] = statistics.mean(
+                [r.quality_score for r in last_hour]
+            )
+            trends["last_hour_avg_complexity"] = statistics.mean(
+                [r.overall_complexity for r in last_hour]
+            )
 
         if last_day:
-            trends["last_day_avg_quality"] = statistics.mean([r.quality_score for r in last_day])
-            trends["last_day_avg_complexity"] = statistics.mean([r.overall_complexity for r in last_day])
+            trends["last_day_avg_quality"] = statistics.mean(
+                [r.quality_score for r in last_day]
+            )
+            trends["last_day_avg_complexity"] = statistics.mean(
+                [r.overall_complexity for r in last_day]
+            )
 
         return trends
 
@@ -347,14 +406,15 @@ class AdvancedAnalyticsEngine:
                     pattern_counts[pattern_key] += 1
 
         # Sort by frequency and return top 10
-        top_patterns = sorted(pattern_counts.items(), key=lambda x: x[1], reverse=True)[:10]
-
-        return [
-            {"pattern": pattern, "count": count}
-            for pattern, count in top_patterns
+        top_patterns = sorted(pattern_counts.items(), key=lambda x: x[1], reverse=True)[
+            :10
         ]
 
-    def _get_quality_distribution(self, results: list[AnalyticsResult]) -> dict[str, int]:
+        return [{"pattern": pattern, "count": count} for pattern, count in top_patterns]
+
+    def _get_quality_distribution(
+        self, results: list[AnalyticsResult]
+    ) -> dict[str, int]:
         """Get quality score distribution."""
         distribution = {"high": 0, "medium": 0, "low": 0}
 
@@ -376,7 +436,9 @@ class StreamingAnalyticsOrchestrator:
         self.config = self._load_config(config_path)
 
         # Initialize components
-        self.analytics_engine = AdvancedAnalyticsEngine(self.config.get("analytics", {}))
+        self.analytics_engine = AdvancedAnalyticsEngine(
+            self.config.get("analytics", {})
+        )
         self.streaming_processor = StreamingProcessor(self.config.get("streaming", {}))
 
         # Results storage
@@ -386,30 +448,28 @@ class StreamingAnalyticsOrchestrator:
         self.logger = logging.getLogger(__name__)
 
         # Add analytics event handler to streaming processor
-        self.streaming_processor.add_event_handler("conversation", self._handle_conversation_event)
+        self.streaming_processor.add_event_handler(
+            "conversation", self._handle_conversation_event
+        )
 
     def _load_config(self, config_path: str) -> dict[str, Any]:
         """Load configuration from file."""
         default_config = {
-            "streaming": {
-                "queue_size": 5000,
-                "worker_threads": 2,
-                "batch_size": 50
-            },
+            "streaming": {"queue_size": 5000, "worker_threads": 2, "batch_size": 50},
             "analytics": {
                 "worker_threads": 4,
                 "enable_real_time": True,
-                "store_results": True
+                "store_results": True,
             },
             "data_sources": [
                 {
                     "type": "file_watcher",
                     "config": {
                         "directory": "data/streaming",
-                        "patterns": ["*.jsonl", "*.json"]
-                    }
+                        "patterns": ["*.jsonl", "*.json"],
+                    },
                 }
-            ]
+            ],
         }
 
         try:
@@ -436,10 +496,14 @@ class StreamingAnalyticsOrchestrator:
 
             # Log significant findings
             if result.quality_score > 0.8:
-                self.logger.info(f"High-quality conversation detected: {result.conversation_id} (quality: {result.quality_score:.3f})")
+                self.logger.info(
+                    f"High-quality conversation detected: {result.conversation_id} (quality: {result.quality_score:.3f})"
+                )
 
             if result.sophistication_level == "expert":
-                self.logger.info(f"Expert-level conversation detected: {result.conversation_id}")
+                self.logger.info(
+                    f"Expert-level conversation detected: {result.conversation_id}"
+                )
 
             # Check for alerts
             self._check_analytics_alerts(result)
@@ -457,7 +521,9 @@ class StreamingAnalyticsOrchestrator:
 
         # Sophistication alerts
         if result.sophistication_level == "expert" and result.quality_score > 0.8:
-            alerts.append(f"Exceptional conversation detected: {result.conversation_id}")
+            alerts.append(
+                f"Exceptional conversation detected: {result.conversation_id}"
+            )
 
         # Pattern alerts
         if result.patterns_detected == 0:
@@ -476,7 +542,7 @@ class StreamingAnalyticsOrchestrator:
             if source_config["type"] == "file_watcher":
                 source = FileWatcherDataSource(
                     source_id=f"file_watcher_{int(time.time())}",
-                    config=source_config["config"]
+                    config=source_config["config"],
                 )
                 self.streaming_processor.add_data_source(source)
 
@@ -503,10 +569,14 @@ class StreamingAnalyticsOrchestrator:
             "average_quality": avg_quality,
             "average_complexity": avg_complexity,
             "sophistication_distribution": dict(sophistication_counts),
-            "recent_high_quality": len([r for r in recent_results if r.quality_score > 0.7]),
-            "recent_expert_level": len([r for r in recent_results if r.sophistication_level == "expert"]),
+            "recent_high_quality": len(
+                [r for r in recent_results if r.quality_score > 0.7]
+            ),
+            "recent_expert_level": len(
+                [r for r in recent_results if r.sophistication_level == "expert"]
+            ),
             "processing_rate": self.analytics_engine.metrics.processing_rate,
-            "last_updated": datetime.now(tz=datetime.timezone.utc).isoformat()
+            "last_updated": datetime.now(tz=datetime.timezone.utc).isoformat(),
         }
 
 
@@ -523,21 +593,21 @@ async def main():
         "messages": [
             {
                 "role": "client",
-                "content": "I've been struggling with severe anxiety and depression. The intrusive thoughts are overwhelming, and I feel like I'm losing control of my life."
+                "content": "I've been struggling with severe anxiety and depression. The intrusive thoughts are overwhelming, and I feel like I'm losing control of my life.",
             },
             {
                 "role": "therapist",
-                "content": "I hear the pain in your words, and I want you to know that what you're experiencing is valid and treatable. When you mention intrusive thoughts, can you help me understand what these thoughts are telling you? Sometimes our minds can create narratives that feel very real but may not reflect reality."
+                "content": "I hear the pain in your words, and I want you to know that what you're experiencing is valid and treatable. When you mention intrusive thoughts, can you help me understand what these thoughts are telling you? Sometimes our minds can create narratives that feel very real but may not reflect reality.",
             },
             {
                 "role": "client",
-                "content": "They tell me I'm worthless, that everyone would be better off without me. I know logically that's not true, but emotionally it feels so real."
+                "content": "They tell me I'm worthless, that everyone would be better off without me. I know logically that's not true, but emotionally it feels so real.",
             },
             {
                 "role": "therapist",
-                "content": "That's a really important distinction you're making between logical and emotional truth. This suggests you have some metacognitive awareness, which is actually a strength we can build on. Let's explore some cognitive restructuring techniques to help you challenge these distorted thoughts when they arise."
-            }
-        ]
+                "content": "That's a really important distinction you're making between logical and emotional truth. This suggests you have some metacognitive awareness, which is actually a strength we can build on. Let's explore some cognitive restructuring techniques to help you challenge these distorted thoughts when they arise.",
+            },
+        ],
     }
 
     # Analyze conversation

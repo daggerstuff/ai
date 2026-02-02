@@ -1,7 +1,6 @@
 import os
 
 import pandas as pd
-
 from ai.pipelines.orchestrator.dataset_validator import validate_dataset
 
 TEST_CSV = "test_validator_valid.csv"
@@ -32,7 +31,9 @@ def teardown_module(_):
 
 
 def test_valid_dataset():
-    result = validate_dataset(TEST_CSV, required_columns=["id", "text", "label"], min_rows=2)
+    result = validate_dataset(
+        TEST_CSV, required_columns=["id", "text", "label"], min_rows=2
+    )
     assert result["exists"]
     assert result["valid_columns"]
     assert result["enough_rows"]
@@ -58,7 +59,9 @@ def test_missing_columns():
 
 
 def test_not_enough_rows():
-    result = validate_dataset(FEW_ROWS_CSV, required_columns=["id", "text", "label"], min_rows=2)
+    result = validate_dataset(
+        FEW_ROWS_CSV, required_columns=["id", "text", "label"], min_rows=2
+    )
     assert result["exists"]
     assert result["valid_columns"]
     assert not result["enough_rows"]
@@ -66,7 +69,9 @@ def test_not_enough_rows():
 
 
 def test_malformed_csv():
-    result = validate_dataset(MALFORMED_CSV, required_columns=["id", "text", "label"], min_rows=1)
+    result = validate_dataset(
+        MALFORMED_CSV, required_columns=["id", "text", "label"], min_rows=1
+    )
     assert result["exists"]
     assert not result["valid_columns"]
     assert not result["enough_rows"]

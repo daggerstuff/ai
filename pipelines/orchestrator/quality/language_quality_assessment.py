@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from conversation_schema import Conversation, Message
+from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 class LanguageComplexity(Enum):
     """Language complexity levels."""
+
     VERY_SIMPLE = "very_simple"
     SIMPLE = "simple"
     MODERATE = "moderate"
@@ -30,6 +31,7 @@ class LanguageComplexity(Enum):
 @dataclass
 class LanguageQualityMetrics:
     """Metrics for language quality assessment."""
+
     overall_score: float
     readability_score: float
     lexical_diversity_score: float
@@ -62,22 +64,23 @@ class LanguageQualityAssessor:
         self.config = config or {}
 
         # Default weights for different assessment dimensions
-        self.weights = self.config.get("weights", {
-            "readability": 0.20,
-            "lexical_diversity": 0.18,
-            "grammar_quality": 0.18,
-            "vocabulary_appropriateness": 0.16,
-            "sentence_complexity": 0.14,
-            "coherence": 0.14
-        })
+        self.weights = self.config.get(
+            "weights",
+            {
+                "readability": 0.20,
+                "lexical_diversity": 0.18,
+                "grammar_quality": 0.18,
+                "vocabulary_appropriateness": 0.16,
+                "sentence_complexity": 0.14,
+                "coherence": 0.14,
+            },
+        )
 
         # Quality thresholds
-        self.thresholds = self.config.get("thresholds", {
-            "excellent": 0.85,
-            "good": 0.70,
-            "acceptable": 0.55,
-            "poor": 0.40
-        })
+        self.thresholds = self.config.get(
+            "thresholds",
+            {"excellent": 0.85, "good": 0.70, "acceptable": 0.55, "poor": 0.40},
+        )
 
         # Initialize linguistic knowledge bases
         self._initialize_linguistic_resources()
@@ -86,42 +89,134 @@ class LanguageQualityAssessor:
         """Initialize linguistic resources and patterns."""
         # Common words for lexical diversity calculation
         self.common_words = {
-            "the", "be", "to", "of", "and", "a", "in", "that", "have", "i",
-            "it", "for", "not", "on", "with", "he", "as", "you", "do", "at",
-            "this", "but", "his", "by", "from", "they", "we", "say", "her", "she",
-            "or", "an", "will", "my", "one", "all", "would", "there", "their",
-            "what", "so", "up", "out", "if", "about", "who", "get", "which", "go"
+            "the",
+            "be",
+            "to",
+            "of",
+            "and",
+            "a",
+            "in",
+            "that",
+            "have",
+            "i",
+            "it",
+            "for",
+            "not",
+            "on",
+            "with",
+            "he",
+            "as",
+            "you",
+            "do",
+            "at",
+            "this",
+            "but",
+            "his",
+            "by",
+            "from",
+            "they",
+            "we",
+            "say",
+            "her",
+            "she",
+            "or",
+            "an",
+            "will",
+            "my",
+            "one",
+            "all",
+            "would",
+            "there",
+            "their",
+            "what",
+            "so",
+            "up",
+            "out",
+            "if",
+            "about",
+            "who",
+            "get",
+            "which",
+            "go",
         }
 
         # Grammar error patterns (simplified)
         self.grammar_error_patterns = [
             r"\bi\s+am\s+went\b",  # "I am went"
-            r"\bhe\s+don\'t\b",    # "he don't"
-            r"\bshe\s+don\'t\b",   # "she don't"
-            r"\bit\s+don\'t\b",    # "it don't"
-            r"\bwould\s+of\b",     # "would of"
-            r"\bcould\s+of\b",     # "could of"
-            r"\bshould\s+of\b",    # "should of"
+            r"\bhe\s+don\'t\b",  # "he don't"
+            r"\bshe\s+don\'t\b",  # "she don't"
+            r"\bit\s+don\'t\b",  # "it don't"
+            r"\bwould\s+of\b",  # "would of"
+            r"\bcould\s+of\b",  # "could of"
+            r"\bshould\s+of\b",  # "should of"
             r"\bthere\s+is\s+\w+s\b",  # "there is cats" (simplified)
-            r"\ba\s+\w*s\b",       # "a cats" (simplified)
+            r"\ba\s+\w*s\b",  # "a cats" (simplified)
         ]
 
         # Sophisticated vocabulary indicators
         self.sophisticated_words = {
-            "furthermore", "nevertheless", "consequently", "therefore", "however",
-            "moreover", "specifically", "particularly", "essentially", "fundamentally",
-            "comprehensive", "substantial", "significant", "considerable", "extensive",
-            "demonstrate", "illustrate", "emphasize", "acknowledge", "recognize",
-            "facilitate", "implement", "establish", "maintain", "contribute",
-            "perspective", "approach", "methodology", "framework", "concept",
-            "analyze", "evaluate", "assess", "examine", "investigate"
+            "furthermore",
+            "nevertheless",
+            "consequently",
+            "therefore",
+            "however",
+            "moreover",
+            "specifically",
+            "particularly",
+            "essentially",
+            "fundamentally",
+            "comprehensive",
+            "substantial",
+            "significant",
+            "considerable",
+            "extensive",
+            "demonstrate",
+            "illustrate",
+            "emphasize",
+            "acknowledge",
+            "recognize",
+            "facilitate",
+            "implement",
+            "establish",
+            "maintain",
+            "contribute",
+            "perspective",
+            "approach",
+            "methodology",
+            "framework",
+            "concept",
+            "analyze",
+            "evaluate",
+            "assess",
+            "examine",
+            "investigate",
         }
 
         # Informal/inappropriate words for certain contexts
         self.informal_words = {
-            "gonna", "wanna", "gotta", "kinda", "sorta", "dunno", "yeah", "nah",
-            "ok", "okay", "cool", "awesome", "dude", "guy", "stuff", "things",
-            "like", "totally", "really", "super", "pretty", "quite", "very"
+            "gonna",
+            "wanna",
+            "gotta",
+            "kinda",
+            "sorta",
+            "dunno",
+            "yeah",
+            "nah",
+            "ok",
+            "okay",
+            "cool",
+            "awesome",
+            "dude",
+            "guy",
+            "stuff",
+            "things",
+            "like",
+            "totally",
+            "really",
+            "super",
+            "pretty",
+            "quite",
+            "very",
         }
 
         # Sentence starters for variety assessment
@@ -130,19 +225,39 @@ class LanguageQualityAssessor:
             "conditional": ["if", "unless", "provided", "assuming"],
             "temporal": ["when", "while", "after", "before", "during", "since"],
             "causal": ["because", "since", "as", "due to", "owing to"],
-            "contrast": ["although", "though", "while", "whereas", "despite"]
+            "contrast": ["although", "though", "while", "whereas", "despite"],
         }
 
         # Transition words for coherence
         self.transition_words = {
             "addition": ["also", "furthermore", "moreover", "additionally", "besides"],
-            "contrast": ["however", "nevertheless", "nonetheless", "conversely", "on the other hand"],
+            "contrast": [
+                "however",
+                "nevertheless",
+                "nonetheless",
+                "conversely",
+                "on the other hand",
+            ],
             "sequence": ["first", "second", "then", "next", "finally", "subsequently"],
-            "example": ["for example", "for instance", "such as", "namely", "specifically"],
-            "conclusion": ["therefore", "thus", "consequently", "as a result", "in conclusion"]
+            "example": [
+                "for example",
+                "for instance",
+                "such as",
+                "namely",
+                "specifically",
+            ],
+            "conclusion": [
+                "therefore",
+                "thus",
+                "consequently",
+                "as a result",
+                "in conclusion",
+            ],
         }
 
-    def assess_language_quality(self, conversation: Conversation) -> LanguageQualityMetrics:
+    def assess_language_quality(
+        self, conversation: Conversation
+    ) -> LanguageQualityMetrics:
         """
         Assess the language quality of a conversation.
 
@@ -166,7 +281,7 @@ class LanguageQualityAssessor:
                 issues=["Insufficient messages for language quality assessment"],
                 details={"conversation_length": len(conversation.messages)},
                 complexity_level=LanguageComplexity.VERY_SIMPLE,
-                quality_level="very_poor"
+                quality_level="very_poor",
             )
 
         # Extract text content
@@ -176,33 +291,43 @@ class LanguageQualityAssessor:
         readability = self._assess_readability(text_content)
         lexical_diversity = self._assess_lexical_diversity(text_content)
         grammar_quality = self._assess_grammar_quality(text_content)
-        vocabulary_appropriateness = self._assess_vocabulary_appropriateness(text_content)
+        vocabulary_appropriateness = self._assess_vocabulary_appropriateness(
+            text_content
+        )
         sentence_complexity = self._assess_sentence_complexity(text_content)
         coherence = self._assess_coherence(conversation.messages)
 
         # Calculate weighted overall score
         overall_score = (
-            readability["score"] * self.weights["readability"] +
-            lexical_diversity["score"] * self.weights["lexical_diversity"] +
-            grammar_quality["score"] * self.weights["grammar_quality"] +
-            vocabulary_appropriateness["score"] * self.weights["vocabulary_appropriateness"] +
-            sentence_complexity["score"] * self.weights["sentence_complexity"] +
-            coherence["score"] * self.weights["coherence"]
+            readability["score"] * self.weights["readability"]
+            + lexical_diversity["score"] * self.weights["lexical_diversity"]
+            + grammar_quality["score"] * self.weights["grammar_quality"]
+            + vocabulary_appropriateness["score"]
+            * self.weights["vocabulary_appropriateness"]
+            + sentence_complexity["score"] * self.weights["sentence_complexity"]
+            + coherence["score"] * self.weights["coherence"]
         )
 
         # Compile all issues and warnings
         all_issues = []
         all_warnings = []
 
-        for assessment in [readability, lexical_diversity, grammar_quality,
-                          vocabulary_appropriateness, sentence_complexity, coherence]:
+        for assessment in [
+            readability,
+            lexical_diversity,
+            grammar_quality,
+            vocabulary_appropriateness,
+            sentence_complexity,
+            coherence,
+        ]:
             all_issues.extend(assessment.get("issues", []))
             all_warnings.extend(assessment.get("warnings", []))
 
         # Determine complexity level
         complexity_level = self._determine_complexity_level(
-            readability["details"], lexical_diversity["details"],
-            sentence_complexity["details"]
+            readability["details"],
+            lexical_diversity["details"],
+            sentence_complexity["details"],
         )
 
         # Compile detailed results
@@ -213,10 +338,12 @@ class LanguageQualityAssessor:
             "readability_details": readability.get("details", {}),
             "lexical_diversity_details": lexical_diversity.get("details", {}),
             "grammar_quality_details": grammar_quality.get("details", {}),
-            "vocabulary_appropriateness_details": vocabulary_appropriateness.get("details", {}),
+            "vocabulary_appropriateness_details": vocabulary_appropriateness.get(
+                "details", {}
+            ),
             "sentence_complexity_details": sentence_complexity.get("details", {}),
             "coherence_details": coherence.get("details", {}),
-            "quality_level": self._determine_quality_level(overall_score)
+            "quality_level": self._determine_quality_level(overall_score),
         }
 
         return LanguageQualityMetrics(
@@ -231,16 +358,16 @@ class LanguageQualityAssessor:
             warnings=all_warnings,
             details=details,
             complexity_level=complexity_level,
-            quality_level=self._determine_quality_level(overall_score)
+            quality_level=self._determine_quality_level(overall_score),
         )
 
     def _extract_text_content(self, messages: list[Message]) -> str:
         """Extract all text content from messages."""
         return " ".join(message.content for message in messages)
 
-    def _determine_complexity_level(self, readability_details: dict,
-                                   lexical_details: dict,
-                                   complexity_details: dict) -> LanguageComplexity:
+    def _determine_complexity_level(
+        self, readability_details: dict, lexical_details: dict, complexity_details: dict
+    ) -> LanguageComplexity:
         """Determine overall language complexity level."""
         # Simple scoring based on various metrics
         complexity_score = 0
@@ -302,17 +429,23 @@ class LanguageQualityAssessor:
             return {
                 "score": 0.0,
                 "issues": ["No readable content found"],
-                "details": {"avg_sentence_length": 0, "avg_word_length": 0}
+                "details": {"avg_sentence_length": 0, "avg_word_length": 0},
             }
 
         # Calculate basic metrics
         avg_sentence_length = len(words) / len(sentences)
-        avg_word_length = sum(len(word.strip('.,!?;:"()[]')) for word in words) / len(words)
+        avg_word_length = sum(len(word.strip('.,!?;:"()[]')) for word in words) / len(
+            words
+        )
 
         # Flesch Reading Ease approximation
         syllable_count = sum(self._count_syllables(word) for word in words)
         if len(sentences) > 0 and len(words) > 0:
-            flesch_score = 206.835 - (1.015 * avg_sentence_length) - (84.6 * (syllable_count / len(words)))
+            flesch_score = (
+                206.835
+                - (1.015 * avg_sentence_length)
+                - (84.6 * (syllable_count / len(words)))
+            )
         else:
             flesch_score = 0
 
@@ -343,8 +476,8 @@ class LanguageQualityAssessor:
                 "flesch_score": flesch_score,
                 "total_sentences": len(sentences),
                 "total_words": len(words),
-                "syllable_count": syllable_count
-            }
+                "syllable_count": syllable_count,
+            },
         }
 
     def _count_syllables(self, word: str) -> int:
@@ -375,13 +508,19 @@ class LanguageQualityAssessor:
         issues = []
         warnings = []
 
-        words = [word.lower().strip('.,!?;:"()[]') for word in text.split() if word.strip()]
+        words = [
+            word.lower().strip('.,!?;:"()[]') for word in text.split() if word.strip()
+        ]
 
         if len(words) < 10:
             return {
                 "score": 0.0,
                 "issues": ["Insufficient text for lexical diversity analysis"],
-                "details": {"type_token_ratio": 0, "unique_words": 0, "total_words": len(words)}
+                "details": {
+                    "type_token_ratio": 0,
+                    "unique_words": 0,
+                    "total_words": len(words),
+                },
             }
 
         # Calculate Type-Token Ratio (TTR)
@@ -389,7 +528,9 @@ class LanguageQualityAssessor:
         ttr = len(unique_words) / len(words)
 
         # Calculate sophisticated vocabulary ratio
-        sophisticated_count = sum(1 for word in words if word in self.sophisticated_words)
+        sophisticated_count = sum(
+            1 for word in words if word in self.sophisticated_words
+        )
         sophisticated_ratio = sophisticated_count / len(words)
 
         # Calculate common word ratio
@@ -397,7 +538,9 @@ class LanguageQualityAssessor:
         common_ratio = common_count / len(words)
 
         # Calculate lexical diversity score
-        diversity_score = ttr * 0.6 + sophisticated_ratio * 0.3 + (1 - common_ratio) * 0.1
+        diversity_score = (
+            ttr * 0.6 + sophisticated_ratio * 0.3 + (1 - common_ratio) * 0.1
+        )
         diversity_score = max(0.0, min(1.0, diversity_score))
 
         # Assess diversity issues
@@ -422,8 +565,8 @@ class LanguageQualityAssessor:
                 "total_words": len(words),
                 "sophisticated_word_ratio": sophisticated_ratio,
                 "common_word_ratio": common_ratio,
-                "sophisticated_words_used": sophisticated_count
-            }
+                "sophisticated_words_used": sophisticated_count,
+            },
         }
 
     def _assess_grammar_quality(self, text: str) -> dict[str, Any]:
@@ -447,7 +590,7 @@ class LanguageQualityAssessor:
             return {
                 "score": 0.0,
                 "issues": ["No text to analyze for grammar"],
-                "details": {"error_count": 0, "error_rate": 0}
+                "details": {"error_count": 0, "error_rate": 0},
             }
 
         error_rate = error_count / len(words)
@@ -478,8 +621,8 @@ class LanguageQualityAssessor:
                 "error_rate": error_rate,
                 "detected_errors": detected_errors[:5],  # Limit to first 5
                 "has_proper_punctuation": has_periods,
-                "has_proper_capitalization": has_proper_capitalization
-            }
+                "has_proper_capitalization": has_proper_capitalization,
+            },
         }
 
     def _assess_vocabulary_appropriateness(self, text: str) -> dict[str, Any]:
@@ -487,13 +630,18 @@ class LanguageQualityAssessor:
         issues = []
         warnings = []
 
-        words = [word.lower().strip('.,!?;:"()[]') for word in text.split() if word.strip()]
+        words = [
+            word.lower().strip('.,!?;:"()[]') for word in text.split() if word.strip()
+        ]
 
         if not words:
             return {
                 "score": 0.0,
                 "issues": ["No words to analyze"],
-                "details": {"informal_word_ratio": 0, "appropriate_vocabulary_score": 0}
+                "details": {
+                    "informal_word_ratio": 0,
+                    "appropriate_vocabulary_score": 0,
+                },
             }
 
         # Count informal words
@@ -501,11 +649,15 @@ class LanguageQualityAssessor:
         informal_ratio = informal_count / len(words)
 
         # Count sophisticated words
-        sophisticated_count = sum(1 for word in words if word in self.sophisticated_words)
+        sophisticated_count = sum(
+            1 for word in words if word in self.sophisticated_words
+        )
         sophisticated_ratio = sophisticated_count / len(words)
 
         # Calculate appropriateness score
-        appropriateness_score = max(0.0, 1.0 - informal_ratio * 2 + sophisticated_ratio * 0.5)
+        appropriateness_score = max(
+            0.0, 1.0 - informal_ratio * 2 + sophisticated_ratio * 0.5
+        )
         appropriateness_score = min(1.0, appropriateness_score)
 
         # Assess vocabulary issues
@@ -526,8 +678,8 @@ class LanguageQualityAssessor:
                 "sophisticated_word_ratio": sophisticated_ratio,
                 "informal_words_count": informal_count,
                 "sophisticated_words_count": sophisticated_count,
-                "appropriate_vocabulary_score": appropriateness_score
-            }
+                "appropriate_vocabulary_score": appropriateness_score,
+            },
         }
 
     def _assess_sentence_complexity(self, text: str) -> dict[str, Any]:
@@ -541,7 +693,7 @@ class LanguageQualityAssessor:
             return {
                 "score": 0.0,
                 "issues": ["No sentences to analyze"],
-                "details": {"complex_sentence_ratio": 0, "sentence_variety_score": 0}
+                "details": {"complex_sentence_ratio": 0, "sentence_variety_score": 0},
             }
 
         # Analyze sentence complexity
@@ -554,11 +706,26 @@ class LanguageQualityAssessor:
                 continue
 
             # Count complex sentences (with conjunctions, relative clauses, etc.)
-            complexity_indicators = ["because", "although", "since", "while", "whereas",
-                                   "however", "therefore", "moreover", "furthermore",
-                                   "which", "that", "who", "whom", "whose"]
+            complexity_indicators = [
+                "because",
+                "although",
+                "since",
+                "while",
+                "whereas",
+                "however",
+                "therefore",
+                "moreover",
+                "furthermore",
+                "which",
+                "that",
+                "who",
+                "whom",
+                "whose",
+            ]
 
-            if any(indicator in sentence.lower() for indicator in complexity_indicators):
+            if any(
+                indicator in sentence.lower() for indicator in complexity_indicators
+            ):
                 complex_sentences += 1
 
             # Track sentence starters for variety
@@ -576,7 +743,9 @@ class LanguageQualityAssessor:
 
         # Assess complexity issues
         if complex_sentence_ratio < 0.1:
-            warnings.append("Very simple sentence structures - consider adding complexity")
+            warnings.append(
+                "Very simple sentence structures - consider adding complexity"
+            )
         elif complex_sentence_ratio > 0.8:
             warnings.append("Very complex sentences - may affect readability")
 
@@ -592,8 +761,8 @@ class LanguageQualityAssessor:
                 "sentence_variety_score": variety_score,
                 "total_sentences": len(sentences),
                 "complex_sentences": complex_sentences,
-                "unique_sentence_starters": unique_starters
-            }
+                "unique_sentence_starters": unique_starters,
+            },
         }
 
     def _assess_coherence(self, messages: list[Message]) -> dict[str, Any]:
@@ -605,7 +774,7 @@ class LanguageQualityAssessor:
             return {
                 "score": 0.0,
                 "issues": ["Insufficient messages for coherence analysis"],
-                "details": {"transition_usage": 0, "pronoun_reference_score": 0}
+                "details": {"transition_usage": 0, "pronoun_reference_score": 0},
             }
 
         # Analyze transition word usage
@@ -618,7 +787,7 @@ class LanguageQualityAssessor:
 
         for i in range(1, len(messages)):
             current_content = messages[i].content.lower()
-            previous_content = messages[i-1].content.lower()
+            previous_content = messages[i - 1].content.lower()
 
             # Count transition words
             total_transitions_possible += 1
@@ -656,7 +825,7 @@ class LanguageQualityAssessor:
         topic_shifts = 0
         for i in range(1, len(messages)):
             current_words = set(messages[i].content.lower().split())
-            previous_words = set(messages[i-1].content.lower().split())
+            previous_words = set(messages[i - 1].content.lower().split())
 
             # Simple overlap check
             overlap = len(current_words.intersection(previous_words))
@@ -676,13 +845,15 @@ class LanguageQualityAssessor:
                 "transition_words_used": transition_count,
                 "unclear_pronoun_references": unclear_references,
                 "topic_shifts": topic_shifts,
-                "messages_analyzed": len(messages) - 1
-            }
+                "messages_analyzed": len(messages) - 1,
+            },
         }
 
 
 # Backward compatibility function
-def assess_language_quality(conversation: Conversation, config: dict[str, Any] | None = None) -> dict[str, Any]:
+def assess_language_quality(
+    conversation: Conversation, config: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """
     Backward compatibility function for language quality assessment.
 
@@ -701,5 +872,5 @@ def assess_language_quality(conversation: Conversation, config: dict[str, Any] |
         "issues": metrics.issues,
         "warnings": metrics.warnings,
         "complexity_level": metrics.complexity_level.value,
-        "details": metrics.details
+        "details": metrics.details,
     }

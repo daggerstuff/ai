@@ -30,8 +30,9 @@ def test_read_with_retry(tmp_path: Path):
     except Exception:
         raised = True
     assert raised is True
-import pytest
 
+
+import pytest
 from ai.pipelines.orchestrator.ingest_utils import retry
 
 
@@ -44,7 +45,9 @@ def test_retry_succeeds_after_transient(monkeypatch):
             raise OSError("transient")
         return "ok"
 
-    wrapped = retry(retries=5, backoff_factor=0.0, jitter=False, sleep_func=lambda s: None)(flaky)
+    wrapped = retry(
+        retries=5, backoff_factor=0.0, jitter=False, sleep_func=lambda s: None
+    )(flaky)
     assert wrapped() == "ok"
     assert calls["count"] == 3
 
@@ -53,7 +56,13 @@ def test_retry_gives_up(monkeypatch):
     def always_fail():
         raise ValueError("fatal")
 
-    wrapped = retry(retries=2, backoff_factor=0.0, jitter=False, sleep_func=lambda s: None, exceptions=(ValueError,))(always_fail)
+    wrapped = retry(
+        retries=2,
+        backoff_factor=0.0,
+        jitter=False,
+        sleep_func=lambda s: None,
+        exceptions=(ValueError,),
+    )(always_fail)
     with pytest.raises(ValueError):
         wrapped()
 
@@ -61,7 +70,9 @@ def test_retry_gives_up(monkeypatch):
 def test_read_with_retry(tmp_path):
     p = tmp_path / "f.bin"
     p.write_bytes(b"hello")
-    result = read_with_retry(p, retry_options={"retries": 2, "backoff_factor": 0.0, "jitter": False})
+    result = read_with_retry(
+        p, retry_options={"retries": 2, "backoff_factor": 0.0, "jitter": False}
+    )
     assert result == b"hello"
 
 

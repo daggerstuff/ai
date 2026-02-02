@@ -57,6 +57,7 @@ class DistributedCache:
             logger.info("Redis distributed cache connected")
         except Exception as e:
             logger.warning(f"Redis not available, using local cache only: {e}")
+
             self.redis_client = None
             self.available = False
 
@@ -312,7 +313,9 @@ class IntelligentCache:
 class ConcurrencyManager:
     """Advanced concurrency management for dataset processing."""
 
-    def __init__(self, max_threads: int | None = None, max_processes: int | None = None):
+    def __init__(
+        self, max_threads: int | None = None, max_processes: int | None = None
+    ):
         self.max_threads = max_threads or min(32, (os.cpu_count() or 1) + 4)
         self.max_processes = max_processes or (os.cpu_count() or 1)
 
@@ -347,9 +350,7 @@ class ConcurrencyManager:
                 if asyncio.iscoroutinefunction(processor):
                     return await processor(item)
                 loop = asyncio.get_event_loop()
-                return await loop.run_in_executor(
-                    self.thread_executor, processor, item
-                )
+                return await loop.run_in_executor(self.thread_executor, processor, item)
 
         results = []
         for i in range(0, len(items), batch_size):
@@ -514,7 +515,9 @@ class AdvancedCachingSystem:
         batch_size: int = 100,
     ) -> list[Any]:
         """Process dataset asynchronously with caching."""
-        cached_processor = self.cached_processor()(processor) if use_cache else processor
+        cached_processor = (
+            self.cached_processor()(processor) if use_cache else processor
+        )
 
         return await self.concurrency.process_batch_async(
             items, cached_processor, batch_size, rate_limit
@@ -588,7 +591,6 @@ if __name__ == "__main__":
     start_time = time.time()
     results2 = system.process_dataset_parallel(test_items, process_item)
     time2 = time.time() - start_time
-
 
     # Show performance stats
     stats = system.get_performance_stats()

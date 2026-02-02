@@ -33,7 +33,7 @@ class TestPerformanceOptimizer(unittest.TestCase):
             "max_threads": 4,
             "max_processes": 2,
             "enable_monitoring": False,  # Disable for most tests
-            "monitoring_interval": 1
+            "monitoring_interval": 1,
         }
 
         self.optimizer = PerformanceOptimizer(self.config)
@@ -45,6 +45,7 @@ class TestPerformanceOptimizer(unittest.TestCase):
 
         # Clean up temporary directory
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_initialization(self):
@@ -296,7 +297,7 @@ class TestPerformanceOptimizer(unittest.TestCase):
 
         # Mock system metrics
         mock_cpu.return_value = 50.0
-        mock_memory.return_value = MagicMock(used=1024*1024*1024)  # 1GB
+        mock_memory.return_value = MagicMock(used=1024 * 1024 * 1024)  # 1GB
 
         # Create optimizer with monitoring enabled
         config = self.config.copy()
@@ -325,9 +326,7 @@ class TestPerformanceOptimizer(unittest.TestCase):
 
         # Test with good metrics
         score = self.optimizer._calculate_optimization_score(
-            cache_hit_rate=80.0,
-            avg_response_time=0.5,
-            error_rate=0.01
+            cache_hit_rate=80.0, avg_response_time=0.5, error_rate=0.01
         )
 
         # Should be a high score
@@ -336,9 +335,7 @@ class TestPerformanceOptimizer(unittest.TestCase):
 
         # Test with poor metrics
         score = self.optimizer._calculate_optimization_score(
-            cache_hit_rate=20.0,
-            avg_response_time=10.0,
-            error_rate=0.2
+            cache_hit_rate=20.0, avg_response_time=10.0, error_rate=0.2
         )
 
         # Should be a low score
@@ -354,7 +351,7 @@ class TestPerformanceOptimizer(unittest.TestCase):
             average_response_time=10.0,  # High response time
             error_rate=15.0,  # High error rate
             memory_usage_mb=10000,  # High memory usage
-            cpu_usage_percent=95.0  # High CPU usage
+            cpu_usage_percent=95.0,  # High CPU usage
         )
 
         initial_alert_count = len(self.optimizer.performance_alerts)

@@ -23,7 +23,9 @@ os.makedirs(METRICS_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 logging.basicConfig(
-    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
 
@@ -82,13 +84,16 @@ def detect_language(audio_path):
 
 
 def segment_audio_vad(audio_path, out_dir, sample_rate=SAMPLE_RATE, vad_mode=VAD_MODE):
-    audio = AudioSegment.from_file(audio_path).set_frame_rate(sample_rate).set_channels(1)
+    audio = (
+        AudioSegment.from_file(audio_path).set_frame_rate(sample_rate).set_channels(1)
+    )
     raw_audio = np.array(audio.get_array_of_samples()).tobytes()
     vad = webrtcvad.Vad(vad_mode)
     frame_ms = 30
     frame_bytes = int(sample_rate * frame_ms / 1000) * 2
     segments = []
     start = None
+
     for i in range(0, len(raw_audio), frame_bytes):
         frame = raw_audio[i : i + frame_bytes]
         if len(frame) < frame_bytes:
@@ -99,7 +104,9 @@ def segment_audio_vad(audio_path, out_dir, sample_rate=SAMPLE_RATE, vad_mode=VAD
         elif not is_speech and start is not None:
             end = i
             seg = audio[start // 2 : end // 2]
-            seg_path = os.path.join(out_dir, f"{Path(audio_path).stem}_seg_{start}_{end}.wav")
+            seg_path = os.path.join(
+                out_dir, f"{Path(audio_path).stem}_seg_{start}_{end}.wav"
+            )
             seg.export(seg_path, format="wav")
             segments.append(seg_path)
             start = None

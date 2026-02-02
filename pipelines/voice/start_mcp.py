@@ -2,6 +2,7 @@
 """
 Startup script for the Pixel Voice MCP server using uv.
 """
+
 import asyncio
 import logging
 import os
@@ -43,7 +44,8 @@ def main():
 
         # Configure logging
         logging.basicConfig(
-            level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+            level=logging.INFO,
+            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
         )
 
         logger = logging.getLogger(__name__)
@@ -52,6 +54,7 @@ def main():
         logger.info(f"Debug mode: {config.debug}")
 
         # Import and run the MCP server
+
         from pixel_voice.mcp_server import main as mcp_main
 
         asyncio.run(mcp_main())

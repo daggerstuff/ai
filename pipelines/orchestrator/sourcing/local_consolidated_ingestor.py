@@ -19,6 +19,7 @@ load_dotenv("ai/.env")
 
 def get_s3_client():
     """Creates an S3 client configured for OVH Object Storage."""
+
     import boto3
 
     endpoint = os.environ.get("OVH_S3_ENDPOINT")
@@ -134,7 +135,10 @@ class LocalConsolidatedIngestor:
             if local_path.exists():
                 s3_key = f"{prefix}{target}/{local_path.name}"
                 success = self.stream_file_to_s3(local_path, s3_key, bucket)
-                results[rel_path] = {"success": success, "s3_key": s3_key if success else None}
+                results[rel_path] = {
+                    "success": success,
+                    "s3_key": s3_key if success else None,
+                }
             else:
                 logger.warning(f"Skipping {rel_path} - not found")
                 results[rel_path] = {"success": False, "s3_key": None}
@@ -193,7 +197,9 @@ class LocalConsolidatedIngestor:
 
             # Skip large files if requested
             if skip_large and file_size_mb > 500:
-                logger.info(f"Skipping {local_path.name} ({file_size_mb:.0f}MB) - too large")
+                logger.info(
+                    f"Skipping {local_path.name} ({file_size_mb:.0f}MB) - too large"
+                )
                 continue
 
             target = config["target"]

@@ -3,20 +3,23 @@ Production-grade monitoring, metrics, and health checks for Pixel Voice pipeline
 """
 
 import asyncio
-import logging
-import os
-import psutil
 import time
-from datetime import datetime
-from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, Optional
 
+import psutil
 import structlog
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
-from prometheus_fastapi_instrumentator import Instrumentator
 from fastapi import FastAPI, Response
 from fastapi.responses import PlainTextResponse
+from prometheus_client import (
+    Counter,
+    Gauge,
+    Histogram,
+    generate_latest,
+)
+from prometheus_fastapi_instrumentator import Instrumentator
 
 # Configure structured logging
 structlog.configure(
@@ -57,6 +60,7 @@ class HealthCheck:
     message: str
     timestamp: datetime
     response_time_ms: float
+
     metadata: Dict[str, Any] = None
 
 
@@ -79,14 +83,20 @@ class MetricsCollector:
 
         # Pipeline metrics
         self.pipeline_jobs_total = Counter(
-            "pixel_voice_pipeline_jobs_total", "Total pipeline jobs", ["stage", "status"]
+            "pixel_voice_pipeline_jobs_total",
+            "Total pipeline jobs",
+            ["stage", "status"],
         )
 
         self.pipeline_job_duration = Histogram(
-            "pixel_voice_pipeline_job_duration_seconds", "Pipeline job duration", ["stage"]
+            "pixel_voice_pipeline_job_duration_seconds",
+            "Pipeline job duration",
+            ["stage"],
         )
 
-        self.active_jobs = Gauge("pixel_voice_active_jobs", "Currently active pipeline jobs")
+        self.active_jobs = Gauge(
+            "pixel_voice_active_jobs", "Currently active pipeline jobs"
+        )
 
         # YouTube download metrics
         self.youtube_downloads_total = Counter(
@@ -122,15 +132,21 @@ class MetricsCollector:
             "pixel_voice_errors_total", "Total errors", ["error_type", "component"]
         )
 
-    def record_api_request(self, method: str, endpoint: str, status_code: int, duration: float):
+    def record_api_request(
+        self, method: str, endpoint: str, status_code: int, duration: float
+    ):
         """Record API request metrics."""
         self.api_requests_total.labels(
             method=method, endpoint=endpoint, status_code=status_code
         ).inc()
 
-        self.api_request_duration.labels(method=method, endpoint=endpoint).observe(duration)
+        self.api_request_duration.labels(method=method, endpoint=endpoint).observe(
+            duration
+        )
 
-    def record_pipeline_job(self, stage: str, status: str, duration: Optional[float] = None):
+    def record_pipeline_job(
+        self, stage: str, status: str, duration: Optional[float] = None
+    ):
         """Record pipeline job metrics."""
         self.pipeline_jobs_total.labels(stage=stage, status=status).inc()
 

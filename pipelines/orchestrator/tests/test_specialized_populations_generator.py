@@ -41,7 +41,7 @@ class TestSpecializedPopulationsGenerator:
             dsm5_considerations=["Post-Traumatic Stress Disorder", "Complex Trauma"],
             attachment_style="disorganized",
             defense_mechanisms=["dissociation", "avoidance"],
-            psychodynamic_themes=["safety_and_trust"]
+            psychodynamic_themes=["safety_and_trust"],
         )
 
         return ClientScenario(
@@ -51,7 +51,7 @@ class TestSpecializedPopulationsGenerator:
             presenting_problem="PTSD symptoms following childhood trauma",
             clinical_formulation=clinical_formulation,
             demographics={"age": 29, "gender": "female", "ethnicity": "Hispanic"},
-            session_context="Trauma-focused therapy session"
+            session_context="Trauma-focused therapy session",
         )
 
     @pytest.fixture
@@ -61,7 +61,7 @@ class TestSpecializedPopulationsGenerator:
             dsm5_considerations=["Alcohol Use Disorder", "Major Depressive Disorder"],
             attachment_style="anxious",
             defense_mechanisms=["denial", "rationalization"],
-            psychodynamic_themes=["control_and_powerlessness"]
+            psychodynamic_themes=["control_and_powerlessness"],
         )
 
         return ClientScenario(
@@ -71,7 +71,7 @@ class TestSpecializedPopulationsGenerator:
             presenting_problem="Alcohol addiction with depression",
             clinical_formulation=clinical_formulation,
             demographics={"age": 35, "gender": "male"},
-            session_context="Addiction recovery session"
+            session_context="Addiction recovery session",
         )
 
     @pytest.fixture
@@ -81,7 +81,7 @@ class TestSpecializedPopulationsGenerator:
             dsm5_considerations=["Adjustment Disorder", "Gender Dysphoria"],
             attachment_style="secure",
             defense_mechanisms=["intellectualization"],
-            psychodynamic_themes=["identity_and_authenticity"]
+            psychodynamic_themes=["identity_and_authenticity"],
         )
 
         return ClientScenario(
@@ -91,7 +91,7 @@ class TestSpecializedPopulationsGenerator:
             presenting_problem="Gender identity exploration and family acceptance",
             clinical_formulation=clinical_formulation,
             demographics={"age": 22, "gender": "non-binary"},
-            session_context="Identity-affirming therapy session"
+            session_context="Identity-affirming therapy session",
         )
 
     def test_initialization(self, generator):
@@ -104,13 +104,21 @@ class TestSpecializedPopulationsGenerator:
 
         # Check that characteristics are loaded
         assert len(generator.population_characteristics) > 0
-        assert SpecializedPopulation.TRAUMA_SURVIVORS in generator.population_characteristics
-        assert SpecializedPopulation.ADDICTION_RECOVERY in generator.population_characteristics
+        assert (
+            SpecializedPopulation.TRAUMA_SURVIVORS
+            in generator.population_characteristics
+        )
+        assert (
+            SpecializedPopulation.ADDICTION_RECOVERY
+            in generator.population_characteristics
+        )
         assert SpecializedPopulation.LGBTQ_PLUS in generator.population_characteristics
 
     def test_population_characteristics_structure(self, generator):
         """Test population characteristics data structure."""
-        trauma_chars = generator.population_characteristics[SpecializedPopulation.TRAUMA_SURVIVORS]
+        trauma_chars = generator.population_characteristics[
+            SpecializedPopulation.TRAUMA_SURVIVORS
+        ]
 
         assert hasattr(trauma_chars, "id")
         assert hasattr(trauma_chars, "population")
@@ -217,7 +225,10 @@ class TestSpecializedPopulationsGenerator:
 
         assert isinstance(conversation, PopulationConversation)
         assert conversation.id is not None
-        assert conversation.population_characteristics.population == SpecializedPopulation.TRAUMA_SURVIVORS
+        assert (
+            conversation.population_characteristics.population
+            == SpecializedPopulation.TRAUMA_SURVIVORS
+        )
         assert conversation.client_scenario == trauma_scenario
         assert len(conversation.conversation_exchanges) == 10
         assert isinstance(conversation.cultural_adaptations_used, list)
@@ -248,23 +259,34 @@ class TestSpecializedPopulationsGenerator:
     def test_generate_addiction_conversation(self, generator, addiction_scenario):
         """Test addiction recovery conversation generation."""
         conversation = generator.generate_specialized_conversation(
-            addiction_scenario, SpecializedPopulation.ADDICTION_RECOVERY, num_exchanges=8
+            addiction_scenario,
+            SpecializedPopulation.ADDICTION_RECOVERY,
+            num_exchanges=8,
         )
 
         assert isinstance(conversation, PopulationConversation)
-        assert conversation.population_characteristics.population == SpecializedPopulation.ADDICTION_RECOVERY
+        assert (
+            conversation.population_characteristics.population
+            == SpecializedPopulation.ADDICTION_RECOVERY
+        )
 
         # Should include addiction-specific elements
         assert len(conversation.population_specific_techniques) > 0
 
         # Check for motivational interviewing elements
-        therapist_content = " ".join([
-            e.get("content", "") for e in conversation.conversation_exchanges
-            if e.get("speaker") == "therapist"
-        ]).lower()
+        therapist_content = " ".join(
+            [
+                e.get("content", "")
+                for e in conversation.conversation_exchanges
+                if e.get("speaker") == "therapist"
+            ]
+        ).lower()
 
         # Should include supportive, non-confrontational language
-        assert any(word in therapist_content for word in ["support", "journey", "change", "appreciate"])
+        assert any(
+            word in therapist_content
+            for word in ["support", "journey", "change", "appreciate"]
+        )
 
     def test_generate_lgbtq_conversation(self, generator, lgbtq_scenario):
         """Test LGBTQ+ conversation generation."""
@@ -273,22 +295,37 @@ class TestSpecializedPopulationsGenerator:
         )
 
         assert isinstance(conversation, PopulationConversation)
-        assert conversation.population_characteristics.population == SpecializedPopulation.LGBTQ_PLUS
+        assert (
+            conversation.population_characteristics.population
+            == SpecializedPopulation.LGBTQ_PLUS
+        )
 
         # Should include affirming elements
-        therapist_content = " ".join([
-            e.get("content", "") for e in conversation.conversation_exchanges
-            if e.get("speaker") == "therapist"
-        ]).lower()
+        therapist_content = " ".join(
+            [
+                e.get("content", "")
+                for e in conversation.conversation_exchanges
+                if e.get("speaker") == "therapist"
+            ]
+        ).lower()
 
         # Should include affirming language
-        assert any(word in therapist_content for word in ["affirming", "authentic", "identity", "valid"])
+        assert any(
+            word in therapist_content
+            for word in ["affirming", "authentic", "identity", "valid"]
+        )
 
     def test_population_opening_generation(self, generator):
         """Test population-specific opening generation."""
-        trauma_chars = generator.population_characteristics[SpecializedPopulation.TRAUMA_SURVIVORS]
-        addiction_chars = generator.population_characteristics[SpecializedPopulation.ADDICTION_RECOVERY]
-        lgbtq_chars = generator.population_characteristics[SpecializedPopulation.LGBTQ_PLUS]
+        trauma_chars = generator.population_characteristics[
+            SpecializedPopulation.TRAUMA_SURVIVORS
+        ]
+        addiction_chars = generator.population_characteristics[
+            SpecializedPopulation.ADDICTION_RECOVERY
+        ]
+        lgbtq_chars = generator.population_characteristics[
+            SpecializedPopulation.LGBTQ_PLUS
+        ]
 
         trauma_opening = generator._generate_population_opening(trauma_chars)
         addiction_opening = generator._generate_population_opening(addiction_chars)
@@ -305,7 +342,9 @@ class TestSpecializedPopulationsGenerator:
 
     def test_client_response_generation(self, generator, trauma_scenario):
         """Test population-specific client response generation."""
-        trauma_chars = generator.population_characteristics[SpecializedPopulation.TRAUMA_SURVIVORS]
+        trauma_chars = generator.population_characteristics[
+            SpecializedPopulation.TRAUMA_SURVIVORS
+        ]
 
         response = generator._generate_population_client_content(
             trauma_scenario, trauma_chars, 0
@@ -316,19 +355,27 @@ class TestSpecializedPopulationsGenerator:
 
         # Should be appropriate for trauma population
         response_lower = response.lower()
-        assert any(word in response_lower for word in ["raw", "happened", "trust", "normal", "threat"])
+        assert any(
+            word in response_lower
+            for word in ["raw", "happened", "trust", "normal", "threat"]
+        )
 
     def test_cultural_adaptation_identification(self, generator, trauma_scenario):
         """Test cultural adaptation identification."""
         # Mock exchanges with cultural adaptations
         exchanges = [
-            {"speaker": "therapist", "cultural_adaptation": "family_inclusive_approach"},
+            {
+                "speaker": "therapist",
+                "cultural_adaptation": "family_inclusive_approach",
+            },
             {"speaker": "client", "content": "test"},
             {"speaker": "therapist", "cultural_adaptation": "spiritual_integration"},
-            {"speaker": "client", "content": "test"}
+            {"speaker": "client", "content": "test"},
         ]
 
-        trauma_chars = generator.population_characteristics[SpecializedPopulation.TRAUMA_SURVIVORS]
+        trauma_chars = generator.population_characteristics[
+            SpecializedPopulation.TRAUMA_SURVIVORS
+        ]
         adaptations = generator._identify_cultural_adaptations(exchanges, trauma_chars)
 
         assert isinstance(adaptations, list)
@@ -342,7 +389,7 @@ class TestSpecializedPopulationsGenerator:
             {"speaker": "therapist", "trauma_informed_element": "safety"},
             {"speaker": "client", "content": "test"},
             {"speaker": "therapist", "trauma_informed_element": "choice"},
-            {"speaker": "client", "content": "test"}
+            {"speaker": "client", "content": "test"},
         ]
 
         elements = generator._identify_trauma_informed_elements(exchanges)
@@ -360,11 +407,15 @@ class TestSpecializedPopulationsGenerator:
             {"speaker": "therapist", "content": "We'll go at your pace"},
             {"speaker": "client", "content": "test"},
             {"speaker": "therapist", "content": "I want to understand your experience"},
-            {"speaker": "client", "content": "test"}
+            {"speaker": "client", "content": "test"},
         ]
 
-        trauma_chars = generator.population_characteristics[SpecializedPopulation.TRAUMA_SURVIVORS]
-        factors = generator._assess_therapeutic_alliance_factors(exchanges, trauma_chars)
+        trauma_chars = generator.population_characteristics[
+            SpecializedPopulation.TRAUMA_SURVIVORS
+        ]
+        factors = generator._assess_therapeutic_alliance_factors(
+            exchanges, trauma_chars
+        )
 
         assert isinstance(factors, list)
         assert "safety_establishment" in factors
@@ -387,7 +438,9 @@ class TestSpecializedPopulationsGenerator:
             temp_file = f.name
 
         try:
-            export_result = generator.export_specialized_conversations(conversations, temp_file)
+            export_result = generator.export_specialized_conversations(
+                conversations, temp_file
+            )
 
             # Check export result
             assert export_result["exported_conversations"] == 3
@@ -417,31 +470,45 @@ class TestSpecializedPopulationsGenerator:
             if os.path.exists(temp_file):
                 os.unlink(temp_file)
 
-    def test_different_specialized_populations(self, generator, trauma_scenario, addiction_scenario, lgbtq_scenario):
+    def test_different_specialized_populations(
+        self, generator, trauma_scenario, addiction_scenario, lgbtq_scenario
+    ):
         """Test handling of different specialized populations."""
         # Test trauma survivors
         trauma_conv = generator.generate_specialized_conversation(
             trauma_scenario, SpecializedPopulation.TRAUMA_SURVIVORS
         )
-        assert trauma_conv.population_characteristics.population == SpecializedPopulation.TRAUMA_SURVIVORS
+        assert (
+            trauma_conv.population_characteristics.population
+            == SpecializedPopulation.TRAUMA_SURVIVORS
+        )
 
         # Test addiction recovery
         addiction_conv = generator.generate_specialized_conversation(
             addiction_scenario, SpecializedPopulation.ADDICTION_RECOVERY
         )
-        assert addiction_conv.population_characteristics.population == SpecializedPopulation.ADDICTION_RECOVERY
+        assert (
+            addiction_conv.population_characteristics.population
+            == SpecializedPopulation.ADDICTION_RECOVERY
+        )
 
         # Test LGBTQ+
         lgbtq_conv = generator.generate_specialized_conversation(
             lgbtq_scenario, SpecializedPopulation.LGBTQ_PLUS
         )
-        assert lgbtq_conv.population_characteristics.population == SpecializedPopulation.LGBTQ_PLUS
+        assert (
+            lgbtq_conv.population_characteristics.population
+            == SpecializedPopulation.LGBTQ_PLUS
+        )
 
         # Test generic population (should create fallback)
         veterans_conv = generator.generate_specialized_conversation(
             trauma_scenario, SpecializedPopulation.VETERANS
         )
-        assert veterans_conv.population_characteristics.population == SpecializedPopulation.VETERANS
+        assert (
+            veterans_conv.population_characteristics.population
+            == SpecializedPopulation.VETERANS
+        )
 
 
 if __name__ == "__main__":

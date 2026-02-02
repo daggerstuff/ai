@@ -12,7 +12,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from typing import Any
 
-from .conversation_schema import Conversation
+from ai.pipelines.orchestrator.conversation_schema import Conversation
+
 from .logger import get_logger
 
 logger = get_logger("dataset_pipeline.quality_validator")
@@ -183,7 +184,8 @@ class QualityValidator:
         )
 
         logger.debug(
-            f"Validated conversation {conversation.conversation_id}: score {overall_score:.3f}"
+            f"Validated conversation {conversation.conversation_id}: "
+            f"score {overall_score:.3f}"
         )
         return result
 

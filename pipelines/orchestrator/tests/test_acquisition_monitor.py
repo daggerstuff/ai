@@ -25,23 +25,35 @@ class TestQualityValidator(unittest.TestCase):
         self.good_conversation = Conversation(
             id="good_conv",
             messages=[
-                Message(role="client", content="Hello, I've been feeling anxious lately and need some help."),
-                Message(role="therapist", content="I understand you're feeling anxious. Can you tell me more about what's been triggering these feelings?"),
-                Message(role="client", content="It started when I began my new job. I feel overwhelmed and worry constantly about making mistakes."),
-                Message(role="therapist", content="That sounds really challenging. It's normal to feel anxious when starting something new. What specific situations at work make you feel most anxious?")
+                Message(
+                    role="client",
+                    content="Hello, I've been feeling anxious lately and need some help.",
+                ),
+                Message(
+                    role="therapist",
+                    content="I understand you're feeling anxious. Can you tell me more about what's been triggering these feelings?",
+                ),
+                Message(
+                    role="client",
+                    content="It started when I began my new job. I feel overwhelmed and worry constantly about making mistakes.",
+                ),
+                Message(
+                    role="therapist",
+                    content="That sounds really challenging. It's normal to feel anxious when starting something new. What specific situations at work make you feel most anxious?",
+                ),
             ],
             context={"session_type": "therapy", "topic": "anxiety"},
-            source="test"
+            source="test",
         )
 
         self.poor_conversation = Conversation(
             id="poor_conv",
             messages=[
                 Message(role="user", content="test"),
-                Message(role="assistant", content="LOREM IPSUM DOLOR SIT AMET!!!")
+                Message(role="assistant", content="LOREM IPSUM DOLOR SIT AMET!!!"),
             ],
             context={},
-            source="test"
+            source="test",
         )
 
     def test_initialization(self):
@@ -80,7 +92,7 @@ class TestQualityValidator(unittest.TestCase):
             id="short",
             messages=[Message(role="user", content="Hi")],
             context={},
-            source="test"
+            source="test",
         )
 
         result = self.validator.validate_conversation(short_conv)
@@ -92,10 +104,10 @@ class TestQualityValidator(unittest.TestCase):
             messages=[
                 Message(role="user", content="Hello"),
                 Message(role="assistant", content=""),
-                Message(role="user", content="Are you there?")
+                Message(role="user", content="Are you there?"),
             ],
             context={},
-            source="test"
+            source="test",
         )
 
         result = self.validator.validate_conversation(empty_conv)
@@ -108,10 +120,10 @@ class TestQualityValidator(unittest.TestCase):
             id="spam",
             messages=[
                 Message(role="user", content="Click here to buy now! SPAM SPAM SPAM"),
-                Message(role="assistant", content="This is a test dummy placeholder")
+                Message(role="assistant", content="This is a test dummy placeholder"),
             ],
             context={},
-            source="test"
+            source="test",
         )
 
         result = self.validator.validate_conversation(spam_conv)
@@ -122,7 +134,9 @@ class TestQualityValidator(unittest.TestCase):
         result = self.validator.validate_conversation(self.good_conversation)
 
         # Should detect therapeutic content
-        therapeutic_strengths = [s for s in result.strengths if "Therapeutic content" in s]
+        therapeutic_strengths = [
+            s for s in result.strengths if "Therapeutic content" in s
+        ]
         assert len(therapeutic_strengths) > 0
 
 
@@ -137,11 +151,17 @@ class TestAcquisitionMonitor(unittest.TestCase):
         self.test_conversation = Conversation(
             id="test_conv",
             messages=[
-                Message(role="client", content="I've been feeling really anxious about my upcoming presentation at work."),
-                Message(role="therapist", content="I can understand how that would feel overwhelming. What specifically about the presentation is causing you the most anxiety?")
+                Message(
+                    role="client",
+                    content="I've been feeling really anxious about my upcoming presentation at work.",
+                ),
+                Message(
+                    role="therapist",
+                    content="I can understand how that would feel overwhelming. What specifically about the presentation is causing you the most anxiety?",
+                ),
             ],
             context={"session_type": "therapy"},
-            source="test"
+            source="test",
         )
 
     def test_initialization(self):
@@ -175,9 +195,7 @@ class TestAcquisitionMonitor(unittest.TestCase):
 
         # Process conversation
         quality_scores = self.monitor.process_conversation(
-            self.test_conversation,
-            dataset_name,
-            processing_time
+            self.test_conversation, dataset_name, processing_time
         )
 
         # Check that scores were returned
@@ -203,10 +221,10 @@ class TestAcquisitionMonitor(unittest.TestCase):
             id="poor_conv",
             messages=[
                 Message(role="user", content="test"),
-                Message(role="assistant", content="bad response")
+                Message(role="assistant", content="bad response"),
             ],
             context={},
-            source="test"
+            source="test",
         )
 
         # Process the poor conversation
@@ -291,7 +309,9 @@ class TestAcquisitionMonitor(unittest.TestCase):
         assert len(dataset_metrics) > 0
 
         # Get metrics for specific type
-        quality_metrics = self.monitor.get_recent_metrics(metric_type=MetricType.QUALITY_SCORE)
+        quality_metrics = self.monitor.get_recent_metrics(
+            metric_type=MetricType.QUALITY_SCORE
+        )
         assert len(quality_metrics) >= 0
 
     def test_alert_management(self):
@@ -305,7 +325,7 @@ class TestAcquisitionMonitor(unittest.TestCase):
             dataset_name="test_dataset",
             value=0.5,
             threshold=0.6,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         self.monitor.alerts.append(alert)
@@ -330,7 +350,9 @@ class TestAcquisitionMonitor(unittest.TestCase):
 
         # Process multiple conversations
         for i in range(3):
-            self.monitor.process_conversation(self.test_conversation, dataset_name, 0.1 + i * 0.1)
+            self.monitor.process_conversation(
+                self.test_conversation, dataset_name, 0.1 + i * 0.1
+            )
 
         stats = self.monitor.dataset_stats[dataset_name]
 

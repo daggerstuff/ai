@@ -82,7 +82,9 @@ class TestDSM5Parser:
         assert "Panic Disorder" in anxiety_names
 
         # Test category with no disorders
-        eating_disorders = self.parser.get_disorders_by_category(DSMCategory.FEEDING_EATING)
+        eating_disorders = self.parser.get_disorders_by_category(
+            DSMCategory.FEEDING_EATING
+        )
         assert len(eating_disorders) == 0
 
     def test_major_depressive_disorder_structure(self):
@@ -125,8 +127,12 @@ class TestDSM5Parser:
 
         # Check for key criteria
         criterion_descriptions = [c.description for c in disorder.criteria]
-        assert any("anxiety and worry" in desc.lower() for desc in criterion_descriptions)
-        assert any("difficulty controlling" in desc.lower() for desc in criterion_descriptions)
+        assert any(
+            "anxiety and worry" in desc.lower() for desc in criterion_descriptions
+        )
+        assert any(
+            "difficulty controlling" in desc.lower() for desc in criterion_descriptions
+        )
 
     def test_create_sample_disorders(self):
         """Test creating sample disorders."""
@@ -139,7 +145,9 @@ class TestDSM5Parser:
             assert isinstance(disorder_dict["category"], str)
             assert isinstance(disorder_dict["severity_levels"], list)
             if disorder_dict["severity_levels"]:
-                assert all(isinstance(level, str) for level in disorder_dict["severity_levels"])
+                assert all(
+                    isinstance(level, str) for level in disorder_dict["severity_levels"]
+                )
 
     def test_export_to_json(self):
         """Test exporting knowledge base to JSON."""
@@ -200,7 +208,9 @@ class TestDSM5Parser:
 
     def test_generate_conversation_templates(self):
         """Test generating conversation templates."""
-        conversations = self.parser.generate_conversation_templates("Major Depressive Disorder")
+        conversations = self.parser.generate_conversation_templates(
+            "Major Depressive Disorder"
+        )
         assert len(conversations) > 0
         assert all(isinstance(c, Conversation) for c in conversations)
 
@@ -267,7 +277,7 @@ class TestDSMDataStructures:
             category="test_category",
             required=True,
             examples=["Example 1", "Example 2"],
-            exclusions=["Exclusion 1"]
+            exclusions=["Exclusion 1"],
         )
 
         assert criterion.id == "A1"
@@ -283,7 +293,7 @@ class TestDSMDataStructures:
             name="severity",
             description="Severity level",
             options=["mild", "moderate", "severe"],
-            required=True
+            required=True,
         )
 
         assert specifier.name == "severity"
@@ -295,7 +305,7 @@ class TestDSMDataStructures:
         """Test DSMDisorder creation."""
         criteria = [
             DSMCriterion(id="A", description="Test criterion A"),
-            DSMCriterion(id="B", description="Test criterion B")
+            DSMCriterion(id="B", description="Test criterion B"),
         ]
 
         disorder = DSMDisorder(
@@ -305,7 +315,7 @@ class TestDSMDataStructures:
             criteria=criteria,
             minimum_criteria_count=2,
             duration_requirement="1 week",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE]
+            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE],
         )
 
         assert disorder.code == "999.99"
@@ -325,14 +335,14 @@ class TestDSMDataStructures:
                 category=DSMCategory.OTHER,
                 criteria=[],
                 minimum_criteria_count=1,
-                duration_requirement="1 week"
+                duration_requirement="1 week",
             )
         ]
 
         kb = DSMKnowledgeBase(
             disorders=disorders,
             categories={"other": ["Test Disorder"]},
-            version="Test Version"
+            version="Test Version",
         )
 
         assert len(kb.disorders) == 1

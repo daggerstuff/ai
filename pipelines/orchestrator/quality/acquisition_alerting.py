@@ -12,12 +12,12 @@ import threading
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from ai.pipelines.orchestrator.standardization_monitor import AlertLevel
+from ai.pipelines.orchestrator.quality.standardization_monitor import AlertLevel
 
 from .acquisition_monitor import AcquisitionMonitor
 from .logger import get_logger
@@ -31,6 +31,7 @@ logger = get_logger("dataset_pipeline.acquisition_alerting")
 @dataclass
 class Alert:
     """Alert message structure for acquisition monitoring."""
+
     id: str
     level: AlertLevel
     message: str
@@ -38,13 +39,14 @@ class Alert:
     dataset_name: str | None = None
     value: float | None = None
     threshold: float | None = None
-    timestamp: datetime = field(default_factory=lambda: datetime.now(tz=datetime.timezone.utc))
+    timestamp: datetime = field(default_factory=lambda: datetime.now(tz=timezone.utc))
     resolved: bool = False
     resolution_time: datetime | None = None
 
 
 class RecoveryAction(Enum):
     """Types of recovery actions."""
+
     RETRY = "retry"
     RESTART = "restart"
     SKIP = "skip"
@@ -57,6 +59,7 @@ class RecoveryAction(Enum):
 
 class NotificationChannel(Enum):
     """Notification delivery channels."""
+
     EMAIL = "email"
     WEBHOOK = "webhook"
     LOG = "log"
@@ -67,6 +70,7 @@ class NotificationChannel(Enum):
 @dataclass
 class RecoveryStrategy:
     """Recovery strategy configuration."""
+
     trigger_conditions: list[str]
     actions: list[RecoveryAction]
     max_attempts: int = 3
@@ -78,6 +82,7 @@ class RecoveryStrategy:
 @dataclass
 class NotificationConfig:
     """Notification configuration."""
+
     channels: list[NotificationChannel]
     email_config: dict[str, str] | None = None
     webhook_config: dict[str, str] | None = None
@@ -88,6 +93,7 @@ class NotificationConfig:
 @dataclass
 class ErrorPattern:
     """Error pattern for intelligent recovery."""
+
     pattern_id: str
     error_signatures: list[str]
     frequency_threshold: int
@@ -99,6 +105,7 @@ class ErrorPattern:
 @dataclass
 class RecoveryAttempt:
     """Individual recovery attempt record."""
+
     attempt_id: str
     error_context: str
     recovery_action: RecoveryAction
@@ -128,11 +135,15 @@ class AcquisitionAlerting:
         # Alerting configuration
         notification_settings = self.config.get("notifications", {})
         self.notification_config = NotificationConfig(
-            channels=notification_settings.get("channels", [NotificationChannel.LOG, NotificationChannel.CONSOLE]),
+            channels=notification_settings.get(
+                "channels", [NotificationChannel.LOG, NotificationChannel.CONSOLE]
+            ),
             email_config=notification_settings.get("email_config"),
             webhook_config=notification_settings.get("webhook_config"),
             file_path=notification_settings.get("file_path"),
-            severity_filter=notification_settings.get("severity_filter", list(AlertLevel))
+            severity_filter=notification_settings.get(
+                "severity_filter", list(AlertLevel)
+            ),
         )
 
         # Error tracking and recovery
@@ -143,7 +154,7 @@ class AcquisitionAlerting:
             "total_attempts": 0,
             "successful_recoveries": 0,
             "failed_recoveries": 0,
-            "escalations": 0
+            "escalations": 0,
         }
 
         # Monitoring state
@@ -170,8 +181,12 @@ class AcquisitionAlerting:
         network_pattern = ErrorPattern(
             pattern_id="network_connectivity",
             error_signatures=[
-                "connection timeout", "network unreachable", "dns resolution failed",
-                "connection refused", "socket timeout", "ssl handshake failed"
+                "connection timeout",
+                "network unreachable",
+                "dns resolution failed",
+                "connection refused",
+                "socket timeout",
+                "ssl handshake failed",
             ],
             frequency_threshold=3,
             time_window_minutes=10,
@@ -179,17 +194,21 @@ class AcquisitionAlerting:
                 trigger_conditions=["network_error"],
                 actions=[RecoveryAction.RETRY, RecoveryAction.INCREASE_TIMEOUT],
                 max_attempts=5,
-                delay_seconds=10.0
+                delay_seconds=10.0,
             ),
-            description="Network connectivity issues requiring retry with backoff"
+            description="Network connectivity issues requiring retry with backoff",
         )
 
         # Rate limiting issues
         rate_limit_pattern = ErrorPattern(
             pattern_id="rate_limiting",
             error_signatures=[
-                "rate limit exceeded", "too many requests", "quota exceeded",
-                "429", "throttled", "api limit reached"
+                "rate limit exceeded",
+                "too many requests",
+                "quota exceeded",
+                "429",
+                "throttled",
+                "api limit reached",
             ],
             frequency_threshold=2,
             time_window_minutes=5,
@@ -197,35 +216,46 @@ class AcquisitionAlerting:
                 trigger_conditions=["rate_limit"],
                 actions=[RecoveryAction.REDUCE_CONCURRENCY, RecoveryAction.RETRY],
                 max_attempts=3,
-                delay_seconds=30.0
+                delay_seconds=30.0,
             ),
-            description="Rate limiting requiring concurrency reduction"
+            description="Rate limiting requiring concurrency reduction",
         )
 
         # Memory issues
         memory_pattern = ErrorPattern(
             pattern_id="memory_exhaustion",
             error_signatures=[
-                "out of memory", "memory error", "allocation failed",
-                "cannot allocate memory", "memory limit exceeded"
+                "out of memory",
+                "memory error",
+                "allocation failed",
+                "cannot allocate memory",
+                "memory limit exceeded",
             ],
             frequency_threshold=1,
             time_window_minutes=5,
             recovery_strategy=RecoveryStrategy(
                 trigger_conditions=["memory_error"],
-                actions=[RecoveryAction.CLEAR_CACHE, RecoveryAction.REDUCE_CONCURRENCY, RecoveryAction.RESTART],
+                actions=[
+                    RecoveryAction.CLEAR_CACHE,
+                    RecoveryAction.REDUCE_CONCURRENCY,
+                    RecoveryAction.RESTART,
+                ],
                 max_attempts=2,
-                delay_seconds=15.0
+                delay_seconds=15.0,
             ),
-            description="Memory exhaustion requiring cache clearing and concurrency reduction"
+            description="Memory exhaustion requiring cache clearing and concurrency reduction",
         )
 
         # Data quality issues
         quality_pattern = ErrorPattern(
             pattern_id="data_quality",
             error_signatures=[
-                "invalid data format", "parsing error", "schema validation failed",
-                "corrupt data", "malformed json", "encoding error"
+                "invalid data format",
+                "parsing error",
+                "schema validation failed",
+                "corrupt data",
+                "malformed json",
+                "encoding error",
             ],
             frequency_threshold=5,
             time_window_minutes=15,
@@ -233,12 +263,17 @@ class AcquisitionAlerting:
                 trigger_conditions=["data_quality_error"],
                 actions=[RecoveryAction.SKIP, RecoveryAction.ESCALATE],
                 max_attempts=1,
-                delay_seconds=0.0
+                delay_seconds=0.0,
             ),
-            description="Data quality issues requiring manual intervention"
+            description="Data quality issues requiring manual intervention",
         )
 
-        self.error_patterns = [network_pattern, rate_limit_pattern, memory_pattern, quality_pattern]
+        self.error_patterns = [
+            network_pattern,
+            rate_limit_pattern,
+            memory_pattern,
+            quality_pattern,
+        ]
         logger.info(f"Initialized {len(self.error_patterns)} default error patterns")
 
     def _map_severity_to_alert_level(self, severity: str) -> AlertLevel:
@@ -247,7 +282,7 @@ class AcquisitionAlerting:
             "low": AlertLevel.INFO,
             "medium": AlertLevel.WARNING,
             "high": AlertLevel.ERROR,
-            "critical": AlertLevel.CRITICAL
+            "critical": AlertLevel.CRITICAL,
         }
         return severity_map.get(severity.lower(), AlertLevel.INFO)
 
@@ -258,11 +293,13 @@ class AcquisitionAlerting:
         def alert_callback(alert_type: str, alert_data: dict[str, Any]):
             # Convert the acquisition monitor alert format to our Alert format
             alert = Alert(
-                id=f"acquisition_{alert_type}_{datetime.now(tz=datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')}",
-                level=self._map_severity_to_alert_level(alert_data.get("severity", "info")),
+                id=f"acquisition_{alert_type}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+                level=self._map_severity_to_alert_level(
+                    alert_data.get("severity", "info")
+                ),
                 message=alert_data.get("message", "No message"),
                 dataset_name=alert_data.get("task_id"),  # Use task_id as dataset_name
-timestamp=datetime.now(tz=datetime.timezone.utc)
+                timestamp=datetime.now(tz=timezone.utc),
             )
             self._handle_alert(alert)
 
@@ -284,8 +321,7 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
         if not self._monitoring_active:
             self._monitoring_active = True
             self._monitoring_thread = threading.Thread(
-                target=self._monitoring_worker,
-                daemon=True
+                target=self._monitoring_worker, daemon=True
             )
             self._monitoring_thread.start()
 
@@ -359,13 +395,16 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
         """Determine if alert should be suppressed to avoid spam."""
 
         # Check for recent similar alerts
-        recent_cutoff = datetime.now(tz=datetime.timezone.utc) - timedelta(minutes=5)
+        recent_cutoff = datetime.now(tz=timezone.utc) - timedelta(minutes=5)
 
         similar_alerts = [
-            a for a in self.alert_history
-            if (a.dataset_name == alert.dataset_name and
-                a.metric_type == alert.metric_type and
-                a.timestamp >= recent_cutoff)
+            a
+            for a in self.alert_history
+            if (
+                a.dataset_name == alert.dataset_name
+                and a.metric_type == alert.metric_type
+                and a.timestamp >= recent_cutoff
+            )
         ]
 
         # Suppress if too many similar alerts recently
@@ -392,14 +431,18 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
     def _check_pattern_frequency(self, pattern: ErrorPattern, alert: Alert) -> bool:
         """Check if error pattern frequency threshold is met."""
 
-        time_window = datetime.now(tz=datetime.timezone.utc) - timedelta(minutes=pattern.time_window_minutes)
+        time_window = datetime.now(tz=timezone.utc) - timedelta(
+            minutes=pattern.time_window_minutes
+        )
 
         # Count matching errors in time window
         matching_errors = 0
         for error_record in self.error_history:
-            if (error_record.get("timestamp", datetime.min) >= time_window and
-                error_record.get("dataset_name") == (alert.dataset_name or "")):
-
+            if error_record.get(
+                "timestamp", datetime.min
+            ) >= time_window and error_record.get("dataset_name") == (
+                alert.dataset_name or ""
+            ):
                 error_text = error_record.get("message", "").lower()
                 for signature in pattern.error_signatures:
                     if signature.lower() in error_text:
@@ -411,22 +454,24 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
     async def _attempt_recovery(self, alert: Alert, pattern: ErrorPattern) -> None:
         """Attempt automated recovery based on error pattern."""
 
-        recovery_id = f"recovery_{alert.id}_{datetime.now(tz=datetime.timezone.utc).strftime('%Y%m%d_%H%M%S')}"
+        recovery_id = f"recovery_{alert.id}_{datetime.now(tz=timezone.utc).strftime('%Y%m%d_%H%M%S')}"
 
-        logger.info(f"Starting recovery attempt: {recovery_id} for pattern {pattern.pattern_id}")
+        logger.info(
+            f"Starting recovery attempt: {recovery_id} for pattern {pattern.pattern_id}"
+        )
 
         for action in pattern.recovery_strategy.actions:
             attempt = RecoveryAttempt(
                 attempt_id=f"{recovery_id}_{action.value}",
                 error_context=alert.message,
                 recovery_action=action,
-                started_at=datetime.now(tz=datetime.timezone.utc)
+                started_at=datetime.now(tz=timezone.utc),
             )
 
             try:
                 success = await self._execute_recovery_action(action, alert, pattern)
 
-                attempt.completed_at = datetime.now(tz=datetime.timezone.utc)
+                attempt.completed_at = datetime.now(tz=timezone.utc)
                 attempt.success = success
 
                 self.recovery_attempts[alert.dataset_name or "unknown"].append(attempt)
@@ -434,41 +479,44 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
 
                 if success:
                     self.recovery_stats["successful_recoveries"] += 1
-                    logger.info(f"Recovery action {action.value} succeeded for {alert.dataset_name}")
+                    logger.info(
+                        f"Recovery action {action.value} succeeded for {alert.dataset_name}"
+                    )
 
                     # Mark alert as resolved
                     alert.resolved = True
-                    alert.resolution_time = datetime.now(tz=datetime.timezone.utc)
+                    alert.resolution_time = datetime.now(tz=timezone.utc)
 
                     # Send recovery notification
                     await self._send_recovery_notification(alert, action, True)
                     break
                 self.recovery_stats["failed_recoveries"] += 1
-                logger.warning(f"Recovery action {action.value} failed for {alert.dataset_name}")
+                logger.warning(
+                    f"Recovery action {action.value} failed for {alert.dataset_name}"
+                )
 
                 # Wait before next action
                 if pattern.recovery_strategy.delay_seconds > 0:
                     await asyncio.sleep(pattern.recovery_strategy.delay_seconds)
 
             except Exception as e:
-                attempt.completed_at = datetime.now(tz=datetime.timezone.utc)
+                attempt.completed_at = datetime.now(tz=timezone.utc)
                 attempt.success = False
                 attempt.error_message = str(e)
 
                 self.recovery_attempts[alert.dataset_name or "unknown"].append(attempt)
                 self.recovery_stats["failed_recoveries"] += 1
 
-                logger.error(f"Recovery action {action.value} failed with exception: {e}")
+                logger.error(
+                    f"Recovery action {action.value} failed with exception: {e}"
+                )
 
         # If all recovery actions failed, escalate
         if not alert.resolved:
             await self._escalate_alert(alert, pattern)
 
     async def _execute_recovery_action(
-        self,
-        action: RecoveryAction,
-        alert: Alert,
-        pattern: ErrorPattern
+        self, action: RecoveryAction, alert: Alert, pattern: ErrorPattern
     ) -> bool:
         """Execute a specific recovery action."""
 
@@ -535,9 +583,10 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
         escalation_alert = Alert(
             id=f"escalation_{alert.id}",
             level=AlertLevel.CRITICAL,
+            message=escalation_message,
             value=alert.value,
             threshold=alert.threshold,
-            timestamp=datetime.now(tz=datetime.timezone.utc)
+            timestamp=datetime.now(tz=timezone.utc),
         )
 
         # Send escalation notifications
@@ -574,7 +623,7 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
             AlertLevel.INFO: logger.info,
             AlertLevel.WARNING: logger.warning,
             AlertLevel.ERROR: logger.error,
-            AlertLevel.CRITICAL: logger.critical
+            AlertLevel.CRITICAL: logger.critical,
         }
 
         log_func = level_map.get(alert.level, logger.info)
@@ -586,7 +635,7 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
             AlertLevel.INFO: "ℹ️",
             AlertLevel.WARNING: "⚠️",
             AlertLevel.ERROR: "❌",
-            AlertLevel.CRITICAL: "🚨"
+            AlertLevel.CRITICAL: "🚨",
         }
 
         level_emoji.get(alert.level, "🔔")
@@ -620,7 +669,7 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
             "timestamp": alert.timestamp.isoformat(),
             "metric_type": alert.metric_type.value if alert.metric_type else None,
             "value": alert.value,
-            "threshold": alert.threshold
+            "threshold": alert.threshold,
         }
 
         try:
@@ -631,10 +680,7 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
             logger.error(f"Failed to write file notification: {e}")
 
     async def _send_recovery_notification(
-        self,
-        alert: Alert,
-        recovery_action: RecoveryAction,
-        success: bool
+        self, alert: Alert, recovery_action: RecoveryAction, success: bool
     ) -> None:
         """Send notification about recovery attempt."""
 
@@ -649,7 +695,7 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
             dataset_name=alert.dataset_name,
             value=alert.value,
             threshold=alert.threshold,
-            timestamp=datetime.now(tz=datetime.timezone.utc)
+            timestamp=datetime.now(tz=timezone.utc),
         )
 
         self._send_notifications(recovery_alert)
@@ -659,27 +705,40 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
 
         # This would analyze error history for new patterns
         # For now, just log the analysis
-        recent_errors = len([e for e in self.error_history
-                           if e.get("timestamp", datetime.min.replace(tzinfo=datetime.timezone.utc)) >= datetime.now(tz=datetime.timezone.utc) - timedelta(hours=1)])
+        recent_errors = len(
+            [
+                e
+                for e in self.error_history
+                if e.get("timestamp", datetime.min.replace(tzinfo=timezone.utc))
+                >= datetime.now(tz=timezone.utc) - timedelta(hours=1)
+            ]
+        )
 
         if recent_errors > 10:
-            logger.warning(f"High error rate detected: {recent_errors} errors in the last hour")
+            logger.warning(
+                f"High error rate detected: {recent_errors} errors in the last hour"
+            )
 
     def _check_performance_degradation(self) -> None:
         """Check for performance degradation patterns."""
 
         metrics = self.performance_optimizer.get_metrics()
-        if metrics and metrics.average_operation_time > 10.0:  # Check if avg operation time is too high
-            logger.warning(f"Performance degradation detected: avg operation time {metrics.average_operation_time:.1f}s")
+        if (
+            metrics and metrics.average_operation_time > 10.0
+        ):  # Check if avg operation time is too high
+            logger.warning(
+                f"Performance degradation detected: avg operation time {metrics.average_operation_time:.1f}s"
+            )
 
     def _cleanup_old_data(self) -> None:
         """Clean up old alerts and recovery attempts."""
 
-        cutoff_time = datetime.now(tz=datetime.timezone.utc) - timedelta(days=7)
+        cutoff_time = datetime.now(tz=timezone.utc) - timedelta(days=7)
 
         # Clean up old alerts
         old_alert_ids = [
-            alert_id for alert_id, alert in self.active_alerts.items()
+            alert_id
+            for alert_id, alert in self.active_alerts.items()
             if alert.timestamp < cutoff_time
         ]
 
@@ -689,7 +748,8 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
         # Clean up old recovery attempts
         for dataset_name in list(self.recovery_attempts.keys()):
             old_attempts = [
-                attempt for attempt in self.recovery_attempts[dataset_name]
+                attempt
+                for attempt in self.recovery_attempts[dataset_name]
                 if attempt.started_at < cutoff_time
             ]
 
@@ -702,7 +762,9 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
         # Calculate success rate
         total_attempts = self.recovery_stats["total_attempts"]
         if total_attempts > 0:
-            success_rate = (self.recovery_stats["successful_recoveries"] / total_attempts) * 100
+            success_rate = (
+                self.recovery_stats["successful_recoveries"] / total_attempts
+            ) * 100
             logger.debug(f"Recovery success rate: {success_rate:.1f}%")
 
     def _analyze_metric_trends(self, metric) -> None:
@@ -711,7 +773,9 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
         # This would analyze metric trends
         # For now, just basic threshold checking
         if hasattr(metric, "value") and metric.value < 0.5:
-            logger.debug(f"Low metric value detected: {metric.metric_type.value} = {metric.value}")
+            logger.debug(
+                f"Low metric value detected: {metric.metric_type.value} = {metric.value}"
+            )
 
     def add_error_pattern(self, pattern: ErrorPattern) -> None:
         """Add a custom error pattern."""
@@ -747,7 +811,9 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
         success_rate = 0.0
 
         if total_attempts > 0:
-            success_rate = (self.recovery_stats["successful_recoveries"] / total_attempts) * 100
+            success_rate = (
+                self.recovery_stats["successful_recoveries"] / total_attempts
+            ) * 100
 
         return {
             "total_attempts": total_attempts,
@@ -757,7 +823,7 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
             "escalations": self.recovery_stats["escalations"],
             "active_patterns": len(self.error_patterns),
             "active_alerts": len(self.active_alerts),
-            "suppressed_alerts": len(self.suppressed_alerts)
+            "suppressed_alerts": len(self.suppressed_alerts),
         }
 
     def get_error_patterns(self) -> list[ErrorPattern]:
@@ -790,31 +856,41 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
         recovery_success_rates = {}
         for action, stats in recovery_by_action.items():
             if stats["attempts"] > 0:
-                recovery_success_rates[action] = (stats["successes"] / stats["attempts"]) * 100
+                recovery_success_rates[action] = (
+                    stats["successes"] / stats["attempts"]
+                ) * 100
             else:
                 recovery_success_rates[action] = 0.0
 
         return {
-            "generated_at": datetime.now(tz=datetime.timezone.utc).isoformat(),
+            "generated_at": datetime.now(tz=timezone.utc).isoformat(),
             "monitoring_status": {
                 "active": self._monitoring_active,
-                "monitored_datasets": len({alert.dataset_name for alert in self.active_alerts.values()}),
+                "monitored_datasets": len(
+                    {alert.dataset_name for alert in self.active_alerts.values()}
+                ),
                 "error_patterns": len(self.error_patterns),
-                "notification_channels": len(self.notification_config.channels)
+                "notification_channels": len(self.notification_config.channels),
             },
             "alert_statistics": dict(alert_stats),
             "recovery_statistics": self.get_recovery_stats(),
             "recovery_success_rates": recovery_success_rates,
-            "recent_alerts": len([
-                alert for alert in self.alert_history
-                if alert.timestamp >= datetime.now(tz=datetime.timezone.utc) - timedelta(hours=24)
-            ]),
+            "recent_alerts": len(
+                [
+                    alert
+                    for alert in self.alert_history
+                    if alert.timestamp
+                    >= datetime.now(tz=timezone.utc) - timedelta(hours=24)
+                ]
+            ),
             "system_health": {
                 "active_alerts": len(self.active_alerts),
                 "suppressed_alerts": len(self.suppressed_alerts),
                 "error_history_size": len(self.error_history),
-                "recovery_attempts_total": sum(len(attempts) for attempts in self.recovery_attempts.values())
-            }
+                "recovery_attempts_total": sum(
+                    len(attempts) for attempts in self.recovery_attempts.values()
+                ),
+            },
         }
 
     def export_configuration(self, output_path: Path) -> bool:
@@ -831,19 +907,27 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
                         "description": pattern.description,
                         "recovery_strategy": {
                             "trigger_conditions": pattern.recovery_strategy.trigger_conditions,
-                            "actions": [action.value for action in pattern.recovery_strategy.actions],
+                            "actions": [
+                                action.value
+                                for action in pattern.recovery_strategy.actions
+                            ],
                             "max_attempts": pattern.recovery_strategy.max_attempts,
                             "delay_seconds": pattern.recovery_strategy.delay_seconds,
-                            "escalation_threshold": pattern.recovery_strategy.escalation_threshold
-                        }
+                            "escalation_threshold": pattern.recovery_strategy.escalation_threshold,
+                        },
                     }
                     for pattern in self.error_patterns
                 ],
                 "notification_config": {
-                    "channels": [channel.value for channel in self.notification_config.channels],
-                    "severity_filter": [level.value for level in self.notification_config.severity_filter]
+                    "channels": [
+                        channel.value for channel in self.notification_config.channels
+                    ],
+                    "severity_filter": [
+                        level.value
+                        for level in self.notification_config.severity_filter
+                    ],
                 },
-                "exported_at": datetime.now(tz=datetime.timezone.utc).isoformat()
+                "exported_at": datetime.now(tz=timezone.utc).isoformat(),
             }
 
             write_json(config_data, output_path)
@@ -864,11 +948,18 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
             imported_patterns = []
             for pattern_data in config_data.get("error_patterns", []):
                 recovery_strategy = RecoveryStrategy(
-                    trigger_conditions=pattern_data["recovery_strategy"]["trigger_conditions"],
-                    actions=[RecoveryAction(action) for action in pattern_data["recovery_strategy"]["actions"]],
+                    trigger_conditions=pattern_data["recovery_strategy"][
+                        "trigger_conditions"
+                    ],
+                    actions=[
+                        RecoveryAction(action)
+                        for action in pattern_data["recovery_strategy"]["actions"]
+                    ],
                     max_attempts=pattern_data["recovery_strategy"]["max_attempts"],
                     delay_seconds=pattern_data["recovery_strategy"]["delay_seconds"],
-                    escalation_threshold=pattern_data["recovery_strategy"]["escalation_threshold"]
+                    escalation_threshold=pattern_data["recovery_strategy"][
+                        "escalation_threshold"
+                    ],
                 )
 
                 pattern = ErrorPattern(
@@ -877,7 +968,7 @@ timestamp=datetime.now(tz=datetime.timezone.utc)
                     frequency_threshold=pattern_data["frequency_threshold"],
                     time_window_minutes=pattern_data["time_window_minutes"],
                     recovery_strategy=recovery_strategy,
-                    description=pattern_data["description"]
+                    description=pattern_data["description"],
                 )
 
                 imported_patterns.append(pattern)

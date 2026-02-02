@@ -12,13 +12,13 @@ from typing import Any, Optional
 
 try:
     from nemo_microservices.data_designer.essentials import (
-        NeMoDataDesignerClient,
+        CategorySamplerParams,
         DataDesignerConfigBuilder,
+        GaussianSamplerParams,
+        NeMoDataDesignerClient,
         SamplerColumnConfig,
         SamplerType,
-        CategorySamplerParams,
         UniformSamplerParams,
-        GaussianSamplerParams,
     )
 except ImportError as e:
     raise ImportError(
@@ -49,7 +49,9 @@ class NeMoDataDesignerService:
             default_headers={"Authorization": f"Bearer {self.config.api_key}"},
         )
 
-        logger.info(f"NeMo Data Designer service initialized with base_url: {self.config.base_url}")
+        logger.info(
+            f"NeMo Data Designer service initialized with base_url: {self.config.base_url}"
+        )
 
     def generate_therapeutic_dataset(
         self,
@@ -232,7 +234,9 @@ class NeMoDataDesignerService:
             column_names.append("client_satisfaction")
 
         # Generate the dataset
-        logger.info(f"Generating {num_samples} synthetic therapeutic dataset samples...")
+        logger.info(
+            f"Generating {num_samples} synthetic therapeutic dataset samples..."
+        )
         start_time = time.time()
 
         try:
@@ -246,13 +250,15 @@ class NeMoDataDesignerService:
                     num_records=num_samples,
                 )
                 elapsed_time = time.time() - start_time
-                logger.info(f"Dataset generation completed in {elapsed_time:.2f} seconds")
+                logger.info(
+                    f"Dataset generation completed in {elapsed_time:.2f} seconds"
+                )
 
                 # Extract dataset from preview results
                 # PreviewResults has a 'dataset' attribute containing the actual data
-                if hasattr(preview_results, 'dataset'):
+                if hasattr(preview_results, "dataset"):
                     data = preview_results.dataset
-                elif hasattr(preview_results, 'data'):
+                elif hasattr(preview_results, "data"):
                     data = preview_results.data
                 else:
                     data = preview_results
@@ -269,30 +275,38 @@ class NeMoDataDesignerService:
                     )
 
                     # Load the dataset using the job_result object
-                    if hasattr(job_result, 'load_dataset'):
+                    if hasattr(job_result, "load_dataset"):
                         data = job_result.load_dataset()
-                    elif hasattr(job_result, 'dataset'):
+                    elif hasattr(job_result, "dataset"):
                         data = job_result.dataset
-                    elif hasattr(job_result, 'data'):
+                    elif hasattr(job_result, "data"):
                         data = job_result.data
                     else:
                         # Fallback: try to get job ID and retrieve results
-                        job_id = getattr(job_result, 'job_id', None) or getattr(job_result, 'id', None)
+                        job_id = getattr(job_result, "job_id", None) or getattr(
+                            job_result, "id", None
+                        )
                         if job_id:
-                            logger.info(f"Job completed, fetching dataset for job_id: {job_id}")
+                            logger.info(
+                                f"Job completed, fetching dataset for job_id: {job_id}"
+                            )
                             # Try alternative API endpoint
                             data = self.client.get_job_results(job_id=job_id)
-                            if hasattr(data, 'data'):
+                            if hasattr(data, "data"):
                                 data = data.data
                         else:
-                            raise ValueError("Could not extract dataset from job_result")
+                            raise ValueError(
+                                "Could not extract dataset from job_result"
+                            )
 
                     elapsed_time = time.time() - start_time
                     logger.info(f"✅ Job completed in {elapsed_time:.2f} seconds")
 
                 except Exception as e:
                     # If wait_until_done fails, fall back to manual polling
-                    logger.warning(f"wait_until_done failed, trying manual polling: {e}")
+                    logger.warning(
+                        f"wait_until_done failed, trying manual polling: {e}"
+                    )
                     job_result = self.client.create(
                         config_builder=config_builder,
                         num_records=num_samples,
@@ -300,15 +314,19 @@ class NeMoDataDesignerService:
                     )
 
                     # Use job_result methods if available
-                    if hasattr(job_result, 'wait_until_done'):
+                    if hasattr(job_result, "wait_until_done"):
                         job_result.wait_until_done()
-                        if hasattr(job_result, 'load_dataset'):
+                        if hasattr(job_result, "load_dataset"):
                             data = job_result.load_dataset()
                         else:
                             raise ValueError("job_result missing load_dataset method")
                     else:
                         # Fallback: manual polling using job_result object
-                        job_id = getattr(job_result, 'job_id', None) or getattr(job_result, 'id', None) or str(job_result)
+                        job_id = (
+                            getattr(job_result, "job_id", None)
+                            or getattr(job_result, "id", None)
+                            or str(job_result)
+                        )
                         logger.info(f"Job created: {job_id}, polling for completion...")
 
                         max_wait_time = self.config.timeout
@@ -321,29 +339,39 @@ class NeMoDataDesignerService:
 
                             try:
                                 # Try using job_result methods
-                                if hasattr(job_result, 'get_job_status'):
+                                if hasattr(job_result, "get_job_status"):
                                     status = job_result.get_job_status()
-                                    if status in ['completed', 'done', 'success']:
-                                        if hasattr(job_result, 'load_dataset'):
+                                    if status in ["completed", "done", "success"]:
+                                        if hasattr(job_result, "load_dataset"):
                                             data = job_result.load_dataset()
                                             break
                                 else:
                                     # Fallback: use client method
-                                    job_status = self.client.get_job_results(job_id=job_id)
-                                    if hasattr(job_status, 'data') and job_status.data:
+                                    job_status = self.client.get_job_results(
+                                        job_id=job_id
+                                    )
+                                    if hasattr(job_status, "data") and job_status.data:
                                         data = job_status.data
                                         break
 
                                     # Log progress every 30 seconds
                                     if elapsed % 30 == 0:
-                                        status = getattr(job_status, 'status', 'unknown')
-                                        logger.info(f"⏳ Job status: {status} ({elapsed}s elapsed)")
+                                        status = getattr(
+                                            job_status, "status", "unknown"
+                                        )
+                                        logger.info(
+                                            f"⏳ Job status: {status} ({elapsed}s elapsed)"
+                                        )
                             except Exception as poll_error:
-                                logger.warning(f"Error checking job status: {poll_error}")
+                                logger.warning(
+                                    f"Error checking job status: {poll_error}"
+                                )
                                 if elapsed > 60:
                                     raise
                         else:
-                            raise TimeoutError(f"Job {job_id} did not complete within {max_wait_time} seconds")
+                            raise TimeoutError(
+                                f"Job {job_id} did not complete within {max_wait_time} seconds"
+                            )
 
                     elapsed_time = time.time() - start_time
 
@@ -455,14 +483,16 @@ class NeMoDataDesignerService:
                 wait_until_done=True,
             )
             elapsed_time = time.time() - start_time
-            logger.info(f"✅ Bias detection dataset generation completed in {elapsed_time:.2f} seconds")
+            logger.info(
+                f"✅ Bias detection dataset generation completed in {elapsed_time:.2f} seconds"
+            )
 
             # Load the dataset using the job_result object
-            if hasattr(job_result, 'load_dataset'):
+            if hasattr(job_result, "load_dataset"):
                 data = job_result.load_dataset()
-            elif hasattr(job_result, 'dataset'):
+            elif hasattr(job_result, "dataset"):
                 data = job_result.dataset
-            elif hasattr(job_result, 'data'):
+            elif hasattr(job_result, "data"):
                 data = job_result.data
             else:
                 data = job_result
@@ -508,14 +538,16 @@ class NeMoDataDesignerService:
                 wait_until_done=True,
             )
             elapsed_time = time.time() - start_time
-            logger.info(f"✅ Custom dataset generation completed in {elapsed_time:.2f} seconds")
+            logger.info(
+                f"✅ Custom dataset generation completed in {elapsed_time:.2f} seconds"
+            )
 
             # Load the dataset using the job_result object
-            if hasattr(job_result, 'load_dataset'):
+            if hasattr(job_result, "load_dataset"):
                 data = job_result.load_dataset()
-            elif hasattr(job_result, 'dataset'):
+            elif hasattr(job_result, "dataset"):
                 data = job_result.dataset
-            elif hasattr(job_result, 'data'):
+            elif hasattr(job_result, "data"):
                 data = job_result.data
             else:
                 data = job_result
@@ -529,4 +561,3 @@ class NeMoDataDesignerService:
         except Exception as e:
             logger.error(f"Failed to generate custom dataset: {e}")
             raise
-

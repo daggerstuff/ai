@@ -212,7 +212,9 @@ class AudioProcessor:
                 file_path,
             ]
 
-            result = subprocess.run(cmd, check=False, capture_output=True, text=True, timeout=30)
+            result = subprocess.run(
+                cmd, check=False, capture_output=True, text=True, timeout=30
+            )
 
             if result.returncode == 0:
                 data = json.loads(result.stdout)
@@ -465,7 +467,9 @@ class AudioProcessor:
                         segment_path,
                     ]
 
-                    result = subprocess.run(cmd, check=False, capture_output=True, text=True)
+                    result = subprocess.run(
+                        cmd, check=False, capture_output=True, text=True
+                    )
 
                     if result.returncode == 0:
                         segments.append(
@@ -629,7 +633,9 @@ class AudioProcessor:
         results = []
 
         for i, input_file in enumerate(input_files):
-            self.logger.info(f"Processing file {i+1}/{len(input_files)}: {input_file}")
+            self.logger.info(
+                f"Processing file {i + 1}/{len(input_files)}: {input_file}"
+            )
 
             # Create file-specific output directory
             file_name = Path(input_file).stem

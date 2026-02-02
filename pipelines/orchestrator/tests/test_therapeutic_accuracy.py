@@ -60,7 +60,9 @@ def test_therapeutic_no_evidence():
 
 
 def test_therapeutic_no_messages():
-    conv = Conversation(id="a4", messages=[], source="testset", created_at=datetime.datetime.now())
+    conv = Conversation(
+        id="a4", messages=[], source="testset", created_at=datetime.datetime.now()
+    )
     result = validate_therapeutic_accuracy(conv)
     assert result["score"] == 0.0
     assert "No messages in conversation" in result["issues"]

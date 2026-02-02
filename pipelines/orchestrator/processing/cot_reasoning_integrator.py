@@ -23,7 +23,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from logger import get_logger
+from ai.pipelines.orchestrator.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -295,11 +295,15 @@ class CoTReasoningIntegrator:
 
     def _build_cot_registry_map(self) -> dict[str, str]:
         datasets = self.dataset_registry.get("datasets", {}).get("cot_reasoning", {})
-        return {
-            name: entry.get("path")
-            for name, entry in datasets.items()
-            if isinstance(entry, dict) and entry.get("path")
-        }
+        registry_map: dict[str, str] = {}
+        for name, entry in datasets.items():
+            if not isinstance(entry, dict):
+                continue
+            path_value = entry.get("path")
+            if isinstance(path_value, str) and path_value:
+                registry_map[str(name)] = path_value
+
+        return registry_map
 
     def _resolve_dataset_path(self, dataset_name: str) -> str | None:
         if dataset_name in self.cot_registry_map:
@@ -342,9 +346,7 @@ class CoTReasoningIntegrator:
         cmd = ["ovhai", "cp", resolved_path, str(target_path)]
 
         try:
-            completed = subprocess.run(
-                cmd, check=True, capture_output=True, text=True
-            )
+            completed = subprocess.run(cmd, check=True, capture_output=True, text=True)
             if completed.stdout:
                 logger.info(completed.stdout.strip())
         except subprocess.CalledProcessError as exc:
@@ -373,8 +375,9 @@ class CoTReasoningIntegrator:
         return {
             "integration_type": "Chain-of-Thought Reasoning Datasets",
             "total_datasets": len(self.cot_configs),
-            "successful_integrations": sum(bool(result.get("success"))
-                                       for result in results.values()),
+            "successful_integrations": sum(
+                bool(result.get("success")) for result in results.values()
+            ),
             "total_examples": total_examples,
             "processing_time": (datetime.now() - start_time).total_seconds(),
             "individual_results": results,
@@ -404,7 +407,9 @@ class CoTReasoningIntegrator:
             dataset_path = self._select_dataset_path(resolved_path, config["name"])
 
             if self._is_s3_path(resolved_path) and not dataset_path.exists():
-                self._download_remote_dataset(resolved_path or "", dataset_path, result["issues"])
+                self._download_remote_dataset(
+                    resolved_path or "", dataset_path, result["issues"]
+                )
 
             if not dataset_path.exists():
                 self._create_mock_cot_data(dataset_path, config)
@@ -618,9 +623,7 @@ class CoTReasoningIntegrator:
                 f"Therapeutic reasoning scenario for {config['description']} focusing on "
                 f"{config['therapeutic_focus']}."
             )
-            conclusion = (
-                "Apply evidence-aligned plan with clear safety checks, documentation, and follow-up."
-            )
+            conclusion = "Apply evidence-aligned plan with clear safety checks, documentation, and follow-up."
         else:
             problem, reasoning_chain, conclusion = scenarios[reasoning_type]
 
@@ -663,7 +666,9 @@ class CoTReasoningIntegrator:
     ) -> CoTExample | None:
         """Process and validate a CoT example."""
         try:
-            example_id = example_data.get("id", f"cot_{hash(str(example_data))%10000}")
+            example_id = example_data.get(
+                "id", f"cot_{hash(str(example_data)) % 10000}"
+            )
             problem_statement = example_data.get("problem_statement", "")
             reasoning_chain = example_data.get("reasoning_chain", [])
             conclusion = example_data.get("conclusion", "")
@@ -755,7 +760,6 @@ class CoTReasoningIntegrator:
             "reasoning_depth": sum(steps >= 5 for steps in reasoning_step_counts)
             / len(reasoning_step_counts),
         }
-
 
     def _save_cot_dataset(
         self, cot_dataset: CoTDataset, quality_metrics: dict[str, float]

@@ -23,51 +23,74 @@ from .ingestion_interface import IngestionError, IngestRecord
 
 class SpeakerTurn(BaseModel):
     """A single turn in a conversation."""
-    speaker_id: str = Field(..., min_length=1, description="Unique speaker identifier (e.g., 'therapist', 'client')")
-    content: str = Field(..., min_length=1, max_length=5000, description="Dialogue content")
+
+    speaker_id: str = Field(
+        ...,
+        min_length=1,
+        description="Unique speaker identifier (e.g., 'therapist', 'client')",
+    )
+    content: str = Field(
+        ..., min_length=1, max_length=5000, description="Dialogue content"
+    )
     timestamp: datetime | None = Field(None, description="When the turn occurred")
-    metadata: dict[str, Any] = Field(default_factory=dict, description="Additional turn-specific data")
+    metadata: dict[str, Any] = Field(
+        default_factory=dict, description="Additional turn-specific data"
+    )
 
     @validator("content")
     def sanitize_content(self, v):
         """Sanitize text to prevent XSS/HTML injection."""
         # Basic HTML sanitization using bleach
         cleaned = bleach.clean(
-            v,
-            tags=["p", "br", "strong", "em", "ul", "ol", "li"],
-            strip=True
+            v, tags=["p", "br", "strong", "em", "ul", "ol", "li"], strip=True
         )
         # Remove any remaining suspicious patterns (e.g., script tags, etc.)
-        cleaned = re.sub(r"<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(
+            r"<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>",
+            "",
+            cleaned,
+            flags=re.IGNORECASE,
+        )
         if len(cleaned) != len(v.strip()):
-            raise ValueError("Content altered during sanitization - potential security issue")
+            raise ValueError(
+                "Content altered during sanitization - potential security issue"
+            )
         return cleaned.strip()
 
     @validator("speaker_id")
     def validate_speaker_id(self, v):
         """Ensure speaker ID is safe and valid."""
         if not re.match(r"^[a-zA-Z0-9_-]+$", v):
-            raise ValueError("Speaker ID must be alphanumeric with underscores/hyphens only")
+            raise ValueError(
+                "Speaker ID must be alphanumeric with underscores/hyphens only"
+            )
         return v
 
 
 class ConversationRecord(BaseModel):
     """Canonical schema for a mental health conversation record."""
+
     id: str = Field(..., min_length=1, max_length=100, description="Unique record ID")
     title: str | None = Field(None, max_length=200, description="Conversation title")
-    turns: list[SpeakerTurn] = Field(..., min_items=1, max_items=1000, description="List of dialogue turns")
-    source_type: str = Field(..., description="Original source (e.g., 'csv', 'json', 'audio_transcript')")
+    turns: list[SpeakerTurn] = Field(
+        ..., min_items=1, max_items=1000, description="List of dialogue turns"
+    )
+    source_type: str = Field(
+        ..., description="Original source (e.g., 'csv', 'json', 'audio_transcript')"
+    )
     source_id: str | None = Field(None, description="Original source identifier")
     metadata: dict[str, Any] = Field(
         default_factory=dict,
-        description="Provenance: timestamps, source details, quality scores"
+        description="Provenance: timestamps, source details, quality scores",
     )
 
     @validator("id")
     def validate_id(self, v):
         """Ensure ID is a valid UUID-like or safe string."""
         if not re.match(r"^[a-zA-Z0-9-_.]+$", v):
-            raise ValueError("ID must be alphanumeric with hyphens/underscores/periods only")
+            raise ValueError(
+                "ID must be alphanumeric with hyphens/underscores/periods only"
+            )
         return v
 
     @validator("turns")
@@ -78,17 +101,26 @@ class ConversationRecord(BaseModel):
         speakers = [turn.speaker_id for turn in v]
         unique_speakers = set(speakers)
         if len(unique_speakers) < 2:
-            raise ValueError("Must have at least two distinct speakers (e.g., therapist/client)")
+            raise ValueError(
+                "Must have at least two distinct speakers (e.g., therapist/client)"
+            )
         # Check for alternating (simple heuristic)
         for i in range(1, len(v)):
-            if v[i].speaker_id == v[i-1].speaker_id:
+            if v[i].speaker_id == v[i - 1].speaker_id:
                 raise ValueError(f"Consecutive turns by same speaker at index {i}")
         return v
 
     @validator("source_type")
     def validate_source_type(self, v):
         """Restrict to known source types."""
-        allowed = {"csv", "json", "audio_transcript", "youtube", "s3_object", "gcs_object"}
+        allowed = {
+            "csv",
+            "json",
+            "audio_transcript",
+            "youtube",
+            "s3_object",
+            "gcs_object",
+        }
         if v.lower() not in allowed:
             raise ValueError(f"Unknown source_type: {v}. Allowed: {allowed}")
         return v.lower()
@@ -96,10 +128,19 @@ class ConversationRecord(BaseModel):
 
 class QualityScore(BaseModel):
     """Initial quality scoring model."""
-    completeness: float = Field(..., ge=0.0, le=1.0, description="Fraction of required fields present")
-    coherence: float = Field(..., ge=0.0, le=1.0, description="Turn coherence score (0-1)")
-    relevance: float = Field(..., ge=0.0, le=1.0, description="Mental health topic relevance (0-1)")
-    raw_score: float = Field(..., ge=0.0, le=10.0, description="Overall score before normalization")
+
+    completeness: float = Field(
+        ..., ge=0.0, le=1.0, description="Fraction of required fields present"
+    )
+    coherence: float = Field(
+        ..., ge=0.0, le=1.0, description="Turn coherence score (0-1)"
+    )
+    relevance: float = Field(
+        ..., ge=0.0, le=1.0, description="Mental health topic relevance (0-1)"
+    )
+    raw_score: float = Field(
+        ..., ge=0.0, le=10.0, description="Overall score before normalization"
+    )
 
     @validator("completeness", "coherence", "relevance")
     def normalize_scores(self, v):
@@ -112,11 +153,25 @@ class QualityScore(BaseModel):
         # Simple heuristics for now; expand with ML later
         num_turns = len(record.turns)
         completeness = min(1.0, num_turns / 20.0)  # Favor 20+ turns
-        avg_turn_length = sum(len(turn.content) for turn in record.turns) / num_turns / 100  # Per 100 chars
+        avg_turn_length = (
+            sum(len(turn.content) for turn in record.turns) / num_turns / 100
+        )  # Per 100 chars
         coherence = min(1.0, avg_turn_length)  # Longer turns = more coherent
-        relevance = 0.7 if any("mental" in turn.content.lower() or "health" in turn.content.lower() for turn in record.turns) else 0.3
+        relevance = (
+            0.7
+            if any(
+                "mental" in turn.content.lower() or "health" in turn.content.lower()
+                for turn in record.turns
+            )
+            else 0.3
+        )
         raw_score = (completeness + coherence + relevance) * 10 / 3
-        return cls(completeness=completeness, coherence=coherence, relevance=relevance, raw_score=raw_score)
+        return cls(
+            completeness=completeness,
+            coherence=coherence,
+            relevance=relevance,
+            raw_score=raw_score,
+        )
 
 
 def validate_record(raw_record: IngestRecord) -> ConversationRecord:
@@ -141,7 +196,9 @@ def validate_record(raw_record: IngestRecord) -> ConversationRecord:
                 {
                     "speaker_id": row.get("speaker", f"speaker_{i}"),
                     "content": row.get("content", ""),
-                    "timestamp": datetime.fromisoformat(row.get("timestamp", "")) if row.get("timestamp") else None,
+                    "timestamp": datetime.fromisoformat(row.get("timestamp", ""))
+                    if row.get("timestamp")
+                    else None,
                 }
                 for i, row in enumerate(payload.get("rows", []))
             ]
@@ -171,7 +228,9 @@ def validate_record(raw_record: IngestRecord) -> ConversationRecord:
                 {
                     "speaker_id": seg.get("speaker", "unknown"),
                     "content": seg.get("text", ""),
-                    "timestamp": datetime.fromtimestamp(seg.get("start_time", 0)) if seg.get("start_time") else None,
+                    "timestamp": datetime.fromtimestamp(seg.get("start_time", 0))
+                    if seg.get("start_time")
+                    else None,
                 }
                 for seg in segments
             ]

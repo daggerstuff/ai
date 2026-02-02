@@ -15,31 +15,40 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from big_five_processor import BigFiveProcessor, PersonalityFactor
-from client_scenario_generator import (
+from ai.pipelines.orchestrator.generation.client_scenario_generator import (
     ClientScenario,
     DemographicCategory,
     ScenarioType,
     SeverityLevel,
 )
-from conversation_schema import Conversation
-from dsm5_parser import DSM5Parser, DSMCategory
-from logger import get_logger
-from pdm2_parser import PDM2Parser
+from ai.pipelines.orchestrator.processing.big_five_processor import (
+    BigFiveProcessor,
+    PersonalityFactor,
+)
+from ai.pipelines.orchestrator.processing.dsm5_parser import DSM5Parser, DSMCategory
+from ai.pipelines.orchestrator.processing.pdm2_parser import PDM2Parser
+from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation
+from ai.pipelines.orchestrator.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.knowledge_category_balancer")
 
 
 class BalanceStrategy(Enum):
     """Strategies for balancing knowledge categories."""
-    EQUAL_DISTRIBUTION = "equal_distribution"  # Equal representation across all categories
+
+    EQUAL_DISTRIBUTION = (
+        "equal_distribution"  # Equal representation across all categories
+    )
     CLINICAL_PREVALENCE = "clinical_prevalence"  # Based on real-world prevalence
-    THERAPEUTIC_PRIORITY = "therapeutic_priority"  # Prioritize common therapeutic scenarios
+    THERAPEUTIC_PRIORITY = (
+        "therapeutic_priority"  # Prioritize common therapeutic scenarios
+    )
     CUSTOM_WEIGHTS = "custom_weights"  # User-defined category weights
 
 
 class BalanceMetric(Enum):
     """Metrics for measuring dataset balance."""
+
     ENTROPY = "entropy"  # Information entropy across categories
     GINI_COEFFICIENT = "gini_coefficient"  # Inequality measure
     CHI_SQUARE = "chi_square"  # Goodness of fit test
@@ -49,6 +58,7 @@ class BalanceMetric(Enum):
 @dataclass
 class CategoryDistribution:
     """Distribution statistics for a knowledge category."""
+
     category_name: str
     total_count: int
     percentage: float
@@ -60,6 +70,7 @@ class CategoryDistribution:
 @dataclass
 class BalanceReport:
     """Comprehensive balance analysis report."""
+
     dataset_id: str
     total_items: int
     balance_score: float  # 0.0 to 1.0, higher is better
@@ -99,40 +110,40 @@ class KnowledgeCategoryBalancer:
         # Equal distribution targets
         self.equal_targets = {
             "dsm5_categories": {
-                DSMCategory.ANXIETY.value: 1/8,
-                DSMCategory.DEPRESSIVE.value: 1/8,
-                DSMCategory.BIPOLAR.value: 1/8,
-                DSMCategory.TRAUMA_STRESSOR.value: 1/8,
-                DSMCategory.OBSESSIVE_COMPULSIVE.value: 1/8,
-                DSMCategory.NEURODEVELOPMENTAL.value: 1/8,
-                DSMCategory.PERSONALITY.value: 1/8,
-                DSMCategory.SUBSTANCE_RELATED.value: 1/8
+                DSMCategory.ANXIETY.value: 1 / 8,
+                DSMCategory.DEPRESSIVE.value: 1 / 8,
+                DSMCategory.BIPOLAR.value: 1 / 8,
+                DSMCategory.TRAUMA_STRESSOR.value: 1 / 8,
+                DSMCategory.OBSESSIVE_COMPULSIVE.value: 1 / 8,
+                DSMCategory.NEURODEVELOPMENTAL.value: 1 / 8,
+                DSMCategory.PERSONALITY.value: 1 / 8,
+                DSMCategory.SUBSTANCE_RELATED.value: 1 / 8,
             },
             "pdm2_attachment": {
                 "secure": 0.25,
                 "anxious_preoccupied": 0.25,
                 "dismissive_avoidant": 0.25,
-                "disorganized": 0.25
+                "disorganized": 0.25,
             },
             "big_five_factors": {
                 PersonalityFactor.OPENNESS.value: 0.2,
                 PersonalityFactor.CONSCIENTIOUSNESS.value: 0.2,
                 PersonalityFactor.EXTRAVERSION.value: 0.2,
                 PersonalityFactor.AGREEABLENESS.value: 0.2,
-                PersonalityFactor.NEUROTICISM.value: 0.2
+                PersonalityFactor.NEUROTICISM.value: 0.2,
             },
             "severity_levels": {
                 SeverityLevel.MILD.value: 0.25,
                 SeverityLevel.MODERATE.value: 0.25,
                 SeverityLevel.SEVERE.value: 0.25,
-                SeverityLevel.CRISIS.value: 0.25
+                SeverityLevel.CRISIS.value: 0.25,
             },
             "scenario_types": {
                 ScenarioType.INITIAL_ASSESSMENT.value: 0.25,
                 ScenarioType.DIAGNOSTIC_INTERVIEW.value: 0.25,
                 ScenarioType.THERAPEUTIC_SESSION.value: 0.25,
-                ScenarioType.CRISIS_INTERVENTION.value: 0.25
-            }
+                ScenarioType.CRISIS_INTERVENTION.value: 0.25,
+            },
         }
 
         # Clinical prevalence-based targets (approximating real-world frequencies)
@@ -145,20 +156,20 @@ class KnowledgeCategoryBalancer:
                 DSMCategory.BIPOLAR.value: 0.08,
                 DSMCategory.OBSESSIVE_COMPULSIVE.value: 0.05,
                 DSMCategory.PERSONALITY.value: 0.04,
-                DSMCategory.NEURODEVELOPMENTAL.value: 0.03
+                DSMCategory.NEURODEVELOPMENTAL.value: 0.03,
             },
             "severity_levels": {
                 SeverityLevel.MILD.value: 0.40,
                 SeverityLevel.MODERATE.value: 0.35,
                 SeverityLevel.SEVERE.value: 0.20,
-                SeverityLevel.CRISIS.value: 0.05
+                SeverityLevel.CRISIS.value: 0.05,
             },
             "scenario_types": {
                 ScenarioType.THERAPEUTIC_SESSION.value: 0.50,
                 ScenarioType.INITIAL_ASSESSMENT.value: 0.30,
                 ScenarioType.DIAGNOSTIC_INTERVIEW.value: 0.15,
-                ScenarioType.CRISIS_INTERVENTION.value: 0.05
-            }
+                ScenarioType.CRISIS_INTERVENTION.value: 0.05,
+            },
         }
 
         # Therapeutic priority targets (emphasizing training value)
@@ -171,14 +182,14 @@ class KnowledgeCategoryBalancer:
                 DSMCategory.OBSESSIVE_COMPULSIVE.value: 0.08,
                 DSMCategory.PERSONALITY.value: 0.07,
                 DSMCategory.SUBSTANCE_RELATED.value: 0.03,
-                DSMCategory.NEURODEVELOPMENTAL.value: 0.02
+                DSMCategory.NEURODEVELOPMENTAL.value: 0.02,
             },
             "severity_levels": {
                 SeverityLevel.MODERATE.value: 0.40,
                 SeverityLevel.SEVERE.value: 0.30,
                 SeverityLevel.MILD.value: 0.20,
-                SeverityLevel.CRISIS.value: 0.10
-            }
+                SeverityLevel.CRISIS.value: 0.10,
+            },
         }
 
         logger.info("Initialized balance targets for different strategies")
@@ -187,7 +198,7 @@ class KnowledgeCategoryBalancer:
         self,
         scenarios: list[ClientScenario],
         conversations: list[Conversation] | None = None,
-        strategy: BalanceStrategy = BalanceStrategy.EQUAL_DISTRIBUTION
+        strategy: BalanceStrategy = BalanceStrategy.EQUAL_DISTRIBUTION,
     ) -> BalanceReport:
         """Analyze the balance of knowledge categories in a dataset."""
 
@@ -197,7 +208,7 @@ class KnowledgeCategoryBalancer:
                 total_items=0,
                 balance_score=0.0,
                 strategy_used=strategy,
-                generated_at=datetime.now().isoformat()
+                generated_at=datetime.now().isoformat(),
             )
 
         # Get target distributions based on strategy
@@ -222,9 +233,13 @@ class KnowledgeCategoryBalancer:
                     category_name=category,
                     total_count=sum(dist_data.values()),
                     percentage=sum(dist_data.values()) / len(scenarios),
-                    target_percentage=sum(target_dist.values()) if isinstance(target_dist, dict) else target_dist,
-                    deviation=self._calculate_category_deviation(dist_data, target_dist, len(scenarios)),
-                    subcategories=dist_data
+                    target_percentage=sum(target_dist.values())
+                    if isinstance(target_dist, dict)
+                    else target_dist,
+                    deviation=self._calculate_category_deviation(
+                        dist_data, target_dist, len(scenarios)
+                    ),
+                    subcategories=dist_data,
                 )
 
         report = BalanceReport(
@@ -235,13 +250,17 @@ class KnowledgeCategoryBalancer:
             distributions=distribution_objects,
             recommendations=recommendations,
             metrics=metrics,
-            generated_at=datetime.now().isoformat()
+            generated_at=datetime.now().isoformat(),
         )
 
-        logger.info(f"Analyzed dataset balance: {len(scenarios)} scenarios, score: {balance_score:.2f}")
+        logger.info(
+            f"Analyzed dataset balance: {len(scenarios)} scenarios, score: {balance_score:.2f}"
+        )
         return report
 
-    def _get_target_distributions(self, strategy: BalanceStrategy) -> dict[str, dict[str, float]]:
+    def _get_target_distributions(
+        self, strategy: BalanceStrategy
+    ) -> dict[str, dict[str, float]]:
         """Get target distributions based on balance strategy."""
         if strategy == BalanceStrategy.EQUAL_DISTRIBUTION:
             return self.equal_targets
@@ -251,7 +270,9 @@ class KnowledgeCategoryBalancer:
             return self.therapeutic_targets
         return self.equal_targets  # Default fallback
 
-    def _analyze_current_distributions(self, scenarios: list[ClientScenario]) -> dict[str, dict[str, int]]:
+    def _analyze_current_distributions(
+        self, scenarios: list[ClientScenario]
+    ) -> dict[str, dict[str, int]]:
         """Analyze current distributions across knowledge categories."""
         distributions = {
             "dsm5_categories": defaultdict(int),
@@ -259,7 +280,7 @@ class KnowledgeCategoryBalancer:
             "big_five_factors": defaultdict(int),
             "severity_levels": defaultdict(int),
             "scenario_types": defaultdict(int),
-            "demographic_categories": defaultdict(int)
+            "demographic_categories": defaultdict(int),
         }
 
         for scenario in scenarios:
@@ -269,7 +290,9 @@ class KnowledgeCategoryBalancer:
                 for consideration in scenario.clinical_formulation.dsm5_considerations:
                     for disorder in self.dsm5_parser.get_disorders():
                         if disorder.name.lower() in consideration.lower():
-                            distributions["dsm5_categories"][disorder.category.value] += 1
+                            distributions["dsm5_categories"][
+                                disorder.category.value
+                            ] += 1
                             break
 
             # PDM-2 attachment patterns
@@ -307,7 +330,9 @@ class KnowledgeCategoryBalancer:
             distributions["scenario_types"][scenario.scenario_type.value] += 1
 
             # Demographic categories
-            distributions["demographic_categories"][scenario.demographics.occupation] += 1
+            distributions["demographic_categories"][
+                scenario.demographics.occupation
+            ] += 1
 
         # Convert defaultdicts to regular dicts
         return {k: dict(v) for k, v in distributions.items()}
@@ -315,7 +340,7 @@ class KnowledgeCategoryBalancer:
     def _calculate_balance_score(
         self,
         distributions: dict[str, dict[str, int]],
-        targets: dict[str, dict[str, float]]
+        targets: dict[str, dict[str, float]],
     ) -> float:
         """Calculate overall balance score (0.0 to 1.0, higher is better)."""
 
@@ -352,7 +377,7 @@ class KnowledgeCategoryBalancer:
     def _calculate_balance_metrics(
         self,
         distributions: dict[str, dict[str, int]],
-        targets: dict[str, dict[str, float]]
+        targets: dict[str, dict[str, float]],
     ) -> dict[str, float]:
         """Calculate detailed balance metrics."""
         metrics = {}
@@ -369,6 +394,7 @@ class KnowledgeCategoryBalancer:
 
             # Calculate entropy
             import math
+
             entropy = 0.0
             for count in dist_data.values():
                 if count > 0:
@@ -400,10 +426,7 @@ class KnowledgeCategoryBalancer:
         return metrics
 
     def _calculate_category_deviation(
-        self,
-        dist_data: dict[str, int],
-        target_dist: dict[str, float],
-        total_items: int
+        self, dist_data: dict[str, int], target_dist: dict[str, float], total_items: int
     ) -> float:
         """Calculate deviation from target distribution for a category."""
         if total_items == 0:
@@ -419,7 +442,7 @@ class KnowledgeCategoryBalancer:
     def _generate_balance_recommendations(
         self,
         distributions: dict[str, dict[str, int]],
-        targets: dict[str, dict[str, float]]
+        targets: dict[str, dict[str, float]],
     ) -> list[str]:
         """Generate recommendations for improving dataset balance."""
         recommendations = []
@@ -469,10 +492,12 @@ class KnowledgeCategoryBalancer:
         self,
         target_count: int,
         strategy: BalanceStrategy = BalanceStrategy.EQUAL_DISTRIBUTION,
-        existing_scenarios: list[ClientScenario] | None = None
+        existing_scenarios: list[ClientScenario] | None = None,
     ) -> list[ClientScenario]:
         """Generate a balanced set of client scenarios."""
-        from client_scenario_generator import ClientScenarioGenerator
+        from ai.pipelines.orchestrator.generation.client_scenario_generator import (
+            ClientScenarioGenerator,
+        )
 
         scenario_generator = ClientScenarioGenerator()
         targets = self._get_target_distributions(strategy)
@@ -482,7 +507,9 @@ class KnowledgeCategoryBalancer:
 
         # Account for existing scenarios if provided
         if existing_scenarios:
-            existing_distributions = self._analyze_current_distributions(existing_scenarios)
+            existing_distributions = self._analyze_current_distributions(
+                existing_scenarios
+            )
             target_counts = self._adjust_targets_for_existing(
                 target_counts, existing_distributions, len(existing_scenarios)
             )
@@ -495,7 +522,11 @@ class KnowledgeCategoryBalancer:
         for category_str, count in dsm5_targets.items():
             try:
                 category = DSMCategory(category_str)
-                disorders = [d for d in self.dsm5_parser.get_disorders() if d.category == category]
+                disorders = [
+                    d
+                    for d in self.dsm5_parser.get_disorders()
+                    if d.category == category
+                ]
 
                 for _ in range(count):
                     if disorders:
@@ -503,7 +534,7 @@ class KnowledgeCategoryBalancer:
                         scenario = scenario_generator.generate_client_scenario(
                             target_disorder=disorder.name,
                             severity_level=self._select_balanced_severity(targets),
-                            scenario_type=self._select_balanced_scenario_type(targets)
+                            scenario_type=self._select_balanced_scenario_type(targets),
                         )
                         generated_scenarios.append(scenario)
             except ValueError:
@@ -515,17 +546,17 @@ class KnowledgeCategoryBalancer:
             scenario = scenario_generator.generate_client_scenario(
                 severity_level=self._select_balanced_severity(targets),
                 scenario_type=self._select_balanced_scenario_type(targets),
-                demographic_category=self._select_balanced_demographic()
+                demographic_category=self._select_balanced_demographic(),
             )
             generated_scenarios.append(scenario)
 
-        logger.info(f"Generated {len(generated_scenarios)} balanced scenarios using {strategy.value}")
+        logger.info(
+            f"Generated {len(generated_scenarios)} balanced scenarios using {strategy.value}"
+        )
         return generated_scenarios
 
     def _calculate_target_counts(
-        self,
-        total_count: int,
-        targets: dict[str, dict[str, float]]
+        self, total_count: int, targets: dict[str, dict[str, float]]
     ) -> dict[str, dict[str, int]]:
         """Calculate target counts for each category."""
         target_counts = {}
@@ -542,7 +573,7 @@ class KnowledgeCategoryBalancer:
         self,
         target_counts: dict[str, dict[str, int]],
         existing_distributions: dict[str, dict[str, int]],
-        existing_total: int
+        existing_total: int,
     ) -> dict[str, dict[str, int]]:
         """Adjust target counts based on existing scenario distributions."""
         adjusted_counts = {}
@@ -563,7 +594,9 @@ class KnowledgeCategoryBalancer:
 
         return adjusted_counts
 
-    def _select_balanced_severity(self, targets: dict[str, dict[str, float]]) -> SeverityLevel:
+    def _select_balanced_severity(
+        self, targets: dict[str, dict[str, float]]
+    ) -> SeverityLevel:
         """Select severity level based on target distribution."""
         if "severity_levels" in targets:
             severity_weights = targets["severity_levels"]
@@ -573,7 +606,9 @@ class KnowledgeCategoryBalancer:
             return SeverityLevel(selected)
         return random.choice(list(SeverityLevel))
 
-    def _select_balanced_scenario_type(self, targets: dict[str, dict[str, float]]) -> ScenarioType:
+    def _select_balanced_scenario_type(
+        self, targets: dict[str, dict[str, float]]
+    ) -> ScenarioType:
         """Select scenario type based on target distribution."""
         if "scenario_types" in targets:
             type_weights = targets["scenario_types"]
@@ -591,12 +626,14 @@ class KnowledgeCategoryBalancer:
         self,
         scenarios: list[ClientScenario],
         target_strategy: BalanceStrategy = BalanceStrategy.EQUAL_DISTRIBUTION,
-        max_additions: int = 100
+        max_additions: int = 100,
     ) -> tuple[list[ClientScenario], BalanceReport]:
         """Rebalance an existing dataset by adding scenarios to under-represented categories."""
 
         # Analyze current balance
-        current_report = self.analyze_dataset_balance(scenarios, strategy=target_strategy)
+        current_report = self.analyze_dataset_balance(
+            scenarios, strategy=target_strategy
+        )
 
         # Identify categories that need more representation
         additions_needed = []
@@ -610,7 +647,9 @@ class KnowledgeCategoryBalancer:
 
                 for subcategory, target_prop in target_dist.items():
                     current_count = current_dist.get(subcategory, 0)
-                    current_prop = current_count / total_current if total_current > 0 else 0
+                    current_prop = (
+                        current_count / total_current if total_current > 0 else 0
+                    )
 
                     if current_prop < target_prop - 0.05:  # 5% under target
                         needed = int((target_prop * len(scenarios)) - current_count)
@@ -637,16 +676,24 @@ class KnowledgeCategoryBalancer:
         balanced_scenarios = scenarios + additional_scenarios
 
         # Generate final balance report
-        final_report = self.analyze_dataset_balance(balanced_scenarios, strategy=target_strategy)
+        final_report = self.analyze_dataset_balance(
+            balanced_scenarios, strategy=target_strategy
+        )
 
-        logger.info(f"Rebalanced dataset: added {len(additional_scenarios)} scenarios, "
-                   f"balance score improved from {current_report.balance_score:.2f} to {final_report.balance_score:.2f}")
+        logger.info(
+            f"Rebalanced dataset: added {len(additional_scenarios)} scenarios, "
+            f"balance score improved from {current_report.balance_score:.2f} to {final_report.balance_score:.2f}"
+        )
 
         return balanced_scenarios, final_report
 
-    def _generate_targeted_scenario(self, category: str, subcategory: str) -> ClientScenario | None:
+    def _generate_targeted_scenario(
+        self, category: str, subcategory: str
+    ) -> ClientScenario | None:
         """Generate a scenario targeting a specific category and subcategory."""
-        from client_scenario_generator import ClientScenarioGenerator
+        from ai.pipelines.orchestrator.generation.client_scenario_generator import (
+            ClientScenarioGenerator,
+        )
 
         scenario_generator = ClientScenarioGenerator()
 
@@ -654,18 +701,28 @@ class KnowledgeCategoryBalancer:
             if category == "dsm5_categories":
                 # Find disorder matching the subcategory
                 category_enum = DSMCategory(subcategory)
-                disorders = [d for d in self.dsm5_parser.get_disorders() if d.category == category_enum]
+                disorders = [
+                    d
+                    for d in self.dsm5_parser.get_disorders()
+                    if d.category == category_enum
+                ]
                 if disorders:
                     disorder = random.choice(disorders)
-                    return scenario_generator.generate_client_scenario(target_disorder=disorder.name)
+                    return scenario_generator.generate_client_scenario(
+                        target_disorder=disorder.name
+                    )
 
             elif category == "severity_levels":
                 severity = SeverityLevel(subcategory)
-                return scenario_generator.generate_client_scenario(severity_level=severity)
+                return scenario_generator.generate_client_scenario(
+                    severity_level=severity
+                )
 
             elif category == "scenario_types":
                 scenario_type = ScenarioType(subcategory)
-                return scenario_generator.generate_client_scenario(scenario_type=scenario_type)
+                return scenario_generator.generate_client_scenario(
+                    scenario_type=scenario_type
+                )
 
             # Default generation
             return scenario_generator.generate_client_scenario()
@@ -686,7 +743,7 @@ class KnowledgeCategoryBalancer:
                     "distributions": {},
                     "recommendations": report.recommendations,
                     "metrics": report.metrics,
-                    "generated_at": report.generated_at
+                    "generated_at": report.generated_at,
                 }
             }
 
@@ -698,7 +755,7 @@ class KnowledgeCategoryBalancer:
                     "percentage": distribution.percentage,
                     "target_percentage": distribution.target_percentage,
                     "deviation": distribution.deviation,
-                    "subcategories": distribution.subcategories
+                    "subcategories": distribution.subcategories,
                 }
 
             # Ensure output directory exists
@@ -721,17 +778,20 @@ class KnowledgeCategoryBalancer:
 
         stats = {
             "total_reports": len(reports),
-            "average_balance_score": sum(r.balance_score for r in reports) / len(reports),
+            "average_balance_score": sum(r.balance_score for r in reports)
+            / len(reports),
             "score_distribution": {},
             "common_recommendations": {},
             "strategy_usage": {},
-            "improvement_trends": []
+            "improvement_trends": [],
         }
 
         # Score distribution
         for report in reports:
             score_range = f"{int(report.balance_score * 10) / 10:.1f}-{int(report.balance_score * 10) / 10 + 0.1:.1f}"
-            stats["score_distribution"][score_range] = stats["score_distribution"].get(score_range, 0) + 1
+            stats["score_distribution"][score_range] = (
+                stats["score_distribution"].get(score_range, 0) + 1
+            )
 
         # Common recommendations
         all_recommendations = []
@@ -742,27 +802,28 @@ class KnowledgeCategoryBalancer:
         for rec in all_recommendations:
             recommendation_counts[rec] = recommendation_counts.get(rec, 0) + 1
 
-        stats["common_recommendations"] = dict(sorted(
-            recommendation_counts.items(), key=lambda x: x[1], reverse=True
-        )[:5])
+        stats["common_recommendations"] = dict(
+            sorted(recommendation_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        )
 
         # Strategy usage
         for report in reports:
             strategy = report.strategy_used.value
-            stats["strategy_usage"][strategy] = stats["strategy_usage"].get(strategy, 0) + 1
+            stats["strategy_usage"][strategy] = (
+                stats["strategy_usage"].get(strategy, 0) + 1
+            )
 
         # Improvement trends (if reports are chronologically ordered)
         if len(reports) > 1:
             scores = [r.balance_score for r in reports]
             for i in range(1, len(scores)):
-                improvement = scores[i] - scores[i-1]
+                improvement = scores[i] - scores[i - 1]
                 stats["improvement_trends"].append(improvement)
 
         return stats
 
     def compare_balance_strategies(
-        self,
-        scenarios: list[ClientScenario]
+        self, scenarios: list[ClientScenario]
     ) -> dict[BalanceStrategy, BalanceReport]:
         """Compare balance reports across different strategies."""
         strategy_reports = {}
@@ -778,7 +839,7 @@ class KnowledgeCategoryBalancer:
         self,
         target_size: int,
         strategy: BalanceStrategy = BalanceStrategy.EQUAL_DISTRIBUTION,
-        quality_threshold: float = 0.8
+        quality_threshold: float = 0.8,
     ) -> list[ClientScenario]:
         """Optimize dataset composition for maximum balance and quality."""
 
@@ -791,7 +852,9 @@ class KnowledgeCategoryBalancer:
             report = self.analyze_dataset_balance(scenarios, strategy=strategy)
 
             if report.balance_score >= quality_threshold:
-                logger.info(f"Achieved target balance score {report.balance_score:.2f} in {iteration + 1} iterations")
+                logger.info(
+                    f"Achieved target balance score {report.balance_score:.2f} in {iteration + 1} iterations"
+                )
                 break
 
             # Rebalance if needed
@@ -800,14 +863,14 @@ class KnowledgeCategoryBalancer:
             )
 
         final_report = self.analyze_dataset_balance(scenarios, strategy=strategy)
-        logger.info(f"Optimized dataset: {len(scenarios)} scenarios, balance score: {final_report.balance_score:.2f}")
+        logger.info(
+            f"Optimized dataset: {len(scenarios)} scenarios, balance score: {final_report.balance_score:.2f}"
+        )
 
         return scenarios
 
     def validate_balance_requirements(
-        self,
-        scenarios: list[ClientScenario],
-        requirements: dict[str, dict[str, float]]
+        self, scenarios: list[ClientScenario], requirements: dict[str, dict[str, float]]
     ) -> tuple[bool, list[str]]:
         """Validate that dataset meets specific balance requirements."""
 
@@ -824,7 +887,9 @@ class KnowledgeCategoryBalancer:
 
             for subcategory, min_proportion in requirements_dist.items():
                 current_count = current_dist.get(subcategory, 0)
-                current_proportion = current_count / total_items if total_items > 0 else 0
+                current_proportion = (
+                    current_count / total_items if total_items > 0 else 0
+                )
 
                 if current_proportion < min_proportion:
                     violations.append(

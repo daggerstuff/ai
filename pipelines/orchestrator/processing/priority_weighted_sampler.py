@@ -31,23 +31,28 @@ except ImportError:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class TierConfig:
     """Configuration for each data tier"""
+
     name: str
     weight: float
     quality_threshold: float
     min_samples: int
     max_samples: int | None = None
 
+
 @dataclass
 class SamplingResult:
     """Result of sampling operation"""
+
     tier: str
     samples: list[dict[str, Any]]
     actual_weight: float
     quality_score: float
     metadata: dict[str, Any]
+
 
 class PriorityWeightedSampler:
     """
@@ -65,7 +70,9 @@ class PriorityWeightedSampler:
         self.validator = SamplingValidator()
         logger.info("Priority-weighted sampler initialized with validation system")
 
-    def _load_tier_configs(self, config_path: str | None = None) -> dict[str, TierConfig]:
+    def _load_tier_configs(
+        self, config_path: str | None = None
+    ) -> dict[str, TierConfig]:
         """Load tier configurations with default values"""
         default_configs = {
             "tier_1_priority": TierConfig(
@@ -73,43 +80,43 @@ class PriorityWeightedSampler:
                 weight=0.40,
                 quality_threshold=0.70,  # Reduced from 0.85
                 min_samples=1000,
-                max_samples=40000
+                max_samples=40000,
             ),
             "tier_2_professional": TierConfig(
                 name="Professional Therapeutic",
                 weight=0.25,
                 quality_threshold=0.65,  # Reduced from 0.80
                 min_samples=500,
-                max_samples=25000
+                max_samples=25000,
             ),
             "tier_3_cot": TierConfig(
                 name="Chain-of-Thought Reasoning",
                 weight=0.20,
                 quality_threshold=0.60,  # Reduced from 0.75
                 min_samples=400,
-                max_samples=20000
+                max_samples=20000,
             ),
             "tier_4_reddit": TierConfig(
                 name="Reddit Mental Health Archive",
                 weight=0.10,
                 quality_threshold=0.55,  # Reduced from 0.70
                 min_samples=200,
-                max_samples=10000
+                max_samples=10000,
             ),
             "tier_5_research": TierConfig(
                 name="Research Datasets",
                 weight=0.04,
                 quality_threshold=0.50,  # Reduced from 0.65
                 min_samples=100,
-                max_samples=4000
+                max_samples=4000,
             ),
             "tier_6_knowledge": TierConfig(
                 name="Knowledge Base",
                 weight=0.01,
                 quality_threshold=0.45,  # Reduced from 0.60
                 min_samples=50,
-                max_samples=1000
-            )
+                max_samples=1000,
+            ),
         }
 
         if config_path and Path(config_path).exists():
@@ -141,7 +148,7 @@ class PriorityWeightedSampler:
             "therapeutic_accuracy": 0.30,
             "emotional_authenticity": 0.20,
             "safety_compliance": 0.15,
-            "language_quality": 0.10
+            "language_quality": 0.10,
         }
 
         total_score = 0.0
@@ -198,9 +205,22 @@ class PriorityWeightedSampler:
         """Assess therapeutic accuracy"""
         # Look for therapeutic indicators
         therapeutic_keywords = [
-            "cbt", "cognitive", "behavioral", "therapy", "therapeutic",
-            "mindfulness", "coping", "strategy", "intervention", "treatment",
-            "anxiety", "depression", "feel", "emotion", "help", "better"
+            "cbt",
+            "cognitive",
+            "behavioral",
+            "therapy",
+            "therapeutic",
+            "mindfulness",
+            "coping",
+            "strategy",
+            "intervention",
+            "treatment",
+            "anxiety",
+            "depression",
+            "feel",
+            "emotion",
+            "help",
+            "better",
         ]
 
         content = str(conversation).lower()
@@ -222,8 +242,16 @@ class PriorityWeightedSampler:
         """Assess emotional authenticity"""
         # Look for emotional indicators
         emotion_keywords = [
-            "feel", "emotion", "sad", "happy", "angry", "anxious",
-            "depressed", "worried", "stressed", "overwhelmed"
+            "feel",
+            "emotion",
+            "sad",
+            "happy",
+            "angry",
+            "anxious",
+            "depressed",
+            "worried",
+            "stressed",
+            "overwhelmed",
         ]
 
         content = str(conversation).lower()
@@ -240,8 +268,16 @@ class PriorityWeightedSampler:
         """Assess safety compliance"""
         # Check for harmful content indicators
         harmful_keywords = [
-            "suicide", "kill", "harm", "hurt", "violence", "abuse",
-            "dangerous", "illegal", "drug", "weapon"
+            "suicide",
+            "kill",
+            "harm",
+            "hurt",
+            "violence",
+            "abuse",
+            "dangerous",
+            "illegal",
+            "drug",
+            "weapon",
         ]
 
         content = str(conversation).lower()
@@ -268,7 +304,9 @@ class PriorityWeightedSampler:
 
             # Basic language quality metrics
             word_count = len(content.split())
-            sentence_count = content.count(".") + content.count("!") + content.count("?")
+            sentence_count = (
+                content.count(".") + content.count("!") + content.count("?")
+            )
 
             if word_count == 0:
                 quality = 0.0
@@ -285,8 +323,9 @@ class PriorityWeightedSampler:
 
         return total_quality / len(messages) if messages else 0.0
 
-    def adjust_weights_by_quality(self, tier_data: dict[str, list[dict]],
-                                 target_total: int) -> dict[str, int]:
+    def adjust_weights_by_quality(
+        self, tier_data: dict[str, list[dict]], target_total: int
+    ) -> dict[str, int]:
         """
         Dynamically adjust sampling weights based on available data quality.
         """
@@ -306,12 +345,16 @@ class PriorityWeightedSampler:
             sample_size = min(100, len(conversations))
             sample_conversations = random.sample(conversations, sample_size)
 
-            qualities = [self.calculate_quality_score(conv) for conv in sample_conversations]
+            qualities = [
+                self.calculate_quality_score(conv) for conv in sample_conversations
+            ]
             tier_qualities[tier_id] = np.mean(qualities)
             tier_counts[tier_id] = len(conversations)
 
-            logger.info(f"Tier {tier_id}: {len(conversations)} conversations, "
-                       f"avg quality: {tier_qualities[tier_id]:.3f}")
+            logger.info(
+                f"Tier {tier_id}: {len(conversations)} conversations, "
+                f"avg quality: {tier_qualities[tier_id]:.3f}"
+            )
 
         # Adjust weights based on quality and availability
         adjusted_weights = {}
@@ -327,7 +370,9 @@ class PriorityWeightedSampler:
 
             # Availability adjustment (reduce weight if insufficient data)
             min_required = config.min_samples
-            availability_factor = min(1.0, count / min_required) if min_required > 0 else 1.0
+            availability_factor = (
+                min(1.0, count / min_required) if min_required > 0 else 1.0
+            )
 
             adjusted_weight = base_weight * quality_factor * availability_factor
             adjusted_weights[tier_id] = adjusted_weight
@@ -363,14 +408,18 @@ class PriorityWeightedSampler:
         if total_allocated > target_total:
             reduction_factor = target_total / total_allocated
             for tier_id in sample_counts:
-                sample_counts[tier_id] = max(1, int(sample_counts[tier_id] * reduction_factor))
+                sample_counts[tier_id] = max(
+                    1, int(sample_counts[tier_id] * reduction_factor)
+                )
 
         # Final check to ensure we don't exceed target
         total_final = sum(sample_counts.values())
         if total_final > target_total:
             # Remove excess from largest tiers first
             excess = total_final - target_total
-            sorted_tiers = sorted(sample_counts.items(), key=lambda x: x[1], reverse=True)
+            sorted_tiers = sorted(
+                sample_counts.items(), key=lambda x: x[1], reverse=True
+            )
             for tier_id, count in sorted_tiers:
                 if excess <= 0:
                     break
@@ -378,13 +427,16 @@ class PriorityWeightedSampler:
                 sample_counts[tier_id] -= reduction
                 excess -= reduction
 
-            logger.info(f"Tier {tier_id}: {sample_count} samples "
-                       f"({normalized_weight:.1%} weight)")
+            logger.info(
+                f"Tier {tier_id}: {sample_count} samples "
+                f"({normalized_weight:.1%} weight)"
+            )
 
         return sample_counts
 
-    def stratified_sample(self, conversations: list[dict], target_count: int,
-                         quality_threshold: float) -> list[dict]:
+    def stratified_sample(
+        self, conversations: list[dict], target_count: int, quality_threshold: float
+    ) -> list[dict]:
         """
         Perform stratified sampling ensuring quality and diversity.
         """
@@ -399,7 +451,9 @@ class PriorityWeightedSampler:
                 quality_conversations.append((conv, quality))
 
         if not quality_conversations:
-            logger.warning(f"No conversations meet quality threshold {quality_threshold}")
+            logger.warning(
+                f"No conversations meet quality threshold {quality_threshold}"
+            )
             return []
 
         # Sort by quality (descending)
@@ -414,8 +468,8 @@ class PriorityWeightedSampler:
         # Create quality bands
         band_size = len(quality_conversations) // 3
         high_quality = quality_conversations[:band_size]
-        mid_quality = quality_conversations[band_size:2*band_size]
-        low_quality = quality_conversations[2*band_size:]
+        mid_quality = quality_conversations[band_size : 2 * band_size]
+        low_quality = quality_conversations[2 * band_size :]
 
         # Sample proportionally from each band (70% high, 20% mid, 10% low)
         high_samples = int(sample_size * 0.7)
@@ -442,12 +496,15 @@ class PriorityWeightedSampler:
         # Return just the conversations (not the quality scores)
         return [conv for conv, _ in sampled]
 
-    def sample_from_tiers(self, tier_data: dict[str, list[dict]],
-                         target_total: int = 100000) -> list[SamplingResult]:
+    def sample_from_tiers(
+        self, tier_data: dict[str, list[dict]], target_total: int = 100000
+    ) -> list[SamplingResult]:
         """
         Main sampling method that orchestrates the entire process.
         """
-        logger.info(f"Starting priority-weighted sampling for {target_total} conversations")
+        logger.info(
+            f"Starting priority-weighted sampling for {target_total} conversations"
+        )
 
         # Adjust weights based on quality and availability
         sample_counts = self.adjust_weights_by_quality(tier_data, target_total)
@@ -472,7 +529,9 @@ class PriorityWeightedSampler:
             if sampled:
                 # Calculate actual metrics
                 actual_weight = len(sampled) / target_total
-                avg_quality = np.mean([self.calculate_quality_score(conv) for conv in sampled])
+                avg_quality = np.mean(
+                    [self.calculate_quality_score(conv) for conv in sampled]
+                )
 
                 result = SamplingResult(
                     tier=config.name,
@@ -484,31 +543,38 @@ class PriorityWeightedSampler:
                         "target_count": target_count,
                         "actual_count": len(sampled),
                         "quality_threshold": config.quality_threshold,
-                        "source_count": len(conversations)
-                    }
+                        "source_count": len(conversations),
+                    },
                 )
 
                 results.append(result)
                 total_sampled += len(sampled)
 
-                logger.info(f"Sampled {len(sampled)} from {config.name} "
-                           f"(quality: {avg_quality:.3f})")
+                logger.info(
+                    f"Sampled {len(sampled)} from {config.name} "
+                    f"(quality: {avg_quality:.3f})"
+                )
 
         logger.info(f"Total sampled: {total_sampled} conversations")
 
         # Store sampling history
-        self.sampling_history.append({
-            "timestamp": str(np.datetime64("now")),
-            "target_total": target_total,
-            "actual_total": total_sampled,
-            "tier_results": {r.tier: r.metadata for r in results}
-        })
+        self.sampling_history.append(
+            {
+                "timestamp": str(np.datetime64("now")),
+                "target_total": target_total,
+                "actual_total": total_sampled,
+                "tier_results": {r.tier: r.metadata for r in results},
+            }
+        )
 
         return results
 
-    def sample_with_validation(self, tier_data: dict[str, list[dict]],
-                              target_total: int = 100000,
-                              validation_threshold: float = 0.8) -> tuple[list[SamplingResult], SamplingValidationReport]:
+    def sample_with_validation(
+        self,
+        tier_data: dict[str, list[dict]],
+        target_total: int = 100000,
+        validation_threshold: float = 0.8,
+    ) -> tuple[list[SamplingResult], SamplingValidationReport]:
         """
         Perform sampling with comprehensive validation.
 
@@ -532,13 +598,17 @@ class PriorityWeightedSampler:
 
         # Check if validation passes threshold
         if validation_report.overall_score < validation_threshold:
-            logger.warning(f"Sampling validation score {validation_report.overall_score:.3f} "
-                          f"below threshold {validation_threshold}")
+            logger.warning(
+                f"Sampling validation score {validation_report.overall_score:.3f} "
+                f"below threshold {validation_threshold}"
+            )
             logger.warning(f"Critical issues: {len(validation_report.critical_issues)}")
             for issue in validation_report.critical_issues:
                 logger.warning(f"  - {issue}")
         else:
-            logger.info(f"Sampling validation passed with score {validation_report.overall_score:.3f}")
+            logger.info(
+                f"Sampling validation passed with score {validation_report.overall_score:.3f}"
+            )
 
         return sampling_results, validation_report
 
@@ -546,8 +616,9 @@ class PriorityWeightedSampler:
         """Get history of validation reports."""
         return self.validator.validation_history
 
-    def export_validation_report(self, validation_report: SamplingValidationReport,
-                                output_path: str) -> None:
+    def export_validation_report(
+        self, validation_report: SamplingValidationReport, output_path: str
+    ) -> None:
         """Export validation report to file."""
         self.validator.export_validation_report(validation_report, output_path)
         logger.info(f"Validation report exported to {output_path}")
@@ -561,7 +632,7 @@ class PriorityWeightedSampler:
                 "weight": config.weight,
                 "quality_threshold": config.quality_threshold,
                 "min_samples": config.min_samples,
-                "max_samples": config.max_samples
+                "max_samples": config.max_samples,
             }
 
         with open(output_path, "w") as f:
@@ -583,11 +654,11 @@ class PriorityWeightedSampler:
                 tier_id: {
                     "name": config.name,
                     "weight": config.weight,
-                    "quality_threshold": config.quality_threshold
+                    "quality_threshold": config.quality_threshold,
                 }
                 for tier_id, config in self.tier_configs.items()
             },
-            "quality_cache_size": len(self.quality_cache)
+            "quality_cache_size": len(self.quality_cache),
         }
 
 
@@ -599,23 +670,41 @@ def main():
     # Example tier data (would be loaded from actual datasets)
     example_tier_data = {
         "tier_1_priority": [
-            {"id": f"priority_{i}", "messages": [
-                {"content": f"High quality therapeutic conversation {i}", "role": "therapist"},
-                {"content": f"Patient response {i}", "role": "patient"}
-            ]} for i in range(1000)
+            {
+                "id": f"priority_{i}",
+                "messages": [
+                    {
+                        "content": f"High quality therapeutic conversation {i}",
+                        "role": "therapist",
+                    },
+                    {"content": f"Patient response {i}", "role": "patient"},
+                ],
+            }
+            for i in range(1000)
         ],
         "tier_2_professional": [
-            {"id": f"professional_{i}", "messages": [
-                {"content": f"Professional therapeutic dialogue {i}", "role": "therapist"},
-                {"content": f"Client response {i}", "role": "client"}
-            ]} for i in range(800)
+            {
+                "id": f"professional_{i}",
+                "messages": [
+                    {
+                        "content": f"Professional therapeutic dialogue {i}",
+                        "role": "therapist",
+                    },
+                    {"content": f"Client response {i}", "role": "client"},
+                ],
+            }
+            for i in range(800)
         ],
         "tier_3_cot": [
-            {"id": f"cot_{i}", "messages": [
-                {"content": f"Chain of thought reasoning {i}", "role": "assistant"},
-                {"content": f"Reasoning response {i}", "role": "user"}
-            ]} for i in range(600)
-        ]
+            {
+                "id": f"cot_{i}",
+                "messages": [
+                    {"content": f"Chain of thought reasoning {i}", "role": "assistant"},
+                    {"content": f"Reasoning response {i}", "role": "user"},
+                ],
+            }
+            for i in range(600)
+        ],
     }
 
     # Perform sampling
@@ -630,6 +719,7 @@ def main():
 
     # Get statistics
     sampler.get_sampling_statistics()
+
 
 if __name__ == "__main__":
     main()

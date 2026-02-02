@@ -26,62 +26,104 @@ class TestPriorityWeightedSampler:
                 {
                     "id": f"priority_{i}",
                     "messages": [
-                        {"content": "This is a high quality therapeutic conversation with cognitive behavioral therapy techniques and mindfulness strategies.", "role": "therapist"},
-                        {"content": "I feel much better after discussing my anxiety and learning coping mechanisms.", "role": "patient"}
+                        {
+                            "content": "This is a high quality therapeutic conversation with cognitive behavioral therapy techniques and mindfulness strategies.",
+                            "role": "therapist",
+                        },
+                        {
+                            "content": "I feel much better after discussing my anxiety and learning coping mechanisms.",
+                            "role": "patient",
+                        },
                     ],
-                    "quality_indicators": ["therapeutic", "cbt", "mindfulness"]
-                } for i in range(100)
+                    "quality_indicators": ["therapeutic", "cbt", "mindfulness"],
+                }
+                for i in range(100)
             ],
             "tier_2_professional": [
                 {
                     "id": f"professional_{i}",
                     "messages": [
-                        {"content": "Professional therapeutic dialogue focusing on treatment and intervention strategies.", "role": "therapist"},
-                        {"content": "The therapy session helped me understand my emotions better.", "role": "client"}
+                        {
+                            "content": "Professional therapeutic dialogue focusing on treatment and intervention strategies.",
+                            "role": "therapist",
+                        },
+                        {
+                            "content": "The therapy session helped me understand my emotions better.",
+                            "role": "client",
+                        },
                     ],
-                    "quality_indicators": ["therapy", "treatment", "intervention"]
-                } for i in range(80)
+                    "quality_indicators": ["therapy", "treatment", "intervention"],
+                }
+                for i in range(80)
             ],
             "tier_3_cot": [
                 {
                     "id": f"cot_{i}",
                     "messages": [
-                        {"content": "Let me think through this step by step. First, we need to understand the cognitive patterns.", "role": "assistant"},
-                        {"content": "That reasoning makes sense. I can see how my thoughts affect my mood.", "role": "user"}
+                        {
+                            "content": "Let me think through this step by step. First, we need to understand the cognitive patterns.",
+                            "role": "assistant",
+                        },
+                        {
+                            "content": "That reasoning makes sense. I can see how my thoughts affect my mood.",
+                            "role": "user",
+                        },
                     ],
-                    "quality_indicators": ["cognitive", "reasoning", "patterns"]
-                } for i in range(60)
+                    "quality_indicators": ["cognitive", "reasoning", "patterns"],
+                }
+                for i in range(60)
             ],
             "tier_4_reddit": [
                 {
                     "id": f"reddit_{i}",
                     "messages": [
-                        {"content": "I have been struggling with depression and anxiety lately.", "role": "user"},
-                        {"content": "Have you considered talking to a therapist? It really helped me.", "role": "responder"}
+                        {
+                            "content": "I have been struggling with depression and anxiety lately.",
+                            "role": "user",
+                        },
+                        {
+                            "content": "Have you considered talking to a therapist? It really helped me.",
+                            "role": "responder",
+                        },
                     ],
-                    "quality_indicators": ["depression", "anxiety", "struggling"]
-                } for i in range(40)
+                    "quality_indicators": ["depression", "anxiety", "struggling"],
+                }
+                for i in range(40)
             ],
             "tier_5_research": [
                 {
                     "id": f"research_{i}",
                     "messages": [
-                        {"content": "Research shows that cognitive behavioral therapy is effective for anxiety disorders.", "role": "researcher"},
-                        {"content": "The evidence supports this therapeutic approach.", "role": "participant"}
+                        {
+                            "content": "Research shows that cognitive behavioral therapy is effective for anxiety disorders.",
+                            "role": "researcher",
+                        },
+                        {
+                            "content": "The evidence supports this therapeutic approach.",
+                            "role": "participant",
+                        },
                     ],
-                    "quality_indicators": ["research", "evidence", "effective"]
-                } for i in range(20)
+                    "quality_indicators": ["research", "evidence", "effective"],
+                }
+                for i in range(20)
             ],
             "tier_6_knowledge": [
                 {
                     "id": f"knowledge_{i}",
                     "messages": [
-                        {"content": "According to the DSM-5, major depressive disorder is characterized by persistent sadness.", "role": "reference"},
-                        {"content": "This definition helps in understanding the diagnostic criteria.", "role": "reader"}
+                        {
+                            "content": "According to the DSM-5, major depressive disorder is characterized by persistent sadness.",
+                            "role": "reference",
+                        },
+                        {
+                            "content": "This definition helps in understanding the diagnostic criteria.",
+                            "role": "reader",
+                        },
                     ],
-                    "quality_indicators": ["dsm-5", "diagnostic", "criteria"]
-                } for i in range(10)
-            ]
+                    "quality_indicators": ["dsm-5", "diagnostic", "criteria"],
+                }
+                for i in range(10)
+            ],
         }
 
     def test_initialization(self):
@@ -100,7 +142,9 @@ class TestPriorityWeightedSampler:
         assert tier_1_weight == 0.40
 
         # Check quality thresholds are decreasing
-        thresholds = [config.quality_threshold for config in sampler.tier_configs.values()]
+        thresholds = [
+            config.quality_threshold for config in sampler.tier_configs.values()
+        ]
         assert thresholds == sorted(thresholds, reverse=True)
 
     def test_custom_config_loading(self):
@@ -110,7 +154,7 @@ class TestPriorityWeightedSampler:
             "tier_1_priority": {
                 "weight": 0.50,
                 "quality_threshold": 0.95,
-                "min_samples": 2000
+                "min_samples": 2000,
             }
         }
 
@@ -136,9 +180,15 @@ class TestPriorityWeightedSampler:
         high_quality_conv = {
             "id": "test_high",
             "messages": [
-                {"content": "This therapeutic conversation uses cognitive behavioral therapy techniques to help with anxiety and depression. The mindfulness strategies are very effective.", "role": "therapist"},
-                {"content": "I feel much better after learning these coping mechanisms. The therapy session was very helpful.", "role": "patient"}
-            ]
+                {
+                    "content": "This therapeutic conversation uses cognitive behavioral therapy techniques to help with anxiety and depression. The mindfulness strategies are very effective.",
+                    "role": "therapist",
+                },
+                {
+                    "content": "I feel much better after learning these coping mechanisms. The therapy session was very helpful.",
+                    "role": "patient",
+                },
+            ],
         }
 
         # Low quality conversation
@@ -146,8 +196,8 @@ class TestPriorityWeightedSampler:
             "id": "test_low",
             "messages": [
                 {"content": "Hi.", "role": "user"},
-                {"content": "Hello.", "role": "assistant"}
-            ]
+                {"content": "Hello.", "role": "assistant"},
+            ],
         }
 
         high_score = self.sampler.calculate_quality_score(high_quality_conv)
@@ -157,7 +207,7 @@ class TestPriorityWeightedSampler:
         assert 0.0 <= high_score <= 1.0
         assert 0.0 <= low_score <= 1.0
         assert high_score > 0.7  # Should be high quality
-        assert low_score < 0.6   # Should be low quality
+        assert low_score < 0.6  # Should be low quality
 
     def test_quality_caching(self):
         """Test quality score caching"""
@@ -177,9 +227,18 @@ class TestPriorityWeightedSampler:
         # Coherent conversation
         coherent_conv = {
             "messages": [
-                {"content": "I have been feeling anxious about work lately.", "topic": "anxiety"},
-                {"content": "Can you tell me more about what specifically makes you anxious at work?", "topic": "anxiety"},
-                {"content": "The deadlines and pressure from my boss make me feel overwhelmed.", "topic": "anxiety"}
+                {
+                    "content": "I have been feeling anxious about work lately.",
+                    "topic": "anxiety",
+                },
+                {
+                    "content": "Can you tell me more about what specifically makes you anxious at work?",
+                    "topic": "anxiety",
+                },
+                {
+                    "content": "The deadlines and pressure from my boss make me feel overwhelmed.",
+                    "topic": "anxiety",
+                },
             ]
         }
 
@@ -188,7 +247,7 @@ class TestPriorityWeightedSampler:
             "messages": [
                 {"content": "I like pizza.", "topic": "food"},
                 {"content": "The weather is nice today.", "topic": "weather"},
-                {"content": "My car needs repair.", "topic": "automotive"}
+                {"content": "My car needs repair.", "topic": "automotive"},
             ]
         }
 
@@ -204,19 +263,21 @@ class TestPriorityWeightedSampler:
         # High therapeutic accuracy
         therapeutic_conv = {
             "messages": [
-                {"content": "Let's use cognitive behavioral therapy techniques to address your anxiety. We can develop coping strategies and mindfulness practices."}
+                {
+                    "content": "Let's use cognitive behavioral therapy techniques to address your anxiety. We can develop coping strategies and mindfulness practices."
+                }
             ]
         }
 
         # Low therapeutic accuracy
         non_therapeutic_conv = {
-            "messages": [
-                {"content": "What did you have for lunch today?"}
-            ]
+            "messages": [{"content": "What did you have for lunch today?"}]
         }
 
         therapeutic_score = self.sampler._assess_therapeutic_accuracy(therapeutic_conv)
-        non_therapeutic_score = self.sampler._assess_therapeutic_accuracy(non_therapeutic_conv)
+        non_therapeutic_score = self.sampler._assess_therapeutic_accuracy(
+            non_therapeutic_conv
+        )
 
         assert therapeutic_score > non_therapeutic_score
         assert therapeutic_score > 0.8
@@ -227,7 +288,9 @@ class TestPriorityWeightedSampler:
         # High emotional authenticity
         emotional_conv = {
             "messages": [
-                {"content": "I feel so sad and overwhelmed. I'm anxious about everything and feel depressed most days."}
+                {
+                    "content": "I feel so sad and overwhelmed. I'm anxious about everything and feel depressed most days."
+                }
             ]
         }
 
@@ -239,7 +302,9 @@ class TestPriorityWeightedSampler:
         }
 
         emotional_score = self.sampler._assess_emotional_authenticity(emotional_conv)
-        non_emotional_score = self.sampler._assess_emotional_authenticity(non_emotional_conv)
+        non_emotional_score = self.sampler._assess_emotional_authenticity(
+            non_emotional_conv
+        )
 
         assert emotional_score > non_emotional_score
         assert emotional_score > 0.7
@@ -250,14 +315,18 @@ class TestPriorityWeightedSampler:
         # Safe conversation
         safe_conv = {
             "messages": [
-                {"content": "I understand you're going through a difficult time. Let's work together to find healthy coping strategies."}
+                {
+                    "content": "I understand you're going through a difficult time. Let's work together to find healthy coping strategies."
+                }
             ]
         }
 
         # Potentially unsafe conversation
         unsafe_conv = {
             "messages": [
-                {"content": "I want to hurt myself and end everything. I have access to dangerous weapons and drugs."}
+                {
+                    "content": "I want to hurt myself and end everything. I have access to dangerous weapons and drugs."
+                }
             ]
         }
 
@@ -273,15 +342,15 @@ class TestPriorityWeightedSampler:
         # High language quality
         high_quality_conv = {
             "messages": [
-                {"content": "This is a well-structured sentence with proper grammar. It contains multiple sentences with appropriate punctuation. The vocabulary is varied and sophisticated."}
+                {
+                    "content": "This is a well-structured sentence with proper grammar. It contains multiple sentences with appropriate punctuation. The vocabulary is varied and sophisticated."
+                }
             ]
         }
 
         # Low language quality
         low_quality_conv = {
-            "messages": [
-                {"content": "bad grammar no punctuation very short"}
-            ]
+            "messages": [{"content": "bad grammar no punctuation very short"}]
         }
 
         high_score = self.sampler._assess_language_quality(high_quality_conv)
@@ -460,6 +529,7 @@ class TestPriorityWeightedSampler:
 
         # Should complete in reasonable time
         import time
+
         start_time = time.time()
 
         results = self.sampler.sample_from_tiers(large_dataset, target_total=1000)
@@ -495,6 +565,7 @@ class TestPriorityWeightedSampler:
             # Allow some variance due to minimum sample requirements
             assert abs(small_tier1_ratio - large_tier1_ratio) < 0.2
 
+
 def test_integration():
     """Integration test for the complete sampling pipeline"""
     sampler = PriorityWeightedSampler()
@@ -505,29 +576,50 @@ def test_integration():
             {
                 "id": f"priority_{i}",
                 "messages": [
-                    {"content": f"High quality therapeutic conversation {i} with cognitive behavioral therapy and mindfulness techniques.", "role": "therapist"},
-                    {"content": "I feel much better after discussing my anxiety and learning coping strategies.", "role": "patient"}
-                ]
-            } for i in range(200)
+                    {
+                        "content": f"High quality therapeutic conversation {i} with cognitive behavioral therapy and mindfulness techniques.",
+                        "role": "therapist",
+                    },
+                    {
+                        "content": "I feel much better after discussing my anxiety and learning coping strategies.",
+                        "role": "patient",
+                    },
+                ],
+            }
+            for i in range(200)
         ],
         "tier_2_professional": [
             {
                 "id": f"professional_{i}",
                 "messages": [
-                    {"content": f"Professional therapeutic dialogue {i} focusing on treatment and intervention.", "role": "therapist"},
-                    {"content": "The therapy session helped me understand my emotions better.", "role": "client"}
-                ]
-            } for i in range(150)
+                    {
+                        "content": f"Professional therapeutic dialogue {i} focusing on treatment and intervention.",
+                        "role": "therapist",
+                    },
+                    {
+                        "content": "The therapy session helped me understand my emotions better.",
+                        "role": "client",
+                    },
+                ],
+            }
+            for i in range(150)
         ],
         "tier_3_cot": [
             {
                 "id": f"cot_{i}",
                 "messages": [
-                    {"content": f"Chain of thought reasoning {i}. Let me think through this step by step.", "role": "assistant"},
-                    {"content": "That reasoning makes sense and helps me understand the cognitive patterns.", "role": "user"}
-                ]
-            } for i in range(100)
-        ]
+                    {
+                        "content": f"Chain of thought reasoning {i}. Let me think through this step by step.",
+                        "role": "assistant",
+                    },
+                    {
+                        "content": "That reasoning makes sense and helps me understand the cognitive patterns.",
+                        "role": "user",
+                    },
+                ],
+            }
+            for i in range(100)
+        ],
     }
 
     # Perform complete sampling pipeline
@@ -546,7 +638,9 @@ def test_integration():
 
     # Verify tier distribution roughly follows expected weights
     tier_1_samples = next((len(r.samples) for r in results if "Priority" in r.tier), 0)
-    tier_2_samples = next((len(r.samples) for r in results if "Professional" in r.tier), 0)
+    tier_2_samples = next(
+        (len(r.samples) for r in results if "Professional" in r.tier), 0
+    )
 
     if total_sampled > 0:
         tier_1_samples / total_sampled

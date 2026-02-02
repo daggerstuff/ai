@@ -44,7 +44,7 @@ class TestQualityThresholds:
             "coherence": 0.3,
             "emotional_authenticity": 0.3,
             "therapeutic_accuracy": 0.2,
-            "language_quality": 0.2
+            "language_quality": 0.2,
         }
 
         thresholds = QualityThresholds(
@@ -52,7 +52,7 @@ class TestQualityThresholds:
             overall_threshold=0.8,
             reject_on_critical_issues=False,
             max_warnings=3,
-            weights=custom_weights
+            weights=custom_weights,
         )
 
         assert thresholds.coherence_threshold == 0.7
@@ -73,32 +73,53 @@ class TestQualityFilter:
         self.high_quality_conversation = Conversation(
             id="high_quality",
             messages=[
-                Message(role="user", content="I'm experiencing significant anxiety about my upcoming presentation. Could you help me understand effective strategies for managing this stress?"),
-                Message(role="assistant", content="Certainly. Anxiety regarding public speaking is quite common and understandable. Let's explore several evidence-based techniques that can help you manage these feelings effectively. First, consider implementing progressive muscle relaxation techniques."),
-                Message(role="user", content="That sounds helpful. What specific approaches would you recommend for the actual presentation?"),
-                Message(role="assistant", content="For the presentation itself, I recommend practicing deep breathing exercises beforehand. Additionally, cognitive restructuring can help you identify and challenge negative thought patterns. Remember that some nervousness is normal and can actually enhance your performance.")
+                Message(
+                    role="user",
+                    content="I'm experiencing significant anxiety about my upcoming presentation. Could you help me understand effective strategies for managing this stress?",
+                ),
+                Message(
+                    role="assistant",
+                    content="Certainly. Anxiety regarding public speaking is quite common and understandable. Let's explore several evidence-based techniques that can help you manage these feelings effectively. First, consider implementing progressive muscle relaxation techniques.",
+                ),
+                Message(
+                    role="user",
+                    content="That sounds helpful. What specific approaches would you recommend for the actual presentation?",
+                ),
+                Message(
+                    role="assistant",
+                    content="For the presentation itself, I recommend practicing deep breathing exercises beforehand. Additionally, cognitive restructuring can help you identify and challenge negative thought patterns. Remember that some nervousness is normal and can actually enhance your performance.",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         self.poor_quality_conversation = Conversation(
             id="poor_quality",
             messages=[
                 Message(role="user", content="i dont feel good"),
-                Message(role="assistant", content="ok what wrong you should of told someone earlier")
+                Message(
+                    role="assistant",
+                    content="ok what wrong you should of told someone earlier",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         self.medium_quality_conversation = Conversation(
             id="medium_quality",
             messages=[
                 Message(role="user", content="I'm feeling stressed about work lately."),
-                Message(role="assistant", content="I understand that work stress can be challenging. Can you tell me more about what's causing the stress?"),
+                Message(
+                    role="assistant",
+                    content="I understand that work stress can be challenging. Can you tell me more about what's causing the stress?",
+                ),
                 Message(role="user", content="It's mostly the deadlines and workload."),
-                Message(role="assistant", content="That sounds difficult. Have you considered talking to your supervisor about managing your workload?")
+                Message(
+                    role="assistant",
+                    content="That sounds difficult. Have you considered talking to your supervisor about managing your workload?",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
     def test_filter_high_quality_conversation(self):
@@ -138,7 +159,7 @@ class TestQualityFilter:
         conversations = [
             self.high_quality_conversation,
             self.poor_quality_conversation,
-            self.medium_quality_conversation
+            self.medium_quality_conversation,
         ]
 
         report = self.filter_system.filter_conversations(conversations)
@@ -169,7 +190,7 @@ class TestQualityFilter:
             emotional_authenticity_threshold=0.8,
             therapeutic_accuracy_threshold=0.8,
             language_quality_threshold=0.8,
-            overall_threshold=0.85
+            overall_threshold=0.85,
         )
 
         strict_filter = QualityFilter(strict_thresholds)
@@ -186,9 +207,12 @@ class TestQualityFilter:
             id="critical_issues",
             messages=[
                 Message(role="user", content="I'm thinking about hurting myself."),
-                Message(role="assistant", content="That's not my problem. You should just get over it.")
+                Message(
+                    role="assistant",
+                    content="That's not my problem. You should just get over it.",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         result = self.filter_system.filter_conversation(critical_conversation)
@@ -219,25 +243,28 @@ class TestQualityFilter:
                 id="test1",
                 messages=[
                     Message(role="user", content="I need help with anxiety."),
-                    Message(role="assistant", content="I understand. Let's work through this together.")
+                    Message(
+                        role="assistant",
+                        content="I understand. Let's work through this together.",
+                    ),
                 ],
-                source="test"
+                source="test",
             ),
             Conversation(
                 id="test2",
                 messages=[
                     Message(role="user", content="bad day"),
-                    Message(role="assistant", content="ok")
+                    Message(role="assistant", content="ok"),
                 ],
-                source="test"
-            )
+                source="test",
+            ),
         ]
 
         thresholds = {
             "emotional": 0.5,
             "therapeutic": 0.5,
             "language": 0.5,
-            "coherence": 0.5
+            "coherence": 0.5,
         }
 
         results = filter_conversations(conversations, thresholds)
@@ -268,11 +295,7 @@ class TestQualityFilter:
 
     def test_empty_conversation_handling(self):
         """Test handling of empty conversations."""
-        empty_conversation = Conversation(
-            id="empty",
-            messages=[],
-            source="test"
-        )
+        empty_conversation = Conversation(id="empty", messages=[], source="test")
 
         result = self.filter_system.filter_conversation(empty_conversation)
 
@@ -289,10 +312,14 @@ class TestQualityFilter:
 
         # Verify weighted calculation
         expected_score = (
-            result.component_scores["coherence"] * self.filter_system.thresholds.weights["coherence"] +
-            result.component_scores["emotional_authenticity"] * self.filter_system.thresholds.weights["emotional_authenticity"] +
-            result.component_scores["therapeutic_accuracy"] * self.filter_system.thresholds.weights["therapeutic_accuracy"] +
-            result.component_scores["language_quality"] * self.filter_system.thresholds.weights["language_quality"]
+            result.component_scores["coherence"]
+            * self.filter_system.thresholds.weights["coherence"]
+            + result.component_scores["emotional_authenticity"]
+            * self.filter_system.thresholds.weights["emotional_authenticity"]
+            + result.component_scores["therapeutic_accuracy"]
+            * self.filter_system.thresholds.weights["therapeutic_accuracy"]
+            + result.component_scores["language_quality"]
+            * self.filter_system.thresholds.weights["language_quality"]
         )
 
         # Should match overall score (within floating point precision)

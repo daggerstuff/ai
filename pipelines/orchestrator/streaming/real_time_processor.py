@@ -36,6 +36,7 @@ import aiofiles
 import websockets
 
 sys.path.append(str(Path(__file__).parent.parent))
+
 from clinical_accuracy_validator import ClinicalAccuracyValidator
 from quality_validation.real_quality_validator import RealQualityValidator
 
@@ -43,25 +44,30 @@ from quality_validation.real_quality_validator import RealQualityValidator
 @dataclass
 class StreamingEvent:
     """Represents a streaming data event."""
+
     event_id: str
     event_type: str  # 'conversation', 'message', 'quality_update', 'alert'
     timestamp: datetime
     source: str
     data: dict[str, Any]
     priority: int = 1  # 1=low, 2=medium, 3=high, 4=critical
+
     metadata: dict[str, Any] = None
 
 
 @dataclass
 class StreamingMetrics:
     """Real-time streaming metrics."""
+
     events_processed: int = 0
     events_per_second: float = 0.0
     average_processing_time: float = 0.0
+
     quality_scores: list[float] = None
     error_count: int = 0
     active_connections: int = 0
     buffer_size: int = 0
+
     last_update: datetime = None
 
     def __post_init__(self):
@@ -119,7 +125,7 @@ class WebSocketDataSource(StreamingDataSource):
                             timestamp=datetime.now(),
                             source=self.source_id,
                             data=data,
-                            priority=data.get("priority", 1)
+                            priority=data.get("priority", 1),
                         )
                         yield event
                         self.metrics.events_processed += 1
@@ -164,7 +170,9 @@ class FileWatcherDataSource(StreamingDataSource):
                 logging.error(f"File watcher error: {e}")
                 self.metrics.error_count += 1
 
-    async def _process_file(self, file_path: Path) -> AsyncGenerator[StreamingEvent, None]:
+    async def _process_file(
+        self, file_path: Path
+    ) -> AsyncGenerator[StreamingEvent, None]:
         """Process a single file and generate events."""
         try:
             async with aiofiles.open(file_path) as f:
@@ -178,7 +186,7 @@ class FileWatcherDataSource(StreamingDataSource):
                                 timestamp=datetime.now(),
                                 source=self.source_id,
                                 data=data,
-                                metadata={"file_path": str(file_path)}
+                                metadata={"file_path": str(file_path)},
                             )
                             yield event
                             self.metrics.events_processed += 1
@@ -193,7 +201,7 @@ class FileWatcherDataSource(StreamingDataSource):
                                 timestamp=datetime.now(),
                                 source=self.source_id,
                                 data=item,
-                                metadata={"file_path": str(file_path)}
+                                metadata={"file_path": str(file_path)},
                             )
                             yield event
                             self.metrics.events_processed += 1
@@ -204,7 +212,7 @@ class FileWatcherDataSource(StreamingDataSource):
                             timestamp=datetime.now(),
                             source=self.source_id,
                             data=data,
-                            metadata={"file_path": str(file_path)}
+                            metadata={"file_path": str(file_path)},
                         )
                         yield event
                         self.metrics.events_processed += 1
@@ -221,7 +229,9 @@ class StreamingProcessor:
         self.config = self._load_config(config_path)
         self.data_sources: dict[str, StreamingDataSource] = {}
         self.event_queue = Queue(maxsize=self.config.get("queue_size", 10000))
-        self.processing_queue = Queue(maxsize=self.config.get("processing_queue_size", 1000))
+        self.processing_queue = Queue(
+            maxsize=self.config.get("processing_queue_size", 1000)
+        )
 
         # Initialize processors
         self.quality_validator = RealQualityValidator()
@@ -233,7 +243,9 @@ class StreamingProcessor:
         self.quality_scores = deque(maxlen=1000)
 
         # Threading
-        self.executor = ThreadPoolExecutor(max_workers=self.config.get("worker_threads", 4))
+        self.executor = ThreadPoolExecutor(
+            max_workers=self.config.get("worker_threads", 4)
+        )
         self.is_running = False
 
         # Event handlers
@@ -242,7 +254,7 @@ class StreamingProcessor:
         # Setup logging
         logging.basicConfig(
             level=logging.INFO,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
         self.logger = logging.getLogger(__name__)
 
@@ -256,7 +268,7 @@ class StreamingProcessor:
             "quality_threshold": 0.6,
             "processing_timeout": 30.0,
             "metrics_update_interval": 5.0,
-            "data_sources": []
+            "data_sources": [],
         }
 
         try:
@@ -342,7 +354,9 @@ class StreamingProcessor:
                 # Collect events into batches
                 timeout = 1.0  # 1 second timeout
                 try:
-                    event = await asyncio.wait_for(self.event_queue.get(), timeout=timeout)
+                    event = await asyncio.wait_for(
+                        self.event_queue.get(), timeout=timeout
+                    )
                     batch.append(event)
 
                     # Process batch when full or timeout
@@ -414,8 +428,12 @@ class StreamingProcessor:
             conversation_data = event.data
 
             # Validate and score quality
-            quality_result = self.quality_validator.validate_conversation(conversation_data)
-            clinical_result = self.clinical_validator.validate_conversation(conversation_data)
+            quality_result = self.quality_validator.validate_conversation(
+                conversation_data
+            )
+            clinical_result = self.clinical_validator.validate_conversation(
+                conversation_data
+            )
 
             # Update quality metrics
             overall_quality = quality_result.get("overall_quality", 0.0)
@@ -434,9 +452,9 @@ class StreamingProcessor:
                         "alert_type": "low_quality",
                         "original_event": event.event_id,
                         "quality_score": overall_quality,
-                        "threshold": quality_threshold
+                        "threshold": quality_threshold,
                     },
-                    priority=3
+                    priority=3,
                 )
 
                 # Process alert
@@ -457,13 +475,18 @@ class StreamingProcessor:
         """Process a quality update event."""
         # Implementation for quality updates
 
-    def _store_conversation(self, conversation_data: dict[str, Any],
-                          quality_result: dict[str, Any],
-                          clinical_result: dict[str, Any]):
+    def _store_conversation(
+        self,
+        conversation_data: dict[str, Any],
+        quality_result: dict[str, Any],
+        clinical_result: dict[str, Any],
+    ):
         """Store processed conversation (placeholder for database integration)."""
         # This would integrate with the database system
         # For now, we'll just log the storage
-        self.logger.info(f"Stored conversation with quality: {quality_result.get('overall_quality', 0.0)}")
+        self.logger.info(
+            f"Stored conversation with quality: {quality_result.get('overall_quality', 0.0)}"
+        )
 
     async def _metrics_updater(self):
         """Update streaming metrics periodically."""
@@ -475,7 +498,9 @@ class StreamingProcessor:
 
                 # Calculate metrics
                 current_time = datetime.now()
-                time_diff = (current_time - self.global_metrics.last_update).total_seconds()
+                time_diff = (
+                    current_time - self.global_metrics.last_update
+                ).total_seconds()
 
                 if time_diff > 0:
                     events_in_period = self.global_metrics.events_processed
@@ -483,7 +508,9 @@ class StreamingProcessor:
 
                 # Calculate average processing time
                 if self.processing_times:
-                    self.global_metrics.average_processing_time = statistics.mean(self.processing_times)
+                    self.global_metrics.average_processing_time = statistics.mean(
+                        self.processing_times
+                    )
 
                 # Update quality scores
                 if self.quality_scores:
@@ -494,10 +521,12 @@ class StreamingProcessor:
                 self.global_metrics.last_update = current_time
 
                 # Log metrics
-                self.logger.info(f"Streaming Metrics - EPS: {self.global_metrics.events_per_second:.2f}, "
-                               f"Avg Processing: {self.global_metrics.average_processing_time:.3f}s, "
-                               f"Buffer: {self.global_metrics.buffer_size}, "
-                               f"Errors: {self.global_metrics.error_count}")
+                self.logger.info(
+                    f"Streaming Metrics - EPS: {self.global_metrics.events_per_second:.2f}, "
+                    f"Avg Processing: {self.global_metrics.average_processing_time:.3f}s, "
+                    f"Buffer: {self.global_metrics.buffer_size}, "
+                    f"Errors: {self.global_metrics.error_count}"
+                )
 
             except Exception as e:
                 self.logger.error(f"Metrics updater error: {e}")
@@ -512,8 +541,8 @@ class StreamingProcessor:
             },
             "queue_sizes": {
                 "event_queue": self.event_queue.qsize(),
-                "processing_queue": self.processing_queue.qsize()
-            }
+                "processing_queue": self.processing_queue.qsize(),
+            },
         }
 
 
@@ -527,10 +556,7 @@ async def main():
     # Add file watcher data source
     file_source = FileWatcherDataSource(
         source_id="file_watcher",
-        config={
-            "directory": "data/streaming",
-            "patterns": ["*.jsonl", "*.json"]
-        }
+        config={"directory": "data/streaming", "patterns": ["*.jsonl", "*.json"]},
     )
     processor.add_data_source(file_source)
 

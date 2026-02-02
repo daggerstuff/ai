@@ -20,20 +20,27 @@ import numpy as np
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class ConditionConfig:
     """Configuration for each mental health condition"""
+
     name: str
     prevalence: float  # Real-world prevalence (0.0-1.0)
     min_samples: int
     max_samples: int | None = None
+
     aliases: list[str] = None  # Alternative names/keywords
+
     comorbid_conditions: list[str] = None  # Common comorbidities
+
     severity_levels: list[str] = None  # Mild, moderate, severe
+
 
 @dataclass
 class ConditionBalance:
     """Result of condition balancing"""
+
     condition: str
     target_samples: int
     actual_samples: int
@@ -41,6 +48,7 @@ class ConditionBalance:
     quality_adjustment: float
     conversations: list[dict[str, Any]]
     metadata: dict[str, Any]
+
 
 class ConditionBalancer:
     """
@@ -54,7 +62,9 @@ class ConditionBalancer:
         self.condition_keywords = self._build_keyword_mapping()
         self.balancing_history = []
 
-    def _load_condition_configs(self, config_path: str | None = None) -> dict[str, ConditionConfig]:
+    def _load_condition_configs(
+        self, config_path: str | None = None
+    ) -> dict[str, ConditionConfig]:
         """Load condition configurations with real-world prevalence data"""
         # Based on NIMH and WHO prevalence data
         default_configs = {
@@ -63,9 +73,16 @@ class ConditionBalancer:
                 prevalence=0.084,  # 8.4% annual prevalence
                 min_samples=500,
                 max_samples=8000,
-                aliases=["depression", "depressed", "major depression", "mdd", "sad", "sadness"],
+                aliases=[
+                    "depression",
+                    "depressed",
+                    "major depression",
+                    "mdd",
+                    "sad",
+                    "sadness",
+                ],
                 comorbid_conditions=["anxiety", "ptsd", "substance_abuse"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "anxiety": ConditionConfig(
                 name="Generalized Anxiety Disorder",
@@ -74,7 +91,7 @@ class ConditionBalancer:
                 max_samples=6000,
                 aliases=["anxiety", "anxious", "gad", "worry", "worried", "panic"],
                 comorbid_conditions=["depression", "ptsd", "ocd"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "ptsd": ConditionConfig(
                 name="Post-Traumatic Stress Disorder",
@@ -83,7 +100,7 @@ class ConditionBalancer:
                 max_samples=4000,
                 aliases=["ptsd", "trauma", "traumatic", "flashback", "nightmares"],
                 comorbid_conditions=["depression", "anxiety", "substance_abuse"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "bipolar": ConditionConfig(
                 name="Bipolar Disorder",
@@ -92,25 +109,37 @@ class ConditionBalancer:
                 max_samples=3000,
                 aliases=["bipolar", "manic", "mania", "mood swings", "hypomania"],
                 comorbid_conditions=["anxiety", "substance_abuse", "adhd"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "adhd": ConditionConfig(
                 name="Attention-Deficit/Hyperactivity Disorder",
                 prevalence=0.041,  # 4.1% adult prevalence
                 min_samples=300,
                 max_samples=4000,
-                aliases=["adhd", "add", "attention deficit", "hyperactive", "inattentive"],
+                aliases=[
+                    "adhd",
+                    "add",
+                    "attention deficit",
+                    "hyperactive",
+                    "inattentive",
+                ],
                 comorbid_conditions=["anxiety", "depression", "bipolar"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "ocd": ConditionConfig(
                 name="Obsessive-Compulsive Disorder",
                 prevalence=0.012,  # 1.2% annual prevalence
                 min_samples=150,
                 max_samples=2000,
-                aliases=["ocd", "obsessive", "compulsive", "intrusive thoughts", "rituals"],
+                aliases=[
+                    "ocd",
+                    "obsessive",
+                    "compulsive",
+                    "intrusive thoughts",
+                    "rituals",
+                ],
                 comorbid_conditions=["anxiety", "depression", "tics"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "autism": ConditionConfig(
                 name="Autism Spectrum Disorder",
@@ -119,16 +148,26 @@ class ConditionBalancer:
                 max_samples=2500,
                 aliases=["autism", "asd", "asperger", "autistic", "spectrum"],
                 comorbid_conditions=["anxiety", "depression", "adhd"],
-                severity_levels=["level 1", "level 2", "level 3"]
+                severity_levels=["level 1", "level 2", "level 3"],
             ),
             "bpd": ConditionConfig(
                 name="Borderline Personality Disorder",
                 prevalence=0.014,  # 1.4% prevalence
                 min_samples=150,
                 max_samples=2000,
-                aliases=["bpd", "borderline", "personality disorder", "emotional dysregulation"],
-                comorbid_conditions=["depression", "anxiety", "ptsd", "substance_abuse"],
-                severity_levels=["mild", "moderate", "severe"]
+                aliases=[
+                    "bpd",
+                    "borderline",
+                    "personality disorder",
+                    "emotional dysregulation",
+                ],
+                comorbid_conditions=[
+                    "depression",
+                    "anxiety",
+                    "ptsd",
+                    "substance_abuse",
+                ],
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "schizophrenia": ConditionConfig(
                 name="Schizophrenia",
@@ -137,34 +176,52 @@ class ConditionBalancer:
                 max_samples=1500,
                 aliases=["schizophrenia", "psychosis", "hallucinations", "delusions"],
                 comorbid_conditions=["depression", "anxiety", "substance_abuse"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "eating_disorders": ConditionConfig(
                 name="Eating Disorders",
                 prevalence=0.009,  # 0.9% prevalence (anorexia + bulimia)
                 min_samples=100,
                 max_samples=1500,
-                aliases=["anorexia", "bulimia", "binge eating", "eating disorder", "body image"],
+                aliases=[
+                    "anorexia",
+                    "bulimia",
+                    "binge eating",
+                    "eating disorder",
+                    "body image",
+                ],
                 comorbid_conditions=["depression", "anxiety", "ocd"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "substance_abuse": ConditionConfig(
                 name="Substance Use Disorders",
                 prevalence=0.104,  # 10.4% annual prevalence
                 min_samples=400,
                 max_samples=6000,
-                aliases=["addiction", "substance abuse", "alcoholism", "drug abuse", "dependency"],
+                aliases=[
+                    "addiction",
+                    "substance abuse",
+                    "alcoholism",
+                    "drug abuse",
+                    "dependency",
+                ],
                 comorbid_conditions=["depression", "anxiety", "ptsd", "bipolar"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "social_anxiety": ConditionConfig(
                 name="Social Anxiety Disorder",
                 prevalence=0.073,  # 7.3% annual prevalence
                 min_samples=300,
                 max_samples=4000,
-                aliases=["social anxiety", "social phobia", "shy", "shyness", "social fear"],
+                aliases=[
+                    "social anxiety",
+                    "social phobia",
+                    "shy",
+                    "shyness",
+                    "social fear",
+                ],
                 comorbid_conditions=["depression", "anxiety", "avoidant_personality"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "panic_disorder": ConditionConfig(
                 name="Panic Disorder",
@@ -173,7 +230,7 @@ class ConditionBalancer:
                 max_samples=3000,
                 aliases=["panic disorder", "panic attacks", "agoraphobia", "panic"],
                 comorbid_conditions=["anxiety", "depression", "substance_abuse"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "insomnia": ConditionConfig(
                 name="Insomnia and Sleep Disorders",
@@ -182,7 +239,7 @@ class ConditionBalancer:
                 max_samples=3500,
                 aliases=["insomnia", "sleep disorder", "sleepless", "sleep problems"],
                 comorbid_conditions=["depression", "anxiety", "bipolar"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "chronic_pain": ConditionConfig(
                 name="Chronic Pain and Mental Health",
@@ -191,7 +248,7 @@ class ConditionBalancer:
                 max_samples=3000,
                 aliases=["chronic pain", "fibromyalgia", "pain", "chronic illness"],
                 comorbid_conditions=["depression", "anxiety", "ptsd"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "grief": ConditionConfig(
                 name="Grief and Bereavement",
@@ -200,16 +257,22 @@ class ConditionBalancer:
                 max_samples=2500,
                 aliases=["grief", "bereavement", "loss", "mourning", "death"],
                 comorbid_conditions=["depression", "anxiety", "ptsd"],
-                severity_levels=["normal", "complicated", "prolonged"]
+                severity_levels=["normal", "complicated", "prolonged"],
             ),
             "relationship_issues": ConditionConfig(
                 name="Relationship and Interpersonal Issues",
                 prevalence=0.080,  # 8.0% seeking help
                 min_samples=300,
                 max_samples=4500,
-                aliases=["relationship", "marriage", "divorce", "breakup", "interpersonal"],
+                aliases=[
+                    "relationship",
+                    "marriage",
+                    "divorce",
+                    "breakup",
+                    "interpersonal",
+                ],
                 comorbid_conditions=["depression", "anxiety", "attachment_issues"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "work_stress": ConditionConfig(
                 name="Work-Related Stress and Burnout",
@@ -218,26 +281,37 @@ class ConditionBalancer:
                 max_samples=3500,
                 aliases=["work stress", "burnout", "job stress", "workplace", "career"],
                 comorbid_conditions=["depression", "anxiety", "insomnia"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "parenting_stress": ConditionConfig(
                 name="Parenting Stress and Family Issues",
                 prevalence=0.045,  # 4.5% severe parenting stress
                 min_samples=200,
                 max_samples=3000,
-                aliases=["parenting", "family stress", "child behavior", "parental stress"],
+                aliases=[
+                    "parenting",
+                    "family stress",
+                    "child behavior",
+                    "parental stress",
+                ],
                 comorbid_conditions=["depression", "anxiety", "relationship_issues"],
-                severity_levels=["mild", "moderate", "severe"]
+                severity_levels=["mild", "moderate", "severe"],
             ),
             "loneliness": ConditionConfig(
                 name="Loneliness and Social Isolation",
                 prevalence=0.055,  # 5.5% severe loneliness
                 min_samples=200,
                 max_samples=3000,
-                aliases=["loneliness", "lonely", "isolated", "social isolation", "alone"],
+                aliases=[
+                    "loneliness",
+                    "lonely",
+                    "isolated",
+                    "social isolation",
+                    "alone",
+                ],
                 comorbid_conditions=["depression", "anxiety", "social_anxiety"],
-                severity_levels=["mild", "moderate", "severe"]
-            )
+                severity_levels=["mild", "moderate", "severe"],
+            ),
         }
 
         if config_path and Path(config_path).exists():
@@ -296,30 +370,51 @@ class ConditionBalancer:
         # Filter out very low scores
         return {k: v for k, v in condition_scores.items() if v >= 0.1}
 
-    def assess_condition_severity(self, conversation: dict[str, Any],
-                                condition: str) -> str:
+    def assess_condition_severity(
+        self, conversation: dict[str, Any], condition: str
+    ) -> str:
         """Assess the severity level of a condition in the conversation"""
         content = str(conversation).lower()
 
         # Severity indicators
         severe_indicators = [
-            "severe", "extreme", "unbearable", "crisis", "emergency",
-            "suicidal", "can't function", "completely unable", "hospitalized"
+            "severe",
+            "extreme",
+            "unbearable",
+            "crisis",
+            "emergency",
+            "suicidal",
+            "can't function",
+            "completely unable",
+            "hospitalized",
         ]
 
         moderate_indicators = [
-            "moderate", "significant", "interfering", "difficult",
-            "struggling", "impacting", "affecting daily life"
+            "moderate",
+            "significant",
+            "interfering",
+            "difficult",
+            "struggling",
+            "impacting",
+            "affecting daily life",
         ]
 
         mild_indicators = [
-            "mild", "slight", "manageable", "occasional", "sometimes",
-            "minor", "little bit", "somewhat"
+            "mild",
+            "slight",
+            "manageable",
+            "occasional",
+            "sometimes",
+            "minor",
+            "little bit",
+            "somewhat",
         ]
 
         # Count indicators
         severe_count = sum(1 for indicator in severe_indicators if indicator in content)
-        moderate_count = sum(1 for indicator in moderate_indicators if indicator in content)
+        moderate_count = sum(
+            1 for indicator in moderate_indicators if indicator in content
+        )
         mild_count = sum(1 for indicator in mild_indicators if indicator in content)
 
         # Determine severity
@@ -331,8 +426,9 @@ class ConditionBalancer:
             return "mild"
         return "moderate"  # Default to moderate
 
-    def handle_comorbidity(self, conversation: dict[str, Any],
-                          detected_conditions: dict[str, float]) -> dict[str, float]:
+    def handle_comorbidity(
+        self, conversation: dict[str, Any], detected_conditions: dict[str, float]
+    ) -> dict[str, float]:
         """
         Handle comorbid conditions by adjusting scores based on known comorbidities.
         """
@@ -355,19 +451,24 @@ class ConditionBalancer:
         if adjusted_scores:
             max_score = max(adjusted_scores.values())
             for condition in adjusted_scores:
-                adjusted_scores[condition] = min(1.0, adjusted_scores[condition] / max_score)
+                adjusted_scores[condition] = min(
+                    1.0, adjusted_scores[condition] / max_score
+                )
 
         return adjusted_scores
 
-    def calculate_target_distribution(self, total_samples: int,
-                                    available_data: dict[str, list[dict]]) -> dict[str, int]:
+    def calculate_target_distribution(
+        self, total_samples: int, available_data: dict[str, list[dict]]
+    ) -> dict[str, int]:
         """
         Calculate target sample distribution based on prevalence and available data.
         """
         logger.info(f"Calculating target distribution for {total_samples} samples")
 
         # Calculate base distribution from prevalence
-        total_prevalence = sum(config.prevalence for config in self.condition_configs.values())
+        total_prevalence = sum(
+            config.prevalence for config in self.condition_configs.values()
+        )
         base_distribution = {}
 
         for condition_id, config in self.condition_configs.items():
@@ -388,13 +489,16 @@ class ConditionBalancer:
 
             base_distribution[condition_id] = base_samples
 
-            logger.info(f"{config.name}: {base_samples} samples "
-                       f"(prevalence: {config.prevalence:.1%}, available: {available})")
+            logger.info(
+                f"{config.name}: {base_samples} samples "
+                f"(prevalence: {config.prevalence:.1%}, available: {available})"
+            )
 
         return base_distribution
 
-    def quality_weighted_selection(self, conversations: list[dict[str, Any]],
-                                 target_count: int, condition: str) -> list[dict[str, Any]]:
+    def quality_weighted_selection(
+        self, conversations: list[dict[str, Any]], target_count: int, condition: str
+    ) -> list[dict[str, Any]]:
         """
         Select conversations with quality weighting for a specific condition.
         """
@@ -410,7 +514,9 @@ class ConditionBalancer:
 
             # Assess severity appropriateness
             severity = self.assess_condition_severity(conv, condition)
-            severity_weight = {"mild": 0.8, "moderate": 1.0, "severe": 1.2}.get(severity, 1.0)
+            severity_weight = {"mild": 0.8, "moderate": 1.0, "severe": 1.2}.get(
+                severity, 1.0
+            )
 
             # Calculate overall quality score
             quality_score = condition_strength * severity_weight
@@ -424,13 +530,15 @@ class ConditionBalancer:
         selected_count = min(target_count, len(scored_conversations))
         return [conv for conv, _ in scored_conversations[:selected_count]]
 
-
-    def balance_conditions(self, conversations: list[dict[str, Any]],
-                          target_total: int = 10000) -> list[ConditionBalance]:
+    def balance_conditions(
+        self, conversations: list[dict[str, Any]], target_total: int = 10000
+    ) -> list[ConditionBalance]:
         """
         Main method to balance conversations across mental health conditions.
         """
-        logger.info(f"Starting condition balancing for {len(conversations)} conversations")
+        logger.info(
+            f"Starting condition balancing for {len(conversations)} conversations"
+        )
 
         # Categorize conversations by detected conditions
         condition_conversations = defaultdict(list)
@@ -460,8 +568,10 @@ class ConditionBalancer:
             config = self.condition_configs[condition_id]
             available_conversations = condition_conversations.get(condition_id, [])
 
-            logger.info(f"Balancing {config.name}: {target_count} target, "
-                       f"{len(available_conversations)} available")
+            logger.info(
+                f"Balancing {config.name}: {target_count} target, "
+                f"{len(available_conversations)} available"
+            )
 
             # Select quality-weighted conversations
             selected = self.quality_weighted_selection(
@@ -471,7 +581,9 @@ class ConditionBalancer:
             if selected:
                 # Calculate metrics
                 prevalence_weight = config.prevalence
-                quality_adjustment = len(selected) / max(1, len(available_conversations))
+                quality_adjustment = len(selected) / max(
+                    1, len(available_conversations)
+                )
 
                 result = ConditionBalance(
                     condition=config.name,
@@ -487,27 +599,33 @@ class ConditionBalancer:
                         "min_samples": config.min_samples,
                         "max_samples": config.max_samples,
                         "aliases": config.aliases,
-                        "comorbid_conditions": config.comorbid_conditions
-                    }
+                        "comorbid_conditions": config.comorbid_conditions,
+                    },
                 )
 
                 results.append(result)
                 total_balanced += len(selected)
 
-                logger.info(f"Balanced {config.name}: {len(selected)} conversations "
-                           f"(quality: {quality_adjustment:.3f})")
+                logger.info(
+                    f"Balanced {config.name}: {len(selected)} conversations "
+                    f"(quality: {quality_adjustment:.3f})"
+                )
 
-        logger.info(f"Total balanced: {total_balanced} conversations across "
-                   f"{len(results)} conditions")
+        logger.info(
+            f"Total balanced: {total_balanced} conversations across "
+            f"{len(results)} conditions"
+        )
 
         # Store balancing history
-        self.balancing_history.append({
-            "timestamp": str(np.datetime64("now")),
-            "target_total": target_total,
-            "actual_total": total_balanced,
-            "conditions_balanced": len(results),
-            "condition_results": {r.condition: r.metadata for r in results}
-        })
+        self.balancing_history.append(
+            {
+                "timestamp": str(np.datetime64("now")),
+                "target_total": target_total,
+                "actual_total": total_balanced,
+                "conditions_balanced": len(results),
+                "condition_results": {r.condition: r.metadata for r in results},
+            }
+        )
 
         return results
 
@@ -526,14 +644,13 @@ class ConditionBalancer:
                     "name": config.name,
                     "prevalence": config.prevalence,
                     "min_samples": config.min_samples,
-                    "max_samples": config.max_samples
+                    "max_samples": config.max_samples,
                 }
                 for condition_id, config in self.condition_configs.items()
             },
             "total_conditions": len(self.condition_configs),
-            "keyword_mappings": len(self.condition_keywords)
+            "keyword_mappings": len(self.condition_keywords),
         }
-
 
     def export_condition_config(self, output_path: str):
         """Export current condition configuration"""
@@ -546,13 +663,14 @@ class ConditionBalancer:
                 "max_samples": config.max_samples,
                 "aliases": config.aliases,
                 "comorbid_conditions": config.comorbid_conditions,
-                "severity_levels": config.severity_levels
+                "severity_levels": config.severity_levels,
             }
 
         with open(output_path, "w") as f:
             json.dump(config_data, f, indent=2)
 
         logger.info(f"Condition configuration exported to {output_path}")
+
 
 def main():
     """Example usage of the Condition Balancer"""
@@ -564,24 +682,42 @@ def main():
         {
             "id": "conv_1",
             "messages": [
-                {"content": "I have been feeling very depressed and anxious lately. I can barely get out of bed.", "role": "user"},
-                {"content": "I understand you're struggling with depression and anxiety. Let's work on some coping strategies.", "role": "therapist"}
-            ]
+                {
+                    "content": "I have been feeling very depressed and anxious lately. I can barely get out of bed.",
+                    "role": "user",
+                },
+                {
+                    "content": "I understand you're struggling with depression and anxiety. Let's work on some coping strategies.",
+                    "role": "therapist",
+                },
+            ],
         },
         {
             "id": "conv_2",
             "messages": [
-                {"content": "I keep having panic attacks and I'm afraid to leave my house.", "role": "user"},
-                {"content": "Panic disorder with agoraphobia can be very challenging. We can use exposure therapy techniques.", "role": "therapist"}
-            ]
+                {
+                    "content": "I keep having panic attacks and I'm afraid to leave my house.",
+                    "role": "user",
+                },
+                {
+                    "content": "Panic disorder with agoraphobia can be very challenging. We can use exposure therapy techniques.",
+                    "role": "therapist",
+                },
+            ],
         },
         {
             "id": "conv_3",
             "messages": [
-                {"content": "My ADHD makes it impossible to focus at work. I'm also feeling really anxious about my performance.", "role": "user"},
-                {"content": "ADHD and anxiety often occur together. Let's develop strategies for both conditions.", "role": "therapist"}
-            ]
-        }
+                {
+                    "content": "My ADHD makes it impossible to focus at work. I'm also feeling really anxious about my performance.",
+                    "role": "user",
+                },
+                {
+                    "content": "ADHD and anxiety often occur together. Let's develop strategies for both conditions.",
+                    "role": "therapist",
+                },
+            ],
+        },
     ] * 100  # Simulate larger dataset
 
     # Perform condition balancing
@@ -596,6 +732,7 @@ def main():
 
     # Get statistics
     balancer.get_condition_statistics()
+
 
 if __name__ == "__main__":
     main()

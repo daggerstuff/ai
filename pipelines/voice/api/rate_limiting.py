@@ -3,18 +3,18 @@ Rate limiting and YouTube API compliance for Pixel Voice pipeline.
 """
 
 import asyncio
-import time
-from datetime import datetime, timedelta
-from typing import Dict, Optional, Tuple
 import logging
+import time
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
+from typing import Dict, Optional, Tuple
 
 import aioredis
 from fastapi import HTTPException, Request
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
+from slowapi.util import get_remote_address
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +76,9 @@ class YouTubeRateLimiter:
         self.config = RateLimitConfig()
         self.download_queue = asyncio.Queue(maxsize=100)
         self.active_downloads = 0
-        self.download_semaphore = asyncio.Semaphore(self.config.youtube_concurrent_downloads)
+        self.download_semaphore = asyncio.Semaphore(
+            self.config.youtube_concurrent_downloads
+        )
 
     async def can_download(self, user_id: str) -> Tuple[bool, Optional[str]]:
         """Check if user can download from YouTube."""
@@ -162,7 +164,9 @@ class QuotaManager:
                 quota = UserQuota(
                     user_id=user_id,
                     api_calls_today=int(quota_data.get(b"api_calls_today", 0)),
-                    youtube_downloads_today=int(quota_data.get(b"youtube_downloads_today", 0)),
+                    youtube_downloads_today=int(
+                        quota_data.get(b"youtube_downloads_today", 0)
+                    ),
                     active_jobs=int(quota_data.get(b"active_jobs", 0)),
                     is_premium=quota_data.get(b"is_premium", b"false") == b"true",
                 )
@@ -193,7 +197,9 @@ class QuotaManager:
         )
         await self.redis.expire(f"user_quota:{quota.user_id}", 86400)
 
-    async def check_quota(self, user_id: str, quota_type: str) -> Tuple[bool, Optional[str]]:
+    async def check_quota(
+        self, user_id: str, quota_type: str
+    ) -> Tuple[bool, Optional[str]]:
         """Check if user has quota available."""
         quota = await self.get_user_quota(user_id)
 
@@ -203,12 +209,16 @@ class QuotaManager:
                 return False, f"Daily API call limit ({limit}) exceeded"
 
         elif quota_type == "youtube_download":
-            limit = self.config.youtube_downloads_per_day * (2 if quota.is_premium else 1)
+            limit = self.config.youtube_downloads_per_day * (
+                2 if quota.is_premium else 1
+            )
             if quota.youtube_downloads_today >= limit:
                 return False, f"Daily YouTube download limit ({limit}) exceeded"
 
         elif quota_type == "concurrent_job":
-            limit = self.config.concurrent_jobs_per_user * (2 if quota.is_premium else 1)
+            limit = self.config.concurrent_jobs_per_user * (
+                2 if quota.is_premium else 1
+            )
             if quota.active_jobs >= limit:
                 return False, f"Concurrent job limit ({limit}) exceeded"
 

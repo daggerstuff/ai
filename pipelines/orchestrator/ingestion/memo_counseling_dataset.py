@@ -29,7 +29,6 @@ Part of the Pixelated Empathy AI dataset pipeline.
 
 import json
 import logging
-import os
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -46,7 +45,10 @@ try:
     from schemas.conversation_schema import Conversation, Message
 except ImportError:
     try:
-        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+        from ai.pipelines.orchestrator.schemas.conversation_schema import (
+            Conversation,
+            Message,
+        )
     except ImportError:
         from conversation_schema import Conversation, Message
 
@@ -152,7 +154,9 @@ class MEMODatasetLoader:
             dataset_path: Path to MEMO dataset directory
             quality_threshold: Quality threshold for loaded data
         """
-        self.dataset_path = Path(dataset_path) if dataset_path else Path("ai/datasets/memo")
+        self.dataset_path = (
+            Path(dataset_path) if dataset_path else Path("ai/datasets/memo")
+        )
         self.quality_threshold = quality_threshold
 
         logger.info(f"MEMODatasetLoader initialized: path={self.dataset_path}")
@@ -214,9 +218,7 @@ For more information, see the KDD 2022 paper:
 "MEMO: A Novel Counseling Summarization Dataset"
 """
 
-    def load_dataset(
-        self, split: str = "train"
-    ) -> list[CounselingSession]:
+    def load_dataset(self, split: str = "train") -> list[CounselingSession]:
         """
         Load MEMO dataset split.
 
@@ -319,9 +321,7 @@ For more information, see the KDD 2022 paper:
 
         return dialogue
 
-    def to_conversations(
-        self, sessions: list[CounselingSession]
-    ) -> list[Conversation]:
+    def to_conversations(self, sessions: list[CounselingSession]) -> list[Conversation]:
         """Convert sessions to standard Conversation format."""
         return [session.to_conversation() for session in sessions]
 
@@ -489,13 +489,22 @@ class CounselingSummarizer:
 
             if msg.role in ["user", "client"]:
                 # Extract concerns
-                if any(word in content for word in ["anxious", "depressed", "worried", "scared"]):
+                if any(
+                    word in content
+                    for word in ["anxious", "depressed", "worried", "scared"]
+                ):
                     client_concerns.append(msg.content[:100])
             else:
                 # Extract interventions
                 if any(
                     word in content
-                    for word in ["explore", "consider", "technique", "strategy", "practice"]
+                    for word in [
+                        "explore",
+                        "consider",
+                        "technique",
+                        "strategy",
+                        "practice",
+                    ]
                 ):
                     therapeutic_interventions.append(msg.content[:100])
 
@@ -535,7 +544,9 @@ PLAN:
     ) -> dict[str, Any]:
         """Fallback rule-based summary when model is unavailable."""
         num_turns = len(conversation.messages)
-        client_turns = sum(1 for m in conversation.messages if m.role in ["user", "client"])
+        client_turns = sum(
+            1 for m in conversation.messages if m.role in ["user", "client"]
+        )
 
         # Extract key themes
         themes = []
@@ -635,7 +646,7 @@ if __name__ == "__main__":
     loader = MEMODatasetLoader()
     access = loader.check_access()
 
-    print(f"\nDataset Access Status:")
+    print("\nDataset Access Status:")
     print(f"  Has Access: {access['has_access']}")
     print(f"  Path: {access['dataset_path']}")
     print(f"  Available Files: {access['available_files']}")
@@ -658,7 +669,10 @@ if __name__ == "__main__":
         conversation_id="demo_001",
         source="demo",
         messages=[
-            Message(role="user", content="I've been feeling really anxious about work lately."),
+            Message(
+                role="user",
+                content="I've been feeling really anxious about work lately.",
+            ),
             Message(
                 role="assistant",
                 content="I hear that work has been causing you significant anxiety. "
@@ -684,11 +698,10 @@ if __name__ == "__main__":
 
     # Rule-based summary (no model needed)
     summary = summarizer.summarize_conversation(test_conv)
-    print(f"\n  Abstractive (rule-based):")
+    print("\n  Abstractive (rule-based):")
     print(f"    {summary['summary']}")
 
     # Clinical summary
     clinical = summarizer._clinical_summary(test_conv)
-    print(f"\n  Clinical Note:")
+    print("\n  Clinical Note:")
     print(clinical["summary"][:500] + "...")
-

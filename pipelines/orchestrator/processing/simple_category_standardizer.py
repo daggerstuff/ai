@@ -95,7 +95,6 @@ class SimpleCategoryStandardizer:
         # Apply category-specific post-processing
         return self._postprocess_conversation(conversation)
 
-
     def _get_category_patterns(self) -> dict[DataCategory, list[str]]:
         """Get category-specific patterns for content detection."""
         return {

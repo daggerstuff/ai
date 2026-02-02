@@ -15,12 +15,16 @@ from typing import Any
 from ai.pipelines.orchestrator.conversation_schema import Conversation
 from ai.pipelines.orchestrator.logger import get_logger
 from ai.pipelines.orchestrator.personality_extractor import PersonalityExtractor
-from ai.pipelines.orchestrator.voice_training_optimizer import PersonalityProfile, VoiceTrainingOptimizer
+from ai.pipelines.orchestrator.voice_training_optimizer import (
+    PersonalityProfile,
+    VoiceTrainingOptimizer,
+)
 
 
 @dataclass
 class PipelineStage:
     """Configuration for a pipeline stage."""
+
     name: str
     processor: Callable
     enabled: bool = True
@@ -31,6 +35,7 @@ class PipelineStage:
 @dataclass
 class ValidationRule:
     """Validation rule for consistency checking."""
+
     name: str
     validator: Callable
     threshold: float
@@ -42,6 +47,7 @@ class ValidationRule:
 @dataclass
 class PipelineMetrics:
     """Comprehensive pipeline metrics."""
+
     total_input_conversations: int = 0
     conversations_processed: int = 0
     conversations_passed: int = 0
@@ -56,6 +62,7 @@ class PipelineMetrics:
 @dataclass
 class PipelineResult:
     """Result of voice optimization pipeline."""
+
     success: bool
     optimized_conversations: list[Conversation] = field(default_factory=list)
     baseline_profile: PersonalityProfile | None = None
@@ -81,7 +88,7 @@ class VoiceOptimizationPipeline:
     def __init__(
         self,
         voice_optimizer: VoiceTrainingOptimizer | None = None,
-        personality_extractor: PersonalityExtractor | None = None
+        personality_extractor: PersonalityExtractor | None = None,
     ):
         """
         Initialize VoiceOptimizationPipeline.
@@ -106,7 +113,9 @@ class VoiceOptimizationPipeline:
         self.current_metrics = PipelineMetrics()
         self.processing_history: list[PipelineResult] = []
 
-        self.logger.info("VoiceOptimizationPipeline initialized with default configuration")
+        self.logger.info(
+            "VoiceOptimizationPipeline initialized with default configuration"
+        )
 
     def add_stage(self, stage: PipelineStage) -> None:
         """Add a processing stage to the pipeline."""
@@ -121,7 +130,7 @@ class VoiceOptimizationPipeline:
     def process_conversations(
         self,
         conversations: list[Conversation],
-        source_metadata: dict[str, Any] | None = None
+        source_metadata: dict[str, Any] | None = None,
     ) -> PipelineResult:
         """
         Process conversations through the optimization pipeline.
@@ -135,7 +144,9 @@ class VoiceOptimizationPipeline:
         """
         start_time = datetime.now()
 
-        self.logger.info(f"Starting pipeline processing of {len(conversations)} conversations")
+        self.logger.info(
+            f"Starting pipeline processing of {len(conversations)} conversations"
+        )
 
         # Initialize metrics
         self.current_metrics = PipelineMetrics(
@@ -155,11 +166,15 @@ class VoiceOptimizationPipeline:
                 self.logger.info(f"Executing stage: {stage.name}")
 
                 stage_start = datetime.now()
-                stage_result = self._execute_stage(stage, current_conversations, source_metadata)
+                stage_result = self._execute_stage(
+                    stage, current_conversations, source_metadata
+                )
                 stage_time = (datetime.now() - stage_start).total_seconds()
 
                 # Update conversations and metrics
-                current_conversations = stage_result.get("conversations", current_conversations)
+                current_conversations = stage_result.get(
+                    "conversations", current_conversations
+                )
                 stage_results[stage.name] = stage_result
 
                 # Record stage metrics
@@ -167,27 +182,35 @@ class VoiceOptimizationPipeline:
                     "processing_time": stage_time,
                     "input_count": stage_result.get("input_count", 0),
                     "output_count": stage_result.get("output_count", 0),
-                    "quality_score": stage_result.get("quality_score", 0.0)
+                    "quality_score": stage_result.get("quality_score", 0.0),
                 }
 
-                self.logger.info(f"Stage {stage.name} completed: "
-                               f"{len(current_conversations)} conversations remaining")
+                self.logger.info(
+                    f"Stage {stage.name} completed: "
+                    f"{len(current_conversations)} conversations remaining"
+                )
 
             # Perform systematic validation
-            validation_report = self._perform_systematic_validation(current_conversations)
+            validation_report = self._perform_systematic_validation(
+                current_conversations
+            )
 
             # Calculate final metrics
             processing_time = (datetime.now() - start_time).total_seconds()
             self.current_metrics.conversations_processed = len(conversations)
             self.current_metrics.conversations_passed = len(current_conversations)
-            self.current_metrics.conversations_failed = len(conversations) - len(current_conversations)
+            self.current_metrics.conversations_failed = len(conversations) - len(
+                current_conversations
+            )
             self.current_metrics.processing_time = processing_time
 
             # Calculate quality improvement
             if conversations:
                 initial_quality = self._calculate_average_quality(conversations)
                 final_quality = self._calculate_average_quality(current_conversations)
-                self.current_metrics.quality_improvement = final_quality - initial_quality
+                self.current_metrics.quality_improvement = (
+                    final_quality - initial_quality
+                )
 
             # Extract baseline profile
             baseline_profile = self.voice_optimizer.get_baseline_profile()
@@ -198,47 +221,41 @@ class VoiceOptimizationPipeline:
                 baseline_profile=baseline_profile,
                 metrics=self.current_metrics,
                 stage_results=stage_results,
-                validation_report=validation_report
+                validation_report=validation_report,
             )
 
             # Store result for analysis
             self.processing_history.append(result)
 
-            self.logger.info(f"Pipeline processing complete: {len(current_conversations)}/{len(conversations)} "
-                           f"conversations optimized (quality improvement: "
-                           f"{self.current_metrics.quality_improvement:.3f})")
+            self.logger.info(
+                f"Pipeline processing complete: {len(current_conversations)}/{len(conversations)} "
+                f"conversations optimized (quality improvement: "
+                f"{self.current_metrics.quality_improvement:.3f})"
+            )
 
             return result
 
         except Exception as e:
             self.logger.error(f"Pipeline processing failed: {e}")
             return PipelineResult(
-                success=False,
-                issues=[str(e)],
-                metrics=self.current_metrics
+                success=False, issues=[str(e)], metrics=self.current_metrics
             )
 
     async def process_conversations_async(
         self,
         conversations: list[Conversation],
-        source_metadata: dict[str, Any] | None = None
+        source_metadata: dict[str, Any] | None = None,
     ) -> PipelineResult:
         """Asynchronously process conversations through the pipeline."""
         loop = asyncio.get_event_loop()
 
         with ThreadPoolExecutor(max_workers=4) as executor:
             future = loop.run_in_executor(
-                executor,
-                self.process_conversations,
-                conversations,
-                source_metadata
+                executor, self.process_conversations, conversations, source_metadata
             )
             return await future
 
-    def validate_consistency(
-        self,
-        conversations: list[Conversation]
-    ) -> dict[str, Any]:
+    def validate_consistency(self, conversations: list[Conversation]) -> dict[str, Any]:
         """
         Perform systematic consistency validation on conversations.
 
@@ -266,7 +283,7 @@ class VoiceOptimizationPipeline:
                     "name": stage.name,
                     "enabled": stage.enabled,
                     "config": stage.config,
-                    "dependencies": stage.dependencies
+                    "dependencies": stage.dependencies,
                 }
                 for stage in self.stages
             ],
@@ -276,10 +293,10 @@ class VoiceOptimizationPipeline:
                     "threshold": rule.threshold,
                     "weight": rule.weight,
                     "critical": rule.critical,
-                    "description": rule.description
+                    "description": rule.description,
                 }
                 for rule in self.validation_rules
-            ]
+            ],
         }
 
         with open(file_path, "w") as f:
@@ -299,11 +316,15 @@ class VoiceOptimizationPipeline:
         # Import stages (processors need to be registered separately)
         for stage_config in config.get("stages", []):
             # Note: This is a simplified import - actual processors need to be registered
-            self.logger.warning(f"Stage {stage_config['name']} imported but processor needs registration")
+            self.logger.warning(
+                f"Stage {stage_config['name']} imported but processor needs registration"
+            )
 
         # Import validation rules (validators need to be registered separately)
         for rule_config in config.get("validation_rules", []):
-            self.logger.warning(f"Validation rule {rule_config['name']} imported but validator needs registration")
+            self.logger.warning(
+                f"Validation rule {rule_config['name']} imported but validator needs registration"
+            )
 
         self.logger.info(f"Pipeline configuration imported from {file_path}")
 
@@ -312,73 +333,89 @@ class VoiceOptimizationPipeline:
     def _initialize_default_pipeline(self) -> None:
         """Initialize default pipeline stages."""
         # Stage 1: Personality profiling
-        self.add_stage(PipelineStage(
-            name="personality_profiling",
-            processor=self._stage_personality_profiling,
-            config={"include_detailed_analysis": True}
-        ))
+        self.add_stage(
+            PipelineStage(
+                name="personality_profiling",
+                processor=self._stage_personality_profiling,
+                config={"include_detailed_analysis": True},
+            )
+        )
 
         # Stage 2: Consistency filtering
-        self.add_stage(PipelineStage(
-            name="consistency_filtering",
-            processor=self._stage_consistency_filtering,
-            config={"min_consistency_threshold": 0.8},
-            dependencies=["personality_profiling"]
-        ))
+        self.add_stage(
+            PipelineStage(
+                name="consistency_filtering",
+                processor=self._stage_consistency_filtering,
+                config={"min_consistency_threshold": 0.8},
+                dependencies=["personality_profiling"],
+            )
+        )
 
         # Stage 3: Quality optimization
-        self.add_stage(PipelineStage(
-            name="quality_optimization",
-            processor=self._stage_quality_optimization,
-            config={"enable_empathy_scoring": True},
-            dependencies=["consistency_filtering"]
-        ))
+        self.add_stage(
+            PipelineStage(
+                name="quality_optimization",
+                processor=self._stage_quality_optimization,
+                config={"enable_empathy_scoring": True},
+                dependencies=["consistency_filtering"],
+            )
+        )
 
         # Stage 4: Final validation
-        self.add_stage(PipelineStage(
-            name="final_validation",
-            processor=self._stage_final_validation,
-            dependencies=["quality_optimization"]
-        ))
+        self.add_stage(
+            PipelineStage(
+                name="final_validation",
+                processor=self._stage_final_validation,
+                dependencies=["quality_optimization"],
+            )
+        )
 
     def _initialize_default_validation_rules(self) -> None:
         """Initialize default validation rules."""
         # Personality consistency validation
-        self.add_validation_rule(ValidationRule(
-            name="personality_consistency",
-            validator=self._validate_personality_consistency,
-            threshold=0.8,
-            weight=0.3,
-            critical=True,
-            description="Validates consistency of personality traits across conversations"
-        ))
+        self.add_validation_rule(
+            ValidationRule(
+                name="personality_consistency",
+                validator=self._validate_personality_consistency,
+                threshold=0.8,
+                weight=0.3,
+                critical=True,
+                description="Validates consistency of personality traits across conversations",
+            )
+        )
 
         # Empathy consistency validation
-        self.add_validation_rule(ValidationRule(
-            name="empathy_consistency",
-            validator=self._validate_empathy_consistency,
-            threshold=0.7,
-            weight=0.25,
-            description="Validates consistency of empathy expressions"
-        ))
+        self.add_validation_rule(
+            ValidationRule(
+                name="empathy_consistency",
+                validator=self._validate_empathy_consistency,
+                threshold=0.7,
+                weight=0.25,
+                description="Validates consistency of empathy expressions",
+            )
+        )
 
         # Authenticity validation
-        self.add_validation_rule(ValidationRule(
-            name="authenticity_validation",
-            validator=self._validate_authenticity,
-            threshold=0.75,
-            weight=0.25,
-            description="Validates authenticity of voice-derived content"
-        ))
+        self.add_validation_rule(
+            ValidationRule(
+                name="authenticity_validation",
+                validator=self._validate_authenticity,
+                threshold=0.75,
+                weight=0.25,
+                description="Validates authenticity of voice-derived content",
+            )
+        )
 
         # Communication style consistency
-        self.add_validation_rule(ValidationRule(
-            name="communication_style_consistency",
-            validator=self._validate_communication_style,
-            threshold=0.8,
-            weight=0.2,
-            description="Validates consistency of communication patterns"
-        ))
+        self.add_validation_rule(
+            ValidationRule(
+                name="communication_style_consistency",
+                validator=self._validate_communication_style,
+                threshold=0.8,
+                weight=0.2,
+                description="Validates consistency of communication patterns",
+            )
+        )
 
     def _get_ordered_stages(self) -> list[PipelineStage]:
         """Get stages ordered by dependencies."""
@@ -392,7 +429,9 @@ class VoiceOptimizationPipeline:
 
         while remaining_stages:
             # Find stages that can be processed
-            ready_stages = [stage for stage in remaining_stages if can_process_stage(stage)]
+            ready_stages = [
+                stage for stage in remaining_stages if can_process_stage(stage)
+            ]
 
             if not ready_stages:
                 # Circular dependency or missing dependency
@@ -411,7 +450,7 @@ class VoiceOptimizationPipeline:
         self,
         stage: PipelineStage,
         conversations: list[Conversation],
-        source_metadata: dict[str, Any] | None
+        source_metadata: dict[str, Any] | None,
     ) -> dict[str, Any]:
         """Execute a pipeline stage."""
         try:
@@ -423,7 +462,7 @@ class VoiceOptimizationPipeline:
                 "input_count": len(conversations),
                 "output_count": len(conversations),
                 "quality_score": 0.0,
-                "error": str(e)
+                "error": str(e),
             }
 
     # Default stage processors
@@ -432,7 +471,7 @@ class VoiceOptimizationPipeline:
         self,
         conversations: list[Conversation],
         config: dict[str, Any],
-        source_metadata: dict[str, Any] | None
+        source_metadata: dict[str, Any] | None,
     ) -> dict[str, Any]:
         """Stage 1: Personality profiling."""
         processed_conversations = []
@@ -440,7 +479,9 @@ class VoiceOptimizationPipeline:
         for conversation in conversations:
             # Extract personality profile
             text_content = " ".join([msg.content for msg in conversation.messages])
-            personality_analysis = self.personality_extractor.extract_personality(text_content)
+            personality_analysis = self.personality_extractor.extract_personality(
+                text_content
+            )
 
             # Add personality metadata
             if not conversation.meta:
@@ -449,7 +490,7 @@ class VoiceOptimizationPipeline:
                 "big_five_scores": personality_analysis.big_five_scores,
                 "empathy_markers": personality_analysis.empathy_markers,
                 "authenticity_indicators": personality_analysis.authenticity_indicators,
-                "confidence": personality_analysis.confidence
+                "confidence": personality_analysis.confidence,
             }
 
             processed_conversations.append(conversation)
@@ -458,17 +499,21 @@ class VoiceOptimizationPipeline:
             "conversations": processed_conversations,
             "input_count": len(conversations),
             "output_count": len(processed_conversations),
-            "quality_score": statistics.mean([
-                conv.meta.get("personality_analysis", {}).get("confidence", 0.0)
-                for conv in processed_conversations
-            ]) if processed_conversations else 0.0
+            "quality_score": statistics.mean(
+                [
+                    conv.meta.get("personality_analysis", {}).get("confidence", 0.0)
+                    for conv in processed_conversations
+                ]
+            )
+            if processed_conversations
+            else 0.0,
         }
 
     def _stage_consistency_filtering(
         self,
         conversations: list[Conversation],
         config: dict[str, Any],
-        source_metadata: dict[str, Any] | None
+        source_metadata: dict[str, Any] | None,
     ) -> dict[str, Any]:
         """Stage 2: Consistency filtering."""
         min_threshold = config.get("min_consistency_threshold", 0.8)
@@ -480,7 +525,8 @@ class VoiceOptimizationPipeline:
 
         # Filter by consistency threshold
         consistent_conversations = [
-            conv for conv in optimization_result.optimized_conversations
+            conv
+            for conv in optimization_result.optimized_conversations
             if conv.meta.get("personality_consistency", 0.0) >= min_threshold
         ]
 
@@ -488,18 +534,22 @@ class VoiceOptimizationPipeline:
             "conversations": consistent_conversations,
             "input_count": len(conversations),
             "output_count": len(consistent_conversations),
-            "quality_score": statistics.mean([
-                conv.meta.get("personality_consistency", 0.0)
-                for conv in consistent_conversations
-            ]) if consistent_conversations else 0.0,
-            "optimization_result": optimization_result
+            "quality_score": statistics.mean(
+                [
+                    conv.meta.get("personality_consistency", 0.0)
+                    for conv in consistent_conversations
+                ]
+            )
+            if consistent_conversations
+            else 0.0,
+            "optimization_result": optimization_result,
         }
 
     def _stage_quality_optimization(
         self,
         conversations: list[Conversation],
         config: dict[str, Any],
-        source_metadata: dict[str, Any] | None
+        source_metadata: dict[str, Any] | None,
     ) -> dict[str, Any]:
         """Stage 3: Quality optimization."""
         optimized_conversations = []
@@ -512,9 +562,7 @@ class VoiceOptimizationPipeline:
 
             # Calculate combined quality score
             quality_score = (
-                empathy_score * 0.4 +
-                authenticity_score * 0.3 +
-                consistency_score * 0.3
+                empathy_score * 0.4 + authenticity_score * 0.3 + consistency_score * 0.3
             )
 
             # Add quality metadata
@@ -528,17 +576,21 @@ class VoiceOptimizationPipeline:
             "conversations": optimized_conversations,
             "input_count": len(conversations),
             "output_count": len(optimized_conversations),
-            "quality_score": statistics.mean([
-                conv.meta.get("combined_quality_score", 0.0)
-                for conv in optimized_conversations
-            ]) if optimized_conversations else 0.0
+            "quality_score": statistics.mean(
+                [
+                    conv.meta.get("combined_quality_score", 0.0)
+                    for conv in optimized_conversations
+                ]
+            )
+            if optimized_conversations
+            else 0.0,
         }
 
     def _stage_final_validation(
         self,
         conversations: list[Conversation],
         config: dict[str, Any],
-        source_metadata: dict[str, Any] | None
+        source_metadata: dict[str, Any] | None,
     ) -> dict[str, Any]:
         """Stage 4: Final validation."""
         validated_conversations = []
@@ -566,7 +618,9 @@ class VoiceOptimizationPipeline:
 
             if validation_passed:
                 # Add validation metadata
-                conversation.meta["validation_score"] = statistics.mean(conversation_validation_scores)
+                conversation.meta["validation_score"] = statistics.mean(
+                    conversation_validation_scores
+                )
                 validated_conversations.append(conversation)
                 validation_scores.append(conversation.meta["validation_score"])
 
@@ -574,12 +628,13 @@ class VoiceOptimizationPipeline:
             "conversations": validated_conversations,
             "input_count": len(conversations),
             "output_count": len(validated_conversations),
-            "quality_score": statistics.mean(validation_scores) if validation_scores else 0.0
+            "quality_score": statistics.mean(validation_scores)
+            if validation_scores
+            else 0.0,
         }
 
     def _perform_systematic_validation(
-        self,
-        conversations: list[Conversation]
+        self, conversations: list[Conversation]
     ) -> dict[str, Any]:
         """Perform systematic validation on conversations."""
         validation_report = {
@@ -587,7 +642,7 @@ class VoiceOptimizationPipeline:
             "validation_results": {},
             "overall_score": 0.0,
             "passed_validations": 0,
-            "failed_validations": 0
+            "failed_validations": 0,
         }
 
         if not conversations:
@@ -601,7 +656,7 @@ class VoiceOptimizationPipeline:
                 "passed": 0,
                 "failed": 0,
                 "scores": [],
-                "average_score": 0.0
+                "average_score": 0.0,
             }
 
             for conversation in conversations:
@@ -615,7 +670,9 @@ class VoiceOptimizationPipeline:
                         rule_results["failed"] += 1
 
                 except Exception as e:
-                    self.logger.warning(f"Validation {rule.name} failed for conversation: {e}")
+                    self.logger.warning(
+                        f"Validation {rule.name} failed for conversation: {e}"
+                    )
                     rule_results["failed"] += 1
                     rule_results["scores"].append(0.0)
 
@@ -632,10 +689,12 @@ class VoiceOptimizationPipeline:
 
         # Count overall pass/fail
         validation_report["passed_validations"] = sum(
-            result["passed"] for result in validation_report["validation_results"].values()
+            result["passed"]
+            for result in validation_report["validation_results"].values()
         )
         validation_report["failed_validations"] = sum(
-            result["failed"] for result in validation_report["validation_results"].values()
+            result["failed"]
+            for result in validation_report["validation_results"].values()
         )
 
         return validation_report
@@ -655,9 +714,13 @@ class VoiceOptimizationPipeline:
                 # Calculate basic quality score
                 empathy_score = conversation.meta.get("empathy_score", 0.0)
                 authenticity_score = conversation.meta.get("authenticity_score", 0.0)
-                consistency_score = conversation.meta.get("personality_consistency", 0.0)
+                consistency_score = conversation.meta.get(
+                    "personality_consistency", 0.0
+                )
 
-                quality_score = (empathy_score + authenticity_score + consistency_score) / 3
+                quality_score = (
+                    empathy_score + authenticity_score + consistency_score
+                ) / 3
 
             quality_scores.append(quality_score)
 

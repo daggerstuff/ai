@@ -38,14 +38,17 @@ class TestEthicalGuidelinesProcessor:
             dilemma_type=EthicalDilemmaType.CONFIDENTIALITY_CONFLICT,
             severity=EthicalSeverity.MODERATE,
             situation_description="Family member requesting client information",
-            ethical_principles_involved=[EthicalPrinciple.AUTONOMY, EthicalPrinciple.FIDELITY],
+            ethical_principles_involved=[
+                EthicalPrinciple.AUTONOMY,
+                EthicalPrinciple.FIDELITY,
+            ],
             boundary_concerns=[ProfessionalBoundary.COMMUNICATION_BOUNDARIES],
             stakeholders=["client", "family member", "therapist"],
             potential_consequences=["breach of confidentiality", "family conflict"],
             decision_factors=["client consent", "legal requirements"],
             recommended_actions=["explain confidentiality", "obtain consent"],
             consultation_needed=False,
-            documentation_required=True
+            documentation_required=True,
         )
 
     @pytest.fixture
@@ -56,14 +59,17 @@ class TestEthicalGuidelinesProcessor:
             dilemma_type=EthicalDilemmaType.DUTY_TO_WARN,
             severity=EthicalSeverity.MAJOR,
             situation_description="Client threatens specific person",
-            ethical_principles_involved=[EthicalPrinciple.NON_MALEFICENCE, EthicalPrinciple.FIDELITY],
+            ethical_principles_involved=[
+                EthicalPrinciple.NON_MALEFICENCE,
+                EthicalPrinciple.FIDELITY,
+            ],
             boundary_concerns=[ProfessionalBoundary.COMMUNICATION_BOUNDARIES],
             stakeholders=["client", "potential victim", "therapist"],
             potential_consequences=["breach of confidentiality", "legal liability"],
             decision_factors=["imminent danger", "specific threat"],
             recommended_actions=["assess threat", "contact authorities"],
             consultation_needed=True,
-            documentation_required=True
+            documentation_required=True,
         )
 
     def test_initialization(self, processor):
@@ -81,7 +87,9 @@ class TestEthicalGuidelinesProcessor:
 
     def test_ethical_guideline_structure(self, processor):
         """Test ethical guideline data structure."""
-        beneficence_guidelines = processor.ethical_guidelines[EthicalPrinciple.BENEFICENCE]
+        beneficence_guidelines = processor.ethical_guidelines[
+            EthicalPrinciple.BENEFICENCE
+        ]
         assert len(beneficence_guidelines) > 0
 
         guideline = beneficence_guidelines[0]
@@ -184,16 +192,24 @@ class TestEthicalGuidelinesProcessor:
                 assert "emotional_state" in exchange
                 assert "understanding_level" in exchange
 
-    def test_confidentiality_scenario_conversation(self, processor, sample_ethical_scenario):
+    def test_confidentiality_scenario_conversation(
+        self, processor, sample_ethical_scenario
+    ):
         """Test confidentiality scenario conversation generation."""
         conversation = processor.generate_ethical_conversation(sample_ethical_scenario)
 
         # Should demonstrate autonomy and fidelity principles
         principles_demonstrated = conversation.ethical_principles_demonstrated
-        assert EthicalPrinciple.AUTONOMY in principles_demonstrated or EthicalPrinciple.FIDELITY in principles_demonstrated
+        assert (
+            EthicalPrinciple.AUTONOMY in principles_demonstrated
+            or EthicalPrinciple.FIDELITY in principles_demonstrated
+        )
 
         # Should address communication boundaries
-        assert ProfessionalBoundary.COMMUNICATION_BOUNDARIES in conversation.boundaries_addressed
+        assert (
+            ProfessionalBoundary.COMMUNICATION_BOUNDARIES
+            in conversation.boundaries_addressed
+        )
 
         # Should include confidentiality teaching points
         teaching_points_text = " ".join(conversation.teaching_points).lower()
@@ -203,13 +219,18 @@ class TestEthicalGuidelinesProcessor:
         follow_up_text = " ".join(conversation.follow_up_actions).lower()
         assert "document" in follow_up_text
 
-    def test_duty_to_warn_scenario_conversation(self, processor, crisis_ethical_scenario):
+    def test_duty_to_warn_scenario_conversation(
+        self, processor, crisis_ethical_scenario
+    ):
         """Test duty to warn scenario conversation generation."""
         conversation = processor.generate_ethical_conversation(crisis_ethical_scenario)
 
         # Should demonstrate non-maleficence principle
         principles_demonstrated = conversation.ethical_principles_demonstrated
-        assert EthicalPrinciple.NON_MALEFICENCE in principles_demonstrated or EthicalPrinciple.FIDELITY in principles_demonstrated
+        assert (
+            EthicalPrinciple.NON_MALEFICENCE in principles_demonstrated
+            or EthicalPrinciple.FIDELITY in principles_demonstrated
+        )
 
         # Should include supervision notes for major severity
         assert conversation.supervision_notes is not None
@@ -247,17 +268,22 @@ class TestEthicalGuidelinesProcessor:
 
         # Should be appropriate for confidentiality scenario
         response_lower = response.lower()
-        assert any(word in response_lower for word in ["worried", "family", "information", "okay"])
+        assert any(
+            word in response_lower
+            for word in ["worried", "family", "information", "okay"]
+        )
 
     def test_teaching_points_generation(self, processor, sample_ethical_scenario):
         """Test teaching points generation."""
         # Mock exchanges
         exchanges = [
             {"speaker": "therapist", "ethical_principle": "autonomy"},
-            {"speaker": "family_member", "content": "test"}
+            {"speaker": "family_member", "content": "test"},
         ]
 
-        teaching_points = processor._generate_teaching_points(sample_ethical_scenario, exchanges)
+        teaching_points = processor._generate_teaching_points(
+            sample_ethical_scenario, exchanges
+        )
 
         assert isinstance(teaching_points, list)
         assert len(teaching_points) > 0
@@ -272,7 +298,9 @@ class TestEthicalGuidelinesProcessor:
 
         # Generate multiple conversations
         for _i in range(3):
-            conv = processor.generate_ethical_conversation(sample_ethical_scenario, num_exchanges=4)
+            conv = processor.generate_ethical_conversation(
+                sample_ethical_scenario, num_exchanges=4
+            )
             conversations.append(conv)
 
         # Test export
@@ -280,7 +308,9 @@ class TestEthicalGuidelinesProcessor:
             temp_file = f.name
 
         try:
-            export_result = processor.export_ethical_conversations(conversations, temp_file)
+            export_result = processor.export_ethical_conversations(
+                conversations, temp_file
+            )
 
             # Check export result
             assert export_result["exported_conversations"] == 3
@@ -314,7 +344,10 @@ class TestEthicalGuidelinesProcessor:
         processor.generate_ethical_conversation(sample_ethical_scenario)
 
         # Test conversion
-        test_dict = {"principle": EthicalPrinciple.AUTONOMY, "boundary": ProfessionalBoundary.COMMUNICATION_BOUNDARIES}
+        test_dict = {
+            "principle": EthicalPrinciple.AUTONOMY,
+            "boundary": ProfessionalBoundary.COMMUNICATION_BOUNDARIES,
+        }
         processor._convert_enums_to_strings(test_dict)
 
         assert test_dict["principle"] == "autonomy"
@@ -335,7 +368,7 @@ class TestEthicalGuidelinesProcessor:
             decision_factors=["client preference"],
             recommended_actions=["clarify boundaries"],
             consultation_needed=False,
-            documentation_required=False
+            documentation_required=False,
         )
 
         major_scenario = EthicalScenario(
@@ -350,7 +383,7 @@ class TestEthicalGuidelinesProcessor:
             decision_factors=["imminent danger"],
             recommended_actions=["immediate action"],
             consultation_needed=True,
-            documentation_required=True
+            documentation_required=True,
         )
 
         minor_conv = processor.generate_ethical_conversation(minor_scenario)

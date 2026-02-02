@@ -22,6 +22,7 @@ try:
         flesch_kincaid_grade,
         flesch_reading_ease,
     )
+
     NLP_AVAILABLE = True
 except ImportError:
     NLP_AVAILABLE = False
@@ -30,6 +31,7 @@ except ImportError:
 @dataclass
 class ComplexityMetrics:
     """Comprehensive complexity metrics for a conversation."""
+
     overall_complexity: float
     linguistic_complexity: float
     therapeutic_depth: float
@@ -97,7 +99,9 @@ class LinguisticComplexityAnalyzer:
         # Lexical density
         if self.nlp:
             doc = self.nlp(text)
-            content_words = [token for token in doc if not token.is_stop and not token.is_punct]
+            content_words = [
+                token for token in doc if not token.is_stop and not token.is_punct
+            ]
             metrics["lexical_density"] = len(content_words) / max(len(doc), 1)
         else:
             metrics["lexical_density"] = 0.5
@@ -119,7 +123,7 @@ class LinguisticComplexityAnalyzer:
             "vocabulary_diversity": 0.0,
             "lexical_density": 0.0,
             "syntactic_complexity": 0.0,
-            "semantic_density": 0.0
+            "semantic_density": 0.0,
         }
 
     def _calculate_syntactic_complexity(self, text: str) -> float:
@@ -137,16 +141,22 @@ class LinguisticComplexityAnalyzer:
 
         for sent in sentences:
             # Count subordinate clauses
-            subordinate_count = sum(1 for token in sent if token.dep_ in ["advcl", "ccomp", "xcomp", "acl"])
+            subordinate_count = sum(
+                1 for token in sent if token.dep_ in ["advcl", "ccomp", "xcomp", "acl"]
+            )
 
             # Count complex structures
-            complex_structures = sum(1 for token in sent if token.dep_ in ["conj", "appos", "nmod"])
+            complex_structures = sum(
+                1 for token in sent if token.dep_ in ["conj", "appos", "nmod"]
+            )
 
             # Sentence length factor
             length_factor = min(len(sent) / 20.0, 1.0)
 
             # Combine factors
-            sent_complexity = (subordinate_count * 0.4 + complex_structures * 0.3 + length_factor * 0.3)
+            sent_complexity = (
+                subordinate_count * 0.4 + complex_structures * 0.3 + length_factor * 0.3
+            )
             complexity_scores.append(sent_complexity)
 
         return min(np.mean(complexity_scores), 1.0)
@@ -179,24 +189,63 @@ class TherapeuticDepthAnalyzer:
     def __init__(self):
         self.therapeutic_concepts = {
             "basic": [
-                "feeling", "think", "problem", "help", "better", "difficult", "understand"
+                "feeling",
+                "think",
+                "problem",
+                "help",
+                "better",
+                "difficult",
+                "understand",
             ],
             "intermediate": [
-                "emotion", "behavior", "pattern", "relationship", "coping", "stress", "anxiety",
-                "depression", "therapy", "counseling", "support", "insight", "awareness"
+                "emotion",
+                "behavior",
+                "pattern",
+                "relationship",
+                "coping",
+                "stress",
+                "anxiety",
+                "depression",
+                "therapy",
+                "counseling",
+                "support",
+                "insight",
+                "awareness",
             ],
             "advanced": [
-                "transference", "countertransference", "unconscious", "defense mechanism",
-                "attachment", "trauma", "dissociation", "cognitive distortion", "schema",
-                "mindfulness", "dialectical", "psychodynamic", "behavioral activation",
-                "exposure therapy", "cognitive restructuring", "therapeutic alliance"
+                "transference",
+                "countertransference",
+                "unconscious",
+                "defense mechanism",
+                "attachment",
+                "trauma",
+                "dissociation",
+                "cognitive distortion",
+                "schema",
+                "mindfulness",
+                "dialectical",
+                "psychodynamic",
+                "behavioral activation",
+                "exposure therapy",
+                "cognitive restructuring",
+                "therapeutic alliance",
             ],
             "expert": [
-                "mentalization", "affect regulation", "interpersonal neurobiology",
-                "somatic experiencing", "EMDR", "internal family systems", "polyvagal",
-                "neuroplasticity", "epigenetics", "attachment theory", "object relations",
-                "self psychology", "relational psychoanalysis", "existential therapy"
-            ]
+                "mentalization",
+                "affect regulation",
+                "interpersonal neurobiology",
+                "somatic experiencing",
+                "EMDR",
+                "internal family systems",
+                "polyvagal",
+                "neuroplasticity",
+                "epigenetics",
+                "attachment theory",
+                "object relations",
+                "self psychology",
+                "relational psychoanalysis",
+                "existential therapy",
+            ],
         }
 
         self.therapeutic_techniques = {
@@ -205,10 +254,14 @@ class TherapeuticDepthAnalyzer:
             "interpretation": [r"\b(it seems|perhaps|maybe|could it be|I wonder)\b"],
             "validation": [r"\b(understand|makes sense|valid|legitimate)\b"],
             "challenge": [r"\b(evidence|alternative|different perspective|consider)\b"],
-            "psychoeducation": [r"\b(research shows|studies indicate|common|typical)\b"]
+            "psychoeducation": [
+                r"\b(research shows|studies indicate|common|typical)\b"
+            ],
         }
 
-    def analyze_therapeutic_depth(self, conversation: dict[str, Any]) -> dict[str, float]:
+    def analyze_therapeutic_depth(
+        self, conversation: dict[str, Any]
+    ) -> dict[str, float]:
         """Analyze therapeutic depth of conversation."""
         text = self._extract_text(conversation)
 
@@ -249,7 +302,7 @@ class TherapeuticDepthAnalyzer:
             "advanced_concepts": 0.0,
             "expert_concepts": 0.0,
             "technique_diversity": 0.0,
-            "therapeutic_depth": 0.0
+            "therapeutic_depth": 0.0,
         }
 
     def _analyze_concept_sophistication(self, text: str) -> dict[str, float]:
@@ -288,16 +341,16 @@ class TherapeuticDepthAnalyzer:
         """Calculate overall therapeutic depth score."""
         # Weight different levels of concepts
         concept_score = (
-            metrics.get("basic_concepts", 0) * 0.1 +
-            metrics.get("intermediate_concepts", 0) * 0.3 +
-            metrics.get("advanced_concepts", 0) * 0.4 +
-            metrics.get("expert_concepts", 0) * 0.2
+            metrics.get("basic_concepts", 0) * 0.1
+            + metrics.get("intermediate_concepts", 0) * 0.3
+            + metrics.get("advanced_concepts", 0) * 0.4
+            + metrics.get("expert_concepts", 0) * 0.2
         )
 
         technique_score = metrics.get("technique_diversity", 0)
 
         # Combine concept sophistication and technique diversity
-        overall_depth = (concept_score * 0.7 + technique_score * 0.3)
+        overall_depth = concept_score * 0.7 + technique_score * 0.3
 
         return min(overall_depth, 1.0)
 
@@ -308,30 +361,73 @@ class EmotionalComplexityAnalyzer:
     def __init__(self):
         self.emotion_categories = {
             "basic_emotions": [
-                "happy", "sad", "angry", "afraid", "surprised", "disgusted"
+                "happy",
+                "sad",
+                "angry",
+                "afraid",
+                "surprised",
+                "disgusted",
             ],
             "complex_emotions": [
-                "anxious", "depressed", "frustrated", "overwhelmed", "hopeful",
-                "grateful", "ashamed", "guilty", "proud", "envious", "jealous",
-                "contempt", "admiration", "compassion", "empathy"
+                "anxious",
+                "depressed",
+                "frustrated",
+                "overwhelmed",
+                "hopeful",
+                "grateful",
+                "ashamed",
+                "guilty",
+                "proud",
+                "envious",
+                "jealous",
+                "contempt",
+                "admiration",
+                "compassion",
+                "empathy",
             ],
             "emotional_states": [
-                "numb", "empty", "conflicted", "ambivalent", "vulnerable",
-                "resilient", "fragile", "stable", "volatile", "balanced"
+                "numb",
+                "empty",
+                "conflicted",
+                "ambivalent",
+                "vulnerable",
+                "resilient",
+                "fragile",
+                "stable",
+                "volatile",
+                "balanced",
             ],
             "emotional_processes": [
-                "processing", "working through", "struggling with", "coming to terms",
-                "letting go", "holding onto", "suppressing", "expressing",
-                "regulating", "managing", "coping with"
-            ]
+                "processing",
+                "working through",
+                "struggling with",
+                "coming to terms",
+                "letting go",
+                "holding onto",
+                "suppressing",
+                "expressing",
+                "regulating",
+                "managing",
+                "coping with",
+            ],
         }
 
         self.intensity_modifiers = [
-            "very", "extremely", "incredibly", "somewhat", "slightly",
-            "deeply", "profoundly", "mildly", "intensely", "overwhelmingly"
+            "very",
+            "extremely",
+            "incredibly",
+            "somewhat",
+            "slightly",
+            "deeply",
+            "profoundly",
+            "mildly",
+            "intensely",
+            "overwhelmingly",
         ]
 
-    def analyze_emotional_complexity(self, conversation: dict[str, Any]) -> dict[str, float]:
+    def analyze_emotional_complexity(
+        self, conversation: dict[str, Any]
+    ) -> dict[str, float]:
         """Analyze emotional complexity of conversation."""
         text = self._extract_text(conversation)
 
@@ -351,7 +447,9 @@ class EmotionalComplexityAnalyzer:
         metrics["emotional_intensity"] = self._analyze_emotional_intensity(text)
 
         # Analyze emotional progression
-        metrics["emotional_progression"] = self._analyze_emotional_progression(conversation)
+        metrics["emotional_progression"] = self._analyze_emotional_progression(
+            conversation
+        )
 
         # Calculate overall emotional complexity
         metrics["emotional_complexity"] = self._calculate_emotional_complexity(metrics)
@@ -379,7 +477,7 @@ class EmotionalComplexityAnalyzer:
             "emotional_range": 0.0,
             "emotional_intensity": 0.0,
             "emotional_progression": 0.0,
-            "emotional_complexity": 0.0
+            "emotional_complexity": 0.0,
         }
 
     def _analyze_emotional_vocabulary(self, text: str) -> dict[str, float]:
@@ -421,7 +519,9 @@ class EmotionalComplexityAnalyzer:
         """Analyze emotional intensity based on modifiers."""
         text_lower = text.lower()
 
-        intensity_count = sum(1 for modifier in self.intensity_modifiers if modifier in text_lower)
+        intensity_count = sum(
+            1 for modifier in self.intensity_modifiers if modifier in text_lower
+        )
         word_count = len(text.split())
 
         # Normalize by text length
@@ -443,14 +543,30 @@ class EmotionalComplexityAnalyzer:
                 content = message["content"].lower()
 
                 # Count positive vs negative emotional words
-                positive_words = ["happy", "good", "better", "hopeful", "grateful", "proud"]
-                negative_words = ["sad", "bad", "worse", "hopeless", "angry", "frustrated"]
+                positive_words = [
+                    "happy",
+                    "good",
+                    "better",
+                    "hopeful",
+                    "grateful",
+                    "proud",
+                ]
+                negative_words = [
+                    "sad",
+                    "bad",
+                    "worse",
+                    "hopeless",
+                    "angry",
+                    "frustrated",
+                ]
 
                 pos_count = sum(1 for word in positive_words if word in content)
                 neg_count = sum(1 for word in negative_words if word in content)
 
                 if pos_count + neg_count > 0:
-                    emotional_scores.append((pos_count - neg_count) / (pos_count + neg_count))
+                    emotional_scores.append(
+                        (pos_count - neg_count) / (pos_count + neg_count)
+                    )
                 else:
                     emotional_scores.append(0)
 
@@ -465,13 +581,13 @@ class EmotionalComplexityAnalyzer:
         """Calculate overall emotional complexity."""
         # Weight different aspects of emotional complexity
         complexity = (
-            metrics.get("basic_emotions", 0) * 0.1 +
-            metrics.get("complex_emotions", 0) * 0.3 +
-            metrics.get("emotional_states", 0) * 0.2 +
-            metrics.get("emotional_processes", 0) * 0.2 +
-            metrics.get("emotional_range", 0) * 0.1 +
-            metrics.get("emotional_intensity", 0) * 0.05 +
-            metrics.get("emotional_progression", 0) * 0.05
+            metrics.get("basic_emotions", 0) * 0.1
+            + metrics.get("complex_emotions", 0) * 0.3
+            + metrics.get("emotional_states", 0) * 0.2
+            + metrics.get("emotional_processes", 0) * 0.2
+            + metrics.get("emotional_range", 0) * 0.1
+            + metrics.get("emotional_intensity", 0) * 0.05
+            + metrics.get("emotional_progression", 0) * 0.05
         )
 
         return min(complexity, 1.0)
@@ -487,7 +603,9 @@ class ComplexityScorer:
 
         self.logger = logging.getLogger(__name__)
 
-    def score_conversation_complexity(self, conversation: dict[str, Any]) -> ComplexityMetrics:
+    def score_conversation_complexity(
+        self, conversation: dict[str, Any]
+    ) -> ComplexityMetrics:
         """Score overall complexity of a conversation."""
         try:
             # Extract basic statistics
@@ -500,33 +618,51 @@ class ComplexityScorer:
             unique_words = len(set(text.lower().split()))
 
             # Analyze different complexity dimensions
-            linguistic_metrics = self.linguistic_analyzer.analyze_linguistic_complexity(text)
-            therapeutic_metrics = self.therapeutic_analyzer.analyze_therapeutic_depth(conversation)
-            emotional_metrics = self.emotional_analyzer.analyze_emotional_complexity(conversation)
+            linguistic_metrics = self.linguistic_analyzer.analyze_linguistic_complexity(
+                text
+            )
+            therapeutic_metrics = self.therapeutic_analyzer.analyze_therapeutic_depth(
+                conversation
+            )
+            emotional_metrics = self.emotional_analyzer.analyze_emotional_complexity(
+                conversation
+            )
 
             # Calculate main complexity scores
-            linguistic_complexity = self._calculate_linguistic_complexity(linguistic_metrics)
+            linguistic_complexity = self._calculate_linguistic_complexity(
+                linguistic_metrics
+            )
             therapeutic_depth = therapeutic_metrics.get("therapeutic_depth", 0.0)
             emotional_complexity = emotional_metrics.get("emotional_complexity", 0.0)
 
             # Calculate additional complexity dimensions
             clinical_sophistication = self._calculate_clinical_sophistication(text)
-            cognitive_load = self._calculate_cognitive_load(linguistic_metrics, word_count)
+            cognitive_load = self._calculate_cognitive_load(
+                linguistic_metrics, word_count
+            )
             interaction_complexity = self._calculate_interaction_complexity(messages)
 
             # Create a temporary ComplexityMetrics object for overall calculation
             temp_metrics = ComplexityMetrics(
-                overall_complexity=0.0, # Placeholder, will be overwritten
+                overall_complexity=0.0,  # Placeholder, will be overwritten
                 linguistic_complexity=linguistic_complexity,
                 therapeutic_depth=therapeutic_depth,
                 emotional_complexity=emotional_complexity,
                 clinical_sophistication=clinical_sophistication,
                 cognitive_load=cognitive_load,
                 interaction_complexity=interaction_complexity,
-                readability_score=0.0, vocabulary_diversity=0.0, syntactic_complexity=0.0,
-                semantic_density=0.0, therapeutic_technique_count=0, emotional_range=0.0,
-                clinical_terminology_density=0.0, turn_taking_complexity=0.0,
-                word_count=0, sentence_count=0, turn_count=0, unique_words=0
+                readability_score=0.0,
+                vocabulary_diversity=0.0,
+                syntactic_complexity=0.0,
+                semantic_density=0.0,
+                therapeutic_technique_count=0,
+                emotional_range=0.0,
+                clinical_terminology_density=0.0,
+                turn_taking_complexity=0.0,
+                word_count=0,
+                sentence_count=0,
+                turn_count=0,
+                unique_words=0,
             )
 
             # Calculate overall complexity
@@ -540,22 +676,28 @@ class ComplexityScorer:
                 clinical_sophistication=clinical_sophistication,
                 cognitive_load=cognitive_load,
                 interaction_complexity=interaction_complexity,
-
                 # Detailed sub-metrics
-                readability_score=self._normalize_readability(linguistic_metrics.get("flesch_reading_ease", 50)),
-                vocabulary_diversity=linguistic_metrics.get("vocabulary_diversity", 0.0),
-                syntactic_complexity=linguistic_metrics.get("syntactic_complexity", 0.0),
+                readability_score=self._normalize_readability(
+                    linguistic_metrics.get("flesch_reading_ease", 50)
+                ),
+                vocabulary_diversity=linguistic_metrics.get(
+                    "vocabulary_diversity", 0.0
+                ),
+                syntactic_complexity=linguistic_metrics.get(
+                    "syntactic_complexity", 0.0
+                ),
                 semantic_density=linguistic_metrics.get("semantic_density", 0.0),
-                therapeutic_technique_count=int(therapeutic_metrics.get("technique_diversity", 0) * 6),
+                therapeutic_technique_count=int(
+                    therapeutic_metrics.get("technique_diversity", 0) * 6
+                ),
                 emotional_range=emotional_metrics.get("emotional_range", 0.0),
                 clinical_terminology_density=clinical_sophistication,
                 turn_taking_complexity=interaction_complexity,
-
                 # Basic statistics
                 word_count=word_count,
                 sentence_count=max(sentence_count, 1),
                 turn_count=turn_count,
-                unique_words=unique_words
+                unique_words=unique_words,
             )
 
         except Exception as e:
@@ -576,17 +718,16 @@ class ComplexityScorer:
     def _calculate_linguistic_complexity(self, metrics: dict[str, float]) -> float:
         """Calculate overall linguistic complexity."""
         # Combine different linguistic metrics
-        readability = self._normalize_readability(metrics.get("flesch_reading_ease", 50))
+        readability = self._normalize_readability(
+            metrics.get("flesch_reading_ease", 50)
+        )
         vocabulary = metrics.get("vocabulary_diversity", 0.0)
         syntactic = metrics.get("syntactic_complexity", 0.0)
         semantic = metrics.get("semantic_density", 0.0)
 
         # Weight the components
         complexity = (
-            readability * 0.3 +
-            vocabulary * 0.3 +
-            syntactic * 0.2 +
-            semantic * 0.2
+            readability * 0.3 + vocabulary * 0.3 + syntactic * 0.2 + semantic * 0.2
         )
 
         return min(complexity, 1.0)
@@ -601,9 +742,21 @@ class ComplexityScorer:
     def _calculate_clinical_sophistication(self, text: str) -> float:
         """Calculate clinical sophistication based on terminology."""
         clinical_terms = [
-            "diagnosis", "symptoms", "treatment", "therapy", "intervention",
-            "assessment", "evaluation", "disorder", "syndrome", "pathology",
-            "etiology", "prognosis", "comorbidity", "differential", "criteria"
+            "diagnosis",
+            "symptoms",
+            "treatment",
+            "therapy",
+            "intervention",
+            "assessment",
+            "evaluation",
+            "disorder",
+            "syndrome",
+            "pathology",
+            "etiology",
+            "prognosis",
+            "comorbidity",
+            "differential",
+            "criteria",
         ]
 
         text_lower = text.lower()
@@ -615,18 +768,26 @@ class ComplexityScorer:
         sophistication = clinical_count / max(word_count / 100, 1)
         return min(sophistication, 1.0)
 
-    def _calculate_cognitive_load(self, linguistic_metrics: dict[str, float], word_count: int) -> float:
+    def _calculate_cognitive_load(
+        self, linguistic_metrics: dict[str, float], word_count: int
+    ) -> float:
         """Calculate cognitive load based on text complexity."""
         # Factors that increase cognitive load
-        readability_load = self._normalize_readability(linguistic_metrics.get("flesch_reading_ease", 50))
+        readability_load = self._normalize_readability(
+            linguistic_metrics.get("flesch_reading_ease", 50)
+        )
         length_load = min(word_count / 1000, 1.0)  # Longer texts = higher load
         vocabulary_load = linguistic_metrics.get("vocabulary_diversity", 0.0)
 
         # Combine factors
-        cognitive_load = (readability_load * 0.4 + length_load * 0.3 + vocabulary_load * 0.3)
+        cognitive_load = (
+            readability_load * 0.4 + length_load * 0.3 + vocabulary_load * 0.3
+        )
         return min(cognitive_load, 1.0)
 
-    def _calculate_interaction_complexity(self, messages: list[dict[str, Any]]) -> float:
+    def _calculate_interaction_complexity(
+        self, messages: list[dict[str, Any]]
+    ) -> float:
         """Calculate interaction complexity based on conversation structure."""
         if len(messages) < 2:
             return 0.0
@@ -645,24 +806,24 @@ class ComplexityScorer:
         avg_length = np.mean(turn_lengths)
 
         # Normalize variance by average length
-        normalized_variance = length_variance / max(avg_length ** 2, 1)
+        normalized_variance = length_variance / max(avg_length**2, 1)
 
         # Factor in number of turns
         turn_factor = min(len(messages) / 20, 1.0)
 
-        interaction_complexity = (normalized_variance * 0.6 + turn_factor * 0.4)
+        interaction_complexity = normalized_variance * 0.6 + turn_factor * 0.4
         return min(interaction_complexity, 1.0)
 
     def _calculate_overall_complexity(self, metrics: ComplexityMetrics) -> float:
         """Calculate overall complexity score."""
         # Weight different complexity dimensions
         overall = (
-            metrics.linguistic_complexity * 0.25 +
-            metrics.therapeutic_depth * 0.25 +
-            metrics.emotional_complexity * 0.20 +
-            metrics.clinical_sophistication * 0.15 +
-            metrics.cognitive_load * 0.10 +
-            metrics.interaction_complexity * 0.05
+            metrics.linguistic_complexity * 0.25
+            + metrics.therapeutic_depth * 0.25
+            + metrics.emotional_complexity * 0.20
+            + metrics.clinical_sophistication * 0.15
+            + metrics.cognitive_load * 0.10
+            + metrics.interaction_complexity * 0.05
         )
 
         return min(overall, 1.0)
@@ -688,7 +849,7 @@ class ComplexityScorer:
             word_count=0,
             sentence_count=0,
             turn_count=0,
-            unique_words=0
+            unique_words=0,
         )
 
 
@@ -703,25 +864,24 @@ if __name__ == "__main__":
         "messages": [
             {
                 "role": "client",
-                "content": "I've been experiencing persistent depressive symptoms for several months now. The cognitive distortions seem to be getting worse, and I'm struggling with rumination patterns that feel overwhelming."
+                "content": "I've been experiencing persistent depressive symptoms for several months now. The cognitive distortions seem to be getting worse, and I'm struggling with rumination patterns that feel overwhelming.",
             },
             {
                 "role": "therapist",
-                "content": "I appreciate you sharing that with me. When you mention cognitive distortions and rumination patterns, it sounds like you have some awareness of your thought processes. Can you help me understand what specific types of distorted thinking you've noticed? For instance, are you experiencing catastrophic thinking, all-or-nothing patterns, or perhaps mind reading?"
+                "content": "I appreciate you sharing that with me. When you mention cognitive distortions and rumination patterns, it sounds like you have some awareness of your thought processes. Can you help me understand what specific types of distorted thinking you've noticed? For instance, are you experiencing catastrophic thinking, all-or-nothing patterns, or perhaps mind reading?",
             },
             {
                 "role": "client",
-                "content": "Definitely catastrophic thinking. Every small setback feels like evidence that I'm fundamentally flawed. I also notice a lot of emotional reasoning - if I feel worthless, then I must be worthless. It's like my emotions are dictating my reality."
+                "content": "Definitely catastrophic thinking. Every small setback feels like evidence that I'm fundamentally flawed. I also notice a lot of emotional reasoning - if I feel worthless, then I must be worthless. It's like my emotions are dictating my reality.",
             },
             {
                 "role": "therapist",
-                "content": "That's a really insightful observation about emotional reasoning. The fact that you can identify these patterns suggests you're developing metacognitive awareness, which is actually a significant therapeutic asset. Let's explore this further - when you notice these catastrophic thoughts arising, what happens in your body? Are there somatic markers that accompany these cognitive patterns?"
-            }
-        ]
+                "content": "That's a really insightful observation about emotional reasoning. The fact that you can identify these patterns suggests you're developing metacognitive awareness, which is actually a significant therapeutic asset. Let's explore this further - when you notice these catastrophic thoughts arising, what happens in your body? Are there somatic markers that accompany these cognitive patterns?",
+            },
+        ],
     }
 
     # Score complexity
     complexity = scorer.score_conversation_complexity(example_conversation)
 
     # Print results
-

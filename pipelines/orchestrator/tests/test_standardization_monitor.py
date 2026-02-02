@@ -6,7 +6,6 @@ import time
 from datetime import datetime
 
 import pytest
-
 from ai.pipelines.orchestrator.conversation_schema import Conversation, Message
 from ai.pipelines.orchestrator.standardization_monitor import (
     AlertLevel,
@@ -26,7 +25,7 @@ class TestStandardizationMonitor:
         return StandardizationMonitor(
             window_size=100,
             alert_cooldown=10,
-            enable_real_time=False  # Disable for testing
+            enable_real_time=False,  # Disable for testing
         )
 
     @pytest.fixture
@@ -34,7 +33,7 @@ class TestStandardizationMonitor:
         """Create a sample conversation for testing."""
         messages = [
             Message(role="user", content="Hello"),
-            Message(role="assistant", content="Hi there!")
+            Message(role="assistant", content="Hi there!"),
         ]
         return Conversation(id="test_conv", messages=messages)
 
@@ -51,6 +50,7 @@ class TestStandardizationMonitor:
 
     def test_register_quality_assessor(self, monitor):
         """Test registering quality assessor."""
+
         def dummy_assessor(conversation):
             return 0.8
 
@@ -81,10 +81,7 @@ class TestStandardizationMonitor:
 
         # Record success
         monitor.record_processing_success(
-            "item_1",
-            sample_conversation,
-            "simple_messages",
-            {"test": "metadata"}
+            "item_1", sample_conversation, "simple_messages", {"test": "metadata"}
         )
 
         metrics = monitor.get_current_metrics()
@@ -104,10 +101,7 @@ class TestStandardizationMonitor:
 
         # Record failure
         monitor.record_processing_failure(
-            "item_1",
-            "Test error",
-            "unknown_format",
-            {"test": "metadata"}
+            "item_1", "Test error", "unknown_format", {"test": "metadata"}
         )
 
         metrics = monitor.get_current_metrics()
@@ -117,8 +111,11 @@ class TestStandardizationMonitor:
         assert "unknown_format" in metrics.format_distribution
         assert "str" in metrics.error_distribution  # Error type
 
-    def test_record_processing_success_with_quality_assessor(self, monitor, sample_conversation):
+    def test_record_processing_success_with_quality_assessor(
+        self, monitor, sample_conversation
+    ):
         """Test recording success with quality assessor."""
+
         def quality_assessor(conversation):
             return 0.9
 
@@ -126,9 +123,7 @@ class TestStandardizationMonitor:
         monitor.record_processing_start("item_1")
 
         monitor.record_processing_success(
-            "item_1",
-            sample_conversation,
-            "simple_messages"
+            "item_1", sample_conversation, "simple_messages"
         )
 
         assert len(monitor.quality_scores) == 1
@@ -140,6 +135,7 @@ class TestStandardizationMonitor:
 
     def test_quality_assessor_error_handling(self, monitor, sample_conversation):
         """Test quality assessor error handling."""
+
         def failing_assessor(conversation):
             raise ValueError("Test error")
 
@@ -162,7 +158,9 @@ class TestStandardizationMonitor:
         for i in range(5):
             monitor.record_processing_start(f"item_{i}")
             if i < 4:  # 4 successes, 1 failure
-                monitor.record_processing_success(f"item_{i}", sample_conversation, "test")
+                monitor.record_processing_success(
+                    f"item_{i}", sample_conversation, "test"
+                )
             else:
                 monitor.record_processing_failure(f"item_{i}", "Test error", "test")
 
@@ -212,7 +210,7 @@ class TestStandardizationMonitor:
             metric_name="test_metric",
             current_value=0.5,
             threshold=0.8,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
         alert2 = QualityAlert(
             level=AlertLevel.ERROR,
@@ -220,7 +218,7 @@ class TestStandardizationMonitor:
             metric_name="test_metric",
             current_value=0.3,
             threshold=0.8,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         monitor.alerts.extend([alert1, alert2])
@@ -242,14 +240,16 @@ class TestStandardizationMonitor:
         """Test resetting metrics."""
         # Generate some data
         monitor.record_processing_success("item_1", sample_conversation, "test")
-        monitor.alerts.append(QualityAlert(
-            level=AlertLevel.INFO,
-            message="Test",
-            metric_name="test",
-            current_value=1.0,
-            threshold=0.8,
-            timestamp=datetime.now()
-        ))
+        monitor.alerts.append(
+            QualityAlert(
+                level=AlertLevel.INFO,
+                message="Test",
+                metric_name="test",
+                current_value=1.0,
+                threshold=0.8,
+                timestamp=datetime.now(),
+            )
+        )
 
         # Verify data exists
         assert monitor.current_metrics.total_processed == 1
@@ -274,7 +274,9 @@ class TestStandardizationMonitor:
         for i in range(10):
             monitor.record_processing_start(f"item_{i}")
             if i < 7:  # 70% success rate
-                monitor.record_processing_success(f"item_{i}", sample_conversation, "test")
+                monitor.record_processing_success(
+                    f"item_{i}", sample_conversation, "test"
+                )
             else:
                 monitor.record_processing_failure(f"item_{i}", "Error", "test")
 
@@ -286,6 +288,7 @@ class TestStandardizationMonitor:
 
     def test_alert_creation_quality_score(self, monitor, sample_conversation):
         """Test alert creation for low quality score."""
+
         # Register low-scoring assessor
         def low_quality_assessor(conversation):
             return 0.5
@@ -313,7 +316,9 @@ class TestStandardizationMonitor:
             for i in range(5):
                 monitor.record_processing_start(f"item_{i}")
                 if i < 2:  # Low success rate
-                    monitor.record_processing_success(f"item_{i}", sample_conversation, "test")
+                    monitor.record_processing_success(
+                        f"item_{i}", sample_conversation, "test"
+                    )
                 else:
                     monitor.record_processing_failure(f"item_{i}", "Error", "test")
 
@@ -358,7 +363,7 @@ class TestQualityMetric:
             name="test_metric",
             value=0.8,
             timestamp=timestamp,
-            metadata={"test": "data"}
+            metadata={"test": "data"},
         )
 
         assert metric.name == "test_metric"
@@ -380,7 +385,7 @@ class TestQualityAlert:
             current_value=0.5,
             threshold=0.8,
             timestamp=timestamp,
-            metadata={"test": "data"}
+            metadata={"test": "data"},
         )
 
         assert alert.level == AlertLevel.WARNING

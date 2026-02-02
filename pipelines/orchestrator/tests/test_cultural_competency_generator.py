@@ -3,7 +3,6 @@
 Test suite for CulturalCompetencyGenerator - Task 6.12
 """
 
-
 import pytest
 from cultural_competency_generator import (
     CulturalAdaptation,
@@ -26,13 +25,13 @@ class TestCulturalCompetencyGenerator:
             "turns": [
                 {
                     "speaker": "user",
-                    "content": "I'm struggling with anxiety, but I don't want to bring shame to my family. In our culture, mental health issues are not talked about openly. My parents expect me to be strong and successful."
+                    "content": "I'm struggling with anxiety, but I don't want to bring shame to my family. In our culture, mental health issues are not talked about openly. My parents expect me to be strong and successful.",
                 },
                 {
                     "speaker": "assistant",
-                    "content": "I understand you're dealing with anxiety."
-                }
-            ]
+                    "content": "I understand you're dealing with anxiety.",
+                },
+            ],
         }
 
     def test_initialization(self):
@@ -61,7 +60,7 @@ class TestCulturalCompetencyGenerator:
             "turns": [
                 {
                     "speaker": "user",
-                    "content": "My family is very important to me. We always make decisions together and respect our elders. Family harmony is our priority."
+                    "content": "My family is very important to me. We always make decisions together and respect our elders. Family harmony is our priority.",
                 }
             ]
         }
@@ -72,7 +71,7 @@ class TestCulturalCompetencyGenerator:
         assert profile.primary_background in [
             CulturalBackground.EAST_ASIAN_COLLECTIVISTIC,
             CulturalBackground.LATIN_AMERICAN,
-            CulturalBackground.MIXED_MULTICULTURAL
+            CulturalBackground.MIXED_MULTICULTURAL,
         ]
 
     def test_generate_cultural_adaptation(self):
@@ -84,7 +83,12 @@ class TestCulturalCompetencyGenerator:
         assert adaptation.cultural_profile == profile
         assert len(adaptation.communication_adjustments) > 0
         assert len(adaptation.therapeutic_considerations) > 0
-        assert adaptation.family_involvement_level in ["high", "moderate", "low", "flexible"]
+        assert adaptation.family_involvement_level in [
+            "high",
+            "moderate",
+            "low",
+            "flexible",
+        ]
         assert len(adaptation.potential_biases_to_avoid) > 0
 
     def test_culturally_aware_response_generation(self):
@@ -107,7 +111,7 @@ class TestCulturalCompetencyGenerator:
             "turns": [
                 {
                     "speaker": "user",
-                    "content": "I need to tell you directly - I'm having serious problems and I want straight answers about what to do."
+                    "content": "I need to tell you directly - I'm having serious problems and I want straight answers about what to do.",
                 }
             ]
         }
@@ -120,7 +124,7 @@ class TestCulturalCompetencyGenerator:
             "turns": [
                 {
                     "speaker": "user",
-                    "content": "Perhaps there might be some issues that could possibly be affecting my well-being, maybe."
+                    "content": "Perhaps there might be some issues that could possibly be affecting my well-being, maybe.",
                 }
             ]
         }
@@ -135,7 +139,7 @@ class TestCulturalCompetencyGenerator:
             "turns": [
                 {
                     "speaker": "user",
-                    "content": "I'm struggling financially and can't afford therapy. The stress of not being able to pay bills is overwhelming."
+                    "content": "I'm struggling financially and can't afford therapy. The stress of not being able to pay bills is overwhelming.",
                 }
             ]
         }
@@ -143,7 +147,10 @@ class TestCulturalCompetencyGenerator:
         profile = self.generator.analyze_cultural_profile(low_income_conversation)
 
         if DiversityFactor.SOCIOECONOMIC_STATUS in profile.diversity_factors:
-            assert profile.diversity_factors[DiversityFactor.SOCIOECONOMIC_STATUS] == "lower_income"
+            assert (
+                profile.diversity_factors[DiversityFactor.SOCIOECONOMIC_STATUS]
+                == "lower_income"
+            )
 
     def test_religious_considerations(self):
         """Test religious considerations identification."""
@@ -151,7 +158,7 @@ class TestCulturalCompetencyGenerator:
             "turns": [
                 {
                     "speaker": "user",
-                    "content": "My faith is very important to me. I pray every day and attend religious services regularly. I believe God will help me through this."
+                    "content": "My faith is very important to me. I pray every day and attend religious services regularly. I believe God will help me through this.",
                 }
             ]
         }
@@ -167,7 +174,7 @@ class TestCulturalCompetencyGenerator:
             "turns": [
                 {
                     "speaker": "user",
-                    "content": "My family comes first in everything I do. I want to achieve success to make my parents proud and honor our traditions."
+                    "content": "My family comes first in everything I do. I want to achieve success to make my parents proud and honor our traditions.",
                 }
             ]
         }
@@ -175,7 +182,10 @@ class TestCulturalCompetencyGenerator:
         profile = self.generator.analyze_cultural_profile(family_oriented_conversation)
 
         assert "family_oriented" in profile.cultural_values
-        assert "achievement_oriented" in profile.cultural_values or "traditional" in profile.cultural_values
+        assert (
+            "achievement_oriented" in profile.cultural_values
+            or "traditional" in profile.cultural_values
+        )
 
     def test_potential_barriers_identification(self):
         """Test potential barriers identification."""
@@ -183,7 +193,7 @@ class TestCulturalCompetencyGenerator:
             "turns": [
                 {
                     "speaker": "user",
-                    "content": "English is not my first language, and I'm worried about the stigma of mental health treatment in my community. It would be shameful for my family."
+                    "content": "English is not my first language, and I'm worried about the stigma of mental health treatment in my community. It would be shameful for my family.",
                 }
             ]
         }
@@ -191,7 +201,10 @@ class TestCulturalCompetencyGenerator:
         profile = self.generator.analyze_cultural_profile(barrier_conversation)
 
         assert len(profile.potential_barriers) > 0
-        assert any("language" in barrier or "stigma" in barrier for barrier in profile.potential_barriers)
+        assert any(
+            "language" in barrier or "stigma" in barrier
+            for barrier in profile.potential_barriers
+        )
 
     def test_family_involvement_determination(self):
         """Test family involvement level determination."""
@@ -206,10 +219,12 @@ class TestCulturalCompetencyGenerator:
             religious_considerations=[],
             cultural_values=["family_oriented"],
             potential_barriers=[],
-            confidence_score=0.8
+            confidence_score=0.8,
         )
 
-        involvement = self.generator._determine_family_involvement(collectivistic_profile)
+        involvement = self.generator._determine_family_involvement(
+            collectivistic_profile
+        )
         assert involvement == "high"
 
         # Test individualistic background
@@ -223,10 +238,12 @@ class TestCulturalCompetencyGenerator:
             religious_considerations=[],
             cultural_values=[],
             potential_barriers=[],
-            confidence_score=0.8
+            confidence_score=0.8,
         )
 
-        involvement = self.generator._determine_family_involvement(individualistic_profile)
+        involvement = self.generator._determine_family_involvement(
+            individualistic_profile
+        )
         assert involvement == "moderate"
 
     def test_bias_avoidance_recommendations(self):
@@ -303,9 +320,9 @@ def test_cultural_competency_integration():
         "turns": [
             {
                 "speaker": "user",
-                "content": "I come from a traditional family where we don't discuss personal problems outside the family. My parents immigrated here and work very hard. I feel pressure to succeed and not disappoint them, but I'm struggling with depression."
+                "content": "I come from a traditional family where we don't discuss personal problems outside the family. My parents immigrated here and work very hard. I feel pressure to succeed and not disappoint them, but I'm struggling with depression.",
             }
-        ]
+        ],
     }
 
     # Analyze cultural profile
@@ -325,8 +342,12 @@ def test_cultural_competency_integration():
     assert len(adaptation.therapeutic_considerations) > 0
 
     # Generate culturally aware response
-    original_response = "You should see a therapist immediately and focus on your individual needs."
-    adapted_response = generator.generate_culturally_aware_response(original_response, adaptation)
+    original_response = (
+        "You should see a therapist immediately and focus on your individual needs."
+    )
+    adapted_response = generator.generate_culturally_aware_response(
+        original_response, adaptation
+    )
 
     # Should be culturally adapted
     assert adapted_response != original_response

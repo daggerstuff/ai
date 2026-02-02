@@ -25,13 +25,16 @@ from crisis_intervention_detector import (
 
 class AlertSeverity(Enum):
     """Alert severity levels."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
     CRITICAL = "critical"
 
+
 class AlertType(Enum):
     """Types of monitoring alerts."""
+
     DETECTION_FAILURE = "detection_failure"
     PERFORMANCE_DEGRADATION = "performance_degradation"
     ESCALATION_FAILURE = "escalation_failure"
@@ -40,9 +43,11 @@ class AlertType(Enum):
     CONFIDENCE_ANOMALY = "confidence_anomaly"
     RESPONSE_TIME_VIOLATION = "response_time_violation"
 
+
 @dataclass
 class MonitoringAlert:
     """Monitoring alert data structure."""
+
     alert_id: str
     alert_type: AlertType
     severity: AlertSeverity
@@ -52,9 +57,11 @@ class MonitoringAlert:
     resolved: bool = False
     resolution_time: datetime | None = None
 
+
 @dataclass
 class PerformanceMetrics:
     """Performance metrics data structure."""
+
     avg_response_time_ms: float
     max_response_time_ms: float
     min_response_time_ms: float
@@ -64,6 +71,7 @@ class PerformanceMetrics:
     escalations_triggered: int
     confidence_scores: list[float]
     crisis_types_detected: dict[str, int]
+
 
 class CrisisDetectionMonitor:
     """Real-time monitoring system for crisis detection."""
@@ -83,8 +91,8 @@ class CrisisDetectionMonitor:
             "max_confidence_threshold": 1.0,
             "performance_window_minutes": 5,
             "min_detection_rate": 0.8,  # 80% minimum detection rate
-            "max_error_rate": 0.05,     # 5% maximum error rate
-            "escalation_timeout_minutes": 1
+            "max_error_rate": 0.05,  # 5% maximum error rate
+            "escalation_timeout_minutes": 1,
         }
 
         # Performance tracking
@@ -103,7 +111,9 @@ class CrisisDetectionMonitor:
         """Start the monitoring system."""
         if not self.monitoring_active:
             self.monitoring_active = True
-            self.monitoring_thread = threading.Thread(target=self._monitoring_loop, daemon=True)
+            self.monitoring_thread = threading.Thread(
+                target=self._monitoring_loop, daemon=True
+            )
             self.monitoring_thread.start()
             logging.info("Crisis detection monitoring started")
 
@@ -118,21 +128,28 @@ class CrisisDetectionMonitor:
         """Add callback for alert notifications."""
         self.alert_callbacks.append(callback)
 
-    def monitor_detection(self, conversation: dict[str, Any], result: CrisisDetection, response_time_ms: float):
+    def monitor_detection(
+        self,
+        conversation: dict[str, Any],
+        result: CrisisDetection,
+        response_time_ms: float,
+    ):
         """Monitor a crisis detection request."""
         self.total_requests += 1
 
         # Record performance metrics
         self.request_times.append(response_time_ms)
-        self.detection_results.append({
-            "timestamp": datetime.now(),
-            "conversation_id": conversation.get("id", "unknown"),
-            "crisis_level": result.crisis_level.value[0],
-            "confidence": result.confidence_score,
-            "crisis_types": [ct.value for ct in result.crisis_types],
-            "response_time_ms": response_time_ms,
-            "escalation_triggered": len(result.recommended_actions) > 0
-        })
+        self.detection_results.append(
+            {
+                "timestamp": datetime.now(),
+                "conversation_id": conversation.get("id", "unknown"),
+                "crisis_level": result.crisis_level.value[0],
+                "confidence": result.confidence_score,
+                "crisis_types": [ct.value for ct in result.crisis_types],
+                "response_time_ms": response_time_ms,
+                "escalation_triggered": len(result.recommended_actions) > 0,
+            }
+        )
 
         # Check for immediate alerts
         self._check_response_time_alert(response_time_ms)
@@ -154,9 +171,9 @@ class CrisisDetectionMonitor:
                 "error_type": type(error).__name__,
                 "error_message": str(error),
                 "total_errors": self.error_count,
-                "error_rate": self.error_count / self.total_requests
+                "error_rate": self.error_count / self.total_requests,
             },
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         self._trigger_alert(alert)
@@ -179,7 +196,10 @@ class CrisisDetectionMonitor:
     def _monitor_escalation(self, detection: CrisisDetection, escalation):
         """Monitor escalation events."""
         # Check if escalation was triggered within acceptable time
-        if escalation.response_time_minutes > self.thresholds["escalation_timeout_minutes"]:
+        if (
+            escalation.response_time_minutes
+            > self.thresholds["escalation_timeout_minutes"]
+        ):
             alert = MonitoringAlert(
                 alert_id=f"escalation_timeout_{detection.detection_id}",
                 alert_type=AlertType.ESCALATION_FAILURE,
@@ -189,16 +209,20 @@ class CrisisDetectionMonitor:
                     "detection_id": detection.detection_id,
                     "crisis_level": detection.crisis_level.value[0],
                     "response_time_minutes": escalation.response_time_minutes,
-                    "threshold_minutes": self.thresholds["escalation_timeout_minutes"]
+                    "threshold_minutes": self.thresholds["escalation_timeout_minutes"],
                 },
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             self._trigger_alert(alert)
 
     def _check_response_time_alert(self, response_time_ms: float):
         """Check for response time violations."""
         if response_time_ms > self.thresholds["max_response_time_ms"]:
-            severity = AlertSeverity.CRITICAL if response_time_ms > 5000 else AlertSeverity.HIGH
+            severity = (
+                AlertSeverity.CRITICAL
+                if response_time_ms > 5000
+                else AlertSeverity.HIGH
+            )
 
             alert = MonitoringAlert(
                 alert_id=f"response_time_{int(time.time())}",
@@ -208,13 +232,17 @@ class CrisisDetectionMonitor:
                 details={
                     "response_time_ms": response_time_ms,
                     "threshold_ms": self.thresholds["max_response_time_ms"],
-                    "avg_response_time": statistics.mean(self.request_times) if self.request_times else 0
+                    "avg_response_time": statistics.mean(self.request_times)
+                    if self.request_times
+                    else 0,
                 },
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             self._trigger_alert(alert)
 
-    def _check_confidence_anomaly(self, confidence: float, crisis_types: list[CrisisType]):
+    def _check_confidence_anomaly(
+        self, confidence: float, crisis_types: list[CrisisType]
+    ):
         """Check for confidence score anomalies."""
         # Check for impossible confidence scores
         if confidence < 0 or confidence > 1:
@@ -226,9 +254,9 @@ class CrisisDetectionMonitor:
                 details={
                     "confidence_score": confidence,
                     "crisis_types": [ct.value for ct in crisis_types],
-                    "valid_range": "0.0 - 1.0"
+                    "valid_range": "0.0 - 1.0",
                 },
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             self._trigger_alert(alert)
 
@@ -241,24 +269,36 @@ class CrisisDetectionMonitor:
                 message="Crisis detected with zero confidence",
                 details={
                     "confidence_score": confidence,
-                    "crisis_types": [ct.value for ct in crisis_types]
+                    "crisis_types": [ct.value for ct in crisis_types],
                 },
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             self._trigger_alert(alert)
 
-    def _check_detection_patterns(self, conversation: dict[str, Any], result: CrisisDetection):
+    def _check_detection_patterns(
+        self, conversation: dict[str, Any], result: CrisisDetection
+    ):
         """Check for detection pattern anomalies."""
         content = conversation.get("content", "")
 
         # Check for obvious crisis keywords with no detection
         crisis_keywords = [
-            "kill myself", "suicide", "end my life", "want to die",
-            "hurt myself", "cut myself", "overdose", "kill him",
-            "hurt someone", "voices telling me", "going to hurt"
+            "kill myself",
+            "suicide",
+            "end my life",
+            "want to die",
+            "hurt myself",
+            "cut myself",
+            "overdose",
+            "kill him",
+            "hurt someone",
+            "voices telling me",
+            "going to hurt",
         ]
 
-        has_crisis_keywords = any(keyword in content.lower() for keyword in crisis_keywords)
+        has_crisis_keywords = any(
+            keyword in content.lower() for keyword in crisis_keywords
+        )
         has_crisis_detection = len(result.crisis_types) > 0
 
         if has_crisis_keywords and not has_crisis_detection:
@@ -269,12 +309,16 @@ class CrisisDetectionMonitor:
                 message="Potential crisis keywords detected but no crisis classification",
                 details={
                     "conversation_id": conversation.get("id", "unknown"),
-                    "content_preview": content[:100] + "..." if len(content) > 100 else content,
-                    "crisis_keywords_found": [kw for kw in crisis_keywords if kw in content.lower()],
+                    "content_preview": content[:100] + "..."
+                    if len(content) > 100
+                    else content,
+                    "crisis_keywords_found": [
+                        kw for kw in crisis_keywords if kw in content.lower()
+                    ],
                     "crisis_types_detected": [ct.value for ct in result.crisis_types],
-                    "confidence_score": result.confidence_score
+                    "confidence_score": result.confidence_score,
                 },
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             self._trigger_alert(alert)
 
@@ -296,7 +340,9 @@ class CrisisDetectionMonitor:
         detection_rate = crisis_detections / len(recent_results)
 
         # Check for performance degradation
-        if avg_response_time > self.thresholds["max_response_time_ms"] * 0.5:  # 50% of max threshold
+        if (
+            avg_response_time > self.thresholds["max_response_time_ms"] * 0.5
+        ):  # 50% of max threshold
             alert = MonitoringAlert(
                 alert_id=f"performance_degradation_{int(time.time())}",
                 alert_type=AlertType.PERFORMANCE_DEGRADATION,
@@ -306,14 +352,17 @@ class CrisisDetectionMonitor:
                     "avg_response_time_ms": avg_response_time,
                     "max_response_time_ms": max_response_time,
                     "sample_size": len(recent_results),
-                    "threshold_ms": self.thresholds["max_response_time_ms"]
+                    "threshold_ms": self.thresholds["max_response_time_ms"],
                 },
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             self._trigger_alert(alert)
 
         # Check for low detection rate (potential system degradation)
-        if detection_rate < self.thresholds["min_detection_rate"] and crisis_detections > 0:
+        if (
+            detection_rate < self.thresholds["min_detection_rate"]
+            and crisis_detections > 0
+        ):
             alert = MonitoringAlert(
                 alert_id=f"low_detection_rate_{int(time.time())}",
                 alert_type=AlertType.PATTERN_ANOMALY,
@@ -323,9 +372,9 @@ class CrisisDetectionMonitor:
                     "detection_rate": detection_rate,
                     "crisis_detections": crisis_detections,
                     "total_requests": len(recent_results),
-                    "min_threshold": self.thresholds["min_detection_rate"]
+                    "min_threshold": self.thresholds["min_detection_rate"],
                 },
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             self._trigger_alert(alert)
 
@@ -346,18 +395,21 @@ class CrisisDetectionMonitor:
                     "error_rate": error_rate,
                     "total_errors": self.error_count,
                     "total_requests": self.total_requests,
-                    "max_threshold": self.thresholds["max_error_rate"]
+                    "max_threshold": self.thresholds["max_error_rate"],
                 },
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             self._trigger_alert(alert)
 
     def _trigger_alert(self, alert: MonitoringAlert):
         """Trigger an alert and notify callbacks."""
         # Avoid duplicate alerts
-        recent_alerts = [a for a in self.alerts if
-                        a.alert_type == alert.alert_type and
-                        (datetime.now() - a.timestamp).seconds < 300]  # 5 minutes
+        recent_alerts = [
+            a
+            for a in self.alerts
+            if a.alert_type == alert.alert_type
+            and (datetime.now() - a.timestamp).seconds < 300
+        ]  # 5 minutes
 
         if recent_alerts:
             return  # Skip duplicate alert
@@ -369,10 +421,13 @@ class CrisisDetectionMonitor:
             AlertSeverity.LOW: logging.INFO,
             AlertSeverity.MEDIUM: logging.WARNING,
             AlertSeverity.HIGH: logging.ERROR,
-            AlertSeverity.CRITICAL: logging.CRITICAL
+            AlertSeverity.CRITICAL: logging.CRITICAL,
         }[alert.severity]
 
-        logging.log(log_level, f"CRISIS MONITOR ALERT [{alert.severity.value.upper()}]: {alert.message}")
+        logging.log(
+            log_level,
+            f"CRISIS MONITOR ALERT [{alert.severity.value.upper()}]: {alert.message}",
+        )
 
         # Notify callbacks
         for callback in self.alert_callbacks:
@@ -384,8 +439,11 @@ class CrisisDetectionMonitor:
     def _cleanup_old_alerts(self):
         """Clean up old resolved alerts."""
         cutoff_time = datetime.now() - timedelta(hours=24)
-        self.alerts = [alert for alert in self.alerts
-                      if not alert.resolved or alert.timestamp > cutoff_time]
+        self.alerts = [
+            alert
+            for alert in self.alerts
+            if not alert.resolved or alert.timestamp > cutoff_time
+        ]
 
     def get_active_alerts(self) -> list[MonitoringAlert]:
         """Get all active (unresolved) alerts."""
@@ -423,7 +481,7 @@ class CrisisDetectionMonitor:
             failed_detections=len(recent_results) - successful_detections,
             escalations_triggered=escalations_triggered,
             confidence_scores=confidence_scores,
-            crisis_types_detected=dict(crisis_type_counts)
+            crisis_types_detected=dict(crisis_type_counts),
         )
 
     def resolve_alert(self, alert_id: str):
@@ -445,15 +503,24 @@ class CrisisDetectionMonitor:
             "system_status": "healthy" if not active_alerts else "alerts_active",
             "performance_metrics": asdict(metrics),
             "active_alerts": [asdict(alert) for alert in active_alerts],
-            "total_alerts_24h": len([a for a in self.alerts if
-                                   (datetime.now() - a.timestamp).total_seconds() < 86400]),  # 24 hours in seconds
+            "total_alerts_24h": len(
+                [
+                    a
+                    for a in self.alerts
+                    if (datetime.now() - a.timestamp).total_seconds() < 86400
+                ]
+            ),  # 24 hours in seconds
             "monitoring_thresholds": self.thresholds,
-            "system_uptime": "monitoring_active" if self.monitoring_active else "monitoring_stopped"
+            "system_uptime": "monitoring_active"
+            if self.monitoring_active
+            else "monitoring_stopped",
         }
+
 
 # Example usage and testing
 def example_alert_callback(alert: MonitoringAlert):
     """Example alert callback for demonstration."""
+
 
 def test_monitoring_system():
     """Test the monitoring system with various scenarios."""
@@ -467,16 +534,24 @@ def test_monitoring_system():
 
     # Test normal operation
     start_time = time.time()
-    result = detector.detect_crisis({"id": "test_1", "content": "I want to kill myself"})
+    result = detector.detect_crisis(
+        {"id": "test_1", "content": "I want to kill myself"}
+    )
     response_time = (time.time() - start_time) * 1000
-    monitor.monitor_detection({"id": "test_1", "content": "I want to kill myself"}, result, response_time)
+    monitor.monitor_detection(
+        {"id": "test_1", "content": "I want to kill myself"}, result, response_time
+    )
 
     # Test detection failure
     start_time = time.time()
-    result = detector.detect_crisis({"id": "test_2", "content": "I want to kill myself tonight"})
+    result = detector.detect_crisis(
+        {"id": "test_2", "content": "I want to kill myself tonight"}
+    )
     response_time = (time.time() - start_time) * 1000
     # Simulate a detection failure by creating a result with no crisis types
+
     from crisis_intervention_detector import CrisisDetection
+
     failed_result = CrisisDetection(
         detection_id="test_2_failed",
         conversation_id="test_2",
@@ -488,15 +563,23 @@ def test_monitoring_system():
         protective_factors=[],
         recommended_actions=[],
         emergency_contacts=[],
-        escalation_required=False
+        escalation_required=False,
     )
-    monitor.monitor_detection({"id": "test_2", "content": "I want to kill myself tonight"}, failed_result, response_time)
+    monitor.monitor_detection(
+        {"id": "test_2", "content": "I want to kill myself tonight"},
+        failed_result,
+        response_time,
+    )
 
     # Test system error
-    monitor.monitor_error({"id": "test_3", "content": "test error"}, Exception("Test exception"))
+    monitor.monitor_error(
+        {"id": "test_3", "content": "test error"}, Exception("Test exception")
+    )
 
     # Test performance issue
-    monitor.monitor_detection({"id": "test_4", "content": "test"}, result, 2000)  # 2 second response time
+    monitor.monitor_detection(
+        {"id": "test_4", "content": "test"}, result, 2000
+    )  # 2 second response time
 
     # Get monitoring report
     monitor.get_monitoring_report()
@@ -505,6 +588,7 @@ def test_monitoring_system():
     monitor.stop_monitoring()
 
     return len(monitor.get_active_alerts()) > 0
+
 
 if __name__ == "__main__":
     success = test_monitoring_system()

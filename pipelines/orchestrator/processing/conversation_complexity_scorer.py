@@ -10,9 +10,8 @@ Assesses the complexity of therapeutic conversations based on multiple dimension
 """
 
 import logging
-from typing import Dict, List
 
-from conversation_schema import Conversation
+from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +48,7 @@ class ConversationComplexityScorer:
         """Initialize the complexity scorer."""
         logger.info("Initialized ConversationComplexityScorer")
 
-    def score_conversation(self, conversation: Conversation) -> Dict[str, float]:
+    def score_conversation(self, conversation: Conversation) -> dict[str, float | str]:
         """
         Score a conversation's complexity across multiple dimensions.
 
@@ -341,8 +340,8 @@ class ConversationComplexityScorer:
         return "expert"  # Fallback for 1.0
 
     def score_conversations(
-        self, conversations: List[Conversation]
-    ) -> List[Dict[str, float]]:
+        self, conversations: list[Conversation]
+    ) -> list[dict[str, float | str]]:
         """
         Score multiple conversations.
 
@@ -352,7 +351,7 @@ class ConversationComplexityScorer:
         Returns:
             List of complexity score dictionaries
         """
-        scores = []
+        scores: list[dict[str, float | str]] = []
         for conversation in conversations:
             try:
                 score = self.score_conversation(conversation)
@@ -378,8 +377,8 @@ class ConversationComplexityScorer:
         return scores
 
     def get_complexity_distribution(
-        self, conversations: List[Conversation]
-    ) -> Dict[str, int]:
+        self, conversations: list[Conversation]
+    ) -> dict[str, int]:
         """
         Get distribution of conversations across complexity levels.
 
@@ -391,9 +390,10 @@ class ConversationComplexityScorer:
         """
         scores = self.score_conversations(conversations)
 
-        distribution = {level: 0 for level in self.COMPLEXITY_LEVELS}
+        distribution: dict[str, int] = {level: 0 for level in self.COMPLEXITY_LEVELS}
         for score in scores:
-            level = score["complexity_level"]
-            distribution[level] += 1
+            level = score.get("complexity_level")
+            if isinstance(level, str) and level in distribution:
+                distribution[level] += 1
 
         return distribution

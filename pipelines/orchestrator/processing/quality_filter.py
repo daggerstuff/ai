@@ -11,11 +11,19 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from conversation_coherence_assessment import ConversationCoherenceAssessor
-from conversation_schema import Conversation
-from emotional_authenticity_assessment import EmotionalAuthenticityAssessor
-from language_quality_assessment import LanguageQualityAssessor
-from therapeutic_accuracy_assessment import TherapeuticAccuracyAssessor
+from ai.pipelines.orchestrator.quality.conversation_coherence_assessment import (
+    ConversationCoherenceAssessor,
+)
+from ai.pipelines.orchestrator.quality.emotional_authenticity_assessment import (
+    EmotionalAuthenticityAssessor,
+)
+from ai.pipelines.orchestrator.quality.language_quality_assessment import (
+    LanguageQualityAssessor,
+)
+from ai.pipelines.orchestrator.quality.therapeutic_accuracy_assessment import (
+    TherapeuticAccuracyAssessor,
+)
+from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -225,6 +233,10 @@ class QualityFilter:
             ),
         }
 
+        logger.info(
+            "Filter result: decision=%s, overall_score=%.3f", decision, overall_score
+        )
+
         return FilterResult(
             conversation_id=conversation.id,
             decision=decision,
@@ -236,6 +248,16 @@ class QualityFilter:
             details=details,
             passed=(decision == FilterDecision.ACCEPT),
         )
+
+    def assess_conversation_quality(self, conversation: Conversation) -> dict[str, Any]:
+        result = self.filter_conversation(conversation)
+        return {
+            "overall_score": result.overall_score,
+            "passed": result.passed,
+            "decision": result.decision.value,
+            "component_scores": result.component_scores,
+            "issues": result.issues,
+        }
 
     def filter_conversations(self, conversations: list[Conversation]) -> FilterReport:
         """

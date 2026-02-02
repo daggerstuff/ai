@@ -45,7 +45,9 @@ class ConcurrencyConfig:
     max_workers: int = None  # None = auto-detect
     chunk_size: int = 100
     use_async: bool = True
+
     thread_pool_size: int = None
+
     process_pool_size: int = None
     batch_processing: bool = True
 
@@ -552,12 +554,10 @@ if __name__ == "__main__":
     results2 = [expensive_computation(item) for item in test_data]
     time2 = time.time() - start
 
-
     # Test parallel processing
     start = time.time()
     parallel_results = optimizer.parallel_map(expensive_computation, test_data[:10])
     parallel_time = time.time() - start
-
 
     # Show metrics
     metrics = optimizer.get_metrics()

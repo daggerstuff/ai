@@ -8,7 +8,9 @@ from ai.pipelines.orchestrator.ingest_utils import RateLimiter, read_with_retry
 def smoke_read_with_retry():
     p = Path("/tmp") / "smoke_test_file.bin"
     p.write_bytes(b"hello-smoke")
-    data = read_with_retry(p, retry_options={"retries": 2, "backoff_factor": 0.0, "jitter": False})
+    data = read_with_retry(
+        p, retry_options={"retries": 2, "backoff_factor": 0.0, "jitter": False}
+    )
     assert data == b"hello-smoke"
 
 

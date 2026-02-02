@@ -3,7 +3,6 @@
 Test suite for PersonalityAdapter - Task 6.11
 """
 
-
 import pytest
 from personality_adapter import (
     AdaptedResponse,
@@ -26,13 +25,13 @@ class TestPersonalityAdapter:
             "turns": [
                 {
                     "speaker": "user",
-                    "content": "I like to have everything organized and planned out. I prefer working alone and thinking things through carefully before making decisions. I get stressed when things are chaotic."
+                    "content": "I like to have everything organized and planned out. I prefer working alone and thinking things through carefully before making decisions. I get stressed when things are chaotic.",
                 },
                 {
                     "speaker": "assistant",
-                    "content": "I understand you prefer structure and organization."
-                }
-            ]
+                    "content": "I understand you prefer structure and organization.",
+                },
+            ],
         }
 
     def test_initialization(self):
@@ -44,7 +43,9 @@ class TestPersonalityAdapter:
 
     def test_analyze_personality_for_adaptation(self):
         """Test personality analysis for adaptation."""
-        adaptation = self.adapter.analyze_personality_for_adaptation(self.test_conversation)
+        adaptation = self.adapter.analyze_personality_for_adaptation(
+            self.test_conversation
+        )
 
         assert isinstance(adaptation, PersonalityAdaptation)
         assert adaptation.personality_profile is not None
@@ -55,8 +56,12 @@ class TestPersonalityAdapter:
 
     def test_adapt_response(self):
         """Test response adaptation."""
-        adaptation = self.adapter.analyze_personality_for_adaptation(self.test_conversation)
-        original_response = "Maybe you could try to be more flexible with your schedule."
+        adaptation = self.adapter.analyze_personality_for_adaptation(
+            self.test_conversation
+        )
+        original_response = (
+            "Maybe you could try to be more flexible with your schedule."
+        )
 
         adapted_response = self.adapter.adapt_response(original_response, adaptation)
 
@@ -75,11 +80,17 @@ class TestPersonalityAdapter:
 
         # Test supportive communication
         supportive_adapted = self.adapter._make_more_supportive(response)
-        assert any(word in supportive_adapted.lower() for word in ["understand", "normal", "strength"])
+        assert any(
+            word in supportive_adapted.lower()
+            for word in ["understand", "normal", "strength"]
+        )
 
         # Test analytical communication
         analytical_adapted = self.adapter._make_more_analytical(response)
-        assert any(phrase in analytical_adapted.lower() for phrase in ["examine", "analyze", "systematically"])
+        assert any(
+            phrase in analytical_adapted.lower()
+            for phrase in ["examine", "analyze", "systematically"]
+        )
 
     def test_personality_trait_mapping(self):
         """Test personality trait to adaptation mapping."""
@@ -88,23 +99,30 @@ class TestPersonalityAdapter:
             "turns": [
                 {
                     "speaker": "user",
-                    "content": "I always make detailed plans and stick to my schedule. I believe in hard work and achieving my goals through discipline and organization."
+                    "content": "I always make detailed plans and stick to my schedule. I believe in hard work and achieving my goals through discipline and organization.",
                 }
             ]
         }
 
-        adaptation = self.adapter.analyze_personality_for_adaptation(high_c_conversation)
+        adaptation = self.adapter.analyze_personality_for_adaptation(
+            high_c_conversation
+        )
 
         # Should prefer structured approaches
         assert adaptation.structure_preference in ["high", "moderate"]
-        assert adaptation.therapeutic_approach in [TherapeuticApproach.CBT, TherapeuticApproach.BEHAVIORAL]
+        assert adaptation.therapeutic_approach in [
+            TherapeuticApproach.CBT,
+            TherapeuticApproach.BEHAVIORAL,
+        ]
 
     def test_error_handling(self):
         """Test error handling in adaptation."""
         # Test with invalid conversation
         invalid_conversation = {"invalid": "data"}
 
-        adaptation = self.adapter.analyze_personality_for_adaptation(invalid_conversation)
+        adaptation = self.adapter.analyze_personality_for_adaptation(
+            invalid_conversation
+        )
 
         # Should return default adaptation
         assert isinstance(adaptation, PersonalityAdaptation)
@@ -112,7 +130,9 @@ class TestPersonalityAdapter:
 
     def test_adaptation_summary(self):
         """Test adaptation summary generation."""
-        adaptation = self.adapter.analyze_personality_for_adaptation(self.test_conversation)
+        adaptation = self.adapter.analyze_personality_for_adaptation(
+            self.test_conversation
+        )
         summary = self.adapter.get_adaptation_summary(adaptation)
 
         assert isinstance(summary, dict)
@@ -135,8 +155,13 @@ class TestPersonalityAdapter:
         original_response = "You need to work on this issue."
 
         # Test high emotional support
-        high_support_response = self.adapter._increase_emotional_support(original_response)
-        assert "not alone" in high_support_response.lower() or "support" in high_support_response.lower()
+        high_support_response = self.adapter._increase_emotional_support(
+            original_response
+        )
+        assert (
+            "not alone" in high_support_response.lower()
+            or "support" in high_support_response.lower()
+        )
 
     def test_detail_level_adjustment(self):
         """Test detail level adjustments."""
@@ -162,9 +187,9 @@ def test_personality_adapter_integration():
         "turns": [
             {
                 "speaker": "user",
-                "content": "I'm very outgoing and love being around people. I make decisions quickly and prefer to talk through problems with others. I'm optimistic and energetic."
+                "content": "I'm very outgoing and love being around people. I make decisions quickly and prefer to talk through problems with others. I'm optimistic and energetic.",
             }
-        ]
+        ],
     }
 
     # Analyze personality
@@ -172,7 +197,10 @@ def test_personality_adapter_integration():
 
     # Should detect extraverted personality
     assert adaptation.personality_profile.extraversion > 0.5
-    assert adaptation.communication_style in [CommunicationStyle.COLLABORATIVE, CommunicationStyle.DIRECT]
+    assert adaptation.communication_style in [
+        CommunicationStyle.COLLABORATIVE,
+        CommunicationStyle.DIRECT,
+    ]
 
     # Adapt response
     original_response = "You might want to spend some time alone to reflect on this."

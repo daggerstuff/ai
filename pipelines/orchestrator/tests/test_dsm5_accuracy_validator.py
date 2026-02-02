@@ -3,7 +3,6 @@
 Test suite for DSM-5 Therapeutic Accuracy Validation System
 """
 
-
 import pytest
 
 from .dsm5_accuracy_validator import (
@@ -29,27 +28,45 @@ class TestDSM5AccuracyValidator:
             "id": "depression_001",
             "content": "I understand you're experiencing symptoms of depression including persistent sadness, loss of interest, and sleep disturbances. Let's explore some cognitive behavioral techniques to help address these negative thought patterns.",
             "turns": [
-                {"speaker": "user", "text": "I've been feeling depressed for weeks with no energy."},
-                {"speaker": "therapist", "text": "I understand you're experiencing depression symptoms. Let's explore CBT techniques."}
-            ]
+                {
+                    "speaker": "user",
+                    "text": "I've been feeling depressed for weeks with no energy.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "I understand you're experiencing depression symptoms. Let's explore CBT techniques.",
+                },
+            ],
         }
 
         self.anxiety_conversation = {
             "id": "anxiety_001",
             "content": "You mentioned having panic attacks and constant worry. These are symptoms of anxiety. I want to help you develop coping strategies using mindfulness and breathing techniques.",
             "turns": [
-                {"speaker": "user", "text": "I have panic attacks and worry constantly about everything."},
-                {"speaker": "therapist", "text": "These are anxiety symptoms. Let's develop mindfulness coping strategies."}
-            ]
+                {
+                    "speaker": "user",
+                    "text": "I have panic attacks and worry constantly about everything.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "These are anxiety symptoms. Let's develop mindfulness coping strategies.",
+                },
+            ],
         }
 
         self.crisis_conversation = {
             "id": "crisis_001",
             "content": "I'm concerned about your mention of suicidal thoughts. Let's talk about your safety and develop a safety plan. I want to connect you with crisis support resources.",
             "turns": [
-                {"speaker": "user", "text": "I've been having thoughts of suicide lately."},
-                {"speaker": "therapist", "text": "I'm concerned about your safety. Let's develop a safety plan and connect you with crisis resources."}
-            ]
+                {
+                    "speaker": "user",
+                    "text": "I've been having thoughts of suicide lately.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "I'm concerned about your safety. Let's develop a safety plan and connect you with crisis resources.",
+                },
+            ],
         }
 
         self.poor_boundaries_conversation = {
@@ -57,8 +74,11 @@ class TestDSM5AccuracyValidator:
             "content": "I had a similar experience with depression when I was your age. Let me tell you about my personal problems and how I dealt with them.",
             "turns": [
                 {"speaker": "user", "text": "I'm struggling with depression."},
-                {"speaker": "therapist", "text": "I had similar problems. Let me share my personal experience."}
-            ]
+                {
+                    "speaker": "therapist",
+                    "text": "I had similar problems. Let me share my personal experience.",
+                },
+            ],
         }
 
     def test_validator_initialization(self):
@@ -106,7 +126,9 @@ class TestDSM5AccuracyValidator:
 
     def test_identify_disorders_multiple(self):
         """Test identification of multiple disorders."""
-        content = "I have depression and anxiety with panic attacks and trauma flashbacks"
+        content = (
+            "I have depression and anxiety with panic attacks and trauma flashbacks"
+        )
         turns = []
 
         disorders = self.validator._identify_disorders(content, turns)
@@ -124,7 +146,9 @@ class TestDSM5AccuracyValidator:
         interventions = self.validator._assess_interventions(content, turns, disorders)
 
         assert len(interventions) > 0
-        cbt_intervention = next((i for i in interventions if i.approach == TherapeuticApproach.CBT), None)
+        cbt_intervention = next(
+            (i for i in interventions if i.approach == TherapeuticApproach.CBT), None
+        )
         assert cbt_intervention is not None
         assert cbt_intervention.evidence_level == "strong"
         assert cbt_intervention.appropriateness_score > 0.5
@@ -138,7 +162,8 @@ class TestDSM5AccuracyValidator:
         interventions = self.validator._assess_interventions(content, turns, disorders)
 
         mindfulness_intervention = next(
-            (i for i in interventions if i.approach == TherapeuticApproach.MINDFULNESS), None
+            (i for i in interventions if i.approach == TherapeuticApproach.MINDFULNESS),
+            None,
         )
         assert mindfulness_intervention is not None
         assert mindfulness_intervention.appropriateness_score > 0.5
@@ -190,7 +215,8 @@ class TestDSM5AccuracyValidator:
 
         # Should identify mindfulness intervention
         mindfulness_interventions = [
-            i for i in result.therapeutic_interventions
+            i
+            for i in result.therapeutic_interventions
             if i.approach == TherapeuticApproach.MINDFULNESS
         ]
         assert len(mindfulness_interventions) > 0
@@ -206,7 +232,8 @@ class TestDSM5AccuracyValidator:
 
         # Should have appropriate recommendations
         [
-            rec for rec in result.recommendations
+            rec
+            for rec in result.recommendations
             if "crisis" in rec.lower() or "safety" in rec.lower()
         ]
         # May or may not have specific crisis recommendations depending on implementation
@@ -222,7 +249,8 @@ class TestDSM5AccuracyValidator:
 
         # Should have compliance issues
         [
-            issue for issue in result.compliance_issues
+            issue
+            for issue in result.compliance_issues
             if "boundary" in issue.lower() or "personal" in issue.lower()
         ]
         # May or may not have specific boundary issues depending on implementation
@@ -234,17 +262,23 @@ class TestDSM5AccuracyValidator:
 
         score = self.validator._assess_diagnostic_accuracy(content, disorders)
 
-        assert score > 0.79  # Should be high due to proper diagnostic language (accounting for floating point precision)
+        assert (
+            score > 0.79
+        )  # Should be high due to proper diagnostic language (accounting for floating point precision)
 
     def test_assess_professional_boundaries(self):
         """Test professional boundaries assessment."""
         # Good boundaries
-        good_content = "I understand your situation and want to help you develop coping strategies"
+        good_content = (
+            "I understand your situation and want to help you develop coping strategies"
+        )
         good_score = self.validator._assess_professional_boundaries(good_content, [])
         assert good_score > 0.8
 
         # Poor boundaries
-        poor_content = "I had similar personal problems and can share my experience with dating"
+        poor_content = (
+            "I had similar personal problems and can share my experience with dating"
+        )
         poor_score = self.validator._assess_professional_boundaries(poor_content, [])
         assert poor_score < 0.7
 
@@ -274,10 +308,12 @@ class TestDSM5AccuracyValidator:
                 techniques=[],
                 appropriateness_score=0.9,
                 evidence_level="strong",
-                contraindications=[]
+                contraindications=[],
             )
         ]
-        strong_score = self.validator._assess_evidence_based_practice(strong_interventions)
+        strong_score = self.validator._assess_evidence_based_practice(
+            strong_interventions
+        )
         assert strong_score > 0.8
 
         # Moderate evidence interventions
@@ -287,10 +323,12 @@ class TestDSM5AccuracyValidator:
                 techniques=[],
                 appropriateness_score=0.8,
                 evidence_level="moderate",
-                contraindications=[]
+                contraindications=[],
             )
         ]
-        moderate_score = self.validator._assess_evidence_based_practice(moderate_interventions)
+        moderate_score = self.validator._assess_evidence_based_practice(
+            moderate_interventions
+        )
         assert 0.6 < moderate_score < 0.8
 
         # No interventions
@@ -349,7 +387,7 @@ class TestDSM5AccuracyValidator:
             ValidationCategory.EVIDENCE_BASED_PRACTICE: 0.8,
             ValidationCategory.CRISIS_MANAGEMENT: 0.8,
             ValidationCategory.SYMPTOM_RECOGNITION: 0.8,
-            ValidationCategory.CULTURAL_COMPETENCY: 0.8
+            ValidationCategory.CULTURAL_COMPETENCY: 0.8,
         }
 
         recommendations = self.validator._generate_recommendations(
@@ -363,15 +401,22 @@ class TestDSM5AccuracyValidator:
         assert compliance_rec
 
         # Should address low diagnostic accuracy
-        diagnostic_rec = any("diagnostic accuracy" in rec.lower() for rec in recommendations)
+        diagnostic_rec = any(
+            "diagnostic accuracy" in rec.lower() for rec in recommendations
+        )
         assert diagnostic_rec
 
         # Should recommend interventions for no interventions
-        intervention_rec = any("evidence-based" in rec.lower() for rec in recommendations)
+        intervention_rec = any(
+            "evidence-based" in rec.lower() for rec in recommendations
+        )
         assert intervention_rec
 
         # Should have disorder-specific recommendations
-        depression_rec = any("depression" in rec.lower() or "cbt" in rec.lower() for rec in recommendations)
+        depression_rec = any(
+            "depression" in rec.lower() or "cbt" in rec.lower()
+            for rec in recommendations
+        )
         assert depression_rec
 
 

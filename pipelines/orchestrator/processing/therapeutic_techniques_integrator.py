@@ -28,6 +28,7 @@ from .therapeutic_response_generator import TherapeuticTechnique
 
 class InterventionStrategy(Enum):
     """Advanced intervention strategies beyond basic techniques."""
+
     CRISIS_STABILIZATION = "crisis_stabilization"
     TRAUMA_PROCESSING = "trauma_processing"
     BEHAVIORAL_MODIFICATION = "behavioral_modification"
@@ -44,6 +45,7 @@ class InterventionStrategy(Enum):
 
 class EvidenceLevel(Enum):
     """Evidence levels for therapeutic interventions."""
+
     STRONG = "strong"  # Multiple RCTs, meta-analyses
     MODERATE = "moderate"  # Some RCTs, consistent findings
     EMERGING = "emerging"  # Limited but promising evidence
@@ -53,6 +55,7 @@ class EvidenceLevel(Enum):
 
 class SpecializedFramework(Enum):
     """Specialized therapeutic frameworks and protocols."""
+
     EMDR = "emdr"  # Eye Movement Desensitization and Reprocessing
     DBT = "dbt"  # Dialectical Behavior Therapy
     ACT = "act"  # Acceptance and Commitment Therapy
@@ -68,6 +71,7 @@ class SpecializedFramework(Enum):
 @dataclass
 class InterventionProtocol:
     """Comprehensive intervention protocol definition."""
+
     id: str
     name: str
     strategy: InterventionStrategy
@@ -87,6 +91,7 @@ class InterventionProtocol:
 @dataclass
 class InterventionSelection:
     """Selected intervention with rationale and implementation details."""
+
     protocol: InterventionProtocol
     primary_rationale: str
     secondary_considerations: list[str]
@@ -99,6 +104,7 @@ class InterventionSelection:
 @dataclass
 class ConversationIntervention:
     """Intervention-based conversation with therapeutic context."""
+
     id: str
     client_scenario: ClientScenario
     intervention_selection: InterventionSelection
@@ -125,7 +131,9 @@ class TherapeuticTechniquesIntegrator:
         self.framework_mappings = self._initialize_framework_mappings()
         self.evidence_base = self._initialize_evidence_base()
 
-    def _initialize_intervention_protocols(self) -> dict[InterventionStrategy, list[InterventionProtocol]]:
+    def _initialize_intervention_protocols(
+        self,
+    ) -> dict[InterventionStrategy, list[InterventionProtocol]]:
         """Initialize comprehensive intervention protocols."""
         protocols = {}
 
@@ -144,18 +152,28 @@ class TherapeuticTechniquesIntegrator:
                     "Risk factor identification",
                     "Protective factor enhancement",
                     "Safety plan development",
-                    "Support system activation"
+                    "Support system activation",
                 ],
                 key_techniques=[
                     TherapeuticTechnique.SAFETY_PLANNING,
                     TherapeuticTechnique.VALIDATION,
-                    TherapeuticTechnique.GROUNDING_TECHNIQUES
+                    TherapeuticTechnique.GROUNDING_TECHNIQUES,
                 ],
-                expected_outcomes=["Reduced immediate risk", "Enhanced safety awareness", "Activated support"],
+                expected_outcomes=[
+                    "Reduced immediate risk",
+                    "Enhanced safety awareness",
+                    "Activated support",
+                ],
                 duration_sessions=(1, 3),
                 homework_assignments=["Safety plan review", "Support contact practice"],
-                progress_indicators=["Decreased suicidal ideation", "Increased help-seeking"],
-                risk_considerations=["Monitor for escalation", "Ensure 24/7 support access"]
+                progress_indicators=[
+                    "Decreased suicidal ideation",
+                    "Increased help-seeking",
+                ],
+                risk_considerations=[
+                    "Monitor for escalation",
+                    "Ensure 24/7 support access",
+                ],
             )
         ]
 
@@ -174,18 +192,24 @@ class TherapeuticTechniquesIntegrator:
                     "Resource installation",
                     "Target memory processing",
                     "Installation of positive cognition",
-                    "Body scan and closure"
+                    "Body scan and closure",
                 ],
                 key_techniques=[
                     TherapeuticTechnique.GROUNDING_TECHNIQUES,
                     TherapeuticTechnique.VALIDATION,
-                    TherapeuticTechnique.PSYCHOEDUCATION
+                    TherapeuticTechnique.PSYCHOEDUCATION,
                 ],
-                expected_outcomes=["Reduced trauma symptoms", "Improved emotional regulation"],
+                expected_outcomes=[
+                    "Reduced trauma symptoms",
+                    "Improved emotional regulation",
+                ],
                 duration_sessions=(8, 16),
                 homework_assignments=["Resource practice", "Disturbance log"],
-                progress_indicators=["Decreased PTSD symptoms", "Improved daily functioning"],
-                risk_considerations=["Monitor for abreaction", "Ensure stabilization"]
+                progress_indicators=[
+                    "Decreased PTSD symptoms",
+                    "Improved daily functioning",
+                ],
+                risk_considerations=["Monitor for abreaction", "Ensure stabilization"],
             )
         ]
 
@@ -197,72 +221,116 @@ class TherapeuticTechniquesIntegrator:
                 strategy=InterventionStrategy.BEHAVIORAL_MODIFICATION,
                 framework=None,
                 evidence_level=EvidenceLevel.STRONG,
-                target_conditions=["depression", "behavioral avoidance", "low motivation"],
+                target_conditions=[
+                    "depression",
+                    "behavioral avoidance",
+                    "low motivation",
+                ],
                 contraindications=["severe cognitive impairment"],
                 session_structure=[
                     "Activity monitoring",
                     "Value identification",
                     "Activity scheduling",
                     "Barrier problem-solving",
-                    "Progress review"
+                    "Progress review",
                 ],
                 key_techniques=[
                     TherapeuticTechnique.BEHAVIORAL_ACTIVATION,
                     TherapeuticTechnique.PSYCHOEDUCATION,
-                    TherapeuticTechnique.VALIDATION
+                    TherapeuticTechnique.VALIDATION,
                 ],
-                expected_outcomes=["Increased activity level", "Improved mood", "Enhanced motivation"],
+                expected_outcomes=[
+                    "Increased activity level",
+                    "Improved mood",
+                    "Enhanced motivation",
+                ],
                 duration_sessions=(12, 20),
                 homework_assignments=["Activity scheduling", "Mood monitoring"],
-                progress_indicators=["Increased pleasant activities", "Improved mood ratings"],
-                risk_considerations=["Monitor for overwhelm", "Gradual activity increase"]
+                progress_indicators=[
+                    "Increased pleasant activities",
+                    "Improved mood ratings",
+                ],
+                risk_considerations=[
+                    "Monitor for overwhelm",
+                    "Gradual activity increase",
+                ],
             )
         ]
 
         return protocols
 
-    def _initialize_framework_mappings(self) -> dict[SpecializedFramework, dict[str, Any]]:
+    def _initialize_framework_mappings(
+        self,
+    ) -> dict[SpecializedFramework, dict[str, Any]]:
         """Initialize specialized framework mappings and characteristics."""
         return {
             SpecializedFramework.DBT: {
-                "core_modules": ["mindfulness", "distress_tolerance", "emotion_regulation", "interpersonal_effectiveness"],
-                "target_populations": ["borderline personality disorder", "emotion_dysregulation"],
+                "core_modules": [
+                    "mindfulness",
+                    "distress_tolerance",
+                    "emotion_regulation",
+                    "interpersonal_effectiveness",
+                ],
+                "target_populations": [
+                    "borderline personality disorder",
+                    "emotion_dysregulation",
+                ],
                 "session_structure": "skills_group_individual_coaching",
-                "evidence_level": EvidenceLevel.STRONG
+                "evidence_level": EvidenceLevel.STRONG,
             },
             SpecializedFramework.ACT: {
-                "core_processes": ["psychological_flexibility", "values_clarification", "mindfulness", "acceptance"],
+                "core_processes": [
+                    "psychological_flexibility",
+                    "values_clarification",
+                    "mindfulness",
+                    "acceptance",
+                ],
                 "target_populations": ["anxiety", "depression", "chronic_pain"],
                 "session_structure": "experiential_metaphor_based",
-                "evidence_level": EvidenceLevel.STRONG
+                "evidence_level": EvidenceLevel.STRONG,
             },
             SpecializedFramework.EMDR: {
-                "phases": ["preparation", "assessment", "desensitization", "installation", "body_scan", "closure"],
+                "phases": [
+                    "preparation",
+                    "assessment",
+                    "desensitization",
+                    "installation",
+                    "body_scan",
+                    "closure",
+                ],
                 "target_populations": ["PTSD", "trauma", "phobias"],
                 "session_structure": "structured_bilateral_stimulation",
-                "evidence_level": EvidenceLevel.STRONG
-            }
+                "evidence_level": EvidenceLevel.STRONG,
+            },
         }
 
     def _initialize_evidence_base(self) -> dict[str, dict[str, Any]]:
         """Initialize evidence base for interventions."""
         return {
             "meta_analyses": {
-                "cbt_depression": {"effect_size": 0.68, "studies": 115, "quality": "high"},
+                "cbt_depression": {
+                    "effect_size": 0.68,
+                    "studies": 115,
+                    "quality": "high",
+                },
                 "emdr_ptsd": {"effect_size": 0.88, "studies": 26, "quality": "high"},
-                "dbt_bpd": {"effect_size": 0.52, "studies": 13, "quality": "moderate"}
+                "dbt_bpd": {"effect_size": 0.52, "studies": 13, "quality": "moderate"},
             },
             "practice_guidelines": {
                 "apa_ptsd": ["CBT", "EMDR", "exposure_therapy"],
-                "nice_depression": ["CBT", "behavioral_activation", "interpersonal_therapy"],
-                "samhsa_trauma": ["trauma_informed_care", "evidence_based_treatments"]
-            }
+                "nice_depression": [
+                    "CBT",
+                    "behavioral_activation",
+                    "interpersonal_therapy",
+                ],
+                "samhsa_trauma": ["trauma_informed_care", "evidence_based_treatments"],
+            },
         }
 
     def select_intervention_protocol(
         self,
         client_scenario: ClientScenario,
-        preferred_framework: SpecializedFramework | None = None
+        preferred_framework: SpecializedFramework | None = None,
     ) -> InterventionSelection:
         """
         Select the most appropriate intervention protocol based on client scenario.
@@ -300,7 +368,6 @@ class TherapeuticTechniquesIntegrator:
         # Generate implementation details
         return self._create_intervention_selection(protocol, client_scenario)
 
-
     def _analyze_primary_concerns(self, client_scenario: ClientScenario) -> list[str]:
         """Analyze primary clinical concerns from scenario."""
         concerns = []
@@ -309,7 +376,10 @@ class TherapeuticTechniquesIntegrator:
         dsm5_considerations = client_scenario.clinical_formulation.dsm5_considerations
         for consideration in dsm5_considerations:
             consideration_lower = consideration.lower()
-            if "depression" in consideration_lower or "depressive" in consideration_lower:
+            if (
+                "depression" in consideration_lower
+                or "depressive" in consideration_lower
+            ):
                 concerns.append("depression")
             if "anxiety" in consideration_lower or "anxious" in consideration_lower:
                 concerns.append("anxiety")
@@ -325,8 +395,10 @@ class TherapeuticTechniquesIntegrator:
             concerns.append("crisis")
         elif client_scenario.scenario_type == ScenarioType.THERAPEUTIC_SESSION:
             # Check if trauma-related based on DSM-5 considerations
-            if any("trauma" in consideration.lower() or "ptsd" in consideration.lower()
-                   for consideration in dsm5_considerations):
+            if any(
+                "trauma" in consideration.lower() or "ptsd" in consideration.lower()
+                for consideration in dsm5_considerations
+            ):
                 concerns.append("trauma")
 
         # Consider severity
@@ -336,9 +408,7 @@ class TherapeuticTechniquesIntegrator:
         return list(set(concerns))  # Remove duplicates
 
     def _select_intervention_strategy(
-        self,
-        primary_concerns: list[str],
-        risk_level: SeverityLevel
+        self, primary_concerns: list[str], risk_level: SeverityLevel
     ) -> InterventionStrategy:
         """Select appropriate intervention strategy based on concerns and risk."""
 
@@ -369,7 +439,7 @@ class TherapeuticTechniquesIntegrator:
         self,
         protocols: list[InterventionProtocol],
         contraindications: list[str],
-        preferred_framework: SpecializedFramework | None
+        preferred_framework: SpecializedFramework | None,
     ) -> list[InterventionProtocol]:
         """Filter protocols based on contraindications and preferences."""
         suitable = []
@@ -393,9 +463,7 @@ class TherapeuticTechniquesIntegrator:
         return suitable
 
     def _select_best_protocol(
-        self,
-        protocols: list[InterventionProtocol],
-        client_scenario: ClientScenario
+        self, protocols: list[InterventionProtocol], client_scenario: ClientScenario
     ) -> InterventionProtocol:
         """Select the best protocol based on evidence level and client fit."""
 
@@ -411,15 +479,19 @@ class TherapeuticTechniquesIntegrator:
                 EvidenceLevel.MODERATE: 4,
                 EvidenceLevel.EMERGING: 3,
                 EvidenceLevel.EXPERT_CONSENSUS: 2,
-                EvidenceLevel.THEORETICAL: 1
+                EvidenceLevel.THEORETICAL: 1,
             }
             score += evidence_scores.get(protocol.evidence_level, 0)
 
             # Target condition match
-            dsm5_considerations = client_scenario.clinical_formulation.dsm5_considerations
+            dsm5_considerations = (
+                client_scenario.clinical_formulation.dsm5_considerations
+            )
             for condition in protocol.target_conditions:
-                if any(condition.lower() in consideration.lower()
-                       for consideration in dsm5_considerations):
+                if any(
+                    condition.lower() in consideration.lower()
+                    for consideration in dsm5_considerations
+                ):
                     score += 2
 
             # Duration appropriateness (prefer shorter for mild cases)
@@ -440,28 +512,39 @@ class TherapeuticTechniquesIntegrator:
         dsm5_considerations = client_scenario.clinical_formulation.dsm5_considerations
 
         # Check for psychosis
-        if any("psychosis" in consideration.lower() or "psychotic" in consideration.lower()
-               for consideration in dsm5_considerations):
+        if any(
+            "psychosis" in consideration.lower() or "psychotic" in consideration.lower()
+            for consideration in dsm5_considerations
+        ):
             contraindications.append("active psychosis")
 
         # Check for substance abuse
-        if any("substance" in consideration.lower() or "addiction" in consideration.lower()
-               for consideration in dsm5_considerations):
+        if any(
+            "substance" in consideration.lower() or "addiction" in consideration.lower()
+            for consideration in dsm5_considerations
+        ):
             contraindications.append("active substance abuse")
 
         # Check for cognitive impairment
-        if any("cognitive" in consideration.lower() or "dementia" in consideration.lower()
-               for consideration in dsm5_considerations):
+        if any(
+            "cognitive" in consideration.lower() or "dementia" in consideration.lower()
+            for consideration in dsm5_considerations
+        ):
             contraindications.append("severe cognitive impairment")
 
         # Check for dissociation
-        if any("dissociation" in consideration.lower() or "dissociative" in consideration.lower()
-               for consideration in dsm5_considerations):
+        if any(
+            "dissociation" in consideration.lower()
+            or "dissociative" in consideration.lower()
+            for consideration in dsm5_considerations
+        ):
             contraindications.append("severe dissociation")
 
         return contraindications
 
-    def _create_fallback_protocol(self, strategy: InterventionStrategy) -> InterventionProtocol:
+    def _create_fallback_protocol(
+        self, strategy: InterventionStrategy
+    ) -> InterventionProtocol:
         """Create a fallback protocol when no suitable protocols are found."""
         return InterventionProtocol(
             id=f"fallback_{strategy.value}",
@@ -476,32 +559,41 @@ class TherapeuticTechniquesIntegrator:
                 "Problem identification",
                 "Intervention planning",
                 "Skill building",
-                "Progress monitoring"
+                "Progress monitoring",
             ],
             key_techniques=[
                 TherapeuticTechnique.ACTIVE_LISTENING,
                 TherapeuticTechnique.EMPATHIC_REFLECTION,
-                TherapeuticTechnique.VALIDATION
+                TherapeuticTechnique.VALIDATION,
             ],
-            expected_outcomes=["Improved coping", "Enhanced insight", "Symptom reduction"],
+            expected_outcomes=[
+                "Improved coping",
+                "Enhanced insight",
+                "Symptom reduction",
+            ],
             duration_sessions=(8, 16),
             homework_assignments=["Self-monitoring", "Skill practice"],
             progress_indicators=["Improved functioning", "Reduced distress"],
-            risk_considerations=["Monitor for deterioration", "Assess need for referral"]
+            risk_considerations=[
+                "Monitor for deterioration",
+                "Assess need for referral",
+            ],
         )
 
     def _create_intervention_selection(
-        self,
-        protocol: InterventionProtocol,
-        client_scenario: ClientScenario
+        self, protocol: InterventionProtocol, client_scenario: ClientScenario
     ) -> InterventionSelection:
         """Create detailed intervention selection with implementation plan."""
 
         # Generate rationale
-        primary_rationale = self._generate_intervention_rationale(protocol, client_scenario)
+        primary_rationale = self._generate_intervention_rationale(
+            protocol, client_scenario
+        )
 
         # Secondary considerations
-        secondary_considerations = self._generate_secondary_considerations(protocol, client_scenario)
+        secondary_considerations = self._generate_secondary_considerations(
+            protocol, client_scenario
+        )
 
         # Adaptation notes
         adaptation_notes = self._generate_adaptation_notes(protocol, client_scenario)
@@ -522,13 +614,11 @@ class TherapeuticTechniquesIntegrator:
             adaptation_notes=adaptation_notes,
             monitoring_plan=monitoring_plan,
             expected_timeline=expected_timeline,
-            success_metrics=success_metrics
+            success_metrics=success_metrics,
         )
 
     def _generate_intervention_rationale(
-        self,
-        protocol: InterventionProtocol,
-        client_scenario: ClientScenario
+        self, protocol: InterventionProtocol, client_scenario: ClientScenario
     ) -> str:
         """Generate clinical rationale for intervention selection."""
 
@@ -538,17 +628,22 @@ class TherapeuticTechniquesIntegrator:
             EvidenceLevel.MODERATE: "Moderate evidence base supports this approach",
             EvidenceLevel.EMERGING: "Emerging evidence suggests effectiveness",
             EvidenceLevel.EXPERT_CONSENSUS: "Professional consensus supports this intervention",
-            EvidenceLevel.THEORETICAL: "Theoretical framework supports this approach"
+            EvidenceLevel.THEORETICAL: "Theoretical framework supports this approach",
         }
 
-        base_rationale = evidence_rationale.get(protocol.evidence_level, "Clinical judgment supports this intervention")
+        base_rationale = evidence_rationale.get(
+            protocol.evidence_level, "Clinical judgment supports this intervention"
+        )
 
         # Add specific rationale based on client presentation
         dsm5_considerations = client_scenario.clinical_formulation.dsm5_considerations
         specific_rationale = []
 
         for condition in protocol.target_conditions:
-            if any(condition.lower() in consideration.lower() for consideration in dsm5_considerations):
+            if any(
+                condition.lower() in consideration.lower()
+                for consideration in dsm5_considerations
+            ):
                 specific_rationale.append(f"specifically indicated for {condition}")
 
         if specific_rationale:
@@ -556,86 +651,102 @@ class TherapeuticTechniquesIntegrator:
         return f"{base_rationale} for the presenting concerns."
 
     def _generate_secondary_considerations(
-        self,
-        protocol: InterventionProtocol,
-        client_scenario: ClientScenario
+        self, protocol: InterventionProtocol, client_scenario: ClientScenario
     ) -> list[str]:
         """Generate secondary considerations for intervention implementation."""
         considerations = []
 
         # Cultural considerations
         if hasattr(client_scenario, "demographics") and client_scenario.demographics:
-            considerations.append("Cultural factors should be integrated into treatment approach")
+            considerations.append(
+                "Cultural factors should be integrated into treatment approach"
+            )
 
         # Severity considerations
         if client_scenario.severity_level == SeverityLevel.SEVERE:
-            considerations.append("High severity requires careful monitoring and possible adjunct services")
+            considerations.append(
+                "High severity requires careful monitoring and possible adjunct services"
+            )
         elif client_scenario.severity_level == SeverityLevel.MILD:
-            considerations.append("Mild presentation may benefit from brief intervention approach")
+            considerations.append(
+                "Mild presentation may benefit from brief intervention approach"
+            )
 
         # Attachment considerations
         attachment_style = client_scenario.clinical_formulation.attachment_style
         if attachment_style and "insecure" in attachment_style.lower():
-            considerations.append("Insecure attachment patterns may impact therapeutic alliance")
+            considerations.append(
+                "Insecure attachment patterns may impact therapeutic alliance"
+            )
 
         # Framework-specific considerations
         if protocol.framework:
             framework_info = self.framework_mappings.get(protocol.framework, {})
             if framework_info:
-                considerations.append(f"Requires training in {protocol.framework.value.upper()} methodology")
+                considerations.append(
+                    f"Requires training in {protocol.framework.value.upper()} methodology"
+                )
 
         return considerations
 
     def _generate_adaptation_notes(
-        self,
-        protocol: InterventionProtocol,
-        client_scenario: ClientScenario
+        self, protocol: InterventionProtocol, client_scenario: ClientScenario
     ) -> list[str]:
         """Generate adaptation notes for protocol customization."""
         adaptations = []
 
         # Age-related adaptations
         if hasattr(client_scenario, "demographics") and client_scenario.demographics:
-            adaptations.append("Adapt language and examples for client's developmental stage")
+            adaptations.append(
+                "Adapt language and examples for client's developmental stage"
+            )
 
         # Severity adaptations
         if client_scenario.severity_level == SeverityLevel.SEVERE:
-            adaptations.append("May need to extend duration and increase session frequency")
+            adaptations.append(
+                "May need to extend duration and increase session frequency"
+            )
             adaptations.append("Consider adjunct psychiatric consultation")
 
         # Scenario-specific adaptations
         if client_scenario.scenario_type == ScenarioType.CRISIS_INTERVENTION:
-            adaptations.append("Prioritize safety and stabilization over insight-oriented work")
+            adaptations.append(
+                "Prioritize safety and stabilization over insight-oriented work"
+            )
 
         # Defense mechanism adaptations
         defense_mechanisms = client_scenario.clinical_formulation.defense_mechanisms
         if defense_mechanisms:
-            adaptations.append("Address defense mechanisms gently to maintain therapeutic alliance")
+            adaptations.append(
+                "Address defense mechanisms gently to maintain therapeutic alliance"
+            )
 
         return adaptations
 
     def _generate_monitoring_plan(
-        self,
-        protocol: InterventionProtocol,
-        client_scenario: ClientScenario
+        self, protocol: InterventionProtocol, client_scenario: ClientScenario
     ) -> list[str]:
         """Generate monitoring plan for intervention tracking."""
         monitoring = []
 
         # Standard monitoring
-        monitoring.extend([
-            "Weekly symptom severity ratings",
-            "Session-by-session progress notes",
-            "Therapeutic alliance assessment"
-        ])
+        monitoring.extend(
+            [
+                "Weekly symptom severity ratings",
+                "Session-by-session progress notes",
+                "Therapeutic alliance assessment",
+            ]
+        )
 
         # Risk-specific monitoring
         if client_scenario.severity_level == SeverityLevel.SEVERE:
-            monitoring.extend([
-                "Suicide risk assessment each session",
-                "Safety plan review and updates",
-                "Crisis contact utilization tracking"
-            ])
+            monitoring.extend(
+                [
+                    "Suicide risk assessment each session",
+                    "Safety plan review and updates",
+                    "Crisis contact utilization tracking",
+                ]
+            )
 
         # Protocol-specific monitoring
         for indicator in protocol.progress_indicators:
@@ -644,9 +755,7 @@ class TherapeuticTechniquesIntegrator:
         return monitoring
 
     def _estimate_timeline(
-        self,
-        protocol: InterventionProtocol,
-        client_scenario: ClientScenario
+        self, protocol: InterventionProtocol, client_scenario: ClientScenario
     ) -> str:
         """Estimate treatment timeline based on protocol and client factors."""
         min_sessions, max_sessions = protocol.duration_sessions
@@ -657,12 +766,10 @@ class TherapeuticTechniquesIntegrator:
         elif client_scenario.severity_level == SeverityLevel.MILD:
             max_sessions = min(max_sessions, min_sessions + 4)
 
-        return f"{min_sessions}-{max_sessions} sessions over {min_sessions//2}-{max_sessions//2} months"
+        return f"{min_sessions}-{max_sessions} sessions over {min_sessions // 2}-{max_sessions // 2} months"
 
     def _define_success_metrics(
-        self,
-        protocol: InterventionProtocol,
-        client_scenario: ClientScenario
+        self, protocol: InterventionProtocol, client_scenario: ClientScenario
     ) -> list[str]:
         """Define success metrics for intervention evaluation."""
         metrics = []
@@ -673,21 +780,30 @@ class TherapeuticTechniquesIntegrator:
         # Standardized measures
         dsm5_considerations = client_scenario.clinical_formulation.dsm5_considerations
 
-        if any("depression" in consideration.lower() for consideration in dsm5_considerations):
+        if any(
+            "depression" in consideration.lower()
+            for consideration in dsm5_considerations
+        ):
             metrics.append("PHQ-9 score reduction of 50% or more")
 
-        if any("anxiety" in consideration.lower() for consideration in dsm5_considerations):
+        if any(
+            "anxiety" in consideration.lower() for consideration in dsm5_considerations
+        ):
             metrics.append("GAD-7 score reduction to subclinical range")
 
-        if any("trauma" in consideration.lower() for consideration in dsm5_considerations):
+        if any(
+            "trauma" in consideration.lower() for consideration in dsm5_considerations
+        ):
             metrics.append("PCL-5 score reduction indicating PTSD symptom improvement")
 
         # Functional outcomes
-        metrics.extend([
-            "Improved daily functioning",
-            "Enhanced quality of life",
-            "Increased coping skills utilization"
-        ])
+        metrics.extend(
+            [
+                "Improved daily functioning",
+                "Enhanced quality of life",
+                "Increased coping skills utilization",
+            ]
+        )
 
         return metrics
 
@@ -696,7 +812,7 @@ class TherapeuticTechniquesIntegrator:
         client_scenario: ClientScenario,
         intervention_selection: InterventionSelection,
         session_phase: str = "working",
-        num_exchanges: int = 6
+        num_exchanges: int = 6,
     ) -> ConversationIntervention:
         """
         Generate a therapeutic conversation based on selected intervention protocol.
@@ -724,7 +840,9 @@ class TherapeuticTechniquesIntegrator:
         fidelity_score = self._calculate_intervention_fidelity(exchanges, protocol)
 
         # Generate clinical notes
-        clinical_notes = self._generate_clinical_notes(exchanges, protocol, client_scenario)
+        clinical_notes = self._generate_clinical_notes(
+            exchanges, protocol, client_scenario
+        )
 
         # Assign homework if appropriate
         homework = self._assign_homework(protocol, session_phase)
@@ -733,7 +851,9 @@ class TherapeuticTechniquesIntegrator:
         next_session_plan = self._plan_next_session(protocol, session_phase, exchanges)
 
         # Create conversation ID
-        conversation_id = f"intervention_{protocol.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        conversation_id = (
+            f"intervention_{protocol.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        )
 
         return ConversationIntervention(
             id=conversation_id,
@@ -745,7 +865,7 @@ class TherapeuticTechniquesIntegrator:
             intervention_fidelity_score=fidelity_score,
             clinical_notes=clinical_notes,
             homework_assigned=homework,
-            next_session_plan=next_session_plan
+            next_session_plan=next_session_plan,
         )
 
     def _generate_protocol_exchanges(
@@ -753,7 +873,7 @@ class TherapeuticTechniquesIntegrator:
         client_scenario: ClientScenario,
         protocol: InterventionProtocol,
         session_phase: str,
-        num_exchanges: int
+        num_exchanges: int,
     ) -> list[dict[str, Any]]:
         """Generate conversation exchanges following protocol structure."""
         exchanges = []
@@ -786,7 +906,7 @@ class TherapeuticTechniquesIntegrator:
         client_scenario: ClientScenario,
         protocol: InterventionProtocol,
         structure_elements: list[str],
-        exchange_index: int
+        exchange_index: int,
     ) -> dict[str, Any]:
         """Generate therapist exchange following protocol guidelines."""
 
@@ -807,7 +927,7 @@ class TherapeuticTechniquesIntegrator:
             "technique_used": technique.value,
             "structure_element": structure_element,
             "protocol_adherence": True,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     def _generate_client_exchange(
@@ -815,12 +935,14 @@ class TherapeuticTechniquesIntegrator:
         client_scenario: ClientScenario,
         protocol: InterventionProtocol,
         structure_elements: list[str],
-        exchange_index: int
+        exchange_index: int,
     ) -> dict[str, Any]:
         """Generate client exchange responding to therapeutic intervention."""
 
         # Generate client response based on scenario and protocol
-        content = self._generate_client_response(client_scenario, protocol, exchange_index)
+        content = self._generate_client_response(
+            client_scenario, protocol, exchange_index
+        )
 
         # Determine client engagement level
         engagement_level = self._determine_client_engagement(client_scenario, protocol)
@@ -829,8 +951,10 @@ class TherapeuticTechniquesIntegrator:
             "speaker": "client",
             "content": content,
             "engagement_level": engagement_level,
-            "emotional_state": self._determine_emotional_state(client_scenario, exchange_index),
-            "timestamp": datetime.now().isoformat()
+            "emotional_state": self._determine_emotional_state(
+                client_scenario, exchange_index
+            ),
+            "timestamp": datetime.now().isoformat(),
         }
 
     def _generate_technique_content(
@@ -838,7 +962,7 @@ class TherapeuticTechniquesIntegrator:
         technique: TherapeuticTechnique,
         structure_element: str,
         client_scenario: ClientScenario,
-        protocol: InterventionProtocol
+        protocol: InterventionProtocol,
     ) -> str:
         """Generate content based on therapeutic technique and protocol structure."""
 
@@ -846,38 +970,45 @@ class TherapeuticTechniquesIntegrator:
             TherapeuticTechnique.ACTIVE_LISTENING: [
                 "I hear you saying that {concern}. Tell me more about that.",
                 "It sounds like {concern} is really important to you.",
-                "Help me understand more about {concern}."
+                "Help me understand more about {concern}.",
             ],
             TherapeuticTechnique.VALIDATION: [
                 "That sounds really difficult. Your feelings make complete sense.",
                 "Anyone in your situation would feel {emotion}. That's completely understandable.",
-                "You're showing real strength by talking about this."
+                "You're showing real strength by talking about this.",
             ],
             TherapeuticTechnique.PSYCHOEDUCATION: [
                 "What you're experiencing is actually quite common with {condition}.",
                 "Let me explain how {technique} can help with {concern}.",
-                "Understanding {concept} can help us work together more effectively."
+                "Understanding {concept} can help us work together more effectively.",
             ],
             TherapeuticTechnique.SAFETY_PLANNING: [
                 "Let's work together to create a plan for when you feel unsafe.",
                 "Who are the people you can reach out to when things get difficult?",
-                "What are some strategies that have helped you feel safer before?"
-            ]
+                "What are some strategies that have helped you feel safer before?",
+            ],
         }
 
         # Get templates for this technique
-        templates = technique_templates.get(technique, [
-            "How are you feeling about {concern}?",
-            "What thoughts come up for you around {concern}?",
-            "Let's explore {concern} together."
-        ])
+        templates = technique_templates.get(
+            technique,
+            [
+                "How are you feeling about {concern}?",
+                "What thoughts come up for you around {concern}?",
+                "Let's explore {concern} together.",
+            ],
+        )
 
         # Select random template
         template = random.choice(templates)
 
         # Fill in placeholders
-        concern = random.choice(client_scenario.clinical_formulation.dsm5_considerations)
-        emotion = random.choice(["overwhelmed", "anxious", "sad", "frustrated", "confused"])
+        concern = random.choice(
+            client_scenario.clinical_formulation.dsm5_considerations
+        )
+        emotion = random.choice(
+            ["overwhelmed", "anxious", "sad", "frustrated", "confused"]
+        )
         condition = concern.split()[0] if concern else "this situation"
         concept = structure_element.lower()
 
@@ -886,14 +1017,14 @@ class TherapeuticTechniquesIntegrator:
             emotion=emotion,
             condition=condition.lower(),
             technique=protocol.name.lower(),
-            concept=concept
+            concept=concept,
         )
 
     def _generate_client_response(
         self,
         client_scenario: ClientScenario,
         protocol: InterventionProtocol,
-        exchange_index: int
+        exchange_index: int,
     ) -> str:
         """Generate realistic client response based on scenario and protocol."""
 
@@ -904,38 +1035,42 @@ class TherapeuticTechniquesIntegrator:
             responses = [
                 "I appreciate you asking about that. It's been on my mind a lot.",
                 "That makes sense. I hadn't thought about it that way before.",
-                "I feel comfortable sharing this with you."
+                "I feel comfortable sharing this with you.",
             ]
         elif attachment_style and "avoidant" in attachment_style.lower():
             responses = [
                 "I guess that's part of it, but I'm not sure it's that important.",
                 "I don't really like talking about feelings much.",
-                "Can we focus on practical solutions instead?"
+                "Can we focus on practical solutions instead?",
             ]
         elif attachment_style and "anxious" in attachment_style.lower():
             responses = [
                 "I'm worried you think I'm being too much. Am I talking too much?",
                 "Do you really think this will help? I've tried so many things before.",
-                "I just want to make sure I'm doing this right."
+                "I just want to make sure I'm doing this right.",
             ]
         else:
             responses = [
                 "I'm not sure how to answer that.",
                 "This is harder than I thought it would be.",
-                "I want to get better, but I don't know if I can."
+                "I want to get better, but I don't know if I can.",
             ]
 
         # Add severity-based modifications
         if client_scenario.severity_level == SeverityLevel.SEVERE:
-            responses.extend([
-                "Everything feels overwhelming right now.",
-                "I don't know if I can handle this.",
-                "Sometimes I wonder if things will ever get better."
-            ])
+            responses.extend(
+                [
+                    "Everything feels overwhelming right now.",
+                    "I don't know if I can handle this.",
+                    "Sometimes I wonder if things will ever get better.",
+                ]
+            )
 
         return random.choice(responses)
 
-    def _determine_session_goals(self, protocol: InterventionProtocol, session_phase: str) -> list[str]:
+    def _determine_session_goals(
+        self, protocol: InterventionProtocol, session_phase: str
+    ) -> list[str]:
         """Determine therapeutic goals for this session phase."""
         if session_phase == "opening":
             return ["Establish rapport", "Assess current state", "Set session agenda"]
@@ -945,16 +1080,13 @@ class TherapeuticTechniquesIntegrator:
         return ["Summarize progress", "Assign homework", "Plan next session"]
 
     def _calculate_intervention_fidelity(
-        self,
-        exchanges: list[dict[str, Any]],
-        protocol: InterventionProtocol
+        self, exchanges: list[dict[str, Any]], protocol: InterventionProtocol
     ) -> float:
         """Calculate how well the conversation adheres to protocol."""
 
         # Count protocol-adherent exchanges
         adherent_exchanges = sum(
-            1 for exchange in exchanges
-            if exchange.get("protocol_adherence", False)
+            1 for exchange in exchanges if exchange.get("protocol_adherence", False)
         )
 
         # Count technique usage
@@ -975,7 +1107,7 @@ class TherapeuticTechniquesIntegrator:
         self,
         exchanges: list[dict[str, Any]],
         protocol: InterventionProtocol,
-        client_scenario: ClientScenario
+        client_scenario: ClientScenario,
     ) -> list[str]:
         """Generate clinical notes for the session."""
         notes = []
@@ -987,21 +1119,37 @@ class TherapeuticTechniquesIntegrator:
         client_exchanges = [e for e in exchanges if e.get("speaker") == "client"]
         if client_exchanges:
             avg_engagement = sum(
-                {"high": 3, "medium": 2, "low": 1}.get(e.get("engagement_level", "medium"), 2)
+                {"high": 3, "medium": 2, "low": 1}.get(
+                    e.get("engagement_level", "medium"), 2
+                )
                 for e in client_exchanges
             ) / len(client_exchanges)
 
-            engagement_level = "high" if avg_engagement > 2.5 else "medium" if avg_engagement > 1.5 else "low"
-            notes.append(f"Client demonstrated {engagement_level} engagement throughout session")
+            engagement_level = (
+                "high"
+                if avg_engagement > 2.5
+                else "medium"
+                if avg_engagement > 1.5
+                else "low"
+            )
+            notes.append(
+                f"Client demonstrated {engagement_level} engagement throughout session"
+            )
 
         # Technique utilization note
-        techniques_used = [e.get("technique_used") for e in exchanges if e.get("technique_used")]
+        techniques_used = [
+            e.get("technique_used") for e in exchanges if e.get("technique_used")
+        ]
         if techniques_used:
-            notes.append(f"Therapeutic techniques utilized: {', '.join(set(techniques_used))}")
+            notes.append(
+                f"Therapeutic techniques utilized: {', '.join(set(techniques_used))}"
+            )
 
         return notes
 
-    def _assign_homework(self, protocol: InterventionProtocol, session_phase: str) -> str | None:
+    def _assign_homework(
+        self, protocol: InterventionProtocol, session_phase: str
+    ) -> str | None:
         """Assign homework based on protocol and session phase."""
         if session_phase == "closing" and protocol.homework_assignments:
             return random.choice(protocol.homework_assignments)
@@ -1011,7 +1159,7 @@ class TherapeuticTechniquesIntegrator:
         self,
         protocol: InterventionProtocol,
         session_phase: str,
-        exchanges: list[dict[str, Any]]
+        exchanges: list[dict[str, Any]],
     ) -> str | None:
         """Plan next session based on current progress."""
         if session_phase == "closing":
@@ -1025,9 +1173,7 @@ class TherapeuticTechniquesIntegrator:
         return None
 
     def _determine_client_engagement(
-        self,
-        client_scenario: ClientScenario,
-        protocol: InterventionProtocol
+        self, client_scenario: ClientScenario, protocol: InterventionProtocol
     ) -> str:
         """Determine client engagement level based on scenario factors."""
 
@@ -1042,7 +1188,9 @@ class TherapeuticTechniquesIntegrator:
             return random.choice(["medium", "high"])
         return "medium"
 
-    def _determine_emotional_state(self, client_scenario: ClientScenario, exchange_index: int) -> str:
+    def _determine_emotional_state(
+        self, client_scenario: ClientScenario, exchange_index: int
+    ) -> str:
         """Determine client emotional state for this exchange."""
 
         # Emotional progression through session
@@ -1053,9 +1201,7 @@ class TherapeuticTechniquesIntegrator:
         return random.choice(["reflective", "processing", "insightful"])
 
     def export_intervention_conversations(
-        self,
-        conversations: list[ConversationIntervention],
-        output_file: str
+        self, conversations: list[ConversationIntervention], output_file: str
     ) -> dict[str, Any]:
         """Export intervention conversations to JSON file."""
 
@@ -1071,10 +1217,17 @@ class TherapeuticTechniquesIntegrator:
             "metadata": {
                 "total_conversations": len(conversations),
                 "export_timestamp": datetime.now().isoformat(),
-                "protocols_used": list({conv.intervention_selection.protocol.id for conv in conversations}),
-                "average_fidelity_score": sum(conv.intervention_fidelity_score for conv in conversations) / len(conversations) if conversations else 0
+                "protocols_used": list(
+                    {conv.intervention_selection.protocol.id for conv in conversations}
+                ),
+                "average_fidelity_score": sum(
+                    conv.intervention_fidelity_score for conv in conversations
+                )
+                / len(conversations)
+                if conversations
+                else 0,
             },
-            "conversations": serializable_conversations
+            "conversations": serializable_conversations,
         }
 
         with open(output_file, "w", encoding="utf-8") as f:
@@ -1084,7 +1237,9 @@ class TherapeuticTechniquesIntegrator:
             "exported_conversations": len(conversations),
             "output_file": output_file,
             "protocols_covered": len(export_data["metadata"]["protocols_used"]),
-            "average_fidelity": round(export_data["metadata"]["average_fidelity_score"], 2)
+            "average_fidelity": round(
+                export_data["metadata"]["average_fidelity_score"], 2
+            ),
         }
 
     def _convert_enums_to_strings(self, obj):

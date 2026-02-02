@@ -30,15 +30,15 @@ class TestTFIDFClusterer:
                 features=[0.1] * 256,  # Mock 256-dim features
                 metadata={"source_file": "test.csv", "row_index": 0},
                 source_dataset="test_dataset",
-                mental_health_condition="depression"
+                mental_health_condition="depression",
             ),
             "conv_2": TFIDFFeatures(
                 conversation_id="conv_2",
                 features=[0.2] * 256,
                 metadata={"source_file": "test.csv", "row_index": 1},
                 source_dataset="test_dataset",
-                mental_health_condition="anxiety"
-            )
+                mental_health_condition="anxiety",
+            ),
         }
 
         # Add mock features to clusterer
@@ -79,9 +79,10 @@ class TestTFIDFClusterer:
 
         # Mock CSV data
         mock_csv_reader.return_value = [
-            ["feature_0", "feature_1"] + [f"feature_{i}" for i in range(2, 256)],  # Header
+            ["feature_0", "feature_1"]
+            + [f"feature_{i}" for i in range(2, 256)],  # Header
             [str(0.1)] * 256,  # First row
-            [str(0.2)] * 256   # Second row
+            [str(0.2)] * 256,  # Second row
         ]
 
         clusterer = TFIDFClusterer()
@@ -94,13 +95,14 @@ class TestTFIDFClusterer:
         """Test K-means clustering."""
         # Mock numpy arrays for features
         import numpy as np
+
         self.clusterer.tfidf_features["conv_1"].features = np.array([0.1] * 256)
         self.clusterer.tfidf_features["conv_2"].features = np.array([0.9] * 256)
 
         result = self.clusterer.cluster_conversations(
             method=ClusteringMethod.KMEANS,
             num_clusters=2,
-            similarity_metric=SimilarityMetric.COSINE
+            similarity_metric=SimilarityMetric.COSINE,
         )
 
         assert isinstance(result, ClusteringResult)
@@ -111,6 +113,7 @@ class TestTFIDFClusterer:
     def test_simple_clustering_fallback(self):
         """Test simple clustering fallback when sklearn not available."""
         import numpy as np
+
         feature_matrix = np.array([[0.1] * 256, [0.9] * 256])
 
         cluster_labels = self.clusterer._simple_clustering(feature_matrix, 2)
@@ -138,6 +141,7 @@ class TestTFIDFClusterer:
     def test_calculate_cluster_similarity(self):
         """Test cluster similarity calculation."""
         import numpy as np
+
         cluster_features = np.array([[0.1, 0.2], [0.15, 0.25], [0.12, 0.22]])
 
         similarity = self.clusterer._calculate_cluster_similarity(cluster_features)
@@ -148,6 +152,7 @@ class TestTFIDFClusterer:
     def test_find_similar_conversations(self):
         """Test finding similar conversations."""
         import numpy as np
+
         self.clusterer.tfidf_features["conv_1"].features = np.array([0.1] * 256)
         self.clusterer.tfidf_features["conv_2"].features = np.array([0.15] * 256)
 
@@ -171,7 +176,7 @@ class TestTFIDFClusterer:
             dominant_topics=["depression"],
             mental_health_patterns=["sad", "hopeless"],
             similarity_score=0.8,
-            cluster_quality_metrics={"cohesion": 0.7}
+            cluster_quality_metrics={"cohesion": 0.7},
         )
 
         mock_result = ClusteringResult(
@@ -182,7 +187,7 @@ class TestTFIDFClusterer:
             inertia=10.5,
             cluster_quality=0.7,
             feature_importance={"depression": 0.8},
-            clustering_metadata={"total_conversations": 2}
+            clustering_metadata={"total_conversations": 2},
         )
 
         summary = self.clusterer.get_cluster_summary(mock_result)
@@ -215,7 +220,7 @@ class TestTFIDFClusterer:
                 dominant_topics=["depression"],
                 mental_health_patterns=[],
                 similarity_score=0.8,
-                cluster_quality_metrics={}
+                cluster_quality_metrics={},
             ),
             ConversationCluster(
                 cluster_id=1,
@@ -226,8 +231,8 @@ class TestTFIDFClusterer:
                 dominant_topics=["anxiety"],
                 mental_health_patterns=[],
                 similarity_score=0.7,
-                cluster_quality_metrics={}
-            )
+                cluster_quality_metrics={},
+            ),
         ]
 
         importance = self.clusterer._calculate_feature_importance(mock_clusters)
@@ -249,7 +254,7 @@ def test_tfidf_clusterer_integration():
             features=np.random.rand(10),
             metadata={"test": True},
             source_dataset="test",
-            mental_health_condition="depression" if i < 3 else "anxiety"
+            mental_health_condition="depression" if i < 3 else "anxiety",
         )
         for i in range(6)
     }
@@ -258,8 +263,7 @@ def test_tfidf_clusterer_integration():
 
     # Test clustering
     result = clusterer.cluster_conversations(
-        method=ClusteringMethod.KMEANS,
-        num_clusters=2
+        method=ClusteringMethod.KMEANS, num_clusters=2
     )
 
     # Verify results

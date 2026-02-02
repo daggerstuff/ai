@@ -8,7 +8,7 @@ import tempfile
 from unittest.mock import mock_open, patch
 
 import pytest
-from consolidated_mental_health_processor import (
+from ai.consolidated_mental_health_processor import (
     ConsolidatedMentalHealthProcessor,
     ConsolidatedProcessingConfig,
 )
@@ -236,7 +236,6 @@ class TestConsolidatedMentalHealthProcessor:
                 self.processor, "_assess_emotional_authenticity", return_value=True
             ),
         ):
-
             results = self.processor._process_batch(batch)
 
             assert len(results) == 3
@@ -264,7 +263,6 @@ class TestConsolidatedMentalHealthProcessor:
                 self.processor, "_assess_emotional_authenticity", return_value=True
             ),
         ):
-
             results = self.processor._process_batch(batch)
 
             assert len(results) == 2  # One filtered out by quality
@@ -491,7 +489,6 @@ class TestConsolidatedMentalHealthProcessor:
                 self.processor, "_assess_emotional_authenticity", return_value=True
             ),
         ):
-
             result = self.processor.process_consolidated_dataset()
 
             assert "processing_summary" in result

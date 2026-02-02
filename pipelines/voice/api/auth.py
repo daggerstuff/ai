@@ -152,7 +152,9 @@ class AuthManager:
         if expires_delta:
             expire = datetime.now(timezone.utc) + expires_delta
         else:
-            expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+            expire = datetime.now(timezone.utc) + timedelta(
+                minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+            )
 
         to_encode.update({"exp": expire})
         return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -181,7 +183,9 @@ class AuthManager:
                 return None
 
             permissions = ROLE_PERMISSIONS.get(user.role, [])
-            return TokenData(user_id=user_id, permissions=[p.value for p in permissions])
+            return TokenData(
+                user_id=user_id, permissions=[p.value for p in permissions]
+            )
 
         except jwt.PyJWTError:
             return None
@@ -321,7 +325,8 @@ def require_role(role: UserRole):
     def role_checker(current_user: User = Depends(get_current_user)) -> User:
         if current_user.role not in (role, UserRole.ADMIN):
             raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN, detail=f"Role required: {role.value}"
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Role required: {role.value}",
             )
         return current_user
 

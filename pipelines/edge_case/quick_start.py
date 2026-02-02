@@ -24,7 +24,9 @@ def quick_test():
 
     if not api_key and api_provider != "ollama":
         print("❌ Please set your API key environment variable:", file=sys.stderr)  # noqa: T201
-        print(f"   export {api_provider.upper()}_API_KEY='your_key_here'", file=sys.stderr)  # noqa: T201
+        print(
+            f"   export {api_provider.upper()}_API_KEY='your_key_here'", file=sys.stderr
+        )  # noqa: T201
         return
 
     try:

@@ -36,7 +36,9 @@ try:
 except ImportError:
     TORCH_AVAILABLE = False
 
+
 from audio_processor import AudioProcessor, AudioQualityMetrics
+
 from logger import setup_logger
 
 
@@ -401,7 +403,7 @@ class VoiceTranscriber:
 
         for i, file_path in enumerate(file_paths):
             self.logger.info(
-                f"Processing file {i+1}/{len(file_paths)}: {os.path.basename(file_path)}"
+                f"Processing file {i + 1}/{len(file_paths)}: {os.path.basename(file_path)}"
             )
 
             try:
@@ -545,7 +547,7 @@ class VoiceTranscriber:
         report.append(f"Average Quality: {result.average_quality:.2f}")
         report.append(f"Processing Time: {result.total_processing_time:.2f} seconds")
         report.append(
-            f"Success Rate: {(result.successful_files/result.total_files*100):.1f}%"
+            f"Success Rate: {(result.successful_files / result.total_files * 100):.1f}%"
         )
         report.append("")
 
