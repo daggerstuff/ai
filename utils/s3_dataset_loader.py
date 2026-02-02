@@ -86,7 +86,10 @@ class S3DatasetLoader:
         # Always allow env to override bucket for OVH S3
         # This ensures OVH_S3_BUCKET is always used when set
         self.bucket = os.getenv("OVH_S3_BUCKET", bucket)
-        print(f"[DEBUG] S3Loader: env OVH_S3_BUCKET={os.getenv('OVH_S3_BUCKET')}, input bucket={bucket}, final={self.bucket}", flush=True)
+        print(
+            f"[DEBUG] S3Loader: env OVH_S3_BUCKET={os.getenv('OVH_S3_BUCKET')}, input bucket={bucket}, final={self.bucket}",
+            flush=True,
+        )
         self.endpoint_url = endpoint_url or os.getenv(
             "OVH_S3_ENDPOINT", "https://s3.us-east-va.io.cloud.ovh.us"
         )
