@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-import boto3
+
+import logging
 import os
 from pathlib import Path
-import logging
+
+import boto3
 from dotenv import load_dotenv
 
 # Load environment variables from ai/.env
@@ -11,6 +13,7 @@ load_dotenv("ai/.env")
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("S3Uploader")
+
 
 def get_s3_client():
     """Creates an S3 client configured for OVH Object Storage."""
@@ -24,12 +27,13 @@ def get_s3_client():
         return None
 
     return boto3.client(
-        's3',
+        "s3",
         endpoint_url=endpoint,
         aws_access_key_id=access_key,
         aws_secret_access_key=secret_key,
-        region_name=region
+        region_name=region,
     )
+
 
 def upload_final_artifacts(prefix="datasets/training_v2/"):
     """
@@ -70,8 +74,11 @@ def upload_final_artifacts(prefix="datasets/training_v2/"):
             except Exception as e:
                 logger.error(f"  -> Failed: {e}")
 
-    logger.info(f"Upload Complete. {uploaded_count} files uploaded to s3://{bucket_name}/{prefix}")
+    logger.info(
+        f"Upload Complete. {uploaded_count} files uploaded to s3://{bucket_name}/{prefix}"
+    )
     return f"Uploaded {uploaded_count} files to s3://{bucket_name}/{prefix}"
+
 
 if __name__ == "__main__":
     upload_final_artifacts()

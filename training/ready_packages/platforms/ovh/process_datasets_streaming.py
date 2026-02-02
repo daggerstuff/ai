@@ -24,28 +24,22 @@ Usage:
 Author: Pixelated Empathy AI Team
 """
 
-import json
 import csv
-import os
-import re
-import sys
 import gc
 import hashlib
+import json
 import logging
-from pathlib import Path
-from datetime import datetime
-from typing import Iterator, Any
+import re
 from collections import defaultdict
-import random
+from datetime import datetime
+from pathlib import Path
+from typing import Iterator
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s: %(message)s',
-    handlers=[
-        logging.StreamHandler(),
-        logging.FileHandler('dataset_processing.log')
-    ]
+    format="[%(asctime)s] %(levelname)s: %(message)s",
+    handlers=[logging.StreamHandler(), logging.FileHandler("dataset_processing.log")],
 )
 logger = logging.getLogger(__name__)
 
@@ -54,14 +48,12 @@ SYSTEM_PROMPTS = {
     "foundation": """You are a compassionate and skilled mental health counselor.
 Your role is to provide supportive, empathetic responses while maintaining professional boundaries.
 Listen actively, validate emotions, and help clients explore their feelings and develop coping strategies.""",
-
     "reasoning": """You are a clinical mental health expert who thinks through problems systematically.
 When responding, consider the psychological context, potential underlying issues, and evidence-based approaches.
 Demonstrate your clinical reasoning process while remaining warm and supportive.""",
-
     "voice": """You are a therapeutic guide in the style of Tim Fletcher, combining trauma-informed insights
 with accessible, educational explanations. Use clear analogies, validate experiences,
-and help people understand the 'why' behind their patterns while offering practical pathways forward."""
+and help people understand the 'why' behind their patterns while offering practical pathways forward.""",
 }
 
 
@@ -79,9 +71,11 @@ class StreamingDatasetProcessor:
 
         # Load existing hashes if resuming
         if self.hash_file.exists():
-            with open(self.hash_file, 'r') as f:
+            with open(self.hash_file, "r") as f:
                 self.seen_hashes = set(line.strip() for line in f)
-            logger.info(f"Loaded {len(self.seen_hashes)} existing hashes for deduplication")
+            logger.info(
+                f"Loaded {len(self.seen_hashes)} existing hashes for deduplication"
+            )
 
     def hash_conversation(self, messages: list[dict]) -> str:
         """Create hash for deduplication."""
@@ -98,24 +92,32 @@ class StreamingDatasetProcessor:
 
     def save_hash(self, h: str):
         """Append hash to file for persistence."""
-        with open(self.hash_file, 'a') as f:
-            f.write(h + '\n')
+        with open(self.hash_file, "a") as f:
+            f.write(h + "\n")
 
     def clean_text(self, text: str) -> str:
         """Clean and normalize text content."""
         if not isinstance(text, str):
             return ""
-        text = re.sub(r'\r\n', '\n', text)
-        text = re.sub(r'\n{3,}', '\n\n', text)
-        text = re.sub(r' {2,}', ' ', text)
+        text = re.sub(r"\r\n", "\n", text)
+        text = re.sub(r"\n{3,}", "\n\n", text)
+        text = re.sub(r" {2,}", " ", text)
         return text.strip()
 
     def validate_conversation(self, messages: list[dict], min_turns: int = 2) -> bool:
         """Validate a conversation has minimum content."""
         if len(messages) < min_turns:
             return False
-        user_content = sum(1 for m in messages if m.get("role") == "user" and len(m.get("content", "").strip()) > 10)
-        assistant_content = sum(1 for m in messages if m.get("role") == "assistant" and len(m.get("content", "").strip()) > 10)
+        user_content = sum(
+            1
+            for m in messages
+            if m.get("role") == "user" and len(m.get("content", "").strip()) > 10
+        )
+        assistant_content = sum(
+            1
+            for m in messages
+            if m.get("role") == "assistant" and len(m.get("content", "").strip()) > 10
+        )
         return user_content >= 1 and assistant_content >= 1
 
     # =========== STREAMING GENERATORS ===========
@@ -124,19 +126,19 @@ class StreamingDatasetProcessor:
         """Stream items from a JSON array file without loading entire file."""
         logger.info(f"  Streaming: {filepath.name}")
 
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             # Skip initial whitespace and opening bracket
             char = f.read(1)
-            while char and char in ' \n\t\r':
+            while char and char in " \n\t\r":
                 char = f.read(1)
 
-            if char != '[':
+            if char != "[":
                 # Not an array, try loading as single object or JSONL
                 f.seek(0)
                 content = f.read()
-                if content.strip().startswith('{'):
+                if content.strip().startswith("{"):
                     # Single object or JSONL
-                    for line in content.strip().split('\n'):
+                    for line in content.strip().split("\n"):
                         if line.strip():
                             try:
                                 yield json.loads(line)
@@ -150,13 +152,13 @@ class StreamingDatasetProcessor:
             in_string = False
             escape = False
 
-            for char in iter(lambda: f.read(1), ''):
+            for char in iter(lambda: f.read(1), ""):
                 if escape:
                     buffer += char
                     escape = False
                     continue
 
-                if char == '\\' and in_string:
+                if char == "\\" and in_string:
                     buffer += char
                     escape = True
                     continue
@@ -170,10 +172,10 @@ class StreamingDatasetProcessor:
                     buffer += char
                     continue
 
-                if char == '{':
+                if char == "{":
                     depth += 1
                     buffer += char
-                elif char == '}':
+                elif char == "}":
                     depth -= 1
                     buffer += char
                     if depth == 0 and buffer.strip():
@@ -182,9 +184,9 @@ class StreamingDatasetProcessor:
                         except json.JSONDecodeError as e:
                             logger.warning(f"Failed to parse JSON object: {e}")
                         buffer = ""
-                elif char == ',' and depth == 0:
+                elif char == "," and depth == 0:
                     buffer = ""
-                elif char == ']' and depth == 0:
+                elif char == "]" and depth == 0:
                     break
                 elif depth > 0:
                     buffer += char
@@ -192,7 +194,7 @@ class StreamingDatasetProcessor:
     def stream_jsonl(self, filepath: Path) -> Iterator[dict]:
         """Stream items from a JSONL file."""
         logger.info(f"  Streaming JSONL: {filepath.name}")
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             for line in f:
                 if line.strip():
                     try:
@@ -203,7 +205,7 @@ class StreamingDatasetProcessor:
     def stream_csv(self, filepath: Path) -> Iterator[dict]:
         """Stream rows from a CSV file."""
         logger.info(f"  Streaming CSV: {filepath.name}")
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             reader = csv.DictReader(f)
             for row in reader:
                 yield row
@@ -215,7 +217,10 @@ class StreamingDatasetProcessor:
         logger.info("Processing: mental_health_counseling_conversations")
         count = 0
 
-        data_file = self.base_dir / "professional/mental_health_counseling_conversations/combined_dataset.json"
+        data_file = (
+            self.base_dir
+            / "professional/mental_health_counseling_conversations/combined_dataset.json"
+        )
         if not data_file.exists():
             logger.warning(f"File not found: {data_file}")
             return 0
@@ -233,11 +238,17 @@ class StreamingDatasetProcessor:
             messages = [
                 {"role": "system", "content": SYSTEM_PROMPTS["foundation"]},
                 {"role": "user", "content": context},
-                {"role": "assistant", "content": response}
+                {"role": "assistant", "content": response},
             ]
 
             if not self.is_duplicate(messages):
-                output_file.write(json.dumps({"messages": messages, "source": "mental_health_counseling"}, ensure_ascii=False) + '\n')
+                output_file.write(
+                    json.dumps(
+                        {"messages": messages, "source": "mental_health_counseling"},
+                        ensure_ascii=False,
+                    )
+                    + "\n"
+                )
                 self.stats["mental_health_counseling"]["valid"] += 1
                 count += 1
             else:
@@ -265,10 +276,11 @@ class StreamingDatasetProcessor:
 
             messages = [{"role": "system", "content": SYSTEM_PROMPTS["foundation"]}]
 
-            pattern = r'(human:|gpt:)'
+            pattern = r"(human:|gpt:)"
             parts = re.split(pattern, text, flags=re.IGNORECASE)
 
             current_role = None
+
             for part in parts:
                 part = part.strip()
                 if not part:
@@ -283,7 +295,13 @@ class StreamingDatasetProcessor:
                         messages.append({"role": current_role, "content": content})
 
             if self.validate_conversation(messages) and not self.is_duplicate(messages):
-                output_file.write(json.dumps({"messages": messages, "source": "therapist_sft"}, ensure_ascii=False) + '\n')
+                output_file.write(
+                    json.dumps(
+                        {"messages": messages, "source": "therapist_sft"},
+                        ensure_ascii=False,
+                    )
+                    + "\n"
+                )
                 self.stats["therapist_sft"]["valid"] += 1
                 count += 1
             else:
@@ -301,9 +319,17 @@ class StreamingDatasetProcessor:
         if not dataset_dir.exists():
             return 0
 
-        json_files = [f for f in dataset_dir.glob("*.json") if not f.name.startswith('.') and 'readme' not in f.name.lower()]
+        json_files = [
+            f
+            for f in dataset_dir.glob("*.json")
+            if not f.name.startswith(".") and "readme" not in f.name.lower()
+        ]
         if not json_files:
-            json_files = [f for f in dataset_dir.rglob("*.json") if not f.name.startswith('.') and 'readme' not in f.name.lower()]
+            json_files = [
+                f
+                for f in dataset_dir.rglob("*.json")
+                if not f.name.startswith(".") and "readme" not in f.name.lower()
+            ]
 
         for json_file in json_files:
             for item in self.stream_json_array(json_file):
@@ -316,7 +342,14 @@ class StreamingDatasetProcessor:
 
                 metadata = item.get("metadata", {})
                 reasoning = self.clean_text(metadata.get("reasoning", ""))
-                question = self.clean_text(item.get("question", item.get("prompt", "Can you help me understand this situation?")))
+                question = self.clean_text(
+                    item.get(
+                        "question",
+                        item.get(
+                            "prompt", "Can you help me understand this situation?"
+                        ),
+                    )
+                )
 
                 if reasoning:
                     response = f"Let me think through this carefully.\n\n**Reasoning:**\n{reasoning}\n\n**Response:**\n{answer}"
@@ -326,14 +359,19 @@ class StreamingDatasetProcessor:
                 messages = [
                     {"role": "system", "content": SYSTEM_PROMPTS["reasoning"]},
                     {"role": "user", "content": question},
-                    {"role": "assistant", "content": response}
+                    {"role": "assistant", "content": response},
                 ]
 
-                if self.validate_conversation(messages) and not self.is_duplicate(messages):
-                    output_file.write(json.dumps({
-                        "messages": messages,
-                        "source": f"cot_{dataset_name}"
-                    }, ensure_ascii=False) + '\n')
+                if self.validate_conversation(messages) and not self.is_duplicate(
+                    messages
+                ):
+                    output_file.write(
+                        json.dumps(
+                            {"messages": messages, "source": f"cot_{dataset_name}"},
+                            ensure_ascii=False,
+                        )
+                        + "\n"
+                    )
                     self.stats[f"cot_{dataset_name}"]["valid"] += 1
                     count += 1
                 else:
@@ -375,8 +413,16 @@ class StreamingDatasetProcessor:
                     if content:
                         messages.append({"role": role, "content": content})
 
-                if self.validate_conversation(messages) and not self.is_duplicate(messages):
-                    output_file.write(json.dumps({"messages": messages, "source": "soulchat"}, ensure_ascii=False) + '\n')
+                if self.validate_conversation(messages) and not self.is_duplicate(
+                    messages
+                ):
+                    output_file.write(
+                        json.dumps(
+                            {"messages": messages, "source": "soulchat"},
+                            ensure_ascii=False,
+                        )
+                        + "\n"
+                    )
                     self.stats["soulchat"]["valid"] += 1
                     count += 1
                 else:
@@ -399,8 +445,14 @@ class StreamingDatasetProcessor:
             for item in self.stream_json_array(json_file):
                 self.stats["counsel_chat"]["total"] += 1
 
-                question = self.clean_text(item.get("questionText", item.get("question", item.get("Context", ""))))
-                answer = self.clean_text(item.get("answerText", item.get("answer", item.get("Response", ""))))
+                question = self.clean_text(
+                    item.get(
+                        "questionText", item.get("question", item.get("Context", ""))
+                    )
+                )
+                answer = self.clean_text(
+                    item.get("answerText", item.get("answer", item.get("Response", "")))
+                )
 
                 if not question or not answer:
                     self.stats["counsel_chat"]["skipped"] += 1
@@ -409,11 +461,17 @@ class StreamingDatasetProcessor:
                 messages = [
                     {"role": "system", "content": SYSTEM_PROMPTS["foundation"]},
                     {"role": "user", "content": question},
-                    {"role": "assistant", "content": answer}
+                    {"role": "assistant", "content": answer},
                 ]
 
                 if not self.is_duplicate(messages):
-                    output_file.write(json.dumps({"messages": messages, "source": "counsel_chat"}, ensure_ascii=False) + '\n')
+                    output_file.write(
+                        json.dumps(
+                            {"messages": messages, "source": "counsel_chat"},
+                            ensure_ascii=False,
+                        )
+                        + "\n"
+                    )
                     self.stats["counsel_chat"]["valid"] += 1
                     count += 1
                 else:
@@ -438,7 +496,7 @@ class StreamingDatasetProcessor:
         stage1_dir = self.output_dir / "stage1_foundation"
         stage1_dir.mkdir(parents=True, exist_ok=True)
 
-        with open(stage1_dir / "train.jsonl", 'w', encoding='utf-8') as f:
+        with open(stage1_dir / "train.jsonl", "w", encoding="utf-8") as f:
             total_foundation = 0
             total_foundation += self.process_mental_health_counseling(f)
             total_foundation += self.process_therapist_sft(f)
@@ -455,10 +513,10 @@ class StreamingDatasetProcessor:
         cot_dir = self.base_dir / "cot_reasoning"
         total_reasoning = 0
 
-        with open(stage2_dir / "train.jsonl", 'w', encoding='utf-8') as f:
+        with open(stage2_dir / "train.jsonl", "w", encoding="utf-8") as f:
             if cot_dir.exists():
                 for dataset_dir in sorted(cot_dir.iterdir()):
-                    if dataset_dir.is_dir() and not dataset_dir.name.startswith('.'):
+                    if dataset_dir.is_dir() and not dataset_dir.name.startswith("."):
                         count = self.process_cot_dataset(dataset_dir.name, f)
                         total_reasoning += count
                         logger.info(f"    {dataset_dir.name}: {count}")
@@ -483,10 +541,10 @@ class StreamingDatasetProcessor:
             "stage_counts": {
                 "foundation": foundation,
                 "reasoning": reasoning,
-                "total": foundation + reasoning
+                "total": foundation + reasoning,
             },
             "datasets": dict(self.stats),
-            "unique_hashes": len(self.seen_hashes)
+            "unique_hashes": len(self.seen_hashes),
         }
 
         logger.info("\n" + "=" * 60)
@@ -504,7 +562,7 @@ class StreamingDatasetProcessor:
         logger.info(f"DURATION: {duration}")
 
         report_path = self.output_dir / "processing_report.json"
-        with open(report_path, 'w', encoding='utf-8') as f:
+        with open(report_path, "w", encoding="utf-8") as f:
             json.dump(report, f, indent=2)
 
         logger.info(f"\nReport: {report_path}")
@@ -514,9 +572,14 @@ def main():
     """Main entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Stream-process datasets for ChatML training")
-    parser.add_argument("--base-dir", default="~/datasets/consolidated",
-                       help="Base directory for consolidated datasets")
+    parser = argparse.ArgumentParser(
+        description="Stream-process datasets for ChatML training"
+    )
+    parser.add_argument(
+        "--base-dir",
+        default="~/datasets/consolidated",
+        help="Base directory for consolidated datasets",
+    )
 
     args = parser.parse_args()
 
@@ -526,4 +589,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

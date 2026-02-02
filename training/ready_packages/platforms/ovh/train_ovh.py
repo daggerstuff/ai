@@ -27,28 +27,24 @@ Dataset Structure (on OVH Object Storage):
       └── moe_training_config.json
 """
 
-import os
-import sys
-import json
-import glob
-import random
-import signal
-import logging
 import argparse
-from pathlib import Path
+import glob
+import json
+import logging
+import os
+import signal
+import sys
 from datetime import datetime
-from typing import Dict, List, Any, Optional
+from typing import Any, Dict, List, Optional
 
-import torch
 import pandas as pd
+import torch
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
 )
 logger = logging.getLogger("train_ovh")
 
@@ -60,48 +56,51 @@ DEFAULT_CONFIG = {
     # Paths (OVH volumes)
     "data_dir": "/data",
     "checkpoint_dir": "/checkpoints",
-
     # Base model
     "base_model": "LatitudeGames/Wayfarer-2-12B",
-
     # Training stages
     "training_stages": {
         "foundation": {
-            "datasets": ["acquired/mental_health_counseling.json", "lightning/train.json"],
+            "datasets": [
+                "acquired/mental_health_counseling.json",
+                "lightning/train.json",
+            ],
             "epochs": 3,
             "learning_rate": 2e-4,
-            "description": "Natural therapeutic dialogue patterns"
+            "description": "Natural therapeutic dialogue patterns",
         },
         "reasoning": {
             "datasets": ["acquired/cot_reasoning.json"],
             "epochs": 2,
             "learning_rate": 1e-4,
-            "description": "Clinical reasoning patterns (CoT)"
+            "description": "Clinical reasoning patterns (CoT)",
         },
         "voice": {
             "datasets": ["voice/synthetic_conversations.json"],
             "epochs": 2,
             "learning_rate": 5e-5,
-            "description": "Tim Fletcher teaching style"
-        }
+            "description": "Tim Fletcher teaching style",
+        },
     },
-
     # MoE Configuration
     "moe": {
         "num_experts": 4,
-        "expert_domains": ["psychology", "mental_health", "bias_detection", "general_therapeutic"],
+        "expert_domains": [
+            "psychology",
+            "mental_health",
+            "bias_detection",
+            "general_therapeutic",
+        ],
         "expert_capacity": 2,
-        "load_balancing_weight": 0.01
+        "load_balancing_weight": 0.01,
     },
-
     # LoRA Configuration
     "lora": {
         "r": 16,
         "alpha": 32,
         "dropout": 0.1,
-        "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj"]
+        "target_modules": ["q_proj", "v_proj", "k_proj", "o_proj"],
     },
-
     # Training parameters
     "training": {
         "per_device_batch_size": 4,
@@ -113,11 +112,10 @@ DEFAULT_CONFIG = {
         "logging_steps": 10,
         "eval_steps": 500,
         "save_steps": 500,
-        "max_hours": 12
+        "max_hours": 12,
     },
-
     # ChatML system prompt
-    "system_prompt": "You are Wendy, an empathetic and supportive mental health companion. You provide thoughtful, therapeutic responses while maintaining appropriate boundaries."
+    "system_prompt": "You are Wendy, an empathetic and supportive mental health companion. You provide thoughtful, therapeutic responses while maintaining appropriate boundaries.",
 }
 
 # Global state
@@ -139,6 +137,7 @@ signal.signal(signal.SIGINT, signal_handler)
 # ===========================================
 # Dataset Loading (from wayfarer_supervised.py)
 # ===========================================
+
 
 def find_dataset_files(base_dir: str, patterns: List[str]) -> List[str]:
     """Find dataset files matching patterns."""
@@ -176,7 +175,10 @@ def load_dataset_file(file_path: str) -> List[Dict[str, Any]]:
                     return [data]
         elif ext == ".csv":
             df = pd.read_csv(file_path)
-            return [{str(k): v for k, v in rec.items()} for rec in df.to_dict(orient="records")]
+            return [
+                {str(k): v for k, v in rec.items()}
+                for rec in df.to_dict(orient="records")
+            ]
     except Exception as e:
         logger.error(f"Failed to load {file_path}: {e}")
 
@@ -221,7 +223,9 @@ def deduplicate(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return deduped
 
 
-def convert_to_chatml(records: List[Dict[str, Any]], system_prompt: str) -> List[Dict[str, Any]]:
+def convert_to_chatml(
+    records: List[Dict[str, Any]], system_prompt: str
+) -> List[Dict[str, Any]]:
     """Convert records to ChatML format."""
     chatml_data = []
 
@@ -273,7 +277,9 @@ def convert_to_chatml(records: List[Dict[str, Any]], system_prompt: str) -> List
     return chatml_data
 
 
-def load_stage_datasets(data_dir: str, dataset_patterns: List[str], system_prompt: str) -> List[Dict[str, Any]]:
+def load_stage_datasets(
+    data_dir: str, dataset_patterns: List[str], system_prompt: str
+) -> List[Dict[str, Any]]:
     """Load and process datasets for a training stage."""
     logger.info(f"Loading datasets: {dataset_patterns}")
 
@@ -305,6 +311,7 @@ def load_stage_datasets(data_dir: str, dataset_patterns: List[str], system_promp
 # Training Logic
 # ===========================================
 
+
 def setup_wandb(config: Dict, stage_name: str):
     """Initialize Weights & Biases logging."""
     try:
@@ -319,7 +326,7 @@ def setup_wandb(config: Dict, stage_name: str):
             project="pixelated-empathy",
             name=f"ovh-{stage_name}-{datetime.now().strftime('%Y%m%d-%H%M')}",
             config=config,
-            tags=["ovh", stage_name, "wayfarer-2-12b"]
+            tags=["ovh", stage_name, "wayfarer-2-12b"],
         )
         logger.info(f"WandB initialized: {run.url}")
         return run
@@ -331,8 +338,8 @@ def setup_wandb(config: Dict, stage_name: str):
 def create_model(config: Dict):
     """Create or load the model with LoRA configuration."""
     try:
-        from transformers import AutoModelForCausalLM, AutoTokenizer
         from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+        from transformers import AutoModelForCausalLM, AutoTokenizer
 
         base_model = config.get("base_model", DEFAULT_CONFIG["base_model"])
         lora_config = config.get("lora", DEFAULT_CONFIG["lora"])
@@ -349,7 +356,7 @@ def create_model(config: Dict):
             base_model,
             torch_dtype=torch.bfloat16,
             device_map="auto",
-            trust_remote_code=True
+            trust_remote_code=True,
         )
 
         # Prepare for training
@@ -362,7 +369,7 @@ def create_model(config: Dict):
             lora_dropout=lora_config["dropout"],
             target_modules=lora_config["target_modules"],
             bias="none",
-            task_type="CAUSAL_LM"
+            task_type="CAUSAL_LM",
         )
 
         model = get_peft_model(model, peft_config)
@@ -370,13 +377,17 @@ def create_model(config: Dict):
         # Log trainable parameters
         trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
         total_params = sum(p.numel() for p in model.parameters())
-        logger.info(f"Trainable params: {trainable_params:,} / {total_params:,} ({100 * trainable_params / total_params:.2f}%)")
+        logger.info(
+            f"Trainable params: {trainable_params:,} / {total_params:,} ({100 * trainable_params / total_params:.2f}%)"
+        )
 
         return model, tokenizer
 
     except ImportError as e:
         logger.error(f"Missing required package: {e}")
-        logger.error("Install with: pip install transformers peft accelerate bitsandbytes")
+        logger.error(
+            "Install with: pip install transformers peft accelerate bitsandbytes"
+        )
         raise
 
 
@@ -387,11 +398,11 @@ def train_stage(
     train_data: List[Dict],
     config: Dict,
     checkpoint_dir: str,
-    resume_from: Optional[str] = None
+    resume_from: Optional[str] = None,
 ):
     """Train a single stage."""
-    from transformers import Trainer, TrainingArguments
     from datasets import Dataset
+    from transformers import Trainer, TrainingArguments
 
     global shutdown_requested
 
@@ -401,12 +412,12 @@ def train_stage(
     epochs = stage_config.get("epochs", 3)
     lr = stage_config.get("learning_rate", 2e-4)
 
-    logger.info(f"=" * 60)
+    logger.info("=" * 60)
     logger.info(f"Training Stage: {stage_name}")
     logger.info(f"Description: {stage_config.get('description', 'N/A')}")
     logger.info(f"Epochs: {epochs}, Learning Rate: {lr}")
     logger.info(f"Samples: {len(train_data)}")
-    logger.info(f"=" * 60)
+    logger.info("=" * 60)
 
     # Create output directory
     output_dir = os.path.join(checkpoint_dir, stage_name)
@@ -428,13 +439,15 @@ def train_stage(
             texts,
             truncation=True,
             padding="max_length",
-            max_length=training_config.get("max_length", 2048)
+            max_length=training_config.get("max_length", 2048),
         )
         result["labels"] = result["input_ids"].copy()
         return result
 
     dataset = Dataset.from_list(train_data)
-    tokenized = dataset.map(tokenize_function, batched=True, remove_columns=["messages"])
+    tokenized = dataset.map(
+        tokenize_function, batched=True, remove_columns=["messages"]
+    )
 
     # Split train/eval
     split = tokenized.train_test_split(test_size=0.1, seed=42)
@@ -444,7 +457,9 @@ def train_stage(
         output_dir=output_dir,
         num_train_epochs=epochs,
         per_device_train_batch_size=training_config.get("per_device_batch_size", 4),
-        gradient_accumulation_steps=training_config.get("gradient_accumulation_steps", 8),
+        gradient_accumulation_steps=training_config.get(
+            "gradient_accumulation_steps", 8
+        ),
         learning_rate=lr,
         warmup_steps=training_config.get("warmup_steps", 1000),
         weight_decay=training_config.get("weight_decay", 0.01),
@@ -463,7 +478,7 @@ def train_stage(
         group_by_length=True,
         report_to="wandb" if os.environ.get("WANDB_API_KEY") else "none",
         run_name=f"{stage_name}-{datetime.now().strftime('%Y%m%d')}",
-        resume_from_checkpoint=resume_from
+        resume_from_checkpoint=resume_from,
     )
 
     # Create trainer
@@ -472,7 +487,7 @@ def train_stage(
         args=training_args,
         train_dataset=split["train"],
         eval_dataset=split["test"],
-        tokenizer=tokenizer
+        tokenizer=tokenizer,
     )
 
     # Train
@@ -494,15 +509,26 @@ def train_stage(
 # Main Entry Point
 # ===========================================
 
+
 def main():
     global training_start_time
 
     parser = argparse.ArgumentParser(description="OVH AI Training - Wayfarer-2-12B SFT")
     parser.add_argument("--config", type=str, help="Path to config JSON file")
-    parser.add_argument("--stage", type=str, choices=["foundation", "reasoning", "voice", "all"],
-                        default="all", help="Training stage to run")
+    parser.add_argument(
+        "--stage",
+        type=str,
+        choices=["foundation", "reasoning", "voice", "all"],
+        default="all",
+        help="Training stage to run",
+    )
     parser.add_argument("--data-dir", type=str, default="/data", help="Data directory")
-    parser.add_argument("--checkpoint-dir", type=str, default="/checkpoints", help="Checkpoint directory")
+    parser.add_argument(
+        "--checkpoint-dir",
+        type=str,
+        default="/checkpoints",
+        help="Checkpoint directory",
+    )
     parser.add_argument("--resume-from", type=str, help="Resume from checkpoint path")
     args = parser.parse_args()
 
@@ -560,7 +586,7 @@ def main():
             train_data = load_stage_datasets(
                 args.data_dir,
                 datasets,
-                config.get("system_prompt", DEFAULT_CONFIG["system_prompt"])
+                config.get("system_prompt", DEFAULT_CONFIG["system_prompt"]),
             )
 
             if not train_data:
@@ -575,7 +601,7 @@ def main():
                 train_data=train_data,
                 config=config,
                 checkpoint_dir=args.checkpoint_dir,
-                resume_from=last_checkpoint
+                resume_from=last_checkpoint,
             )
 
             if checkpoint:
@@ -600,6 +626,7 @@ def main():
     finally:
         if wandb_run:
             import wandb
+
             wandb.finish()
 
 

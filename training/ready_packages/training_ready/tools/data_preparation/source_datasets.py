@@ -7,30 +7,34 @@ Supports HuggingFace, local paths, Google Drive, and URLs.
 """
 
 import json
-import os
-import sys
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from datetime import datetime
 import logging
+import sys
 from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add dataset_pipeline to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "dataset_pipeline"))
 
 try:
     from datasets import load_dataset
+
     HF_AVAILABLE = True
 except ImportError:
     HF_AVAILABLE = False
-    logging.warning("HuggingFace datasets not available. Install with: uv pip install datasets")
+    logging.warning(
+        "HuggingFace datasets not available. Install with: uv pip install datasets"
+    )
 
 try:
-    from ingestion.tier_loaders.huggingface_mental_health_loader import HuggingFaceMentalHealthLoader
+    from ingestion.local_loader import LocalLoader
+    from ingestion.tier_loaders.huggingface_mental_health_loader import (
+        HuggingFaceMentalHealthLoader,
+    )
     from ingestion.tier_loaders.tier1_priority_loader import Tier1PriorityLoader
     from ingestion.tier_loaders.tier2_professional_loader import Tier2ProfessionalLoader
     from ingestion.tier_loaders.tier3_cot_loader import Tier3CoTLoader
-    from ingestion.local_loader import LocalLoader
 except ImportError as e:
     logging.warning(f"Some loaders not available: {e}")
 
@@ -41,6 +45,7 @@ logging.basicConfig(level=logging.INFO)
 @dataclass
 class SourceResult:
     """Result of sourcing a dataset"""
+
     name: str
     path: str
     source_type: str
@@ -56,7 +61,9 @@ class DatasetSourcer:
 
     def __init__(self, manifest_path: Path, cache_dir: Optional[Path] = None):
         self.manifest_path = manifest_path
-        self.cache_dir = cache_dir or Path.cwd() / "ai" / "training_ready" / "datasets" / "cache"
+        self.cache_dir = (
+            cache_dir or Path.cwd() / "ai" / "training_ready" / "datasets" / "cache"
+        )
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.manifest = self._load_manifest()
         self.results: List[SourceResult] = []
@@ -66,7 +73,9 @@ class DatasetSourcer:
         with open(self.manifest_path, "r") as f:
             return json.load(f)
 
-    def source_huggingface_dataset(self, dataset_name: str, config: Optional[str] = None) -> SourceResult:
+    def source_huggingface_dataset(
+        self, dataset_name: str, config: Optional[str] = None
+    ) -> SourceResult:
         """Source dataset from HuggingFace"""
         if not HF_AVAILABLE:
             return SourceResult(
@@ -74,7 +83,7 @@ class DatasetSourcer:
                 path="",
                 source_type="huggingface",
                 success=False,
-                error="HuggingFace datasets library not installed"
+                error="HuggingFace datasets library not installed",
             )
 
         try:
@@ -94,7 +103,7 @@ class DatasetSourcer:
             else:
                 dataset.to_json(str(output_path))
 
-            record_count = len(dataset) if hasattr(dataset, '__len__') else None
+            record_count = len(dataset) if hasattr(dataset, "__len__") else None
             size_bytes = output_path.stat().st_size if output_path.exists() else None
 
             return SourceResult(
@@ -104,7 +113,7 @@ class DatasetSourcer:
                 success=True,
                 size_bytes=size_bytes,
                 record_count=record_count,
-                cached=True
+                cached=True,
             )
         except Exception as e:
             logger.error(f"Failed to load HuggingFace dataset {dataset_name}: {e}")
@@ -113,7 +122,7 @@ class DatasetSourcer:
                 path="",
                 source_type="huggingface",
                 success=False,
-                error=str(e)
+                error=str(e),
             )
 
     def source_local_dataset(self, file_path: str) -> SourceResult:
@@ -126,7 +135,7 @@ class DatasetSourcer:
                 path=str(path),
                 source_type="local",
                 success=False,
-                error=f"File not found: {file_path}"
+                error=f"File not found: {file_path}",
             )
 
         # Check if already in cache
@@ -138,13 +147,14 @@ class DatasetSourcer:
                 source_type="local",
                 success=True,
                 size_bytes=cache_path.stat().st_size,
-                cached=True
+                cached=True,
             )
 
         # Copy to cache
         try:
             cache_path.parent.mkdir(parents=True, exist_ok=True)
             import shutil
+
             shutil.copy2(path, cache_path)
 
             return SourceResult(
@@ -153,7 +163,7 @@ class DatasetSourcer:
                 source_type="local",
                 success=True,
                 size_bytes=cache_path.stat().st_size,
-                cached=False
+                cached=False,
             )
         except Exception as e:
             logger.error(f"Failed to cache local dataset {file_path}: {e}")
@@ -163,7 +173,7 @@ class DatasetSourcer:
                 source_type="local",
                 success=True,  # Original file exists
                 size_bytes=path.stat().st_size if path.exists() else None,
-                cached=False
+                cached=False,
             )
 
     def source_all_datasets(self) -> List[SourceResult]:
@@ -178,7 +188,11 @@ class DatasetSourcer:
             name = dataset.get("name", "")
 
             # Determine source type
-            if "huggingface" in source.lower() or "hf" in source.lower() or path.startswith("huggingface:"):
+            if (
+                "huggingface" in source.lower()
+                or "hf" in source.lower()
+                or path.startswith("huggingface:")
+            ):
                 result = self.source_huggingface_dataset(name or path)
             elif path.startswith("http://") or path.startswith("https://"):
                 # URL - would need download logic
@@ -187,7 +201,7 @@ class DatasetSourcer:
                     path=path,
                     source_type="url",
                     success=False,
-                    error="URL downloading not yet implemented"
+                    error="URL downloading not yet implemented",
                 )
             elif "gdrive" in source.lower() or "google" in source.lower():
                 # Google Drive - would need gdrive API
@@ -196,7 +210,7 @@ class DatasetSourcer:
                     path=path,
                     source_type="gdrive",
                     success=False,
-                    error="Google Drive downloading not yet implemented"
+                    error="Google Drive downloading not yet implemented",
                 )
             else:
                 # Assume local path
@@ -205,7 +219,9 @@ class DatasetSourcer:
             self.results.append(result)
 
             if result.success:
-                logger.info(f"  ✅ {name}: {result.source_type} ({'cached' if result.cached else 'downloaded'})")
+                logger.info(
+                    f"  ✅ {name}: {result.source_type} ({'cached' if result.cached else 'downloaded'})"
+                )
             else:
                 logger.warning(f"  ⚠️  {name}: {result.error}")
 
@@ -241,7 +257,7 @@ class DatasetSourcer:
                     "cached": r.cached,
                 }
                 for r in self.results
-            ]
+            ],
         }
 
 
@@ -261,13 +277,20 @@ def main():
 
     # Generate report
     report = sourcer.generate_sourcing_report()
-    report_path = base_path / "ai" / "training_ready" / "scripts" / "output" / "sourcing_report.json"
+    report_path = (
+        base_path
+        / "ai"
+        / "training_ready"
+        / "scripts"
+        / "output"
+        / "sourcing_report.json"
+    )
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
 
-    logger.info(f"\n📊 Sourcing Summary:")
+    logger.info("\n📊 Sourcing Summary:")
     logger.info(f"  Total: {report['total_datasets']}")
     logger.info(f"  Successful: {report['successful']}")
     logger.info(f"  Failed: {report['failed']}")
@@ -276,9 +299,8 @@ def main():
     logger.info(f"  Total records: {report['total_records']:,}")
     logger.info(f"\n💾 Report saved to: {report_path}")
 
-    return 0 if report['failed'] == 0 else 1
+    return 0 if report["failed"] == 0 else 1
 
 
 if __name__ == "__main__":
     sys.exit(main())
-

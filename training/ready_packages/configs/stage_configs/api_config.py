@@ -46,8 +46,7 @@ class Settings(BaseSettings):
 
     # Session storage (must match across all components)
     session_storage_path: str = os.getenv(
-        "SESSION_STORAGE_PATH",
-        "ai/journal_dataset_research/sessions"
+        "SESSION_STORAGE_PATH", "ai/journal_dataset_research/sessions"
     )
 
     model_config = SettingsConfigDict(
@@ -61,4 +60,3 @@ class Settings(BaseSettings):
 def get_settings() -> Settings:
     """Get cached settings instance."""
     return Settings()
-
