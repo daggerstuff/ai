@@ -18,26 +18,54 @@ try:
     import sys
     from pathlib import Path as PathLib
 
-    # Add scripts directory to path if not already there
-    scripts_path = PathLib(__file__).parent.parent.parent.parent / "scripts"
-    if str(scripts_path) not in sys.path:
-        sys.path.insert(0, str(scripts_path))
+    # Add scripts/data directory to path to enable import of 'quality_scoring' module
+    current_file = PathLib(__file__).resolve()
+    root_dir = current_file.parents[4]
+    scripts_data_path = root_dir / "scripts" / "data"
 
-    from scripts.quality_scoring.pipeline_integration import (
-        score_conversation_text,
+    if str(scripts_data_path) not in sys.path:
+        sys.path.insert(0, str(scripts_data_path))
+
+    # Dynamically map 'quality_scoring' to 'scripts.quality_scoring' for compatibility
+    # with existing pipeline references requiring the 'scripts.' namespace.
+
+    import quality_scoring.pipeline_integration
+    import quality_scoring.scoring_interface
+
+    # Inject into sys.modules to satisfy downstream usage of `scripts.quality_scoring`
+    sys.modules["scripts.quality_scoring"] = quality_scoring
+    sys.modules["scripts.quality_scoring.pipeline_integration"] = (
+        quality_scoring.pipeline_integration
     )
-    from scripts.quality_scoring.scoring_interface import (
-        compose_score,
-        compute_signals,
+    sys.modules["scripts.quality_scoring.scoring_interface"] = (
+        quality_scoring.scoring_interface
+    )
+
+    from quality_scoring.pipeline_integration import (
+        score_conversation_text,
     )
 
     QUALITY_SCORING_AVAILABLE = True
-except ImportError as e:
-    QUALITY_SCORING_AVAILABLE = False
-    logging.warning(
-        f"Quality scoring v1 not available: {e}. "
-        f"Some quality scoring features will be disabled."
-    )
+    QUALITY_SCORING_BACKEND = "kan-12"
+except ImportError:
+    # Fallback to SimpleQualityFilter if KAN-12 scripts are not available
+    try:
+        # Check if we can import the simple filter
+        from .simple_quality_filter import SimpleQualityFilter
+
+        QUALITY_SCORING_AVAILABLE = True
+        QUALITY_SCORING_BACKEND = "simple"
+        logging.info(
+            "Quality scoring v1: Standard scripts not found, falling back to "
+            "SimpleQualityFilter."
+        )
+    except ImportError as e:
+        QUALITY_SCORING_AVAILABLE = False
+        QUALITY_SCORING_BACKEND = "none"
+        logging.warning(
+            f"Quality scoring v1 not available: {e}. "
+            f"Some quality scoring features will be disabled."
+        )
 
 logger = logging.getLogger(__name__)
 
@@ -105,9 +133,27 @@ class QualityScoringV1:
         if thresholds:
             self.thresholds = thresholds
 
+        # Initialize backend if needed
+        if QUALITY_SCORING_BACKEND == "simple":
+            try:
+                from .simple_quality_filter import QualityConfig
+
+                # Map thresholds to config
+                config = QualityConfig()
+                if "accept_min" in self.thresholds:
+                    config.min_overall_score = self.thresholds["accept_min"]
+                if "harm_max" in self.thresholds:
+                    config.min_safety_score = 1.0 - self.thresholds["harm_max"]
+
+                self._simple_filter = SimpleQualityFilter(config)
+            except Exception as e:
+                logger.warning(f"Failed to initialize SimpleQualityFilter: {e}")
+                self.enabled = False
+
         logger.info(
             f"Quality Scoring v1 initialized: enabled={self.enabled}, "
-            f"weights={self.weights}, thresholds={self.thresholds}"
+            f"backend={QUALITY_SCORING_BACKEND}, weights={self.weights}, "
+            f"thresholds={self.thresholds}"
         )
 
     def score_conversation_text(self, text: str) -> dict[str, Any]:
@@ -132,6 +178,58 @@ class QualityScoringV1:
                 "decision": "curate",
                 "enabled": False,
             }
+
+        if QUALITY_SCORING_BACKEND == "simple":
+            try:
+                # Wrap text in dummy conversation for simple filter
+                from datetime import datetime
+
+                from .simple_quality_filter import Conversation, Message
+
+                # Create a minimal conversation structure
+                messages = (
+                    [
+                        Message(role="user", content=text[: len(text) // 2]),
+                        Message(role="assistant", content=text[len(text) // 2 :]),
+                    ]
+                    if len(text) > 100
+                    else [Message(role="user", content=text)]
+                )
+
+                conv = Conversation(
+                    id="text_scoring", messages=messages, created_at=datetime.now()
+                )
+                metrics = self._simple_filter.assess_quality(conv)
+
+                # Map decision
+                decision_map = {
+                    "EXCELLENT": "accept",
+                    "GOOD": "accept",
+                    "ACCEPTABLE": "curate",
+                    "POOR": "curate",
+                    "REJECTED": "reject",
+                }
+                decision_level = (
+                    metrics.quality_level.name
+                    if hasattr(metrics.quality_level, "name")
+                    else str(metrics.quality_level)
+                )
+                final_decision = decision_map.get(decision_level, "curate")
+
+                return {
+                    "signals": {
+                        "empathy": metrics.relevance_score,  # Proxy
+                        "fidelity": metrics.coherence_score,
+                        "domain": metrics.completeness_score,
+                        "harm": 1.0 - metrics.safety_score,
+                    },
+                    "composite": metrics.overall_score,
+                    "decision": final_decision,
+                    "backend": "simple",
+                }
+            except Exception as e:
+                logger.warning(f"Simple backend scoring failed: {e}")
+                # Fall through to return default error dict
 
         try:
             return score_conversation_text(text, self.weights, self.thresholds)
