@@ -6,24 +6,22 @@ configuration management, middleware registration, and blueprint initialization
 specifically for agent interaction management.
 """
 
-import os
 import logging
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional
 
-from flask import Flask, request, g
+from flask import Flask, g, request
 from flask_cors import CORS
 from flask_socketio import SocketIO
 from werkzeug.middleware.proxy_fix import ProxyFix
 
-from .config import MCPConfig
 from .auth.middleware import MCPAuthMiddleware
-from .utils.logger import setup_logging
-from .utils.error_handler import MCPErrorHandler
-from .websocket.manager import WebSocketManager
-from .integration.redis_client import MCPRedisClient
-from .integration.mongodb_client import MCPMongoDBClient
+from .config import MCPConfig
 from .error_handling.error_handler import MCPErrorRecoveryManager
+from .integration.mongodb_client import MCPMongoDBClient
+from .integration.redis_client import MCPRedisClient
+from .utils.logger import setup_logging
+from .websocket.manager import WebSocketManager
 
 
 def create_mcp_app(config: Optional[MCPConfig] = None) -> Flask:
@@ -140,10 +138,11 @@ def _register_blueprints(app: Flask) -> None:
     logger = logging.getLogger(__name__)
     
     # Import and register blueprints
+    
     from .routes.agents import agents_bp
-    from .routes.tasks import tasks_bp
     from .routes.pipeline import pipeline_bp
     from .routes.system import system_bp
+    from .routes.tasks import tasks_bp
     
     blueprints = [
         (agents_bp, '/api/v1/agents'),

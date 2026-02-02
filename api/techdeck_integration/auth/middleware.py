@@ -5,20 +5,16 @@ This module implements JWT-based authentication with role-based access control,
 rate limiting, and comprehensive security measures for HIPAA++ compliance.
 """
 
-import jwt
-import logging
-from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, Callable, List
+from datetime import datetime
 from functools import wraps
+from typing import Any, Callable, Dict, List, Optional
 
-from flask import request, g, current_app
-from werkzeug.wrappers import Request, Response
-from werkzeug.exceptions import Unauthorized, TooManyRequests, Forbidden
+import jwt
+from flask import current_app, g
+from werkzeug.exceptions import Forbidden, Unauthorized
+from werkzeug.wrappers import Request
 
 from ..utils.logger import get_logger
-from ..error_handling.custom_errors import (
-    AuthenticationError, AuthorizationError, RateLimitError
-)
 
 
 class JWTAuthMiddleware:
@@ -312,7 +308,7 @@ class JWTAuthMiddleware:
             request_id: Request ID
         """
         self.logger.info(
-            f"Authentication successful",
+            "Authentication successful",
             extra={
                 'user_id': user_id,
                 'path': path,
