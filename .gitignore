@@ -52,3 +52,4 @@ dataset_pipeline/monitoring/metrics/
 # Weights & Biases (wandb) offline run artifacts
 firebase-debug.log
 data/tim_fletcher_voice/conversation_generation_prompt.txt
+AGENTS.md
