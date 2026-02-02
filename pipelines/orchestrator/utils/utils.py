@@ -65,9 +65,7 @@ def write_json(
         raise
 
 
-def read_jsonl(
-    file_path: str | Path, encoding: str = "utf-8"
-) -> list[dict[str, Any]]:
+def read_jsonl(file_path: str | Path, encoding: str = "utf-8") -> list[dict[str, Any]]:
     """Read JSONL (JSON Lines) file."""
     data = []
     try:
@@ -186,9 +184,7 @@ def ensure_directory(dir_path: str | Path) -> Path:
     return path
 
 
-def copy_file(
-    src: str | Path, dst: str | Path, create_dirs: bool = True
-) -> None:
+def copy_file(src: str | Path, dst: str | Path, create_dirs: bool = True) -> None:
     """Copy file with directory creation."""
     src_path = Path(src)
     dst_path = Path(dst)
@@ -204,9 +200,7 @@ def copy_file(
         raise
 
 
-def move_file(
-    src: str | Path, dst: str | Path, create_dirs: bool = True
-) -> None:
+def move_file(src: str | Path, dst: str | Path, create_dirs: bool = True) -> None:
     """Move file with directory creation."""
     src_path = Path(src)
     dst_path = Path(dst)
@@ -419,6 +413,7 @@ def format_bytes(bytes_size: int) -> str:
     for unit in ["B", "KB", "MB", "GB", "TB"]:
         if bytes_size < 1024.0:
             return f"{bytes_size:.1f} {unit}"
+
         bytes_size /= 1024.0
     return f"{bytes_size:.1f} PB"
 
@@ -444,9 +439,7 @@ def create_temp_dir(
 class temporary_file:
     """Context manager for temporary files."""
 
-    def __init__(
-        self, suffix: str = "", prefix: str = "tmp", dir: str | None = None
-    ):
+    def __init__(self, suffix: str = "", prefix: str = "tmp", dir: str | None = None):
         self.suffix = suffix
         self.prefix = prefix
         self.dir = dir
@@ -464,9 +457,7 @@ class temporary_file:
 class temporary_directory:
     """Context manager for temporary directories."""
 
-    def __init__(
-        self, suffix: str = "", prefix: str = "tmp", dir: str | None = None
-    ):
+    def __init__(self, suffix: str = "", prefix: str = "tmp", dir: str | None = None):
         self.suffix = suffix
         self.prefix = prefix
         self.dir = dir
@@ -506,4 +497,3 @@ if __name__ == "__main__":
     # Test file utilities
     test_hash = get_file_hash(__file__)
     assert len(test_hash) == 32  # MD5 hash length
-

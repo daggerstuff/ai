@@ -8,10 +8,12 @@ from __future__ import annotations
 
 import hashlib
 from typing import Any, Optional
+
 from bitarray import bitarray
 
 try:
     import mmh3
+
     HAS_MURMUR = True
 except ImportError:
     HAS_MURMUR = False  # Fallback to built-in hash
@@ -23,31 +25,30 @@ class BloomFilter:
     def __init__(self, capacity: int = 1000000, error_rate: float = 0.01):
         """
         Initialize bloom filter with capacity and error rate.
-        
+
         Args:
             capacity: Expected number of items to store
             error_rate: Acceptable false positive rate (0.01 = 1%)
         """
         if error_rate >= 1.0 or error_rate <= 0.0:
             raise ValueError("Error rate must be between 0 and 1")
-        
+
         self.capacity = capacity
         self.error_rate = error_rate
-        
+
         # Calculate optimal size and hash count
         # Formulas from https://en.wikipedia.org/wiki/Bloom_filter
         import math
+
         self.bit_array_size = int(
             -(capacity * math.log(error_rate)) / (math.log(2) ** 2)
         )
-        self.hash_count = int(
-            (self.bit_array_size / capacity) * math.log(2)
-        )
-        
+        self.hash_count = int((self.bit_array_size / capacity) * math.log(2))
+
         # Initialize bit array
         self.bit_array = bitarray(self.bit_array_size)
         self.bit_array.setall(0)
-        
+
         self.count = 0  # Track actual count for capacity management
 
     def _hash(self, item: str, seed: int) -> int:
@@ -63,12 +64,12 @@ class BloomFilter:
         """Add item to bloom filter and return True if it's likely new."""
         if self.contains(item):
             return False  # Likely duplicate
-        
+
         # Add item to filter
         for i in range(self.hash_count):
             index = self._hash(item, i)
             self.bit_array[index] = 1
-        
+
         self.count += 1
         return True  # New item
 
@@ -100,7 +101,7 @@ class BloomFilter:
 
 class ContentHasher:
     """Utility for generating stable content hashes."""
-    
+
     @staticmethod
     def hash_content(content: Any) -> str:
         """Generate stable hash for content."""
@@ -110,13 +111,15 @@ class ContentHasher:
         elif isinstance(content, dict):
             # Sort keys for consistent hashing
             import json
+
             content_str = json.dumps(content, sort_keys=True, default=str)
         elif isinstance(content, (list, tuple)):
             import json
+
             content_str = json.dumps(list(content), default=str)
         else:
             content_str = str(content)
-        
+
         # Generate SHA-256 hash and return as hex
         return hashlib.sha256(content_str.encode()).hexdigest()
 
@@ -158,8 +161,7 @@ _ingestion_deduplicator: Optional[IngestionDeduplicator] = None
 
 
 def get_ingestion_deduplicator(
-    capacity: int = 100000,
-    error_rate: float = 0.01
+    capacity: int = 100000, error_rate: float = 0.01
 ) -> IngestionDeduplicator:
     """Get or create global ingestion deduplicator."""
     global _ingestion_deduplicator
@@ -181,10 +183,10 @@ def add_content_check_duplicate(content: Any) -> bool:
 
 
 __all__ = [
-    'BloomFilter',
-    'ContentHasher', 
-    'IngestionDeduplicator',
-    'get_ingestion_deduplicator',
-    'is_duplicate',
-    'add_content_check_duplicate'
+    "BloomFilter",
+    "ContentHasher",
+    "IngestionDeduplicator",
+    "get_ingestion_deduplicator",
+    "is_duplicate",
+    "add_content_check_duplicate",
 ]

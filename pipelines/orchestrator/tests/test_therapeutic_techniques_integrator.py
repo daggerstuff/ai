@@ -41,10 +41,13 @@ class TestTherapeuticTechniquesIntegrator:
     def sample_client_scenario(self):
         """Create sample client scenario for testing."""
         clinical_formulation = ClinicalFormulation(
-            dsm5_considerations=["Major Depressive Disorder", "Generalized Anxiety Disorder"],
+            dsm5_considerations=[
+                "Major Depressive Disorder",
+                "Generalized Anxiety Disorder",
+            ],
             attachment_style="secure",
             defense_mechanisms=["intellectualization"],
-            psychodynamic_themes=["abandonment fears"]
+            psychodynamic_themes=["abandonment fears"],
         )
 
         return ClientScenario(
@@ -54,7 +57,7 @@ class TestTherapeuticTechniquesIntegrator:
             presenting_problem="Depression and anxiety affecting work performance",
             clinical_formulation=clinical_formulation,
             demographics={"age": 32, "gender": "female"},
-            session_context="Third therapy session"
+            session_context="Third therapy session",
         )
 
     @pytest.fixture
@@ -64,7 +67,7 @@ class TestTherapeuticTechniquesIntegrator:
             dsm5_considerations=["Major Depressive Disorder with suicidal ideation"],
             attachment_style="anxious",
             defense_mechanisms=["denial"],
-            psychodynamic_themes=["hopelessness"]
+            psychodynamic_themes=["hopelessness"],
         )
 
         return ClientScenario(
@@ -74,7 +77,7 @@ class TestTherapeuticTechniquesIntegrator:
             presenting_problem="Suicidal ideation with plan",
             clinical_formulation=clinical_formulation,
             demographics={"age": 28, "gender": "male"},
-            session_context="Emergency session"
+            session_context="Emergency session",
         )
 
     def test_initialization(self, integrator):
@@ -86,13 +89,23 @@ class TestTherapeuticTechniquesIntegrator:
 
         # Check that protocols are loaded
         assert len(integrator.intervention_protocols) > 0
-        assert InterventionStrategy.CRISIS_STABILIZATION in integrator.intervention_protocols
-        assert InterventionStrategy.TRAUMA_PROCESSING in integrator.intervention_protocols
-        assert InterventionStrategy.BEHAVIORAL_MODIFICATION in integrator.intervention_protocols
+        assert (
+            InterventionStrategy.CRISIS_STABILIZATION
+            in integrator.intervention_protocols
+        )
+        assert (
+            InterventionStrategy.TRAUMA_PROCESSING in integrator.intervention_protocols
+        )
+        assert (
+            InterventionStrategy.BEHAVIORAL_MODIFICATION
+            in integrator.intervention_protocols
+        )
 
     def test_intervention_protocol_structure(self, integrator):
         """Test intervention protocol data structure."""
-        crisis_protocols = integrator.intervention_protocols[InterventionStrategy.CRISIS_STABILIZATION]
+        crisis_protocols = integrator.intervention_protocols[
+            InterventionStrategy.CRISIS_STABILIZATION
+        ]
         assert len(crisis_protocols) > 0
 
         protocol = crisis_protocols[0]
@@ -116,7 +129,9 @@ class TestTherapeuticTechniquesIntegrator:
         assert isinstance(protocol.duration_sessions, tuple)
         assert len(protocol.duration_sessions) == 2
 
-    def test_select_intervention_protocol_depression(self, integrator, sample_client_scenario):
+    def test_select_intervention_protocol_depression(
+        self, integrator, sample_client_scenario
+    ):
         """Test intervention protocol selection for depression."""
         selection = integrator.select_intervention_protocol(sample_client_scenario)
 
@@ -130,9 +145,13 @@ class TestTherapeuticTechniquesIntegrator:
         assert isinstance(selection.success_metrics, list)
 
         # Should select behavioral modification for depression
-        assert selection.protocol.strategy == InterventionStrategy.BEHAVIORAL_MODIFICATION
+        assert (
+            selection.protocol.strategy == InterventionStrategy.BEHAVIORAL_MODIFICATION
+        )
 
-    def test_select_intervention_protocol_crisis(self, integrator, crisis_client_scenario):
+    def test_select_intervention_protocol_crisis(
+        self, integrator, crisis_client_scenario
+    ):
         """Test intervention protocol selection for crisis."""
         selection = integrator.select_intervention_protocol(crisis_client_scenario)
 
@@ -169,7 +188,7 @@ class TestTherapeuticTechniquesIntegrator:
             dsm5_considerations=["Schizophrenia with active psychosis"],
             attachment_style="disorganized",
             defense_mechanisms=["projection"],
-            psychodynamic_themes=["reality_testing_issues"]
+            psychodynamic_themes=["reality_testing_issues"],
         )
 
         scenario = ClientScenario(
@@ -179,13 +198,15 @@ class TestTherapeuticTechniquesIntegrator:
             presenting_problem="Hearing voices and paranoid thoughts",
             clinical_formulation=clinical_formulation,
             demographics={"age": 25, "gender": "non-binary"},
-            session_context="First session"
+            session_context="First session",
         )
 
         contraindications = integrator._identify_contraindications(scenario)
         assert "active psychosis" in contraindications
 
-    def test_generate_intervention_conversation(self, integrator, sample_client_scenario):
+    def test_generate_intervention_conversation(
+        self, integrator, sample_client_scenario
+    ):
         """Test intervention conversation generation."""
         selection = integrator.select_intervention_protocol(sample_client_scenario)
         conversation = integrator.generate_intervention_conversation(
@@ -243,7 +264,9 @@ class TestTherapeuticTechniquesIntegrator:
         assert closing_conv.homework_assigned is not None
         assert closing_conv.next_session_plan is not None
 
-    def test_intervention_fidelity_calculation(self, integrator, sample_client_scenario):
+    def test_intervention_fidelity_calculation(
+        self, integrator, sample_client_scenario
+    ):
         """Test intervention fidelity score calculation."""
         selection = integrator.select_intervention_protocol(sample_client_scenario)
         conversation = integrator.generate_intervention_conversation(
@@ -265,7 +288,9 @@ class TestTherapeuticTechniquesIntegrator:
         if selection_dbt.protocol.framework:
             assert selection_dbt.protocol.framework == SpecializedFramework.DBT
 
-    def test_export_intervention_conversations(self, integrator, sample_client_scenario):
+    def test_export_intervention_conversations(
+        self, integrator, sample_client_scenario
+    ):
         """Test conversation export functionality."""
         selection = integrator.select_intervention_protocol(sample_client_scenario)
         conversations = []
@@ -282,7 +307,9 @@ class TestTherapeuticTechniquesIntegrator:
             temp_file = f.name
 
         try:
-            export_result = integrator.export_intervention_conversations(conversations, temp_file)
+            export_result = integrator.export_intervention_conversations(
+                conversations, temp_file
+            )
 
             # Check export result
             assert export_result["exported_conversations"] == 3
@@ -321,7 +348,7 @@ class TestTherapeuticTechniquesIntegrator:
             duration_sessions=(8, 12),
             homework_assignments=["thought record"],
             progress_indicators=["mood improvement"],
-            risk_considerations=["monitor for deterioration"]
+            risk_considerations=["monitor for deterioration"],
         )
 
         protocol_moderate = InterventionProtocol(
@@ -338,7 +365,7 @@ class TestTherapeuticTechniquesIntegrator:
             duration_sessions=(8, 12),
             homework_assignments=["thought record"],
             progress_indicators=["mood improvement"],
-            risk_considerations=["monitor for deterioration"]
+            risk_considerations=["monitor for deterioration"],
         )
 
         # Mock scenario
@@ -346,7 +373,7 @@ class TestTherapeuticTechniquesIntegrator:
             dsm5_considerations=["depression"],
             attachment_style="secure",
             defense_mechanisms=[],
-            psychodynamic_themes=[]
+            psychodynamic_themes=[],
         )
 
         scenario = ClientScenario(
@@ -356,11 +383,13 @@ class TestTherapeuticTechniquesIntegrator:
             presenting_problem="depression",
             clinical_formulation=clinical_formulation,
             demographics={},
-            session_context="test"
+            session_context="test",
         )
 
         # Test protocol selection
-        selected = integrator._select_best_protocol([protocol_moderate, protocol_strong], scenario)
+        selected = integrator._select_best_protocol(
+            [protocol_moderate, protocol_strong], scenario
+        )
         assert selected.evidence_level == EvidenceLevel.STRONG
 
 

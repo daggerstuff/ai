@@ -7,9 +7,9 @@ instruction-following examples that can be used for training the AI model.
 
 import json
 import logging
-from pathlib import Path
-from typing import List, Dict, Any
 import sys
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Add the project root to the path
 project_root = Path(__file__).parent.parent.parent
@@ -25,9 +25,13 @@ except ImportError:
     try:
         from schemas.conversation_schema import Conversation, Message
     except ImportError:
-        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+        from ai.pipelines.orchestrator.schemas.conversation_schema import (
+            Conversation,
+            Message,
+        )
 
 logger = logging.getLogger(__name__)
+
 
 class XMUPsychBooksProcessor:
     """Processor for xmu_psych_books dataset."""
@@ -58,7 +62,9 @@ class XMUPsychBooksProcessor:
         logger.info(f"Loaded {len(data)} entries from xmu_psych_books dataset")
         return data
 
-    def convert_to_instruction_format(self, data: List[Dict[str, Any]]) -> List[Conversation]:
+    def convert_to_instruction_format(
+        self, data: List[Dict[str, Any]]
+    ) -> List[Conversation]:
         """
         Convert library book entries to instruction-following conversations.
 
@@ -85,7 +91,11 @@ class XMUPsychBooksProcessor:
 
             # Create instruction based on the book information
             # For psychology books, we can create questions about the book
-            if "心理学" in title or "psychology" in title.lower() or "therapy" in title.lower():
+            if (
+                "心理学" in title
+                or "psychology" in title.lower()
+                or "therapy" in title.lower()
+            ):
                 instruction = f"What is the psychology book titled '{title}' about?"
                 response = f"This is a psychology book titled '{title}' by {author}. "
                 if isbn:
@@ -107,14 +117,16 @@ class XMUPsychBooksProcessor:
                         "quality_threshold": 1.0,
                         "original_entry": entry,
                         "category": "psychology_book_reference",
-                        "book_type": "psychology"
-                    }
+                        "book_type": "psychology",
+                    },
                 )
                 conversations.append(conversation)
             else:
                 # For other books, we can still create general information entries
                 instruction = f"What can you tell me about the book '{title}'?"
-                response = f"This book is titled '{title}' and was authored by {author}. "
+                response = (
+                    f"This book is titled '{title}' and was authored by {author}. "
+                )
                 if isbn:
                     response += f"It has ISBN {isbn}. "
                 if call_number:
@@ -134,8 +146,8 @@ class XMUPsychBooksProcessor:
                         "quality_threshold": 1.0,
                         "original_entry": entry,
                         "category": "book_reference",
-                        "book_type": "general"
-                    }
+                        "book_type": "general",
+                    },
                 )
                 conversations.append(conversation)
 
@@ -158,7 +170,9 @@ class XMUPsychBooksProcessor:
         conversations = self.convert_to_instruction_format(data)
 
         self.processed_conversations = conversations
-        logger.info(f"Processing complete. Generated {len(conversations)} conversations")
+        logger.info(
+            f"Processing complete. Generated {len(conversations)} conversations"
+        )
 
         return conversations
 
@@ -176,7 +190,10 @@ class XMUPsychBooksProcessor:
             for conversation in self.processed_conversations:
                 f.write(json.dumps(conversation.to_dict(), ensure_ascii=False) + "\n")
 
-        logger.info(f"Saved {len(self.processed_conversations)} conversations to {output_file}")
+        logger.info(
+            f"Saved {len(self.processed_conversations)} conversations to {output_file}"
+        )
+
 
 def main():
     """Main function to process the xmu_psych_books dataset."""
@@ -186,12 +203,12 @@ def main():
     parser.add_argument(
         "--input-path",
         default="/home/vivi/pixelated/ai/datasets/tier6_knowledge/xmu_psych_books",
-        help="Path to xmu_psych_books dataset directory"
+        help="Path to xmu_psych_books dataset directory",
     )
     parser.add_argument(
         "--output-path",
         default="/home/vivi/pixelated/ai/training_data_consolidated/xmu_psych_books_processed.jsonl",
-        help="Path to save processed output"
+        help="Path to save processed output",
     )
 
     args = parser.parse_args()
@@ -199,7 +216,7 @@ def main():
     # Setup logging
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     try:
@@ -216,6 +233,7 @@ def main():
     except Exception as e:
         logger.error(f"Error processing dataset: {e}")
         raise
+
 
 if __name__ == "__main__":
     main()

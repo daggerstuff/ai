@@ -30,7 +30,7 @@ class TestEmotionalAuthenticityAssessor:
         """Test assessor initialization with custom configuration."""
         custom_config = {
             "weights": {"emotional_consistency": 0.5, "empathy_expression": 0.5},
-            "thresholds": {"excellent": 0.9, "good": 0.8}
+            "thresholds": {"excellent": 0.9, "good": 0.8},
         }
         assessor = EmotionalAuthenticityAssessor(custom_config)
 
@@ -42,7 +42,7 @@ class TestEmotionalAuthenticityAssessor:
         conversation = Conversation(
             id="test_empty",
             messages=[],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_emotional_authenticity(conversation)
@@ -56,10 +56,8 @@ class TestEmotionalAuthenticityAssessor:
         """Test assessment of conversation with single message."""
         conversation = Conversation(
             id="test_single",
-            messages=[
-                Message(role="user", content="I'm feeling sad today.")
-            ],
-            source="test"
+            messages=[Message(role="user", content="I'm feeling sad today.")],
+            source="test",
         )
 
         metrics = self.assessor.assess_emotional_authenticity(conversation)
@@ -72,12 +70,24 @@ class TestEmotionalAuthenticityAssessor:
         conversation = Conversation(
             id="test_authentic",
             messages=[
-                Message(role="user", content="I'm feeling really anxious about my job interview tomorrow. I keep worrying about what they'll ask me."),
-                Message(role="assistant", content="I understand that job interviews can be really stressful. It sounds like you're experiencing a lot of worry about the unknown questions. That's completely understandable."),
-                Message(role="user", content="Yes, exactly. I feel like I'm not prepared enough, even though I've been practicing for weeks."),
-                Message(role="assistant", content="I hear you. It sounds like you've put in a lot of effort preparing, which shows your dedication. Sometimes our anxiety can make us feel less prepared than we actually are.")
+                Message(
+                    role="user",
+                    content="I'm feeling really anxious about my job interview tomorrow. I keep worrying about what they'll ask me.",
+                ),
+                Message(
+                    role="assistant",
+                    content="I understand that job interviews can be really stressful. It sounds like you're experiencing a lot of worry about the unknown questions. That's completely understandable.",
+                ),
+                Message(
+                    role="user",
+                    content="Yes, exactly. I feel like I'm not prepared enough, even though I've been practicing for weeks.",
+                ),
+                Message(
+                    role="assistant",
+                    content="I hear you. It sounds like you've put in a lot of effort preparing, which shows your dedication. Sometimes our anxiety can make us feel less prepared than we actually are.",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_emotional_authenticity(conversation)
@@ -95,9 +105,9 @@ class TestEmotionalAuthenticityAssessor:
                 Message(role="user", content="I'm devastated about losing my job."),
                 Message(role="assistant", content="That's great! Congratulations!"),
                 Message(role="user", content="What? I said I lost my job."),
-                Message(role="assistant", content="Oh, I'm sorry to hear that.")
+                Message(role="assistant", content="Oh, I'm sorry to hear that."),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_emotional_authenticity(conversation)
@@ -110,12 +120,15 @@ class TestEmotionalAuthenticityAssessor:
         conversation = Conversation(
             id="test_low_empathy",
             messages=[
-                Message(role="user", content="I'm struggling with depression and feel hopeless."),
+                Message(
+                    role="user",
+                    content="I'm struggling with depression and feel hopeless.",
+                ),
                 Message(role="assistant", content="Ok."),
                 Message(role="user", content="I don't know what to do anymore."),
-                Message(role="assistant", content="Sure.")
+                Message(role="assistant", content="Sure."),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_emotional_authenticity(conversation)
@@ -128,12 +141,24 @@ class TestEmotionalAuthenticityAssessor:
         conversation = Conversation(
             id="test_rich_vocab",
             messages=[
-                Message(role="user", content="I'm feeling conflicted and somewhat ambivalent about this decision. It's bittersweet."),
-                Message(role="assistant", content="I can hear the complexity in your emotions. Feeling conflicted about important decisions is natural, and that bittersweet quality suggests there are both positive and challenging aspects to consider."),
-                Message(role="user", content="Yes, I'm grateful for the opportunity but also apprehensive about the changes it will bring."),
-                Message(role="assistant", content="That mix of gratitude and apprehension makes complete sense. It sounds like you're processing multiple layers of emotion around this transition.")
+                Message(
+                    role="user",
+                    content="I'm feeling conflicted and somewhat ambivalent about this decision. It's bittersweet.",
+                ),
+                Message(
+                    role="assistant",
+                    content="I can hear the complexity in your emotions. Feeling conflicted about important decisions is natural, and that bittersweet quality suggests there are both positive and challenging aspects to consider.",
+                ),
+                Message(
+                    role="user",
+                    content="Yes, I'm grateful for the opportunity but also apprehensive about the changes it will bring.",
+                ),
+                Message(
+                    role="assistant",
+                    content="That mix of gratitude and apprehension makes complete sense. It sounds like you're processing multiple layers of emotion around this transition.",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_emotional_authenticity(conversation)
@@ -146,19 +171,27 @@ class TestEmotionalAuthenticityAssessor:
         conversation = Conversation(
             id="test_generic",
             messages=[
-                Message(role="user", content="I've been dealing with severe anxiety for months. It's affecting my work, my relationships, and my sleep. I feel overwhelmed and don't know where to turn for help."),
+                Message(
+                    role="user",
+                    content="I've been dealing with severe anxiety for months. It's affecting my work, my relationships, and my sleep. I feel overwhelmed and don't know where to turn for help.",
+                ),
                 Message(role="assistant", content="Ok."),
-                Message(role="user", content="I'm really struggling here. Can you help me understand what I should do?"),
-                Message(role="assistant", content="Sure.")
+                Message(
+                    role="user",
+                    content="I'm really struggling here. Can you help me understand what I should do?",
+                ),
+                Message(role="assistant", content="Sure."),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_emotional_authenticity(conversation)
 
         # The response appropriateness should detect generic responses to emotional content
         # But let's check empathy score instead which should be more sensitive
-        assert metrics.empathy_expression_score < 0.8  # Should be low due to lack of empathy
+        assert (
+            metrics.empathy_expression_score < 0.8
+        )  # Should be low due to lack of empathy
         assert any("Generic response" in issue for issue in metrics.issues)
 
     def test_assess_conversation_with_emotional_progression(self):
@@ -166,19 +199,39 @@ class TestEmotionalAuthenticityAssessor:
         conversation = Conversation(
             id="test_progression",
             messages=[
-                Message(role="user", content="I'm feeling really sad and hopeless about everything."),
-                Message(role="assistant", content="I hear that you're experiencing deep sadness and hopelessness. Those are heavy feelings to carry."),
-                Message(role="user", content="Yes, but talking about it helps a little. I feel slightly less alone."),
-                Message(role="assistant", content="I'm glad that sharing these feelings is providing some comfort. Feeling less alone is an important step."),
-                Message(role="user", content="I think I'm ready to try some coping strategies. I feel a bit more hopeful now."),
-                Message(role="assistant", content="That shift toward hope and readiness to try new strategies is really meaningful. You've shown real strength in this conversation.")
+                Message(
+                    role="user",
+                    content="I'm feeling really sad and hopeless about everything.",
+                ),
+                Message(
+                    role="assistant",
+                    content="I hear that you're experiencing deep sadness and hopelessness. Those are heavy feelings to carry.",
+                ),
+                Message(
+                    role="user",
+                    content="Yes, but talking about it helps a little. I feel slightly less alone.",
+                ),
+                Message(
+                    role="assistant",
+                    content="I'm glad that sharing these feelings is providing some comfort. Feeling less alone is an important step.",
+                ),
+                Message(
+                    role="user",
+                    content="I think I'm ready to try some coping strategies. I feel a bit more hopeful now.",
+                ),
+                Message(
+                    role="assistant",
+                    content="That shift toward hope and readiness to try new strategies is really meaningful. You've shown real strength in this conversation.",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_emotional_authenticity(conversation)
 
-        assert metrics.emotional_progression_score > 0.7  # Should recognize positive progression
+        assert (
+            metrics.emotional_progression_score > 0.7
+        )  # Should recognize positive progression
         assert metrics.overall_score > 0.6  # Overall should be good
 
     def test_assess_conversation_with_authenticity_indicators(self):
@@ -186,30 +239,51 @@ class TestEmotionalAuthenticityAssessor:
         conversation = Conversation(
             id="test_authenticity",
             messages=[
-                Message(role="user", content="I feel like I'm not good enough for this job."),
-                Message(role="assistant", content="I hear you expressing some self-doubt. In my experience, many people feel this way when facing new challenges. I think it's natural to question our abilities."),
+                Message(
+                    role="user", content="I feel like I'm not good enough for this job."
+                ),
+                Message(
+                    role="assistant",
+                    content="I hear you expressing some self-doubt. In my experience, many people feel this way when facing new challenges. I think it's natural to question our abilities.",
+                ),
                 Message(role="user", content="I guess I'm just scared of failing."),
-                Message(role="assistant", content="I understand that fear. I've been there myself, and I'm still learning how to manage those feelings. What specifically worries you most about failing?")
+                Message(
+                    role="assistant",
+                    content="I understand that fear. I've been there myself, and I'm still learning how to manage those feelings. What specifically worries you most about failing?",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_emotional_authenticity(conversation)
 
-        assert metrics.authenticity_indicators_score > 0.6  # Should recognize authentic language
-        assert metrics.details["authenticity_indicators_details"]["positive_indicators"] > 0
+        assert (
+            metrics.authenticity_indicators_score > 0.6
+        )  # Should recognize authentic language
+        assert (
+            metrics.details["authenticity_indicators_details"]["positive_indicators"]
+            > 0
+        )
 
     def test_assess_conversation_with_inauthentic_language(self):
         """Test assessment of conversation with inauthentic language patterns."""
         conversation = Conversation(
             id="test_inauthentic",
             messages=[
-                Message(role="user", content="I'm having trouble with my mental health."),
-                Message(role="assistant", content="Please note that you should simply follow the recommended treatment protocol. It is important to just comply with standard procedures."),
+                Message(
+                    role="user", content="I'm having trouble with my mental health."
+                ),
+                Message(
+                    role="assistant",
+                    content="Please note that you should simply follow the recommended treatment protocol. It is important to just comply with standard procedures.",
+                ),
                 Message(role="user", content="But I need more personalized help."),
-                Message(role="assistant", content="You should merely follow the diagnosis guidelines. It is recommended that you simply adhere to the treatment plan.")
+                Message(
+                    role="assistant",
+                    content="You should merely follow the diagnosis guidelines. It is recommended that you simply adhere to the treatment plan.",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_emotional_authenticity(conversation)
@@ -239,7 +313,9 @@ class TestEmotionalAuthenticityAssessor:
         assert "happy" in self.assessor.positive_emotions
         assert "sad" in self.assessor.negative_emotions
         assert "conflicted" in self.assessor.complex_emotions
-        assert len(self.assessor.all_emotions) > 50  # Should have substantial vocabulary
+        assert (
+            len(self.assessor.all_emotions) > 50
+        )  # Should have substantial vocabulary
 
     def test_empathy_indicators(self):
         """Test that empathy indicators are properly initialized."""
@@ -258,9 +334,12 @@ class TestEmotionalAuthenticityAssessor:
             id="test_compat",
             messages=[
                 Message(role="user", content="I'm feeling anxious."),
-                Message(role="assistant", content="I understand that anxiety can be difficult to manage.")
+                Message(
+                    role="assistant",
+                    content="I understand that anxiety can be difficult to manage.",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         result = assess_emotional_authenticity(conversation)

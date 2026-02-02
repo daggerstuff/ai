@@ -19,19 +19,24 @@ import numpy as np
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class ComplexityConfig:
     """Configuration for complexity levels"""
+
     level: str
     weight: float  # Target proportion
     min_samples: int
     complexity_range: tuple[float, float]  # Min, max complexity scores
     max_samples: int | None = None
+
     characteristics: list[str] = None
+
 
 @dataclass
 class ComplexityResult:
     """Result of complexity stratification"""
+
     level: str
     target_samples: int
     actual_samples: int
@@ -39,6 +44,7 @@ class ComplexityResult:
     complexity_range: tuple[float, float]
     conversations: list[dict[str, Any]]
     metadata: dict[str, Any]
+
 
 class ComplexityStratifier:
     """
@@ -51,7 +57,9 @@ class ComplexityStratifier:
         self.complexity_configs = self._load_complexity_configs(config_path)
         self.stratification_history = []
 
-    def _load_complexity_configs(self, config_path: str | None = None) -> dict[str, ComplexityConfig]:
+    def _load_complexity_configs(
+        self, config_path: str | None = None
+    ) -> dict[str, ComplexityConfig]:
         """Load complexity level configurations"""
         default_configs = {
             "beginner": ComplexityConfig(
@@ -66,8 +74,8 @@ class ComplexityStratifier:
                     "Clear, straightforward issues",
                     "Single-topic focus",
                     "Minimal comorbidity",
-                    "Standard interventions"
-                ]
+                    "Standard interventions",
+                ],
             ),
             "intermediate": ComplexityConfig(
                 level="Intermediate",
@@ -81,8 +89,8 @@ class ComplexityStratifier:
                     "Interconnected issues",
                     "Some comorbidity",
                     "Nuanced interventions",
-                    "Relationship dynamics"
-                ]
+                    "Relationship dynamics",
+                ],
             ),
             "advanced": ComplexityConfig(
                 level="Advanced",
@@ -96,9 +104,9 @@ class ComplexityStratifier:
                     "Multiple interconnected issues",
                     "Significant comorbidity",
                     "Crisis intervention elements",
-                    "Advanced clinical skills required"
-                ]
-            )
+                    "Advanced clinical skills required",
+                ],
+            ),
         }
 
         if config_path and Path(config_path).exists():
@@ -124,7 +132,7 @@ class ComplexityStratifier:
             "emotional_intensity": 0.35,
             "topic_difficulty": 0.30,
             "intervention_complexity": 0.25,
-            "linguistic_complexity": 0.10
+            "linguistic_complexity": 0.10,
         }
 
         total_score = 0.0
@@ -139,7 +147,9 @@ class ComplexityStratifier:
 
         # Intervention complexity (0.0-1.0)
         intervention_score = self._assess_intervention_complexity(conversation)
-        total_score += intervention_score * complexity_factors["intervention_complexity"]
+        total_score += (
+            intervention_score * complexity_factors["intervention_complexity"]
+        )
 
         # Linguistic complexity (0.0-1.0)
         linguistic_score = self._assess_linguistic_complexity(conversation)
@@ -153,22 +163,56 @@ class ComplexityStratifier:
 
         # High intensity emotional words
         high_intensity = [
-            "overwhelming", "devastating", "unbearable", "excruciating", "terrifying",
-            "panic", "crisis", "emergency", "suicidal", "hopeless", "desperate",
-            "rage", "fury", "anguish", "torment", "agony", "breakdown"
+            "overwhelming",
+            "devastating",
+            "unbearable",
+            "excruciating",
+            "terrifying",
+            "panic",
+            "crisis",
+            "emergency",
+            "suicidal",
+            "hopeless",
+            "desperate",
+            "rage",
+            "fury",
+            "anguish",
+            "torment",
+            "agony",
+            "breakdown",
         ]
 
         # Moderate intensity emotional words
         moderate_intensity = [
-            "anxious", "worried", "sad", "upset", "frustrated", "angry",
-            "depressed", "stressed", "concerned", "troubled", "disturbed",
-            "uncomfortable", "difficult", "challenging", "struggling"
+            "anxious",
+            "worried",
+            "sad",
+            "upset",
+            "frustrated",
+            "angry",
+            "depressed",
+            "stressed",
+            "concerned",
+            "troubled",
+            "disturbed",
+            "uncomfortable",
+            "difficult",
+            "challenging",
+            "struggling",
         ]
 
         # Low intensity emotional words
         low_intensity = [
-            "concerned", "bothered", "uneasy", "unsure", "confused",
-            "disappointed", "tired", "restless", "mild", "slight"
+            "concerned",
+            "bothered",
+            "uneasy",
+            "unsure",
+            "confused",
+            "disappointed",
+            "tired",
+            "restless",
+            "mild",
+            "slight",
         ]
 
         # Count emotional indicators
@@ -194,24 +238,61 @@ class ComplexityStratifier:
 
         # Complex/difficult topics
         complex_topics = [
-            "trauma", "abuse", "suicide", "self-harm", "addiction", "psychosis",
-            "personality disorder", "dissociation", "complex ptsd", "bipolar",
-            "schizophrenia", "eating disorder", "borderline", "narcissistic",
-            "antisocial", "paranoid", "multiple diagnoses", "comorbid"
+            "trauma",
+            "abuse",
+            "suicide",
+            "self-harm",
+            "addiction",
+            "psychosis",
+            "personality disorder",
+            "dissociation",
+            "complex ptsd",
+            "bipolar",
+            "schizophrenia",
+            "eating disorder",
+            "borderline",
+            "narcissistic",
+            "antisocial",
+            "paranoid",
+            "multiple diagnoses",
+            "comorbid",
         ]
 
         # Moderate difficulty topics
         moderate_topics = [
-            "depression", "anxiety", "panic", "ocd", "phobia", "grief",
-            "relationship", "family", "work stress", "social anxiety",
-            "adjustment", "sleep", "anger", "communication", "boundaries"
+            "depression",
+            "anxiety",
+            "panic",
+            "ocd",
+            "phobia",
+            "grief",
+            "relationship",
+            "family",
+            "work stress",
+            "social anxiety",
+            "adjustment",
+            "sleep",
+            "anger",
+            "communication",
+            "boundaries",
         ]
 
         # Basic topics
         basic_topics = [
-            "stress", "worry", "sadness", "loneliness", "confidence",
-            "motivation", "habits", "goals", "self-care", "coping",
-            "support", "wellness", "mindfulness", "relaxation"
+            "stress",
+            "worry",
+            "sadness",
+            "loneliness",
+            "confidence",
+            "motivation",
+            "habits",
+            "goals",
+            "self-care",
+            "coping",
+            "support",
+            "wellness",
+            "mindfulness",
+            "relaxation",
         ]
 
         # Count topic indicators
@@ -237,31 +318,68 @@ class ComplexityStratifier:
 
         # Advanced/complex interventions
         advanced_interventions = [
-            "emdr", "exposure therapy", "dialectical behavior", "schema therapy",
-            "psychodynamic", "transference", "countertransference", "interpretation",
-            "family systems", "structural", "strategic", "narrative therapy",
-            "somatic", "gestalt", "existential", "crisis intervention"
+            "emdr",
+            "exposure therapy",
+            "dialectical behavior",
+            "schema therapy",
+            "psychodynamic",
+            "transference",
+            "countertransference",
+            "interpretation",
+            "family systems",
+            "structural",
+            "strategic",
+            "narrative therapy",
+            "somatic",
+            "gestalt",
+            "existential",
+            "crisis intervention",
         ]
 
         # Intermediate interventions
         intermediate_interventions = [
-            "cognitive behavioral", "cbt", "mindfulness", "acceptance commitment",
-            "interpersonal therapy", "solution focused", "motivational interviewing",
-            "behavioral activation", "cognitive restructuring", "thought records",
-            "relaxation", "grounding", "coping skills", "problem solving"
+            "cognitive behavioral",
+            "cbt",
+            "mindfulness",
+            "acceptance commitment",
+            "interpersonal therapy",
+            "solution focused",
+            "motivational interviewing",
+            "behavioral activation",
+            "cognitive restructuring",
+            "thought records",
+            "relaxation",
+            "grounding",
+            "coping skills",
+            "problem solving",
         ]
 
         # Basic interventions
         basic_interventions = [
-            "active listening", "reflection", "empathy", "validation",
-            "support", "encouragement", "psychoeducation", "breathing",
-            "self-care", "scheduling", "goal setting", "homework"
+            "active listening",
+            "reflection",
+            "empathy",
+            "validation",
+            "support",
+            "encouragement",
+            "psychoeducation",
+            "breathing",
+            "self-care",
+            "scheduling",
+            "goal setting",
+            "homework",
         ]
 
         # Count intervention indicators
-        advanced_count = sum(1 for intervention in advanced_interventions if intervention in content)
-        intermediate_count = sum(1 for intervention in intermediate_interventions if intervention in content)
-        basic_count = sum(1 for intervention in basic_interventions if intervention in content)
+        advanced_count = sum(
+            1 for intervention in advanced_interventions if intervention in content
+        )
+        intermediate_count = sum(
+            1 for intervention in intermediate_interventions if intervention in content
+        )
+        basic_count = sum(
+            1 for intervention in basic_interventions if intervention in content
+        )
 
         # Calculate complexity score
         if advanced_count > 0:
@@ -298,29 +416,50 @@ class ComplexityStratifier:
 
             # Average word length
             avg_word_length = np.mean([len(word) for word in words])
-            word_length_score = min(1.0, (avg_word_length - 3) / 5)  # Normalize around 3-8 chars
+            word_length_score = min(
+                1.0, (avg_word_length - 3) / 5
+            )  # Normalize around 3-8 chars
 
             # Sentence complexity
             if sentences:
-                avg_sentence_length = len(words) / len([s for s in sentences if s.strip()])
-                sentence_complexity = min(1.0, (avg_sentence_length - 5) / 20)  # Normalize around 5-25 words
+                avg_sentence_length = len(words) / len(
+                    [s for s in sentences if s.strip()]
+                )
+                sentence_complexity = min(
+                    1.0, (avg_sentence_length - 5) / 20
+                )  # Normalize around 5-25 words
             else:
                 sentence_complexity = 0.0
 
             # Technical/clinical vocabulary
             clinical_terms = [
-                "therapeutic", "intervention", "assessment", "diagnosis", "treatment",
-                "cognitive", "behavioral", "psychodynamic", "systemic", "clinical",
-                "psychological", "psychiatric", "neurological", "pharmacological"
+                "therapeutic",
+                "intervention",
+                "assessment",
+                "diagnosis",
+                "treatment",
+                "cognitive",
+                "behavioral",
+                "psychodynamic",
+                "systemic",
+                "clinical",
+                "psychological",
+                "psychiatric",
+                "neurological",
+                "pharmacological",
             ]
 
-            clinical_count = sum(1 for term in clinical_terms if term.lower() in content.lower())
+            clinical_count = sum(
+                1 for term in clinical_terms if term.lower() in content.lower()
+            )
             clinical_score = min(1.0, clinical_count / 5)
 
             # Combined linguistic complexity
-            message_complexity = (word_length_score * 0.3 +
-                                sentence_complexity * 0.4 +
-                                clinical_score * 0.3)
+            message_complexity = (
+                word_length_score * 0.3
+                + sentence_complexity * 0.4
+                + clinical_score * 0.3
+            )
 
             total_complexity += message_complexity
             message_count += 1
@@ -337,12 +476,15 @@ class ComplexityStratifier:
         # Default to advanced if score is very high
         return "advanced"
 
-    def stratify_conversations(self, conversations: list[dict[str, Any]],
-                             target_total: int = 10000) -> list[ComplexityResult]:
+    def stratify_conversations(
+        self, conversations: list[dict[str, Any]], target_total: int = 10000
+    ) -> list[ComplexityResult]:
         """
         Main method to stratify conversations by complexity level.
         """
-        logger.info(f"Starting complexity stratification for {len(conversations)} conversations")
+        logger.info(
+            f"Starting complexity stratification for {len(conversations)} conversations"
+        )
 
         # Calculate complexity scores and classify
         complexity_conversations = defaultdict(list)
@@ -377,8 +519,10 @@ class ComplexityStratifier:
 
             target_distribution[level_id] = base_samples
 
-            logger.info(f"{config.level}: {base_samples} samples "
-                       f"(weight: {config.weight:.1%}, available: {available})")
+            logger.info(
+                f"{config.level}: {base_samples} samples "
+                f"(weight: {config.weight:.1%}, available: {available})"
+            )
 
         # Stratify each complexity level
         results = []
@@ -391,8 +535,10 @@ class ComplexityStratifier:
             config = self.complexity_configs[level_id]
             available_conversations = complexity_conversations.get(level_id, [])
 
-            logger.info(f"Stratifying {config.level}: {target_count} target, "
-                       f"{len(available_conversations)} available")
+            logger.info(
+                f"Stratifying {config.level}: {target_count} target, "
+                f"{len(available_conversations)} available"
+            )
 
             # Select conversations with complexity-based quality weighting
             selected = self._select_complexity_balanced_conversations(
@@ -401,8 +547,10 @@ class ComplexityStratifier:
 
             if selected:
                 # Calculate metrics
-                selected_scores = [complexity_scores.get(conv.get("id", str(hash(str(conv)))), 0.0)
-                                 for conv in selected]
+                selected_scores = [
+                    complexity_scores.get(conv.get("id", str(hash(str(conv)))), 0.0)
+                    for conv in selected
+                ]
                 avg_complexity = np.mean(selected_scores)
                 complexity_range = (min(selected_scores), max(selected_scores))
 
@@ -418,33 +566,43 @@ class ComplexityStratifier:
                         "weight": config.weight,
                         "target_complexity_range": config.complexity_range,
                         "available_count": len(available_conversations),
-                        "characteristics": config.characteristics
-                    }
+                        "characteristics": config.characteristics,
+                    },
                 )
 
                 results.append(result)
                 total_stratified += len(selected)
 
-                logger.info(f"Stratified {config.level}: {len(selected)} conversations "
-                           f"(avg complexity: {avg_complexity:.3f})")
+                logger.info(
+                    f"Stratified {config.level}: {len(selected)} conversations "
+                    f"(avg complexity: {avg_complexity:.3f})"
+                )
 
-        logger.info(f"Total stratified: {total_stratified} conversations across "
-                   f"{len(results)} complexity levels")
+        logger.info(
+            f"Total stratified: {total_stratified} conversations across "
+            f"{len(results)} complexity levels"
+        )
 
         # Store stratification history
-        self.stratification_history.append({
-            "timestamp": str(np.datetime64("now")),
-            "target_total": target_total,
-            "actual_total": total_stratified,
-            "complexity_levels": len(results),
-            "level_results": {r.level: r.metadata for r in results}
-        })
+        self.stratification_history.append(
+            {
+                "timestamp": str(np.datetime64("now")),
+                "target_total": target_total,
+                "actual_total": total_stratified,
+                "complexity_levels": len(results),
+                "level_results": {r.level: r.metadata for r in results},
+            }
+        )
 
         return results
 
-    def _select_complexity_balanced_conversations(self, conversations: list[dict[str, Any]],
-                                                target_count: int, level_id: str,
-                                                complexity_scores: dict[str, float]) -> list[dict[str, Any]]:
+    def _select_complexity_balanced_conversations(
+        self,
+        conversations: list[dict[str, Any]],
+        target_count: int,
+        level_id: str,
+        complexity_scores: dict[str, float],
+    ) -> list[dict[str, Any]]:
         """Select conversations with complexity-based balancing"""
         if not conversations or target_count <= 0:
             return []
@@ -495,9 +653,13 @@ class ComplexityStratifier:
 
             for conv, score, complexity in scored_conversations:
                 if min_complexity <= complexity < max_complexity:
-                    sub_range_idx = min(num_sub_ranges - 1,
-                                      int((complexity - min_complexity) / sub_range_size))
-                    conversations_by_sub_range[sub_range_idx].append((conv, score, complexity))
+                    sub_range_idx = min(
+                        num_sub_ranges - 1,
+                        int((complexity - min_complexity) / sub_range_size),
+                    )
+                    conversations_by_sub_range[sub_range_idx].append(
+                        (conv, score, complexity)
+                    )
 
             # Select proportionally from each sub-range
             samples_per_sub_range = selected_count // num_sub_ranges
@@ -509,7 +671,12 @@ class ComplexityStratifier:
 
                 # Sort by score and select top conversations
                 sub_range_conversations.sort(key=lambda x: x[1], reverse=True)
-                selected.extend([conv for conv, _, _ in sub_range_conversations[:sub_range_selected]])
+                selected.extend(
+                    [
+                        conv
+                        for conv, _, _ in sub_range_conversations[:sub_range_selected]
+                    ]
+                )
 
         return selected
 
@@ -519,11 +686,21 @@ class ComplexityStratifier:
         content = str(conversation).lower()
 
         diversity_indicators = [
-            "multiple", "various", "different", "complex", "interconnected",
-            "layered", "multifaceted", "comprehensive", "holistic", "integrated"
+            "multiple",
+            "various",
+            "different",
+            "complex",
+            "interconnected",
+            "layered",
+            "multifaceted",
+            "comprehensive",
+            "holistic",
+            "integrated",
         ]
 
-        diversity_count = sum(1 for indicator in diversity_indicators if indicator in content)
+        diversity_count = sum(
+            1 for indicator in diversity_indicators if indicator in content
+        )
         return min(1.0, diversity_count / len(diversity_indicators) * 2)
 
     def get_stratification_statistics(self) -> dict[str, Any]:
@@ -541,13 +718,12 @@ class ComplexityStratifier:
                     "level_name": config.level,
                     "weight": config.weight,
                     "complexity_range": config.complexity_range,
-                    "characteristics": config.characteristics
+                    "characteristics": config.characteristics,
                 }
                 for level_id, config in self.complexity_configs.items()
             },
-            "total_complexity_levels": len(self.complexity_configs)
+            "total_complexity_levels": len(self.complexity_configs),
         }
-
 
     def export_complexity_config(self, output_path: str):
         """Export current complexity configuration"""
@@ -559,13 +735,14 @@ class ComplexityStratifier:
                 "min_samples": config.min_samples,
                 "max_samples": config.max_samples,
                 "complexity_range": config.complexity_range,
-                "characteristics": config.characteristics
+                "characteristics": config.characteristics,
             }
 
         with open(output_path, "w") as f:
             json.dump(config_data, f, indent=2)
 
         logger.info(f"Complexity configuration exported to {output_path}")
+
 
 def main():
     """Example usage of the Complexity Stratifier"""
@@ -577,24 +754,42 @@ def main():
         {
             "id": "conv_1",
             "messages": [
-                {"content": "I feel a bit stressed about work lately. Can you help me with some relaxation techniques?", "role": "client"},
-                {"content": "Of course. Let's start with some simple breathing exercises and self-care strategies.", "role": "therapist"}
-            ]
+                {
+                    "content": "I feel a bit stressed about work lately. Can you help me with some relaxation techniques?",
+                    "role": "client",
+                },
+                {
+                    "content": "Of course. Let's start with some simple breathing exercises and self-care strategies.",
+                    "role": "therapist",
+                },
+            ],
         },
         {
             "id": "conv_2",
             "messages": [
-                {"content": "I'm struggling with depression and anxiety, and it's affecting my relationships and work performance.", "role": "client"},
-                {"content": "That sounds challenging. Let's explore cognitive behavioral techniques and develop coping strategies.", "role": "therapist"}
-            ]
+                {
+                    "content": "I'm struggling with depression and anxiety, and it's affecting my relationships and work performance.",
+                    "role": "client",
+                },
+                {
+                    "content": "That sounds challenging. Let's explore cognitive behavioral techniques and develop coping strategies.",
+                    "role": "therapist",
+                },
+            ],
         },
         {
             "id": "conv_3",
             "messages": [
-                {"content": "I have complex PTSD from childhood trauma, borderline personality disorder, and I'm having suicidal thoughts. Everything feels overwhelming.", "role": "client"},
-                {"content": "I hear how much pain you're in. Let's focus on crisis intervention and dialectical behavior therapy techniques for emotional regulation.", "role": "therapist"}
-            ]
-        }
+                {
+                    "content": "I have complex PTSD from childhood trauma, borderline personality disorder, and I'm having suicidal thoughts. Everything feels overwhelming.",
+                    "role": "client",
+                },
+                {
+                    "content": "I hear how much pain you're in. Let's focus on crisis intervention and dialectical behavior therapy techniques for emotional regulation.",
+                    "role": "therapist",
+                },
+            ],
+        },
     ] * 50  # Simulate larger dataset
 
     # Perform complexity stratification
@@ -609,6 +804,7 @@ def main():
 
     # Get statistics
     stratifier.get_stratification_statistics()
+
 
 if __name__ == "__main__":
     main()

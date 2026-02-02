@@ -31,7 +31,10 @@ try:
     from schemas.conversation_schema import Conversation, Message
 except ImportError:
     try:
-        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+        from ai.pipelines.orchestrator.schemas.conversation_schema import (
+            Conversation,
+            Message,
+        )
     except ImportError:
         from conversation_schema import Conversation, Message
 
@@ -231,19 +234,24 @@ class EmpathyMentalHealthValidator:
         """Compile regex patterns for efficient matching."""
         self.compiled_patterns = {
             "emotional_reactions": [
-                re.compile(p, re.IGNORECASE) for p in self.indicators.emotional_reaction_patterns
+                re.compile(p, re.IGNORECASE)
+                for p in self.indicators.emotional_reaction_patterns
             ],
             "interpretations": [
-                re.compile(p, re.IGNORECASE) for p in self.indicators.interpretation_patterns
+                re.compile(p, re.IGNORECASE)
+                for p in self.indicators.interpretation_patterns
             ],
             "explorations": [
-                re.compile(p, re.IGNORECASE) for p in self.indicators.exploration_patterns
+                re.compile(p, re.IGNORECASE)
+                for p in self.indicators.exploration_patterns
             ],
             "validation": [
-                re.compile(p, re.IGNORECASE) for p in self.indicators.validation_patterns
+                re.compile(p, re.IGNORECASE)
+                for p in self.indicators.validation_patterns
             ],
             "anti_empathy": [
-                re.compile(p, re.IGNORECASE) for p in self.indicators.anti_empathy_patterns
+                re.compile(p, re.IGNORECASE)
+                for p in self.indicators.anti_empathy_patterns
             ],
         }
 
@@ -251,17 +259,52 @@ class EmpathyMentalHealthValidator:
         """Initialize emotion word lexicon for analysis."""
         self.emotion_lexicon = {
             "positive_emotions": {
-                "happy", "hopeful", "grateful", "relieved", "proud", "confident",
-                "peaceful", "content", "excited", "loved", "supported", "understood"
+                "happy",
+                "hopeful",
+                "grateful",
+                "relieved",
+                "proud",
+                "confident",
+                "peaceful",
+                "content",
+                "excited",
+                "loved",
+                "supported",
+                "understood",
             },
             "negative_emotions": {
-                "sad", "anxious", "depressed", "angry", "frustrated", "scared",
-                "lonely", "hopeless", "overwhelmed", "exhausted", "hurt", "worried",
-                "guilty", "ashamed", "confused", "lost", "empty", "numb"
+                "sad",
+                "anxious",
+                "depressed",
+                "angry",
+                "frustrated",
+                "scared",
+                "lonely",
+                "hopeless",
+                "overwhelmed",
+                "exhausted",
+                "hurt",
+                "worried",
+                "guilty",
+                "ashamed",
+                "confused",
+                "lost",
+                "empty",
+                "numb",
             },
             "empathy_words": {
-                "understand", "hear", "feel", "sense", "appreciate", "acknowledge",
-                "recognize", "validate", "support", "care", "compassion", "empathy"
+                "understand",
+                "hear",
+                "feel",
+                "sense",
+                "appreciate",
+                "acknowledge",
+                "recognize",
+                "validate",
+                "support",
+                "care",
+                "compassion",
+                "empathy",
             },
         }
 
@@ -285,7 +328,11 @@ class EmpathyMentalHealthValidator:
             if message.role in ["assistant", "therapist", "counselor"]:
                 # Get context from previous user message if available
                 context = ""
-                if i > 0 and conversation.messages[i - 1].role in ["user", "client", "seeker"]:
+                if i > 0 and conversation.messages[i - 1].role in [
+                    "user",
+                    "client",
+                    "seeker",
+                ]:
                     context = conversation.messages[i - 1].content
 
                 score = self._score_single_response(message.content, context)
@@ -331,13 +378,13 @@ class EmpathyMentalHealthValidator:
             metadata={
                 "num_therapist_turns": len(turn_scores),
                 "empathy_trend": self._calculate_trend(empathy_progression),
-                "dimension_balance": self._calculate_dimension_balance(avg_er, avg_ip, avg_ex),
+                "dimension_balance": self._calculate_dimension_balance(
+                    avg_er, avg_ip, avg_ex
+                ),
             },
         )
 
-    def _score_single_response(
-        self, response: str, context: str = ""
-    ) -> EmpathyScore:
+    def _score_single_response(self, response: str, context: str = "") -> EmpathyScore:
         """
         Score empathy in a single response.
 
@@ -472,7 +519,19 @@ class EmpathyMentalHealthValidator:
         overlap = context_words & response_words
 
         # Remove common words
-        common_words = {"i", "you", "the", "a", "an", "is", "are", "was", "were", "to", "and"}
+        common_words = {
+            "i",
+            "you",
+            "the",
+            "a",
+            "an",
+            "is",
+            "are",
+            "was",
+            "were",
+            "to",
+            "and",
+        }
         meaningful_overlap = overlap - common_words
 
         if len(meaningful_overlap) >= 3:
@@ -485,7 +544,9 @@ class EmpathyMentalHealthValidator:
         if len(progression) < 2:
             return "stable"
 
-        first_half = sum(progression[: len(progression) // 2]) / max(1, len(progression) // 2)
+        first_half = sum(progression[: len(progression) // 2]) / max(
+            1, len(progression) // 2
+        )
         second_half = sum(progression[len(progression) // 2 :]) / max(
             1, len(progression) - len(progression) // 2
         )
@@ -497,9 +558,7 @@ class EmpathyMentalHealthValidator:
             return "decreasing"
         return "stable"
 
-    def _calculate_dimension_balance(
-        self, er: float, ip: float, ex: float
-    ) -> str:
+    def _calculate_dimension_balance(self, er: float, ip: float, ex: float) -> str:
         """Assess balance across empathy dimensions."""
         scores = {"emotional_reactions": er, "interpretations": ip, "explorations": ex}
         max_dim = max(scores, key=lambda k: scores[k])
@@ -549,12 +608,16 @@ class EmpathyMentalHealthValidator:
 
         if avg_val < 0.3:
             issues.append("Low validation - doesn't acknowledge feelings as valid")
-            recommendations.append("Add more validation of client's emotional experience")
+            recommendations.append(
+                "Add more validation of client's emotional experience"
+            )
         elif avg_val >= 0.6:
             strengths.append("Strong validation - effectively acknowledges emotions")
 
         # Check for anti-empathy
-        avg_penalty = sum(s.anti_empathy_penalty for s in turn_scores) / len(turn_scores)
+        avg_penalty = sum(s.anti_empathy_penalty for s in turn_scores) / len(
+            turn_scores
+        )
         if avg_penalty > 0.1:
             issues.append("Contains dismissive or minimizing language")
             recommendations.append(
@@ -660,31 +723,43 @@ class EmpathyMentalHealthValidator:
         return {
             "total_conversations": len(assessments),
             "average_scores": {
-                "emotional_reactions": sum(a.average_emotional_reactions for a in assessments)
+                "emotional_reactions": sum(
+                    a.average_emotional_reactions for a in assessments
+                )
                 / len(assessments),
                 "interpretations": sum(a.average_interpretations for a in assessments)
                 / len(assessments),
                 "explorations": sum(a.average_explorations for a in assessments)
                 / len(assessments),
-                "validation": sum(a.average_validation for a in assessments) / len(assessments),
-                "overall": sum(a.overall_empathy_score for a in assessments) / len(assessments),
+                "validation": sum(a.average_validation for a in assessments)
+                / len(assessments),
+                "overall": sum(a.overall_empathy_score for a in assessments)
+                / len(assessments),
             },
             "level_distribution": {
                 "no_empathy": sum(
                     1 for a in assessments if a.empathy_level == EmpathyLevel.NO_EMPATHY
                 ),
                 "weak_empathy": sum(
-                    1 for a in assessments if a.empathy_level == EmpathyLevel.WEAK_EMPATHY
+                    1
+                    for a in assessments
+                    if a.empathy_level == EmpathyLevel.WEAK_EMPATHY
                 ),
                 "strong_empathy": sum(
-                    1 for a in assessments if a.empathy_level == EmpathyLevel.STRONG_EMPATHY
+                    1
+                    for a in assessments
+                    if a.empathy_level == EmpathyLevel.STRONG_EMPATHY
                 ),
             },
             "common_issues": self._get_common_items([a.issues for a in assessments]),
-            "common_strengths": self._get_common_items([a.strengths for a in assessments]),
+            "common_strengths": self._get_common_items(
+                [a.strengths for a in assessments]
+            ),
         }
 
-    def _get_common_items(self, item_lists: list[list[str]], top_n: int = 5) -> list[str]:
+    def _get_common_items(
+        self, item_lists: list[list[str]], top_n: int = 5
+    ) -> list[str]:
         """Get most common items across multiple lists."""
         from collections import Counter
 
@@ -713,14 +788,16 @@ def integrate_with_quality_framework(
     assessment = validator.validate_conversation(conversation)
 
     # Add empathy metrics to quality framework
-    quality_metrics.update({
-        "empathy_score": assessment.overall_empathy_score,
-        "empathy_emotional_reactions": assessment.average_emotional_reactions,
-        "empathy_interpretations": assessment.average_interpretations,
-        "empathy_explorations": assessment.average_explorations,
-        "empathy_validation": assessment.average_validation,
-        "empathy_level": assessment.empathy_level.name,
-    })
+    quality_metrics.update(
+        {
+            "empathy_score": assessment.overall_empathy_score,
+            "empathy_emotional_reactions": assessment.average_emotional_reactions,
+            "empathy_interpretations": assessment.average_interpretations,
+            "empathy_explorations": assessment.average_explorations,
+            "empathy_validation": assessment.average_validation,
+            "empathy_level": assessment.empathy_level.name,
+        }
+    )
 
     # Adjust overall quality based on empathy
     if "overall_score" in quality_metrics:
@@ -749,14 +826,20 @@ if __name__ == "__main__":
         conversation_id="test_001",
         source="test",
         messages=[
-            Message(role="user", content="I've been feeling really anxious lately. I can't sleep and I'm constantly worried about everything."),
+            Message(
+                role="user",
+                content="I've been feeling really anxious lately. I can't sleep and I'm constantly worried about everything.",
+            ),
             Message(
                 role="assistant",
                 content="I'm so sorry to hear you've been struggling with anxiety. That sounds really overwhelming. "
                 "It makes sense that you're having trouble sleeping when your mind is racing with worries. "
                 "Can you tell me more about what's been on your mind?",
             ),
-            Message(role="user", content="It's mainly work stuff. I'm afraid I'm going to get fired."),
+            Message(
+                role="user",
+                content="It's mainly work stuff. I'm afraid I'm going to get fired.",
+            ),
             Message(
                 role="assistant",
                 content="I can understand why that fear about your job would be keeping you up at night. "
@@ -772,7 +855,7 @@ if __name__ == "__main__":
     print(f"\nConversation: {assessment.conversation_id}")
     print(f"Overall Empathy Score: {assessment.overall_empathy_score}")
     print(f"Empathy Level: {assessment.empathy_level.name}")
-    print(f"\nDimension Scores:")
+    print("\nDimension Scores:")
     print(f"  Emotional Reactions: {assessment.average_emotional_reactions}")
     print(f"  Interpretations: {assessment.average_interpretations}")
     print(f"  Explorations: {assessment.average_explorations}")
@@ -780,4 +863,3 @@ if __name__ == "__main__":
     print(f"\nStrengths: {assessment.strengths}")
     print(f"Issues: {assessment.issues}")
     print(f"Recommendations: {assessment.recommendations}")
-

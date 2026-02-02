@@ -69,7 +69,9 @@ def safe_json_parse(data):
             assert stats["functions"] == 2
             assert stats["functions_with_error_handling"] == 2
             assert stats["risky_operations"] >= 2  # open and json.loads
-            assert stats["protected_operations"] >= 1  # At least some operations are protected
+            assert (
+                stats["protected_operations"] >= 1
+            )  # At least some operations are protected
 
         finally:
             os.unlink(temp_file)
@@ -108,7 +110,9 @@ def function_with_broad_except():
             stats = self.auditor._audit_file(temp_file)
 
             assert stats["functions"] == 3
-            assert stats["functions_with_error_handling"] == 2  # Two functions have try-catch
+            assert (
+                stats["functions_with_error_handling"] == 2
+            )  # Two functions have try-catch
 
             # Should have issues for poor error handling
             issues = self.auditor.issues
@@ -180,8 +184,19 @@ def unsafe_function():
 
         # Some issues
         self.auditor.issues = [
-            ErrorHandlingIssue("file1.py", 1, "unprotected_operation", "high", "desc", "sugg", "func1", "code"),
-            ErrorHandlingIssue("file2.py", 2, "bare_except", "medium", "desc", "sugg", "func2", "code")
+            ErrorHandlingIssue(
+                "file1.py",
+                1,
+                "unprotected_operation",
+                "high",
+                "desc",
+                "sugg",
+                "func1",
+                "code",
+            ),
+            ErrorHandlingIssue(
+                "file2.py", 2, "bare_except", "medium", "desc", "sugg", "func2", "code"
+            ),
         ]
         score = self.auditor._calculate_quality_score()
         assert 0.0 <= score < 1.0
@@ -190,8 +205,26 @@ def unsafe_function():
         """Test report generation."""
         # Create a sample report
         issues = [
-            ErrorHandlingIssue("file1.py", 1, "unprotected_operation", "high", "Unprotected file operation", "Add try-catch", "func1", 'open("file")'),
-            ErrorHandlingIssue("file2.py", 5, "bare_except", "medium", "Bare except clause", "Specify exception type", "func2", "except:")
+            ErrorHandlingIssue(
+                "file1.py",
+                1,
+                "unprotected_operation",
+                "high",
+                "Unprotected file operation",
+                "Add try-catch",
+                "func1",
+                'open("file")',
+            ),
+            ErrorHandlingIssue(
+                "file2.py",
+                5,
+                "bare_except",
+                "medium",
+                "Bare except clause",
+                "Specify exception type",
+                "func2",
+                "except:",
+            ),
         ]
 
         report = ErrorHandlingAuditReport(
@@ -203,7 +236,7 @@ def unsafe_function():
             issues=issues,
             coverage_score=0.3,
             quality_score=0.75,
-            recommendations=["Add error handling", "Use specific exceptions"]
+            recommendations=["Add error handling", "Use specific exceptions"],
         )
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
@@ -237,7 +270,7 @@ def unsafe_function():
             description="File operation without error handling",
             suggestion="Add try-catch block",
             function_name="test_function",
-            code_snippet='open("file.txt")'
+            code_snippet='open("file.txt")',
         )
 
         assert issue.file_path == "test.py"
@@ -267,6 +300,7 @@ def unsafe_function():
 
 def test_main_function():
     """Test the main function runs without error."""
+
     from .error_handling_auditor import main
 
     # Should run without raising exceptions

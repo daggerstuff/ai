@@ -17,6 +17,7 @@ from typing import Any
 @dataclass
 class LoggingIssue:
     """Represents a logging issue found in the code."""
+
     file_path: str
     line_number: int
     function_name: str
@@ -26,9 +27,11 @@ class LoggingIssue:
     suggestion: str
     code_snippet: str
 
+
 @dataclass
 class LoggingStats:
     """Statistics about logging coverage."""
+
     total_functions: int
     functions_with_logging: int
     total_files: int
@@ -37,6 +40,7 @@ class LoggingStats:
     critical_functions_without_logging: int
     error_handling_with_logging: int
     total_error_handlers: int
+
 
 class LoggingAuditor:
     """Comprehensive logging auditor for production readiness."""
@@ -73,7 +77,7 @@ class LoggingAuditor:
         # Setup logging for the auditor itself
         logging.basicConfig(
             level=logging.INFO,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
         self.logger = logging.getLogger(__name__)
 
@@ -104,7 +108,9 @@ class LoggingAuditor:
                 file_stats = self._audit_file(file_path)
                 total_functions += file_stats["total_functions"]
                 functions_with_logging += file_stats["functions_with_logging"]
-                critical_functions_without_logging += file_stats["critical_without_logging"]
+                critical_functions_without_logging += file_stats[
+                    "critical_without_logging"
+                ]
                 error_handlers_with_logging += file_stats["error_handlers_with_logging"]
                 total_error_handlers += file_stats["total_error_handlers"]
 
@@ -113,25 +119,31 @@ class LoggingAuditor:
 
             except Exception as e:
                 self.logger.error(f"Error auditing file {file_path}: {e}")
-                self.issues.append(LoggingIssue(
-                    file_path=str(file_path),
-                    line_number=0,
-                    function_name="FILE_ERROR",
-                    issue_type="AUDIT_ERROR",
-                    severity="HIGH",
-                    description=f"Failed to audit file: {e}",
-                    suggestion="Fix syntax errors or file encoding issues",
-                    code_snippet=""
-                ))
+                self.issues.append(
+                    LoggingIssue(
+                        file_path=str(file_path),
+                        line_number=0,
+                        function_name="FILE_ERROR",
+                        issue_type="AUDIT_ERROR",
+                        severity="HIGH",
+                        description=f"Failed to audit file: {e}",
+                        suggestion="Fix syntax errors or file encoding issues",
+                        code_snippet="",
+                    )
+                )
 
         # Update stats
         self.stats.total_functions = total_functions
         self.stats.functions_with_logging = functions_with_logging
         self.stats.files_with_logging = files_with_logging
         self.stats.logging_coverage_percent = (
-            (functions_with_logging / total_functions * 100) if total_functions > 0 else 0
+            (functions_with_logging / total_functions * 100)
+            if total_functions > 0
+            else 0
         )
-        self.stats.critical_functions_without_logging = critical_functions_without_logging
+        self.stats.critical_functions_without_logging = (
+            critical_functions_without_logging
+        )
         self.stats.error_handling_with_logging = error_handlers_with_logging
         self.stats.total_error_handlers = total_error_handlers
 
@@ -140,7 +152,7 @@ class LoggingAuditor:
         return {
             "stats": asdict(self.stats),
             "issues": [asdict(issue) for issue in self.issues],
-            "summary": self._generate_summary()
+            "summary": self._generate_summary(),
         }
 
     def _audit_file(self, file_path: Path) -> dict[str, Any]:
@@ -159,14 +171,18 @@ class LoggingAuditor:
                     "has_logging": False,
                     "critical_without_logging": 0,
                     "error_handlers_with_logging": 0,
-                    "total_error_handlers": 0
+                    "total_error_handlers": 0,
                 }
 
             lines = content.split("\n")
-            has_logging = any(re.search(pattern, content) for pattern in self.logging_patterns)
+            has_logging = any(
+                re.search(pattern, content) for pattern in self.logging_patterns
+            )
 
             # Analyze functions
-            functions = [node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
+            functions = [
+                node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+            ]
             total_functions = len(functions)
             functions_with_logging = 0
             critical_without_logging = 0
@@ -178,65 +194,89 @@ class LoggingAuditor:
 
             for func in functions:
                 func_content = self._get_function_content(func, lines)
-                func_has_logging = any(re.search(pattern, func_content) for pattern in self.logging_patterns)
+                func_has_logging = any(
+                    re.search(pattern, func_content)
+                    for pattern in self.logging_patterns
+                )
 
                 if func_has_logging:
                     functions_with_logging += 1
                 # Check if it's a critical function
                 elif self._is_critical_function(func.name):
                     critical_without_logging += 1
-                    self.issues.append(LoggingIssue(
-                        file_path=str(file_path),
-                        line_number=func.lineno,
-                        function_name=func.name,
-                        issue_type="MISSING_LOGGING",
-                        severity="HIGH",
-                        description=f"Critical function '{func.name}' lacks logging",
-                        suggestion=self._generate_logging_suggestion(func.name, "critical"),
-                        code_snippet=func_content[:200] + "..." if len(func_content) > 200 else func_content
-                    ))
+                    self.issues.append(
+                        LoggingIssue(
+                            file_path=str(file_path),
+                            line_number=func.lineno,
+                            function_name=func.name,
+                            issue_type="MISSING_LOGGING",
+                            severity="HIGH",
+                            description=f"Critical function '{func.name}' lacks logging",
+                            suggestion=self._generate_logging_suggestion(
+                                func.name, "critical"
+                            ),
+                            code_snippet=func_content[:200] + "..."
+                            if len(func_content) > 200
+                            else func_content,
+                        )
+                    )
                 else:
-                    self.issues.append(LoggingIssue(
-                        file_path=str(file_path),
-                        line_number=func.lineno,
-                        function_name=func.name,
-                        issue_type="MISSING_LOGGING",
-                        severity="MEDIUM",
-                        description=f"Function '{func.name}' lacks logging",
-                        suggestion=self._generate_logging_suggestion(func.name, "standard"),
-                        code_snippet=func_content[:200] + "..." if len(func_content) > 200 else func_content
-                    ))
+                    self.issues.append(
+                        LoggingIssue(
+                            file_path=str(file_path),
+                            line_number=func.lineno,
+                            function_name=func.name,
+                            issue_type="MISSING_LOGGING",
+                            severity="MEDIUM",
+                            description=f"Function '{func.name}' lacks logging",
+                            suggestion=self._generate_logging_suggestion(
+                                func.name, "standard"
+                            ),
+                            code_snippet=func_content[:200] + "..."
+                            if len(func_content) > 200
+                            else func_content,
+                        )
+                    )
 
             # Check error handlers
             for handler_line, handler_content in error_handlers:
-                if any(re.search(pattern, handler_content) for pattern in self.logging_patterns):
+                if any(
+                    re.search(pattern, handler_content)
+                    for pattern in self.logging_patterns
+                ):
                     error_handlers_with_logging += 1
                 else:
-                    self.issues.append(LoggingIssue(
-                        file_path=str(file_path),
-                        line_number=handler_line,
-                        function_name="ERROR_HANDLER",
-                        issue_type="MISSING_ERROR_LOGGING",
-                        severity="HIGH",
-                        description="Error handler without logging",
-                        suggestion="Add logging.exception() or logging.error() to capture error details",
-                        code_snippet=handler_content
-                    ))
+                    self.issues.append(
+                        LoggingIssue(
+                            file_path=str(file_path),
+                            line_number=handler_line,
+                            function_name="ERROR_HANDLER",
+                            issue_type="MISSING_ERROR_LOGGING",
+                            severity="HIGH",
+                            description="Error handler without logging",
+                            suggestion="Add logging.exception() or logging.error() to capture error details",
+                            code_snippet=handler_content,
+                        )
+                    )
 
             # Check for print statements (should be replaced with proper logging)
             print_statements = re.finditer(r"\bprint\s*\(", content)
             for match in print_statements:
-                line_num = content[:match.start()].count("\n") + 1
-                self.issues.append(LoggingIssue(
-                    file_path=str(file_path),
-                    line_number=line_num,
-                    function_name="PRINT_STATEMENT",
-                    issue_type="IMPROPER_LOGGING",
-                    severity="MEDIUM",
-                    description="Using print() instead of proper logging",
-                    suggestion="Replace print() with appropriate logging level (info, debug, warning, error)",
-                    code_snippet=lines[line_num-1] if line_num <= len(lines) else ""
-                ))
+                line_num = content[: match.start()].count("\n") + 1
+                self.issues.append(
+                    LoggingIssue(
+                        file_path=str(file_path),
+                        line_number=line_num,
+                        function_name="PRINT_STATEMENT",
+                        issue_type="IMPROPER_LOGGING",
+                        severity="MEDIUM",
+                        description="Using print() instead of proper logging",
+                        suggestion="Replace print() with appropriate logging level (info, debug, warning, error)",
+                        code_snippet=lines[line_num - 1]
+                        if line_num <= len(lines)
+                        else "",
+                    )
+                )
 
             return {
                 "total_functions": total_functions,
@@ -244,7 +284,7 @@ class LoggingAuditor:
                 "has_logging": has_logging,
                 "critical_without_logging": critical_without_logging,
                 "error_handlers_with_logging": error_handlers_with_logging,
-                "total_error_handlers": total_error_handlers
+                "total_error_handlers": total_error_handlers,
             }
 
         except Exception as e:
@@ -255,7 +295,7 @@ class LoggingAuditor:
                 "has_logging": False,
                 "critical_without_logging": 0,
                 "error_handlers_with_logging": 0,
-                "total_error_handlers": 0
+                "total_error_handlers": 0,
             }
 
     def _find_error_handlers(self, content: str) -> list[tuple[int, str]]:
@@ -289,10 +329,16 @@ class LoggingAuditor:
 
         return handlers
 
-    def _get_function_content(self, func_node: ast.FunctionDef, lines: list[str]) -> str:
+    def _get_function_content(
+        self, func_node: ast.FunctionDef, lines: list[str]
+    ) -> str:
         """Extract function content from source lines."""
         start_line = func_node.lineno - 1
-        end_line = func_node.end_lineno if hasattr(func_node, "end_lineno") else start_line + 10
+        end_line = (
+            func_node.end_lineno
+            if hasattr(func_node, "end_lineno")
+            else start_line + 10
+        )
 
         end_line = min(end_line, len(lines))
 
@@ -300,7 +346,9 @@ class LoggingAuditor:
 
     def _is_critical_function(self, func_name: str) -> bool:
         """Check if a function is critical and must have logging."""
-        return any(re.search(pattern, f"def {func_name}") for pattern in self.critical_patterns)
+        return any(
+            re.search(pattern, f"def {func_name}") for pattern in self.critical_patterns
+        )
 
     def _generate_logging_suggestion(self, func_name: str, func_type: str) -> str:
         """Generate logging suggestions for functions."""
@@ -325,7 +373,9 @@ logger.debug(f"Executing {func_name}")
 
         for issue in self.issues:
             severity_counts[issue.severity] = severity_counts.get(issue.severity, 0) + 1
-            issue_type_counts[issue.issue_type] = issue_type_counts.get(issue.issue_type, 0) + 1
+            issue_type_counts[issue.issue_type] = (
+                issue_type_counts.get(issue.issue_type, 0) + 1
+            )
 
         return {
             "total_issues": len(self.issues),
@@ -334,13 +384,17 @@ logger.debug(f"Executing {func_name}")
             "logging_coverage": f"{self.stats.logging_coverage_percent:.1f}%",
             "files_with_logging": f"{self.stats.files_with_logging}/{self.stats.total_files}",
             "critical_functions_missing_logging": self.stats.critical_functions_without_logging,
-            "error_handlers_coverage": f"{self.stats.error_handling_with_logging}/{self.stats.total_error_handlers}" if self.stats.total_error_handlers > 0 else "0/0"
+            "error_handlers_coverage": f"{self.stats.error_handling_with_logging}/{self.stats.total_error_handlers}"
+            if self.stats.total_error_handlers > 0
+            else "0/0",
         }
 
     def generate_report(self, output_file: str | None = None) -> str:
         """Generate comprehensive logging audit report."""
         if not output_file:
-            output_file = f"logging_audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            output_file = (
+                f"logging_audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            )
 
         report = {
             "audit_timestamp": datetime.now().isoformat(),
@@ -348,7 +402,7 @@ logger.debug(f"Executing {func_name}")
             "stats": asdict(self.stats),
             "summary": self._generate_summary(),
             "issues": [asdict(issue) for issue in self.issues],
-            "recommendations": self._generate_recommendations()
+            "recommendations": self._generate_recommendations(),
         }
 
         with open(output_file, "w") as f:
@@ -362,30 +416,46 @@ logger.debug(f"Executing {func_name}")
         recommendations = []
 
         if self.stats.logging_coverage_percent < 50:
-            recommendations.append("CRITICAL: Logging coverage is below 50%. Implement comprehensive logging strategy.")
+            recommendations.append(
+                "CRITICAL: Logging coverage is below 50%. Implement comprehensive logging strategy."
+            )
         elif self.stats.logging_coverage_percent < 80:
-            recommendations.append("WARNING: Logging coverage is below 80%. Consider adding logging to more functions.")
+            recommendations.append(
+                "WARNING: Logging coverage is below 80%. Consider adding logging to more functions."
+            )
 
         if self.stats.critical_functions_without_logging > 0:
-            recommendations.append(f"HIGH PRIORITY: {self.stats.critical_functions_without_logging} critical functions lack logging.")
+            recommendations.append(
+                f"HIGH PRIORITY: {self.stats.critical_functions_without_logging} critical functions lack logging."
+            )
 
         if self.stats.total_error_handlers > 0:
-            error_coverage = (self.stats.error_handling_with_logging / self.stats.total_error_handlers) * 100
+            error_coverage = (
+                self.stats.error_handling_with_logging / self.stats.total_error_handlers
+            ) * 100
             if error_coverage < 90:
-                recommendations.append(f"Error handler logging coverage is {error_coverage:.1f}%. All error handlers should log exceptions.")
+                recommendations.append(
+                    f"Error handler logging coverage is {error_coverage:.1f}%. All error handlers should log exceptions."
+                )
 
         # Check for print statements
-        print_issues = [issue for issue in self.issues if issue.issue_type == "IMPROPER_LOGGING"]
+        print_issues = [
+            issue for issue in self.issues if issue.issue_type == "IMPROPER_LOGGING"
+        ]
         if print_issues:
-            recommendations.append(f"Replace {len(print_issues)} print() statements with proper logging.")
+            recommendations.append(
+                f"Replace {len(print_issues)} print() statements with proper logging."
+            )
 
-        recommendations.extend([
-            "Implement structured logging with consistent format across all modules",
-            "Add performance logging for critical operations",
-            "Implement log rotation and retention policies for production",
-            "Add correlation IDs for request tracing",
-            "Configure different log levels for development vs production"
-        ])
+        recommendations.extend(
+            [
+                "Implement structured logging with consistent format across all modules",
+                "Add performance logging for critical operations",
+                "Implement log rotation and retention policies for production",
+                "Add correlation IDs for request tracing",
+                "Configure different log levels for development vs production",
+            ]
+        )
 
         return recommendations
 
@@ -400,18 +470,15 @@ logger.debug(f"Executing {func_name}")
                     "line": issue.line_number,
                     "type": "ADD_LOGGING",
                     "suggestion": issue.suggestion,
-                    "priority": "HIGH"
+                    "priority": "HIGH",
                 }
                 fixes.append(fix)
 
         if auto_fix:
             self.logger.warning("Auto-fix not implemented yet. Manual fixes required.")
 
-        return {
-            "total_fixes": len(fixes),
-            "fixes": fixes,
-            "auto_fix_applied": False
-        }
+        return {"total_fixes": len(fixes), "fixes": fixes, "auto_fix_applied": False}
+
 
 def main():
     """Main function for running the logging auditor."""
@@ -426,10 +493,13 @@ def main():
     # Print summary
 
     # Show top issues
-    high_severity_issues = [issue for issue in auditor.issues if issue.severity == "HIGH"]
+    high_severity_issues = [
+        issue for issue in auditor.issues if issue.severity == "HIGH"
+    ]
     if high_severity_issues:
         for _issue in high_severity_issues[:5]:  # Show first 5
             pass
+
 
 if __name__ == "__main__":
     main()

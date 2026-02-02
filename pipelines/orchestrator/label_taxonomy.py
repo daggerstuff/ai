@@ -1,17 +1,19 @@
 """
 Label taxonomy and schema definitions for the Pixelated Empathy AI dataset pipeline.
-Defines standardized labels for therapeutic responses, crisis detection, and other primary tasks.
+Defines standardized labels for therapeutic responses, crisis detection, and other
+primary tasks.
 """
 
-from dataclasses import dataclass, field
-from datetime import datetime
-from typing import List, Optional, Dict, Any, Literal
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class TherapyModalityType(Enum):
     """Therapy modality types"""
+
     CBT = "cognitive_behavioral_therapy"
     DBT = "dialectical_behavior_therapy"
     PSYCHODYNAMIC = "psychodynamic"
@@ -24,6 +26,7 @@ class TherapyModalityType(Enum):
 
 class CrisisLevelType(Enum):
     """Crisis severity levels"""
+
     NO_RISK = "no_risk"
     LOW_RISK = "low_risk"
     MEDIUM_RISK = "medium_risk"
@@ -33,6 +36,7 @@ class CrisisLevelType(Enum):
 
 class TherapeuticResponseType(Enum):
     """Types of therapeutic responses"""
+
     REFLECTION = "reflection"
     EMPATHY = "empathy"
     CHALLENGE = "challenge"
@@ -49,6 +53,7 @@ class TherapeuticResponseType(Enum):
 
 class MentalHealthConditionType(Enum):
     """Common mental health conditions"""
+
     DEPRESSION = "depression"
     ANXIETY = "anxiety"
     PTSD = "post_traumatic_stress_disorder"
@@ -63,6 +68,7 @@ class MentalHealthConditionType(Enum):
 
 class DemographicType(Enum):
     """Demographic categories"""
+
     AGE_CHILD = "child"
     AGE_TEEN = "teenager"
     AGE_ADULT = "adult"
@@ -88,6 +94,7 @@ class DemographicType(Enum):
 
 class LabelProvenanceType(Enum):
     """Source of label"""
+
     AUTOMATED_MODEL = "automated_model"
     HUMAN_EXPERT = "human_expert"
     HUMAN_IN_THE_LOOP = "human_in_the_loop"
@@ -98,7 +105,10 @@ class LabelProvenanceType(Enum):
 @dataclass
 class LabelMetadata:
     """Metadata for a label including versioning, confidence, and provenance"""
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     version: str = "1.0"  # Version of the label taxonomy used
     confidence: float = 1.0  # Confidence score (0.0 to 1.0)
     confidence_explanation: Optional[str] = None
@@ -112,9 +122,12 @@ class LabelMetadata:
 @dataclass
 class TherapeuticResponseLabel:
     """Label for therapeutic response type"""
+
     response_type: TherapeuticResponseType
     effectiveness_score: Optional[float] = None  # 0.0 to 1.0
-    technique_usage_accuracy: Optional[float] = None  # How accurately technique was applied
+    technique_usage_accuracy: Optional[float] = (
+        None  # How accurately technique was applied
+    )
     skill_level: Optional[int] = None  # 1-5 scale
     metadata: LabelMetadata = field(default_factory=LabelMetadata)
 
@@ -122,8 +135,11 @@ class TherapeuticResponseLabel:
 @dataclass
 class CrisisLabel:
     """Label for crisis detection and severity"""
+
     crisis_level: CrisisLevelType
-    crisis_types: List[str] = field(default_factory=list)  # Specific crisis types detected
+    crisis_types: List[str] = field(
+        default_factory=list
+    )  # Specific crisis types detected
     risk_factors: List[str] = field(default_factory=list)  # Contributing risk factors
     protection_factors: List[str] = field(default_factory=list)  # Protective factors
     estimated_risk_probability: Optional[float] = None  # 0.0 to 1.0
@@ -134,15 +150,19 @@ class CrisisLabel:
 @dataclass
 class TherapyModalityLabel:
     """Label for therapy modality being used"""
+
     modality: TherapyModalityType
     modality_specific_techniques: List[str] = field(default_factory=list)
-    modality_adherence_score: Optional[float] = None  # How well modality was followed (0.0 to 1.0)
+    modality_adherence_score: Optional[float] = (
+        None  # How well modality was followed (0.0 to 1.0)
+    )
     metadata: LabelMetadata = field(default_factory=LabelMetadata)
 
 
 @dataclass
 class MentalHealthConditionLabel:
     """Label for mental health condition(s)"""
+
     conditions: List[MentalHealthConditionType] = field(default_factory=list)
     severity: Optional[float] = None  # 0.0 to 1.0 scale
     primary_condition: Optional[MentalHealthConditionType] = None
@@ -153,6 +173,7 @@ class MentalHealthConditionLabel:
 @dataclass
 class DemographicLabel:
     """Label for demographic information"""
+
     demographics: List[DemographicType] = field(default_factory=list)
     estimated_accuracy: Optional[float] = None  # Confidence in demographic estimation
     metadata: LabelMetadata = field(default_factory=LabelMetadata)
@@ -161,14 +182,19 @@ class DemographicLabel:
 @dataclass
 class LabelBundle:
     """Complete bundle of all applicable labels for a conversation"""
+
     conversation_id: str
-    therapeutic_response_labels: List[TherapeuticResponseLabel] = field(default_factory=list)
+    therapeutic_response_labels: List[TherapeuticResponseLabel] = field(
+        default_factory=list
+    )
     crisis_label: Optional[CrisisLabel] = None
     therapy_modality_label: Optional[TherapyModalityLabel] = None
     mental_health_condition_label: Optional[MentalHealthConditionLabel] = None
     demographic_label: Optional[DemographicLabel] = None
     label_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
     version: str = "1.0"
     additional_labels: Dict[str, Any] = field(default_factory=dict)  # For extensibility
 
@@ -176,20 +202,38 @@ class LabelBundle:
 @dataclass
 class LabelTaxonomySchema:
     """Comprehensive schema that defines the structure of all labels"""
+
     # Version of this taxonomy
     version: str = "1.0"
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
+
     # All available label categories
-    therapeutic_response_types: List[str] = field(default_factory=lambda: [e.value for e in TherapeuticResponseType])
-    crisis_levels: List[str] = field(default_factory=lambda: [e.value for e in CrisisLevelType])
-    therapy_modalities: List[str] = field(default_factory=lambda: [e.value for e in TherapyModalityType])
-    mental_health_conditions: List[str] = field(default_factory=lambda: [e.value for e in MentalHealthConditionType])
-    demographic_categories: List[str] = field(default_factory=lambda: [e.value for e in DemographicType])
-    label_provenance_types: List[str] = field(default_factory=lambda: [e.value for e in LabelProvenanceType])
-    
+    therapeutic_response_types: List[str] = field(
+        default_factory=lambda: [e.value for e in TherapeuticResponseType]
+    )
+    crisis_levels: List[str] = field(
+        default_factory=lambda: [e.value for e in CrisisLevelType]
+    )
+    therapy_modalities: List[str] = field(
+        default_factory=lambda: [e.value for e in TherapyModalityType]
+    )
+    mental_health_conditions: List[str] = field(
+        default_factory=lambda: [e.value for e in MentalHealthConditionType]
+    )
+    demographic_categories: List[str] = field(
+        default_factory=lambda: [e.value for e in DemographicType]
+    )
+    label_provenance_types: List[str] = field(
+        default_factory=lambda: [e.value for e in LabelProvenanceType]
+    )
+
     # Description of the taxonomy
-    description: str = "Label taxonomy for therapeutic conversation analysis in the Pixelated Empathy AI dataset pipeline"
+    description: str = (
+        "Label taxonomy for therapeutic conversation analysis in the "
+        "Pixelated Empathy AI dataset pipeline"
+    )
     documentation_url: Optional[str] = None
     version_history: List[Dict[str, Any]] = field(default_factory=list)
 
@@ -202,10 +246,10 @@ def get_default_taxonomy() -> LabelTaxonomySchema:
         version_history=[
             {
                 "version": "1.0",
-                "date": datetime.utcnow().isoformat(),
-                "changes": "Initial label taxonomy release"
+                "date": datetime.now(timezone.utc).isoformat(),
+                "changes": "Initial label taxonomy release",
             }
-        ]
+        ],
     )
 
 
@@ -214,13 +258,13 @@ def create_therapeutic_response_label(
     response_type: TherapeuticResponseType,
     confidence: float = 1.0,
     provenance: LabelProvenanceType = LabelProvenanceType.AUTOMATED_MODEL,
-    **kwargs
+    **kwargs,
 ) -> TherapeuticResponseLabel:
     """Helper function to create therapeutic response labels"""
     metadata = LabelMetadata(
         confidence=confidence,
         provenance=provenance,
-        **kwargs.get('metadata_kwargs', {})
+        **kwargs.get("metadata_kwargs", {}),
     )
     return TherapeuticResponseLabel(response_type=response_type, metadata=metadata)
 
@@ -229,12 +273,12 @@ def create_crisis_label(
     crisis_level: CrisisLevelType,
     confidence: float = 1.0,
     provenance: LabelProvenanceType = LabelProvenanceType.AUTOMATED_MODEL,
-    **kwargs
+    **kwargs,
 ) -> CrisisLabel:
     """Helper function to create crisis labels"""
     metadata = LabelMetadata(
         confidence=confidence,
         provenance=provenance,
-        **kwargs.get('metadata_kwargs', {})
+        **kwargs.get("metadata_kwargs", {}),
     )
     return CrisisLabel(crisis_level=crisis_level, metadata=metadata)

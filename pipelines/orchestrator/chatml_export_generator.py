@@ -11,12 +11,11 @@ import contextlib
 import json
 import os
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import boto3
-from botocore.client import BaseClient
 from botocore.exceptions import ClientError
 
 
@@ -41,7 +40,7 @@ class S3MultipartWriter:
 
     def __init__(
         self,
-        s3: BaseClient,
+        s3: Any,
         bucket: str,
         key: str,
         part_size_bytes: int = 8 * 1024 * 1024,
@@ -108,20 +107,15 @@ class ChatMLExportGenerator:
         bucket: str,
     ):
         # Use explicit creds if provided, else fall back to default provider chain
+        client_params: Dict[str, Any] = {
+            "service_name": "s3",
+            "endpoint_url": s3_endpoint,
+            "region_name": "us-east-1",
+        }
         if access_key and secret_key:
-            self.s3_client = boto3.client(
-                "s3",
-                endpoint_url=s3_endpoint,
-                aws_access_key_id=access_key,
-                aws_secret_access_key=secret_key,
-                region_name="us-east-1",
-            )
-        else:
-            self.s3_client = boto3.client(
-                "s3",
-                endpoint_url=s3_endpoint,
-                region_name="us-east-1",
-            )
+            client_params["aws_access_key_id"] = access_key
+            client_params["aws_secret_access_key"] = secret_key
+        self.s3_client = boto3.client(**client_params)
         self.bucket = bucket
 
     def load_manifest(self, manifest_key: str) -> Dict[str, Any]:
@@ -212,7 +206,9 @@ class ChatMLExportGenerator:
         else:
             yield parsed
 
-    def convert_to_chatml(self, conversation: Dict[str, Any]) -> Dict[str, Any]:
+    def convert_to_chatml(
+        self, conversation: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Convert a conversation to ChatML format"""
         messages = []
 
@@ -271,7 +267,7 @@ class ChatMLExportGenerator:
                 "source": conversation.get("source", "unknown"),
                 "dataset_family": conversation.get("family", "unknown"),
                 "quality": conversation.get("quality", "standard"),
-                "exported_at": datetime.now(datetime.UTC).isoformat(),
+                "exported_at": datetime.now(timezone.utc).isoformat(),
             },
         }
 
@@ -340,12 +336,20 @@ class ChatMLExportGenerator:
                     if chatml_conv is None:
                         stats["failed_conversions"] += 1
                     else:
-                        chatml_conv.setdefault("metadata", {})
-                        chatml_conv["metadata"]["family"] = family_name
-                        chatml_conv["metadata"]["source_file"] = s3_key
-                        writer.write_line(json.dumps(chatml_conv, ensure_ascii=False))
-                        lines_in_shard += 1
-                        stats["successful_conversions"] += 1
+                        if writer is None:
+                            start_new_shard()
+                        # Ensure writer exists before writing
+                        if writer is None:
+                            stats["failed_conversions"] += 1
+                        else:
+                            chatml_conv.setdefault("metadata", {})
+                            chatml_conv["metadata"]["family"] = family_name
+                            chatml_conv["metadata"]["source_file"] = s3_key
+                            writer.write_line(
+                                json.dumps(chatml_conv, ensure_ascii=False)
+                            )
+                            lines_in_shard += 1
+                            stats["successful_conversions"] += 1
 
                     if max_per_dataset and processed_this_dataset >= max_per_dataset:
                         break
@@ -430,7 +434,7 @@ class ChatMLExportGenerator:
         summary_key = f"{output_prefix}/release_0_export_summary.json"
         summary_doc = json.dumps(
             {
-                "generated_at": datetime.now(datetime.UTC).isoformat(),
+                "generated_at": datetime.now(timezone.utc).isoformat(),
                 "manifest_source": manifest_key,
                 "families": total_stats,
                 "total_conversations": sum(

@@ -9,10 +9,18 @@ import unittest
 from unittest.mock import Mock, patch
 
 from .audio_processor import AudioProcessor, AudioQualityMetrics
-from .personality_extractor import PersonalityDimension, PersonalityExtractor, PersonalityProfile
+from .personality_extractor import (
+    PersonalityDimension,
+    PersonalityExtractor,
+    PersonalityProfile,
+)
 from .voice_conversation_converter import VoiceConversationConverter
 from .voice_pipeline_integration import VoicePipelineConfig, VoiceTrainingPipeline
-from .voice_transcriber import TranscriptionResult, TranscriptionSegment, VoiceTranscriber
+from .voice_transcriber import (
+    TranscriptionResult,
+    TranscriptionSegment,
+    VoiceTranscriber,
+)
 
 
 class TestAudioProcessor(unittest.TestCase):
@@ -31,7 +39,7 @@ class TestAudioProcessor(unittest.TestCase):
                 "duration": 10.0,
                 "sample_rate": 16000,
                 "channels": 1,
-                "codec": "pcm_s16le"
+                "codec": "pcm_s16le",
             }
 
             metrics = self.processor.assess_audio_quality(mock_file)
@@ -54,7 +62,7 @@ class TestAudioProcessor(unittest.TestCase):
             channels=1,
             snr_db=25.0,
             silence_ratio=0.1,
-            clipping_ratio=0.0
+            clipping_ratio=0.0,
         )
 
         score = self.processor._calculate_quality_score(high_quality_metrics)
@@ -68,7 +76,7 @@ class TestAudioProcessor(unittest.TestCase):
             channels=1,
             snr_db=5.0,  # Low SNR
             silence_ratio=0.9,  # Mostly silence
-            clipping_ratio=0.05  # Clipping present
+            clipping_ratio=0.05,  # Clipping present
         )
 
         score = self.processor._calculate_quality_score(low_quality_metrics)
@@ -80,8 +88,13 @@ class TestVoiceTranscriber(unittest.TestCase):
 
     def setUp(self):
         # Mock the model initialization to avoid loading actual models
-        with patch("ai.pipelines.orchestrator.voice_transcriber.FASTER_WHISPER_AVAILABLE", False):
-            with patch("ai.pipelines.orchestrator.voice_transcriber.WHISPER_AVAILABLE", False):
+        with patch(
+            "ai.pipelines.orchestrator.voice_transcriber.FASTER_WHISPER_AVAILABLE",
+            False,
+        ):
+            with patch(
+                "ai.pipelines.orchestrator.voice_transcriber.WHISPER_AVAILABLE", False
+            ):
                 self.transcriber = VoiceTranscriber()
                 self.transcriber.model = Mock()
                 self.transcriber.model_type = "mock"
@@ -90,17 +103,14 @@ class TestVoiceTranscriber(unittest.TestCase):
         """Test creation of transcription results."""
         segments = [
             TranscriptionSegment(
-                start_time=0.0,
-                end_time=5.0,
-                text="Hello, how are you?",
-                confidence=0.9
+                start_time=0.0, end_time=5.0, text="Hello, how are you?", confidence=0.9
             ),
             TranscriptionSegment(
                 start_time=5.0,
                 end_time=10.0,
                 text="I'm doing well, thank you.",
-                confidence=0.85
-            )
+                confidence=0.85,
+            ),
         ]
 
         result = TranscriptionResult(
@@ -109,7 +119,7 @@ class TestVoiceTranscriber(unittest.TestCase):
             segments=segments,
             full_text="Hello, how are you? I'm doing well, thank you.",
             confidence_score=0.875,
-            model_used="mock-whisper"
+            model_used="mock-whisper",
         )
 
         assert result.success
@@ -157,9 +167,12 @@ class TestPersonalityExtractor(unittest.TestCase):
 
         # Check that we found some personality indicators
         openness_score = next(
-            (score for score in profile.personality_scores
-             if score.dimension == PersonalityDimension.OPENNESS),
-            None
+            (
+                score
+                for score in profile.personality_scores
+                if score.dimension == PersonalityDimension.OPENNESS
+            ),
+            None,
         )
         assert openness_score is not None
         assert openness_score.score > 0.5  # Should detect high openness
@@ -173,7 +186,9 @@ class TestPersonalityExtractor(unittest.TestCase):
         informal_profile = self.extractor.extract_personality_profile(informal_text)
 
         # Check that different styles are detected
-        assert len(formal_profile.communication_patterns) != len(informal_profile.communication_patterns)
+        assert len(formal_profile.communication_patterns) != len(
+            informal_profile.communication_patterns
+        )
 
     def test_emotional_analysis(self):
         """Test emotional pattern analysis."""
@@ -204,20 +219,20 @@ class TestVoiceConversationConverter(unittest.TestCase):
                 start_time=0.0,
                 end_time=3.0,
                 text="Hello, how can I help you today?",
-                confidence=0.9
+                confidence=0.9,
             ),
             TranscriptionSegment(
                 start_time=5.0,
                 end_time=8.0,
                 text="I've been feeling anxious lately.",
-                confidence=0.85
+                confidence=0.85,
             ),
             TranscriptionSegment(
                 start_time=10.0,
                 end_time=15.0,
                 text="Can you tell me more about what's been causing this anxiety?",
-                confidence=0.88
-            )
+                confidence=0.88,
+            ),
         ]
 
         transcription = TranscriptionResult(
@@ -226,7 +241,7 @@ class TestVoiceConversationConverter(unittest.TestCase):
             segments=segments,
             full_text=" ".join(seg.text for seg in segments),
             confidence_score=0.88,
-            model_used="test-whisper"
+            model_used="test-whisper",
         )
 
         result = self.converter.convert_transcription_to_conversation(transcription)
@@ -241,14 +256,18 @@ class TestVoiceConversationConverter(unittest.TestCase):
         prev_text = "How are you feeling today?"
         current_text = "I'm feeling much better, thank you."
 
-        speaker_change = self.converter._detect_speaker_change_by_content(prev_text, current_text)
+        speaker_change = self.converter._detect_speaker_change_by_content(
+            prev_text, current_text
+        )
         assert speaker_change  # Question followed by answer
 
         # Test non-speaker change
         prev_text = "I think we should consider"
         current_text = "all the available options carefully."
 
-        speaker_change = self.converter._detect_speaker_change_by_content(prev_text, current_text)
+        speaker_change = self.converter._detect_speaker_change_by_content(
+            prev_text, current_text
+        )
         assert not speaker_change  # Continuation of same thought
 
     def test_message_text_cleaning(self):
@@ -270,14 +289,20 @@ class TestVoicePipelineIntegration(unittest.TestCase):
             youtube_output_dir="test_youtube",
             audio_output_dir="test_audio",
             transcription_output_dir="test_transcriptions",
-            conversation_output_dir="test_conversations"
+            conversation_output_dir="test_conversations",
         )
 
-    @patch("ai.pipelines.orchestrator.voice_pipeline_integration.YouTubePlaylistProcessor")
+    @patch(
+        "ai.pipelines.orchestrator.voice_pipeline_integration.YouTubePlaylistProcessor"
+    )
     @patch("ai.pipelines.orchestrator.voice_pipeline_integration.AudioProcessor")
     @patch("ai.pipelines.orchestrator.voice_pipeline_integration.VoiceTranscriber")
-    @patch("ai.pipelines.orchestrator.voice_pipeline_integration.VoiceConversationConverter")
-    def test_pipeline_initialization(self, mock_converter, mock_transcriber, mock_audio, mock_youtube):
+    @patch(
+        "ai.pipelines.orchestrator.voice_pipeline_integration.VoiceConversationConverter"
+    )
+    def test_pipeline_initialization(
+        self, mock_converter, mock_transcriber, mock_audio, mock_youtube
+    ):
         """Test pipeline component initialization."""
         pipeline = VoiceTrainingPipeline(self.config)
 
@@ -289,6 +314,7 @@ class TestVoicePipelineIntegration(unittest.TestCase):
 
     def test_quality_distribution_analysis(self):
         """Test quality distribution analysis."""
+
         from .voice_conversation_converter import ConversionResult
 
         # Create mock conversion results with different quality scores
@@ -297,7 +323,7 @@ class TestVoicePipelineIntegration(unittest.TestCase):
             ConversionResult(success=True, quality_score=0.7),  # good
             ConversionResult(success=True, quality_score=0.5),  # acceptable
             ConversionResult(success=True, quality_score=0.3),  # poor
-            ConversionResult(success=False, quality_score=0.0)  # failed
+            ConversionResult(success=False, quality_score=0.0),  # failed
         ]
 
         pipeline = VoiceTrainingPipeline(self.config)
@@ -319,7 +345,9 @@ class TestEndToEndIntegration(unittest.TestCase):
 
         # Create mock data that flows through the pipeline
         mock_audio_file = "test_audio.wav"
-        mock_transcription_text = "Hello, how are you feeling today? I'm doing well, thank you for asking."
+        mock_transcription_text = (
+            "Hello, how are you feeling today? I'm doing well, thank you for asking."
+        )
 
         # Test audio quality assessment
         processor = AudioProcessor()
@@ -327,14 +355,16 @@ class TestEndToEndIntegration(unittest.TestCase):
             mock_ffprobe.return_value = {
                 "duration": 10.0,
                 "sample_rate": 16000,
-                "channels": 1
+                "channels": 1,
             }
             quality_metrics = processor.assess_audio_quality(mock_audio_file)
             assert quality_metrics.quality_score > 0.0
 
         # Test personality extraction
         extractor = PersonalityExtractor()
-        personality_profile = extractor.extract_personality_profile(mock_transcription_text)
+        personality_profile = extractor.extract_personality_profile(
+            mock_transcription_text
+        )
         assert personality_profile.confidence_score > 0.0
 
         # Test conversation conversion
@@ -343,7 +373,9 @@ class TestEndToEndIntegration(unittest.TestCase):
         # Create mock transcription segments
         segments = [
             TranscriptionSegment(0.0, 3.0, "Hello, how are you feeling today?", 0.9),
-            TranscriptionSegment(4.0, 7.0, "I'm doing well, thank you for asking.", 0.85)
+            TranscriptionSegment(
+                4.0, 7.0, "I'm doing well, thank you for asking.", 0.85
+            ),
         ]
 
         transcription = TranscriptionResult(
@@ -351,7 +383,7 @@ class TestEndToEndIntegration(unittest.TestCase):
             success=True,
             segments=segments,
             full_text=mock_transcription_text,
-            confidence_score=0.875
+            confidence_score=0.875,
         )
 
         conversion_result = converter.convert_transcription_to_conversation(

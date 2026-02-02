@@ -12,6 +12,7 @@ from datetime import datetime
 from pathlib import Path
 
 from .audio_processor import AudioProcessor
+
 from .logger import setup_logger
 from .personality_extractor import PersonalityExtractor
 from .voice_conversation_converter import ConversionResult, VoiceConversationConverter
@@ -27,6 +28,7 @@ from .youtube_processor import (
 @dataclass
 class VoicePipelineConfig:
     """Configuration for the voice processing pipeline."""
+
     # YouTube processing
     youtube_output_dir: str = "voice_data/youtube"
     audio_format: str = "wav"
@@ -68,6 +70,7 @@ class VoicePipelineConfig:
 @dataclass
 class VoicePipelineResult:
     """Result of complete voice pipeline processing."""
+
     success: bool
     total_playlists: int = 0
     total_audio_files: int = 0
@@ -99,21 +102,21 @@ class VoiceTrainingPipeline:
             max_concurrent=config.max_concurrent_downloads,
             rate_limit_config=config.rate_limit_config,
             proxy_config=config.proxy_config,
-            anti_detection_config=config.anti_detection_config
+            anti_detection_config=config.anti_detection_config,
         )
 
         self.audio_processor = AudioProcessor(
             target_sample_rate=config.target_sample_rate,
             min_segment_duration=config.min_segment_duration,
             max_segment_duration=config.max_segment_duration,
-            quality_threshold=config.audio_quality_threshold
+            quality_threshold=config.audio_quality_threshold,
         )
 
         self.voice_transcriber = VoiceTranscriber(
             model_name=config.whisper_model,
             language=config.transcription_language,
             min_confidence=config.min_transcription_confidence,
-            use_faster_whisper=config.use_faster_whisper
+            use_faster_whisper=config.use_faster_whisper,
         )
 
         self.personality_extractor = PersonalityExtractor(
@@ -122,7 +125,7 @@ class VoiceTrainingPipeline:
 
         self.conversation_converter = VoiceConversationConverter(
             min_conversation_length=config.min_conversation_length,
-            max_gap_seconds=config.max_speaker_gap
+            max_gap_seconds=config.max_speaker_gap,
         )
 
         # Create output directories
@@ -135,27 +138,36 @@ class VoiceTrainingPipeline:
             self.config.audio_output_dir,
             self.config.transcription_output_dir,
             self.config.personality_output_dir,
-            self.config.conversation_output_dir
+            self.config.conversation_output_dir,
         ]
 
         for directory in directories:
             Path(directory).mkdir(parents=True, exist_ok=True)
 
-    async def process_youtube_playlists(self, playlist_urls: list[str]) -> VoicePipelineResult:
+    async def process_youtube_playlists(
+        self, playlist_urls: list[str]
+    ) -> VoicePipelineResult:
         """Process YouTube playlists through the complete pipeline."""
         start_time = datetime.now()
 
         try:
-            self.logger.info(f"Starting voice pipeline processing for {len(playlist_urls)} playlists")
+            self.logger.info(
+                f"Starting voice pipeline processing for {len(playlist_urls)} playlists"
+            )
 
             # Step 1: Download YouTube playlists
             self.logger.info("Step 1: Downloading YouTube playlists...")
-            youtube_result = await self.youtube_processor.process_playlists_batch(playlist_urls)
+            youtube_result = await self.youtube_processor.process_playlists_batch(
+                playlist_urls
+            )
 
             if youtube_result.successful_playlists == 0:
                 return VoicePipelineResult(
                     success=False,
-                    errors=["No playlists downloaded successfully", *youtube_result.errors]
+                    errors=[
+                        "No playlists downloaded successfully",
+                        *youtube_result.errors,
+                    ],
                 )
 
             # Collect all audio files
@@ -169,15 +181,16 @@ class VoiceTrainingPipeline:
             # Step 2: Process audio files
             self.logger.info("Step 2: Processing audio files...")
             audio_results = self.audio_processor.process_batch(
-                all_audio_files,
-                self.config.audio_output_dir
+                all_audio_files, self.config.audio_output_dir
             )
 
             # Collect processed audio segments
             processed_segments = []
             for result in audio_results:
                 if result.success:
-                    processed_segments.extend([seg.file_path for seg in result.segments])
+                    processed_segments.extend(
+                        [seg.file_path for seg in result.segments]
+                    )
 
             self.logger.info(f"Processed {len(processed_segments)} audio segments")
 
@@ -185,17 +198,20 @@ class VoiceTrainingPipeline:
             self.logger.info("Step 3: Transcribing audio segments...")
             transcription_result = self.voice_transcriber.transcribe_batch(
                 processed_segments,
-                self.config.transcription_output_dir if self.config.save_intermediate_results else None
+                self.config.transcription_output_dir
+                if self.config.save_intermediate_results
+                else None,
             )
 
-            successful_transcriptions = [r for r in transcription_result.results if r.success]
+            successful_transcriptions = [
+                r for r in transcription_result.results if r.success
+            ]
             self.logger.info(f"Transcribed {len(successful_transcriptions)} segments")
 
             # Step 4: Extract personality profiles and convert to conversations
             self.logger.info("Step 4: Converting to conversation format...")
             conversion_results = self.conversation_converter.convert_batch(
-                successful_transcriptions,
-                self.config.conversation_output_dir
+                successful_transcriptions, self.config.conversation_output_dir
             )
 
             successful_conversations = [r for r in conversion_results if r.success]
@@ -203,7 +219,9 @@ class VoiceTrainingPipeline:
 
             # Step 5: Quality filtering and final processing
             self.logger.info("Step 5: Quality filtering...")
-            high_quality_conversations = self._filter_by_quality(successful_conversations)
+            high_quality_conversations = self._filter_by_quality(
+                successful_conversations
+            )
 
             # Generate comprehensive results
             processing_time = (datetime.now() - start_time).total_seconds()
@@ -215,19 +233,25 @@ class VoiceTrainingPipeline:
                 total_transcriptions=len(successful_transcriptions),
                 total_conversations=len(high_quality_conversations),
                 processing_time=processing_time,
-                quality_distribution=self._analyze_quality_distribution(successful_conversations),
+                quality_distribution=self._analyze_quality_distribution(
+                    successful_conversations
+                ),
                 errors=youtube_result.errors + transcription_result.errors,
                 output_files={
-                    "conversations": [r.conversation for r in high_quality_conversations],
+                    "conversations": [
+                        r.conversation for r in high_quality_conversations
+                    ],
                     "transcriptions": [r.file_path for r in successful_transcriptions],
-                    "audio_segments": processed_segments
-                }
+                    "audio_segments": processed_segments,
+                },
             )
 
             # Save pipeline summary
             self._save_pipeline_summary(result)
 
-            self.logger.info(f"Pipeline complete: {len(high_quality_conversations)} high-quality conversations in {processing_time:.2f}s")
+            self.logger.info(
+                f"Pipeline complete: {len(high_quality_conversations)} high-quality conversations in {processing_time:.2f}s"
+            )
             return result
 
         except Exception as e:
@@ -237,27 +261,36 @@ class VoiceTrainingPipeline:
             return VoicePipelineResult(
                 success=False,
                 processing_time=(datetime.now() - start_time).total_seconds(),
-                errors=[error_msg]
+                errors=[error_msg],
             )
 
-    def _filter_by_quality(self, conversion_results: list[ConversionResult]) -> list[ConversionResult]:
+    def _filter_by_quality(
+        self, conversion_results: list[ConversionResult]
+    ) -> list[ConversionResult]:
         """Filter conversations by overall quality threshold."""
         high_quality = []
 
         for result in conversion_results:
-            if result.success and result.quality_score >= self.config.overall_quality_threshold:
+            if (
+                result.success
+                and result.quality_score >= self.config.overall_quality_threshold
+            ):
                 high_quality.append(result)
 
-        self.logger.info(f"Quality filtering: {len(high_quality)}/{len(conversion_results)} conversations passed")
+        self.logger.info(
+            f"Quality filtering: {len(high_quality)}/{len(conversion_results)} conversations passed"
+        )
         return high_quality
 
-    def _analyze_quality_distribution(self, results: list[ConversionResult]) -> dict[str, int]:
+    def _analyze_quality_distribution(
+        self, results: list[ConversionResult]
+    ) -> dict[str, int]:
         """Analyze quality score distribution."""
         distribution = {
-            "excellent": 0,    # 0.8+
-            "good": 0,         # 0.6-0.8
-            "acceptable": 0,   # 0.4-0.6
-            "poor": 0          # <0.4
+            "excellent": 0,  # 0.8+
+            "good": 0,  # 0.6-0.8
+            "acceptable": 0,  # 0.4-0.6
+            "poor": 0,  # <0.4
         }
 
         for result in results:
@@ -277,14 +310,17 @@ class VoiceTrainingPipeline:
     def _save_pipeline_summary(self, result: VoicePipelineResult):
         """Save comprehensive pipeline processing summary."""
         try:
-            summary_path = Path(self.config.conversation_output_dir) / f"pipeline_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            summary_path = (
+                Path(self.config.conversation_output_dir)
+                / f"pipeline_summary_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            )
 
             summary_data = {
                 "pipeline_config": {
                     "youtube_output_dir": self.config.youtube_output_dir,
                     "whisper_model": self.config.whisper_model,
                     "quality_threshold": self.config.overall_quality_threshold,
-                    "target_sample_rate": self.config.target_sample_rate
+                    "target_sample_rate": self.config.target_sample_rate,
                 },
                 "results": {
                     "success": result.success,
@@ -293,10 +329,10 @@ class VoiceTrainingPipeline:
                     "total_transcriptions": result.total_transcriptions,
                     "total_conversations": result.total_conversations,
                     "processing_time": result.processing_time,
-                    "quality_distribution": result.quality_distribution
+                    "quality_distribution": result.quality_distribution,
                 },
                 "errors": result.errors,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now().isoformat(),
             }
 
             with open(summary_path, "w", encoding="utf-8") as f:
@@ -313,7 +349,9 @@ class VoiceTrainingPipeline:
         report.append("=" * 80)
         report.append("VOICE TRAINING DATA PIPELINE REPORT")
         report.append("=" * 80)
-        report.append(f"Processing Status: {'✅ SUCCESS' if result.success else '❌ FAILED'}")
+        report.append(
+            f"Processing Status: {'✅ SUCCESS' if result.success else '❌ FAILED'}"
+        )
         report.append(f"Total Processing Time: {result.processing_time:.2f} seconds")
         report.append("")
 
@@ -325,7 +363,9 @@ class VoiceTrainingPipeline:
         report.append(f"High-Quality Conversations: {result.total_conversations}")
 
         if result.total_playlists > 0:
-            conversion_rate = (result.total_conversations / result.total_playlists) * 100
+            conversion_rate = (
+                result.total_conversations / result.total_playlists
+            ) * 100
             report.append(f"Playlist-to-Conversation Rate: {conversion_rate:.1f}%")
 
         report.append("")
@@ -352,7 +392,7 @@ async def process_youtube_voice_data(
     playlist_urls: list[str],
     output_base_dir: str = "voice_training_data",
     whisper_model: str = "base",
-    quality_threshold: float = 0.5
+    quality_threshold: float = 0.5,
 ) -> VoicePipelineResult:
     """
     Process YouTube playlists through the complete voice training pipeline.
@@ -367,7 +407,7 @@ async def process_youtube_voice_data(
         personality_output_dir=f"{output_base_dir}/personalities",
         conversation_output_dir=f"{output_base_dir}/conversations",
         whisper_model=whisper_model,
-        overall_quality_threshold=quality_threshold
+        overall_quality_threshold=quality_threshold,
     )
 
     pipeline = VoiceTrainingPipeline(config)

@@ -24,6 +24,7 @@ class MentalHealthValidationResult(ValidationResult):
     ethical_compliance: bool = False
     privacy_protection: bool = False
     therapeutic_content_score: float = 0.0
+
     sensitive_content_flags: list[str] = None
     anonymization_score: float = 0.0
 

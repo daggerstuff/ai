@@ -282,7 +282,8 @@ def evaluate_test_case(detector, test_case: dict[str, Any]) -> dict[str, Any]:
     # For routine tests, check that no crisis types are detected
     if test_case["expected_types"]:
         types_match = any(
-            expected_type in result.crisis_types for expected_type in test_case["expected_types"]
+            expected_type in result.crisis_types
+            for expected_type in test_case["expected_types"]
         )
     else:
         types_match = len(result.crisis_types) == 0
@@ -302,7 +303,11 @@ def evaluate_test_case(detector, test_case: dict[str, Any]) -> dict[str, Any]:
             "types": result.crisis_types,
         },
         "passed": test_passed,
-        "issues": {"level": level_match, "confidence": confidence_ok, "types": types_match},
+        "issues": {
+            "level": level_match,
+            "confidence": confidence_ok,
+            "types": types_match,
+        },
     }
 
 
@@ -330,7 +335,9 @@ def analyze_failures(results: list[dict[str, Any]]) -> None:
     logger.info(f"Crisis Type Detection Issues: {failure_types['types']}")
 
 
-def print_report(results: list[dict[str, Any]], passed: int, failed: int, accuracy: float) -> None:
+def print_report(
+    results: list[dict[str, Any]], passed: int, failed: int, accuracy: float
+) -> None:
     logger.info("\n" + "=" * 80)
     logger.info("🎯 PRODUCTION VALIDATION RESULTS")
     logger.info("=" * 80)
@@ -348,7 +355,9 @@ def print_report(results: list[dict[str, Any]], passed: int, failed: int, accura
         logger.info("✅ CRISIS DETECTION SYSTEM READY FOR DEPLOYMENT")
     else:
         logger.info("\n❌ ACCURACY TARGET NOT MET")
-        logger.info(f"Need {95.0 - accuracy:.1f}% improvement to reach production standard")
+        logger.info(
+            f"Need {95.0 - accuracy:.1f}% improvement to reach production standard"
+        )
         logger.info("❌ PRODUCTION CERTIFICATION DENIED")
 
     # Detailed failure analysis
@@ -356,7 +365,9 @@ def print_report(results: list[dict[str, Any]], passed: int, failed: int, accura
         analyze_failures(results)
 
 
-def log_test_case_result(test_case: dict[str, Any], res: dict[str, Any], status: str) -> None:
+def log_test_case_result(
+    test_case: dict[str, Any], res: dict[str, Any], status: str
+) -> None:
     logger.info(f"\n{test_case['id']}")
     logger.info(
         f"  Expected: {res['expected']['level']} (conf ≥{res['expected']['confidence']}) {res['expected']['types']}"

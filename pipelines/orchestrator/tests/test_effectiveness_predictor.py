@@ -3,7 +3,6 @@
 Test suite for Therapeutic Effectiveness Prediction System
 """
 
-
 import pytest
 
 from .effectiveness_predictor import (
@@ -28,10 +27,16 @@ class TestTherapeuticEffectivenessPredictor:
             "id": "high_eff_001",
             "content": "I understand you're struggling with depression. Let's work together using cognitive behavioral techniques and mindfulness to identify and challenge negative thought patterns. I believe we can make significant progress with your motivation and family support.",
             "turns": [
-                {"speaker": "user", "text": "I've been depressed but I'm motivated to change and have family support."},
-                {"speaker": "therapist", "text": "Let's work together using CBT and mindfulness techniques."}
+                {
+                    "speaker": "user",
+                    "text": "I've been depressed but I'm motivated to change and have family support.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "Let's work together using CBT and mindfulness techniques.",
+                },
             ],
-            "metadata": {"condition": "depression", "session_number": 1}
+            "metadata": {"condition": "depression", "session_number": 1},
         }
 
         self.moderate_effectiveness_conversation = {
@@ -39,28 +44,46 @@ class TestTherapeuticEffectivenessPredictor:
             "content": "I hear that you're having some difficulties. Let's try to work on some coping strategies.",
             "turns": [
                 {"speaker": "user", "text": "I'm having some problems with anxiety."},
-                {"speaker": "therapist", "text": "Let's work on some coping strategies."}
+                {
+                    "speaker": "therapist",
+                    "text": "Let's work on some coping strategies.",
+                },
             ],
-            "metadata": {"condition": "anxiety"}
+            "metadata": {"condition": "anxiety"},
         }
 
         self.low_effectiveness_conversation = {
             "id": "low_eff_001",
             "content": "I see you have multiple issues including substance use, trauma history, and social isolation. This will be challenging.",
             "turns": [
-                {"speaker": "user", "text": "I have drinking problems, trauma, and no friends. Nothing works."},
-                {"speaker": "therapist", "text": "This will be challenging with multiple issues."}
+                {
+                    "speaker": "user",
+                    "text": "I have drinking problems, trauma, and no friends. Nothing works.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "This will be challenging with multiple issues.",
+                },
             ],
-            "metadata": {"condition": "depression", "comorbidities": ["substance_use", "ptsd"]}
+            "metadata": {
+                "condition": "depression",
+                "comorbidities": ["substance_use", "ptsd"],
+            },
         }
 
         self.protective_factors_conversation = {
             "id": "protective_001",
             "content": "You mentioned having good family support, stable employment, and strong motivation to change. These are excellent resources we can build upon.",
             "turns": [
-                {"speaker": "user", "text": "I have good family support, a stable job, and I'm motivated."},
-                {"speaker": "therapist", "text": "These are excellent resources we can build upon."}
-            ]
+                {
+                    "speaker": "user",
+                    "text": "I have good family support, a stable job, and I'm motivated.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "These are excellent resources we can build upon.",
+                },
+            ],
         }
 
     def test_predictor_initialization(self):
@@ -83,7 +106,9 @@ class TestTherapeuticEffectivenessPredictor:
 
     def test_extract_therapeutic_elements_cbt(self):
         """Test extraction of CBT therapeutic elements."""
-        content = "Let's use cognitive behavioral techniques to challenge negative thoughts"
+        content = (
+            "Let's use cognitive behavioral techniques to challenge negative thoughts"
+        )
         turns = []
 
         elements = self.predictor._extract_therapeutic_elements(content, turns)
@@ -102,7 +127,9 @@ class TestTherapeuticEffectivenessPredictor:
 
         assert "CBT" in elements["interventions"]
         assert "mindfulness" in elements["interventions"]
-        assert len(elements["interventions"]) >= 2  # May detect additional interventions
+        assert (
+            len(elements["interventions"]) >= 2
+        )  # May detect additional interventions
 
     def test_identify_risk_factors(self):
         """Test identification of risk factors."""
@@ -124,7 +151,9 @@ class TestTherapeuticEffectivenessPredictor:
         turns = []
         metadata = {}
 
-        protective_factors = self.predictor._identify_protective_factors(content, turns, metadata)
+        protective_factors = self.predictor._identify_protective_factors(
+            content, turns, metadata
+        )
 
         assert "social_support" in protective_factors
         assert "motivation" in protective_factors
@@ -133,29 +162,37 @@ class TestTherapeuticEffectivenessPredictor:
 
     def test_predict_high_effectiveness_conversation(self):
         """Test prediction for high effectiveness conversation."""
-        prediction = self.predictor.predict_effectiveness(self.high_effectiveness_conversation)
+        prediction = self.predictor.predict_effectiveness(
+            self.high_effectiveness_conversation
+        )
 
         assert isinstance(prediction, EffectivenessPrediction)
         assert prediction.conversation_id == "high_eff_001"
         assert prediction.overall_effectiveness in [
             EffectivenessLevel.HIGHLY_EFFECTIVE,
-            EffectivenessLevel.MODERATELY_EFFECTIVE
+            EffectivenessLevel.MODERATELY_EFFECTIVE,
         ]
         assert prediction.success_probability > 0.5
-        assert len(prediction.outcome_metrics) == 6  # All outcome types including crisis reduction
+        assert (
+            len(prediction.outcome_metrics) == 6
+        )  # All outcome types including crisis reduction
         assert len(prediction.protective_factors) > 0
         assert len(prediction.recommendations) > 0
 
     def test_predict_low_effectiveness_conversation(self):
         """Test prediction for low effectiveness conversation."""
-        prediction = self.predictor.predict_effectiveness(self.low_effectiveness_conversation)
+        prediction = self.predictor.predict_effectiveness(
+            self.low_effectiveness_conversation
+        )
 
         assert prediction.conversation_id == "low_eff_001"
         assert prediction.overall_effectiveness in [
             EffectivenessLevel.MINIMALLY_EFFECTIVE,
-            EffectivenessLevel.INEFFECTIVE
+            EffectivenessLevel.INEFFECTIVE,
         ]
-        assert prediction.success_probability < 0.7  # Should be lower due to risk factors
+        assert (
+            prediction.success_probability < 0.7
+        )  # Should be lower due to risk factors
         assert len(prediction.risk_factors) > 0
         assert len(prediction.recommendations) > 0
 
@@ -166,7 +203,7 @@ class TestTherapeuticEffectivenessPredictor:
             "interventions": ["CBT", "mindfulness"],
             "therapeutic_alliance": 0.8,
             "client_engagement": 0.9,
-            "skill_building": 0.7
+            "skill_building": 0.7,
         }
 
         score = self.predictor._calculate_base_outcome_score(
@@ -179,7 +216,7 @@ class TestTherapeuticEffectivenessPredictor:
             "interventions": [],
             "therapeutic_alliance": 0.2,
             "client_engagement": 0.1,
-            "skill_building": 0.0
+            "skill_building": 0.0,
         }
 
         score = self.predictor._calculate_base_outcome_score(
@@ -194,7 +231,7 @@ class TestTherapeuticEffectivenessPredictor:
             "interventions": ["CBT", "mindfulness"],
             "therapeutic_alliance": 0.8,
             "client_engagement": 0.9,
-            "skill_building": 0.7
+            "skill_building": 0.7,
         }
         risk_factors = ["substance_use"]
         protective_factors = ["social_support", "motivation"]
@@ -209,7 +246,7 @@ class TestTherapeuticEffectivenessPredictor:
             "interventions": [],
             "therapeutic_alliance": 0.2,
             "client_engagement": 0.1,
-            "skill_building": 0.0
+            "skill_building": 0.0,
         }
 
         confidence = self.predictor._determine_prediction_confidence(
@@ -224,7 +261,7 @@ class TestTherapeuticEffectivenessPredictor:
             "interventions": ["CBT", "DBT"],
             "therapeutic_alliance": 0.8,
             "client_engagement": 0.7,
-            "skill_building": 0.6
+            "skill_building": 0.6,
         }
 
         strength = self.predictor._assess_evidence_strength(
@@ -237,7 +274,7 @@ class TestTherapeuticEffectivenessPredictor:
             "interventions": [],
             "therapeutic_alliance": 0.5,
             "client_engagement": 0.5,
-            "skill_building": 0.5
+            "skill_building": 0.5,
         }
 
         strength = self.predictor._assess_evidence_strength(
@@ -250,31 +287,38 @@ class TestTherapeuticEffectivenessPredictor:
         # Create metrics for all outcome types with high scores
         high_metrics = []
         for outcome_type in OutcomeType:
-            high_metrics.append(OutcomeMetric(
-                metric_type=outcome_type,
-                baseline_score=0.3,
-                predicted_score=0.9,
-                improvement_percentage=200.0,
-                confidence=PredictionConfidence.HIGH,
-                evidence_strength="strong",
-                timeframe_weeks=16
-            ))
+            high_metrics.append(
+                OutcomeMetric(
+                    metric_type=outcome_type,
+                    baseline_score=0.3,
+                    predicted_score=0.9,
+                    improvement_percentage=200.0,
+                    confidence=PredictionConfidence.HIGH,
+                    evidence_strength="strong",
+                    timeframe_weeks=16,
+                )
+            )
 
         effectiveness = self.predictor._calculate_overall_effectiveness(high_metrics)
-        assert effectiveness in [EffectivenessLevel.HIGHLY_EFFECTIVE, EffectivenessLevel.MODERATELY_EFFECTIVE]
+        assert effectiveness in [
+            EffectivenessLevel.HIGHLY_EFFECTIVE,
+            EffectivenessLevel.MODERATELY_EFFECTIVE,
+        ]
 
         # Low effectiveness metrics
         low_metrics = []
         for outcome_type in OutcomeType:
-            low_metrics.append(OutcomeMetric(
-                metric_type=outcome_type,
-                baseline_score=0.3,
-                predicted_score=0.2,
-                improvement_percentage=-33.0,
-                confidence=PredictionConfidence.LOW,
-                evidence_strength="limited",
-                timeframe_weeks=16
-            ))
+            low_metrics.append(
+                OutcomeMetric(
+                    metric_type=outcome_type,
+                    baseline_score=0.3,
+                    predicted_score=0.2,
+                    improvement_percentage=-33.0,
+                    confidence=PredictionConfidence.LOW,
+                    evidence_strength="limited",
+                    timeframe_weeks=16,
+                )
+            )
 
         effectiveness = self.predictor._calculate_overall_effectiveness(low_metrics)
         assert effectiveness == EffectivenessLevel.INEFFECTIVE
@@ -290,7 +334,7 @@ class TestTherapeuticEffectivenessPredictor:
                 improvement_percentage=167.0,
                 confidence=PredictionConfidence.HIGH,
                 evidence_strength="strong",
-                timeframe_weeks=16
+                timeframe_weeks=16,
             )
         ]
         risk_factors = []
@@ -310,7 +354,7 @@ class TestTherapeuticEffectivenessPredictor:
                 improvement_percentage=0.0,
                 confidence=PredictionConfidence.LOW,
                 evidence_strength="limited",
-                timeframe_weeks=16
+                timeframe_weeks=16,
             )
         ]
         risk_factors = ["substance_use", "trauma_history", "social_isolation"]
@@ -328,7 +372,7 @@ class TestTherapeuticEffectivenessPredictor:
             "interventions": [],
             "therapeutic_alliance": 0.3,
             "client_engagement": 0.2,
-            "skill_building": 0.1
+            "skill_building": 0.1,
         }
 
         outcome_metrics = [
@@ -339,7 +383,7 @@ class TestTherapeuticEffectivenessPredictor:
                 improvement_percentage=-33.0,
                 confidence=PredictionConfidence.LOW,
                 evidence_strength="limited",
-                timeframe_weeks=16
+                timeframe_weeks=16,
             )
         ]
 
@@ -361,7 +405,7 @@ class TestTherapeuticEffectivenessPredictor:
             "interventions": ["CBT", "mindfulness"],
             "therapeutic_alliance": 0.8,
             "client_engagement": 0.7,
-            "skill_building": 0.6
+            "skill_building": 0.6,
         }
 
         evidence = self.predictor._compile_evidence_base(therapeutic_elements)
@@ -418,7 +462,9 @@ class TestTherapeuticEffectivenessPredictor:
 
     def test_outcome_metrics_completeness(self):
         """Test that all outcome types are included in predictions."""
-        prediction = self.predictor.predict_effectiveness(self.high_effectiveness_conversation)
+        prediction = self.predictor.predict_effectiveness(
+            self.high_effectiveness_conversation
+        )
 
         # Should have metrics for all outcome types
         metric_types = [metric.metric_type for metric in prediction.outcome_metrics]

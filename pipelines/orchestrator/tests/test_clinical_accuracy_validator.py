@@ -41,12 +41,13 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
         self.test_scenario = self.scenario_generator.generate_client_scenario(
             scenario_type=ScenarioType.INITIAL_ASSESSMENT,
             severity_level=SeverityLevel.MODERATE,
-            demographic_category=DemographicCategory.YOUNG_ADULT
+            demographic_category=DemographicCategory.YOUNG_ADULT,
         )
 
-        self.test_conversation = self.response_generator.generate_conversation_with_responses(
-            self.test_scenario,
-            num_exchanges=3
+        self.test_conversation = (
+            self.response_generator.generate_conversation_with_responses(
+                self.test_scenario, num_exchanges=3
+            )
         )
 
     def test_initialization(self):
@@ -69,16 +70,23 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
     def test_validation_category_enum(self):
         """Test ValidationCategory enum values."""
         expected_categories = {
-            "ethical_compliance", "clinical_accuracy", "therapeutic_appropriateness",
-            "professional_boundaries", "cultural_sensitivity", "safety_protocols",
-            "evidence_base", "diagnostic_accuracy"
+            "ethical_compliance",
+            "clinical_accuracy",
+            "therapeutic_appropriateness",
+            "professional_boundaries",
+            "cultural_sensitivity",
+            "safety_protocols",
+            "evidence_base",
+            "diagnostic_accuracy",
         }
         actual_categories = {category.value for category in ValidationCategory}
         assert expected_categories == actual_categories
 
     def test_validate_conversation_basic(self):
         """Test basic conversation validation."""
-        result = self.validator.validate_conversation(self.test_conversation, self.test_scenario)
+        result = self.validator.validate_conversation(
+            self.test_conversation, self.test_scenario
+        )
 
         # Check result structure
         assert isinstance(result, ValidationResult)
@@ -100,27 +108,24 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             Message(
                 role="therapist",
                 content="I'll tell your family about this issue so they can help.",
-                meta={"technique": "inappropriate_disclosure"}
+                meta={"technique": "inappropriate_disclosure"},
             ),
-            Message(
-                role="client",
-                content="Please don't tell anyone.",
-                meta={}
-            )
+            Message(role="client", content="Please don't tell anyone.", meta={}),
         ]
 
         problematic_conversation = Conversation(
-            id="test_ethical",
-            messages=problematic_messages,
-            context={},
-            source="test"
+            id="test_ethical", messages=problematic_messages, context={}, source="test"
         )
 
         issues = self.validator._validate_ethical_compliance(problematic_conversation)
 
         # Should detect confidentiality violation
         assert len(issues) > 0
-        confidentiality_issues = [issue for issue in issues if issue.category == ValidationCategory.ETHICAL_COMPLIANCE]
+        confidentiality_issues = [
+            issue
+            for issue in issues
+            if issue.category == ValidationCategory.ETHICAL_COMPLIANCE
+        ]
         assert len(confidentiality_issues) > 0
         assert confidentiality_issues[0].severity == ValidationSeverity.CRITICAL
 
@@ -131,26 +136,25 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             Message(
                 role="therapist",
                 content="You definitely have bipolar disorder based on what you've told me.",
-                meta={"technique": "inappropriate_diagnosis"}
+                meta={"technique": "inappropriate_diagnosis"},
             ),
-            Message(
-                role="client",
-                content="Are you sure?",
-                meta={}
-            )
+            Message(role="client", content="Are you sure?", meta={}),
         ]
 
         problematic_conversation = Conversation(
-            id="test_clinical",
-            messages=problematic_messages,
-            context={},
-            source="test"
+            id="test_clinical", messages=problematic_messages, context={}, source="test"
         )
 
-        issues = self.validator._validate_clinical_accuracy(problematic_conversation, self.test_scenario)
+        issues = self.validator._validate_clinical_accuracy(
+            problematic_conversation, self.test_scenario
+        )
 
         # Should detect inappropriate diagnosis
-        diagnostic_issues = [issue for issue in issues if issue.category == ValidationCategory.DIAGNOSTIC_ACCURACY]
+        diagnostic_issues = [
+            issue
+            for issue in issues
+            if issue.category == ValidationCategory.DIAGNOSTIC_ACCURACY
+        ]
         assert len(diagnostic_issues) > 0
         assert diagnostic_issues[0].severity == ValidationSeverity.HIGH
 
@@ -159,7 +163,7 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
         # Create crisis scenario without proper safety measures
         crisis_scenario = self.scenario_generator.generate_client_scenario(
             scenario_type=ScenarioType.CRISIS_INTERVENTION,
-            severity_level=SeverityLevel.CRISIS
+            severity_level=SeverityLevel.CRISIS,
         )
         crisis_scenario.session_context["crisis_type"] = "suicidal_ideation"
 
@@ -168,26 +172,25 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             Message(
                 role="therapist",
                 content="That sounds difficult. Tell me more about your feelings.",
-                meta={"technique": "empathic_reflection"}
+                meta={"technique": "empathic_reflection"},
             ),
-            Message(
-                role="client",
-                content="I don't want to live anymore.",
-                meta={}
-            )
+            Message(role="client", content="I don't want to live anymore.", meta={}),
         ]
 
         inadequate_conversation = Conversation(
-            id="test_safety",
-            messages=inadequate_messages,
-            context={},
-            source="test"
+            id="test_safety", messages=inadequate_messages, context={}, source="test"
         )
 
-        issues = self.validator._validate_safety_protocols(inadequate_conversation, crisis_scenario)
+        issues = self.validator._validate_safety_protocols(
+            inadequate_conversation, crisis_scenario
+        )
 
         # Should detect missing safety protocols
-        safety_issues = [issue for issue in issues if issue.category == ValidationCategory.SAFETY_PROTOCOLS]
+        safety_issues = [
+            issue
+            for issue in issues
+            if issue.category == ValidationCategory.SAFETY_PROTOCOLS
+        ]
         if len(safety_issues) > 0:
             assert safety_issues[0].severity == ValidationSeverity.CRITICAL
         else:
@@ -201,26 +204,23 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             Message(
                 role="therapist",
                 content="I have the same problem myself, so I understand exactly how you feel.",
-                meta={"technique": "inappropriate_self_disclosure"}
+                meta={"technique": "inappropriate_self_disclosure"},
             ),
-            Message(
-                role="client",
-                content="Really?",
-                meta={}
-            )
+            Message(role="client", content="Really?", meta={}),
         ]
 
         boundary_conversation = Conversation(
-            id="test_boundaries",
-            messages=boundary_messages,
-            context={},
-            source="test"
+            id="test_boundaries", messages=boundary_messages, context={}, source="test"
         )
 
         issues = self.validator._validate_professional_boundaries(boundary_conversation)
 
         # Should detect boundary violation
-        boundary_issues = [issue for issue in issues if issue.category == ValidationCategory.PROFESSIONAL_BOUNDARIES]
+        boundary_issues = [
+            issue
+            for issue in issues
+            if issue.category == ValidationCategory.PROFESSIONAL_BOUNDARIES
+        ]
         if len(boundary_issues) > 0:
             assert boundary_issues[0].severity == ValidationSeverity.MEDIUM
         else:
@@ -234,26 +234,25 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             Message(
                 role="therapist",
                 content="In your culture, people typically handle stress differently.",
-                meta={"technique": "cultural_assumption"}
+                meta={"technique": "cultural_assumption"},
             ),
-            Message(
-                role="client",
-                content="What do you mean?",
-                meta={}
-            )
+            Message(role="client", content="What do you mean?", meta={}),
         ]
 
         cultural_conversation = Conversation(
-            id="test_cultural",
-            messages=cultural_messages,
-            context={},
-            source="test"
+            id="test_cultural", messages=cultural_messages, context={}, source="test"
         )
 
-        issues = self.validator._validate_cultural_sensitivity(cultural_conversation, self.test_scenario)
+        issues = self.validator._validate_cultural_sensitivity(
+            cultural_conversation, self.test_scenario
+        )
 
         # Should detect cultural assumption
-        cultural_issues = [issue for issue in issues if issue.category == ValidationCategory.CULTURAL_SENSITIVITY]
+        cultural_issues = [
+            issue
+            for issue in issues
+            if issue.category == ValidationCategory.CULTURAL_SENSITIVITY
+        ]
         assert len(cultural_issues) > 0
         assert cultural_issues[0].severity == ValidationSeverity.MEDIUM
 
@@ -264,38 +263,29 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             Message(
                 role="therapist",
                 content="I hear that you're feeling overwhelmed. That sounds really difficult.",
-                meta={"technique": "empathic_reflection"}
+                meta={"technique": "empathic_reflection"},
             ),
-            Message(
-                role="client",
-                content="Yes, it is.",
-                meta={}
-            ),
+            Message(role="client", content="Yes, it is.", meta={}),
             Message(
                 role="therapist",
                 content="Can you help me understand what this experience is like for you?",
-                meta={"technique": "open_ended_questioning"}
+                meta={"technique": "open_ended_questioning"},
             ),
-            Message(
-                role="client",
-                content="It's hard to describe.",
-                meta={}
-            ),
+            Message(role="client", content="It's hard to describe.", meta={}),
             Message(
                 role="therapist",
                 content="Your feelings about this make complete sense given what you've experienced.",
-                meta={"technique": "validation"}
-            )
+                meta={"technique": "validation"},
+            ),
         ]
 
         strong_conversation = Conversation(
-            id="test_strengths",
-            messages=strong_messages,
-            context={},
-            source="test"
+            id="test_strengths", messages=strong_messages, context={}, source="test"
         )
 
-        strengths = self.validator._identify_strengths(strong_conversation, self.test_scenario)
+        strengths = self.validator._identify_strengths(
+            strong_conversation, self.test_scenario
+        )
 
         # Should identify multiple strengths
         assert len(strengths) > 0
@@ -318,10 +308,12 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             severity=ValidationSeverity.CRITICAL,
             message="Critical issue",
             location="Test",
-            recommendation="Fix immediately"
+            recommendation="Fix immediately",
         )
 
-        score_with_critical = self.validator._calculate_overall_score([critical_issue], [])
+        score_with_critical = self.validator._calculate_overall_score(
+            [critical_issue], []
+        )
         assert score_with_critical < 0.8  # Should be significantly reduced
 
     def test_determine_acceptability(self):
@@ -334,7 +326,7 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
                 severity=ValidationSeverity.LOW,
                 message="Minor issue",
                 location="Test",
-                recommendation="Minor improvement"
+                recommendation="Minor improvement",
             )
         ]
 
@@ -348,7 +340,7 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
             severity=ValidationSeverity.CRITICAL,
             message="Critical safety issue",
             location="Test",
-            recommendation="Address immediately"
+            recommendation="Address immediately",
         )
 
         unacceptable = self.validator._determine_acceptability([critical_issue], 0.9)
@@ -367,7 +359,9 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
 
     def test_export_validation_results(self):
         """Test exporting validation results to JSON."""
-        result = self.validator.validate_conversation(self.test_conversation, self.test_scenario)
+        result = self.validator.validate_conversation(
+            self.test_conversation, self.test_scenario
+        )
 
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = Path(temp_dir) / "test_validation.json"
@@ -396,15 +390,23 @@ class TestClinicalAccuracyValidator(unittest.TestCase):
     def test_get_validation_statistics(self):
         """Test validation statistics generation."""
         results = [
-            self.validator.validate_conversation(self.test_conversation, self.test_scenario)
+            self.validator.validate_conversation(
+                self.test_conversation, self.test_scenario
+            )
         ]
 
         stats = self.validator.get_validation_statistics(results)
 
         expected_keys = {
-            "total_conversations", "clinically_acceptable", "acceptance_rate",
-            "average_score", "score_distribution", "issue_categories",
-            "severity_distribution", "common_issues", "common_strengths"
+            "total_conversations",
+            "clinically_acceptable",
+            "acceptance_rate",
+            "average_score",
+            "score_distribution",
+            "issue_categories",
+            "severity_distribution",
+            "common_issues",
+            "common_strengths",
         }
         assert set(stats.keys()) == expected_keys
 

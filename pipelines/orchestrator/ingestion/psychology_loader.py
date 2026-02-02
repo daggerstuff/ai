@@ -24,7 +24,9 @@ def load_psychology_knowledge_csv(path: str):
         return None
     try:
         df = pd.read_csv(path, keep_default_na=False)
-        logger.info(f"Loaded psychology knowledge base '{path}' with {len(df)} records.")
+        logger.info(
+            f"Loaded psychology knowledge base '{path}' with {len(df)} records."
+        )
         return df
     except Exception as e:
         logger.error(f"Failed to load psychology knowledge base '{path}': {e}")

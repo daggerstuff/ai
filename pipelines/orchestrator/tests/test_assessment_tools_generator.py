@@ -37,10 +37,13 @@ class TestAssessmentToolsGenerator:
     def sample_client_scenario(self):
         """Create sample client scenario for testing."""
         clinical_formulation = ClinicalFormulation(
-            dsm5_considerations=["Major Depressive Disorder", "Generalized Anxiety Disorder"],
+            dsm5_considerations=[
+                "Major Depressive Disorder",
+                "Generalized Anxiety Disorder",
+            ],
             attachment_style="secure",
             defense_mechanisms=["intellectualization"],
-            psychodynamic_themes=["abandonment fears"]
+            psychodynamic_themes=["abandonment fears"],
         )
 
         return ClientScenario(
@@ -50,7 +53,7 @@ class TestAssessmentToolsGenerator:
             presenting_problem="Depression and anxiety affecting work and relationships",
             clinical_formulation=clinical_formulation,
             demographics={"age": 28, "gender": "female"},
-            session_context="Initial diagnostic assessment"
+            session_context="Initial diagnostic assessment",
         )
 
     @pytest.fixture
@@ -60,7 +63,7 @@ class TestAssessmentToolsGenerator:
             dsm5_considerations=["Major Depressive Disorder with suicidal ideation"],
             attachment_style="anxious",
             defense_mechanisms=["denial"],
-            psychodynamic_themes=["hopelessness"]
+            psychodynamic_themes=["hopelessness"],
         )
 
         return ClientScenario(
@@ -70,7 +73,7 @@ class TestAssessmentToolsGenerator:
             presenting_problem="Severe depression with suicidal thoughts",
             clinical_formulation=clinical_formulation,
             demographics={"age": 35, "gender": "male"},
-            session_context="Crisis assessment"
+            session_context="Crisis assessment",
         )
 
     def test_initialization(self, generator):
@@ -176,7 +179,9 @@ class TestAssessmentToolsGenerator:
     def test_generate_diagnostic_conversation(self, generator, sample_client_scenario):
         """Test diagnostic conversation generation."""
         conversation = generator.generate_diagnostic_conversation(
-            sample_client_scenario, AssessmentType.DIAGNOSTIC_INTERVIEW, num_exchanges=10
+            sample_client_scenario,
+            AssessmentType.DIAGNOSTIC_INTERVIEW,
+            num_exchanges=10,
         )
 
         assert isinstance(conversation, DiagnosticConversation)
@@ -210,7 +215,9 @@ class TestAssessmentToolsGenerator:
                 assert "cooperation_level" in exchange
                 assert "information_quality" in exchange
 
-    def test_depression_assessment_conversation(self, generator, sample_client_scenario):
+    def test_depression_assessment_conversation(
+        self, generator, sample_client_scenario
+    ):
         """Test depression-specific assessment conversation."""
         conversation = generator.generate_diagnostic_conversation(
             sample_client_scenario, AssessmentType.DIAGNOSTIC_INTERVIEW
@@ -257,31 +264,50 @@ class TestAssessmentToolsGenerator:
         assert "mental_status" in domain_values
 
         # Should include cognitive assessment techniques
-        technique_values = [technique.value for technique in conversation.techniques_used]
+        technique_values = [
+            technique.value for technique in conversation.techniques_used
+        ]
         assert any("structured" in technique for technique in technique_values)
 
     def test_client_response_generation(self, generator, sample_client_scenario):
         """Test client response generation based on scenario."""
         # Test depression response
-        response = generator._generate_client_response_content(sample_client_scenario, 0)
+        response = generator._generate_client_response_content(
+            sample_client_scenario, 0
+        )
         assert isinstance(response, str)
         assert len(response) > 0
 
         # Should be appropriate for depression scenario
         response_lower = response.lower()
-        assert any(word in response_lower for word in ["down", "sad", "depressed", "joy", "feeling"])
+        assert any(
+            word in response_lower
+            for word in ["down", "sad", "depressed", "joy", "feeling"]
+        )
 
     def test_clinical_observations_generation(self, generator, sample_client_scenario):
         """Test clinical observations generation."""
         # Mock exchanges
         exchanges = [
             {"speaker": "therapist", "content": "test"},
-            {"speaker": "client", "content": "test", "emotional_state": "sad", "cooperation_level": "high"},
+            {
+                "speaker": "client",
+                "content": "test",
+                "emotional_state": "sad",
+                "cooperation_level": "high",
+            },
             {"speaker": "therapist", "content": "test"},
-            {"speaker": "client", "content": "test", "emotional_state": "sad", "cooperation_level": "high"}
+            {
+                "speaker": "client",
+                "content": "test",
+                "emotional_state": "sad",
+                "cooperation_level": "high",
+            },
         ]
 
-        observations = generator._generate_clinical_observations(exchanges, sample_client_scenario)
+        observations = generator._generate_clinical_observations(
+            exchanges, sample_client_scenario
+        )
 
         assert isinstance(observations, list)
         assert len(observations) > 0
@@ -296,7 +322,9 @@ class TestAssessmentToolsGenerator:
         exchanges = []
         protocol = generator.assessment_protocols[0]
 
-        findings = generator._generate_assessment_findings(exchanges, protocol, sample_client_scenario)
+        findings = generator._generate_assessment_findings(
+            exchanges, protocol, sample_client_scenario
+        )
 
         assert isinstance(findings, dict)
         assert "presenting_symptoms" in findings
@@ -306,13 +334,18 @@ class TestAssessmentToolsGenerator:
         assert "protective_factors" in findings
 
         # Should include DSM-5 considerations
-        assert findings["presenting_symptoms"] == sample_client_scenario.clinical_formulation.dsm5_considerations
+        assert (
+            findings["presenting_symptoms"]
+            == sample_client_scenario.clinical_formulation.dsm5_considerations
+        )
 
     def test_diagnostic_impressions_generation(self, generator, sample_client_scenario):
         """Test diagnostic impressions generation."""
         findings = {"presenting_symptoms": ["Major Depressive Disorder"]}
 
-        impressions = generator._generate_diagnostic_impressions(findings, sample_client_scenario)
+        impressions = generator._generate_diagnostic_impressions(
+            findings, sample_client_scenario
+        )
 
         assert isinstance(impressions, list)
         assert len(impressions) > 0
@@ -325,7 +358,9 @@ class TestAssessmentToolsGenerator:
         """Test treatment recommendations generation."""
         findings = {"risk_factors": ["Depressive symptoms"]}
 
-        recommendations = generator._generate_recommendations(findings, sample_client_scenario)
+        recommendations = generator._generate_recommendations(
+            findings, sample_client_scenario
+        )
 
         assert isinstance(recommendations, list)
         assert len(recommendations) > 0
@@ -349,7 +384,9 @@ class TestAssessmentToolsGenerator:
         # Generate multiple conversations
         for _i in range(3):
             conv = generator.generate_diagnostic_conversation(
-                sample_client_scenario, AssessmentType.DIAGNOSTIC_INTERVIEW, num_exchanges=6
+                sample_client_scenario,
+                AssessmentType.DIAGNOSTIC_INTERVIEW,
+                num_exchanges=6,
             )
             conversations.append(conv)
 
@@ -358,7 +395,9 @@ class TestAssessmentToolsGenerator:
             temp_file = f.name
 
         try:
-            export_result = generator.export_diagnostic_conversations(conversations, temp_file)
+            export_result = generator.export_diagnostic_conversations(
+                conversations, temp_file
+            )
 
             # Check export result
             assert export_result["exported_conversations"] == 3
@@ -393,7 +432,7 @@ class TestAssessmentToolsGenerator:
         # Test conversion
         test_dict = {
             "assessment_type": AssessmentType.DIAGNOSTIC_INTERVIEW,
-            "domain": AssessmentDomain.PRESENTING_PROBLEM
+            "domain": AssessmentDomain.PRESENTING_PROBLEM,
         }
         generator._convert_enums_to_strings(test_dict)
 
@@ -406,19 +445,28 @@ class TestAssessmentToolsGenerator:
         diagnostic_conv = generator.generate_diagnostic_conversation(
             sample_client_scenario, AssessmentType.DIAGNOSTIC_INTERVIEW
         )
-        assert diagnostic_conv.assessment_protocol.assessment_type == AssessmentType.DIAGNOSTIC_INTERVIEW
+        assert (
+            diagnostic_conv.assessment_protocol.assessment_type
+            == AssessmentType.DIAGNOSTIC_INTERVIEW
+        )
 
         # Test mental status exam
         mse_conv = generator.generate_diagnostic_conversation(
             sample_client_scenario, AssessmentType.MENTAL_STATUS_EXAM
         )
-        assert mse_conv.assessment_protocol.assessment_type == AssessmentType.MENTAL_STATUS_EXAM
+        assert (
+            mse_conv.assessment_protocol.assessment_type
+            == AssessmentType.MENTAL_STATUS_EXAM
+        )
 
         # Test risk assessment
         risk_conv = generator.generate_diagnostic_conversation(
             sample_client_scenario, AssessmentType.RISK_ASSESSMENT
         )
-        assert risk_conv.assessment_protocol.assessment_type == AssessmentType.RISK_ASSESSMENT
+        assert (
+            risk_conv.assessment_protocol.assessment_type
+            == AssessmentType.RISK_ASSESSMENT
+        )
 
 
 if __name__ == "__main__":

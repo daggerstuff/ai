@@ -24,8 +24,11 @@ class PersonalityValidationResult(ValidationResult):
     trait_coverage_score: float = 0.0
     bias_detection_score: float = 0.0
     balance_score: float = 0.0
+
     personality_traits_found: dict[str, int] = None
+
     bias_indicators: list[str] = None
+
     demographic_balance: dict[str, float] = None
 
 
@@ -201,10 +204,7 @@ class PersonalityDatasetValidator(DatasetValidator):
                 for count in trait_counts.values()
                 if count >= self.personality_rules["min_samples_per_trait"]
             )
-            return covered_traits / len(
-                self.personality_rules["required_traits"]
-            )
-
+            return covered_traits / len(self.personality_rules["required_traits"])
 
         except Exception as e:
             logger.error(f"Trait coverage scoring failed: {e}")
@@ -282,7 +282,6 @@ class PersonalityDatasetValidator(DatasetValidator):
             # Convert coefficient of variation to balance score (1 = perfect balance, 0 = poor balance)
             cv = std_dev / mean_count if mean_count > 0 else 1.0
             return max(0.0, 1.0 - cv)
-
 
         except Exception as e:
             logger.error(f"Balance scoring failed: {e}")

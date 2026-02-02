@@ -14,24 +14,37 @@ from .typing import Any, Dict, List, Tuple
 # Add the dataset_pipeline to path
 sys.path.append("/home/vivi/pixelated/ai/pipelines/orchestrator")
 
-from .enhanced_crisis_patterns import CrisisIndicator, CrisisType, EnhancedCrisisPatterns
+
+from .enhanced_crisis_patterns import (
+    CrisisIndicator,
+    CrisisType,
+    EnhancedCrisisPatterns,
+)
 
 
 class CrisisLevel(Enum):
     """Crisis severity levels."""
+
     EMERGENCY = ("emergency", 1, "Immediate danger - requires emergency services")
-    CRITICAL = ("critical", 2, "High risk - requires immediate professional intervention")
+    CRITICAL = (
+        "critical",
+        2,
+        "High risk - requires immediate professional intervention",
+    )
     ELEVATED = ("elevated", 3, "Moderate risk - requires prompt attention")
     ROUTINE = ("routine", 4, "Standard therapeutic support")
+
 
 @dataclass
 class CrisisDetection:
     """Crisis detection result."""
+
     conversation_id: str
     crisis_level: CrisisLevel
     crisis_types: List[str]
     confidence_score: float
     detected_indicators: List[str]
+
 
 class ImprovedCrisisDetector:
     """Improved crisis detector with better scoring."""
@@ -44,17 +57,19 @@ class ImprovedCrisisDetector:
         # Improved configuration with better thresholds
         self.config = {
             "emergency_threshold": 0.85,  # High threshold for emergency
-            "critical_threshold": 0.65,   # Medium-high for critical
-            "elevated_threshold": 0.45,   # Medium for elevated
+            "critical_threshold": 0.65,  # Medium-high for critical
+            "elevated_threshold": 0.45,  # Medium for elevated
             "response_time_target_minutes": 5,
             "mandatory_reporting_enabled": True,
             "emergency_services_contact": "911",
-            "crisis_hotline": "988"
+            "crisis_hotline": "988",
         }
 
     def detect_crisis(self, conversation: Dict[str, Any]) -> CrisisDetection:
         """Detect crisis in conversation using improved scoring."""
-        conversation_id = conversation.get("id", conversation.get("conversation_id", "unknown"))
+        conversation_id = conversation.get(
+            "id", conversation.get("conversation_id", "unknown")
+        )
 
         # Extract content
         content = self._extract_content(conversation)
@@ -63,7 +78,9 @@ class ImprovedCrisisDetector:
         detected_crises = self._analyze_crisis_indicators(content)
 
         # Calculate overall crisis level and confidence
-        crisis_level, confidence_score = self._calculate_crisis_level_improved(detected_crises)
+        crisis_level, confidence_score = self._calculate_crisis_level_improved(
+            detected_crises
+        )
 
         # Extract detected indicators and crisis types
         crisis_types = [crisis_type.value for crisis_type in detected_crises]
@@ -76,7 +93,7 @@ class ImprovedCrisisDetector:
             crisis_level=crisis_level,
             crisis_types=crisis_types,
             confidence_score=confidence_score,
-            detected_indicators=detected_indicators
+            detected_indicators=detected_indicators,
         )
 
     def _extract_content(self, conversation: Dict[str, Any]) -> str:
@@ -114,7 +131,9 @@ class ImprovedCrisisDetector:
 
         return " ".join(content_parts).lower()
 
-    def _analyze_crisis_indicators(self, content: str) -> Dict[CrisisType, List[CrisisIndicator]]:
+    def _analyze_crisis_indicators(
+        self, content: str
+    ) -> Dict[CrisisType, List[CrisisIndicator]]:
         """Analyze content for crisis indicators."""
         detected_crises = {}
 
@@ -130,7 +149,9 @@ class ImprovedCrisisDetector:
 
         return detected_crises
 
-    def _calculate_crisis_level_improved(self, detected_crises: Dict[CrisisType, List[CrisisIndicator]]) -> Tuple[CrisisLevel, float]:
+    def _calculate_crisis_level_improved(
+        self, detected_crises: Dict[CrisisType, List[CrisisIndicator]]
+    ) -> Tuple[CrisisLevel, float]:
         """Calculate crisis level with improved scoring algorithm."""
         if not detected_crises:
             return CrisisLevel.ROUTINE, 0.0
@@ -162,7 +183,9 @@ class ImprovedCrisisDetector:
             confidence = min(1.0, confidence * 1.1)
 
         # Multiple indicators of same type increase confidence
-        max_indicators_per_type = max(len(indicators) for indicators in detected_crises.values())
+        max_indicators_per_type = max(
+            len(indicators) for indicators in detected_crises.values()
+        )
         if max_indicators_per_type > 2:
             confidence = min(1.0, confidence * 1.05)
 
@@ -181,6 +204,7 @@ class ImprovedCrisisDetector:
             return CrisisLevel.ELEVATED, confidence
         return CrisisLevel.ROUTINE, confidence
 
+
 def run_improved_crisis_tests():
     """Run comprehensive tests with improved scoring."""
     detector = ImprovedCrisisDetector()
@@ -193,97 +217,91 @@ def run_improved_crisis_tests():
             "content": "Sometimes I think about not being here anymore. Everyone would be better off without me.",
             "expected_level": "elevated",
             "expected_confidence": 0.5,
-            "expected_types": ["suicide_ideation"]
+            "expected_types": ["suicide_ideation"],
         },
         {
             "id": "suicide_ideation_test_Explicit_intent",
             "content": "I want to kill myself tonight. I have a plan and I'm going to do it.",
             "expected_level": "emergency",
             "expected_confidence": 0.8,
-            "expected_types": ["suicide_ideation"]
+            "expected_types": ["suicide_ideation"],
         },
-
         # Self-Harm Tests
         {
             "id": "self_harm_test_Burning_with_specific_method",
             "content": "I've been burning myself with cigarettes when the pain gets too much.",
             "expected_level": "critical",
             "expected_confidence": 0.7,
-            "expected_types": ["self_harm"]
+            "expected_types": ["self_harm"],
         },
         {
             "id": "self_harm_test_Cutting_escalation",
             "content": "I can't stop cutting myself. The cuts are getting deeper and I'm doing it more often.",
             "expected_level": "critical",
             "expected_confidence": 0.7,
-            "expected_types": ["self_harm"]
+            "expected_types": ["self_harm"],
         },
-
         # Psychotic Episode Tests
         {
             "id": "psychotic_episode_test_Command_hallucinations",
             "content": "The voices are telling me to hurt people. They command me to do things I don't want to do.",
             "expected_level": "emergency",
             "expected_confidence": 0.8,
-            "expected_types": ["psychotic_episode"]
+            "expected_types": ["psychotic_episode"],
         },
         {
             "id": "psychotic_episode_test_Auditory_hallucinations",
             "content": "I keep hearing voices in my head talking about me. They won't stop.",
             "expected_level": "critical",
             "expected_confidence": 0.6,
-            "expected_types": ["psychotic_episode"]
+            "expected_types": ["psychotic_episode"],
         },
-
         # Panic Attack Tests
         {
             "id": "panic_attack_test_Severe_panic_symptoms",
             "content": "I can't breathe, my heart is racing, I think I'm going to die. This panic attack won't stop.",
             "expected_level": "elevated",
             "expected_confidence": 0.6,
-            "expected_types": ["panic_attack"]
+            "expected_types": ["panic_attack"],
         },
         {
             "id": "panic_attack_test_Physical_symptoms",
             "content": "My chest feels tight and I'm shaking. I feel dizzy and nauseous.",
             "expected_level": "elevated",
             "expected_confidence": 0.4,
-            "expected_types": ["panic_attack"]
+            "expected_types": ["panic_attack"],
         },
-
         # Eating Disorder Crisis Tests
         {
             "id": "eating_disorder_crisis_test_Medical_emergency",
             "content": "I haven't eaten in days and now I'm fainting. I think this is a medical emergency.",
             "expected_level": "emergency",
             "expected_confidence": 0.8,
-            "expected_types": ["eating_disorder_crisis"]
+            "expected_types": ["eating_disorder_crisis"],
         },
         {
             "id": "eating_disorder_crisis_test_Purging_escalation",
             "content": "I've been throwing up multiple times a day and I can't stop. I'm completely out of control.",
             "expected_level": "critical",
             "expected_confidence": 0.7,
-            "expected_types": ["eating_disorder_crisis"]
+            "expected_types": ["eating_disorder_crisis"],
         },
-
         # Normal/Routine Tests
         {
             "id": "normal_test_Mild_sadness",
             "content": "I've been feeling a bit down lately but I'm managing okay.",
             "expected_level": "routine",
             "expected_confidence": 0.0,
-            "expected_types": []
+            "expected_types": [],
         },
         {
             "id": "normal_test_Stress",
             "content": "Work has been really stressful but I have good support from friends.",
             "expected_level": "routine",
             "expected_confidence": 0.0,
-            "expected_types": []
-        }
+            "expected_types": [],
+        },
     ]
-
 
     passed = 0
     failed = 0
@@ -297,7 +315,10 @@ def run_improved_crisis_tests():
 
         # For routine tests, check that no crisis types are detected
         if test_case["expected_types"]:
-            types_match = any(expected_type in result.crisis_types for expected_type in test_case["expected_types"])
+            types_match = any(
+                expected_type in result.crisis_types
+                for expected_type in test_case["expected_types"]
+            )
         else:
             types_match = len(result.crisis_types) == 0
 
@@ -308,14 +329,13 @@ def run_improved_crisis_tests():
         else:
             failed += 1
 
-
         if not test_passed:
             pass
-
 
     if passed >= len(test_cases) * 0.95:  # 95% pass rate
         return True
     return False
+
 
 if __name__ == "__main__":
     success = run_improved_crisis_tests()

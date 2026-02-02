@@ -97,7 +97,9 @@ def get_s3_client() -> Any | None:
     )
 
 
-def stream_to_s3(data: Iterator[dict], bucket: str, key: str, _batch_size: int = 100) -> int:
+def stream_to_s3(
+    data: Iterator[dict], bucket: str, key: str, _batch_size: int = 100
+) -> int:
     """Streams data directly to S3 as JSONL without local storage."""
     s3 = get_s3_client()
     if not s3:
@@ -145,10 +147,14 @@ class HuggingFaceIngestor:
         "argilla/ultrafeedback-multi-binarized": {"target": "tier5_research"},
     }
 
-    def process_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
+    def process_and_stream(
+        self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"
+    ):
         """Downloads from HF and streams directly to S3."""
         if load_dataset is None:
-            logger.warning("datasets library not installed. Skipping HuggingFace ingestion.")
+            logger.warning(
+                "datasets library not installed. Skipping HuggingFace ingestion."
+            )
             return {}
 
         results = {}
@@ -200,7 +206,9 @@ class ZenodoIngestor:
         },
     }
 
-    def fetch_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
+    def fetch_and_stream(
+        self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"
+    ):
         """Fetches from Zenodo API and streams to S3."""
         if requests is None:
             logger.warning("requests library not installed. Skipping Zenodo ingestion.")
@@ -253,7 +261,9 @@ class GitHubDatasetIngestor:
         }
     }
 
-    def fetch_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
+    def fetch_and_stream(
+        self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"
+    ):
         """Fetches from GitHub raw content."""
         if requests is None:
             logger.warning("requests library not installed. Skipping GitHub ingestion.")
@@ -292,7 +302,9 @@ class KaggleIngestor:
         "suchintikasarkar/sentiment-analysis-for-mental-health": "stage1_foundation",
     }
 
-    def fetch_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
+    def fetch_and_stream(
+        self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"
+    ):
         """Fetches from Kaggle and streams to S3."""
         if kaggle is None:
             logger.warning("Kaggle library not installed. Skipping.")
@@ -316,9 +328,7 @@ class KaggleIngestor:
                             ".json",
                             ".jsonl",
                         ]:
-                            s3_key = (
-                                f"{prefix}{target}/kaggle_{slug.replace('/', '_')}_{file_path.name}"
-                            )
+                            s3_key = f"{prefix}{target}/kaggle_{slug.replace('/', '_')}_{file_path.name}"
                             s3.upload_file(str(file_path), bucket, s3_key)
                             results[f"{slug}/{file_path.name}"] = s3_key
                             logger.info(f"Uploaded {s3_key}")
@@ -337,7 +347,9 @@ class DataWorldIngestor:
         "shivamb/real-or-fake-fake-jobposting-prediction": "stage1_foundation",
     }
 
-    def fetch_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
+    def fetch_and_stream(
+        self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"
+    ):
         """Fetches from data.world and streams to S3."""
         if dw is None:
             logger.warning("data.world library not installed. Skipping.")
@@ -360,9 +372,7 @@ class DataWorldIngestor:
                         buffer.write((json.dumps(row.to_dict()) + "\n").encode("utf-8"))
                     buffer.seek(0)
 
-                    s3_key = (
-                        f"{prefix}{target}/dataworld_{ds_id.replace('/', '_')}_{table_name}.jsonl"
-                    )
+                    s3_key = f"{prefix}{target}/dataworld_{ds_id.replace('/', '_')}_{table_name}.jsonl"
                     s3.upload_fileobj(buffer, bucket, s3_key)
                     results[f"{ds_id}/{table_name}"] = s3_key
                     logger.info(f"Streamed {s3_key}")
@@ -381,7 +391,9 @@ class OpenMLIngestor:
         "43141": {"name": "mental_health_survey", "target": "stage1_foundation"}
     }
 
-    def fetch_and_stream(self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
+    def fetch_and_stream(
+        self, bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"
+    ):
         """Fetches from OpenML and streams to S3."""
         if openml is None:
             logger.warning("OpenML library not installed. Skipping.")
@@ -404,7 +416,9 @@ class OpenMLIngestor:
                     record = row.to_dict()
                     if target_col is not None:
                         record["target"] = (
-                            target_col.iloc[i] if hasattr(target_col, "iloc") else target_col[i]
+                            target_col.iloc[i]
+                            if hasattr(target_col, "iloc")
+                            else target_col[i]
                         )
                     buffer.write((json.dumps(record) + "\n").encode("utf-8"))
                 buffer.seek(0)
@@ -420,7 +434,9 @@ class OpenMLIngestor:
         return results
 
 
-def run_all_ingestors(bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"):
+def run_all_ingestors(
+    bucket: str = "pixel-data", prefix: str = "datasets/training_v3/"
+):
     """Runs all ingestors and streams to S3."""
     results = {}
 
@@ -428,7 +444,9 @@ def run_all_ingestors(bucket: str = "pixel-data", prefix: str = "datasets/traini
     if LocalConsolidatedIngestor is not None:
         try:
             local = LocalConsolidatedIngestor()
-            local_results = local.run_full_upload(bucket, "datasets/consolidated/", skip_large=True)
+            local_results = local.run_full_upload(
+                bucket, "datasets/consolidated/", skip_large=True
+            )
             results["local_consolidated"] = local_results.get("total_success", 0)
         except Exception as e:
             logger.warning(f"Local consolidated ingestion failed: {e}")

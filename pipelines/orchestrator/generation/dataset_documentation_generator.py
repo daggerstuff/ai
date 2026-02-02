@@ -206,7 +206,7 @@ class DatasetDocumentationGenerator:
         if metadata.tags:
             readme_content += f"""## Tags
 
-{', '.join(f'`{tag}`' for tag in metadata.tags)}
+{", ".join(f"`{tag}`" for tag in metadata.tags)}
 
 """
 
@@ -300,10 +300,10 @@ See CITATION.bib for recommended citation format that includes all sources.
     def _generate_citation_file(self, metadata: DatasetMetadata, output_path: str):
         """Generate CITATION.bib file."""
         citation_content = f"""% Citation for {metadata.name}
-% Generated on {datetime.now().strftime('%Y-%m-%d')}
+% Generated on {datetime.now().strftime("%Y-%m-%d")}
 
 % Main dataset citation
-@dataset{{{metadata.name.lower().replace(' ', '_')},
+@dataset{{{metadata.name.lower().replace(" ", "_")},
   title = {{{metadata.name}}},
   description = {{{metadata.description}}},
   version = {{{metadata.version}}},
@@ -316,7 +316,7 @@ See CITATION.bib for recommended citation format that includes all sources.
 """
 
         for i, source in enumerate(metadata.sources):
-            source_key = f"{metadata.name.lower().replace(' ', '_')}_source_{i+1}"
+            source_key = f"{metadata.name.lower().replace(' ', '_')}_source_{i + 1}"
             citation_content += f"""
 @misc{{{source_key},
   title = {{{source.name}}},
@@ -789,6 +789,7 @@ This document should be regularly reviewed and updated as ethical standards and 
         for unit in ["B", "KB", "MB", "GB", "TB"]:
             if size_bytes < 1024.0:
                 return f"{size_bytes:.1f} {unit}"
+
             size_bytes /= 1024.0
         return f"{size_bytes:.1f} PB"
 

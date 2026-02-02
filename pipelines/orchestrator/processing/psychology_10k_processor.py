@@ -7,9 +7,9 @@ that can be used for training the AI model.
 
 import json
 import logging
-from pathlib import Path
-from typing import List, Dict, Any
 import sys
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Add the project root to the path
 project_root = Path(__file__).parent.parent.parent
@@ -25,9 +25,13 @@ except ImportError:
     try:
         from schemas.conversation_schema import Conversation, Message
     except ImportError:
-        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+        from ai.pipelines.orchestrator.schemas.conversation_schema import (
+            Conversation,
+            Message,
+        )
 
 logger = logging.getLogger(__name__)
+
 
 class Psychology10kProcessor:
     """Processor for psychology-10k dataset."""
@@ -58,7 +62,9 @@ class Psychology10kProcessor:
         logger.info(f"Loaded {len(data)} entries from psychology-10k dataset")
         return data
 
-    def convert_to_instruction_format(self, data: List[Dict[str, Any]]) -> List[Conversation]:
+    def convert_to_instruction_format(
+        self, data: List[Dict[str, Any]]
+    ) -> List[Conversation]:
         """
         Convert psychology-10k entries to instruction-following conversations.
 
@@ -92,7 +98,7 @@ class Psychology10kProcessor:
                     "quality_threshold": 1.0,
                     "original_entry": entry,
                     "category": "therapeutic_conversation",
-                }
+                },
             )
             conversations.append(conversation)
 
@@ -115,7 +121,9 @@ class Psychology10kProcessor:
         conversations = self.convert_to_instruction_format(data)
 
         self.processed_conversations = conversations
-        logger.info(f"Processing complete. Generated {len(conversations)} conversations")
+        logger.info(
+            f"Processing complete. Generated {len(conversations)} conversations"
+        )
 
         return conversations
 
@@ -133,7 +141,10 @@ class Psychology10kProcessor:
             for conversation in self.processed_conversations:
                 f.write(json.dumps(conversation.to_dict(), ensure_ascii=False) + "\n")
 
-        logger.info(f"Saved {len(self.processed_conversations)} conversations to {output_file}")
+        logger.info(
+            f"Saved {len(self.processed_conversations)} conversations to {output_file}"
+        )
+
 
 def main():
     """Main function to process the psychology-10k dataset."""
@@ -143,12 +154,12 @@ def main():
     parser.add_argument(
         "--input-path",
         default="/home/vivi/pixelated/ai/datasets/tier6_knowledge/psychology-10k",
-        help="Path to psychology-10k dataset directory"
+        help="Path to psychology-10k dataset directory",
     )
     parser.add_argument(
         "--output-path",
         default="/home/vivi/pixelated/ai/training_data_consolidated/psychology_10k_processed.jsonl",
-        help="Path to save processed output"
+        help="Path to save processed output",
     )
 
     args = parser.parse_args()
@@ -156,7 +167,7 @@ def main():
     # Setup logging
     logging.basicConfig(
         level=logging.INFO,
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
     try:
@@ -173,6 +184,7 @@ def main():
     except Exception as e:
         logger.error(f"Error processing dataset: {e}")
         raise
+
 
 if __name__ == "__main__":
     main()

@@ -34,11 +34,16 @@ try:
     from schemas.conversation_schema import Conversation, Message
 except ImportError:
     try:
-        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+        from ai.pipelines.orchestrator.schemas.conversation_schema import (
+            Conversation,
+            Message,
+        )
     except ImportError:
         from conversation_schema import Conversation, Message
 
-from ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader import BaseTierLoader
+from ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader import (
+    BaseTierLoader,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -198,7 +203,9 @@ class DPODatasetLoader(BaseTierLoader):
             datasets_to_load: Optional list of dataset keys to load
             filter_by_type: Optional filter to load only specific dataset types
         """
-        super().__init__(tier=5, quality_threshold=quality_threshold, base_path=cache_dir)
+        super().__init__(
+            tier=5, quality_threshold=quality_threshold, base_path=cache_dir
+        )
         self.cache_dir = cache_dir or Path("ai/datasets/huggingface_cache")
         self.datasets_to_load = datasets_to_load or list(DPO_DATASETS.keys())
         self.filter_by_type = filter_by_type
@@ -252,14 +259,20 @@ class DPODatasetLoader(BaseTierLoader):
                     )
 
                     all_datasets[dataset_key] = conversations
-                    logger.info(f"Loaded {len(conversations)} DPO samples from {dataset_key}")
+                    logger.info(
+                        f"Loaded {len(conversations)} DPO samples from {dataset_key}"
+                    )
 
             except Exception as e:
-                logger.error(f"Error loading DPO dataset {dataset_key}: {e}", exc_info=True)
+                logger.error(
+                    f"Error loading DPO dataset {dataset_key}: {e}", exc_info=True
+                )
                 continue
 
         total = sum(len(convs) for convs in all_datasets.values())
-        logger.info(f"DPO loading complete: {len(all_datasets)} datasets, {total} total samples")
+        logger.info(
+            f"DPO loading complete: {len(all_datasets)} datasets, {total} total samples"
+        )
 
         return all_datasets
 
@@ -346,7 +359,9 @@ class DPODatasetLoader(BaseTierLoader):
                 if not prompt or not chosen or not rejected:
                     continue
 
-                conv_id = self._generate_conversation_id(config.dataset_id, idx, prompt[:50])
+                conv_id = self._generate_conversation_id(
+                    config.dataset_id, idx, prompt[:50]
+                )
 
                 sample = DPOSample(
                     conversation_id=conv_id,
@@ -378,7 +393,9 @@ class DPODatasetLoader(BaseTierLoader):
 
         for idx, row in enumerate(dataset):
             try:
-                conversations = row.get("conversations", row.get(config.prompt_column, []))
+                conversations = row.get(
+                    "conversations", row.get(config.prompt_column, [])
+                )
                 chosen = row.get(config.chosen_column, "")
                 rejected = row.get(config.rejected_column, "")
 
@@ -393,7 +410,9 @@ class DPODatasetLoader(BaseTierLoader):
                 if not prompt or not chosen or not rejected:
                     continue
 
-                conv_id = self._generate_conversation_id(config.dataset_id, idx, prompt[:50])
+                conv_id = self._generate_conversation_id(
+                    config.dataset_id, idx, prompt[:50]
+                )
 
                 sample = DPOSample(
                     conversation_id=conv_id,
@@ -405,7 +424,9 @@ class DPODatasetLoader(BaseTierLoader):
                     metadata={
                         "row_index": idx,
                         "format": "sharegpt",
-                        "original_conversations": len(conversations) if isinstance(conversations, list) else 0,
+                        "original_conversations": len(conversations)
+                        if isinstance(conversations, list)
+                        else 0,
                         "use_case": config.use_case,
                     },
                 )
@@ -466,9 +487,7 @@ class DPODatasetLoader(BaseTierLoader):
         self, dataset_type: DPODatasetType
     ) -> dict[str, DPODatasetConfig]:
         """Get DPO datasets filtered by type."""
-        return {
-            k: v for k, v in DPO_DATASETS.items() if v.dataset_type == dataset_type
-        }
+        return {k: v for k, v in DPO_DATASETS.items() if v.dataset_type == dataset_type}
 
     def load_for_training(
         self, include_safety: bool = True, include_roleplay: bool = True
@@ -572,4 +591,3 @@ if __name__ == "__main__":
     print("\nTo load datasets, run:")
     print("  samples = loader.load_dpo_samples()")
     print("  training_data = loader.load_for_training()")
-

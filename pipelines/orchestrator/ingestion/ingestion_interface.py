@@ -14,13 +14,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from .ingest_utils import read_with_retry, RateLimiter
+from .ingest_utils import RateLimiter, read_with_retry
 from .ingestion_deduplication import add_content_check_duplicate
 
 
 @dataclass
 class IngestRecord:
     """Canonical container for an ingested record."""
+
     id: str
     payload: Any
     metadata: dict[str, Any]
@@ -101,7 +102,14 @@ class LocalFileConnector(IngestionConnector):
     should add retries/backoff and streaming for large files.
     """
 
-    def __init__(self, directory: str, name: str | None = None, *, retry_options: dict | None = None, rate_limit: dict | None = None):
+    def __init__(
+        self,
+        directory: str,
+        name: str | None = None,
+        *,
+        retry_options: dict | None = None,
+        rate_limit: dict | None = None,
+    ):
         super().__init__(name=name)
         self.directory = Path(directory)
         # retry_options passed to read_with_retry (e.g., {'retries': 3, 'backoff_factor': 0.2})
@@ -109,7 +117,10 @@ class LocalFileConnector(IngestionConnector):
         # rate_limit: dict with capacity and refill_rate
         self.rate_limiter = None
         if rate_limit:
-            self.rate_limiter = RateLimiter(capacity=rate_limit.get("capacity", 10), refill_rate=rate_limit.get("refill_rate", 1.0))
+            self.rate_limiter = RateLimiter(
+                capacity=rate_limit.get("capacity", 10),
+                refill_rate=rate_limit.get("refill_rate", 1.0),
+            )
 
     def connect(self) -> None:
         if not self.directory.exists():
@@ -124,15 +135,17 @@ class LocalFileConnector(IngestionConnector):
                     resolved_path = p.resolve()
                     allowed_base = self.directory.resolve()
                     if not str(resolved_path).startswith(str(allowed_base)):
-                        print(f"Security warning: Attempted path traversal detected: {p}")
+                        print(
+                            f"Security warning: Attempted path traversal detected: {p}"
+                        )
                         continue
                 except Exception:
                     # If path resolution fails, skip the file
                     continue
-                    
+
                 # Security check: prevent dangerous file extensions
                 ext = p.suffix.lower()
-                dangerous_extensions = ['.exe', '.bat', '.sh', '.cmd', '.ps1', '.jar']
+                dangerous_extensions = [".exe", ".bat", ".sh", ".cmd", ".ps1", ".jar"]
                 if ext in dangerous_extensions:
                     print(f"Security warning: Skipping dangerous file type: {p}")
                     continue
@@ -145,12 +158,12 @@ class LocalFileConnector(IngestionConnector):
                             raise IngestionError(f"Rate limiter timeout reading {p}")
                     # read with retry helper; read_with_retry here expects a Path-like and retry options
                     payload = read_with_retry(p, retry_options=self.retry_options)
-                    
+
                     # Deduplication check at ingestion stage
                     if not add_content_check_duplicate(payload):
                         # Content is a duplicate, skip
                         continue
-                    
+
                     rec = IngestRecord(
                         id=str(p.resolve()),
                         payload=payload,
@@ -163,7 +176,7 @@ class LocalFileConnector(IngestionConnector):
                     # Source-level validation (e.g., file type check)
                     if not self.validate(rec):
                         # Log and quarantine source-level failure
-                        from ai.pipelines.orchestrator import quarantine
+                                            from ai.pipelines.orchestrator import quarantine
 
                         store = quarantine.get_quarantine_store()
                         errors = [f"Source validation failed for {self.name} connector"]
@@ -178,16 +191,18 @@ class LocalFileConnector(IngestionConnector):
                         yield validated
                     except validation.ValidationError as ve:
                         # Quarantine schema validation failure and continue
-                        from ai.pipelines.orchestrator import quarantine
+                                            from ai.pipelines.orchestrator import quarantine
 
                         store = quarantine.get_quarantine_store()
-                        errors = [str(ve.errors()) if hasattr(ve, "errors") else str(ve)]
+                        errors = [
+                            str(ve.errors()) if hasattr(ve, "errors") else str(ve)
+                        ]
                         store.quarantine_record(rec, errors)
                         # Log (in prod, use structured logger)
                         continue  # Skip to next record
                     except Exception as e:
                         # Quarantine general ingestion errors
-                        from ai.pipelines.orchestrator import quarantine
+                                            from ai.pipelines.orchestrator import quarantine
 
                         store = quarantine.get_quarantine_store()
                         errors = [f"Unexpected ingestion error: {e}"]
@@ -197,7 +212,7 @@ class LocalFileConnector(IngestionConnector):
 
                 except Exception as e:
                     # Outer-level catch: quarantine and continue. Use best-effort because `rec` may not be defined.
-                    from ai.pipelines.orchestrator import quarantine
+                                    from ai.pipelines.orchestrator import quarantine
 
                     store = quarantine.get_quarantine_store()
                     errors = [f"Unexpected ingestion error: {e}"]

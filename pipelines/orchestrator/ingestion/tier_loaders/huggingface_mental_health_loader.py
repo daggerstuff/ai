@@ -30,11 +30,16 @@ try:
     from schemas.conversation_schema import Conversation, Message
 except ImportError:
     try:
-        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+        from ai.pipelines.orchestrator.schemas.conversation_schema import (
+            Conversation,
+            Message,
+        )
     except ImportError:
         from conversation_schema import Conversation, Message
 
-from ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader import BaseTierLoader
+from ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader import (
+    BaseTierLoader,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -124,9 +129,13 @@ class HuggingFaceMentalHealthLoader(BaseTierLoader):
             datasets_to_load: Optional list of dataset keys to load (from registry).
                             If None, loads all available datasets.
         """
-        super().__init__(tier=5, quality_threshold=quality_threshold, base_path=cache_dir)
+        super().__init__(
+            tier=5, quality_threshold=quality_threshold, base_path=cache_dir
+        )
         self.cache_dir = cache_dir or Path("ai/datasets/huggingface_cache")
-        self.datasets_to_load = datasets_to_load or list(HUGGINGFACE_MENTAL_HEALTH_DATASETS.keys())
+        self.datasets_to_load = datasets_to_load or list(
+            HUGGINGFACE_MENTAL_HEALTH_DATASETS.keys()
+        )
 
         # NLI label mapping for SNLI dataset
         self.nli_labels = {0: "entailment", 1: "neutral", 2: "contradiction"}
@@ -170,7 +179,9 @@ class HuggingFaceMentalHealthLoader(BaseTierLoader):
                         },
                     )
                     all_datasets[dataset_key] = conversations
-                    logger.info(f"Loaded {len(conversations)} conversations from {dataset_key}")
+                    logger.info(
+                        f"Loaded {len(conversations)} conversations from {dataset_key}"
+                    )
             except Exception as e:
                 logger.error(f"Error loading dataset {dataset_key}: {e}", exc_info=True)
                 continue
@@ -183,7 +194,9 @@ class HuggingFaceMentalHealthLoader(BaseTierLoader):
 
         return all_datasets
 
-    def _load_single_dataset(self, config: HuggingFaceDatasetConfig) -> list[Conversation]:
+    def _load_single_dataset(
+        self, config: HuggingFaceDatasetConfig
+    ) -> list[Conversation]:
         """
         Load a single dataset from HuggingFace Hub.
 
@@ -224,7 +237,9 @@ class HuggingFaceMentalHealthLoader(BaseTierLoader):
                 return self._convert_auto_dataset(dataset, config)
 
         except Exception as e:
-            logger.error(f"Failed to load dataset {config.dataset_id}: {e}", exc_info=True)
+            logger.error(
+                f"Failed to load dataset {config.dataset_id}: {e}", exc_info=True
+            )
             raise
 
     def _convert_nli_dataset(
@@ -267,8 +282,8 @@ class HuggingFaceMentalHealthLoader(BaseTierLoader):
                 messages = [
                     Message(
                         role="user",
-                        content=f"Consider this statement about mental health: \"{premise}\"\n\n"
-                        f"How does this relate to: \"{hypothesis}\"?",
+                        content=f'Consider this statement about mental health: "{premise}"\n\n'
+                        f'How does this relate to: "{hypothesis}"?',
                         metadata={"turn_type": "nli_query"},
                     ),
                     Message(
@@ -410,7 +425,7 @@ class HuggingFaceMentalHealthLoader(BaseTierLoader):
                 messages = [
                     Message(
                         role="user",
-                        content=f"Please analyze this text for mental health indicators:\n\n\"{text}\"",
+                        content=f'Please analyze this text for mental health indicators:\n\n"{text}"',
                         metadata={"turn_type": "classification_query"},
                     ),
                     Message(
@@ -659,7 +674,7 @@ if __name__ == "__main__":
         conversations = loader.load_specific_dataset("mental_health_preprocessed")
         print(f"Loaded {len(conversations)} conversations")
         if conversations:
-            print(f"\nSample conversation:")
+            print("\nSample conversation:")
             sample = conversations[0]
             print(f"  ID: {sample.conversation_id}")
             print(f"  Source: {sample.source}")
@@ -668,4 +683,3 @@ if __name__ == "__main__":
                 print(f"    [{msg.role}]: {msg.content[:100]}...")
     except Exception as e:
         print(f"Error loading dataset: {e}")
-

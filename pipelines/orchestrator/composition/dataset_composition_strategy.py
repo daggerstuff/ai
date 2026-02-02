@@ -12,14 +12,13 @@ Also includes balanced sampling, quality filtering, and deduplication.
 """
 
 import json
-import os
 import random
-from collections import Counter, defaultdict
+from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List
 
-from ..schemas.conversation_schema import Conversation, Message
+from ..schemas.conversation_schema import Conversation
 from ..systems.dataset_categorization_system import DatasetCategory
 from ..systems.logger import get_logger
 
@@ -31,13 +30,15 @@ class CompositionConfig:
     """Configuration for dataset composition strategy."""
 
     # Target composition percentages
-    target_percentages: Dict[DatasetCategory, float] = field(default_factory=lambda: {
-        DatasetCategory.MENTAL_HEALTH: 0.30,  # Standard therapeutic conversations
-        DatasetCategory.EDGE_CASES: 0.25,     # Edge case scenarios
-        DatasetCategory.VOICE_TRAINING: 0.20, # Voice-derived dialogues
-        DatasetCategory.PSYCHOLOGY_KNOWLEDGE: 0.15, # Psychology knowledge integration
-        DatasetCategory.PERSONALITY_BALANCING: 0.10, # Dual persona training examples
-    })
+    target_percentages: Dict[DatasetCategory, float] = field(
+        default_factory=lambda: {
+            DatasetCategory.MENTAL_HEALTH: 0.30,  # Standard therapeutic conversations
+            DatasetCategory.EDGE_CASES: 0.25,  # Edge case scenarios
+            DatasetCategory.VOICE_TRAINING: 0.20,  # Voice-derived dialogues
+            DatasetCategory.PSYCHOLOGY_KNOWLEDGE: 0.15,  # Psychology knowledge integration
+            DatasetCategory.PERSONALITY_BALANCING: 0.10,  # Dual persona training examples
+        }
+    )
 
     # Quality filtering thresholds
     min_quality_score: float = 0.7
@@ -46,7 +47,9 @@ class CompositionConfig:
 
     # Deduplication settings
     deduplication_threshold: float = 0.95  # Similarity threshold for duplicates
-    content_overlap_threshold: int = 50  # Minimum overlapping words for duplication check
+    content_overlap_threshold: int = (
+        50  # Minimum overlapping words for duplication check
+    )
 
 
 @dataclass
@@ -55,9 +58,9 @@ class CompositionStats:
 
     total_conversations: int = 0
     category_distribution: Dict[DatasetCategory, int] = field(default_factory=dict)
-    quality_distribution: Dict[str, int] = field(default_factory=lambda: {
-        "high": 0, "medium": 0, "low": 0
-    })
+    quality_distribution: Dict[str, int] = field(
+        default_factory=lambda: {"high": 0, "medium": 0, "low": 0}
+    )
     length_distribution: Dict[str, int] = field(default_factory=dict)
     duplicate_count: int = 0
     filtered_count: int = 0
@@ -84,7 +87,9 @@ class DatasetCompositionBalancer:
 
         self.logger.info("DatasetCompositionBalancer initialized")
 
-    def analyze_current_distribution(self, conversations: List[Conversation]) -> Dict[DatasetCategory, int]:
+    def analyze_current_distribution(
+        self, conversations: List[Conversation]
+    ) -> Dict[DatasetCategory, int]:
         """
         Analyze the current dataset distribution across sources.
 
@@ -94,7 +99,9 @@ class DatasetCompositionBalancer:
         Returns:
             Dictionary mapping categories to conversation counts
         """
-        self.logger.info(f"Analyzing distribution for {len(conversations)} conversations")
+        self.logger.info(
+            f"Analyzing distribution for {len(conversations)} conversations"
+        )
 
         # Reset stats
         self.stats = CompositionStats()
@@ -137,7 +144,9 @@ class DatasetCompositionBalancer:
         self.logger.info(f"Distribution analysis complete: {distribution}")
         return distribution
 
-    def compose_balanced_dataset(self, conversations: List[Conversation]) -> List[Conversation]:
+    def compose_balanced_dataset(
+        self, conversations: List[Conversation]
+    ) -> List[Conversation]:
         """
         Implement the recommended composition strategy.
 
@@ -147,7 +156,9 @@ class DatasetCompositionBalancer:
         Returns:
             Balanced list of conversations according to target composition
         """
-        self.logger.info(f"Composing balanced dataset from {len(conversations)} conversations")
+        self.logger.info(
+            f"Composing balanced dataset from {len(conversations)} conversations"
+        )
 
         # Step 1: Categorize conversations
         categorized = self._categorize_conversations(conversations)
@@ -177,10 +188,14 @@ class DatasetCompositionBalancer:
             for category, convs in final_categorized.items()
         }
 
-        self.logger.info(f"Balanced dataset composed with {len(balanced_conversations)} conversations")
+        self.logger.info(
+            f"Balanced dataset composed with {len(balanced_conversations)} conversations"
+        )
         return balanced_conversations
 
-    def _categorize_conversations(self, conversations: List[Conversation]) -> Dict[DatasetCategory, List[Conversation]]:
+    def _categorize_conversations(
+        self, conversations: List[Conversation]
+    ) -> Dict[DatasetCategory, List[Conversation]]:
         """Categorize conversations into the required categories."""
         categorized = defaultdict(list)
 
@@ -200,36 +215,61 @@ class DatasetCompositionBalancer:
         # Check metadata first
         if conversation.metadata.get("voice_derived"):
             return DatasetCategory.VOICE_TRAINING
-        if conversation.metadata.get("edge_case") or conversation.metadata.get("challenging_situation"):
+        if conversation.metadata.get("edge_case") or conversation.metadata.get(
+            "challenging_situation"
+        ):
             return DatasetCategory.EDGE_CASES
-        if conversation.metadata.get("psychology_knowledge") or conversation.metadata.get("academic_content"):
+        if conversation.metadata.get(
+            "psychology_knowledge"
+        ) or conversation.metadata.get("academic_content"):
             return DatasetCategory.PSYCHOLOGY_KNOWLEDGE
-        if conversation.metadata.get("dual_persona") or conversation.metadata.get("personality_balancing"):
+        if conversation.metadata.get("dual_persona") or conversation.metadata.get(
+            "personality_balancing"
+        ):
             return DatasetCategory.PERSONALITY_BALANCING
         if conversation.metadata.get("crisis_intervention"):
             return DatasetCategory.CRISIS_INTERVENTION
 
         # Check content for psychology knowledge
         content_text = " ".join([msg.content.lower() for msg in conversation.messages])
-        psychology_keywords = ["dsm", "diagnostic", "psychology", "therapist", "clinical", "diagnosis"]
+        psychology_keywords = [
+            "dsm",
+            "diagnostic",
+            "psychology",
+            "therapist",
+            "clinical",
+            "diagnosis",
+        ]
         if any(keyword in content_text for keyword in psychology_keywords):
             return DatasetCategory.PSYCHOLOGY_KNOWLEDGE
 
         # Check for edge case indicators
-        edge_case_keywords = ["crisis", "emergency", "suicid", "violence", "abuse", "trauma"]
+        edge_case_keywords = [
+            "crisis",
+            "emergency",
+            "suicid",
+            "violence",
+            "abuse",
+            "trauma",
+        ]
         if any(keyword in content_text for keyword in edge_case_keywords):
             return DatasetCategory.EDGE_CASES
 
         # Default to mental health (standard therapeutic)
         return DatasetCategory.MENTAL_HEALTH
 
-    def _apply_quality_filtering(self, conversations: List[Conversation]) -> List[Conversation]:
+    def _apply_quality_filtering(
+        self, conversations: List[Conversation]
+    ) -> List[Conversation]:
         """Apply quality filtering based on configuration."""
         filtered = []
 
         for conv in conversations:
             # Check quality score
-            if conv.quality_score is not None and conv.quality_score < self.config.min_quality_score:
+            if (
+                conv.quality_score is not None
+                and conv.quality_score < self.config.min_quality_score
+            ):
                 continue
 
             # Check conversation length
@@ -244,7 +284,9 @@ class DatasetCompositionBalancer:
 
         return filtered
 
-    def _deduplicate_conversations(self, conversations: List[Conversation]) -> List[Conversation]:
+    def _deduplicate_conversations(
+        self, conversations: List[Conversation]
+    ) -> List[Conversation]:
         """Remove duplicate or highly similar conversations."""
         if len(conversations) <= 1:
             return conversations
@@ -266,7 +308,9 @@ class DatasetCompositionBalancer:
 
         return unique_conversations
 
-    def _balance_composition(self, categorized: Dict[DatasetCategory, List[Conversation]]) -> List[Conversation]:
+    def _balance_composition(
+        self, categorized: Dict[DatasetCategory, List[Conversation]]
+    ) -> List[Conversation]:
         """Balance the dataset according to target composition percentages."""
         # Calculate target counts
         total_target = sum(len(convs) for convs in categorized.values())
@@ -288,7 +332,9 @@ class DatasetCompositionBalancer:
                 selected_convs = random.sample(available_convs, target_count)
 
             balanced_conversations.extend(selected_convs)
-            self.logger.debug(f"Category {category}: {len(selected_convs)} conversations selected")
+            self.logger.debug(
+                f"Category {category}: {len(selected_convs)} conversations selected"
+            )
 
         # Shuffle the final dataset
         random.shuffle(balanced_conversations)
@@ -308,7 +354,7 @@ class DatasetCompositionBalancer:
         report = {
             "report_metadata": {
                 "generated_at": datetime.now().isoformat(),
-                "report_version": "1.0"
+                "report_version": "1.0",
             },
             "composition_stats": {
                 "total_conversations": self.stats.total_conversations,
@@ -316,7 +362,7 @@ class DatasetCompositionBalancer:
                 "duplicate_conversations": self.stats.duplicate_count,
                 "final_composition_size": sum(
                     len(convs) for convs in self._categorize_conversations([]).values()
-                )  # This would need to be passed in for accurate count
+                ),  # This would need to be passed in for accurate count
             },
             "category_distribution": {
                 category.value: count
@@ -331,7 +377,7 @@ class DatasetCompositionBalancer:
             "final_composition": {
                 category.value: percentage
                 for category, percentage in self.stats.final_composition.items()
-            }
+            },
         }
 
         if output_path:

@@ -20,6 +20,7 @@ from logger import get_logger
 @dataclass
 class OptimizationConfig:
     """Configuration for standardization optimization."""
+
     batch_size: int = 1000
     max_workers: int = mp.cpu_count()
     use_multiprocessing: bool = True
@@ -34,6 +35,7 @@ class OptimizationConfig:
 @dataclass
 class PerformanceMetrics:
     """Performance metrics for optimization."""
+
     total_items: int = 0
     processed_items: int = 0
     processing_time: float = 0.0
@@ -58,9 +60,7 @@ class StandardizationOptimizer:
     """
 
     def __init__(
-        self,
-        standardizer: DataStandardizer,
-        config: OptimizationConfig | None = None
+        self, standardizer: DataStandardizer, config: OptimizationConfig | None = None
     ):
         """
         Initialize StandardizationOptimizer.
@@ -82,15 +82,19 @@ class StandardizationOptimizer:
 
         # Optimization state
         self.optimal_batch_size = self.config.batch_size
-        self.performance_history: list[tuple[int, float]] = []  # (batch_size, throughput)
+        self.performance_history: list[
+            tuple[int, float]
+        ] = []  # (batch_size, throughput)
 
-        self.logger.info(f"StandardizationOptimizer initialized with {self.config.max_workers} workers")
+        self.logger.info(
+            f"StandardizationOptimizer initialized with {self.config.max_workers} workers"
+        )
 
     def optimize_batch_processing(
         self,
         data_items: list[Any],
         format_hint: str | None = None,
-        source: str | None = None
+        source: str | None = None,
     ) -> list[StandardizationResult]:
         """
         Optimize batch processing with dynamic performance tuning.
@@ -112,22 +116,30 @@ class StandardizationOptimizer:
             results = self._process_with_threading(data_items, format_hint, source)
         elif self.config.use_multiprocessing and len(data_items) > 1000:
             # Large batch - use multiprocessing
-            results = self._process_with_multiprocessing(data_items, format_hint, source)
+            results = self._process_with_multiprocessing(
+                data_items, format_hint, source
+            )
         else:
             # Medium batch - use optimized threading
-            results = self._process_with_optimized_threading(data_items, format_hint, source)
+            results = self._process_with_optimized_threading(
+                data_items, format_hint, source
+            )
 
         # Update metrics
         processing_time = time.time() - start_time
         self.metrics.processing_time = processing_time
         self.metrics.processed_items = len([r for r in results if r.success])
-        self.metrics.throughput = len(results) / processing_time if processing_time > 0 else 0
+        self.metrics.throughput = (
+            len(results) / processing_time if processing_time > 0 else 0
+        )
 
         # Update optimal batch size based on performance
         self._update_optimal_batch_size(len(data_items), self.metrics.throughput)
 
-        self.logger.info(f"Processed {len(results)} items in {processing_time:.2f}s "
-                        f"(throughput: {self.metrics.throughput:.1f} items/s)")
+        self.logger.info(
+            f"Processed {len(results)} items in {processing_time:.2f}s "
+            f"(throughput: {self.metrics.throughput:.1f} items/s)"
+        )
 
         return results
 
@@ -135,7 +147,7 @@ class StandardizationOptimizer:
         self,
         data_iterator: Iterator[Any],
         format_hint: str | None = None,
-        source: str | None = None
+        source: str | None = None,
     ) -> Iterator[StandardizationResult]:
         """
         Stream processing for large datasets with memory optimization.
@@ -178,7 +190,7 @@ class StandardizationOptimizer:
         self,
         data_items: list[Any],
         format_hint: str | None = None,
-        source: str | None = None
+        source: str | None = None,
     ) -> list[StandardizationResult]:
         """
         Asynchronous batch processing for I/O bound operations.
@@ -193,7 +205,10 @@ class StandardizationOptimizer:
         """
         # Split into chunks for async processing
         chunk_size = self.config.chunk_size
-        chunks = [data_items[i:i + chunk_size] for i in range(0, len(data_items), chunk_size)]
+        chunks = [
+            data_items[i : i + chunk_size]
+            for i in range(0, len(data_items), chunk_size)
+        ]
 
         # Process chunks asynchronously
         tasks = []
@@ -229,7 +244,11 @@ class StandardizationOptimizer:
         """
         # Analyze data characteristics
         data_size = len(sample_data)
-        avg_item_size = sum(len(str(item)) for item in sample_data) / data_size if data_size > 0 else 0
+        avg_item_size = (
+            sum(len(str(item)) for item in sample_data) / data_size
+            if data_size > 0
+            else 0
+        )
 
         # Optimize batch size based on data characteristics
         if avg_item_size < 1000:  # Small items
@@ -257,11 +276,13 @@ class StandardizationOptimizer:
             memory_limit_mb=1024,
             enable_streaming=data_size > 5000,
             chunk_size=min(100, optimal_batch_size // 10),
-            prefetch_batches=2
+            prefetch_batches=2,
         )
 
-        self.logger.info(f"Optimized configuration: batch_size={optimal_batch_size}, "
-                        f"workers={optimal_workers}, multiprocessing={optimized_config.use_multiprocessing}")
+        self.logger.info(
+            f"Optimized configuration: batch_size={optimal_batch_size}, "
+            f"workers={optimal_workers}, multiprocessing={optimized_config.use_multiprocessing}"
+        )
 
         return optimized_config
 
@@ -274,10 +295,7 @@ class StandardizationOptimizer:
     # Private methods
 
     def _process_with_threading(
-        self,
-        data_items: list[Any],
-        format_hint: str | None,
-        source: str | None
+        self, data_items: list[Any], format_hint: str | None, source: str | None
     ) -> list[StandardizationResult]:
         """Process data using threading."""
         results = []
@@ -286,11 +304,7 @@ class StandardizationOptimizer:
             # Submit all tasks
             future_to_index = {
                 executor.submit(
-                    self._process_single_with_cache,
-                    item,
-                    format_hint,
-                    source,
-                    i
+                    self._process_single_with_cache, item, format_hint, source, i
                 ): i
                 for i, item in enumerate(data_items)
             }
@@ -304,22 +318,20 @@ class StandardizationOptimizer:
         return results
 
     def _process_with_multiprocessing(
-        self,
-        data_items: list[Any],
-        format_hint: str | None,
-        source: str | None
+        self, data_items: list[Any], format_hint: str | None, source: str | None
     ) -> list[StandardizationResult]:
         """Process data using multiprocessing."""
         # Split data into chunks for multiprocessing
         chunk_size = max(1, len(data_items) // self.config.max_workers)
-        chunks = [data_items[i:i + chunk_size] for i in range(0, len(data_items), chunk_size)]
+        chunks = [
+            data_items[i : i + chunk_size]
+            for i in range(0, len(data_items), chunk_size)
+        ]
 
         # Process chunks in parallel
         with ProcessPoolExecutor(max_workers=self.config.max_workers) as executor:
             process_func = partial(
-                _process_chunk_worker,
-                format_hint=format_hint,
-                source=source
+                _process_chunk_worker, format_hint=format_hint, source=source
             )
 
             chunk_results = list(executor.map(process_func, chunks))
@@ -332,22 +344,24 @@ class StandardizationOptimizer:
         return results
 
     def _process_with_optimized_threading(
-        self,
-        data_items: list[Any],
-        format_hint: str | None,
-        source: str | None
+        self, data_items: list[Any], format_hint: str | None, source: str | None
     ) -> list[StandardizationResult]:
         """Process data with optimized threading strategy."""
         # Use dynamic batch sizing
         batch_size = self.optimal_batch_size
-        batches = [data_items[i:i + batch_size] for i in range(0, len(data_items), batch_size)]
+        batches = [
+            data_items[i : i + batch_size]
+            for i in range(0, len(data_items), batch_size)
+        ]
 
         results = []
 
         with ThreadPoolExecutor(max_workers=self.config.max_workers) as executor:
             # Process batches
             batch_futures = [
-                executor.submit(self._process_batch_optimized, batch, format_hint, source)
+                executor.submit(
+                    self._process_batch_optimized, batch, format_hint, source
+                )
                 for batch in batches
             ]
 
@@ -358,10 +372,7 @@ class StandardizationOptimizer:
         return results
 
     def _process_batch_optimized(
-        self,
-        batch: list[Any],
-        format_hint: str | None,
-        source: str | None
+        self, batch: list[Any], format_hint: str | None, source: str | None
     ) -> list[StandardizationResult]:
         """Process a batch with optimization."""
         start_time = time.time()
@@ -378,15 +389,13 @@ class StandardizationOptimizer:
         return results
 
     def _process_single_with_cache(
-        self,
-        item: Any,
-        format_hint: str | None,
-        source: str | None,
-        index: int
+        self, item: Any, format_hint: str | None, source: str | None, index: int
     ) -> StandardizationResult:
         """Process single item with caching."""
         if not self.config.enable_caching:
-            return self.standardizer.standardize_single(item, format_hint, source, f"{source}_{index}")
+            return self.standardizer.standardize_single(
+                item, format_hint, source, f"{source}_{index}"
+            )
 
         # Generate cache key
         cache_key = self._generate_cache_key(item, format_hint)
@@ -394,11 +403,15 @@ class StandardizationOptimizer:
         # Check cache
         if cache_key in self.cache:
             self.cache_access_times[cache_key] = time.time()
-            self.metrics.cache_hit_rate = len(self.cache_access_times) / max(1, self.metrics.processed_items)
+            self.metrics.cache_hit_rate = len(self.cache_access_times) / max(
+                1, self.metrics.processed_items
+            )
             return self.cache[cache_key]
 
         # Process item
-        result = self.standardizer.standardize_single(item, format_hint, source, f"{source}_{index}")
+        result = self.standardizer.standardize_single(
+            item, format_hint, source, f"{source}_{index}"
+        )
 
         # Cache result if successful
         if result.success and len(self.cache) < self.config.cache_size:
@@ -413,10 +426,7 @@ class StandardizationOptimizer:
         return result
 
     async def _async_process_chunk(
-        self,
-        chunk: list[Any],
-        format_hint: str | None,
-        source: str | None
+        self, chunk: list[Any], format_hint: str | None, source: str | None
     ) -> list[StandardizationResult]:
         """Asynchronously process a chunk of data."""
         loop = asyncio.get_event_loop()
@@ -424,11 +434,7 @@ class StandardizationOptimizer:
         # Run in thread pool to avoid blocking
         with ThreadPoolExecutor(max_workers=2) as executor:
             future = loop.run_in_executor(
-                executor,
-                self._process_batch_optimized,
-                chunk,
-                format_hint,
-                source
+                executor, self._process_batch_optimized, chunk, format_hint, source
             )
             return await future
 
@@ -449,7 +455,9 @@ class StandardizationOptimizer:
             return
 
         # Find least recently used item
-        lru_key = min(self.cache_access_times.keys(), key=lambda k: self.cache_access_times[k])
+        lru_key = min(
+            self.cache_access_times.keys(), key=lambda k: self.cache_access_times[k]
+        )
 
         # Remove from cache
         del self.cache[lru_key]
@@ -465,7 +473,9 @@ class StandardizationOptimizer:
 
         # Find optimal batch size from history
         if len(self.performance_history) >= 3:
-            best_batch_size, best_throughput = max(self.performance_history, key=lambda x: x[1])
+            best_batch_size, best_throughput = max(
+                self.performance_history, key=lambda x: x[1]
+            )
 
             # Update optimal batch size if significantly better
             if best_throughput > throughput * 1.1:
@@ -476,12 +486,15 @@ class StandardizationOptimizer:
         """Check and manage memory usage."""
         try:
             import psutil
+
             process = psutil.Process()
             memory_mb = process.memory_info().rss / 1024 / 1024
             self.metrics.memory_usage_mb = memory_mb
 
             if memory_mb > self.config.memory_limit_mb:
-                self.logger.warning(f"Memory usage ({memory_mb:.1f}MB) exceeds limit ({self.config.memory_limit_mb}MB)")
+                self.logger.warning(
+                    f"Memory usage ({memory_mb:.1f}MB) exceeds limit ({self.config.memory_limit_mb}MB)"
+                )
                 # Clear cache to free memory
                 self.clear_cache()
         except ImportError:
@@ -490,27 +503,29 @@ class StandardizationOptimizer:
 
 
 def _process_chunk_worker(
-    chunk: list[Any],
-    format_hint: str | None = None,
-    source: str | None = None
+    chunk: list[Any], format_hint: str | None = None, source: str | None = None
 ) -> list[StandardizationResult]:
     """Worker function for multiprocessing."""
     # Create a new standardizer instance for this process
+
     from data_standardizer import DataStandardizer
+
     standardizer = DataStandardizer()
 
     results = []
     for i, item in enumerate(chunk):
         try:
-            result = standardizer.standardize_single(item, format_hint, source, f"{source}_{i}")
+            result = standardizer.standardize_single(
+                item, format_hint, source, f"{source}_{i}"
+            )
             results.append(result)
         except Exception as e:
             # Create error result
+
             from data_standardizer import StandardizationResult
+
             result = StandardizationResult(
-                success=False,
-                error=str(e),
-                source_format=format_hint or "unknown"
+                success=False, error=str(e), source_format=format_hint or "unknown"
             )
             results.append(result)
 

@@ -18,7 +18,13 @@ from pathlib import Path
 # Add the dataset_pipeline directory to Python path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from production_exporter import AccessTier, ExportConfig, ExportFormat, ProductionExporter
+
+from production_exporter import (
+    AccessTier,
+    ExportConfig,
+    ExportFormat,
+    ProductionExporter,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -112,7 +118,6 @@ def test_task_3a1_export_formats():
         quality_threshold=0.7,
     )
 
-
     try:
         # Perform export
         export_results = exporter.export_dataset(sample_conversations, config)
@@ -133,7 +138,9 @@ def test_task_3a1_export_formats():
             logger.info(f"   Files: {len(result.file_paths)}")
 
             # Verify files exist
-            all_files_exist = all(Path(file_path).exists() for file_path in result.file_paths)
+            all_files_exist = all(
+                Path(file_path).exists() for file_path in result.file_paths
+            )
             format_verification[f"{tier_name}_{format_name}"] = all_files_exist
 
             if all_files_exist:
@@ -151,7 +158,13 @@ def test_task_3a1_export_formats():
         logger.info(f"Tier Distribution: {summary['tier_distribution']}")
 
         # Verify all required formats are present
-        required_formats = ["jsonl", "parquet", "csv", "huggingface", "openai_fine_tuning"]
+        required_formats = [
+            "jsonl",
+            "parquet",
+            "csv",
+            "huggingface",
+            "openai_fine_tuning",
+        ]
 
         missing_formats = [
             required_format
@@ -183,9 +196,16 @@ def test_openai_format_specifically():
             "system_prompt": "You are a helpful mental health assistant.",
             "turns": [
                 {"speaker": "user", "text": "Hello, I need help."},
-                {"speaker": "assistant", "text": "I'm here to help. What's on your mind?"},
+                {
+                    "speaker": "assistant",
+                    "text": "I'm here to help. What's on your mind?",
+                },
             ],
-            "metadata": {"quality_score": 0.95, "condition": "general", "source": "test"},
+            "metadata": {
+                "quality_score": 0.95,
+                "condition": "general",
+                "source": "test",
+            },
         }
     ]
 

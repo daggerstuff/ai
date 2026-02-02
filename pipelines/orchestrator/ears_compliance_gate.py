@@ -46,80 +46,20 @@ Usage:
 import json
 import logging
 import sys
-from pathlib import Path
-
-workspace_root = Path(__file__).resolve().parents[3]
-sys.path.insert(0, str(workspace_root))
-
 import time
 from dataclasses import dataclass
 from dataclasses import field as dataclass_field
 from datetime import datetime, timezone
 from enum import Enum
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Union
 
-# Temporarily commented out - module not yet implemented
-# from ai.safety.crisis_detection.production_crisis_detector import CrisisDetector
+workspace_root = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(workspace_root))
 
-# Mock implementation when real detector is not available
-try:
-    from ai.safety.crisis_detection.production_crisis_detector import (
-        CrisisDetector,  # type: ignore
-    )
-except ImportError:
-    # Mock CrisisDetector for development/testing when real module is not available
-    class CrisisCategory(Enum):
-        """Categories of crisis that can be detected."""
-        SELF_HARM = "self_harm"
-        SUICIDE = "suicide"
-        SEVERE_DEPRESSION = "severe_depression"
-        DOMESTIC_VIOLENCE = "domestic_violence"
-        CHILD_ABUSE = "child_abuse"
-        SUBSTANCE_ABUSE = "substance_abuse"
-        EATING_DISORDER = "eating_disorder"
-        SEVERE_ANXIETY = "severe_anxiety"
-        PSYCHOSIS = "psychosis"
-        OTHER = "other"
-
-    @dataclass
-    class CrisisDetectionResult:
-        """Result of crisis detection analysis."""
-        is_crisis: bool
-        confidence: float
-        category: Optional[CrisisCategory] = None
-        reasoning: str = ""
-
-    class CrisisDetector:
-        """Mock crisis detector for development when real implementation is not available."""
-
-        def __init__(self, sensitivity_threshold: float = 0.95):
-            """
-            Initialize with sensitivity threshold.
-
-            Args:
-                sensitivity_threshold: Threshold for labeling something as crisis (0-1)
-            """
-            self.sensitivity_threshold = sensitivity_threshold
-            logger.warning("Using MOCK CrisisDetector - real module not yet implemented")
-
-        def analyze_crisis(self, text: str) -> CrisisDetectionResult:
-            """
-            Analyze text for crisis indicators.
-
-            Args:
-                text: The text to analyze
-
-            Returns:
-                CrisisDetectionResult with analysis results
-            """
-            # Mock implementation - always returns non-crisis for now
-            # Real implementation would use ML model/heuristics
-            return CrisisDetectionResult(
-                is_crisis=False,
-                confidence=0.0,
-                category=None,
-                reasoning="Mock detector - real implementation not available"
-            )
+from ai.safety.crisis_detection.production_crisis_detector import (
+    CrisisDetector,
+)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -128,6 +68,7 @@ logger = logging.getLogger(__name__)
 
 class ComplianceStatus(Enum):
     """Status of EARS compliance."""
+
     COMPLIANT = "compliant"
     NON_COMPLIANT = "non_compliant"
     PARTIAL = "partial"
@@ -136,6 +77,7 @@ class ComplianceStatus(Enum):
 
 class RejectionReason(Enum):
     """Reasons for EARS compliance rejection."""
+
     INSUFFICIENT_SENSITIVITY = "insufficient_sensitivity"
     HIGH_FALSE_NEGATIVE_RATE = "high_false_negative_rate"
     HIGH_FALSE_POSITIVE_RATE = "high_false_positive_rate"
@@ -179,6 +121,7 @@ class EarsConfig:
 @dataclass
 class MetricSnapshot:
     """Snapshot of metrics at validation time."""
+
     timestamp: str = dataclass_field(
         default_factory=lambda: datetime.now(timezone.utc).isoformat()
     )
@@ -192,9 +135,9 @@ class MetricSnapshot:
     false_negatives: int = 0
     overall_sensitivity: float = 0.0
     overall_specificity: float = 0.0
-    category_breakdown: Dict[str, Dict[str, int]] = dataclass_field(
-            default_factory=dict
-        )
+    category_breakdown: Dict[str, Dict[str, Dict[str, int]]] = dataclass_field(
+        default_factory=dict
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert metrics snapshot to dictionary."""
@@ -251,7 +194,7 @@ class EarsValidationResult:
             "rejection_message": self.rejection_message,
             "metrics": self.metrics.to_dict() if self.metrics else None,
             "details": self.details,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
         }
 
 
@@ -300,7 +243,9 @@ class EarsComplianceGate:
             )
         except Exception as e:
             logger.error(f"Failed to initialize CrisisDetector: {e}")
-            raise RuntimeError("CrisisDetector initialization failed - check module availability") from e
+            raise RuntimeError(
+                "CrisisDetector initialization failed - check module availability"
+            ) from e
         self.logger = logging.getLogger("ears_compliance_gate")
         self.logger.setLevel(logging.INFO)
 
@@ -362,7 +307,7 @@ class EarsComplianceGate:
                 detected_crisis=0,
                 rejection_reason=RejectionReason.VALIDATION_ERROR,
                 rejection_message="No dataset path or data provided",
-                details={"error": "no_input"}
+                details={"error": "no_input"},
             )
 
         if not dataset:
@@ -377,7 +322,7 @@ class EarsComplianceGate:
                 detected_crisis=0,
                 rejection_reason=RejectionReason.INSUFFICIENT_TEST_DATA,
                 rejection_message="Dataset is empty",
-                details={"error": "empty_dataset"}
+                details={"error": "empty_dataset"},
             )
 
         # Analyze dataset
@@ -391,9 +336,7 @@ class EarsComplianceGate:
             "source": source,
             "validation_time_seconds": time.time() - start_time,
             "config": {
-                "sensitivity_threshold": (
-                    self.config.minimum_sensitivity_threshold
-                ),
+                "sensitivity_threshold": (self.config.minimum_sensitivity_threshold),
                 "max_fnr": self.config.maximum_false_negative_rate,
                 "min_crisis_samples": self.config.minimum_crisis_samples,
             },
@@ -428,7 +371,7 @@ class EarsComplianceGate:
         self,
         processed_outputs: List[Any],
         threshold: Optional[float] = None,
-        known_labels: Optional[List[bool]] = None
+        known_labels: Optional[List[bool]] = None,
     ) -> bool:
         """
         Check if pipeline outputs meet sensitivity requirements.
@@ -446,10 +389,7 @@ class EarsComplianceGate:
         # Validate outputs
         result = self.validate_dataset(dataset_data=processed_outputs)
 
-        return (
-            result.is_compliant and
-            result.sensitivity >= threshold
-        )
+        return result.is_compliant and result.sensitivity >= threshold
 
     def _load_dataset(self, dataset_path: Union[str, Path]) -> List[Dict]:
         """Load dataset from file."""
@@ -505,10 +445,7 @@ class EarsComplianceGate:
         false_negatives = 0
 
         # If dataset has labels, use them
-        has_labels = any(
-            "is_crisis" in item or "crisis" in item
-            for item in dataset
-        )
+        has_labels = any("is_crisis" in item or "crisis" in item for item in dataset)
 
         for item in dataset:
             # Detect crisis
@@ -589,12 +526,7 @@ class EarsComplianceGate:
             True if crisis, False if not crisis, None if unknown
         """
         # Check various label field names
-        for label in [
-            "is_crisis",
-            "crisis",
-            "label",
-            "is_crisis_signal"
-        ]:
+        for label in ["is_crisis", "crisis", "label", "is_crisis_signal"]:
             if label in item:
                 value = item[label]
                 if isinstance(value, bool):
@@ -606,9 +538,7 @@ class EarsComplianceGate:
 
         # Try to infer from tags or categories
         if "tags" in item and isinstance(item["tags"], list):
-            return (
-                "crisis" in item["tags"] or "suicide" in item["tags"]
-            )
+            return "crisis" in item["tags"] or "suicide" in item["tags"]
 
         if "category" in item:
             return "crisis" in str(item["category"]).lower()
@@ -616,9 +546,8 @@ class EarsComplianceGate:
         return None
 
     def _analyze_categories(
-        self,
-        dataset: List[Dict]
-    ) -> Dict[str, Dict[str, int]]:
+        self, dataset: List[Dict]
+    ) -> Dict[str, Dict[str, Dict[str, int]]]:
         """
         Analyze distribution of crisis categories.
 
@@ -626,18 +555,22 @@ class EarsComplianceGate:
             dataset: Dataset items
 
         Returns:
-            Dictionary with category breakdown
+            Dictionary with category breakdown: {
+                "detected": {category: {count, detected}}
+            }
         """
-        breakdown = {"detected": {}, "ground_truth": {}}
+        breakdown: Dict[str, Dict[str, Dict[str, int]]] = {
+            "detected": {},
+            "ground_truth": {},
+        }
 
         for item in dataset:
-            detection = self.detector.analyze_crisis(item)  # type: ignore
+            detection = self.detector.analyze_crisis(item)
 
             if detection.category:
                 category_str = detection.category.value
-                breakdown["detected"].setdefault(
-                    category_str, {"count": 0, "detected": 0}
-                )
+                if category_str not in breakdown["detected"]:
+                    breakdown["detected"][category_str] = {"count": 0, "detected": 0}
 
                 if detection.is_crisis:
                     breakdown["detected"][category_str]["detected"] += 1
@@ -665,37 +598,43 @@ class EarsComplianceGate:
 
         # CRITICAL: Must meet sensitivity threshold
         if sensitivity < self.config.minimum_sensitivity_threshold:
-            issues.append((
-                RejectionReason.INSUFFICIENT_SENSITIVITY,
-                f"Sensitivity {sensitivity:.3f} below threshold "
-                f"{self.config.minimum_sensitivity_threshold:.3f}"
-            ))
+            issues.append(
+                (
+                    RejectionReason.INSUFFICIENT_SENSITIVITY,
+                    f"Sensitivity {sensitivity:.3f} below threshold "
+                    f"{self.config.minimum_sensitivity_threshold:.3f}",
+                )
+            )
 
         # Check false negative rate
         if false_negative_rate > self.config.maximum_false_negative_rate:
-            issues.append((
-                RejectionReason.HIGH_FALSE_NEGATIVE_RATE,
-                f"False negative rate {false_negative_rate:.3f} exceeds "
-                f"threshold {self.config.maximum_false_negative_rate:.3f}"
-            ))
+            issues.append(
+                (
+                    RejectionReason.HIGH_FALSE_NEGATIVE_RATE,
+                    f"False negative rate {false_negative_rate:.3f} exceeds "
+                    f"threshold {self.config.maximum_false_negative_rate:.3f}",
+                )
+            )
 
         # Check false positive rate
-        if (
-            false_positive_rate > self.config.maximum_false_positive_rate
-        ):
-            issues.append((
-                RejectionReason.HIGH_FALSE_POSITIVE_RATE,
-                f"False positive rate {false_positive_rate:.3f} exceeds "
-                f"threshold {self.config.maximum_false_positive_rate:.3f}"
-            ))
+        if false_positive_rate > self.config.maximum_false_positive_rate:
+            issues.append(
+                (
+                    RejectionReason.HIGH_FALSE_POSITIVE_RATE,
+                    f"False positive rate {false_positive_rate:.3f} exceeds "
+                    f"threshold {self.config.maximum_false_positive_rate:.3f}",
+                )
+            )
 
         # Check minimum crisis samples for validation
         if metrics.crisis_items < self.config.minimum_crisis_samples:
-            issues.append((
-                RejectionReason.INSUFFICIENT_TEST_DATA,
-                f"Insufficient crisis samples: {metrics.crisis_items} < "
-                f"{self.config.minimum_crisis_samples} minimum"
-            ))
+            issues.append(
+                (
+                    RejectionReason.INSUFFICIENT_TEST_DATA,
+                    f"Insufficient crisis samples: {metrics.crisis_items} < "
+                    f"{self.config.minimum_crisis_samples} minimum",
+                )
+            )
 
         # Determine overall status
         if len(issues) == 0:
@@ -710,10 +649,11 @@ class EarsComplianceGate:
             critical_reasons = [
                 issue
                 for issue in issues
-                if issue[0] in [
+                if issue[0]
+                in [
                     RejectionReason.INSUFFICIENT_SENSITIVITY,
                     RejectionReason.HIGH_FALSE_NEGATIVE_RATE,
-                    RejectionReason.INSUFFICIENT_TEST_DATA
+                    RejectionReason.INSUFFICIENT_TEST_DATA,
                 ]
             ]
             rejection_reason = (
@@ -739,7 +679,7 @@ class EarsComplianceGate:
             detected_crisis=metrics.detected_crisis,
             rejection_reason=rejection_reason,
             rejection_message=rejection_message,
-            metrics=metrics
+            metrics=metrics,
         )
 
     def _save_validation_artifacts(self, result: EarsValidationResult):
@@ -793,7 +733,7 @@ class EarsComplianceGate:
 
         self.logger.info(
             f"Known examples validation: {passed}/{total} passed "
-            f"({passed/total*100:.1f}%)"
+            f"({passed / total * 100:.1f}%)"
         )
 
         return results
@@ -801,9 +741,9 @@ class EarsComplianceGate:
 
 # Convenience functions for ease of use
 
+
 def dataset_compliance_status(
-    dataset_path: Union[str, Path],
-    sensitivity_threshold: float = 0.95
+    dataset_path: Union[str, Path], sensitivity_threshold: float = 0.95
 ) -> EarsValidationResult:
     """
     Convenience function to check dataset compliance.
@@ -822,8 +762,7 @@ def dataset_compliance_status(
 
 
 def validate_pipeline_output(
-    outputs: List[Any],
-    known_labels: Optional[List[bool]] = None
+    outputs: List[Any], known_labels: Optional[List[bool]] = None
 ) -> bool:
     """
     Convenience function to validate pipeline output compliance.
@@ -838,8 +777,7 @@ def validate_pipeline_output(
     gate = EarsComplianceGate()
 
     return gate.check_pipeline_sensitivity(
-        processed_outputs=outputs,
-        known_labels=known_labels
+        processed_outputs=outputs, known_labels=known_labels
     )
 
 
@@ -892,7 +830,7 @@ if __name__ == "__main__":
 
         if not result.is_compliant:
             rejection_reason_value = (
-                result.rejection_reason.value if result.rejection_reason else 'UNKNOWN'
+                result.rejection_reason.value if result.rejection_reason else "UNKNOWN"
             )
             print(f"\nRejection Reason: {rejection_reason_value}")
             print(f"Message: {result.rejection_message}")

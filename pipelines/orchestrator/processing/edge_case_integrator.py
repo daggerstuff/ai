@@ -4,12 +4,12 @@ Integrates challenging and edge case scenarios for comprehensive AI training.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from conversation_schema import Conversation, Message
-from logger import get_logger
+from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+from ai.pipelines.orchestrator.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -475,7 +475,7 @@ class EdgeCaseIntegrator:
                         "I'm having thoughts about ending my life. "
                         "I don't see any way out of this pain."
                     ),
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 ),
                 Message(
                     role="assistant",
@@ -484,7 +484,7 @@ class EdgeCaseIntegrator:
                         "safety is my top priority right now. Can you tell me if "
                         "you have any specific plans to hurt yourself?"
                     ),
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 ),
                 Message(
                     role="user",
@@ -492,7 +492,7 @@ class EdgeCaseIntegrator:
                         "I've been thinking about it, but I don't have "
                         "a specific plan yet."
                     ),
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 ),
                 Message(
                     role="assistant",
@@ -502,21 +502,21 @@ class EdgeCaseIntegrator:
                         "you can stay with tonight, or should we consider other "
                         "safety options?"
                     ),
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 ),
             ]
 
             return Conversation(
-                id=f"crisis_conv_{scenario.scenario_id}",
+                conversation_id=f"crisis_conv_{scenario.scenario_id}",
                 messages=messages,
-                title=f"Crisis Intervention: {scenario.description}",
                 metadata={
                     "edge_case_type": scenario.edge_case_type.value,
                     "severity_level": scenario.severity_level.value,
                     "scenario_id": scenario.scenario_id,
                     "safety_critical": True,
+                    "title": f"Crisis Intervention: {scenario.description}",
+                    "tags": ["edge_case", "crisis", "safety_critical"],
                 },
-                tags=["edge_case", "crisis", "safety_critical"],
             )
 
         except Exception as e:
@@ -535,7 +535,7 @@ class EdgeCaseIntegrator:
                         "I need to tell you something, but I'm worried about "
                         "confidentiality. My partner doesn't know I'm here."
                     ),
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 ),
                 Message(
                     role="assistant",
@@ -545,21 +545,21 @@ class EdgeCaseIntegrator:
                         "where I might need to share information to keep you or "
                         "others safe."
                     ),
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 ),
             ]
 
             return Conversation(
-                id=f"ethical_conv_{scenario.scenario_id}",
+                conversation_id=f"ethical_conv_{scenario.scenario_id}",
                 messages=messages,
-                title=f"Ethical Dilemma: {scenario.description}",
                 metadata={
                     "edge_case_type": scenario.edge_case_type.value,
                     "severity_level": scenario.severity_level.value,
                     "scenario_id": scenario.scenario_id,
                     "ethical_complexity": True,
+                    "title": f"Ethical Dilemma: {scenario.description}",
+                    "tags": ["edge_case", "ethical", "confidentiality"],
                 },
-                tags=["edge_case", "ethical", "confidentiality"],
             )
 
         except Exception as e:
@@ -578,7 +578,7 @@ class EdgeCaseIntegrator:
                         "I brought you a small gift to thank you for all "
                         "your help. I hope that's okay."
                     ),
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 ),
                 Message(
                     role="assistant",
@@ -588,21 +588,21 @@ class EdgeCaseIntegrator:
                         "to maintain clear professional boundaries. Can we talk "
                         "about what this gift means to you?"
                     ),
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now(timezone.utc).isoformat(),
                 ),
             ]
 
             return Conversation(
-                id=f"boundary_conv_{scenario.scenario_id}",
+                conversation_id=f"boundary_conv_{scenario.scenario_id}",
                 messages=messages,
-                title=f"Boundary Issue: {scenario.description}",
                 metadata={
                     "edge_case_type": scenario.edge_case_type.value,
                     "severity_level": scenario.severity_level.value,
                     "scenario_id": scenario.scenario_id,
                     "boundary_focus": True,
+                    "title": f"Boundary Issue: {scenario.description}",
+                    "tags": ["edge_case", "boundary", "professional"],
                 },
-                tags=["edge_case", "boundary", "professional"],
             )
 
         except Exception as e:
@@ -616,7 +616,13 @@ class EdgeCaseIntegrator:
     ) -> dict[str, float]:
         """Calculate quality metrics for integrated edge cases."""
         if not conversations or not scenarios:
-            return {"error": "No data to analyze"}
+            return {
+                "safety_coverage": 0.0,
+                "ethical_coverage": 0.0,
+                "severity_balance": 0.0,
+                "scenario_conversation_ratio": 0.0,
+                "overall_quality": 0.0,
+            }
 
         # Safety coverage
         safety_coverage = sum(

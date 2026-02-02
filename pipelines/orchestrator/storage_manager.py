@@ -7,19 +7,21 @@ Handles file uploads/downloads to configured storage backend (S3, GCS, or local)
 import hashlib
 import json
 from pathlib import Path
-from typing import Optional, BinaryIO, Dict, Any
+from typing import Any, Dict, Optional
+
 import boto3
 from botocore.exceptions import ClientError
 
 # Optional GCS imports
 try:
     from google.cloud import storage as gcs_storage
-    from google.cloud.exceptions import NotFound, GoogleCloudError
+    from google.cloud.exceptions import GoogleCloudError, NotFound
+
     GCS_AVAILABLE = True
 except ImportError:
     GCS_AVAILABLE = False
 
-from .storage_config import StorageConfig, StorageBackend, get_storage_config
+from .storage_config import StorageBackend, StorageConfig, get_storage_config
 
 
 class StorageManager:
@@ -41,30 +43,35 @@ class StorageManager:
         if self._s3_client is None and self.config.backend == StorageBackend.S3:
             session_kwargs = {}
             if self.config.s3_access_key_id:
-                session_kwargs['aws_access_key_id'] = self.config.s3_access_key_id
+                session_kwargs["aws_access_key_id"] = self.config.s3_access_key_id
             if self.config.s3_secret_access_key:
-                session_kwargs['aws_secret_access_key'] = self.config.s3_secret_access_key
+                session_kwargs["aws_secret_access_key"] = (
+                    self.config.s3_secret_access_key
+                )
             if self.config.s3_region:
-                session_kwargs['region_name'] = self.config.s3_region
+                session_kwargs["region_name"] = self.config.s3_region
 
             session = boto3.Session(**session_kwargs)
             client_kwargs = {}
             if self.config.s3_endpoint_url:
-                client_kwargs['endpoint_url'] = self.config.s3_endpoint_url
+                client_kwargs["endpoint_url"] = self.config.s3_endpoint_url
             if self.config.s3_region:
-                client_kwargs['region_name'] = self.config.s3_region
+                client_kwargs["region_name"] = self.config.s3_region
 
-            self._s3_client = session.client('s3', **client_kwargs)
+            self._s3_client = session.client("s3", **client_kwargs)
         return self._s3_client
 
     def _get_gcs_client(self):
         """Get or create GCS client and bucket"""
         if not GCS_AVAILABLE:
-            raise ImportError("google-cloud-storage is not installed. Install it with: pip install google-cloud-storage")
+            raise ImportError(
+                "google-cloud-storage is not installed. Install it with: pip install google-cloud-storage"
+            )
 
         if self._gcs_client is None and self.config.backend == StorageBackend.GCS:
-            from google.oauth2 import service_account
             import os
+
+            from google.oauth2 import service_account
 
             credentials = None
             if self.config.gcs_credentials_path:
@@ -78,16 +85,21 @@ class StorageManager:
 
             client_kwargs = {}
             if credentials:
-                client_kwargs['credentials'] = credentials
+                client_kwargs["credentials"] = credentials
             if self.config.gcs_project_id:
-                client_kwargs['project'] = self.config.gcs_project_id
+                client_kwargs["project"] = self.config.gcs_project_id
 
             self._gcs_client = gcs_storage.Client(**client_kwargs)
             self._gcs_bucket = self._gcs_client.bucket(self.config.gcs_bucket)
 
         return self._gcs_client, self._gcs_bucket
 
-    def upload_file(self, local_path: Path, storage_path: str, metadata: Optional[Dict[str, Any]] = None) -> str:
+    def upload_file(
+        self,
+        local_path: Path,
+        storage_path: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> str:
         """Upload a file to storage and return the storage URL"""
         local_path = Path(local_path)
         if not local_path.exists():
@@ -99,12 +111,15 @@ class StorageManager:
             storage_full_path.parent.mkdir(parents=True, exist_ok=True)
 
             import shutil
+
             shutil.copy2(local_path, storage_full_path)
 
             # Store metadata if provided
             if metadata:
-                metadata_path = storage_full_path.with_suffix(storage_full_path.suffix + '.metadata.json')
-                with open(metadata_path, 'w') as f:
+                metadata_path = storage_full_path.with_suffix(
+                    storage_full_path.suffix + ".metadata.json"
+                )
+                with open(metadata_path, "w") as f:
                     json.dump(metadata, f, indent=2)
 
             return str(storage_full_path.absolute())
@@ -117,14 +132,14 @@ class StorageManager:
             extra_args = {}
             if metadata:
                 # Convert metadata to S3 metadata (string values only)
-                extra_args['Metadata'] = {k: str(v) for k, v in metadata.items()}
+                extra_args["Metadata"] = {k: str(v) for k, v in metadata.items()}
 
             try:
                 s3_client.upload_file(
                     str(local_path),
                     self.config.s3_bucket,
                     storage_path,
-                    ExtraArgs=extra_args
+                    ExtraArgs=extra_args,
                 )
                 return f"s3://{self.config.s3_bucket}/{storage_path}"
             except ClientError as e:
@@ -162,6 +177,7 @@ class StorageManager:
                 raise FileNotFoundError(f"Storage file not found: {storage_path}")
 
             import shutil
+
             shutil.copy2(source_path, local_path)
             return local_path
 
@@ -172,9 +188,7 @@ class StorageManager:
 
             try:
                 s3_client.download_file(
-                    self.config.s3_bucket,
-                    storage_path,
-                    str(local_path)
+                    self.config.s3_bucket, storage_path, str(local_path)
                 )
                 return local_path
             except ClientError as e:
@@ -234,23 +248,26 @@ class StorageManager:
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
 
-    def upload_with_checksum(self, local_path: Path, storage_path: str,
-                             metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def upload_with_checksum(
+        self,
+        local_path: Path,
+        storage_path: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
         """Upload file and return checksum and storage URL"""
         checksum = self.calculate_checksum(local_path)
         file_size = local_path.stat().st_size
 
         upload_metadata = metadata or {}
-        upload_metadata['sha256'] = checksum
-        upload_metadata['size_bytes'] = file_size
+        upload_metadata["sha256"] = checksum
+        upload_metadata["size_bytes"] = file_size
 
         storage_url = self.upload_file(local_path, storage_path, upload_metadata)
 
         return {
-            'storage_url': storage_url,
-            'storage_path': storage_path,
-            'sha256': checksum,
-            'size_bytes': file_size,
-            'local_path': str(local_path)
+            "storage_url": storage_url,
+            "storage_path": storage_path,
+            "sha256": checksum,
+            "size_bytes": file_size,
+            "local_path": str(local_path),
         }
-

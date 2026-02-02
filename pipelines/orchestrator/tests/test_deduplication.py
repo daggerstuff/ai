@@ -54,7 +54,9 @@ def test_deduplicate_similar_but_not_duplicate():
         make_conv(
             [
                 Message(role="user", content="Hi, how are you doing?", timestamp=None),
-                Message(role="assistant", content="I'm well, thank you!", timestamp=None),
+                Message(
+                    role="assistant", content="I'm well, thank you!", timestamp=None
+                ),
             ]
         ),
     ]
@@ -108,7 +110,7 @@ class TestConversationText:
         conv = Conversation(
             id="test1",
             messages=[Message(role="user", content="Hello there")],
-            source="test"
+            source="test",
         )
         result = conversation_text(conv)
         assert result == "Hello there"
@@ -120,9 +122,9 @@ class TestConversationText:
             messages=[
                 Message(role="user", content="Hello"),
                 Message(role="assistant", content="Hi there"),
-                Message(role="user", content="How are you?")
+                Message(role="user", content="How are you?"),
             ],
-            source="test"
+            source="test",
         )
         result = conversation_text(conv)
         assert result == "Hello Hi there How are you?"
@@ -140,36 +142,48 @@ class TestConversationDeduplicator:
             id="conv1",
             messages=[
                 Message(role="user", content="I'm feeling anxious about work."),
-                Message(role="assistant", content="I understand. Can you tell me more about what's causing this anxiety?")
+                Message(
+                    role="assistant",
+                    content="I understand. Can you tell me more about what's causing this anxiety?",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         self.conv2 = Conversation(
             id="conv2",
             messages=[
                 Message(role="user", content="I'm feeling anxious about work."),
-                Message(role="assistant", content="I understand. Can you tell me more about what's causing this anxiety?")
+                Message(
+                    role="assistant",
+                    content="I understand. Can you tell me more about what's causing this anxiety?",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         self.conv3 = Conversation(
             id="conv3",
             messages=[
                 Message(role="user", content="I'm worried about my job performance."),
-                Message(role="assistant", content="Work-related stress is common. What specific aspects concern you?")
+                Message(
+                    role="assistant",
+                    content="Work-related stress is common. What specific aspects concern you?",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         self.conv4 = Conversation(
             id="conv4",
             messages=[
                 Message(role="user", content="I love sunny days and ice cream."),
-                Message(role="assistant", content="That sounds wonderful! What's your favorite flavor?")
+                Message(
+                    role="assistant",
+                    content="That sounds wonderful! What's your favorite flavor?",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
     def test_initialization(self):
@@ -178,12 +192,20 @@ class TestConversationDeduplicator:
             similarity_threshold=0.9,
             content_weight=0.5,
             semantic_weight=0.3,
-            structural_weight=0.2
+            structural_weight=0.2,
         )
 
         assert dedup.similarity_threshold == 0.9
         # Weights should be normalized
-        assert abs(dedup.content_weight + dedup.semantic_weight + dedup.structural_weight - 1.0) < 0.001
+        assert (
+            abs(
+                dedup.content_weight
+                + dedup.semantic_weight
+                + dedup.structural_weight
+                - 1.0
+            )
+            < 0.001
+        )
 
     def test_calculate_similarity_identical(self):
         """Test similarity calculation for identical conversations."""
@@ -215,7 +237,11 @@ class TestConversationDeduplicator:
 
     def test_exact_duplicate_detection(self):
         """Test exact duplicate detection using content hashing."""
-        conversations = [self.conv1, self.conv2, self.conv3]  # conv1 and conv2 are identical
+        conversations = [
+            self.conv1,
+            self.conv2,
+            self.conv3,
+        ]  # conv1 and conv2 are identical
 
         exact_duplicates = self.deduplicator._find_exact_duplicates(conversations)
 
@@ -230,7 +256,9 @@ class TestConversationDeduplicator:
         conversations = [self.conv1, self.conv2, self.conv3]
         exact_duplicates = self.deduplicator._find_exact_duplicates(conversations)
 
-        unique = self.deduplicator._remove_exact_duplicates(conversations, exact_duplicates)
+        unique = self.deduplicator._remove_exact_duplicates(
+            conversations, exact_duplicates
+        )
 
         assert len(unique) == 2
         unique_ids = [conv.id for conv in unique]
@@ -259,7 +287,9 @@ class TestConversationDeduplicator:
         """Test similarity distribution calculation."""
         conversations = [self.conv1, self.conv2, self.conv3, self.conv4]
 
-        distribution = self.deduplicator._calculate_similarity_distribution(conversations)
+        distribution = self.deduplicator._calculate_similarity_distribution(
+            conversations
+        )
 
         assert isinstance(distribution, dict)
         expected_keys = ["very_high", "high", "medium", "low", "very_low"]
@@ -275,26 +305,28 @@ class TestBackwardCompatibility:
         self.conv1 = Conversation(
             id="conv1",
             messages=[Message(role="user", content="Hello world")],
-            source="test"
+            source="test",
         )
 
         self.conv2 = Conversation(
             id="conv2",
             messages=[Message(role="user", content="Hello world")],
-            source="test"
+            source="test",
         )
 
         self.conv3 = Conversation(
             id="conv3",
             messages=[Message(role="user", content="Goodbye universe")],
-            source="test"
+            source="test",
         )
 
     def test_deduplicate_conversations_enhanced(self):
         """Test enhanced deduplicate_conversations function."""
         conversations = [self.conv1, self.conv2, self.conv3]
 
-        unique, duplicates = deduplicate_conversations(conversations, similarity_threshold=0.9)
+        unique, duplicates = deduplicate_conversations(
+            conversations, similarity_threshold=0.9
+        )
 
         assert len(unique) == 2  # conv1 and conv2 are duplicates
         assert len(duplicates) >= 1
@@ -310,7 +342,9 @@ class TestBackwardCompatibility:
         """Test simple deduplicate_conversations function."""
         conversations = [self.conv1, self.conv2, self.conv3]
 
-        unique, duplicates = deduplicate_conversations_simple(conversations, similarity_threshold=0.9)
+        unique, duplicates = deduplicate_conversations_simple(
+            conversations, similarity_threshold=0.9
+        )
 
         assert len(unique) == 2  # Should remove one duplicate
         assert len(duplicates) >= 1
@@ -319,7 +353,9 @@ class TestBackwardCompatibility:
         """Test deduplication when no duplicates exist."""
         conversations = [self.conv1, self.conv3]  # Different conversations
 
-        unique, duplicates = deduplicate_conversations(conversations, similarity_threshold=0.9)
+        unique, duplicates = deduplicate_conversations(
+            conversations, similarity_threshold=0.9
+        )
 
         assert len(unique) == 2
         assert len(duplicates) == 0
@@ -328,7 +364,9 @@ class TestBackwardCompatibility:
         """Test deduplication when all conversations are duplicates."""
         conversations = [self.conv1, self.conv2, self.conv2]  # All same content
 
-        unique, duplicates = deduplicate_conversations(conversations, similarity_threshold=0.9)
+        unique, duplicates = deduplicate_conversations(
+            conversations, similarity_threshold=0.9
+        )
 
         assert len(unique) == 1  # Only one unique conversation
         assert len(duplicates) >= 1  # At least 1 duplicate removed
@@ -351,9 +389,7 @@ class TestEdgeCases:
     def test_single_conversation(self):
         """Test deduplication with single conversation."""
         conv = Conversation(
-            id="single",
-            messages=[Message(role="user", content="Hello")],
-            source="test"
+            id="single", messages=[Message(role="user", content="Hello")], source="test"
         )
 
         deduplicator = ConversationDeduplicator()
@@ -379,14 +415,12 @@ class TestEdgeCases:
     def test_very_low_threshold(self):
         """Test deduplication with very low similarity threshold."""
         conv1 = Conversation(
-            id="conv1",
-            messages=[Message(role="user", content="Hello")],
-            source="test"
+            id="conv1", messages=[Message(role="user", content="Hello")], source="test"
         )
         conv2 = Conversation(
             id="conv2",
             messages=[Message(role="user", content="Goodbye")],
-            source="test"
+            source="test",
         )
 
         deduplicator = ConversationDeduplicator(similarity_threshold=0.1)
@@ -401,12 +435,14 @@ class TestEdgeCases:
         conv1 = Conversation(
             id="conv1",
             messages=[Message(role="user", content="Hello world")],
-            source="test"
+            source="test",
         )
         conv2 = Conversation(
             id="conv2",
-            messages=[Message(role="user", content="Hello world!")],  # Slight difference
-            source="test"
+            messages=[
+                Message(role="user", content="Hello world!")
+            ],  # Slight difference
+            source="test",
         )
 
         deduplicator = ConversationDeduplicator(similarity_threshold=0.99)

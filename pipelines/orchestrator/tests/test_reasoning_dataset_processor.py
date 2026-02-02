@@ -8,7 +8,6 @@ import tempfile
 from unittest.mock import Mock, patch
 
 import pytest
-
 from ai.pipelines.orchestrator.reasoning_dataset_processor import (
     ReasoningDatasetConfig,
     ReasoningDatasetProcessor,
@@ -26,15 +25,21 @@ class TestReasoningDatasetProcessor:
         # Mock sample reasoning conversation data
         self.sample_reasoning_conversation = {
             "conversation": [
-                {"role": "client", "content": "I'm having trouble concentrating at work"},
-                {"role": "therapist", "content": "Let's think through this step by step. First, can you identify when this started? Second, what specific situations trigger it? Third, what symptoms do you notice?"}
+                {
+                    "role": "client",
+                    "content": "I'm having trouble concentrating at work",
+                },
+                {
+                    "role": "therapist",
+                    "content": "Let's think through this step by step. First, can you identify when this started? Second, what specific situations trigger it? Third, what symptoms do you notice?",
+                },
             ],
             "metadata": {
                 "category": "reasoning_enhancement",
                 "subcategory": "clinical_diagnosis",
                 "reasoning_patterns": ["symptom_identification", "assessment_planning"],
-                "reasoning_complexity": 0.8
-            }
+                "reasoning_complexity": 0.8,
+            },
         }
 
         # Mock reasoning dataset items
@@ -42,23 +47,24 @@ class TestReasoningDatasetProcessor:
             {
                 "input": "Patient presents with concentration issues",
                 "output": "First, I need to assess the onset and duration. Second, identify potential causes like stress, sleep, or medical conditions. Third, evaluate impact on daily functioning. Therefore, I recommend a comprehensive assessment.",
-                "reasoning_type": "clinical_diagnosis"
+                "reasoning_type": "clinical_diagnosis",
             },
             {
                 "question": "How to support a neurodivergent client?",
                 "answer": "Initially, understand their specific needs. Then, adapt communication style. Next, provide sensory accommodations. Finally, focus on their strengths and abilities.",
-                "category": "neurodiversity"
+                "category": "neurodiversity",
             },
             {
                 "scenario": "Client experiencing heartbreak",
                 "response": "First, validate their emotional experience. Second, help them process the grief stages. Third, identify coping strategies. Subsequently, work on rebuilding self-worth.",
-                "emotion_focus": "grief_processing"
-            }
+                "emotion_focus": "grief_processing",
+            },
         ]
 
     def teardown_method(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_initialization(self):
@@ -69,12 +75,24 @@ class TestReasoningDatasetProcessor:
 
         # Check dataset configurations
         config_names = [config.name for config in self.processor.dataset_configs]
-        expected_names = ["clinical_diagnosis_cot", "neurodivergent_cot", "heartbreak_cot", "mens_mental_health_cot"]
+        expected_names = [
+            "clinical_diagnosis_cot",
+            "neurodivergent_cot",
+            "heartbreak_cot",
+            "mens_mental_health_cot",
+        ]
         assert all(name in config_names for name in expected_names)
 
         # Check reasoning types
-        reasoning_types = [config.reasoning_type for config in self.processor.dataset_configs]
-        expected_types = ["clinical_diagnosis", "neurodiversity_awareness", "emotional_intelligence", "gender_specific_mental_health"]
+        reasoning_types = [
+            config.reasoning_type for config in self.processor.dataset_configs
+        ]
+        expected_types = [
+            "clinical_diagnosis",
+            "neurodiversity_awareness",
+            "emotional_intelligence",
+            "gender_specific_mental_health",
+        ]
         assert all(rtype in reasoning_types for rtype in expected_types)
 
     def test_reasoning_dataset_config_creation(self):
@@ -85,7 +103,7 @@ class TestReasoningDatasetProcessor:
             target_conversations=500,
             priority=1,
             reasoning_type="clinical_diagnosis",
-            quality_threshold=0.8
+            quality_threshold=0.8,
         )
 
         assert config.name == "test_reasoning"
@@ -103,7 +121,9 @@ class TestReasoningDatasetProcessor:
             "content": "The patient presents with symptoms of depression. I need to conduct a differential diagnosis to rule out other conditions. My assessment plan includes standardized tests and risk evaluation."
         }
 
-        patterns = self.processor._extract_reasoning_patterns(item, "clinical_diagnosis")
+        patterns = self.processor._extract_reasoning_patterns(
+            item, "clinical_diagnosis"
+        )
 
         assert "symptom_identification" in patterns
         assert "differential_diagnosis" in patterns
@@ -116,7 +136,9 @@ class TestReasoningDatasetProcessor:
             "content": "For this neurodivergent client, I need to provide communication adaptations and sensory accommodations. Let's focus on their executive function support and identify their unique strengths."
         }
 
-        patterns = self.processor._extract_reasoning_patterns(item, "neurodiversity_awareness")
+        patterns = self.processor._extract_reasoning_patterns(
+            item, "neurodiversity_awareness"
+        )
 
         assert "communication_adaptation" in patterns
         assert "sensory_considerations" in patterns
@@ -129,7 +151,9 @@ class TestReasoningDatasetProcessor:
             "content": "I notice the client is struggling with emotion recognition and emotional regulation. We need to work on empathy development and self-awareness to improve their relationship management skills."
         }
 
-        patterns = self.processor._extract_reasoning_patterns(item, "emotional_intelligence")
+        patterns = self.processor._extract_reasoning_patterns(
+            item, "emotional_intelligence"
+        )
 
         assert "emotion_recognition" in patterns
         assert "emotional_regulation" in patterns
@@ -143,7 +167,9 @@ class TestReasoningDatasetProcessor:
             "content": "This client faces societal pressure related to gender roles. We need cultural sensitivity and identity validation while building their support system and identifying appropriate resources."
         }
 
-        patterns = self.processor._extract_reasoning_patterns(item, "gender_specific_mental_health")
+        patterns = self.processor._extract_reasoning_patterns(
+            item, "gender_specific_mental_health"
+        )
 
         assert "societal_pressure_recognition" in patterns
         assert "gender_role_awareness" in patterns
@@ -160,13 +186,23 @@ class TestReasoningDatasetProcessor:
         assert 0.1 <= complexity <= 0.4
 
         # Multiple patterns
-        multiple_patterns = ["symptom_identification", "assessment_planning", "treatment_recommendation"]
+        multiple_patterns = [
+            "symptom_identification",
+            "assessment_planning",
+            "treatment_recommendation",
+        ]
         complexity = self.processor._calculate_reasoning_complexity(multiple_patterns)
         assert 0.5 <= complexity <= 0.8
 
         # High complexity patterns
-        high_complexity_patterns = ["differential_diagnosis", "risk_assessment", "emotional_regulation"]
-        complexity = self.processor._calculate_reasoning_complexity(high_complexity_patterns)
+        high_complexity_patterns = [
+            "differential_diagnosis",
+            "risk_assessment",
+            "emotional_regulation",
+        ]
+        complexity = self.processor._calculate_reasoning_complexity(
+            high_complexity_patterns
+        )
         assert complexity >= 0.8
 
         # Empty patterns
@@ -193,21 +229,27 @@ class TestReasoningDatasetProcessor:
         clinical_item = {
             "content": "The patient presents with symptoms of major depressive disorder. Clinical assessment reveals therapeutic intervention needs with psychiatric evaluation and counseling treatment."
         }
-        relevance = self.processor._assess_clinical_relevance(clinical_item, "clinical_diagnosis")
+        relevance = self.processor._assess_clinical_relevance(
+            clinical_item, "clinical_diagnosis"
+        )
         assert relevance >= 0.7
 
         # Medium clinical relevance
         medium_item = {
             "content": "The client is experiencing some emotional difficulties and may benefit from therapy sessions."
         }
-        relevance = self.processor._assess_clinical_relevance(medium_item, "emotional_intelligence")
+        relevance = self.processor._assess_clinical_relevance(
+            medium_item, "emotional_intelligence"
+        )
         assert 0.3 <= relevance < 0.7
 
         # Low clinical relevance
         low_item = {
             "content": "Today is a nice day and I feel good about life in general."
         }
-        relevance = self.processor._assess_clinical_relevance(low_item, "emotional_intelligence")
+        relevance = self.processor._assess_clinical_relevance(
+            low_item, "emotional_intelligence"
+        )
         assert relevance <= 0.5
 
     def test_standardize_reasoning_conversation(self):
@@ -219,8 +261,10 @@ class TestReasoningDatasetProcessor:
             # Mock conversation object with messages
             mock_conversation = Mock()
             mock_conversation.messages = [
-                Mock(role="client", content="Patient presents with concentration issues"),
-                Mock(role="therapist", content="First, I need to assess the onset...")
+                Mock(
+                    role="client", content="Patient presents with concentration issues"
+                ),
+                Mock(role="therapist", content="First, I need to assess the onset..."),
             ]
             mock_convert.return_value = mock_conversation
 
@@ -244,37 +288,53 @@ class TestReasoningDatasetProcessor:
         mock_load_hf.return_value = mock_dataset
 
         # Mock quality assessments to return True
-        with patch.object(self.processor, "_assess_quality", return_value=True), \
-             patch.object(self.processor, "_assess_clinical_accuracy", return_value=True), \
-             patch.object(self.processor, "_assess_reasoning_complexity", return_value=True), \
-             patch.object(self.processor, "_standardize_reasoning_conversation") as mock_standardize:
-
+        with (
+            patch.object(self.processor, "_assess_quality", return_value=True),
+            patch.object(
+                self.processor, "_assess_clinical_accuracy", return_value=True
+            ),
+            patch.object(
+                self.processor, "_assess_reasoning_complexity", return_value=True
+            ),
+            patch.object(
+                self.processor, "_standardize_reasoning_conversation"
+            ) as mock_standardize,
+        ):
             # Mock standardization to return valid conversations
             mock_standardize.side_effect = [
                 {
                     "conversation": [
-                        {"role": "client", "content": "Patient presents with concentration issues"},
-                        {"role": "therapist", "content": "First, I need to assess..."}
+                        {
+                            "role": "client",
+                            "content": "Patient presents with concentration issues",
+                        },
+                        {"role": "therapist", "content": "First, I need to assess..."},
                     ],
                     "metadata": {
                         "category": "reasoning_enhancement",
                         "subcategory": "clinical_diagnosis",
                         "reasoning_patterns": ["symptom_identification"],
-                        "reasoning_complexity": 0.8
-                    }
+                        "reasoning_complexity": 0.8,
+                    },
                 },
                 {
                     "conversation": [
-                        {"role": "client", "content": "How to support neurodivergent client?"},
-                        {"role": "therapist", "content": "Initially, understand their needs..."}
+                        {
+                            "role": "client",
+                            "content": "How to support neurodivergent client?",
+                        },
+                        {
+                            "role": "therapist",
+                            "content": "Initially, understand their needs...",
+                        },
                     ],
                     "metadata": {
                         "category": "reasoning_enhancement",
                         "subcategory": "neurodiversity_awareness",
                         "reasoning_patterns": ["accommodation_strategies"],
-                        "reasoning_complexity": 0.7
-                    }
-                }
+                        "reasoning_complexity": 0.7,
+                    },
+                },
             ]
 
             config = self.processor.dataset_configs[0]  # clinical_diagnosis_cot
@@ -282,8 +342,13 @@ class TestReasoningDatasetProcessor:
 
             assert len(result) == 2
             assert all("metadata" in conv for conv in result)
-            assert all(conv["metadata"]["source_dataset"] == config.name for conv in result)
-            assert all(conv["metadata"]["reasoning_type"] == config.reasoning_type for conv in result)
+            assert all(
+                conv["metadata"]["source_dataset"] == config.name for conv in result
+            )
+            assert all(
+                conv["metadata"]["reasoning_type"] == config.reasoning_type
+                for conv in result
+            )
 
     @patch("ai.pipelines.orchestrator.reasoning_dataset_processor.load_hf_dataset")
     def test_process_single_dataset_failure(self, mock_load_hf):
@@ -300,7 +365,9 @@ class TestReasoningDatasetProcessor:
         conversation = self.sample_reasoning_conversation
         config = self.processor.dataset_configs[0]
 
-        with patch.object(self.processor.quality_filter, "assess_conversation_quality") as mock_quality:
+        with patch.object(
+            self.processor.quality_filter, "assess_conversation_quality"
+        ) as mock_quality:
             # Test passing quality
             mock_quality.return_value = 0.8
             assert self.processor._assess_quality(conversation, config) is True
@@ -314,39 +381,51 @@ class TestReasoningDatasetProcessor:
         conversation = self.sample_reasoning_conversation
         config = self.processor.dataset_configs[0]  # clinical_diagnosis_cot
 
-        with patch.object(self.processor.clinical_validator, "validate_clinical_accuracy") as mock_clinical:
+        with patch.object(
+            self.processor.clinical_validator, "validate_clinical_accuracy"
+        ) as mock_clinical:
             # Test passing accuracy
             mock_clinical.return_value = 0.85
-            assert self.processor._assess_clinical_accuracy(conversation, config) is True
+            assert (
+                self.processor._assess_clinical_accuracy(conversation, config) is True
+            )
 
             # Test failing accuracy
             mock_clinical.return_value = 0.7
-            assert self.processor._assess_clinical_accuracy(conversation, config) is False
+            assert (
+                self.processor._assess_clinical_accuracy(conversation, config) is False
+            )
 
     def test_reasoning_complexity_assessment(self):
         """Test reasoning complexity assessment."""
         # High complexity conversation
-        high_complexity_conv = {
-            "metadata": {"reasoning_complexity": 0.8}
-        }
+        high_complexity_conv = {"metadata": {"reasoning_complexity": 0.8}}
         config = self.processor.dataset_configs[0]
-        assert self.processor._assess_reasoning_complexity(high_complexity_conv, config) is True
+        assert (
+            self.processor._assess_reasoning_complexity(high_complexity_conv, config)
+            is True
+        )
 
         # Low complexity conversation
-        low_complexity_conv = {
-            "metadata": {"reasoning_complexity": 0.5}
-        }
-        assert self.processor._assess_reasoning_complexity(low_complexity_conv, config) is False
+        low_complexity_conv = {"metadata": {"reasoning_complexity": 0.5}}
+        assert (
+            self.processor._assess_reasoning_complexity(low_complexity_conv, config)
+            is False
+        )
 
         # Missing complexity
-        missing_complexity_conv = {
-            "metadata": {}
-        }
-        assert self.processor._assess_reasoning_complexity(missing_complexity_conv, config) is False
+        missing_complexity_conv = {"metadata": {}}
+        assert (
+            self.processor._assess_reasoning_complexity(missing_complexity_conv, config)
+            is False
+        )
 
     def test_save_conversations(self):
         """Test conversation saving to JSONL."""
-        conversations = [self.sample_reasoning_conversation, self.sample_reasoning_conversation]
+        conversations = [
+            self.sample_reasoning_conversation,
+            self.sample_reasoning_conversation,
+        ]
         output_path = os.path.join(self.temp_dir, "test_reasoning_conversations.jsonl")
 
         self.processor._save_conversations(conversations, output_path)
@@ -370,7 +449,7 @@ class TestReasoningDatasetProcessor:
             {"metadata": {"reasoning_type": "clinical_diagnosis"}},
             {"metadata": {"reasoning_type": "neurodiversity_awareness"}},
             {"metadata": {"reasoning_type": "clinical_diagnosis"}},
-            {"metadata": {}}  # Missing reasoning type
+            {"metadata": {}},  # Missing reasoning type
         ]
 
         types = self.processor._analyze_reasoning_types(conversations)
@@ -382,10 +461,21 @@ class TestReasoningDatasetProcessor:
     def test_analyze_reasoning_patterns(self):
         """Test reasoning pattern analysis."""
         conversations = [
-            {"metadata": {"reasoning_patterns": ["symptom_identification", "assessment_planning"]}},
+            {
+                "metadata": {
+                    "reasoning_patterns": [
+                        "symptom_identification",
+                        "assessment_planning",
+                    ]
+                }
+            },
             {"metadata": {"reasoning_patterns": ["empathy_demonstration"]}},
-            {"metadata": {"reasoning_patterns": ["symptom_identification", "risk_assessment"]}},
-            {"metadata": {}}  # Missing patterns
+            {
+                "metadata": {
+                    "reasoning_patterns": ["symptom_identification", "risk_assessment"]
+                }
+            },
+            {"metadata": {}},  # Missing patterns
         ]
 
         patterns = self.processor._analyze_reasoning_patterns(conversations)
@@ -402,14 +492,14 @@ class TestReasoningDatasetProcessor:
             {"metadata": {"reasoning_complexity": 0.5}},  # medium
             {"metadata": {"reasoning_complexity": 0.8}},  # high
             {"metadata": {"reasoning_complexity": 0.6}},  # medium
-            {"metadata": {}}  # missing complexity (defaults to 0.0)
+            {"metadata": {}},  # missing complexity (defaults to 0.0)
         ]
 
         complexity_dist = self.processor._analyze_complexity_distribution(conversations)
 
         assert complexity_dist["low"] == 2  # 0.2 and missing (0.0)
         assert complexity_dist["medium"] == 2  # 0.5 and 0.6
-        assert complexity_dist["high"] == 1   # 0.8
+        assert complexity_dist["high"] == 1  # 0.8
 
     def test_analyze_clinical_relevance(self):
         """Test clinical relevance analysis."""
@@ -418,14 +508,14 @@ class TestReasoningDatasetProcessor:
             {"metadata": {"clinical_relevance": 0.6}},  # medium
             {"metadata": {"clinical_relevance": 0.9}},  # high
             {"metadata": {"clinical_relevance": 0.5}},  # medium
-            {"metadata": {}}  # missing relevance (defaults to 0.0)
+            {"metadata": {}},  # missing relevance (defaults to 0.0)
         ]
 
         relevance_dist = self.processor._analyze_clinical_relevance(conversations)
 
-        assert relevance_dist["low"] == 2   # 0.3 and missing (0.0)
-        assert relevance_dist["medium"] == 2 # 0.6 and 0.5
-        assert relevance_dist["high"] == 1   # 0.9
+        assert relevance_dist["low"] == 2  # 0.3 and missing (0.0)
+        assert relevance_dist["medium"] == 2  # 0.6 and 0.5
+        assert relevance_dist["high"] == 1  # 0.9
 
     def test_generate_processing_report(self):
         """Test processing report generation."""
@@ -434,7 +524,7 @@ class TestReasoningDatasetProcessor:
                 "conversations_processed": 100,
                 "target": 2000,
                 "reasoning_type": "clinical_diagnosis",
-                "success": True
+                "success": True,
             }
         }
 
@@ -464,6 +554,7 @@ class TestReasoningDatasetProcessor:
     @patch("ai.pipelines.orchestrator.reasoning_dataset_processor.load_hf_dataset")
     def test_process_all_datasets_partial_success(self, mock_load_hf):
         """Test processing with some datasets failing."""
+
         # Mock one successful and others failed
         def side_effect(hf_path):
             if "clinical_diagnosis" in hf_path:
@@ -475,11 +566,18 @@ class TestReasoningDatasetProcessor:
         mock_load_hf.side_effect = side_effect
 
         # Mock quality assessments
-        with patch.object(self.processor, "_assess_quality", return_value=True), \
-             patch.object(self.processor, "_assess_clinical_accuracy", return_value=True), \
-             patch.object(self.processor, "_assess_reasoning_complexity", return_value=True), \
-             patch.object(self.processor, "_standardize_reasoning_conversation") as mock_standardize:
-
+        with (
+            patch.object(self.processor, "_assess_quality", return_value=True),
+            patch.object(
+                self.processor, "_assess_clinical_accuracy", return_value=True
+            ),
+            patch.object(
+                self.processor, "_assess_reasoning_complexity", return_value=True
+            ),
+            patch.object(
+                self.processor, "_standardize_reasoning_conversation"
+            ) as mock_standardize,
+        ):
             mock_standardize.return_value = self.sample_reasoning_conversation
 
             result = self.processor.process_all_datasets()
@@ -489,8 +587,12 @@ class TestReasoningDatasetProcessor:
             assert self.processor.processing_stats["processing_errors"] >= 1
 
             # Check that output files were created
-            output_path = os.path.join(self.temp_dir, "processed_reasoning_conversations.jsonl")
-            report_path = os.path.join(self.temp_dir, "reasoning_processing_report.json")
+            output_path = os.path.join(
+                self.temp_dir, "processed_reasoning_conversations.jsonl"
+            )
+            report_path = os.path.join(
+                self.temp_dir, "reasoning_processing_report.json"
+            )
 
             assert os.path.exists(output_path)
             assert os.path.exists(report_path)

@@ -180,8 +180,28 @@ def unvalidated_function(filename, url):
 
         # Some issues
         self.auditor.issues = [
-            InputValidationIssue("file1.py", 1, "missing_validation", "high", "desc", "sugg", "func1", "param1", "code"),
-            InputValidationIssue("file2.py", 2, "missing_validation", "medium", "desc", "sugg", "func2", "param2", "code")
+            InputValidationIssue(
+                "file1.py",
+                1,
+                "missing_validation",
+                "high",
+                "desc",
+                "sugg",
+                "func1",
+                "param1",
+                "code",
+            ),
+            InputValidationIssue(
+                "file2.py",
+                2,
+                "missing_validation",
+                "medium",
+                "desc",
+                "sugg",
+                "func2",
+                "param2",
+                "code",
+            ),
         ]
         score = self.auditor._calculate_quality_score()
         assert 0.0 <= score < 1.0
@@ -190,15 +210,31 @@ def unvalidated_function(filename, url):
         """Test report generation."""
         # Create a sample report
         issues = [
-            InputValidationIssue("file1.py", 1, "missing_validation", "high", "Missing validation", "Add validation", "func1", "param1", "code"),
-            InputValidationIssue("file2.py", 5, "missing_validation", "medium", "Missing validation", "Add validation", "func2", "param2", "code")
+            InputValidationIssue(
+                "file1.py",
+                1,
+                "missing_validation",
+                "high",
+                "Missing validation",
+                "Add validation",
+                "func1",
+                "param1",
+                "code",
+            ),
+            InputValidationIssue(
+                "file2.py",
+                5,
+                "missing_validation",
+                "medium",
+                "Missing validation",
+                "Add validation",
+                "func2",
+                "param2",
+                "code",
+            ),
         ]
 
-        validation_patterns = {
-            "type_checks": 5,
-            "null_checks": 3,
-            "length_checks": 2
-        }
+        validation_patterns = {"type_checks": 5, "null_checks": 3, "length_checks": 2}
 
         report = InputValidationAuditReport(
             total_files=2,
@@ -210,7 +246,7 @@ def unvalidated_function(filename, url):
             coverage_score=0.7,
             quality_score=0.75,
             recommendations=["Add validation", "Use type hints"],
-            validation_patterns=validation_patterns
+            validation_patterns=validation_patterns,
         )
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
@@ -244,7 +280,7 @@ def unvalidated_function(filename, url):
             suggestion="Add type and value checks",
             function_name="test_function",
             parameter_name="test_param",
-            code_snippet="def test_function(test_param):"
+            code_snippet="def test_function(test_param):",
         )
 
         assert issue.file_path == "test.py"
@@ -283,6 +319,7 @@ def unvalidated_function(filename, url):
 
 def test_main_function():
     """Test the main function runs without error."""
+
     from .input_validation_auditor import main
 
     # Should run without raising exceptions

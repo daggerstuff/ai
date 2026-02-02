@@ -24,6 +24,7 @@ from real_quality_validator import RealQualityValidator
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
+
 class CompletePriorityProcessor:
     """Processes ALL priority conversations to fix the critical gap."""
 
@@ -38,12 +39,19 @@ class CompletePriorityProcessor:
 
         logger.info("🎯 Complete Priority Processor initialized - FIXING CRITICAL GAP")
 
-    def process_priority_dataset(self, priority_num: int, expected_count: int) -> dict[str, Any]:
+    def process_priority_dataset(
+        self, priority_num: int, expected_count: int
+    ) -> dict[str, Any]:
         """Process a complete priority dataset."""
-        logger.info(f"📊 Processing Priority {priority_num} - Expected: {expected_count:,} conversations")
+        logger.info(
+            f"📊 Processing Priority {priority_num} - Expected: {expected_count:,} conversations"
+        )
 
         # Source and output files
-        source_file = self.source_path / f"priority_{priority_num}/priority_{priority_num}_FINAL.jsonl"
+        source_file = (
+            self.source_path
+            / f"priority_{priority_num}/priority_{priority_num}_FINAL.jsonl"
+        )
         output_file = self.output_path / f"priority_{priority_num}_complete.jsonl"
 
         if not source_file.exists():
@@ -56,7 +64,9 @@ class CompletePriorityProcessor:
         logger.info(f"📋 Source file verified: {actual_count:,} conversations")
 
         if actual_count != expected_count:
-            logger.warning(f"⚠️ Count mismatch: expected {expected_count:,}, found {actual_count:,}")
+            logger.warning(
+                f"⚠️ Count mismatch: expected {expected_count:,}, found {actual_count:,}"
+            )
 
         # Process all conversations
         processed_conversations = []
@@ -73,7 +83,11 @@ class CompletePriorityProcessor:
 
                     # Validate with real quality system (sample for performance)
                     if i % 1000 == 0 or i < 10:  # Sample validation
-                        quality_metrics = self.quality_validator.validate_conversation_quality(conversation)
+                        quality_metrics = (
+                            self.quality_validator.validate_conversation_quality(
+                                conversation
+                            )
+                        )
                         quality_scores.append(quality_metrics.overall_quality)
 
                         # Add quality metadata to sample
@@ -81,20 +95,22 @@ class CompletePriorityProcessor:
                             "overall_quality": quality_metrics.overall_quality,
                             "therapeutic_accuracy": quality_metrics.therapeutic_accuracy,
                             "clinical_compliance": quality_metrics.clinical_compliance,
-                            "safety_score": quality_metrics.safety_score
+                            "safety_score": quality_metrics.safety_score,
                         }
 
                     # Ensure proper metadata
                     if "metadata" not in conversation:
                         conversation["metadata"] = {}
 
-                    conversation["metadata"].update({
-                        "dataset": f"priority_{priority_num}",
-                        "tier": priority_num,
-                        "processing_date": datetime.now(timezone.utc).isoformat(),
-                        "complete_processing": True,
-                        "gap_fixed": True
-                    })
+                    conversation["metadata"].update(
+                        {
+                            "dataset": f"priority_{priority_num}",
+                            "tier": priority_num,
+                            "processing_date": datetime.now(timezone.utc).isoformat(),
+                            "complete_processing": True,
+                            "gap_fixed": True,
+                        }
+                    )
 
                     processed_conversations.append(conversation)
 
@@ -103,7 +119,9 @@ class CompletePriorityProcessor:
                         elapsed = time.time() - start_time
                         rate = (i + 1) / elapsed
                         eta = (actual_count - i - 1) / rate if rate > 0 else 0
-                        logger.info(f"Processed {i + 1:,}/{actual_count:,} conversations ({rate:.1f}/sec, ETA: {eta/60:.1f}min)")
+                        logger.info(
+                            f"Processed {i + 1:,}/{actual_count:,} conversations ({rate:.1f}/sec, ETA: {eta / 60:.1f}min)"
+                        )
 
                 except Exception as e:
                     logger.error(f"Error processing conversation {i}: {e}")
@@ -111,14 +129,18 @@ class CompletePriorityProcessor:
                     continue
 
         # Save processed conversations
-        logger.info(f"💾 Saving {len(processed_conversations):,} conversations to {output_file}")
+        logger.info(
+            f"💾 Saving {len(processed_conversations):,} conversations to {output_file}"
+        )
 
         with open(output_file, "w", encoding="utf-8") as f:
             for conv in processed_conversations:
                 f.write(json.dumps(conv, ensure_ascii=False) + "\n")
 
         # Calculate statistics
-        avg_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 0.75
+        avg_quality = (
+            sum(quality_scores) / len(quality_scores) if quality_scores else 0.75
+        )
         processing_time = time.time() - start_time
 
         result = {
@@ -131,13 +153,17 @@ class CompletePriorityProcessor:
             "processing_time_seconds": processing_time,
             "processing_rate": len(processed_conversations) / processing_time,
             "output_file": str(output_file),
-            "gap_fixed": True
+            "gap_fixed": True,
         }
 
-        logger.info(f"✅ Priority {priority_num} complete: {len(processed_conversations):,} conversations")
+        logger.info(
+            f"✅ Priority {priority_num} complete: {len(processed_conversations):,} conversations"
+        )
         logger.info(f"   Average quality: {avg_quality:.3f}")
-        logger.info(f"   Processing time: {processing_time/60:.1f} minutes")
-        logger.info(f"   Processing rate: {result['processing_rate']:.1f} conversations/sec")
+        logger.info(f"   Processing time: {processing_time / 60:.1f} minutes")
+        logger.info(
+            f"   Processing rate: {result['processing_rate']:.1f} conversations/sec"
+        )
 
         return result
 
@@ -148,8 +174,8 @@ class CompletePriorityProcessor:
         # Expected counts from audit
         priority_specs = [
             (1, 102594),  # Priority 1: 102,594 conversations
-            (2, 84143),   # Priority 2: 84,143 conversations
-            (3, 111180)   # Priority 3: 111,180 conversations
+            (2, 84143),  # Priority 2: 84,143 conversations
+            (3, 111180),  # Priority 3: 111,180 conversations
         ]
 
         results = {}
@@ -168,7 +194,7 @@ class CompletePriorityProcessor:
                 logger.error(f"Failed to process Priority {priority_num}: {e}")
                 results[f"priority_{priority_num}"] = {
                     "error": str(e),
-                    "processed_count": 0
+                    "processed_count": 0,
                 }
 
         # Create comprehensive report
@@ -178,19 +204,19 @@ class CompletePriorityProcessor:
                 "total_processed": total_processed,
                 "completion_rate": total_processed / total_expected * 100,
                 "gap_fixed": total_processed >= total_expected * 0.95,
-                "processing_date": datetime.now(timezone.utc).isoformat()
+                "processing_date": datetime.now(timezone.utc).isoformat(),
             },
             "individual_results": results,
             "before_fix": {
                 "priority_1": 3124,
                 "priority_2": 30000,
                 "priority_3": 40000,
-                "total": 73124
+                "total": 73124,
             },
             "after_fix": {
                 "total_processed": total_processed,
-                "conversations_recovered": total_processed - 73124
-            }
+                "conversations_recovered": total_processed - 73124,
+            },
         }
 
         # Save comprehensive report
@@ -201,9 +227,15 @@ class CompletePriorityProcessor:
         logger.info("📊 CRITICAL GAP FIX SUMMARY:")
         logger.info(f"   Expected total: {total_expected:,}")
         logger.info(f"   Processed total: {total_processed:,}")
-        logger.info(f"   Completion rate: {report['gap_fix_summary']['completion_rate']:.1f}%")
-        logger.info(f"   Conversations recovered: {report['after_fix']['conversations_recovered']:,}")
-        logger.info(f"   Gap fixed: {'✅ YES' if report['gap_fix_summary']['gap_fixed'] else '❌ NO'}")
+        logger.info(
+            f"   Completion rate: {report['gap_fix_summary']['completion_rate']:.1f}%"
+        )
+        logger.info(
+            f"   Conversations recovered: {report['after_fix']['conversations_recovered']:,}"
+        )
+        logger.info(
+            f"   Gap fixed: {'✅ YES' if report['gap_fix_summary']['gap_fixed'] else '❌ NO'}"
+        )
 
         return report
 
@@ -222,20 +254,26 @@ class CompletePriorityProcessor:
                 verification[f"priority_{priority_num}"] = {
                     "file_exists": True,
                     "conversation_count": count,
-                    "file_path": str(output_file)
+                    "file_path": str(output_file),
                 }
             else:
                 verification[f"priority_{priority_num}"] = {
                     "file_exists": False,
-                    "conversation_count": 0
+                    "conversation_count": 0,
                 }
 
         total_fixed = sum(v["conversation_count"] for v in verification.values())
 
         logger.info("✅ Gap fix verification:")
-        logger.info(f"   Priority 1: {verification['priority_1']['conversation_count']:,} conversations")
-        logger.info(f"   Priority 2: {verification['priority_2']['conversation_count']:,} conversations")
-        logger.info(f"   Priority 3: {verification['priority_3']['conversation_count']:,} conversations")
+        logger.info(
+            f"   Priority 1: {verification['priority_1']['conversation_count']:,} conversations"
+        )
+        logger.info(
+            f"   Priority 2: {verification['priority_2']['conversation_count']:,} conversations"
+        )
+        logger.info(
+            f"   Priority 3: {verification['priority_3']['conversation_count']:,} conversations"
+        )
         logger.info(f"   TOTAL FIXED: {total_fixed:,} conversations")
 
         return verification
@@ -244,10 +282,8 @@ class CompletePriorityProcessor:
 if __name__ == "__main__":
     processor = CompletePriorityProcessor()
 
-
     # Process all priority datasets
     report = processor.process_all_priority_datasets()
-
 
     # Verify the fix
     verification = processor.verify_gap_fix()
@@ -256,4 +292,3 @@ if __name__ == "__main__":
         pass
     else:
         pass
-

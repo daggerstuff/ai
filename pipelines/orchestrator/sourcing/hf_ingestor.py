@@ -1,9 +1,10 @@
-import logging
 import json
+import logging
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
+
 
 class HuggingFaceIngestor:
     """
@@ -12,34 +13,32 @@ class HuggingFaceIngestor:
 
     DATASETS = {
         # Format: "owner/name": {"target": "folder", "config": "config_name", "split": "train"}
-
         # Foundation - General
         "Amod/mental_health_counseling_conversations": {
-            "target": "stage1_foundation", "split": "train"
+            "target": "stage1_foundation",
+            "split": "train",
         },
         "heliosbrahma/mental_health_chatbot_dataset": {
-            "target": "stage1_foundation", "split": "train"
+            "target": "stage1_foundation",
+            "split": "train",
         },
-
         # Specialist - Addiction & Recovery
         "fadodr/mental_health_therapy": {
-            "target": "stage2_specialist_addiction", "split": "train"
+            "target": "stage2_specialist_addiction",
+            "split": "train",
         },
-
         # Specialist - Trauma & PTSD
         "yenopoya/thousand-voices-trauma": {
-            "target": "stage2_specialist_ptsd", "split": "train"
+            "target": "stage2_specialist_ptsd",
+            "split": "train",
         },
-
         # Specialist - Personality Disorders
         "Kanakmi/mental-disorders": {
-            "target": "stage2_specialist_personality", "split": "train"
+            "target": "stage2_specialist_personality",
+            "split": "train",
         },
-
         # Edge Cases - Crisis
-        "AIMH/SWMH": {
-            "target": "stage3_edge_crisis", "split": "train"
-        }
+        "AIMH/SWMH": {"target": "stage3_edge_crisis", "split": "train"},
     }
 
     def __init__(self):
@@ -56,10 +55,14 @@ class HuggingFaceIngestor:
             split = config.get("split", "train")
             config_name = config.get("config", None)
 
-            logger.info(f"Loading {dataset_name} (split={split}, config={config_name})...")
+            logger.info(
+                f"Loading {dataset_name} (split={split}, config={config_name})..."
+            )
 
             if config_name:
-                ds = load_dataset(dataset_name, config_name, split=split, trust_remote_code=True)
+                ds = load_dataset(
+                    dataset_name, config_name, split=split, trust_remote_code=True
+                )
             else:
                 ds = load_dataset(dataset_name, split=split, trust_remote_code=True)
 
@@ -94,7 +97,7 @@ class HuggingFaceIngestor:
                         record = {
                             "source": ds_name,
                             "data": dict(row),
-                            "type": "external_foundation"
+                            "type": "external_foundation",
                         }
                         f.write(json.dumps(record) + "\n")
 
@@ -116,7 +119,7 @@ class KaggleIngestor:
         # Format: "owner/dataset-slug"
         "ruchi798/depression-and-anxiety-on-twitter": "stage1_foundation",
         "osmi/mental-health-in-tech-survey": "stage1_foundation",
-        "nikhileswarkomati/suicide-watch": "stage3_edge_crisis"
+        "nikhileswarkomati/suicide-watch": "stage3_edge_crisis",
     }
 
     def __init__(self):
@@ -133,7 +136,9 @@ class KaggleIngestor:
             output_dir.mkdir(parents=True, exist_ok=True)
 
             logger.info(f"Downloading Kaggle dataset: {dataset_slug}...")
-            kaggle.api.dataset_download_files(dataset_slug, path=str(output_dir), unzip=True)
+            kaggle.api.dataset_download_files(
+                dataset_slug, path=str(output_dir), unzip=True
+            )
 
             logger.info(f"  -> Downloaded to {output_dir}")
             return str(output_dir)
@@ -181,7 +186,9 @@ class DataWorldIngestor:
 
             # Export tables as CSVs
             for table_name, df in dataset.dataframes.items():
-                output_file = output_dir / f"{dataset_id.replace('/', '_')}_{table_name}.csv"
+                output_file = (
+                    output_dir / f"{dataset_id.replace('/', '_')}_{table_name}.csv"
+                )
                 df.to_csv(output_file, index=False)
                 logger.info(f"  -> Saved {table_name} to {output_file}")
 

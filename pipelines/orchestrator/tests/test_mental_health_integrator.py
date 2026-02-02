@@ -8,7 +8,6 @@ import tempfile
 from unittest.mock import Mock, patch
 
 import pytest
-
 from ai.pipelines.orchestrator.mental_health_integrator import (
     MentalHealthDatasetConfig,
     MentalHealthIntegrator,
@@ -27,13 +26,16 @@ class TestMentalHealthIntegrator:
         self.sample_conversation = {
             "conversation": [
                 {"role": "client", "content": "I've been feeling anxious lately"},
-                {"role": "therapist", "content": "Can you tell me more about what's making you feel anxious?"}
+                {
+                    "role": "therapist",
+                    "content": "Can you tell me more about what's making you feel anxious?",
+                },
             ],
             "metadata": {
                 "category": "mental_health",
                 "subcategory": "anxiety",
-                "therapeutic_approach": "cognitive_behavioral"
-            }
+                "therapeutic_approach": "cognitive_behavioral",
+            },
         }
 
         # Mock dataset items
@@ -41,22 +43,26 @@ class TestMentalHealthIntegrator:
             {
                 "input": "I'm feeling depressed",
                 "output": "I understand you're going through a difficult time. Can you share what's been contributing to these feelings?",
-                "instruction": "Provide therapeutic response"
+                "instruction": "Provide therapeutic response",
             },
             {
                 "conversations": [
                     {"from": "human", "value": "I have anxiety about work"},
-                    {"from": "gpt", "value": "Work anxiety is very common. What specific aspects of work are causing you stress?"}
+                    {
+                        "from": "gpt",
+                        "value": "Work anxiety is very common. What specific aspects of work are causing you stress?",
+                    },
                 ]
             },
             {
                 "text": "Client: I can't sleep at night\nTherapist: Sleep difficulties can be very challenging. How long have you been experiencing this?"
-            }
+            },
         ]
 
     def teardown_method(self):
         """Clean up test fixtures."""
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_initialization(self):
@@ -67,7 +73,12 @@ class TestMentalHealthIntegrator:
 
         # Check dataset configurations
         config_names = [config.name for config in self.integrator.dataset_configs]
-        expected_names = ["mental_health_counseling", "psych8k", "psychology_10k", "addiction_counseling"]
+        expected_names = [
+            "mental_health_counseling",
+            "psych8k",
+            "psychology_10k",
+            "addiction_counseling",
+        ]
         assert all(name in config_names for name in expected_names)
 
     def test_dataset_config_creation(self):
@@ -77,7 +88,7 @@ class TestMentalHealthIntegrator:
             hf_path="test/dataset",
             target_conversations=1000,
             priority=1,
-            quality_threshold=0.8
+            quality_threshold=0.8,
         )
 
         assert config.name == "test_dataset"
@@ -93,31 +104,49 @@ class TestMentalHealthIntegrator:
         """Test successful processing of a single dataset."""
         # Mock dataset loading
         mock_dataset = Mock()
-        mock_dataset.to_list.return_value = self.mock_dataset_items[:2]  # Use first 2 items
+        mock_dataset.to_list.return_value = self.mock_dataset_items[
+            :2
+        ]  # Use first 2 items
         mock_load_hf.return_value = mock_dataset
 
         # Mock quality assessments to return True
-        with patch.object(self.integrator, "_assess_quality", return_value=True), \
-             patch.object(self.integrator, "_assess_therapeutic_accuracy", return_value=True), \
-             patch.object(self.integrator, "_assess_emotional_authenticity", return_value=True), \
-             patch.object(self.integrator, "_standardize_conversation") as mock_standardize:
-
+        with (
+            patch.object(self.integrator, "_assess_quality", return_value=True),
+            patch.object(
+                self.integrator, "_assess_therapeutic_accuracy", return_value=True
+            ),
+            patch.object(
+                self.integrator, "_assess_emotional_authenticity", return_value=True
+            ),
+            patch.object(
+                self.integrator, "_standardize_conversation"
+            ) as mock_standardize,
+        ):
             # Mock standardization to return valid conversations
             mock_standardize.side_effect = [
                 {
                     "conversation": [
                         {"role": "client", "content": "I'm feeling depressed"},
-                        {"role": "therapist", "content": "I understand you're going through a difficult time."}
+                        {
+                            "role": "therapist",
+                            "content": "I understand you're going through a difficult time.",
+                        },
                     ],
-                    "metadata": {"category": "mental_health", "subcategory": "depression"}
+                    "metadata": {
+                        "category": "mental_health",
+                        "subcategory": "depression",
+                    },
                 },
                 {
                     "conversation": [
                         {"role": "client", "content": "I have anxiety about work"},
-                        {"role": "therapist", "content": "Work anxiety is very common."}
+                        {
+                            "role": "therapist",
+                            "content": "Work anxiety is very common.",
+                        },
                     ],
-                    "metadata": {"category": "mental_health", "subcategory": "anxiety"}
-                }
+                    "metadata": {"category": "mental_health", "subcategory": "anxiety"},
+                },
             ]
 
             config = self.integrator.dataset_configs[0]  # Use first config
@@ -125,7 +154,9 @@ class TestMentalHealthIntegrator:
 
             assert len(result) == 2
             assert all("metadata" in conv for conv in result)
-            assert all(conv["metadata"]["source_dataset"] == config.name for conv in result)
+            assert all(
+                conv["metadata"]["source_dataset"] == config.name for conv in result
+            )
 
     @patch("ai.pipelines.orchestrator.mental_health_integrator.load_hf_dataset")
     def test_process_single_dataset_failure(self, mock_load_hf):
@@ -142,17 +173,19 @@ class TestMentalHealthIntegrator:
         # Test input/output format
         item1 = {
             "input": "I'm feeling sad",
-            "output": "I'm sorry to hear you're feeling sad. Can you tell me more?"
+            "output": "I'm sorry to hear you're feeling sad. Can you tell me more?",
         }
 
         config = self.integrator.dataset_configs[0]
 
-        with patch.object(self.integrator, "_detect_and_convert_format") as mock_convert:
+        with patch.object(
+            self.integrator, "_detect_and_convert_format"
+        ) as mock_convert:
             # Mock conversation object with messages
             mock_conversation = Mock()
             mock_conversation.messages = [
                 Mock(role="client", content="I'm feeling sad"),
-                Mock(role="therapist", content="I'm sorry to hear you're feeling sad.")
+                Mock(role="therapist", content="I'm sorry to hear you're feeling sad."),
             ]
             mock_convert.return_value = mock_conversation
 
@@ -169,39 +202,72 @@ class TestMentalHealthIntegrator:
 
         # Test addiction counseling
         addiction_config = MentalHealthDatasetConfig(
-            name="addiction_counseling", hf_path="test", target_conversations=100, priority=1
+            name="addiction_counseling",
+            hf_path="test",
+            target_conversations=100,
+            priority=1,
         )
-        assert self.integrator._determine_subcategory(item, addiction_config) == "addiction_counseling"
+        assert (
+            self.integrator._determine_subcategory(item, addiction_config)
+            == "addiction_counseling"
+        )
 
         # Test psychology expertise
         psych_config = MentalHealthDatasetConfig(
             name="psych8k", hf_path="test", target_conversations=100, priority=1
         )
-        assert self.integrator._determine_subcategory(item, psych_config) == "psychology_expertise"
+        assert (
+            self.integrator._determine_subcategory(item, psych_config)
+            == "psychology_expertise"
+        )
 
         # Test general counseling
         counseling_config = MentalHealthDatasetConfig(
-            name="mental_health_counseling", hf_path="test", target_conversations=100, priority=1
+            name="mental_health_counseling",
+            hf_path="test",
+            target_conversations=100,
+            priority=1,
         )
-        assert self.integrator._determine_subcategory(item, counseling_config) == "general_counseling"
+        assert (
+            self.integrator._determine_subcategory(item, counseling_config)
+            == "general_counseling"
+        )
 
     def test_determine_therapeutic_approach(self):
         """Test therapeutic approach determination."""
         # Test cognitive behavioral
-        cbt_item = {"content": "Let's examine your thoughts and beliefs about this situation"}
-        assert self.integrator._determine_therapeutic_approach(cbt_item) == "cognitive_behavioral"
+        cbt_item = {
+            "content": "Let's examine your thoughts and beliefs about this situation"
+        }
+        assert (
+            self.integrator._determine_therapeutic_approach(cbt_item)
+            == "cognitive_behavioral"
+        )
 
         # Test mindfulness based
-        mindful_item = {"content": "Focus on your feelings and be present in this moment"}
-        assert self.integrator._determine_therapeutic_approach(mindful_item) == "mindfulness_based"
+        mindful_item = {
+            "content": "Focus on your feelings and be present in this moment"
+        }
+        assert (
+            self.integrator._determine_therapeutic_approach(mindful_item)
+            == "mindfulness_based"
+        )
 
         # Test behavioral
-        behavioral_item = {"content": "What actions can you take to achieve your goals?"}
-        assert self.integrator._determine_therapeutic_approach(behavioral_item) == "behavioral"
+        behavioral_item = {
+            "content": "What actions can you take to achieve your goals?"
+        }
+        assert (
+            self.integrator._determine_therapeutic_approach(behavioral_item)
+            == "behavioral"
+        )
 
         # Test integrative (default)
         general_item = {"content": "How are you doing today?"}
-        assert self.integrator._determine_therapeutic_approach(general_item) == "integrative"
+        assert (
+            self.integrator._determine_therapeutic_approach(general_item)
+            == "integrative"
+        )
 
     def test_estimate_emotional_intensity(self):
         """Test emotional intensity estimation."""
@@ -225,7 +291,9 @@ class TestMentalHealthIntegrator:
         conversation = self.sample_conversation
         config = self.integrator.dataset_configs[0]
 
-        with patch.object(self.integrator.quality_filter, "assess_conversation_quality") as mock_quality:
+        with patch.object(
+            self.integrator.quality_filter, "assess_conversation_quality"
+        ) as mock_quality:
             # Test passing quality
             mock_quality.return_value = 0.8
             assert self.integrator._assess_quality(conversation, config) is True
@@ -239,28 +307,44 @@ class TestMentalHealthIntegrator:
         conversation = self.sample_conversation
         config = self.integrator.dataset_configs[0]
 
-        with patch.object(self.integrator.therapeutic_assessor, "assess_therapeutic_accuracy") as mock_therapeutic:
+        with patch.object(
+            self.integrator.therapeutic_assessor, "assess_therapeutic_accuracy"
+        ) as mock_therapeutic:
             # Test passing accuracy
             mock_therapeutic.return_value = 0.85
-            assert self.integrator._assess_therapeutic_accuracy(conversation, config) is True
+            assert (
+                self.integrator._assess_therapeutic_accuracy(conversation, config)
+                is True
+            )
 
             # Test failing accuracy
             mock_therapeutic.return_value = 0.6
-            assert self.integrator._assess_therapeutic_accuracy(conversation, config) is False
+            assert (
+                self.integrator._assess_therapeutic_accuracy(conversation, config)
+                is False
+            )
 
     def test_emotional_authenticity_assessment(self):
         """Test emotional authenticity assessment."""
         conversation = self.sample_conversation
         config = self.integrator.dataset_configs[0]
 
-        with patch.object(self.integrator.emotional_assessor, "assess_emotional_authenticity") as mock_emotional:
+        with patch.object(
+            self.integrator.emotional_assessor, "assess_emotional_authenticity"
+        ) as mock_emotional:
             # Test passing authenticity
             mock_emotional.return_value = 0.8
-            assert self.integrator._assess_emotional_authenticity(conversation, config) is True
+            assert (
+                self.integrator._assess_emotional_authenticity(conversation, config)
+                is True
+            )
 
             # Test failing authenticity
             mock_emotional.return_value = 0.5
-            assert self.integrator._assess_emotional_authenticity(conversation, config) is False
+            assert (
+                self.integrator._assess_emotional_authenticity(conversation, config)
+                is False
+            )
 
     def test_save_conversations(self):
         """Test conversation saving to JSONL."""
@@ -287,7 +371,7 @@ class TestMentalHealthIntegrator:
             {"metadata": {"subcategory": "anxiety"}},
             {"metadata": {"subcategory": "depression"}},
             {"metadata": {"subcategory": "anxiety"}},
-            {"metadata": {}}  # Missing subcategory
+            {"metadata": {}},  # Missing subcategory
         ]
 
         categories = self.integrator._analyze_conversation_categories(conversations)
@@ -302,7 +386,7 @@ class TestMentalHealthIntegrator:
             {"metadata": {"therapeutic_approach": "cognitive_behavioral"}},
             {"metadata": {"therapeutic_approach": "mindfulness_based"}},
             {"metadata": {"therapeutic_approach": "cognitive_behavioral"}},
-            {"metadata": {}}  # Missing approach
+            {"metadata": {}},  # Missing approach
         ]
 
         approaches = self.integrator._analyze_therapeutic_approaches(conversations)
@@ -318,14 +402,14 @@ class TestMentalHealthIntegrator:
             {"metadata": {"emotional_intensity": 0.5}},  # medium
             {"metadata": {"emotional_intensity": 0.8}},  # high
             {"metadata": {"emotional_intensity": 0.6}},  # medium
-            {"metadata": {}}  # missing intensity (defaults to 0.0)
+            {"metadata": {}},  # missing intensity (defaults to 0.0)
         ]
 
         intensity_dist = self.integrator._analyze_emotional_intensity(conversations)
 
         assert intensity_dist["low"] == 2  # 0.2 and missing (0.0)
         assert intensity_dist["medium"] == 2  # 0.5 and 0.6
-        assert intensity_dist["high"] == 1   # 0.8
+        assert intensity_dist["high"] == 1  # 0.8
 
     def test_generate_integration_report(self):
         """Test integration report generation."""
@@ -333,7 +417,7 @@ class TestMentalHealthIntegrator:
             "test_dataset": {
                 "conversations_processed": 100,
                 "target": 1000,
-                "success": True
+                "success": True,
             }
         }
 
@@ -361,6 +445,7 @@ class TestMentalHealthIntegrator:
     @patch("ai.pipelines.orchestrator.mental_health_integrator.load_hf_dataset")
     def test_integrate_all_datasets_partial_success(self, mock_load_hf):
         """Test integration with some datasets failing."""
+
         # Mock one successful and one failed dataset load
         def side_effect(hf_path):
             if "mental_health_counseling" in hf_path:
@@ -372,11 +457,18 @@ class TestMentalHealthIntegrator:
         mock_load_hf.side_effect = side_effect
 
         # Mock quality assessments
-        with patch.object(self.integrator, "_assess_quality", return_value=True), \
-             patch.object(self.integrator, "_assess_therapeutic_accuracy", return_value=True), \
-             patch.object(self.integrator, "_assess_emotional_authenticity", return_value=True), \
-             patch.object(self.integrator, "_standardize_conversation") as mock_standardize:
-
+        with (
+            patch.object(self.integrator, "_assess_quality", return_value=True),
+            patch.object(
+                self.integrator, "_assess_therapeutic_accuracy", return_value=True
+            ),
+            patch.object(
+                self.integrator, "_assess_emotional_authenticity", return_value=True
+            ),
+            patch.object(
+                self.integrator, "_standardize_conversation"
+            ) as mock_standardize,
+        ):
             mock_standardize.return_value = self.sample_conversation
 
             result = self.integrator.integrate_all_datasets()
@@ -386,8 +478,12 @@ class TestMentalHealthIntegrator:
             assert self.integrator.integration_stats["processing_errors"] >= 1
 
             # Check that output files were created
-            output_path = os.path.join(self.temp_dir, "integrated_mental_health_conversations.jsonl")
-            report_path = os.path.join(self.temp_dir, "mental_health_integration_report.json")
+            output_path = os.path.join(
+                self.temp_dir, "integrated_mental_health_conversations.jsonl"
+            )
+            report_path = os.path.join(
+                self.temp_dir, "mental_health_integration_report.json"
+            )
 
             assert os.path.exists(output_path)
             assert os.path.exists(report_path)

@@ -3,7 +3,6 @@
 Test suite for Conversation Safety and Ethics Validation System
 """
 
-
 import pytest
 from quality.safety_ethics_validator import (
     EthicsViolation,
@@ -28,8 +27,11 @@ class TestSafetyEthicsValidator:
             "content": "I have a plan to kill myself tonight. I have the pills ready and I've written my note.",
             "turns": [
                 {"speaker": "user", "text": "I have a plan to kill myself tonight."},
-                {"speaker": "therapist", "text": "I'm very concerned about your safety."}
-            ]
+                {
+                    "speaker": "therapist",
+                    "text": "I'm very concerned about your safety.",
+                },
+            ],
         }
 
         self.moderate_safety_conversation = {
@@ -37,26 +39,35 @@ class TestSafetyEthicsValidator:
             "content": "I sometimes think about suicide but I don't have any plans. I have a good support system.",
             "turns": [
                 {"speaker": "user", "text": "I sometimes think about suicide."},
-                {"speaker": "therapist", "text": "Let's talk about your support system."}
-            ]
+                {
+                    "speaker": "therapist",
+                    "text": "Let's talk about your support system.",
+                },
+            ],
         }
 
         self.boundary_violation_conversation = {
             "id": "boundary_001",
             "content": "I think we should be friends outside of therapy. Maybe we could date sometime.",
             "turns": [
-                {"speaker": "therapist", "text": "I think we should be friends outside of therapy."},
-                {"speaker": "user", "text": "That sounds nice."}
-            ]
+                {
+                    "speaker": "therapist",
+                    "text": "I think we should be friends outside of therapy.",
+                },
+                {"speaker": "user", "text": "That sounds nice."},
+            ],
         }
 
         self.competence_issue_conversation = {
             "id": "competence_001",
             "content": "I'm not sure how to help with this condition. I've never dealt with schizophrenia before.",
             "turns": [
-                {"speaker": "therapist", "text": "I'm not sure how to help with this condition."},
-                {"speaker": "user", "text": "I need help with my schizophrenia."}
-            ]
+                {
+                    "speaker": "therapist",
+                    "text": "I'm not sure how to help with this condition.",
+                },
+                {"speaker": "user", "text": "I need help with my schizophrenia."},
+            ],
         }
 
         self.safe_conversation = {
@@ -64,8 +75,8 @@ class TestSafetyEthicsValidator:
             "content": "I understand you're feeling anxious. Let's work on some coping strategies.",
             "turns": [
                 {"speaker": "user", "text": "I'm feeling anxious."},
-                {"speaker": "therapist", "text": "Let's work on coping strategies."}
-            ]
+                {"speaker": "therapist", "text": "Let's work on coping strategies."},
+            ],
         }
 
         self.violence_conversation = {
@@ -73,8 +84,8 @@ class TestSafetyEthicsValidator:
             "content": "I want to hurt my boss. I've been thinking about bringing a weapon to work.",
             "turns": [
                 {"speaker": "user", "text": "I want to hurt my boss."},
-                {"speaker": "therapist", "text": "Tell me more about these feelings."}
-            ]
+                {"speaker": "therapist", "text": "Tell me more about these feelings."},
+            ],
         }
 
     def test_validator_initialization(self):
@@ -102,14 +113,16 @@ class TestSafetyEthicsValidator:
 
         # Should detect self-harm issue
         self_harm_issues = [
-            issue for issue in result.safety_issues
+            issue
+            for issue in result.safety_issues
             if issue.issue_type == HarmfulContentType.SELF_HARM
         ]
         assert len(self_harm_issues) > 0
 
         # Should be critical risk level
         critical_issues = [
-            issue for issue in result.safety_issues
+            issue
+            for issue in result.safety_issues
             if issue.risk_level == SafetyRiskLevel.CRITICAL
         ]
         assert len(critical_issues) > 0
@@ -127,14 +140,16 @@ class TestSafetyEthicsValidator:
 
         # Should detect self-harm but at lower risk due to protective factors
         self_harm_issues = [
-            issue for issue in result.safety_issues
+            issue
+            for issue in result.safety_issues
             if issue.issue_type == HarmfulContentType.SELF_HARM
         ]
         assert len(self_harm_issues) > 0
 
         # Should not be critical risk (may be high or moderate due to protective factors)
         critical_issues = [
-            issue for issue in result.safety_issues
+            issue
+            for issue in result.safety_issues
             if issue.risk_level == SafetyRiskLevel.CRITICAL
         ]
         assert len(critical_issues) == 0
@@ -151,32 +166,40 @@ class TestSafetyEthicsValidator:
 
         # Should detect violence issue
         violence_issues = [
-            issue for issue in result.safety_issues
+            issue
+            for issue in result.safety_issues
             if issue.issue_type == HarmfulContentType.VIOLENCE
         ]
         assert len(violence_issues) > 0
 
         # Should be high risk
         high_risk_issues = [
-            issue for issue in result.safety_issues
+            issue
+            for issue in result.safety_issues
             if issue.risk_level in [SafetyRiskLevel.HIGH, SafetyRiskLevel.CRITICAL]
         ]
         assert len(high_risk_issues) > 0
 
         # Should have appropriate safety actions
         violence_issue = violence_issues[0]
-        assert any("violence risk" in action.lower() for action in violence_issue.recommended_actions)
+        assert any(
+            "violence risk" in action.lower()
+            for action in violence_issue.recommended_actions
+        )
 
     def test_detect_boundary_violation(self):
         """Test detection of boundary violations."""
-        result = self.validator.validate_conversation(self.boundary_violation_conversation)
+        result = self.validator.validate_conversation(
+            self.boundary_violation_conversation
+        )
 
         assert result.conversation_id == "boundary_001"
         assert len(result.ethics_violations) > 0
 
         # Should detect boundary violation
         boundary_violations = [
-            violation for violation in result.ethics_violations
+            violation
+            for violation in result.ethics_violations
             if violation.violation_type == EthicsViolationType.BOUNDARY_VIOLATION
         ]
         assert len(boundary_violations) > 0
@@ -191,21 +214,30 @@ class TestSafetyEthicsValidator:
 
     def test_detect_competence_issue(self):
         """Test detection of competence issues."""
-        result = self.validator.validate_conversation(self.competence_issue_conversation)
+        result = self.validator.validate_conversation(
+            self.competence_issue_conversation
+        )
 
         assert result.conversation_id == "competence_001"
 
         # Should detect competence issue
         competence_violations = [
-            violation for violation in result.ethics_violations
+            violation
+            for violation in result.ethics_violations
             if violation.violation_type == EthicsViolationType.COMPETENCE_ISSUE
         ]
         assert len(competence_violations) > 0
 
         # Should have appropriate corrective actions
         competence_violation = competence_violations[0]
-        assert any("consultation" in action.lower() for action in competence_violation.corrective_actions)
-        assert any("referral" in action.lower() for action in competence_violation.corrective_actions)
+        assert any(
+            "consultation" in action.lower()
+            for action in competence_violation.corrective_actions
+        )
+        assert any(
+            "referral" in action.lower()
+            for action in competence_violation.corrective_actions
+        )
 
     def test_safe_conversation_validation(self):
         """Test validation of safe conversation."""
@@ -226,20 +258,26 @@ class TestSafetyEthicsValidator:
         severity_indicators = {
             "critical": ["plan", "tonight"],
             "high": ["thinking about"],
-            "moderate": ["sometimes think"]
+            "moderate": ["sometimes think"],
         }
 
-        risk_level = self.validator._assess_risk_level(critical_content, severity_indicators)
+        risk_level = self.validator._assess_risk_level(
+            critical_content, severity_indicators
+        )
         assert risk_level == SafetyRiskLevel.CRITICAL
 
         # Test high indicators
         high_content = "I'm thinking about suicide"
-        risk_level = self.validator._assess_risk_level(high_content, severity_indicators)
+        risk_level = self.validator._assess_risk_level(
+            high_content, severity_indicators
+        )
         assert risk_level == SafetyRiskLevel.HIGH
 
         # Test moderate indicators
         moderate_content = "I sometimes think about it"
-        risk_level = self.validator._assess_risk_level(moderate_content, severity_indicators)
+        risk_level = self.validator._assess_risk_level(
+            moderate_content, severity_indicators
+        )
         assert risk_level == SafetyRiskLevel.MODERATE
 
     def test_risk_level_reduction_with_protective_factors(self):
@@ -270,7 +308,7 @@ class TestSafetyEthicsValidator:
                 risk_level=SafetyRiskLevel.CRITICAL,
                 description="Test",
                 content_snippet="test",
-                mitigation_required=True
+                mitigation_required=True,
             )
         ]
         score = self.validator._calculate_safety_score(critical_issues)
@@ -283,7 +321,7 @@ class TestSafetyEthicsValidator:
                 risk_level=SafetyRiskLevel.LOW,
                 description="Test",
                 content_snippet="test",
-                mitigation_required=False
+                mitigation_required=False,
             )
         ]
         score = self.validator._calculate_safety_score(low_risk_issues)
@@ -304,7 +342,7 @@ class TestSafetyEthicsValidator:
                 description="Test",
                 content_snippet="test",
                 professional_standard="test",
-                corrective_actions=[]
+                corrective_actions=[],
             )
         ]
         score = self.validator._calculate_ethics_score(high_violations)
@@ -318,7 +356,7 @@ class TestSafetyEthicsValidator:
                 description="Test",
                 content_snippet="test",
                 professional_standard="test",
-                corrective_actions=[]
+                corrective_actions=[],
             )
         ]
         score = self.validator._calculate_ethics_score(low_violations)
@@ -333,7 +371,7 @@ class TestSafetyEthicsValidator:
                 risk_level=SafetyRiskLevel.CRITICAL,
                 description="Test",
                 content_snippet="test",
-                mitigation_required=True
+                mitigation_required=True,
             )
         ]
         status = self.validator._determine_compliance_status(critical_safety, [])
@@ -346,7 +384,7 @@ class TestSafetyEthicsValidator:
                 severity="high",
                 description="Test",
                 content_snippet="test",
-                professional_standard="test"
+                professional_standard="test",
             )
         ]
         status = self.validator._determine_compliance_status([], high_ethics)
@@ -365,7 +403,7 @@ class TestSafetyEthicsValidator:
                 risk_level=SafetyRiskLevel.CRITICAL,
                 description="Test",
                 content_snippet="test",
-                mitigation_required=True
+                mitigation_required=True,
             )
         ]
         requires = self.validator._requires_intervention(critical_safety, [])
@@ -378,7 +416,7 @@ class TestSafetyEthicsValidator:
                 severity="high",
                 description="Test",
                 content_snippet="test",
-                professional_standard="test"
+                professional_standard="test",
             )
         ]
         requires = self.validator._requires_intervention([], high_ethics)
@@ -391,15 +429,15 @@ class TestSafetyEthicsValidator:
                 risk_level=SafetyRiskLevel.HIGH,
                 description="Test1",
                 content_snippet="test1",
-                mitigation_required=True
+                mitigation_required=True,
             ),
             SafetyIssue(
                 issue_type=HarmfulContentType.VIOLENCE,
                 risk_level=SafetyRiskLevel.HIGH,
                 description="Test2",
                 content_snippet="test2",
-                mitigation_required=True
-            )
+                mitigation_required=True,
+            ),
         ]
         requires = self.validator._requires_intervention(multiple_high_risk, [])
         assert requires
@@ -411,7 +449,7 @@ class TestSafetyEthicsValidator:
                 risk_level=SafetyRiskLevel.LOW,
                 description="Test",
                 content_snippet="test",
-                mitigation_required=False
+                mitigation_required=False,
             )
         ]
         requires = self.validator._requires_intervention(low_risk, [])
@@ -427,11 +465,13 @@ class TestSafetyEthicsValidator:
                 risk_level=SafetyRiskLevel.MODERATE,
                 description="Test",
                 content_snippet="test",
-                mitigation_required=False
+                mitigation_required=False,
             )
         ]
 
-        assessment = self.validator._perform_risk_assessment(content, turns, safety_issues)
+        assessment = self.validator._perform_risk_assessment(
+            content, turns, safety_issues
+        )
 
         assert assessment["overall_risk_level"] == "moderate"
         assert assessment["monitoring_required"]

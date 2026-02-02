@@ -14,24 +14,37 @@ from .typing import Any, Dict, List, Tuple
 # Add the dataset_pipeline to path
 sys.path.append("/home/vivi/pixelated/ai/pipelines/orchestrator")
 
-from .enhanced_crisis_patterns import CrisisIndicator, CrisisType, EnhancedCrisisPatterns
+
+from .enhanced_crisis_patterns import (
+    CrisisIndicator,
+    CrisisType,
+    EnhancedCrisisPatterns,
+)
 
 
 class CrisisLevel(Enum):
     """Crisis severity levels."""
+
     EMERGENCY = ("emergency", 1, "Immediate danger - requires emergency services")
-    CRITICAL = ("critical", 2, "High risk - requires immediate professional intervention")
+    CRITICAL = (
+        "critical",
+        2,
+        "High risk - requires immediate professional intervention",
+    )
     ELEVATED = ("elevated", 3, "Moderate risk - requires prompt attention")
     ROUTINE = ("routine", 4, "Standard therapeutic support")
+
 
 @dataclass
 class CrisisDetection:
     """Crisis detection result."""
+
     conversation_id: str
     crisis_level: CrisisLevel
     crisis_types: List[str]
     confidence_score: float
     detected_indicators: List[str]
+
 
 class EnhancedCrisisDetector:
     """Enhanced crisis detector with improved patterns."""
@@ -44,7 +57,9 @@ class EnhancedCrisisDetector:
 
     def detect_crisis(self, conversation: Dict[str, Any]) -> CrisisDetection:
         """Detect crisis in conversation using enhanced patterns."""
-        conversation_id = conversation.get("id", conversation.get("conversation_id", "unknown"))
+        conversation_id = conversation.get(
+            "id", conversation.get("conversation_id", "unknown")
+        )
 
         # Extract content
         content = self._extract_content(conversation)
@@ -66,7 +81,7 @@ class EnhancedCrisisDetector:
             crisis_level=crisis_level,
             crisis_types=crisis_types,
             confidence_score=confidence_score,
-            detected_indicators=detected_indicators
+            detected_indicators=detected_indicators,
         )
 
     def _extract_content(self, conversation: Dict[str, Any]) -> str:
@@ -104,7 +119,9 @@ class EnhancedCrisisDetector:
 
         return " ".join(content_parts).lower()
 
-    def _analyze_crisis_indicators(self, content: str) -> Dict[CrisisType, List[CrisisIndicator]]:
+    def _analyze_crisis_indicators(
+        self, content: str
+    ) -> Dict[CrisisType, List[CrisisIndicator]]:
         """Analyze content for crisis indicators."""
         detected_crises = {}
 
@@ -120,7 +137,9 @@ class EnhancedCrisisDetector:
 
         return detected_crises
 
-    def _calculate_crisis_level(self, detected_crises: Dict[CrisisType, List[CrisisIndicator]]) -> Tuple[CrisisLevel, float]:
+    def _calculate_crisis_level(
+        self, detected_crises: Dict[CrisisType, List[CrisisIndicator]]
+    ) -> Tuple[CrisisLevel, float]:
         """Calculate overall crisis level and confidence."""
         if not detected_crises:
             return CrisisLevel.ROUTINE, 0.0
@@ -157,6 +176,7 @@ class EnhancedCrisisDetector:
             return CrisisLevel.ELEVATED, confidence
         return CrisisLevel.ROUTINE, confidence
 
+
 def run_enhanced_crisis_tests():
     """Run the comprehensive crisis test suite with enhanced patterns."""
     detector = EnhancedCrisisDetector()
@@ -169,38 +189,37 @@ def run_enhanced_crisis_tests():
             "content": "Sometimes I think about not being here anymore. Everyone would be better off without me.",
             "expected_level": "elevated",
             "expected_confidence": 0.5,
-            "expected_types": ["suicide_ideation"]
+            "expected_types": ["suicide_ideation"],
         },
         {
             "id": "self_harm_test_Burning_with_specific_method",
             "content": "I've been burning myself with cigarettes when the pain gets too much.",
             "expected_level": "critical",
             "expected_confidence": 0.7,
-            "expected_types": ["self_harm"]
+            "expected_types": ["self_harm"],
         },
         {
             "id": "psychotic_episode_test_Command_hallucinations",
             "content": "The voices are telling me to hurt people. They command me to do things I don't want to do.",
             "expected_level": "emergency",
             "expected_confidence": 0.8,
-            "expected_types": ["psychotic_episode"]
+            "expected_types": ["psychotic_episode"],
         },
         {
             "id": "panic_attack_test_Severe_panic_symptoms",
             "content": "I can't breathe, my heart is racing, I think I'm going to die. This panic attack won't stop.",
             "expected_level": "elevated",
             "expected_confidence": 0.6,
-            "expected_types": ["panic_attack"]
+            "expected_types": ["panic_attack"],
         },
         {
             "id": "eating_disorder_crisis_test_Medical_emergency_from_restriction",
             "content": "I haven't eaten in days and now I'm fainting. I think this is a medical emergency.",
             "expected_level": "emergency",
             "expected_confidence": 0.8,
-            "expected_types": ["eating_disorder_crisis"]
-        }
+            "expected_types": ["eating_disorder_crisis"],
+        },
     ]
-
 
     passed = 0
     failed = 0
@@ -211,7 +230,10 @@ def run_enhanced_crisis_tests():
         # Check if test passes
         level_match = result.crisis_level.value[0] == test_case["expected_level"]
         confidence_ok = result.confidence_score >= test_case["expected_confidence"]
-        types_match = any(expected_type in result.crisis_types for expected_type in test_case["expected_types"])
+        types_match = any(
+            expected_type in result.crisis_types
+            for expected_type in test_case["expected_types"]
+        )
 
         test_passed = level_match and confidence_ok and types_match
 
@@ -220,12 +242,11 @@ def run_enhanced_crisis_tests():
         else:
             failed += 1
 
-
         if not test_passed:
             pass
 
-
     return passed == len(test_cases)
+
 
 if __name__ == "__main__":
     success = run_enhanced_crisis_tests()

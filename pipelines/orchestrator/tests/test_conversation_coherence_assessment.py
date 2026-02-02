@@ -30,7 +30,7 @@ class TestConversationCoherenceAssessor:
         """Test assessor initialization with custom configuration."""
         custom_config = {
             "weights": {"logical_flow": 0.5, "contextual_consistency": 0.5},
-            "thresholds": {"excellent": 0.9, "good": 0.8}
+            "thresholds": {"excellent": 0.9, "good": 0.8},
         }
         assessor = ConversationCoherenceAssessor(custom_config)
 
@@ -42,7 +42,7 @@ class TestConversationCoherenceAssessor:
         conversation = Conversation(
             id="test_empty",
             messages=[],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_conversation_coherence(conversation)
@@ -56,10 +56,8 @@ class TestConversationCoherenceAssessor:
         """Test assessment of conversation with single message."""
         conversation = Conversation(
             id="test_single",
-            messages=[
-                Message(role="user", content="Hello, how are you?")
-            ],
-            source="test"
+            messages=[Message(role="user", content="Hello, how are you?")],
+            source="test",
         )
 
         metrics = self.assessor.assess_conversation_coherence(conversation)
@@ -72,12 +70,24 @@ class TestConversationCoherenceAssessor:
         conversation = Conversation(
             id="test_good",
             messages=[
-                Message(role="user", content="Hello, I'm feeling anxious about my upcoming job interview."),
-                Message(role="assistant", content="I understand that job interviews can be stressful. What specifically about the interview is making you feel anxious?"),
-                Message(role="user", content="I'm worried about not being able to answer their questions properly and making a bad impression."),
-                Message(role="assistant", content="Those are common concerns. Let's work on some strategies to help you feel more prepared and confident.")
+                Message(
+                    role="user",
+                    content="Hello, I'm feeling anxious about my upcoming job interview.",
+                ),
+                Message(
+                    role="assistant",
+                    content="I understand that job interviews can be stressful. What specifically about the interview is making you feel anxious?",
+                ),
+                Message(
+                    role="user",
+                    content="I'm worried about not being able to answer their questions properly and making a bad impression.",
+                ),
+                Message(
+                    role="assistant",
+                    content="Those are common concerns. Let's work on some strategies to help you feel more prepared and confident.",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_conversation_coherence(conversation)
@@ -95,9 +105,9 @@ class TestConversationCoherenceAssessor:
                 Message(role="user", content="Hello"),
                 Message(role="user", content="Are you there?"),
                 Message(role="assistant", content="Yes, I'm here"),
-                Message(role="assistant", content="How can I help you?")
+                Message(role="assistant", content="How can I help you?"),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_conversation_coherence(conversation)
@@ -113,9 +123,9 @@ class TestConversationCoherenceAssessor:
                 Message(role="user", content="Hello"),
                 Message(role="assistant", content=""),
                 Message(role="user", content="Are you there?"),
-                Message(role="assistant", content="Yes, sorry about that.")
+                Message(role="assistant", content="Yes, sorry about that."),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_conversation_coherence(conversation)
@@ -131,9 +141,9 @@ class TestConversationCoherenceAssessor:
                 Message(role="user", content="I'm feeling anxious about work."),
                 Message(role="assistant", content="What's your favorite color?"),
                 Message(role="user", content="Blue, I guess. But about my anxiety..."),
-                Message(role="assistant", content="Do you like pizza?")
+                Message(role="assistant", content="Do you like pizza?"),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_conversation_coherence(conversation)
@@ -141,21 +151,32 @@ class TestConversationCoherenceAssessor:
         assert metrics.topic_continuity_score < 0.7  # Should be penalized
         # The response relevance should detect the irrelevant topic shifts
         # But the current implementation may not catch all cases, so let's check for topic continuity instead
-        assert metrics.topic_continuity_score < 0.7  # Should be penalized for topic shifts
+        assert (
+            metrics.topic_continuity_score < 0.7
+        )  # Should be penalized for topic shifts
 
     def test_assess_conversation_with_imbalanced_participation(self):
         """Test assessment of conversation with imbalanced participation."""
         conversation = Conversation(
             id="test_imbalanced",
             messages=[
-                Message(role="user", content="I need help with my anxiety. It's been really bad lately and I don't know what to do. I've tried meditation but it doesn't seem to work for me."),
+                Message(
+                    role="user",
+                    content="I need help with my anxiety. It's been really bad lately and I don't know what to do. I've tried meditation but it doesn't seem to work for me.",
+                ),
                 Message(role="assistant", content="Ok."),
-                Message(role="user", content="I also have trouble sleeping because of the anxiety. It keeps me up at night thinking about all the things that could go wrong."),
+                Message(
+                    role="user",
+                    content="I also have trouble sleeping because of the anxiety. It keeps me up at night thinking about all the things that could go wrong.",
+                ),
                 Message(role="assistant", content="I see."),
-                Message(role="user", content="Do you have any suggestions for managing anxiety better?"),
-                Message(role="assistant", content="Yes.")
+                Message(
+                    role="user",
+                    content="Do you have any suggestions for managing anxiety better?",
+                ),
+                Message(role="assistant", content="Yes."),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_conversation_coherence(conversation)
@@ -187,11 +208,20 @@ class TestConversationCoherenceAssessor:
             id="test_logical_good",
             messages=[
                 Message(role="user", content="I'm having trouble with anxiety."),
-                Message(role="assistant", content="I understand. Can you tell me more about when you experience this anxiety?"),
-                Message(role="user", content="It usually happens before important meetings at work."),
-                Message(role="assistant", content="That makes sense. Work-related anxiety is common. What specifically worries you about these meetings?")
+                Message(
+                    role="assistant",
+                    content="I understand. Can you tell me more about when you experience this anxiety?",
+                ),
+                Message(
+                    role="user",
+                    content="It usually happens before important meetings at work.",
+                ),
+                Message(
+                    role="assistant",
+                    content="That makes sense. Work-related anxiety is common. What specifically worries you about these meetings?",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_conversation_coherence(good_conversation)
@@ -204,13 +234,15 @@ class TestConversationCoherenceAssessor:
                 Message(role="user", content="I'm having trouble with anxiety."),
                 Message(role="assistant", content="Ok."),
                 Message(role="user", content="Can you help me?"),
-                Message(role="assistant", content="Yes.")
+                Message(role="assistant", content="Yes."),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_conversation_coherence(poor_conversation)
-        assert metrics.logical_flow_score <= 0.85  # Should be lower due to short responses
+        assert (
+            metrics.logical_flow_score <= 0.85
+        )  # Should be lower due to short responses
 
     def test_semantic_coherence_assessment(self):
         """Test semantic coherence assessment specifically."""
@@ -218,12 +250,24 @@ class TestConversationCoherenceAssessor:
         coherent_conversation = Conversation(
             id="test_semantic_good",
             messages=[
-                Message(role="user", content="I'm struggling with depression and feel hopeless."),
-                Message(role="assistant", content="I hear that you're experiencing depression and feelings of hopelessness. These are serious concerns."),
-                Message(role="user", content="Yes, the hopelessness is the worst part. I can't see things getting better."),
-                Message(role="assistant", content="When you say you can't see things getting better, that hopelessness can feel overwhelming.")
+                Message(
+                    role="user",
+                    content="I'm struggling with depression and feel hopeless.",
+                ),
+                Message(
+                    role="assistant",
+                    content="I hear that you're experiencing depression and feelings of hopelessness. These are serious concerns.",
+                ),
+                Message(
+                    role="user",
+                    content="Yes, the hopelessness is the worst part. I can't see things getting better.",
+                ),
+                Message(
+                    role="assistant",
+                    content="When you say you can't see things getting better, that hopelessness can feel overwhelming.",
+                ),
             ],
-            source="test"
+            source="test",
         )
 
         metrics = self.assessor.assess_conversation_coherence(coherent_conversation)
@@ -235,9 +279,9 @@ class TestConversationCoherenceAssessor:
             id="test_compat",
             messages=[
                 Message(role="user", content="Hello"),
-                Message(role="assistant", content="Hi there, how can I help you?")
+                Message(role="assistant", content="Hi there, how can I help you?"),
             ],
-            source="test"
+            source="test",
         )
 
         result = assess_coherence(conversation)

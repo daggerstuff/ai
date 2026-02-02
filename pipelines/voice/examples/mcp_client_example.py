@@ -3,12 +3,10 @@
 Example MCP client for the Pixel Voice MCP server.
 Demonstrates how to interact with the MCP tools.
 """
+
 import asyncio
 import json
 from typing import Any, Dict
-
-from mcp.client.session import ClientSession
-from mcp.client.stdio import stdio_client
 
 
 class PixelVoiceMCPClient:
@@ -94,8 +92,16 @@ class PixelVoiceMCPClient:
             return {
                 "success": True,
                 "result": [
-                    {"job_id": "job_12345", "name": "YouTube Transcription", "status": "completed"},
-                    {"job_id": "job_67890", "name": "Full Pipeline", "status": "running"},
+                    {
+                        "job_id": "job_12345",
+                        "name": "YouTube Transcription",
+                        "status": "completed",
+                    },
+                    {
+                        "job_id": "job_67890",
+                        "name": "Full Pipeline",
+                        "status": "running",
+                    },
                 ],
             }
 
@@ -162,7 +168,9 @@ async def example_transcription_workflow():
 
             # Get latest transcripts when done
             print("\nRetrieving latest transcripts...")
-            data_result = await client.call_tool("get_latest_data", {"data_type": "transcripts"})
+            data_result = await client.call_tool(
+                "get_latest_data", {"data_type": "transcripts"}
+            )
             print(f"Transcript data: {data_result}")
 
     finally:
@@ -196,7 +204,10 @@ async def example_full_pipeline_workflow():
                     "source": "youtube_playlist",
                     "playlist_url": "https://youtube.com/playlist?list=example",
                 },
-                "config_overrides": {"whisper_model": "large-v2", "enable_diarization": True},
+                "config_overrides": {
+                    "whisper_model": "large-v2",
+                    "enable_diarization": True,
+                },
             },
         )
 
@@ -209,14 +220,18 @@ async def example_full_pipeline_workflow():
             print(f"\nMonitoring pipeline job: {job_id}")
             for i in range(3):  # Simulate checking 3 times
                 await asyncio.sleep(1)  # Simulate time passing
-                status_result = await client.call_tool("get_job_status", {"job_id": job_id})
-                print(f"Check {i+1}: {status_result}")
+                status_result = await client.call_tool(
+                    "get_job_status", {"job_id": job_id}
+                )
+                print(f"Check {i + 1}: {status_result}")
 
             # Get results from different stages
             print("\nRetrieving pipeline results...")
 
             for data_type in ["features", "dialogue_pairs", "therapeutic_pairs"]:
-                data_result = await client.call_tool("get_latest_data", {"data_type": data_type})
+                data_result = await client.call_tool(
+                    "get_latest_data", {"data_type": data_type}
+                )
                 print(f"{data_type.title()}: {data_result}")
 
     finally:
@@ -244,13 +259,17 @@ async def example_monitoring_workflow():
 
         # List only running jobs
         print("\nListing running jobs...")
-        running_jobs_result = await client.call_tool("list_jobs", {"status_filter": "running"})
+        running_jobs_result = await client.call_tool(
+            "list_jobs", {"status_filter": "running"}
+        )
         print(f"Running jobs: {running_jobs_result}")
 
         # Check available data files
         print("\nChecking available data files...")
         for data_type in ["transcripts", "features", "dialogue_pairs"]:
-            files_result = await client.call_tool("list_data_files", {"data_type": data_type})
+            files_result = await client.call_tool(
+                "list_data_files", {"data_type": data_type}
+            )
             print(f"{data_type.title()} files: {files_result}")
 
     finally:

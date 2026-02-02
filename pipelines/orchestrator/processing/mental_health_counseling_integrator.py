@@ -1,8 +1,9 @@
 """
 Mental Health Counseling Integrator
 
-Integrates mental_health_counseling_conversations dataset with 3.5K licensed therapist responses.
-Provides specialized processing for professional therapeutic conversations.
+Integrates mental_health_counseling_conversations dataset with 3.5K licensed
+therapist responses. Provides specialized processing for professional therapeutic
+conversations.
 """
 
 import json
@@ -43,7 +44,8 @@ class CounselingSession:
 
 
 class MentalHealthCounselingIntegrator:
-    """Integrates mental health counseling conversations with licensed therapist responses."""
+    """Integrates mental health counseling conversations with licensed therapist
+    responses."""
 
     def __init__(
         self,
@@ -95,6 +97,7 @@ class MentalHealthCounselingIntegrator:
             "quality_metrics": {},
             "issues": [],
             "output_path": None,
+            "processing_time": 0.0,
         }
 
         try:
@@ -123,20 +126,17 @@ class MentalHealthCounselingIntegrator:
                 processed_sessions, quality_metrics
             )
 
-            # Update result
-            result.update(
-                {
-                    "success": True,
-                    "sessions_processed": len(processed_sessions),
-                    "therapist_responses": total_responses,
-                    "quality_metrics": quality_metrics,
-                    "output_path": str(output_path),
-                    "processing_time": (datetime.now() - start_time).total_seconds(),
-                }
-            )
+            # Update result with all metrics
+            result["success"] = True
+            result["sessions_processed"] = len(processed_sessions)
+            result["therapist_responses"] = total_responses
+            result["quality_metrics"] = quality_metrics
+            result["output_path"] = str(output_path)
+            result["processing_time"] = (datetime.now() - start_time).total_seconds()
 
             logger.info(
-                f"Successfully integrated counseling dataset: {len(processed_sessions)} sessions, {total_responses} responses"
+                f"Successfully integrated counseling dataset: "
+                f"{len(processed_sessions)} sessions, {total_responses} responses"
             )
 
         except Exception as e:
@@ -174,11 +174,15 @@ class MentalHealthCounselingIntegrator:
                 "conversation": [
                     {
                         "role": "client",
-                        "content": f"I've been struggling with {concerns[i % len(concerns)]} and I don't know how to cope anymore.",
+                        "content": f"I've been struggling with "
+                        f"{concerns[i % len(concerns)]} and I don't know how to "
+                        f"cope anymore.",
                     },
                     {
                         "role": "therapist",
-                        "content": f"I hear that you're experiencing significant distress with {concerns[i % len(concerns)]}. That takes courage to share. Let's explore what's been most challenging for you.",
+                        "content": "I hear that you're experiencing significant "
+                        "distress with your situation. That takes courage to share. "
+                        "Let's explore what's been most challenging for you.",
                         "approach": list(self.therapeutic_approaches.keys())[
                             i % len(self.therapeutic_approaches)
                         ],
@@ -190,11 +194,15 @@ class MentalHealthCounselingIntegrator:
                     },
                     {
                         "role": "client",
-                        "content": "It's been affecting my sleep, my work, and my relationships. I feel overwhelmed.",
+                        "content": "It's been affecting my sleep, my work, and my "
+                        "relationships. I feel overwhelmed.",
                     },
                     {
                         "role": "therapist",
-                        "content": "It sounds like this is impacting multiple areas of your life, which can feel overwhelming. Let's break this down into manageable pieces and develop some coping strategies.",
+                        "content": "It sounds like this is impacting multiple "
+                        "areas of your life, which can feel overwhelming. Let's "
+                        "break this down into manageable pieces and develop some "
+                        "coping strategies.",
                         "approach": list(self.therapeutic_approaches.keys())[
                             i % len(self.therapeutic_approaches)
                         ],
@@ -258,7 +266,7 @@ class MentalHealthCounselingIntegrator:
     ) -> CounselingSession:
         """Process a counseling session."""
         session_id = session_data.get(
-            "session_id", f"session_{hash(str(session_data))%10000}"
+            "session_id", f"session_{hash(str(session_data)) % 10000}"
         )
 
         # Extract therapist responses
@@ -385,7 +393,6 @@ class MentalHealthCounselingIntegrator:
             / len(self.therapeutic_approaches),
         }
 
-
     def _save_counseling_dataset(
         self, sessions: list[CounselingSession], quality_metrics: dict[str, float]
     ) -> Path:
@@ -420,7 +427,9 @@ class MentalHealthCounselingIntegrator:
         output_data = {
             "dataset_info": {
                 "name": "Mental Health Counseling Conversations",
-                "description": "Licensed therapist responses for mental health counseling",
+                "description": (
+                    "Licensed therapist responses for mental health counseling"
+                ),
                 "total_sessions": len(sessions),
                 "total_responses": sum(len(s.therapist_responses) for s in sessions),
                 "integrated_at": datetime.now().isoformat(),
@@ -452,4 +461,3 @@ if __name__ == "__main__":
         pass
     else:
         pass
-
