@@ -1147,7 +1147,8 @@ class UnifiedPreprocessingPipeline:
             if self._contains_pii(content):
                 if self.config.scrub_pii_enabled and self._pii_scrubber:
                     active_rec = self._scrub_pii_in_record(rec)
-                    # Re-check if scrubbing worked or if we should still drop if too risky
+                    # Re-check if scrubbing worked or if we should still drop if too
+                    # risky
                     content = self._collect_record_content(active_rec)
                     if self._contains_pii(content):
                         # Still contains PII after scrubbing
@@ -1160,7 +1161,8 @@ class UnifiedPreprocessingPipeline:
             crisis_override_active = self._is_crisis_override_active(metadata, policy)
 
             if policy.allow_crisis_override:
-                # Drop non-crisis records that fail safety thresholds even in lenient mode
+                # Drop non-crisis records that fail safety thresholds even in
+                # lenient mode
                 if safety_score < policy.min_safety and not crisis_override_active:
                     unsafe_filtered += 1
                     continue
@@ -1335,8 +1337,8 @@ class UnifiedPreprocessingPipeline:
         output_dir.mkdir(exist_ok=True)
 
         final_dataset_path = (
-            output_dir
-            / f"unified_training_dataset_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.jsonl"
+            output_dir / f"unified_training_dataset_"
+            f"{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.jsonl"
         )
 
         with open(final_dataset_path, "w") as f:
@@ -1367,7 +1369,8 @@ class UnifiedPreprocessingPipeline:
             json.dump(summary, f, indent=2)
 
         logger.info(
-            f"Pipeline execution completed. Final dataset saved to: {self.final_dataset_path}"
+            "Pipeline execution completed. Final dataset saved to: %s",
+            self.final_dataset_path,
         )
         return self.final_dataset_path
 
