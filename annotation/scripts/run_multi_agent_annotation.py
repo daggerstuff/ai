@@ -22,7 +22,7 @@ def process_batch_multi_agent(
     input_path = Path(input_file)
     output_path = Path(output_file)
 
-    print(f"🤖 Multi-Agent Annotation System")
+    print("🤖 Multi-Agent Annotation System")
     print(f"📁 Input: {input_path}")
     print(f"📁 Output: {output_path}")
     print(f"🧠 Model: {model}")
