@@ -177,7 +177,9 @@ class MultimodalFusion:
         3: Empathy
         4: Social skills
         """
+
         text_eq = np.array(text_eq)
+
         audio_eq = np.array(audio_eq)
 
         # Weighted fusion
