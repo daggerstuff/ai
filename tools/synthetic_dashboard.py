@@ -1,12 +1,13 @@
-import streamlit as st
-import json
 import argparse
-import pandas as pd
-import altair as alt
-import plotly.express as px
-from wordcloud import WordCloud
-from io import BytesIO
 import base64
+import json
+from io import BytesIO
+
+import altair as alt
+import pandas as pd
+import plotly.express as px
+import streamlit as st
+from wordcloud import WordCloud
 
 # --- Argument Parsing ---
 parser = argparse.ArgumentParser()
@@ -121,7 +122,8 @@ tabs = st.tabs(["Overview", "Data Explorer", "Visualizations", "Logs"])
 with tabs[0]:
     st.markdown("<div class='glass-card'>", unsafe_allow_html=True)
     st.markdown(
-        f"<div class='metric-anim'>Total Q&A Pairs: {len(df):,}</div>", unsafe_allow_html=True
+        f"<div class='metric-anim'>Total Q&A Pairs: {len(df):,}</div>",
+        unsafe_allow_html=True,
     )
     st.markdown("</div>", unsafe_allow_html=True)
 
@@ -131,8 +133,8 @@ with tabs[0]:
         st.markdown(
             f"""
         <div class='glass-card'>
-        <b>Prompt:</b> <span style='color:#06b6d4'>{row['prompt']}</span><br>
-        <b>Response:</b> <span style='color:#84cc16'>{row['response']}</span>
+        <b>Prompt:</b> <span style='color:#06b6d4'>{row["prompt"]}</span><br>
+        <b>Response:</b> <span style='color:#84cc16'>{row["response"]}</span>
         </div>
         """,
             unsafe_allow_html=True,
@@ -172,7 +174,9 @@ with tabs[2]:
             )
             chart = (
                 alt.Chart(length_df.reset_index())
-                .transform_fold(["Prompt Length", "Response Length"], as_=["Type", "Length"])
+                .transform_fold(
+                    ["Prompt Length", "Response Length"], as_=["Type", "Length"]
+                )
                 .mark_area(opacity=0.5, interpolate="step")
                 .encode(
                     x=alt.X(
@@ -185,7 +189,9 @@ with tabs[2]:
                         stack=None,
                         axis=alt.Axis(labelColor="#7df9ff", titleColor="#7df9ff"),
                     ),
-                    color=alt.Color("Type:N", scale=alt.Scale(range=["#06b6d4", "#84cc16"])),
+                    color=alt.Color(
+                        "Type:N", scale=alt.Scale(range=["#06b6d4", "#84cc16"])
+                    ),
                 )
                 .properties(background="#181825", width=400, height=250)
             )
@@ -195,7 +201,11 @@ with tabs[2]:
         if "prompt" in df.columns:
             text = " ".join(df["prompt"].dropna().astype(str))
             wc = WordCloud(
-                width=400, height=200, background_color="#181825", mode="RGBA", colormap="winter"
+                width=400,
+                height=200,
+                background_color="#181825",
+                mode="RGBA",
+                colormap="winter",
             ).generate(text)
             buf = BytesIO()
             wc.to_image().save(buf, format="PNG")
