@@ -2,6 +2,7 @@
 
 Run with: uv run python ai/pipelines/orchestrator/tests/smoke_local_connector.py
 """
+
 import sys
 import tempfile
 from pathlib import Path
@@ -9,7 +10,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 
-from ai.pipelines.orchestrator.ingestion_interface import IngestRecord, LocalFileConnector
+
+from ai.pipelines.orchestrator.ingestion_interface import (
+    IngestRecord,
+    LocalFileConnector,
+)
 
 
 class DummyQuarantine:
@@ -28,12 +33,14 @@ def main():
         p.write_bytes(b"hello world")
 
         # Monkeypatch minimal functions used by connector
-        from ai.pipelines.orchestrator import quarantine, validation
+            from ai.pipelines.orchestrator import quarantine, validation
 
         validation.validate_record = lambda rec: rec
         quarantine.get_quarantine_store = lambda: DummyQuarantine()
 
-        conn = LocalFileConnector(directory=td, rate_limit={"capacity": 1, "refill_rate": 0.5})
+        conn = LocalFileConnector(
+            directory=td, rate_limit={"capacity": 1, "refill_rate": 0.5}
+        )
         conn.connect()
         for _rec in conn.fetch():
             pass

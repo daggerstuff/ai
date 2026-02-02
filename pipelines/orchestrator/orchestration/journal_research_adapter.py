@@ -7,11 +7,13 @@ Converts journal research datasets to pipeline format and integrates them into t
 
 import json
 import logging
+
+# Import conversation schema - adjust path based on where this file is located
+import sys
 from pathlib import Path
 from typing import Any, Optional
 
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
-
 from ai.sourcing.journal.integration.pipeline_integration_service import (
     PipelineIntegrationService,
 )
@@ -19,10 +21,6 @@ from ai.sourcing.journal.models.dataset_models import (
     AcquiredDataset,
     IntegrationPlan,
 )
-
-# Import conversation schema - adjust path based on where this file is located
-import sys
-from pathlib import Path
 
 # Add parent directory to path to find conversation_schema
 adapter_path = Path(__file__).parent
@@ -34,7 +32,10 @@ try:
 except ImportError:
     # Fallback: try relative import
     try:
-        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+        from ai.pipelines.orchestrator.schemas.conversation_schema import (
+            Conversation,
+            Message,
+        )
     except ImportError:
         # Last resort: try direct import
         from conversation_schema import Conversation, Message
@@ -67,9 +68,7 @@ class JournalResearchAdapter:
             integration_service: PipelineIntegrationService instance (creates new if None)
             output_directory: Directory for converted datasets
         """
-        self.integration_service = (
-            integration_service or PipelineIntegrationService()
-        )
+        self.integration_service = integration_service or PipelineIntegrationService()
         self.output_directory = Path(output_directory)
         self.output_directory.mkdir(parents=True, exist_ok=True)
 
@@ -136,14 +135,18 @@ class JournalResearchAdapter:
             )
 
             # Update progress tracking
-            self.integration_progress[dataset.source_id].update({
-                "status": "completed" if integration_result.get("success") else "failed",
-                "conversion": integration_result.get("conversion"),
-                "validation": integration_result.get("validation"),
-                "merge": integration_result.get("merge"),
-                "quality_check": integration_result.get("quality_check"),
-                "output_path": str(output_path),
-            })
+            self.integration_progress[dataset.source_id].update(
+                {
+                    "status": "completed"
+                    if integration_result.get("success")
+                    else "failed",
+                    "conversion": integration_result.get("conversion"),
+                    "validation": integration_result.get("validation"),
+                    "merge": integration_result.get("merge"),
+                    "quality_check": integration_result.get("quality_check"),
+                    "output_path": str(output_path),
+                }
+            )
 
             if integration_result.get("success"):
                 # Load conversations from converted dataset
@@ -165,16 +168,22 @@ class JournalResearchAdapter:
 
             return {
                 **integration_result,
-                "conversations": conversations if integration_result.get("success") else [],
+                "conversations": conversations
+                if integration_result.get("success")
+                else [],
                 "output_path": str(output_path),
             }
 
         except Exception as e:
-            logger.error(f"Error integrating dataset {dataset.source_id}: {e}", exc_info=True)
-            self.integration_progress[dataset.source_id].update({
-                "status": "failed",
-                "errors": [str(e)],
-            })
+            logger.error(
+                f"Error integrating dataset {dataset.source_id}: {e}", exc_info=True
+            )
+            self.integration_progress[dataset.source_id].update(
+                {
+                    "status": "failed",
+                    "errors": [str(e)],
+                }
+            )
             raise
 
     def _load_conversations_from_file(
@@ -209,7 +218,9 @@ class JournalResearchAdapter:
                         if target_format == "chatml":
                             conversation = self._convert_chatml_to_conversation(data)
                         elif target_format == "conversation_record":
-                            conversation = self._convert_conversation_record_to_conversation(data)
+                            conversation = (
+                                self._convert_conversation_record_to_conversation(data)
+                            )
                         else:
                             logger.warning(
                                 f"Unknown target format: {target_format}, "
@@ -234,12 +245,16 @@ class JournalResearchAdapter:
             logger.info(f"Loaded {len(conversations)} conversations from {file_path}")
 
         except Exception as e:
-            logger.error(f"Error loading conversations from {file_path}: {e}", exc_info=True)
+            logger.error(
+                f"Error loading conversations from {file_path}: {e}", exc_info=True
+            )
             raise
 
         return conversations
 
-    def _convert_chatml_to_conversation(self, data: dict[str, Any]) -> Optional[Conversation]:
+    def _convert_chatml_to_conversation(
+        self, data: dict[str, Any]
+    ) -> Optional[Conversation]:
         """Convert ChatML format to Conversation."""
         try:
             messages = []
@@ -254,9 +269,7 @@ class JournalResearchAdapter:
 
             # Alternative: direct role/content at top level
             elif "role" in data and "content" in data:
-                messages.append(
-                    Message(role=data["role"], content=data["content"])
-                )
+                messages.append(Message(role=data["role"], content=data["content"]))
 
             if not messages:
                 return None
@@ -315,7 +328,9 @@ class JournalResearchAdapter:
             logger.warning(f"Error converting ConversationRecord to Conversation: {e}")
             return None
 
-    def _convert_generic_to_conversation(self, data: dict[str, Any]) -> Optional[Conversation]:
+    def _convert_generic_to_conversation(
+        self, data: dict[str, Any]
+    ) -> Optional[Conversation]:
         """Generic conversion attempt for unknown formats."""
         try:
             messages = []
@@ -331,10 +346,14 @@ class JournalResearchAdapter:
                 # Try to construct from available fields
                 if "user" in data and "assistant" in data:
                     messages.append(Message(role="user", content=str(data["user"])))
-                    messages.append(Message(role="assistant", content=str(data["assistant"])))
+                    messages.append(
+                        Message(role="assistant", content=str(data["assistant"]))
+                    )
                 elif "question" in data and "answer" in data:
                     messages.append(Message(role="user", content=str(data["question"])))
-                    messages.append(Message(role="assistant", content=str(data["answer"])))
+                    messages.append(
+                        Message(role="assistant", content=str(data["answer"]))
+                    )
                 else:
                     return None
 
@@ -402,4 +421,3 @@ class JournalResearchAdapter:
             List of source IDs
         """
         return list(self.integration_progress.keys())
-

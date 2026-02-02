@@ -213,7 +213,9 @@ def upload_file(s3, local_path: str, bucket: str, s3_key: str) -> bool:
     """Upload a single file to S3."""
     try:
         file_size = os.path.getsize(local_path) / (1024 * 1024)
-        logger.info(f"Uploading {local_path} ({file_size:.1f}MB) -> s3://{bucket}/{s3_key}")
+        logger.info(
+            f"Uploading {local_path} ({file_size:.1f}MB) -> s3://{bucket}/{s3_key}"
+        )
         s3.upload_file(local_path, bucket, s3_key)
         logger.info("  -> Success")
         return True
@@ -235,7 +237,10 @@ def upload_directory(s3, local_dir: str, bucket: str, s3_prefix: str) -> int:
 
 
 def run_upload(
-    tier: str, bucket: str = "pixel-data", prefix: str = "datasets/gdrive/", max_size_mb: int = 0
+    tier: str,
+    bucket: str = "pixel-data",
+    prefix: str = "datasets/gdrive/",
+    max_size_mb: int = 0,
 ):
     """
     Upload files from manifest to S3.
@@ -267,7 +272,9 @@ def run_upload(
     for item in files:
         path = item["path"]
         target_tier = item["tier"]
-        size_mb = item.get("size_mb", 0)  # size_mb is retrieved for logging and optional skipping
+        size_mb = item.get(
+            "size_mb", 0
+        )  # size_mb is retrieved for logging and optional skipping
         is_dir = item.get("is_dir", False)
 
         if max_size_mb > 0 and size_mb > max_size_mb:
@@ -294,12 +301,16 @@ def run_upload(
         else:
             failed += 1
 
-    logger.info(f"=== Complete: {success} uploaded, {skipped} skipped, {failed} failed ===")
+    logger.info(
+        f"=== Complete: {success} uploaded, {skipped} skipped, {failed} failed ==="
+    )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Upload gdrive training data to S3")
-    parser.add_argument("--tier", choices=["processed", "raw", "youtube"], required=True)
+    parser.add_argument(
+        "--tier", choices=["processed", "raw", "youtube"], required=True
+    )
     parser.add_argument("--bucket", default="pixel-data")
     parser.add_argument(
         "--max-size-mb",

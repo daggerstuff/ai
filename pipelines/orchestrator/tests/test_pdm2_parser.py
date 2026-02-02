@@ -54,12 +54,14 @@ class TestPDM2Parser:
             AttachmentStyle.SECURE,
             AttachmentStyle.ANXIOUS_PREOCCUPIED,
             AttachmentStyle.DISMISSIVE_AVOIDANT,
-            AttachmentStyle.DISORGANIZED_FEARFUL_AVOIDANT
+            AttachmentStyle.DISORGANIZED_FEARFUL_AVOIDANT,
         }
         assert styles == expected_styles
 
         # Check secure attachment pattern
-        secure_pattern = self.parser.get_attachment_pattern_by_style(AttachmentStyle.SECURE)
+        secure_pattern = self.parser.get_attachment_pattern_by_style(
+            AttachmentStyle.SECURE
+        )
         assert secure_pattern is not None
         assert secure_pattern.name == "Secure Attachment"
         assert len(secure_pattern.characteristics) > 0
@@ -77,7 +79,7 @@ class TestPDM2Parser:
             DefenseMechanismLevel.MATURE,
             DefenseMechanismLevel.NEUROTIC,
             DefenseMechanismLevel.IMMATURE,
-            DefenseMechanismLevel.PATHOLOGICAL
+            DefenseMechanismLevel.PATHOLOGICAL,
         }
         assert levels == expected_levels
 
@@ -100,15 +102,21 @@ class TestPDM2Parser:
         assert PsychodynamicDomain.IDENTITY_SELF_CONCEPT in domains
 
         # Check specific pattern
-        anxious_pattern = self.parser.get_psychodynamic_pattern_by_name("Anxious-Attachment Pattern")
+        anxious_pattern = self.parser.get_psychodynamic_pattern_by_name(
+            "Anxious-Attachment Pattern"
+        )
         assert anxious_pattern is not None
         assert anxious_pattern.domain == PsychodynamicDomain.ATTACHMENT_RELATIONSHIPS
         assert len(anxious_pattern.core_features) > 0
 
     def test_get_defense_mechanisms_by_level(self):
         """Test filtering defense mechanisms by level."""
-        mature_defenses = self.parser.get_defense_mechanisms_by_level(DefenseMechanismLevel.MATURE)
-        pathological_defenses = self.parser.get_defense_mechanisms_by_level(DefenseMechanismLevel.PATHOLOGICAL)
+        mature_defenses = self.parser.get_defense_mechanisms_by_level(
+            DefenseMechanismLevel.MATURE
+        )
+        pathological_defenses = self.parser.get_defense_mechanisms_by_level(
+            DefenseMechanismLevel.PATHOLOGICAL
+        )
 
         assert len(mature_defenses) > 0
         assert len(pathological_defenses) > 0
@@ -147,11 +155,17 @@ class TestPDM2Parser:
 
         # Check that different types are represented
         types = {item["type"] for item in sample_data}
-        expected_types = {"attachment_pattern", "defense_mechanism", "psychodynamic_pattern"}
+        expected_types = {
+            "attachment_pattern",
+            "defense_mechanism",
+            "psychodynamic_pattern",
+        }
         assert types == expected_types
 
         # Check structure of sample items
-        attachment_items = [item for item in sample_data if item["type"] == "attachment_pattern"]
+        attachment_items = [
+            item for item in sample_data if item["type"] == "attachment_pattern"
+        ]
         assert len(attachment_items) > 0
 
         for item in attachment_items:
@@ -187,8 +201,12 @@ class TestPDM2Parser:
 
             # Verify imported data
             assert new_parser.knowledge_base is not None
-            assert len(new_parser.get_attachment_patterns()) == len(self.parser.get_attachment_patterns())
-            assert len(new_parser.get_defense_mechanisms()) == len(self.parser.get_defense_mechanisms())
+            assert len(new_parser.get_attachment_patterns()) == len(
+                self.parser.get_attachment_patterns()
+            )
+            assert len(new_parser.get_defense_mechanisms()) == len(
+                self.parser.get_defense_mechanisms()
+            )
 
     def test_conversation_generation_attachment(self):
         """Test conversation generation for attachment patterns."""
@@ -285,7 +303,7 @@ class TestPDM2DataStructures:
             name="Test Secure",
             description="Test description",
             characteristics=["characteristic1", "characteristic2"],
-            behavioral_indicators=["indicator1"]
+            behavioral_indicators=["indicator1"],
         )
 
         assert pattern.style == AttachmentStyle.SECURE
@@ -300,7 +318,7 @@ class TestPDM2DataStructures:
             level=DefenseMechanismLevel.MATURE,
             description="Test description",
             function="Test function",
-            examples=["example1", "example2"]
+            examples=["example1", "example2"],
         )
 
         assert mechanism.name == "Test Defense"
@@ -314,7 +332,7 @@ class TestPDM2DataStructures:
             domain=PsychodynamicDomain.ATTACHMENT_RELATIONSHIPS,
             description="Test description",
             core_features=["feature1", "feature2"],
-            unconscious_conflicts=["conflict1"]
+            unconscious_conflicts=["conflict1"],
         )
 
         assert pattern.name == "Test Pattern"

@@ -7,7 +7,11 @@ from unittest.mock import Mock
 
 import pytest
 
-from .sampling_validation import SamplingValidationReport, SamplingValidator, ValidationResult
+from .sampling_validation import (
+    SamplingValidationReport,
+    SamplingValidator,
+    ValidationResult,
+)
 
 
 class TestSamplingValidator:
@@ -21,35 +25,51 @@ class TestSamplingValidator:
         self.mock_sampling_results = [
             Mock(
                 samples=[
-                    {"id": f"tier1_{i}", "messages": [{"content": "test", "role": "user"}], "quality_score": 0.8}
+                    {
+                        "id": f"tier1_{i}",
+                        "messages": [{"content": "test", "role": "user"}],
+                        "quality_score": 0.8,
+                    }
                     for i in range(40)
                 ],
                 quality_score=0.8,
-                metadata={"tier_id": "tier_1_priority", "target_count": 40}
+                metadata={"tier_id": "tier_1_priority", "target_count": 40},
             ),
             Mock(
                 samples=[
-                    {"id": f"tier2_{i}", "messages": [{"content": "test", "role": "assistant"}], "quality_score": 0.7}
+                    {
+                        "id": f"tier2_{i}",
+                        "messages": [{"content": "test", "role": "assistant"}],
+                        "quality_score": 0.7,
+                    }
                     for i in range(25)
                 ],
                 quality_score=0.7,
-                metadata={"tier_id": "tier_2_professional", "target_count": 25}
+                metadata={"tier_id": "tier_2_professional", "target_count": 25},
             ),
             Mock(
                 samples=[
-                    {"id": f"tier3_{i}", "messages": [{"content": "test", "role": "user"}], "quality_score": 0.6}
+                    {
+                        "id": f"tier3_{i}",
+                        "messages": [{"content": "test", "role": "user"}],
+                        "quality_score": 0.6,
+                    }
                     for i in range(20)
                 ],
                 quality_score=0.6,
-                metadata={"tier_id": "tier_3_cot", "target_count": 20}
-            )
+                metadata={"tier_id": "tier_3_cot", "target_count": 20},
+            ),
         ]
 
         # Create mock original data
         self.mock_original_data = {
-            "tier_1_priority": [{"id": f"orig1_{i}", "messages": []} for i in range(100)],
-            "tier_2_professional": [{"id": f"orig2_{i}", "messages": []} for i in range(80)],
-            "tier_3_cot": [{"id": f"orig3_{i}", "messages": []} for i in range(60)]
+            "tier_1_priority": [
+                {"id": f"orig1_{i}", "messages": []} for i in range(100)
+            ],
+            "tier_2_professional": [
+                {"id": f"orig2_{i}", "messages": []} for i in range(80)
+            ],
+            "tier_3_cot": [{"id": f"orig3_{i}", "messages": []} for i in range(60)],
         }
 
     def test_validator_initialization(self):
@@ -62,10 +82,7 @@ class TestSamplingValidator:
 
         # Custom configuration
         custom_config = {
-            "thresholds": {
-                "distribution_deviation": 0.10,
-                "quality_variance": 0.15
-            }
+            "thresholds": {"distribution_deviation": 0.10, "quality_variance": 0.15}
         }
         validator = SamplingValidator(custom_config)
         assert validator.thresholds["distribution_deviation"] == 0.10
@@ -74,9 +91,7 @@ class TestSamplingValidator:
     def test_validate_sampling_results_success(self):
         """Test successful validation of good sampling results."""
         report = self.validator.validate_sampling_results(
-            self.mock_sampling_results,
-            self.mock_original_data,
-            target_total=85
+            self.mock_sampling_results, self.mock_original_data, target_total=85
         )
 
         assert isinstance(report, SamplingValidationReport)
@@ -88,9 +103,7 @@ class TestSamplingValidator:
     def test_distribution_validation_pass(self):
         """Test distribution validation with good distribution."""
         result = self.validator._validate_distribution(
-            self.mock_sampling_results,
-            self.mock_original_data,
-            target_total=85
+            self.mock_sampling_results, self.mock_original_data, target_total=85
         )
 
         assert result.check_name == "distribution_validation"
@@ -106,19 +119,17 @@ class TestSamplingValidator:
             Mock(
                 samples=[{"id": f"tier1_{i}", "messages": []} for i in range(90)],
                 quality_score=0.8,
-                metadata={"tier_id": "tier_1_priority", "target_count": 90}
+                metadata={"tier_id": "tier_1_priority", "target_count": 90},
             ),
             Mock(
                 samples=[{"id": f"tier2_{i}", "messages": []} for i in range(5)],
                 quality_score=0.7,
-                metadata={"tier_id": "tier_2_professional", "target_count": 5}
-            )
+                metadata={"tier_id": "tier_2_professional", "target_count": 5},
+            ),
         ]
 
         result = self.validator._validate_distribution(
-            imbalanced_results,
-            self.mock_original_data,
-            target_total=95
+            imbalanced_results, self.mock_original_data, target_total=95
         )
 
         assert result.check_name == "distribution_validation"
@@ -128,9 +139,7 @@ class TestSamplingValidator:
     def test_quality_consistency_validation(self):
         """Test quality consistency validation."""
         result = self.validator._validate_quality_consistency(
-            self.mock_sampling_results,
-            self.mock_original_data,
-            target_total=85
+            self.mock_sampling_results, self.mock_original_data, target_total=85
         )
 
         assert result.check_name == "quality_consistency"
@@ -141,9 +150,7 @@ class TestSamplingValidator:
     def test_duplicate_detection_no_duplicates(self):
         """Test duplicate detection with no duplicates."""
         result = self.validator._validate_duplicates(
-            self.mock_sampling_results,
-            self.mock_original_data,
-            target_total=85
+            self.mock_sampling_results, self.mock_original_data, target_total=85
         )
 
         assert result.check_name == "duplicate_detection"
@@ -159,17 +166,15 @@ class TestSamplingValidator:
                 samples=[
                     {"id": "duplicate_1", "messages": []},
                     {"id": "duplicate_1", "messages": []},  # Duplicate
-                    {"id": "unique_1", "messages": []}
+                    {"id": "unique_1", "messages": []},
                 ],
                 quality_score=0.8,
-                metadata={"tier_id": "tier_1_priority", "target_count": 3}
+                metadata={"tier_id": "tier_1_priority", "target_count": 3},
             )
         ]
 
         result = self.validator._validate_duplicates(
-            duplicate_results,
-            self.mock_original_data,
-            target_total=3
+            duplicate_results, self.mock_original_data, target_total=3
         )
 
         assert result.check_name == "duplicate_detection"
@@ -179,9 +184,7 @@ class TestSamplingValidator:
     def test_coverage_validation(self):
         """Test coverage validation."""
         result = self.validator._validate_coverage(
-            self.mock_sampling_results,
-            self.mock_original_data,
-            target_total=85
+            self.mock_sampling_results, self.mock_original_data, target_total=85
         )
 
         assert result.check_name == "coverage_validation"
@@ -192,9 +195,7 @@ class TestSamplingValidator:
     def test_tier_balance_validation(self):
         """Test tier balance validation."""
         result = self.validator._validate_tier_balance(
-            self.mock_sampling_results,
-            self.mock_original_data,
-            target_total=85
+            self.mock_sampling_results, self.mock_original_data, target_total=85
         )
 
         assert result.check_name == "tier_balance_check"
@@ -205,9 +206,7 @@ class TestSamplingValidator:
     def test_sample_sizes_validation(self):
         """Test sample sizes validation."""
         result = self.validator._validate_sample_sizes(
-            self.mock_sampling_results,
-            self.mock_original_data,
-            target_total=85
+            self.mock_sampling_results, self.mock_original_data, target_total=85
         )
 
         assert result.check_name == "sample_size_validation"
@@ -218,9 +217,7 @@ class TestSamplingValidator:
     def test_data_integrity_validation_pass(self):
         """Test data integrity validation with good data."""
         result = self.validator._validate_data_integrity(
-            self.mock_sampling_results,
-            self.mock_original_data,
-            target_total=85
+            self.mock_sampling_results, self.mock_original_data, target_total=85
         )
 
         assert result.check_name == "data_integrity_check"
@@ -236,29 +233,28 @@ class TestSamplingValidator:
                 samples=[
                     {"messages": []},  # Missing 'id'
                     {"id": "test_2"},  # Missing 'messages'
-                    {"id": "test_3", "messages": []}  # Empty messages
+                    {"id": "test_3", "messages": []},  # Empty messages
                 ],
                 quality_score=0.8,
-                metadata={"tier_id": "tier_1_priority", "target_count": 3}
+                metadata={"tier_id": "tier_1_priority", "target_count": 3},
             )
         ]
 
         result = self.validator._validate_data_integrity(
-            bad_results,
-            self.mock_original_data,
-            target_total=3
+            bad_results, self.mock_original_data, target_total=3
         )
 
         assert result.check_name == "data_integrity_check"
-        assert result.details["missing_fields_count"] > 0 or result.details["empty_samples_count"] > 0
+        assert (
+            result.details["missing_fields_count"] > 0
+            or result.details["empty_samples_count"] > 0
+        )
         assert len(result.issues) > 0
 
     def test_statistical_properties_validation(self):
         """Test statistical properties validation."""
         result = self.validator._validate_statistical_properties(
-            self.mock_sampling_results,
-            self.mock_original_data,
-            target_total=85
+            self.mock_sampling_results, self.mock_original_data, target_total=85
         )
 
         assert result.check_name == "statistical_properties"
@@ -271,9 +267,7 @@ class TestSamplingValidator:
         empty_results = []
 
         report = self.validator.validate_sampling_results(
-            empty_results,
-            self.mock_original_data,
-            target_total=100
+            empty_results, self.mock_original_data, target_total=100
         )
 
         assert isinstance(report, SamplingValidationReport)
@@ -285,20 +279,18 @@ class TestSamplingValidator:
         initial_history_length = len(self.validator.validation_history)
 
         self.validator.validate_sampling_results(
-            self.mock_sampling_results,
-            self.mock_original_data,
-            target_total=85
+            self.mock_sampling_results, self.mock_original_data, target_total=85
         )
 
         assert len(self.validator.validation_history) == initial_history_length + 1
-        assert isinstance(self.validator.validation_history[-1], SamplingValidationReport)
+        assert isinstance(
+            self.validator.validation_history[-1], SamplingValidationReport
+        )
 
     def test_export_validation_report(self, tmp_path):
         """Test exporting validation report to JSON."""
         report = self.validator.validate_sampling_results(
-            self.mock_sampling_results,
-            self.mock_original_data,
-            target_total=85
+            self.mock_sampling_results, self.mock_original_data, target_total=85
         )
 
         output_file = tmp_path / "validation_report.json"
@@ -308,6 +300,7 @@ class TestSamplingValidator:
 
         # Verify JSON structure
         import json
+
         with open(output_file) as f:
             exported_data = json.load(f)
 
@@ -321,16 +314,16 @@ class TestSamplingValidator:
         # Create results that fail critical checks
         failing_results = [
             Mock(
-                samples=[{"id": f"tier1_{i}", "messages": []} for i in range(100)],  # All samples in one tier
+                samples=[
+                    {"id": f"tier1_{i}", "messages": []} for i in range(100)
+                ],  # All samples in one tier
                 quality_score=0.8,
-                metadata={"tier_id": "tier_1_priority", "target_count": 100}
+                metadata={"tier_id": "tier_1_priority", "target_count": 100},
             )
         ]
 
         report = self.validator.validate_sampling_results(
-            failing_results,
-            self.mock_original_data,
-            target_total=100
+            failing_results, self.mock_original_data, target_total=100
         )
 
         # Should have critical issues due to poor distribution
@@ -345,7 +338,7 @@ class TestSamplingValidator:
             score=0.85,
             details={"test": "data"},
             issues=[],
-            recommendations=[]
+            recommendations=[],
         )
 
         assert result.check_name == "test_check"
@@ -359,7 +352,7 @@ class TestSamplingValidator:
         """Test that SamplingValidationReport has proper structure."""
         validation_results = [
             ValidationResult("test1", True, 0.9, {}, [], []),
-            ValidationResult("test2", False, 0.5, {}, ["issue"], ["recommendation"])
+            ValidationResult("test2", False, 0.5, {}, ["issue"], ["recommendation"]),
         ]
 
         report = SamplingValidationReport(
@@ -369,7 +362,7 @@ class TestSamplingValidator:
             validation_results=validation_results,
             summary={"test": "summary"},
             critical_issues=["critical issue"],
-            recommendations=["recommendation"]
+            recommendations=["recommendation"],
         )
 
         assert report.overall_score == 0.7
@@ -382,6 +375,7 @@ class TestSamplingValidator:
 
 def test_main_function():
     """Test the main function runs without error."""
+
     from .sampling_validation import main
 
     # Should run without raising exceptions

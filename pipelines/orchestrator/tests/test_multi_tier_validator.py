@@ -31,16 +31,28 @@ class TestMultiTierValidator:
             "id": "high_quality_001",
             "content": "I understand you're feeling anxious about this situation. Let's explore some evidence-based coping strategies that might help you manage these feelings. How do you typically respond when anxiety arises?",
             "turns": [
-                {"speaker": "user", "text": "I'm feeling really anxious about my job interview tomorrow."},
-                {"speaker": "therapist", "text": "I understand you're feeling anxious about this situation. Let's explore some coping strategies."},
-                {"speaker": "user", "text": "I usually just worry more and can't sleep."},
-                {"speaker": "therapist", "text": "That's a common response. Let's work on some techniques to help you feel more prepared and calm."}
+                {
+                    "speaker": "user",
+                    "text": "I'm feeling really anxious about my job interview tomorrow.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "I understand you're feeling anxious about this situation. Let's explore some coping strategies.",
+                },
+                {
+                    "speaker": "user",
+                    "text": "I usually just worry more and can't sleep.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "That's a common response. Let's work on some techniques to help you feel more prepared and calm.",
+                },
             ],
             "metadata": {
                 "therapeutic_approach": "CBT",
                 "condition": "anxiety",
-                "quality_score": 0.95
-            }
+                "quality_score": 0.95,
+            },
         }
 
         self.medium_quality_conversation = {
@@ -48,11 +60,12 @@ class TestMultiTierValidator:
             "content": "That sounds hard. How are you feeling about it?",
             "turns": [
                 {"speaker": "user", "text": "I'm having trouble with my relationship."},
-                {"speaker": "therapist", "text": "That sounds hard. How are you feeling?"}
+                {
+                    "speaker": "therapist",
+                    "text": "That sounds hard. How are you feeling?",
+                },
             ],
-            "metadata": {
-                "quality_score": 0.75
-            }
+            "metadata": {"quality_score": 0.75},
         }
 
         self.low_quality_conversation = {
@@ -60,23 +73,25 @@ class TestMultiTierValidator:
             "content": "ok",
             "turns": [
                 {"speaker": "user", "text": "I need help."},
-                {"speaker": "therapist", "text": "ok"}
+                {"speaker": "therapist", "text": "ok"},
             ],
-            "metadata": {
-                "quality_score": 0.3
-            }
+            "metadata": {"quality_score": 0.3},
         }
 
         self.safety_concern_conversation = {
             "id": "safety_concern_001",
             "content": "I want to harm myself and don't see any point in living.",
             "turns": [
-                {"speaker": "user", "text": "I want to harm myself and don't see any point in living."},
-                {"speaker": "therapist", "text": "I'm concerned about your safety. Let me connect you with crisis support resources immediately."}
+                {
+                    "speaker": "user",
+                    "text": "I want to harm myself and don't see any point in living.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "I'm concerned about your safety. Let me connect you with crisis support resources immediately.",
+                },
             ],
-            "metadata": {
-                "safety_flag": True
-            }
+            "metadata": {"safety_flag": True},
         }
 
     def test_validator_initialization(self):
@@ -107,21 +122,22 @@ class TestMultiTierValidator:
             therapeutic_accuracy=0.85,
             emotional_authenticity=0.8,
             safety_compliance=0.95,
-            language_quality=0.88
+            language_quality=0.88,
         )
 
         overall_score = metrics.calculate_overall_score()
 
         # Check that overall score is calculated correctly
-        expected = (0.9 * 0.25) + (0.85 * 0.30) + (0.8 * 0.20) + (0.95 * 0.15) + (0.88 * 0.10)
+        expected = (
+            (0.9 * 0.25) + (0.85 * 0.30) + (0.8 * 0.20) + (0.95 * 0.15) + (0.88 * 0.10)
+        )
         assert abs(overall_score - expected) < 0.001
         assert metrics.overall_score == overall_score
 
     def test_validate_high_quality_conversation_priority_tier(self):
         """Test validation of high-quality conversation for Priority tier."""
         result = self.validator.validate_conversation(
-            self.high_quality_conversation,
-            DatasetTier.PRIORITY
+            self.high_quality_conversation, DatasetTier.PRIORITY
         )
 
         assert result.conversation_id == "high_quality_001"
@@ -136,8 +152,7 @@ class TestMultiTierValidator:
     def test_validate_low_quality_conversation_priority_tier(self):
         """Test validation of low-quality conversation for Priority tier."""
         result = self.validator.validate_conversation(
-            self.low_quality_conversation,
-            DatasetTier.PRIORITY
+            self.low_quality_conversation, DatasetTier.PRIORITY
         )
 
         assert result.conversation_id == "low_quality_001"
@@ -147,14 +162,17 @@ class TestMultiTierValidator:
         assert len(result.recommendations) > 0  # Should have recommendations
 
         # Check for high severity issues (gap > 0.2 but < 0.3)
-        high_severity_issues = [issue for issue in result.issues if issue.severity == ValidationSeverity.HIGH]
+        high_severity_issues = [
+            issue
+            for issue in result.issues
+            if issue.severity == ValidationSeverity.HIGH
+        ]
         assert len(high_severity_issues) > 0
 
     def test_validate_medium_quality_conversation_reddit_tier(self):
         """Test validation of medium-quality conversation for Reddit tier."""
         result = self.validator.validate_conversation(
-            self.medium_quality_conversation,
-            DatasetTier.REDDIT
+            self.medium_quality_conversation, DatasetTier.REDDIT
         )
 
         assert result.conversation_id == "medium_quality_001"
@@ -165,8 +183,7 @@ class TestMultiTierValidator:
     def test_safety_compliance_assessment(self):
         """Test safety compliance assessment."""
         result = self.validator.validate_conversation(
-            self.safety_concern_conversation,
-            DatasetTier.PROFESSIONAL
+            self.safety_concern_conversation, DatasetTier.PROFESSIONAL
         )
 
         # Safety compliance should be high if properly handled
@@ -174,7 +191,8 @@ class TestMultiTierValidator:
 
         # Should have appropriate recommendations for safety
         [
-            rec for rec in result.recommendations
+            rec
+            for rec in result.recommendations
             if "safety" in rec.lower() or "crisis" in rec.lower()
         ]
         # Note: May or may not have safety recommendations depending on implementation
@@ -184,7 +202,7 @@ class TestMultiTierValidator:
         conversations = [
             self.high_quality_conversation,
             self.medium_quality_conversation,
-            self.low_quality_conversation
+            self.low_quality_conversation,
         ]
 
         results = self.validator.validate_batch(conversations, DatasetTier.PROFESSIONAL)
@@ -214,7 +232,9 @@ class TestMultiTierValidator:
         # Second result should be failed due to error
         assert not results[1].passed
         assert len(results[1].issues) > 0
-        assert any(issue.severity == ValidationSeverity.CRITICAL for issue in results[1].issues)
+        assert any(
+            issue.severity == ValidationSeverity.CRITICAL for issue in results[1].issues
+        )
 
     def test_tier_statistics_tracking(self):
         """Test tier statistics tracking."""
@@ -222,7 +242,7 @@ class TestMultiTierValidator:
         conversations = [
             self.high_quality_conversation,
             self.medium_quality_conversation,
-            self.low_quality_conversation
+            self.low_quality_conversation,
         ]
 
         self.validator.validate_batch(conversations, DatasetTier.REDDIT)
@@ -237,8 +257,12 @@ class TestMultiTierValidator:
     def test_validation_summary(self):
         """Test validation summary generation."""
         # Perform some validations
-        self.validator.validate_conversation(self.high_quality_conversation, DatasetTier.PRIORITY)
-        self.validator.validate_conversation(self.medium_quality_conversation, DatasetTier.REDDIT)
+        self.validator.validate_conversation(
+            self.high_quality_conversation, DatasetTier.PRIORITY
+        )
+        self.validator.validate_conversation(
+            self.medium_quality_conversation, DatasetTier.REDDIT
+        )
 
         summary = self.validator.get_validation_summary()
 
@@ -263,11 +287,21 @@ class TestMultiTierValidator:
     def test_issue_severity_determination(self):
         """Test issue severity determination."""
         # Test different score gaps
-        assert self.validator._determine_severity(0.5, 0.9) == ValidationSeverity.CRITICAL  # gap = 0.4
-        assert self.validator._determine_severity(0.7, 0.9) == ValidationSeverity.HIGH      # gap = 0.2
-        assert self.validator._determine_severity(0.8, 0.9) == ValidationSeverity.MEDIUM    # gap = 0.1
-        assert self.validator._determine_severity(0.85, 0.9) == ValidationSeverity.LOW      # gap = 0.05
-        assert self.validator._determine_severity(0.88, 0.9) == ValidationSeverity.INFO     # gap = 0.02
+        assert (
+            self.validator._determine_severity(0.5, 0.9) == ValidationSeverity.CRITICAL
+        )  # gap = 0.4
+        assert (
+            self.validator._determine_severity(0.7, 0.9) == ValidationSeverity.HIGH
+        )  # gap = 0.2
+        assert (
+            self.validator._determine_severity(0.8, 0.9) == ValidationSeverity.MEDIUM
+        )  # gap = 0.1
+        assert (
+            self.validator._determine_severity(0.85, 0.9) == ValidationSeverity.LOW
+        )  # gap = 0.05
+        assert (
+            self.validator._determine_severity(0.88, 0.9) == ValidationSeverity.INFO
+        )  # gap = 0.02
 
     def test_improvement_suggestions(self):
         """Test improvement suggestions generation."""
@@ -277,8 +311,13 @@ class TestMultiTierValidator:
         assert all(isinstance(suggestion, str) for suggestion in suggestions)
 
         # Test all metric types
-        metrics = ["coherence_score", "therapeutic_accuracy", "emotional_authenticity",
-                  "safety_compliance", "language_quality"]
+        metrics = [
+            "coherence_score",
+            "therapeutic_accuracy",
+            "emotional_authenticity",
+            "safety_compliance",
+            "language_quality",
+        ]
 
         for metric in metrics:
             suggestions = self.validator._get_improvement_suggestions(metric)
@@ -289,7 +328,9 @@ class TestMultiTierValidator:
         issues = [
             ValidationIssue(ValidationSeverity.CRITICAL, "test", "Critical issue", 0.3),
             ValidationIssue(ValidationSeverity.HIGH, "test", "High issue", 0.2),
-            ValidationIssue(ValidationSeverity.CRITICAL, "test", "Another critical", 0.25)
+            ValidationIssue(
+                ValidationSeverity.CRITICAL, "test", "Another critical", 0.25
+            ),
         ]
 
         result = ValidationResult(
@@ -297,7 +338,7 @@ class TestMultiTierValidator:
             tier=DatasetTier.REDDIT,
             metrics=QualityMetrics(),
             passed=False,
-            issues=issues
+            issues=issues,
         )
 
         counts = result.get_severity_counts()
@@ -310,8 +351,12 @@ class TestMultiTierValidator:
     def test_export_validation_report(self):
         """Test validation report export."""
         # Perform some validations
-        self.validator.validate_conversation(self.high_quality_conversation, DatasetTier.PRIORITY)
-        self.validator.validate_conversation(self.low_quality_conversation, DatasetTier.REDDIT)
+        self.validator.validate_conversation(
+            self.high_quality_conversation, DatasetTier.PRIORITY
+        )
+        self.validator.validate_conversation(
+            self.low_quality_conversation, DatasetTier.REDDIT
+        )
 
         # Export report
         with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
@@ -331,6 +376,7 @@ class TestMultiTierValidator:
 
         # Clean up
         import os
+
         os.unlink(filepath)
 
     def test_tier_specific_weights(self):

@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Optional
+from typing import Any, Optional
 
 # Handle imports
 generation_path = Path(__file__).parent
@@ -33,7 +33,10 @@ try:
     from schemas.conversation_schema import Conversation, Message
 except ImportError:
     try:
-        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+        from ai.pipelines.orchestrator.schemas.conversation_schema import (
+            Conversation,
+            Message,
+        )
     except ImportError:
         from conversation_schema import Conversation, Message
 
@@ -82,10 +85,17 @@ class SyntheticGenerationConfig:
     batch_size: int = 10
     enable_self_evaluation: bool = True
     enable_diversity_scoring: bool = True
-    cultural_contexts: list[str] = field(default_factory=lambda: [
-        "western", "eastern_asian", "south_asian", "latin_american",
-        "african", "middle_eastern", "indigenous"
-    ])
+    cultural_contexts: list[str] = field(
+        default_factory=lambda: [
+            "western",
+            "eastern_asian",
+            "south_asian",
+            "latin_american",
+            "african",
+            "middle_eastern",
+            "indigenous",
+        ]
+    )
 
 
 @dataclass
@@ -133,7 +143,9 @@ class LLMProvider(ABC):
 class OllamaProvider(LLMProvider):
     """Ollama LLM provider."""
 
-    def __init__(self, model: str = "llama3.2", base_url: str = "http://localhost:11434"):
+    def __init__(
+        self, model: str = "llama3.2", base_url: str = "http://localhost:11434"
+    ):
         self.model = model
         self.base_url = base_url
 
@@ -412,7 +424,9 @@ Respond with ONLY a JSON object:
         start_time = time.time()
         strategy = strategy_override or self.config.strategy
 
-        logger.info(f"Starting synthetic generation: {num_samples} samples, strategy={strategy.value}")
+        logger.info(
+            f"Starting synthetic generation: {num_samples} samples, strategy={strategy.value}"
+        )
 
         # Default seed topics if not provided
         if not seed_topics:
@@ -446,7 +460,9 @@ Respond with ONLY a JSON object:
             samples = self._edge_case_expansion(num_samples, seed_topics)
 
         # Filter by quality
-        quality_samples = [s for s in samples if s.quality_score >= self.config.quality_threshold]
+        quality_samples = [
+            s for s in samples if s.quality_score >= self.config.quality_threshold
+        ]
 
         elapsed_time = time.time() - start_time
 
@@ -454,8 +470,12 @@ Respond with ONLY a JSON object:
             samples=quality_samples,
             total_generated=len(samples),
             quality_passed=len(quality_samples),
-            average_quality=sum(s.quality_score for s in samples) / len(samples) if samples else 0,
-            average_diversity=sum(s.diversity_score for s in samples) / len(samples) if samples else 0,
+            average_quality=sum(s.quality_score for s in samples) / len(samples)
+            if samples
+            else 0,
+            average_diversity=sum(s.diversity_score for s in samples) / len(samples)
+            if samples
+            else 0,
             generation_time_seconds=elapsed_time,
             strategy_used=strategy,
             metadata={
@@ -482,8 +502,14 @@ Respond with ONLY a JSON object:
         samples = []
 
         therapeutic_approaches = [
-            "CBT", "DBT", "ACT", "Psychodynamic", "Humanistic",
-            "Solution-Focused", "Narrative Therapy", "EMDR"
+            "CBT",
+            "DBT",
+            "ACT",
+            "Psychodynamic",
+            "Humanistic",
+            "Solution-Focused",
+            "Narrative Therapy",
+            "EMDR",
         ]
 
         client_concerns = [
@@ -523,10 +549,10 @@ Respond with ONLY a JSON object:
 
                 if sample:
                     samples.append(sample)
-                    logger.debug(f"Generated sample {i+1}/{num_samples}")
+                    logger.debug(f"Generated sample {i + 1}/{num_samples}")
 
             except Exception as e:
-                logger.warning(f"Error generating sample {i+1}: {e}")
+                logger.warning(f"Error generating sample {i + 1}: {e}")
                 continue
 
         return samples
@@ -562,7 +588,8 @@ Generate the improved conversation in JSON format."""
                 try:
                     response = self.provider.generate_sync(
                         improvement_prompt,
-                        temperature=self.config.temperature * 0.9,  # Slightly lower for refinement
+                        temperature=self.config.temperature
+                        * 0.9,  # Slightly lower for refinement
                     )
 
                     new_sample = self._parse_and_create_sample(
@@ -572,7 +599,10 @@ Generate the improved conversation in JSON format."""
                         metadata=improved_sample.metadata,
                     )
 
-                    if new_sample and new_sample.quality_score > improved_sample.quality_score:
+                    if (
+                        new_sample
+                        and new_sample.quality_score > improved_sample.quality_score
+                    ):
                         new_sample.evolution_history = [
                             *improved_sample.evolution_history,
                             f"iteration_{iteration}_quality_{new_sample.quality_score:.2f}",
@@ -658,10 +688,10 @@ Generate in JSON format with conversation array and detailed metadata."""
                 if sample:
                     sample.evolution_history = ["context", "outline", "conversation"]
                     samples.append(sample)
-                    logger.debug(f"Multi-step generated sample {i+1}/{num_samples}")
+                    logger.debug(f"Multi-step generated sample {i + 1}/{num_samples}")
 
             except Exception as e:
-                logger.warning(f"Error in multi-step generation {i+1}: {e}")
+                logger.warning(f"Error in multi-step generation {i + 1}: {e}")
                 continue
 
         return samples
@@ -714,10 +744,10 @@ Generate in JSON format with conversation array."""
                 if sample:
                     sample.evolution_history = evolution_history
                     samples.append(sample)
-                    logger.debug(f"TarGEN generated sample {i+1}/{num_samples}")
+                    logger.debug(f"TarGEN generated sample {i + 1}/{num_samples}")
 
             except Exception as e:
-                logger.warning(f"Error in TarGEN generation {i+1}: {e}")
+                logger.warning(f"Error in TarGEN generation {i + 1}: {e}")
                 continue
 
         return samples
@@ -776,16 +806,37 @@ Generate in JSON format with conversation array and cultural adaptation notes in
         samples = []
 
         edge_cases = [
-            {"scenario": "Client expresses suicidal ideation mid-session", "difficulty": "very_high"},
-            {"scenario": "Client becomes angry and confrontational", "difficulty": "high"},
-            {"scenario": "Client discloses abuse of a minor", "difficulty": "very_high"},
+            {
+                "scenario": "Client expresses suicidal ideation mid-session",
+                "difficulty": "very_high",
+            },
+            {
+                "scenario": "Client becomes angry and confrontational",
+                "difficulty": "high",
+            },
+            {
+                "scenario": "Client discloses abuse of a minor",
+                "difficulty": "very_high",
+            },
             {"scenario": "Client shows signs of psychosis", "difficulty": "high"},
-            {"scenario": "Client requests inappropriate relationship", "difficulty": "high"},
-            {"scenario": "Client refuses to engage in treatment", "difficulty": "moderate"},
+            {
+                "scenario": "Client requests inappropriate relationship",
+                "difficulty": "high",
+            },
+            {
+                "scenario": "Client refuses to engage in treatment",
+                "difficulty": "moderate",
+            },
             {"scenario": "Client reports severe dissociation", "difficulty": "high"},
-            {"scenario": "Client presents with complex trauma history", "difficulty": "high"},
+            {
+                "scenario": "Client presents with complex trauma history",
+                "difficulty": "high",
+            },
             {"scenario": "Client has comorbid substance use", "difficulty": "moderate"},
-            {"scenario": "Therapeutic rupture occurs in session", "difficulty": "moderate"},
+            {
+                "scenario": "Therapeutic rupture occurs in session",
+                "difficulty": "moderate",
+            },
         ]
 
         for i in range(num_samples):
@@ -817,7 +868,9 @@ Generate in JSON format with conversation array and cultural adaptation notes in
 
                 if sample:
                     samples.append(sample)
-                    logger.debug(f"Edge case generated: {edge_case['scenario'][:50]}...")
+                    logger.debug(
+                        f"Edge case generated: {edge_case['scenario'][:50]}..."
+                    )
 
             except Exception as e:
                 logger.warning(f"Error in edge case generation: {e}")
@@ -869,11 +922,17 @@ Generate in JSON format with conversation array and cultural adaptation notes in
                 return None
 
             # Generate conversation ID
-            conv_id = self._generate_conversation_id(strategy.value, iteration, messages[0].content)
+            conv_id = self._generate_conversation_id(
+                strategy.value, iteration, messages[0].content
+            )
 
             # Evaluate quality
             quality_score = self._evaluate_quality(messages)
-            diversity_score = self._evaluate_diversity(messages) if self.config.enable_diversity_scoring else 0.5
+            diversity_score = (
+                self._evaluate_diversity(messages)
+                if self.config.enable_diversity_scoring
+                else 0.5
+            )
 
             return GeneratedSample(
                 conversation_id=conv_id,
@@ -902,8 +961,8 @@ Generate in JSON format with conversation array and cultural adaptation notes in
 
         # Try to find JSON in the text
         json_patterns = [
-            r'\{[\s\S]*\}',  # Match { ... }
-            r'\[[\s\S]*\]',  # Match [ ... ]
+            r"\{[\s\S]*\}",  # Match { ... }
+            r"\[[\s\S]*\]",  # Match [ ... ]
         ]
 
         for pattern in json_patterns:
@@ -922,11 +981,11 @@ Generate in JSON format with conversation array and cultural adaptation notes in
 
         # Try to find dialogue patterns
         patterns = [
-            r'(?:Client|User|Patient):\s*(.+?)(?=(?:Therapist|Assistant|Counselor):|$)',
-            r'(?:Therapist|Assistant|Counselor):\s*(.+?)(?=(?:Client|User|Patient):|$)',
+            r"(?:Client|User|Patient):\s*(.+?)(?=(?:Therapist|Assistant|Counselor):|$)",
+            r"(?:Therapist|Assistant|Counselor):\s*(.+?)(?=(?:Client|User|Patient):|$)",
         ]
 
-        lines = text.split('\n')
+        lines = text.split("\n")
         current_role = None
         current_content = []
 
@@ -936,24 +995,40 @@ Generate in JSON format with conversation array and cultural adaptation notes in
                 continue
 
             # Check for role markers
-            if any(marker in line.lower() for marker in ['client:', 'user:', 'patient:']):
+            if any(
+                marker in line.lower() for marker in ["client:", "user:", "patient:"]
+            ):
                 if current_role and current_content:
-                    conversation.append({
-                        "role": current_role,
-                        "content": ' '.join(current_content),
-                    })
+                    conversation.append(
+                        {
+                            "role": current_role,
+                            "content": " ".join(current_content),
+                        }
+                    )
                 current_role = "user"
-                content = re.sub(r'^(client|user|patient):\s*', '', line, flags=re.IGNORECASE)
+                content = re.sub(
+                    r"^(client|user|patient):\s*", "", line, flags=re.IGNORECASE
+                )
                 current_content = [content] if content else []
 
-            elif any(marker in line.lower() for marker in ['therapist:', 'assistant:', 'counselor:']):
+            elif any(
+                marker in line.lower()
+                for marker in ["therapist:", "assistant:", "counselor:"]
+            ):
                 if current_role and current_content:
-                    conversation.append({
-                        "role": current_role,
-                        "content": ' '.join(current_content),
-                    })
+                    conversation.append(
+                        {
+                            "role": current_role,
+                            "content": " ".join(current_content),
+                        }
+                    )
                 current_role = "assistant"
-                content = re.sub(r'^(therapist|assistant|counselor):\s*', '', line, flags=re.IGNORECASE)
+                content = re.sub(
+                    r"^(therapist|assistant|counselor):\s*",
+                    "",
+                    line,
+                    flags=re.IGNORECASE,
+                )
                 current_content = [content] if content else []
 
             elif current_role:
@@ -961,10 +1036,12 @@ Generate in JSON format with conversation array and cultural adaptation notes in
 
         # Add last turn
         if current_role and current_content:
-            conversation.append({
-                "role": current_role,
-                "content": ' '.join(current_content),
-            })
+            conversation.append(
+                {
+                    "role": current_role,
+                    "content": " ".join(current_content),
+                }
+            )
 
         return conversation
 
@@ -1038,9 +1115,7 @@ Generate in JSON format with conversation array and cultural adaptation notes in
 
         return conversations
 
-    def save_results(
-        self, result: DistillationResult, output_path: Path
-    ) -> None:
+    def save_results(self, result: DistillationResult, output_path: Path) -> None:
         """Save distillation results to file."""
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1060,7 +1135,9 @@ Generate in JSON format with conversation array and cultural adaptation notes in
             "samples": [
                 {
                     "conversation_id": s.conversation_id,
-                    "messages": [{"role": m.role, "content": m.content} for m in s.messages],
+                    "messages": [
+                        {"role": m.role, "content": m.content} for m in s.messages
+                    ],
                     "generation_strategy": s.generation_strategy.value,
                     "iteration": s.iteration,
                     "quality_score": s.quality_score,
@@ -1142,4 +1219,3 @@ if __name__ == "__main__":
     #     print(f"\n{conv.conversation_id}:")
     #     for msg in conv.messages[:2]:
     #         print(f"  [{msg.role}]: {msg.content[:100]}...")
-

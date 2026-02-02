@@ -143,6 +143,7 @@ class RateLimiter:
                 await asyncio.sleep(min_interval - elapsed + jitter)
 
         self.request_times.append(time.time())
+
         self.last_request_time = time.time()
         return None
 
@@ -158,6 +159,7 @@ class RateLimiter:
                 backoff_time *= random.uniform(0.8, 1.2)
 
             await asyncio.sleep(backoff_time)
+
             self.current_backoff = min(
                 self.current_backoff * self.config.backoff_factor,
                 self.config.max_backoff,

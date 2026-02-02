@@ -233,9 +233,7 @@ def collect_prefix_changes(
 
     prefix_changes: List[tuple[str, str, List[str]]] = []
     for old_prefix, new_prefix in PATH_PREFIX_CHANGES.items():
-        if old_objects := find_objects_with_prefix(
-            s3_client, bucket_name, old_prefix
-        ):
+        if old_objects := find_objects_with_prefix(s3_client, bucket_name, old_prefix):
             print(f"  Found {len(old_objects)} objects with prefix '{old_prefix}':")
             for obj_key in old_objects[:5]:
                 new_key = obj_key.replace(old_prefix, new_prefix)

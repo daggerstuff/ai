@@ -45,7 +45,7 @@ class TestTherapeuticAllianceGenerator:
             dsm5_considerations=["Generalized Anxiety Disorder"],
             attachment_style="secure",
             defense_mechanisms=["intellectualization"],
-            psychodynamic_themes=["control_and_autonomy"]
+            psychodynamic_themes=["control_and_autonomy"],
         )
 
         return ClientScenario(
@@ -55,7 +55,7 @@ class TestTherapeuticAllianceGenerator:
             presenting_problem="Anxiety about work performance",
             clinical_formulation=clinical_formulation,
             demographics={"age": 28, "gender": "female"},
-            session_context="Initial therapy session"
+            session_context="Initial therapy session",
         )
 
     @pytest.fixture
@@ -65,7 +65,7 @@ class TestTherapeuticAllianceGenerator:
             dsm5_considerations=["Adjustment Disorder"],
             attachment_style="anxious",
             defense_mechanisms=["avoidance"],
-            psychodynamic_themes=["cultural_identity"]
+            psychodynamic_themes=["cultural_identity"],
         )
 
         return ClientScenario(
@@ -75,7 +75,7 @@ class TestTherapeuticAllianceGenerator:
             presenting_problem="Cultural adaptation stress",
             clinical_formulation=clinical_formulation,
             demographics={"age": 35, "gender": "male", "ethnicity": "Latino"},
-            session_context="Cross-cultural therapy session"
+            session_context="Cross-cultural therapy session",
         )
 
     def test_initialization(self, generator):
@@ -226,9 +226,14 @@ class TestTherapeuticAllianceGenerator:
 
         # Should include bond-building techniques
         technique_values = [t.value for t in conversation.rapport_techniques_used]
-        assert any(technique in technique_values for technique in [
-            "empathic_reflection", "genuineness", "unconditional_positive_regard"
-        ])
+        assert any(
+            technique in technique_values
+            for technique in [
+                "empathic_reflection",
+                "genuineness",
+                "unconditional_positive_regard",
+            ]
+        )
 
     def test_generate_goal_alliance_conversation(self, generator, basic_scenario):
         """Test goal alliance conversation generation."""
@@ -241,9 +246,10 @@ class TestTherapeuticAllianceGenerator:
 
         # Should include collaborative and validation techniques
         technique_values = [t.value for t in conversation.rapport_techniques_used]
-        assert any(technique in technique_values for technique in [
-            "collaborative_approach", "validation"
-        ])
+        assert any(
+            technique in technique_values
+            for technique in ["collaborative_approach", "validation"]
+        )
 
     def test_alliance_content_generation(self, generator):
         """Test alliance-specific content generation."""
@@ -253,29 +259,39 @@ class TestTherapeuticAllianceGenerator:
         )
         assert isinstance(task_content, str)
         assert len(task_content) > 0
-        assert any(word in task_content.lower() for word in ["together", "work", "approach"])
+        assert any(
+            word in task_content.lower() for word in ["together", "work", "approach"]
+        )
 
         # Test bond alliance content
         bond_content = generator._generate_alliance_content(
             AllianceComponent.BOND_ALLIANCE, RapportTechnique.EMPATHIC_REFLECTION, 0
         )
         assert isinstance(bond_content, str)
-        assert any(word in bond_content.lower() for word in ["hear", "feel", "understand"])
+        assert any(
+            word in bond_content.lower() for word in ["hear", "feel", "understand"]
+        )
 
         # Test goal alliance content
         goal_content = generator._generate_alliance_content(
             AllianceComponent.GOAL_ALLIANCE, RapportTechnique.VALIDATION, 0
         )
         assert isinstance(goal_content, str)
-        assert any(word in goal_content.lower() for word in ["goals", "important", "change"])
+        assert any(
+            word in goal_content.lower() for word in ["goals", "important", "change"]
+        )
 
     def test_client_alliance_response_progression(self, generator, basic_scenario):
         """Test client alliance response progression over exchanges."""
         strategy = generator.alliance_strategies[AllianceComponent.BOND_ALLIANCE][0]
 
         # Test progression from cautious to engaged
-        response_0 = generator._generate_client_alliance_content(basic_scenario, strategy, 0)
-        response_3 = generator._generate_client_alliance_content(basic_scenario, strategy, 3)
+        response_0 = generator._generate_client_alliance_content(
+            basic_scenario, strategy, 0
+        )
+        response_3 = generator._generate_client_alliance_content(
+            basic_scenario, strategy, 3
+        )
 
         assert isinstance(response_0, str)
         assert isinstance(response_3, str)
@@ -288,19 +304,27 @@ class TestTherapeuticAllianceGenerator:
         # Mock exchanges with positive alliance indicators
         exchanges = [
             {"speaker": "therapist", "content": "test"},
-            {"speaker": "client", "content": "I feel comfortable here",
-             "trust_indicators": ["explicit_trust_expression"],
-             "alliance_response": "positive_bond_response",
-             "emotional_openness": "high_openness"},
+            {
+                "speaker": "client",
+                "content": "I feel comfortable here",
+                "trust_indicators": ["explicit_trust_expression"],
+                "alliance_response": "positive_bond_response",
+                "emotional_openness": "high_openness",
+            },
             {"speaker": "therapist", "content": "test"},
-            {"speaker": "client", "content": "This makes sense to me",
-             "trust_indicators": ["positive_regard"],
-             "alliance_response": "positive_task_response",
-             "emotional_openness": "moderate_openness"}
+            {
+                "speaker": "client",
+                "content": "This makes sense to me",
+                "trust_indicators": ["positive_regard"],
+                "alliance_response": "positive_task_response",
+                "emotional_openness": "moderate_openness",
+            },
         ]
 
         strategy = generator.alliance_strategies[AllianceComponent.BOND_ALLIANCE][0]
-        assessment = generator._assess_alliance_strength(exchanges, strategy, basic_scenario)
+        assessment = generator._assess_alliance_strength(
+            exchanges, strategy, basic_scenario
+        )
 
         assert isinstance(assessment, AllianceAssessment)
         assert assessment.id is not None
@@ -325,7 +349,10 @@ class TestTherapeuticAllianceGenerator:
 
         # Should include cultural adaptations for Latino client
         assert len(conversation.cultural_adaptations_applied) > 0
-        assert any("cultural" in adaptation.lower() for adaptation in conversation.cultural_adaptations_applied)
+        assert any(
+            "cultural" in adaptation.lower()
+            for adaptation in conversation.cultural_adaptations_applied
+        )
 
     def test_rapport_technique_identification(self, generator, basic_scenario):
         """Test rapport technique identification from conversation."""
@@ -334,7 +361,7 @@ class TestTherapeuticAllianceGenerator:
             {"speaker": "therapist", "rapport_technique": "empathic_reflection"},
             {"speaker": "client", "content": "test"},
             {"speaker": "therapist", "rapport_technique": "active_listening"},
-            {"speaker": "client", "content": "test"}
+            {"speaker": "client", "content": "test"},
         ]
 
         techniques = generator._identify_rapport_techniques_used(exchanges)
@@ -347,10 +374,16 @@ class TestTherapeuticAllianceGenerator:
         """Test alliance building moments identification."""
         # Mock exchanges with alliance building elements
         exchanges = [
-            {"speaker": "therapist", "alliance_building_element": "emotional_attunement"},
+            {
+                "speaker": "therapist",
+                "alliance_building_element": "emotional_attunement",
+            },
             {"speaker": "client", "content": "test"},
-            {"speaker": "therapist", "alliance_building_element": "partnership_building"},
-            {"speaker": "client", "content": "test"}
+            {
+                "speaker": "therapist",
+                "alliance_building_element": "partnership_building",
+            },
+            {"speaker": "client", "content": "test"},
         ]
 
         moments = generator._identify_alliance_building_moments(exchanges)
@@ -397,7 +430,10 @@ class TestTherapeuticAllianceGenerator:
         conversations = []
 
         # Generate multiple conversations
-        for component in [AllianceComponent.TASK_ALLIANCE, AllianceComponent.BOND_ALLIANCE]:
+        for component in [
+            AllianceComponent.TASK_ALLIANCE,
+            AllianceComponent.BOND_ALLIANCE,
+        ]:
             conv = generator.generate_alliance_conversation(
                 basic_scenario, component, num_exchanges=6
             )
@@ -408,7 +444,9 @@ class TestTherapeuticAllianceGenerator:
             temp_file = f.name
 
         try:
-            export_result = generator.export_alliance_conversations(conversations, temp_file)
+            export_result = generator.export_alliance_conversations(
+                conversations, temp_file
+            )
 
             # Check export result
             assert export_result["exported_conversations"] == 2
@@ -442,13 +480,17 @@ class TestTherapeuticAllianceGenerator:
         """Test handling of different alliance stages."""
         # Test initial engagement
         initial_conv = generator.generate_alliance_conversation(
-            basic_scenario, AllianceComponent.BOND_ALLIANCE, AllianceStage.INITIAL_ENGAGEMENT
+            basic_scenario,
+            AllianceComponent.BOND_ALLIANCE,
+            AllianceStage.INITIAL_ENGAGEMENT,
         )
         assert initial_conv.stage == AllianceStage.INITIAL_ENGAGEMENT
 
         # Test working alliance
         working_conv = generator.generate_alliance_conversation(
-            basic_scenario, AllianceComponent.TASK_ALLIANCE, AllianceStage.WORKING_ALLIANCE
+            basic_scenario,
+            AllianceComponent.TASK_ALLIANCE,
+            AllianceStage.WORKING_ALLIANCE,
         )
         assert working_conv.stage == AllianceStage.WORKING_ALLIANCE
 

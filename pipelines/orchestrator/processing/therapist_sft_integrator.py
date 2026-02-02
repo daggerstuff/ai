@@ -6,15 +6,14 @@ Specialized for supervised fine-tuning format with therapeutic conversations.
 """
 
 import json
+import logging
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from logger import get_logger
-
-logger = get_logger(__name__)
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -52,7 +51,7 @@ class TherapistSFTIntegrator:
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
 
-        self.logger = get_logger(__name__)
+        self.logger = logging.getLogger(__name__)
 
         # SFT instruction templates for therapeutic contexts
         self.instruction_templates = [
@@ -119,26 +118,26 @@ class TherapistSFTIntegrator:
             output_paths = self._save_sft_datasets(sft_dataset, quality_metrics)
 
             # Update result
-            result.update(
-                {
-                    "success": True,
-                    "examples_processed": len(processed_examples),
-                    "training_examples": len(sft_dataset.examples)
-                    - int(
-                        len(sft_dataset.examples)
-                        * (sft_dataset.validation_split + sft_dataset.test_split)
-                    ),
-                    "validation_examples": int(
-                        len(sft_dataset.examples) * sft_dataset.validation_split
-                    ),
-                    "test_examples": int(
-                        len(sft_dataset.examples) * sft_dataset.test_split
-                    ),
-                    "quality_metrics": quality_metrics,
-                    "output_paths": output_paths,
-                    "processing_time": (datetime.now() - start_time).total_seconds(),
-                }
-            )
+            update_data = {
+                "success": True,
+                "examples_processed": len(processed_examples),
+                "training_examples": len(sft_dataset.examples)
+                - int(
+                    len(sft_dataset.examples)
+                    * (sft_dataset.validation_split + sft_dataset.test_split)
+                ),
+                "validation_examples": int(
+                    len(sft_dataset.examples) * sft_dataset.validation_split
+                ),
+                "test_examples": int(
+                    len(sft_dataset.examples) * sft_dataset.test_split
+                ),
+                "quality_metrics": quality_metrics,
+                "output_paths": output_paths,
+                "processing_time": (datetime.now() - start_time).total_seconds(),
+            }
+            for key, value in update_data.items():
+                result[key] = value
 
             logger.info(
                 f"Successfully integrated SFT dataset: {len(processed_examples)} examples"
@@ -244,13 +243,13 @@ class TherapistSFTIntegrator:
 
         return examples
 
-    def _process_sft_example(
-        self, example_data: dict[str, Any]
-    ) -> SFTExample | None:
+    def _process_sft_example(self, example_data: dict[str, Any]) -> SFTExample | None:
         """Process and validate an SFT example."""
         try:
             # Extract required fields
-            example_id = example_data.get("id", f"sft_{hash(str(example_data))%10000}")
+            example_id = example_data.get(
+                "id", f"sft_{hash(str(example_data)) % 10000}"
+            )
             instruction = example_data.get("instruction", "")
             input_context = example_data.get("input", "")
             output_response = example_data.get("output", "")
@@ -420,7 +419,6 @@ class TherapistSFTIntegrator:
             / len(examples),
         }
 
-
     def _save_sft_datasets(
         self, sft_dataset: SFTDataset, quality_metrics: dict[str, float]
     ) -> dict[str, str]:
@@ -488,4 +486,3 @@ if __name__ == "__main__":
         pass
     else:
         pass
-

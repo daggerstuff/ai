@@ -35,7 +35,10 @@ try:
     from schemas.conversation_schema import Conversation, Message
 except ImportError:
     try:
-        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+        from ai.pipelines.orchestrator.schemas.conversation_schema import (
+            Conversation,
+            Message,
+        )
     except ImportError:
         from conversation_schema import Conversation, Message
 
@@ -399,7 +402,11 @@ class SafetyAlignmentValidator:
         requires_human_review = (
             overall_severity.value >= SafetySeverity.HIGH.value
             or any(
-                v.violation_type in [SafetyViolationType.CRISIS_CONTENT, SafetyViolationType.PII_EXPOSURE]
+                v.violation_type
+                in [
+                    SafetyViolationType.CRISIS_CONTENT,
+                    SafetyViolationType.PII_EXPOSURE,
+                ]
                 for v in violations
             )
         )
@@ -416,7 +423,9 @@ class SafetyAlignmentValidator:
             metadata={
                 "num_messages": len(conversation.messages),
                 "num_violations": len(violations),
-                "violation_types": list(set(v.violation_type.value for v in violations)),
+                "violation_types": list(
+                    set(v.violation_type.value for v in violations)
+                ),
             },
         )
 
@@ -426,11 +435,20 @@ class SafetyAlignmentValidator:
 
         for rule in self.rules:
             # Skip disabled checks
-            if not self.enable_toxic_detection and rule.violation_type == SafetyViolationType.TOXIC_LANGUAGE:
+            if (
+                not self.enable_toxic_detection
+                and rule.violation_type == SafetyViolationType.TOXIC_LANGUAGE
+            ):
                 continue
-            if not self.enable_crisis_detection and rule.violation_type == SafetyViolationType.CRISIS_CONTENT:
+            if (
+                not self.enable_crisis_detection
+                and rule.violation_type == SafetyViolationType.CRISIS_CONTENT
+            ):
                 continue
-            if not self.enable_pii_detection and rule.violation_type == SafetyViolationType.PII_EXPOSURE:
+            if (
+                not self.enable_pii_detection
+                and rule.violation_type == SafetyViolationType.PII_EXPOSURE
+            ):
                 continue
 
             patterns = self.compiled_rules[rule.rule_id]
@@ -522,9 +540,7 @@ class SafetyAlignmentValidator:
             else:
                 unsafe.append(conv)
 
-        logger.info(
-            f"Filtered conversations: {len(safe)} safe, {len(unsafe)} unsafe"
-        )
+        logger.info(f"Filtered conversations: {len(safe)} safe, {len(unsafe)} unsafe")
 
         return safe, unsafe
 
@@ -670,7 +686,10 @@ if __name__ == "__main__":
             conversation_id="safe_001",
             source="test",
             messages=[
-                Message(role="user", content="I've been feeling anxious about my presentation."),
+                Message(
+                    role="user",
+                    content="I've been feeling anxious about my presentation.",
+                ),
                 Message(
                     role="assistant",
                     content="I understand that presentations can be anxiety-provoking. "
@@ -715,4 +734,3 @@ if __name__ == "__main__":
     print(f"  Total: {stats['total_conversations']}")
     print(f"  Safe: {stats['safe_count']}")
     print(f"  Safety Rate: {stats['safety_rate']:.1%}")
-

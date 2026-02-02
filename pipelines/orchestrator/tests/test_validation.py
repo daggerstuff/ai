@@ -8,7 +8,6 @@ from datetime import datetime
 from unittest.mock import MagicMock
 
 import pytest
-
 from ai.pipelines.orchestrator.validation import (
     ConversationRecord,
     QualityScore,
@@ -51,7 +50,10 @@ def test_conversation_record_validation(sample_speaker_turn):
     conv = ConversationRecord(
         id="conv_001",
         title="Sample Session",
-        turns=[sample_speaker_turn, SpeakerTurn(speaker_id="client", content="Response")],
+        turns=[
+            sample_speaker_turn,
+            SpeakerTurn(speaker_id="client", content="Response"),
+        ],
         source_type="json",
         metadata={},
     )
@@ -69,7 +71,10 @@ def test_conversation_record_validation(sample_speaker_turn):
         )
 
     # Test invalid: same speaker consecutive
-    same_speaker = [sample_speaker_turn, SpeakerTurn(speaker_id="therapist", content="Same")]
+    same_speaker = [
+        sample_speaker_turn,
+        SpeakerTurn(speaker_id="therapist", content="Same"),
+    ]
     with pytest.raises(ValueError, match="Consecutive turns"):
         ConversationRecord(
             id="invalid",
@@ -99,7 +104,10 @@ def test_quality_score_computation():
 def test_validate_record_json():
     raw_rec = MagicMock()
     raw_rec.id = "test_id"
-    raw_rec.payload = {"turns": [{"speaker_id": "t", "content": "ok"}], "source_type": "json"}
+    raw_rec.payload = {
+        "turns": [{"speaker_id": "t", "content": "ok"}],
+        "source_type": "json",
+    }
     validated = validate_record(raw_rec)
     assert isinstance(validated, ConversationRecord)
     assert "quality_score" in validated.metadata

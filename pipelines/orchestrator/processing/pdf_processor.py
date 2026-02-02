@@ -89,6 +89,7 @@ class PDFProcessor:
         Returns:
             Path to the generated JSONL file
         """
+
         pdf_path = Path(pdf_path)
         if not pdf_path.exists():
             raise FileNotFoundError(f"PDF file not found: {pdf_path}")

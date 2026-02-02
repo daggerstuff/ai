@@ -1,9 +1,10 @@
 """
-PDM-2 (Psychodynamic Diagnostic Manual) parser for psychology knowledge integration pipeline.
+PDM-2 (Psychodynamic Diagnostic Manual) parser for psychology knowledge integration
+pipeline.
 
-This module provides comprehensive parsing and structuring of PDM-2 psychodynamic frameworks,
-attachment styles, defense mechanisms, and personality patterns for therapeutic conversation
-generation and psychodynamic training data creation.
+This module provides comprehensive parsing and structuring of PDM-2 psychodynamic
+frameworks, attachment styles, defense mechanisms, and personality patterns for
+therapeutic conversation generation and psychodynamic training data creation.
 """
 
 import json
@@ -12,7 +13,10 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+from ai.pipelines.orchestrator.schemas.conversation_schema import (
+    Conversation,
+    Message,
+)
 from ai.pipelines.orchestrator.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.pdm2_parser")
@@ -121,9 +125,9 @@ class PDM2Parser:
     """
     Comprehensive PDM-2 psychodynamic frameworks parser.
 
-    Provides structured parsing of PDM-2 psychodynamic concepts including attachment styles,
-    defense mechanisms, and personality patterns for therapeutic conversation generation
-    and psychodynamic training data creation.
+    Provides structured parsing of PDM-2 psychodynamic concepts including attachment
+    styles, defense mechanisms, and personality patterns for therapeutic conversation
+    generation and psychodynamic training data creation.
     """
 
     def __init__(self, config: dict[str, Any] | None = None):
@@ -153,7 +157,9 @@ class PDM2Parser:
         )
 
         total_concepts = (
-            len(attachment_patterns) + len(defense_mechanisms) + len(psychodynamic_patterns)
+            len(attachment_patterns)
+            + len(defense_mechanisms)
+            + len(psychodynamic_patterns)
         )
         logger.info(f"Initialized {total_concepts} PDM-2 psychodynamic concepts")
 
@@ -166,7 +172,10 @@ class PDM2Parser:
             AttachmentPattern(
                 style=AttachmentStyle.SECURE,
                 name="Secure Attachment",
-                description="Comfortable with intimacy and autonomy, positive view of self and others",
+                description=(
+                    "Comfortable with intimacy and autonomy, positive view of self "
+                    "and others"
+                ),
                 characteristics=[
                     "Comfortable with closeness and independence",
                     "Positive view of self and others",
@@ -213,7 +222,10 @@ class PDM2Parser:
             AttachmentPattern(
                 style=AttachmentStyle.ANXIOUS_PREOCCUPIED,
                 name="Anxious-Preoccupied Attachment",
-                description="High anxiety about relationships, seeks excessive closeness, fear of abandonment",
+                description=(
+                    "High anxiety about relationships, seeks excessive closeness, "
+                    "fear of abandonment"
+                ),
                 characteristics=[
                     "High relationship anxiety",
                     "Fear of abandonment",
@@ -260,7 +272,10 @@ class PDM2Parser:
             AttachmentPattern(
                 style=AttachmentStyle.DISMISSIVE_AVOIDANT,
                 name="Dismissive-Avoidant Attachment",
-                description="Discomfort with closeness, values independence, minimizes emotional needs",
+                description=(
+                    "Discomfort with closeness, values independence, minimizes "
+                    "emotional needs"
+                ),
                 characteristics=[
                     "Discomfort with intimacy",
                     "Values self-reliance",
@@ -307,7 +322,10 @@ class PDM2Parser:
             AttachmentPattern(
                 style=AttachmentStyle.DISORGANIZED_FEARFUL_AVOIDANT,
                 name="Disorganized/Fearful-Avoidant Attachment",
-                description="Simultaneous desire for and fear of close relationships, chaotic attachment patterns",
+                description=(
+                    "Simultaneous desire for and fear of close relationships, "
+                    "chaotic attachment patterns"
+                ),
                 characteristics=[
                     "Simultaneous approach and avoidance",
                     "Fear of intimacy and abandonment",
@@ -361,8 +379,11 @@ class PDM2Parser:
                 DefenseMechanism(
                     name="Sublimation",
                     level=DefenseMechanismLevel.MATURE,
-                    description="Channeling unacceptable impulses into socially acceptable activities",
-                    function="Transform primitive impulses into constructive outlets",
+                    description=(
+                        "Channeling unacceptable impulses into socially "
+                        "acceptable activities"
+                    ),
+                    function=("Transform primitive impulses into constructive outlets"),
                     examples=[
                         "Channeling aggression into competitive sports",
                         "Transforming sexual energy into creative work",
@@ -382,8 +403,11 @@ class PDM2Parser:
                 DefenseMechanism(
                     name="Humor",
                     level=DefenseMechanismLevel.MATURE,
-                    description="Using comedy to express thoughts and feelings without discomfort",
-                    function="Reduce anxiety and maintain social connections",
+                    description=(
+                        "Using comedy to express thoughts and feelings "
+                        "without discomfort"
+                    ),
+                    function=("Reduce anxiety and maintain social connections"),
                     examples=[
                         "Making light of difficult situations",
                         "Self-deprecating humor about personal flaws",
@@ -409,7 +433,9 @@ class PDM2Parser:
                 DefenseMechanism(
                     name="Repression",
                     level=DefenseMechanismLevel.NEUROTIC,
-                    description="Unconsciously blocking unacceptable thoughts or memories",
+                    description=(
+                        "Unconsciously blocking unacceptable thoughts or memories"
+                    ),
                     function="Protect ego from anxiety-provoking material",
                     examples=[
                         "Forgetting traumatic childhood events",
@@ -434,7 +460,10 @@ class PDM2Parser:
                 DefenseMechanism(
                     name="Rationalization",
                     level=DefenseMechanismLevel.NEUROTIC,
-                    description="Creating logical explanations for unacceptable behavior or feelings",
+                    description=(
+                        "Creating logical explanations for unacceptable behavior "
+                        "or feelings"
+                    ),
                     function="Maintain self-esteem and reduce cognitive dissonance",
                     examples=[
                         "Explaining away failures with external factors",
@@ -465,7 +494,10 @@ class PDM2Parser:
                 DefenseMechanism(
                     name="Projection",
                     level=DefenseMechanismLevel.IMMATURE,
-                    description="Attributing one's own unacceptable thoughts or feelings to others",
+                    description=(
+                        "Attributing one's own unacceptable thoughts or "
+                        "feelings to others"
+                    ),
                     function="Avoid awareness of uncomfortable aspects of self",
                     examples=[
                         "Accusing others of being angry when you are angry",
@@ -487,7 +519,7 @@ class PDM2Parser:
                 DefenseMechanism(
                     name="Splitting",
                     level=DefenseMechanismLevel.IMMATURE,
-                    description="Viewing people or situations as all good or all bad",
+                    description=("Viewing people or situations as all good or all bad"),
                     function="Manage ambivalence and complexity",
                     examples=[
                         "Idealizing then devaluing relationships",
@@ -515,7 +547,9 @@ class PDM2Parser:
                 DefenseMechanism(
                     name="Denial",
                     level=DefenseMechanismLevel.PATHOLOGICAL,
-                    description="Refusing to acknowledge obvious reality or experience",
+                    description=(
+                        "Refusing to acknowledge obvious reality or experience"
+                    ),
                     function="Avoid overwhelming anxiety or pain",
                     examples=[
                         "Refusing to acknowledge serious illness",
@@ -537,7 +571,10 @@ class PDM2Parser:
                 DefenseMechanism(
                     name="Dissociation",
                     level=DefenseMechanismLevel.PATHOLOGICAL,
-                    description="Disconnection from thoughts, feelings, memories, or sense of identity",
+                    description=(
+                        "Disconnection from thoughts, feelings, memories, "
+                        "or sense of identity"
+                    ),
                     function="Escape from overwhelming psychological pain",
                     examples=[
                         "Feeling detached from one's body",
@@ -570,7 +607,10 @@ class PDM2Parser:
             PsychodynamicPattern(
                 name="Anxious-Attachment Pattern",
                 domain=PsychodynamicDomain.ATTACHMENT_RELATIONSHIPS,
-                description="Chronic fear of abandonment with intense relationship preoccupation",
+                description=(
+                    "Chronic fear of abandonment with intense "
+                    "relationship preoccupation"
+                ),
                 core_features=[
                     "Pervasive fear of abandonment",
                     "Intense need for reassurance",
@@ -615,7 +655,9 @@ class PDM2Parser:
             PsychodynamicPattern(
                 name="Emotional Dysregulation Pattern",
                 domain=PsychodynamicDomain.AFFECT_REGULATION,
-                description="Difficulty managing and modulating emotional experiences",
+                description=(
+                    "Difficulty managing and modulating emotional experiences"
+                ),
                 core_features=[
                     "Intense, overwhelming emotions",
                     "Rapid mood fluctuations",
@@ -660,7 +702,9 @@ class PDM2Parser:
             PsychodynamicPattern(
                 name="Identity Diffusion Pattern",
                 domain=PsychodynamicDomain.IDENTITY_SELF_CONCEPT,
-                description="Unstable sense of self with shifting identity and values",
+                description=(
+                    "Unstable sense of self with shifting identity and values"
+                ),
                 core_features=[
                     "Unclear sense of identity",
                     "Shifting values and goals",
@@ -754,7 +798,9 @@ class PDM2Parser:
             return []
         return self.knowledge_base.attachment_patterns
 
-    def get_attachment_pattern_by_style(self, style: AttachmentStyle) -> AttachmentPattern | None:
+    def get_attachment_pattern_by_style(
+        self, style: AttachmentStyle
+    ) -> AttachmentPattern | None:
         """Get attachment pattern by style."""
         if not self.knowledge_base:
             return None
@@ -777,7 +823,9 @@ class PDM2Parser:
         if not self.knowledge_base:
             return []
 
-        return [dm for dm in self.knowledge_base.defense_mechanisms if dm.level == level]
+        return [
+            dm for dm in self.knowledge_base.defense_mechanisms if dm.level == level
+        ]
 
     def get_defense_mechanism_by_name(self, name: str) -> DefenseMechanism | None:
         """Get defense mechanism by name."""
@@ -802,9 +850,15 @@ class PDM2Parser:
         if not self.knowledge_base:
             return []
 
-        return [pp for pp in self.knowledge_base.psychodynamic_patterns if pp.domain == domain]
+        return [
+            pp
+            for pp in self.knowledge_base.psychodynamic_patterns
+            if pp.domain == domain
+        ]
 
-    def get_psychodynamic_pattern_by_name(self, name: str) -> PsychodynamicPattern | None:
+    def get_psychodynamic_pattern_by_name(
+        self, name: str
+    ) -> PsychodynamicPattern | None:
         """Get psychodynamic pattern by name."""
         if not self.knowledge_base:
             return None
@@ -860,7 +914,9 @@ class PDM2Parser:
                 "defense_mechanisms": [],
                 "psychodynamic_patterns": [],
                 "theoretical_frameworks": self.knowledge_base.theoretical_frameworks,
-                "developmental_considerations": self.knowledge_base.developmental_considerations,
+                "developmental_considerations": (
+                    self.knowledge_base.developmental_considerations
+                ),
             }
 
             # Convert attachment patterns
@@ -925,7 +981,9 @@ class PDM2Parser:
                 defense_mechanisms=defense_mechanisms,
                 psychodynamic_patterns=psychodynamic_patterns,
                 theoretical_frameworks=data.get("theoretical_frameworks", {}),
-                developmental_considerations=data.get("developmental_considerations", {}),
+                developmental_considerations=data.get(
+                    "developmental_considerations", {}
+                ),
                 version=data.get("version", "Unknown"),
                 created_at=data.get("created_at"),
             )
@@ -944,7 +1002,9 @@ class PDM2Parser:
         conversations = []
 
         if concept_type == "attachment":
-            pattern = self.get_attachment_pattern_by_style(AttachmentStyle(concept_name))
+            pattern = self.get_attachment_pattern_by_style(
+                AttachmentStyle(concept_name)
+            )
             if pattern:
                 conversations.extend(self._generate_attachment_conversations(pattern))
         elif concept_type == "defense":
@@ -957,17 +1017,26 @@ class PDM2Parser:
                 conversations.extend(self._generate_pattern_conversations(pattern))
 
         logger.info(
-            f"Generated {len(conversations)} conversation templates for {concept_type}: {concept_name}"
+            f"Generated {len(conversations)} conversation templates for "
+            f"{concept_type}: {concept_name}"
         )
         return conversations
 
-    def _generate_attachment_conversations(self, pattern: AttachmentPattern) -> list[Conversation]:
+    def _generate_attachment_conversations(
+        self, pattern: AttachmentPattern
+    ) -> list[Conversation]:
         """Generate conversations for attachment pattern assessment."""
         messages = [
             Message(
                 role="therapist",
-                content=f"I'd like to explore your relationship patterns and attachment style. This relates to {pattern.name}.",
-                meta={"type": "introduction", "attachment_style": pattern.style.value},
+                content=(
+                    "I'd like to explore your relationship patterns and "
+                    f"attachment style. This relates to {pattern.name}."
+                ),
+                metadata={
+                    "type": "introduction",
+                    "attachment_style": pattern.style.value,
+                },
             )
         ]
 
@@ -977,7 +1046,7 @@ class PDM2Parser:
                 Message(
                     role="therapist",
                     content=f"How do you experience: {characteristic.lower()}?",
-                    meta={
+                    metadata={
                         "category": "attachment_characteristic",
                         "attachment_style": pattern.style.value,
                     },
@@ -991,20 +1060,23 @@ class PDM2Parser:
                     Message(
                         role="client",
                         content=f"I notice that I tend to {indicator.lower()}.",
-                        meta={"attachment_style": pattern.style.value, "example": True},
+                        metadata={
+                            "attachment_style": pattern.style.value,
+                            "example": True,
+                        },
                     )
                 )
 
         conversation = Conversation(
-            id=f"pdm2_attachment_{pattern.style.value}",
+            conversation_id=f"pdm2_attachment_{pattern.style.value}",
             messages=messages,
-            context={
-                "attachment_style": pattern.style.value,
-                "pattern_name": pattern.name,
-                "type": "attachment_assessment",
-            },
             source="pdm2_parser",
-            meta={
+            metadata={
+                "context": {
+                    "attachment_style": pattern.style.value,
+                    "pattern_name": pattern.name,
+                    "type": "attachment_assessment",
+                },
                 "characteristics_count": len(pattern.characteristics),
                 "behavioral_indicators_count": len(pattern.behavioral_indicators),
             },
@@ -1012,18 +1084,29 @@ class PDM2Parser:
 
         return [conversation]
 
-    def _generate_defense_conversations(self, mechanism: DefenseMechanism) -> list[Conversation]:
+    def _generate_defense_conversations(
+        self, mechanism: DefenseMechanism
+    ) -> list[Conversation]:
         """Generate conversations for defense mechanism exploration."""
         messages = [
             Message(
                 role="therapist",
-                content=f"Let's explore how you cope with difficult situations. This relates to {mechanism.name}.",
-                meta={"type": "introduction", "defense_mechanism": mechanism.name},
+                content=(
+                    "Let's explore how you cope with difficult situations. "
+                    f"This relates to {mechanism.name}."
+                ),
+                metadata={"type": "introduction", "defense_mechanism": mechanism.name},
             ),
             Message(
                 role="therapist",
-                content=f"When you're stressed, do you notice: {mechanism.description.lower()}?",
-                meta={"category": "defense_exploration", "level": mechanism.level.value},
+                content=(
+                    "When you're stressed, do you notice: "
+                    f"{mechanism.description.lower()}?"
+                ),
+                metadata={
+                    "category": "defense_exploration",
+                    "level": mechanism.level.value,
+                },
             ),
         ]
 
@@ -1034,31 +1117,39 @@ class PDM2Parser:
                 Message(
                     role="client",
                     content=f"Yes, I find myself {example.lower()}.",
-                    meta={"defense_mechanism": mechanism.name, "example": True},
+                    metadata={"defense_mechanism": mechanism.name, "example": True},
                 )
             )
 
         conversation = Conversation(
-            id=f"pdm2_defense_{mechanism.name.lower().replace(' ', '_')}",
+            conversation_id=f"pdm2_defense_{mechanism.name.lower().replace(' ', '_')}",
             messages=messages,
-            context={
-                "defense_mechanism": mechanism.name,
-                "level": mechanism.level.value,
-                "type": "defense_assessment",
-            },
             source="pdm2_parser",
-            meta={"function": mechanism.function, "examples_count": len(mechanism.examples)},
+            metadata={
+                "context": {
+                    "defense_mechanism": mechanism.name,
+                    "level": mechanism.level.value,
+                    "type": "defense_assessment",
+                },
+                "function": mechanism.function,
+                "examples_count": len(mechanism.examples),
+            },
         )
 
         return [conversation]
 
-    def _generate_pattern_conversations(self, pattern: PsychodynamicPattern) -> list[Conversation]:
+    def _generate_pattern_conversations(
+        self, pattern: PsychodynamicPattern
+    ) -> list[Conversation]:
         """Generate conversations for psychodynamic pattern exploration."""
         messages = [
             Message(
                 role="therapist",
-                content=f"I'd like to understand your inner world better. This relates to {pattern.name}.",
-                meta={"type": "introduction", "pattern": pattern.name},
+                content=(
+                    "I'd like to understand your inner world better. "
+                    f"This relates to {pattern.name}."
+                ),
+                metadata={"type": "introduction", "pattern": pattern.name},
             )
         ]
 
@@ -1068,20 +1159,26 @@ class PDM2Parser:
                 Message(
                     role="therapist",
                     content=f"Do you experience: {feature.lower()}?",
-                    meta={"category": "core_feature", "domain": pattern.domain.value},
+                    metadata={
+                        "category": "core_feature",
+                        "domain": pattern.domain.value,
+                    },
                 )
             )
 
         conversation = Conversation(
-            id=f"pdm2_pattern_{pattern.name.lower().replace(' ', '_').replace('-', '_')}",
+            conversation_id=(
+                "pdm2_pattern_"
+                + pattern.name.lower().replace(" ", "_").replace("-", "_")
+            ),
             messages=messages,
-            context={
-                "pattern_name": pattern.name,
-                "domain": pattern.domain.value,
-                "type": "psychodynamic_assessment",
-            },
             source="pdm2_parser",
-            meta={
+            metadata={
+                "context": {
+                    "pattern_name": pattern.name,
+                    "domain": pattern.domain.value,
+                    "type": "psychodynamic_assessment",
+                },
                 "core_features_count": len(pattern.core_features),
                 "unconscious_conflicts_count": len(pattern.unconscious_conflicts),
             },
@@ -1097,7 +1194,9 @@ class PDM2Parser:
         stats = {
             "total_attachment_patterns": len(self.knowledge_base.attachment_patterns),
             "total_defense_mechanisms": len(self.knowledge_base.defense_mechanisms),
-            "total_psychodynamic_patterns": len(self.knowledge_base.psychodynamic_patterns),
+            "total_psychodynamic_patterns": len(
+                self.knowledge_base.psychodynamic_patterns
+            ),
             "defense_mechanisms_by_level": {},
             "psychodynamic_patterns_by_domain": {},
             "attachment_styles": {},

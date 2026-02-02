@@ -6,12 +6,12 @@ Based on the expanded project brief's requirements for psychology books, sarcasm
 Big Five personality adaptation, and therapeutic approach customization.
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Union
-from enum import Enum
-from pathlib import Path
 import json
 import re
+from dataclasses import dataclass, field
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Union
 
 from ..utils.logger import get_logger
 
@@ -20,6 +20,7 @@ logger = get_logger("dataset_pipeline.sources.psych_personality")
 
 class TherapeuticApproach(Enum):
     """Therapeutic approaches for customization"""
+
     CBT = "cbt"  # Cognitive Behavioral Therapy
     DBT = "dbt"  # Dialectical Behavior Therapy
     HUMANISTIC = "humanistic"
@@ -31,6 +32,7 @@ class TherapeuticApproach(Enum):
 
 class CommunicationStyle(Enum):
     """Communication styles for adaptation"""
+
     DIRECT = "direct"
     SUPPORTIVE = "supportive"
     ANALYTICAL = "analytical"
@@ -39,6 +41,7 @@ class CommunicationStyle(Enum):
 
 class BigFiveTrait(Enum):
     """Big Five personality traits"""
+
     OPENNESS = "openness"
     CONSCIENTIOUSNESS = "conscientiousness"
     EXTRAVERSION = "extraversion"
@@ -49,6 +52,7 @@ class BigFiveTrait(Enum):
 @dataclass
 class PersonalityProfile:
     """Big Five personality profile"""
+
     openness: float = 0.5  # 0.0 to 1.0
     conscientiousness: float = 0.5
     extraversion: float = 0.5
@@ -80,6 +84,7 @@ class PersonalityProfile:
 @dataclass
 class SarcasmDetection:
     """Sarcasm detection result"""
+
     is_sarcastic: bool
     confidence: float  # 0.0 to 1.0
     indicators: List[str] = field(default_factory=list)
@@ -94,11 +99,26 @@ class PersonalityAdapter:
 
     # Mapping from personality traits to preferred therapeutic approaches
     TRAIT_TO_APPROACH = {
-        BigFiveTrait.OPENNESS: [TherapeuticApproach.ACT, TherapeuticApproach.HUMANISTIC],
-        BigFiveTrait.CONSCIENTIOUSNESS: [TherapeuticApproach.CBT, TherapeuticApproach.DBT],
-        BigFiveTrait.EXTRAVERSION: [TherapeuticApproach.HUMANISTIC, TherapeuticApproach.CBT],
-        BigFiveTrait.AGREEABLENESS: [TherapeuticApproach.HUMANISTIC, TherapeuticApproach.EMDR],
-        BigFiveTrait.NEUROTICISM: [TherapeuticApproach.DBT, TherapeuticApproach.MINDFULNESS],
+        BigFiveTrait.OPENNESS: [
+            TherapeuticApproach.ACT,
+            TherapeuticApproach.HUMANISTIC,
+        ],
+        BigFiveTrait.CONSCIENTIOUSNESS: [
+            TherapeuticApproach.CBT,
+            TherapeuticApproach.DBT,
+        ],
+        BigFiveTrait.EXTRAVERSION: [
+            TherapeuticApproach.HUMANISTIC,
+            TherapeuticApproach.CBT,
+        ],
+        BigFiveTrait.AGREEABLENESS: [
+            TherapeuticApproach.HUMANISTIC,
+            TherapeuticApproach.EMDR,
+        ],
+        BigFiveTrait.NEUROTICISM: [
+            TherapeuticApproach.DBT,
+            TherapeuticApproach.MINDFULNESS,
+        ],
     }
 
     # Mapping from personality traits to communication styles
@@ -110,7 +130,9 @@ class PersonalityAdapter:
         BigFiveTrait.NEUROTICISM: CommunicationStyle.SUPPORTIVE,
     }
 
-    def select_therapeutic_approach(self, profile: PersonalityProfile) -> TherapeuticApproach:
+    def select_therapeutic_approach(
+        self, profile: PersonalityProfile
+    ) -> TherapeuticApproach:
         """
         Select therapeutic approach based on personality profile.
 
@@ -121,10 +143,14 @@ class PersonalityAdapter:
             Recommended therapeutic approach
         """
         dominant_trait = profile.get_dominant_trait()
-        approaches = self.TRAIT_TO_APPROACH.get(dominant_trait, [TherapeuticApproach.CBT])
+        approaches = self.TRAIT_TO_APPROACH.get(
+            dominant_trait, [TherapeuticApproach.CBT]
+        )
         return approaches[0]  # Return first recommended approach
 
-    def select_communication_style(self, profile: PersonalityProfile) -> CommunicationStyle:
+    def select_communication_style(
+        self, profile: PersonalityProfile
+    ) -> CommunicationStyle:
         """
         Select communication style based on personality profile.
 
@@ -177,7 +203,9 @@ class SarcasmDetector:
             re.compile(pattern, re.IGNORECASE) for pattern in self.CONTEXT_CLUES
         ]
 
-    def detect_sarcasm(self, text: str, context: Optional[Dict[str, Any]] = None) -> SarcasmDetection:
+    def detect_sarcasm(
+        self, text: str, context: Optional[Dict[str, Any]] = None
+    ) -> SarcasmDetection:
         """
         Detect sarcasm in text.
 
@@ -222,7 +250,9 @@ class SarcasmDetector:
             if has_explicit:
                 reasoning = "Explicit sarcasm marker detected"
             elif sarcasm_matches:
-                reasoning = f"Sarcasm patterns detected: {', '.join(sarcasm_matches[:3])}"
+                reasoning = (
+                    f"Sarcasm patterns detected: {', '.join(sarcasm_matches[:3])}"
+                )
             else:
                 reasoning = "Context clues suggest sarcasm"
 
@@ -239,6 +269,8 @@ class PsychologyBookLoader:
     Loader for psychology textbook corpus (xmu_psych_books).
     Integrates with existing dataset loading infrastructure.
     """
+
+    dataset_path: Optional[Path]
 
     def __init__(self, dataset_path: Optional[Union[str, Path]] = None):
         """
@@ -292,7 +324,7 @@ class PsychologyBookLoader:
             jsonl_files = list(self.dataset_path.glob("*.jsonl"))
             if jsonl_files:
                 for jsonl_file in jsonl_files:
-                    with open(jsonl_file, 'r', encoding='utf-8') as f:
+                    with open(jsonl_file, "r", encoding="utf-8") as f:
                         for line in f:
                             try:
                                 entry = json.loads(line.strip())
@@ -304,7 +336,7 @@ class PsychologyBookLoader:
             json_files = list(self.dataset_path.glob("*.json"))
             if json_files and not entries:
                 for json_file in json_files:
-                    with open(json_file, 'r', encoding='utf-8') as f:
+                    with open(json_file, "r", encoding="utf-8") as f:
                         data = json.load(f)
                         if isinstance(data, list):
                             entries.extend(data)
@@ -341,7 +373,9 @@ class PsychPersonalityIntegrator:
         """
         self.psych_loader = PsychologyBookLoader(psychology_books_path)
         self.sarcasm_detector = SarcasmDetector() if enable_sarcasm_detection else None
-        self.personality_adapter = PersonalityAdapter() if enable_personality_adaptation else None
+        self.personality_adapter = (
+            PersonalityAdapter() if enable_personality_adaptation else None
+        )
 
     def generate_personality_aware_example(
         self,
@@ -370,7 +404,9 @@ class PsychPersonalityIntegrator:
         sarcasm_result = None
         if self.sarcasm_detector and detect_sarcasm:
             # Check all user messages for sarcasm
-            user_messages = [msg["content"] for msg in messages if msg.get("role") == "user"]
+            user_messages = [
+                msg["content"] for msg in messages if msg.get("role") == "user"
+            ]
             if user_messages:
                 combined_text = " ".join(user_messages)
                 sarcasm_result = self.sarcasm_detector.detect_sarcasm(combined_text)
@@ -388,7 +424,7 @@ class PsychPersonalityIntegrator:
             )
 
         # Build metadata
-        metadata = {
+        metadata: Dict[str, Any] = {
             "source": "psych_personality_integrator",
             "therapeutic_approach": therapeutic_approach.value,
             "communication_style": communication_style.value,
@@ -437,7 +473,10 @@ class PsychPersonalityIntegrator:
 
                 example = {
                     "conversation": [
-                        {"role": "user", "content": f"Explain {title} in a therapeutic context."},
+                        {
+                            "role": "user",
+                            "content": f"Explain {title} in a therapeutic context.",
+                        },
                         {"role": "assistant", "content": text},
                     ],
                     "metadata": {
@@ -454,7 +493,9 @@ class PsychPersonalityIntegrator:
 
 
 # Convenience functions
-def detect_sarcasm(text: str, context: Optional[Dict[str, Any]] = None) -> SarcasmDetection:
+def detect_sarcasm(
+    text: str, context: Optional[Dict[str, Any]] = None
+) -> SarcasmDetection:
     """Convenience function to detect sarcasm"""
     detector = SarcasmDetector()
     return detector.detect_sarcasm(text, context)
@@ -470,4 +511,3 @@ def select_communication_style(profile: PersonalityProfile) -> CommunicationStyl
     """Convenience function to select communication style"""
     adapter = PersonalityAdapter()
     return adapter.select_communication_style(profile)
-

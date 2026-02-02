@@ -7,7 +7,7 @@ import datetime
 import uuid
 from typing import Any
 
-from .conversation_schema import Conversation, Message
+from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
 
 
 def from_simple_message_list(
@@ -25,7 +25,10 @@ def from_simple_message_list(
             Message(
                 role=m["role"],
                 content=m["content"],
-                timestamp=m.get("timestamp", datetime.datetime.utcnow().isoformat()),
+                timestamp=m.get(
+                    "timestamp",
+                    datetime.datetime.now(datetime.timezone.utc).isoformat(),
+                ),
                 metadata=m.get("metadata", {}),
             )
         )
@@ -33,8 +36,8 @@ def from_simple_message_list(
         conversation_id=conversation_id or str(uuid.uuid4()),
         messages=msg_objs,
         source=source,
-        created_at=datetime.datetime.utcnow().isoformat(),
-        updated_at=datetime.datetime.utcnow().isoformat(),
+        created_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        updated_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
     )
 
 
@@ -53,20 +56,20 @@ def from_input_output_pair(
         Message(
             role=input_role,
             content=input_text,
-            timestamp=datetime.datetime.utcnow().isoformat(),
-            metadata={}
+            timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            metadata={},
         ),
         Message(
             role=output_role,
             content=output_text,
-            timestamp=datetime.datetime.utcnow().isoformat(),
-            metadata={}
+            timestamp=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+            metadata={},
         ),
     ]
     return Conversation(
         conversation_id=conversation_id or str(uuid.uuid4()),
         messages=msgs,
         source=source,
-        created_at=datetime.datetime.utcnow().isoformat(),
-        updated_at=datetime.datetime.utcnow().isoformat(),
+        created_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        updated_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
     )

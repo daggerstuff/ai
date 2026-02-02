@@ -86,7 +86,9 @@ class ModelArtifact:
     evaluation_score: float | None = None
     promotion_status: str | None = None  # training, staging, production, rejected
     training_duration_seconds: float | None = None  # How long training took
-    resource_usage: dict[str, Any] | None = None  # CPU, GPU, memory usage during training
+    resource_usage: dict[str, Any] | None = (
+        None  # CPU, GPU, memory usage during training
+    )
     git_repository_url: str | None = None  # URL of git repository
     git_commit_hash: str | None = None  # Commit hash of training code
     environment_variables: dict[str, str] | None = None  # Environment variables used
@@ -325,7 +327,9 @@ class ModelArtifactRegistry:
 
     def _save_registry(self):
         """Save model artifacts registry to file"""
-        data = {k: self._model_artifact_to_dict(v) for k, v in self.model_artifacts.items()}
+        data = {
+            k: self._model_artifact_to_dict(v) for k, v in self.model_artifacts.items()
+        }
         with open(self.registry_path, "w") as f:
             json.dump(data, f, indent=2)
 
@@ -430,7 +434,9 @@ class TraceabilityManager:
 
         # Create model artifact
         artifact_size = (
-            os.path.getsize(model_artifact_path) if os.path.exists(model_artifact_path) else None
+            os.path.getsize(model_artifact_path)
+            if os.path.exists(model_artifact_path)
+            else None
         )
         model_artifact = ModelArtifact(
             artifact_id=f"{model_id}_{model_version}",
@@ -463,7 +469,9 @@ class TraceabilityManager:
         """Get the complete lineage for a model artifact"""
         if (
             not (
-                model_artifact := self.model_artifact_registry.get_model_artifact(model_artifact_id)
+                model_artifact := self.model_artifact_registry.get_model_artifact(
+                    model_artifact_id
+                )
             )
             or not (
                 training_run := self.training_run_registry.get_training_run(
@@ -501,7 +509,9 @@ class TraceabilityManager:
             ):
                 continue
 
-            if not (dataset_version := self.dataset_registry.get_dataset_version(dataset_id)):
+            if not (
+                dataset_version := self.dataset_registry.get_dataset_version(dataset_id)
+            ):
                 continue
 
             records.append(
@@ -515,19 +525,27 @@ class TraceabilityManager:
 
         return records
 
-    def validate_lineage_integrity(self, record: TraceabilityRecord) -> tuple[bool, list[str]]:
+    def validate_lineage_integrity(
+        self, record: TraceabilityRecord
+    ) -> tuple[bool, list[str]]:
         """Validate that all links in a traceability record are valid"""
         errors = []
 
         # Check if dataset exists
-        dataset = self.dataset_registry.get_dataset_version(record.dataset_version.dataset_id)
+        dataset = self.dataset_registry.get_dataset_version(
+            record.dataset_version.dataset_id
+        )
         if not dataset:
-            errors.append(f"Dataset {record.dataset_version.dataset_id} not found in registry")
+            errors.append(
+                f"Dataset {record.dataset_version.dataset_id} not found in registry"
+            )
 
         # Check if training run exists
         run = self.training_run_registry.get_training_run(record.training_run.run_id)
         if not run:
-            errors.append(f"Training run {record.training_run.run_id} not found in registry")
+            errors.append(
+                f"Training run {record.training_run.run_id} not found in registry"
+            )
 
         # Check if model artifact exists
         artifact = self.model_artifact_registry.get_model_artifact(
@@ -551,7 +569,10 @@ class TraceabilityManager:
             errors.append("Training run doesn't reference correct dataset")
         if artifact and artifact.training_run_id != record.training_run.run_id:
             errors.append("Model artifact doesn't reference correct training run")
-        if artifact and artifact.dataset_version_id != record.dataset_version.dataset_id:
+        if (
+            artifact
+            and artifact.dataset_version_id != record.dataset_version.dataset_id
+        ):
             errors.append("Model artifact doesn't reference correct dataset")
 
         return not errors, errors
@@ -586,7 +607,9 @@ class TraceabilityManager:
             "torch_version": torch.__version__,
             "cuda_available": torch.cuda.is_available(),
             "cuda_version": torch.version.cuda if torch.cuda.is_available() else None,
-            "device_count": torch.cuda.device_count() if torch.cuda.is_available() else 0,
+            "device_count": torch.cuda.device_count()
+            if torch.cuda.is_available()
+            else 0,
         }
 
         # Add GPU information if available
@@ -607,7 +630,9 @@ class TraceabilityManager:
         """Generate a human-readable traceability report"""
         lineage = self.get_model_lineage(model_artifact_id)
         if not lineage:
-            return f"No traceability record found for model artifact: {model_artifact_id}"
+            return (
+                f"No traceability record found for model artifact: {model_artifact_id}"
+            )
 
         report = [
             f"=== Traceability Report for Model: {model_artifact_id} ===",
@@ -651,7 +676,10 @@ class TraceabilityManager:
         # Add hyperparameters
         if lineage.training_run.hyperparameters:
             report.extend(
-                [f"  {key}: {value}" for key, value in lineage.training_run.hyperparameters.items()]
+                [
+                    f"  {key}: {value}"
+                    for key, value in lineage.training_run.hyperparameters.items()
+                ]
             )
         else:
             report.append("  No hyperparameters recorded")
@@ -709,7 +737,9 @@ def create_traceability_manager() -> TraceabilityManager:
     training_run_registry = TrainingRunRegistry()
     model_artifact_registry = ModelArtifactRegistry()
 
-    return TraceabilityManager(dataset_registry, training_run_registry, model_artifact_registry)
+    return TraceabilityManager(
+        dataset_registry, training_run_registry, model_artifact_registry
+    )
 
 
 # Integration with training runner
@@ -722,9 +752,7 @@ def integrate_traceability_with_training(
 
     # Create traceability record after training
     model_id = manifest.model_name or "default_model"
-    model_version = (
-        f"v{manifest.manifest_version}.{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
-    )
+    model_version = f"v{manifest.manifest_version}.{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}"
 
     return traceability_manager.create_traceability_record(
         manifest=manifest,

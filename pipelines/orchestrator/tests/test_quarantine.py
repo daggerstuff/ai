@@ -7,7 +7,6 @@ reprocessing workflow. Uses pytest with mocks for MongoDB to avoid live DB.
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from ai.pipelines.orchestrator.quarantine import (
     QuarantineRecord,
     QuarantineStatus,
@@ -101,12 +100,16 @@ def test_quarantine_store_reprocess_success(mock_client, mocker):
 
     mocker.patch("ai.pipelines.orchestrator.quarantine.IngestRecord")
     mocker.patch("ai.pipelines.orchestrator.quarantine.datetime.utcnow")
-    mocker.patch("ai.pipelines.orchestrator.quarantine.validate_record", return_value=MagicMock())
+    mocker.patch(
+        "ai.pipelines.orchestrator.quarantine.validate_record", return_value=MagicMock()
+    )
 
     store = QuarantineStore("mock_uri")
     rec = store.reprocess_record("test_qid")
     assert rec is not None
-    assert mock_collection.replace_one.call_count == 2  # One for update, one for reprocess
+    assert (
+        mock_collection.replace_one.call_count == 2
+    )  # One for update, one for reprocess
 
 
 @patch("ai.pipelines.orchestrator.quarantine.MongoClient")
@@ -126,7 +129,10 @@ def test_quarantine_store_reprocess_fail(mock_client, mocker):
     mock_db.__getitem__.return_value = mock_collection
 
     mocker.patch("ai.pipelines.orchestrator.quarantine.IngestRecord")
-    mocker.patch("ai.pipelines.orchestrator.quarantine.validate_record", side_effect=ValueError("Invalid"))
+    mocker.patch(
+        "ai.pipelines.orchestrator.quarantine.validate_record",
+        side_effect=ValueError("Invalid"),
+    )
 
     store = QuarantineStore("mock_uri")
     rec = store.reprocess_record("test_qid")

@@ -4,30 +4,28 @@ Database models and persistence layer for Pixel Voice API.
 
 import uuid
 from datetime import datetime
-from typing import Optional, List, Dict, Any
-from enum import Enum
+from typing import Any, Dict, List, Optional
 
+import structlog
 from sqlalchemy import (
-    Column,
-    String,
-    Integer,
-    Float,
-    Boolean,
-    DateTime,
-    Text,
     JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
     ForeignKey,
     Index,
-    UniqueConstraint,
+    Integer,
+    String,
+    Text,
     create_engine,
 )
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session, relationship
 from sqlalchemy.dialects.postgresql import UUID
-import structlog
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import Session, relationship, sessionmaker
 
-from .models import JobStatus, PipelineStage
 from .auth import UserRole
+from .models import JobStatus
 
 logger = structlog.get_logger(__name__)
 
@@ -180,8 +178,12 @@ class DatabaseManager:
     """Database connection and session manager."""
 
     def __init__(self, database_url: str):
-        self.engine = create_engine(database_url, pool_pre_ping=True, pool_recycle=300, echo=False)
-        self.SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+        self.engine = create_engine(
+            database_url, pool_pre_ping=True, pool_recycle=300, echo=False
+        )
+        self.SessionLocal = sessionmaker(
+            autocommit=False, autoflush=False, bind=self.engine
+        )
 
     def create_tables(self):
         """Create all database tables."""
@@ -222,9 +224,15 @@ class UserRepository:
 
     def get_user_by_api_key(self, api_key: str) -> Optional[User]:
         """Get user by API key."""
-        return self.db.query(User).filter(User.api_key == api_key, User.is_active == True).first()
+        return (
+            self.db.query(User)
+            .filter(User.api_key == api_key, User.is_active == True)
+            .first()
+        )
 
-    def update_user(self, user_id: uuid.UUID, update_data: Dict[str, Any]) -> Optional[User]:
+    def update_user(
+        self, user_id: uuid.UUID, update_data: Dict[str, Any]
+    ) -> Optional[User]:
         """Update user."""
         user = self.get_user_by_id(user_id)
         if user:
@@ -258,7 +266,9 @@ class JobRepository:
         """Get job by ID."""
         return self.db.query(Job).filter(Job.id == job_id).first()
 
-    def update_job(self, job_id: uuid.UUID, update_data: Dict[str, Any]) -> Optional[Job]:
+    def update_job(
+        self, job_id: uuid.UUID, update_data: Dict[str, Any]
+    ) -> Optional[Job]:
         """Update job."""
         job = self.get_job_by_id(job_id)
         if job:
@@ -269,7 +279,11 @@ class JobRepository:
         return job
 
     def list_user_jobs(
-        self, user_id: uuid.UUID, status: Optional[str] = None, skip: int = 0, limit: int = 100
+        self,
+        user_id: uuid.UUID,
+        status: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 100,
     ) -> List[Job]:
         """List user jobs with optional status filter."""
         query = self.db.query(Job).filter(Job.user_id == user_id)
@@ -296,7 +310,11 @@ class UsageRepository:
         self.db = db
 
     def record_usage(
-        self, user_id: uuid.UUID, record_type: str, count: int = 1, metadata: Optional[Dict] = None
+        self,
+        user_id: uuid.UUID,
+        record_type: str,
+        count: int = 1,
+        metadata: Optional[Dict] = None,
     ):
         """Record usage."""
         usage = UsageRecord(
@@ -305,7 +323,9 @@ class UsageRepository:
         self.db.add(usage)
         self.db.commit()
 
-    def get_daily_usage(self, user_id: uuid.UUID, record_type: str, date: datetime) -> int:
+    def get_daily_usage(
+        self, user_id: uuid.UUID, record_type: str, date: datetime
+    ) -> int:
         """Get daily usage count."""
         start_of_day = date.replace(hour=0, minute=0, second=0, microsecond=0)
         end_of_day = start_of_day + timedelta(days=1)

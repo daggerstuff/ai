@@ -7,7 +7,7 @@ Now includes tier-aware balancing for Tier 1-6 dataset system.
 
 import random
 from collections import defaultdict
-from typing import Dict, List, Optional, Set
+from typing import Dict, List
 
 from ..schemas.conversation_schema import Conversation
 from ..systems.dataset_categorization_system import DatasetCategory
@@ -16,6 +16,7 @@ from ..systems.logger import get_logger
 # Optional tier balancer integration
 try:
     from ai.pipelines.orchestrator.composition.tier_balancer import TierBalancer
+
     TIER_BALANCER_AVAILABLE = True
 except ImportError:
     TIER_BALANCER_AVAILABLE = False
@@ -47,12 +48,14 @@ class BalancedSamplingStrategy:
             self.logger.info("BalancedSamplingStrategy initialized with tier balancing")
         else:
             self.tier_balancer = None
-            self.logger.info("BalancedSamplingStrategy initialized (tier balancing disabled)")
+            self.logger.info(
+                "BalancedSamplingStrategy initialized (tier balancing disabled)"
+            )
 
     def stratified_sample(
         self,
         categorized_conversations: Dict[DatasetCategory, List[Conversation]],
-        target_sizes: Dict[DatasetCategory, int]
+        target_sizes: Dict[DatasetCategory, int],
     ) -> List[Conversation]:
         """
         Perform stratified sampling to maintain category proportions.
@@ -72,18 +75,24 @@ class BalancedSamplingStrategy:
             if len(conversations) <= target_size:
                 # Use all available conversations
                 sampled_conversations.extend(conversations)
-                self.logger.debug(f"Category {category}: Using all {len(conversations)} conversations")
+                self.logger.debug(
+                    f"Category {category}: Using all {len(conversations)} conversations"
+                )
             else:
                 # Sample to reach target size
                 sampled = self._diversity_preserving_sample(conversations, target_size)
                 sampled_conversations.extend(sampled)
-                self.logger.debug(f"Category {category}: Sampled {len(sampled)} of {len(conversations)} conversations")
+                self.logger.debug(
+                    f"Category {category}: Sampled {len(sampled)} of {len(conversations)} conversations"
+                )
 
         # Shuffle to mix categories
         random.shuffle(sampled_conversations)
         return sampled_conversations
 
-    def _diversity_preserving_sample(self, conversations: List[Conversation], sample_size: int) -> List[Conversation]:
+    def _diversity_preserving_sample(
+        self, conversations: List[Conversation], sample_size: int
+    ) -> List[Conversation]:
         """
         Sample conversations while preserving diversity.
 
@@ -108,7 +117,7 @@ class BalancedSamplingStrategy:
         self,
         categorized_conversations: Dict[DatasetCategory, List[Conversation]],
         target_percentages: Dict[DatasetCategory, float],
-        total_target_size: int
+        total_target_size: int,
     ) -> List[Conversation]:
         """
         Perform adaptive sampling based on current distribution and target percentages.
@@ -124,7 +133,9 @@ class BalancedSamplingStrategy:
             List of adaptively sampled conversations
         """
         # Calculate current distribution
-        current_counts = {cat: len(convs) for cat, convs in categorized_conversations.items()}
+        current_counts = {
+            cat: len(convs) for cat, convs in categorized_conversations.items()
+        }
         total_current = sum(current_counts.values())
 
         if total_current == 0:
@@ -157,7 +168,7 @@ class BalancedSamplingStrategy:
         self,
         conversations: List[Conversation],
         sample_size: int,
-        diversity_metric: str = "role_distribution"
+        diversity_metric: str = "role_distribution",
     ) -> List[Conversation]:
         """
         Sample conversations to maximize topic/diversity coverage.
@@ -216,7 +227,9 @@ class BalancedSamplingStrategy:
             remaining_needed = sample_size - len(sampled)
             available = [c for c in conversations if c not in sampled]
             if available:
-                additional = random.sample(available, min(remaining_needed, len(available)))
+                additional = random.sample(
+                    available, min(remaining_needed, len(available))
+                )
                 sampled.extend(additional)
 
         # If we have too many, trim randomly

@@ -5,39 +5,43 @@ This module processes YouTube transcripts from expert creators and creates a
 Retrieval-Augmented Generation (RAG) system for dynamic transcript retrieval.
 """
 
-import os
-import json
 import hashlib
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
+import json
+import logging
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
-import logging
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Centralized output root for runtime artifacts
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
 
 # Handle optional dependencies gracefully
 try:
-    from sentence_transformers import SentenceTransformer
     import numpy as np
+    from sentence_transformers import SentenceTransformer
     from sklearn.metrics.pairwise import cosine_similarity
+
     HAS_TRANSFORMERS = True
 except ImportError:
     SentenceTransformer = object  # Dummy class for type hints
     np = None
     cosine_similarity = None
     HAS_TRANSFORMERS = False
-    logging.warning("sentence-transformers not installed. RAG search functionality will be limited.")
+    logging.warning(
+        "sentence-transformers not installed. RAG search functionality will be limited."
+    )
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class TranscriptMetadata:
     """Metadata for a YouTube transcript"""
+
     video_id: str
     title: str
     speaker: str
@@ -52,19 +56,23 @@ class TranscriptMetadata:
     key_quotes: List[str] = field(default_factory=list)
     summary: str = ""
 
+
 @dataclass
 class RAGIndexEntry:
     """Entry in the RAG index"""
+
     transcript_id: str
     content: str
     embedding: Optional[List[float]] = None
+
     metadata: TranscriptMetadata = None
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+
 
 class YouTubeRAGSystem:
     """YouTube Transcript Processing and RAG Integration System"""
 
-    def __init__(self, model_name: str = 'all-MiniLM-L6-v2'):
+    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
         self.transcripts_dir = Path("ai/training_data_consolidated/transcripts")
         self.index_dir = get_dataset_pipeline_output_root() / "rag_index"
         # Create the full directory path if it doesn't exist
@@ -82,13 +90,28 @@ class YouTubeRAGSystem:
         self.transcripts: Dict[str, TranscriptMetadata] = {}
         self.rag_index: List[RAGIndexEntry] = []
         self.therapeutic_topics = [
-            "complex trauma", "ptsd", "anxiety", "depression", "narcissism",
-            "codependency", "attachment", "emotional regulation", "dissociation",
-            "survival mechanisms", "therapeutic techniques", "recovery"
+            "complex trauma",
+            "ptsd",
+            "anxiety",
+            "depression",
+            "narcissism",
+            "codependency",
+            "attachment",
+            "emotional regulation",
+            "dissociation",
+            "survival mechanisms",
+            "therapeutic techniques",
+            "recovery",
         ]
         self.therapeutic_approaches = [
-            "cbt", "dbt", "emdr", "trauma-informed", "compassion-focused",
-            "mindfulness", "cognitive restructuring", "exposure therapy"
+            "cbt",
+            "dbt",
+            "emdr",
+            "trauma-informed",
+            "compassion-focused",
+            "mindfulness",
+            "cognitive restructuring",
+            "exposure therapy",
         ]
 
     def process_transcripts(self) -> Dict[str, TranscriptMetadata]:
@@ -115,10 +138,12 @@ class YouTubeRAGSystem:
         logger.info(f"Processed {len(self.transcripts)} transcripts")
         return self.transcripts
 
-    def _extract_transcript_metadata(self, transcript_file: Path) -> Optional[TranscriptMetadata]:
+    def _extract_transcript_metadata(
+        self, transcript_file: Path
+    ) -> Optional[TranscriptMetadata]:
         """Extract metadata from a transcript file"""
         try:
-            with open(transcript_file, 'r', encoding='utf-8') as f:
+            with open(transcript_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             # Extract basic metadata from header
@@ -162,21 +187,23 @@ class YouTubeRAGSystem:
                 therapeutic_approaches=approaches,
                 personality_markers=personality_markers,
                 key_quotes=key_quotes[:5],  # Limit to top 5 quotes
-                summary=summary
+                summary=summary,
             )
 
             return metadata
 
         except Exception as e:
-            logger.error(f"Error extracting metadata from {transcript_file.name}: {str(e)}")
+            logger.error(
+                f"Error extracting metadata from {transcript_file.name}: {str(e)}"
+            )
             return None
 
     def _extract_title(self, content: str) -> str:
         """Extract title from transcript content"""
-        lines = content.split('\n')
+        lines = content.split("\n")
         for line in lines:
-            if line.startswith('# ') and '|' in line:
-                return line[2:].split('|')[0].strip()
+            if line.startswith("# ") and "|" in line:
+                return line[2:].split("|")[0].strip()
         return "Unknown Title"
 
     def _extract_speaker(self, content: str) -> str:
@@ -188,21 +215,21 @@ class YouTubeRAGSystem:
 
     def _extract_duration(self, content: str) -> float:
         """Extract duration from transcript content"""
-        duration_match = re.search(r'**Duration:** ([\d.]+)', content)
+        duration_match = re.search(r"**Duration:** ([\d.]+)", content)
         if duration_match:
             return float(duration_match.group(1))
         return 0.0
 
     def _extract_language(self, content: str) -> str:
         """Extract language from transcript content"""
-        lang_match = re.search(r'**Language:** ([a-z]+)', content)
+        lang_match = re.search(r"**Language:** ([a-z]+)", content)
         if lang_match:
             return lang_match.group(1)
         return "en"
 
     def _extract_processed_date(self, content: str) -> str:
         """Extract processed date from transcript content"""
-        date_match = re.search(r'**Processed:** (.+)', content)
+        date_match = re.search(r"**Processed:** (.+)", content)
         if date_match:
             return date_match.group(1)
         return datetime.utcnow().isoformat()
@@ -210,11 +237,11 @@ class YouTubeRAGSystem:
     def _extract_transcript_content(self, content: str) -> str:
         """Extract actual transcript content"""
         # Find the transcript section
-        transcript_start = content.find('## Transcript')
+        transcript_start = content.find("## Transcript")
         if transcript_start == -1:
             return content
 
-        transcript_content = content[transcript_start + len('## Transcript'):].strip()
+        transcript_content = content[transcript_start + len("## Transcript") :].strip()
         return transcript_content
 
     def _extract_topics(self, content: str) -> List[str]:
@@ -245,22 +272,38 @@ class YouTubeRAGSystem:
             "tone": self._analyze_tone(content),
             "speaking_style": self._analyze_speaking_style(content),
             "emotional_patterns": self._analyze_emotional_patterns(content),
-            "communication_approach": self._analyze_communication_approach(content)
+            "communication_approach": self._analyze_communication_approach(content),
         }
         return markers
 
     def _analyze_tone(self, content: str) -> str:
         """Analyze the tone of the speaker"""
-        compassionate_words = ["love", "respect", "care", "understand", "empathy", "compassion"]
+        compassionate_words = [
+            "love",
+            "respect",
+            "care",
+            "understand",
+            "empathy",
+            "compassion",
+        ]
         authoritative_words = ["must", "should", "need", "require", "important"]
         educational_words = ["understand", "learn", "teach", "explain", "knowledge"]
 
         content_lower = content.lower()
-        compassionate_count = sum(1 for word in compassionate_words if word in content_lower)
-        authoritative_count = sum(1 for word in authoritative_words if word in content_lower)
-        educational_count = sum(1 for word in educational_words if word in content_lower)
+        compassionate_count = sum(
+            1 for word in compassionate_words if word in content_lower
+        )
+        authoritative_count = sum(
+            1 for word in authoritative_words if word in content_lower
+        )
+        educational_count = sum(
+            1 for word in educational_words if word in content_lower
+        )
 
-        if compassionate_count > authoritative_count and compassionate_count > educational_count:
+        if (
+            compassionate_count > authoritative_count
+            and compassionate_count > educational_count
+        ):
             return "compassionate"
         elif authoritative_count > educational_count:
             return "authoritative"
@@ -270,14 +313,22 @@ class YouTubeRAGSystem:
     def _analyze_speaking_style(self, content: str) -> str:
         """Analyze the speaking style"""
         # Look for storytelling patterns
-        story_indicators = ["so i", "let me tell you", "for example", "imagine", "picture this"]
+        story_indicators = [
+            "so i",
+            "let me tell you",
+            "for example",
+            "imagine",
+            "picture this",
+        ]
         content_lower = content.lower()
 
-        story_count = sum(1 for indicator in story_indicators if indicator in content_lower)
+        story_count = sum(
+            1 for indicator in story_indicators if indicator in content_lower
+        )
 
         if story_count > 3:
             return "storytelling"
-        elif len(re.findall(r'\n\s*\n', content)) > 10:  # Many paragraphs
+        elif len(re.findall(r"\n\s*\n", content)) > 10:  # Many paragraphs
             return "structured"
         else:
             return "conversational"
@@ -311,17 +362,25 @@ class YouTubeRAGSystem:
     def _extract_key_quotes(self, content: str) -> List[str]:
         """Extract key memorable quotes from the content"""
         # Look for sentences that seem like key insights
-        sentences = re.split(r'[.!?]+', content)
+        sentences = re.split(r"[.!?]+", content)
         key_quotes = []
 
         for sentence in sentences:
             sentence = sentence.strip()
             if len(sentence) > 50 and len(sentence) < 300:  # Reasonable quote length
                 # Look for insightful or impactful statements
-                if any(keyword in sentence.lower() for keyword in [
-                    "important to understand", "key", "realize", "understand",
-                    "the reality is", "bottom line", "what i want you to understand"
-                ]):
+                if any(
+                    keyword in sentence.lower()
+                    for keyword in [
+                        "important to understand",
+                        "key",
+                        "realize",
+                        "understand",
+                        "the reality is",
+                        "bottom line",
+                        "what i want you to understand",
+                    ]
+                ):
                     key_quotes.append(sentence)
 
         return key_quotes[:10]  # Limit to top 10
@@ -329,9 +388,13 @@ class YouTubeRAGSystem:
     def _generate_summary(self, content: str) -> str:
         """Generate a brief summary of the content"""
         # Extract first few meaningful sentences
-        sentences = re.split(r'[.!?]+', content)
+        sentences = re.split(r"[.!?]+", content)
         meaningful_sentences = [s.strip() for s in sentences if len(s.strip()) > 20][:3]
-        return " ".join(meaningful_sentences)[:200] + "..." if len(" ".join(meaningful_sentences)) > 200 else " ".join(meaningful_sentences)
+        return (
+            " ".join(meaningful_sentences)[:200] + "..."
+            if len(" ".join(meaningful_sentences)) > 200
+            else " ".join(meaningful_sentences)
+        )
 
     def build_rag_index(self) -> List[RAGIndexEntry]:
         """Build RAG index from processed transcripts"""
@@ -347,7 +410,7 @@ class YouTubeRAGSystem:
             transcript_file = self.transcripts_dir / f"{video_id}.md"
             if transcript_file.exists():
                 try:
-                    with open(transcript_file, 'r', encoding='utf-8') as f:
+                    with open(transcript_file, "r", encoding="utf-8") as f:
                         content = f.read()
 
                     transcript_content = self._extract_transcript_content(content)
@@ -364,13 +427,15 @@ class YouTubeRAGSystem:
                             try:
                                 embedding = self.encoder.encode(chunk).tolist()
                             except Exception as e:
-                                logger.warning(f"Failed to generate embedding for {entry_id}: {str(e)}")
+                                logger.warning(
+                                    f"Failed to generate embedding for {entry_id}: {str(e)}"
+                                )
 
                         entry = RAGIndexEntry(
                             transcript_id=entry_id,
                             content=chunk,
                             embedding=embedding,
-                            metadata=metadata
+                            metadata=metadata,
                         )
 
                         self.rag_index.append(entry)
@@ -385,7 +450,7 @@ class YouTubeRAGSystem:
     def _chunk_content(self, content: str, max_chunk_size: int = 500) -> List[str]:
         """Split content into chunks for better retrieval"""
         # Split by paragraphs first
-        paragraphs = content.split('\n\n')
+        paragraphs = content.split("\n\n")
         chunks = []
 
         current_chunk = ""
@@ -399,7 +464,7 @@ class YouTubeRAGSystem:
                     current_chunk = paragraph + "\n\n"
                 else:
                     # Split long paragraph
-                    sentences = re.split(r'(?<=[.!?])\s+', paragraph)
+                    sentences = re.split(r"(?<=[.!?])\s+", paragraph)
                     temp_chunk = ""
                     for sentence in sentences:
                         if len(temp_chunk) + len(sentence) <= max_chunk_size:
@@ -442,7 +507,9 @@ class YouTubeRAGSystem:
         for entry in self.rag_index:
             if entry.embedding:
                 try:
-                    similarity = cosine_similarity(query_embedding, np.array(entry.embedding).reshape(1, -1))[0][0]
+                    similarity = cosine_similarity(
+                        query_embedding, np.array(entry.embedding).reshape(1, -1)
+                    )[0][0]
                     similarities.append((entry, similarity))
                 except Exception as e:
                     logger.warning(f"Error calculating similarity: {str(e)}")
@@ -461,9 +528,9 @@ class YouTubeRAGSystem:
                     "speaker": entry.metadata.speaker,
                     "topics": entry.metadata.topics,
                     "therapeutic_approaches": entry.metadata.therapeutic_approaches,
-                    "summary": entry.metadata.summary
+                    "summary": entry.metadata.summary,
                 },
-                "transcript_id": entry.transcript_id
+                "transcript_id": entry.transcript_id,
             }
             results.append(result)
 
@@ -495,9 +562,9 @@ class YouTubeRAGSystem:
                     "speaker": entry.metadata.speaker,
                     "topics": entry.metadata.topics,
                     "therapeutic_approaches": entry.metadata.therapeutic_approaches,
-                    "summary": entry.metadata.summary
+                    "summary": entry.metadata.summary,
                 },
-                "transcript_id": entry.transcript_id
+                "transcript_id": entry.transcript_id,
             }
             formatted_results.append(result)
 
@@ -515,23 +582,30 @@ class YouTubeRAGSystem:
         relevant_entries = []
 
         for entry in self.rag_index:
-            if (topic_lower in entry.content.lower() or
-                any(topic_lower in t.lower() for t in entry.metadata.topics)):
+            if topic_lower in entry.content.lower() or any(
+                topic_lower in t.lower() for t in entry.metadata.topics
+            ):
                 relevant_entries.append(entry)
 
         # Select diverse examples
-        selected_entries = relevant_entries[:count] if len(relevant_entries) >= count else relevant_entries
+        selected_entries = (
+            relevant_entries[:count]
+            if len(relevant_entries) >= count
+            else relevant_entries
+        )
 
         for entry in selected_entries:
             example = {
                 "input": f"Client is struggling with {topic}",
-                "output": entry.content[:300] + "..." if len(entry.content) > 300 else entry.content,
+                "output": entry.content[:300] + "..."
+                if len(entry.content) > 300
+                else entry.content,
                 "context": {
                     "speaker": entry.metadata.speaker,
                     "title": entry.metadata.title,
                     "therapeutic_approaches": entry.metadata.therapeutic_approaches,
-                    "key_insights": entry.metadata.key_quotes[:2]
-                }
+                    "key_insights": entry.metadata.key_quotes[:2],
+                },
             }
             examples.append(example)
 
@@ -561,13 +635,13 @@ class YouTubeRAGSystem:
                     "therapeutic_approaches": entry.metadata.therapeutic_approaches,
                     "personality_markers": entry.metadata.personality_markers,
                     "key_quotes": entry.metadata.key_quotes,
-                    "summary": entry.metadata.summary
+                    "summary": entry.metadata.summary,
                 },
-                "timestamp": entry.timestamp
+                "timestamp": entry.timestamp,
             }
             serializable_index.append(serializable_entry)
 
-        with open(index_file, 'w', encoding='utf-8') as f:
+        with open(index_file, "w", encoding="utf-8") as f:
             json.dump(serializable_index, f, indent=2, ensure_ascii=False)
 
         logger.info(f"Saved RAG index to {index_file}")
@@ -581,7 +655,7 @@ class YouTubeRAGSystem:
             return
 
         try:
-            with open(index_file, 'r', encoding='utf-8') as f:
+            with open(index_file, "r", encoding="utf-8") as f:
                 serializable_index = json.load(f)
 
             self.rag_index = []
@@ -596,10 +670,12 @@ class YouTubeRAGSystem:
                     content_hash=entry_data["metadata"]["content_hash"],
                     word_count=entry_data["metadata"]["word_count"],
                     topics=entry_data["metadata"]["topics"],
-                    therapeutic_approaches=entry_data["metadata"]["therapeutic_approaches"],
+                    therapeutic_approaches=entry_data["metadata"][
+                        "therapeutic_approaches"
+                    ],
                     personality_markers=entry_data["metadata"]["personality_markers"],
                     key_quotes=entry_data["metadata"]["key_quotes"],
-                    summary=entry_data["metadata"]["summary"]
+                    summary=entry_data["metadata"]["summary"],
                 )
 
                 entry = RAGIndexEntry(
@@ -607,7 +683,7 @@ class YouTubeRAGSystem:
                     content=entry_data["content"],
                     embedding=entry_data["embedding"],
                     metadata=metadata,
-                    timestamp=entry_data["timestamp"]
+                    timestamp=entry_data["timestamp"],
                 )
 
                 self.rag_index.append(entry)
@@ -641,17 +717,21 @@ class YouTubeRAGSystem:
             "speakers": list(speakers),
             "total_duration_hours": round(total_duration / 3600, 2),
             "total_words": total_words,
-            "average_words_per_transcript": round(total_words / len(self.transcripts)) if self.transcripts else 0,
+            "average_words_per_transcript": round(total_words / len(self.transcripts))
+            if self.transcripts
+            else 0,
             "topics_distribution": topics_count,
             "approaches_distribution": approaches_count,
-            "indexed_chunks": len(self.rag_index)
+            "indexed_chunks": len(self.rag_index),
         }
+
 
 # Convenience functions
 def create_youtube_rag_system() -> YouTubeRAGSystem:
     """Create and initialize YouTube RAG system"""
     system = YouTubeRAGSystem()
     return system
+
 
 def process_all_transcripts() -> YouTubeRAGSystem:
     """Process all transcripts and build RAG index"""
@@ -661,17 +741,20 @@ def process_all_transcripts() -> YouTubeRAGSystem:
     system.save_index()
     return system
 
+
 def search_therapeutic_content(query: str, top_k: int = 5) -> List[Dict[str, Any]]:
     """Search therapeutic content from YouTube transcripts"""
     system = create_youtube_rag_system()
     system.load_index()
     return system.search_transcripts(query, top_k)
 
+
 def get_few_shot_examples(topic: str, count: int = 3) -> List[Dict[str, Any]]:
     """Get few-shot examples for therapeutic scenarios"""
     system = create_youtube_rag_system()
     system.load_index()
     return system.get_few_shot_examples(topic, count)
+
 
 if __name__ == "__main__":
     # Example usage
@@ -681,7 +764,7 @@ if __name__ == "__main__":
 
         # Show statistics
         stats = system.get_transcript_statistics()
-        print(f"\nTranscript Statistics:")
+        print("\nTranscript Statistics:")
         print(f"  Total transcripts: {stats['total_transcripts']}")
         print(f"  Total duration: {stats['total_duration_hours']} hours")
         print(f"  Total words: {stats['total_words']:,}")
@@ -689,10 +772,12 @@ if __name__ == "__main__":
         print(f"  Speakers: {', '.join(stats['speakers'])}")
 
         # Example search
-        print(f"\nExample search for 'complex trauma':")
+        print("\nExample search for 'complex trauma':")
         results = system.search_transcripts("complex trauma", top_k=2)
         for i, result in enumerate(results, 1):
-            print(f"  {i}. {result['metadata']['title']} (similarity: {result['similarity']:.3f})")
+            print(
+                f"  {i}. {result['metadata']['title']} (similarity: {result['similarity']:.3f})"
+            )
             print(f"     Content preview: {result['content'][:100]}...")
             print()
 

@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from conversation_schema import Conversation, Message
+
 from logger import setup_logger
 from personality_extractor import PersonalityExtractor
 from voice_transcriber import TranscriptionResult, TranscriptionSegment
@@ -258,7 +259,9 @@ class VoiceConversationConverter:
 
         # Response patterns
         response_starters = ["yes", "no", "well", "actually", "i think", "i believe"]
-        return bool(any(current_text.startswith(starter) for starter in response_starters))
+        return bool(
+            any(current_text.startswith(starter) for starter in response_starters)
+        )
 
     def _segments_to_messages(
         self,
@@ -362,9 +365,13 @@ class VoiceConversationConverter:
                         "what would you like",
                     ]
 
-                    if any(
-                        indicator in group_text for indicator in therapist_indicators
-                    ) or group_text.count("?") > 0:
+                    if (
+                        any(
+                            indicator in group_text
+                            for indicator in therapist_indicators
+                        )
+                        or group_text.count("?") > 0
+                    ):
                         roles[i] = "therapist"
                     else:
                         roles[i] = "client"
@@ -471,7 +478,7 @@ class VoiceConversationConverter:
 
         for i, transcription in enumerate(transcription_results):
             self.logger.info(
-                f"Converting {i+1}/{len(transcription_results)}: {transcription.file_path}"
+                f"Converting {i + 1}/{len(transcription_results)}: {transcription.file_path}"
             )
 
             try:
@@ -481,7 +488,9 @@ class VoiceConversationConverter:
                 # Save conversation if output directory specified and conversion successful
                 if output_dir and result.success and result.conversation:
                     self._save_conversation(
-                        result.conversation, result.metadata, output_dir
+                        result.conversation,
+                        result.metadata,
+                        output_dir,
                     )
 
             except Exception as e:
@@ -573,10 +582,12 @@ class VoiceConversationConverter:
                 successful_results
             )
             avg_messages = sum(
-                len(r.conversation.messages) for r in successful_results
+                len(r.conversation.messages)
+                for r in successful_results
             ) / len(successful_results)
             avg_speakers = sum(
-                r.metadata.speaker_count for r in successful_results
+                r.metadata.speaker_count
+                for r in successful_results
             ) / len(successful_results)
 
             report.append(f"Average Quality Score: {avg_quality:.2f}")
@@ -584,7 +595,7 @@ class VoiceConversationConverter:
             report.append(f"Average Speakers per Conversation: {avg_speakers:.1f}")
 
         report.append(
-            f"Success Rate: {(len(successful_results)/len(results)*100):.1f}%"
+            f"Success Rate: {(len(successful_results) / len(results) * 100):.1f}%"
         )
         report.append("")
 

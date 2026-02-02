@@ -29,10 +29,7 @@ class TestTypeHintAuditor:
         assert auditor.severity_weights["critical"] == 1.0
 
         # Custom configuration
-        custom_config = {
-            "min_coverage": 0.8,
-            "strict_mode": True
-        }
+        custom_config = {"min_coverage": 0.8, "strict_mode": True}
         auditor = TypeHintAuditor(custom_config)
         assert auditor.config["min_coverage"] == 0.8
         assert auditor.config["strict_mode"]
@@ -72,7 +69,7 @@ def process_data(data: List[Dict[str, str]]) -> Optional[str]:
             stats = self.auditor._audit_file(temp_file)
 
             assert stats["functions"] == 2  # good_function and process_data
-            assert stats["methods"] == 2    # __init__ and good_method
+            assert stats["methods"] == 2  # __init__ and good_method
             assert stats["typed_functions"] == 2
             assert stats["typed_methods"] == 2
 
@@ -106,16 +103,21 @@ def another_function():
             stats = self.auditor._audit_file(temp_file)
 
             assert stats["functions"] == 2  # bad_function and another_function
-            assert stats["methods"] == 2    # __init__ and bad_method
+            assert stats["methods"] == 2  # __init__ and bad_method
             assert stats["typed_functions"] == 0
-            assert stats["typed_methods"] == 1  # __init__ is considered typed (skip return hint)
+            assert (
+                stats["typed_methods"] == 1
+            )  # __init__ is considered typed (skip return hint)
 
             # Should have issues for missing type hints
             missing_hint_issues = [
-                issue for issue in self.auditor.issues
+                issue
+                for issue in self.auditor.issues
                 if issue.issue_type == "missing_type_hints"
             ]
-            assert len(missing_hint_issues) == 3  # bad_method, bad_function, another_function
+            assert (
+                len(missing_hint_issues) == 3
+            )  # bad_method, bad_function, another_function
             # __init__ is skipped for return type hints but still needs param hints
 
         finally:
@@ -250,7 +252,7 @@ def __init__(self, x: int):
 
         # Partial coverage
         score = self.auditor._calculate_coverage_score(8, 10, 3, 5)
-        assert score == 11/15  # (8+3)/(10+5)
+        assert score == 11 / 15  # (8+3)/(10+5)
 
         # No items
         score = self.auditor._calculate_coverage_score(0, 0, 0, 0)
@@ -265,8 +267,12 @@ def __init__(self, x: int):
 
         # Some issues
         self.auditor.issues = [
-            TypeHintIssue("file1.py", 1, "missing_type_hints", "high", "desc", "sugg", "func1"),
-            TypeHintIssue("file2.py", 2, "missing_import", "medium", "desc", "sugg", "func2")
+            TypeHintIssue(
+                "file1.py", 1, "missing_type_hints", "high", "desc", "sugg", "func1"
+            ),
+            TypeHintIssue(
+                "file2.py", 2, "missing_import", "medium", "desc", "sugg", "func2"
+            ),
         ]
         score = self.auditor._calculate_quality_score()
         assert 0.0 <= score < 1.0
@@ -275,8 +281,24 @@ def __init__(self, x: int):
         """Test report generation."""
         # Create a sample report
         issues = [
-            TypeHintIssue("file1.py", 1, "missing_type_hints", "high", "Missing type hints", "Add type hints", "func1"),
-            TypeHintIssue("file2.py", 5, "missing_import", "medium", "Missing import", "Add import", "func2")
+            TypeHintIssue(
+                "file1.py",
+                1,
+                "missing_type_hints",
+                "high",
+                "Missing type hints",
+                "Add type hints",
+                "func1",
+            ),
+            TypeHintIssue(
+                "file2.py",
+                5,
+                "missing_import",
+                "medium",
+                "Missing import",
+                "Add import",
+                "func2",
+            ),
         ]
 
         report = TypeHintAuditReport(
@@ -288,7 +310,7 @@ def __init__(self, x: int):
             issues=issues,
             coverage_score=0.625,  # (3+2)/(5+3)
             quality_score=0.75,
-            import_suggestions={"from .typing import List", "from .typing import Dict"}
+            import_suggestions={"from .typing import List", "from .typing import Dict"},
         )
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
@@ -321,7 +343,7 @@ def __init__(self, x: int):
             severity="high",
             description="Function missing type hints",
             suggestion="Add type hints",
-            function_name="test_function"
+            function_name="test_function",
         )
 
         assert issue.file_path == "test.py"
@@ -335,7 +357,9 @@ def __init__(self, x: int):
     def test_type_hint_audit_report_structure(self):
         """Test TypeHintAuditReport dataclass structure."""
         issues = [
-            TypeHintIssue("file1.py", 1, "missing_type_hints", "high", "desc", "sugg", "func1")
+            TypeHintIssue(
+                "file1.py", 1, "missing_type_hints", "high", "desc", "sugg", "func1"
+            )
         ]
 
         import_suggestions = {"from .typing import List"}
@@ -349,7 +373,7 @@ def __init__(self, x: int):
             issues=issues,
             coverage_score=0.857,  # (18+12)/(20+15)
             quality_score=0.92,
-            import_suggestions=import_suggestions
+            import_suggestions=import_suggestions,
         )
 
         assert report.total_files == 5
@@ -390,7 +414,10 @@ def function(x, y):
 
             assert "from .typing import Any" in stub_content
             assert "class TestClass:" in stub_content
-            assert "def method(self, *args: Any, **kwargs: Any) -> Any: ..." in stub_content
+            assert (
+                "def method(self, *args: Any, **kwargs: Any) -> Any: ..."
+                in stub_content
+            )
             assert "def function(*args: Any, **kwargs: Any) -> Any: ..." in stub_content
 
         finally:
@@ -417,6 +444,7 @@ from .collections import defaultdict
 
 def test_main_function():
     """Test the main function runs without error."""
+
     from .type_hint_auditor import main
 
     # Should run without raising exceptions

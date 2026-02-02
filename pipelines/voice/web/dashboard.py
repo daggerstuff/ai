@@ -3,16 +3,16 @@ Web dashboard for Pixel Voice pipeline management.
 """
 
 from datetime import datetime, timedelta
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 
-from fastapi import FastAPI, Request, Depends, HTTPException, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
-from fastapi.staticfiles import StaticFiles
 import structlog
+from fastapi import Depends, FastAPI, Form, HTTPException, Request
+from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 
-from ..api.auth import get_current_user, User, auth_manager, UserRole
-from ..api.database import get_db, JobRepository, UsageRepository
+from ..api.auth import User, UserRole, auth_manager, get_current_user
+from ..api.database import JobRepository, UsageRepository, get_db
 from ..api.models import JobStatus, PipelineStage
 
 logger = structlog.get_logger(__name__)
@@ -29,7 +29,9 @@ def setup_dashboard(app: FastAPI):
 
     @app.get("/dashboard", response_class=HTMLResponse)
     async def dashboard_home(
-        request: Request, current_user: User = Depends(get_current_user), db=Depends(get_db)
+        request: Request,
+        current_user: User = Depends(get_current_user),
+        db=Depends(get_db),
     ):
         """Dashboard home page."""
         job_repo = JobRepository(db)
@@ -45,9 +47,15 @@ def setup_dashboard(app: FastAPI):
         # Get job statistics
         job_stats = {
             "total": len(recent_jobs),
-            "completed": len([j for j in recent_jobs if j.status == JobStatus.COMPLETED.value]),
-            "running": len([j for j in recent_jobs if j.status == JobStatus.RUNNING.value]),
-            "failed": len([j for j in recent_jobs if j.status == JobStatus.FAILED.value]),
+            "completed": len(
+                [j for j in recent_jobs if j.status == JobStatus.COMPLETED.value]
+            ),
+            "running": len(
+                [j for j in recent_jobs if j.status == JobStatus.RUNNING.value]
+            ),
+            "failed": len(
+                [j for j in recent_jobs if j.status == JobStatus.FAILED.value]
+            ),
         }
 
         return templates.TemplateResponse(
@@ -76,7 +84,9 @@ def setup_dashboard(app: FastAPI):
         limit = 20
         skip = (page - 1) * limit
 
-        jobs = job_repo.list_user_jobs(current_user.id, status=status, skip=skip, limit=limit)
+        jobs = job_repo.list_user_jobs(
+            current_user.id, status=status, skip=skip, limit=limit
+        )
 
         return templates.TemplateResponse(
             "dashboard/jobs.html",
@@ -106,7 +116,8 @@ def setup_dashboard(app: FastAPI):
             raise HTTPException(status_code=404, detail="Job not found")
 
         return templates.TemplateResponse(
-            "dashboard/job_detail.html", {"request": request, "user": current_user, "job": job}
+            "dashboard/job_detail.html",
+            {"request": request, "user": current_user, "job": job},
         )
 
     @app.get("/dashboard/create-job", response_class=HTMLResponse)
@@ -162,7 +173,9 @@ def setup_dashboard(app: FastAPI):
 
     @app.get("/dashboard/usage", response_class=HTMLResponse)
     async def dashboard_usage(
-        request: Request, current_user: User = Depends(get_current_user), db=Depends(get_db)
+        request: Request,
+        current_user: User = Depends(get_current_user),
+        db=Depends(get_db),
     ):
         """Usage statistics page."""
         usage_repo = UsageRepository(db)
@@ -173,7 +186,9 @@ def setup_dashboard(app: FastAPI):
             date = datetime.now() - timedelta(days=i)
             api_calls = usage_repo.get_daily_usage(current_user.id, "api_call", date)
             youtube_downloads = usage_repo.get_daily_usage(
-                current_user.id, "youtube_download", date
+                current_user.id,
+                "youtube_download",
+                date,
             )
 
             usage_data.append(
@@ -192,7 +207,9 @@ def setup_dashboard(app: FastAPI):
         )
 
     @app.get("/dashboard/settings", response_class=HTMLResponse)
-    async def dashboard_settings(request: Request, current_user: User = Depends(get_current_user)):
+    async def dashboard_settings(
+        request: Request, current_user: User = Depends(get_current_user)
+    ):
         """User settings page."""
         return templates.TemplateResponse(
             "dashboard/settings.html", {"request": request, "user": current_user}
@@ -219,7 +236,9 @@ def setup_dashboard(app: FastAPI):
             return RedirectResponse(url="/dashboard/settings", status_code=303)
 
         except Exception as e:
-            logger.error("Settings update failed", error=str(e), user_id=current_user.id)
+            logger.error(
+                "Settings update failed", error=str(e), user_id=current_user.id
+            )
             return templates.TemplateResponse(
                 "dashboard/settings.html",
                 {"request": request, "user": current_user, "error": str(e)},
@@ -227,7 +246,9 @@ def setup_dashboard(app: FastAPI):
 
     @app.get("/dashboard/admin", response_class=HTMLResponse)
     async def dashboard_admin(
-        request: Request, current_user: User = Depends(get_current_user), db=Depends(get_db)
+        request: Request,
+        current_user: User = Depends(get_current_user),
+        db=Depends(get_db),
     ):
         """Admin dashboard (admin users only)."""
         if current_user.role != UserRole.ADMIN:
@@ -254,7 +275,9 @@ def setup_dashboard(app: FastAPI):
         return templates.TemplateResponse("auth/login.html", {"request": request})
 
     @app.post("/login")
-    async def login(request: Request, email: str = Form(...), password: str = Form(...)):
+    async def login(
+        request: Request, email: str = Form(...), password: str = Form(...)
+    ):
         """Handle login."""
         try:
             # This would need to be implemented in auth_manager
@@ -299,7 +322,8 @@ def setup_dashboard(app: FastAPI):
         except Exception as e:
             logger.error("Registration failed", error=str(e), email=email)
             return templates.TemplateResponse(
-                "auth/register.html", {"request": request, "error": "Registration failed"}
+                "auth/register.html",
+                {"request": request, "error": "Registration failed"},
             )
 
     logger.info("Web dashboard setup completed")

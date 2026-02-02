@@ -8,6 +8,9 @@ import json
 import logging
 from typing import Any, List
 
+from api.config import config
+from api.models import JobStatus, PipelineStage
+from api.utils import data_manager, pipeline_executor
 from mcp.server import Server
 from mcp.server.models import InitializationOptions
 from mcp.server.stdio import stdio_server
@@ -16,10 +19,6 @@ from mcp.types import (
     TextContent,
     Tool,
 )
-
-from api.config import config
-from api.models import JobStatus, PipelineStage
-from api.utils import data_manager, pipeline_executor
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -66,7 +65,10 @@ async def handle_list_tools() -> List[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "job_name": {"type": "string", "description": "Name for the pipeline job"},
+                    "job_name": {
+                        "type": "string",
+                        "description": "Name for the pipeline job",
+                    },
                     "stages": {
                         "type": "array",
                         "items": {
@@ -75,7 +77,10 @@ async def handle_list_tools() -> List[Tool]:
                         },
                         "description": "List of pipeline stages to execute",
                     },
-                    "input_data": {"type": "object", "description": "Input data for the pipeline"},
+                    "input_data": {
+                        "type": "object",
+                        "description": "Input data for the pipeline",
+                    },
                     "config_overrides": {
                         "type": "object",
                         "description": "Configuration overrides",
@@ -90,7 +95,10 @@ async def handle_list_tools() -> List[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "job_id": {"type": "string", "description": "Job ID to check status for"}
+                    "job_id": {
+                        "type": "string",
+                        "description": "Job ID to check status for",
+                    }
                 },
                 "required": ["job_id"],
             },
@@ -114,7 +122,9 @@ async def handle_list_tools() -> List[Tool]:
             description="Cancel a running pipeline job",
             inputSchema={
                 "type": "object",
-                "properties": {"job_id": {"type": "string", "description": "Job ID to cancel"}},
+                "properties": {
+                    "job_id": {"type": "string", "description": "Job ID to cancel"}
+                },
                 "required": ["job_id"],
             },
         ),
@@ -168,7 +178,10 @@ async def handle_list_tools() -> List[Tool]:
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "youtube_url": {"type": "string", "description": "YouTube URL to transcribe"},
+                    "youtube_url": {
+                        "type": "string",
+                        "description": "YouTube URL to transcribe",
+                    },
                     "language": {
                         "type": "string",
                         "default": "en",
@@ -264,7 +277,9 @@ async def handle_call_tool(name: str, arguments: dict[str, Any]) -> CallToolResu
 
         elif name == "list_jobs":
             status_filter = (
-                JobStatus(arguments["status_filter"]) if arguments.get("status_filter") else None
+                JobStatus(arguments["status_filter"])
+                if arguments.get("status_filter")
+                else None
             )
             jobs = pipeline_executor.list_jobs(status_filter=status_filter)
 
@@ -274,18 +289,29 @@ async def handle_call_tool(name: str, arguments: dict[str, Any]) -> CallToolResu
                 )
             else:
                 job_list = "\n".join(
-                    [f"- {job.job_id}: {job.job_name} ({job.status.value})" for job in jobs]
+                    [
+                        f"- {job.job_id}: {job.job_name} ({job.status.value})"
+                        for job in jobs
+                    ]
                 )
                 result_obj = CallToolResult(
-                    content=[TextContent(type="text", text=f"Found {len(jobs)} jobs:\n{job_list}")]
+                    content=[
+                        TextContent(
+                            type="text", text=f"Found {len(jobs)} jobs:\n{job_list}"
+                        )
+                    ]
                 )
 
         elif name == "cancel_job":
             success = pipeline_executor.cancel_job(arguments["job_id"])
             message = (
-                "Job cancelled successfully" if success else "Job not found or not cancellable"
+                "Job cancelled successfully"
+                if success
+                else "Job not found or not cancellable"
             )
-            result_obj = CallToolResult(content=[TextContent(type="text", text=message)])
+            result_obj = CallToolResult(
+                content=[TextContent(type="text", text=message)]
+            )
 
         elif name == "get_latest_data":
             data_type = arguments["data_type"]
@@ -303,7 +329,9 @@ async def handle_call_tool(name: str, arguments: dict[str, Any]) -> CallToolResu
 
             if not latest_file:
                 result_obj = CallToolResult(
-                    content=[TextContent(type="text", text=f"No {data_type} data found")]
+                    content=[
+                        TextContent(type="text", text=f"No {data_type} data found")
+                    ]
                 )
             else:
                 data = data_manager.load_json_data(latest_file)
@@ -324,7 +352,9 @@ async def handle_call_tool(name: str, arguments: dict[str, Any]) -> CallToolResu
 
     except Exception as e:
         logger.error(f"Tool execution failed: {e}")
-        result_obj = CallToolResult(content=[TextContent(type="text", text=f"Error: {str(e)}")])
+        result_obj = CallToolResult(
+            content=[TextContent(type="text", text=f"Error: {str(e)}")]
+        )
 
     return result_obj
 

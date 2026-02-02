@@ -42,11 +42,17 @@ class IntegrationConfig:
     validation_enabled: bool = True
 
     # Component-specific configs
+
     journaling_config: Dict = None
+
     voice_config: Dict = None
+
     edge_case_config: Dict = None
+
     dual_persona_config: Dict = None
+
     bias_detection_config: Dict = None
+
     psychology_kb_config: Dict = None
 
 

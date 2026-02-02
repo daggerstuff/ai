@@ -16,6 +16,7 @@ from standardizer import from_input_output_pair, from_simple_message_list
 
 class FormatType(Enum):
     """Enumeration of supported format types."""
+
     SIMPLE_MESSAGES = "simple_messages"
     INPUT_OUTPUT = "input_output"
     HUGGINGFACE_CHAT = "huggingface_chat"
@@ -34,6 +35,7 @@ class FormatType(Enum):
 @dataclass
 class FormatDetectionResult:
     """Result of format detection analysis."""
+
     format_type: FormatType
     confidence: float
     indicators: list[str] = field(default_factory=list)
@@ -43,6 +45,7 @@ class FormatDetectionResult:
 @dataclass
 class ConversionRule:
     """Rule for converting specific format patterns."""
+
     name: str
     pattern: dict[str, Any]
     converter: Callable
@@ -73,9 +76,13 @@ class MultiFormatConverter:
         self._initialize_detectors()
         self._initialize_converters()
 
-        self.logger.info("MultiFormatConverter initialized with built-in format support")
+        self.logger.info(
+            "MultiFormatConverter initialized with built-in format support"
+        )
 
-    def detect_format(self, data: Any, context: dict[str, Any] | None = None) -> FormatDetectionResult:
+    def detect_format(
+        self, data: Any, context: dict[str, Any] | None = None
+    ) -> FormatDetectionResult:
         """
         Automatically detect the format of input data with confidence scoring.
 
@@ -93,12 +100,14 @@ class MultiFormatConverter:
             try:
                 confidence, indicators, metadata = detector(data, context)
                 if confidence > 0:
-                    detection_results.append(FormatDetectionResult(
-                        format_type=format_type,
-                        confidence=confidence,
-                        indicators=indicators,
-                        metadata=metadata
-                    ))
+                    detection_results.append(
+                        FormatDetectionResult(
+                            format_type=format_type,
+                            confidence=confidence,
+                            indicators=indicators,
+                            metadata=metadata,
+                        )
+                    )
             except Exception as e:
                 self.logger.debug(f"Detector {format_type} failed: {e}")
 
@@ -110,7 +119,7 @@ class MultiFormatConverter:
         return FormatDetectionResult(
             format_type=FormatType.UNKNOWN,
             confidence=0.0,
-            indicators=["No format patterns matched"]
+            indicators=["No format patterns matched"],
         )
 
     def convert_single(
@@ -118,7 +127,7 @@ class MultiFormatConverter:
         data: Any,
         format_hint: FormatType | None = None,
         source: str | None = None,
-        conversation_id: str | None = None
+        conversation_id: str | None = None,
     ) -> Conversation:
         """
         Convert a single data item to standard conversation format.
@@ -157,7 +166,7 @@ class MultiFormatConverter:
         data_items: list[Any],
         format_hint: FormatType | None = None,
         source: str | None = None,
-        validate_consistency: bool = True
+        validate_consistency: bool = True,
     ) -> list[Conversation]:
         """
         Convert a batch of data items with format consistency validation.
@@ -181,7 +190,7 @@ class MultiFormatConverter:
                     item,
                     format_hint=format_hint,
                     source=source,
-                    conversation_id=f"{source}_{i}" if source else None
+                    conversation_id=f"{source}_{i}" if source else None,
                 )
                 conversations.append(conversation)
 
@@ -205,7 +214,7 @@ class MultiFormatConverter:
         format_name: str,
         detector: Callable,
         converter: Callable,
-        description: str = ""
+        description: str = "",
     ) -> None:
         """
         Register a custom format converter.
@@ -217,7 +226,11 @@ class MultiFormatConverter:
             description: Optional description
         """
         # Register detector
-        custom_format = FormatType(format_name) if format_name not in [f.value for f in FormatType] else FormatType(format_name)
+        custom_format = (
+            FormatType(format_name)
+            if format_name not in [f.value for f in FormatType]
+            else FormatType(format_name)
+        )
         self.format_detectors[custom_format] = detector
 
         # Register converter
@@ -241,14 +254,16 @@ class MultiFormatConverter:
             FormatType.OASST: self._detect_oasst,
             FormatType.XML_CHAT: self._detect_xml_chat,
             FormatType.CSV_FORMAT: self._detect_csv_format,
-            FormatType.CUSTOM_JSON: self._detect_custom_json
+            FormatType.CUSTOM_JSON: self._detect_custom_json,
         }
 
     def _initialize_converters(self) -> None:
         """Initialize built-in converters."""
         # Converters are implemented as methods with naming convention _convert_{format_name}
 
-    def _detect_simple_messages(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_simple_messages(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect simple messages format."""
         indicators = []
         confidence = 0.0
@@ -261,14 +276,18 @@ class MultiFormatConverter:
                     indicators.append("Has role and content fields")
 
                     # Check for common roles
-                    roles = [item.get("role", "") for item in data if isinstance(item, dict)]
+                    roles = [
+                        item.get("role", "") for item in data if isinstance(item, dict)
+                    ]
                     if any(role in ["user", "assistant", "system"] for role in roles):
                         confidence = 0.95
                         indicators.append("Contains standard chat roles")
 
         return confidence, indicators, {}
 
-    def _detect_input_output(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_input_output(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect input/output format."""
         indicators = []
         confidence = 0.0
@@ -283,7 +302,9 @@ class MultiFormatConverter:
 
         return confidence, indicators, {}
 
-    def _detect_huggingface_chat(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_huggingface_chat(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect HuggingFace chat format."""
         indicators = []
         confidence = 0.0
@@ -300,7 +321,9 @@ class MultiFormatConverter:
 
         return confidence, indicators, {}
 
-    def _detect_openai_format(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_openai_format(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect OpenAI format."""
         indicators = []
         confidence = 0.0
@@ -315,7 +338,9 @@ class MultiFormatConverter:
 
         return confidence, indicators, {}
 
-    def _detect_sharegpt(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_sharegpt(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect ShareGPT format."""
         indicators = []
         confidence = 0.0
@@ -331,7 +356,9 @@ class MultiFormatConverter:
 
         return confidence, indicators, {}
 
-    def _detect_alpaca(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_alpaca(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect Alpaca format."""
         indicators = []
         confidence = 0.0
@@ -347,7 +374,9 @@ class MultiFormatConverter:
 
         return confidence, indicators, {}
 
-    def _detect_vicuna(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_vicuna(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect Vicuna format."""
         indicators = []
         confidence = 0.0
@@ -364,7 +393,9 @@ class MultiFormatConverter:
 
         return confidence, indicators, {}
 
-    def _detect_dolly(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_dolly(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect Dolly format."""
         indicators = []
         confidence = 0.0
@@ -373,14 +404,18 @@ class MultiFormatConverter:
             dolly_fields = ["instruction", "context", "response"]
             if all(field in data for field in dolly_fields):
                 confidence = 0.9
-                indicators.append("Has all Dolly fields (instruction, context, response)")
+                indicators.append(
+                    "Has all Dolly fields (instruction, context, response)"
+                )
             elif "instruction" in data and "response" in data:
                 confidence = 0.7
                 indicators.append("Has instruction and response fields")
 
         return confidence, indicators, {}
 
-    def _detect_oasst(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_oasst(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect OpenAssistant format."""
         indicators = []
         confidence = 0.0
@@ -395,7 +430,9 @@ class MultiFormatConverter:
 
         return confidence, indicators, {}
 
-    def _detect_xml_chat(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_xml_chat(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect XML chat format."""
         indicators = []
         confidence = 0.0
@@ -415,7 +452,9 @@ class MultiFormatConverter:
 
         return confidence, indicators, {}
 
-    def _detect_csv_format(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_csv_format(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect CSV format."""
         indicators = []
         confidence = 0.0
@@ -427,7 +466,14 @@ class MultiFormatConverter:
                 first_line = lines[0]
                 if "," in first_line:
                     headers = [h.strip().lower() for h in first_line.split(",")]
-                    chat_headers = ["user", "assistant", "input", "output", "question", "answer"]
+                    chat_headers = [
+                        "user",
+                        "assistant",
+                        "input",
+                        "output",
+                        "question",
+                        "answer",
+                    ]
 
                     if any(header in chat_headers for header in headers):
                         confidence = 0.8
@@ -435,7 +481,9 @@ class MultiFormatConverter:
 
         return confidence, indicators, {}
 
-    def _detect_custom_json(self, data: Any, context: dict | None = None) -> tuple[float, list[str], dict]:
+    def _detect_custom_json(
+        self, data: Any, context: dict | None = None
+    ) -> tuple[float, list[str], dict]:
         """Detect custom JSON format (fallback)."""
         indicators = []
         confidence = 0.0
@@ -455,7 +503,9 @@ class MultiFormatConverter:
 
     # Built-in format converters
 
-    def _convert_simple_messages(self, data: Any, source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_simple_messages(
+        self, data: Any, source: str | None = None, conversation_id: str | None = None
+    ) -> Conversation:
         """Convert simple messages format."""
         if isinstance(data, dict) and "messages" in data:
             messages = data["messages"]
@@ -466,34 +516,59 @@ class MultiFormatConverter:
 
         return from_simple_message_list(messages, conversation_id, source)
 
-    def _convert_input_output(self, data: dict[str, Any], source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_input_output(
+        self,
+        data: dict[str, Any],
+        source: str | None = None,
+        conversation_id: str | None = None,
+    ) -> Conversation:
         """Convert input/output format."""
         return from_input_output_pair(
             data["input"],
             data["output"],
             conversation_id=conversation_id,
-            source=source
+            source=source,
         )
 
-    def _convert_huggingface_chat(self, data: dict[str, Any], source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_huggingface_chat(
+        self,
+        data: dict[str, Any],
+        source: str | None = None,
+        conversation_id: str | None = None,
+    ) -> Conversation:
         """Convert HuggingFace chat format."""
         conversations = data.get("conversations", [])
         if conversations and isinstance(conversations[0], list):
             return from_simple_message_list(conversations[0], conversation_id, source)
         raise ValueError("Invalid HuggingFace chat format")
 
-    def _convert_openai_format(self, data: dict[str, Any], source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_openai_format(
+        self,
+        data: dict[str, Any],
+        source: str | None = None,
+        conversation_id: str | None = None,
+    ) -> Conversation:
         """Convert OpenAI format."""
         return from_simple_message_list([data], conversation_id, source)
 
-    def _convert_sharegpt(self, data: dict[str, Any], source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_sharegpt(
+        self,
+        data: dict[str, Any],
+        source: str | None = None,
+        conversation_id: str | None = None,
+    ) -> Conversation:
         """Convert ShareGPT format."""
         conversations = data.get("conversations", data.get("items", []))
         if conversations:
             return from_simple_message_list(conversations, conversation_id, source)
         raise ValueError("Invalid ShareGPT format")
 
-    def _convert_alpaca(self, data: dict[str, Any], source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_alpaca(
+        self,
+        data: dict[str, Any],
+        source: str | None = None,
+        conversation_id: str | None = None,
+    ) -> Conversation:
         """Convert Alpaca format."""
         instruction = data.get("instruction", "")
         input_text = data.get("input", "")
@@ -502,23 +577,32 @@ class MultiFormatConverter:
         # Combine instruction and input
         user_message = f"{instruction}\n{input_text}".strip()
 
-        return from_input_output_pair(user_message, output_text, conversation_id=conversation_id, source=source)
+        return from_input_output_pair(
+            user_message, output_text, conversation_id=conversation_id, source=source
+        )
 
-    def _convert_vicuna(self, data: dict[str, Any], source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_vicuna(
+        self,
+        data: dict[str, Any],
+        source: str | None = None,
+        conversation_id: str | None = None,
+    ) -> Conversation:
         """Convert Vicuna format."""
         conversations = data.get("conversations", [])
         messages = []
 
         for conv in conversations:
             role = "user" if conv.get("from") == "human" else "assistant"
-            messages.append({
-                "role": role,
-                "content": conv.get("value", "")
-            })
+            messages.append({"role": role, "content": conv.get("value", "")})
 
         return from_simple_message_list(messages, conversation_id, source)
 
-    def _convert_dolly(self, data: dict[str, Any], source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_dolly(
+        self,
+        data: dict[str, Any],
+        source: str | None = None,
+        conversation_id: str | None = None,
+    ) -> Conversation:
         """Convert Dolly format."""
         instruction = data.get("instruction", "")
         context = data.get("context", "")
@@ -527,9 +611,16 @@ class MultiFormatConverter:
         # Combine instruction and context
         user_message = f"{instruction}\n{context}".strip()
 
-        return from_input_output_pair(user_message, response, conversation_id=conversation_id, source=source)
+        return from_input_output_pair(
+            user_message, response, conversation_id=conversation_id, source=source
+        )
 
-    def _convert_oasst(self, data: dict[str, Any], source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_oasst(
+        self,
+        data: dict[str, Any],
+        source: str | None = None,
+        conversation_id: str | None = None,
+    ) -> Conversation:
         """Convert OpenAssistant format."""
         role = data.get("role", "user")
         text = data.get("text", "")
@@ -543,7 +634,9 @@ class MultiFormatConverter:
         message = {"role": role, "content": text}
         return from_simple_message_list([message], conversation_id, source)
 
-    def _convert_xml_chat(self, data: str, source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_xml_chat(
+        self, data: str, source: str | None = None, conversation_id: str | None = None
+    ) -> Conversation:
         """Convert XML chat format."""
         try:
             root = ET.fromstring(data)
@@ -558,7 +651,9 @@ class MultiFormatConverter:
         except ET.ParseError as e:
             raise ValueError(f"Invalid XML format: {e}")
 
-    def _convert_csv_format(self, data: str, source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_csv_format(
+        self, data: str, source: str | None = None, conversation_id: str | None = None
+    ) -> Conversation:
         """Convert CSV format."""
         lines = data.strip().split("\n")
         if len(lines) < 2:
@@ -579,9 +674,19 @@ class MultiFormatConverter:
                 elif header in ["assistant", "output", "answer", "response"]:
                     assistant_content = value
 
-        return from_input_output_pair(user_content, assistant_content, conversation_id=conversation_id, source=source)
+        return from_input_output_pair(
+            user_content,
+            assistant_content,
+            conversation_id=conversation_id,
+            source=source,
+        )
 
-    def _convert_custom_json(self, data: dict[str, Any], source: str | None = None, conversation_id: str | None = None) -> Conversation:
+    def _convert_custom_json(
+        self,
+        data: dict[str, Any],
+        source: str | None = None,
+        conversation_id: str | None = None,
+    ) -> Conversation:
         """Convert custom JSON format."""
         # Try to extract content from various possible fields
         content = ""
@@ -593,7 +698,9 @@ class MultiFormatConverter:
         if not content:
             raise ValueError("Unable to extract content from custom JSON format")
 
-        return from_input_output_pair("", content, conversation_id=conversation_id, source=source)
+        return from_input_output_pair(
+            "", content, conversation_id=conversation_id, source=source
+        )
 
     # Utility methods
 
@@ -604,5 +711,7 @@ class MultiFormatConverter:
             for fmt in detected_formats:
                 format_counts[fmt] = format_counts.get(fmt, 0) + 1
 
-            self.logger.warning(f"Inconsistent formats detected in batch: {format_counts}")
+            self.logger.warning(
+                f"Inconsistent formats detected in batch: {format_counts}"
+            )
             # Could raise an exception here if strict consistency is required

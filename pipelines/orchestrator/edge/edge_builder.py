@@ -5,21 +5,20 @@ Builds structured edge datasets from raw/synthetic inputs with EdgeProfile metad
 Aligned with nightmare categories and intensity levels from the expanded project brief.
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Union, Tuple
-from pathlib import Path
 import json
 import uuid
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple, Union
 
+from ..style.less_chipper import Tone
 from ..types.edge_categories import (
     EdgeCategory,
-    IntensityLevel,
     EdgeProfile,
+    IntensityLevel,
     validate_edge_profile,
-    get_categories_by_intensity,
 )
-from ..style.less_chipper import Tone
 from ..utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.edge.edge_builder")
@@ -28,10 +27,15 @@ logger = get_logger("dataset_pipeline.edge.edge_builder")
 @dataclass
 class RawEdgeExample:
     """Raw input data for edge example construction"""
-    conversation: Union[str, List[Dict[str, str]]]  # Raw conversation text or message list
+
+    conversation: Union[
+        str, List[Dict[str, str]]
+    ]  # Raw conversation text or message list
     category: Union[str, EdgeCategory]  # Category name or enum
     intensity: Union[str, IntensityLevel]  # Intensity level name or enum
-    tone: Union[str, Tone] = Tone.CRISIS_DIRECT  # Default tone for edge cases (accepts str or Tone)
+    tone: Union[str, Tone] = (
+        Tone.CRISIS_DIRECT
+    )  # Default tone for edge cases (accepts str or Tone)
     stage: int = 3  # Default to Stage 3 (edge stress test)
     scenario_type: Optional[str] = None
     challenge_type: Optional[str] = None
@@ -42,11 +46,14 @@ class RawEdgeExample:
 @dataclass
 class EdgeExample:
     """Complete edge example with EdgeProfile metadata"""
+
     example_id: str
     conversation: List[Dict[str, str]]  # Normalized conversation format
     edge_profile: EdgeProfile
     raw_source: Optional[str] = None
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    created_at: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
 
     def to_dict(self) -> Dict[str, Any]:
         """Serialize edge example to dictionary"""
@@ -154,7 +161,9 @@ class EdgeDatasetBuilder:
 
         raise ValueError(f"Unknown edge category: {category}")
 
-    def _normalize_intensity(self, intensity: Union[str, IntensityLevel]) -> IntensityLevel:
+    def _normalize_intensity(
+        self, intensity: Union[str, IntensityLevel]
+    ) -> IntensityLevel:
         """Normalize intensity input to IntensityLevel enum"""
         if isinstance(intensity, IntensityLevel):
             return intensity
@@ -180,7 +189,9 @@ class EdgeDatasetBuilder:
 
         raise ValueError(f"Unknown intensity level: {intensity}")
 
-    def _normalize_conversation(self, conversation: Union[str, List[Dict[str, str]]]) -> List[Dict[str, str]]:
+    def _normalize_conversation(
+        self, conversation: Union[str, List[Dict[str, str]]]
+    ) -> List[Dict[str, str]]:
         """
         Normalize conversation input to standard message list format.
 
@@ -192,10 +203,7 @@ class EdgeDatasetBuilder:
             normalized = []
             for msg in conversation:
                 if isinstance(msg, dict) and "role" in msg and "content" in msg:
-                    normalized.append({
-                        "role": msg["role"],
-                        "content": msg["content"]
-                    })
+                    normalized.append({"role": msg["role"], "content": msg["content"]})
                 else:
                     if self._strict_conversation_format:
                         raise ValueError(f"Invalid message format: {msg}")
@@ -221,8 +229,10 @@ class EdgeDatasetBuilder:
         """Parse string conversation into message list format"""
         # Check for role markers (case-insensitive)
         has_role_markers = (
-            "Therapist:" in conversation or "Client:" in conversation or
-            "therapist:" in conversation.lower() or "client:" in conversation.lower()
+            "Therapist:" in conversation
+            or "Client:" in conversation
+            or "therapist:" in conversation.lower()
+            or "client:" in conversation.lower()
         )
 
         if not has_role_markers:
@@ -237,16 +247,18 @@ class EdgeDatasetBuilder:
         # Parse multi-turn conversation with role markers
         messages = []
         lines = conversation.split("\n")
-        current_role = None
+        current_role: str | None = None
         current_content = []
 
         def save_message():
             """Helper to save current message"""
             if current_role and current_content:
-                messages.append({
-                    "role": current_role.lower(),
-                    "content": "\n".join(current_content).strip()
-                })
+                messages.append(
+                    {
+                        "role": current_role.lower(),
+                        "content": "\n".join(current_content).strip(),
+                    }
+                )
 
         for line in lines:
             line = line.strip()
@@ -258,7 +270,9 @@ class EdgeDatasetBuilder:
             if line_lower.startswith("therapist:") or line_lower.startswith("client:"):
                 save_message()
                 # Start new message - use startswith to match the conditional check
-                current_role = "therapist" if line_lower.startswith("therapist:") else "client"
+                current_role = (
+                    "therapist" if line_lower.startswith("therapist:") else "client"
+                )
                 parts = line.split(":", 1)
                 current_content = [parts[1].strip()] if len(parts) > 1 else []
             elif current_role:
@@ -271,9 +285,7 @@ class EdgeDatasetBuilder:
         return messages or [{"role": "user", "content": conversation}]
 
     def build_edge_example(
-        self,
-        raw_example: RawEdgeExample,
-        profile_id: Optional[str] = None
+        self, raw_example: RawEdgeExample, profile_id: Optional[str] = None
     ) -> EdgeExample:
         """
         Build a single edge example with EdgeProfile metadata.
@@ -297,7 +309,9 @@ class EdgeDatasetBuilder:
 
         # Generate profile ID if not provided
         if not profile_id:
-            profile_id = f"edge-{category.value}-{intensity.value}-{uuid.uuid4().hex[:8]}"
+            profile_id = (
+                f"edge-{category.value}-{intensity.value}-{uuid.uuid4().hex[:8]}"
+            )
 
         # Create EdgeProfile
         edge_profile = EdgeProfile(
@@ -312,8 +326,8 @@ class EdgeDatasetBuilder:
             crisis_language_preserved=True,  # Preserve crisis language for edge cases
             metadata={
                 "source": raw_example.source or "edge_builder",
-                **raw_example.metadata
-            }
+                **raw_example.metadata,
+            },
         )
 
         # Validate profile
@@ -333,7 +347,7 @@ class EdgeDatasetBuilder:
         self,
         raw_examples: List[RawEdgeExample],
         output_path: Optional[Union[str, Path]] = None,
-        error_threshold: Optional[float] = None
+        error_threshold: Optional[float] = None,
     ) -> Tuple[List[EdgeExample], List[str]]:
         """
         Build a complete edge dataset from multiple raw examples, returning errors explicitly.
@@ -394,7 +408,7 @@ class EdgeDatasetBuilder:
     def build_edge_dataset(
         self,
         raw_examples: List[RawEdgeExample],
-        output_path: Optional[Union[str, Path]] = None
+        output_path: Optional[Union[str, Path]] = None,
     ) -> List[EdgeExample]:
         """
         Build a complete edge dataset from multiple raw examples.
@@ -420,12 +434,16 @@ class EdgeDatasetBuilder:
         path.parent.mkdir(parents=True, exist_ok=True)
 
         try:
-            with open(path, 'w', encoding='utf-8') as f:
+            with open(path, "w", encoding="utf-8") as f:
                 for example in examples:
                     try:
-                        f.write(json.dumps(example.to_dict(), ensure_ascii=False) + "\n")
+                        f.write(
+                            json.dumps(example.to_dict(), ensure_ascii=False) + "\n"
+                        )
                     except (TypeError, ValueError) as e:
-                        logger.error(f"Failed to serialize example {example.example_id}: {e}")
+                        logger.error(
+                            f"Failed to serialize example {example.example_id}: {e}"
+                        )
                         continue
         except IOError as e:
             logger.error(f"Failed to write dataset to {path}: {e}")
@@ -440,7 +458,7 @@ class EdgeDatasetBuilder:
         intensity: Union[str, IntensityLevel],
         tone: Union[str, Tone] = Tone.CRISIS_DIRECT,
         stage: int = 3,
-        **kwargs
+        **kwargs,
     ) -> EdgeExample:
         """
         Tag an existing conversation with edge profile metadata.
@@ -452,7 +470,7 @@ class EdgeDatasetBuilder:
             intensity=intensity,
             tone=tone,
             stage=stage,
-            **kwargs
+            **kwargs,
         )
         return self.build_edge_example(raw_example)
 
@@ -485,4 +503,3 @@ class EdgeDatasetBuilder:
             "by_intensity": by_intensity,
             "by_stage": by_stage,
         }
-

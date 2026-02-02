@@ -10,6 +10,7 @@ import unittest
 # Disable logging for cleaner output
 logging.getLogger("crisis_intervention_detector").setLevel(logging.CRITICAL)
 
+
 from quality.crisis_intervention_detector import CrisisInterventionDetector
 
 
@@ -26,17 +27,25 @@ class TestModule(unittest.TestCase):
             ("Domestic violence", "He hit me and threatened to kill me"),
             ("Psychotic episode", "The voices are telling me to do things"),
             ("Mild depression", "I feel sad but I will be okay"),
-            ("Normal conversation", "How are you doing today?")
+            ("Normal conversation", "How are you doing today?"),
         ]
-
 
         results = []
         for name, content in test_cases:
-            test = {"id": f'test_{name.replace(" ", "_")}', "content": content}
+            test = {"id": f"test_{name.replace(' ', '_')}", "content": content}
             try:
                 result = detector.detect_crisis(test)
-                ", ".join([ct.value for ct in result.crisis_types]) if result.crisis_types else "none"
-                results.append((name, result.crisis_level.value[0], result.confidence_score, len(result.crisis_types)))
+                ", ".join(
+                    [ct.value for ct in result.crisis_types]
+                ) if result.crisis_types else "none"
+                results.append(
+                    (
+                        name,
+                        result.crisis_level.value[0],
+                        result.confidence_score,
+                        len(result.crisis_types),
+                    )
+                )
             except Exception:
                 results.append((name, "ERROR", 0.0, 0))
 
@@ -46,17 +55,25 @@ class TestModule(unittest.TestCase):
         sum(1 for _, level, _, _ in results if level == "routine")
         sum(1 for _, level, _, _ in results if level == "ERROR")
 
-
         # Validate expected results
-        expected_emergency = ["Suicide ideation", "Self harm", "Violence threat", "Substance overdose", "Domestic violence"]
+        expected_emergency = [
+            "Suicide ideation",
+            "Self harm",
+            "Violence threat",
+            "Substance overdose",
+            "Domestic violence",
+        ]
         expected_routine = ["Mild depression", "Normal conversation"]
 
         success = True
         for name, level, _confidence, _ in results:
-            if (name in expected_emergency and level != "emergency") or (name in expected_routine and level != "routine"):
+            if (name in expected_emergency and level != "emergency") or (
+                name in expected_routine and level != "routine"
+            ):
                 success = False
 
         return bool(success)
+
 
 if __name__ == "__main__":
     success = test_crisis_detection()

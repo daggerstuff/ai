@@ -9,9 +9,12 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from conversation_schema import Conversation
-from logger import get_logger
-from standardizer import from_input_output_pair, from_simple_message_list
+from ai.pipelines.orchestrator.processing.standardizer import (
+    from_input_output_pair,
+    from_simple_message_list,
+)
+from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation
+from ai.pipelines.orchestrator.utils.logger import get_logger
 
 
 class DataCategory(Enum):
@@ -172,10 +175,10 @@ class MentalHealthStandardizer(CategoryStandardizer):
             raise ValueError("Mental health data must be a dictionary")
 
         # Add category-specific metadata
-        if not conversation.meta:
-            conversation.meta = {}
-        conversation.meta["category"] = self.category.value
-        conversation.meta["therapeutic_context"] = True
+        if not conversation.metadata:
+            conversation.metadata = {}
+        conversation.metadata["category"] = self.category.value
+        conversation.metadata["therapeutic_context"] = True
 
         return conversation
 
@@ -194,7 +197,6 @@ class MentalHealthStandardizer(CategoryStandardizer):
 
             # Detect and flag crisis indicators
             return self._detect_crisis_indicators(processed)
-
 
         return data
 
@@ -466,10 +468,10 @@ class PsychologyStandardizer(CategoryStandardizer):
             raise ValueError("Psychology data must be a dictionary")
 
         # Add category-specific metadata
-        if not conversation.meta:
-            conversation.meta = {}
-        conversation.meta["category"] = self.category.value
-        conversation.meta["educational_content"] = True
+        if not conversation.metadata:
+            conversation.metadata = {}
+        conversation.metadata["category"] = self.category.value
+        conversation.metadata["educational_content"] = True
 
         return conversation
 
@@ -485,7 +487,6 @@ class PsychologyStandardizer(CategoryStandardizer):
 
             # Validate psychological concepts
             return self._validate_concepts(processed)
-
 
         return data
 
@@ -609,11 +610,11 @@ class VoiceTrainingStandardizer(CategoryStandardizer):
             raise ValueError("Voice training data must be a dictionary")
 
         # Add category-specific metadata
-        if not conversation.meta:
-            conversation.meta = {}
-        conversation.meta["category"] = self.category.value
-        conversation.meta["voice_derived"] = True
-        conversation.meta["authenticity_source"] = "human_voice"
+        if not conversation.metadata:
+            conversation.metadata = {}
+        conversation.metadata["category"] = self.category.value
+        conversation.metadata["voice_derived"] = True
+        conversation.metadata["authenticity_source"] = "human_voice"
 
         return conversation
 
@@ -630,7 +631,6 @@ class VoiceTrainingStandardizer(CategoryStandardizer):
             # Extract personality markers
             return self._extract_personality_markers(processed)
 
-
         return data
 
     def _normalize_speech_patterns(self, data: dict[str, Any]) -> dict[str, Any]:
@@ -644,7 +644,6 @@ class VoiceTrainingStandardizer(CategoryStandardizer):
 
             # Clean up extra spaces
             return re.sub(r"\s+", " ", text).strip()
-
 
         processed = data.copy()
 
@@ -737,9 +736,7 @@ class CategoryStandardizerRegistry:
         if standardizer:
             return standardizer.standardize(data, context)
         # Fallback to generic standardization
-        self.logger.warning(
-            "No specific standardizer found, using generic approach"
-        )
+        self.logger.warning("No specific standardizer found, using generic approach")
         return self._generic_standardize(data, context)
 
     def _generic_standardize(

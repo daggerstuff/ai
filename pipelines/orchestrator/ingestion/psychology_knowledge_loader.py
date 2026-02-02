@@ -8,8 +8,8 @@ import json
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from ai.pipelines.orchestrator.utils.logger import get_logger
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
+from ai.pipelines.orchestrator.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.psychology_knowledge_loader")
 
@@ -23,7 +23,9 @@ class PsychologyConcept:
     content: str
     category: str
     subcategory: str | None = None
+
     related_concepts: list[str] = None
+
     therapeutic_approaches: list[str] = None
     source: str = "psychology_knowledge"
 
@@ -65,9 +67,15 @@ class PsychologyKnowledgeConfig:
 
     knowledge_base_paths: list[Path] = field(
         default_factory=lambda: [
-            Path("ai/models/pixel_core/knowledge/psychology_knowledge_base_optimized.json"),
-            Path("ai/training_data_consolidated/psychology_knowledge_base_optimized.json"),
-            get_dataset_pipeline_output_root() / "data" / "psychology_knowledge_base.json",
+            Path(
+                "ai/models/pixel_core/knowledge/psychology_knowledge_base_optimized.json"
+            ),
+            Path(
+                "ai/training_data_consolidated/psychology_knowledge_base_optimized.json"
+            ),
+            get_dataset_pipeline_output_root()
+            / "data"
+            / "psychology_knowledge_base.json",
         ]
     )
 
@@ -76,7 +84,9 @@ class PsychologyKnowledgeLoader:
     """Loader for psychology knowledge base"""
 
     def __init__(
-        self, config: PsychologyKnowledgeConfig | None = None, file_path: Path | None = None
+        self,
+        config: PsychologyKnowledgeConfig | None = None,
+        file_path: Path | None = None,
     ):
         self.config = config or PsychologyKnowledgeConfig()
 
@@ -107,7 +117,9 @@ class PsychologyKnowledgeLoader:
         if not self.knowledge_file or not self.knowledge_file.exists():
             logger.warning("Psychology knowledge base not found")
             logger.info("Searched locations:")
-            logger.info("  - ai/models/pixel_core/knowledge/psychology_knowledge_base_optimized.json")
+            logger.info(
+                "  - ai/models/pixel_core/knowledge/psychology_knowledge_base_optimized.json"
+            )
             logger.info(
                 "  - ai/training_data_consolidated/psychology_knowledge_base_optimized.json"
             )
@@ -136,25 +148,36 @@ class PsychologyKnowledgeLoader:
                     )
                     return []
             else:
-                logger.error(f"Unexpected data format in {self.knowledge_file}: {type(data)}")
+                logger.error(
+                    f"Unexpected data format in {self.knowledge_file}: {type(data)}"
+                )
                 return []
 
             for idx, item in enumerate(items):
                 try:
                     # Ensure item is a dict
                     if not isinstance(item, dict):
-                        logger.warning(f"Skipping non-dict item at index {idx}: {type(item)}")
+                        logger.warning(
+                            f"Skipping non-dict item at index {idx}: {type(item)}"
+                        )
                         continue
 
                     concept = PsychologyConcept(
-                        concept_id=item.get("id", item.get("concept_id", f"psych_{idx:04d}")),
-                        title=item.get("title", item.get("name", item.get("concept", ""))),
+                        concept_id=item.get(
+                            "id", item.get("concept_id", f"psych_{idx:04d}")
+                        ),
+                        title=item.get(
+                            "title", item.get("name", item.get("concept", ""))
+                        ),
                         content=item.get(
-                            "content", item.get("description", item.get("definition", ""))
+                            "content",
+                            item.get("description", item.get("definition", "")),
                         ),
                         category=item.get("category", item.get("type", "general")),
                         subcategory=item.get("subcategory", item.get("subtype")),
-                        related_concepts=item.get("related_concepts", item.get("related", [])),
+                        related_concepts=item.get(
+                            "related_concepts", item.get("related", [])
+                        ),
                         therapeutic_approaches=item.get(
                             "therapeutic_approaches", item.get("approaches", [])
                         ),
@@ -169,7 +192,9 @@ class PsychologyKnowledgeLoader:
                     logger.error(f"Error parsing concept {idx}: {e}")
                     continue
 
-            logger.info(f"Loaded {len(concepts)} psychology concepts from {self.knowledge_file}")
+            logger.info(
+                f"Loaded {len(concepts)} psychology concepts from {self.knowledge_file}"
+            )
             return concepts
 
         except Exception as e:
@@ -204,7 +229,9 @@ class PsychologyKnowledgeLoader:
         subcategories = {}
         for concept in concepts:
             if concept.subcategory:
-                subcategories[concept.subcategory] = subcategories.get(concept.subcategory, 0) + 1
+                subcategories[concept.subcategory] = (
+                    subcategories.get(concept.subcategory, 0) + 1
+                )
 
         # Count therapeutic approaches
         approaches = {}
@@ -228,7 +255,9 @@ class PsychologyKnowledgeLoader:
             concepts = self.load_concepts()
 
         training_data = [concept.to_training_format() for concept in concepts]
-        logger.info(f"Converted {len(training_data)} psychology concepts to training format")
+        logger.info(
+            f"Converted {len(training_data)} psychology concepts to training format"
+        )
         return training_data
 
     def check_knowledge_base_exists(self) -> bool:
@@ -322,7 +351,9 @@ if __name__ == "__main__":
         if stats["therapeutic_approaches"]:
             logger.info("\n🔧 Therapeutic Approaches:")
             for approach, count in sorted(
-                stats["therapeutic_approaches"].items(), key=lambda x: x[1], reverse=True
+                stats["therapeutic_approaches"].items(),
+                key=lambda x: x[1],
+                reverse=True,
             )[:10]:
                 logger.info(f"   {approach}: {count}")
 

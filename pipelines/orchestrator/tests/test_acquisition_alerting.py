@@ -36,7 +36,11 @@ class TestAcquisitionAlerting(unittest.TestCase):
         self.config = {
             "notifications": {
                 "channels": [NotificationChannel.LOG, NotificationChannel.CONSOLE],
-                "severity_filter": [AlertLevel.WARNING, AlertLevel.ERROR, AlertLevel.CRITICAL]
+                "severity_filter": [
+                    AlertLevel.WARNING,
+                    AlertLevel.ERROR,
+                    AlertLevel.CRITICAL,
+                ],
             }
         }
 
@@ -51,7 +55,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
             dataset_name="test_dataset",
             value=0.15,
             threshold=0.10,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
     def tearDown(self):
@@ -61,6 +65,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
 
         # Clean up temporary directory
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_initialization(self):
@@ -73,7 +78,12 @@ class TestAcquisitionAlerting(unittest.TestCase):
 
         # Check default error patterns were loaded
         pattern_ids = [pattern.pattern_id for pattern in self.alerting.error_patterns]
-        expected_patterns = ["network_connectivity", "rate_limiting", "memory_exhaustion", "data_quality"]
+        expected_patterns = [
+            "network_connectivity",
+            "rate_limiting",
+            "memory_exhaustion",
+            "data_quality",
+        ]
 
         for expected in expected_patterns:
             assert expected in pattern_ids
@@ -90,7 +100,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
             dataset_name="test_dataset",
             value=0.2,
             threshold=0.1,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         # Check that the alert message contains network error signatures
@@ -106,8 +116,12 @@ class TestAcquisitionAlerting(unittest.TestCase):
         assert network_pattern is not None, "Network connectivity pattern should exist"
 
         # Verify that at least one signature matches
-        signature_found = any(sig.lower() in alert_text for sig in network_pattern.error_signatures)
-        assert signature_found, f"Alert message '{alert_text}' should match network signatures {network_pattern.error_signatures}"
+        signature_found = any(
+            sig.lower() in alert_text for sig in network_pattern.error_signatures
+        )
+        assert signature_found, (
+            f"Alert message '{alert_text}' should match network signatures {network_pattern.error_signatures}"
+        )
 
         # Test rate limiting pattern
         rate_limit_alert = Alert(
@@ -118,7 +132,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
             dataset_name="test_dataset",
             value=0.1,
             threshold=0.05,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         matching_pattern = self.alerting._match_error_pattern(rate_limit_alert)
@@ -134,7 +148,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
             dataset_name="test_dataset",
             value=0.8,
             threshold=0.7,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         matching_pattern = self.alerting._match_error_pattern(unknown_alert)
@@ -154,7 +168,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
                 dataset_name="test_dataset",
                 value=0.1,
                 threshold=0.05,
-                timestamp=datetime.now()
+                timestamp=datetime.now(),
             )
             similar_alerts.append(alert)
             self.alerting.alert_history.append(alert)
@@ -168,7 +182,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
             dataset_name="test_dataset",
             value=0.1,
             threshold=0.05,
-            timestamp=datetime.now()
+            timestamp=datetime.now(),
         )
 
         should_suppress = self.alerting._should_suppress_alert(new_similar_alert)
@@ -192,7 +206,9 @@ class TestAcquisitionAlerting(unittest.TestCase):
 
             # Test clear cache action
             success = await self.alerting._execute_recovery_action(
-                RecoveryAction.CLEAR_CACHE, self.test_alert, self.alerting.error_patterns[0]
+                RecoveryAction.CLEAR_CACHE,
+                self.test_alert,
+                self.alerting.error_patterns[0],
             )
             assert success
 
@@ -212,7 +228,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
             trigger_conditions=["custom_error"],
             actions=[RecoveryAction.RETRY, RecoveryAction.ESCALATE],
             max_attempts=2,
-            delay_seconds=5.0
+            delay_seconds=5.0,
         )
 
         custom_pattern = ErrorPattern(
@@ -221,7 +237,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
             frequency_threshold=1,
             time_window_minutes=5,
             recovery_strategy=custom_strategy,
-            description="Custom test pattern"
+            description="Custom test pattern",
         )
 
         # Add pattern
@@ -244,7 +260,9 @@ class TestAcquisitionAlerting(unittest.TestCase):
         """Test different notification channels."""
 
         # Test log notification
-        with patch("ai.pipelines.orchestrator.acquisition_alerting.logger") as mock_logger:
+        with patch(
+            "ai.pipelines.orchestrator.acquisition_alerting.logger"
+        ) as mock_logger:
             self.alerting._send_log_notification(self.test_alert)
             mock_logger.error.assert_called_once()
 
@@ -282,7 +300,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
             recovery_action=RecoveryAction.RETRY,
             started_at=datetime.now(),
             completed_at=datetime.now(),
-            success=True
+            success=True,
         )
 
         attempt2 = RecoveryAttempt(
@@ -291,7 +309,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
             recovery_action=RecoveryAction.RESTART,
             started_at=datetime.now(),
             completed_at=datetime.now(),
-            success=False
+            success=False,
         )
 
         self.alerting.recovery_attempts["test_dataset"] = [attempt1, attempt2]
@@ -318,7 +336,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
                 error_context=f"Test error {i}",
                 recovery_action=RecoveryAction.RETRY,
                 started_at=datetime.now(),
-                success=i % 2 == 0  # Alternate success/failure
+                success=i % 2 == 0,  # Alternate success/failure
             )
             for i in range(3)
         ]
@@ -371,9 +389,9 @@ class TestAcquisitionAlerting(unittest.TestCase):
                 trigger_conditions=["export_test"],
                 actions=[RecoveryAction.RETRY],
                 max_attempts=3,
-                delay_seconds=2.0
+                delay_seconds=2.0,
             ),
-            description="Pattern for export testing"
+            description="Pattern for export testing",
         )
 
         self.alerting.add_error_pattern(custom_pattern)
@@ -397,7 +415,11 @@ class TestAcquisitionAlerting(unittest.TestCase):
         assert "export_test_pattern" in imported_pattern_ids
 
         # Find the imported pattern and verify details
-        imported_pattern = next(p for p in new_alerting.error_patterns if p.pattern_id == "export_test_pattern")
+        imported_pattern = next(
+            p
+            for p in new_alerting.error_patterns
+            if p.pattern_id == "export_test_pattern"
+        )
         assert imported_pattern.frequency_threshold == 2
         assert imported_pattern.time_window_minutes == 10
         assert imported_pattern.description == "Pattern for export testing"
@@ -409,15 +431,25 @@ class TestAcquisitionAlerting(unittest.TestCase):
 
         # Add multiple alerts for different datasets
         alert1 = Alert(
-            id="alert_1", level=AlertLevel.WARNING, message="Warning 1",
-            metric_type=MetricType.ERROR_RATE, dataset_name="dataset_1",
-            value=0.1, threshold=0.05, timestamp=datetime.now()
+            id="alert_1",
+            level=AlertLevel.WARNING,
+            message="Warning 1",
+            metric_type=MetricType.ERROR_RATE,
+            dataset_name="dataset_1",
+            value=0.1,
+            threshold=0.05,
+            timestamp=datetime.now(),
         )
 
         alert2 = Alert(
-            id="alert_2", level=AlertLevel.ERROR, message="Error 2",
-            metric_type=MetricType.QUALITY_SCORE, dataset_name="dataset_2",
-            value=0.4, threshold=0.6, timestamp=datetime.now()
+            id="alert_2",
+            level=AlertLevel.ERROR,
+            message="Error 2",
+            metric_type=MetricType.QUALITY_SCORE,
+            dataset_name="dataset_2",
+            value=0.4,
+            threshold=0.6,
+            timestamp=datetime.now(),
         )
 
         self.alerting.active_alerts[alert1.id] = alert1

@@ -10,6 +10,7 @@ import time
 # Configure logging to capture escalation messages
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
+
 from quality.crisis_intervention_detector import (
     CrisisDetection,
     CrisisInterventionDetector,
@@ -30,13 +31,15 @@ class EscalationTester:
 
     def _test_callback(self, detection: CrisisDetection, escalation: EscalationRecord):
         """Test callback to capture escalation events."""
-        self.callback_logs.append({
-            "detection_id": detection.detection_id,
-            "crisis_level": detection.crisis_level.value[0],
-            "actions_taken": [a.value for a in escalation.actions_taken],
-            "contacts_notified": escalation.contacts_notified,
-            "response_time": escalation.response_time_minutes
-        })
+        self.callback_logs.append(
+            {
+                "detection_id": detection.detection_id,
+                "crisis_level": detection.crisis_level.value[0],
+                "actions_taken": [a.value for a in escalation.actions_taken],
+                "contacts_notified": escalation.contacts_notified,
+                "response_time": escalation.response_time_minutes,
+            }
+        )
 
     def test_escalation_protocols(self):
         """Test escalation protocols for different crisis levels."""
@@ -45,50 +48,69 @@ class EscalationTester:
                 "name": "Emergency - Suicide Intent",
                 "content": "I want to kill myself tonight with pills",
                 "expected_level": "emergency",
-                "expected_actions": ["emergency_services", "supervisor_alert", "documentation"],
-                "expected_contacts": ["911", "supervisor", "crisis_coordinator"]
+                "expected_actions": [
+                    "emergency_services",
+                    "supervisor_alert",
+                    "documentation",
+                ],
+                "expected_contacts": ["911", "supervisor", "crisis_coordinator"],
             },
             {
                 "name": "Emergency - Violence Threat",
                 "content": "I have a gun and I will kill him",
                 "expected_level": "emergency",
-                "expected_actions": ["emergency_services", "supervisor_alert", "documentation"],
-                "expected_contacts": ["911", "supervisor", "crisis_coordinator"]
+                "expected_actions": [
+                    "emergency_services",
+                    "supervisor_alert",
+                    "documentation",
+                ],
+                "expected_contacts": ["911", "supervisor", "crisis_coordinator"],
             },
             {
                 "name": "Elevated - Self Harm",
                 "content": "I need to cut myself deeper this time",
                 "expected_level": "elevated",
-                "expected_actions": ["safety_planning", "follow_up_scheduling", "documentation"],
-                "expected_contacts": ["supervisor", "case_manager"]
+                "expected_actions": [
+                    "safety_planning",
+                    "follow_up_scheduling",
+                    "documentation",
+                ],
+                "expected_contacts": ["supervisor", "case_manager"],
             },
             {
                 "name": "Elevated - Severe Depression",
                 "content": "I am completely hopeless and nobody cares about me",
                 "expected_level": "elevated",
-                "expected_actions": ["safety_planning", "follow_up_scheduling", "documentation"],
-                "expected_contacts": ["supervisor", "case_manager"]
+                "expected_actions": [
+                    "safety_planning",
+                    "follow_up_scheduling",
+                    "documentation",
+                ],
+                "expected_contacts": ["supervisor", "case_manager"],
             },
             {
                 "name": "Elevated - Panic Attack",
                 "content": "I can't breathe and my heart is racing, I think I'm dying",
                 "expected_level": "elevated",
-                "expected_actions": ["safety_planning", "follow_up_scheduling", "documentation"],
-                "expected_contacts": ["supervisor", "case_manager"]
+                "expected_actions": [
+                    "safety_planning",
+                    "follow_up_scheduling",
+                    "documentation",
+                ],
+                "expected_contacts": ["supervisor", "case_manager"],
             },
             {
                 "name": "Routine - Normal Conversation",
                 "content": "How are you doing today?",
                 "expected_level": "routine",
                 "expected_actions": ["documentation"],
-                "expected_contacts": []
-            }
+                "expected_contacts": [],
+            },
         ]
-
 
         results = []
         for i, test_case in enumerate(test_cases):
-            test_id = f"test_{i+1}"
+            test_id = f"test_{i + 1}"
             conversation = {"id": test_id, "content": test_case["content"]}
 
             # Clear previous logs
@@ -116,20 +138,23 @@ class EscalationTester:
 
             # Count actions and contacts
             actions_count = len(callback_data["actions_taken"]) if callback_data else 0
-            contacts_count = len(callback_data["contacts_notified"]) if callback_data else 0
+            contacts_count = (
+                len(callback_data["contacts_notified"]) if callback_data else 0
+            )
 
             # Determine status
 
-
-            results.append({
-                "name": test_case["name"],
-                "level_match": level_match,
-                "escalation_match": escalation_match,
-                "actions_count": actions_count,
-                "contacts_count": contacts_count,
-                "response_time_ms": response_time,
-                "callback_data": callback_data
-            })
+            results.append(
+                {
+                    "name": test_case["name"],
+                    "level_match": level_match,
+                    "escalation_match": escalation_match,
+                    "actions_count": actions_count,
+                    "contacts_count": contacts_count,
+                    "response_time_ms": response_time,
+                    "callback_data": callback_data,
+                }
+            )
 
         return results
 
@@ -140,7 +165,7 @@ class EscalationTester:
         emergency_cases = [
             "I want to kill myself right now",
             "I have a gun and will use it tonight",
-            "I took all the pills in the bottle"
+            "I took all the pills in the bottle",
         ]
 
         response_times = []
@@ -154,7 +179,6 @@ class EscalationTester:
         max_response_time = max(response_times)
         min(response_times)
 
-
         # Check if response times meet requirements (should be < 1000ms for emergency)
         if max_response_time < 1000:
             pass
@@ -164,7 +188,7 @@ class EscalationTester:
         return {
             "avg_response_time_ms": avg_response_time,
             "max_response_time_ms": max_response_time,
-            "meets_requirements": max_response_time < 1000
+            "meets_requirements": max_response_time < 1000,
         }
 
     def test_escalation_callbacks(self):
@@ -180,7 +204,9 @@ class EscalationTester:
         self.detector.add_escalation_callback(test_callback)
 
         # Trigger crisis
-        self.detector.detect_crisis({"id": "callback_test", "content": "I want to hurt myself"})
+        self.detector.detect_crisis(
+            {"id": "callback_test", "content": "I want to hurt myself"}
+        )
 
         if callback_count > 0:
             pass
@@ -195,14 +221,18 @@ class EscalationTester:
         initial_count = len(self.detector.escalation_history)
 
         # Trigger multiple crises
-        self.detector.detect_crisis({"id": "history_test_1", "content": "I want to kill myself"})
-        self.detector.detect_crisis({"id": "history_test_2", "content": "I will hurt him"})
+        self.detector.detect_crisis(
+            {"id": "history_test_1", "content": "I want to kill myself"}
+        )
+        self.detector.detect_crisis(
+            {"id": "history_test_2", "content": "I will hurt him"}
+        )
 
         final_count = len(self.detector.escalation_history)
         escalations_added = final_count - initial_count
 
-
         return escalations_added >= 2
+
 
 def main():
     """Run comprehensive escalation protocol tests."""
@@ -222,18 +252,20 @@ def main():
 
     # Summary
 
-    protocol_passes = sum(1 for r in protocol_results if r["level_match"] and r["escalation_match"])
+    protocol_passes = sum(
+        1 for r in protocol_results if r["level_match"] and r["escalation_match"]
+    )
     protocol_total = len(protocol_results)
 
-
     overall_success = (
-        protocol_passes == protocol_total and
-        timing_results["meets_requirements"] and
-        callback_success and
-        history_success
+        protocol_passes == protocol_total
+        and timing_results["meets_requirements"]
+        and callback_success
+        and history_success
     )
 
     return bool(overall_success)
+
 
 if __name__ == "__main__":
     success = main()

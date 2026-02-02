@@ -25,9 +25,15 @@ class TestCoherenceValidator:
             "content": "Since you're experiencing anxiety symptoms, I recommend we start with cognitive behavioral techniques. First, we'll identify your thought patterns, then challenge negative thoughts, which should help reduce your anxiety levels.",
             "turns": [
                 {"speaker": "user", "text": "I'm having anxiety attacks."},
-                {"speaker": "therapist", "text": "Since you're experiencing anxiety, let's start with CBT techniques."},
-                {"speaker": "therapist", "text": "First, we'll identify thought patterns, then challenge negative thoughts."}
-            ]
+                {
+                    "speaker": "therapist",
+                    "text": "Since you're experiencing anxiety, let's start with CBT techniques.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "First, we'll identify thought patterns, then challenge negative thoughts.",
+                },
+            ],
         }
 
         self.incoherent_conversation = {
@@ -35,9 +41,15 @@ class TestCoherenceValidator:
             "content": "You have depression. Try meditation. Also, your childhood affects everything. Let's talk about your job.",
             "turns": [
                 {"speaker": "user", "text": "I feel sad sometimes."},
-                {"speaker": "therapist", "text": "You have depression. Try meditation."},
-                {"speaker": "therapist", "text": "Your childhood affects everything. Let's talk about your job."}
-            ]
+                {
+                    "speaker": "therapist",
+                    "text": "You have depression. Try meditation.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "Your childhood affects everything. Let's talk about your job.",
+                },
+            ],
         }
 
     def test_validator_initialization(self):
@@ -55,7 +67,11 @@ class TestCoherenceValidator:
         assert isinstance(result, CoherenceResult)
         assert result.conversation_id == "coherent_001"
         assert result.coherence_score > 0.4  # Adjusted from 0.5 to be more realistic
-        assert result.overall_coherence in [CoherenceLevel.HIGHLY_COHERENT, CoherenceLevel.MODERATELY_COHERENT, CoherenceLevel.MINIMALLY_COHERENT]
+        assert result.overall_coherence in [
+            CoherenceLevel.HIGHLY_COHERENT,
+            CoherenceLevel.MODERATELY_COHERENT,
+            CoherenceLevel.MINIMALLY_COHERENT,
+        ]
         assert len(result.reasoning_scores) == 5
 
     def test_validate_incoherent_conversation(self):
@@ -97,21 +113,34 @@ class TestCoherenceValidator:
             ReasoningType.THERAPEUTIC_REASONING: 0.7,
             ReasoningType.INTERVENTION_SEQUENCE: 0.6,
             ReasoningType.CONSISTENCY: 0.9,
-            ReasoningType.CONTEXTUAL_RELEVANCE: 0.5
+            ReasoningType.CONTEXTUAL_RELEVANCE: 0.5,
         }
 
         coherence_issues = []
 
-        score = self.validator._calculate_coherence_score(reasoning_scores, coherence_issues)
+        score = self.validator._calculate_coherence_score(
+            reasoning_scores, coherence_issues
+        )
         assert 0.0 <= score <= 1.0
         assert score > 0.6  # Should be reasonably high with good reasoning scores
 
     def test_coherence_level_determination(self):
         """Test coherence level determination."""
-        assert self.validator._determine_coherence_level(0.9) == CoherenceLevel.HIGHLY_COHERENT
-        assert self.validator._determine_coherence_level(0.6) == CoherenceLevel.MODERATELY_COHERENT  # Adjusted from 0.7
-        assert self.validator._determine_coherence_level(0.4) == CoherenceLevel.MINIMALLY_COHERENT   # Adjusted from 0.5
-        assert self.validator._determine_coherence_level(0.2) == CoherenceLevel.INCOHERENT
+        assert (
+            self.validator._determine_coherence_level(0.9)
+            == CoherenceLevel.HIGHLY_COHERENT
+        )
+        assert (
+            self.validator._determine_coherence_level(0.6)
+            == CoherenceLevel.MODERATELY_COHERENT
+        )  # Adjusted from 0.7
+        assert (
+            self.validator._determine_coherence_level(0.4)
+            == CoherenceLevel.MINIMALLY_COHERENT
+        )  # Adjusted from 0.5
+        assert (
+            self.validator._determine_coherence_level(0.2) == CoherenceLevel.INCOHERENT
+        )
 
     def test_validation_history_tracking(self):
         """Test validation history tracking."""

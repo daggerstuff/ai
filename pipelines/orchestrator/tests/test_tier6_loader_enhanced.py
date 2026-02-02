@@ -20,13 +20,17 @@ except ImportError:
     try:
         from schemas.conversation_schema import Conversation, Message
     except ImportError:
-        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+        pass
 
 # Add the tier loaders path
-tier_loaders_path = project_root / "ai" / "dataset_pipeline" / "ingestion" / "tier_loaders"
+tier_loaders_path = (
+    project_root / "ai" / "dataset_pipeline" / "ingestion" / "tier_loaders"
+)
 sys.path.insert(0, str(tier_loaders_path))
 
+
 from tier6_knowledge_loader import Tier6KnowledgeLoader
+
 
 def test_tier6_loader():
     """Test the Tier6KnowledgeLoader with enhanced psychology knowledge base."""
@@ -52,6 +56,7 @@ def test_tier6_loader():
                 print(f"    First message role: {conv.messages[0].role}")
                 print(f"    First message content: {conv.messages[0].content[:100]}...")
             print()
+
 
 if __name__ == "__main__":
     test_tier6_loader()

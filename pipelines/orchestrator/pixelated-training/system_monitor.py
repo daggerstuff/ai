@@ -15,6 +15,7 @@ try:
 except ImportError:
     GPUtil = None
 
+
 class SystemMonitor:
     def __init__(self, log_file="training_monitor.jsonl", interval=30):
         self.log_file = log_file
@@ -56,8 +57,8 @@ class SystemMonitor:
                 "memory_percent": psutil.virtual_memory().percent,
                 "memory_available_gb": psutil.virtual_memory().available / (1024**3),
                 "disk_usage_percent": psutil.disk_usage("/").percent,
-                "disk_free_gb": psutil.disk_usage("/").free / (1024**3)
-            }
+                "disk_free_gb": psutil.disk_usage("/").free / (1024**3),
+            },
         }
 
         # GPU stats if available
@@ -66,15 +67,17 @@ class SystemMonitor:
                 gpus = GPUtil.getGPUs()
                 gpu_stats = []
                 for gpu in gpus:
-                    gpu_stats.append({
-                        "id": gpu.id,
-                        "name": gpu.name,
-                        "memory_used_mb": gpu.memoryUsed,
-                        "memory_total_mb": gpu.memoryTotal,
-                        "memory_percent": gpu.memoryUtil * 100,
-                        "temperature": gpu.temperature,
-                        "load_percent": gpu.load * 100
-                    })
+                    gpu_stats.append(
+                        {
+                            "id": gpu.id,
+                            "name": gpu.name,
+                            "memory_used_mb": gpu.memoryUsed,
+                            "memory_total_mb": gpu.memoryTotal,
+                            "memory_percent": gpu.memoryUtil * 100,
+                            "temperature": gpu.temperature,
+                            "load_percent": gpu.load * 100,
+                        }
+                    )
                 stats["gpu"] = gpu_stats
             except:
                 stats["gpu"] = []
@@ -109,8 +112,10 @@ class SystemMonitor:
                 if gpu["temperature"] > 85:
                     pass
 
+
 # Global monitor instance
 _monitor = None
+
 
 def start_monitoring(log_file="training_monitor.jsonl", interval=30):
     """Start system monitoring"""
@@ -119,11 +124,13 @@ def start_monitoring(log_file="training_monitor.jsonl", interval=30):
         _monitor = SystemMonitor(log_file, interval)
     _monitor.start()
 
+
 def stop_monitoring():
     """Stop system monitoring"""
     global _monitor
     if _monitor:
         _monitor.stop()
+
 
 if __name__ == "__main__":
     # Standalone monitoring

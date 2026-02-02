@@ -268,7 +268,6 @@ class MentalHealthIntegrator:
                 },
             }
 
-
         except Exception as e:
             logger.warning(
                 f"Failed to standardize conversation from {config.name}: {e}"
@@ -337,9 +336,7 @@ class MentalHealthIntegrator:
             term in content for term in ["feeling", "emotion", "mindful", "present"]
         ):
             return "mindfulness_based"
-        if any(
-            term in content for term in ["behavior", "action", "activity", "goal"]
-        ):
+        if any(term in content for term in ["behavior", "action", "activity", "goal"]):
             return "behavioral"
         return "integrative"
 

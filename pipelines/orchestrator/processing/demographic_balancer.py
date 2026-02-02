@@ -18,18 +18,23 @@ import numpy as np
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class DemographicConfig:
     """Configuration for demographic categories"""
+
     category: str
     subcategories: dict[str, float]  # subcategory -> target proportion
     keywords: dict[str, list[str]]  # subcategory -> keywords
     min_samples_per_subcategory: int = 50
+
     bias_indicators: list[str] = None
+
 
 @dataclass
 class DemographicBalance:
     """Result of demographic balancing"""
+
     category: str
     subcategory: str
     target_samples: int
@@ -38,6 +43,7 @@ class DemographicBalance:
     conversations: list[dict[str, Any]]
     bias_score: float
     metadata: dict[str, Any]
+
 
 class DemographicBalancer:
     """
@@ -51,25 +57,54 @@ class DemographicBalancer:
         self.balancing_history = []
         self.bias_patterns = self._load_bias_patterns()
 
-    def _load_demographic_configs(self, config_path: str | None = None) -> dict[str, DemographicConfig]:
+    def _load_demographic_configs(
+        self, config_path: str | None = None
+    ) -> dict[str, DemographicConfig]:
         """Load demographic configurations based on census and research data"""
         default_configs = {
             "age": DemographicConfig(
                 category="Age Groups",
                 subcategories={
-                    "young_adult": 0.25,    # 18-29
-                    "adult": 0.35,          # 30-49
-                    "middle_aged": 0.25,    # 50-64
-                    "older_adult": 0.15     # 65+
+                    "young_adult": 0.25,  # 18-29
+                    "adult": 0.35,  # 30-49
+                    "middle_aged": 0.25,  # 50-64
+                    "older_adult": 0.15,  # 65+
                 },
                 keywords={
-                    "young_adult": ["young", "college", "university", "twenties", "early career", "student"],
-                    "adult": ["adult", "career", "thirties", "forties", "working", "professional"],
-                    "middle_aged": ["middle-aged", "fifties", "midlife", "experienced", "senior"],
-                    "older_adult": ["elderly", "senior", "retired", "older", "sixties", "seventies"]
+                    "young_adult": [
+                        "young",
+                        "college",
+                        "university",
+                        "twenties",
+                        "early career",
+                        "student",
+                    ],
+                    "adult": [
+                        "adult",
+                        "career",
+                        "thirties",
+                        "forties",
+                        "working",
+                        "professional",
+                    ],
+                    "middle_aged": [
+                        "middle-aged",
+                        "fifties",
+                        "midlife",
+                        "experienced",
+                        "senior",
+                    ],
+                    "older_adult": [
+                        "elderly",
+                        "senior",
+                        "retired",
+                        "older",
+                        "sixties",
+                        "seventies",
+                    ],
                 },
                 min_samples_per_subcategory=100,
-                bias_indicators=["ageism", "age discrimination", "generational bias"]
+                bias_indicators=["ageism", "age discrimination", "generational bias"],
             ),
             "gender": DemographicConfig(
                 category="Gender Identity",
@@ -77,16 +112,30 @@ class DemographicBalancer:
                     "female": 0.45,
                     "male": 0.45,
                     "non_binary": 0.05,
-                    "other": 0.05
+                    "other": 0.05,
                 },
                 keywords={
-                    "female": ["woman", "female", "she", "her", "mother", "daughter", "wife"],
+                    "female": [
+                        "woman",
+                        "female",
+                        "she",
+                        "her",
+                        "mother",
+                        "daughter",
+                        "wife",
+                    ],
                     "male": ["man", "male", "he", "him", "father", "son", "husband"],
-                    "non_binary": ["non-binary", "nonbinary", "they", "them", "genderqueer"],
-                    "other": ["transgender", "trans", "gender fluid", "questioning"]
+                    "non_binary": [
+                        "non-binary",
+                        "nonbinary",
+                        "they",
+                        "them",
+                        "genderqueer",
+                    ],
+                    "other": ["transgender", "trans", "gender fluid", "questioning"],
                 },
                 min_samples_per_subcategory=80,
-                bias_indicators=["sexism", "gender bias", "misogyny", "transphobia"]
+                bias_indicators=["sexism", "gender bias", "misogyny", "transphobia"],
             ),
             "cultural_background": DemographicConfig(
                 category="Cultural Background",
@@ -96,49 +145,93 @@ class DemographicBalancer:
                     "african": 0.15,
                     "asian": 0.15,
                     "indigenous": 0.05,
-                    "middle_eastern": 0.05
+                    "middle_eastern": 0.05,
                 },
                 keywords={
-                    "western": ["american", "european", "western", "caucasian", "white"],
-                    "hispanic_latino": ["hispanic", "latino", "latina", "mexican", "spanish", "puerto rican"],
+                    "western": [
+                        "american",
+                        "european",
+                        "western",
+                        "caucasian",
+                        "white",
+                    ],
+                    "hispanic_latino": [
+                        "hispanic",
+                        "latino",
+                        "latina",
+                        "mexican",
+                        "spanish",
+                        "puerto rican",
+                    ],
                     "african": ["african", "black", "african american", "caribbean"],
-                    "asian": ["asian", "chinese", "japanese", "korean", "indian", "vietnamese"],
+                    "asian": [
+                        "asian",
+                        "chinese",
+                        "japanese",
+                        "korean",
+                        "indian",
+                        "vietnamese",
+                    ],
                     "indigenous": ["native", "indigenous", "tribal", "first nations"],
-                    "middle_eastern": ["middle eastern", "arab", "persian", "turkish"]
+                    "middle_eastern": ["middle eastern", "arab", "persian", "turkish"],
                 },
                 min_samples_per_subcategory=60,
-                bias_indicators=["racism", "cultural bias", "xenophobia", "stereotyping"]
+                bias_indicators=[
+                    "racism",
+                    "cultural bias",
+                    "xenophobia",
+                    "stereotyping",
+                ],
             ),
             "socioeconomic": DemographicConfig(
                 category="Socioeconomic Status",
                 subcategories={
                     "low_income": 0.25,
                     "middle_income": 0.50,
-                    "high_income": 0.25
+                    "high_income": 0.25,
                 },
                 keywords={
-                    "low_income": ["poor", "poverty", "low income", "struggling financially", "unemployed", "welfare"],
-                    "middle_income": ["middle class", "working class", "average income", "stable job"],
-                    "high_income": ["wealthy", "rich", "high income", "affluent", "executive", "professional"]
+                    "low_income": [
+                        "poor",
+                        "poverty",
+                        "low income",
+                        "struggling financially",
+                        "unemployed",
+                        "welfare",
+                    ],
+                    "middle_income": [
+                        "middle class",
+                        "working class",
+                        "average income",
+                        "stable job",
+                    ],
+                    "high_income": [
+                        "wealthy",
+                        "rich",
+                        "high income",
+                        "affluent",
+                        "executive",
+                        "professional",
+                    ],
                 },
                 min_samples_per_subcategory=70,
-                bias_indicators=["classism", "economic bias", "poverty stigma"]
+                bias_indicators=["classism", "economic bias", "poverty stigma"],
             ),
             "geographic": DemographicConfig(
                 category="Geographic Distribution",
-                subcategories={
-                    "urban": 0.45,
-                    "suburban": 0.35,
-                    "rural": 0.20
-                },
+                subcategories={"urban": 0.45, "suburban": 0.35, "rural": 0.20},
                 keywords={
                     "urban": ["city", "urban", "downtown", "metropolitan", "apartment"],
                     "suburban": ["suburban", "suburbs", "neighborhood", "community"],
-                    "rural": ["rural", "country", "farm", "small town", "village"]
+                    "rural": ["rural", "country", "farm", "small town", "village"],
                 },
                 min_samples_per_subcategory=60,
-                bias_indicators=["urban bias", "rural stereotypes", "geographic discrimination"]
-            )
+                bias_indicators=[
+                    "urban bias",
+                    "rural stereotypes",
+                    "geographic discrimination",
+                ],
+            ),
         }
 
         if config_path and Path(config_path).exists():
@@ -159,28 +252,58 @@ class DemographicBalancer:
         """Load patterns that indicate demographic bias"""
         return {
             "age_bias": [
-                "too old", "too young", "generational gap", "outdated", "inexperienced",
-                "over the hill", "past their prime", "millennial", "boomer"
+                "too old",
+                "too young",
+                "generational gap",
+                "outdated",
+                "inexperienced",
+                "over the hill",
+                "past their prime",
+                "millennial",
+                "boomer",
             ],
             "gender_bias": [
-                "typical woman", "typical man", "act like a lady", "man up",
-                "emotional female", "weak man", "bossy woman"
+                "typical woman",
+                "typical man",
+                "act like a lady",
+                "man up",
+                "emotional female",
+                "weak man",
+                "bossy woman",
             ],
             "cultural_bias": [
-                "those people", "their kind", "not from here", "foreign",
-                "exotic", "primitive", "uncivilized", "different culture"
+                "those people",
+                "their kind",
+                "not from here",
+                "foreign",
+                "exotic",
+                "primitive",
+                "uncivilized",
+                "different culture",
             ],
             "socioeconomic_bias": [
-                "poor people", "rich snob", "trailer trash", "ghetto",
-                "privileged", "entitled", "welfare queen", "trust fund"
+                "poor people",
+                "rich snob",
+                "trailer trash",
+                "ghetto",
+                "privileged",
+                "entitled",
+                "welfare queen",
+                "trust fund",
             ],
             "geographic_bias": [
-                "city folk", "country bumpkin", "hillbilly", "urban elite",
-                "small town mentality", "big city problems"
-            ]
+                "city folk",
+                "country bumpkin",
+                "hillbilly",
+                "urban elite",
+                "small town mentality",
+                "big city problems",
+            ],
         }
 
-    def detect_demographics(self, conversation: dict[str, Any]) -> dict[str, dict[str, float]]:
+    def detect_demographics(
+        self, conversation: dict[str, Any]
+    ) -> dict[str, dict[str, float]]:
         """
         Detect demographic indicators in a conversation.
         Returns category -> subcategory -> score mapping.
@@ -227,7 +350,9 @@ class DemographicBalancer:
 
         return 0.0
 
-    def detect_bias_mitigation_opportunities(self, conversations: list[dict[str, Any]]) -> dict[str, list[str]]:
+    def detect_bias_mitigation_opportunities(
+        self, conversations: list[dict[str, Any]]
+    ) -> dict[str, list[str]]:
         """Identify opportunities for bias mitigation"""
         mitigation_opportunities = defaultdict(list)
 
@@ -239,21 +364,26 @@ class DemographicBalancer:
                 for bias_type, patterns in self.bias_patterns.items():
                     for pattern in patterns:
                         if pattern in content:
-                            mitigation_opportunities[bias_type].append({
-                                "conversation_id": conv.get("id", "unknown"),
-                                "bias_pattern": pattern,
-                                "bias_score": bias_score,
-                                "suggestion": f"Consider rephrasing to avoid '{pattern}' stereotype"
-                            })
+                            mitigation_opportunities[bias_type].append(
+                                {
+                                    "conversation_id": conv.get("id", "unknown"),
+                                    "bias_pattern": pattern,
+                                    "bias_score": bias_score,
+                                    "suggestion": f"Consider rephrasing to avoid '{pattern}' stereotype",
+                                }
+                            )
 
         return dict(mitigation_opportunities)
 
-    def balance_demographics(self, conversations: list[dict[str, Any]],
-                           target_total: int = 10000) -> list[DemographicBalance]:
+    def balance_demographics(
+        self, conversations: list[dict[str, Any]], target_total: int = 10000
+    ) -> list[DemographicBalance]:
         """
         Main method to balance conversations across demographic dimensions.
         """
-        logger.info(f"Starting demographic balancing for {len(conversations)} conversations")
+        logger.info(
+            f"Starting demographic balancing for {len(conversations)} conversations"
+        )
 
         # Categorize conversations by demographics
         demographic_conversations = defaultdict(lambda: defaultdict(list))
@@ -267,8 +397,12 @@ class DemographicBalancer:
                 for category, subcategory_scores in detected.items():
                     if subcategory_scores:
                         # Assign to highest scoring subcategory
-                        primary_subcategory = max(subcategory_scores.items(), key=lambda x: x[1])[0]
-                        demographic_conversations[category][primary_subcategory].append(conv)
+                        primary_subcategory = max(
+                            subcategory_scores.items(), key=lambda x: x[1]
+                        )[0]
+                        demographic_conversations[category][primary_subcategory].append(
+                            conv
+                        )
 
         # Balance each demographic category
         results = []
@@ -292,14 +426,18 @@ class DemographicBalancer:
 
                 if selected:
                     # Calculate metrics
-                    avg_bias_score = np.mean([self.assess_bias_score(conv) for conv in selected])
+                    avg_bias_score = np.mean(
+                        [self.assess_bias_score(conv) for conv in selected]
+                    )
 
                     result = DemographicBalance(
                         category=config.category,
                         subcategory=subcategory,
                         target_samples=target_count,
                         actual_samples=len(selected),
-                        proportion=len(selected) / category_total if category_total > 0 else 0,
+                        proportion=len(selected) / category_total
+                        if category_total > 0
+                        else 0,
                         conversations=selected,
                         bias_score=avg_bias_score,
                         metadata={
@@ -307,36 +445,49 @@ class DemographicBalancer:
                             "target_proportion": target_proportion,
                             "available_count": len(available_conversations),
                             "keywords": config.keywords.get(subcategory, []),
-                            "bias_indicators": config.bias_indicators
-                        }
+                            "bias_indicators": config.bias_indicators,
+                        },
                     )
 
                     results.append(result)
 
-                    logger.info(f"Balanced {subcategory}: {len(selected)} conversations "
-                               f"(bias score: {avg_bias_score:.3f})")
+                    logger.info(
+                        f"Balanced {subcategory}: {len(selected)} conversations "
+                        f"(bias score: {avg_bias_score:.3f})"
+                    )
 
         # Detect bias mitigation opportunities
-        mitigation_opportunities = self.detect_bias_mitigation_opportunities(conversations)
+        mitigation_opportunities = self.detect_bias_mitigation_opportunities(
+            conversations
+        )
 
         total_balanced = sum(r.actual_samples for r in results)
-        logger.info(f"Total balanced: {total_balanced} conversations across "
-                   f"{len(results)} demographic groups")
+        logger.info(
+            f"Total balanced: {total_balanced} conversations across "
+            f"{len(results)} demographic groups"
+        )
 
         # Store balancing history
-        self.balancing_history.append({
-            "timestamp": str(np.datetime64("now")),
-            "target_total": target_total,
-            "actual_total": total_balanced,
-            "demographic_groups": len(results),
-            "mitigation_opportunities": {k: len(v) for k, v in mitigation_opportunities.items()},
-            "results": {f"{r.category}_{r.subcategory}": r.metadata for r in results}
-        })
+        self.balancing_history.append(
+            {
+                "timestamp": str(np.datetime64("now")),
+                "target_total": target_total,
+                "actual_total": total_balanced,
+                "demographic_groups": len(results),
+                "mitigation_opportunities": {
+                    k: len(v) for k, v in mitigation_opportunities.items()
+                },
+                "results": {
+                    f"{r.category}_{r.subcategory}": r.metadata for r in results
+                },
+            }
+        )
 
         return results
 
-    def _select_diverse_conversations(self, conversations: list[dict[str, Any]],
-                                    target_count: int, subcategory: str) -> list[dict[str, Any]]:
+    def _select_diverse_conversations(
+        self, conversations: list[dict[str, Any]], target_count: int, subcategory: str
+    ) -> list[dict[str, Any]]:
         """Select conversations with diversity optimization"""
         if not conversations or target_count <= 0:
             return []
@@ -362,28 +513,47 @@ class DemographicBalancer:
         selected_count = min(target_count, len(scored_conversations))
         return [conv for conv, _ in scored_conversations[:selected_count]]
 
-
     def _assess_diversity_score(self, conversation: dict[str, Any]) -> float:
         """Assess diversity of perspectives and topics in conversation"""
         content = str(conversation).lower()
 
         # Diversity indicators
         diversity_indicators = [
-            "perspective", "viewpoint", "different", "various", "multiple",
-            "diverse", "inclusive", "variety", "range", "spectrum"
+            "perspective",
+            "viewpoint",
+            "different",
+            "various",
+            "multiple",
+            "diverse",
+            "inclusive",
+            "variety",
+            "range",
+            "spectrum",
         ]
 
         # Topic variety indicators
         topic_indicators = [
-            "experience", "background", "culture", "tradition", "belief",
-            "value", "opinion", "approach", "method", "style"
+            "experience",
+            "background",
+            "culture",
+            "tradition",
+            "belief",
+            "value",
+            "opinion",
+            "approach",
+            "method",
+            "style",
         ]
 
-        diversity_count = sum(1 for indicator in diversity_indicators if indicator in content)
+        diversity_count = sum(
+            1 for indicator in diversity_indicators if indicator in content
+        )
         topic_count = sum(1 for indicator in topic_indicators if indicator in content)
 
         # Calculate diversity score
-        diversity_score = (diversity_count + topic_count) / (len(diversity_indicators) + len(topic_indicators))
+        diversity_score = (diversity_count + topic_count) / (
+            len(diversity_indicators) + len(topic_indicators)
+        )
 
         return min(1.0, diversity_score * 2)  # Scale up and cap at 1.0
 
@@ -401,14 +571,13 @@ class DemographicBalancer:
                 category: {
                     "category_name": config.category,
                     "subcategories": config.subcategories,
-                    "min_samples_per_subcategory": config.min_samples_per_subcategory
+                    "min_samples_per_subcategory": config.min_samples_per_subcategory,
                 }
                 for category, config in self.demographic_configs.items()
             },
             "total_demographic_categories": len(self.demographic_configs),
-            "bias_patterns_tracked": len(self.bias_patterns)
+            "bias_patterns_tracked": len(self.bias_patterns),
         }
-
 
     def export_demographic_config(self, output_path: str):
         """Export current demographic configuration"""
@@ -419,13 +588,14 @@ class DemographicBalancer:
                 "subcategories": config.subcategories,
                 "keywords": config.keywords,
                 "min_samples_per_subcategory": config.min_samples_per_subcategory,
-                "bias_indicators": config.bias_indicators
+                "bias_indicators": config.bias_indicators,
             }
 
         with open(output_path, "w") as f:
             json.dump(config_data, f, indent=2)
 
         logger.info(f"Demographic configuration exported to {output_path}")
+
 
 def main():
     """Example usage of the Demographic Balancer"""
@@ -437,24 +607,42 @@ def main():
         {
             "id": "conv_1",
             "messages": [
-                {"content": "As a young woman in her twenties, I struggle with anxiety about my career.", "role": "client"},
-                {"content": "Many young adults face career anxiety. Let's explore your specific concerns.", "role": "therapist"}
-            ]
+                {
+                    "content": "As a young woman in her twenties, I struggle with anxiety about my career.",
+                    "role": "client",
+                },
+                {
+                    "content": "Many young adults face career anxiety. Let's explore your specific concerns.",
+                    "role": "therapist",
+                },
+            ],
         },
         {
             "id": "conv_2",
             "messages": [
-                {"content": "I'm a middle-aged man dealing with depression after losing my job.", "role": "client"},
-                {"content": "Job loss can be particularly challenging for men in midlife. How are you coping?", "role": "therapist"}
-            ]
+                {
+                    "content": "I'm a middle-aged man dealing with depression after losing my job.",
+                    "role": "client",
+                },
+                {
+                    "content": "Job loss can be particularly challenging for men in midlife. How are you coping?",
+                    "role": "therapist",
+                },
+            ],
         },
         {
             "id": "conv_3",
             "messages": [
-                {"content": "Growing up in a Hispanic family, mental health was never discussed.", "role": "client"},
-                {"content": "Cultural attitudes toward mental health vary. How does your background influence your perspective?", "role": "therapist"}
-            ]
-        }
+                {
+                    "content": "Growing up in a Hispanic family, mental health was never discussed.",
+                    "role": "client",
+                },
+                {
+                    "content": "Cultural attitudes toward mental health vary. How does your background influence your perspective?",
+                    "role": "therapist",
+                },
+            ],
+        },
     ] * 50  # Simulate larger dataset
 
     # Perform demographic balancing
@@ -469,6 +657,7 @@ def main():
 
     # Get statistics
     balancer.get_balancing_statistics()
+
 
 if __name__ == "__main__":
     main()

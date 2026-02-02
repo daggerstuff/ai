@@ -17,6 +17,7 @@ from typing import Any
 @dataclass
 class MemoryIssue:
     """Represents a memory usage issue found during analysis."""
+
     file_path: str
     line_number: int
     function_name: str
@@ -29,9 +30,11 @@ class MemoryIssue:
     estimated_memory_impact: str
     optimization_category: str
 
+
 @dataclass
 class MemoryStats:
     """Statistics about memory usage patterns."""
+
     total_files: int
     total_functions: int
     memory_leak_risks: int
@@ -40,6 +43,7 @@ class MemoryStats:
     circular_reference_risks: int
     generator_opportunities: int
     memory_optimization_score: float
+
 
 class MemoryAuditor:
     """Comprehensive memory usage auditor for optimization."""
@@ -54,23 +58,23 @@ class MemoryAuditor:
             "global_variables": {
                 "pattern": r"^[A-Z_][A-Z0-9_]*\s*=",
                 "severity": "MEDIUM",
-                "category": "MEMORY_LEAK_RISK"
+                "category": "MEMORY_LEAK_RISK",
             },
             "large_list_creation": {
                 "pattern": r"\[\s*.*\s*for\s+.*\s+in\s+range\(\d{4,}\)",
                 "severity": "HIGH",
-                "category": "LARGE_ALLOCATION"
+                "category": "LARGE_ALLOCATION",
             },
             "string_multiplication": {
                 "pattern": r'["\'].*["\']\s*\*\s*\d{3,}',
                 "severity": "MEDIUM",
-                "category": "LARGE_ALLOCATION"
+                "category": "LARGE_ALLOCATION",
             },
             "recursive_data_structures": {
                 "pattern": r"self\.\w+\s*=.*self",
                 "severity": "HIGH",
-                "category": "CIRCULAR_REFERENCE"
-            }
+                "category": "CIRCULAR_REFERENCE",
+            },
         }
 
         # Memory-inefficient patterns
@@ -79,13 +83,13 @@ class MemoryAuditor:
             "dict_instead_of_slots": "Use __slots__ in classes to reduce memory overhead",
             "string_concatenation": "Use join() instead of += for string concatenation",
             "unnecessary_copies": "Avoid unnecessary data copying",
-            "large_constants": "Move large constants to separate modules or files"
+            "large_constants": "Move large constants to separate modules or files",
         }
 
         # Setup logging
         logging.basicConfig(
             level=logging.INFO,
-            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
         self.logger = logging.getLogger(__name__)
 
@@ -123,19 +127,21 @@ class MemoryAuditor:
 
             except Exception as e:
                 self.logger.error(f"Error auditing file {file_path}: {e}")
-                self.issues.append(MemoryIssue(
-                    file_path=str(file_path),
-                    line_number=0,
-                    function_name="FILE_ERROR",
-                    class_name="",
-                    issue_type="AUDIT_ERROR",
-                    severity="HIGH",
-                    description=f"Failed to audit file: {e}",
-                    suggestion="Fix syntax errors or file encoding issues",
-                    code_snippet="",
-                    estimated_memory_impact="UNKNOWN",
-                    optimization_category="ERROR"
-                ))
+                self.issues.append(
+                    MemoryIssue(
+                        file_path=str(file_path),
+                        line_number=0,
+                        function_name="FILE_ERROR",
+                        class_name="",
+                        issue_type="AUDIT_ERROR",
+                        severity="HIGH",
+                        description=f"Failed to audit file: {e}",
+                        suggestion="Fix syntax errors or file encoding issues",
+                        code_snippet="",
+                        estimated_memory_impact="UNKNOWN",
+                        optimization_category="ERROR",
+                    )
+                )
 
         # Update stats
         self.stats.total_functions = total_functions
@@ -151,7 +157,7 @@ class MemoryAuditor:
         return {
             "stats": asdict(self.stats),
             "issues": [asdict(issue) for issue in self.issues],
-            "summary": self._generate_summary()
+            "summary": self._generate_summary(),
         }
 
     def _audit_file(self, file_path: Path) -> dict[str, Any]:
@@ -170,14 +176,18 @@ class MemoryAuditor:
                     "inefficient_structures": 0,
                     "large_allocations": 0,
                     "circular_refs": 0,
-                    "generator_opportunities": 0
+                    "generator_opportunities": 0,
                 }
 
             lines = content.split("\n")
 
             # Analyze functions and classes
-            functions = [node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)]
-            classes = [node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)]
+            functions = [
+                node for node in ast.walk(tree) if isinstance(node, ast.FunctionDef)
+            ]
+            classes = [
+                node for node in ast.walk(tree) if isinstance(node, ast.ClassDef)
+            ]
 
             memory_leaks = 0
             inefficient_structures = 0
@@ -212,7 +222,7 @@ class MemoryAuditor:
                 "inefficient_structures": inefficient_structures,
                 "large_allocations": large_allocations,
                 "circular_refs": circular_refs,
-                "generator_opportunities": generator_ops
+                "generator_opportunities": generator_ops,
             }
 
         except Exception as e:
@@ -223,10 +233,12 @@ class MemoryAuditor:
                 "inefficient_structures": 0,
                 "large_allocations": 0,
                 "circular_refs": 0,
-                "generator_opportunities": 0
+                "generator_opportunities": 0,
             }
 
-    def _analyze_function_memory(self, func_node: ast.FunctionDef, lines: list[str], file_path: str) -> dict[str, Any]:
+    def _analyze_function_memory(
+        self, func_node: ast.FunctionDef, lines: list[str], file_path: str
+    ) -> dict[str, Any]:
         """Analyze a single function for memory issues."""
         func_content = self._get_function_content(func_node, lines)
 
@@ -240,83 +252,101 @@ class MemoryAuditor:
         large_comprehensions = self._find_large_comprehensions(func_node)
         if large_comprehensions > 0:
             generator_ops += 1
-            self.issues.append(MemoryIssue(
-                file_path=file_path,
-                line_number=func_node.lineno,
-                function_name=func_node.name,
-                class_name="",
-                issue_type="GENERATOR_OPPORTUNITY",
-                severity="MEDIUM",
-                description=f"Function '{func_node.name}' has large list comprehensions",
-                suggestion="Consider using generator expressions for memory efficiency",
-                code_snippet=func_content[:200] + "..." if len(func_content) > 200 else func_content,
-                estimated_memory_impact="MEDIUM",
-                optimization_category="GENERATOR_OPPORTUNITY"
-            ))
+            self.issues.append(
+                MemoryIssue(
+                    file_path=file_path,
+                    line_number=func_node.lineno,
+                    function_name=func_node.name,
+                    class_name="",
+                    issue_type="GENERATOR_OPPORTUNITY",
+                    severity="MEDIUM",
+                    description=f"Function '{func_node.name}' has large list comprehensions",
+                    suggestion="Consider using generator expressions for memory efficiency",
+                    code_snippet=func_content[:200] + "..."
+                    if len(func_content) > 200
+                    else func_content,
+                    estimated_memory_impact="MEDIUM",
+                    optimization_category="GENERATOR_OPPORTUNITY",
+                )
+            )
 
         # Check for inefficient data structure usage
         inefficient_ds = self._find_inefficient_data_structures(func_node)
         if inefficient_ds > 0:
             inefficient_structures += 1
-            self.issues.append(MemoryIssue(
-                file_path=file_path,
-                line_number=func_node.lineno,
-                function_name=func_node.name,
-                class_name="",
-                issue_type="INEFFICIENT_DATA_STRUCTURE",
-                severity="MEDIUM",
-                description=f"Function '{func_node.name}' uses inefficient data structures",
-                suggestion="Consider using more memory-efficient data structures",
-                code_snippet=func_content[:200] + "..." if len(func_content) > 200 else func_content,
-                estimated_memory_impact="MEDIUM",
-                optimization_category="DATA_STRUCTURE"
-            ))
+            self.issues.append(
+                MemoryIssue(
+                    file_path=file_path,
+                    line_number=func_node.lineno,
+                    function_name=func_node.name,
+                    class_name="",
+                    issue_type="INEFFICIENT_DATA_STRUCTURE",
+                    severity="MEDIUM",
+                    description=f"Function '{func_node.name}' uses inefficient data structures",
+                    suggestion="Consider using more memory-efficient data structures",
+                    code_snippet=func_content[:200] + "..."
+                    if len(func_content) > 200
+                    else func_content,
+                    estimated_memory_impact="MEDIUM",
+                    optimization_category="DATA_STRUCTURE",
+                )
+            )
 
         # Check for potential memory leaks
         leak_risks = self._find_memory_leak_risks(func_node)
         if leak_risks > 0:
             memory_leaks += 1
-            self.issues.append(MemoryIssue(
-                file_path=file_path,
-                line_number=func_node.lineno,
-                function_name=func_node.name,
-                class_name="",
-                issue_type="MEMORY_LEAK_RISK",
-                severity="HIGH",
-                description=f"Function '{func_node.name}' has potential memory leak risks",
-                suggestion="Ensure proper cleanup of resources and avoid circular references",
-                code_snippet=func_content[:200] + "..." if len(func_content) > 200 else func_content,
-                estimated_memory_impact="HIGH",
-                optimization_category="MEMORY_LEAK"
-            ))
+            self.issues.append(
+                MemoryIssue(
+                    file_path=file_path,
+                    line_number=func_node.lineno,
+                    function_name=func_node.name,
+                    class_name="",
+                    issue_type="MEMORY_LEAK_RISK",
+                    severity="HIGH",
+                    description=f"Function '{func_node.name}' has potential memory leak risks",
+                    suggestion="Ensure proper cleanup of resources and avoid circular references",
+                    code_snippet=func_content[:200] + "..."
+                    if len(func_content) > 200
+                    else func_content,
+                    estimated_memory_impact="HIGH",
+                    optimization_category="MEMORY_LEAK",
+                )
+            )
 
         # Check for large object allocations
         large_allocs = self._find_large_allocations(func_node)
         if large_allocs > 0:
             large_allocations += 1
-            self.issues.append(MemoryIssue(
-                file_path=file_path,
-                line_number=func_node.lineno,
-                function_name=func_node.name,
-                class_name="",
-                issue_type="LARGE_ALLOCATION",
-                severity="HIGH",
-                description=f"Function '{func_node.name}' performs large memory allocations",
-                suggestion="Consider streaming or chunking large data operations",
-                code_snippet=func_content[:200] + "..." if len(func_content) > 200 else func_content,
-                estimated_memory_impact="HIGH",
-                optimization_category="LARGE_ALLOCATION"
-            ))
+            self.issues.append(
+                MemoryIssue(
+                    file_path=file_path,
+                    line_number=func_node.lineno,
+                    function_name=func_node.name,
+                    class_name="",
+                    issue_type="LARGE_ALLOCATION",
+                    severity="HIGH",
+                    description=f"Function '{func_node.name}' performs large memory allocations",
+                    suggestion="Consider streaming or chunking large data operations",
+                    code_snippet=func_content[:200] + "..."
+                    if len(func_content) > 200
+                    else func_content,
+                    estimated_memory_impact="HIGH",
+                    optimization_category="LARGE_ALLOCATION",
+                )
+            )
 
         return {
             "memory_leaks": memory_leaks,
             "inefficient_structures": inefficient_structures,
             "large_allocations": large_allocations,
             "circular_refs": circular_refs,
-            "generator_opportunities": generator_ops
+            "generator_opportunities": generator_ops,
         }
 
-    def _analyze_class_memory(self, class_node: ast.ClassDef, lines: list[str], file_path: str) -> dict[str, Any]:
+    def _analyze_class_memory(
+        self, class_node: ast.ClassDef, lines: list[str], file_path: str
+    ) -> dict[str, Any]:
         """Analyze a single class for memory issues."""
         class_content = self._get_class_content(class_node, lines)
 
@@ -326,8 +356,11 @@ class MemoryAuditor:
 
         # Check if class uses __slots__
         has_slots = any(
-            isinstance(node, ast.Assign) and
-            any(isinstance(target, ast.Name) and target.id == "__slots__" for target in node.targets)
+            isinstance(node, ast.Assign)
+            and any(
+                isinstance(target, ast.Name) and target.id == "__slots__"
+                for target in node.targets
+            )
             for node in class_node.body
         )
 
@@ -336,42 +369,50 @@ class MemoryAuditor:
 
         if not has_slots and instance_vars > 5:
             inefficient_structures += 1
-            self.issues.append(MemoryIssue(
-                file_path=file_path,
-                line_number=class_node.lineno,
-                function_name="",
-                class_name=class_node.name,
-                issue_type="MISSING_SLOTS",
-                severity="MEDIUM",
-                description=f"Class '{class_node.name}' could benefit from __slots__",
-                suggestion="Add __slots__ to reduce memory overhead for instances",
-                code_snippet=class_content[:200] + "..." if len(class_content) > 200 else class_content,
-                estimated_memory_impact="MEDIUM",
-                optimization_category="DATA_STRUCTURE"
-            ))
+            self.issues.append(
+                MemoryIssue(
+                    file_path=file_path,
+                    line_number=class_node.lineno,
+                    function_name="",
+                    class_name=class_node.name,
+                    issue_type="MISSING_SLOTS",
+                    severity="MEDIUM",
+                    description=f"Class '{class_node.name}' could benefit from __slots__",
+                    suggestion="Add __slots__ to reduce memory overhead for instances",
+                    code_snippet=class_content[:200] + "..."
+                    if len(class_content) > 200
+                    else class_content,
+                    estimated_memory_impact="MEDIUM",
+                    optimization_category="DATA_STRUCTURE",
+                )
+            )
 
         # Check for circular reference risks
         circular_risk = self._find_circular_reference_risks(class_node)
         if circular_risk > 0:
             circular_refs += 1
-            self.issues.append(MemoryIssue(
-                file_path=file_path,
-                line_number=class_node.lineno,
-                function_name="",
-                class_name=class_node.name,
-                issue_type="CIRCULAR_REFERENCE_RISK",
-                severity="HIGH",
-                description=f"Class '{class_node.name}' has circular reference risks",
-                suggestion="Use weak references or careful cleanup to avoid memory leaks",
-                code_snippet=class_content[:200] + "..." if len(class_content) > 200 else class_content,
-                estimated_memory_impact="HIGH",
-                optimization_category="CIRCULAR_REFERENCE"
-            ))
+            self.issues.append(
+                MemoryIssue(
+                    file_path=file_path,
+                    line_number=class_node.lineno,
+                    function_name="",
+                    class_name=class_node.name,
+                    issue_type="CIRCULAR_REFERENCE_RISK",
+                    severity="HIGH",
+                    description=f"Class '{class_node.name}' has circular reference risks",
+                    suggestion="Use weak references or careful cleanup to avoid memory leaks",
+                    code_snippet=class_content[:200] + "..."
+                    if len(class_content) > 200
+                    else class_content,
+                    estimated_memory_impact="HIGH",
+                    optimization_category="CIRCULAR_REFERENCE",
+                )
+            )
 
         return {
             "memory_leaks": memory_leaks,
             "inefficient_structures": inefficient_structures,
-            "circular_refs": circular_refs
+            "circular_refs": circular_refs,
         }
 
     def _find_large_comprehensions(self, node: ast.AST) -> int:
@@ -380,11 +421,16 @@ class MemoryAuditor:
         for child in ast.walk(node):
             if isinstance(child, ast.ListComp):
                 # Simple heuristic: nested comprehensions or range with large numbers
-                if any(isinstance(n, ast.ListComp) for n in ast.walk(child)) or any(isinstance(n, ast.Call) and
-                        isinstance(n.func, ast.Name) and n.func.id == "range" and
-                        len(n.args) > 0 and isinstance(n.args[0], ast.Constant) and
-                        isinstance(n.args[0].value, int) and n.args[0].value > 1000
-                        for n in ast.walk(child)):
+                if any(isinstance(n, ast.ListComp) for n in ast.walk(child)) or any(
+                    isinstance(n, ast.Call)
+                    and isinstance(n.func, ast.Name)
+                    and n.func.id == "range"
+                    and len(n.args) > 0
+                    and isinstance(n.args[0], ast.Constant)
+                    and isinstance(n.args[0].value, int)
+                    and n.args[0].value > 1000
+                    for n in ast.walk(child)
+                ):
                     count += 1
         return count
 
@@ -397,7 +443,9 @@ class MemoryAuditor:
             if isinstance(child, ast.For):
                 append_calls = 0
                 for stmt in ast.walk(child):
-                    if isinstance(stmt, ast.Call) and isinstance(stmt.func, ast.Attribute):
+                    if isinstance(stmt, ast.Call) and isinstance(
+                        stmt.func, ast.Attribute
+                    ):
                         if stmt.func.attr == "append":
                             append_calls += 1
                 if append_calls > 0:
@@ -431,7 +479,9 @@ class MemoryAuditor:
                 count += 1
             # Large string multiplication
             elif isinstance(child, ast.BinOp) and isinstance(child.op, ast.Mult):
-                if isinstance(child.right, ast.Constant) and isinstance(child.right.value, int):
+                if isinstance(child.right, ast.Constant) and isinstance(
+                    child.right.value, int
+                ):
                     if child.right.value > 1000:
                         count += 1
 
@@ -444,7 +494,9 @@ class MemoryAuditor:
         for node in ast.walk(class_node):
             if isinstance(node, ast.Assign):
                 for target in node.targets:
-                    if isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name):
+                    if isinstance(target, ast.Attribute) and isinstance(
+                        target.value, ast.Name
+                    ):
                         if target.value.id == "self":
                             instance_vars.add(target.attr)
 
@@ -457,18 +509,29 @@ class MemoryAuditor:
         for node in ast.walk(class_node):
             if isinstance(node, ast.Assign):
                 for target in node.targets:
-                    if isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name):
+                    if isinstance(target, ast.Attribute) and isinstance(
+                        target.value, ast.Name
+                    ):
                         if target.value.id == "self":
                             # Check if assigned value references self
-                            if any(isinstance(n, ast.Name) and n.id == "self" for n in ast.walk(node.value)):
+                            if any(
+                                isinstance(n, ast.Name) and n.id == "self"
+                                for n in ast.walk(node.value)
+                            ):
                                 count += 1
 
         return count
 
-    def _get_function_content(self, func_node: ast.FunctionDef, lines: list[str]) -> str:
+    def _get_function_content(
+        self, func_node: ast.FunctionDef, lines: list[str]
+    ) -> str:
         """Extract function content from source lines."""
         start_line = func_node.lineno - 1
-        end_line = func_node.end_lineno if hasattr(func_node, "end_lineno") else start_line + 20
+        end_line = (
+            func_node.end_lineno
+            if hasattr(func_node, "end_lineno")
+            else start_line + 20
+        )
 
         end_line = min(end_line, len(lines))
 
@@ -477,37 +540,42 @@ class MemoryAuditor:
     def _get_class_content(self, class_node: ast.ClassDef, lines: list[str]) -> str:
         """Extract class content from source lines."""
         start_line = class_node.lineno - 1
-        end_line = class_node.end_lineno if hasattr(class_node, "end_lineno") else start_line + 50
+        end_line = (
+            class_node.end_lineno
+            if hasattr(class_node, "end_lineno")
+            else start_line + 50
+        )
 
         end_line = min(end_line, len(lines))
 
         return "\n".join(lines[start_line:end_line])
 
-    def _check_file_memory_patterns(self, content: str, file_path: str) -> dict[str, int]:
+    def _check_file_memory_patterns(
+        self, content: str, file_path: str
+    ) -> dict[str, int]:
         """Check for file-level memory patterns."""
-        issues = {
-            "memory_leaks": 0,
-            "large_allocations": 0
-        }
+        issues = {"memory_leaks": 0, "large_allocations": 0}
 
         lines = content.split("\n")
 
         # Check for global variables
         for i, line in enumerate(lines):
             if re.match(r"^[A-Z_][A-Z0-9_]*\s*=", line.strip()):
-                self.issues.append(MemoryIssue(
-                    file_path=file_path,
-                    line_number=i + 1,
-                    function_name="",
-                    class_name="",
-                    issue_type="GLOBAL_VARIABLE",
-                    severity="MEDIUM",
-                    description="Global variable found",
-                    suggestion="Consider using class attributes or function parameters instead",
-                    code_snippet=line.strip()[:200],
-                    estimated_memory_impact="MEDIUM",
-                    optimization_category="MEMORY_LEAK"
-                ))
+                self.issues.append(
+                    MemoryIssue(
+                        file_path=file_path,
+                        line_number=i + 1,
+                        function_name="",
+                        class_name="",
+                        issue_type="GLOBAL_VARIABLE",
+                        severity="MEDIUM",
+                        description="Global variable found",
+                        suggestion="Consider using class attributes or function parameters instead",
+                        code_snippet=line.strip()[:200],
+                        estimated_memory_impact="MEDIUM",
+                        optimization_category="MEMORY_LEAK",
+                    )
+                )
                 issues["memory_leaks"] += 1
 
         return issues
@@ -545,7 +613,9 @@ class MemoryAuditor:
 
         for issue in self.issues:
             severity_counts[issue.severity] = severity_counts.get(issue.severity, 0) + 1
-            category_counts[issue.optimization_category] = category_counts.get(issue.optimization_category, 0) + 1
+            category_counts[issue.optimization_category] = (
+                category_counts.get(issue.optimization_category, 0) + 1
+            )
 
         return {
             "total_issues": len(self.issues),
@@ -554,13 +624,15 @@ class MemoryAuditor:
             "memory_score": f"{self.stats.memory_optimization_score:.1f}/100",
             "memory_leak_risks": self.stats.memory_leak_risks,
             "large_allocations": self.stats.large_object_allocations,
-            "generator_opportunities": self.stats.generator_opportunities
+            "generator_opportunities": self.stats.generator_opportunities,
         }
 
     def generate_report(self, output_file: str | None = None) -> str:
         """Generate comprehensive memory audit report."""
         if not output_file:
-            output_file = f"memory_audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            output_file = (
+                f"memory_audit_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            )
 
         report = {
             "audit_timestamp": datetime.now().isoformat(),
@@ -568,7 +640,7 @@ class MemoryAuditor:
             "stats": asdict(self.stats),
             "summary": self._generate_summary(),
             "issues": [asdict(issue) for issue in self.issues],
-            "recommendations": self._generate_recommendations()
+            "recommendations": self._generate_recommendations(),
         }
 
         with open(output_file, "w") as f:
@@ -582,28 +654,41 @@ class MemoryAuditor:
         recommendations = []
 
         if self.stats.memory_optimization_score < 50:
-            recommendations.append("CRITICAL: Memory optimization score is below 50. Immediate action required.")
+            recommendations.append(
+                "CRITICAL: Memory optimization score is below 50. Immediate action required."
+            )
         elif self.stats.memory_optimization_score < 70:
-            recommendations.append("WARNING: Memory optimization score is below 70. Consider optimization.")
+            recommendations.append(
+                "WARNING: Memory optimization score is below 70. Consider optimization."
+            )
 
         if self.stats.memory_leak_risks > 0:
-            recommendations.append(f"HIGH PRIORITY: Address {self.stats.memory_leak_risks} memory leak risks.")
+            recommendations.append(
+                f"HIGH PRIORITY: Address {self.stats.memory_leak_risks} memory leak risks."
+            )
 
         if self.stats.large_object_allocations > 0:
-            recommendations.append(f"Optimize {self.stats.large_object_allocations} large memory allocations.")
+            recommendations.append(
+                f"Optimize {self.stats.large_object_allocations} large memory allocations."
+            )
 
         if self.stats.generator_opportunities > 0:
-            recommendations.append(f"Implement generators for {self.stats.generator_opportunities} opportunities.")
+            recommendations.append(
+                f"Implement generators for {self.stats.generator_opportunities} opportunities."
+            )
 
-        recommendations.extend([
-            "Use __slots__ in classes with many instances",
-            "Implement object pooling for frequently created objects",
-            "Use weak references to break circular dependencies",
-            "Profile memory usage with tracemalloc in production",
-            "Consider using memory-mapped files for large datasets"
-        ])
+        recommendations.extend(
+            [
+                "Use __slots__ in classes with many instances",
+                "Implement object pooling for frequently created objects",
+                "Use weak references to break circular dependencies",
+                "Profile memory usage with tracemalloc in production",
+                "Consider using memory-mapped files for large datasets",
+            ]
+        )
 
         return recommendations
+
 
 def main():
     """Main function for running the memory auditor."""
@@ -618,10 +703,13 @@ def main():
     # Print summary
 
     # Show top issues
-    high_severity_issues = [issue for issue in auditor.issues if issue.severity == "HIGH"]
+    high_severity_issues = [
+        issue for issue in auditor.issues if issue.severity == "HIGH"
+    ]
     if high_severity_issues:
         for _issue in high_severity_issues[:5]:  # Show first 5
             pass
+
 
 if __name__ == "__main__":
     main()

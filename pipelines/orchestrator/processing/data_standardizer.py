@@ -11,8 +11,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from .conversation_schema import Conversation
-from .logger import get_logger
+from ..conversation_schema import Conversation
+from ..logger import get_logger
 from .standardizer import from_input_output_pair, from_simple_message_list
 
 # from config import Config  # Comment out if config not available
@@ -105,7 +105,8 @@ class DataStandardizer:
         self.validators: list[Callable] = []
 
         self.logger.info(
-            f"DataStandardizer initialized with {max_workers} workers, batch size {batch_size}"
+            f"DataStandardizer initialized with {max_workers} workers, "
+            f"batch size {batch_size}"
         )
 
     def register_converter(self, format_name: str, converter_func: Callable) -> None:
@@ -163,7 +164,9 @@ class DataStandardizer:
         Returns:
             StandardizationResult object
         """
-        result = self._standardize_single_internal(data, format_hint, source, conversation_id)
+        result = self._standardize_single_internal(
+            data, format_hint, source, conversation_id
+        )
 
         # Update stats if monitoring is enabled
         if self.enable_monitoring:
@@ -217,7 +220,14 @@ class DataStandardizer:
                 if not validation_result.get("valid", True):
                     return StandardizationResult(
                         success=False,
-                        error=f"Validation failed: {validation_result.get('error', 'Unknown validation error')}",
+                        error=(
+                            "Validation failed: "
+                            f"{
+                                validation_result.get(
+                                    'error', 'Unknown validation error'
+                                )
+                            }"
+                        ),
                         processing_time=time.time() - start_time,
                         source_format=detected_format,
                     )
@@ -278,16 +288,21 @@ class DataStandardizer:
             }
 
             # Collect results in order
-            results = [None] * len(data_items)
+            results: list[StandardizationResult | None] = [None] * len(data_items)
             for future in as_completed(future_to_index):
                 index = future_to_index[future]
                 results[index] = future.result()
 
+        # Cast to non-optional type since all positions are filled
+        typed_results: list[StandardizationResult] = [
+            r for r in results if r is not None
+        ]
+
         # Update statistics
         if self.enable_monitoring:
-            self._update_stats(results)
+            self._update_stats(typed_results)
 
-        return results
+        return typed_results
 
     def standardize_file(
         self,
@@ -333,7 +348,8 @@ class DataStandardizer:
 
             if self.enable_monitoring:
                 self.logger.info(
-                    f"Processed batch {i//self.batch_size + 1}/{(len(data_items) + self.batch_size - 1)//self.batch_size}"
+                    f"Processed batch {i // self.batch_size + 1}/"
+                    f"{(len(data_items) + self.batch_size - 1) // self.batch_size}"
                 )
 
         # Save results if output path provided

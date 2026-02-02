@@ -5,15 +5,20 @@ Processes the existing 86MB merged mental health dataset (43,683 conversations).
 
 import json
 import os
+import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
-from emotional_authenticity_assessment import EmotionalAuthenticityAssessor
-from logger import get_logger
-from quality_filter import QualityFilter
-from standardizer import from_input_output_pair
-from therapeutic_accuracy_assessment import TherapeuticAccuracyAssessor
+from ai.pipelines.orchestrator.processing.quality_filter import QualityFilter
+from ai.pipelines.orchestrator.processing.standardizer import from_input_output_pair
+from ai.pipelines.orchestrator.quality.emotional_authenticity_assessment import (
+    EmotionalAuthenticityAssessor,
+)
+from ai.pipelines.orchestrator.quality.therapeutic_accuracy_assessment import (
+    TherapeuticAccuracyAssessor,
+)
+from ai.pipelines.orchestrator.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.consolidated_mental_health_processor")
 
@@ -71,7 +76,7 @@ class ConsolidatedMentalHealthProcessor:
         logger.info(
             f"Therapeutic accuracy threshold: {self.config.therapeutic_accuracy_threshold}"
         )
-        start_time = datetime.now(tz=datetime.timezone.utc)
+        start_time = datetime.now(tz=timezone.utc)
 
         if not os.path.exists(self.config.input_file):
             raise FileNotFoundError(
@@ -140,9 +145,7 @@ class ConsolidatedMentalHealthProcessor:
         self._save_conversations(processed_conversations, output_path)
 
         # Generate processing report
-        processing_time = (
-            datetime.now(tz=datetime.timezone.utc) - start_time
-        ).total_seconds()
+        processing_time = (datetime.now(tz=timezone.utc) - start_time).total_seconds()
         processing_report = self._generate_processing_report(
             processed_conversations, processing_time
         )
@@ -197,7 +200,7 @@ class ConsolidatedMentalHealthProcessor:
                         "source_file": self.config.input_file,
                         "original_line_number": line_num,
                         "processing_timestamp": datetime.now(
-                            tz=datetime.timezone.utc
+                            tz=timezone.utc
                         ).isoformat(),
                     }
                 )
@@ -378,19 +381,24 @@ class ConsolidatedMentalHealthProcessor:
             return min(0.3 + (low_count * 0.05), 0.5)
         return 0.4  # Default moderate intensity
 
-    self, conversation: dict[str, Any]) -> bool:
+    def _assess_quality(self, conversation: dict[str, Any]) -> bool:
         """Assess conversation quality using quality filter."""
         try:
             # Convert dict to Conversation object for assessment
             conv_obj = self._dict_to_conversation(conversation)
-            filter_result = self.quality_filter.filter_conversation(conv_obj)
+
+            quality_result = self.quality_filter.assess_conversation_quality(conv_obj)
+            if isinstance(quality_result, dict):
+                overall_score = float(quality_result.get("overall_score", 0.0))
+            else:
+                overall_score = float(quality_result)
+
             logger.info(
-                "QualityFilter: conversation_id=%s, overall_score=%.3f, passed=%s",
+                "QualityFilter: conversation_id=%s, overall_score=%.3f",
                 getattr(conv_obj, "id", "unknown"),
-                filter_result.overall_score,
-                filter_result.passed,
+                overall_score,
             )
-            return filter_result.overall_score >= self.config.quality_threshold
+            return overall_score >= self.config.quality_threshold
         except Exception as e:
             logger.warning("Quality assessment failed: %s", e, exc_info=True)
             return False
@@ -403,10 +411,12 @@ class ConsolidatedMentalHealthProcessor:
             accuracy_metrics = self.therapeutic_assessor.assess_therapeutic_accuracy(
                 conv_obj
             )
-            return (
-                accuracy_metrics.overall_score
-                >= self.config.therapeutic_accuracy_threshold
-            )
+            if isinstance(accuracy_metrics, int | float):
+                overall_score = float(accuracy_metrics)
+            else:
+                overall_score = float(getattr(accuracy_metrics, "overall_score"))
+
+            return overall_score >= self.config.therapeutic_accuracy_threshold
         except Exception as e:
             # Broad exception caught for therapeutic accuracy; log full details for debugging
             logger.warning(
@@ -422,10 +432,12 @@ class ConsolidatedMentalHealthProcessor:
             authenticity_metrics = (
                 self.emotional_assessor.assess_emotional_authenticity(conv_obj)
             )
-            return (
-                authenticity_metrics.overall_score
-                >= self.config.emotional_authenticity_threshold
-            )
+            if isinstance(authenticity_metrics, int | float):
+                overall_score = float(authenticity_metrics)
+            else:
+                overall_score = float(getattr(authenticity_metrics, "overall_score"))
+
+            return overall_score >= self.config.emotional_authenticity_threshold
         except Exception as e:
             # Broad exception caught for emotional authenticity; log full details for debugging
             logger.warning(
@@ -435,26 +447,41 @@ class ConsolidatedMentalHealthProcessor:
 
     def _dict_to_conversation(self, conversation_dict: dict[str, Any]):
         """Convert conversation dict to Conversation object for assessments."""
-        from conversation_schema import Conversation, Message
+        from ai.pipelines.orchestrator.schemas.conversation_schema import (
+            Conversation,
+            Message,
+        )
 
-        messages = []
+        messages: list[Message] = []
         for msg_dict in conversation_dict.get("conversation", []):
             messages.append(
                 Message(
                     role=msg_dict["role"],
                     content=msg_dict["content"],
-                    timestamp=None,
-                    meta={},
+                )
+            )
+
+        raw_id = conversation_dict.get("id")
+        if raw_id is not None:
+            conversation_id: str = str(raw_id)
+        else:
+            message_fingerprint = json.dumps(
+                [{"role": m.role, "content": m.content} for m in messages],
+                ensure_ascii=False,
+                separators=(",", ":"),
+            )
+            conversation_id = str(
+                uuid.uuid5(
+                    uuid.NAMESPACE_URL,
+                    f"consolidated_mental_health:{message_fingerprint}",
                 )
             )
 
         return Conversation(
-            id=None,
+            conversation_id=conversation_id,
             messages=messages,
-            context=conversation_dict.get("metadata", {}),
             source="consolidated_mental_health",
-            created_at=None,
-            meta={},
+            metadata=conversation_dict.get("metadata", {}),
         )
 
     def _save_conversations(
@@ -470,7 +497,8 @@ class ConsolidatedMentalHealthProcessor:
         )
 
     def _generate_processing_report(
-self, conversations: list[dict[str, Any]], processing_time: float) -> dict[str, Any]:
+        self, conversations: list[dict[str, Any]], processing_time: float
+    ) -> dict[str, Any]:
         """Generate comprehensive processing report."""
         return {
             "processing_summary": {
@@ -518,7 +546,7 @@ self, conversations: list[dict[str, Any]], processing_time: float) -> dict[str, 
                 "emotional_authenticity_threshold": self.config.emotional_authenticity_threshold,
                 "batch_size": self.config.batch_size,
             },
-            "timestamp": datetime.now(tz=datetime.timezone.utc).isoformat(),
+            "timestamp": datetime.now(tz=timezone.utc).isoformat(),
             "task": "5.1: Process existing consolidated mental health dataset (86MB JSONL)",
         }
 
@@ -551,39 +579,50 @@ self, conversations: list[dict[str, Any]], processing_time: float) -> dict[str, 
         self, conversations: list[dict[str, Any]]
     ) -> dict[str, float]:
         """Analyze conversation length statistics."""
-        lengths = [
-            conv.get("metadata", {}).get("conversation_length", 0)
-            for conv in conversations
-        ]
+        lengths: list[int] = []
+        for conv in conversations:
+            raw_length = conv.get("metadata", {}).get("conversation_length", 0)
+            try:
+                lengths.append(int(raw_length))
+            except (TypeError, ValueError):
+                lengths.append(0)
         if not lengths:
-            return {"min": 0, "max": 0, "average": 0}
+            return {"min": 0.0, "max": 0.0, "average": 0.0}
 
         return {
-            "min": min(lengths),
-            "max": max(lengths),
-            "average": sum(lengths) / len(lengths),
+            "min": float(min(lengths)),
+            "max": float(max(lengths)),
+            "average": float(sum(lengths)) / float(len(lengths)),
         }
 
     def _analyze_content_lengths(
         self, conversations: list[dict[str, Any]]
     ) -> dict[str, dict[str, float]]:
         """Analyze content length statistics."""
-        client_lengths = [
-            conv.get("metadata", {}).get("client_content_length", 0)
-            for conv in conversations
-        ]
-        therapist_lengths = [
-            conv.get("metadata", {}).get("therapist_response_length", 0)
-            for conv in conversations
-        ]
+        client_lengths: list[int] = []
+        therapist_lengths: list[int] = []
+        for conv in conversations:
+            raw_client_length = conv.get("metadata", {}).get("client_content_length", 0)
+            raw_therapist_length = conv.get("metadata", {}).get(
+                "therapist_response_length", 0
+            )
+            try:
+                client_lengths.append(int(raw_client_length))
+            except (TypeError, ValueError):
+                client_lengths.append(0)
 
-        def get_stats(lengths):
+            try:
+                therapist_lengths.append(int(raw_therapist_length))
+            except (TypeError, ValueError):
+                therapist_lengths.append(0)
+
+        def get_stats(lengths: list[int] | list[float]) -> dict[str, float]:
             if not lengths:
-                return {"min": 0, "max": 0, "average": 0}
+                return {"min": 0.0, "max": 0.0, "average": 0.0}
             return {
-                "min": min(lengths),
-                "max": max(lengths),
-                "average": sum(lengths) / len(lengths),
+                "min": float(min(lengths)),
+                "max": float(max(lengths)),
+                "average": float(sum(lengths)) / float(len(lengths)),
             }
 
         return {

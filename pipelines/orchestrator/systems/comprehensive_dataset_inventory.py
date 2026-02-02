@@ -455,6 +455,7 @@ class ComprehensiveDatasetInventory:
         tags: list[str] | None = None,
     ) -> str:
         """Register a new dataset."""
+
         file_path = Path(file_path).resolve()
 
         if not file_path.exists():
@@ -611,6 +612,7 @@ class ComprehensiveDatasetInventory:
         self, directory: str, auto_register: bool = False
     ) -> list[dict[str, Any]]:
         """Discover datasets in a directory."""
+
         directory = Path(directory)
         discovered = []
 
@@ -805,7 +807,6 @@ if __name__ == "__main__":
             license="MIT",
             tags=["test", "mental_health"],
         )
-
 
         # Get dataset info
         info = inventory.get_dataset_info(dataset_id)
