@@ -3,18 +3,17 @@
 Streaming S3 Dataset Processor - Processes 52.20GB without local storage
 """
 
+import hashlib
 import json
 import logging
+import os
 import re
-import hashlib
-import sys
-from pathlib import Path
+import tempfile
 from datetime import datetime
+from typing import Any, Dict, Iterator
+
 import boto3
 from botocore.exceptions import ClientError
-import os
-import tempfile
-from typing import Iterator, Dict, Any
 
 # Configure logging
 logging.basicConfig(
@@ -286,7 +285,7 @@ def main():
         response = input("\n🚀 Proceed with streaming processing? (y/N): ")
         if response.lower() == "y":
             result = processor.process_all_datasets()
-            print(f"✅ Processing complete!")
+            print("✅ Processing complete!")
             print(
                 f"   Processed: {result['processed_files']}/{result['total_files']} files"
             )

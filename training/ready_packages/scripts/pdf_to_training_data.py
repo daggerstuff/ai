@@ -613,7 +613,9 @@ class TrainingDataConverter:
 
 
 def process_pdf_file(
-    pdf_path: str, output_file: str, book_metadata: Dict[str, Any] = None
+    pdf_path: str,
+    output_file: str,
+    book_metadata: Dict[str, Any] = None,
 ):
     """Process a single PDF file and convert to training data."""
     if not book_metadata:

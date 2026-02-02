@@ -26,9 +26,13 @@ script_path: Path = Path(__file__).resolve()
 project_root: Path = script_path.parents[3]
 sys.path.insert(0, str(project_root))
 
-from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader  # noqa: E402
+from ai.training.ready_packages.utils.s3_dataset_loader import (
+    S3DatasetLoader,  # noqa: E402
+)
 
-logging.getLogger("ai.training.ready_packages.utils.s3_dataset_loader").setLevel(logging.ERROR)
+logging.getLogger("ai.training.ready_packages.utils.s3_dataset_loader").setLevel(
+    logging.ERROR
+)
 
 DEFAULT_S3_BUCKET = "pixel-data"
 MAX_RETRIES = 3
@@ -124,7 +128,9 @@ def build_decode_candidates(*, detected_encoding: str) -> list[str]:
     return _unique_encodings(common)
 
 
-def try_decode(content: bytes, encodings: list[str] | None = None) -> tuple[str | None, str | None]:
+def try_decode(
+    content: bytes, encodings: list[str] | None = None
+) -> tuple[str | None, str | None]:
     """
     Try to decode content with various encodings.
 
@@ -198,7 +204,9 @@ def download_sample_with_retry(
                 output.info(f"Retry {attempt}/{MAX_RETRIES}...", end="", flush=True)
 
             try:
-                response = loader.s3_client.get_object(Bucket=bucket, Key=key, Range=range_header)
+                response = loader.s3_client.get_object(
+                    Bucket=bucket, Key=key, Range=range_header
+                )
                 return response["Body"].read()
             except ClientError:
                 # Some S3 compatibles may not support Range consistently; fallback.
@@ -306,7 +314,9 @@ def convert_jsonl_streaming_to_utf8(
 
         encoder = codecs.getincrementalencoder("utf-8")()
 
-        for raw_line in iter_s3_jsonl_lines_bytes(loader=loader, bucket=bucket, key=key):
+        for raw_line in iter_s3_jsonl_lines_bytes(
+            loader=loader, bucket=bucket, key=key
+        ):
             line_num += 1
 
             try:
@@ -509,7 +519,9 @@ def process_jsonl_file(
 
     try:
         # Detect encoding from a small sample (memory safe)
-        sample = download_sample_with_retry(loader=loader, bucket=bucket, key=key, output=output)
+        sample = download_sample_with_retry(
+            loader=loader, bucket=bucket, key=key, output=output
+        )
         if sample is None:
             return {
                 "success": False,
@@ -517,7 +529,9 @@ def process_jsonl_file(
             }
 
         detected_encoding, confidence = detect_encoding(sample)
-        output.info(f"     Detected encoding: {detected_encoding} (confidence: {confidence:.2%})")
+        output.info(
+            f"     Detected encoding: {detected_encoding} (confidence: {confidence:.2%})"
+        )
 
         # Stream-check UTF-8 validity (doesn't build the whole file in RAM)
         with contextlib.suppress(UnicodeDecodeError):
@@ -578,13 +592,23 @@ def process_json_file(
         if encoding_used != "utf-8":
             output.warning(f"File is {encoding_used}, converting to UTF-8...")
         else:
-            output.warning(f"UTF-8 detection failed, but content decoded as {encoding_used}")
+            output.warning(
+                f"UTF-8 detection failed, but content decoded as {encoding_used}"
+            )
 
     def _parse_json(*, text: str, encoding_used: str) -> dict[str, Any]:
         try:
-            return {"success": True, "data": json.loads(text), "encoding_used": encoding_used}
+            return {
+                "success": True,
+                "data": json.loads(text),
+                "encoding_used": encoding_used,
+            }
         except json.JSONDecodeError as e:
-            return {"success": False, "error": f"JSON decode error: {e}", "encoding": encoding_used}
+            return {
+                "success": False,
+                "error": f"JSON decode error: {e}",
+                "encoding": encoding_used,
+            }
 
     def _encode_utf8(*, data: Any) -> bytes:
         return json.dumps(data, indent=2, ensure_ascii=False).encode("utf-8")
@@ -594,11 +618,16 @@ def process_json_file(
 
     content = download_with_retry(loader, bucket, key, output)
     if content is None:
-        return {"success": False, "error": f"Connection failed after {MAX_RETRIES} attempts"}
+        return {
+            "success": False,
+            "error": f"Connection failed after {MAX_RETRIES} attempts",
+        }
 
     try:
         detected_encoding, confidence = detect_encoding(content)
-        output.info(f"     Detected encoding: {detected_encoding} (confidence: {confidence:.2%})")
+        output.info(
+            f"     Detected encoding: {detected_encoding} (confidence: {confidence:.2%})"
+        )
 
         text, encoding_used = try_decode(content)
         if text is None or encoding_used is None:
@@ -701,7 +730,10 @@ def find_files_with_encoding_issues() -> list[dict[str, Any]]:
         "soulchat_2_0_complete_no_limits.jsonl",
         "datasets/gdrive/processed/soulchat_complete/soulchat_2_0_complete_no_limits.jsonl",
     ]
-    return [{"key": key, "category": "known_problematic", "size": 0} for key in problematic_files]
+    return [
+        {"key": key, "category": "known_problematic", "size": 0}
+        for key in problematic_files
+    ]
 
 
 def list_s3_files_in_prefix(
@@ -965,7 +997,9 @@ def main() -> None:
     print_results(results, output)
 
     # Save results
-    results_path = save_results(project_root=project_root, dry_run=args.dry_run, results=results)
+    results_path = save_results(
+        project_root=project_root, dry_run=args.dry_run, results=results
+    )
     output.info(f"\n💾 Results saved to: {results_path}")
     output.info("\n✅ Encoding fix complete!")
 

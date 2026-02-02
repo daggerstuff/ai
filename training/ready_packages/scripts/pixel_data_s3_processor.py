@@ -3,11 +3,11 @@
 Pixel-Data S3 Processor - Uses actual S3 endpoint for 60GB dataset
 """
 
-import subprocess
 import json
 import os
-from pathlib import Path
+import subprocess
 from datetime import datetime
+from pathlib import Path
 
 
 def run_s3_command(cmd):
@@ -135,7 +135,7 @@ def list_s3_with_aws_cli():
     """Use AWS CLI to list S3 bucket contents"""
     print("🔍 Using AWS CLI to discover pixel-data...")
 
-    cmd = f"aws s3 ls s3://pixel-data --recursive --endpoint-url https://s3.us-east-va.io.cloud.ovh.us --human-readable --summarize"
+    cmd = "aws s3 ls s3://pixel-data --recursive --endpoint-url https://s3.us-east-va.io.cloud.ovh.us --human-readable --summarize"
 
     try:
         result = subprocess.run(cmd, shell=True, capture_output=True, text=True)

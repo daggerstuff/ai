@@ -84,7 +84,10 @@ def get_consolidation_artifacts() -> list[tuple[Path, str]]:
     # Audit reports and completion summaries
     plan_files = [
         (
-            project_root / ".cursor" / "plans" / "training_package_consolidation_audit_report.md",
+            project_root
+            / ".cursor"
+            / "plans"
+            / "training_package_consolidation_audit_report.md",
             "datasets/metadata/consolidation/reports/audit_report.md",
         ),
         (
@@ -99,7 +102,10 @@ def get_consolidation_artifacts() -> list[tuple[Path, str]]:
     # Related consolidation documentation (if exists)
     related_docs = [
         (
-            project_root / ".notes" / "markdown" / "three.md",  # Google Drive consolidation
+            project_root
+            / ".notes"
+            / "markdown"
+            / "three.md",  # Google Drive consolidation
             "datasets/metadata/consolidation/findings/gdrive_consolidation_audit.md",
         ),
         (
@@ -125,7 +131,9 @@ def get_consolidation_artifacts() -> list[tuple[Path, str]]:
     return artifacts
 
 
-def create_manifest_entry(artifacts: list[tuple[Path, str]], uploaded: list[str]) -> dict:
+def create_manifest_entry(
+    artifacts: list[tuple[Path, str]], uploaded: list[str]
+) -> dict:
     """Create a manifest entry for the uploaded artifacts."""
     return {
         "category": "consolidation_artifacts",
@@ -144,7 +152,9 @@ def create_manifest_entry(artifacts: list[tuple[Path, str]], uploaded: list[str]
     }
 
 
-def upload_consolidation_artifacts(prefix: str = "datasets/metadata/consolidation/") -> dict:
+def upload_consolidation_artifacts(
+    prefix: str = "datasets/metadata/consolidation/",
+) -> dict:
     """
     Upload all consolidation artifacts to S3.
 
