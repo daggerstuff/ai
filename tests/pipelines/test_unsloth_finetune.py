@@ -11,14 +11,15 @@ Covers:
 London School TDD: All tests must fail initially for correct reasons.
 """
 
-import os
-import tempfile
 import json
 import logging
-import pytest
+import os
+import tempfile
 from unittest.mock import MagicMock, patch
 
 import ai.pipelines.unsloth_finetune as unsloth_mod
+import pytest
+
 
 class TestUnslothFinetunePipeline:
     # --- Config loading and validation ---
@@ -74,13 +75,18 @@ class TestUnslothFinetunePipeline:
         """If Unsloth is not installed, finetune_with_unsloth raises ImportError."""
         with patch.object(unsloth_mod, "unsloth", None):
             with pytest.raises(ImportError):
-                unsloth_mod.finetune_with_unsloth(tokenized_data=[], config={"batch_size":1,"epochs":1,"learning_rate":1e-4})
+                unsloth_mod.finetune_with_unsloth(
+                    tokenized_data=[],
+                    config={"batch_size": 1, "epochs": 1, "learning_rate": 1e-4},
+                )
 
     def test_finetune_with_unsloth_valueerror(self):
         """If config is missing required fields, finetune_with_unsloth raises ValueError."""
         with patch.object(unsloth_mod, "unsloth", MagicMock()):
             with pytest.raises(ValueError):
-                unsloth_mod.finetune_with_unsloth(tokenized_data=[], config={"batch_size":1})
+                unsloth_mod.finetune_with_unsloth(
+                    tokenized_data=[], config={"batch_size": 1}
+                )
 
     def test_finetune_with_unsloth_runtime_error(self):
         """If model loading fails, finetune_with_unsloth logs and raises."""
@@ -88,7 +94,10 @@ class TestUnslothFinetunePipeline:
         mock_unsloth.load_gguf_model.side_effect = RuntimeError("model load failed")
         with patch.object(unsloth_mod, "unsloth", mock_unsloth):
             with pytest.raises(RuntimeError):
-                unsloth_mod.finetune_with_unsloth(tokenized_data=[], config={"batch_size":1,"epochs":1,"learning_rate":1e-4})
+                unsloth_mod.finetune_with_unsloth(
+                    tokenized_data=[],
+                    config={"batch_size": 1, "epochs": 1, "learning_rate": 1e-4},
+                )
 
     # --- Compliance and safety monitoring integration ---
 
@@ -98,10 +107,10 @@ class TestUnslothFinetunePipeline:
         mock_unsloth.load_gguf_model.return_value = MagicMock()
         mock_compliance = MagicMock()
         mock_safety = MagicMock()
-        config = {"batch_size":1,"epochs":1,"learning_rate":1e-4}
+        config = {"batch_size": 1, "epochs": 1, "learning_rate": 1e-4}
         with patch.object(unsloth_mod, "unsloth", mock_unsloth):
             unsloth_mod.finetune_with_unsloth(
-                tokenized_data=[1,2,3],
+                tokenized_data=[1, 2, 3],
                 config=config,
                 compliance_system=mock_compliance,
                 safety_monitor=mock_safety,
@@ -116,11 +125,13 @@ class TestUnslothFinetunePipeline:
         """finetune_with_unsloth uses the provided logger for info and error messages."""
         mock_unsloth = MagicMock()
         mock_unsloth.load_gguf_model.return_value = MagicMock()
-        config = {"batch_size":1,"epochs":1,"learning_rate":1e-4}
+        config = {"batch_size": 1, "epochs": 1, "learning_rate": 1e-4}
         logger = logging.getLogger("test_logger")
         with patch.object(unsloth_mod, "unsloth", mock_unsloth):
             with caplog.at_level(logging.INFO):
-                unsloth_mod.finetune_with_unsloth(tokenized_data=[], config=config, logger=logger)
+                unsloth_mod.finetune_with_unsloth(
+                    tokenized_data=[], config=config, logger=logger
+                )
         assert any("Loaded training config" in m for m in caplog.messages)
         assert any("Fine-tuning completed successfully" in m for m in caplog.messages)
 
@@ -128,9 +139,12 @@ class TestUnslothFinetunePipeline:
         """finetune_with_unsloth accepts and passes through extra kwargs."""
         mock_unsloth = MagicMock()
         mock_unsloth.load_gguf_model.return_value = MagicMock()
-        config = {"batch_size":1,"epochs":1,"learning_rate":1e-4}
+        config = {"batch_size": 1, "epochs": 1, "learning_rate": 1e-4}
         with patch.object(unsloth_mod, "unsloth", mock_unsloth):
             # Should not raise
-            unsloth_mod.finetune_with_unsloth(tokenized_data=[], config=config, extra_param="foo")
+            unsloth_mod.finetune_with_unsloth(
+                tokenized_data=[], config=config, extra_param="foo"
+            )
+
 
 # TDD anchor: Add more tests for training loop, metrics, and compliance edge cases as implementation grows.
