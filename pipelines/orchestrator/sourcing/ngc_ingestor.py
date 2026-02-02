@@ -15,7 +15,6 @@ from typing import Any, ClassVar
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
-
 from ai.utils.ngc_cli import (
     NGCCLIAuthError,
     NGCCLIDownloadError,
@@ -67,6 +66,7 @@ class NGCIngestor:
             logger.info("NGC CLI initialized successfully")
         except (NGCCLINotFoundError, NGCCLIAuthError) as e:
             logger.warning(f"NGC CLI not available: {e}")
+
             self.cli = None
 
     def is_available(self) -> bool:
@@ -74,7 +74,10 @@ class NGCIngestor:
         return self.cli is not None
 
     def download_dataset(
-        self, resource_path: str, version: str | None = None, target_folder: str | None = None
+        self,
+        resource_path: str,
+        version: str | None = None,
+        target_folder: str | None = None,
     ) -> Path:
         """
         Download a dataset from NGC catalog.
@@ -99,7 +102,10 @@ class NGCIngestor:
         logger.info(f"Downloading NGC dataset: {resource_path}...")
         try:
             downloaded_path = self.cli.download_resource(
-                resource_path=resource_path, version=version, output_dir=output_dir, extract=True
+                resource_path=resource_path,
+                version=version,
+                output_dir=output_dir,
+                extract=True,
             )
             logger.info(f"Successfully downloaded to {downloaded_path}")
             return downloaded_path
@@ -107,7 +113,9 @@ class NGCIngestor:
             logger.error(f"Failed to download {resource_path}: {e}")
             raise
 
-    def process_dataset(self, resource_path: str, config: dict[str, Any]) -> dict[str, Any]:
+    def process_dataset(
+        self, resource_path: str, config: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Process a dataset from NGC catalog.
 

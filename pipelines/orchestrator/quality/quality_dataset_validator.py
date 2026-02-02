@@ -25,8 +25,11 @@ class QualityValidationResult(ValidationResult):
     content_quality_score: float = 0.0
     coherence_score: float = 0.0
     therapeutic_effectiveness_score: float = 0.0
+
     conversation_length_stats: dict[str, float] = None
+
     quality_distribution: dict[str, int] = None
+
     coherence_issues: list[str] = None
 
 

@@ -40,7 +40,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         self.test_scenario = self.scenario_generator.generate_client_scenario(
             scenario_type=ScenarioType.INITIAL_ASSESSMENT,
             severity_level=SeverityLevel.MODERATE,
-            demographic_category=DemographicCategory.YOUNG_ADULT
+            demographic_category=DemographicCategory.YOUNG_ADULT,
         )
 
     def test_initialization(self):
@@ -55,10 +55,19 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def test_therapeutic_technique_enum(self):
         """Test TherapeuticTechnique enum values."""
         expected_techniques = {
-            "active_listening", "empathic_reflection", "open_ended_questioning",
-            "summarization", "clarification", "validation", "psychoeducation",
-            "cognitive_restructuring", "behavioral_activation", "mindfulness",
-            "grounding_techniques", "safety_planning", "therapeutic_challenge"
+            "active_listening",
+            "empathic_reflection",
+            "open_ended_questioning",
+            "summarization",
+            "clarification",
+            "validation",
+            "psychoeducation",
+            "cognitive_restructuring",
+            "behavioral_activation",
+            "mindfulness",
+            "grounding_techniques",
+            "safety_planning",
+            "therapeutic_challenge",
         }
         actual_techniques = {technique.value for technique in TherapeuticTechnique}
         assert expected_techniques == actual_techniques
@@ -66,9 +75,14 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def test_response_type_enum(self):
         """Test ResponseType enum values."""
         expected_types = {
-            "assessment_question", "empathic_response", "psychoeducational",
-            "intervention_suggestion", "crisis_response", "therapeutic_challenge",
-            "supportive_statement", "treatment_planning"
+            "assessment_question",
+            "empathic_response",
+            "psychoeducational",
+            "intervention_suggestion",
+            "crisis_response",
+            "therapeutic_challenge",
+            "supportive_statement",
+            "treatment_planning",
         }
         actual_types = {response_type.value for response_type in ResponseType}
         assert expected_types == actual_types
@@ -76,9 +90,14 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def test_therapeutic_modality_enum(self):
         """Test TherapeuticModality enum values."""
         expected_modalities = {
-            "cognitive_behavioral", "psychodynamic", "humanistic",
-            "dialectical_behavioral", "acceptance_commitment", "mindfulness_based",
-            "trauma_informed", "solution_focused"
+            "cognitive_behavioral",
+            "psychodynamic",
+            "humanistic",
+            "dialectical_behavioral",
+            "acceptance_commitment",
+            "mindfulness_based",
+            "trauma_informed",
+            "solution_focused",
         }
         actual_modalities = {modality.value for modality in TherapeuticModality}
         assert expected_modalities == actual_modalities
@@ -106,7 +125,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         """Test appropriate technique selection for crisis scenarios."""
         crisis_scenario = self.scenario_generator.generate_client_scenario(
             scenario_type=ScenarioType.CRISIS_INTERVENTION,
-            severity_level=SeverityLevel.CRISIS
+            severity_level=SeverityLevel.CRISIS,
         )
 
         context = ResponseContext(client_scenario=crisis_scenario)
@@ -116,7 +135,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         crisis_techniques = [
             TherapeuticTechnique.SAFETY_PLANNING,
             TherapeuticTechnique.GROUNDING_TECHNIQUES,
-            TherapeuticTechnique.VALIDATION
+            TherapeuticTechnique.VALIDATION,
         ]
         assert technique in crisis_techniques
 
@@ -129,7 +148,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         assessment_techniques = [
             TherapeuticTechnique.ACTIVE_LISTENING,
             TherapeuticTechnique.OPEN_ENDED_QUESTIONING,
-            TherapeuticTechnique.EMPATHIC_REFLECTION
+            TherapeuticTechnique.EMPATHIC_REFLECTION,
         ]
         assert technique in assessment_techniques
 
@@ -137,7 +156,9 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         """Test modality selection based on DSM-5 considerations."""
         # Create scenario with anxiety-related DSM-5 considerations
         anxiety_scenario = self.test_scenario
-        anxiety_scenario.clinical_formulation.dsm5_considerations = ["Consider Generalized Anxiety Disorder"]
+        anxiety_scenario.clinical_formulation.dsm5_considerations = [
+            "Consider Generalized Anxiety Disorder"
+        ]
 
         context = ResponseContext(client_scenario=anxiety_scenario)
         modality = self.generator._select_appropriate_modality(context)
@@ -145,7 +166,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         # Should select anxiety-appropriate modalities
         anxiety_modalities = [
             TherapeuticModality.COGNITIVE_BEHAVIORAL,
-            TherapeuticModality.MINDFULNESS_BASED
+            TherapeuticModality.MINDFULNESS_BASED,
         ]
         assert modality in anxiety_modalities
 
@@ -155,7 +176,9 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         technique = TherapeuticTechnique.EMPATHIC_REFLECTION
         modality = TherapeuticModality.HUMANISTIC
 
-        content = self.generator._generate_response_content(context, technique, modality)
+        content = self.generator._generate_response_content(
+            context, technique, modality
+        )
 
         assert isinstance(content, str)
         assert len(content) > 10  # Reasonable length
@@ -166,7 +189,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         """Test crisis-specific response content generation."""
         crisis_scenario = self.scenario_generator.generate_client_scenario(
             scenario_type=ScenarioType.CRISIS_INTERVENTION,
-            severity_level=SeverityLevel.CRISIS
+            severity_level=SeverityLevel.CRISIS,
         )
         crisis_scenario.session_context["crisis_type"] = "suicidal_ideation"
 
@@ -174,7 +197,9 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         technique = TherapeuticTechnique.SAFETY_PLANNING
         modality = TherapeuticModality.TRAUMA_INFORMED
 
-        content = self.generator._generate_response_content(context, technique, modality)
+        content = self.generator._generate_response_content(
+            context, technique, modality
+        )
 
         # Should contain crisis-appropriate language
         crisis_keywords = ["safety", "safe", "concerned", "together", "help"]
@@ -199,31 +224,46 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         base_content = "I understand what you're saying."
 
         # Test CBT adjustment
-        cbt_content = self.generator._adjust_for_modality(base_content, TherapeuticModality.COGNITIVE_BEHAVIORAL)
+        cbt_content = self.generator._adjust_for_modality(
+            base_content, TherapeuticModality.COGNITIVE_BEHAVIORAL
+        )
         assert "thoughts" in cbt_content.lower()
 
         # Test psychodynamic adjustment
-        psychodynamic_content = self.generator._adjust_for_modality(base_content, TherapeuticModality.PSYCHODYNAMIC)
+        psychodynamic_content = self.generator._adjust_for_modality(
+            base_content, TherapeuticModality.PSYCHODYNAMIC
+        )
         assert "pattern" in psychodynamic_content.lower()
 
         # Test humanistic adjustment
-        humanistic_content = self.generator._adjust_for_modality(base_content, TherapeuticModality.HUMANISTIC)
-        assert any(word in humanistic_content.lower() for word in ["feel", "experience", "sense"])
+        humanistic_content = self.generator._adjust_for_modality(
+            base_content, TherapeuticModality.HUMANISTIC
+        )
+        assert any(
+            word in humanistic_content.lower()
+            for word in ["feel", "experience", "sense"]
+        )
 
     def test_response_type_determination(self):
         """Test response type determination based on technique."""
         context = ResponseContext(client_scenario=self.test_scenario)
 
         # Test psychoeducation
-        response_type = self.generator._determine_response_type(context, TherapeuticTechnique.PSYCHOEDUCATION)
+        response_type = self.generator._determine_response_type(
+            context, TherapeuticTechnique.PSYCHOEDUCATION
+        )
         assert response_type == ResponseType.PSYCHOEDUCATIONAL
 
         # Test empathic reflection
-        response_type = self.generator._determine_response_type(context, TherapeuticTechnique.EMPATHIC_REFLECTION)
+        response_type = self.generator._determine_response_type(
+            context, TherapeuticTechnique.EMPATHIC_REFLECTION
+        )
         assert response_type == ResponseType.EMPATHIC_RESPONSE
 
         # Test open-ended questioning
-        response_type = self.generator._determine_response_type(context, TherapeuticTechnique.OPEN_ENDED_QUESTIONING)
+        response_type = self.generator._determine_response_type(
+            context, TherapeuticTechnique.OPEN_ENDED_QUESTIONING
+        )
         assert response_type == ResponseType.ASSESSMENT_QUESTION
 
     def test_clinical_rationale_generation(self):
@@ -232,23 +272,32 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         technique = TherapeuticTechnique.VALIDATION
         modality = TherapeuticModality.HUMANISTIC
 
-        rationale = self.generator._generate_clinical_rationale(context, technique, modality)
+        rationale = self.generator._generate_clinical_rationale(
+            context, technique, modality
+        )
 
         assert isinstance(rationale, str)
         assert len(rationale) > 10
         # Check for validation-related terms
-        validation_terms = ["validates", "normalizes", "reduces shame", "client experience"]
+        validation_terms = [
+            "validates",
+            "normalizes",
+            "reduces shame",
+            "client experience",
+        ]
         assert any(term in rationale.lower() for term in validation_terms)
 
     def test_contraindications_identification(self):
         """Test identification of technique contraindications."""
         crisis_scenario = self.scenario_generator.generate_client_scenario(
             scenario_type=ScenarioType.CRISIS_INTERVENTION,
-            severity_level=SeverityLevel.CRISIS
+            severity_level=SeverityLevel.CRISIS,
         )
 
         context = ResponseContext(client_scenario=crisis_scenario)
-        contraindications = self.generator._identify_contraindications(context, TherapeuticTechnique.COGNITIVE_RESTRUCTURING)
+        contraindications = self.generator._identify_contraindications(
+            context, TherapeuticTechnique.COGNITIVE_RESTRUCTURING
+        )
 
         assert isinstance(contraindications, list)
         # Should identify crisis as contraindication for cognitive restructuring
@@ -257,7 +306,9 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def test_follow_up_suggestions(self):
         """Test follow-up suggestion generation."""
         context = ResponseContext(client_scenario=self.test_scenario)
-        follow_ups = self.generator._suggest_follow_ups(context, TherapeuticTechnique.EMPATHIC_REFLECTION)
+        follow_ups = self.generator._suggest_follow_ups(
+            context, TherapeuticTechnique.EMPATHIC_REFLECTION
+        )
 
         assert isinstance(follow_ups, list)
         assert len(follow_ups) > 0
@@ -267,7 +318,9 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
 
     def test_effectiveness_indicators(self):
         """Test effectiveness indicator definition."""
-        indicators = self.generator._define_effectiveness_indicators(TherapeuticTechnique.VALIDATION)
+        indicators = self.generator._define_effectiveness_indicators(
+            TherapeuticTechnique.VALIDATION
+        )
 
         assert isinstance(indicators, list)
         assert len(indicators) > 0
@@ -280,7 +333,7 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         conversation = self.generator.generate_conversation_with_responses(
             self.test_scenario,
             num_exchanges=3,
-            target_modality=TherapeuticModality.COGNITIVE_BEHAVIORAL
+            target_modality=TherapeuticModality.COGNITIVE_BEHAVIORAL,
         )
 
         # Check conversation structure
@@ -295,7 +348,9 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
         assert conversation.messages[2].role == "therapist"
 
         # Check therapist message metadata
-        therapist_messages = [msg for msg in conversation.messages if msg.role == "therapist"]
+        therapist_messages = [
+            msg for msg in conversation.messages if msg.role == "therapist"
+        ]
         for msg in therapist_messages:
             assert "technique" in msg.meta
             assert "response_type" in msg.meta
@@ -305,7 +360,9 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def test_client_response_generation(self):
         """Test realistic client response generation."""
         # Test initial response
-        initial_response = self.generator._generate_initial_client_response(self.test_scenario)
+        initial_response = self.generator._generate_initial_client_response(
+            self.test_scenario
+        )
         assert isinstance(initial_response, str)
         assert len(initial_response) > 10
 
@@ -316,7 +373,9 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def test_generate_response_batch(self):
         """Test batch response generation."""
         scenarios = [self.test_scenario]
-        responses = self.generator.generate_response_batch(scenarios, responses_per_scenario=3)
+        responses = self.generator.generate_response_batch(
+            scenarios, responses_per_scenario=3
+        )
 
         assert len(responses) == 3
         for response in responses:
@@ -325,7 +384,9 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def test_export_responses_to_json(self):
         """Test exporting responses to JSON."""
         context = ResponseContext(client_scenario=self.test_scenario)
-        responses = [self.generator.generate_therapeutic_response(context) for _ in range(2)]
+        responses = [
+            self.generator.generate_therapeutic_response(context) for _ in range(2)
+        ]
 
         with tempfile.TemporaryDirectory() as temp_dir:
             output_path = Path(temp_dir) / "test_responses.json"
@@ -354,13 +415,19 @@ class TestTherapeuticResponseGenerator(unittest.TestCase):
     def test_get_statistics(self):
         """Test response statistics generation."""
         context = ResponseContext(client_scenario=self.test_scenario)
-        responses = [self.generator.generate_therapeutic_response(context) for _ in range(5)]
+        responses = [
+            self.generator.generate_therapeutic_response(context) for _ in range(5)
+        ]
 
         stats = self.generator.get_statistics(responses)
 
         expected_keys = {
-            "total_responses", "techniques_used", "response_types",
-            "modalities_used", "average_contraindications", "average_follow_ups"
+            "total_responses",
+            "techniques_used",
+            "response_types",
+            "modalities_used",
+            "average_contraindications",
+            "average_follow_ups",
         }
         assert set(stats.keys()) == expected_keys
 

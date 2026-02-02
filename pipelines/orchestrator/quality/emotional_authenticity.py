@@ -10,7 +10,7 @@ The score ranges from 0.0 (inauthentic) to 1.0 (highly authentic).
 
 from typing import Any
 
-from .conversation_schema import Conversation
+from ai.pipelines.orchestrator.conversation_schema import Conversation
 
 # A simple set of emotion words for demonstration purposes.
 EMOTION_WORDS = {
@@ -50,10 +50,10 @@ def score_emotional_authenticity(conversation: Conversation) -> dict[str, Any]:
             "issues": list of str (explanations for low scores)
         }
     """
-    emotion_counts = set()
+    emotion_counts: set[str] = set()
     flat_count = 0
-    last_emotion = None
-    issues = []
+    last_emotion: set[str] | None = None
+    issues: list[str] = []
 
     for msg in conversation.messages:
         words = set(msg.content.lower().split())

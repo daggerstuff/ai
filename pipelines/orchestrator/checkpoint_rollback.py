@@ -8,12 +8,12 @@ import logging
 import os
 import shutil
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import torch
-from transformers import PreTrainedModel, PreTrainedTokenizer
+from transformers import AutoTokenizer, PreTrainedModel, PreTrainedTokenizer
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class CheckpointInfo:
     """Information about a specific checkpoint"""
+
     checkpoint_id: str
     path: str
     step: int
@@ -34,6 +35,7 @@ class CheckpointInfo:
 @dataclass
 class RollbackResult:
     """Result of a rollback operation"""
+
     success: bool
     message: str
     previous_checkpoint: Optional[CheckpointInfo]
@@ -59,7 +61,7 @@ class CheckpointManager:
         """Load checkpoint history from file"""
         if self.checkpoint_history_file.exists():
             try:
-                with open(self.checkpoint_history_file, 'r') as f:
+                with open(self.checkpoint_history_file, "r") as f:
                     data = json.load(f)
                 return [self._dict_to_checkpoint_info(item) for item in data]
             except Exception as e:
@@ -71,7 +73,7 @@ class CheckpointManager:
         """Save checkpoint history to file"""
         try:
             data = [self._checkpoint_info_to_dict(item) for item in self.history]
-            with open(self.checkpoint_history_file, 'w') as f:
+            with open(self.checkpoint_history_file, "w") as f:
                 json.dump(data, f, indent=2)
         except Exception as e:
             self.logger.error(f"Could not save checkpoint history: {e}")
@@ -79,36 +81,38 @@ class CheckpointManager:
     def _dict_to_checkpoint_info(self, data: Dict[str, Any]) -> CheckpointInfo:
         """Convert dictionary to CheckpointInfo"""
         return CheckpointInfo(
-            checkpoint_id=data['checkpoint_id'],
-            path=data['path'],
-            step=data['step'],
-            timestamp=data['timestamp'],
-            metrics=data.get('metrics'),
-            is_best=data.get('is_best', False),
-            training_args=data.get('training_args'),
-            metadata=data.get('metadata')
+            checkpoint_id=data["checkpoint_id"],
+            path=data["path"],
+            step=data["step"],
+            timestamp=data["timestamp"],
+            metrics=data.get("metrics"),
+            is_best=data.get("is_best", False),
+            training_args=data.get("training_args"),
+            metadata=data.get("metadata"),
         )
 
     def _checkpoint_info_to_dict(self, checkpoint: CheckpointInfo) -> Dict[str, Any]:
         """Convert CheckpointInfo to dictionary"""
         return {
-            'checkpoint_id': checkpoint.checkpoint_id,
-            'path': checkpoint.path,
-            'step': checkpoint.step,
-            'timestamp': checkpoint.timestamp,
-            'metrics': checkpoint.metrics,
-            'is_best': checkpoint.is_best,
-            'training_args': checkpoint.training_args,
-            'metadata': checkpoint.metadata
+            "checkpoint_id": checkpoint.checkpoint_id,
+            "path": checkpoint.path,
+            "step": checkpoint.step,
+            "timestamp": checkpoint.timestamp,
+            "metrics": checkpoint.metrics,
+            "is_best": checkpoint.is_best,
+            "training_args": checkpoint.training_args,
+            "metadata": checkpoint.metadata,
         }
 
-    def register_checkpoint(self,
-                           checkpoint_path: str,
-                           step: int,
-                           metrics: Optional[Dict[str, float]] = None,
-                           is_best: bool = False,
-                           training_args: Optional[Dict[str, Any]] = None,
-                           metadata: Optional[Dict[str, Any]] = None) -> CheckpointInfo:
+    def register_checkpoint(
+        self,
+        checkpoint_path: str,
+        step: int,
+        metrics: Optional[Dict[str, float]] = None,
+        is_best: bool = False,
+        training_args: Optional[Dict[str, Any]] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> CheckpointInfo:
         """Register a new checkpoint in the history"""
         checkpoint_id = f"chkpt_step_{step}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -116,11 +120,11 @@ class CheckpointManager:
             checkpoint_id=checkpoint_id,
             path=checkpoint_path,
             step=step,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(timezone.utc).isoformat(),
             metrics=metrics,
             is_best=is_best,
             training_args=training_args,
-            metadata=metadata
+            metadata=metadata,
         )
 
         # Add to history
@@ -161,8 +165,11 @@ class CheckpointManager:
         if available:
             best_checkpoint = max(
                 available,
-                key=lambda x: (x.metrics.get('eval_loss', float('inf')) * -1
-                              if x.metrics else x.step)
+                key=lambda x: (
+                    x.metrics.get("eval_loss", float("inf")) * -1
+                    if x.metrics
+                    else x.step
+                ),
             )
             return best_checkpoint
 
@@ -183,18 +190,14 @@ class CheckpointManager:
         return None
 
     def get_checkpoints_by_step_range(
-        self,
-        start_step: int,
-        end_step: int
+        self, start_step: int, end_step: int
     ) -> List[CheckpointInfo]:
         """Get checkpoints within a specific step range"""
         available = self.get_available_checkpoints()
         return [chk for chk in available if start_step <= chk.step <= end_step]
 
     def cleanup_checkpoints(
-        self,
-        keep_last_n: int = 5,
-        keep_best_n: int = 2
+        self, keep_last_n: int = 5, keep_best_n: int = 2
     ) -> List[str]:
         """Clean up old checkpoints while keeping the most recent and best ones"""
         available = self.get_available_checkpoints()
@@ -211,8 +214,9 @@ class CheckpointManager:
         if keep_best_n > 0:
             best_checkpoints = sorted(
                 available,
-                key=lambda x: x.metrics.get('eval_loss', float('inf'))
-                if x.metrics else float('inf')
+                key=lambda x: x.metrics.get("eval_loss", float("inf"))
+                if x.metrics
+                else float("inf"),
             )[:keep_best_n]
             for chk in best_checkpoints:
                 checkpoints_to_keep.add(chk.checkpoint_id)
@@ -235,7 +239,8 @@ class CheckpointManager:
 
                 # Remove from history
                 self.history = [
-                    h for h in self.history
+                    h
+                    for h in self.history
                     if h.checkpoint_id != checkpoint.checkpoint_id
                 ]
             except Exception as e:
@@ -249,8 +254,8 @@ class CheckpointManager:
     def create_recovery_point(self, checkpoint_path: str) -> str:
         """Create a recovery point that won't be cleaned up"""
         recovery_path = (
-            self.checkpoints_dir /
-            f"recovery_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+            self.checkpoints_dir
+            / f"recovery_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
         )
         checkpoint_path_obj = Path(checkpoint_path)
 
@@ -259,9 +264,7 @@ class CheckpointManager:
             self.logger.info(f"Created recovery point: {recovery_path}")
             return str(recovery_path)
 
-        raise FileNotFoundError(
-            f"Checkpoint path does not exist: {checkpoint_path}"
-        )
+        raise FileNotFoundError(f"Checkpoint path does not exist: {checkpoint_path}")
 
     def validate_checkpoint(self, checkpoint_path: str) -> Tuple[bool, str]:
         """Validate that a checkpoint is complete and can be loaded"""
@@ -274,7 +277,7 @@ class CheckpointManager:
             "pytorch_model.bin",
             "config.json",
             "tokenizer.json",
-            "training_args.bin"
+            "training_args.bin",
         ]
 
         missing_files = []
@@ -283,10 +286,7 @@ class CheckpointManager:
                 missing_files.append(required_file)
 
         if missing_files:
-            return (
-                False,
-                f"Missing required files: {missing_files}"
-            )
+            return (False, f"Missing required files: {missing_files}")
 
         # Try to load basic components to ensure checkpoint integrity
         try:
@@ -299,37 +299,30 @@ class CheckpointManager:
                 pass
 
             # Check if model file exists and has content
-            model_path = (
-                checkpoint_path_obj / "pytorch_model.bin"
-            )
+            model_path = checkpoint_path_obj / "pytorch_model.bin"
             if model_path.exists() and model_path.stat().st_size == 0:
                 return False, "Model file is empty"
 
             return True, "Checkpoint is valid"
         except Exception as e:
-            return (
-                False,
-                f"Checkpoint validation failed: {e}"
-            )
+            return (False, f"Checkpoint validation failed: {e}")
 
     def export_checkpoint_metadata(self, output_path: str):
         """Export checkpoint metadata to a file"""
         metadata = {
-            'export_timestamp': datetime.utcnow().isoformat(),
-            'total_checkpoints': len(self.history),
-            'available_checkpoints': len(self.get_available_checkpoints()),
-            'checkpoints': [
+            "export_timestamp": datetime.now(timezone.utc).isoformat(),
+            "total_checkpoints": len(self.history),
+            "available_checkpoints": len(self.get_available_checkpoints()),
+            "checkpoints": [
                 self._checkpoint_info_to_dict(chk)
                 for chk in self.get_available_checkpoints()
-            ]
+            ],
         }
 
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(metadata, f, indent=2)
 
-        self.logger.info(
-            f"Exported checkpoint metadata to {output_path}"
-        )
+        self.logger.info(f"Exported checkpoint metadata to {output_path}")
 
 
 class RollbackManager:
@@ -347,7 +340,7 @@ class RollbackManager:
         """Load rollback history from file"""
         if self.rollback_log_file.exists():
             try:
-                with open(self.rollback_log_file, 'r') as f:
+                with open(self.rollback_log_file, "r") as f:
                     return json.load(f)
             except Exception as e:
                 self.logger.warning(f"Could not load rollback history: {e}")
@@ -357,16 +350,17 @@ class RollbackManager:
     def _save_rollback_history(self):
         """Save rollback history to file"""
         try:
-            with open(self.rollback_log_file, 'w') as f:
+            with open(self.rollback_log_file, "w") as f:
                 json.dump(self.rollback_history, f, indent=2)
         except Exception as e:
             self.logger.error(f"Could not save rollback history: {e}")
 
-    def rollback_to_checkpoint(self,
-                             checkpoint_id: str,
-                             model: Optional[PreTrainedModel] = None,
-                             tokenizer: Optional[PreTrainedTokenizer] = None
-                             ) -> RollbackResult:
+    def rollback_to_checkpoint(
+        self,
+        checkpoint_id: str,
+        model: Optional[PreTrainedModel] = None,
+        tokenizer: Optional[PreTrainedTokenizer] = None,
+    ) -> RollbackResult:
         """Rollback to a specific checkpoint"""
         checkpoint_info = self.checkpoint_manager.get_checkpoint_by_id(checkpoint_id)
 
@@ -376,12 +370,12 @@ class RollbackManager:
                 message=f"Checkpoint {checkpoint_id} not found",
                 previous_checkpoint=None,
                 new_checkpoint=None,
-                rollback_time=datetime.utcnow().isoformat()
+                rollback_time=datetime.now(timezone.utc).isoformat(),
             )
 
         # Validate the checkpoint before rollback
-        is_valid, validation_msg = (
-            self.checkpoint_manager.validate_checkpoint(checkpoint_info.path)
+        is_valid, validation_msg = self.checkpoint_manager.validate_checkpoint(
+            checkpoint_info.path
         )
         if not is_valid:
             return RollbackResult(
@@ -389,7 +383,7 @@ class RollbackManager:
                 message=f"Checkpoint validation failed: {validation_msg}",
                 previous_checkpoint=None,
                 new_checkpoint=checkpoint_info,
-                rollback_time=datetime.utcnow().isoformat()
+                rollback_time=datetime.now(timezone.utc).isoformat(),
             )
 
         try:
@@ -398,34 +392,31 @@ class RollbackManager:
                 model.load_state_dict(
                     torch.load(
                         Path(checkpoint_info.path) / "pytorch_model.bin",
-                        map_location=model.device
+                        map_location=model.device,
                     )
                 )
-                self.logger.info(
-                    f"Loaded model from checkpoint: {checkpoint_id}"
-                )
+                self.logger.info(f"Loaded model from checkpoint: {checkpoint_id}")
 
             if tokenizer is not None:
                 tokenizer_path = Path(checkpoint_info.path)
-                tokenizer = PreTrainedTokenizer.from_pretrained(tokenizer_path)
-                self.logger.info(
-                    f"Loaded tokenizer from checkpoint: {checkpoint_id}"
-                )
+                loaded_tokenizer = AutoTokenizer.from_pretrained(tokenizer_path)
+                # Copy state to the passed tokenizer if compatible
+                if hasattr(tokenizer, "tokenizer"):
+                    tokenizer.tokenizer = loaded_tokenizer
+                self.logger.info(f"Loaded tokenizer from checkpoint: {checkpoint_id}")
 
             # Log the rollback operation
             rollback_record = {
-                'timestamp': datetime.utcnow().isoformat(),
-                'from_checkpoint': checkpoint_info.checkpoint_id,
-                'to_checkpoint': checkpoint_info.checkpoint_id,
-                'success': True,
-                'message': 'Rollback completed successfully'
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "from_checkpoint": checkpoint_info.checkpoint_id,
+                "to_checkpoint": checkpoint_info.checkpoint_id,
+                "success": True,
+                "message": "Rollback completed successfully",
             }
             self.rollback_history.append(rollback_record)
             self._save_rollback_history()
 
-            self.logger.info(
-                f"Successfully rolled back to checkpoint: {checkpoint_id}"
-            )
+            self.logger.info(f"Successfully rolled back to checkpoint: {checkpoint_id}")
 
             return RollbackResult(
                 success=True,
@@ -433,7 +424,7 @@ class RollbackManager:
                 previous_checkpoint=None,  # We don't have a
                 # previous checkpoint in this context
                 new_checkpoint=checkpoint_info,
-                rollback_time=datetime.utcnow().isoformat()
+                rollback_time=datetime.now(timezone.utc).isoformat(),
             )
 
         except Exception as e:
@@ -442,14 +433,15 @@ class RollbackManager:
                 message=f"Rollback failed: {str(e)}",
                 previous_checkpoint=None,
                 new_checkpoint=checkpoint_info,
-                rollback_time=datetime.utcnow().isoformat()
+                rollback_time=datetime.now(timezone.utc).isoformat(),
             )
 
-    def rollback_to_step(self,
-                        target_step: int,
-                        model: Optional[PreTrainedModel] = None,
-                        tokenizer: Optional[PreTrainedTokenizer] = None
-                        ) -> RollbackResult:
+    def rollback_to_step(
+        self,
+        target_step: int,
+        model: Optional[PreTrainedModel] = None,
+        tokenizer: Optional[PreTrainedTokenizer] = None,
+    ) -> RollbackResult:
         """Rollback to the closest checkpoint at or before the target step"""
         available = self.checkpoint_manager.get_available_checkpoints()
 
@@ -463,66 +455,54 @@ class RollbackManager:
         if not candidate:
             return RollbackResult(
                 success=False,
-                message=(
-                    f"No checkpoint found at or before step {target_step}"
-                ),
+                message=(f"No checkpoint found at or before step {target_step}"),
                 previous_checkpoint=None,
                 new_checkpoint=None,
-                rollback_time=datetime.utcnow().isoformat()
+                rollback_time=datetime.now(timezone.utc).isoformat(),
             )
 
-        return self.rollback_to_checkpoint(
-            candidate.checkpoint_id,
-            model,
-            tokenizer
-        )
+        return self.rollback_to_checkpoint(candidate.checkpoint_id, model, tokenizer)
 
-    def rollback_to_best(self,
-                        model: Optional[PreTrainedModel] = None,
-                        tokenizer: Optional[PreTrainedTokenizer] = None
-                        ) -> RollbackResult:
+    def rollback_to_best(
+        self,
+        model: Optional[PreTrainedModel] = None,
+        tokenizer: Optional[PreTrainedTokenizer] = None,
+    ) -> RollbackResult:
         """Rollback to the best performing checkpoint"""
         best_checkpoint = self.checkpoint_manager.get_best_checkpoint()
 
         if not best_checkpoint:
             return RollbackResult(
                 success=False,
-                message=(
-                    "No best checkpoint found"
-                ),
+                message=("No best checkpoint found"),
                 previous_checkpoint=None,
                 new_checkpoint=None,
-                rollback_time=datetime.utcnow().isoformat()
+                rollback_time=datetime.now(timezone.utc).isoformat(),
             )
 
         return self.rollback_to_checkpoint(
-            best_checkpoint.checkpoint_id,
-            model,
-            tokenizer
+            best_checkpoint.checkpoint_id, model, tokenizer
         )
 
-    def rollback_to_latest(self,
-                          model: Optional[PreTrainedModel] = None,
-                          tokenizer: Optional[PreTrainedTokenizer] = None
-                          ) -> RollbackResult:
+    def rollback_to_latest(
+        self,
+        model: Optional[PreTrainedModel] = None,
+        tokenizer: Optional[PreTrainedTokenizer] = None,
+    ) -> RollbackResult:
         """Rollback to the most recent checkpoint"""
         latest_checkpoint = self.checkpoint_manager.get_latest_checkpoint()
 
         if not latest_checkpoint:
             return RollbackResult(
                 success=False,
-                message=(
-                    "No latest checkpoint found"
-                ),
+                message=("No latest checkpoint found"),
                 previous_checkpoint=None,
                 new_checkpoint=None,
-                rollback_time=datetime.utcnow().isoformat()
+                rollback_time=datetime.now(timezone.utc).isoformat(),
             )
 
         return self.rollback_to_checkpoint(
-            latest_checkpoint.checkpoint_id,
-            model,
-            tokenizer
+            latest_checkpoint.checkpoint_id, model, tokenizer
         )
 
     def get_rollback_history(self) -> List[Dict[str, Any]]:
@@ -533,15 +513,14 @@ class RollbackManager:
         """Generate a human-readable rollback report"""
         report = [
             "=== Rollback Report ===",
-            f"Generated at: {datetime.utcnow().isoformat()}",
+            f"Generated at: {datetime.now(timezone.utc).isoformat()}",
             f"Total rollbacks performed: {len(self.rollback_history)}",
             "",
-            "Rollback History:"
+            "Rollback History:",
         ]
 
         for i, record in enumerate(
-            self.rollback_history[-10:],
-            1
+            self.rollback_history[-10:], 1
         ):  # Show last 10 rollbacks
             report.append(f"  {i}. {record['timestamp']}")
             report.append(f"     Target: {record['to_checkpoint']}")
@@ -553,15 +532,10 @@ class RollbackManager:
         available = self.checkpoint_manager.get_available_checkpoints()
         report.append(f"Available Checkpoints: {len(available)}")
         for checkpoint in available[:5]:  # Show top 5
-            report.append(
-                f"  - {checkpoint.checkpoint_id} "
-                f"(step {checkpoint.step})"
-            )
+            report.append(f"  - {checkpoint.checkpoint_id} (step {checkpoint.step})")
 
         if len(available) > 5:
-            report.append(
-                f"  ... and {len(available) - 5} more"
-            )
+            report.append(f"  ... and {len(available) - 5} more")
 
         report.append("")
 
@@ -579,12 +553,14 @@ class RollbackManager:
 class CheckpointCallback:
     """Trainer callback to handle checkpoint creation and management"""
 
-    def __init__(self,
-                 checkpoint_manager: CheckpointManager,
-                 save_strategy: str = "steps",
-                 save_steps: int = 500,
-                 keep_last_n: int = 5,
-                 keep_best_n: int = 2):
+    def __init__(
+        self,
+        checkpoint_manager: CheckpointManager,
+        save_strategy: str = "steps",
+        save_steps: int = 500,
+        keep_last_n: int = 5,
+        keep_best_n: int = 2,
+    ):
         self.checkpoint_manager = checkpoint_manager
         self.save_strategy = save_strategy
         self.save_steps = save_steps
@@ -596,14 +572,14 @@ class CheckpointCallback:
 
     def on_save(self, args, state, control, model=None, tokenizer=None, **kwargs):
         """Called when the Trainer saves a checkpoint"""
-        if hasattr(state, 'global_step'):
+        if hasattr(state, "global_step"):
             step = state.global_step
         else:
             step = 0
 
         # Get metrics if available
         metrics = None
-        if hasattr(state, 'log_history') and state.log_history:
+        if hasattr(state, "log_history") and state.log_history:
             # Use the most recent metrics
             metrics = state.log_history[-1].copy()
 
@@ -612,60 +588,63 @@ class CheckpointCallback:
         if metrics and self.best_metric_name:
             current_value = metrics.get(self.best_metric_name)
             if current_value is not None:
-                if (self.best_metric_value is None or
-                        (state.metric_for_best_model == "eval_loss" and
-                         current_value < self.best_metric_value) or
-                        (state.metric_for_best_model != "eval_loss" and
-                         current_value > self.best_metric_value)):
+                if (
+                    self.best_metric_value is None
+                    or (
+                        state.metric_for_best_model == "eval_loss"
+                        and current_value < self.best_metric_value
+                    )
+                    or (
+                        state.metric_for_best_model != "eval_loss"
+                        and current_value > self.best_metric_value
+                    )
+                ):
                     self.best_metric_value = current_value
                     is_best = True
 
         # Register the checkpoint
         checkpoint_path = f"{args.output_dir}/checkpoint-{step}"
-        training_args = args.to_dict() if hasattr(args, 'to_dict') else {}
+        training_args = args.to_dict() if hasattr(args, "to_dict") else {}
 
         _ = self.checkpoint_manager.register_checkpoint(
             checkpoint_path=checkpoint_path,
             step=step,
             metrics=metrics,
             is_best=is_best,
-            training_args=training_args
+            training_args=training_args,
         )
 
         self.logger.info(f"Registered checkpoint at step {step}")
 
         # Clean up old checkpoints
         cleaned = self.checkpoint_manager.cleanup_checkpoints(
-            keep_last_n=self.keep_last_n,
-            keep_best_n=self.keep_best_n
+            keep_last_n=self.keep_last_n, keep_best_n=self.keep_best_n
         )
 
         if cleaned:
             self.logger.info(f"Cleaned up {len(cleaned)} old checkpoints")
 
     def on_evaluate(
-        self,
-        args,
-        state,
-        control,
-        model=None,
-        tokenizer=None,
-        metrics=None,
-        **kwargs
+        self, args, state, control, model=None, tokenizer=None, metrics=None, **kwargs
     ):
         """Called after evaluation to track best metrics"""
         if metrics and state.best_metric_name:
             current_value = metrics.get(state.best_metric_name)
             if current_value is not None:
-                if (self.best_metric_value is None or
-                        (state.metric_for_best_model == "eval_loss" and
-                         current_value < self.best_metric_value) or
-                        (state.metric_for_best_model != "eval_loss" and
-                         current_value > self.best_metric_value)):
+                if (
+                    self.best_metric_value is None
+                    or (
+                        state.metric_for_best_model == "eval_loss"
+                        and current_value < self.best_metric_value
+                    )
+                    or (
+                        state.metric_for_best_model != "eval_loss"
+                        and current_value > self.best_metric_value
+                    )
+                ):
                     self.best_metric_value = current_value
                     self.logger.info(
-                        f"New best metric: {state.best_metric_name} = "
-                        f"{current_value}"
+                        f"New best metric: {state.best_metric_name} = {current_value}"
                     )
 
 
@@ -728,18 +707,15 @@ def test_checkpoint_rollback_system():
             # Register checkpoint
             if step <= 300:
                 metrics = {
-                    "eval_loss": 2.5 - (step/1000),
-                    "accuracy": 0.7 + (step/2000)
+                    "eval_loss": 2.5 - (step / 1000),
+                    "accuracy": 0.7 + (step / 2000),
                 }
             else:
                 metrics = {"eval_loss": 2.5, "accuracy": 0.7}
             is_best = step == 300  # Step 300 should be best based on metrics
 
             cm.register_checkpoint(
-                checkpoint_path=chkpt_path,
-                step=step,
-                metrics=metrics,
-                is_best=is_best
+                checkpoint_path=chkpt_path, step=step, metrics=metrics, is_best=is_best
             )
 
         # Test getting checkpoints

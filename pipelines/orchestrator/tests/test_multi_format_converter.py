@@ -5,7 +5,6 @@ Tests for MultiFormatConverter.
 from unittest.mock import Mock, patch
 
 import pytest
-
 from ai.pipelines.orchestrator.conversation_schema import Conversation
 from ai.pipelines.orchestrator.multi_format_converter import (
     ConversionRule,
@@ -29,58 +28,57 @@ class TestMultiFormatConverter:
         return {
             "simple_messages": [
                 {"role": "user", "content": "Hello"},
-                {"role": "assistant", "content": "Hi there!"}
+                {"role": "assistant", "content": "Hi there!"},
             ],
             "input_output": {
                 "input": "What is AI?",
-                "output": "AI is artificial intelligence."
+                "output": "AI is artificial intelligence.",
             },
             "huggingface_chat": {
-                "conversations": [[
-                    {"role": "user", "content": "Test"},
-                    {"role": "assistant", "content": "Response"}
-                ]]
+                "conversations": [
+                    [
+                        {"role": "user", "content": "Test"},
+                        {"role": "assistant", "content": "Response"},
+                    ]
+                ]
             },
-            "openai_format": {
-                "role": "user",
-                "content": "Single message"
-            },
+            "openai_format": {"role": "user", "content": "Single message"},
             "sharegpt": {
                 "id": "test_123",
                 "title": "Test Conversation",
                 "conversations": [
                     {"role": "user", "content": "Hello"},
-                    {"role": "assistant", "content": "Hi!"}
-                ]
+                    {"role": "assistant", "content": "Hi!"},
+                ],
             },
             "alpaca": {
                 "instruction": "Explain the concept",
                 "input": "What is machine learning?",
-                "output": "Machine learning is a subset of AI."
+                "output": "Machine learning is a subset of AI.",
             },
             "vicuna": {
                 "conversations": [
                     {"from": "human", "value": "Hello"},
-                    {"from": "gpt", "value": "Hi there!"}
+                    {"from": "gpt", "value": "Hi there!"},
                 ]
             },
             "dolly": {
                 "instruction": "Answer the question",
                 "context": "In the field of AI",
-                "response": "AI stands for Artificial Intelligence."
+                "response": "AI stands for Artificial Intelligence.",
             },
             "oasst": {
                 "message_id": "msg_123",
                 "parent_id": "parent_456",
                 "role": "prompter",
-                "text": "What is the weather like?"
+                "text": "What is the weather like?",
             },
             "xml_chat": '<conversation><message role="user">Hello</message><message role="assistant">Hi!</message></conversation>',
             "csv_format": "user,assistant\nHello,Hi there!",
             "custom_json": {
                 "text": "This is custom format text",
-                "metadata": {"source": "custom"}
-            }
+                "metadata": {"source": "custom"},
+            },
         }
 
     def test_initialization(self, converter):
@@ -129,7 +127,10 @@ class TestMultiFormatConverter:
 
         assert result.format_type == FormatType.ALPACA
         assert result.confidence >= 0.8
-        assert "Has all Alpaca fields" in result.indicators[0] or "Has instruction and output fields" in result.indicators[0]
+        assert (
+            "Has all Alpaca fields" in result.indicators[0]
+            or "Has instruction and output fields" in result.indicators[0]
+        )
 
     def test_detect_vicuna(self, converter, sample_formats):
         """Test detection of Vicuna format."""
@@ -183,7 +184,7 @@ class TestMultiFormatConverter:
         conversation = converter.convert_single(
             sample_formats["simple_messages"],
             format_hint=FormatType.SIMPLE_MESSAGES,
-            source="test_source"
+            source="test_source",
         )
 
         assert isinstance(conversation, Conversation)
@@ -193,8 +194,7 @@ class TestMultiFormatConverter:
     def test_convert_single_auto_detect(self, converter, sample_formats):
         """Test single conversion with automatic detection."""
         conversation = converter.convert_single(
-            sample_formats["input_output"],
-            source="test_source"
+            sample_formats["input_output"], source="test_source"
         )
 
         assert isinstance(conversation, Conversation)
@@ -212,8 +212,7 @@ class TestMultiFormatConverter:
         # Mock a format type that doesn't have a converter
         with patch.object(converter, "detect_format") as mock_detect:
             mock_detect.return_value = FormatDetectionResult(
-                format_type=FormatType.UNKNOWN,
-                confidence=0.9
+                format_type=FormatType.UNKNOWN, confidence=0.9
             )
 
             with pytest.raises(ValueError, match="No converter available"):
@@ -224,7 +223,7 @@ class TestMultiFormatConverter:
         data_items = [
             sample_formats["simple_messages"],
             sample_formats["input_output"],
-            sample_formats["alpaca"]
+            sample_formats["alpaca"],
         ]
 
         conversations = converter.convert_batch(data_items, source="batch_test")
@@ -237,13 +236,11 @@ class TestMultiFormatConverter:
         """Test batch conversion with format hint."""
         data_items = [
             sample_formats["simple_messages"],
-            sample_formats["simple_messages"]  # Same format
+            sample_formats["simple_messages"],  # Same format
         ]
 
         conversations = converter.convert_batch(
-            data_items,
-            format_hint=FormatType.SIMPLE_MESSAGES,
-            source="batch_test"
+            data_items, format_hint=FormatType.SIMPLE_MESSAGES, source="batch_test"
         )
 
         assert len(conversations) == 2
@@ -254,7 +251,7 @@ class TestMultiFormatConverter:
         data_items = [
             sample_formats["simple_messages"],  # Should succeed
             "invalid data",  # Should fail
-            sample_formats["input_output"]  # Should succeed
+            sample_formats["input_output"],  # Should succeed
         ]
 
         conversations = converter.convert_batch(data_items)
@@ -265,6 +262,7 @@ class TestMultiFormatConverter:
 
     def test_register_custom_converter(self, converter):
         """Test registering custom converter."""
+
         def custom_detector(data, context=None):
             return 0.9, ["Custom format detected"], {}
 
@@ -272,10 +270,7 @@ class TestMultiFormatConverter:
             return Mock(spec=Conversation)
 
         converter.register_custom_converter(
-            "custom_format",
-            custom_detector,
-            custom_converter,
-            "Test custom format"
+            "custom_format", custom_detector, custom_converter, "Test custom format"
         )
 
         assert "custom_format" in converter.custom_converters
@@ -283,8 +278,7 @@ class TestMultiFormatConverter:
     def test_convert_alpaca_format(self, converter, sample_formats):
         """Test Alpaca format conversion."""
         conversation = converter.convert_single(
-            sample_formats["alpaca"],
-            format_hint=FormatType.ALPACA
+            sample_formats["alpaca"], format_hint=FormatType.ALPACA
         )
 
         assert isinstance(conversation, Conversation)
@@ -296,8 +290,7 @@ class TestMultiFormatConverter:
     def test_convert_vicuna_format(self, converter, sample_formats):
         """Test Vicuna format conversion."""
         conversation = converter.convert_single(
-            sample_formats["vicuna"],
-            format_hint=FormatType.VICUNA
+            sample_formats["vicuna"], format_hint=FormatType.VICUNA
         )
 
         assert isinstance(conversation, Conversation)
@@ -308,8 +301,7 @@ class TestMultiFormatConverter:
     def test_convert_dolly_format(self, converter, sample_formats):
         """Test Dolly format conversion."""
         conversation = converter.convert_single(
-            sample_formats["dolly"],
-            format_hint=FormatType.DOLLY
+            sample_formats["dolly"], format_hint=FormatType.DOLLY
         )
 
         assert isinstance(conversation, Conversation)
@@ -320,8 +312,7 @@ class TestMultiFormatConverter:
     def test_convert_oasst_format(self, converter, sample_formats):
         """Test OpenAssistant format conversion."""
         conversation = converter.convert_single(
-            sample_formats["oasst"],
-            format_hint=FormatType.OASST
+            sample_formats["oasst"], format_hint=FormatType.OASST
         )
 
         assert isinstance(conversation, Conversation)
@@ -332,8 +323,7 @@ class TestMultiFormatConverter:
     def test_convert_xml_chat_format(self, converter, sample_formats):
         """Test XML chat format conversion."""
         conversation = converter.convert_single(
-            sample_formats["xml_chat"],
-            format_hint=FormatType.XML_CHAT
+            sample_formats["xml_chat"], format_hint=FormatType.XML_CHAT
         )
 
         assert isinstance(conversation, Conversation)
@@ -344,8 +334,7 @@ class TestMultiFormatConverter:
     def test_convert_csv_format(self, converter, sample_formats):
         """Test CSV format conversion."""
         conversation = converter.convert_single(
-            sample_formats["csv_format"],
-            format_hint=FormatType.CSV_FORMAT
+            sample_formats["csv_format"], format_hint=FormatType.CSV_FORMAT
         )
 
         assert isinstance(conversation, Conversation)
@@ -356,8 +345,7 @@ class TestMultiFormatConverter:
     def test_convert_custom_json_format(self, converter, sample_formats):
         """Test custom JSON format conversion."""
         conversation = converter.convert_single(
-            sample_formats["custom_json"],
-            format_hint=FormatType.CUSTOM_JSON
+            sample_formats["custom_json"], format_hint=FormatType.CUSTOM_JSON
         )
 
         assert isinstance(conversation, Conversation)
@@ -369,13 +357,12 @@ class TestMultiFormatConverter:
         # Mix different formats - should trigger warning
         data_items = [
             sample_formats["simple_messages"],  # Different format
-            sample_formats["input_output"]      # Different format
+            sample_formats["input_output"],  # Different format
         ]
 
         with patch.object(converter.logger, "warning") as mock_warning:
             conversations = converter.convert_batch(
-                data_items,
-                validate_consistency=True
+                data_items, validate_consistency=True
             )
 
             # Should still convert successfully but log warning
@@ -393,7 +380,7 @@ class TestFormatDetectionResult:
             format_type=FormatType.SIMPLE_MESSAGES,
             confidence=0.9,
             indicators=["test indicator"],
-            metadata={"test": "data"}
+            metadata={"test": "data"},
         )
 
         assert result.format_type == FormatType.SIMPLE_MESSAGES
@@ -407,6 +394,7 @@ class TestConversionRule:
 
     def test_initialization(self):
         """Test ConversionRule initialization."""
+
         def dummy_converter(data):
             return data
 
@@ -415,7 +403,7 @@ class TestConversionRule:
             pattern={"test": "pattern"},
             converter=dummy_converter,
             priority=5,
-            description="Test rule"
+            description="Test rule",
         )
 
         assert rule.name == "test_rule"

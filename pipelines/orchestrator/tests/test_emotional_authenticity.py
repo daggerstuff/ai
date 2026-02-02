@@ -1,7 +1,9 @@
 import datetime
 
 from ai.pipelines.orchestrator.conversation_schema import Conversation, Message
-from ai.pipelines.orchestrator.emotional_authenticity import score_emotional_authenticity
+from ai.pipelines.orchestrator.emotional_authenticity import (
+    score_emotional_authenticity,
+)
 
 
 def test_authenticity_high():
@@ -10,13 +12,23 @@ def test_authenticity_high():
         messages=[
             Message(role="user", content="I feel happy today!", timestamp=None),
             Message(
-                role="assistant", content="That's wonderful! Joy is important.", timestamp=None
+                role="assistant",
+                content="That's wonderful! Joy is important.",
+                timestamp=None,
             ),
-            Message(role="user", content="But sometimes I get anxious.", timestamp=None),
             Message(
-                role="assistant", content="It's normal to feel anxious at times.", timestamp=None
+                role="user", content="But sometimes I get anxious.", timestamp=None
             ),
-            Message(role="user", content="Now I feel relieved after talking.", timestamp=None),
+            Message(
+                role="assistant",
+                content="It's normal to feel anxious at times.",
+                timestamp=None,
+            ),
+            Message(
+                role="user",
+                content="Now I feel relieved after talking.",
+                timestamp=None,
+            ),
         ],
         source="testset",
         created_at=datetime.datetime.now(),
@@ -50,7 +62,9 @@ def test_authenticity_low_diversity():
             Message(role="user", content="I am sad.", timestamp=None),
             Message(role="assistant", content="Why are you sad?", timestamp=None),
             Message(role="user", content="Just sad.", timestamp=None),
-            Message(role="assistant", content="I hope you feel better.", timestamp=None),
+            Message(
+                role="assistant", content="I hope you feel better.", timestamp=None
+            ),
         ],
         source="testset",
         created_at=datetime.datetime.now(),
@@ -61,7 +75,9 @@ def test_authenticity_low_diversity():
 
 
 def test_authenticity_no_messages():
-    conv = Conversation(id="t4", messages=[], source="testset", created_at=datetime.datetime.now())
+    conv = Conversation(
+        id="t4", messages=[], source="testset", created_at=datetime.datetime.now()
+    )
     result = score_emotional_authenticity(conv)
     assert result["score"] == 0.0
     assert "No messages in conversation" in result["issues"]

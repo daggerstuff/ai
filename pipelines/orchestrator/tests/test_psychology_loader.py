@@ -1,7 +1,6 @@
 import os
 
 import pandas as pd
-
 from ai.pipelines.orchestrator.psychology_loader import load_psychology_knowledge_csv
 
 TEST_CSV = "test_psychology_knowledge.csv"
@@ -14,13 +13,18 @@ def setup_module(module):
         {
             "id": [1, 2],
             "question": ["What is CBT?", "Define mindfulness."],
-            "answer": ["Cognitive Behavioral Therapy", "Awareness of the present moment"],
+            "answer": [
+                "Cognitive Behavioral Therapy",
+                "Awareness of the present moment",
+            ],
         }
     )
     df.to_csv(TEST_CSV, index=False)
     # Create a malformed CSV
     with open(MALFORMED_CSV, "w") as f:
-        f.write('id,question,answer\n1,"Unclosed quote,CBT\n2,Define mindfulness.,Awareness')
+        f.write(
+            'id,question,answer\n1,"Unclosed quote,CBT\n2,Define mindfulness.,Awareness'
+        )
 
 
 def teardown_module(module):

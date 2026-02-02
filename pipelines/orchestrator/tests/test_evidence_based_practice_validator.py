@@ -45,7 +45,7 @@ class TestEvidenceBasedPracticeValidator:
             dsm5_considerations=["Major Depressive Disorder"],
             attachment_style="anxious",
             defense_mechanisms=["intellectualization"],
-            psychodynamic_themes=["loss_and_grief"]
+            psychodynamic_themes=["loss_and_grief"],
         )
 
         return ClientScenario(
@@ -55,7 +55,7 @@ class TestEvidenceBasedPracticeValidator:
             presenting_problem="Major depression with anxiety",
             clinical_formulation=clinical_formulation,
             demographics={"age": 32, "gender": "female"},
-            session_context="CBT therapy session"
+            session_context="CBT therapy session",
         )
 
     @pytest.fixture
@@ -64,13 +64,37 @@ class TestEvidenceBasedPracticeValidator:
         return {
             "id": "cbt_conversation_001",
             "conversation_exchanges": [
-                {"speaker": "therapist", "content": "Let's explore your thoughts about this situation", "technique": "cognitive_restructuring"},
-                {"speaker": "client", "content": "I always think the worst will happen", "engagement_level": "engaged"},
-                {"speaker": "therapist", "content": "What evidence do you have for that thought?", "technique": "socratic_questioning"},
-                {"speaker": "client", "content": "I guess I don't have much evidence", "engagement_level": "highly_engaged"},
-                {"speaker": "therapist", "content": "Let's assess your progress using this questionnaire", "technique": "outcome_monitoring"},
-                {"speaker": "client", "content": "I feel like I'm making progress", "engagement_level": "highly_engaged"}
-            ]
+                {
+                    "speaker": "therapist",
+                    "content": "Let's explore your thoughts about this situation",
+                    "technique": "cognitive_restructuring",
+                },
+                {
+                    "speaker": "client",
+                    "content": "I always think the worst will happen",
+                    "engagement_level": "engaged",
+                },
+                {
+                    "speaker": "therapist",
+                    "content": "What evidence do you have for that thought?",
+                    "technique": "socratic_questioning",
+                },
+                {
+                    "speaker": "client",
+                    "content": "I guess I don't have much evidence",
+                    "engagement_level": "highly_engaged",
+                },
+                {
+                    "speaker": "therapist",
+                    "content": "Let's assess your progress using this questionnaire",
+                    "technique": "outcome_monitoring",
+                },
+                {
+                    "speaker": "client",
+                    "content": "I feel like I'm making progress",
+                    "engagement_level": "highly_engaged",
+                },
+            ],
         }
 
     def test_initialization(self, validator):
@@ -218,7 +242,9 @@ class TestEvidenceBasedPracticeValidator:
         assert isinstance(adherence_protocol["assessment_criteria"], list)
         assert isinstance(adherence_protocol["benchmarks"], dict)
 
-    def test_validate_conversation(self, validator, depression_scenario, cbt_conversation):
+    def test_validate_conversation(
+        self, validator, depression_scenario, cbt_conversation
+    ):
         """Test conversation validation."""
         validated_conversation = validator.validate_conversation(
             cbt_conversation, depression_scenario, "cognitive_behavioral"
@@ -241,20 +267,28 @@ class TestEvidenceBasedPracticeValidator:
 
     def test_find_relevant_evidence(self, validator, depression_scenario):
         """Test finding relevant research evidence."""
-        evidence = validator._find_relevant_evidence("cognitive_behavioral", depression_scenario)
+        evidence = validator._find_relevant_evidence(
+            "cognitive_behavioral", depression_scenario
+        )
 
         assert isinstance(evidence, list)
         assert len(evidence) > 0
 
         # Should include CBT evidence
-        cbt_evidence = [e for e in evidence if "cbt" in e.id.lower() or "cognitive" in e.intervention.lower()]
+        cbt_evidence = [
+            e
+            for e in evidence
+            if "cbt" in e.id.lower() or "cognitive" in e.intervention.lower()
+        ]
         assert len(cbt_evidence) > 0
 
         # Should include therapeutic alliance evidence
         alliance_evidence = [e for e in evidence if "alliance" in e.id.lower()]
         assert len(alliance_evidence) > 0
 
-    def test_assess_guideline_adherence(self, validator, depression_scenario, cbt_conversation):
+    def test_assess_guideline_adherence(
+        self, validator, depression_scenario, cbt_conversation
+    ):
         """Test guideline adherence assessment."""
         exchanges = cbt_conversation["conversation_exchanges"]
         adherent_guidelines = validator._assess_guideline_adherence(
@@ -267,10 +301,14 @@ class TestEvidenceBasedPracticeValidator:
 
     def test_predict_outcomes(self, validator, depression_scenario, cbt_conversation):
         """Test outcome prediction."""
-        evidence = validator._find_relevant_evidence("cognitive_behavioral", depression_scenario)
+        evidence = validator._find_relevant_evidence(
+            "cognitive_behavioral", depression_scenario
+        )
         exchanges = cbt_conversation["conversation_exchanges"]
 
-        predictions = validator._predict_outcomes(evidence, exchanges, depression_scenario)
+        predictions = validator._predict_outcomes(
+            evidence, exchanges, depression_scenario
+        )
 
         assert isinstance(predictions, dict)
         assert len(predictions) > 0
@@ -282,7 +320,9 @@ class TestEvidenceBasedPracticeValidator:
     def test_identify_fidelity_markers(self, validator, cbt_conversation):
         """Test fidelity markers identification."""
         exchanges = cbt_conversation["conversation_exchanges"]
-        markers = validator._identify_fidelity_markers(exchanges, "cognitive_behavioral")
+        markers = validator._identify_fidelity_markers(
+            exchanges, "cognitive_behavioral"
+        )
 
         assert isinstance(markers, list)
         assert "adequate_session_length" in markers  # 6 exchanges >= 6
@@ -307,7 +347,9 @@ class TestEvidenceBasedPracticeValidator:
         guidelines = [Mock()]
         fidelity_markers = ["adequate_session_length", "therapeutic_techniques_used"]
 
-        score = validator._calculate_validation_score(evidence, guidelines, fidelity_markers)
+        score = validator._calculate_validation_score(
+            evidence, guidelines, fidelity_markers
+        )
 
         assert isinstance(score, float)
         assert 0.0 <= score <= 100.0
@@ -322,7 +364,9 @@ class TestEvidenceBasedPracticeValidator:
 
         # Test moderate evidence
         moderate_evidence = [Mock(evidence_level=EvidenceLevel.LEVEL_II)]
-        moderate_rating = validator._determine_evidence_strength_rating(moderate_evidence)
+        moderate_rating = validator._determine_evidence_strength_rating(
+            moderate_evidence
+        )
         assert moderate_rating == "moderate_to_strong_evidence"
 
         # Test no evidence
@@ -346,13 +390,19 @@ class TestEvidenceBasedPracticeValidator:
         validation_result = Mock(validation_score=85.0)
         guidelines = [Mock()]
 
-        recommendations = validator._generate_clinical_recommendations(validation_result, guidelines)
+        recommendations = validator._generate_clinical_recommendations(
+            validation_result, guidelines
+        )
 
         assert isinstance(recommendations, list)
         assert len(recommendations) > 0
-        assert any("continue" in rec.lower() for rec in recommendations)  # High score recommendation
+        assert any(
+            "continue" in rec.lower() for rec in recommendations
+        )  # High score recommendation
 
-    def test_export_validated_conversations(self, validator, depression_scenario, cbt_conversation):
+    def test_export_validated_conversations(
+        self, validator, depression_scenario, cbt_conversation
+    ):
         """Test validated conversations export."""
         # Generate validated conversation
         validated_conv = validator.validate_conversation(
@@ -366,7 +416,9 @@ class TestEvidenceBasedPracticeValidator:
             temp_file = f.name
 
         try:
-            export_result = validator.export_validated_conversations(conversations, temp_file)
+            export_result = validator.export_validated_conversations(
+                conversations, temp_file
+            )
 
             # Check export result
             assert export_result["exported_conversations"] == 1
@@ -396,7 +448,9 @@ class TestEvidenceBasedPracticeValidator:
             if os.path.exists(temp_file):
                 os.unlink(temp_file)
 
-    def test_different_therapeutic_approaches(self, validator, depression_scenario, cbt_conversation):
+    def test_different_therapeutic_approaches(
+        self, validator, depression_scenario, cbt_conversation
+    ):
         """Test validation of different therapeutic approaches."""
         # Test CBT
         cbt_validated = validator.validate_conversation(

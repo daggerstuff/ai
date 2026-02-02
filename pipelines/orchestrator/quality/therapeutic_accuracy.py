@@ -10,7 +10,7 @@ The score ranges from 0.0 (inaccurate/harmful) to 1.0 (highly accurate/therapeut
 
 from typing import Any
 
-from .conversation_schema import Conversation
+from ai.pipelines.orchestrator.conversation_schema import Conversation
 
 # Example sets of evidence-based and harmful phrases for demonstration.
 EVIDENCE_BASED_PHRASES = {

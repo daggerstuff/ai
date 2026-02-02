@@ -1,44 +1,49 @@
 import asyncio
-import logging
 import time
 from datetime import datetime
 from typing import Optional
 
+import structlog
 from fastapi import (
+    BackgroundTasks,
+    Depends,
     FastAPI,
     HTTPException,
     WebSocket,
     WebSocketDisconnect,
-    BackgroundTasks,
-    Depends,
-    Request,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
 from slowapi.errors import RateLimitExceeded
-import structlog
+from slowapi.util import get_remote_address
 
+from .auth import (
+    RequireCreateJobs,
+    User,
+    get_current_user,
+)
 from .config import config
+from .database import init_database
 from .models import (
-    TranscriptRequest,
-    TranscriptResponse,
-    PipelineJobRequest,
-    StageExecutionRequest,
+    HealthCheckResponse,
     JobInfo,
     JobStatus,
+    PipelineJobRequest,
     PipelineStage,
-    StageResult,
     PipelineStatus,
-    HealthCheckResponse,
+    StageExecutionRequest,
+    StageResult,
+    TranscriptRequest,
+    TranscriptResponse,
 )
-from .utils import pipeline_executor, data_manager
-from .auth import get_current_user, User, RequireCreateJobs, RequireDeleteJobs, auth_manager
-from .rate_limiting import init_rate_limiting, cleanup_rate_limiting, quota_manager, youtube_limiter
-from .monitoring import setup_monitoring, metrics
-from .database import init_database, get_db
+from .monitoring import metrics, setup_monitoring
+from .rate_limiting import (
+    cleanup_rate_limiting,
+    init_rate_limiting,
+    quota_manager,
+)
+from .utils import data_manager, pipeline_executor
 
 # Configure structured logging
 logger = structlog.get_logger(__name__)
@@ -57,7 +62,9 @@ app = FastAPI(
 )
 
 # Add security middleware
-app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])  # Configure for production
+app.add_middleware(
+    TrustedHostMiddleware, allowed_hosts=["*"]
+)  # Configure for production
 
 # Add CORS middleware
 app.add_middleware(
@@ -172,7 +179,9 @@ async def run_pipeline(youtube_url: str, language: str, whisper_model: str) -> s
             raise RuntimeError("Transcription failed")
 
         # Find latest transcript
-        transcript_path = data_manager.get_latest_file(config.directories.voice_transcripts)
+        transcript_path = data_manager.get_latest_file(
+            config.directories.voice_transcripts
+        )
         if not transcript_path:
             raise RuntimeError("Transcript not found after processing.")
 
@@ -249,13 +258,17 @@ async def transcribe(
         raise
     except Exception as e:
         metrics.record_error("transcription_error", "api")
-        logger.error("Transcription request failed", error=str(e), user_id=current_user.id)
+        logger.error(
+            "Transcription request failed", error=str(e), user_id=current_user.id
+        )
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/pipeline/jobs", response_model=str)
 @limiter.limit("5/minute")
-async def create_pipeline_job(request: PipelineJobRequest, current_user: User = RequireCreateJobs):
+async def create_pipeline_job(
+    request: PipelineJobRequest, current_user: User = RequireCreateJobs
+):
     """Create and start a new pipeline job."""
     try:
         # Check concurrent job quota
@@ -301,7 +314,9 @@ async def create_pipeline_job(request: PipelineJobRequest, current_user: User = 
         raise
     except Exception as e:
         metrics.record_error("job_creation_error", "api")
-        logger.error("Pipeline job creation failed", error=str(e), user_id=current_user.id)
+        logger.error(
+            "Pipeline job creation failed", error=str(e), user_id=current_user.id
+        )
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -391,7 +406,9 @@ async def get_latest_data(data_type: str):
         }
 
         if data_type not in data_type_mapping:
-            raise HTTPException(status_code=400, detail=f"Unknown data type: {data_type}")
+            raise HTTPException(
+                status_code=400, detail=f"Unknown data type: {data_type}"
+            )
 
         directory = data_type_mapping[data_type]
         latest_file = data_manager.get_latest_file(directory)
@@ -422,7 +439,9 @@ async def list_data_files(data_type: str):
         }
 
         if data_type not in data_type_mapping:
-            raise HTTPException(status_code=400, detail=f"Unknown data type: {data_type}")
+            raise HTTPException(
+                status_code=400, detail=f"Unknown data type: {data_type}"
+            )
 
         directory = data_type_mapping[data_type]
         files = data_manager.list_files(directory, "*.json")

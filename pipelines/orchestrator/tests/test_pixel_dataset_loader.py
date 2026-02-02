@@ -30,10 +30,10 @@ class TestPixelDatasetLoader(unittest.TestCase):
                 id=f"test_conv_{i}",
                 messages=[
                     Message(role="user", content=f"Test message {i}"),
-                    Message(role="assistant", content=f"Test response {i}")
+                    Message(role="assistant", content=f"Test response {i}"),
                 ],
                 context={},
-                source="test"
+                source="test",
             )
             for i in range(5)
         ]
@@ -55,7 +55,7 @@ class TestPixelDatasetLoader(unittest.TestCase):
             source_path="test/dataset",
             target_conversations=1000,
             priority=1,
-            metadata={"category": "test"}
+            metadata={"category": "test"},
         )
 
         assert "test_dataset" in self.loader.datasets
@@ -83,7 +83,7 @@ class TestPixelDatasetLoader(unittest.TestCase):
             "mental_health_counseling",
             "psych8k",
             "psychology_10k",
-            "clinical_diagnosis_cot"
+            "clinical_diagnosis_cot",
         ]
 
         for dataset_name in expected_datasets:
@@ -108,7 +108,9 @@ class TestPixelDatasetLoader(unittest.TestCase):
                 self.loader.register_local_datasets()
 
             # Check that local datasets were registered
-            local_datasets = [d for d in self.loader.datasets.values() if d.source_type == "local"]
+            local_datasets = [
+                d for d in self.loader.datasets.values() if d.source_type == "local"
+            ]
             assert len(local_datasets) > 0
 
     def test_register_generated_datasets(self):
@@ -116,11 +118,17 @@ class TestPixelDatasetLoader(unittest.TestCase):
         self.loader.register_generated_datasets()
 
         # Check that generated datasets were registered
-        generated_datasets = [d for d in self.loader.datasets.values() if d.source_type == "generated"]
+        generated_datasets = [
+            d for d in self.loader.datasets.values() if d.source_type == "generated"
+        ]
         assert len(generated_datasets) > 0
 
         # Check specific datasets
-        expected_datasets = ["client_scenarios", "therapeutic_responses", "balanced_conversations"]
+        expected_datasets = [
+            "client_scenarios",
+            "therapeutic_responses",
+            "balanced_conversations",
+        ]
 
         for dataset_name in expected_datasets:
             assert dataset_name in self.loader.datasets
@@ -134,7 +142,7 @@ class TestPixelDatasetLoader(unittest.TestCase):
             ("clinical_diagnosis_cot", "reasoning"),
             ("hercules_personality", "personality"),
             ("gutenberg_quality", "quality"),
-            ("unknown_dataset", "general")
+            ("unknown_dataset", "general"),
         ]
 
         for dataset_name, expected_category in test_cases:
@@ -160,7 +168,9 @@ class TestPixelDatasetLoader(unittest.TestCase):
             failed_datasets=0,
             total_conversations=1000,
             loaded_conversations=400,
-            start_time=self.loader.loading_progress.start_time if self.loader.loading_progress else None
+            start_time=self.loader.loading_progress.start_time
+            if self.loader.loading_progress
+            else None,
         )
 
         self.loader.loading_progress = test_progress
@@ -186,7 +196,7 @@ class TestPixelDatasetLoader(unittest.TestCase):
             name="test_dataset",
             source_type="test",
             source_path="test/path",
-            target_conversations=100
+            target_conversations=100,
         )
 
         self.loader._notify_dataset_update(test_dataset)
@@ -197,19 +207,25 @@ class TestPixelDatasetLoader(unittest.TestCase):
     def test_get_loading_order(self):
         """Test dataset loading order calculation."""
         # Register datasets with different priorities
-        self.loader.register_dataset("high_priority_small", "test", "path1", 100, priority=1)
-        self.loader.register_dataset("high_priority_large", "test", "path2", 1000, priority=1)
+        self.loader.register_dataset(
+            "high_priority_small", "test", "path1", 100, priority=1
+        )
+        self.loader.register_dataset(
+            "high_priority_large", "test", "path2", 1000, priority=1
+        )
         self.loader.register_dataset("low_priority", "test", "path3", 500, priority=3)
-        self.loader.register_dataset("medium_priority", "test", "path4", 200, priority=2)
+        self.loader.register_dataset(
+            "medium_priority", "test", "path4", 200, priority=2
+        )
 
         loading_order = self.loader.get_loading_order()
 
         # Should be ordered by priority first, then by size (descending) within same priority
         expected_order = [
-            "high_priority_large",   # Priority 1, size 1000
-            "high_priority_small",   # Priority 1, size 100
-            "medium_priority",       # Priority 2, size 200
-            "low_priority"           # Priority 3, size 500
+            "high_priority_large",  # Priority 1, size 1000
+            "high_priority_small",  # Priority 1, size 100
+            "medium_priority",  # Priority 2, size 200
+            "low_priority",  # Priority 3, size 500
         ]
 
         assert loading_order == expected_order
@@ -240,7 +256,9 @@ class TestPixelDatasetLoader(unittest.TestCase):
         mock_load_json.return_value = [conv.to_dict() for conv in test_conversations]
 
         with patch("pathlib.Path.exists", return_value=True):
-            cached_conversations = self.loader._load_cached_conversations("test_dataset")
+            cached_conversations = self.loader._load_cached_conversations(
+                "test_dataset"
+            )
 
         assert cached_conversations is not None
         assert len(cached_conversations) == 2
@@ -255,7 +273,7 @@ class TestPixelDatasetLoader(unittest.TestCase):
             failed_datasets=0,
             total_conversations=1000,
             loaded_conversations=300,
-            start_time=datetime.now()
+            start_time=datetime.now(),
         )
 
         self.loader._update_overall_progress()
@@ -263,9 +281,13 @@ class TestPixelDatasetLoader(unittest.TestCase):
         # Check progress calculation
         expected_dataset_progress = 2 / 4  # 0.5
         expected_conversation_progress = 300 / 1000  # 0.3
-        expected_overall = (expected_dataset_progress * 0.7) + (expected_conversation_progress * 0.3)
+        expected_overall = (expected_dataset_progress * 0.7) + (
+            expected_conversation_progress * 0.3
+        )
 
-        self.assertAlmostEqual(self.loader.loading_progress.overall_progress, expected_overall, places=2)
+        self.assertAlmostEqual(
+            self.loader.loading_progress.overall_progress, expected_overall, places=2
+        )
         assert self.loader.loading_progress.estimated_completion is not None
 
     @patch("ai.pipelines.orchestrator.pixel_dataset_loader.save_json")
@@ -285,7 +307,7 @@ class TestPixelDatasetLoader(unittest.TestCase):
             total_conversations=100,
             loaded_conversations=95,
             start_time=datetime.now(),
-            end_time=datetime.now()
+            end_time=datetime.now(),
         )
 
         # Test export

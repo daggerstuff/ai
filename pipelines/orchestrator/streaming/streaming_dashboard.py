@@ -20,9 +20,11 @@ from typing import Any
 try:
     from flask import Flask, jsonify, render_template, request
     from flask_socketio import SocketIO, emit
+
     FLASK_AVAILABLE = True
 except ImportError:
     FLASK_AVAILABLE = False
+
 
 from real_time_processor import StreamingProcessor
 
@@ -30,13 +32,16 @@ from real_time_processor import StreamingProcessor
 @dataclass
 class DashboardMetrics:
     """Dashboard-specific metrics."""
+
     total_events: int = 0
     events_per_second: float = 0.0
     average_quality: float = 0.0
+
     quality_distribution: dict[str, int] = None
     error_rate: float = 0.0
     active_sources: int = 0
     system_health: str = "healthy"  # healthy, warning, critical
+
     alerts: list[dict[str, Any]] = None
     processing_latency: float = 0.0
     memory_usage: float = 0.0
@@ -105,13 +110,15 @@ class StreamingDashboard:
         @self.app.route("/api/system/health")
         def get_system_health():
             """Get system health status."""
-            return jsonify({
-                "status": self.dashboard_metrics.system_health,
-                "timestamp": datetime.now().isoformat(),
-                "uptime": self._get_uptime(),
-                "memory_usage": self.dashboard_metrics.memory_usage,
-                "cpu_usage": self.dashboard_metrics.cpu_usage
-            })
+            return jsonify(
+                {
+                    "status": self.dashboard_metrics.system_health,
+                    "timestamp": datetime.now().isoformat(),
+                    "uptime": self._get_uptime(),
+                    "memory_usage": self.dashboard_metrics.memory_usage,
+                    "cpu_usage": self.dashboard_metrics.cpu_usage,
+                }
+            )
 
         @self.socketio.on("connect")
         def handle_connect():
@@ -168,9 +175,15 @@ class StreamingDashboard:
             global_metrics = processor_metrics.get("global_metrics", {})
 
             # Update dashboard metrics
-            self.dashboard_metrics.total_events = global_metrics.get("events_processed", 0)
-            self.dashboard_metrics.events_per_second = global_metrics.get("events_per_second", 0.0)
-            self.dashboard_metrics.processing_latency = global_metrics.get("average_processing_time", 0.0)
+            self.dashboard_metrics.total_events = global_metrics.get(
+                "events_processed", 0
+            )
+            self.dashboard_metrics.events_per_second = global_metrics.get(
+                "events_per_second", 0.0
+            )
+            self.dashboard_metrics.processing_latency = global_metrics.get(
+                "average_processing_time", 0.0
+            )
 
             # Calculate average quality
             quality_scores = global_metrics.get("quality_scores", [])
@@ -185,7 +198,7 @@ class StreamingDashboard:
                 self.dashboard_metrics.quality_distribution = {
                     "high": high_count,
                     "medium": medium_count,
-                    "low": low_count
+                    "low": low_count,
                 }
 
             # Calculate error rate
@@ -197,7 +210,8 @@ class StreamingDashboard:
             # Count active sources
             source_metrics = processor_metrics.get("source_metrics", {})
             self.dashboard_metrics.active_sources = sum(
-                1 for metrics in source_metrics.values()
+                1
+                for metrics in source_metrics.values()
                 if metrics.get("active_connections", 0) > 0
             )
 
@@ -205,13 +219,15 @@ class StreamingDashboard:
             self.dashboard_metrics.system_health = self._calculate_system_health()
 
             # Add to history
-            self.metrics_history.append({
-                "timestamp": datetime.now().isoformat(),
-                "events_per_second": self.dashboard_metrics.events_per_second,
-                "average_quality": self.dashboard_metrics.average_quality,
-                "error_rate": self.dashboard_metrics.error_rate,
-                "processing_latency": self.dashboard_metrics.processing_latency
-            })
+            self.metrics_history.append(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "events_per_second": self.dashboard_metrics.events_per_second,
+                    "average_quality": self.dashboard_metrics.average_quality,
+                    "error_rate": self.dashboard_metrics.error_rate,
+                    "processing_latency": self.dashboard_metrics.processing_latency,
+                }
+            )
 
         except Exception as e:
             self.logger.error(f"Error updating metrics: {e}")
@@ -221,9 +237,11 @@ class StreamingDashboard:
         # Health criteria
         if self.dashboard_metrics.error_rate > 10:
             return "critical"
-        if (self.dashboard_metrics.error_rate > 5 or
-              self.dashboard_metrics.processing_latency > 5.0 or
-              self.dashboard_metrics.average_quality < 0.5):
+        if (
+            self.dashboard_metrics.error_rate > 5
+            or self.dashboard_metrics.processing_latency > 5.0
+            or self.dashboard_metrics.average_quality < 0.5
+        ):
             return "warning"
         return "healthy"
 
@@ -236,10 +254,12 @@ class StreamingDashboard:
             alert = {
                 "id": f"error_rate_{int(time.time())}",
                 "type": "error_rate",
-                "severity": "warning" if self.dashboard_metrics.error_rate < 10 else "critical",
+                "severity": "warning"
+                if self.dashboard_metrics.error_rate < 10
+                else "critical",
                 "message": f"High error rate: {self.dashboard_metrics.error_rate:.2f}%",
                 "timestamp": current_time.isoformat(),
-                "data": {"error_rate": self.dashboard_metrics.error_rate}
+                "data": {"error_rate": self.dashboard_metrics.error_rate},
             }
             self._add_alert(alert)
 
@@ -251,7 +271,7 @@ class StreamingDashboard:
                 "severity": "warning",
                 "message": f"Low average quality: {self.dashboard_metrics.average_quality:.3f}",
                 "timestamp": current_time.isoformat(),
-                "data": {"average_quality": self.dashboard_metrics.average_quality}
+                "data": {"average_quality": self.dashboard_metrics.average_quality},
             }
             self._add_alert(alert)
 
@@ -263,7 +283,9 @@ class StreamingDashboard:
                 "severity": "warning",
                 "message": f"High processing latency: {self.dashboard_metrics.processing_latency:.3f}s",
                 "timestamp": current_time.isoformat(),
-                "data": {"processing_latency": self.dashboard_metrics.processing_latency}
+                "data": {
+                    "processing_latency": self.dashboard_metrics.processing_latency
+                },
             }
             self._add_alert(alert)
 
@@ -275,7 +297,7 @@ class StreamingDashboard:
                 "severity": "critical",
                 "message": "No active data sources",
                 "timestamp": current_time.isoformat(),
-                "data": {"active_sources": 0}
+                "data": {"active_sources": 0},
             }
             self._add_alert(alert)
 
@@ -284,8 +306,10 @@ class StreamingDashboard:
         # Check if similar alert already exists (avoid spam)
         existing_alert = None
         for existing in self.alerts:
-            if (existing["type"] == alert["type"] and
-                existing["severity"] == alert["severity"]):
+            if (
+                existing["type"] == alert["type"]
+                and existing["severity"] == alert["severity"]
+            ):
                 existing_alert = existing
                 break
 
@@ -651,6 +675,7 @@ DASHBOARD_HTML_TEMPLATE = """
 </html>
 """
 
+
 # Create templates directory and save HTML template
 def create_dashboard_template():
     """Create the dashboard HTML template."""
@@ -662,12 +687,12 @@ def create_dashboard_template():
         f.write(DASHBOARD_HTML_TEMPLATE)
 
 
-
 if __name__ == "__main__":
     # Create dashboard template
     create_dashboard_template()
 
     # Example usage
+
     from real_time_processor import FileWatcherDataSource, StreamingProcessor
 
     # Create processor
@@ -676,15 +701,11 @@ if __name__ == "__main__":
     # Add data source
     file_source = FileWatcherDataSource(
         source_id="file_watcher",
-        config={
-            "directory": "data/streaming",
-            "patterns": ["*.jsonl", "*.json"]
-        }
+        config={"directory": "data/streaming", "patterns": ["*.jsonl", "*.json"]},
     )
     processor.add_data_source(file_source)
 
     # Create and run dashboard
     dashboard = StreamingDashboard(processor, port=5000)
-
 
     dashboard.run_dashboard(debug=True)

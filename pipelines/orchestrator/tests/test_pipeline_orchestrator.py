@@ -40,7 +40,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
             retry_delay=0.1,  # Short delay for testing
             output_directory=self.temp_dir / "output",
             cache_directory=self.temp_dir / "cache",
-            report_directory=self.temp_dir / "reports"
+            report_directory=self.temp_dir / "reports",
         )
 
         self.orchestrator = PipelineOrchestrator(self.config)
@@ -50,11 +50,16 @@ class TestPipelineOrchestrator(unittest.TestCase):
             Conversation(
                 id=f"test_conv_{i}",
                 messages=[
-                    Message(role="client", content=f"I need help with anxiety issue {i}"),
-                    Message(role="therapist", content=f"I understand your concern about anxiety {i}. Let's work through this together.")
+                    Message(
+                        role="client", content=f"I need help with anxiety issue {i}"
+                    ),
+                    Message(
+                        role="therapist",
+                        content=f"I understand your concern about anxiety {i}. Let's work through this together.",
+                    ),
                 ],
                 context={"quality": "high"},
-                source="test"
+                source="test",
             )
             for i in range(3)
         ]
@@ -63,6 +68,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         """Clean up test fixtures."""
         # Clean up temporary directory
         import shutil
+
         shutil.rmtree(self.temp_dir, ignore_errors=True)
 
     def test_initialization(self):
@@ -83,7 +89,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         config = PipelineConfig(
             execution_mode=ExecutionMode.CONCURRENT,
             max_concurrent_datasets=5,
-            quality_threshold=0.8
+            quality_threshold=0.8,
         )
 
         assert config.execution_mode == ExecutionMode.CONCURRENT
@@ -183,7 +189,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
         mock_loader.datasets = {
             "hf_dataset1": MagicMock(source_type="huggingface"),
             "hf_dataset2": MagicMock(source_type="huggingface"),
-            "local_dataset1": MagicMock(source_type="local")
+            "local_dataset1": MagicMock(source_type="local"),
         }
         self.orchestrator.dataset_loader = mock_loader
 
@@ -192,7 +198,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
                 include_huggingface=True,
                 include_local=True,
                 include_generated=False,
-                custom_datasets=None
+                custom_datasets=None,
             )
 
             # Check that registration methods were called
@@ -224,10 +230,12 @@ class TestPipelineOrchestrator(unittest.TestCase):
         # Mock the dataset loader
         mock_loader = MagicMock()
         mock_loader.get_loading_order.return_value = ["dataset1", "dataset2"]
-        mock_loader.load_all_datasets = AsyncMock(return_value={
-            "dataset1": self.test_conversations[:2],
-            "dataset2": self.test_conversations[2:]
-        })
+        mock_loader.load_all_datasets = AsyncMock(
+            return_value={
+                "dataset1": self.test_conversations[:2],
+                "dataset2": self.test_conversations[2:],
+            }
+        )
         self.orchestrator.dataset_loader = mock_loader
 
         async def run_test():
@@ -247,10 +255,12 @@ class TestPipelineOrchestrator(unittest.TestCase):
         # Mock the dataset loader
         mock_loader = MagicMock()
         mock_loader.datasets = {"dataset1": MagicMock(), "dataset2": MagicMock()}
-        mock_loader.load_all_datasets = AsyncMock(return_value={
-            "dataset1": self.test_conversations[:2],
-            "dataset2": self.test_conversations[2:]
-        })
+        mock_loader.load_all_datasets = AsyncMock(
+            return_value={
+                "dataset1": self.test_conversations[:2],
+                "dataset2": self.test_conversations[2:],
+            }
+        )
         self.orchestrator.dataset_loader = mock_loader
 
         async def run_test():
@@ -276,7 +286,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
 
         test_datasets = {
             "dataset1": self.test_conversations[:2],
-            "dataset2": self.test_conversations[2:]
+            "dataset2": self.test_conversations[2:],
         }
 
         async def run_test():
@@ -301,9 +311,7 @@ class TestPipelineOrchestrator(unittest.TestCase):
             return_value={"quality_score": 0.4}  # Below threshold
         )
 
-        test_datasets = {
-            "dataset1": self.test_conversations[:2]
-        }
+        test_datasets = {"dataset1": self.test_conversations[:2]}
 
         async def run_test():
             result = await self.orchestrator._validate_quality(test_datasets)

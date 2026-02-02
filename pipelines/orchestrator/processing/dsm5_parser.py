@@ -2,7 +2,8 @@
 DSM-5 diagnostic criteria parser for psychology knowledge integration pipeline.
 
 This module provides comprehensive parsing and structuring of DSM-5 diagnostic criteria
-into standardized format for therapeutic conversation generation and training data creation.
+into standardized format for therapeutic conversation generation and training data
+creation.
 """
 
 import json
@@ -160,7 +161,10 @@ class DSM5Parser:
             ),
             DSMCriterion(
                 id="A2",
-                description="Markedly diminished interest or pleasure in all, or almost all, activities",
+                description=(
+                    "Markedly diminished interest or pleasure in all, or almost all, "
+                    "activities"
+                ),
                 category="core_symptoms",
                 examples=[
                     "Loss of interest in hobbies",
@@ -170,7 +174,10 @@ class DSM5Parser:
             ),
             DSMCriterion(
                 id="A3",
-                description="Significant weight loss when not dieting or weight gain, or decrease or increase in appetite",
+                description=(
+                    "Significant weight loss when not dieting or weight gain, or "
+                    "decrease or increase in appetite"
+                ),
                 category="physical_symptoms",
                 examples=[
                     "Weight change of more than 5% in a month",
@@ -207,7 +214,9 @@ class DSM5Parser:
             ),
             DSMCriterion(
                 id="A7",
-                description="Feelings of worthlessness or excessive or inappropriate guilt",
+                description=(
+                    "Feelings of worthlessness or excessive or inappropriate guilt"
+                ),
                 category="cognitive_symptoms",
                 examples=[
                     "Self-blame for things beyond control",
@@ -216,13 +225,21 @@ class DSM5Parser:
             ),
             DSMCriterion(
                 id="A8",
-                description="Diminished ability to think or concentrate, or indecisiveness",
+                description=(
+                    "Diminished ability to think or concentrate, or indecisiveness"
+                ),
                 category="cognitive_symptoms",
-                examples=["Difficulty making decisions", "Problems with memory or concentration"],
+                examples=[
+                    "Difficulty making decisions",
+                    "Problems with memory or concentration",
+                ],
             ),
             DSMCriterion(
                 id="A9",
-                description="Recurrent thoughts of death, recurrent suicidal ideation, or suicide attempt",
+                description=(
+                    "Recurrent thoughts of death, recurrent suicidal ideation, or "
+                    "suicide attempt"
+                ),
                 category="suicidal_symptoms",
                 examples=[
                     "Fear of dying",
@@ -273,11 +290,17 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=5,
             duration_requirement="2 weeks",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
+            severity_levels=[
+                SeverityLevel.MILD,
+                SeverityLevel.MODERATE,
+                SeverityLevel.SEVERE,
+            ],
             specifiers=specifiers,
             exclusions=[
-                "Symptoms not attributable to physiological effects of substance or medical condition",
-                "Not better explained by schizoaffective, schizophrenia, or other psychotic disorders",
+                "Symptoms not attributable to physiological effects of substance or "
+                "medical condition",
+                "Not better explained by schizoaffective, schizophrenia, or other "
+                "psychotic disorders",
                 "No history of manic or hypomanic episodes",
             ],
             differential_diagnosis=[
@@ -308,7 +331,9 @@ class DSM5Parser:
         criteria = [
             DSMCriterion(
                 id="A",
-                description="Excessive anxiety and worry about a number of events or activities",
+                description=(
+                    "Excessive anxiety and worry about a number of events or activities"
+                ),
                 category="core_symptoms",
                 examples=[
                     "Worry about work performance",
@@ -332,15 +357,25 @@ class DSM5Parser:
                 category="physical_symptoms",
             ),
             DSMCriterion(
-                id="C2", description="Being easily fatigued", category="physical_symptoms"
+                id="C2",
+                description="Being easily fatigued",
+                category="physical_symptoms",
             ),
             DSMCriterion(
                 id="C3",
                 description="Difficulty concentrating or mind going blank",
                 category="cognitive_symptoms",
             ),
-            DSMCriterion(id="C4", description="Irritability", category="emotional_symptoms"),
-            DSMCriterion(id="C5", description="Muscle tension", category="physical_symptoms"),
+            DSMCriterion(
+                id="C4",
+                description="Irritability",
+                category="emotional_symptoms",
+            ),
+            DSMCriterion(
+                id="C5",
+                description="Muscle tension",
+                category="physical_symptoms",
+            ),
             DSMCriterion(
                 id="C6",
                 description="Sleep disturbance",
@@ -360,9 +395,14 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=3,  # 3 of the C criteria
             duration_requirement="6 months",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
+            severity_levels=[
+                SeverityLevel.MILD,
+                SeverityLevel.MODERATE,
+                SeverityLevel.SEVERE,
+            ],
             exclusions=[
-                "Not attributable to physiological effects of substance or medical condition",
+                "Not attributable to physiological effects of substance or medical "
+                "condition",
                 "Not better explained by another mental disorder",
             ],
             differential_diagnosis=[
@@ -412,7 +452,9 @@ class DSM5Parser:
             ),
             DSMCriterion(
                 id="B3",
-                description="Significant maladaptive change in behavior related to attacks",
+                description=(
+                    "Significant maladaptive change in behavior related to attacks"
+                ),
                 category="behavioral_symptoms",
                 examples=[
                     "Avoidance of exercise",
@@ -429,9 +471,14 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=2,  # A + at least one B criterion
             duration_requirement="1 month",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
+            severity_levels=[
+                SeverityLevel.MILD,
+                SeverityLevel.MODERATE,
+                SeverityLevel.SEVERE,
+            ],
             exclusions=[
-                "Not attributable to physiological effects of substance or medical condition",
+                "Not attributable to physiological effects of substance or medical "
+                "condition",
                 "Not better explained by another mental disorder",
             ],
             differential_diagnosis=[
@@ -450,7 +497,10 @@ class DSM5Parser:
         criteria = [
             DSMCriterion(
                 id="A",
-                description="Exposure to actual or threatened death, serious injury, or sexual violence",
+                description=(
+                    "Exposure to actual or threatened death, serious injury, or sexual "
+                    "violence"
+                ),
                 category="trauma_exposure",
                 examples=[
                     "Directly experiencing traumatic event",
@@ -473,9 +523,14 @@ class DSM5Parser:
             ),
             DSMCriterion(
                 id="C",
-                description="Persistent avoidance of stimuli associated with traumatic event",
+                description=(
+                    "Persistent avoidance of stimuli associated with traumatic event"
+                ),
                 category="avoidance_symptoms",
-                examples=["Avoidance of distressing memories", "Avoidance of external reminders"],
+                examples=[
+                    "Avoidance of distressing memories",
+                    "Avoidance of external reminders",
+                ],
             ),
             DSMCriterion(
                 id="D",
@@ -513,7 +568,11 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=5,  # All criteria A-E must be met
             duration_requirement="1 month",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
+            severity_levels=[
+                SeverityLevel.MILD,
+                SeverityLevel.MODERATE,
+                SeverityLevel.SEVERE,
+            ],
             specifiers=[
                 DSMSpecifier(
                     name="dissociative_symptoms",
@@ -552,7 +611,11 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=1,
             duration_requirement="Time-consuming or cause distress",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
+            severity_levels=[
+                SeverityLevel.MILD,
+                SeverityLevel.MODERATE,
+                SeverityLevel.SEVERE,
+            ],
         )
 
     def _create_bipolar_disorder(self) -> DSMDisorder:
@@ -572,7 +635,11 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=1,
             duration_requirement="Variable",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
+            severity_levels=[
+                SeverityLevel.MILD,
+                SeverityLevel.MODERATE,
+                SeverityLevel.SEVERE,
+            ],
         )
 
     def _create_adhd(self) -> DSMDisorder:
@@ -580,7 +647,9 @@ class DSM5Parser:
         criteria = [
             DSMCriterion(
                 id="A",
-                description="Persistent pattern of inattention and/or hyperactivity-impulsivity",
+                description=(
+                    "Persistent pattern of inattention and/or hyperactivity-impulsivity"
+                ),
                 category="core_symptoms",
             )
         ]
@@ -592,7 +661,11 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=1,
             duration_requirement="6 months",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
+            severity_levels=[
+                SeverityLevel.MILD,
+                SeverityLevel.MODERATE,
+                SeverityLevel.SEVERE,
+            ],
         )
 
     def _create_autism_spectrum_disorder(self) -> DSMDisorder:
@@ -600,12 +673,17 @@ class DSM5Parser:
         criteria = [
             DSMCriterion(
                 id="A",
-                description="Persistent deficits in social communication and social interaction",
+                description=(
+                    "Persistent deficits in social communication and social interaction"
+                ),
                 category="social_communication",
             ),
             DSMCriterion(
                 id="B",
-                description="Restricted, repetitive patterns of behavior, interests, or activities",
+                description=(
+                    "Restricted, repetitive patterns of behavior, interests, or "
+                    "activities"
+                ),
                 category="restricted_repetitive",
             ),
         ]
@@ -617,10 +695,16 @@ class DSM5Parser:
             criteria=criteria,
             minimum_criteria_count=2,
             duration_requirement="Early developmental period",
-            severity_levels=[SeverityLevel.MILD, SeverityLevel.MODERATE, SeverityLevel.SEVERE],
+            severity_levels=[
+                SeverityLevel.MILD,
+                SeverityLevel.MODERATE,
+                SeverityLevel.SEVERE,
+            ],
         )
 
-    def _build_category_mapping(self, disorders: list[DSMDisorder]) -> dict[str, list[str]]:
+    def _build_category_mapping(
+        self, disorders: list[DSMDisorder]
+    ) -> dict[str, list[str]]:
         """Build mapping of categories to disorder names."""
         mapping = {}
         for disorder in disorders:
@@ -673,7 +757,9 @@ class DSM5Parser:
             disorder_dict = asdict(disorder)
             # Convert enums to strings for JSON serialization
             disorder_dict["category"] = disorder.category.value
-            disorder_dict["severity_levels"] = [level.value for level in disorder.severity_levels]
+            disorder_dict["severity_levels"] = [
+                level.value for level in disorder.severity_levels
+            ]
             sample_data.append(disorder_dict)
 
         logger.info(f"Created {len(sample_data)} sample disorders")
@@ -733,7 +819,8 @@ class DSM5Parser:
                 # Convert string enums back to enum objects
                 disorder_data["category"] = DSMCategory(disorder_data["category"])
                 disorder_data["severity_levels"] = [
-                    SeverityLevel(level) for level in disorder_data.get("severity_levels", [])
+                    SeverityLevel(level)
+                    for level in disorder_data.get("severity_levels", [])
                 ]
 
                 # Convert criteria
@@ -778,8 +865,17 @@ class DSM5Parser:
         diagnostic_messages = [
             Message(
                 role="therapist",
-                content=f"I'd like to ask you some questions to better understand what you've been experiencing. These questions relate to {disorder.name}.",
-                meta={"type": "introduction", "disorder": disorder.name},
+                content=(
+                    "I'd like to ask you some questions to better understand "
+                    "what you've "
+                    "been experiencing. "
+                    "These questions relate to "
+                    f"{disorder.name}."
+                ),
+                metadata={
+                    "type": "introduction",
+                    "disorder": disorder.name,
+                },
             )
         ]
 
@@ -789,7 +885,10 @@ class DSM5Parser:
                 Message(
                     role="therapist",
                     content=f"Have you experienced: {criterion.description}?",
-                    meta={"criterion_id": criterion.id, "category": criterion.category},
+                    metadata={
+                        "criterion_id": criterion.id,
+                        "category": criterion.category,
+                    },
                 )
             )
 
@@ -800,21 +899,19 @@ class DSM5Parser:
                     Message(
                         role="client",
                         content=f"Yes, I have been experiencing {example.lower()}.",
-                        meta={"criterion_id": criterion.id, "example": True},
+                        metadata={"criterion_id": criterion.id, "example": True},
                     )
                 )
 
         diagnostic_conversation = Conversation(
-            id=f"dsm5_diagnostic_{disorder.code}",
+            conversation_id=f"dsm5_diagnostic_{disorder.code}",
             messages=diagnostic_messages,
-            context={
+            source="dsm5_parser",
+            metadata={
                 "disorder": disorder.name,
                 "code": disorder.code,
                 "category": disorder.category.value,
                 "type": "diagnostic_assessment",
-            },
-            source="dsm5_parser",
-            meta={
                 "minimum_criteria": disorder.minimum_criteria_count,
                 "duration_requirement": disorder.duration_requirement,
             },
@@ -822,7 +919,9 @@ class DSM5Parser:
 
         conversations.append(diagnostic_conversation)
 
-        logger.info(f"Generated {len(conversations)} conversation templates for {disorder.name}")
+        logger.info(
+            f"Generated {len(conversations)} conversation templates for {disorder.name}"
+        )
         return conversations
 
     def get_statistics(self) -> dict[str, Any]:

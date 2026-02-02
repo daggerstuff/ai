@@ -24,7 +24,9 @@ class ReasoningValidationResult(ValidationResult):
     chain_of_thought_score: float = 0.0
     logical_structure_score: float = 0.0
     problem_solution_pairs: int = 0
+
     reasoning_patterns_found: list[str] = None
+
     complexity_distribution: dict[str, int] = None
 
 

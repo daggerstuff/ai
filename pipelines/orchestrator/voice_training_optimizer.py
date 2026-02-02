@@ -273,7 +273,6 @@ class VoiceTrainingOptimizer:
                 confidence=personality_analysis.get("confidence", 0.5),
             )
 
-
         except Exception as e:
             self.logger.error(f"Error extracting profile: {e}")
             return None
@@ -488,7 +487,6 @@ class VoiceTrainingOptimizer:
             key=lambda c: c.meta.get("final_optimization_score", 0.0),
             reverse=True,
         )
-
 
     def _analyze_communication_style(
         self, conversation: Conversation

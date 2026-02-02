@@ -223,7 +223,9 @@ class AuthenticityScorer:
         return profile
 
     def score_batch_authenticity(
-        self, conversations: list[Conversation], enable_cross_validation: bool | None = None
+        self,
+        conversations: list[Conversation],
+        enable_cross_validation: bool | None = None,
     ) -> list[AuthenticityProfile]:
         """
         Score authenticity for a batch of conversations.
@@ -902,7 +904,6 @@ class AuthenticityScorer:
 
         return max(0.0, min(1.0, base_score - red_flag_penalty + positive_bonus))
 
-
     def _calculate_personality_alignment(
         self,
         personality_analysis: PersonalityAnalysis,
@@ -943,7 +944,6 @@ class AuthenticityScorer:
         # Lower standard deviation indicates higher consistency
         std_dev = statistics.stdev(scores)
         return max(0.0, 1.0 - std_dev)
-
 
     def _calculate_confidence(
         self, metrics: list[AuthenticityMetric], text_content: str

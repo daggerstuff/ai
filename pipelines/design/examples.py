@@ -9,19 +9,19 @@ import json
 import logging
 from pathlib import Path
 
-from ai.pipelines.design.service import NeMoDataDesignerService
 from ai.pipelines.design.config import DataDesignerConfig
+from ai.pipelines.design.service import NeMoDataDesignerService
 from nemo_microservices.data_designer.essentials import (
+    CategorySamplerParams,
     SamplerColumnConfig,
     SamplerType,
-    CategorySamplerParams,
     UniformSamplerParams,
 )
 
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -195,4 +195,3 @@ if __name__ == "__main__":
     except Exception as e:
         logger.error(f"Example execution failed: {e}")
         raise
-

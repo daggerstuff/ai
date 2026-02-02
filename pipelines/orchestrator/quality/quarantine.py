@@ -26,6 +26,7 @@ from .monitoring import log_quarantine_insert, log_validation_fail
 
 class QuarantineStatus(Enum):
     """Status of quarantined records."""
+
     PENDING_REVIEW = "pending_review"
     APPROVED = "approved"
     REJECTED = "rejected"
@@ -35,16 +36,29 @@ class QuarantineStatus(Enum):
 
 class QuarantineRecord(BaseModel):
     """Model for quarantined failed validation records."""
+
     quarantine_id: str = Field(..., description="Auto-generated unique ID")
     original_record_id: str = Field(..., description="ID from IngestRecord")
     raw_payload: dict[str, Any] = Field(..., description="Raw payload from ingestion")
-    validation_errors: list[str] = Field(default_factory=list, description="List of validation error messages")
-    metadata: dict[str, Any] = Field(default_factory=dict, description="Ingestion metadata + provenance")
-    status: QuarantineStatus = Field(default=QuarantineStatus.PENDING_REVIEW, description="Current status")
-    created_at: datetime = Field(default_factory=datetime.utcnow, description="Quarantine timestamp")
+    validation_errors: list[str] = Field(
+        default_factory=list, description="List of validation error messages"
+    )
+    metadata: dict[str, Any] = Field(
+        default_factory=dict, description="Ingestion metadata + provenance"
+    )
+    status: QuarantineStatus = Field(
+        default=QuarantineStatus.PENDING_REVIEW, description="Current status"
+    )
+    created_at: datetime = Field(
+        default_factory=datetime.utcnow, description="Quarantine timestamp"
+    )
     updated_at: datetime | None = Field(None, description="Last update timestamp")
-    review_notes: str | None = Field(None, max_length=1000, description="Operator review comments")
-    reprocess_attempts: int = Field(default=0, ge=0, description="Number of reprocess tries")
+    review_notes: str | None = Field(
+        None, max_length=1000, description="Operator review comments"
+    )
+    reprocess_attempts: int = Field(
+        default=0, ge=0, description="Number of reprocess tries"
+    )
 
     class Config:
         arbitrary_types_allowed = True  # For raw_payload flexibility
@@ -66,8 +80,15 @@ class QuarantineStore:
     Provides CRUD for quarantine ops and basic review workflow.
     """
 
-    def __init__(self, mongo_uri: str | None = None, db_name: str = "pixelated_pipeline", collection_name: str = "quarantine_records"):
-        self.mongo_uri = mongo_uri or "mongodb://localhost:27017"  # Default; use env in prod
+    def __init__(
+        self,
+        mongo_uri: str | None = None,
+        db_name: str = "pixelated_pipeline",
+        collection_name: str = "quarantine_records",
+    ):
+        self.mongo_uri = (
+            mongo_uri or "mongodb://localhost:27017"
+        )  # Default; use env in prod
         self.db_name = db_name
         self.collection_name = collection_name
         self.client: MongoClient | None = None
@@ -86,7 +107,9 @@ class QuarantineStore:
             self.collection.create_index("status")
             self.collection.create_index("created_at")
         except ConnectionFailure as e:
-            raise ConnectionError(f"Failed to connect to MongoDB at {self.mongo_uri}: {e}")
+            raise ConnectionError(
+                f"Failed to connect to MongoDB at {self.mongo_uri}: {e}"
+            )
 
     def close(self) -> None:
         """Close MongoDB connection."""
@@ -99,7 +122,9 @@ class QuarantineStore:
         Returns quarantine_id. Logs validation fail and quarantine insert.
         """
         qr = QuarantineRecord(
-            quarantine_id=str(datetime.utcnow().timestamp()) + "_" + record.id,  # Simple unique ID
+            quarantine_id=str(datetime.utcnow().timestamp())
+            + "_"
+            + record.id,  # Simple unique ID
             original_record_id=record.id,
             raw_payload=record.payload,
             validation_errors=errors,
@@ -114,17 +139,23 @@ class QuarantineStore:
         log_quarantine_insert()
         return qr.quarantine_id
 
-    def get_quarantined(self, status: QuarantineStatus | None = None, limit: int = 50, skip: int = 0) -> Iterable[QuarantineRecord]:
+    def get_quarantined(
+        self, status: QuarantineStatus | None = None, limit: int = 50, skip: int = 0
+    ) -> Iterable[QuarantineRecord]:
         """Fetch quarantined records, optionally filtered by status.
 
         Pagination via limit/skip.
         """
         query = {"status": status.value} if status else {}
-        cursor = self.collection.find(query).sort("created_at", -1).skip(skip).limit(limit)
+        cursor = (
+            self.collection.find(query).sort("created_at", -1).skip(skip).limit(limit)
+        )
         for doc in cursor:
             yield QuarantineRecord(**doc)
 
-    def update_status(self, quarantine_id: str, status: QuarantineStatus, notes: str | None = None) -> bool:
+    def update_status(
+        self, quarantine_id: str, status: QuarantineStatus, notes: str | None = None
+    ) -> bool:
         """Update status and notes for a record.
 
         Returns True if updated.
@@ -136,7 +167,7 @@ class QuarantineStore:
         qr_obj.update_status(status, notes)
         result = self.collection.replace_one(
             {"quarantine_id": quarantine_id},
-            qr_obj.dict()
+            qr_obj.dict(),
         )
         return result.modified_count > 0
 
@@ -151,7 +182,9 @@ class QuarantineStore:
             return None
         qr_obj = QuarantineRecord(**qr)
         if qr_obj.reprocess_attempts >= 3:
-            qr_obj.update_status(QuarantineStatus.ERROR, "Max reprocess attempts exceeded")
+            qr_obj.update_status(
+                QuarantineStatus.ERROR, "Max reprocess attempts exceeded"
+            )
             self.collection.replace_one({"quarantine_id": quarantine_id}, qr_obj.dict())
             return None
 
@@ -163,6 +196,7 @@ class QuarantineStore:
         )
         try:
             from .validation import validate_record
+
             validated = validate_record(rec)
             qr_obj.update_status(QuarantineStatus.REPROCESSED)
             self.collection.replace_one({"quarantine_id": quarantine_id}, qr_obj.dict())
@@ -186,8 +220,13 @@ class QuarantineStore:
         """Get quarantine stats: counts by status."""
         pipeline = [
             {"$group": {"_id": "$status", "count": {"$sum": 1}}},
-            {"$group": {"_id": None, "stats": {"$push": {"status": "$_id", "count": "$count"}}}},
-            {"$replaceRoot": {"newRoot": "$stats"}}
+            {
+                "$group": {
+                    "_id": None,
+                    "stats": {"$push": {"status": "$_id", "count": "$count"}},
+                }
+            },
+            {"$replaceRoot": {"newRoot": "$stats"}},
         ]
         result = list(self.collection.aggregate(pipeline))
         if result:

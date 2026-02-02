@@ -22,6 +22,7 @@ class PipelineConfig:
     quality_threshold: float = 0.8
     personality_balancing: bool = True
     safety_validation: bool = True
+
     export_formats: list[str] = None
 
     def __post_init__(self):
@@ -239,7 +240,9 @@ class ProductionPipelineOrchestrator:
 
         # Try Quality Scoring v1 first
         try:
-            from ai.pipelines.orchestrator.quality.quality_filter_v1 import QualityFilterV1
+            from ai.pipelines.orchestrator.quality.quality_filter_v1 import (
+                QualityFilterV1,
+            )
 
             quality_filter = QualityFilterV1(
                 min_decision="curate", min_composite=threshold, enabled=True
@@ -277,6 +280,7 @@ class ProductionPipelineOrchestrator:
     ):
         """Generate production dataset."""
         # Placeholder - would use actual dataset generator
+
         from production_dataset_generator import ProductionDataset
 
         return ProductionDataset(

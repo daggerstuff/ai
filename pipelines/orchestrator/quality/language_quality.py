@@ -11,7 +11,7 @@ The score ranges from 0.0 (poor quality) to 1.0 (high quality).
 import re
 from typing import Any
 
-from .conversation_schema import Conversation
+from ai.pipelines.orchestrator.conversation_schema import Conversation
 
 
 def _count_spelling_errors(text: str) -> int:

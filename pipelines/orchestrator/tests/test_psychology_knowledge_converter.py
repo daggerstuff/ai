@@ -40,8 +40,12 @@ class TestPsychologyKnowledgeConverter(unittest.TestCase):
     def test_conversation_types_enum(self):
         """Test ConversationType enum values."""
         expected_types = {
-            "diagnostic_assessment", "personality_exploration", "psychodynamic_exploration",
-            "clinical_interview", "therapeutic_education", "symptom_assessment"
+            "diagnostic_assessment",
+            "personality_exploration",
+            "psychodynamic_exploration",
+            "clinical_interview",
+            "therapeutic_education",
+            "symptom_assessment",
         }
         actual_types = {conv_type.value for conv_type in ConversationType}
         assert expected_types == actual_types
@@ -49,8 +53,11 @@ class TestPsychologyKnowledgeConverter(unittest.TestCase):
     def test_conversation_styles_enum(self):
         """Test ConversationStyle enum values."""
         expected_styles = {
-            "structured_interview", "exploratory_dialogue", "educational_discussion",
-            "assessment_focused", "supportive_inquiry"
+            "structured_interview",
+            "exploratory_dialogue",
+            "educational_discussion",
+            "assessment_focused",
+            "supportive_inquiry",
         }
         actual_styles = {style.value for style in ConversationStyle}
         assert expected_styles == actual_styles
@@ -143,7 +150,9 @@ class TestPsychologyKnowledgeConverter(unittest.TestCase):
         assert "diagnostic" in first_message.meta.get("type", "")
 
         # Should have systematic criterion assessment
-        criterion_messages = [msg for msg in conversation.messages if "criterion_id" in msg.meta]
+        criterion_messages = [
+            msg for msg in conversation.messages if "criterion_id" in msg.meta
+        ]
         assert len(criterion_messages) > 0
 
     def test_big_five_exploration_conversation_structure(self):
@@ -153,7 +162,9 @@ class TestPsychologyKnowledgeConverter(unittest.TestCase):
         assert len(profiles) > 0
 
         profile = profiles[0]
-        conversation = self.converter._generate_big_five_exploration_conversation(profile)
+        conversation = self.converter._generate_big_five_exploration_conversation(
+            profile
+        )
 
         # Check conversation structure
         assert isinstance(conversation, Conversation)
@@ -176,8 +187,7 @@ class TestPsychologyKnowledgeConverter(unittest.TestCase):
     def test_generate_comprehensive_dataset(self):
         """Test comprehensive dataset generation."""
         conversations = self.converter.generate_comprehensive_dataset(
-            dsm5_count=2,
-            big_five_count=2
+            dsm5_count=2, big_five_count=2
         )
 
         assert len(conversations) > 0
@@ -201,7 +211,9 @@ class TestPsychologyKnowledgeConverter(unittest.TestCase):
             output_path = Path(temp_dir) / "test_conversations.json"
 
             # Test successful export
-            result = self.converter.export_conversations_to_json(conversations, output_path)
+            result = self.converter.export_conversations_to_json(
+                conversations, output_path
+            )
             assert result
             assert output_path.exists()
 
@@ -211,7 +223,9 @@ class TestPsychologyKnowledgeConverter(unittest.TestCase):
 
             assert "conversations" in exported_data
             assert "metadata" in exported_data
-            assert exported_data["metadata"]["total_conversations"] == len(conversations)
+            assert exported_data["metadata"]["total_conversations"] == len(
+                conversations
+            )
             assert "knowledge_sources" in exported_data["metadata"]
 
             # Check conversation structure
@@ -225,15 +239,17 @@ class TestPsychologyKnowledgeConverter(unittest.TestCase):
     def test_get_statistics(self):
         """Test conversation statistics generation."""
         conversations = self.converter.generate_comprehensive_dataset(
-            dsm5_count=2,
-            big_five_count=2
+            dsm5_count=2, big_five_count=2
         )
 
         stats = self.converter.get_statistics(conversations)
 
         expected_keys = {
-            "total_conversations", "knowledge_sources", "conversation_types",
-            "average_messages_per_conversation", "total_messages"
+            "total_conversations",
+            "knowledge_sources",
+            "conversation_types",
+            "average_messages_per_conversation",
+            "total_messages",
         }
         assert set(stats.keys()) == expected_keys
 
@@ -270,7 +286,10 @@ class TestPsychologyKnowledgeConverter(unittest.TestCase):
                     assert "I don't know" not in message.content.lower()
                 elif message.role == "client":
                     # Client messages should be personal
-                    assert any(word in message.content.lower() for word in ["i", "me", "my", "i'm", "i've"])
+                    assert any(
+                        word in message.content.lower()
+                        for word in ["i", "me", "my", "i'm", "i've"]
+                    )
 
     def test_knowledge_integration_metadata(self):
         """Test that conversations properly integrate knowledge metadata."""
@@ -283,7 +302,9 @@ class TestPsychologyKnowledgeConverter(unittest.TestCase):
             assert len(conversation.meta["learning_objectives"]) > 0
 
             # Check message-level knowledge integration
-            knowledge_messages = [msg for msg in conversation.messages if "knowledge_source" in msg.meta]
+            knowledge_messages = [
+                msg for msg in conversation.messages if "knowledge_source" in msg.meta
+            ]
             assert len(knowledge_messages) > 0
 
             for msg in knowledge_messages:

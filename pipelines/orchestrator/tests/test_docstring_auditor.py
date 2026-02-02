@@ -30,7 +30,7 @@ class TestDocstringAuditor:
         # Custom configuration
         custom_config = {
             "min_docstring_length": 50,
-            "required_sections": ["Parameters", "Returns", "Raises"]
+            "required_sections": ["Parameters", "Returns", "Raises"],
         }
         auditor = DocstringAuditor(custom_config)
         assert auditor.min_docstring_length == 50
@@ -85,7 +85,7 @@ def good_function(x: int, y: int) -> int:
             stats = self.auditor._audit_file(temp_file)
 
             assert stats["functions"] == 2  # good_method and good_function
-            assert stats["classes"] == 1    # GoodClass
+            assert stats["classes"] == 1  # GoodClass
             assert stats["documented_functions"] == 2
             assert stats["documented_classes"] == 1
 
@@ -119,7 +119,8 @@ def bad_function(x, y):
 
             # Should have issues for missing docstrings
             missing_docstring_issues = [
-                issue for issue in self.auditor.issues
+                issue
+                for issue in self.auditor.issues
                 if issue.issue_type == "missing_docstring"
             ]
             assert len(missing_docstring_issues) == 3  # class + 2 functions
@@ -153,19 +154,22 @@ class ShortDocClass:
 
             # Should have quality issues
             short_docstring_issues = [
-                issue for issue in self.auditor.issues
+                issue
+                for issue in self.auditor.issues
                 if issue.issue_type == "short_docstring"
             ]
             assert len(short_docstring_issues) >= 1
 
             missing_args_issues = [
-                issue for issue in self.auditor.issues
+                issue
+                for issue in self.auditor.issues
                 if issue.issue_type == "missing_args_section"
             ]
             assert len(missing_args_issues) >= 1
 
             missing_returns_issues = [
-                issue for issue in self.auditor.issues
+                issue
+                for issue in self.auditor.issues
                 if issue.issue_type == "missing_returns_section"
             ]
             assert len(missing_returns_issues) >= 1
@@ -217,7 +221,7 @@ class BadClass:
 
         # Partial coverage
         score = self.auditor._calculate_coverage_score(8, 10, 3, 5)
-        assert score == 11/15  # (8+3)/(10+5)
+        assert score == 11 / 15  # (8+3)/(10+5)
 
         # No items
         score = self.auditor._calculate_coverage_score(0, 0, 0, 0)
@@ -233,7 +237,7 @@ class BadClass:
         # Some issues
         self.auditor.issues = [
             DocstringIssue("file1.py", 1, "missing_docstring", "high", "desc", "sugg"),
-            DocstringIssue("file2.py", 2, "short_docstring", "medium", "desc", "sugg")
+            DocstringIssue("file2.py", 2, "short_docstring", "medium", "desc", "sugg"),
         ]
         score = self.auditor._calculate_quality_score()
         assert 0.0 <= score < 1.0
@@ -242,8 +246,22 @@ class BadClass:
         """Test report generation."""
         # Create a sample report
         issues = [
-            DocstringIssue("file1.py", 1, "missing_docstring", "critical", "Missing class docstring", "Add docstring"),
-            DocstringIssue("file2.py", 5, "short_docstring", "medium", "Short docstring", "Expand docstring")
+            DocstringIssue(
+                "file1.py",
+                1,
+                "missing_docstring",
+                "critical",
+                "Missing class docstring",
+                "Add docstring",
+            ),
+            DocstringIssue(
+                "file2.py",
+                5,
+                "short_docstring",
+                "medium",
+                "Short docstring",
+                "Expand docstring",
+            ),
         ]
 
         report = DocstringAuditReport(
@@ -254,7 +272,7 @@ class BadClass:
             documented_classes=1,
             issues=issues,
             coverage_score=0.85,
-            quality_score=0.75
+            quality_score=0.75,
         )
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".md", delete=False) as f:
@@ -285,7 +303,7 @@ class BadClass:
             issue_type="missing_docstring",
             severity="high",
             description="Function missing docstring",
-            suggestion="Add comprehensive docstring"
+            suggestion="Add comprehensive docstring",
         )
 
         assert issue.file_path == "test.py"
@@ -309,7 +327,7 @@ class BadClass:
             documented_classes=7,
             issues=issues,
             coverage_score=0.89,
-            quality_score=0.92
+            quality_score=0.92,
         )
 
         assert report.total_files == 5
@@ -324,13 +342,25 @@ class BadClass:
     def test_fix_generation(self):
         """Test docstring fix generation."""
         issues = [
-            DocstringIssue("file1.py", 10, "missing_docstring", "high", "Missing function docstring", "Add docstring")
+            DocstringIssue(
+                "file1.py",
+                10,
+                "missing_docstring",
+                "high",
+                "Missing function docstring",
+                "Add docstring",
+            )
         ]
 
         report = DocstringAuditReport(
-            total_files=1, total_functions=1, total_classes=0,
-            documented_functions=0, documented_classes=0,
-            issues=issues, coverage_score=0.0, quality_score=0.5
+            total_files=1,
+            total_functions=1,
+            total_classes=0,
+            documented_functions=0,
+            documented_classes=0,
+            issues=issues,
+            coverage_score=0.0,
+            quality_score=0.5,
         )
 
         fixes = self.auditor.fix_missing_docstrings(report, auto_fix=False)
@@ -343,6 +373,7 @@ class BadClass:
 
 def test_main_function():
     """Test the main function runs without error."""
+
     from .docstring_auditor import main
 
     # Should run without raising exceptions

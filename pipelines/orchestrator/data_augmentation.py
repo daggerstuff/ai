@@ -581,6 +581,7 @@ class AugmentationQualityController:
 
         for orig_conv, aug_conv in zip(original_convs, augmented_convs):
             # Validate each message in the conversation
+
             for orig_msg, aug_msg in zip(orig_conv.messages, aug_conv.messages):
                 metrics = self.calculate_augmentation_quality(
                     orig_msg.content, aug_msg.content

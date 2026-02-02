@@ -7,25 +7,23 @@ encounter infrequently but need to be prepared for.
 """
 
 import logging
-from typing import Any, Optional
 from enum import Enum
-
-from nemo_microservices.data_designer.essentials import (
-    DataDesignerConfigBuilder,
-    SamplerColumnConfig,
-    CategorySamplerParams,
-    UniformSamplerParams,
-    GaussianSamplerParams,
-)
+from typing import Any, Optional
 
 from ai.pipelines.design.service import NeMoDataDesignerService
-from ai.pipelines.design.config import DataDesignerConfig
+from nemo_microservices.data_designer.essentials import (
+    CategorySamplerParams,
+    DataDesignerConfigBuilder,
+    SamplerColumnConfig,
+    UniformSamplerParams,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class EdgeCaseType(str, Enum):
     """Types of edge cases that can be generated."""
+
     CRISIS = "crisis"
     CULTURAL_COMPLEXITY = "cultural_complexity"
     COMORBIDITY = "comorbidity"
@@ -111,11 +109,11 @@ class EdgeCaseGenerator:
             )
 
             # Load dataset
-            if hasattr(job_result, 'load_dataset'):
+            if hasattr(job_result, "load_dataset"):
                 data = job_result.load_dataset()
-            elif hasattr(job_result, 'dataset'):
+            elif hasattr(job_result, "dataset"):
                 data = job_result.dataset
-            elif hasattr(job_result, 'data'):
+            elif hasattr(job_result, "data"):
                 data = job_result.data
             else:
                 data = job_result
@@ -123,8 +121,9 @@ class EdgeCaseGenerator:
             # Convert DataFrame to list of dicts if needed
             try:
                 import pandas as pd
+
                 if isinstance(data, pd.DataFrame):
-                    data = data.to_dict('records')
+                    data = data.to_dict("records")
             except ImportError:
                 pass  # pandas not available, use as-is
 
@@ -181,7 +180,11 @@ class EdgeCaseGenerator:
                 for record in dataset["data"]:
                     if isinstance(record, dict):
                         record["edge_case_type"] = edge_case_type.value
-            all_datasets.extend(dataset["data"] if isinstance(dataset["data"], list) else [dataset["data"]])
+            all_datasets.extend(
+                dataset["data"]
+                if isinstance(dataset["data"], list)
+                else [dataset["data"]]
+            )
 
         return {
             "data": all_datasets,
@@ -212,7 +215,13 @@ class EdgeCaseGenerator:
                 name="gender",
                 sampler_type="category",
                 params=CategorySamplerParams(
-                    values=["male", "female", "non-binary", "transgender", "prefer not to say"],
+                    values=[
+                        "male",
+                        "female",
+                        "non-binary",
+                        "transgender",
+                        "prefer not to say",
+                    ],
                 ),
             )
         )
@@ -235,7 +244,9 @@ class EdgeCaseGenerator:
             )
         )
 
-    def _add_crisis_columns(self, config_builder: DataDesignerConfigBuilder, difficulty_level: str):
+    def _add_crisis_columns(
+        self, config_builder: DataDesignerConfigBuilder, difficulty_level: str
+    ):
         """Add columns for crisis scenarios."""
         config_builder.add_column(
             SamplerColumnConfig(
@@ -279,14 +290,24 @@ class EdgeCaseGenerator:
             )
         )
 
-    def _add_cultural_complexity_columns(self, config_builder: DataDesignerConfigBuilder, difficulty_level: str):
+    def _add_cultural_complexity_columns(
+        self, config_builder: DataDesignerConfigBuilder, difficulty_level: str
+    ):
         """Add columns for cultural complexity scenarios."""
         config_builder.add_column(
             SamplerColumnConfig(
                 name="primary_language",
                 sampler_type="category",
                 params=CategorySamplerParams(
-                    values=["English", "Spanish", "Mandarin", "Arabic", "Hindi", "French", "Other"],
+                    values=[
+                        "English",
+                        "Spanish",
+                        "Mandarin",
+                        "Arabic",
+                        "Hindi",
+                        "French",
+                        "Other",
+                    ],
                 ),
             )
         )
@@ -295,7 +316,13 @@ class EdgeCaseGenerator:
                 name="immigration_status",
                 sampler_type="category",
                 params=CategorySamplerParams(
-                    values=["citizen", "permanent_resident", "refugee", "undocumented", "visa_holder"],
+                    values=[
+                        "citizen",
+                        "permanent_resident",
+                        "refugee",
+                        "undocumented",
+                        "visa_holder",
+                    ],
                 ),
             )
         )
@@ -319,11 +346,15 @@ class EdgeCaseGenerator:
             SamplerColumnConfig(
                 name="cultural_competence_required",
                 sampler_type="category",
-                params=CategorySamplerParams(values=["low", "moderate", "high", "critical"]),
+                params=CategorySamplerParams(
+                    values=["low", "moderate", "high", "critical"]
+                ),
             )
         )
 
-    def _add_comorbidity_columns(self, config_builder: DataDesignerConfigBuilder, difficulty_level: str):
+    def _add_comorbidity_columns(
+        self, config_builder: DataDesignerConfigBuilder, difficulty_level: str
+    ):
         """Add columns for comorbidity scenarios."""
         config_builder.add_column(
             SamplerColumnConfig(
@@ -367,7 +398,9 @@ class EdgeCaseGenerator:
             )
         )
 
-    def _add_boundary_violation_columns(self, config_builder: DataDesignerConfigBuilder, difficulty_level: str):
+    def _add_boundary_violation_columns(
+        self, config_builder: DataDesignerConfigBuilder, difficulty_level: str
+    ):
         """Add columns for boundary violation scenarios."""
         config_builder.add_column(
             SamplerColumnConfig(
@@ -390,7 +423,9 @@ class EdgeCaseGenerator:
             SamplerColumnConfig(
                 name="violation_severity",
                 sampler_type="category",
-                params=CategorySamplerParams(values=["minor", "moderate", "severe", "critical"]),
+                params=CategorySamplerParams(
+                    values=["minor", "moderate", "severe", "critical"]
+                ),
             )
         )
         config_builder.add_column(
@@ -401,7 +436,9 @@ class EdgeCaseGenerator:
             )
         )
 
-    def _add_trauma_disclosure_columns(self, config_builder: DataDesignerConfigBuilder, difficulty_level: str):
+    def _add_trauma_disclosure_columns(
+        self, config_builder: DataDesignerConfigBuilder, difficulty_level: str
+    ):
         """Add columns for trauma disclosure scenarios."""
         config_builder.add_column(
             SamplerColumnConfig(
@@ -424,18 +461,24 @@ class EdgeCaseGenerator:
             SamplerColumnConfig(
                 name="trauma_recency",
                 sampler_type="category",
-                params=CategorySamplerParams(values=["recent", "months_ago", "years_ago", "childhood"]),
+                params=CategorySamplerParams(
+                    values=["recent", "months_ago", "years_ago", "childhood"]
+                ),
             )
         )
         config_builder.add_column(
             SamplerColumnConfig(
                 name="trauma_informed_approach_required",
                 sampler_type="category",
-                params=CategorySamplerParams(values=["essential", "highly_recommended", "standard"]),
+                params=CategorySamplerParams(
+                    values=["essential", "highly_recommended", "standard"]
+                ),
             )
         )
 
-    def _add_substance_abuse_columns(self, config_builder: DataDesignerConfigBuilder, difficulty_level: str):
+    def _add_substance_abuse_columns(
+        self, config_builder: DataDesignerConfigBuilder, difficulty_level: str
+    ):
         """Add columns for substance abuse scenarios."""
         config_builder.add_column(
             SamplerColumnConfig(
@@ -457,18 +500,24 @@ class EdgeCaseGenerator:
             SamplerColumnConfig(
                 name="use_frequency",
                 sampler_type="category",
-                params=CategorySamplerParams(values=["occasional", "regular", "daily", "multiple_daily"]),
+                params=CategorySamplerParams(
+                    values=["occasional", "regular", "daily", "multiple_daily"]
+                ),
             )
         )
         config_builder.add_column(
             SamplerColumnConfig(
                 name="medical_risk_level",
                 sampler_type="category",
-                params=CategorySamplerParams(values=["low", "moderate", "high", "critical"]),
+                params=CategorySamplerParams(
+                    values=["low", "moderate", "high", "critical"]
+                ),
             )
         )
 
-    def _add_ethical_dilemma_columns(self, config_builder: DataDesignerConfigBuilder, difficulty_level: str):
+    def _add_ethical_dilemma_columns(
+        self, config_builder: DataDesignerConfigBuilder, difficulty_level: str
+    ):
         """Add columns for ethical dilemma scenarios."""
         config_builder.add_column(
             SamplerColumnConfig(
@@ -491,11 +540,15 @@ class EdgeCaseGenerator:
             SamplerColumnConfig(
                 name="ethical_consultation_urgency",
                 sampler_type="category",
-                params=CategorySamplerParams(values=["low", "moderate", "high", "immediate"]),
+                params=CategorySamplerParams(
+                    values=["low", "moderate", "high", "immediate"]
+                ),
             )
         )
 
-    def _add_rare_diagnosis_columns(self, config_builder: DataDesignerConfigBuilder, difficulty_level: str):
+    def _add_rare_diagnosis_columns(
+        self, config_builder: DataDesignerConfigBuilder, difficulty_level: str
+    ):
         """Add columns for rare diagnosis scenarios."""
         config_builder.add_column(
             SamplerColumnConfig(
@@ -522,7 +575,9 @@ class EdgeCaseGenerator:
             )
         )
 
-    def _add_multi_generational_columns(self, config_builder: DataDesignerConfigBuilder, difficulty_level: str):
+    def _add_multi_generational_columns(
+        self, config_builder: DataDesignerConfigBuilder, difficulty_level: str
+    ):
         """Add columns for multi-generational scenarios."""
         config_builder.add_column(
             SamplerColumnConfig(
@@ -555,7 +610,9 @@ class EdgeCaseGenerator:
             )
         )
 
-    def _add_systemic_oppression_columns(self, config_builder: DataDesignerConfigBuilder, difficulty_level: str):
+    def _add_systemic_oppression_columns(
+        self, config_builder: DataDesignerConfigBuilder, difficulty_level: str
+    ):
         """Add columns for systemic oppression scenarios."""
         config_builder.add_column(
             SamplerColumnConfig(
@@ -597,21 +654,26 @@ class EdgeCaseGenerator:
             SamplerColumnConfig(
                 name="intervention_complexity",
                 sampler_type="category",
-                params=CategorySamplerParams(values=["low", "moderate", "high", "very_high"]),
+                params=CategorySamplerParams(
+                    values=["low", "moderate", "high", "very_high"]
+                ),
             )
         )
         config_builder.add_column(
             SamplerColumnConfig(
                 name="supervision_required",
                 sampler_type="category",
-                params=CategorySamplerParams(values=["yes", "no", "consultation_recommended"]),
+                params=CategorySamplerParams(
+                    values=["yes", "no", "consultation_recommended"]
+                ),
             )
         )
         config_builder.add_column(
             SamplerColumnConfig(
                 name="training_priority",
                 sampler_type="category",
-                params=CategorySamplerParams(values=["low", "moderate", "high", "critical"]),
+                params=CategorySamplerParams(
+                    values=["low", "moderate", "high", "critical"]
+                ),
             )
         )
-

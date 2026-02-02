@@ -9,7 +9,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any
 
-from conversation_schema import Conversation, Message
+from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EmotionalAuthenticityMetrics:
     """Metrics for emotional authenticity assessment."""
+
     overall_score: float
     emotional_consistency_score: float
     empathy_expression_score: float
@@ -48,22 +49,23 @@ class EmotionalAuthenticityAssessor:
         self.config = config or {}
 
         # Default weights for different assessment dimensions
-        self.weights = self.config.get("weights", {
-            "emotional_consistency": 0.20,
-            "empathy_expression": 0.18,
-            "emotional_vocabulary": 0.16,
-            "response_appropriateness": 0.16,
-            "emotional_progression": 0.15,
-            "authenticity_indicators": 0.15
-        })
+        self.weights = self.config.get(
+            "weights",
+            {
+                "emotional_consistency": 0.20,
+                "empathy_expression": 0.18,
+                "emotional_vocabulary": 0.16,
+                "response_appropriateness": 0.16,
+                "emotional_progression": 0.15,
+                "authenticity_indicators": 0.15,
+            },
+        )
 
         # Quality thresholds
-        self.thresholds = self.config.get("thresholds", {
-            "excellent": 0.85,
-            "good": 0.70,
-            "acceptable": 0.55,
-            "poor": 0.40
-        })
+        self.thresholds = self.config.get(
+            "thresholds",
+            {"excellent": 0.85, "good": 0.70, "acceptable": 0.55, "poor": 0.40},
+        )
 
         # Emotional vocabulary sets
         self._initialize_emotional_vocabulary()
@@ -77,58 +79,169 @@ class EmotionalAuthenticityAssessor:
     def _initialize_emotional_vocabulary(self):
         """Initialize emotional vocabulary sets for assessment."""
         self.positive_emotions = {
-            "happy", "joy", "excited", "grateful", "content", "pleased", "satisfied",
-            "hopeful", "optimistic", "confident", "proud", "relieved", "calm", "peaceful",
-            "love", "affection", "warmth", "compassion", "empathy", "understanding"
+            "happy",
+            "joy",
+            "excited",
+            "grateful",
+            "content",
+            "pleased",
+            "satisfied",
+            "hopeful",
+            "optimistic",
+            "confident",
+            "proud",
+            "relieved",
+            "calm",
+            "peaceful",
+            "love",
+            "affection",
+            "warmth",
+            "compassion",
+            "empathy",
+            "understanding",
         }
 
         self.negative_emotions = {
-            "sad", "angry", "frustrated", "anxious", "worried", "scared", "afraid",
-            "depressed", "lonely", "hurt", "disappointed", "overwhelmed", "stressed",
-            "guilty", "ashamed", "embarrassed", "confused", "lost", "hopeless",
-            "irritated", "annoyed", "upset", "distressed", "troubled", "concerned"
+            "sad",
+            "angry",
+            "frustrated",
+            "anxious",
+            "worried",
+            "scared",
+            "afraid",
+            "depressed",
+            "lonely",
+            "hurt",
+            "disappointed",
+            "overwhelmed",
+            "stressed",
+            "guilty",
+            "ashamed",
+            "embarrassed",
+            "confused",
+            "lost",
+            "hopeless",
+            "irritated",
+            "annoyed",
+            "upset",
+            "distressed",
+            "troubled",
+            "concerned",
         }
 
         self.complex_emotions = {
-            "ambivalent", "conflicted", "bittersweet", "nostalgic", "melancholy",
-            "apprehensive", "cautious", "skeptical", "uncertain", "mixed",
-            "complicated", "nuanced", "layered", "multifaceted"
+            "ambivalent",
+            "conflicted",
+            "bittersweet",
+            "nostalgic",
+            "melancholy",
+            "apprehensive",
+            "cautious",
+            "skeptical",
+            "uncertain",
+            "mixed",
+            "complicated",
+            "nuanced",
+            "layered",
+            "multifaceted",
         }
 
-        self.all_emotions = self.positive_emotions | self.negative_emotions | self.complex_emotions
+        self.all_emotions = (
+            self.positive_emotions | self.negative_emotions | self.complex_emotions
+        )
 
     def _initialize_empathy_indicators(self):
         """Initialize empathy expression indicators."""
         self.empathy_phrases = {
-            "i understand", "i hear you", "that sounds", "i can imagine", "i feel for you",
-            "that must be", "i'm sorry you're", "it sounds like", "i can see",
-            "that's understandable", "i appreciate", "thank you for sharing",
-            "i'm here for you", "you're not alone", "that takes courage",
-            "i validate", "your feelings are valid", "that makes sense"
+            "i understand",
+            "i hear you",
+            "that sounds",
+            "i can imagine",
+            "i feel for you",
+            "that must be",
+            "i'm sorry you're",
+            "it sounds like",
+            "i can see",
+            "that's understandable",
+            "i appreciate",
+            "thank you for sharing",
+            "i'm here for you",
+            "you're not alone",
+            "that takes courage",
+            "i validate",
+            "your feelings are valid",
+            "that makes sense",
         }
 
         self.empathy_words = {
-            "understand", "hear", "feel", "imagine", "appreciate", "validate",
-            "acknowledge", "recognize", "respect", "honor", "support"
+            "understand",
+            "hear",
+            "feel",
+            "imagine",
+            "appreciate",
+            "validate",
+            "acknowledge",
+            "recognize",
+            "respect",
+            "honor",
+            "support",
         }
 
     def _initialize_authenticity_markers(self):
         """Initialize authenticity markers and indicators."""
         self.authenticity_positive = {
-            "personal_disclosure": ["i feel", "i think", "i believe", "in my experience", "personally"],
-            "vulnerability": ["i struggle", "i'm not sure", "i don't know", "i'm learning", "i've been there"],
-            "specificity": ["specifically", "for example", "in particular", "such as", "like when"],
-            "emotional_nuance": ["somewhat", "a bit", "kind of", "sort of", "partly", "mixed feelings"]
+            "personal_disclosure": [
+                "i feel",
+                "i think",
+                "i believe",
+                "in my experience",
+                "personally",
+            ],
+            "vulnerability": [
+                "i struggle",
+                "i'm not sure",
+                "i don't know",
+                "i'm learning",
+                "i've been there",
+            ],
+            "specificity": [
+                "specifically",
+                "for example",
+                "in particular",
+                "such as",
+                "like when",
+            ],
+            "emotional_nuance": [
+                "somewhat",
+                "a bit",
+                "kind of",
+                "sort of",
+                "partly",
+                "mixed feelings",
+            ],
         }
 
         self.authenticity_negative = {
             "generic_responses": ["ok", "yes", "no", "sure", "alright", "fine"],
             "dismissive": ["just", "simply", "only", "merely", "whatever", "anyway"],
-            "overly_clinical": ["diagnosis", "symptoms", "treatment", "disorder", "pathology"],
-            "robotic": ["please note", "it is important", "you should", "it is recommended"]
+            "overly_clinical": [
+                "diagnosis",
+                "symptoms",
+                "treatment",
+                "disorder",
+                "pathology",
+            ],
+            "robotic": [
+                "please note",
+                "it is important",
+                "you should",
+                "it is recommended",
+            ],
         }
 
-    def assess_emotional_authenticity(self, conversation: Conversation) -> EmotionalAuthenticityMetrics:
+    def assess_emotional_authenticity(
+        self, conversation: Conversation
+    ) -> EmotionalAuthenticityMetrics:
         """
         Assess the emotional authenticity of a conversation.
 
@@ -138,7 +251,9 @@ class EmotionalAuthenticityAssessor:
         Returns:
             EmotionalAuthenticityMetrics with detailed assessment results
         """
-        logger.info(f"Assessing emotional authenticity for conversation {conversation.id}")
+        logger.info(
+            f"Assessing emotional authenticity for conversation {conversation.id}"
+        )
 
         if len(conversation.messages) < 2:
             return EmotionalAuthenticityMetrics(
@@ -151,25 +266,34 @@ class EmotionalAuthenticityAssessor:
                 authenticity_indicators_score=0.0,
                 issues=["Insufficient messages for emotional authenticity assessment"],
                 details={"conversation_length": len(conversation.messages)},
-                quality_level="very_poor"
+                quality_level="very_poor",
             )
 
         # Assess different dimensions
-        emotional_consistency = self._assess_emotional_consistency(conversation.messages)
+        emotional_consistency = self._assess_emotional_consistency(
+            conversation.messages
+        )
         empathy_expression = self._assess_empathy_expression(conversation.messages)
         emotional_vocabulary = self._assess_emotional_vocabulary(conversation.messages)
-        response_appropriateness = self._assess_response_appropriateness(conversation.messages)
-        emotional_progression = self._assess_emotional_progression(conversation.messages)
-        authenticity_indicators = self._assess_authenticity_indicators(conversation.messages)
+        response_appropriateness = self._assess_response_appropriateness(
+            conversation.messages
+        )
+        emotional_progression = self._assess_emotional_progression(
+            conversation.messages
+        )
+        authenticity_indicators = self._assess_authenticity_indicators(
+            conversation.messages
+        )
 
         # Calculate weighted overall score
         overall_score = (
-            emotional_consistency["score"] * self.weights["emotional_consistency"] +
-            empathy_expression["score"] * self.weights["empathy_expression"] +
-            emotional_vocabulary["score"] * self.weights["emotional_vocabulary"] +
-            response_appropriateness["score"] * self.weights["response_appropriateness"] +
-            emotional_progression["score"] * self.weights["emotional_progression"] +
-            authenticity_indicators["score"] * self.weights["authenticity_indicators"]
+            emotional_consistency["score"] * self.weights["emotional_consistency"]
+            + empathy_expression["score"] * self.weights["empathy_expression"]
+            + emotional_vocabulary["score"] * self.weights["emotional_vocabulary"]
+            + response_appropriateness["score"]
+            * self.weights["response_appropriateness"]
+            + emotional_progression["score"] * self.weights["emotional_progression"]
+            + authenticity_indicators["score"] * self.weights["authenticity_indicators"]
         )
 
         # Compile all issues
@@ -188,10 +312,14 @@ class EmotionalAuthenticityAssessor:
             "emotional_consistency_details": emotional_consistency.get("details", {}),
             "empathy_expression_details": empathy_expression.get("details", {}),
             "emotional_vocabulary_details": emotional_vocabulary.get("details", {}),
-            "response_appropriateness_details": response_appropriateness.get("details", {}),
+            "response_appropriateness_details": response_appropriateness.get(
+                "details", {}
+            ),
             "emotional_progression_details": emotional_progression.get("details", {}),
-            "authenticity_indicators_details": authenticity_indicators.get("details", {}),
-            "quality_level": self._determine_quality_level(overall_score)
+            "authenticity_indicators_details": authenticity_indicators.get(
+                "details", {}
+            ),
+            "quality_level": self._determine_quality_level(overall_score),
         }
 
         return EmotionalAuthenticityMetrics(
@@ -204,7 +332,7 @@ class EmotionalAuthenticityAssessor:
             authenticity_indicators_score=authenticity_indicators["score"],
             issues=all_issues,
             details=details,
-            quality_level=self._determine_quality_level(overall_score)
+            quality_level=self._determine_quality_level(overall_score),
         )
 
     def _assess_emotional_consistency(self, messages: list[Message]) -> dict[str, Any]:
@@ -226,25 +354,33 @@ class EmotionalAuthenticityAssessor:
                 if emotion in content_lower:
                     emotions_found.append(emotion)
 
-            emotional_context.append({
-                "turn": i,
-                "role": message.role,
-                "emotions": emotions_found,
-                "content_length": len(message.content)
-            })
+            emotional_context.append(
+                {
+                    "turn": i,
+                    "role": message.role,
+                    "emotions": emotions_found,
+                    "content_length": len(message.content),
+                }
+            )
 
             # Check for emotional inconsistencies
             if i > 0 and emotions_found:
-                prev_emotions = emotional_context[i-1]["emotions"]
+                prev_emotions = emotional_context[i - 1]["emotions"]
 
                 # Look for jarring emotional shifts without context
                 if prev_emotions and emotions_found:
-                    prev_positive = any(e in self.positive_emotions for e in prev_emotions)
-                    curr_positive = any(e in self.positive_emotions for e in emotions_found)
+                    prev_positive = any(
+                        e in self.positive_emotions for e in prev_emotions
+                    )
+                    curr_positive = any(
+                        e in self.positive_emotions for e in emotions_found
+                    )
 
                     if prev_positive != curr_positive and len(message.content) < 50:
                         inconsistencies += 1
-                        issues.append(f"Abrupt emotional shift at turn {i} without sufficient context")
+                        issues.append(
+                            f"Abrupt emotional shift at turn {i} without sufficient context"
+                        )
 
         # Penalize inconsistencies
         if inconsistencies > 0:
@@ -253,8 +389,8 @@ class EmotionalAuthenticityAssessor:
         # Check for emotional acknowledgment in responses
         acknowledgment_count = 0
         for i in range(1, len(messages)):
-            if messages[i].role != messages[i-1].role:  # Different speakers
-                prev_content = messages[i-1].content.lower()
+            if messages[i].role != messages[i - 1].role:  # Different speakers
+                prev_content = messages[i - 1].content.lower()
                 curr_content = messages[i].content.lower()
 
                 # Check if current message acknowledges previous emotional content
@@ -271,11 +407,15 @@ class EmotionalAuthenticityAssessor:
 
         score = max(0.0, min(1.0, score))
 
-        details.update({
-            "emotional_inconsistencies": inconsistencies,
-            "emotional_acknowledgment_count": acknowledgment_count,
-            "emotional_context_turns": len([ctx for ctx in emotional_context if ctx["emotions"]])
-        })
+        details.update(
+            {
+                "emotional_inconsistencies": inconsistencies,
+                "emotional_acknowledgment_count": acknowledgment_count,
+                "emotional_context_turns": len(
+                    [ctx for ctx in emotional_context if ctx["emotions"]]
+                ),
+            }
+        )
 
         return {"score": score, "issues": issues, "details": details}
 
@@ -289,14 +429,28 @@ class EmotionalAuthenticityAssessor:
         total_response_opportunities = 0
 
         for i in range(1, len(messages)):
-            if messages[i].role != messages[i-1].role:  # Response to different speaker
-                prev_content = messages[i-1].content.lower()
+            if (
+                messages[i].role != messages[i - 1].role
+            ):  # Response to different speaker
+                prev_content = messages[i - 1].content.lower()
                 curr_content = messages[i].content.lower()
 
                 # Check if previous message contains emotional content
-                has_emotional_content = any(emotion in prev_content for emotion in self.all_emotions)
-                has_distress_indicators = any(word in prev_content for word in
-                                            ["help", "problem", "difficult", "struggle", "hard", "worried", "scared"])
+                has_emotional_content = any(
+                    emotion in prev_content for emotion in self.all_emotions
+                )
+                has_distress_indicators = any(
+                    word in prev_content
+                    for word in [
+                        "help",
+                        "problem",
+                        "difficult",
+                        "struggle",
+                        "hard",
+                        "worried",
+                        "scared",
+                    ]
+                )
 
                 if has_emotional_content or has_distress_indicators:
                     total_response_opportunities += 1
@@ -318,9 +472,15 @@ class EmotionalAuthenticityAssessor:
                                 break
 
                     # Penalize lack of empathy in emotional contexts
-                    if not empathy_found and (has_emotional_content or has_distress_indicators):
-                        if len(curr_content) < 20:  # Very short response to emotional content
-                            issues.append(f"Lack of empathy in response to emotional content at turn {i}")
+                    if not empathy_found and (
+                        has_emotional_content or has_distress_indicators
+                    ):
+                        if (
+                            len(curr_content) < 20
+                        ):  # Very short response to emotional content
+                            issues.append(
+                                f"Lack of empathy in response to emotional content at turn {i}"
+                            )
 
         # Calculate empathy ratio
         if total_response_opportunities > 0:
@@ -341,11 +501,14 @@ class EmotionalAuthenticityAssessor:
 
         score = max(0.0, min(1.0, score))
 
-        details.update({
-            "empathy_expressions": empathy_expressions,
-            "response_opportunities": total_response_opportunities,
-            "empathy_ratio": empathy_expressions / max(1, total_response_opportunities)
-        })
+        details.update(
+            {
+                "empathy_expressions": empathy_expressions,
+                "response_opportunities": total_response_opportunities,
+                "empathy_ratio": empathy_expressions
+                / max(1, total_response_opportunities),
+            }
+        )
 
         return {"score": score, "issues": issues, "details": details}
 
@@ -381,23 +544,29 @@ class EmotionalAuthenticityAssessor:
             score -= 0.1
 
         # Reward complex emotional expressions
-        complex_emotion_count = sum(1 for emotion in unique_emotions if emotion in self.complex_emotions)
+        complex_emotion_count = sum(
+            1 for emotion in unique_emotions if emotion in self.complex_emotions
+        )
         if complex_emotion_count > 0:
             score += 0.05  # Small bonus for emotional complexity
 
         score = max(0.0, min(1.0, score))
 
-        details.update({
-            "total_words": total_words,
-            "emotional_words": emotional_words,
-            "unique_emotions": len(unique_emotions),
-            "emotional_density": emotional_words / max(1, total_words),
-            "complex_emotions": complex_emotion_count
-        })
+        details.update(
+            {
+                "total_words": total_words,
+                "emotional_words": emotional_words,
+                "unique_emotions": len(unique_emotions),
+                "emotional_density": emotional_words / max(1, total_words),
+                "complex_emotions": complex_emotion_count,
+            }
+        )
 
         return {"score": score, "issues": issues, "details": details}
 
-    def _assess_response_appropriateness(self, messages: list[Message]) -> dict[str, Any]:
+    def _assess_response_appropriateness(
+        self, messages: list[Message]
+    ) -> dict[str, Any]:
         """Assess emotional appropriateness of responses."""
         score = 1.0
         issues = []
@@ -407,47 +576,111 @@ class EmotionalAuthenticityAssessor:
         total_responses = 0
 
         for i in range(1, len(messages)):
-            if messages[i].role != messages[i-1].role:  # Response to different speaker
-                prev_content = messages[i-1].content.lower()
+            if (
+                messages[i].role != messages[i - 1].role
+            ):  # Response to different speaker
+                prev_content = messages[i - 1].content.lower()
                 curr_content = messages[i].content.lower()
                 total_responses += 1
 
                 # Check for inappropriate responses to emotional content
-                has_negative_emotion = any(emotion in prev_content for emotion in self.negative_emotions)
-                has_positive_emotion = any(emotion in prev_content for emotion in self.positive_emotions)
+                has_negative_emotion = any(
+                    emotion in prev_content for emotion in self.negative_emotions
+                )
+                has_positive_emotion = any(
+                    emotion in prev_content for emotion in self.positive_emotions
+                )
 
                 # Inappropriate positive response to negative emotion
-                if has_negative_emotion and any(word in curr_content for word in ["great", "awesome", "fantastic", "wonderful", "congratulations"]):
+                if has_negative_emotion and any(
+                    word in curr_content
+                    for word in [
+                        "great",
+                        "awesome",
+                        "fantastic",
+                        "wonderful",
+                        "congratulations",
+                    ]
+                ):
                     inappropriate_responses += 1
-                    issues.append(f"Inappropriate positive response to negative emotion at turn {i}")
+                    issues.append(
+                        f"Inappropriate positive response to negative emotion at turn {i}"
+                    )
 
                 # Check for clearly inappropriate celebratory responses to negative situations
-                negative_situations = ["lost", "losing", "fired", "died", "death", "sick", "illness", "devastated", "heartbroken"]
-                positive_responses = ["great", "congratulations", "awesome", "fantastic", "wonderful", "amazing", "excellent"]
+                negative_situations = [
+                    "lost",
+                    "losing",
+                    "fired",
+                    "died",
+                    "death",
+                    "sick",
+                    "illness",
+                    "devastated",
+                    "heartbroken",
+                ]
+                positive_responses = [
+                    "great",
+                    "congratulations",
+                    "awesome",
+                    "fantastic",
+                    "wonderful",
+                    "amazing",
+                    "excellent",
+                ]
 
                 if any(situation in prev_content for situation in negative_situations):
                     if any(response in curr_content for response in positive_responses):
                         inappropriate_responses += 1
-                        issues.append(f"Inappropriate celebratory response to negative situation at turn {i}")
+                        issues.append(
+                            f"Inappropriate celebratory response to negative situation at turn {i}"
+                        )
 
                 # Dismissive response to emotional content
-                if (has_negative_emotion or has_positive_emotion):
-                    if any(phrase in curr_content for phrase in ["get over it", "move on", "just relax", "calm down"]):
+                if has_negative_emotion or has_positive_emotion:
+                    if any(
+                        phrase in curr_content
+                        for phrase in [
+                            "get over it",
+                            "move on",
+                            "just relax",
+                            "calm down",
+                        ]
+                    ):
                         inappropriate_responses += 1
-                        issues.append(f"Dismissive response to emotional content at turn {i}")
+                        issues.append(
+                            f"Dismissive response to emotional content at turn {i}"
+                        )
 
                 # Generic response to detailed emotional sharing
-                if len(prev_content) > 50 and (any(emotion in prev_content for emotion in self.all_emotions) or
-                                               any(word in prev_content for word in ["help", "struggling", "problem", "difficult"])):
-                    if curr_content.strip().lower() in ["ok", "ok.", "i see", "yes", "no", "sure", "sure."]:
+                if len(prev_content) > 50 and (
+                    any(emotion in prev_content for emotion in self.all_emotions)
+                    or any(
+                        word in prev_content
+                        for word in ["help", "struggling", "problem", "difficult"]
+                    )
+                ):
+                    if curr_content.strip().lower() in [
+                        "ok",
+                        "ok.",
+                        "i see",
+                        "yes",
+                        "no",
+                        "sure",
+                        "sure.",
+                    ]:
                         inappropriate_responses += 1
-                        issues.append(f"Generic response to detailed emotional sharing at turn {i}")
+                        issues.append(
+                            f"Generic response to detailed emotional sharing at turn {i}"
+                        )
 
                 # Very short responses to substantial emotional content
                 if len(prev_content) > 80 and len(curr_content.strip()) < 10:
                     if any(emotion in prev_content for emotion in self.all_emotions):
                         inappropriate_responses += 1
-                        issues.append(f"Inadequately brief response to emotional content at turn {i}")
+                        issues.append(
+                            f"Inadequately brief response to emotional content at turn {i}"
+                        )
 
         # Calculate appropriateness ratio
         if total_responses > 0:
@@ -456,11 +689,14 @@ class EmotionalAuthenticityAssessor:
 
         score = max(0.0, min(1.0, score))
 
-        details.update({
-            "inappropriate_responses": inappropriate_responses,
-            "total_responses": total_responses,
-            "appropriateness_ratio": 1 - (inappropriate_responses / max(1, total_responses))
-        })
+        details.update(
+            {
+                "inappropriate_responses": inappropriate_responses,
+                "total_responses": total_responses,
+                "appropriateness_ratio": 1
+                - (inappropriate_responses / max(1, total_responses)),
+            }
+        )
 
         return {"score": score, "issues": issues, "details": details}
 
@@ -477,8 +713,12 @@ class EmotionalAuthenticityAssessor:
             content_lower = message.content.lower()
 
             # Categorize emotional tone
-            positive_count = sum(1 for emotion in self.positive_emotions if emotion in content_lower)
-            negative_count = sum(1 for emotion in self.negative_emotions if emotion in content_lower)
+            positive_count = sum(
+                1 for emotion in self.positive_emotions if emotion in content_lower
+            )
+            negative_count = sum(
+                1 for emotion in self.negative_emotions if emotion in content_lower
+            )
 
             if positive_count > negative_count:
                 tone = "positive"
@@ -490,12 +730,17 @@ class EmotionalAuthenticityAssessor:
             emotional_trajectory.append(tone)
 
             # Check for abrupt emotional shifts
-            if i > 0 and emotional_trajectory[i] != emotional_trajectory[i-1]:
-                if emotional_trajectory[i-1] != "neutral" and emotional_trajectory[i] != "neutral":
+            if i > 0 and emotional_trajectory[i] != emotional_trajectory[i - 1]:
+                if (
+                    emotional_trajectory[i - 1] != "neutral"
+                    and emotional_trajectory[i] != "neutral"
+                ):
                     # Direct shift from positive to negative or vice versa
                     if len(message.content) < 30:  # Without sufficient explanation
                         abrupt_shifts += 1
-                        issues.append(f"Abrupt emotional shift at turn {i} without context")
+                        issues.append(
+                            f"Abrupt emotional shift at turn {i} without context"
+                        )
 
         # Penalize abrupt shifts
         if abrupt_shifts > 0:
@@ -506,9 +751,11 @@ class EmotionalAuthenticityAssessor:
             # Look for positive progression (negative -> neutral -> positive)
             has_progression = False
             for i in range(2, len(emotional_trajectory)):
-                if (emotional_trajectory[i-2] == "negative" and
-                    emotional_trajectory[i-1] == "neutral" and
-                    emotional_trajectory[i] == "positive"):
+                if (
+                    emotional_trajectory[i - 2] == "negative"
+                    and emotional_trajectory[i - 1] == "neutral"
+                    and emotional_trajectory[i] == "positive"
+                ):
                     has_progression = True
                     break
 
@@ -517,15 +764,19 @@ class EmotionalAuthenticityAssessor:
 
         score = max(0.0, min(1.0, score))
 
-        details.update({
-            "emotional_trajectory": emotional_trajectory,
-            "abrupt_shifts": abrupt_shifts,
-            "trajectory_length": len(emotional_trajectory)
-        })
+        details.update(
+            {
+                "emotional_trajectory": emotional_trajectory,
+                "abrupt_shifts": abrupt_shifts,
+                "trajectory_length": len(emotional_trajectory),
+            }
+        )
 
         return {"score": score, "issues": issues, "details": details}
 
-    def _assess_authenticity_indicators(self, messages: list[Message]) -> dict[str, Any]:
+    def _assess_authenticity_indicators(
+        self, messages: list[Message]
+    ) -> dict[str, Any]:
         """Assess markers of authentic vs artificial emotional expression."""
         score = 1.0
         issues = []
@@ -568,11 +819,13 @@ class EmotionalAuthenticityAssessor:
 
         score = max(0.0, min(1.0, score))
 
-        details.update({
-            "positive_indicators": positive_indicators,
-            "negative_indicators": negative_indicators,
-            "authenticity_ratio": positive_indicators / max(1, total_indicators)
-        })
+        details.update(
+            {
+                "positive_indicators": positive_indicators,
+                "negative_indicators": negative_indicators,
+                "authenticity_ratio": positive_indicators / max(1, total_indicators),
+            }
+        )
 
         return {"score": score, "issues": issues, "details": details}
 
@@ -590,7 +843,9 @@ class EmotionalAuthenticityAssessor:
 
 
 # Backward compatibility function
-def assess_emotional_authenticity(conversation: Conversation, config: dict[str, Any] | None = None) -> dict[str, Any]:
+def assess_emotional_authenticity(
+    conversation: Conversation, config: dict[str, Any] | None = None
+) -> dict[str, Any]:
     """
     Backward compatibility function for emotional authenticity assessment.
 
@@ -607,5 +862,5 @@ def assess_emotional_authenticity(conversation: Conversation, config: dict[str, 
     return {
         "score": metrics.overall_score,
         "issues": metrics.issues,
-        "details": metrics.details
+        "details": metrics.details,
     }
