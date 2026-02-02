@@ -5,27 +5,17 @@ This module provides REST API endpoints for dataset CRUD operations,
 file upload handling, and dataset metadata management.
 """
 
-import os
-import uuid
 from datetime import datetime
-from typing import Dict, Any, Optional, List
-from flask import Blueprint, request, jsonify, current_app
-from werkzeug.utils import secure_filename
-from werkzeug.datastructures import FileStorage
+from typing import Any, Dict
 
-from ..auth.middleware import require_auth, require_role
-from ..error_handling.custom_errors import (
-    ValidationError, 
-    FileUploadError, 
-    DatasetNotFoundError,
-    AuthenticationError,
-    RateLimitExceededError
-)
-from ..utils.logger import get_logger
-from ..utils.validation import validate_dataset_metadata, validate_file_upload
+from flask import Blueprint, current_app, jsonify, request
+
+from ..auth.middleware import require_auth
+from ..error_handling.custom_errors import DatasetNotFoundError, ValidationError
 from ..services.dataset_service import DatasetService
-from ..integration.redis_client import RedisClient
+from ..utils.logger import get_logger
 
+from ..utils.validation import validate_dataset_metadata, validate_file_upload
 
 logger = get_logger(__name__)
 datasets_bp = Blueprint('datasets', __name__, url_prefix='/api/v1/datasets')

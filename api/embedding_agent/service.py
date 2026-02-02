@@ -19,18 +19,21 @@ from typing import Any, Dict, List, Optional, Tuple
 
 try:
     import numpy as np
+
     NUMPY_AVAILABLE = True
 except ImportError:
     NUMPY_AVAILABLE = False
 
 try:
     from sentence_transformers import SentenceTransformer
+
     TRANSFORMERS_AVAILABLE = True
 except ImportError:
     TRANSFORMERS_AVAILABLE = False
 
 try:
     import faiss
+
     FAISS_AVAILABLE = True
 except ImportError:
     FAISS_AVAILABLE = False
@@ -53,12 +56,15 @@ from .models import (
 # Try to import the clinical knowledge embedder
 try:
     import sys
+
     sys.path.insert(0, str(Path(__file__).parent.parent.parent / "pixel"))
+
     from data.clinical_knowledge_embedder import (
         ClinicalKnowledgeEmbedder,
         EmbeddingConfig,
         KnowledgeItem,
     )
+
     CLINICAL_EMBEDDER_AVAILABLE = True
 except ImportError:
     CLINICAL_EMBEDDER_AVAILABLE = False
@@ -130,10 +136,7 @@ class EmbeddingAgentService:
     def _initialize_model(self) -> None:
         """Initialize the embedding model."""
         if not TRANSFORMERS_AVAILABLE:
-            logger.warning(
-                "sentence-transformers not available. "
-                "Running in mock mode."
-            )
+            logger.warning("sentence-transformers not available. Running in mock mode.")
             return
 
         try:
@@ -143,22 +146,20 @@ class EmbeddingAgentService:
             if self.config.use_gpu:
                 try:
                     import torch
+
                     if not torch.cuda.is_available():
                         logger.warning(
-                            "GPU requested but CUDA not available. "
-                            "Falling back to CPU."
+                            "GPU requested but CUDA not available. Falling back to CPU."
                         )
                         device = "cpu"
                 except ImportError:
                     logger.warning(
-                        "PyTorch not available. Cannot check GPU. "
-                        "Using CPU."
+                        "PyTorch not available. Cannot check GPU. Using CPU."
                     )
                     device = "cpu"
 
             self._embedding_model = SentenceTransformer(
-                self.config.model_name.value,
-                device=device
+                self.config.model_name.value, device=device
             )
 
             # Update dimension from actual model
@@ -168,6 +169,7 @@ class EmbeddingAgentService:
                     f"Updating embedding dimension from {self.config.embedding_dimension} "
                     f"to {actual_dim} based on loaded model"
                 )
+
                 self.config.embedding_dimension = actual_dim
 
             logger.info(
@@ -295,7 +297,7 @@ class EmbeddingAgentService:
 
         try:
             # Truncate text if necessary
-            truncated_text = text[:self.config.max_text_length]
+            truncated_text = text[: self.config.max_text_length]
 
             # Generate embedding
             embedding = self._embedding_model.encode(
@@ -329,6 +331,7 @@ class EmbeddingAgentService:
         else:
             # Simple deterministic mock
             import random
+
             random.seed(hash_int)
             embedding = [
                 random.gauss(0, 1) for _ in range(self.config.embedding_dimension)
@@ -365,13 +368,15 @@ class EmbeddingAgentService:
             # Check cache
             if self.config.cache_embeddings and cache_key in self._embedding_cache:
                 embedding, embedding_id = self._embedding_cache[cache_key]
-                embeddings.append(BatchEmbeddingItem(
-                    index=i,
-                    embedding=embedding,
-                    embedding_id=embedding_id,
-                    text_hash=text_hash,
-                    cached=True,
-                ))
+                embeddings.append(
+                    BatchEmbeddingItem(
+                        index=i,
+                        embedding=embedding,
+                        embedding_id=embedding_id,
+                        text_hash=text_hash,
+                        cached=True,
+                    )
+                )
                 cached_count += 1
             else:
                 texts_to_embed.append((i, text))
@@ -392,13 +397,15 @@ class EmbeddingAgentService:
                 if self.config.cache_embeddings:
                     self._embedding_cache[cache_key] = (emb, embedding_id)
 
-                embeddings.append(BatchEmbeddingItem(
-                    index=idx,
-                    embedding=emb,
-                    embedding_id=embedding_id,
-                    text_hash=text_hash,
-                    cached=False,
-                ))
+                embeddings.append(
+                    BatchEmbeddingItem(
+                        index=idx,
+                        embedding=emb,
+                        embedding_id=embedding_id,
+                        text_hash=text_hash,
+                        cached=False,
+                    )
+                )
 
         # Sort by original index
         embeddings.sort(key=lambda x: x.index)
@@ -427,7 +434,7 @@ class EmbeddingAgentService:
 
         try:
             # Truncate texts
-            truncated_texts = [t[:self.config.max_text_length] for t in texts]
+            truncated_texts = [t[: self.config.max_text_length] for t in texts]
 
             # Batch encode
             embeddings = self._embedding_model.encode(
@@ -545,7 +552,9 @@ class EmbeddingAgentService:
                 )
                 norm_q = sum(x**2 for x in query_embedding) ** 0.5
                 norm_i = sum(x**2 for x in item_embedding) ** 0.5
-                similarity = dot_product / (norm_q * norm_i) if norm_q * norm_i > 0 else 0.0
+                similarity = (
+                    dot_product / (norm_q * norm_i) if norm_q * norm_i > 0 else 0.0
+                )
 
             # Apply threshold
             if similarity >= min_similarity:
@@ -557,7 +566,9 @@ class EmbeddingAgentService:
                         getattr(item, "knowledge_type", "general")
                     ),
                     source=getattr(item, "source", "unknown"),
-                    metadata=getattr(item, "metadata", {}) if include_metadata else None,
+                    metadata=getattr(item, "metadata", {})
+                    if include_metadata
+                    else None,
                 )
                 matches.append(match)
 
@@ -604,7 +615,8 @@ class EmbeddingAgentService:
         uptime = (datetime.utcnow() - self._start_time).total_seconds()
         avg_response_time = (
             self._total_response_time_ms / self._requests_processed
-            if self._requests_processed > 0 else 0.0
+            if self._requests_processed > 0
+            else 0.0
         )
 
         # Check GPU memory if available
@@ -613,6 +625,7 @@ class EmbeddingAgentService:
         if self.config.use_gpu:
             try:
                 import torch
+
                 if torch.cuda.is_available():
                     gpu_available = True
                     gpu_memory = torch.cuda.memory_allocated() / (1024 * 1024)
@@ -654,4 +667,3 @@ class EmbeddingAgentService:
         self._clinical_embedder = None
         self._embedding_cache.clear()
         self._knowledge_items.clear()
-

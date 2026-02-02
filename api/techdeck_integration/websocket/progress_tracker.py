@@ -5,20 +5,17 @@ This module implements real-time progress tracking using WebSocket connections,
 providing live updates for pipeline execution, file uploads, and system operations.
 """
 
-import asyncio
-import json
 import logging
 import time
+from dataclasses import asdict, dataclass
 from datetime import datetime
-from typing import Dict, Any, Optional, Set, List
-from dataclasses import dataclass, asdict
 from enum import Enum
+from typing import Any, Dict, List, Optional, Set
 
-from flask import request, g
-from flask_socketio import SocketIO, emit, join_room, leave_room, rooms
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask import g, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from flask_socketio import SocketIO, emit, join_room, leave_room
 
-from ..utils.logger import get_request_logger
 from ..error_handling.custom_errors import ValidationError, WebSocketError
 from ..integration.redis_client import RedisClient
 
@@ -438,7 +435,7 @@ class ProgressTracker:
         """Get recent operations for a user."""
         try:
             # Get operation IDs from Redis (using pattern matching)
-            pattern = f"progress:*"
+            pattern = "progress:*"
             keys = self.redis_client.keys(pattern)
             
             user_operations = []

@@ -25,6 +25,7 @@ from pydantic import BaseModel, Field
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+
 from pixel.models.pixel_base_model import PixelBaseModel
 
 logger = logging.getLogger(__name__)

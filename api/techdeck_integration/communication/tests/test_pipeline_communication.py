@@ -7,25 +7,27 @@ system with HIPAA++ compliance, sub-50ms performance requirements, and bias dete
 
 import asyncio
 import json
-import pytest
 import time
-from datetime import datetime, timedelta
-from unittest.mock import Mock, AsyncMock, patch
-from typing import Dict, Any, List
+from datetime import datetime
+from typing import Any, Dict
+from unittest.mock import AsyncMock, Mock, patch
 
-from ..event_bus import EventBus, EventMessage, EventType
-from ..pipeline_coordinator import PipelineCoordinator, PipelineContext
-from ..state_manager import StateManager, PipelineState, StageState
-from ..progress_tracker import ProgressTracker, ProgressUpdate
-from ..error_recovery import ErrorRecoveryManager, RecoveryStrategy, RecoveryResult
-from ..bias_integration import BiasDetectionIntegration, BiasMetrics
-from ..performance_monitor import PerformanceMonitor, PerformanceMetric
-from ..graceful_degradation import GracefulDegradationManager, DegradationLevel
+import pytest
+
 from ...error_handling.custom_errors import (
-    PipelineExecutionError, ValidationError, TimeoutError,
-    BiasDetectionError, ServiceUnavailableError
+    BiasDetectionError,
+    TimeoutError,
+    ValidationError,
 )
 from ...integration.redis_client import RedisClient
+from ..bias_integration import BiasDetectionIntegration, BiasMetrics
+from ..error_recovery import ErrorRecoveryManager, RecoveryResult, RecoveryStrategy
+from ..event_bus import EventBus, EventMessage, EventType
+from ..graceful_degradation import GracefulDegradationManager
+from ..performance_monitor import PerformanceMonitor
+from ..pipeline_coordinator import PipelineContext, PipelineCoordinator
+from ..progress_tracker import ProgressTracker
+from ..state_manager import StateManager
 
 
 class TestEventBus:
@@ -731,7 +733,8 @@ class TestSecurityAndCompliance:
     @pytest.mark.asyncio
     async def test_input_validation_and_sanitization(self):
         """Test comprehensive input validation and sanitization."""
-        from ..utils.validation import sanitize_input, validate_pipeline_input
+        
+        from ..utils.validation import sanitize_input
         
         # Test malicious input
         malicious_input = {
@@ -758,6 +761,7 @@ class TestSecurityAndCompliance:
         redis_client = Mock(spec=RedisClient)
         
         # Verify rate limiting is configured
+        
         from ..communication.event_bus import EventBus
         event_bus = EventBus(redis_client)
         
