@@ -15,9 +15,11 @@ import numpy as np
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class ValidationResult:
     """Result of a validation check"""
+
     check_name: str
     passed: bool
     score: float
@@ -25,9 +27,11 @@ class ValidationResult:
     issues: list[str]
     recommendations: list[str]
 
+
 @dataclass
 class SamplingValidationReport:
     """Comprehensive validation report for sampling results"""
+
     overall_score: float
     passed_checks: int
     total_checks: int
@@ -35,6 +39,7 @@ class SamplingValidationReport:
     summary: dict[str, Any]
     critical_issues: list[str]
     recommendations: list[str]
+
 
 class SamplingValidator:
     """
@@ -48,26 +53,32 @@ class SamplingValidator:
         self.validation_history = []
 
         # Validation thresholds
-        self.thresholds = self.config.get("thresholds", {
-            "distribution_deviation": 0.15,  # Max deviation from expected distribution
-            "quality_variance": 0.20,        # Max quality variance within tiers
-            "duplicate_rate": 0.05,          # Max duplicate rate
-            "coverage_minimum": 0.80,        # Min coverage of quality spectrum
-            "tier_balance": 0.10,            # Max imbalance between tiers
-            "sample_size_deviation": 0.25    # Max deviation from target sample sizes
-        })
+        self.thresholds = self.config.get(
+            "thresholds",
+            {
+                "distribution_deviation": 0.15,  # Max deviation from expected distribution
+                "quality_variance": 0.20,  # Max quality variance within tiers
+                "duplicate_rate": 0.05,  # Max duplicate rate
+                "coverage_minimum": 0.80,  # Min coverage of quality spectrum
+                "tier_balance": 0.10,  # Max imbalance between tiers
+                "sample_size_deviation": 0.25,  # Max deviation from target sample sizes
+            },
+        )
 
         # Critical validation checks
         self.critical_checks = [
             "distribution_validation",
             "quality_consistency",
             "duplicate_detection",
-            "tier_balance_check"
+            "tier_balance_check",
         ]
 
-    def validate_sampling_results(self, sampling_results: list[Any],
-                                 original_data: dict[str, list[dict]],
-                                 target_total: int) -> SamplingValidationReport:
+    def validate_sampling_results(
+        self,
+        sampling_results: list[Any],
+        original_data: dict[str, list[dict]],
+        target_total: int,
+    ) -> SamplingValidationReport:
         """
         Perform comprehensive validation of sampling results.
 
@@ -94,7 +105,7 @@ class SamplingValidator:
             self._validate_tier_balance,
             self._validate_sample_sizes,
             self._validate_data_integrity,
-            self._validate_statistical_properties
+            self._validate_statistical_properties,
         ]
 
         for check in checks:
@@ -109,14 +120,16 @@ class SamplingValidator:
 
             except Exception as e:
                 logger.error(f"Validation check {check.__name__} failed: {e}")
-                validation_results.append(ValidationResult(
-                    check_name=check.__name__,
-                    passed=False,
-                    score=0.0,
-                    details={"error": str(e)},
-                    issues=[f"Validation check failed: {e}"],
-                    recommendations=["Review validation check implementation"]
-                ))
+                validation_results.append(
+                    ValidationResult(
+                        check_name=check.__name__,
+                        passed=False,
+                        score=0.0,
+                        details={"error": str(e)},
+                        issues=[f"Validation check failed: {e}"],
+                        recommendations=["Review validation check implementation"],
+                    )
+                )
 
         # Calculate overall score
         passed_checks = sum(1 for r in validation_results if r.passed)
@@ -124,7 +137,9 @@ class SamplingValidator:
         overall_score = np.mean([r.score for r in validation_results])
 
         # Generate summary
-        summary = self._generate_validation_summary(validation_results, sampling_results, target_total)
+        summary = self._generate_validation_summary(
+            validation_results, sampling_results, target_total
+        )
 
         report = SamplingValidationReport(
             overall_score=overall_score,
@@ -133,18 +148,23 @@ class SamplingValidator:
             validation_results=validation_results,
             summary=summary,
             critical_issues=list(set(critical_issues)),
-            recommendations=list(set(recommendations))
+            recommendations=list(set(recommendations)),
         )
 
         self.validation_history.append(report)
-        logger.info(f"Validation complete: {passed_checks}/{total_checks} checks passed, "
-                   f"overall score: {overall_score:.3f}")
+        logger.info(
+            f"Validation complete: {passed_checks}/{total_checks} checks passed, "
+            f"overall score: {overall_score:.3f}"
+        )
 
         return report
 
-    def _validate_distribution(self, sampling_results: list[Any],
-                              original_data: dict[str, list[dict]],
-                              target_total: int) -> ValidationResult:
+    def _validate_distribution(
+        self,
+        sampling_results: list[Any],
+        original_data: dict[str, list[dict]],
+        target_total: int,
+    ) -> ValidationResult:
         """Validate that sampling distribution matches expected weights."""
         issues = []
         recommendations = []
@@ -157,7 +177,7 @@ class SamplingValidator:
             "tier_3_cot": 0.20,
             "tier_4_reddit": 0.10,
             "tier_5_research": 0.04,
-            "tier_6_knowledge": 0.01
+            "tier_6_knowledge": 0.01,
         }
 
         # Calculate actual distribution
@@ -166,7 +186,9 @@ class SamplingValidator:
 
         for result in sampling_results:
             tier_id = result.metadata.get("tier_id", "unknown")
-            actual_weight = len(result.samples) / total_samples if total_samples > 0 else 0
+            actual_weight = (
+                len(result.samples) / total_samples if total_samples > 0 else 0
+            )
             actual_distribution[tier_id] = actual_weight
 
         # Check deviations
@@ -177,21 +199,29 @@ class SamplingValidator:
             max_deviation = max(max_deviation, deviation)
 
             if deviation > self.thresholds["distribution_deviation"]:
-                issues.append(f"Tier {tier_id}: expected {expected_weight:.3f}, got {actual_weight:.3f} "
-                             f"(deviation: {deviation:.3f})")
+                issues.append(
+                    f"Tier {tier_id}: expected {expected_weight:.3f}, got {actual_weight:.3f} "
+                    f"(deviation: {deviation:.3f})"
+                )
 
-        details.update({
-            "expected_distribution": expected_weights,
-            "actual_distribution": actual_distribution,
-            "max_deviation": max_deviation,
-            "total_samples": total_samples
-        })
+        details.update(
+            {
+                "expected_distribution": expected_weights,
+                "actual_distribution": actual_distribution,
+                "max_deviation": max_deviation,
+                "total_samples": total_samples,
+            }
+        )
 
         passed = max_deviation <= self.thresholds["distribution_deviation"]
-        score = max(0.0, 1.0 - (max_deviation / self.thresholds["distribution_deviation"]))
+        score = max(
+            0.0, 1.0 - (max_deviation / self.thresholds["distribution_deviation"])
+        )
 
         if not passed:
-            recommendations.append("Adjust sampling weights to better match expected distribution")
+            recommendations.append(
+                "Adjust sampling weights to better match expected distribution"
+            )
             recommendations.append("Review tier availability and quality thresholds")
 
         return ValidationResult(
@@ -200,12 +230,15 @@ class SamplingValidator:
             score=score,
             details=details,
             issues=issues,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
-    def _validate_quality_consistency(self, sampling_results: list[Any],
-                                    original_data: dict[str, list[dict]],
-                                    target_total: int) -> ValidationResult:
+    def _validate_quality_consistency(
+        self,
+        sampling_results: list[Any],
+        original_data: dict[str, list[dict]],
+        target_total: int,
+    ) -> ValidationResult:
         """Validate quality consistency within and across tiers."""
         issues = []
         recommendations = []
@@ -231,7 +264,7 @@ class SamplingValidator:
                     "std": np.std(tier_qualities),
                     "min": np.min(tier_qualities),
                     "max": np.max(tier_qualities),
-                    "count": len(tier_qualities)
+                    "count": len(tier_qualities),
                 }
 
         # Check quality variance within tiers
@@ -248,19 +281,23 @@ class SamplingValidator:
             overall_mean = np.mean(all_qualities)
             overall_std = np.std(all_qualities)
 
-            details.update({
-                "tier_quality_stats": tier_quality_stats,
-                "overall_mean_quality": overall_mean,
-                "overall_std_quality": overall_std,
-                "max_tier_variance": max_variance
-            })
+            details.update(
+                {
+                    "tier_quality_stats": tier_quality_stats,
+                    "overall_mean_quality": overall_mean,
+                    "overall_std_quality": overall_std,
+                    "max_tier_variance": max_variance,
+                }
+            )
 
         passed = max_variance <= self.thresholds["quality_variance"]
         score = max(0.0, 1.0 - (max_variance / self.thresholds["quality_variance"]))
 
         if not passed:
             recommendations.append("Review quality assessment consistency across tiers")
-            recommendations.append("Consider stratified sampling within tiers for better quality distribution")
+            recommendations.append(
+                "Consider stratified sampling within tiers for better quality distribution"
+            )
 
         return ValidationResult(
             check_name="quality_consistency",
@@ -268,12 +305,15 @@ class SamplingValidator:
             score=score,
             details=details,
             issues=issues,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
-    def _validate_duplicates(self, sampling_results: list[Any],
-                           original_data: dict[str, list[dict]],
-                           target_total: int) -> ValidationResult:
+    def _validate_duplicates(
+        self,
+        sampling_results: list[Any],
+        original_data: dict[str, list[dict]],
+        target_total: int,
+    ) -> ValidationResult:
         """Validate that there are no duplicate samples."""
         issues = []
         recommendations = []
@@ -304,13 +344,15 @@ class SamplingValidator:
         total_duplicates = total_samples - unique_samples
         duplicate_rate = total_duplicates / total_samples if total_samples > 0 else 0
 
-        details.update({
-            "total_samples": total_samples,
-            "unique_samples": unique_samples,
-            "total_duplicates": total_duplicates,
-            "duplicate_rate": duplicate_rate,
-            "tier_duplicates": tier_duplicates
-        })
+        details.update(
+            {
+                "total_samples": total_samples,
+                "unique_samples": unique_samples,
+                "total_duplicates": total_duplicates,
+                "duplicate_rate": duplicate_rate,
+                "tier_duplicates": tier_duplicates,
+            }
+        )
 
         passed = duplicate_rate <= self.thresholds["duplicate_rate"]
         score = max(0.0, 1.0 - (duplicate_rate / self.thresholds["duplicate_rate"]))
@@ -325,12 +367,15 @@ class SamplingValidator:
             score=score,
             details=details,
             issues=issues,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
-    def _validate_coverage(self, sampling_results: list[Any],
-                          original_data: dict[str, list[dict]],
-                          target_total: int) -> ValidationResult:
+    def _validate_coverage(
+        self,
+        sampling_results: list[Any],
+        original_data: dict[str, list[dict]],
+        target_total: int,
+    ) -> ValidationResult:
         """Validate coverage of quality spectrum and data diversity."""
         issues = []
         recommendations = []
@@ -350,7 +395,9 @@ class SamplingValidator:
                 score=0.0,
                 details={"error": "No quality scores available"},
                 issues=["No samples with quality scores found"],
-                recommendations=["Ensure quality scores are calculated for all samples"]
+                recommendations=[
+                    "Ensure quality scores are calculated for all samples"
+                ],
             )
 
         # Calculate coverage metrics
@@ -366,29 +413,35 @@ class SamplingValidator:
         quality_bands = {
             "low": sum(1 for q in sampled_qualities if q < 0.4),
             "medium": sum(1 for q in sampled_qualities if 0.4 <= q < 0.7),
-            "high": sum(1 for q in sampled_qualities if q >= 0.7)
+            "high": sum(1 for q in sampled_qualities if q >= 0.7),
         }
 
         total_samples = len(sampled_qualities)
-        band_distribution = {k: v/total_samples for k, v in quality_bands.items()}
+        band_distribution = {k: v / total_samples for k, v in quality_bands.items()}
 
-        details.update({
-            "quality_range": quality_range,
-            "min_quality": min_quality,
-            "max_quality": max_quality,
-            "coverage_ratio": coverage_ratio,
-            "quality_bands": quality_bands,
-            "band_distribution": band_distribution,
-            "total_samples": total_samples
-        })
+        details.update(
+            {
+                "quality_range": quality_range,
+                "min_quality": min_quality,
+                "max_quality": max_quality,
+                "coverage_ratio": coverage_ratio,
+                "quality_bands": quality_bands,
+                "band_distribution": band_distribution,
+                "total_samples": total_samples,
+            }
+        )
 
         passed = coverage_ratio >= self.thresholds["coverage_minimum"]
         score = min(1.0, coverage_ratio / self.thresholds["coverage_minimum"])
 
         if not passed:
-            issues.append(f"Quality coverage {coverage_ratio:.3f} below minimum {self.thresholds['coverage_minimum']}")
+            issues.append(
+                f"Quality coverage {coverage_ratio:.3f} below minimum {self.thresholds['coverage_minimum']}"
+            )
             recommendations.append("Ensure sampling includes full quality spectrum")
-            recommendations.append("Review quality thresholds to allow more diverse sampling")
+            recommendations.append(
+                "Review quality thresholds to allow more diverse sampling"
+            )
 
         return ValidationResult(
             check_name="coverage_validation",
@@ -396,12 +449,15 @@ class SamplingValidator:
             score=score,
             details=details,
             issues=issues,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
-    def _validate_tier_balance(self, sampling_results: list[Any],
-                              original_data: dict[str, list[dict]],
-                              target_total: int) -> ValidationResult:
+    def _validate_tier_balance(
+        self,
+        sampling_results: list[Any],
+        original_data: dict[str, list[dict]],
+        target_total: int,
+    ) -> ValidationResult:
         """Validate balance between tiers."""
         issues = []
         recommendations = []
@@ -425,11 +481,11 @@ class SamplingValidator:
                 score=0.0,
                 details={"error": "No samples found"},
                 issues=["No samples in any tier"],
-                recommendations=["Review sampling process"]
+                recommendations=["Review sampling process"],
             )
 
         # Check for extreme imbalances
-        tier_proportions = {k: v/total_samples for k, v in tier_counts.items()}
+        tier_proportions = {k: v / total_samples for k, v in tier_counts.items()}
         max_proportion = max(tier_proportions.values()) if tier_proportions else 0
         min_proportion = min(tier_proportions.values()) if tier_proportions else 0
         balance_ratio = min_proportion / max_proportion if max_proportion > 0 else 0
@@ -441,17 +497,23 @@ class SamplingValidator:
                 if len(original_data[tier_id]) > 0:  # Only flag if original data exists
                     missing_tiers.append(tier_id)
 
-        details.update({
-            "tier_counts": tier_counts,
-            "tier_proportions": tier_proportions,
-            "balance_ratio": balance_ratio,
-            "missing_tiers": missing_tiers,
-            "total_samples": total_samples
-        })
+        details.update(
+            {
+                "tier_counts": tier_counts,
+                "tier_proportions": tier_proportions,
+                "balance_ratio": balance_ratio,
+                "missing_tiers": missing_tiers,
+                "total_samples": total_samples,
+            }
+        )
 
         # Pass if balance ratio is reasonable and no critical tiers are missing
-        passed = balance_ratio >= self.thresholds["tier_balance"] and len(missing_tiers) == 0
-        score = balance_ratio * (1.0 - len(missing_tiers) * 0.2)  # Penalty for missing tiers
+        passed = (
+            balance_ratio >= self.thresholds["tier_balance"] and len(missing_tiers) == 0
+        )
+        score = balance_ratio * (
+            1.0 - len(missing_tiers) * 0.2
+        )  # Penalty for missing tiers
 
         if not passed:
             if missing_tiers:
@@ -460,7 +522,9 @@ class SamplingValidator:
                 issues.append(f"Poor tier balance ratio: {balance_ratio:.3f}")
 
             recommendations.append("Review tier availability and quality thresholds")
-            recommendations.append("Consider adjusting sampling weights for better balance")
+            recommendations.append(
+                "Consider adjusting sampling weights for better balance"
+            )
 
         return ValidationResult(
             check_name="tier_balance_check",
@@ -468,19 +532,26 @@ class SamplingValidator:
             score=max(0.0, score),
             details=details,
             issues=issues,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
-    def _validate_sample_sizes(self, sampling_results: list[Any],
-                              original_data: dict[str, list[dict]],
-                              target_total: int) -> ValidationResult:
+    def _validate_sample_sizes(
+        self,
+        sampling_results: list[Any],
+        original_data: dict[str, list[dict]],
+        target_total: int,
+    ) -> ValidationResult:
         """Validate that sample sizes meet expectations."""
         issues = []
         recommendations = []
         details = {}
 
         total_sampled = sum(len(result.samples) for result in sampling_results)
-        size_deviation = abs(total_sampled - target_total) / target_total if target_total > 0 else 1.0
+        size_deviation = (
+            abs(total_sampled - target_total) / target_total
+            if target_total > 0
+            else 1.0
+        )
 
         # Check individual tier sample sizes
         tier_deviations = {}
@@ -494,25 +565,33 @@ class SamplingValidator:
                 tier_deviations[tier_id] = {
                     "target": target_count,
                     "actual": actual_count,
-                    "deviation": deviation
+                    "deviation": deviation,
                 }
 
                 if deviation > self.thresholds["sample_size_deviation"]:
-                    issues.append(f"Tier {tier_id}: target {target_count}, got {actual_count} "
-                                 f"(deviation: {deviation:.3f})")
+                    issues.append(
+                        f"Tier {tier_id}: target {target_count}, got {actual_count} "
+                        f"(deviation: {deviation:.3f})"
+                    )
 
-        details.update({
-            "target_total": target_total,
-            "actual_total": total_sampled,
-            "total_deviation": size_deviation,
-            "tier_deviations": tier_deviations
-        })
+        details.update(
+            {
+                "target_total": target_total,
+                "actual_total": total_sampled,
+                "total_deviation": size_deviation,
+                "tier_deviations": tier_deviations,
+            }
+        )
 
         passed = size_deviation <= self.thresholds["sample_size_deviation"]
-        score = max(0.0, 1.0 - (size_deviation / self.thresholds["sample_size_deviation"]))
+        score = max(
+            0.0, 1.0 - (size_deviation / self.thresholds["sample_size_deviation"])
+        )
 
         if not passed:
-            recommendations.append("Review sampling algorithm to better meet target sizes")
+            recommendations.append(
+                "Review sampling algorithm to better meet target sizes"
+            )
             recommendations.append("Check data availability constraints")
 
         return ValidationResult(
@@ -521,12 +600,15 @@ class SamplingValidator:
             score=score,
             details=details,
             issues=issues,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
-    def _validate_data_integrity(self, sampling_results: list[Any],
-                                original_data: dict[str, list[dict]],
-                                target_total: int) -> ValidationResult:
+    def _validate_data_integrity(
+        self,
+        sampling_results: list[Any],
+        original_data: dict[str, list[dict]],
+        target_total: int,
+    ) -> ValidationResult:
         """Validate data integrity of sampled data."""
         issues = []
         recommendations = []
@@ -547,34 +629,46 @@ class SamplingValidator:
                 for field in required_fields:
                     if field not in sample:
                         missing_fields_count += 1
-                        malformed_samples.append(f"Missing {field} in sample {sample.get('id', 'unknown')}")
+                        malformed_samples.append(
+                            f"Missing {field} in sample {sample.get('id', 'unknown')}"
+                        )
 
                 # Check for empty messages
                 messages = sample.get("messages", [])
                 if not messages or len(messages) == 0:
                     empty_samples_count += 1
-                    malformed_samples.append(f"Empty messages in sample {sample.get('id', 'unknown')}")
+                    malformed_samples.append(
+                        f"Empty messages in sample {sample.get('id', 'unknown')}"
+                    )
 
         integrity_score = 1.0
         if total_samples > 0:
-            integrity_score -= (missing_fields_count + empty_samples_count) / total_samples
+            integrity_score -= (
+                missing_fields_count + empty_samples_count
+            ) / total_samples
 
-        details.update({
-            "total_samples": total_samples,
-            "missing_fields_count": missing_fields_count,
-            "empty_samples_count": empty_samples_count,
-            "malformed_samples": malformed_samples[:10],  # Limit to first 10
-            "integrity_score": integrity_score
-        })
+        details.update(
+            {
+                "total_samples": total_samples,
+                "missing_fields_count": missing_fields_count,
+                "empty_samples_count": empty_samples_count,
+                "malformed_samples": malformed_samples[:10],  # Limit to first 10
+                "integrity_score": integrity_score,
+            }
+        )
 
         passed = integrity_score >= 0.95  # 95% integrity threshold
         score = max(0.0, integrity_score)
 
         if not passed:
-            issues.append(f"Data integrity issues: {missing_fields_count} missing fields, "
-                         f"{empty_samples_count} empty samples")
+            issues.append(
+                f"Data integrity issues: {missing_fields_count} missing fields, "
+                f"{empty_samples_count} empty samples"
+            )
             recommendations.append("Review data preprocessing and validation")
-            recommendations.append("Implement stricter data quality checks before sampling")
+            recommendations.append(
+                "Implement stricter data quality checks before sampling"
+            )
 
         return ValidationResult(
             check_name="data_integrity_check",
@@ -582,12 +676,15 @@ class SamplingValidator:
             score=score,
             details=details,
             issues=issues,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
-    def _validate_statistical_properties(self, sampling_results: list[Any],
-                                        original_data: dict[str, list[dict]],
-                                        target_total: int) -> ValidationResult:
+    def _validate_statistical_properties(
+        self,
+        sampling_results: list[Any],
+        original_data: dict[str, list[dict]],
+        target_total: int,
+    ) -> ValidationResult:
         """Validate statistical properties of the sample."""
         issues = []
         recommendations = []
@@ -614,7 +711,7 @@ class SamplingValidator:
                 score=0.0,
                 details={"error": "Insufficient data for statistical analysis"},
                 issues=["No samples available for statistical analysis"],
-                recommendations=["Ensure samples are properly collected"]
+                recommendations=["Ensure samples are properly collected"],
             )
 
         # Calculate statistics
@@ -623,7 +720,7 @@ class SamplingValidator:
             "std": np.std(sample_lengths),
             "min": np.min(sample_lengths),
             "max": np.max(sample_lengths),
-            "median": np.median(sample_lengths)
+            "median": np.median(sample_lengths),
         }
 
         quality_stats = {
@@ -631,7 +728,7 @@ class SamplingValidator:
             "std": np.std(quality_scores),
             "min": np.min(quality_scores),
             "max": np.max(quality_scores),
-            "median": np.median(quality_scores)
+            "median": np.median(quality_scores),
         }
 
         # Check for reasonable distributions
@@ -647,18 +744,22 @@ class SamplingValidator:
             issues.append(f"Very low quality variation: {quality_stats['std']:.3f}")
             reasonable_stats = False
 
-        details.update({
-            "sample_count": len(sample_lengths),
-            "length_statistics": length_stats,
-            "quality_statistics": quality_stats,
-            "reasonable_distributions": reasonable_stats
-        })
+        details.update(
+            {
+                "sample_count": len(sample_lengths),
+                "length_statistics": length_stats,
+                "quality_statistics": quality_stats,
+                "reasonable_distributions": reasonable_stats,
+            }
+        )
 
         passed = reasonable_stats
         score = 1.0 if reasonable_stats else 0.7  # Partial credit for having data
 
         if not passed:
-            recommendations.append("Review sampling criteria for more realistic distributions")
+            recommendations.append(
+                "Review sampling criteria for more realistic distributions"
+            )
             recommendations.append("Check data preprocessing for potential issues")
 
         return ValidationResult(
@@ -667,12 +768,15 @@ class SamplingValidator:
             score=score,
             details=details,
             issues=issues,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
-    def _generate_validation_summary(self, validation_results: list[ValidationResult],
-                                   sampling_results: list[Any],
-                                   target_total: int) -> dict[str, Any]:
+    def _generate_validation_summary(
+        self,
+        validation_results: list[ValidationResult],
+        sampling_results: list[Any],
+        target_total: int,
+    ) -> dict[str, Any]:
         """Generate a comprehensive validation summary."""
         total_samples = sum(len(result.samples) for result in sampling_results)
 
@@ -684,15 +788,20 @@ class SamplingValidator:
             "passed_checks": sum(1 for r in validation_results if r.passed),
             "failed_checks": sum(1 for r in validation_results if not r.passed),
             "average_score": np.mean([r.score for r in validation_results]),
-            "critical_failures": sum(1 for r in validation_results
-                                   if not r.passed and r.check_name in self.critical_checks),
+            "critical_failures": sum(
+                1
+                for r in validation_results
+                if not r.passed and r.check_name in self.critical_checks
+            ),
             "tier_count": len(sampling_results),
-            "validation_status": "PASSED" if all(r.passed for r in validation_results) else "FAILED"
+            "validation_status": "PASSED"
+            if all(r.passed for r in validation_results)
+            else "FAILED",
         }
 
-
-    def export_validation_report(self, report: SamplingValidationReport,
-                               output_path: str) -> None:
+    def export_validation_report(
+        self, report: SamplingValidationReport, output_path: str
+    ) -> None:
         """Export validation report to JSON file."""
         report_dict = {
             "overall_score": report.overall_score,
@@ -708,10 +817,10 @@ class SamplingValidator:
                     "score": r.score,
                     "details": r.details,
                     "issues": r.issues,
-                    "recommendations": r.recommendations
+                    "recommendations": r.recommendations,
                 }
                 for r in report.validation_results
-            ]
+            ],
         }
 
         with open(output_path, "w") as f:

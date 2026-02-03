@@ -14,7 +14,9 @@ class PIIScrubber:
         # Compiled regex patterns for performance
         self.patterns = {
             "email": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"),
-            "phone": re.compile(r"\b(?:\+?1[-.]?)?(?:\(?\d{3}\)?[-.]?)?\d{3}[-.]?\d{4}\b"),
+            "phone": re.compile(
+                r"\b(?:\+?1[-.]?)?(?:\(?\d{3}\)?[-.]?)?\d{3}[-.]?\d{4}\b"
+            ),
             "ssn": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
             # A very basic name pattern - heavily reliant on context or capitalization in real scenarios
             # This is a placeholder for more advanced NER-based name detection if needed later.
@@ -34,7 +36,9 @@ class PIIScrubber:
 
         return scrubbed_text
 
-    def scrub_dataset(self, dataset: list[dict], fields_to_scrub: list[str] | None = None) -> list[dict]:
+    def scrub_dataset(
+        self, dataset: list[dict], fields_to_scrub: list[str] | None = None
+    ) -> list[dict]:
         """
         Iterates through a dataset and scrubs PII from specified fields.
         If no fields specified, attempts to scrub all string fields.

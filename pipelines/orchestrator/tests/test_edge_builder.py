@@ -422,4 +422,3 @@ class TestBuildEdgeDatasetWithErrors:
         assert len(examples) == 0
         assert len(errors) == 2
         assert all("Error building example" in err for err in errors)
-

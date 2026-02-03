@@ -27,6 +27,7 @@ logger = get_logger("dataset_pipeline.training.config_profiles")
 
 class TrainingProfile(Enum):
     """Named training profiles that map to stages and dataset types"""
+
     FOUNDATION = "foundation"  # Stage 1: Foundation & Rapport
     REASONING = "reasoning"  # Stage 2: Therapeutic Expertise & Reasoning
     EDGE_CRISIS = "edge_crisis"  # Stage 3: Edge Stress Test & Scenario Bank
@@ -38,6 +39,7 @@ class TrainingProfile(Enum):
 @dataclass
 class ProfileConfig:
     """Configuration for a training profile"""
+
     profile_name: str
     stage_ids: List[str]  # Which stages to include
     allow_edge_profiles: bool  # Whether edge/red-team datasets are allowed
@@ -178,11 +180,14 @@ class TrainingDataSelector:
     def _load_manifest(self) -> Dict[str, Any]:
         """Load dataset manifest"""
         if not self.manifest_path or not self.manifest_path.exists():
-            logger.warning(f"Manifest not found at {self.manifest_path}, returning empty manifest")
+            logger.warning(
+                f"Manifest not found at {self.manifest_path}, returning empty manifest"
+            )
             return {"examples": []}
 
         import json
-        with open(self.manifest_path, 'r') as f:
+
+        with open(self.manifest_path, "r") as f:
             return json.load(f)
 
     def _iterate_examples(self, manifest: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
@@ -216,7 +221,9 @@ class TrainingDataSelector:
         profile_config = PROFILE_CONFIGS[profile_name]
 
         if profile_config.allow_edge_profiles:
-            logger.info(f"Profile '{profile_name}' allows edge profiles, skipping assertion")
+            logger.info(
+                f"Profile '{profile_name}' allows edge profiles, skipping assertion"
+            )
             return
 
         # Load manifest if not provided
@@ -278,7 +285,9 @@ class TrainingDataSelector:
             stats["total_examples"] += 1
 
             example_stage = example.get("metadata", {}).get("stage", "unknown")
-            stats["by_stage"][example_stage] = stats["by_stage"].get(example_stage, 0) + 1
+            stats["by_stage"][example_stage] = (
+                stats["by_stage"].get(example_stage, 0) + 1
+            )
 
             if self._is_edge_example(example):
                 stats["edge_examples"] += 1
@@ -326,7 +335,9 @@ def validate_profile_config(profile_name: str) -> tuple[bool, Optional[str]]:
         if profile_config.allow_edge_profiles:
             return False, "Production profile must not allow edge profiles"
         if STAGE3_ID in profile_config.stage_ids:
-            return False, "Production profile must not include Stage 3 (edge stress test)"
+            return (
+                False,
+                "Production profile must not include Stage 3 (edge stress test)",
+            )
 
     return True, None
-

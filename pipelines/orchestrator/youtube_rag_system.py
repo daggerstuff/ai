@@ -3,6 +3,9 @@ YouTube Transcript Processing and RAG Integration System
 
 This module processes YouTube transcripts from expert creators and creates a
 Retrieval-Augmented Generation (RAG) system for dynamic transcript retrieval.
+
+Extended to support knowledge sources (therapeutic books, PDFs, clinical references)
+for enhanced RAG retrieval.
 """
 
 import hashlib
@@ -19,6 +22,19 @@ from ai.pipelines.orchestrator.processing.nvidia_clients import NemoRetrieverCli
 
 # Centralized output root for runtime artifacts
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
+
+# Knowledge sources integration
+try:
+    from ai.pipelines.orchestrator.knowledge_text_extractor import (
+        KnowledgeSourceMetadata,
+        KnowledgeTextExtractor,
+    )
+
+    HAS_KNOWLEDGE_EXTRACTOR = True
+except ImportError:
+    HAS_KNOWLEDGE_EXTRACTOR = False
+    KnowledgeSourceMetadata = None
+    KnowledgeTextExtractor = None
 
 # Handle optional dependencies gracefully
 try:
@@ -73,14 +89,41 @@ class RAGIndexEntry:
 
 
 class YouTubeRAGSystem:
-    """YouTube Transcript Processing and RAG Integration System"""
+    """YouTube Transcript Processing and RAG Integration System
 
-    def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
+    Extended to support knowledge sources (therapeutic books, PDFs,
+    clinical references) for enhanced knowledge retrieval.
+    """
+
+    def __init__(
+        self,
+        model_name: str = "all-MiniLM-L6-v2",
+        include_knowledge_sources: bool = True,
+    ):
         self.transcripts_dir = Path("ai/training_data_consolidated/transcripts")
         self.index_dir = get_dataset_pipeline_output_root() / "rag_index"
         # Create the full directory path if it doesn't exist
         self.index_dir.parent.mkdir(parents=True, exist_ok=True)
         self.index_dir.mkdir(exist_ok=True)
+
+        # Knowledge sources configuration
+        self.include_knowledge_sources = (
+            include_knowledge_sources
+            and os.getenv("KNOWLEDGE_SOURCES_ENABLED", "true").lower() == "true"
+        )
+        self.knowledge_extractor = None
+        self.knowledge_chunks: Dict[str, List] = {}
+
+        if self.include_knowledge_sources and HAS_KNOWLEDGE_EXTRACTOR:
+            try:
+                self.knowledge_extractor = KnowledgeTextExtractor()
+                logger.info(
+                    f"Knowledge sources enabled: "
+                    f"{len(self.knowledge_extractor.sources)} sources available"
+                )
+            except Exception as e:
+                logger.warning(f"Failed to initialize knowledge extractor: {e}")
+                self.include_knowledge_sources = False
 
         self.use_nvidia = os.getenv("USE_NVIDIA_RETRIEVER", "false").lower() == "true"
         self.retriever_client = None
@@ -153,9 +196,7 @@ class YouTubeRAGSystem:
         logger.info(f"Processed {len(self.transcripts)} transcripts")
         return self.transcripts
 
-    def _extract_transcript_metadata(
-        self, transcript_file: Path
-    ) -> Optional[TranscriptMetadata]:
+    def _extract_transcript_metadata(self, transcript_file: Path) -> Optional[TranscriptMetadata]:
         """Extract metadata from a transcript file"""
         try:
             with open(transcript_file, "r", encoding="utf-8") as f:
@@ -208,9 +249,7 @@ class YouTubeRAGSystem:
             return metadata
 
         except Exception as e:
-            logger.error(
-                f"Error extracting metadata from {transcript_file.name}: {str(e)}"
-            )
+            logger.error(f"Error extracting metadata from {transcript_file.name}: {str(e)}")
             return None
 
     def _extract_title(self, content: str) -> str:
@@ -305,20 +344,11 @@ class YouTubeRAGSystem:
         educational_words = ["understand", "learn", "teach", "explain", "knowledge"]
 
         content_lower = content.lower()
-        compassionate_count = sum(
-            1 for word in compassionate_words if word in content_lower
-        )
-        authoritative_count = sum(
-            1 for word in authoritative_words if word in content_lower
-        )
-        educational_count = sum(
-            1 for word in educational_words if word in content_lower
-        )
+        compassionate_count = sum(1 for word in compassionate_words if word in content_lower)
+        authoritative_count = sum(1 for word in authoritative_words if word in content_lower)
+        educational_count = sum(1 for word in educational_words if word in content_lower)
 
-        if (
-            compassionate_count > authoritative_count
-            and compassionate_count > educational_count
-        ):
+        if compassionate_count > authoritative_count and compassionate_count > educational_count:
             return "compassionate"
         elif authoritative_count > educational_count:
             return "authoritative"
@@ -337,9 +367,7 @@ class YouTubeRAGSystem:
         ]
         content_lower = content.lower()
 
-        story_count = sum(
-            1 for indicator in story_indicators if indicator in content_lower
-        )
+        story_count = sum(1 for indicator in story_indicators if indicator in content_lower)
 
         if story_count > 3:
             return "storytelling"
@@ -421,19 +449,23 @@ class YouTubeRAGSystem:
 
         self.rag_index = []
 
+        processed_chunks = []
+        chunk_metadata = []
+
         for video_id, metadata in self.transcripts.items():
             transcript_file = self.transcripts_dir / f"{video_id}.md"
             if transcript_file.exists():
+                # Process transcript file
                 try:
                     with open(transcript_file, "r", encoding="utf-8") as f:
                         content = f.read()
 
                     transcript_content = self._extract_transcript_content(content)
-
-                    # Split content into chunks for better retrieval
                     chunks = self._chunk_content(transcript_content, max_chunk_size=500)
 
                     for i, chunk in enumerate(chunks):
+                        # Collect for batch encoding
+                        pass
                         entry_id = f"{video_id}_{i}"
 
                         # Generate embedding
@@ -448,8 +480,7 @@ class YouTubeRAGSystem:
                                 embedding = self.encoder.encode(chunk).tolist()
                             except Exception as e:
                                 logger.warning(
-                                    f"Failed to generate embedding for {entry_id}: "
-                                    f"{str(e)}"
+                                    f"Failed to generate embedding for {entry_id}: {str(e)}"
                                 )
 
                         entry = RAGIndexEntry(
@@ -465,8 +496,97 @@ class YouTubeRAGSystem:
                     logger.error(f"Error building index for {video_id}: {str(e)}")
                     continue
 
+        # 2. Collect Knowledge Source Chunks
+        if self.include_knowledge_sources:
+            try:
+                knowledge_chunks_list = self._load_knowledge_sources()
+                logger.info(f"Retrieved {len(knowledge_chunks_list)} knowledge chunks")
+                for chunk in knowledge_chunks_list:
+                    processed_chunks.append(chunk.content)
+
+                    # Create a TranscriptMetadata-compatible object for knowledge sources
+                    metadata = TranscriptMetadata(
+                        video_id=chunk.source_id,
+                        title=chunk.metadata.title,
+                        speaker=chunk.metadata.author,
+                        duration=0.0,
+                        language="en",
+                        processed_date=datetime.utcnow().isoformat(),
+                        content_hash=chunk.metadata.content_hash or "",
+                        word_count=len(chunk.content.split()),
+                        topics=chunk.metadata.topics,
+                        therapeutic_approaches=[],
+                        personality_markers={
+                            "source_type": chunk.metadata.source_type,
+                            "priority": chunk.metadata.priority,
+                            "is_knowledge_source": True,
+                        },
+                        key_quotes=[],
+                        summary=f"{chunk.metadata.title} by {chunk.metadata.author}",
+                    )
+
+                    chunk_metadata.append({"id": chunk.chunk_id, "metadata": metadata})
+            except Exception as e:
+                logger.error(f"Error loading knowledge sources: {e}")
+
+        if not processed_chunks:
+            logger.info(f"Built RAG index with {len(self.rag_index)} entries")
+            return self.rag_index
+
+        # Generate embeddings in batch
+        logger.info(f"Generating embeddings for {len(processed_chunks)} chunks...")
+        embeddings = []
+
+        if self.use_nvidia and self.retriever_client:
+            for chunk in processed_chunks:
+                try:
+                    embeddings.append(self.retriever_client.get_embedding(chunk))
+                except Exception as e:
+                    logger.warning(f"NVIDIA Embedding failed: {e}")
+                    embeddings.append(None)
+        elif self.encoder:
+            try:
+                # Use batch encoding for performance
+                embeddings = self.encoder.encode(processed_chunks).tolist()
+            except Exception as e:
+                logger.error(f"Batch encoding failed: {e}")
+                embeddings = [None] * len(processed_chunks)
+
+        # Create entries
+        for chunk, meta, emb in zip(processed_chunks, chunk_metadata, embeddings):
+            entry = RAGIndexEntry(
+                transcript_id=meta["id"],
+                content=chunk,
+                embedding=emb,
+                metadata=meta["metadata"],
+            )
+            self.rag_index.append(entry)
+
         logger.info(f"Built RAG index with {len(self.rag_index)} entries")
         return self.rag_index
+
+    def _load_knowledge_sources(self) -> List:
+        """Load and return knowledge source chunks."""
+        if not self.knowledge_extractor:
+            logger.warning("Knowledge extractor not available")
+            return []
+
+        logger.info("Loading knowledge sources for RAG integration...")
+
+        # Extract and chunk knowledge sources (prioritize critical and high)
+        try:
+            chunks_by_source = self.knowledge_extractor.extract_and_chunk_all(
+                priority_filter=["critical", "high"]
+            )
+
+            all_chunks = []
+            for source_id, chunks in chunks_by_source.items():
+                all_chunks.extend(chunks)
+
+            return all_chunks
+        except Exception as e:
+            logger.error(f"Failed to extract knowledge sources: {e}")
+            return []
 
     def _chunk_content(self, content: str, max_chunk_size: int = 500) -> List[str]:
         """Split content into chunks for better retrieval"""
@@ -572,9 +692,7 @@ class YouTubeRAGSystem:
                             results.append(
                                 {
                                     "content": entry.content,
-                                    "similarity": float(
-                                        item.get("relevance_score", sim)
-                                    ),
+                                    "similarity": float(item.get("relevance_score", sim)),
                                     "metadata": {
                                         "title": entry.metadata.title,
                                         "speaker": entry.metadata.speaker,
@@ -594,10 +712,7 @@ class YouTubeRAGSystem:
                             break
                 return results
             except Exception as e:
-                logger.error(
-                    f"NVIDIA Safety Rerank failed: {e}. "
-                    "Returning raw similarity results."
-                )
+                logger.error(f"NVIDIA Safety Rerank failed: {e}. Returning raw similarity results.")
 
         # Standard return if no reranking or reranking failed
         results = []
@@ -611,6 +726,7 @@ class YouTubeRAGSystem:
                     "topics": entry.metadata.topics,
                     "therapeutic_approaches": entry.metadata.therapeutic_approaches,
                     "summary": entry.metadata.summary,
+                    "personality_markers": entry.metadata.personality_markers,
                     "dual_persona_context": dual_context if i == 0 else {},
                 },
                 "transcript_id": entry.transcript_id,
@@ -672,9 +788,7 @@ class YouTubeRAGSystem:
 
         # Select diverse examples
         selected_entries = (
-            relevant_entries[:count]
-            if len(relevant_entries) >= count
-            else relevant_entries
+            relevant_entries[:count] if len(relevant_entries) >= count else relevant_entries
         )
 
         for entry in selected_entries:
@@ -753,9 +867,7 @@ class YouTubeRAGSystem:
                     content_hash=entry_data["metadata"]["content_hash"],
                     word_count=entry_data["metadata"]["word_count"],
                     topics=entry_data["metadata"]["topics"],
-                    therapeutic_approaches=entry_data["metadata"][
-                        "therapeutic_approaches"
-                    ],
+                    therapeutic_approaches=entry_data["metadata"]["therapeutic_approaches"],
                     personality_markers=entry_data["metadata"]["personality_markers"],
                     key_quotes=entry_data["metadata"]["key_quotes"],
                     summary=entry_data["metadata"]["summary"],
@@ -858,10 +970,7 @@ if __name__ == "__main__":
         print("\nExample search for 'complex trauma':")
         results = system.search_transcripts("complex trauma", top_k=2)
         for i, result in enumerate(results, 1):
-            print(
-                f"  {i}. {result['metadata']['title']} "
-                f"(similarity: {result['similarity']:.3f})"
-            )
+            print(f"  {i}. {result['metadata']['title']} (similarity: {result['similarity']:.3f})")
             print(f"     Content preview: {result['content'][:100]}...")
             print()
 

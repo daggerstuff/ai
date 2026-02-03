@@ -23,11 +23,11 @@ class FinalEnterpriseAuditor:
         self.total_tasks = 36
         self.enterprise_criteria = {
             "min_file_size": 5000,  # 5KB minimum for enterprise code
-            "min_functions": 5,     # Minimum functions for meaningful implementation
-            "min_classes": 1,       # At least one main class
+            "min_functions": 5,  # Minimum functions for meaningful implementation
+            "min_classes": 1,  # At least one main class
             "requires_docstring": True,
             "requires_error_handling": True,
-            "requires_logging": True
+            "requires_logging": True,
         }
 
     def find_file_in_repo(self, filename: str) -> list[str]:
@@ -35,10 +35,14 @@ class FinalEnterpriseAuditor:
         try:
             result = subprocess.run(
                 ["find", str(self.ai_root), "-name", filename, "-type", "f"],
-                check=False, capture_output=True, text=True
+                check=False,
+                capture_output=True,
+                text=True,
             )
             if result.returncode == 0:
-                return [path.strip() for path in result.stdout.split("\n") if path.strip()]
+                return [
+                    path.strip() for path in result.stdout.split("\n") if path.strip()
+                ]
             return []
         except Exception:
             return []
@@ -51,7 +55,7 @@ class FinalEnterpriseAuditor:
             "has_main_function": False,
             "runs_without_error": False,
             "enterprise_quality": False,
-            "quality_issues": []
+            "quality_issues": [],
         }
 
         try:
@@ -87,11 +91,16 @@ class FinalEnterpriseAuditor:
                             import io
 
                             f = io.StringIO()
-                            with contextlib.redirect_stdout(f), contextlib.redirect_stderr(f):
+                            with (
+                                contextlib.redirect_stdout(f),
+                                contextlib.redirect_stderr(f),
+                            ):
                                 module.main()
                             test_result["runs_without_error"] = True
                         except Exception as e:
-                            test_result["quality_issues"].append(f"Runtime error in main(): {e}")
+                            test_result["quality_issues"].append(
+                                f"Runtime error in main(): {e}"
+                            )
                     else:
                         test_result["runs_without_error"] = True  # No main to test
 
@@ -99,7 +108,9 @@ class FinalEnterpriseAuditor:
                 test_result["quality_issues"].append(f"Import error: {e}")
 
             # Enterprise quality checks
-            test_result["enterprise_quality"] = self._assess_enterprise_quality(content, file_path)
+            test_result["enterprise_quality"] = self._assess_enterprise_quality(
+                content, file_path
+            )
 
         except Exception as e:
             test_result["quality_issues"].append(f"File access error: {e}")
@@ -112,17 +123,23 @@ class FinalEnterpriseAuditor:
 
         # Size check
         if len(content) < self.enterprise_criteria["min_file_size"]:
-            issues.append(f"File too small: {len(content)} bytes < {self.enterprise_criteria['min_file_size']}")
+            issues.append(
+                f"File too small: {len(content)} bytes < {self.enterprise_criteria['min_file_size']}"
+            )
 
         # Function count
         function_count = content.count("def ")
         if function_count < self.enterprise_criteria["min_functions"]:
-            issues.append(f"Too few functions: {function_count} < {self.enterprise_criteria['min_functions']}")
+            issues.append(
+                f"Too few functions: {function_count} < {self.enterprise_criteria['min_functions']}"
+            )
 
         # Class count
         class_count = content.count("class ")
         if class_count < self.enterprise_criteria["min_classes"]:
-            issues.append(f"Too few classes: {class_count} < {self.enterprise_criteria['min_classes']}")
+            issues.append(
+                f"Too few classes: {class_count} < {self.enterprise_criteria['min_classes']}"
+            )
 
         # Docstring check
         if self.enterprise_criteria["requires_docstring"]:
@@ -141,7 +158,9 @@ class FinalEnterpriseAuditor:
 
         return len(issues) == 0
 
-    def audit_task(self, task_id: str, expected_filename: str, description: str) -> dict[str, Any]:
+    def audit_task(
+        self, task_id: str, expected_filename: str, description: str
+    ) -> dict[str, Any]:
         """Comprehensive audit of a single task"""
 
         result = {
@@ -155,7 +174,7 @@ class FinalEnterpriseAuditor:
             "enterprise_ready": False,
             "status": "MISSING",
             "issues": [],
-            "recommendations": []
+            "recommendations": [],
         }
 
         # Find files
@@ -199,9 +218,8 @@ class FinalEnterpriseAuditor:
                 "functions": content.count("def "),
                 "has_docstring": '"""' in content or "'''" in content,
                 "has_logging": "logging" in content or "logger" in content,
-                "has_error_handling": "try:" in content and "except" in content
+                "has_error_handling": "try:" in content and "except" in content,
             }
-
 
         except Exception as e:
             result["issues"].append(f"Could not read file: {e}")
@@ -249,50 +267,141 @@ class FinalEnterpriseAuditor:
         # Define all 36 tasks as claimed in phase6.md
         tasks = [
             # Phase 1: Ecosystem-Scale Data Processing Pipeline
-            ("6.1", "distributed_architecture.py", "Distributed processing architecture"),
+            (
+                "6.1",
+                "distributed_architecture.py",
+                "Distributed processing architecture",
+            ),
             ("6.2", "data_fusion_engine.py", "Intelligent data fusion algorithms"),
-            ("6.3", "quality_assessment_framework.py", "Hierarchical quality assessment framework"),
+            (
+                "6.3",
+                "quality_assessment_framework.py",
+                "Hierarchical quality assessment framework",
+            ),
             ("6.4", "deduplication.py", "Automated conversation deduplication"),
             ("6.5", "cross_dataset_linker.py", "Cross-dataset conversation linking"),
             ("6.6", "metadata_schema.py", "Unified metadata schema"),
-
             # Phase 2: Advanced Therapeutic Intelligence
-            ("6.7", "therapeutic_intelligence.py", "Comprehensive therapeutic approach classification"),
-            ("6.8", "condition_pattern_recognition.py", "Mental health condition pattern recognition"),
+            (
+                "6.7",
+                "therapeutic_intelligence.py",
+                "Comprehensive therapeutic approach classification",
+            ),
+            (
+                "6.8",
+                "condition_pattern_recognition.py",
+                "Mental health condition pattern recognition",
+            ),
             ("6.9", "outcome_prediction.py", "Therapeutic outcome prediction models"),
-            ("6.10", "crisis_intervention_detector.py", "Crisis intervention detection and escalation"),
-            ("6.11", "personality_adapter.py", "Personality-aware conversation adaptation"),
-            ("6.12", "cultural_competency_generator.py", "Cultural competency and diversity-aware response generation"),
-
+            (
+                "6.10",
+                "crisis_intervention_detector.py",
+                "Crisis intervention detection and escalation",
+            ),
+            (
+                "6.11",
+                "personality_adapter.py",
+                "Personality-aware conversation adaptation",
+            ),
+            (
+                "6.12",
+                "cultural_competency_generator.py",
+                "Cultural competency and diversity-aware response generation",
+            ),
             # Phase 3: Multi-Modal Integration
-            ("6.13", "audio_emotion_integration.py", "Audio emotion recognition integration"),
-            ("6.14", "multimodal_disorder_analysis.py", "Multi-modal mental disorder analysis pipeline"),
-            ("6.15", "emotion_cause_extraction.py", "Emotion cause extraction and intervention mapping"),
-            ("6.16", "tfidf_clusterer.py", "TF-IDF feature-based conversation clustering"),
+            (
+                "6.13",
+                "audio_emotion_integration.py",
+                "Audio emotion recognition integration",
+            ),
+            (
+                "6.14",
+                "multimodal_disorder_analysis.py",
+                "Multi-modal mental disorder analysis pipeline",
+            ),
+            (
+                "6.15",
+                "emotion_cause_extraction.py",
+                "Emotion cause extraction and intervention mapping",
+            ),
+            (
+                "6.16",
+                "tfidf_clusterer.py",
+                "TF-IDF feature-based conversation clustering",
+            ),
             ("6.17", "temporal_reasoner.py", "Temporal reasoning integration"),
-            ("6.18", "evidence_validator.py", "Scientific evidence-based practice validation"),
-
+            (
+                "6.18",
+                "evidence_validator.py",
+                "Scientific evidence-based practice validation",
+            ),
             # Phase 4: Intelligent Dataset Balancing & Optimization
-            ("6.19", "priority_weighted_sampler.py", "Priority-weighted sampling algorithms"),
+            (
+                "6.19",
+                "priority_weighted_sampler.py",
+                "Priority-weighted sampling algorithms",
+            ),
             ("6.20", "condition_balancer.py", "Condition-specific balancing system"),
-            ("6.21", "approach_diversity_optimizer.py", "Therapeutic approach diversity optimization"),
-            ("6.22", "demographic_balancer.py", "Demographic and cultural diversity balancing"),
-            ("6.23", "complexity_stratifier.py", "Conversation complexity stratification"),
-            ("6.24", "crisis_routine_balancer.py", "Crisis-to-routine conversation ratio optimization"),
-
+            (
+                "6.21",
+                "approach_diversity_optimizer.py",
+                "Therapeutic approach diversity optimization",
+            ),
+            (
+                "6.22",
+                "demographic_balancer.py",
+                "Demographic and cultural diversity balancing",
+            ),
+            (
+                "6.23",
+                "complexity_stratifier.py",
+                "Conversation complexity stratification",
+            ),
+            (
+                "6.24",
+                "crisis_routine_balancer.py",
+                "Crisis-to-routine conversation ratio optimization",
+            ),
             # Phase 5: Advanced Quality Validation & Safety Systems
             ("6.25", "multi_tier_validator.py", "Multi-tier quality validation system"),
-            ("6.26", "dsm5_accuracy_validator.py", "DSM-5 therapeutic accuracy validation"),
-            ("6.27", "safety_ethics_validator.py", "Conversation safety and ethics validation"),
-            ("6.28", "effectiveness_predictor.py", "Therapeutic effectiveness prediction"),
-            ("6.29", "coherence_validator.py", "Conversation coherence validation using CoT reasoning"),
-            ("6.30", "realtime_quality_monitor.py", "Real-time conversation quality monitoring"),
-
+            (
+                "6.26",
+                "dsm5_accuracy_validator.py",
+                "DSM-5 therapeutic accuracy validation",
+            ),
+            (
+                "6.27",
+                "safety_ethics_validator.py",
+                "Conversation safety and ethics validation",
+            ),
+            (
+                "6.28",
+                "effectiveness_predictor.py",
+                "Therapeutic effectiveness prediction",
+            ),
+            (
+                "6.29",
+                "coherence_validator.py",
+                "Conversation coherence validation using CoT reasoning",
+            ),
+            (
+                "6.30",
+                "realtime_quality_monitor.py",
+                "Real-time conversation quality monitoring",
+            ),
             # Phase 6: Production Deployment & Adaptive Learning
-            ("6.31", "production_exporter.py", "Production-ready dataset export with tiered access"),
+            (
+                "6.31",
+                "production_exporter.py",
+                "Production-ready dataset export with tiered access",
+            ),
             ("6.32", "adaptive_learner.py", "Adaptive learning pipeline"),
             ("6.33", "analytics_dashboard.py", "Comprehensive analytics dashboard"),
-            ("6.34", "automated_maintenance.py", "Automated dataset update and maintenance procedures"),
+            (
+                "6.34",
+                "automated_maintenance.py",
+                "Automated dataset update and maintenance procedures",
+            ),
             ("6.35", "feedback_loops.py", "Conversation effectiveness feedback loops"),
             ("6.36", "comprehensive_api.py", "Comprehensive documentation and API"),
         ]
@@ -308,12 +417,15 @@ class FinalEnterpriseAuditor:
         """Generate final audit report"""
 
         # Count statuses
-        enterprise_ready = sum(1 for r in self.results.values() if r["status"] == "ENTERPRISE_READY")
-        functional = sum(1 for r in self.results.values() if r["status"] == "FUNCTIONAL")
+        enterprise_ready = sum(
+            1 for r in self.results.values() if r["status"] == "ENTERPRISE_READY"
+        )
+        functional = sum(
+            1 for r in self.results.values() if r["status"] == "FUNCTIONAL"
+        )
         partial = sum(1 for r in self.results.values() if r["status"] == "PARTIAL")
         broken = sum(1 for r in self.results.values() if r["status"] == "BROKEN")
         missing = sum(1 for r in self.results.values() if r["status"] == "MISSING")
-
 
         working_total = enterprise_ready + functional
 
@@ -328,15 +440,23 @@ class FinalEnterpriseAuditor:
         }
 
         for _phase_name, task_ids in phases.items():
-            phase_enterprise = sum(1 for tid in task_ids if self.results.get(tid, {}).get("status") == "ENTERPRISE_READY")
-            phase_working = sum(1 for tid in task_ids if self.results.get(tid, {}).get("status") in ["ENTERPRISE_READY", "FUNCTIONAL"])
+            phase_enterprise = sum(
+                1
+                for tid in task_ids
+                if self.results.get(tid, {}).get("status") == "ENTERPRISE_READY"
+            )
+            phase_working = sum(
+                1
+                for tid in task_ids
+                if self.results.get(tid, {}).get("status")
+                in ["ENTERPRISE_READY", "FUNCTIONAL"]
+            )
             total_phase = len(task_ids)
 
             if total_phase in (phase_enterprise, phase_working) or phase_working > 0:
                 pass
             else:
                 pass
-
 
         # Enterprise ready files
         if enterprise_ready > 0:
@@ -391,8 +511,9 @@ class FinalEnterpriseAuditor:
             "enterprise_readiness_rate": enterprise_ready / self.total_tasks,
             "functional_completion_rate": working_total / self.total_tasks,
             "overall_status": overall_status,
-            "detailed_results": self.results
+            "detailed_results": self.results,
         }
+
 
 def main():
     """Run final enterprise audit"""
@@ -400,9 +521,11 @@ def main():
     report = auditor.run_final_audit()
 
     # Save detailed report
-    with open("/home/vivi/pixelated/ai/pipelines/orchestrator/final_enterprise_audit_report.json", "w") as f:
+    with open(
+        "/home/vivi/pixelated/ai/pipelines/orchestrator/final_enterprise_audit_report.json",
+        "w",
+    ) as f:
         json.dump(report, f, indent=2, default=str)
-
 
     # Return appropriate exit code
     if report["overall_status"] == "ENTERPRISE_READY":
@@ -410,6 +533,7 @@ def main():
     if report["overall_status"] == "FUNCTIONALLY_COMPLETE":
         return 1
     return 2
+
 
 if __name__ == "__main__":
     sys.exit(main())

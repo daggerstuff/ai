@@ -11,8 +11,11 @@ from pathlib import Path
 # Script is at: ai/training_ready/scripts/verify_s3_access.py
 # Project root is: /home/vivi/pixelated/
 script_path = Path(__file__).resolve()
-project_root = script_path.parents[3]  # Go up 3 levels: scripts -> training_ready -> ai -> project_root
+project_root = script_path.parents[
+    3
+]  # Go up 3 levels: scripts -> training_ready -> ai -> project_root
 sys.path.insert(0, str(project_root))
+
 
 def main():
     """Verify S3 access and list available datasets"""
@@ -97,6 +100,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Unexpected Error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

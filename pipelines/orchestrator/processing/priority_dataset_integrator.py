@@ -115,7 +115,9 @@ class PriorityDatasetIntegrator:
             quality_metrics = self._assess_priority_quality(processed_data, config)
 
             # Save integrated dataset
-            output_path = self._save_integrated_dataset(processed_data, dataset_id, quality_metrics)
+            output_path = self._save_integrated_dataset(
+                processed_data, dataset_id, quality_metrics
+            )
 
             # Update result
             result.success = True
@@ -167,7 +169,9 @@ class PriorityDatasetIntegrator:
                         "content": f"I understand you're dealing with {['anxiety', 'depression', 'stress', 'relationship issues'][i % 4]}. Let's explore some therapeutic approaches that might help you.",
                     },
                 ],
-                "therapeutic_approach": ["CBT", "DBT", "Humanistic", "Psychodynamic"][i % 4],
+                "therapeutic_approach": ["CBT", "DBT", "Humanistic", "Psychodynamic"][
+                    i % 4
+                ],
                 "quality_rating": config["expected_quality"] + (i % 10) * 0.01,
                 "priority_level": config["therapeutic_value"],
             }
@@ -222,7 +226,9 @@ class PriorityDatasetIntegrator:
             metadata=summary_data,
         )
 
-    def _process_priority_data(self, dataset_info: PriorityDatasetInfo) -> dict[str, Any]:
+    def _process_priority_data(
+        self, dataset_info: PriorityDatasetInfo
+    ) -> dict[str, Any]:
         """Process priority dataset data."""
         conversations = []
 
@@ -235,7 +241,9 @@ class PriorityDatasetIntegrator:
                         conv = json.loads(line)
 
                         # Standardize conversation format
-                        standardized_conv = self._standardize_conversation(conv, dataset_info)
+                        standardized_conv = self._standardize_conversation(
+                            conv, dataset_info
+                        )
                         conversations.append(standardized_conv)
 
                     except json.JSONDecodeError as e:
@@ -261,7 +269,8 @@ class PriorityDatasetIntegrator:
         """Standardize conversation format."""
         standardized = {
             "id": conv.get(
-                "id", f"priority_{dataset_info.priority_level}_{hash(str(conv)) % 10000}"
+                "id",
+                f"priority_{dataset_info.priority_level}_{hash(str(conv)) % 10000}",
             ),
             "messages": conv.get("messages", []),
             "metadata": {
@@ -309,7 +318,10 @@ class PriorityDatasetIntegrator:
                 total_quality += quality_rating
 
                 # Check for therapeutic approach
-                if conv.get("metadata", {}).get("therapeutic_approach", "unknown") != "unknown":
+                if (
+                    conv.get("metadata", {}).get("therapeutic_approach", "unknown")
+                    != "unknown"
+                ):
                     therapeutic_approach_count += 1
 
         if valid_conversations == 0:
@@ -319,7 +331,8 @@ class PriorityDatasetIntegrator:
             "overall_quality": total_quality / valid_conversations,
             "conversation_validity": valid_conversations / len(conversations),
             "average_message_count": message_count_total / valid_conversations,
-            "therapeutic_approach_coverage": therapeutic_approach_count / valid_conversations,
+            "therapeutic_approach_coverage": therapeutic_approach_count
+            / valid_conversations,
             "expected_quality_alignment": abs(
                 (total_quality / valid_conversations) - config["expected_quality"]
             ),

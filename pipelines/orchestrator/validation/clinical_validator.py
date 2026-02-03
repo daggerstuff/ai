@@ -15,6 +15,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class ClinicalValidator:
     """
     Automated critique engine for validating therapeutic content safety and fidelity.
@@ -37,7 +38,9 @@ class ClinicalValidator:
 
         Return JSON key 'is_safe' (bool) and 'issues' (list).
         """
-        return self.llm.generate_structured(prompt, schema={"is_safe": True, "issues": []})
+        return self.llm.generate_structured(
+            prompt, schema={"is_safe": True, "issues": []}
+        )
 
     def validate_fidelity(self, content: str, modality: str) -> Dict[str, Any]:
         """
@@ -61,7 +64,9 @@ class ClinicalValidator:
         for item in items:
             # Construct a text representation for validation
             if "instruction" in item and "output" in item:
-                text_rep = f"Instruction: {item['instruction']}\nOutput: {item['output']}"
+                text_rep = (
+                    f"Instruction: {item['instruction']}\nOutput: {item['output']}"
+                )
             elif "transcript" in item:
                 text_rep = json.dumps(item["transcript"])
             else:
@@ -73,7 +78,7 @@ class ClinicalValidator:
             # Add validation data
             item["clinical_validation"] = {
                 "safety": safety_result,
-                "timestamp": datetime.now(timezone.utc).isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             }
             validated_items.append(item)
 

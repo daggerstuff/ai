@@ -15,6 +15,7 @@ logger = get_logger(__name__)
 
 class CulturalDimension(Enum):
     """Cultural dimensions to consider."""
+
     ETHNICITY = "ethnicity"
     RELIGION = "religion"
     SOCIOECONOMIC = "socioeconomic"
@@ -37,10 +38,26 @@ class CulturalCompetencyProcessor:
         self.logger = get_logger(__name__)
 
         self.cultural_considerations = {
-            "communication_styles": ["direct vs indirect", "eye contact", "personal space"],
-            "family_dynamics": ["collectivist vs individualist", "family hierarchy", "decision-making"],
-            "religious_spiritual": ["beliefs about mental health", "prayer/meditation", "community support"],
-            "trauma_history": ["historical trauma", "discrimination", "systemic oppression"]
+            "communication_styles": [
+                "direct vs indirect",
+                "eye contact",
+                "personal space",
+            ],
+            "family_dynamics": [
+                "collectivist vs individualist",
+                "family hierarchy",
+                "decision-making",
+            ],
+            "religious_spiritual": [
+                "beliefs about mental health",
+                "prayer/meditation",
+                "community support",
+            ],
+            "trauma_history": [
+                "historical trauma",
+                "discrimination",
+                "systemic oppression",
+            ],
         }
 
         self.competency_principles = [
@@ -48,7 +65,7 @@ class CulturalCompetencyProcessor:
             "awareness of bias",
             "respect for differences",
             "collaborative approach",
-            "continuous learning"
+            "continuous learning",
         ]
 
         self.logger.info("CulturalCompetencyProcessor initialized")
@@ -62,23 +79,27 @@ class CulturalCompetencyProcessor:
             if conversation:
                 conversations.append(conversation)
 
-        self.logger.info(f"Processed {len(conversations)} cultural competency conversations")
+        self.logger.info(
+            f"Processed {len(conversations)} cultural competency conversations"
+        )
         return conversations
 
-    def _create_cultural_conversation(self, item: dict[str, Any]) -> Conversation | None:
+    def _create_cultural_conversation(
+        self, item: dict[str, Any]
+    ) -> Conversation | None:
         """Create a culturally competent conversation."""
         try:
             messages = [
                 Message(
                     role="user",
                     content="I'm concerned that my therapist won't understand my cultural background.",
-                    timestamp=datetime.now()
+                    timestamp=datetime.now(),
                 ),
                 Message(
                     role="assistant",
                     content="Your cultural background is an important part of who you are. I'm committed to learning about and respecting your cultural values and experiences. Can you help me understand what's most important to you culturally?",
-                    timestamp=datetime.now()
-                )
+                    timestamp=datetime.now(),
+                ),
             ]
 
             return Conversation(
@@ -86,7 +107,7 @@ class CulturalCompetencyProcessor:
                 messages=messages,
                 title="Culturally Competent Therapy",
                 metadata={"cultural_competency": True, "culturally_sensitive": True},
-                tags=["cultural", "competency", "sensitive", "inclusive"]
+                tags=["cultural", "competency", "sensitive", "inclusive"],
             )
 
         except Exception as e:

@@ -161,20 +161,20 @@ class CorrectedImportPathAuditor:
         """Run the corrected audit on all 5 previously broken tasks."""
 
         for task_id, task_info in self.broken_tasks.items():
-
             result = self.test_component(task_id, task_info)
             self.results["detailed_results"][task_id] = result
 
-            if result["status"] == "enterprise_ready" or result["status"] == "functional":
+            if (
+                result["status"] == "enterprise_ready"
+                or result["status"] == "functional"
+            ):
                 self.results["now_working_tasks"].append(task_id)
             else:
                 self.results["still_broken_tasks"].append(task_id)
 
-
         # Generate summary
         total_fixed = len(self.results["now_working_tasks"])
         len(self.results["still_broken_tasks"])
-
 
         if total_fixed == 5:
             pass

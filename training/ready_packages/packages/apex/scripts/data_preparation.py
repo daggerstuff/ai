@@ -195,7 +195,9 @@ class KAN28DataPreparator:
     def _log_component_stats(self, component_stats: dict) -> None:
         """Log component integration statistics"""
         logger.info("Component Integration Analysis:")
-        logger.info(f"  Total conversations: {component_stats['total_conversations']:,}")
+        logger.info(
+            f"  Total conversations: {component_stats['total_conversations']:,}"
+        )
         logger.info(
             f"  Component-enhanced: {component_stats['component_enhanced_conversations']:,}"
         )
@@ -217,7 +219,11 @@ class KAN28DataPreparator:
                 "bias_detection": 0,
                 "psychology_knowledge_base": 0,
             },
-            "expert_voices_found": {"Tim Ferriss": 0, "Gabor Maté": 0, "Brené Brown": 0},
+            "expert_voices_found": {
+                "Tim Ferriss": 0,
+                "Gabor Maté": 0,
+                "Brené Brown": 0,
+            },
         }
 
         self._analyze_component_file(component_stats)
@@ -243,7 +249,9 @@ class KAN28DataPreparator:
         component_file = self.data_dir / "unified_6_component_dataset.jsonl"
 
         if ultimate_file.exists() and component_file.exists():
-            logger.info("✅ Training data ready - splits will be handled by training script")
+            logger.info(
+                "✅ Training data ready - splits will be handled by training script"
+            )
             return True
 
         logger.error("❌ Required training files missing")

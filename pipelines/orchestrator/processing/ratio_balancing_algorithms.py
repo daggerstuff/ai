@@ -15,10 +15,11 @@ logger = get_logger(__name__)
 @dataclass
 class BalancingTarget:
     """Target ratios for dataset balancing."""
+
     psychology_knowledge: float = 0.30  # 30%
-    voice_training: float = 0.25        # 25%
-    mental_health: float = 0.20         # 20%
-    reasoning_cot: float = 0.15         # 15%
+    voice_training: float = 0.25  # 25%
+    mental_health: float = 0.20  # 20%
+    reasoning_cot: float = 0.15  # 15%
     personality_balancing: float = 0.10  # 10%
 
 
@@ -38,8 +39,11 @@ class RatioBalancingAlgorithms:
 
         self.logger.info("RatioBalancingAlgorithms initialized")
 
-    def balance_by_ratio(self, categorized_data: dict[str, list[Conversation]],
-                        targets: BalancingTarget | None = None) -> list[Conversation]:
+    def balance_by_ratio(
+        self,
+        categorized_data: dict[str, list[Conversation]],
+        targets: BalancingTarget | None = None,
+    ) -> list[Conversation]:
         """Balance conversations according to target ratios."""
         if targets is None:
             targets = self.default_targets
@@ -49,11 +53,15 @@ class RatioBalancingAlgorithms:
 
         # Calculate target counts
         target_counts = {
-            "psychology_knowledge": int(total_conversations * targets.psychology_knowledge),
+            "psychology_knowledge": int(
+                total_conversations * targets.psychology_knowledge
+            ),
             "voice_training": int(total_conversations * targets.voice_training),
             "mental_health": int(total_conversations * targets.mental_health),
             "reasoning_cot": int(total_conversations * targets.reasoning_cot),
-            "personality_balancing": int(total_conversations * targets.personality_balancing)
+            "personality_balancing": int(
+                total_conversations * targets.personality_balancing
+            ),
         }
 
         # Sample from each category
@@ -68,7 +76,9 @@ class RatioBalancingAlgorithms:
         self.logger.info(f"Balanced to {len(balanced_conversations)} conversations")
         return balanced_conversations
 
-    def get_current_ratios(self, categorized_data: dict[str, list[Conversation]]) -> dict[str, float]:
+    def get_current_ratios(
+        self, categorized_data: dict[str, list[Conversation]]
+    ) -> dict[str, float]:
         """Calculate current ratios in the data."""
         total = sum(len(convs) for convs in categorized_data.values())
         if total == 0:

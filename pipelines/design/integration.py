@@ -278,7 +278,7 @@ class TherapeuticDatasetIntegration:
             conversation_samples = samples[start_idx:end_idx]
 
             conversation = {
-                "conversation_id": f"conv_{i+1:04d}",
+                "conversation_id": f"conv_{i + 1:04d}",
                 "turns": conversation_samples,
                 "metadata": {
                     "num_turns": len(conversation_samples),
@@ -292,4 +292,3 @@ class TherapeuticDatasetIntegration:
         )
 
         return conversation_data
-

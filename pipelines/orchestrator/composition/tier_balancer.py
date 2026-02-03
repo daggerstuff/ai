@@ -197,7 +197,9 @@ def create_balanced_training_set(total_samples: int = 50000) -> dict:
     balancer = TierBalancer()
     balancer.load_all_tiers()
 
-    output_path = Path("ai/training/ready_packages/datasets/final_balanced/balanced_train.jsonl")
+    output_path = Path(
+        "ai/training/ready_packages/datasets/final_balanced/balanced_train.jsonl"
+    )
     return balancer.create_balanced_dataset(total_samples, output_path)
 
 

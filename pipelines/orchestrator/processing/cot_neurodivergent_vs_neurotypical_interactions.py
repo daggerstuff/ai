@@ -15,9 +15,11 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
+
 @dataclass
 class NeurodivergentInteraction:
     """Neurodivergent vs neurotypical interaction analysis."""
+
     interaction_id: str
     neurodivergent_perspective: str
     neurotypical_perspective: str
@@ -26,11 +28,15 @@ class NeurodivergentInteraction:
     accommodation_strategies: list[str] = field(default_factory=list)
     interaction_metadata: dict[str, Any] = field(default_factory=dict)
 
+
 class CoTNeurodivergentVsNeurotypicalInteractions:
     """Processes CoT reasoning for neurodivergent vs neurotypical interactions."""
 
-    def __init__(self, dataset_path: str = "./CoT_Neurodivergent_vs_Neurotypical_Interactions",
-                 output_dir: str = "./processed_cot"):
+    def __init__(
+        self,
+        dataset_path: str = "./CoT_Neurodivergent_vs_Neurotypical_Interactions",
+        output_dir: str = "./processed_cot",
+    ):
         self.dataset_path = Path(dataset_path)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
@@ -40,25 +46,79 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
         # Neurodivergent conditions and characteristics
         self.neurodivergent_conditions = {
             "autism": {
-                "characteristics": ["sensory sensitivity", "social communication differences", "repetitive behaviors", "special interests"],
-                "strengths": ["attention to detail", "pattern recognition", "systematic thinking", "honesty"],
-                "challenges": ["social cues", "sensory overload", "change adaptation", "executive function"]
+                "characteristics": [
+                    "sensory sensitivity",
+                    "social communication differences",
+                    "repetitive behaviors",
+                    "special interests",
+                ],
+                "strengths": [
+                    "attention to detail",
+                    "pattern recognition",
+                    "systematic thinking",
+                    "honesty",
+                ],
+                "challenges": [
+                    "social cues",
+                    "sensory overload",
+                    "change adaptation",
+                    "executive function",
+                ],
             },
             "adhd": {
-                "characteristics": ["inattention", "hyperactivity", "impulsivity", "executive dysfunction"],
-                "strengths": ["creativity", "hyperfocus", "energy", "out-of-box thinking"],
-                "challenges": ["time management", "organization", "sustained attention", "emotional regulation"]
+                "characteristics": [
+                    "inattention",
+                    "hyperactivity",
+                    "impulsivity",
+                    "executive dysfunction",
+                ],
+                "strengths": [
+                    "creativity",
+                    "hyperfocus",
+                    "energy",
+                    "out-of-box thinking",
+                ],
+                "challenges": [
+                    "time management",
+                    "organization",
+                    "sustained attention",
+                    "emotional regulation",
+                ],
             },
             "dyslexia": {
-                "characteristics": ["reading difficulties", "phonological processing", "working memory"],
-                "strengths": ["visual-spatial skills", "creative thinking", "problem-solving", "big picture thinking"],
-                "challenges": ["reading fluency", "spelling", "written expression", "processing speed"]
+                "characteristics": [
+                    "reading difficulties",
+                    "phonological processing",
+                    "working memory",
+                ],
+                "strengths": [
+                    "visual-spatial skills",
+                    "creative thinking",
+                    "problem-solving",
+                    "big picture thinking",
+                ],
+                "challenges": [
+                    "reading fluency",
+                    "spelling",
+                    "written expression",
+                    "processing speed",
+                ],
             },
             "tourettes": {
-                "characteristics": ["motor tics", "vocal tics", "involuntary movements", "co-occurring conditions"],
+                "characteristics": [
+                    "motor tics",
+                    "vocal tics",
+                    "involuntary movements",
+                    "co-occurring conditions",
+                ],
                 "strengths": ["resilience", "empathy", "creativity", "determination"],
-                "challenges": ["tic management", "social stigma", "concentration", "self-esteem"]
-            }
+                "challenges": [
+                    "tic management",
+                    "social stigma",
+                    "concentration",
+                    "self-esteem",
+                ],
+            },
         }
 
         # Therapeutic approaches for neurodivergent clients
@@ -70,7 +130,7 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
             "cognitive_behavioral_therapy_adapted",
             "acceptance_commitment_therapy",
             "mindfulness_based_interventions",
-            "strength_based_approaches"
+            "strength_based_approaches",
         ]
 
         # Accommodation strategies
@@ -82,7 +142,7 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
             "processing_time_adjustments",
             "alternative_assessment_methods",
             "assistive_technology",
-            "peer_support_systems"
+            "peer_support_systems",
         ]
 
         logger.info("CoTNeurodivergentVsNeurotypicalInteractions initialized")
@@ -99,14 +159,16 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
             "quality_metrics": {},
             "neurodivergent_conditions_covered": [],
             "issues": [],
-            "output_path": None
+            "output_path": None,
         }
 
         try:
             # Check if dataset exists, create mock if not
             if not self.dataset_path.exists():
                 self._create_mock_neurodivergent_data()
-                result["issues"].append("Created mock neurodivergent interactions data for testing")
+                result["issues"].append(
+                    "Created mock neurodivergent interactions data for testing"
+                )
 
             # Load interactions
             interactions = self._load_interactions()
@@ -122,10 +184,14 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
                 if processed_interaction:
                     processed_interactions.append(processed_interaction)
                     total_reasoning_chains += len(processed_interaction.reasoning_chain)
-                    total_accommodations += len(processed_interaction.accommodation_strategies)
+                    total_accommodations += len(
+                        processed_interaction.accommodation_strategies
+                    )
 
                     # Track conditions covered
-                    condition = processed_interaction.interaction_metadata.get("neurodivergent_condition")
+                    condition = processed_interaction.interaction_metadata.get(
+                        "neurodivergent_condition"
+                    )
                     if condition:
                         conditions_covered.add(condition)
 
@@ -133,21 +199,27 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
             quality_metrics = self._assess_interaction_quality(processed_interactions)
 
             # Save processed interactions
-            output_path = self._save_processed_interactions(processed_interactions, quality_metrics)
+            output_path = self._save_processed_interactions(
+                processed_interactions, quality_metrics
+            )
 
             # Update result
-            result.update({
-                "success": True,
-                "interactions_processed": len(processed_interactions),
-                "reasoning_chains_analyzed": total_reasoning_chains,
-                "accommodation_strategies_identified": total_accommodations,
-                "quality_metrics": quality_metrics,
-                "neurodivergent_conditions_covered": list(conditions_covered),
-                "output_path": str(output_path),
-                "processing_time": (datetime.now() - start_time).total_seconds()
-            })
+            result.update(
+                {
+                    "success": True,
+                    "interactions_processed": len(processed_interactions),
+                    "reasoning_chains_analyzed": total_reasoning_chains,
+                    "accommodation_strategies_identified": total_accommodations,
+                    "quality_metrics": quality_metrics,
+                    "neurodivergent_conditions_covered": list(conditions_covered),
+                    "output_path": str(output_path),
+                    "processing_time": (datetime.now() - start_time).total_seconds(),
+                }
+            )
 
-            logger.info(f"Successfully processed neurodivergent interactions: {len(processed_interactions)} interactions")
+            logger.info(
+                f"Successfully processed neurodivergent interactions: {len(processed_interactions)} interactions"
+            )
 
         except Exception as e:
             result["issues"].append(f"Processing failed: {e!s}")
@@ -174,20 +246,34 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
                         f"Recognize strengths: {details['strengths'][i % len(details['strengths'])]}",
                         f"Address challenge: {details['challenges'][i % len(details['challenges'])]}",
                         f"Consider accommodation: {self.accommodation_strategies[i % len(self.accommodation_strategies)]}",
-                        f"Apply therapeutic approach: {self.therapeutic_approaches[i % len(self.therapeutic_approaches)]}"
+                        f"Apply therapeutic approach: {self.therapeutic_approaches[i % len(self.therapeutic_approaches)]}",
                     ],
-                    "therapeutic_approach": self.therapeutic_approaches[i % len(self.therapeutic_approaches)],
+                    "therapeutic_approach": self.therapeutic_approaches[
+                        i % len(self.therapeutic_approaches)
+                    ],
                     "accommodation_strategies": [
-                        self.accommodation_strategies[i % len(self.accommodation_strategies)],
-                        self.accommodation_strategies[(i + 1) % len(self.accommodation_strategies)]
+                        self.accommodation_strategies[
+                            i % len(self.accommodation_strategies)
+                        ],
+                        self.accommodation_strategies[
+                            (i + 1) % len(self.accommodation_strategies)
+                        ],
                     ],
                     "metadata": {
                         "neurodivergent_condition": condition,
-                        "primary_challenge": details["challenges"][i % len(details["challenges"])],
-                        "identified_strength": details["strengths"][i % len(details["strengths"])],
-                        "session_phase": ["assessment", "intervention", "maintenance"][i % 3],
-                        "complexity_level": ["basic", "intermediate", "advanced"][i % 3]
-                    }
+                        "primary_challenge": details["challenges"][
+                            i % len(details["challenges"])
+                        ],
+                        "identified_strength": details["strengths"][
+                            i % len(details["strengths"])
+                        ],
+                        "session_phase": ["assessment", "intervention", "maintenance"][
+                            i % 3
+                        ],
+                        "complexity_level": ["basic", "intermediate", "advanced"][
+                            i % 3
+                        ],
+                    },
                 }
                 interactions.append(interaction)
 
@@ -204,7 +290,7 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
             "neurodivergent_conditions": list(self.neurodivergent_conditions.keys()),
             "therapeutic_approaches": self.therapeutic_approaches,
             "accommodation_strategies": self.accommodation_strategies,
-            "created_at": datetime.now().isoformat()
+            "created_at": datetime.now().isoformat(),
         }
 
         with open(self.dataset_path / "metadata.json", "w") as f:
@@ -228,29 +314,41 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
 
         return interactions
 
-    def _process_interaction(self, interaction_data: dict[str, Any]) -> NeurodivergentInteraction | None:
+    def _process_interaction(
+        self, interaction_data: dict[str, Any]
+    ) -> NeurodivergentInteraction | None:
         """Process a single neurodivergent interaction."""
         try:
-            interaction_id = interaction_data.get("interaction_id", f"interaction_{hash(str(interaction_data))%10000}")
+            interaction_id = interaction_data.get(
+                "interaction_id", f"interaction_{hash(str(interaction_data)) % 10000}"
+            )
 
             return NeurodivergentInteraction(
                 interaction_id=interaction_id,
-                neurodivergent_perspective=interaction_data.get("neurodivergent_perspective", ""),
-                neurotypical_perspective=interaction_data.get("neurotypical_perspective", ""),
+                neurodivergent_perspective=interaction_data.get(
+                    "neurodivergent_perspective", ""
+                ),
+                neurotypical_perspective=interaction_data.get(
+                    "neurotypical_perspective", ""
+                ),
                 therapeutic_approach=interaction_data.get("therapeutic_approach", ""),
                 reasoning_chain=interaction_data.get("reasoning_chain", []),
-                accommodation_strategies=interaction_data.get("accommodation_strategies", []),
+                accommodation_strategies=interaction_data.get(
+                    "accommodation_strategies", []
+                ),
                 interaction_metadata={
                     **interaction_data.get("metadata", {}),
-                    "processed_at": datetime.now().isoformat()
-                }
+                    "processed_at": datetime.now().isoformat(),
+                },
             )
 
         except Exception as e:
             logger.error(f"Error processing neurodivergent interaction: {e}")
             return None
 
-    def _assess_interaction_quality(self, interactions: list[NeurodivergentInteraction]) -> dict[str, float]:
+    def _assess_interaction_quality(
+        self, interactions: list[NeurodivergentInteraction]
+    ) -> dict[str, float]:
         """Assess quality of neurodivergent interactions dataset."""
         if not interactions:
             return {"overall_quality": 0.0}
@@ -265,33 +363,58 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
             for i in interactions
             if i.interaction_metadata.get("neurodivergent_condition")
         }
-        condition_coverage = len(conditions_covered) / len(self.neurodivergent_conditions)
+        condition_coverage = len(conditions_covered) / len(
+            self.neurodivergent_conditions
+        )
 
         # Therapeutic approach diversity
-        approaches_used = {i.therapeutic_approach for i in interactions if i.therapeutic_approach}
+        approaches_used = {
+            i.therapeutic_approach for i in interactions if i.therapeutic_approach
+        }
         approach_diversity = len(approaches_used) / len(self.therapeutic_approaches)
 
         # Accommodation strategy diversity
         all_accommodations = set()
         for interaction in interactions:
             all_accommodations.update(interaction.accommodation_strategies)
-        accommodation_diversity = len(all_accommodations) / len(self.accommodation_strategies)
+        accommodation_diversity = len(all_accommodations) / len(
+            self.accommodation_strategies
+        )
 
         return {
-            "overall_quality": (condition_coverage + approach_diversity + accommodation_diversity) / 3,
+            "overall_quality": (
+                condition_coverage + approach_diversity + accommodation_diversity
+            )
+            / 3,
             "condition_coverage": condition_coverage,
             "approach_diversity": approach_diversity,
             "accommodation_diversity": accommodation_diversity,
-            "average_reasoning_chain_length": sum(reasoning_chain_lengths) / len(reasoning_chain_lengths) if reasoning_chain_lengths else 0,
-            "average_accommodations_per_interaction": sum(accommodation_counts) / len(accommodation_counts) if accommodation_counts else 0,
-            "comprehensive_interactions": sum(1 for i in interactions if len(i.reasoning_chain) >= 4 and len(i.accommodation_strategies) >= 2) / len(interactions)
+            "average_reasoning_chain_length": sum(reasoning_chain_lengths)
+            / len(reasoning_chain_lengths)
+            if reasoning_chain_lengths
+            else 0,
+            "average_accommodations_per_interaction": sum(accommodation_counts)
+            / len(accommodation_counts)
+            if accommodation_counts
+            else 0,
+            "comprehensive_interactions": sum(
+                1
+                for i in interactions
+                if len(i.reasoning_chain) >= 4 and len(i.accommodation_strategies) >= 2
+            )
+            / len(interactions),
         }
 
-
-    def _save_processed_interactions(self, interactions: list[NeurodivergentInteraction],
-                                   quality_metrics: dict[str, float]) -> Path:
+    def _save_processed_interactions(
+        self,
+        interactions: list[NeurodivergentInteraction],
+        quality_metrics: dict[str, float],
+    ) -> Path:
         """Save processed neurodivergent interactions."""
-        output_file = self.output_dir / "cot_neurodivergent_vs_neurotypical_interactions_processed.json"
+        output_file = (
+            self.output_dir
+            / "cot_neurodivergent_vs_neurotypical_interactions_processed.json"
+        )
 
         # Convert to serializable format
         interactions_data = []
@@ -303,7 +426,7 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
                 "therapeutic_approach": interaction.therapeutic_approach,
                 "reasoning_chain": interaction.reasoning_chain,
                 "accommodation_strategies": interaction.accommodation_strategies,
-                "interaction_metadata": interaction.interaction_metadata
+                "interaction_metadata": interaction.interaction_metadata,
             }
             interactions_data.append(interaction_dict)
 
@@ -312,13 +435,13 @@ class CoTNeurodivergentVsNeurotypicalInteractions:
                 "name": "CoT Neurodivergent vs Neurotypical Interactions",
                 "description": "Neurodiversity-aware therapeutic approaches with chain-of-thought reasoning",
                 "total_interactions": len(interactions),
-                "processed_at": datetime.now().isoformat()
+                "processed_at": datetime.now().isoformat(),
             },
             "quality_metrics": quality_metrics,
             "neurodivergent_conditions": self.neurodivergent_conditions,
             "therapeutic_approaches": self.therapeutic_approaches,
             "accommodation_strategies": self.accommodation_strategies,
-            "interactions": interactions_data
+            "interactions": interactions_data,
         }
 
         with open(output_file, "w") as f:
@@ -341,4 +464,3 @@ if __name__ == "__main__":
         pass
     else:
         pass
-

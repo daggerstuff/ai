@@ -32,7 +32,9 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s:%(mess
 
 
 class OperationalDashboardSystem:
-    def __init__(self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"):
+    def __init__(
+        self, db_path: str = "/home/vivi/pixelated/ai/database/conversations.db"
+    ):
         self.db_path = db_path
         self.dashboard_dir = "/home/vivi/pixelated/ai/monitoring/dashboards"
         self.reports_dir = "/home/vivi/pixelated/ai/monitoring/reports"
@@ -99,12 +101,18 @@ class OperationalDashboardSystem:
 
         # Create executive dashboard visualization
         fig, axes = plt.subplots(2, 3, figsize=(20, 12))
-        fig.suptitle("Pixelated Empathy AI - Executive Dashboard", fontsize=20, fontweight="bold")
+        fig.suptitle(
+            "Pixelated Empathy AI - Executive Dashboard", fontsize=20, fontweight="bold"
+        )
 
         # 1. Overall Quality Score
         quality_score = exec_metrics["overall_quality_score"]
         colors = [
-            "#FF6B6B" if quality_score < 50 else "#FFA07A" if quality_score < 70 else "#4ECDC4"
+            "#FF6B6B"
+            if quality_score < 50
+            else "#FFA07A"
+            if quality_score < 70
+            else "#4ECDC4"
         ]
 
         axes[0, 0].pie(
@@ -115,7 +123,9 @@ class OperationalDashboardSystem:
             autopct="%1.1f%%",
         )
         axes[0, 0].set_title(
-            f"Overall Quality Score\n{quality_score:.1f}/100", fontsize=14, fontweight="bold"
+            f"Overall Quality Score\n{quality_score:.1f}/100",
+            fontsize=14,
+            fontweight="bold",
         )
 
         # 2. Conversation Volume Trends
@@ -124,7 +134,9 @@ class OperationalDashboardSystem:
             dates = list(volume_data.keys())[-30:]  # Last 30 days
             volumes = [volume_data[d] for d in dates]
 
-            axes[0, 1].plot(range(len(dates)), volumes, marker="o", linewidth=2, markersize=4)
+            axes[0, 1].plot(
+                range(len(dates)), volumes, marker="o", linewidth=2, markersize=4
+            )
             axes[0, 1].set_title(
                 "Conversation Volume (Last 30 Days)", fontsize=14, fontweight="bold"
             )
@@ -133,7 +145,12 @@ class OperationalDashboardSystem:
 
         # 3. Quality Distribution
         quality_dist = exec_metrics["quality_distribution"]
-        categories = ["Excellent\n(80-100)", "Good\n(60-79)", "Fair\n(40-59)", "Poor\n(0-39)"]
+        categories = [
+            "Excellent\n(80-100)",
+            "Good\n(60-79)",
+            "Fair\n(40-59)",
+            "Poor\n(0-39)",
+        ]
         values = [
             quality_dist.get("excellent", 0),
             quality_dist.get("good", 0),
@@ -163,11 +180,15 @@ class OperationalDashboardSystem:
         roi_values = [roi_data[d] for d in datasets]
 
         colors = ["green" if roi > 0 else "red" for roi in roi_values]
-        bars = axes[1, 0].barh(range(len(datasets)), roi_values, color=colors, alpha=0.7)
+        bars = axes[1, 0].barh(
+            range(len(datasets)), roi_values, color=colors, alpha=0.7
+        )
         axes[1, 0].set_title("Dataset ROI Analysis", fontsize=14, fontweight="bold")
         axes[1, 0].set_xlabel("ROI Percentage")
         axes[1, 0].set_yticks(range(len(datasets)))
-        axes[1, 0].set_yticklabels([d[:20] + "..." if len(d) > 20 else d for d in datasets])
+        axes[1, 0].set_yticklabels(
+            [d[:20] + "..." if len(d) > 20 else d for d in datasets]
+        )
         axes[1, 0].axvline(x=0, color="black", linestyle="-", alpha=0.3)
 
         # 5. Key Performance Indicators
@@ -197,7 +218,9 @@ class OperationalDashboardSystem:
         table.auto_set_font_size(False)
         table.set_fontsize(10)
         table.scale(1, 2)
-        axes[1, 1].set_title("Key Performance Indicators", fontsize=14, fontweight="bold")
+        axes[1, 1].set_title(
+            "Key Performance Indicators", fontsize=14, fontweight="bold"
+        )
 
         # 6. Action Items Summary
         action_items = exec_metrics["action_items"]
@@ -217,7 +240,7 @@ class OperationalDashboardSystem:
             fontsize=10,
             verticalalignment="top",
             fontweight="normal",
-            bbox={"boxstyle":"round","facecolor":"lightblue","alpha":0.1},
+            bbox={"boxstyle": "round", "facecolor": "lightblue", "alpha": 0.1},
         )
         axes[1, 2].set_title("Strategic Action Items", fontsize=14, fontweight="bold")
 
@@ -225,7 +248,9 @@ class OperationalDashboardSystem:
 
         # Save executive dashboard
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        exec_dashboard_path = f"{self.dashboard_dir}/executive/executive_dashboard_{timestamp}.png"
+        exec_dashboard_path = (
+            f"{self.dashboard_dir}/executive/executive_dashboard_{timestamp}.png"
+        )
         plt.savefig(exec_dashboard_path, dpi=300, bbox_inches="tight")
         plt.close()
 
@@ -254,7 +279,10 @@ class OperationalDashboardSystem:
         values = [perf_data.get(m.lower().replace(" ", "_"), 0) for m in metrics]
 
         bars = axes[0, 0].bar(
-            metrics, values, color=["#4ECDC4", "#45B7D1", "#FF6B6B", "#96CEB4"], alpha=0.8
+            metrics,
+            values,
+            color=["#4ECDC4", "#45B7D1", "#FF6B6B", "#96CEB4"],
+            alpha=0.8,
         )
         axes[0, 0].set_title("Processing Performance Metrics", fontweight="bold")
         axes[0, 0].tick_params(axis="x", rotation=45)
@@ -265,7 +293,9 @@ class OperationalDashboardSystem:
             days = list(quality_trends.keys())[-7:]
             quality_scores = [quality_trends[d] for d in days]
 
-            axes[0, 1].plot(range(len(days)), quality_scores, marker="o", linewidth=3, markersize=6)
+            axes[0, 1].plot(
+                range(len(days)), quality_scores, marker="o", linewidth=3, markersize=6
+            )
             axes[0, 1].set_title("Quality Trends (Last 7 Days)", fontweight="bold")
             axes[0, 1].set_ylabel("Average Quality Score")
             axes[0, 1].grid(True, alpha=0.3)
@@ -276,13 +306,19 @@ class OperationalDashboardSystem:
         health_status = ops_metrics["system_health"]
 
         status_items = list(health_status.keys())
-        status_values = [1 if health_status[item] == "healthy" else 0 for item in status_items]
+        status_values = [
+            1 if health_status[item] == "healthy" else 0 for item in status_items
+        ]
         colors = ["green" if v == 1 else "red" for v in status_values]
 
-        bars = axes[0, 2].barh(range(len(status_items)), status_values, color=colors, alpha=0.7)
+        bars = axes[0, 2].barh(
+            range(len(status_items)), status_values, color=colors, alpha=0.7
+        )
         axes[0, 2].set_title("System Health Status", fontweight="bold")
         axes[0, 2].set_yticks(range(len(status_items)))
-        axes[0, 2].set_yticklabels([item.replace("_", " ").title() for item in status_items])
+        axes[0, 2].set_yticklabels(
+            [item.replace("_", " ").title() for item in status_items]
+        )
         axes[0, 2].set_xlim(0, 1)
 
         # 4. Dataset Activity Heatmap
@@ -300,7 +336,9 @@ class OperationalDashboardSystem:
             axes[1, 0].set_xlabel("Hour of Day")
             axes[1, 0].set_ylabel("Dataset")
             axes[1, 0].set_yticks(range(len(datasets)))
-            axes[1, 0].set_yticklabels([d[:15] + "..." if len(d) > 15 else d for d in datasets])
+            axes[1, 0].set_yticklabels(
+                [d[:15] + "..." if len(d) > 15 else d for d in datasets]
+            )
 
             # Add colorbar
             plt.colorbar(im, ax=axes[1, 0], label="Activity Level")
@@ -312,7 +350,9 @@ class OperationalDashboardSystem:
         error_counts = list(error_data.values())
 
         if error_types:
-            axes[1, 1].pie(error_counts, labels=error_types, autopct="%1.1f%%", startangle=90)
+            axes[1, 1].pie(
+                error_counts, labels=error_types, autopct="%1.1f%%", startangle=90
+            )
             axes[1, 1].set_title("Error Distribution", fontweight="bold")
         else:
             axes[1, 1].text(
@@ -333,14 +373,16 @@ class OperationalDashboardSystem:
 
         resources = ["CPU", "Memory", "Disk", "Network"]
         utilization = [resource_data.get(r.lower(), 0) for r in resources]
-        colors = ["red" if u > 80 else "orange" if u > 60 else "green" for u in utilization]
+        colors = [
+            "red" if u > 80 else "orange" if u > 60 else "green" for u in utilization
+        ]
 
         bars = axes[1, 2].bar(resources, utilization, color=colors, alpha=0.8)
         axes[1, 2].set_title("Resource Utilization (%)", fontweight="bold")
         axes[1, 2].set_ylim(0, 100)
 
         # Add utilization labels
-    for bar, util in zip(bars, utilization, strict=True):
+        for bar, util in zip(bars, utilization, strict=True):
             height = bar.get_height()
             axes[1, 2].text(
                 bar.get_x() + bar.get_width() / 2.0,
@@ -384,8 +426,12 @@ class OperationalDashboardSystem:
         x = np.arange(len(benchmark_names))
         width = 0.35
 
-        bars1 = axes[2, 1].bar(x - width / 2, current_values, width, label="Current", alpha=0.8)
-        bars2 = axes[2, 1].bar(x + width / 2, target_values, width, label="Target", alpha=0.8)
+        bars1 = axes[2, 1].bar(
+            x - width / 2, current_values, width, label="Current", alpha=0.8
+        )
+        bars2 = axes[2, 1].bar(
+            x + width / 2, target_values, width, label="Target", alpha=0.8
+        )
 
         axes[2, 1].set_title("Performance vs Targets", fontweight="bold")
         axes[2, 1].set_xticks(x)
@@ -415,10 +461,10 @@ class OperationalDashboardSystem:
         )
         axes[2, 2].set_title("Recent Activity Log", fontweight="bold")
 
-    plt.tight_layout()
+        plt.tight_layout()
 
         # Save operational dashboard
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         ops_dashboard_path = (
             f"{self.dashboard_dir}/operational/operational_dashboard_{timestamp}.png"
         )
@@ -441,7 +487,9 @@ class OperationalDashboardSystem:
 
         # Create technical dashboard with detailed metrics
         fig, axes = plt.subplots(2, 4, figsize=(28, 14))
-        fig.suptitle("Technical System Monitoring Dashboard", fontsize=20, fontweight="bold")
+        fig.suptitle(
+            "Technical System Monitoring Dashboard", fontsize=20, fontweight="bold"
+        )
 
         # Technical visualizations would go here
         # For brevity, creating placeholder structure
@@ -479,8 +527,10 @@ class OperationalDashboardSystem:
         plt.tight_layout()
 
         # Save technical dashboard
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        tech_dashboard_path = f"{self.dashboard_dir}/technical/technical_dashboard_{timestamp}.png"
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        tech_dashboard_path = (
+            f"{self.dashboard_dir}/technical/technical_dashboard_{timestamp}.png"
+        )
         plt.savefig(tech_dashboard_path, dpi=300, bbox_inches="tight")
         plt.close()
 
@@ -509,7 +559,11 @@ class OperationalDashboardSystem:
                 "day": "monday",
                 "time": "09:00",
                 "recipients": ["management@pixelated.ai"],
-                "sections": ["quality_trends", "performance_analysis", "recommendations"],
+                "sections": [
+                    "quality_trends",
+                    "performance_analysis",
+                    "recommendations",
+                ],
                 "format": "pdf",
             },
             "monthly_report": {
@@ -592,12 +646,20 @@ class OperationalDashboardSystem:
                 "format": "executive_summary",
             },
             "cto_view": {
-                "metrics": ["system_performance", "technical_debt", "innovation_metrics"],
+                "metrics": [
+                    "system_performance",
+                    "technical_debt",
+                    "innovation_metrics",
+                ],
                 "update_frequency": "daily",
                 "format": "technical_dashboard",
             },
             "operations_manager_view": {
-                "metrics": ["processing_efficiency", "quality_metrics", "resource_utilization"],
+                "metrics": [
+                    "processing_efficiency",
+                    "quality_metrics",
+                    "resource_utilization",
+                ],
                 "update_frequency": "hourly",
                 "format": "operational_dashboard",
             },
@@ -607,7 +669,11 @@ class OperationalDashboardSystem:
                 "format": "analytics_dashboard",
             },
             "quality_manager_view": {
-                "metrics": ["quality_trends", "improvement_tracking", "compliance_status"],
+                "metrics": [
+                    "quality_trends",
+                    "improvement_tracking",
+                    "compliance_status",
+                ],
                 "update_frequency": "daily",
                 "format": "quality_dashboard",
             },
@@ -651,7 +717,11 @@ class OperationalDashboardSystem:
                 "use_case": "system_integration",
                 "automation": "real_time",
             },
-            "csv_exports": {"format": "csv", "use_case": "data_sharing", "automation": "scheduled"},
+            "csv_exports": {
+                "format": "csv",
+                "use_case": "data_sharing",
+                "automation": "scheduled",
+            },
         }
 
         # Create export templates and scripts
@@ -664,7 +734,9 @@ class OperationalDashboardSystem:
             "api_endpoints": self._create_api_endpoints(),
         }
 
-    def _generate_deployment_summary(self, deployment_results: dict[str, Any]) -> dict[str, Any]:
+    def _generate_deployment_summary(
+        self, deployment_results: dict[str, Any]
+    ) -> dict[str, Any]:
         """Generate comprehensive deployment summary"""
 
         total_dashboards = sum(
@@ -677,13 +749,19 @@ class OperationalDashboardSystem:
             "dashboards_deployed": total_dashboards,
             "systems_integrated": len(self.analytics_systems),
             "stakeholder_views": len(
-                deployment_results.get("stakeholder_views", {}).get("roles_configured", [])
+                deployment_results.get("stakeholder_views", {}).get(
+                    "roles_configured", []
+                )
             ),
             "automated_reports": len(
-                deployment_results.get("automated_reporting", {}).get("report_types", [])
+                deployment_results.get("automated_reporting", {}).get(
+                    "report_types", []
+                )
             ),
             "export_formats": len(
-                deployment_results.get("export_capabilities", {}).get("supported_formats", [])
+                deployment_results.get("export_capabilities", {}).get(
+                    "supported_formats", []
+                )
             ),
             "monitoring_alerts": len(
                 deployment_results.get("monitoring_alerts", {}).get("alert_types", [])
@@ -802,7 +880,11 @@ class OperationalDashboardSystem:
             "weekly_maintenance": {
                 "day": "sunday",
                 "time": "03:00",
-                "tasks": ["database_optimization", "performance_tuning", "security_updates"],
+                "tasks": [
+                    "database_optimization",
+                    "performance_tuning",
+                    "security_updates",
+                ],
                 "duration": "2_hours",
             },
             "monthly_maintenance": {
@@ -828,7 +910,12 @@ class OperationalDashboardSystem:
             "volume_trends": {
                 f"2025-08-{i:02d}": np.random.randint(1000, 5000) for i in range(1, 8)
             },
-            "quality_distribution": {"excellent": 1250, "good": 8500, "fair": 45000, "poor": 82105},
+            "quality_distribution": {
+                "excellent": 1250,
+                "good": 8500,
+                "fair": 45000,
+                "poor": 82105,
+            },
             "roi_analysis": {
                 "professional_soulchat": 156.7,
                 "cot_reasoning": 89.3,
@@ -885,7 +972,12 @@ class OperationalDashboardSystem:
                 "processing_error": 12,
                 "memory_limit": 8,
             },
-            "resource_utilization": {"cpu": 67.3, "memory": 78.9, "disk": 45.2, "network": 34.7},
+            "resource_utilization": {
+                "cpu": 67.3,
+                "memory": 78.9,
+                "disk": 45.2,
+                "network": 34.7,
+            },
             "active_alerts": [],
             "performance_benchmarks": {
                 "response_time": {"current": 2.3, "target": 2.0},
@@ -908,17 +1000,31 @@ class OperationalDashboardSystem:
         """Get technical-level metrics"""
 
         return {
-            "database_performance": {"query_time": 0.15, "connections": 45, "cache_hit_rate": 94.2},
-            "ml_model_performance": {"accuracy": 99.3, "precision": 98.7, "recall": 97.9},
+            "database_performance": {
+                "query_time": 0.15,
+                "connections": 45,
+                "cache_hit_rate": 94.2,
+            },
+            "ml_model_performance": {
+                "accuracy": 99.3,
+                "precision": 98.7,
+                "recall": 97.9,
+            },
             "system_resources": {"cpu_cores": 16, "memory_gb": 64, "disk_tb": 2},
-            "processing_pipeline": {"stages": 8, "success_rate": 98.7, "avg_duration": 2.3},
+            "processing_pipeline": {
+                "stages": 8,
+                "success_rate": 98.7,
+                "avg_duration": 2.3,
+            },
         }
 
     # Placeholder methods for report generation and scheduling
     def _generate_sample_report(self, report_type: str, config: dict[str, Any]) -> str:
         """Generate sample report"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        report_path = f"{self.reports_dir}/{config['frequency']}/{report_type}_{timestamp}.txt"
+        report_path = (
+            f"{self.reports_dir}/{config['frequency']}/{report_type}_{timestamp}.txt"
+        )
 
         with open(report_path, "w") as f:
             f.write(f"Sample {report_type} generated at {datetime.now()}\n")
@@ -926,7 +1032,9 @@ class OperationalDashboardSystem:
 
         return report_path
 
-    def _create_scheduling_scripts(self, report_configs: dict[str, Any]) -> dict[str, str]:
+    def _create_scheduling_scripts(
+        self, report_configs: dict[str, Any]
+    ) -> dict[str, str]:
         """Create scheduling scripts for automated reports"""
         scripts = {}
 
@@ -975,7 +1083,9 @@ uv run monitoring/operational_dashboard_system.py --check-{alert_type.replace("_
     def _generate_stakeholder_dashboard(self, role: str, config: dict[str, Any]) -> str:
         """Generate stakeholder-specific dashboard"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        dashboard_path = f"{self.dashboard_dir}/stakeholders/{role}_dashboard_{timestamp}.png"
+        dashboard_path = (
+            f"{self.dashboard_dir}/stakeholders/{role}_dashboard_{timestamp}.png"
+        )
 
         Path(f"{self.dashboard_dir}/stakeholders").mkdir(parents=True, exist_ok=True)
 
@@ -991,7 +1101,11 @@ uv run monitoring/operational_dashboard_system.py --check-{alert_type.replace("_
             fontweight="bold",
             bbox=dict(boxstyle="round", facecolor="lightblue", alpha=0.3),
         )
-        ax.set_title(f"{role.replace('_', ' ').title()} Dashboard", fontsize=18, fontweight="bold")
+        ax.set_title(
+            f"{role.replace('_', ' ').title()} Dashboard",
+            fontsize=18,
+            fontweight="bold",
+        )
         ax.set_xticks([])
         ax.set_yticks([])
 
@@ -1037,13 +1151,17 @@ uv run monitoring/operational_dashboard_system.py --export-{format_name.replace(
             "reports": "/api/v1/reports",
         }
 
-    def _calculate_next_run_times(self, report_configs: dict[str, Any]) -> dict[str, str]:
+    def _calculate_next_run_times(
+        self, report_configs: dict[str, Any]
+    ) -> dict[str, str]:
         """Calculate next scheduled run times for reports"""
         next_runs = {}
 
         for report_type, config in report_configs.items():
             if config["frequency"] == "daily":
-                next_run = datetime.now().replace(hour=8, minute=0, second=0) + timedelta(days=1)
+                next_run = datetime.now().replace(
+                    hour=8, minute=0, second=0
+                ) + timedelta(days=1)
             elif config["frequency"] == "weekly":
                 next_run = datetime.now() + timedelta(days=7)
             elif config["frequency"] == "monthly":
@@ -1069,37 +1187,47 @@ def main():
 
         # Save deployment results
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = (
-            f"/home/vivi/pixelated/ai/monitoring/operational_dashboard_deployment_{timestamp}.json"
-        )
+        output_file = f"/home/vivi/pixelated/ai/monitoring/operational_dashboard_deployment_{timestamp}.json"
 
         with open(output_file, "w") as f:
             json.dump(deployment_results, f, indent=2, default=str)
 
-    logging.info("✅ Operational Dashboard System Deployed Successfully!")
-    logging.info("📊 Deployment results saved to: %s", output_file)
+        logging.info("✅ Operational Dashboard System Deployed Successfully!")
+        logging.info("📊 Deployment results saved to: %s", output_file)
 
         # Display deployment summary
         summary = deployment_results["deployment_summary"]
-    logging.info("📈 Deployment Summary:")
-    logging.info("  • Dashboards deployed: %s", summary['dashboards_deployed'])
-    logging.info("  • Systems integrated: %s", summary['systems_integrated'])
-    logging.info("  • Stakeholder views: %s", summary['stakeholder_views'])
-    logging.info("  • Automated reports: %s", summary['automated_reports'])
-    logging.info("  • Export formats: %s", summary['export_formats'])
-    logging.info("  • Monitoring alerts: %s", summary['monitoring_alerts'])
+        logging.info("📈 Deployment Summary:")
+        logging.info("  • Dashboards deployed: %s", summary["dashboards_deployed"])
+        logging.info("  • Systems integrated: %s", summary["systems_integrated"])
+        logging.info("  • Stakeholder views: %s", summary["stakeholder_views"])
+        logging.info("  • Automated reports: %s", summary["automated_reports"])
+        logging.info("  • Export formats: %s", summary["export_formats"])
+        logging.info("  • Monitoring alerts: %s", summary["monitoring_alerts"])
 
         # Display access information
         access_info = deployment_results["access_instructions"]
-    logging.info("🔑 Access Information:")
-    logging.info("  • Executive Dashboard: %s", access_info['dashboard_locations']['executive'])
-    logging.info("  • Operational Dashboard: %s", access_info['dashboard_locations']['operational'])
-    logging.info("  • Technical Dashboard: %s", access_info['dashboard_locations']['technical'])
+        logging.info("🔑 Access Information:")
+        logging.info(
+            "  • Executive Dashboard: %s",
+            access_info["dashboard_locations"]["executive"],
+        )
+        logging.info(
+            "  • Operational Dashboard: %s",
+            access_info["dashboard_locations"]["operational"],
+        )
+        logging.info(
+            "  • Technical Dashboard: %s",
+            access_info["dashboard_locations"]["technical"],
+        )
 
-    logging.info("📋 Operational Runbook: %s/operational_runbook.md", dashboard_system.dashboard_dir)
-    logging.info("📧 Support Contact: %s", access_info['support']['help_desk'])
+        logging.info(
+            "📋 Operational Runbook: %s/operational_runbook.md",
+            dashboard_system.dashboard_dir,
+        )
+        logging.info("📧 Support Contact: %s", access_info["support"]["help_desk"])
 
-    logging.info("🎉 OPERATIONAL DASHBOARDS ARE NOW LIVE AND READY FOR USE! 🎉")
+        logging.info("🎉 OPERATIONAL DASHBOARDS ARE NOW LIVE AND READY FOR USE! 🎉")
 
         return deployment_results
 

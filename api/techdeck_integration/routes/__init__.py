@@ -15,8 +15,8 @@ from .pipeline import pipeline_bp
 
 
 __all__ = [
-    'datasets_bp',
-    'pipeline_bp',
+    "datasets_bp",
+    "pipeline_bp",
     # 'standardization_bp',
     # 'validation_bp',
     # 'analytics_bp',

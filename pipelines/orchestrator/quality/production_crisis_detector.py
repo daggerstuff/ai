@@ -18,7 +18,11 @@ class CrisisLevel(Enum):
     """Crisis severity levels."""
 
     EMERGENCY = ("emergency", 1, "Immediate danger - requires emergency services")
-    CRITICAL = ("critical", 2, "High risk - requires immediate professional intervention")
+    CRITICAL = (
+        "critical",
+        2,
+        "High risk - requires immediate professional intervention",
+    )
     ELEVATED = ("elevated", 3, "Moderate risk - requires prompt attention")
     ROUTINE = ("routine", 4, "Standard therapeutic support")
 
@@ -96,7 +100,9 @@ class ProductionCrisisDetector:
                 # It is now handled in modifiers
                 # Medium severity patterns
                 CrisisIndicator(
-                    "method_mention", 0.7, r"(?:pills|gun|rope|bridge|overdose|hanging|jumping)"
+                    "method_mention",
+                    0.7,
+                    r"(?:pills|gun|rope|bridge|overdose|hanging|jumping)",
                 ),
                 CrisisIndicator(
                     "ideation_active",
@@ -104,7 +110,9 @@ class ProductionCrisisDetector:
                     r"(?:thinking about suicide|thoughts of killing myself|want to die)",
                 ),
                 CrisisIndicator(
-                    "goodbye_behavior", 0.8, r"(?:goodbye|farewell|won't see you again|giving away)"
+                    "goodbye_behavior",
+                    0.8,
+                    r"(?:goodbye|farewell|won't see you again|giving away)",
                 ),
                 # Lower severity patterns (passive ideation)
                 CrisisIndicator(
@@ -118,7 +126,9 @@ class ProductionCrisisDetector:
                     r"(?:better off without me|burden to everyone|world without me)",
                 ),
                 CrisisIndicator(
-                    "hopelessness", 0.5, r"(?:no point|nothing left|can't go on|no hope)"
+                    "hopelessness",
+                    0.5,
+                    r"(?:no point|nothing left|can't go on|no hope)",
                 ),
             ],
             "self_harm": [
@@ -140,19 +150,27 @@ class ProductionCrisisDetector:
                 ),
                 # Medium severity patterns
                 CrisisIndicator(
-                    "cutting_behavior", 0.6, r"(?:cutting myself|cut myself|self-harm|hurt myself)"
+                    "cutting_behavior",
+                    0.6,
+                    r"(?:cutting myself|cut myself|self-harm|hurt myself)",
                 ),
                 CrisisIndicator("burning_general", 0.6, r"(?:burn myself|burning my)"),
                 CrisisIndicator(
-                    "hitting_behavior", 0.5, r"(?:hitting myself|punching myself|banging my head)"
+                    "hitting_behavior",
+                    0.5,
+                    r"(?:hitting myself|punching myself|banging my head)",
                 ),
                 # Lower severity patterns
                 # Rely on validator for negation
                 CrisisIndicator(
-                    "urges", 0.4, r"(?:urge to|want to|need to) (?:cut|hurt|harm) myself"
+                    "urges",
+                    0.4,
+                    r"(?:urge to|want to|need to) (?:cut|hurt|harm) myself",
                 ),
                 CrisisIndicator(
-                    "tools_mention", 0.5, r"(?:knife|scissors|razor) (?:to hurt|for cutting)"
+                    "tools_mention",
+                    0.5,
+                    r"(?:knife|scissors|razor) (?:to hurt|for cutting)",
                 ),
             ],
             "psychotic_episode": [
@@ -172,7 +190,9 @@ class ProductionCrisisDetector:
                 ),
                 # High severity patterns
                 CrisisIndicator(
-                    "hallucinations", 0.8, r"(?:hearing voices|seeing things|voices in my head)"
+                    "hallucinations",
+                    0.8,
+                    r"(?:hearing voices|seeing things|voices in my head)",
                 ),
                 CrisisIndicator(
                     "delusions_paranoid",
@@ -180,7 +200,9 @@ class ProductionCrisisDetector:
                     r"(?:they're watching|conspiracy|following me|reading my mind)",
                 ),
                 CrisisIndicator(
-                    "reality_loss", 0.7, r"(?:not real|dream|simulation|different dimension)"
+                    "reality_loss",
+                    0.7,
+                    r"(?:not real|dream|simulation|different dimension)",
                 ),
                 # Medium severity patterns
                 CrisisIndicator(
@@ -189,18 +211,26 @@ class ProductionCrisisDetector:
                     r"(?:can't think straight|thoughts are jumbled|mind is racing)",
                 ),
                 CrisisIndicator(
-                    "paranoia", 0.6, r"(?:everyone is against me|can't trust anyone|being poisoned)"
+                    "paranoia",
+                    0.6,
+                    r"(?:everyone is against me|can't trust anyone|being poisoned)",
                 ),
             ],
             "panic_attack": [
                 # Physical symptoms (capped at elevated level)
                 CrisisIndicator(
-                    "panic_breathing", 0.6, r"(?:can'?t breathe|can'?t catch my breath|suffocating)"
+                    "panic_breathing",
+                    0.6,
+                    r"(?:can'?t breathe|can'?t catch my breath|suffocating)",
                 ),
                 CrisisIndicator(
-                    "panic_heart", 0.6, r"(?:heart racing|heart pounding|chest pounding)"
+                    "panic_heart",
+                    0.6,
+                    r"(?:heart racing|heart pounding|chest pounding)",
                 ),
-                CrisisIndicator("panic_chest", 0.6, r"(?:chest tight|chest crushing|chest pain)"),
+                CrisisIndicator(
+                    "panic_chest", 0.6, r"(?:chest tight|chest crushing|chest pain)"
+                ),
                 # Cognitive symptoms
                 CrisisIndicator(
                     "panic_death_fear",
@@ -208,11 +238,15 @@ class ProductionCrisisDetector:
                     r"(?:going to die|think i'?m dying|having a heart attack)",
                 ),
                 CrisisIndicator(
-                    "panic_control_fear", 0.6, r"(?:losing control|going crazy|losing my mind)"
+                    "panic_control_fear",
+                    0.6,
+                    r"(?:losing control|going crazy|losing my mind)",
                 ),
                 # Context-specific patterns
                 CrisisIndicator(
-                    "panic_attack_explicit", 0.5, r"(?:panic attack|panicking|overwhelming fear)"
+                    "panic_attack_explicit",
+                    0.5,
+                    r"(?:panic attack|panicking|overwhelming fear)",
                 ),
             ],
             "eating_disorder_crisis": [
@@ -260,7 +294,9 @@ class ProductionCrisisDetector:
                     r"(?:gun|knife|weapon|baseball bat) (?:to hurt|to kill|to attack)",
                 ),
                 CrisisIndicator(
-                    "target_specific", 0.8, r"(?:going to get|find|hunt down) (?:him|her|them)"
+                    "target_specific",
+                    0.8,
+                    r"(?:going to get|find|hunt down) (?:him|her|them)",
                 ),
                 CrisisIndicator(
                     "stalking_behavior",
@@ -290,12 +326,16 @@ class ProductionCrisisDetector:
                     r"(?:can't breathe|chest pain|heart racing|passing out) (?:from|after) (?:pills|drugs|drinking)",
                 ),
                 CrisisIndicator(
-                    "substance_excess", 0.7, r"(?:all the pills|can't stop drinking|too much)"
+                    "substance_excess",
+                    0.7,
+                    r"(?:all the pills|can't stop drinking|too much)",
                 ),
             ],
             "domestic_violence": [
                 CrisisIndicator(
-                    "physical_abuse", 0.8, r"(?:hit me|beat me|choked me|threw me|slapped|punched)"
+                    "physical_abuse",
+                    0.8,
+                    r"(?:hit me|beat me|choked me|threw me|slapped|punched)",
                 ),
                 CrisisIndicator(
                     "children_danger",
@@ -308,7 +348,9 @@ class ProductionCrisisDetector:
                     r"(?:threatened to kill me|said he'd hurt me|going to get me)",
                 ),
                 CrisisIndicator(
-                    "escalating_violence", 0.7, r"(?:getting worse|more violent|angrier)"
+                    "escalating_violence",
+                    0.7,
+                    r"(?:getting worse|more violent|angrier)",
                 ),
             ],
             "child_abuse": [
@@ -319,7 +361,9 @@ class ProductionCrisisDetector:
                     immediate_flag=True,
                 ),
                 CrisisIndicator(
-                    "child_danger", 0.9, r"(?:child is in danger|unsafe for kids|might hurt them)"
+                    "child_danger",
+                    0.9,
+                    r"(?:child is in danger|unsafe for kids|might hurt them)",
                 ),
                 CrisisIndicator(
                     "child_neglect", 0.7, r"(?:can't take care|left alone|not feeding)"
@@ -342,7 +386,9 @@ class ProductionCrisisDetector:
                     0.6,
                     r"(?:completely alone|nobody cares|isolated from everyone)",
                 ),
-                CrisisIndicator("worthlessness", 0.5, r"(?:worthless|useless|burden to everyone)"),
+                CrisisIndicator(
+                    "worthlessness", 0.5, r"(?:worthless|useless|burden to everyone)"
+                ),
                 CrisisIndicator(
                     "emotional_overwhelm",
                     0.6,
@@ -396,7 +442,11 @@ class ProductionCrisisDetector:
         return True
 
     def _apply_production_modifiers(
-        self, crisis_type: str, base_score: float, indicators: list[CrisisIndicator], content: str
+        self,
+        crisis_type: str,
+        base_score: float,
+        indicators: list[CrisisIndicator],
+        content: str,
     ) -> float:
         """Apply production-level crisis-specific modifiers."""
 
@@ -411,7 +461,9 @@ class ProductionCrisisDetector:
 
             if any(ind.indicator_type in passive_indicators for ind in indicators):
                 active_indicators = [
-                    ind for ind in indicators if ind.indicator_type not in passive_indicators
+                    ind
+                    for ind in indicators
+                    if ind.indicator_type not in passive_indicators
                 ]
                 if not active_indicators:
                     # Only passive indicators - cap at elevated
@@ -438,7 +490,9 @@ class ProductionCrisisDetector:
         elif crisis_type == "self_harm":
             # Check for escalation context
             escalation_context = re.search(
-                r"(?:deeper|worse|more|can'?t stop|multiple|daily|escalat)", content, re.IGNORECASE
+                r"(?:deeper|worse|more|can'?t stop|multiple|daily|escalat)",
+                content,
+                re.IGNORECASE,
             )
             if not escalation_context:
                 # Basic self-harm without escalation
@@ -457,7 +511,9 @@ class ProductionCrisisDetector:
 
     def detect_crisis(self, conversation: dict[str, Any]) -> CrisisDetection:
         """Detect crisis with production-optimized algorithm."""
-        conversation_id = conversation.get("id", conversation.get("conversation_id", "unknown"))
+        conversation_id = conversation.get(
+            "id", conversation.get("conversation_id", "unknown")
+        )
 
         # Extract content
         content = self._extract_content(conversation)
@@ -517,7 +573,9 @@ class ProductionCrisisDetector:
 
         return " ".join(content_parts).lower()
 
-    def _analyze_crisis_indicators(self, content: str) -> dict[str, list[CrisisIndicator]]:
+    def _analyze_crisis_indicators(
+        self, content: str
+    ) -> dict[str, list[CrisisIndicator]]:
         """Analyze content for crisis indicators with enhanced specificity."""
         detected_crises = {}
 
@@ -528,7 +586,9 @@ class ProductionCrisisDetector:
                 # Enhanced context validation with single if statement
                 if re.search(
                     indicator.pattern, content, re.IGNORECASE
-                ) and self._validate_context_production(indicator, content, crisis_type):
+                ) and self._validate_context_production(
+                    indicator, content, crisis_type
+                ):
                     detected_indicators.append(indicator)
 
             if detected_indicators:

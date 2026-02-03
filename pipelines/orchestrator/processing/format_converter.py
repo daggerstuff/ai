@@ -133,9 +133,7 @@ class FormatConverter:
 
         return format_map.get(suffix, DataFormat.JSON)
 
-    def _load_data(
-        self, file_path: str, format_type: DataFormat
-    ) -> list[dict] | dict:
+    def _load_data(self, file_path: str, format_type: DataFormat) -> list[dict] | dict:
         """Load data from file based on format."""
         if format_type == DataFormat.JSON:
             with open(file_path, encoding="utf-8") as f:

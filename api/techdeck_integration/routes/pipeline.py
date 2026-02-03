@@ -94,9 +94,7 @@ def list_pipeline_configs() -> Dict[str, Any]:
             {
                 "success": True,
                 "data": result,
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
+                "meta": {"timestamp": datetime.utcnow().isoformat()},
             }
         ), 200
 
@@ -162,9 +160,7 @@ def get_pipeline_config(config_id: str) -> Dict[str, Any]:
             {
                 "success": True,
                 "data": {"config": config},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
+                "meta": {"timestamp": datetime.utcnow().isoformat()},
             }
         ), 200
 
@@ -257,9 +253,7 @@ def create_pipeline_config() -> Dict[str, Any]:
             {
                 "success": True,
                 "data": {"config": config},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
+                "meta": {"timestamp": datetime.utcnow().isoformat()},
             }
         ), 201
 
@@ -342,9 +336,7 @@ def update_pipeline_config(config_id: str) -> Dict[str, Any]:
             {
                 "success": True,
                 "data": {"config": config},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
+                "meta": {"timestamp": datetime.utcnow().isoformat()},
             }
         ), 200
 
@@ -405,9 +397,7 @@ def delete_pipeline_config(config_id: str) -> Dict[str, Any]:
             {
                 "success": True,
                 "data": {"message": "Pipeline config deleted successfully"},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
+                "meta": {"timestamp": datetime.utcnow().isoformat()},
             }
         ), 200
 
@@ -500,9 +490,7 @@ def execute_pipeline() -> Dict[str, Any]:
             {
                 "success": True,
                 "data": {"execution": execution},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
+                "meta": {"timestamp": datetime.utcnow().isoformat()},
             }
         ), 201
 
@@ -577,9 +565,7 @@ def get_pipeline_execution(execution_id: str) -> Dict[str, Any]:
             {
                 "success": True,
                 "data": {"execution": execution},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
+                "meta": {"timestamp": datetime.utcnow().isoformat()},
             }
         ), 200
 
@@ -645,9 +631,7 @@ def cancel_pipeline_execution(execution_id: str) -> Dict[str, Any]:
             {
                 "success": True,
                 "data": {"execution": execution},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
+                "meta": {"timestamp": datetime.utcnow().isoformat()},
             }
         ), 200
 
@@ -732,9 +716,7 @@ def list_pipeline_executions() -> Dict[str, Any]:
             {
                 "success": True,
                 "data": result,
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
+                "meta": {"timestamp": datetime.utcnow().isoformat()},
             }
         ), 200
 
@@ -791,9 +773,7 @@ def get_pipeline_stages() -> Dict[str, Any]:
             {
                 "success": True,
                 "data": {"stages": stages},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
+                "meta": {"timestamp": datetime.utcnow().isoformat()},
             }
         ), 200
 
@@ -840,9 +820,7 @@ def get_pipeline_health() -> Dict[str, Any]:
             {
                 "success": True,
                 "data": {"health": health},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
+                "meta": {"timestamp": datetime.utcnow().isoformat()},
             }
         ), 200
 

@@ -16,15 +16,15 @@ def generate_task_5_0_summary():
     mental_health_dir = "data/processed/mental_health"
     reasoning_dir = "data/processed/reasoning"
 
-
     total_conversations = 0
     total_size_mb = 0
 
     # Mental Health Data Summary
     if os.path.exists(mental_health_dir):
-
         # Consolidated dataset (Task 5.1)
-        consolidated_file = os.path.join(mental_health_dir, "consolidated_mental_health_conversations.jsonl")
+        consolidated_file = os.path.join(
+            mental_health_dir, "consolidated_mental_health_conversations.jsonl"
+        )
         if os.path.exists(consolidated_file):
             size_mb = os.path.getsize(consolidated_file) / (1024 * 1024)
             total_size_mb += size_mb
@@ -34,9 +34,10 @@ def generate_task_5_0_summary():
                 consolidated_count = sum(1 for line in f)
             total_conversations += consolidated_count
 
-
         # External datasets (Task 5.2)
-        external_file = os.path.join(mental_health_dir, "external_mental_health_conversations.jsonl")
+        external_file = os.path.join(
+            mental_health_dir, "external_mental_health_conversations.jsonl"
+        )
         if os.path.exists(external_file):
             size_mb = os.path.getsize(external_file) / (1024 * 1024)
             total_size_mb += size_mb
@@ -46,12 +47,8 @@ def generate_task_5_0_summary():
                 external_count = sum(1 for line in f)
             total_conversations += external_count
 
-
         # Reports
-        reports = [
-            "task_5_1_processing_report.json",
-            "task_5_2_processing_report.json"
-        ]
+        reports = ["task_5_1_processing_report.json", "task_5_2_processing_report.json"]
 
         for report_file in reports:
             report_path = os.path.join(mental_health_dir, report_file)
@@ -60,8 +57,9 @@ def generate_task_5_0_summary():
 
     # Reasoning Data Summary
     if os.path.exists(reasoning_dir):
-
-        reasoning_file = os.path.join(reasoning_dir, "reasoning_enhancement_conversations.jsonl")
+        reasoning_file = os.path.join(
+            reasoning_dir, "reasoning_enhancement_conversations.jsonl"
+        )
         if os.path.exists(reasoning_file):
             size_mb = os.path.getsize(reasoning_file) / (1024 * 1024)
             total_size_mb += size_mb
@@ -71,12 +69,12 @@ def generate_task_5_0_summary():
                 reasoning_count = sum(1 for line in f)
             total_conversations += reasoning_count
 
-
         # Report
-        reasoning_report = os.path.join(reasoning_dir, "task_5_reasoning_processing_report.json")
+        reasoning_report = os.path.join(
+            reasoning_dir, "task_5_reasoning_processing_report.json"
+        )
         if os.path.exists(reasoning_report):
             pass
-
 
     # Task Completion Summary
 
@@ -89,7 +87,7 @@ def generate_task_5_0_summary():
         "5.13: Process CoT_Reasoning_Clinical_Diagnosis - ⚠️ Gated dataset",
         "5.14: Process CoT_Neurodivergent_Interactions - ⚠️ Gated dataset",
         "5.15: Process CoT_Heartbreak_and_Breakups - ⚠️ Gated dataset",
-        "5.16: Process CoT_Reasoning_Mens_Mental_Health - ⚠️ Gated dataset"
+        "5.16: Process CoT_Reasoning_Mens_Mental_Health - ⚠️ Gated dataset",
     ]
 
     for _task in completed_tasks:
@@ -120,18 +118,24 @@ def generate_task_5_0_summary():
 
     all_approaches = {}
     for _task_id, report in reports_data.items():
-        approaches = report.get("conversation_analysis", {}).get("therapeutic_approaches", {})
+        approaches = report.get("conversation_analysis", {}).get(
+            "therapeutic_approaches", {}
+        )
         for approach, count in approaches.items():
             all_approaches[approach] = all_approaches.get(approach, 0) + count
 
-    for approach, count in sorted(all_approaches.items(), key=lambda x: x[1], reverse=True):
+    for approach, count in sorted(
+        all_approaches.items(), key=lambda x: x[1], reverse=True
+    ):
         (count / total_conversations) * 100 if total_conversations > 0 else 0
 
     # Emotional Intensity Analysis
 
     all_intensity = {"low": 0, "medium": 0, "high": 0}
     for _task_id, report in reports_data.items():
-        intensity = report.get("conversation_analysis", {}).get("emotional_intensity_distribution", {})
+        intensity = report.get("conversation_analysis", {}).get(
+            "emotional_intensity_distribution", {}
+        )
         for level, count in intensity.items():
             all_intensity[level] = all_intensity.get(level, 0) + count
 
@@ -144,7 +148,7 @@ def generate_task_5_0_summary():
         "ai/merged_mental_health_dataset.jsonl (consolidated) - 20,000 conversations",
         "Amod/mental_health_counseling_conversations - 2,000 conversations",
         "samhog/psychology-10k - 1,000 conversations",
-        "wesley7137/formatted_annotated_addiction_counseling_csv_SFT - 500 conversations"
+        "wesley7137/formatted_annotated_addiction_counseling_csv_SFT - 500 conversations",
     ]
 
     gated_sources = [
@@ -152,7 +156,7 @@ def generate_task_5_0_summary():
         "moremilk/CoT_Reasoning_Clinical_Diagnosis_Mental_Health (requires authentication)",
         "moremilk/CoT_Neurodivergent_vs_Neurotypical_Interactions (requires authentication)",
         "moremilk/CoT_Heartbreak_and_Breakups (requires authentication)",
-        "moremilk/CoT_Reasoning_Mens_Mental_Health (requires authentication)"
+        "moremilk/CoT_Reasoning_Mens_Mental_Health (requires authentication)",
     ]
 
     for _source in successful_sources:
@@ -169,7 +173,7 @@ def generate_task_5_0_summary():
         "🔐 Consider authentication for gated datasets to access additional reasoning data",
         "🎯 Ready to proceed with Task 6.0: Dataset Balancing & Production Pipeline",
         "📈 Current dataset provides strong foundation for therapeutic conversation training",
-        "🧠 Mental health conversations cover diverse therapeutic approaches and intensity levels"
+        "🧠 Mental health conversations cover diverse therapeutic approaches and intensity levels",
     ]
 
     for _rec in recommendations:
@@ -183,7 +187,7 @@ def generate_task_5_0_summary():
         f"{mental_health_dir}/task_5_1_processing_report.json",
         f"{mental_health_dir}/task_5_2_processing_report.json",
         f"{reasoning_dir}/reasoning_enhancement_conversations.jsonl",
-        f"{reasoning_dir}/task_5_reasoning_processing_report.json"
+        f"{reasoning_dir}/task_5_reasoning_processing_report.json",
     ]
 
     for file_path in output_files:
@@ -191,7 +195,6 @@ def generate_task_5_0_summary():
             os.path.getsize(file_path) / 1024
         else:
             pass
-
 
     return {
         "total_conversations": total_conversations,
@@ -201,7 +204,7 @@ def generate_task_5_0_summary():
         "completion_percentage": (total_conversations / 35000) * 100,
         "therapeutic_approaches": all_approaches,
         "emotional_intensity": all_intensity,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
 
@@ -214,4 +217,3 @@ if __name__ == "__main__":
 
     with open(summary_path, "w") as f:
         json.dump(summary, f, indent=2)
-

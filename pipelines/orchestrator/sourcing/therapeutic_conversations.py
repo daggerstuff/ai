@@ -4,6 +4,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
 class TherapeuticConversationAcquisition:
     """
     Framework for collecting therapeutic transcripts with ethical approvals.
@@ -12,10 +13,14 @@ class TherapeuticConversationAcquisition:
 
     def __init__(self, output_base_path: str = "ai/training/ready_packages/datasets"):
         self.output_base_path = Path(output_base_path)
-        self.conversations_path = self.output_base_path / "stage2_reasoning" / "therapeutic_conversations"
+        self.conversations_path = (
+            self.output_base_path / "stage2_reasoning" / "therapeutic_conversations"
+        )
         self._ensure_directories()
 
-        logger.info(f"Initialized TherapeuticConversationAcquisition. Output path: {self.conversations_path}")
+        logger.info(
+            f"Initialized TherapeuticConversationAcquisition. Output path: {self.conversations_path}"
+        )
 
     def _ensure_directories(self):
         """Ensure output directories exist."""
@@ -45,21 +50,26 @@ class TherapeuticConversationAcquisition:
                 "modality": "CBT",
                 "participants": ["Therapist", "Client"],
                 "content": [
-                    {"role": "Therapist", "text": "How have you been feeling since our last session?"},
-                    {"role": "Client", "text": "A bit better, but I still struggle with the mornings."}
+                    {
+                        "role": "Therapist",
+                        "text": "How have you been feeling since our last session?",
+                    },
+                    {
+                        "role": "Client",
+                        "text": "A bit better, but I still struggle with the mornings.",
+                    },
                 ],
-                "anonymization_status": "pre_processed"
+                "anonymization_status": "pre_processed",
             },
-             {
+            {
                 "session_id": "SES-1002",
-                "source_id": "UNVERIFIED_SOURCE", # Should be filtered out
+                "source_id": "UNVERIFIED_SOURCE",  # Should be filtered out
                 "modality": "Talk Therapy",
                 "participants": ["Therapist", "Client"],
                 "content": [],
-                "anonymization_status": "raw"
-            }
+                "anonymization_status": "raw",
+            },
         ]
-
 
     def process_and_filter(self, raw_data: list[dict]) -> list[dict]:
         """Filters data based on ethical verification."""
@@ -78,7 +88,9 @@ class TherapeuticConversationAcquisition:
         try:
             with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
-            logger.info(f"Successfully exported {len(data)} conversations to {output_file}")
+            logger.info(
+                f"Successfully exported {len(data)} conversations to {output_file}"
+            )
             return str(output_file)
         except Exception as e:
             logger.error(f"Failed to export data: {e}")

@@ -13,11 +13,15 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class TFIDFFeatureVectors:
     """Processes TF-IDF feature vectors for ML applications."""
 
-    def __init__(self, dataset_path: str = "./tfidf_feature_vectors",
-                 output_dir: str = "./processed_ml"):
+    def __init__(
+        self,
+        dataset_path: str = "./tfidf_feature_vectors",
+        output_dir: str = "./processed_ml",
+    ):
         self.dataset_path = Path(dataset_path)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
@@ -30,7 +34,9 @@ class TFIDFFeatureVectors:
             "success": True,
             "vectors_processed": 1000,
             "dimensions": 256,
-            "output_path": str(self.output_dir / "tfidf_feature_vectors_processed.json")
+            "output_path": str(
+                self.output_dir / "tfidf_feature_vectors_processed.json"
+            ),
         }
 
         output_data = {
@@ -39,7 +45,7 @@ class TFIDFFeatureVectors:
                 "description": "256-dimensional TF-IDF vectors for ML applications",
                 "total_vectors": 1000,
                 "dimensions": 256,
-                "processed_at": datetime.now().isoformat()
+                "processed_at": datetime.now().isoformat(),
             }
         }
 
@@ -48,6 +54,7 @@ class TFIDFFeatureVectors:
 
         logger.info("TFIDFFeatureVectors processing completed")
         return result
+
 
 if __name__ == "__main__":
     processor = TFIDFFeatureVectors()

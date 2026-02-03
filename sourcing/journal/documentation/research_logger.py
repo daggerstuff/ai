@@ -173,9 +173,7 @@ class ResearchLogger:
         with self._lock:
             logs = []
             for session_logs in self._session_logs.values():
-                logs.extend(
-                    [log for log in session_logs if log.source_id == source_id]
-                )
+                logs.extend([log for log in session_logs if log.source_id == source_id])
 
             return logs
 
@@ -388,9 +386,7 @@ class ResearchLogger:
             Dictionary with statistics about logs
         """
         with self._lock:
-            total_logs = sum(
-                len(logs) for logs in self._session_logs.values()
-            )
+            total_logs = sum(len(logs) for logs in self._session_logs.values())
             activity_counts: Dict[str, int] = {}
             total_duration = 0
 
@@ -423,9 +419,7 @@ class ResearchLogger:
                 del self._session_logs[session_id]
                 logger.info(f"Cleared logs for session: {session_id}")
 
-    def export_logs(
-        self, output_path: Path, session_id: Optional[str] = None
-    ) -> None:
+    def export_logs(self, output_path: Path, session_id: Optional[str] = None) -> None:
         """
         Export logs to a JSON file.
 
@@ -459,4 +453,3 @@ class ResearchLogger:
                 logger.info(f"Exported {len(log_data)} logs to {output_path}")
             except IOError as e:
                 logger.error(f"Failed to export logs: {e}")
-

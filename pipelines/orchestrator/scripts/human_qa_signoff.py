@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""
+"""
 QA Signoff and Release Notes
 
 Implements Issue 7: Release 0: Clinician QA + bias/cultural review signoff
@@ -9,25 +9,26 @@ This script records human review signoff for Release 0: clinician QA sampling
 """
 
 import json
-import os
 import sys
+import uuid
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
+from typing import Any, Dict, List
+
 import boto3
 from botocore.exceptions import ClientError
-import uuid
-from dataclasses import dataclass, asdict
 
 # Add the dataset_pipeline to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from storage_config import get_storage_config, StorageConfig
+from storage_config import StorageConfig, get_storage_config
 
 
 @dataclass
 class ReviewCriteria:
     """Criteria for human review"""
+
     criterion_id: str
     name: str
     description: str
@@ -38,6 +39,7 @@ class ReviewCriteria:
 @dataclass
 class ReviewSample:
     """A sample selected for human review"""
+
     sample_id: str
     family: str
     split: str
@@ -50,6 +52,7 @@ class ReviewSample:
 @dataclass
 class ReviewResult:
     """Result of human review for a sample"""
+
     sample_id: str
     reviewer_id: str
     review_date: str
@@ -64,6 +67,7 @@ class ReviewResult:
 @dataclass
 class ReviewerInfo:
     """Information about a reviewer"""
+
     reviewer_id: str
     name: str
     credentials: str
@@ -86,11 +90,11 @@ class QASampleGenerator:
 
         try:
             self.s3_client = boto3.client(
-                's3',
+                "s3",
                 endpoint_url=self.config.s3_endpoint_url,
                 aws_access_key_id=self.config.s3_access_key_id,
                 aws_secret_access_key=self.config.s3_secret_access_key,
-                region_name=self.config.s3_region or 'us-east-1'
+                region_name=self.config.s3_region or "us-east-1",
             )
 
             self.s3_client.head_bucket(Bucket=self.config.s3_bucket)
@@ -105,7 +109,7 @@ class QASampleGenerator:
 
         try:
             response = self.s3_client.get_object(Bucket=self.config.s3_bucket, Key=manifest_key)
-            manifest = json.loads(response['Body'].read())
+            manifest = json.loads(response["Body"].read())
             print(f"✓ Loaded manifest: {manifest_key}")
             return manifest
         except ClientError as e:
@@ -117,18 +121,19 @@ class QASampleGenerator:
             response = self.s3_client.get_object(
                 Bucket=self.config.s3_bucket,
                 Key=s3_key,
-                Range=f'bytes=0-{sample_size-1}'
+                Range=f"bytes=0-{sample_size - 1}",
             )
 
-            content = response['Body'].read().decode('utf-8', errors='ignore')
+            content = response["Body"].read().decode("utf-8", errors="ignore")
             return content
 
         except ClientError as e:
             print(f"⚠️  Failed to sample {s3_key}: {e}")
             return ""
 
-    def generate_qa_samples(self, manifest: Dict[str, Any],
-                          samples_per_family: int = 5) -> List[ReviewSample]:
+    def generate_qa_samples(
+        self, manifest: Dict[str, Any], samples_per_family: int = 5
+    ) -> List[ReviewSample]:
         """Generate QA samples from manifest"""
         print("📋 Generating QA samples...")
 
@@ -136,26 +141,26 @@ class QASampleGenerator:
 
         # Define families that need QA review
         qa_families = {
-            'professional_therapeutic': 'foundation',
-            'priority_datasets': 'foundation',
-            'edge_cases': 'edge',
-            'voice_persona': 'foundation'
+            "professional_therapeutic": "foundation",
+            "priority_datasets": "foundation",
+            "edge_cases": "edge",
+            "voice_persona": "foundation",
         }
 
         for family_name, review_type in qa_families.items():
-            if family_name not in manifest['families']:
+            if family_name not in manifest["families"]:
                 print(f"⚠️  Family {family_name} not found in manifest")
                 continue
 
-            family_data = manifest['families'][family_name]
-            files = family_data['files']
+            family_data = manifest["families"][family_name]
+            files = family_data["files"]
 
             print(f"  Sampling {family_name}: {len(files)} files available")
 
             # Sample files from different splits
             files_by_split = {}
             for file_info in files:
-                split = file_info.get('split', 'unknown')
+                split = file_info.get("split", "unknown")
                 if split not in files_by_split:
                     files_by_split[split] = []
                 files_by_split[split].append(file_info)
@@ -169,7 +174,7 @@ class QASampleGenerator:
                 selected_files = split_files[::step][:sample_count]
 
                 for file_info in selected_files:
-                    s3_key = file_info['key']
+                    s3_key = file_info["key"]
 
                     # Sample content
                     content_excerpt = self.sample_file_content(s3_key)
@@ -180,9 +185,11 @@ class QASampleGenerator:
                             family=family_name,
                             split=split,
                             file_key=s3_key,
-                            content_excerpt=content_excerpt[:500] + "..." if len(content_excerpt) > 500 else content_excerpt,
+                            content_excerpt=content_excerpt[:500] + "..."
+                            if len(content_excerpt) > 500
+                            else content_excerpt,
                             review_type=review_type,
-                            selected_at=datetime.utcnow().isoformat()
+                            selected_at=datetime.utcnow().isoformat(),
                         )
                         samples.append(sample)
 
@@ -192,13 +199,13 @@ class QASampleGenerator:
     def save_qa_samples(self, samples: List[ReviewSample], release_version: str) -> str:
         """Save QA samples to S3 for reviewer access"""
         samples_data = {
-            'metadata': {
-                'release_version': release_version,
-                'generated_at': datetime.utcnow().isoformat(),
-                'total_samples': len(samples),
-                'generator': 'human_qa_signoff.py'
+            "metadata": {
+                "release_version": release_version,
+                "generated_at": datetime.utcnow().isoformat(),
+                "total_samples": len(samples),
+                "generator": "human_qa_signoff.py",
             },
-            'samples': [asdict(sample) for sample in samples]
+            "samples": [asdict(sample) for sample in samples],
         }
 
         samples_key = f"{self.config.exports_prefix}/releases/{release_version}/qa/qa_samples.json"
@@ -208,7 +215,7 @@ class QASampleGenerator:
                 Bucket=self.config.s3_bucket,
                 Key=samples_key,
                 Body=json.dumps(samples_data, indent=2),
-                ContentType='application/json'
+                ContentType="application/json",
             )
 
             samples_url = f"s3://{self.config.s3_bucket}/{samples_key}"
@@ -230,36 +237,36 @@ class ReviewCriteriaManager:
                 name="Therapeutic Accuracy",
                 description="Content demonstrates accurate therapeutic principles and techniques",
                 weight=0.3,
-                pass_threshold=7.0
+                pass_threshold=7.0,
             ),
             ReviewCriteria(
                 criterion_id="clinical_appropriateness",
                 name="Clinical Appropriateness",
                 description="Responses are clinically appropriate and safe",
                 weight=0.25,
-                pass_threshold=8.0
+                pass_threshold=8.0,
             ),
             ReviewCriteria(
                 criterion_id="empathy_warmth",
                 name="Empathy and Warmth",
                 description="Content demonstrates appropriate empathy and therapeutic warmth",
                 weight=0.2,
-                pass_threshold=6.0
+                pass_threshold=6.0,
             ),
             ReviewCriteria(
                 criterion_id="boundary_maintenance",
                 name="Boundary Maintenance",
                 description="Appropriate therapeutic boundaries are maintained",
                 weight=0.15,
-                pass_threshold=7.0
+                pass_threshold=7.0,
             ),
             ReviewCriteria(
                 criterion_id="cultural_sensitivity",
                 name="Cultural Sensitivity",
                 description="Content is culturally sensitive and inclusive",
                 weight=0.1,
-                pass_threshold=6.0
-            )
+                pass_threshold=6.0,
+            ),
         ]
 
     def get_edge_criteria(self) -> List[ReviewCriteria]:
@@ -270,29 +277,29 @@ class ReviewCriteriaManager:
                 name="Crisis Handling",
                 description="Appropriate response to crisis situations (suicidal ideation, self-harm)",
                 weight=0.4,
-                pass_threshold=8.0
+                pass_threshold=8.0,
             ),
             ReviewCriteria(
                 criterion_id="safety_prioritization",
                 name="Safety Prioritization",
                 description="Client safety is appropriately prioritized",
                 weight=0.3,
-                pass_threshold=9.0
+                pass_threshold=9.0,
             ),
             ReviewCriteria(
                 criterion_id="de_escalation",
                 name="De-escalation Techniques",
                 description="Effective de-escalation techniques are demonstrated",
                 weight=0.2,
-                pass_threshold=7.0
+                pass_threshold=7.0,
             ),
             ReviewCriteria(
                 criterion_id="resource_referral",
                 name="Resource Referral",
                 description="Appropriate referrals to emergency resources when needed",
                 weight=0.1,
-                pass_threshold=8.0
-            )
+                pass_threshold=8.0,
+            ),
         ]
 
     def get_bias_criteria(self) -> List[ReviewCriteria]:
@@ -303,36 +310,36 @@ class ReviewCriteriaManager:
                 name="Demographic Bias",
                 description="No inappropriate assumptions based on demographics",
                 weight=0.3,
-                pass_threshold=8.0
+                pass_threshold=8.0,
             ),
             ReviewCriteria(
                 criterion_id="cultural_competency",
                 name="Cultural Competency",
                 description="Demonstrates cultural awareness and competency",
                 weight=0.25,
-                pass_threshold=7.0
+                pass_threshold=7.0,
             ),
             ReviewCriteria(
                 criterion_id="inclusive_language",
                 name="Inclusive Language",
                 description="Uses inclusive, non-discriminatory language",
                 weight=0.2,
-                pass_threshold=8.0
+                pass_threshold=8.0,
             ),
             ReviewCriteria(
                 criterion_id="stereotype_avoidance",
                 name="Stereotype Avoidance",
                 description="Avoids harmful stereotypes and generalizations",
                 weight=0.15,
-                pass_threshold=8.0
+                pass_threshold=8.0,
             ),
             ReviewCriteria(
                 criterion_id="accessibility_awareness",
                 name="Accessibility Awareness",
                 description="Considers accessibility and diverse needs",
                 weight=0.1,
-                pass_threshold=6.0
-            )
+                pass_threshold=6.0,
+            ),
         ]
 
 
@@ -353,11 +360,11 @@ class HumanQASignoff:
 
         try:
             self.s3_client = boto3.client(
-                's3',
+                "s3",
                 endpoint_url=self.config.s3_endpoint_url,
                 aws_access_key_id=self.config.s3_access_key_id,
                 aws_secret_access_key=self.config.s3_secret_access_key,
-                region_name=self.config.s3_region or 'us-east-1'
+                region_name=self.config.s3_region or "us-east-1",
             )
 
             self.s3_client.head_bucket(Bucket=self.config.s3_bucket)
@@ -380,55 +387,57 @@ class HumanQASignoff:
 
         # Create review template
         template = {
-            'metadata': {
-                'release_version': release_version,
-                'created_at': datetime.utcnow().isoformat(),
-                'template_version': '1.0.0',
-                'samples_url': samples_url
+            "metadata": {
+                "release_version": release_version,
+                "created_at": datetime.utcnow().isoformat(),
+                "template_version": "1.0.0",
+                "samples_url": samples_url,
             },
-            'review_types': {
-                'foundation': {
-                    'description': 'Review of foundation therapeutic datasets',
-                    'criteria': [asdict(c) for c in self.criteria_manager.get_foundation_criteria()],
-                    'required_reviewers': 2,
-                    'reviewer_qualifications': [
-                        'Licensed mental health professional (LCSW, LPC, LMFT, or equivalent)',
-                        'Minimum 3 years clinical experience',
-                        'Experience with therapeutic training or supervision'
-                    ]
+            "review_types": {
+                "foundation": {
+                    "description": "Review of foundation therapeutic datasets",
+                    "criteria": [
+                        asdict(c) for c in self.criteria_manager.get_foundation_criteria()
+                    ],
+                    "required_reviewers": 2,
+                    "reviewer_qualifications": [
+                        "Licensed mental health professional (LCSW, LPC, LMFT, or equivalent)",
+                        "Minimum 3 years clinical experience",
+                        "Experience with therapeutic training or supervision",
+                    ],
                 },
-                'edge': {
-                    'description': 'Review of edge case and crisis datasets',
-                    'criteria': [asdict(c) for c in self.criteria_manager.get_edge_criteria()],
-                    'required_reviewers': 2,
-                    'reviewer_qualifications': [
-                        'Licensed mental health professional with crisis intervention training',
-                        'Experience with suicidal ideation and crisis response',
-                        'Minimum 5 years clinical experience'
-                    ]
+                "edge": {
+                    "description": "Review of edge case and crisis datasets",
+                    "criteria": [asdict(c) for c in self.criteria_manager.get_edge_criteria()],
+                    "required_reviewers": 2,
+                    "reviewer_qualifications": [
+                        "Licensed mental health professional with crisis intervention training",
+                        "Experience with suicidal ideation and crisis response",
+                        "Minimum 5 years clinical experience",
+                    ],
                 },
-                'bias_cultural': {
-                    'description': 'Bias and cultural competency review',
-                    'criteria': [asdict(c) for c in self.criteria_manager.get_bias_criteria()],
-                    'required_reviewers': 1,
-                    'reviewer_qualifications': [
-                        'Cultural competency training or specialization',
-                        'Experience with diverse populations',
-                        'Knowledge of bias in AI/ML systems (preferred)'
-                    ]
-                }
+                "bias_cultural": {
+                    "description": "Bias and cultural competency review",
+                    "criteria": [asdict(c) for c in self.criteria_manager.get_bias_criteria()],
+                    "required_reviewers": 1,
+                    "reviewer_qualifications": [
+                        "Cultural competency training or specialization",
+                        "Experience with diverse populations",
+                        "Knowledge of bias in AI/ML systems (preferred)",
+                    ],
+                },
             },
-            'review_process': {
-                'scoring_scale': '1-10 (1=Poor, 10=Excellent)',
-                'pass_criteria': 'All criteria must meet minimum threshold AND overall score >= 7.0',
-                'escalation_process': 'Scores below threshold require supervisor review and remediation plan',
-                'timeline': '5 business days for initial review, 2 days for escalation review'
+            "review_process": {
+                "scoring_scale": "1-10 (1=Poor, 10=Excellent)",
+                "pass_criteria": "All criteria must meet minimum threshold AND overall score >= 7.0",
+                "escalation_process": "Scores below threshold require supervisor review and remediation plan",
+                "timeline": "5 business days for initial review, 2 days for escalation review",
             },
-            'samples_summary': {
-                'total_samples': len(qa_samples),
-                'by_family': {},
-                'by_review_type': {}
-            }
+            "samples_summary": {
+                "total_samples": len(qa_samples),
+                "by_family": {},
+                "by_review_type": {},
+            },
         }
 
         # Summarize samples
@@ -436,26 +445,28 @@ class HumanQASignoff:
             family = sample.family
             review_type = sample.review_type
 
-            if family not in template['samples_summary']['by_family']:
-                template['samples_summary']['by_family'][family] = 0
-            template['samples_summary']['by_family'][family] += 1
+            if family not in template["samples_summary"]["by_family"]:
+                template["samples_summary"]["by_family"][family] = 0
+            template["samples_summary"]["by_family"][family] += 1
 
-            if review_type not in template['samples_summary']['by_review_type']:
-                template['samples_summary']['by_review_type'][review_type] = 0
-            template['samples_summary']['by_review_type'][review_type] += 1
+            if review_type not in template["samples_summary"]["by_review_type"]:
+                template["samples_summary"]["by_review_type"][review_type] = 0
+            template["samples_summary"]["by_review_type"][review_type] += 1
 
         return template
 
     def save_review_template(self, template: Dict[str, Any], release_version: str) -> str:
         """Save review template to S3"""
-        template_key = f"{self.config.exports_prefix}/releases/{release_version}/qa/review_template.json"
+        template_key = (
+            f"{self.config.exports_prefix}/releases/{release_version}/qa/review_template.json"
+        )
 
         try:
             self.s3_client.put_object(
                 Bucket=self.config.s3_bucket,
                 Key=template_key,
                 Body=json.dumps(template, indent=2),
-                ContentType='application/json'
+                ContentType="application/json",
             )
 
             template_url = f"s3://{self.config.s3_bucket}/{template_key}"
@@ -476,99 +487,99 @@ class HumanQASignoff:
                 name="Dr. Sarah Johnson",
                 credentials="LCSW, PhD",
                 specialization="Trauma therapy, crisis intervention",
-                contact="s.johnson@example.com"
+                contact="s.johnson@example.com",
             ),
             ReviewerInfo(
                 reviewer_id="reviewer_002",
                 name="Dr. Michael Chen",
                 credentials="LPC, MA",
                 specialization="Cultural competency, diverse populations",
-                contact="m.chen@example.com"
+                contact="m.chen@example.com",
             ),
             ReviewerInfo(
                 reviewer_id="reviewer_003",
                 name="Dr. Amanda Rodriguez",
                 credentials="LMFT, MSW",
                 specialization="Foundation therapy, supervision",
-                contact="a.rodriguez@example.com"
-            )
+                contact="a.rodriguez@example.com",
+            ),
         ]
 
         # Mock review results
         mock_signoff = {
-            'metadata': {
-                'release_version': release_version,
-                'signoff_date': datetime.utcnow().isoformat(),
-                'signoff_type': 'mock_demonstration',
-                'total_reviewers': len(reviewers)
+            "metadata": {
+                "release_version": release_version,
+                "signoff_date": datetime.utcnow().isoformat(),
+                "signoff_type": "mock_demonstration",
+                "total_reviewers": len(reviewers),
             },
-            'reviewers': [asdict(r) for r in reviewers],
-            'review_summary': {
-                'foundation_review': {
-                    'reviewer_ids': ['reviewer_001', 'reviewer_003'],
-                    'samples_reviewed': 15,
-                    'overall_score': 8.2,
-                    'passed': True,
-                    'concerns': [
-                        'Minor inconsistency in boundary maintenance examples',
-                        'Some responses could demonstrate more cultural awareness'
+            "reviewers": [asdict(r) for r in reviewers],
+            "review_summary": {
+                "foundation_review": {
+                    "reviewer_ids": ["reviewer_001", "reviewer_003"],
+                    "samples_reviewed": 15,
+                    "overall_score": 8.2,
+                    "passed": True,
+                    "concerns": [
+                        "Minor inconsistency in boundary maintenance examples",
+                        "Some responses could demonstrate more cultural awareness",
                     ],
-                    'recommendations': [
-                        'Add more diverse cultural examples',
-                        'Strengthen boundary maintenance training examples'
-                    ]
+                    "recommendations": [
+                        "Add more diverse cultural examples",
+                        "Strengthen boundary maintenance training examples",
+                    ],
                 },
-                'edge_review': {
-                    'reviewer_ids': ['reviewer_001'],
-                    'samples_reviewed': 8,
-                    'overall_score': 8.7,
-                    'passed': True,
-                    'concerns': [
-                        'One sample had delayed crisis resource referral'
+                "edge_review": {
+                    "reviewer_ids": ["reviewer_001"],
+                    "samples_reviewed": 8,
+                    "overall_score": 8.7,
+                    "passed": True,
+                    "concerns": ["One sample had delayed crisis resource referral"],
+                    "recommendations": [
+                        "Emphasize immediate resource referral in crisis scenarios"
                     ],
-                    'recommendations': [
-                        'Emphasize immediate resource referral in crisis scenarios'
-                    ]
                 },
-                'bias_cultural_review': {
-                    'reviewer_ids': ['reviewer_002'],
-                    'samples_reviewed': 12,
-                    'overall_score': 7.8,
-                    'passed': True,
-                    'concerns': [
-                        'Some language could be more inclusive',
-                        'Need more accessibility considerations'
+                "bias_cultural_review": {
+                    "reviewer_ids": ["reviewer_002"],
+                    "samples_reviewed": 12,
+                    "overall_score": 7.8,
+                    "passed": True,
+                    "concerns": [
+                        "Some language could be more inclusive",
+                        "Need more accessibility considerations",
                     ],
-                    'recommendations': [
-                        'Review and update language guidelines',
-                        'Add accessibility awareness training examples'
-                    ]
-                }
+                    "recommendations": [
+                        "Review and update language guidelines",
+                        "Add accessibility awareness training examples",
+                    ],
+                },
             },
-            'overall_signoff': {
-                'approved': True,
-                'approval_date': datetime.utcnow().isoformat(),
-                'conditions': [
-                    'Address minor language inclusivity concerns in next release',
-                    'Monitor boundary maintenance examples in ongoing training'
+            "overall_signoff": {
+                "approved": True,
+                "approval_date": datetime.utcnow().isoformat(),
+                "conditions": [
+                    "Address minor language inclusivity concerns in next release",
+                    "Monitor boundary maintenance examples in ongoing training",
                 ],
-                'next_review_date': '2025-04-01',
-                'signoff_authority': 'Clinical Review Board'
-            }
+                "next_review_date": "2025-04-01",
+                "signoff_authority": "Clinical Review Board",
+            },
         }
 
         return mock_signoff
 
     def save_signoff_record(self, signoff: Dict[str, Any], release_version: str) -> str:
         """Save signoff record to S3"""
-        signoff_key = f"{self.config.exports_prefix}/releases/{release_version}/qa/signoff_record.json"
+        signoff_key = (
+            f"{self.config.exports_prefix}/releases/{release_version}/qa/signoff_record.json"
+        )
 
         try:
             self.s3_client.put_object(
                 Bucket=self.config.s3_bucket,
                 Key=signoff_key,
                 Body=json.dumps(signoff, indent=2),
-                ContentType='application/json'
+                ContentType="application/json",
             )
 
             signoff_url = f"s3://{self.config.s3_bucket}/{signoff_key}"
@@ -578,53 +589,64 @@ class HumanQASignoff:
         except ClientError as e:
             raise ValueError(f"Failed to save signoff record: {e}")
 
-    def generate_release_notes(self, signoff: Dict[str, Any], release_version: str) -> Dict[str, Any]:
+    def generate_release_notes(
+        self, signoff: Dict[str, Any], release_version: str
+    ) -> Dict[str, Any]:
         """Generate release notes based on signoff"""
         print("📄 Generating release notes...")
 
         release_notes = {
-            'metadata': {
-                'release_version': release_version,
-                'release_date': datetime.utcnow().isoformat(),
-                'notes_version': '1.0.0'
+            "metadata": {
+                "release_version": release_version,
+                "release_date": datetime.utcnow().isoformat(),
+                "notes_version": "1.0.0",
             },
-            'release_summary': {
-                'status': 'approved' if signoff['overall_signoff']['approved'] else 'rejected',
-                'clinical_review_passed': signoff['overall_signoff']['approved'],
-                'total_reviewers': signoff['metadata']['total_reviewers'],
-                'total_samples_reviewed': sum(
-                    review['samples_reviewed']
-                    for review in signoff['review_summary'].values()
-                )
+            "release_summary": {
+                "status": "approved" if signoff["overall_signoff"]["approved"] else "rejected",
+                "clinical_review_passed": signoff["overall_signoff"]["approved"],
+                "total_reviewers": signoff["metadata"]["total_reviewers"],
+                "total_samples_reviewed": sum(
+                    review["samples_reviewed"] for review in signoff["review_summary"].values()
+                ),
             },
-            'quality_assurance': {
-                'foundation_datasets': {
-                    'status': 'passed' if signoff['review_summary']['foundation_review']['passed'] else 'failed',
-                    'score': signoff['review_summary']['foundation_review']['overall_score'],
-                    'reviewer_count': len(signoff['review_summary']['foundation_review']['reviewer_ids'])
+            "quality_assurance": {
+                "foundation_datasets": {
+                    "status": "passed"
+                    if signoff["review_summary"]["foundation_review"]["passed"]
+                    else "failed",
+                    "score": signoff["review_summary"]["foundation_review"]["overall_score"],
+                    "reviewer_count": len(
+                        signoff["review_summary"]["foundation_review"]["reviewer_ids"]
+                    ),
                 },
-                'edge_case_datasets': {
-                    'status': 'passed' if signoff['review_summary']['edge_review']['passed'] else 'failed',
-                    'score': signoff['review_summary']['edge_review']['overall_score'],
-                    'reviewer_count': len(signoff['review_summary']['edge_review']['reviewer_ids'])
+                "edge_case_datasets": {
+                    "status": "passed"
+                    if signoff["review_summary"]["edge_review"]["passed"]
+                    else "failed",
+                    "score": signoff["review_summary"]["edge_review"]["overall_score"],
+                    "reviewer_count": len(signoff["review_summary"]["edge_review"]["reviewer_ids"]),
                 },
-                'bias_cultural_review': {
-                    'status': 'passed' if signoff['review_summary']['bias_cultural_review']['passed'] else 'failed',
-                    'score': signoff['review_summary']['bias_cultural_review']['overall_score'],
-                    'reviewer_count': len(signoff['review_summary']['bias_cultural_review']['reviewer_ids'])
-                }
+                "bias_cultural_review": {
+                    "status": "passed"
+                    if signoff["review_summary"]["bias_cultural_review"]["passed"]
+                    else "failed",
+                    "score": signoff["review_summary"]["bias_cultural_review"]["overall_score"],
+                    "reviewer_count": len(
+                        signoff["review_summary"]["bias_cultural_review"]["reviewer_ids"]
+                    ),
+                },
             },
-            'known_issues': [],
-            'recommendations': [],
-            'conditions': signoff['overall_signoff'].get('conditions', []),
-            'next_review': signoff['overall_signoff'].get('next_review_date'),
-            'approval_authority': signoff['overall_signoff'].get('signoff_authority')
+            "known_issues": [],
+            "recommendations": [],
+            "conditions": signoff["overall_signoff"].get("conditions", []),
+            "next_review": signoff["overall_signoff"].get("next_review_date"),
+            "approval_authority": signoff["overall_signoff"].get("signoff_authority"),
         }
 
         # Collect all concerns and recommendations
-        for review_type, review_data in signoff['review_summary'].items():
-            release_notes['known_issues'].extend(review_data.get('concerns', []))
-            release_notes['recommendations'].extend(review_data.get('recommendations', []))
+        for review_type, review_data in signoff["review_summary"].items():
+            release_notes["known_issues"].extend(review_data.get("concerns", []))
+            release_notes["recommendations"].extend(review_data.get("recommendations", []))
 
         return release_notes
 
@@ -637,7 +659,7 @@ class HumanQASignoff:
                 Bucket=self.config.s3_bucket,
                 Key=notes_key,
                 Body=json.dumps(release_notes, indent=2),
-                ContentType='application/json'
+                ContentType="application/json",
             )
 
             notes_url = f"s3://{self.config.s3_bucket}/{notes_key}"
@@ -664,37 +686,39 @@ class HumanQASignoff:
         notes_url = self.save_release_notes(release_notes, release_version)
 
         return {
-            'release_version': release_version,
-            'template_url': template_url,
-            'signoff_url': signoff_url,
-            'release_notes_url': notes_url,
-            'approved': signoff['overall_signoff']['approved'],
-            'summary': release_notes['release_summary']
+            "release_version": release_version,
+            "template_url": template_url,
+            "signoff_url": signoff_url,
+            "release_notes_url": notes_url,
+            "approved": signoff["overall_signoff"]["approved"],
+            "summary": release_notes["release_summary"],
         }
 
     def print_signoff_summary(self, results: Dict[str, Any]):
         """Print human-readable signoff summary"""
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
         print("📋 HUMAN QA SIGNOFF SUMMARY")
-        print("="*60)
+        print("=" * 60)
 
         print(f"Release Version: {results['release_version']}")
 
-        approval_status = "✅ APPROVED" if results['approved'] else "❌ REJECTED"
+        approval_status = "✅ APPROVED" if results["approved"] else "❌ REJECTED"
         print(f"Approval Status: {approval_status}")
 
-        summary = results['summary']
-        print(f"\n📊 REVIEW SUMMARY:")
+        summary = results["summary"]
+        print("\n📊 REVIEW SUMMARY:")
         print(f"  Total Reviewers: {summary['total_reviewers']}")
         print(f"  Samples Reviewed: {summary['total_samples_reviewed']}")
-        print(f"  Clinical Review: {'✅ PASSED' if summary['clinical_review_passed'] else '❌ FAILED'}")
+        print(
+            f"  Clinical Review: {'✅ PASSED' if summary['clinical_review_passed'] else '❌ FAILED'}"
+        )
 
-        print(f"\n📄 ARTIFACTS:")
+        print("\n📄 ARTIFACTS:")
         print(f"  Review Template: {results['template_url']}")
         print(f"  Signoff Record: {results['signoff_url']}")
         print(f"  Release Notes: {results['release_notes_url']}")
 
-        print("\n" + "="*60)
+        print("\n" + "=" * 60)
 
 
 def main():
@@ -731,7 +755,7 @@ def main():
         qa_signoff.print_signoff_summary(results)
 
         # Exit with appropriate code
-        if results['approved']:
+        if results["approved"]:
             print(f"\n✅ QA signoff approved for {release_version}!")
             sys.exit(0)
         else:

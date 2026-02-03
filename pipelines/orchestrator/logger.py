@@ -25,7 +25,9 @@ class PipelineLogger:
 
         # Console handler with formatting
         console_handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         console_handler.setFormatter(formatter)
         self.logger.addHandler(console_handler)
 
@@ -66,7 +68,8 @@ def setup_pipeline_logging(output_dir: Path | None = None) -> None:
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)
         log_file = (
-            output_dir / f"pipeline_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.log"
+            output_dir
+            / f"pipeline_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.log"
         )
         handlers.append(logging.FileHandler(str(log_file)))
 

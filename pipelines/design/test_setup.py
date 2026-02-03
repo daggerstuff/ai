@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+
 def test_config():
     """Test configuration loading."""
     print("Testing NeMo Data Designer Configuration...")
@@ -22,7 +23,9 @@ def test_config():
     api_key = os.getenv("NVIDIA_API_KEY")
     if api_key:
         # Mask the key for display
-        masked_key = api_key[:10] + "..." + api_key[-10:] if len(api_key) > 20 else "***"
+        masked_key = (
+            api_key[:10] + "..." + api_key[-10:] if len(api_key) > 20 else "***"
+        )
         print(f"✅ NVIDIA_API_KEY is set: {masked_key}")
     else:
         print("❌ NVIDIA_API_KEY is not set")
@@ -32,6 +35,7 @@ def test_config():
     try:
         from ai.pipelines.design.config import DataDesignerConfig
         from ai.pipelines.design.service import NeMoDataDesignerService
+
         print("✅ Imports successful")
     except ImportError as e:
         print(f"❌ Import failed: {e}")
@@ -63,7 +67,7 @@ def test_config():
     print("=" * 60)
     return True
 
+
 if __name__ == "__main__":
     success = test_config()
     sys.exit(0 if success else 1)
-

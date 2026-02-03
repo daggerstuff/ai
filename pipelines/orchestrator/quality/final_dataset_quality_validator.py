@@ -16,6 +16,7 @@ logger = get_logger(__name__)
 @dataclass
 class ValidationResult:
     """Quality validation result."""
+
     passed: bool
     overall_score: float
     dimension_scores: dict[str, float]
@@ -37,10 +38,10 @@ class FinalDatasetQualityValidator:
         self.logger = get_logger(__name__)
 
         self.quality_dimensions = {
-            "content_quality": 0.25,      # 25% weight
+            "content_quality": 0.25,  # 25% weight
             "therapeutic_accuracy": 0.30,  # 30% weight
-            "conversation_coherence": 0.20, # 20% weight
-            "safety_compliance": 0.25      # 25% weight
+            "conversation_coherence": 0.20,  # 20% weight
+            "safety_compliance": 0.25,  # 25% weight
         }
 
         self.minimum_thresholds = {
@@ -48,33 +49,99 @@ class FinalDatasetQualityValidator:
             "therapeutic_accuracy": 0.8,
             "conversation_coherence": 0.8,
             "safety_compliance": 0.9,
-            "overall_quality": 0.8
+            "overall_quality": 0.8,
         }
 
         self.safety_keywords = {
-            "suicide", "self-harm", "violence", "abuse", "danger",
-            "weapon", "kill", "hurt", "harm", "threat"
+            "suicide",
+            "self-harm",
+            "violence",
+            "abuse",
+            "danger",
+            "weapon",
+            "kill",
+            "hurt",
+            "harm",
+            "threat",
         }
 
         self.therapeutic_indicators = {
-            "empathy", "understanding", "support", "validation", "reflection",
-            "exploration", "insight", "coping", "therapeutic", "healing"
+            "empathy",
+            "understanding",
+            "support",
+            "validation",
+            "reflection",
+            "exploration",
+            "insight",
+            "coping",
+            "therapeutic",
+            "healing",
         }
 
-        self.common_words = {"the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with", "by", "i", "you", "we", "they", "it", "is", "are", "was", "were", "be", "been", "have", "has", "had", "do", "does", "did", "will", "would", "could", "should", "may", "might", "can", "must"}
+        self.common_words = {
+            "the",
+            "a",
+            "an",
+            "and",
+            "or",
+            "but",
+            "in",
+            "on",
+            "at",
+            "to",
+            "for",
+            "of",
+            "with",
+            "by",
+            "i",
+            "you",
+            "we",
+            "they",
+            "it",
+            "is",
+            "are",
+            "was",
+            "were",
+            "be",
+            "been",
+            "have",
+            "has",
+            "had",
+            "do",
+            "does",
+            "did",
+            "will",
+            "would",
+            "could",
+            "should",
+            "may",
+            "might",
+            "can",
+            "must",
+        }
 
         self.logger.info("FinalDatasetQualityValidator initialized")
 
     def validate_dataset(self, conversations: list[Conversation]) -> ValidationResult:
         """Perform comprehensive quality validation."""
-        self.logger.info(f"Validating dataset quality for {len(conversations)} conversations")
+        self.logger.info(
+            f"Validating dataset quality for {len(conversations)} conversations"
+        )
 
         # Calculate dimension scores
         dimension_scores = {}
-        dimension_scores["content_quality"] = self._assess_content_quality(conversations)
-        dimension_scores["therapeutic_accuracy"] = self._assess_therapeutic_accuracy(conversations)
-        dimension_scores["conversation_coherence"] = self._assess_conversation_coherence(conversations)
-        dimension_scores["safety_compliance"] = self._assess_safety_compliance(conversations)
+        dimension_scores["content_quality"] = self._assess_content_quality(
+            conversations
+        )
+        dimension_scores["therapeutic_accuracy"] = self._assess_therapeutic_accuracy(
+            conversations
+        )
+        dimension_scores["conversation_coherence"] = (
+            self._assess_conversation_coherence(conversations)
+        )
+        dimension_scores["safety_compliance"] = self._assess_safety_compliance(
+            conversations
+        )
 
         # Calculate overall score
         overall_score = sum(
@@ -83,10 +150,13 @@ class FinalDatasetQualityValidator:
         )
 
         # Check if validation passed
-        passed = all(
-            dimension_scores[dim] >= self.minimum_thresholds[dim]
-            for dim in dimension_scores
-        ) and overall_score >= self.minimum_thresholds["overall_quality"]
+        passed = (
+            all(
+                dimension_scores[dim] >= self.minimum_thresholds[dim]
+                for dim in dimension_scores
+            )
+            and overall_score >= self.minimum_thresholds["overall_quality"]
+        )
 
         # Identify issues and recommendations
         issues = self._identify_issues(dimension_scores)
@@ -97,7 +167,9 @@ class FinalDatasetQualityValidator:
             conversations, dimension_scores, overall_score, issues, recommendations
         )
 
-        self.logger.info(f"Validation complete: {'PASSED' if passed else 'FAILED'} (score: {overall_score:.3f})")
+        self.logger.info(
+            f"Validation complete: {'PASSED' if passed else 'FAILED'} (score: {overall_score:.3f})"
+        )
 
         return ValidationResult(
             passed=passed,
@@ -105,7 +177,7 @@ class FinalDatasetQualityValidator:
             dimension_scores=dimension_scores,
             issues=issues,
             recommendations=recommendations,
-            validation_report=validation_report
+            validation_report=validation_report,
         )
 
     def _assess_content_quality(self, conversations: list[Conversation]) -> float:
@@ -117,10 +189,14 @@ class FinalDatasetQualityValidator:
 
         for conv in conversations:
             # Check message count
-            message_count_score = min(len(conv.messages) / 4, 1.0)  # Optimal: 4+ messages
+            message_count_score = min(
+                len(conv.messages) / 4, 1.0
+            )  # Optimal: 4+ messages
 
             # Check content length
-            avg_length = sum(len(msg.content) for msg in conv.messages) / len(conv.messages)
+            avg_length = sum(len(msg.content) for msg in conv.messages) / len(
+                conv.messages
+            )
             length_score = min(avg_length / 100, 1.0)  # Optimal: 100+ chars per message
 
             # Check content diversity (unique words)
@@ -143,10 +219,13 @@ class FinalDatasetQualityValidator:
 
         for conv in conversations:
             # Check for therapeutic language in assistant messages
-            assistant_content = " ".join([
-                msg.content.lower() for msg in conv.messages
-                if msg.role == "assistant"
-            ])
+            assistant_content = " ".join(
+                [
+                    msg.content.lower()
+                    for msg in conv.messages
+                    if msg.role == "assistant"
+                ]
+            )
 
             if not assistant_content:
                 accuracy_scores.append(0.0)
@@ -155,8 +234,7 @@ class FinalDatasetQualityValidator:
             # Count therapeutic indicators
             words = assistant_content.split()
             indicator_count = sum(
-                1 for word in words
-                if word in self.therapeutic_indicators
+                1 for word in words if word in self.therapeutic_indicators
             )
 
             # Score based on indicator density
@@ -167,7 +245,9 @@ class FinalDatasetQualityValidator:
 
         return sum(accuracy_scores) / len(accuracy_scores)
 
-    def _assess_conversation_coherence(self, conversations: list[Conversation]) -> float:
+    def _assess_conversation_coherence(
+        self, conversations: list[Conversation]
+    ) -> float:
         """Assess conversation coherence dimension."""
         if not conversations:
             return 0.0
@@ -181,15 +261,21 @@ class FinalDatasetQualityValidator:
 
             # Check for proper turn-taking
             roles = [msg.role for msg in conv.messages]
-            proper_alternation = all(
-                roles[i] != roles[i+1] for i in range(len(roles)-1)
-            ) if len(roles) > 1 else False
+            proper_alternation = (
+                all(roles[i] != roles[i + 1] for i in range(len(roles) - 1))
+                if len(roles) > 1
+                else False
+            )
 
             alternation_score = 1.0 if proper_alternation else 0.5
 
             # Check for contextual continuity (simple heuristic)
-            user_messages = [msg.content.lower() for msg in conv.messages if msg.role == "user"]
-            assistant_messages = [msg.content.lower() for msg in conv.messages if msg.role == "assistant"]
+            user_messages = [
+                msg.content.lower() for msg in conv.messages if msg.role == "user"
+            ]
+            assistant_messages = [
+                msg.content.lower() for msg in conv.messages if msg.role == "assistant"
+            ]
 
             # Look for response relevance (shared keywords)
             relevance_scores = []
@@ -203,10 +289,16 @@ class FinalDatasetQualityValidator:
                     assistant_words -= self.common_words
 
                     if user_words and assistant_words:
-                        overlap = len(user_words & assistant_words) / len(user_words | assistant_words)
+                        overlap = len(user_words & assistant_words) / len(
+                            user_words | assistant_words
+                        )
                         relevance_scores.append(overlap)
 
-            relevance_score = sum(relevance_scores) / len(relevance_scores) if relevance_scores else 0.5
+            relevance_score = (
+                sum(relevance_scores) / len(relevance_scores)
+                if relevance_scores
+                else 0.5
+            )
 
             coherence_score = (alternation_score + relevance_score) / 2
             coherence_scores.append(coherence_score)
@@ -225,25 +317,37 @@ class FinalDatasetQualityValidator:
             words = set(all_content.split())
 
             # Check for safety keywords
-            safety_violations = sum(1 for keyword in self.safety_keywords if keyword in words)
+            safety_violations = sum(
+                1 for keyword in self.safety_keywords if keyword in words
+            )
 
             # Check if safety issues are handled appropriately
             if safety_violations > 0:
                 # Look for appropriate safety responses
-                assistant_content = " ".join([
-                    msg.content.lower() for msg in conv.messages
-                    if msg.role == "assistant"
-                ])
+                assistant_content = " ".join(
+                    [
+                        msg.content.lower()
+                        for msg in conv.messages
+                        if msg.role == "assistant"
+                    ]
+                )
 
                 safety_responses = {
-                    "safety", "help", "support", "crisis", "emergency", "professional",
-                    "counselor", "therapist", "hotline", "resources"
+                    "safety",
+                    "help",
+                    "support",
+                    "crisis",
+                    "emergency",
+                    "professional",
+                    "counselor",
+                    "therapist",
+                    "hotline",
+                    "resources",
                 }
 
                 assistant_words = set(assistant_content.split())
                 appropriate_responses = sum(
-                    1 for response in safety_responses
-                    if response in assistant_words
+                    1 for response in safety_responses if response in assistant_words
                 )
 
                 # Score based on appropriate handling
@@ -262,50 +366,83 @@ class FinalDatasetQualityValidator:
         for dimension, score in dimension_scores.items():
             threshold = self.minimum_thresholds[dimension]
             if score < threshold:
-                issues.append(f"{dimension.replace('_', ' ').title()}: {score:.3f} < {threshold:.3f} (below threshold)")
+                issues.append(
+                    f"{dimension.replace('_', ' ').title()}: {score:.3f} < {threshold:.3f} (below threshold)"
+                )
 
         return issues
 
-    def _generate_recommendations(self, dimension_scores: dict[str, float], issues: list[str]) -> list[str]:
+    def _generate_recommendations(
+        self, dimension_scores: dict[str, float], issues: list[str]
+    ) -> list[str]:
         """Generate recommendations for improving quality."""
         recommendations = []
 
-        if dimension_scores.get("content_quality", 1.0) < self.minimum_thresholds["content_quality"]:
-            recommendations.append("Improve content quality: Add more substantial conversations with longer, more diverse content")
+        if (
+            dimension_scores.get("content_quality", 1.0)
+            < self.minimum_thresholds["content_quality"]
+        ):
+            recommendations.append(
+                "Improve content quality: Add more substantial conversations with longer, more diverse content"
+            )
 
-        if dimension_scores.get("therapeutic_accuracy", 1.0) < self.minimum_thresholds["therapeutic_accuracy"]:
-            recommendations.append("Enhance therapeutic accuracy: Include more therapeutic language and evidence-based interventions")
+        if (
+            dimension_scores.get("therapeutic_accuracy", 1.0)
+            < self.minimum_thresholds["therapeutic_accuracy"]
+        ):
+            recommendations.append(
+                "Enhance therapeutic accuracy: Include more therapeutic language and evidence-based interventions"
+            )
 
-        if dimension_scores.get("conversation_coherence", 1.0) < self.minimum_thresholds["conversation_coherence"]:
-            recommendations.append("Improve conversation coherence: Ensure proper turn-taking and contextual relevance")
+        if (
+            dimension_scores.get("conversation_coherence", 1.0)
+            < self.minimum_thresholds["conversation_coherence"]
+        ):
+            recommendations.append(
+                "Improve conversation coherence: Ensure proper turn-taking and contextual relevance"
+            )
 
-        if dimension_scores.get("safety_compliance", 1.0) < self.minimum_thresholds["safety_compliance"]:
-            recommendations.append("Address safety compliance: Ensure appropriate handling of crisis and safety-related content")
+        if (
+            dimension_scores.get("safety_compliance", 1.0)
+            < self.minimum_thresholds["safety_compliance"]
+        ):
+            recommendations.append(
+                "Address safety compliance: Ensure appropriate handling of crisis and safety-related content"
+            )
 
         if not recommendations:
-            recommendations.append("Dataset meets all quality standards - ready for production")
+            recommendations.append(
+                "Dataset meets all quality standards - ready for production"
+            )
 
         return recommendations
 
-    def _generate_validation_report(self, conversations: list[Conversation],
-                                  dimension_scores: dict[str, float],
-                                  overall_score: float,
-                                  issues: list[str],
-                                  recommendations: list[str]) -> dict[str, Any]:
+    def _generate_validation_report(
+        self,
+        conversations: list[Conversation],
+        dimension_scores: dict[str, float],
+        overall_score: float,
+        issues: list[str],
+        recommendations: list[str],
+    ) -> dict[str, Any]:
         """Generate comprehensive validation report."""
         return {
             "validation_summary": {
                 "total_conversations": len(conversations),
                 "overall_score": overall_score,
-                "validation_status": "PASSED" if overall_score >= self.minimum_thresholds["overall_quality"] else "FAILED",
-                "validated_at": datetime.now().isoformat()
+                "validation_status": "PASSED"
+                if overall_score >= self.minimum_thresholds["overall_quality"]
+                else "FAILED",
+                "validated_at": datetime.now().isoformat(),
             },
             "dimension_analysis": {
                 dimension: {
                     "score": score,
                     "threshold": self.minimum_thresholds[dimension],
-                    "status": "PASS" if score >= self.minimum_thresholds[dimension] else "FAIL",
-                    "weight": self.quality_dimensions[dimension]
+                    "status": "PASS"
+                    if score >= self.minimum_thresholds[dimension]
+                    else "FAIL",
+                    "weight": self.quality_dimensions[dimension],
                 }
                 for dimension, score in dimension_scores.items()
             },
@@ -313,14 +450,22 @@ class FinalDatasetQualityValidator:
             "recommendations": recommendations,
             "dataset_statistics": {
                 "total_messages": sum(len(conv.messages) for conv in conversations),
-                "average_messages_per_conversation": sum(len(conv.messages) for conv in conversations) / len(conversations) if conversations else 0,
-                "total_characters": sum(sum(len(msg.content) for msg in conv.messages) for conv in conversations),
-                "unique_conversation_ids": len({conv.id for conv in conversations})
+                "average_messages_per_conversation": sum(
+                    len(conv.messages) for conv in conversations
+                )
+                / len(conversations)
+                if conversations
+                else 0,
+                "total_characters": sum(
+                    sum(len(msg.content) for msg in conv.messages)
+                    for conv in conversations
+                ),
+                "unique_conversation_ids": len({conv.id for conv in conversations}),
             },
             "validation_criteria": {
                 "minimum_thresholds": self.minimum_thresholds,
-                "dimension_weights": self.quality_dimensions
-            }
+                "dimension_weights": self.quality_dimensions,
+            },
         }
 
 

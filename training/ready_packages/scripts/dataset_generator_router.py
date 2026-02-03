@@ -73,13 +73,17 @@ class DatasetGeneratorRouter:
                 generator.loader_type = "s3_direct"
                 generator.s3_path = evidence[0] if evidence else None
                 generator.status = "available"
-                generator.notes = f"Partial coverage: {len(evidence)} objects - may need expansion"
+                generator.notes = (
+                    f"Partial coverage: {len(evidence)} objects - may need expansion"
+                )
 
             elif family_name == "edge_case_generator":
                 # Edge case generator - check registry for pipeline
                 generator.loader_type = "pipeline"
                 generator.pipeline_path = "ai/pipelines/edge_case_pipeline_standalone"
-                if self.registry_data.get("edge_case_sources", {}).get("edge_case_generator"):
+                if self.registry_data.get("edge_case_sources", {}).get(
+                    "edge_case_generator"
+                ):
                     generator.status = "available"
                     generator.notes = "Edge case generator pipeline exists"
                 else:
@@ -103,24 +107,21 @@ class DatasetGeneratorRouter:
                 # Long-running therapy sessions
                 generator.loader_type = "s3_direct"
                 generator.status = "needs_generation"
-                generator.notes = (
-                    "Need to identify/extract long-running therapy sessions from existing datasets"
-                )
+                generator.notes = "Need to identify/extract long-running therapy sessions from existing datasets"
 
             elif family_name == "cptsd":
                 # CPTSD - check if Tim Fletcher transcripts cover this
-                if any("tim" in str(e).lower() and "fletcher" in str(e).lower() for e in evidence):
+                if any(
+                    "tim" in str(e).lower() and "fletcher" in str(e).lower()
+                    for e in evidence
+                ):
                     generator.loader_type = "s3_direct"
                     generator.status = "available"
-                    generator.notes = (
-                        "CPTSD content available in Tim Fletcher transcripts - needs proper tagging"
-                    )
+                    generator.notes = "CPTSD content available in Tim Fletcher transcripts - needs proper tagging"
                 else:
                     generator.loader_type = "s3_direct"
                     generator.status = "needs_generation"
-                    generator.notes = (
-                        "CPTSD datasets need to be identified/tagged from existing content"
-                    )
+                    generator.notes = "CPTSD datasets need to be identified/tagged from existing content"
 
             elif family_name == "sarcasm":
                 # Sarcasm - has partial coverage
@@ -128,7 +129,9 @@ class DatasetGeneratorRouter:
                     generator.loader_type = "s3_direct"
                     generator.s3_path = evidence[0]
                     generator.status = "available"
-                    generator.notes = f"Partial sarcasm dataset available: {evidence[0]}"
+                    generator.notes = (
+                        f"Partial sarcasm dataset available: {evidence[0]}"
+                    )
                 else:
                     generator.loader_type = "synthetic"
                     generator.status = "needs_generation"
@@ -140,7 +143,9 @@ class DatasetGeneratorRouter:
                     generator.loader_type = "s3_direct"
                     generator.s3_path = evidence[0]
                     generator.status = "available"
-                    generator.notes = f"Roleplay datasets available: {len(evidence)} objects"
+                    generator.notes = (
+                        f"Roleplay datasets available: {len(evidence)} objects"
+                    )
                 else:
                     generator.loader_type = "synthetic"
                     generator.status = "needs_generation"
@@ -150,13 +155,18 @@ class DatasetGeneratorRouter:
                 # Missing - mark as needs generation
                 generator.loader_type = "missing"
                 generator.status = "needs_generation"
-                generator.notes = "Dataset family missing - needs to be generated or located"
+                generator.notes = (
+                    "Dataset family missing - needs to be generated or located"
+                )
 
             self.generators[family_name] = generator
 
     def generate_routing_config(self) -> dict[str, Any]:
         """Generate routing configuration for all dataset families"""
-        routing_config = {"generated_at": self.coverage_data.get("generated_at"), "families": {}}
+        routing_config = {
+            "generated_at": self.coverage_data.get("generated_at"),
+            "families": {},
+        }
 
         for family_name, generator in self.generators.items():
             routing_config["families"][family_name] = {
@@ -166,7 +176,9 @@ class DatasetGeneratorRouter:
                 "s3_path": generator.s3_path,
                 "pipeline_path": generator.pipeline_path,
                 "notes": generator.notes,
-                "action_required": "none" if generator.status == "available" else "generate",
+                "action_required": "none"
+                if generator.status == "available"
+                else "generate",
             }
 
         return routing_config
@@ -248,7 +260,10 @@ def load_cptsd_datasets():
         }
 
         for family_name, code in loader_code.items():
-            if self.generators.get(family_name, DatasetGenerator("", "")).status != "available":
+            if (
+                self.generators.get(family_name, DatasetGenerator("", "")).status
+                != "available"
+            ):
                 code_file = output_dir / f"{family_name}_loader.py"
                 with open(code_file, "w") as f:
                     f.write(code)
@@ -271,7 +286,9 @@ def main():
     routing_config = router.generate_routing_config()
 
     # Save routing config
-    output_path = project_root / "ai" / "training_ready" / "data" / "dataset_routing_config.json"
+    output_path = (
+        project_root / "ai" / "training_ready" / "data" / "dataset_routing_config.json"
+    )
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(output_path, "w", encoding="utf-8") as f:
@@ -280,7 +297,9 @@ def main():
     logger.info(f"Routing config saved to {output_path}")
 
     # Generate loader code for missing generators
-    loader_dir = project_root / "ai" / "training_ready" / "scripts" / "generated_loaders"
+    loader_dir = (
+        project_root / "ai" / "training_ready" / "scripts" / "generated_loaders"
+    )
     router.generate_loader_code(loader_dir)
 
     # Print summary
@@ -292,7 +311,9 @@ def main():
             generator.status, "❓"
         )
 
-        print(f"{status_icon} {family_name:30s} {generator.loader_type:15s} {generator.status}")
+        print(
+            f"{status_icon} {family_name:30s} {generator.loader_type:15s} {generator.status}"
+        )
         if generator.notes:
             print(f"   └─ {generator.notes}")
     print("=" * 60)

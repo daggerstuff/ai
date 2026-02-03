@@ -81,7 +81,9 @@ class TestCommandHandler:
         assert result is not None
         mock_discovery_service.discover_sources.assert_called_once()
 
-    def test_evaluate_command(self, command_handler, mock_evaluation_engine, sample_dataset_source):
+    def test_evaluate_command(
+        self, command_handler, mock_evaluation_engine, sample_dataset_source
+    ):
         """Test evaluate command."""
         orchestrator = command_handler._get_orchestrator()
         orchestrator.evaluation_engine = mock_evaluation_engine
@@ -97,14 +99,15 @@ class TestCommandHandler:
         orchestrator.save_session_state(session.session_id)
 
         result = command_handler.evaluate(
-            session_id=session.session_id,
-            source_id=sample_dataset_source.source_id
+            session_id=session.session_id, source_id=sample_dataset_source.source_id
         )
 
         assert result is not None
         mock_evaluation_engine.evaluate_dataset.assert_called_once()
 
-    def test_acquire_command(self, command_handler, mock_acquisition_manager, sample_dataset_source):
+    def test_acquire_command(
+        self, command_handler, mock_acquisition_manager, sample_dataset_source
+    ):
         """Test acquire command."""
         orchestrator = command_handler._get_orchestrator()
         orchestrator.acquisition_manager = mock_acquisition_manager
@@ -120,18 +123,19 @@ class TestCommandHandler:
         orchestrator.save_session_state(session.session_id)
 
         result = command_handler.acquire(
-            session_id=session.session_id,
-            source_id=sample_dataset_source.source_id
+            session_id=session.session_id, source_id=sample_dataset_source.source_id
         )
 
         assert result is not None
         mock_acquisition_manager.submit_access_request.assert_called_once()
 
-    def test_integrate_command(self, command_handler, mock_integration_engine, sample_acquired_dataset):
+    def test_integrate_command(
+        self, command_handler, mock_integration_engine, sample_acquired_dataset
+    ):
         """Test integrate command."""
         orchestrator = command_handler._get_orchestrator()
         orchestrator.integration_engine = mock_integration_engine
-        
+
         # Create a session with the acquired dataset
         session = orchestrator.start_research_session(
             target_sources=[],
@@ -143,8 +147,7 @@ class TestCommandHandler:
         orchestrator.save_session_state(session.session_id)
 
         result = command_handler.integrate(
-            session_id=session.session_id,
-            dataset_id=sample_acquired_dataset.source_id
+            session_id=session.session_id, dataset_id=sample_acquired_dataset.source_id
         )
 
         assert result is not None
@@ -154,7 +157,9 @@ class TestCommandHandler:
         """Test status command."""
         # Initialize orchestrator first
         orchestrator = command_handler._get_orchestrator()
-        orchestrator.sessions[sample_research_session.session_id] = sample_research_session
+        orchestrator.sessions[sample_research_session.session_id] = (
+            sample_research_session
+        )
         # Create and save session state
         state = orchestrator.get_session_state(sample_research_session.session_id)
         orchestrator.save_session_state(sample_research_session.session_id)
@@ -240,4 +245,3 @@ class TestInteractiveMode:
         mock_prompt.side_effect = KeyboardInterrupt()
         with pytest.raises(KeyboardInterrupt):
             prompt_for_session_config()
-

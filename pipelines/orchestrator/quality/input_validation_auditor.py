@@ -15,9 +15,11 @@ from typing import Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class InputValidationIssue:
     """Represents an input validation issue found during audit."""
+
     file_path: str
     line_number: int
     issue_type: str
@@ -28,9 +30,11 @@ class InputValidationIssue:
     parameter_name: str
     code_snippet: str
 
+
 @dataclass
 class InputValidationAuditReport:
     """Comprehensive input validation audit report."""
+
     total_files: int
     total_functions: int
     functions_with_validation: int
@@ -41,6 +45,7 @@ class InputValidationAuditReport:
     quality_score: float
     recommendations: list[str]
     validation_patterns: dict[str, int]
+
 
 class InputValidationAuditor:
     """
@@ -70,7 +75,7 @@ class InputValidationAuditor:
             "range_checks": [">", "<", ">=", "<=", "range("],
             "format_checks": ["re.match", "re.search", "match(", "search("],
             "assertion_checks": ["assert", "raise ValueError", "raise TypeError"],
-            "library_validation": ["pydantic", "marshmallow", "cerberus", "schema"]
+            "library_validation": ["pydantic", "marshmallow", "cerberus", "schema"],
         }
 
         # Risky parameter types that need validation
@@ -80,7 +85,7 @@ class InputValidationAuditor:
             "user_input": ["input", "data", "content", "text", "message"],
             "ids": ["id", "key", "identifier", "uuid"],
             "numbers": ["count", "size", "length", "amount", "value"],
-            "collections": ["list", "dict", "array", "items"]
+            "collections": ["list", "dict", "array", "items"],
         }
 
         # Severity weights for scoring
@@ -88,7 +93,7 @@ class InputValidationAuditor:
             "critical": 1.0,
             "high": 0.8,
             "medium": 0.5,
-            "low": 0.2
+            "low": 0.2,
         }
 
     def audit_directory(self, directory_path: str) -> InputValidationAuditReport:
@@ -147,10 +152,12 @@ class InputValidationAuditor:
             coverage_score=coverage_score,
             quality_score=quality_score,
             recommendations=self.recommendations.copy(),
-            validation_patterns=self.validation_patterns.copy()
+            validation_patterns=self.validation_patterns.copy(),
         )
 
-        logger.info(f"Input validation audit complete: {total_files} files, {len(self.issues)} issues found")
+        logger.info(
+            f"Input validation audit complete: {total_files} files, {len(self.issues)} issues found"
+        )
         return report
 
     def _audit_file(self, file_path: str) -> dict[str, int]:
@@ -181,9 +188,11 @@ class InputValidationAuditor:
                     functions += 1
 
                     # Skip special methods and test functions
-                    if (node.name.startswith("__") or
-                        node.name.startswith("test_") or
-                        "test" in file_path.lower()):
+                    if (
+                        node.name.startswith("__")
+                        or node.name.startswith("test_")
+                        or "test" in file_path.lower()
+                    ):
                         continue
 
                     # Count parameters (excluding self)
@@ -191,8 +200,10 @@ class InputValidationAuditor:
                     parameters += len(func_params)
 
                     # Check for validation in function
-                    has_validation, validated_param_count = self._analyze_function_validation(
-                        node, func_params, file_path, lines
+                    has_validation, validated_param_count = (
+                        self._analyze_function_validation(
+                            node, func_params, file_path, lines
+                        )
                     )
 
                     if has_validation:
@@ -207,28 +218,37 @@ class InputValidationAuditor:
                 "functions": functions,
                 "functions_with_validation": functions_with_validation,
                 "parameters": parameters,
-                "validated_parameters": validated_parameters
+                "validated_parameters": validated_parameters,
             }
 
         except Exception as e:
             logger.error(f"Error auditing file {file_path}: {e}")
             return {
-                "functions": 0, "functions_with_validation": 0,
-                "parameters": 0, "validated_parameters": 0
+                "functions": 0,
+                "functions_with_validation": 0,
+                "parameters": 0,
+                "validated_parameters": 0,
             }
 
-    def _analyze_function_validation(self, node: ast.FunctionDef, parameters: list[ast.arg],
-                                   file_path: str, lines: list[str]) -> tuple[bool, int]:
+    def _analyze_function_validation(
+        self,
+        node: ast.FunctionDef,
+        parameters: list[ast.arg],
+        file_path: str,
+        lines: list[str],
+    ) -> tuple[bool, int]:
         """Analyze validation patterns in a function."""
-        function_content = ast.get_source_segment(
-            "\n".join(lines), node
-        ) if hasattr(ast, "get_source_segment") else ""
+        function_content = (
+            ast.get_source_segment("\n".join(lines), node)
+            if hasattr(ast, "get_source_segment")
+            else ""
+        )
 
         if not function_content:
             # Fallback: get function content by line numbers
             start_line = node.lineno - 1
             end_line = getattr(node, "end_lineno", start_line + 20) or start_line + 20
-            function_content = "\n".join(lines[start_line:min(end_line, len(lines))])
+            function_content = "\n".join(lines[start_line : min(end_line, len(lines))])
 
         has_validation = False
         validated_param_count = 0
@@ -245,15 +265,22 @@ class InputValidationAuditor:
         # Count validated parameters (simplified heuristic)
         for param in parameters:
             param_name = param.arg
-            if any(param_name in function_content and keyword in function_content
-                   for keywords in self.validation_keywords.values()
-                   for keyword in keywords):
+            if any(
+                param_name in function_content and keyword in function_content
+                for keywords in self.validation_keywords.values()
+                for keyword in keywords
+            ):
                 validated_param_count += 1
 
         return has_validation, validated_param_count
 
-    def _check_risky_parameters(self, node: ast.FunctionDef, parameters: list[ast.arg],
-                               file_path: str, lines: list[str]) -> None:
+    def _check_risky_parameters(
+        self,
+        node: ast.FunctionDef,
+        parameters: list[ast.arg],
+        file_path: str,
+        lines: list[str],
+    ) -> None:
         """Check for risky parameters that need validation."""
         for param in parameters:
             param_name = param.arg.lower()
@@ -266,19 +293,27 @@ class InputValidationAuditor:
                         severity = self._get_parameter_severity(risk_type)
 
                         self._add_validation_issue(
-                            file_path, node.lineno, "missing_validation",
-                            severity, f"Parameter '{param.arg}' lacks input validation",
+                            file_path,
+                            node.lineno,
+                            "missing_validation",
+                            severity,
+                            f"Parameter '{param.arg}' lacks input validation",
                             f"Add validation for {risk_type} parameter '{param.arg}'",
-                            node.name, param.arg,
-                            lines[node.lineno - 1].strip() if node.lineno <= len(lines) else ""
+                            node.name,
+                            param.arg,
+                            lines[node.lineno - 1].strip()
+                            if node.lineno <= len(lines)
+                            else "",
                         )
 
-    def _parameter_has_validation(self, node: ast.FunctionDef, param_name: str, lines: list[str]) -> bool:
+    def _parameter_has_validation(
+        self, node: ast.FunctionDef, param_name: str, lines: list[str]
+    ) -> bool:
         """Check if a specific parameter has validation."""
         # Simple heuristic: look for parameter name near validation keywords
         start_line = node.lineno - 1
         end_line = getattr(node, "end_lineno", start_line + 20) or start_line + 20
-        function_lines = lines[start_line:min(end_line, len(lines))]
+        function_lines = lines[start_line : min(end_line, len(lines))]
         function_content = "\n".join(function_lines)
 
         # Check if parameter is mentioned with validation keywords
@@ -295,18 +330,27 @@ class InputValidationAuditor:
     def _get_parameter_severity(self, risk_type: str) -> str:
         """Get severity level for different parameter risk types."""
         severity_map = {
-            "file_paths": "high",      # File path injection risks
-            "urls": "high",            # URL injection risks
-            "user_input": "medium",    # General user input
-            "ids": "medium",           # ID validation
-            "numbers": "low",          # Numeric validation
-            "collections": "medium"    # Collection validation
+            "file_paths": "high",  # File path injection risks
+            "urls": "high",  # URL injection risks
+            "user_input": "medium",  # General user input
+            "ids": "medium",  # ID validation
+            "numbers": "low",  # Numeric validation
+            "collections": "medium",  # Collection validation
         }
         return severity_map.get(risk_type, "medium")
 
-    def _add_validation_issue(self, file_path: str, line_number: int, issue_type: str,
-                             severity: str, description: str, suggestion: str,
-                             function_name: str, parameter_name: str, code_snippet: str) -> None:
+    def _add_validation_issue(
+        self,
+        file_path: str,
+        line_number: int,
+        issue_type: str,
+        severity: str,
+        description: str,
+        suggestion: str,
+        function_name: str,
+        parameter_name: str,
+        code_snippet: str,
+    ) -> None:
         """Add an input validation issue to the list."""
         issue = InputValidationIssue(
             file_path=file_path,
@@ -317,11 +361,13 @@ class InputValidationAuditor:
             suggestion=suggestion,
             function_name=function_name,
             parameter_name=parameter_name,
-            code_snippet=code_snippet
+            code_snippet=code_snippet,
         )
         self.issues.append(issue)
 
-    def _calculate_coverage_score(self, validated_parameters: int, total_parameters: int) -> float:
+    def _calculate_coverage_score(
+        self, validated_parameters: int, total_parameters: int
+    ) -> float:
         """Calculate input validation coverage score."""
         if total_parameters == 0:
             return 1.0
@@ -333,8 +379,9 @@ class InputValidationAuditor:
             return 1.0
 
         # Weight issues by severity
-        total_weight = sum(self.severity_weights.get(issue.severity, 0.5)
-                          for issue in self.issues)
+        total_weight = sum(
+            self.severity_weights.get(issue.severity, 0.5) for issue in self.issues
+        )
 
         # Normalize by number of issues (lower is better)
         max_possible_weight = len(self.issues) * 1.0  # All critical
@@ -359,25 +406,37 @@ class InputValidationAuditor:
             for pattern, count in self.validation_patterns.items():
                 if count / total_patterns < 0.1:  # Less than 10% usage
                     if pattern == "type_checks":
-                        self.recommendations.append("Add more type checking with isinstance()")
+                        self.recommendations.append(
+                            "Add more type checking with isinstance()"
+                        )
                     elif pattern == "null_checks":
                         self.recommendations.append("Add null/None value checks")
                     elif pattern == "length_checks":
-                        self.recommendations.append("Add length validation for strings and collections")
+                        self.recommendations.append(
+                            "Add length validation for strings and collections"
+                        )
                     elif pattern == "range_checks":
-                        self.recommendations.append("Add range validation for numeric inputs")
+                        self.recommendations.append(
+                            "Add range validation for numeric inputs"
+                        )
                     elif pattern == "format_checks":
-                        self.recommendations.append("Add format validation using regular expressions")
+                        self.recommendations.append(
+                            "Add format validation using regular expressions"
+                        )
 
         # General recommendations
-        self.recommendations.extend([
-            "Consider using validation libraries like Pydantic or Marshmallow",
-            "Add comprehensive docstrings documenting expected input formats",
-            "Implement consistent error messages for validation failures",
-            "Use type hints to document expected parameter types"
-        ])
+        self.recommendations.extend(
+            [
+                "Consider using validation libraries like Pydantic or Marshmallow",
+                "Add comprehensive docstrings documenting expected input formats",
+                "Implement consistent error messages for validation failures",
+                "Use type hints to document expected parameter types",
+            ]
+        )
 
-    def generate_report(self, report: InputValidationAuditReport, output_path: str) -> None:
+    def generate_report(
+        self, report: InputValidationAuditReport, output_path: str
+    ) -> None:
         """
         Generate a detailed input validation audit report.
 
@@ -390,7 +449,9 @@ class InputValidationAuditor:
             f.write("## Summary\n")
             f.write(f"- **Total Files**: {report.total_files}\n")
             f.write(f"- **Total Functions**: {report.total_functions}\n")
-            f.write(f"- **Functions with Validation**: {report.functions_with_validation}\n")
+            f.write(
+                f"- **Functions with Validation**: {report.functions_with_validation}\n"
+            )
             f.write(f"- **Total Parameters**: {report.total_parameters}\n")
             f.write(f"- **Validated Parameters**: {report.validated_parameters}\n")
             f.write(f"- **Coverage Score**: {report.coverage_score:.2%}\n")
@@ -400,7 +461,9 @@ class InputValidationAuditor:
             # Validation patterns usage
             f.write("## Validation Patterns Usage\n\n")
             for pattern, count in report.validation_patterns.items():
-                f.write(f"- **{pattern.replace('_', ' ').title()}**: {count} occurrences\n")
+                f.write(
+                    f"- **{pattern.replace('_', ' ').title()}**: {count} occurrences\n"
+                )
             f.write("\n")
 
             # Recommendations
@@ -420,9 +483,13 @@ class InputValidationAuditor:
             f.write("## Issues by Severity\n\n")
             for severity in ["critical", "high", "medium", "low"]:
                 if severity in issues_by_severity:
-                    f.write(f"### {severity.title()} ({len(issues_by_severity[severity])} issues)\n\n")
+                    f.write(
+                        f"### {severity.title()} ({len(issues_by_severity[severity])} issues)\n\n"
+                    )
                     for issue in issues_by_severity[severity][:20]:  # Limit to first 20
-                        f.write(f"- **{issue.file_path}:{issue.line_number}** - {issue.description}\n")
+                        f.write(
+                            f"- **{issue.file_path}:{issue.line_number}** - {issue.description}\n"
+                        )
                         f.write(f"  - *Function*: `{issue.function_name}`\n")
                         f.write(f"  - *Parameter*: `{issue.parameter_name}`\n")
                         f.write(f"  - *Suggestion*: {issue.suggestion}\n\n")
@@ -501,7 +568,7 @@ def validate_user_input(user_input: str, max_length: int = 1000) -> str:
             raise ValueError("Input contains potentially dangerous content")
 
     return user_input.strip()
-'''
+''',
         }
 
         return templates.get(parameter_type, templates["user_input"])

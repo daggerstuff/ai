@@ -278,13 +278,17 @@ class CoherenceValidator:
         coherence_issues = self._identify_coherence_issues(content, reasoning_scores)
 
         # Calculate overall coherence score
-        coherence_score = self._calculate_coherence_score(reasoning_scores, coherence_issues)
+        coherence_score = self._calculate_coherence_score(
+            reasoning_scores, coherence_issues
+        )
 
         # Determine coherence level
         overall_coherence = self._determine_coherence_level(coherence_score)
 
         # Generate recommendations
-        recommendations = self._generate_recommendations(coherence_issues, reasoning_scores)
+        recommendations = self._generate_recommendations(
+            coherence_issues, reasoning_scores
+        )
 
         result = CoherenceResult(
             conversation_id=conversation_id,
@@ -318,15 +322,25 @@ class CoherenceValidator:
         scores: dict[ReasoningType, float] = {}
         for reasoning_type, patterns in self.reasoning_patterns.items():
             if reasoning_type == ReasoningType.LOGICAL_FLOW:
-                scores[reasoning_type] = self._score_logical_flow(content, turns, patterns)
+                scores[reasoning_type] = self._score_logical_flow(
+                    content, turns, patterns
+                )
             elif reasoning_type == ReasoningType.THERAPEUTIC_REASONING:
-                scores[reasoning_type] = self._score_therapeutic_reasoning(content, patterns)
+                scores[reasoning_type] = self._score_therapeutic_reasoning(
+                    content, patterns
+                )
             elif reasoning_type == ReasoningType.INTERVENTION_SEQUENCE:
-                scores[reasoning_type] = self._score_intervention_sequence(content, turns, patterns)
+                scores[reasoning_type] = self._score_intervention_sequence(
+                    content, turns, patterns
+                )
             elif reasoning_type == ReasoningType.CONSISTENCY:
-                scores[reasoning_type] = self._score_consistency(content, turns, patterns)
+                scores[reasoning_type] = self._score_consistency(
+                    content, turns, patterns
+                )
             elif reasoning_type == ReasoningType.CONTEXTUAL_RELEVANCE:
-                scores[reasoning_type] = self._score_contextual_relevance(content, patterns)
+                scores[reasoning_type] = self._score_contextual_relevance(
+                    content, patterns
+                )
         return scores
 
     def _count_matches(self, content: str, terms: list[str]) -> int:
@@ -335,16 +349,26 @@ class CoherenceValidator:
 
     def _score_logical_flow(self, content, turns, patterns):
         score = 0.1
-        score += min(0.5, self._count_matches(content, patterns.get("indicators", [])) * 0.15)
-        score += min(0.3, self._count_matches(content, patterns.get("transitions", [])) * 0.15)
-        score += min(0.4, self._count_matches(content, patterns.get("clinical_terms", [])) * 0.08)
+        score += min(
+            0.5, self._count_matches(content, patterns.get("indicators", [])) * 0.15
+        )
+        score += min(
+            0.3, self._count_matches(content, patterns.get("transitions", [])) * 0.15
+        )
+        score += min(
+            0.4, self._count_matches(content, patterns.get("clinical_terms", [])) * 0.08
+        )
         score += self._analyze_turn_reasoning(turns, ReasoningType.LOGICAL_FLOW) * 0.4
         return min(1.0, score)
 
     def _score_therapeutic_reasoning(self, content, patterns):
         score = 0.1
-        score += min(0.5, self._count_matches(content, patterns.get("indicators", [])) * 0.15)
-        score += min(0.4, self._count_matches(content, patterns.get("clinical_terms", [])) * 0.08)
+        score += min(
+            0.5, self._count_matches(content, patterns.get("indicators", [])) * 0.15
+        )
+        score += min(
+            0.4, self._count_matches(content, patterns.get("clinical_terms", [])) * 0.08
+        )
         score += min(
             0.3,
             self._count_matches(
@@ -363,7 +387,9 @@ class CoherenceValidator:
             * 0.08,
         )
         score += min(
-            0.25, self._count_matches(content, patterns.get("therapeutic_modalities", [])) * 0.12
+            0.25,
+            self._count_matches(content, patterns.get("therapeutic_modalities", []))
+            * 0.12,
         )
         if "clinical_reasoning_patterns" in patterns:
             reasoning_pattern_matches = len(
@@ -432,36 +458,59 @@ class CoherenceValidator:
 
     def _score_intervention_sequence(self, content, turns, patterns):
         score = 0.1
-        score += min(0.5, self._count_matches(content, patterns.get("indicators", [])) * 0.15)
-        score += min(0.3, self._count_matches(content, patterns.get("sequence_markers", [])) * 0.15)
-        score += self._analyze_turn_reasoning(turns, ReasoningType.INTERVENTION_SEQUENCE) * 0.4
+        score += min(
+            0.5, self._count_matches(content, patterns.get("indicators", [])) * 0.15
+        )
+        score += min(
+            0.3,
+            self._count_matches(content, patterns.get("sequence_markers", [])) * 0.15,
+        )
+        score += (
+            self._analyze_turn_reasoning(turns, ReasoningType.INTERVENTION_SEQUENCE)
+            * 0.4
+        )
         return min(1.0, score)
 
     def _score_consistency(self, content, turns, patterns):
         score = 0.1
-        score += min(0.5, self._count_matches(content, patterns.get("indicators", [])) * 0.15)
         score += min(
-            0.3, self._count_matches(content, patterns.get("consistency_markers", [])) * 0.15
+            0.5, self._count_matches(content, patterns.get("indicators", [])) * 0.15
+        )
+        score += min(
+            0.3,
+            self._count_matches(content, patterns.get("consistency_markers", []))
+            * 0.15,
         )
         if len(turns) >= 2:
             score += 0.2
-        if any(term in content.lower() for term in ["cbt", "cognitive", "behavioral", "anxiety"]):
+        if any(
+            term in content.lower()
+            for term in ["cbt", "cognitive", "behavioral", "anxiety"]
+        ):
             score += 0.2
         return min(1.0, score)
 
     def _score_contextual_relevance(self, content, patterns):
         score = 0.1
-        score += min(0.5, self._count_matches(content, patterns.get("indicators", [])) * 0.15)
-        score += min(0.3, self._count_matches(content, patterns.get("context_markers", [])) * 0.15)
+        score += min(
+            0.5, self._count_matches(content, patterns.get("indicators", [])) * 0.15
+        )
+        score += min(
+            0.3,
+            self._count_matches(content, patterns.get("context_markers", [])) * 0.15,
+        )
         client_specific = ["you", "your", "you're", "you've"]
         score += min(0.3, self._count_matches(content, client_specific) * 0.05)
         if any(
-            problem in content.lower() for problem in ["anxiety", "depression", "stress", "worry"]
+            problem in content.lower()
+            for problem in ["anxiety", "depression", "stress", "worry"]
         ):
             score += 0.2
         return min(1.0, score)
 
-    def _analyze_turn_reasoning(self, turns: list[dict], reasoning_type: ReasoningType) -> float:
+    def _analyze_turn_reasoning(
+        self, turns: list[dict], reasoning_type: ReasoningType
+    ) -> float:
         """Analyze reasoning across conversation turns."""
         if len(turns) < 2:
             return 0.0
@@ -474,29 +523,43 @@ class CoherenceValidator:
             if reasoning_type == ReasoningType.LOGICAL_FLOW:
                 # Check for logical connections between turns
                 if any(
-                    connector in current_turn for connector in ["because", "since", "therefore"]
+                    connector in current_turn
+                    for connector in ["because", "since", "therefore"]
                 ):
                     reasoning_score += 0.3  # Increased from 0.2
 
                 # Check for building on previous content
                 if any(
-                    ref in current_turn for ref in ["you mentioned", "as you said", "building on"]
+                    ref in current_turn
+                    for ref in ["you mentioned", "as you said", "building on"]
                 ):
                     reasoning_score += 0.3  # Increased from 0.2
 
                 # Check for sequential flow indicators
-                if any(seq in current_turn for seq in ["first", "then", "next", "after"]):
+                if any(
+                    seq in current_turn for seq in ["first", "then", "next", "after"]
+                ):
                     reasoning_score += 0.2
 
             elif reasoning_type == ReasoningType.INTERVENTION_SEQUENCE:
                 # Check for sequential progression
-                if any(seq in current_turn for seq in ["next", "then", "after", "once", "first"]):
+                if any(
+                    seq in current_turn
+                    for seq in ["next", "then", "after", "once", "first"]
+                ):
                     reasoning_score += 0.3  # Increased from 0.2
 
                 # Check for skill building progression
                 if any(
                     prog in current_turn
-                    for prog in ["practice", "try", "work on", "develop", "identify", "challenge"]
+                    for prog in [
+                        "practice",
+                        "try",
+                        "work on",
+                        "develop",
+                        "identify",
+                        "challenge",
+                    ]
                 ):
                     reasoning_score += 0.2  # Increased from 0.1
 
@@ -576,7 +639,9 @@ class CoherenceValidator:
 
         return chains
 
-    def _identify_logical_gaps(self, content: str, turns: list[dict]) -> list[dict[str, Any]]:
+    def _identify_logical_gaps(
+        self, content: str, turns: list[dict]
+    ) -> list[dict[str, Any]]:
         """Identify logical gaps in reasoning."""
         gaps = []
 
@@ -592,7 +657,8 @@ class CoherenceValidator:
                 # Check if there's adequate support
                 support_indicators = ["because", "since", "given", "due to", "as"]
                 has_support = any(
-                    indicator in preceding_text[-100:] for indicator in support_indicators
+                    indicator in preceding_text[-100:]
+                    for indicator in support_indicators
                 )
 
                 if not has_support:
@@ -613,7 +679,11 @@ class CoherenceValidator:
 
                 # Check for topic continuity
                 topic_overlap = len(set(current_topics) & set(previous_topics))
-                if topic_overlap == 0 and len(current_topics) > 0 and len(previous_topics) > 0:
+                if (
+                    topic_overlap == 0
+                    and len(current_topics) > 0
+                    and len(previous_topics) > 0
+                ):
                     gaps.append(
                         {
                             "type": "topic_discontinuity",
@@ -663,7 +733,10 @@ class CoherenceValidator:
             text = turn.get("text", "").lower()
 
             # Check for assessment
-            if any(term in text for term in ["assess", "evaluate", "understand", "tell me about"]):
+            if any(
+                term in text
+                for term in ["assess", "evaluate", "understand", "tell me about"]
+            ):
                 assessment_found = True
 
             # Check for intervention (after assessment)
@@ -677,7 +750,9 @@ class CoherenceValidator:
         skill_mentions = []
         for i, turn in enumerate(turns):
             text = turn.get("text", "").lower()
-            if any(skill in text for skill in ["skill", "technique", "strategy", "tool"]):
+            if any(
+                skill in text for skill in ["skill", "technique", "strategy", "tool"]
+            ):
                 skill_mentions.append(i)
 
         if len(skill_mentions) >= 2:
@@ -726,7 +801,11 @@ class CoherenceValidator:
         ]
 
         evidence_count = len(
-            [indicator for indicator in evidence_indicators if indicator in content_lower]
+            [
+                indicator
+                for indicator in evidence_indicators
+                if indicator in content_lower
+            ]
         )
         evidence_score += min(0.4, evidence_count * 0.2)
 
@@ -742,7 +821,9 @@ class CoherenceValidator:
             "mindfulness-based",
         ]
 
-        modality_count = len([modality for modality in modalities if modality in content_lower])
+        modality_count = len(
+            [modality for modality in modalities if modality in content_lower]
+        )
         evidence_score += min(0.3, modality_count * 0.15)
 
         # Check for outcome references
@@ -758,7 +839,11 @@ class CoherenceValidator:
         ]
 
         outcome_count = len(
-            [indicator for indicator in outcome_indicators if indicator in content_lower]
+            [
+                indicator
+                for indicator in outcome_indicators
+                if indicator in content_lower
+            ]
         )
         evidence_score += min(0.3, outcome_count * 0.1)
 
@@ -832,7 +917,9 @@ class CoherenceValidator:
         return issues
 
     def _calculate_coherence_score(
-        self, reasoning_scores: dict[ReasoningType, float], coherence_issues: list[CoherenceIssue]
+        self,
+        reasoning_scores: dict[ReasoningType, float],
+        coherence_issues: list[CoherenceIssue],
     ) -> float:
         """Calculate overall coherence score."""
         # Weighted average of reasoning scores
@@ -868,12 +955,16 @@ class CoherenceValidator:
         return CoherenceLevel.INCOHERENT
 
     def _generate_recommendations(
-        self, coherence_issues: list[CoherenceIssue], reasoning_scores: dict[ReasoningType, float]
+        self,
+        coherence_issues: list[CoherenceIssue],
+        reasoning_scores: dict[ReasoningType, float],
     ) -> list[str]:
         """Generate recommendations for improving coherence."""
         # Address specific issues
         recommendations = [
-            issue.suggestion for issue in coherence_issues if issue.severity in ["high", "moderate"]
+            issue.suggestion
+            for issue in coherence_issues
+            if issue.severity in ["high", "moderate"]
         ]
 
         # Address low reasoning scores
@@ -884,19 +975,27 @@ class CoherenceValidator:
                         "Use more logical connectors (because, therefore, since)"
                     )
                 elif reasoning_type == ReasoningType.THERAPEUTIC_REASONING:
-                    recommendations.append("Provide clearer clinical rationale for interventions")
+                    recommendations.append(
+                        "Provide clearer clinical rationale for interventions"
+                    )
                 elif reasoning_type == ReasoningType.INTERVENTION_SEQUENCE:
                     recommendations.append(
                         "Establish clearer progression in therapeutic interventions"
                     )
                 elif reasoning_type == ReasoningType.CONSISTENCY:
-                    recommendations.append("Ensure consistency throughout the conversation")
+                    recommendations.append(
+                        "Ensure consistency throughout the conversation"
+                    )
                 elif reasoning_type == ReasoningType.CONTEXTUAL_RELEVANCE:
-                    recommendations.append("Make interventions more specific to client context")
+                    recommendations.append(
+                        "Make interventions more specific to client context"
+                    )
 
         # General recommendations
         if len([s for s in reasoning_scores.values() if s < 0.6]) >= 3:
-            recommendations.append("Overall coherence needs improvement - focus on clear reasoning")
+            recommendations.append(
+                "Overall coherence needs improvement - focus on clear reasoning"
+            )
 
         return list(set(recommendations))  # Remove duplicates
 
@@ -910,7 +1009,11 @@ class CoherenceValidator:
         # Coherence level distribution
         coherence_distribution = {
             level.value: len(
-                [result for result in self.validation_history if result.overall_coherence == level]
+                [
+                    result
+                    for result in self.validation_history
+                    if result.overall_coherence == level
+                ]
             )
             for level in CoherenceLevel
         }
@@ -923,12 +1026,17 @@ class CoherenceValidator:
         # Average reasoning scores
         avg_reasoning_scores = {}
         for reasoning_type in ReasoningType:
-            scores = [r.reasoning_scores.get(reasoning_type, 0.0) for r in self.validation_history]
+            scores = [
+                r.reasoning_scores.get(reasoning_type, 0.0)
+                for r in self.validation_history
+            ]
             avg_reasoning_scores[reasoning_type.value] = sum(scores) / len(scores)
 
         # Most common issues
         all_issues = [
-            issue for result in self.validation_history for issue in result.coherence_issues
+            issue
+            for result in self.validation_history
+            for issue in result.coherence_issues
         ]
         issue_counts = {}
         for issue in all_issues:
@@ -973,7 +1081,10 @@ def main():
             "content": "You have depression. Try meditation. Also, your childhood affects everything. Let's talk about your job.",
             "turns": [
                 {"speaker": "user", "text": "I feel sad sometimes."},
-                {"speaker": "therapist", "text": "You have depression. Try meditation."},
+                {
+                    "speaker": "therapist",
+                    "text": "You have depression. Try meditation.",
+                },
                 {
                     "speaker": "therapist",
                     "text": "Your childhood affects everything. Let's talk about your job.",

@@ -46,8 +46,11 @@ class TestBigFiveProcessor(unittest.TestCase):
     def test_personality_factors_enum(self):
         """Test PersonalityFactor enum values."""
         expected_factors = {
-            "openness", "conscientiousness", "extraversion",
-            "agreeableness", "neuroticism"
+            "openness",
+            "conscientiousness",
+            "extraversion",
+            "agreeableness",
+            "neuroticism",
         }
         actual_factors = {factor.value for factor in PersonalityFactor}
         assert expected_factors == actual_factors
@@ -55,8 +58,11 @@ class TestBigFiveProcessor(unittest.TestCase):
     def test_assessment_types_enum(self):
         """Test AssessmentType enum values."""
         expected_types = {
-            "neo_pi_r", "big_five_inventory", "ten_item_personality_inventory",
-            "big_five_inventory_2", "international_personality_item_pool"
+            "neo_pi_r",
+            "big_five_inventory",
+            "ten_item_personality_inventory",
+            "big_five_inventory_2",
+            "international_personality_item_pool",
         }
         actual_types = {assessment_type.value for assessment_type in AssessmentType}
         assert expected_types == actual_types
@@ -176,7 +182,7 @@ class TestBigFiveProcessor(unittest.TestCase):
             "assessment_best_practices",
             "interpretation_guidelines",
             "therapeutic_applications",
-            "ethical_considerations"
+            "ethical_considerations",
         }
 
         assert set(guidelines.keys()) == expected_categories
@@ -196,7 +202,7 @@ class TestBigFiveProcessor(unittest.TestCase):
             "mental_health_correlations",
             "treatment_outcomes",
             "developmental_patterns",
-            "cultural_considerations"
+            "cultural_considerations",
         }
 
         assert set(findings.keys()) == expected_categories
@@ -295,8 +301,13 @@ class TestBigFiveProcessor(unittest.TestCase):
         stats = self.processor.get_statistics()
 
         expected_keys = {
-            "total_profiles", "total_assessments", "factors_covered",
-            "assessment_types", "total_facets", "total_assessment_items", "version"
+            "total_profiles",
+            "total_assessments",
+            "factors_covered",
+            "assessment_types",
+            "total_facets",
+            "total_assessment_items",
+            "version",
         }
         assert set(stats.keys()) == expected_keys
 

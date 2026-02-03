@@ -6,6 +6,7 @@ from typing import Optional
 
 try:
     from dotenv import load_dotenv
+
     load_dotenv()
 except ImportError:
     pass  # dotenv is optional
@@ -61,4 +62,3 @@ class DataDesignerConfig:
             raise ValueError("max_retries must be non-negative")
         if self.batch_size <= 0:
             raise ValueError("batch_size must be positive")
-

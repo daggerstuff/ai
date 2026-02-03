@@ -11,11 +11,13 @@ from ai.pipelines.orchestrator.processing.transcript_ingestor import TranscriptI
 
 logging.basicConfig(level=logging.INFO)
 
+
 def main():
     ingestor = TranscriptIngestor()
     # Process up to 50 files for now as a test
     output = ingestor.process_batch(batch_size=50)
     print(f"Ingestion Complete. Output: {output}")
+
 
 if __name__ == "__main__":
     main()

@@ -27,55 +27,70 @@ class DatasetStatisticsReporter:
         self.logger = get_logger(__name__)
         self.logger.info("DatasetStatisticsReporter initialized")
 
-    def generate_comprehensive_report(self, conversations: list[Conversation]) -> dict[str, Any]:
+    def generate_comprehensive_report(
+        self, conversations: list[Conversation]
+    ) -> dict[str, Any]:
         """Generate comprehensive dataset statistics report."""
-        self.logger.info(f"Generating comprehensive report for {len(conversations)} conversations")
+        self.logger.info(
+            f"Generating comprehensive report for {len(conversations)} conversations"
+        )
 
         report = {
             "report_metadata": {
                 "generated_at": datetime.now().isoformat(),
                 "total_conversations": len(conversations),
-                "report_version": "1.0"
+                "report_version": "1.0",
             },
             "basic_statistics": self._calculate_basic_statistics(conversations),
             "content_analysis": self._analyze_content(conversations),
             "quality_metrics": self._calculate_quality_metrics(conversations),
             "category_distribution": self._analyze_categories(conversations),
             "temporal_analysis": self._analyze_temporal_patterns(conversations),
-            "conversation_characteristics": self._analyze_conversation_characteristics(conversations)
+            "conversation_characteristics": self._analyze_conversation_characteristics(
+                conversations
+            ),
         }
 
         self.logger.info("Comprehensive report generated successfully")
         return report
 
-    def _calculate_basic_statistics(self, conversations: list[Conversation]) -> dict[str, Any]:
+    def _calculate_basic_statistics(
+        self, conversations: list[Conversation]
+    ) -> dict[str, Any]:
         """Calculate basic dataset statistics."""
         if not conversations:
             return {"error": "No conversations to analyze"}
 
         total_messages = sum(len(conv.messages) for conv in conversations)
-        total_characters = sum(sum(len(msg.content) for msg in conv.messages) for conv in conversations)
+        total_characters = sum(
+            sum(len(msg.content) for msg in conv.messages) for conv in conversations
+        )
 
         message_counts = [len(conv.messages) for conv in conversations]
-        character_counts = [sum(len(msg.content) for msg in conv.messages) for conv in conversations]
+        character_counts = [
+            sum(len(msg.content) for msg in conv.messages) for conv in conversations
+        ]
 
         return {
             "total_conversations": len(conversations),
             "total_messages": total_messages,
             "total_characters": total_characters,
             "average_messages_per_conversation": total_messages / len(conversations),
-            "average_characters_per_conversation": total_characters / len(conversations),
-            "average_characters_per_message": total_characters / total_messages if total_messages > 0 else 0,
+            "average_characters_per_conversation": total_characters
+            / len(conversations),
+            "average_characters_per_message": total_characters / total_messages
+            if total_messages > 0
+            else 0,
             "message_count_distribution": {
                 "min": min(message_counts),
                 "max": max(message_counts),
-                "median": sorted(message_counts)[len(message_counts)//2]
+                "median": sorted(message_counts)[len(message_counts) // 2],
             },
             "character_count_distribution": {
                 "min": min(character_counts),
                 "max": max(character_counts),
-                "median": sorted(character_counts)[len(character_counts)//2]
-            }
+                "median": sorted(character_counts)[len(character_counts) // 2],
+            },
         }
 
     def _analyze_content(self, conversations: list[Conversation]) -> dict[str, Any]:
@@ -96,12 +111,21 @@ class DatasetStatisticsReporter:
             "total_words": len(all_words),
             "most_common_words": word_counts.most_common(20),
             "role_distribution": dict(role_distribution),
-            "average_words_per_message": len(all_words) / sum(len(conv.messages) for conv in conversations) if conversations else 0
+            "average_words_per_message": len(all_words)
+            / sum(len(conv.messages) for conv in conversations)
+            if conversations
+            else 0,
         }
 
-    def _calculate_quality_metrics(self, conversations: list[Conversation]) -> dict[str, Any]:
+    def _calculate_quality_metrics(
+        self, conversations: list[Conversation]
+    ) -> dict[str, Any]:
         """Calculate quality-related metrics."""
-        quality_scores = [conv.quality_score for conv in conversations if conv.quality_score is not None]
+        quality_scores = [
+            conv.quality_score
+            for conv in conversations
+            if conv.quality_score is not None
+        ]
 
         if not quality_scores:
             return {"error": "No quality scores available"}
@@ -112,13 +136,13 @@ class DatasetStatisticsReporter:
                 "average": sum(quality_scores) / len(quality_scores),
                 "min": min(quality_scores),
                 "max": max(quality_scores),
-                "median": sorted(quality_scores)[len(quality_scores)//2]
+                "median": sorted(quality_scores)[len(quality_scores) // 2],
             },
             "quality_categories": {
                 "high_quality": len([s for s in quality_scores if s >= 0.8]),
                 "medium_quality": len([s for s in quality_scores if 0.6 <= s < 0.8]),
-                "low_quality": len([s for s in quality_scores if s < 0.6])
-            }
+                "low_quality": len([s for s in quality_scores if s < 0.6]),
+            },
         }
 
     def _analyze_categories(self, conversations: list[Conversation]) -> dict[str, Any]:
@@ -137,11 +161,17 @@ class DatasetStatisticsReporter:
             "tag_distribution": dict(tag_counts.most_common(20)),
             "metadata_categories": dict(metadata_categories),
             "total_unique_tags": len(tag_counts),
-            "conversations_with_tags": len([conv for conv in conversations if conv.tags]),
-            "conversations_with_metadata": len([conv for conv in conversations if conv.metadata])
+            "conversations_with_tags": len(
+                [conv for conv in conversations if conv.tags]
+            ),
+            "conversations_with_metadata": len(
+                [conv for conv in conversations if conv.metadata]
+            ),
         }
 
-    def _analyze_temporal_patterns(self, conversations: list[Conversation]) -> dict[str, Any]:
+    def _analyze_temporal_patterns(
+        self, conversations: list[Conversation]
+    ) -> dict[str, Any]:
         """Analyze temporal patterns in the dataset."""
         creation_dates = [conv.created_at for conv in conversations if conv.created_at]
         update_dates = [conv.updated_at for conv in conversations if conv.updated_at]
@@ -158,16 +188,18 @@ class DatasetStatisticsReporter:
         return {
             "date_range": {
                 "earliest": min(creation_dates).isoformat(),
-                "latest": max(creation_dates).isoformat()
+                "latest": max(creation_dates).isoformat(),
             },
             "conversations_by_date": dict(date_counts.most_common(10)),
             "conversations_with_timestamps": {
                 "created_at": len(creation_dates),
-                "updated_at": len(update_dates)
-            }
+                "updated_at": len(update_dates),
+            },
         }
 
-    def _analyze_conversation_characteristics(self, conversations: list[Conversation]) -> dict[str, Any]:
+    def _analyze_conversation_characteristics(
+        self, conversations: list[Conversation]
+    ) -> dict[str, Any]:
         """Analyze conversation-specific characteristics."""
         characteristics = {
             "has_title": 0,
@@ -176,7 +208,7 @@ class DatasetStatisticsReporter:
             "has_tags": 0,
             "single_exchange": 0,
             "multi_exchange": 0,
-            "long_conversations": 0  # >10 messages
+            "long_conversations": 0,  # >10 messages
         }
 
         for conv in conversations:

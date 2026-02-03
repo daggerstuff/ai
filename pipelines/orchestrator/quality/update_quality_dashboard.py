@@ -11,7 +11,9 @@ from pathlib import Path
 def update_quality_dashboard():
     """Update the quality dashboard with new totals."""
 
-    dashboard_path = Path("/home/vivi/pixelated/ai/data/processed/phase_2_professional_datasets/task_5_14_quality_validation/quality_dashboard.json")
+    dashboard_path = Path(
+        "/home/vivi/pixelated/ai/data/processed/phase_2_professional_datasets/task_5_14_quality_validation/quality_dashboard.json"
+    )
 
     # Load existing dashboard
     with open(dashboard_path, encoding="utf-8") as f:
@@ -24,7 +26,9 @@ def update_quality_dashboard():
 
     # Update summary
     dashboard["summary"]["total_conversations"] = new_total
-    dashboard["summary"]["validation_timestamp"] = datetime.now(timezone.utc).isoformat()
+    dashboard["summary"]["validation_timestamp"] = datetime.now(
+        timezone.utc
+    ).isoformat()
     dashboard["generated"] = datetime.now(timezone.utc).isoformat()
 
     # Update key metrics
@@ -35,7 +39,7 @@ def update_quality_dashboard():
         "update_date": datetime.now(timezone.utc).isoformat(),
         "conversations_added": professional_increase,
         "new_total": new_total,
-        "update_reason": "Completed Task 5.2.2 with full professional dataset processing"
+        "update_reason": "Completed Task 5.2.2 with full professional dataset processing",
     }
 
     # Save updated dashboard

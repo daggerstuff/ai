@@ -23,11 +23,11 @@ from ai.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
 from ai.sourcing.journal.mcp.resources import (
-  ProgressHistoryResource,
-  ProgressMetricsResource,
-  ResourceRegistry,
-  SessionMetricsResource,
-  SessionStateResource,
+    ProgressHistoryResource,
+    ProgressMetricsResource,
+    ResourceRegistry,
+    SessionMetricsResource,
+    SessionStateResource,
 )
 from ai.sourcing.journal.mcp.prompts import PromptRegistry
 from ai.sourcing.journal.mcp.prompts.discovery import DiscoverSourcesPrompt
@@ -49,6 +49,7 @@ try:
     from ai.sourcing.journal.integration.mcp_pipeline_bridge import (
         MCPPipelineBridge,
     )
+
     PIPELINE_BRIDGE_AVAILABLE = True
 except ImportError:
     PIPELINE_BRIDGE_AVAILABLE = False
@@ -153,7 +154,7 @@ class MCPServer:
 
         # Initialize audit logging (Phase 14)
         self.audit_logger = create_audit_logger(self.config.logging)
-        
+
         # Initialize pipeline bridge (optional, for training pipeline integration)
         self.pipeline_bridge: Optional[MCPPipelineBridge] = None
         if PIPELINE_BRIDGE_AVAILABLE:
@@ -283,9 +284,13 @@ class MCPServer:
                     await self._check_rate_limit(request)
                 except Exception as e:
                     # Log rate limit exceeded
-                    user_id = self.current_user.get("user_id") if self.current_user else None
+                    user_id = (
+                        self.current_user.get("user_id") if self.current_user else None
+                    )
                     self.audit_logger.log_rate_limit_exceeded(
-                        identifier=getattr(e, "data", {}).get("identifier", "unknown") if hasattr(e, "data") else "unknown",
+                        identifier=getattr(e, "data", {}).get("identifier", "unknown")
+                        if hasattr(e, "data")
+                        else "unknown",
                         user_id=user_id,
                         request_id=str(request.id) if request.id else None,
                     )
@@ -478,7 +483,11 @@ class MCPServer:
                 timeout = params.get("timeout")
 
                 # Extract session_id from tool_params for audit logging
-                session_id = tool_params.get("session_id") if isinstance(tool_params, dict) else None
+                session_id = (
+                    tool_params.get("session_id")
+                    if isinstance(tool_params, dict)
+                    else None
+                )
 
                 # Log tool execution start
                 if self.current_user:
@@ -493,6 +502,7 @@ class MCPServer:
 
                 try:
                     import time
+
                     start_time = time.time()
                     result = await self.tool_executor.execute_tool(
                         tool_name,
@@ -522,7 +532,9 @@ class MCPServer:
                             "content": [
                                 {
                                     "type": "text",
-                                    "text": json.dumps(result, indent=2) if isinstance(result, (dict, list)) else str(result),
+                                    "text": json.dumps(result, indent=2)
+                                    if isinstance(result, (dict, list))
+                                    else str(result),
                                 }
                             ]
                         }
@@ -996,13 +1008,13 @@ class MCPServer:
         self.tools.register(GetAcquisitionTool(self.command_handler_service))
         self.tools.register(UpdateAcquisitionTool(self.command_handler_service))
         logger.info("Registered dataset acquisition tools")
-    
+
     def register_pipeline_orchestrator(self, orchestrator: Any) -> None:
         """
         Register pipeline orchestrator with the pipeline bridge.
-        
+
         This enables automatic integration of acquired datasets into the training pipeline.
-        
+
         Args:
             orchestrator: PipelineOrchestrator instance
         """
@@ -1020,7 +1032,9 @@ class MCPServer:
         self.tools.register(CreateIntegrationPlansTool(self.command_handler_service))
         self.tools.register(GetIntegrationPlansTool(self.command_handler_service))
         self.tools.register(GetIntegrationPlanTool(self.command_handler_service))
-        self.tools.register(GeneratePreprocessingScriptTool(self.command_handler_service))
+        self.tools.register(
+            GeneratePreprocessingScriptTool(self.command_handler_service)
+        )
         logger.info("Registered integration planning tools")
 
     def _register_report_tools(self) -> None:
@@ -1034,22 +1048,14 @@ class MCPServer:
     def _register_resources(self) -> None:
         """Register MCP resources."""
         # Register progress resources
-        self.resources.register(
-          ProgressMetricsResource(self.command_handler_service)
-        )
-        self.resources.register(
-          ProgressHistoryResource(self.command_handler_service)
-        )
+        self.resources.register(ProgressMetricsResource(self.command_handler_service))
+        self.resources.register(ProgressHistoryResource(self.command_handler_service))
 
         # Register session resources
-        self.resources.register(
-          SessionStateResource(self.command_handler_service)
-        )
+        self.resources.register(SessionStateResource(self.command_handler_service))
 
         # Register metrics resources
-        self.resources.register(
-          SessionMetricsResource(self.command_handler_service)
-        )
+        self.resources.register(SessionMetricsResource(self.command_handler_service))
 
         logger.info("Registered MCP resources")
 
@@ -1068,6 +1074,3 @@ class MCPServer:
         self.prompts.register(CreateIntegrationPlansPrompt())
 
         logger.info("Registered MCP prompts")
-
-
-

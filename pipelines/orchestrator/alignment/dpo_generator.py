@@ -15,6 +15,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class DPOGenerator:
     """
     Generates Direct Preference Optimization (DPO) pairs.
@@ -64,9 +65,13 @@ class DPOGenerator:
                     # For DPO, we want: Prompt, Chosen, Rejected
 
                     # Simulating a "Prompt" derivation (in reality, we'd need an extraction step)
-                    prompt_hypothetical = "Explain this concept from a trauma-informed perspective."
+                    prompt_hypothetical = (
+                        "Explain this concept from a trauma-informed perspective."
+                    )
 
-                    chosen_text = content[:1000] # Take first chunk as the "Golden" response
+                    chosen_text = content[
+                        :1000
+                    ]  # Take first chunk as the "Golden" response
                     rejected_text = self.generate_rejected_response(chosen_text)
 
                     dpo_pair = {
@@ -74,7 +79,7 @@ class DPOGenerator:
                         "chosen": chosen_text,
                         "rejected": rejected_text,
                         "source": item.get("source_file"),
-                        "model": "TimFletcher_vs_GenericAI"
+                        "model": "TimFletcher_vs_GenericAI",
                     }
                     dpo_pairs.append(dpo_pair)
 

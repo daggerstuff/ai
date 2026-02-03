@@ -177,8 +177,12 @@ if __name__ == "__main__":
     import sys
 
     sys.stderr.write("💀 ULTRA NIGHTMARE CATEGORIES LOADED\n")
-    sys.stderr.write(f"🔥 {len(ULTRA_NIGHTMARE_CATEGORIES)} cosmic horror scenarios available\n")
-    sys.stderr.write("⚠️  WARNING: These scenarios are designed to break both AI and human minds\n")
+    sys.stderr.write(
+        f"🔥 {len(ULTRA_NIGHTMARE_CATEGORIES)} cosmic horror scenarios available\n"
+    )
+    sys.stderr.write(
+        "⚠️  WARNING: These scenarios are designed to break both AI and human minds\n"
+    )
     sys.stderr.write("👤 Stephen King Factor: MAXIMUM\n")
     sys.stderr.write(
         "🎯 Purpose: Test if anything can remain sane under cosmic horror conditions\n"

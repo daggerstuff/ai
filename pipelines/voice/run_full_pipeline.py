@@ -7,7 +7,9 @@ LOG_FILE = "logs/run_full_pipeline.log"
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 logging.basicConfig(
-    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
 PIPELINE_STAGES = [
@@ -15,7 +17,10 @@ PIPELINE_STAGES = [
     ("Batch Transcription", "pixel_voice/batch_transcribe.py"),
     ("Transcription Quality Filtering", "pixel_voice/transcription_quality_filter.py"),
     ("Feature Extraction", "pixel_voice/feature_extraction.py"),
-    ("Personality & Emotion Clustering", "pixel_voice/personality_emotion_clustering.py"),
+    (
+        "Personality & Emotion Clustering",
+        "pixel_voice/personality_emotion_clustering.py",
+    ),
     ("Dialogue Pair Construction", "pixel_voice/dialogue_pair_constructor.py"),
     ("Dialogue Pair Validation", "pixel_voice/dialogue_pair_validation.py"),
     ("Therapeutic Pair Generation", "pixel_voice/generate_therapeutic_pairs.py"),

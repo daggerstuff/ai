@@ -126,8 +126,12 @@ def load_datasets(
             files = _find_data_files(dataset_path)
             if not files:
                 log.error(f"No data files found in directory: {dataset_path}")
-                raise DatasetLoaderError(f"No data files found in directory: {dataset_path}")
-            log.info(f"Found {len(files)} files for dataset '{name}': {[f.name for f in files]}")
+                raise DatasetLoaderError(
+                    f"No data files found in directory: {dataset_path}"
+                )
+            log.info(
+                f"Found {len(files)} files for dataset '{name}': {[f.name for f in files]}"
+            )
             loaded[name] = []
             for f in files:
                 try:

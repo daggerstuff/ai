@@ -16,9 +16,11 @@ def extract_markers_from_segment(segment):
         "length": len(text),
         "num_words": len(text.split()),
         "has_emotion_word": any(
-            word in text.lower() for word in ["happy", "sad", "angry", "excited", "calm"]
+            word in text.lower()
+            for word in ["happy", "sad", "angry", "excited", "calm"]
         ),
-        "avg_word_length": sum(len(w) for w in text.split()) / max(1, len(text.split())),
+        "avg_word_length": sum(len(w) for w in text.split())
+        / max(1, len(text.split())),
         # Add more sophisticated features as needed
     }
     return features
