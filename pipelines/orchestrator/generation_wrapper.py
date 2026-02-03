@@ -5,7 +5,9 @@ from pathlib import Path
 
 # Import the direct class-based generators
 try:
-    from ai.training.ready_packages.scripts.generate_ultra_nightmares import UltraNightmareGenerator
+    from ai.training.ready_packages.scripts.generate_ultra_nightmares import (
+        UltraNightmareGenerator,
+    )
 except ImportError:
     UltraNightmareGenerator = None
 
@@ -21,7 +23,8 @@ except ImportError:
 
 try:
     from ai.sourcing.journal.main import WorkflowExecutor
-except ImportError:
+except ImportError as e:
+    logging.getLogger(__name__).warning(f"Failed to import WorkflowExecutor: {e}")
     WorkflowExecutor = None
 
 logger = logging.getLogger(__name__)
@@ -45,7 +48,8 @@ class GenerationWrapper:
         Uses direct python import if available.
         """
         logger.info(
-            f"Ensuring Ultra Nightmare scenarios (count_per_category={count_per_category})..."
+            f"Ensuring Ultra Nightmare scenarios ("
+            f"count_per_category={count_per_category})..."
         )
 
         if not UltraNightmareGenerator:
@@ -68,6 +72,122 @@ class GenerationWrapper:
             logger.error(f"Failed to generate Ultra Nightmares: {e}")
             return False
 
+    def _ensure_nemo_service_running(self) -> bool:
+        """Check if NeMo service is running, if not start it."""
+        import os
+        import socket
+        import time
+
+        host = "localhost"
+        port = 8000
+
+        # Check if port is open
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                s.settimeout(1)
+                result = s.connect_ex((host, port))
+                if result == 0:
+                    logger.info("NeMo service is already running on port 8000.")
+                    return True
+        except Exception:
+            pass
+
+        logger.info("NeMo service not found. Attempting to start via Docker Compose...")
+
+        nemo_quickstart_dir = Path("/home/vivi/nemo-microservices-quickstart_v25.12")
+        compose_file = (
+            nemo_quickstart_dir / "docker-compose.yaml"
+            if (nemo_quickstart_dir / "docker-compose.yaml").exists()
+            else self.workspace_root / "docker/docker-compose.nemo-data-designer.yml"
+        )
+
+        if not compose_file.exists():
+            logger.error(f"Docker Compose file not found: {compose_file}")
+            return False
+
+        try:
+            env = os.environ.copy()
+            if "NVIDIA_API_KEY" not in env:
+                logger.warning(
+                    "NVIDIA_API_KEY not set, NeMo service might fail to start."
+                )
+            else:
+                # Setup required NeMo env vars
+                env["NIM_API_KEY"] = env["NVIDIA_API_KEY"]
+                env["NGC_API_KEY"] = env["NVIDIA_API_KEY"]
+                env["NEMO_MICROSERVICES_IMAGE_REGISTRY"] = (
+                    "nvcr.io/nvidia/nemo-microservices"
+                )
+                env["NEMO_MICROSERVICES_IMAGE_TAG"] = "25.12"
+
+                # Attempt docker login for NGC
+                try:
+                    logger.info("Attempting Docker login to nvcr.io...")
+                    login_cmd = [
+                        "docker",
+                        "login",
+                        "nvcr.io",
+                        "-u",
+                        "$oauthtoken",
+                        "--password-stdin",
+                    ]
+                    # Pass API key as password via stdin
+                    subprocess.run(
+                        login_cmd,
+                        input=env["NVIDIA_API_KEY"].encode(),
+                        check=True,
+                        capture_output=True,
+                        shell=False,
+                    )
+                    logger.info("✅ Docker login to nvcr.io successful")
+                except subprocess.CalledProcessError as e:
+                    # Log warning but proceed, maybe we are already logged in or using
+                    # cached image
+                    logger.warning(
+                        f"⚠️ Docker login failed (this might differ if already "
+                        f"logged in): {e}"
+                    )
+
+            # Force recreate to ensure fresh state if needed
+            # Use profile if using the quickstart dir
+            cmd = ["docker", "compose", "-f", str(compose_file)]
+            cwd = self.workspace_root
+
+            if str(nemo_quickstart_dir) in str(compose_file):
+                cmd.extend(["--profile", "data-designer"])
+                cwd = nemo_quickstart_dir
+
+            cmd.extend(["up", "-d"])
+
+            logger.info(f"Running: {' '.join(cmd)}")
+            subprocess.check_call(cmd, cwd=cwd, env=env, shell=False)
+
+            # Wait for service to be ready
+            logger.info("Waiting for NeMo service to become ready...")
+            for i in range(120):  # Wait up to 4 minutes (increased for full stack)
+                try:
+                    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                        s.settimeout(1)
+                        if s.connect_ex((host, port)) == 0:
+                            logger.info(
+                                "NeMo service port is open. Waiting for app init..."
+                            )
+                            time.sleep(10)  # Give app time to initialize
+                            return True
+                except Exception:
+                    pass
+                time.sleep(2)
+
+            logger.error("NeMo service failed to become ready within timeout.")
+            return False
+
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Failed to start NeMo service: {e}")
+            return False
+        except Exception as e:
+            logger.error(f"Unexpected error starting NeMo service: {e}")
+            return False
+
     def ensure_nemo_synthetic(self, target_count: int = 10000) -> bool:
         """
         Ensure NeMo synthetic data generation (Stage 1/2).
@@ -76,12 +196,19 @@ class GenerationWrapper:
         logger.info(f"Ensuring NeMo synthetic data (target={target_count})...")
 
         if not NeMoDataDesignerService:
-            # Check if we can mock it or just fail gracefully (it might be optional if env not set)
+            # Check if we can mock it or just fail gracefully (it might be optional
+            # if env not set)
             logger.error("NeMoDataDesignerService could not be imported.")
             return False
 
+        # Ensure the service infrastructure is up
+        if not self._ensure_nemo_service_running():
+            logger.warning("Could not start NeMo service. Skipping generation.")
+            return False
+
         output_dir = (
-            self.workspace_root / "ai/training/ready_packages/datasets/cache/local/nemo_synthetic"
+            self.workspace_root
+            / "ai/training/ready_packages/datasets/cache/local/nemo_synthetic"
         )
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / "nemo_synthetic_dataset.jsonl"
@@ -189,8 +316,8 @@ class GenerationWrapper:
             "20",
             "--output-dir",
             str(output_dir),
-            # We don't necessarily upload to S3 here, local cache for pipeline is sufficient
-            # But script supports --upload-s3 if needed
+            # We don't necessarily upload to S3 here, local cache for pipeline is
+            # sufficient. But script supports --upload-s3 if needed
         ]
 
         try:
@@ -223,15 +350,19 @@ class GenerationWrapper:
         Ensure academic findings are sourced (PubMed/Scholar).
         Uses AcademicSourcingEngine.
         """
-        logger.info(f"Ensuring Academic findings (limit_per_query={limit_per_query})...")
+        logger.info(
+            f"Ensuring Academic findings (limit_per_query={limit_per_query})..."
+        )
 
         if not AcademicSourcingEngine:
             logger.error("AcademicSourcingEngine could not be imported.")
             return False
 
         try:
-            # We use the default output path defined in the engine
-            engine = AcademicSourcingEngine()
+            # We use the default output path defined in the engine, but resolve it
+            # absolutely
+            output_path = self.workspace_root / "ai/training/ready_packages/datasets"
+            engine = AcademicSourcingEngine(output_base_path=str(output_path))
             engine.run_sourcing_pipeline(limit_per_query=limit_per_query)
             return True
         except Exception as e:
@@ -254,7 +385,9 @@ class GenerationWrapper:
         logger.info(f"Ensuring Journal research (keywords={keywords})...")
 
         if not WorkflowExecutor:
-            logger.error("WorkflowExecutor could not be imported from journal sourcing.")
+            logger.error(
+                "WorkflowExecutor could not be imported from journal sourcing."
+            )
             return False
 
         try:

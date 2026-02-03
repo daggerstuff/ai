@@ -32,9 +32,9 @@ except ImportError:
     TRANSFORMERS_AVAILABLE = False
 
 try:
-    import faiss
+    import importlib.util
 
-    FAISS_AVAILABLE = True
+    FAISS_AVAILABLE = importlib.util.find_spec("faiss") is not None
 except ImportError:
     FAISS_AVAILABLE = False
 
@@ -135,51 +135,58 @@ class EmbeddingAgentService:
 
     def _initialize_model(self) -> None:
         """Initialize the embedding model."""
-        if not TRANSFORMERS_AVAILABLE:
-            logger.warning("sentence-transformers not available. Running in mock mode.")
-            return
-
         try:
-            device = "cuda" if self.config.use_gpu else "cpu"
-
-            # Check CUDA availability if GPU requested
-            if self.config.use_gpu:
-                try:
-                    import torch
-
-                    if not torch.cuda.is_available():
-                        logger.warning(
-                            "GPU requested but CUDA not available. Falling back to CPU."
-                        )
-                        device = "cpu"
-                except ImportError:
-                    logger.warning(
-                        "PyTorch not available. Cannot check GPU. Using CPU."
-                    )
-                    device = "cpu"
-
-            self._embedding_model = SentenceTransformer(
-                self.config.model_name.value, device=device
+            # Try initializing NVIDIA NeMo Retriever
+            from ai.pipelines.orchestrator.processing.nvidia_clients import (
+                NemoRetrieverClient,
             )
 
-            # Update dimension from actual model
-            actual_dim = self._embedding_model.get_sentence_embedding_dimension()
-            if actual_dim != self.config.embedding_dimension:
-                logger.info(
-                    f"Updating embedding dimension from {self.config.embedding_dimension} "
-                    f"to {actual_dim} based on loaded model"
-                )
+            self._embedding_model = NemoRetrieverClient()
+            logger.info("Initialized NVIDIA NeMo Retriever Client")
 
-                self.config.embedding_dimension = actual_dim
-
-            logger.info(
-                f"Loaded embedding model: {self.config.model_name.value} "
-                f"on {device} with dimension {actual_dim}"
-            )
+            # Mock dimension check - NeMo typically uses 1024 (NV-Embed)
+            # We trust the client config or query it if needed
+            self.config.embedding_dimension = 1024
 
         except Exception as e:
-            logger.error(f"Failed to load embedding model: {e}")
-            self._embedding_model = None
+            logger.warning(
+                f"NeMo Retriever not available: {e}. "
+                "Falling back to SentenceTransformer."
+            )
+
+            if not TRANSFORMERS_AVAILABLE:
+                logger.warning(
+                    "sentence-transformers not available. Running in mock mode."
+                )
+                return
+
+            try:
+                device = "cuda" if self.config.use_gpu else "cpu"
+                if self.config.use_gpu:
+                    try:
+                        import torch
+
+                        if not torch.cuda.is_available():
+                            device = "cpu"
+                    except ImportError:
+                        device = "cpu"
+
+                self._embedding_model = SentenceTransformer(
+                    self.config.model_name.value, device=device
+                )
+
+                actual_dim = self._embedding_model.get_sentence_embedding_dimension()
+                if actual_dim != self.config.embedding_dimension:
+                    self.config.embedding_dimension = actual_dim
+
+                logger.info(
+                    f"Loaded fallback model: {self.config.model_name.value} "
+                    f"on {device} with dimension {actual_dim}"
+                )
+
+            except Exception as e_fallback:
+                logger.error(f"Failed to load embedding model: {e_fallback}")
+                self._embedding_model = None
 
     def _initialize_clinical_embedder(self) -> None:
         """Initialize the clinical knowledge embedder if available."""
@@ -283,30 +290,30 @@ class EmbeddingAgentService:
     ) -> List[float]:
         """
         Generate embedding using the model.
-
-        Args:
-            text: Text to embed
-            model: Model to use
-
-        Returns:
-            List of floats representing the embedding
         """
         if self._embedding_model is None:
-            # Generate mock embedding
             return self._generate_mock_embedding(text)
 
         try:
-            # Truncate text if necessary
-            truncated_text = text[: self.config.max_text_length]
+            # Check if using NeMo Retriever
+            from ai.pipelines.orchestrator.processing.nvidia_clients import (
+                NemoRetrieverClient,
+            )
 
-            # Generate embedding
+            if isinstance(self._embedding_model, NemoRetrieverClient):
+                # Use NeMo Retriever Client
+                # We can map generic model enum to specific NIM model name if needed
+                # For now we use the default or config model
+                return self._embedding_model.get_embedding(text)
+
+            # Fallback to SentenceTransformer logic
+            truncated_text = text[: self.config.max_text_length]
             embedding = self._embedding_model.encode(
                 truncated_text,
                 normalize_embeddings=self.config.normalize_embeddings,
                 show_progress_bar=False,
             )
 
-            # Convert to list
             if hasattr(embedding, "tolist"):
                 return embedding.tolist()
             return list(embedding)
@@ -433,10 +440,19 @@ class EmbeddingAgentService:
             return [self._generate_mock_embedding(t) for t in texts]
 
         try:
-            # Truncate texts
-            truncated_texts = [t[: self.config.max_text_length] for t in texts]
+            # Check if using NeMo Retriever
+            from ai.pipelines.orchestrator.processing.nvidia_clients import (
+                NemoRetrieverClient,
+            )
 
-            # Batch encode
+            if isinstance(self._embedding_model, NemoRetrieverClient):
+                # NeMo Retriever currently implements single text embedding
+                # We loop here, but in production we should extend client to
+                # support batching
+                return [self._embedding_model.get_embedding(t) for t in texts]
+
+            # SentenceTransformer batch logic
+            truncated_texts = [t[: self.config.max_text_length] for t in texts]
             embeddings = self._embedding_model.encode(
                 truncated_texts,
                 batch_size=self.config.batch_size,
@@ -444,7 +460,6 @@ class EmbeddingAgentService:
                 show_progress_bar=False,
             )
 
-            # Convert to list of lists
             result = []
             for emb in embeddings:
                 if hasattr(emb, "tolist"):

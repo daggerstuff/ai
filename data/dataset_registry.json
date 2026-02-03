@@ -28,7 +28,7 @@
   "datasets": {
     "cot_reasoning": {
       "CoT_Clinical_Diagnosis_Mental_Health": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json"
         },
@@ -39,7 +39,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Heartbreak_and_Breakups": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Heartbreak_and_Breakups_downloaded.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Heartbreak_and_Breakups_downloaded.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Heartbreak_and_Breakups_downloaded.json"
         },
@@ -50,7 +50,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Neurodivergent_vs_Neurotypical": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json"
         },
@@ -61,7 +61,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Mens_Mental_Health": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Reasoning_Mens_Mental_Health_downloaded.json"
         },
@@ -72,7 +72,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Cultural_Nuances": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT-Reasoning_Cultural_Nuances_Dataset.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT-Reasoning_Cultural_Nuances_Dataset.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT-Reasoning_Cultural_Nuances/CoT-Reasoning_Cultural_Nuances_Dataset.json"
         },
@@ -83,7 +83,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Philosophical_Understanding": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Philosophical_Understanding.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Philosophical_Understanding.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Philosophical_Understanding/CoT_Philosophical_Understanding.json"
         },
@@ -94,7 +94,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Temporal_Reasoning": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Temporal_Reasoning_Dataset.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Temporal_Reasoning_Dataset.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Temporal_Reasoning_Dataset/CoT_Temporal_Reasoning_Dataset.json"
         },
@@ -105,7 +105,7 @@
         "quality_profile": "cot_reasoning"
       },
       "RPSD": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/RPSD.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/RPSD.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/RPSD.json"
         },
@@ -117,7 +117,7 @@
         "status": "pending_sync"
       },
       "ToT-RPSD-V2": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/ToT-RPSD-V2.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/ToT-RPSD-V2.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/ToT-RPSD-V2.json"
         },
@@ -129,7 +129,7 @@
         "status": "pending_sync"
       },
       "CoT_Rare_Diseases_Health_Conditions": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Rare_Disseases_Health_Conditions_9.8k.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Rare_Disseases_Health_Conditions_9.8k.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Rare_Disseases_Health_Conditions_9.8k.json"
         },
@@ -141,7 +141,7 @@
         "status": "pending_sync"
       },
       "CoT_Breakups_and_heartbreak": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT-Breakups_and_heartbreak-9.8k.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT-Breakups_and_heartbreak-9.8k.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Heartbreak_and_Breakups_downloaded.json",
           "local": "~/datasets/consolidated/cot_reasoning/CoT-Breakups_and_heartbreak-9.8k.json"
@@ -154,7 +154,7 @@
         "status": "pending_sync"
       },
       "General_Inquiry_Thinking_Chain_Of_Thought": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought_6K.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought_6K.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought_6K.json"
         },
@@ -166,7 +166,7 @@
         "status": "pending_sync"
       },
       "CoT_Reasoning_The_Ancient_Past": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_The_Ancient_Past.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_The_Ancient_Past.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_The_Ancient_Past.json"
         },
@@ -178,7 +178,7 @@
         "status": "pending_sync"
       },
       "CoT_Legal_Issues_And_Laws": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Legal_Issues_And_Laws.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Legal_Issues_And_Laws.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Legal_Issues_And_Laws.json"
         },
@@ -190,7 +190,7 @@
         "status": "pending_sync"
       },
       "CoT_Reasoning_Scientific_Discovery_and_Research": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research.json"
         },
@@ -202,7 +202,7 @@
         "status": "pending_sync"
       },
       "CoT_Medical_Diagnosis": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Medical_Diagnosis_3k.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Medical_Diagnosis_3k.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Medical_Diagnosis_3k.json"
         },
@@ -214,7 +214,7 @@
         "status": "pending_sync"
       },
       "CoT_Reasoning_First_Responders_Triage_And_Emergencies": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json"
         },
@@ -226,7 +226,7 @@
         "status": "pending_sync"
       },
       "CoT_Reasoning_Quantum_Physics_And_Computing": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+        "path": "deprecated://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Quantum_Physics_And_Computing.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Quantum_Physics_And_Computing.json"
         },
@@ -593,26 +593,19 @@
       "recommended_epochs": "2-3"
     },
     "stage_2_therapeutic_expertise": {
-      "datasets": [
-        "cot_reasoning",
-        "academic_psychology_books"
-      ],
+      "datasets": ["cot_reasoning", "academic_psychology_books"],
       "purpose": "Clinical reasoning patterns",
       "recommended_epochs": "1-2",
       "note": "Different style - teaches HOW to think clinically"
     },
     "stage_3_edge_stress_test": {
-      "datasets": [
-        "edge_case_sources"
-      ],
+      "datasets": ["edge_case_sources"],
       "purpose": "Nightmare-fuel crisis rehearsal, scenario prompts, Reddit realism",
       "recommended_epochs": "1",
       "note": "Lenient safety; retain crisis intensity, only strip PII"
     },
     "stage_4_voice_persona": {
-      "datasets": [
-        "voice_persona"
-      ],
+      "datasets": ["voice_persona"],
       "purpose": "Tim Fletcher teaching style/personality",
       "recommended_epochs": "1-2",
       "status": "Transcripts available; synthetic expansion in progress"

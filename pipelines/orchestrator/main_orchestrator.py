@@ -24,6 +24,7 @@ from ai.pipelines.orchestrator.generation_wrapper import GenerationWrapper
 from ai.pipelines.orchestrator.logger import get_logger, setup_pipeline_logging
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
 from ai.pipelines.orchestrator.training_manifest import (
+    ComputeTarget,
     create_safety_aware_manifest,
 )
 
@@ -279,7 +280,7 @@ class DatasetPipelineOrchestrator:
                 manifest.metadata["composition_report_path"] = composition_report_path
 
             # Set appropriate compute target for H100 training
-            manifest.compute_target = manifest.ComputeTarget.GPU_MULTI
+            manifest.compute_target = ComputeTarget.GPU_MULTI
             manifest.resources.min_gpu_memory_gb = 80.0  # H100 specs
             manifest.resources.cloud_provider = "lightning_ai"
             manifest.resources.instance_type = "h100"

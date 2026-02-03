@@ -12,19 +12,14 @@ import argparse
 import json
 import logging
 import shutil
-import sys
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
-# Add project root to sys.path
-project_root = Path(__file__).parents[4]
-if str(project_root) not in sys.path:
-    sys.path.append(str(project_root))
-
 from ai.pipelines.orchestrator.processing.pdf_processor import (
-    PDFProcessor,  # noqa: E402
+    PDFProcessor,
 )
+from ai.utils.s3_dataset_loader import S3DatasetLoader
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +48,7 @@ BOOKS = [
 @dataclass
 class ProcessingContext:
     output_dir: Path
+    s3_loader: S3DatasetLoader | None = None
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
@@ -70,7 +66,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output-dir",
-        default=str(Path(__file__).parents[1] / "data" / "generated" / "therapeutic_books"),
+        default=str(
+            Path(__file__).parents[1] / "data" / "generated" / "therapeutic_books"
+        ),
         help="Output directory for book content",
     )
     return parser
@@ -95,14 +93,50 @@ def process_book(
     pdf_path = Path(path_str).expanduser()
 
     if not pdf_path.exists():
-        logger.warning(f"Book not found at {pdf_path}, skipping.")
-        return "skipped"
+        if ctx.s3_loader:
+            logger.info(f"Book not found at {pdf_path}, attempting S3 download...")
+            filename = pdf_path.name
+            # Try likely locations in S3
+            s3_keys = [
+                f"acquired/books/{filename}",
+                f"gdrive/raw/books/{filename}",
+                f"datasets/consolidated/books/{filename}",
+            ]
+
+            downloaded = False
+            for s3_key in s3_keys:
+                try:
+                    if ctx.s3_loader.object_exists(s3_key):
+                        pdf_path.parent.mkdir(parents=True, exist_ok=True)
+                        ctx.s3_loader.s3_client.download_file(
+                            ctx.s3_loader.bucket, s3_key, str(pdf_path)
+                        )
+                        logger.info(
+                            f"Successfully downloaded {filename} from s3://{ctx.s3_loader.bucket}/{s3_key}"
+                        )
+                        downloaded = True
+                        break
+                except Exception as e:
+                    logger.debug(f"Failed to download {filename} from {s3_key}: {e}")
+
+            if not downloaded:
+                logger.warning(
+                    f"Book not found at {pdf_path} and S3 download failed, skipping."
+                )
+                return "skipped"
+        else:
+            logger.warning(
+                f"Book not found at {pdf_path} and no S3 loader available, skipping."
+            )
+            return "skipped"
 
     logger.info(f"Processing {book_config['title']} by {book_config['author']}...")
 
     try:
         # Generate JSONL
-        generated_file = processor.process_pdf(str(pdf_path), source_name=book_config["title"])
+        generated_file = processor.process_pdf(
+            str(pdf_path), source_name=book_config["title"]
+        )
         if generated_file and Path(generated_file).exists():
             # Move to final location
             author_dir = ctx.output_dir / _sanitize_filename(book_config["author"])
@@ -145,8 +179,16 @@ def main() -> int:
 
     processed_count = 0
 
+    # Initialize S3 loader
+    try:
+        s3_loader = S3DatasetLoader()
+    except Exception as e:
+        logger.warning(f"Could not initialize S3 loader: {e}")
+        s3_loader = None
+
     ctx = ProcessingContext(
         output_dir=output_dir,
+        s3_loader=s3_loader,
     )
 
     for book_config in BOOKS:

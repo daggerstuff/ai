@@ -87,7 +87,9 @@ class CoTReasoningIntegrator:
             },
             "clinical_diagnosis": {
                 "name": "CoT_Reasoning_Clinical_Diagnosis_Mental_Health",
-                "description": "Clinical diagnostic reasoning for mental health conditions",
+                "description": (
+                    "Clinical diagnostic reasoning for mental health conditions"
+                ),
                 "reasoning_type": "clinical_diagnosis_reasoning",
                 "therapeutic_focus": "diagnostic_reasoning",
                 "expected_size": "large",
@@ -129,7 +131,9 @@ class CoTReasoningIntegrator:
             },
             "rare_diseases": {
                 "name": "CoT_Rare-Diseases_And_Health-Conditions",
-                "description": "Psychological support for rare diseases and health conditions",
+                "description": (
+                    "Psychological support for rare diseases and health conditions"
+                ),
                 "reasoning_type": "rare_disease_reasoning",
                 "therapeutic_focus": "medical_psychology",
                 "expected_size": "large",
@@ -143,7 +147,10 @@ class CoTReasoningIntegrator:
             },
             "scientific_research": {
                 "name": "CoT_Reasoning_Scientific_Discovery_and_Research",
-                "description": "Evidence-based therapeutic reasoning grounded in research discovery",
+                "description": (
+                    "Evidence-based therapeutic reasoning grounded in research "
+                    "discovery"
+                ),
                 "reasoning_type": "research_reasoning",
                 "therapeutic_focus": "evidence_based_practice",
                 "expected_size": "medium",
@@ -157,7 +164,9 @@ class CoTReasoningIntegrator:
             },
             "tree_of_thought": {
                 "name": "ToT_Reasoning_Problem_Solving_Dataset_V2",
-                "description": "Tree-of-Thought problem solving for therapeutic planning",
+                "description": (
+                    "Tree-of-Thought problem solving for therapeutic planning"
+                ),
                 "reasoning_type": "tree_of_thought_reasoning",
                 "therapeutic_focus": "structured_problem_solving",
                 "expected_size": "large",
@@ -346,7 +355,9 @@ class CoTReasoningIntegrator:
         cmd = ["ovhai", "cp", resolved_path, str(target_path)]
 
         try:
-            completed = subprocess.run(cmd, check=True, capture_output=True, text=True)
+            completed = subprocess.run(
+                cmd, check=True, capture_output=True, text=True, shell=False
+            )
             if completed.stdout:
                 logger.info(completed.stdout.strip())
         except subprocess.CalledProcessError as exc:
@@ -495,135 +506,218 @@ class CoTReasoningIntegrator:
 
         scenarios = {
             "clinical_diagnosis_reasoning": (
-                "A client presents with overlapping depressive and anxiety symptoms after a prolonged period of workplace stress.",
+                "A client presents with overlapping depressive and anxiety "
+                "symptoms after a prolonged period of workplace stress.",
                 [
-                    "Gather symptom clusters and duration: Document depressive and anxious features",
-                    "Map findings to DSM-5 criteria: Check major depressive episode and GAD thresholds",
-                    "Rule out differentials: Exclude substance, thyroid, and adjustment disorder",
-                    "Assess severity and functional impact: Evaluate sleep, appetite, and concentration",
-                    "Select initial intervention plan: Psychoeducation, CBT, and medication consult",
+                    "Gather symptom clusters and duration: Document depressive "
+                    "and anxious features",
+                    "Map findings to DSM-5 criteria: Check major depressive "
+                    "episode and GAD thresholds",
+                    "Rule out differentials: Exclude substance, thyroid, and "
+                    "adjustment disorder",
+                    "Assess severity and functional impact: Evaluate sleep, "
+                    "appetite, and concentration",
+                    "Select initial intervention plan: Psychoeducation, CBT, and "
+                    "medication consult",
                 ],
-                "Provide a provisional diagnosis, create a stabilization plan, and schedule close follow-up for safety and response tracking.",
+                "Provide a provisional diagnosis, create a stabilization plan, "
+                "and schedule close follow-up for safety and response tracking.",
             ),
             "neurodiversity_reasoning": (
-                "A client with autism spectrum disorder is struggling with social anxiety in workplace settings. They report feeling overwhelmed by office noise and unexpected schedule changes.",
+                "A client with autism spectrum disorder is struggling with social "
+                "anxiety in workplace settings. They report feeling overwhelmed "
+                "by office noise and unexpected schedule changes.",
                 [
-                    "Consider neurodivergent perspective: Client may have heightened sensory sensitivity",
-                    "Assess sensory processing differences: Office environment may be overstimulating",
-                    "Evaluate communication preferences: Direct, clear communication may be preferred",
-                    "Account for executive function variations: Schedule changes may be particularly challenging",
-                    "Recognize masking behaviors: Client may be exhausted from masking autistic traits",
+                    "Consider neurodivergent perspective: Client may have "
+                    "heightened sensory sensitivity",
+                    "Assess sensory processing differences: Office environment "
+                    "may be overstimulating",
+                    "Evaluate communication preferences: Direct, clear "
+                    "communication may be preferred",
+                    "Account for executive function variations: Schedule changes "
+                    "may be particularly challenging",
+                    "Recognize masking behaviors: Client may be exhausted from "
+                    "masking autistic traits",
                 ],
-                "Recommend sensory accommodations, structured communication protocols, and validation of neurodivergent experiences while building coping strategies.",
+                "Recommend sensory accommodations, structured communication "
+                "protocols, and validation of neurodivergent experiences while "
+                "building coping strategies.",
             ),
             "relationship_reasoning": (
-                "A client is in acute distress after an unexpected breakup and is struggling with intrusive thoughts and sleep disruption.",
+                "A client is in acute distress after an unexpected breakup and is "
+                "struggling with intrusive thoughts and sleep disruption.",
                 [
                     "Validate acute emotional distress: Normalize grief responses",
-                    "Assess attachment and rupture patterns: Identify abandonment triggers",
-                    "Stabilize with safety and boundaries: Limit contact while emotions are acute",
-                    "Build adaptive coping strategies: Sleep hygiene, social support, grounding",
-                    "Plan paced contact and recovery goals: Structured reflection before major decisions",
+                    "Assess attachment and rupture patterns: Identify "
+                    "abandonment triggers",
+                    "Stabilize with safety and boundaries: Limit contact while "
+                    "emotions are acute",
+                    "Build adaptive coping strategies: Sleep hygiene, social "
+                    "support, grounding",
+                    "Plan paced contact and recovery goals: Structured "
+                    "reflection before major decisions",
                 ],
-                "Focus on stabilization, adaptive coping, and paced meaning-making while monitoring for depressive or risk escalation.",
+                "Focus on stabilization, adaptive coping, and paced meaning-"
+                "making while monitoring for depressive or risk escalation.",
             ),
             "gender_specific_reasoning": (
-                "A male client in his 30s is reluctant to discuss emotional struggles, presenting only with work stress and relationship conflicts.",
+                "A male client in his 30s is reluctant to discuss emotional "
+                "struggles, presenting only with work stress and relationship "
+                "conflicts.",
                 [
-                    "Consider societal gender expectations: Men often discouraged from emotional expression",
-                    "Assess masculine identity pressures: May feel vulnerability threatens masculinity",
-                    "Evaluate emotional expression barriers: Limited emotional vocabulary common",
-                    "Account for help-seeking stigma: Therapy may feel like admission of weakness",
-                    "Recognize vulnerability challenges: Need safe space to explore emotions",
+                    "Consider societal gender expectations: Men often discouraged "
+                    "from emotional expression",
+                    "Assess masculine identity pressures: May feel vulnerability "
+                    "threatens masculinity",
+                    "Evaluate emotional expression barriers: Limited emotional "
+                    "vocabulary common",
+                    "Account for help-seeking stigma: Therapy may feel like "
+                    "admission of weakness",
+                    "Recognize vulnerability challenges: Need safe space to "
+                    "explore emotions",
                 ],
-                "Use strength-based approach, normalize emotional experiences, and gradually build emotional awareness through practical frameworks.",
+                "Use strength-based approach, normalize emotional experiences, "
+                "and gradually build emotional awareness through practical "
+                "frameworks.",
             ),
             "legal_reasoning": (
-                "A client discloses potential workplace harassment and asks about confidentiality limits before sharing specifics.",
+                "A client discloses potential workplace harassment and asks about "
+                "confidentiality limits before sharing specifics.",
                 [
-                    "Identify jurisdictional obligations: Confirm legal and ethical boundaries",
-                    "Evaluate mandated reporting thresholds: Screen for imminent harm or protected classes",
-                    "Clarify confidentiality boundaries: Explain scope and limits before details",
-                    "Document risk and rationale: Keep contemporaneous notes of decisions",
-                    "Coordinate with legal/ethical resources: Consult supervision or legal counsel as needed",
+                    "Identify jurisdictional obligations: Confirm legal and "
+                    "ethical boundaries",
+                    "Evaluate mandated reporting thresholds: Screen for imminent "
+                    "harm or protected classes",
+                    "Clarify confidentiality boundaries: Explain scope and "
+                    "limits before details",
+                    "Document risk and rationale: Keep contemporaneous notes of "
+                    "decisions",
+                    "Coordinate with legal/ethical resources: Consult supervision "
+                    "or legal counsel as needed",
                 ],
-                "Provide clear confidentiality framing, document decisions, and ensure client safety while following legal and ethical requirements.",
+                "Provide clear confidentiality framing, document decisions, and "
+                "ensure client safety while following legal and ethical "
+                "requirements.",
             ),
             "philosophical_reasoning": (
-                "A client is experiencing existential crisis following major life transition, questioning life's meaning and purpose.",
+                "A client is experiencing existential crisis following major life "
+                "transition, questioning life's meaning and purpose.",
                 [
-                    "Examine existential concerns: Client facing fundamental questions about existence",
-                    "Explore meaning and purpose: Transition has disrupted sense of direction",
-                    "Consider life's fundamental questions: What makes life worth living?",
-                    "Assess values and beliefs: Core beliefs may be challenged or evolving",
-                    "Evaluate spiritual dimensions: May need to explore transcendent meaning",
+                    "Examine existential concerns: Client facing fundamental "
+                    "questions about existence",
+                    "Explore meaning and purpose: Transition has disrupted sense "
+                    "of direction",
+                    "Consider life's fundamental questions: What makes life worth "
+                    "living?",
+                    "Assess values and beliefs: Core beliefs may be challenged or "
+                    "evolving",
+                    "Evaluate spiritual dimensions: May need to explore "
+                    "transcendent meaning",
                 ],
-                "Engage in existential exploration, help client construct personal meaning, and support values clarification process.",
+                "Engage in existential exploration, help client construct "
+                "personal meaning, and support values clarification process.",
             ),
             "rare_disease_reasoning": (
-                "A client recently diagnosed with a rare autoimmune condition reports fear of disability and isolation.",
+                "A client recently diagnosed with a rare autoimmune condition "
+                "reports fear of disability and isolation.",
                 [
-                    "Confirm medical context and prognosis: Coordinate with medical team",
-                    "Assess psychological impact: Grief, uncertainty, and identity shifts",
-                    "Coordinate with multidisciplinary care team: Align goals and communication",
-                    "Plan accommodations and pacing: Energy management and adaptive scheduling",
-                    "Build resilience and support network: Peer groups and caregiver education",
+                    "Confirm medical context and prognosis: Coordinate with "
+                    "medical team",
+                    "Assess psychological impact: Grief, uncertainty, and "
+                    "identity shifts",
+                    "Coordinate with multidisciplinary care team: Align goals "
+                    "and communication",
+                    "Plan accommodations and pacing: Energy management and "
+                    "adaptive scheduling",
+                    "Build resilience and support network: Peer groups and "
+                    "caregiver education",
                 ],
-                "Develop a collaborative care plan that balances medical demands with psychological support and sustainable pacing.",
+                "Develop a collaborative care plan that balances medical demands "
+                "with psychological support and sustainable pacing.",
             ),
             "temporal_reasoning": (
-                "A client with depression needs comprehensive treatment planning considering symptom progression and recovery timeline.",
+                "A client with depression needs comprehensive treatment planning "
+                "considering symptom progression and recovery timeline.",
                 [
-                    "Assess timeline of symptoms: Depression developed over 6-month period",
-                    "Plan treatment progression: Start with stabilization, then skill-building",
-                    "Consider developmental stages: Client in early career development phase",
-                    "Evaluate progress markers: Weekly mood tracking and functional improvements",
-                    "Project future outcomes: Expect gradual improvement over 3-6 months",
+                    "Assess timeline of symptoms: Depression developed over "
+                    "6-month period",
+                    "Plan treatment progression: Start with stabilization, then "
+                    "skill-building",
+                    "Consider developmental stages: Client in early career "
+                    "development phase",
+                    "Evaluate progress markers: Weekly mood tracking and "
+                    "functional improvements",
+                    "Project future outcomes: Expect gradual improvement over "
+                    "3-6 months",
                 ],
-                "Implement phased treatment approach with clear milestones and regular progress evaluation.",
+                "Implement phased treatment approach with clear milestones and "
+                "regular progress evaluation.",
             ),
             "research_reasoning": (
-                "A client asks whether a new evidence-based protocol is appropriate for their complex trauma history.",
+                "A client asks whether a new evidence-based protocol is "
+                "appropriate for their complex trauma history.",
                 [
-                    "Identify evidence base for presenting problem: Locate trauma-focused studies",
-                    "Critically appraise study quality and applicability: Check inclusion/exclusion",
-                    "Translate findings into client-specific plan: Adapt pacing and dosing",
-                    "Document risks, benefits, and uncertainties: Ensure informed collaboration",
-                    "Monitor outcomes and iterate: Track response and side-effects closely",
+                    "Identify evidence base for presenting problem: Locate "
+                    "trauma-focused studies",
+                    "Critically appraise study quality and applicability: Check "
+                    "inclusion/exclusion",
+                    "Translate findings into client-specific plan: Adapt pacing "
+                    "and dosing",
+                    "Document risks, benefits, and uncertainties: Ensure informed "
+                    "collaboration",
+                    "Monitor outcomes and iterate: Track response and "
+                    "side-effects closely",
                 ],
-                "Propose an adapted, trauma-informed plan that is evidence-aligned, collaboratively reviewed, and monitored for safety.",
+                "Propose an adapted, trauma-informed plan that is evidence-"
+                "aligned, collaboratively reviewed, and monitored for safety.",
             ),
             "cultural_reasoning": (
-                "A client from collectivist cultural background is struggling with individual therapy approach and family expectations.",
+                "A client from collectivist cultural background is struggling "
+                "with individual therapy approach and family expectations.",
                 [
-                    "Consider cultural background: Collectivist values may conflict with individual focus",
-                    "Assess family dynamics: Family involvement may be crucial for success",
+                    "Consider cultural background: Collectivist values may "
+                    "conflict with individual focus",
+                    "Assess family dynamics: Family involvement may be crucial "
+                    "for success",
                     "Evaluate cultural values: Honor and family harmony highly valued",
-                    "Account for language barriers: May need culturally adapted interventions",
-                    "Recognize cultural stigma: Mental health treatment may carry cultural shame",
+                    "Account for language barriers: May need culturally adapted "
+                    "interventions",
+                    "Recognize cultural stigma: Mental health treatment may carry "
+                    "cultural shame",
                 ],
-                "Adapt therapy to include family systems perspective and culturally sensitive interventions.",
+                "Adapt therapy to include family systems perspective and "
+                "culturally sensitive interventions.",
             ),
             "tree_of_thought_reasoning": (
-                "A client faces recurring conflict with a sibling caregiver and wants a structured plan to reduce escalation.",
+                "A client faces recurring conflict with a sibling caregiver and "
+                "wants a structured plan to reduce escalation.",
                 [
-                    "Generate multiple therapeutic hypotheses: Communication style, role strain, unmet needs",
-                    "Branch potential interventions: Mediation, boundary-setting, shared schedules",
-                    "Score branches for risk and feasibility: Prioritize safety and low-cost steps",
-                    "Prune ineffective branches: Remove high-risk or low-impact options",
-                    "Select best path and plan checkpoints: Pilot one intervention with weekly review",
+                    "Generate multiple therapeutic hypotheses: Communication "
+                    "style, role strain, unmet needs",
+                    "Branch potential interventions: Mediation, boundary-setting, "
+                    "shared schedules",
+                    "Score branches for risk and feasibility: Prioritize safety "
+                    "and low-cost steps",
+                    "Prune ineffective branches: Remove high-risk or low-impact "
+                    "options",
+                    "Select best path and plan checkpoints: Pilot one "
+                    "intervention with weekly review",
                 ],
-                "Deploy the highest-safety branch first, review outcomes weekly, and iterate with additional branches as needed.",
+                "Deploy the highest-safety branch first, review outcomes weekly, "
+                "and iterate with additional branches as needed.",
             ),
         }
 
         if reasoning_type not in scenarios:
             reasoning_chain = reasoning_patterns
             problem = (
-                f"Therapeutic reasoning scenario for {config['description']} focusing on "
-                f"{config['therapeutic_focus']}."
+                f"Therapeutic reasoning scenario for {config['description']} "
+                f"focusing on {config['therapeutic_focus']}."
             )
-            conclusion = "Apply evidence-aligned plan with clear safety checks, documentation, and follow-up."
+            conclusion = (
+                "Apply evidence-aligned plan with clear safety checks, "
+                "documentation, and follow-up."
+            )
         else:
             problem, reasoning_chain, conclusion = scenarios[reasoning_type]
 

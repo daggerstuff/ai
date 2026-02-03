@@ -6,6 +6,7 @@ Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive setup, validation, and monitoring capabilities.
 """
 
+import importlib.util
 import json
 import logging
 import subprocess
@@ -54,19 +55,22 @@ class QualityAnalyticsDashboardLauncher:
         for package in self.required_packages:
             try:
                 if package == "sqlite3":
-                    import sqlite3
+                    spec = importlib.util.find_spec("sqlite3")
                 elif package == "streamlit":
-                    import streamlit
+                    spec = importlib.util.find_spec("streamlit")
                 elif package == "pandas":
-                    import pandas
+                    spec = importlib.util.find_spec("pandas")
                 elif package == "plotly":
-                    import plotly
+                    spec = importlib.util.find_spec("plotly")
                 elif package == "numpy":
-                    import numpy
+                    spec = importlib.util.find_spec("numpy")
                 elif package == "seaborn":
-                    import seaborn
+                    spec = importlib.util.find_spec("seaborn")
                 elif package == "matplotlib":
-                    import matplotlib
+                    spec = importlib.util.find_spec("matplotlib")
+
+                if spec is None:
+                    raise ImportError(f"{package} not found specific")
 
                 logger.info(f"  ✅ {package}: Available")
 
@@ -210,6 +214,7 @@ class QualityAnalyticsDashboardLauncher:
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 text=True,
+                shell=False,
             )
 
             logger.info("✅ Dashboard launched successfully!")
@@ -249,6 +254,7 @@ class QualityAnalyticsDashboardLauncher:
                 capture_output=True,
                 text=True,
                 timeout=60,
+                shell=False,
             )
 
             if result.returncode == 0:
@@ -302,7 +308,8 @@ class QualityAnalyticsDashboardLauncher:
                 logger.warning("⚠️ Pre-launch tests failed, but continuing...")
 
         # Step 5: Create launch configuration
-        config = self.create_launch_config()
+        # Step 5: Create launch configuration
+        self.create_launch_config()
 
         # Step 6: Launch dashboard
         success = self.launch_dashboard(port=port, host=host)

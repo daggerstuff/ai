@@ -111,6 +111,7 @@ class NGCCLI:
                 capture_output=True,
                 text=True,
                 check=False,
+                shell=False,
             )
             if "ngc" in result.stdout.lower():
                 self.ngc_cmd = f"{self.uv_cmd} run ngc"
@@ -163,6 +164,7 @@ class NGCCLI:
                 capture_output=True,
                 text=True,
                 check=True,
+                shell=False,
             )
 
             config = {}
@@ -174,7 +176,7 @@ class NGCCLI:
                 if "|" in line and "| key " not in line.lower() and "---" not in line:
                     parts = [part.strip() for part in line.split("|") if part.strip()]
                     if len(parts) >= 3:  # key | value | source
-                        key, value, source = parts[0], parts[1], parts[2]
+                        key, value, _ = parts[0], parts[1], parts[2]
                         if key:  # New key
                             current_key = key
                             config[key] = value
@@ -184,7 +186,8 @@ class NGCCLI:
                         config[current_key] += parts[0]
 
             # Check if API key is configured (it will be masked with asterisks)
-            # If we have any config and apikey exists (even masked), consider it configured
+            # If we have any config and apikey exists (even masked), consider it
+            # configured
             if config and ("apikey" in config or "API key" in config):
                 return config
 
@@ -220,6 +223,7 @@ class NGCCLI:
                 text=True,
                 check=True,
                 capture_output=True,
+                shell=False,
             )
             logger.info("NGC CLI configured successfully")
         except subprocess.CalledProcessError as e:
@@ -236,7 +240,8 @@ class NGCCLI:
         Download a resource from NGC catalog.
 
         Args:
-            resource_path: Resource path in format "org/team/resource" or "nvidia/nemo-microservices/nemo-microservices-quickstart"
+            resource_path: Resource path in format "org/team/resource" or
+                "nvidia/nemo-microservices/nemo-microservices-quickstart"
             version: Optional version tag (e.g., "25.10")
             output_dir: Optional output directory (defaults to current directory)
             extract: Whether to extract downloaded archive
@@ -283,7 +288,8 @@ class NGCCLI:
         self, output_dir: Path, resource_spec: str, cmd: list[str]
     ) -> Path:
         """
-        Execute download command in the specified directory and locate the downloaded resource.
+        Execute download command in the specified directory and locate the downloaded
+        resource.
 
         Args:
             output_dir: Directory to download into
@@ -291,7 +297,8 @@ class NGCCLI:
             cmd: Command to execute
 
         Returns:
-            Path to the downloaded resource (most recently modified item, or output_dir if empty)
+            Path to the downloaded resource (most recently modified item, or output_dir
+            if empty)
 
         Raises:
             NGCCLIDownloadError: If download fails
@@ -299,7 +306,9 @@ class NGCCLI:
         os.chdir(output_dir)
         logger.info(f"Downloading {resource_spec} to {output_dir}...")
 
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        result = subprocess.run(
+            cmd, capture_output=True, text=True, check=False, shell=False
+        )
 
         if result.returncode != 0:
             error_msg = result.stderr or result.stdout
@@ -340,7 +349,7 @@ class NGCCLI:
             cmd.extend(["--team", team])
 
         try:
-            subprocess.run(cmd, capture_output=True, text=True, check=True)
+            subprocess.run(cmd, capture_output=True, text=True, check=True, shell=False)
 
             # Parse output (format may vary)
             # TODO: Implement proper parsing based on actual NGC CLI output format
