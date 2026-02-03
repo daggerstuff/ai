@@ -146,7 +146,7 @@ def clean_and_deduplicate(
     lgr = logger_obj or logger
 
     # If NeMo Curator is enabled, offload high-performance cleaning
-    if USE_NVIDIA_CURATOR:
+    if os.getenv("USE_NVIDIA_CURATOR", "false").lower() == "true":
         lgr.info("Offloading cleaning to NVIDIA NeMo Curator microservice.")
         try:
             client = NemoCuratorClient()

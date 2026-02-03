@@ -516,10 +516,10 @@ class YouTubeRAGSystem:
         dual_context = {}
         if self.use_nvidia and self.retriever_client:
             try:
-                logger.info(f"Using NVIDIA Dual Persona Search for: {query}")
+                logger.info(f"Using NVIDIA Tri-Persona Search for: {query}")
                 # Collect candidate contents for reranking
                 candidates = [entry.content for entry in self.rag_index[:100]]
-                dual_context = self.retriever_client.dual_persona_search(
+                dual_context = self.retriever_client.tri_persona_search(
                     query, documents=candidates, top_k=top_k
                 )
                 query_embedding = self.retriever_client.get_embedding(query)
@@ -550,10 +550,57 @@ class YouTubeRAGSystem:
                     logger.warning(f"Error calculating similarity: {str(e)}")
                     continue
 
-        # Sort by similarity and return top_k
+        # Sort by similarity and return top candidates for possible reranking
         similarities.sort(key=lambda x: x[1], reverse=True)
-        results = []
+        top_candidates = similarities[: top_k * 2]
 
+        # Apply NVIDIA safety-constrained reranking if enabled
+        if self.use_nvidia and self.retriever_client:
+            try:
+                candidate_texts = [entry.content for entry, _ in top_candidates]
+                reranked = self.retriever_client.safety_constrained_rerank(
+                    query, documents=candidate_texts, top_n=top_k
+                )
+
+                # Map reranked results back to entries
+                results = []
+                for item in reranked:
+                    # Find original entry by content (imperfect but simple for now)
+                    content = item.get("text", item.get("document", ""))
+                    for entry, sim in top_candidates:
+                        if entry.content == content:
+                            results.append(
+                                {
+                                    "content": entry.content,
+                                    "similarity": float(
+                                        item.get("relevance_score", sim)
+                                    ),
+                                    "metadata": {
+                                        "title": entry.metadata.title,
+                                        "speaker": entry.metadata.speaker,
+                                        "topics": entry.metadata.topics,
+                                        "therapeutic_approaches": (
+                                            entry.metadata.therapeutic_approaches
+                                        ),
+                                        "summary": entry.metadata.summary,
+                                        "dual_persona_context": dual_context
+                                        if len(results) == 0
+                                        else {},
+                                        "safety_reranked": True,
+                                    },
+                                    "transcript_id": entry.transcript_id,
+                                }
+                            )
+                            break
+                return results
+            except Exception as e:
+                logger.error(
+                    f"NVIDIA Safety Rerank failed: {e}. "
+                    "Returning raw similarity results."
+                )
+
+        # Standard return if no reranking or reranking failed
+        results = []
         for i, (entry, similarity) in enumerate(similarities[:top_k]):
             result = {
                 "content": entry.content,
