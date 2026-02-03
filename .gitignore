@@ -56,3 +56,7 @@ AGENTS.md
 
 # Certificates
 utils/certs/*.pem
+# Large Unified Training Data
+data/unified_training/train.json
+data/unified_training/validation.json
+data/unified_training/expert_*.json
