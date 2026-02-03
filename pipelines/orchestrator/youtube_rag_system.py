@@ -8,11 +8,14 @@ Retrieval-Augmented Generation (RAG) system for dynamic transcript retrieval.
 import hashlib
 import json
 import logging
+import os
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from ai.pipelines.orchestrator.processing.nvidia_clients import NemoRetrieverClient
 
 # Centralized output root for runtime artifacts
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
@@ -79,13 +82,25 @@ class YouTubeRAGSystem:
         self.index_dir.parent.mkdir(parents=True, exist_ok=True)
         self.index_dir.mkdir(exist_ok=True)
 
-        # Load sentence transformer for embeddings
-        try:
-            self.encoder = SentenceTransformer(model_name)
-            logger.info(f"Loaded sentence transformer: {model_name}")
-        except Exception as e:
-            logger.warning(f"Failed to load sentence transformer: {str(e)}")
-            self.encoder = None
+        self.use_nvidia = os.getenv("USE_NVIDIA_RETRIEVER", "false").lower() == "true"
+        self.retriever_client = None
+
+        if self.use_nvidia:
+            try:
+                self.retriever_client = NemoRetrieverClient()
+                logger.info("Using NVIDIA NeMo Retriever for embeddings and reranking")
+            except Exception as e:
+                logger.error(f"Failed to initialize NeMo Retriever: {e}")
+                self.use_nvidia = False
+
+        if not self.use_nvidia:
+            # Load sentence transformer for embeddings
+            try:
+                self.encoder = SentenceTransformer(model_name)
+                logger.info(f"Loaded sentence transformer: {model_name}")
+            except Exception as e:
+                logger.warning(f"Failed to load sentence transformer: {str(e)}")
+                self.encoder = None
 
         self.transcripts: Dict[str, TranscriptMetadata] = {}
         self.rag_index: List[RAGIndexEntry] = []
@@ -421,14 +436,20 @@ class YouTubeRAGSystem:
                     for i, chunk in enumerate(chunks):
                         entry_id = f"{video_id}_{i}"
 
-                        # Generate embedding if encoder is available
-                        embedding = None
-                        if self.encoder:
+                        # Generate embedding
+                        if self.use_nvidia and self.retriever_client:
+                            try:
+                                embedding = self.retriever_client.get_embedding(chunk)
+                            except Exception as e:
+                                logger.warning(f"NVIDIA Embedding failed: {e}")
+                                embedding = None
+                        elif self.encoder:
                             try:
                                 embedding = self.encoder.encode(chunk).tolist()
                             except Exception as e:
                                 logger.warning(
-                                    f"Failed to generate embedding for {entry_id}: {str(e)}"
+                                    f"Failed to generate embedding for {entry_id}: "
+                                    f"{str(e)}"
                                 )
 
                         entry = RAGIndexEntry(
@@ -491,10 +512,24 @@ class YouTubeRAGSystem:
         if not self.rag_index:
             return []
 
-        # Generate query embedding
-        if self.encoder:
+        # Generate query context using Dual Persona search if NVIDIA is enabled
+        dual_context = {}
+        if self.use_nvidia and self.retriever_client:
             try:
-                query_embedding = self.encoder.encode(query).reshape(1, -1)
+                logger.info(f"Using NVIDIA Dual Persona Search for: {query}")
+                # Collect candidate contents for reranking
+                candidates = [entry.content for entry in self.rag_index[:100]]
+                dual_context = self.retriever_client.dual_persona_search(
+                    query, documents=candidates, top_k=top_k
+                )
+                query_embedding = self.retriever_client.get_embedding(query)
+                q_emb_arr = np.array(query_embedding).reshape(1, -1)
+            except Exception as e:
+                logger.error(f"NVIDIA Dual Persona Search failed: {e}")
+                return []
+        elif self.encoder:
+            try:
+                q_emb_arr = self.encoder.encode(query).reshape(1, -1)
             except Exception as e:
                 logger.error(f"Failed to encode query: {str(e)}")
                 return []
@@ -508,7 +543,7 @@ class YouTubeRAGSystem:
             if entry.embedding:
                 try:
                     similarity = cosine_similarity(
-                        query_embedding, np.array(entry.embedding).reshape(1, -1)
+                        q_emb_arr, np.array(entry.embedding).reshape(1, -1)
                     )[0][0]
                     similarities.append((entry, similarity))
                 except Exception as e:
@@ -519,7 +554,7 @@ class YouTubeRAGSystem:
         similarities.sort(key=lambda x: x[1], reverse=True)
         results = []
 
-        for entry, similarity in similarities[:top_k]:
+        for i, (entry, similarity) in enumerate(similarities[:top_k]):
             result = {
                 "content": entry.content,
                 "similarity": float(similarity),
@@ -529,6 +564,7 @@ class YouTubeRAGSystem:
                     "topics": entry.metadata.topics,
                     "therapeutic_approaches": entry.metadata.therapeutic_approaches,
                     "summary": entry.metadata.summary,
+                    "dual_persona_context": dual_context if i == 0 else {},
                 },
                 "transcript_id": entry.transcript_id,
             }
@@ -776,7 +812,8 @@ if __name__ == "__main__":
         results = system.search_transcripts("complex trauma", top_k=2)
         for i, result in enumerate(results, 1):
             print(
-                f"  {i}. {result['metadata']['title']} (similarity: {result['similarity']:.3f})"
+                f"  {i}. {result['metadata']['title']} "
+                f"(similarity: {result['similarity']:.3f})"
             )
             print(f"     Content preview: {result['content'][:100]}...")
             print()

@@ -117,13 +117,23 @@ class S3DatasetLoader:
 
         # Initialize S3 client (OVH S3 compatible)
         # OVH uses self-signed certificates, so verify=False is required
+        verify_ssl = os.getenv("OVH_S3_CA_BUNDLE", True)
+        # Handle string "False" or "0" from env
+        if str(verify_ssl).lower() in ("false", "0", "no"):
+            verify_ssl = False
+
+        if verify_ssl is False:
+            logger.warning(
+                "Initializing S3 client with SSL verification DISABLED (insecure)"
+            )
+
         self.s3_client = boto3.client(
             "s3",
             endpoint_url=self.endpoint_url,
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
             region_name=region_name or os.getenv("OVH_S3_REGION", "us-east-va"),
-            verify=False,  # OVH uses self-signed certificates
+            verify=verify_ssl,
         )
 
         logger.info(f"S3DatasetLoader initialized for bucket: {bucket}")
