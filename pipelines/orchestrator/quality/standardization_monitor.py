@@ -19,6 +19,7 @@ from logger import get_logger
 
 class AlertLevel(Enum):
     """Alert severity levels."""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -28,6 +29,7 @@ class AlertLevel(Enum):
 @dataclass
 class QualityMetric:
     """Quality metric data point."""
+
     name: str
     value: float
     timestamp: datetime
@@ -37,6 +39,7 @@ class QualityMetric:
 @dataclass
 class QualityAlert:
     """Quality alert information."""
+
     level: AlertLevel
     message: str
     metric_name: str
@@ -49,6 +52,7 @@ class QualityAlert:
 @dataclass
 class StandardizationMetrics:
     """Comprehensive standardization metrics."""
+
     total_processed: int = 0
     successful: int = 0
     failed: int = 0
@@ -77,7 +81,7 @@ class StandardizationMonitor:
         self,
         window_size: int = 1000,
         alert_cooldown: int = 300,  # seconds
-        enable_real_time: bool = True
+        enable_real_time: bool = True,
     ):
         """
         Initialize StandardizationMonitor.
@@ -107,7 +111,7 @@ class StandardizationMonitor:
             "min_success_rate": 0.8,
             "max_processing_time": 5.0,  # seconds
             "min_quality_score": 0.7,
-            "max_error_rate": 0.2
+            "max_error_rate": 0.2,
         }
 
         # Alert tracking
@@ -128,9 +132,13 @@ class StandardizationMonitor:
         if self.enable_real_time:
             self.start_monitoring()
 
-        self.logger.info(f"StandardizationMonitor initialized with window size {window_size}")
+        self.logger.info(
+            f"StandardizationMonitor initialized with window size {window_size}"
+        )
 
-    def register_quality_assessor(self, assessor: Callable[[Conversation], float]) -> None:
+    def register_quality_assessor(
+        self, assessor: Callable[[Conversation], float]
+    ) -> None:
         """
         Register a quality assessment function.
 
@@ -156,7 +164,7 @@ class StandardizationMonitor:
         item_id: str,
         conversation: Conversation,
         source_format: str,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Record successful processing of an item.
@@ -173,8 +181,9 @@ class StandardizationMonitor:
             # Update basic metrics
             self.current_metrics.total_processed += 1
             self.current_metrics.successful += 1
-            self.current_metrics.format_distribution[source_format] = \
+            self.current_metrics.format_distribution[source_format] = (
                 self.current_metrics.format_distribution.get(source_format, 0) + 1
+            )
 
             # Record processing time
             if processing_time > 0:
@@ -188,17 +197,19 @@ class StandardizationMonitor:
                 self._update_quality_metrics()
 
             # Record metric
-            self.metrics_history.append(QualityMetric(
-                name="processing_success",
-                value=1.0,
-                timestamp=datetime.now(),
-                metadata={
-                    "source_format": source_format,
-                    "processing_time": processing_time,
-                    "message_count": len(conversation.messages),
-                    **(metadata or {})
-                }
-            ))
+            self.metrics_history.append(
+                QualityMetric(
+                    name="processing_success",
+                    value=1.0,
+                    timestamp=datetime.now(),
+                    metadata={
+                        "source_format": source_format,
+                        "processing_time": processing_time,
+                        "message_count": len(conversation.messages),
+                        **(metadata or {}),
+                    },
+                )
+            )
 
         # Check for alerts
         self._check_alerts()
@@ -208,7 +219,7 @@ class StandardizationMonitor:
         item_id: str,
         error: str,
         source_format: str | None = None,
-        metadata: dict[str, Any] | None = None
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Record failed processing of an item.
@@ -227,13 +238,17 @@ class StandardizationMonitor:
             self.current_metrics.failed += 1
 
             # Track error types
-            error_type = type(error).__name__ if isinstance(error, Exception) else "Unknown"
-            self.current_metrics.error_distribution[error_type] = \
+            error_type = (
+                type(error).__name__ if isinstance(error, Exception) else "Unknown"
+            )
+            self.current_metrics.error_distribution[error_type] = (
                 self.current_metrics.error_distribution.get(error_type, 0) + 1
+            )
 
             if source_format:
-                self.current_metrics.format_distribution[source_format] = \
+                self.current_metrics.format_distribution[source_format] = (
                     self.current_metrics.format_distribution.get(source_format, 0) + 1
+                )
 
             # Record processing time if available
             if processing_time > 0:
@@ -241,17 +256,19 @@ class StandardizationMonitor:
                 self._update_processing_metrics()
 
             # Record metric
-            self.metrics_history.append(QualityMetric(
-                name="processing_failure",
-                value=0.0,
-                timestamp=datetime.now(),
-                metadata={
-                    "error": str(error),
-                    "source_format": source_format,
-                    "processing_time": processing_time,
-                    **(metadata or {})
-                }
-            ))
+            self.metrics_history.append(
+                QualityMetric(
+                    name="processing_failure",
+                    value=0.0,
+                    timestamp=datetime.now(),
+                    metadata={
+                        "error": str(error),
+                        "source_format": source_format,
+                        "processing_time": processing_time,
+                        **(metadata or {}),
+                    },
+                )
+            )
 
         # Check for alerts
         self._check_alerts()
@@ -261,25 +278,36 @@ class StandardizationMonitor:
         with self.metrics_lock:
             # Update derived metrics
             if self.current_metrics.total_processed > 0:
-                success_rate = self.current_metrics.successful / self.current_metrics.total_processed
+                success_rate = (
+                    self.current_metrics.successful
+                    / self.current_metrics.total_processed
+                )
                 self.current_metrics.quality_scores["success_rate"] = success_rate
 
-                error_rate = self.current_metrics.failed / self.current_metrics.total_processed
+                error_rate = (
+                    self.current_metrics.failed / self.current_metrics.total_processed
+                )
                 self.current_metrics.quality_scores["error_rate"] = error_rate
 
             if self.quality_scores:
-                self.current_metrics.quality_scores["average_quality"] = statistics.mean(self.quality_scores)
+                self.current_metrics.quality_scores["average_quality"] = (
+                    statistics.mean(self.quality_scores)
+                )
 
             # Update processing rate
             elapsed_time = (datetime.now() - self.start_time).total_seconds()
             if elapsed_time > 0:
-                self.current_metrics.processing_rate = self.current_metrics.total_processed / elapsed_time
+                self.current_metrics.processing_rate = (
+                    self.current_metrics.total_processed / elapsed_time
+                )
 
             self.current_metrics.timestamp = datetime.now()
 
             return self.current_metrics
 
-    def get_quality_trends(self, metric_name: str, duration_minutes: int = 60) -> list[QualityMetric]:
+    def get_quality_trends(
+        self, metric_name: str, duration_minutes: int = 60
+    ) -> list[QualityMetric]:
         """
         Get quality trends for a specific metric over time.
 
@@ -294,11 +322,14 @@ class StandardizationMonitor:
 
         with self.metrics_lock:
             return [
-                metric for metric in self.metrics_history
+                metric
+                for metric in self.metrics_history
                 if metric.name == metric_name and metric.timestamp >= cutoff_time
             ]
 
-    def get_alerts(self, level: AlertLevel | None = None, limit: int = 100) -> list[QualityAlert]:
+    def get_alerts(
+        self, level: AlertLevel | None = None, limit: int = 100
+    ) -> list[QualityAlert]:
         """
         Get recent alerts, optionally filtered by level.
 
@@ -337,7 +368,9 @@ class StandardizationMonitor:
             return
 
         self.stop_monitoring.clear()
-        self.monitoring_thread = threading.Thread(target=self._monitoring_loop, daemon=True)
+        self.monitoring_thread = threading.Thread(
+            target=self._monitoring_loop, daemon=True
+        )
         self.monitoring_thread.start()
 
         self.logger.info("Started real-time monitoring")
@@ -381,12 +414,16 @@ class StandardizationMonitor:
     def _update_processing_metrics(self) -> None:
         """Update processing-related metrics."""
         if self.processing_times:
-            self.current_metrics.average_processing_time = statistics.mean(self.processing_times)
+            self.current_metrics.average_processing_time = statistics.mean(
+                self.processing_times
+            )
 
     def _update_quality_metrics(self) -> None:
         """Update quality-related metrics."""
         if self.quality_scores:
-            self.current_metrics.quality_scores["current_quality"] = statistics.mean(self.quality_scores)
+            self.current_metrics.quality_scores["current_quality"] = statistics.mean(
+                self.quality_scores
+            )
 
     def _check_alerts(self) -> None:
         """Check for alert conditions."""
@@ -400,18 +437,19 @@ class StandardizationMonitor:
                 f"Success rate below threshold: {success_rate:.2f}",
                 "success_rate",
                 success_rate,
-                self.quality_thresholds["min_success_rate"]
+                self.quality_thresholds["min_success_rate"],
             )
 
         # Check processing time
-        if (current_metrics.average_processing_time >
-            self.quality_thresholds.get("max_processing_time", 5.0)):
+        if current_metrics.average_processing_time > self.quality_thresholds.get(
+            "max_processing_time", 5.0
+        ):
             self._create_alert(
                 AlertLevel.WARNING,
                 f"Average processing time too high: {current_metrics.average_processing_time:.2f}s",
                 "processing_time",
                 current_metrics.average_processing_time,
-                self.quality_thresholds["max_processing_time"]
+                self.quality_thresholds["max_processing_time"],
             )
 
         # Check quality score
@@ -422,7 +460,7 @@ class StandardizationMonitor:
                 f"Quality score below threshold: {avg_quality:.2f}",
                 "quality_score",
                 avg_quality,
-                self.quality_thresholds["min_quality_score"]
+                self.quality_thresholds["min_quality_score"],
             )
 
         # Check error rate
@@ -433,7 +471,7 @@ class StandardizationMonitor:
                 f"Error rate too high: {error_rate:.2f}",
                 "error_rate",
                 error_rate,
-                self.quality_thresholds["max_error_rate"]
+                self.quality_thresholds["max_error_rate"],
             )
 
     def _create_alert(
@@ -442,7 +480,7 @@ class StandardizationMonitor:
         message: str,
         metric_name: str,
         current_value: float,
-        threshold: float
+        threshold: float,
     ) -> None:
         """Create an alert if not in cooldown period."""
         now = datetime.now()
@@ -460,7 +498,7 @@ class StandardizationMonitor:
             metric_name=metric_name,
             current_value=current_value,
             threshold=threshold,
-            timestamp=now
+            timestamp=now,
         )
 
         self.alerts.append(alert)

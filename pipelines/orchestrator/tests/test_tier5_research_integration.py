@@ -103,8 +103,12 @@ class TestTier5ResearchLoader:
 
         logger.info("✓ Tier 5 metadata structure validated")
 
-    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run")
-    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which")
+    @patch(
+        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run"
+    )
+    @patch(
+        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which"
+    )
     def test_tier5_s3_integration(self, mock_which, mock_subprocess, tier_processor):
         """Test that Tier 5 can use S3 download capability."""
         # Mock ovhai CLI availability

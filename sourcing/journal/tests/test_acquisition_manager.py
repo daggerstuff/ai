@@ -160,9 +160,7 @@ class TestAccessAcquisitionManager:
 
     def test_submit_access_request_with_method(self, manager, sample_source):
         """Test access request submission with specified method."""
-        request = manager.submit_access_request(
-            sample_source, access_method="direct"
-        )
+        request = manager.submit_access_request(sample_source, access_method="direct")
 
         assert request.access_method == "direct"
 
@@ -232,7 +230,9 @@ class TestAccessAcquisitionManager:
         assert "Summary" in report
 
     @patch("ai.sourcing.journal.acquisition.acquisition_manager.requests.Session")
-    def test_download_dataset_direct(self, mock_session, manager, sample_source, tmp_path):
+    def test_download_dataset_direct(
+        self, mock_session, manager, sample_source, tmp_path
+    ):
         """Test direct dataset download."""
         # Mock HTTP response
         mock_response = Mock()
@@ -339,7 +339,9 @@ class TestAccessAcquisitionManager:
     def test_is_direct_download_url(self, manager):
         """Test direct download URL detection."""
         assert manager._is_direct_download_url("https://example.com/file.zip") is True
-        assert manager._is_direct_download_url("https://example.com/file.tar.gz") is True
+        assert (
+            manager._is_direct_download_url("https://example.com/file.tar.gz") is True
+        )
         assert manager._is_direct_download_url("https://example.com/download") is True
         assert manager._is_direct_download_url("https://example.com/page") is False
 
@@ -348,4 +350,3 @@ class TestAccessAcquisitionManager:
         assert manager._is_repository_api_url("https://zenodo.org/api/datasets") is True
         assert manager._is_repository_api_url("https://datadryad.org/api/v2") is True
         assert manager._is_repository_api_url("https://example.com/page") is False
-

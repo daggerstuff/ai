@@ -13,6 +13,7 @@ logger = get_logger(__name__)
 
 class DatasetCategory(Enum):
     """Dataset categories for training allocation."""
+
     PSYCHOLOGY_KNOWLEDGE = "psychology_knowledge"
     VOICE_TRAINING = "voice_training"
     MENTAL_HEALTH = "mental_health"
@@ -36,25 +37,47 @@ class DatasetCategorizationSystem:
 
         self.category_patterns = {
             DatasetCategory.PSYCHOLOGY_KNOWLEDGE: [
-                "dsm", "diagnosis", "psychology", "therapeutic", "clinical"
+                "dsm",
+                "diagnosis",
+                "psychology",
+                "therapeutic",
+                "clinical",
             ],
             DatasetCategory.VOICE_TRAINING: [
-                "voice", "audio", "personality", "authentic", "transcription"
+                "voice",
+                "audio",
+                "personality",
+                "authentic",
+                "transcription",
             ],
             DatasetCategory.MENTAL_HEALTH: [
-                "mental health", "counseling", "therapy", "depression", "anxiety"
+                "mental health",
+                "counseling",
+                "therapy",
+                "depression",
+                "anxiety",
             ],
             DatasetCategory.REASONING_COT: [
-                "reasoning", "chain of thought", "cot", "thinking", "analysis"
+                "reasoning",
+                "chain of thought",
+                "cot",
+                "thinking",
+                "analysis",
             ],
             DatasetCategory.CRISIS_INTERVENTION: [
-                "crisis", "emergency", "suicide", "danger", "urgent"
-            ]
+                "crisis",
+                "emergency",
+                "suicide",
+                "danger",
+                "urgent",
+            ],
         }
 
         self.logger.info("DatasetCategorizationSystem initialized")
 
-    def categorize_conversations(self, conversations: list[Conversation]) -> dict[DatasetCategory, list[Conversation]]:
+    def categorize_conversations(
+        self, conversations: list[Conversation]
+    ) -> dict[DatasetCategory, list[Conversation]]:
         """Categorize conversations into dataset categories."""
         categorized = {category: [] for category in DatasetCategory}
 

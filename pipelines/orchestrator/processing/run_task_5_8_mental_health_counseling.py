@@ -17,7 +17,6 @@ def process_mental_health_counseling():
     output_dir = "ai/data/processed/phase_2_professional_datasets/task_5_8_mental_health_counseling"
     os.makedirs(output_dir, exist_ok=True)
 
-
     # Dataset configuration
     dataset_config = {
         "name": "mental_health_counseling_conversations",
@@ -25,7 +24,7 @@ def process_mental_health_counseling():
         "target_conversations": 3500,
         "tier": 2,
         "expected_quality": 0.95,
-        "description": "Licensed therapist responses (3.5K high-quality conversations)"
+        "description": "Licensed therapist responses (3.5K high-quality conversations)",
     }
 
     if not os.path.exists(dataset_config["path"]):
@@ -41,14 +40,13 @@ def process_mental_health_counseling():
                 except:
                     continue
 
-
         # Process conversations
         processed_conversations = []
         processing_stats = {
             "total_processed": 0,
             "total_accepted": 0,
             "quality_filtered": 0,
-            "format_errors": 0
+            "format_errors": 0,
         }
 
         for i, item in enumerate(raw_data):
@@ -70,7 +68,10 @@ def process_mental_health_counseling():
                 processing_stats["total_accepted"] += 1
 
                 # Stop when we reach target
-                if len(processed_conversations) >= dataset_config["target_conversations"]:
+                if (
+                    len(processed_conversations)
+                    >= dataset_config["target_conversations"]
+                ):
                     break
 
             except Exception:
@@ -78,16 +79,22 @@ def process_mental_health_counseling():
                 continue
 
         # Save processed conversations
-        output_path = os.path.join(output_dir, "mental_health_counseling_conversations.jsonl")
+        output_path = os.path.join(
+            output_dir, "mental_health_counseling_conversations.jsonl"
+        )
         with open(output_path, "w") as f:
             for conv in processed_conversations:
                 f.write(json.dumps(conv) + "\n")
 
         # Generate report
-        report = generate_counseling_report(dataset_config, processed_conversations, processing_stats)
+        report = generate_counseling_report(
+            dataset_config, processed_conversations, processing_stats
+        )
 
         # Save report
-        report_path = os.path.join(output_dir, "task_5_8_mental_health_counseling_report.json")
+        report_path = os.path.join(
+            output_dir, "task_5_8_mental_health_counseling_report.json"
+        )
         with open(report_path, "w") as f:
             json.dump(report, f, indent=2)
 
@@ -96,7 +103,10 @@ def process_mental_health_counseling():
     except Exception as e:
         return create_error_report(dataset_config, str(e))
 
-def standardize_counseling_conversation(item: dict[str, Any], index: int) -> dict[str, Any]:
+
+def standardize_counseling_conversation(
+    item: dict[str, Any], index: int
+) -> dict[str, Any]:
     """Standardize mental health counseling conversation format."""
     try:
         # Check for different possible formats
@@ -116,10 +126,9 @@ def standardize_counseling_conversation(item: dict[str, Any], index: int) -> dic
                     continue
 
                 if content and len(content.strip()) > 10:
-                    standardized_messages.append({
-                        "role": role,
-                        "content": content.strip()
-                    })
+                    standardized_messages.append(
+                        {"role": role, "content": content.strip()}
+                    )
 
         elif "input" in item and "output" in item:
             # Input/output format
@@ -131,7 +140,7 @@ def standardize_counseling_conversation(item: dict[str, Any], index: int) -> dic
 
             standardized_messages = [
                 {"role": "client", "content": client_content},
-                {"role": "therapist", "content": therapist_content}
+                {"role": "therapist", "content": therapist_content},
             ]
 
         elif "question" in item and "answer" in item:
@@ -144,7 +153,7 @@ def standardize_counseling_conversation(item: dict[str, Any], index: int) -> dic
 
             standardized_messages = [
                 {"role": "client", "content": client_content},
-                {"role": "therapist", "content": therapist_content}
+                {"role": "therapist", "content": therapist_content},
             ]
 
         elif "Context" in item and "Response" in item:
@@ -157,7 +166,7 @@ def standardize_counseling_conversation(item: dict[str, Any], index: int) -> dic
 
             standardized_messages = [
                 {"role": "client", "content": client_content},
-                {"role": "therapist", "content": therapist_content}
+                {"role": "therapist", "content": therapist_content},
             ]
 
         else:
@@ -178,16 +187,19 @@ def standardize_counseling_conversation(item: dict[str, Any], index: int) -> dic
                 "source": "mental_health_counseling",
                 "dataset": "mental_health_counseling_conversations",
                 "tier": 2,
-                "therapeutic_approach": determine_therapeutic_approach(standardized_messages),
+                "therapeutic_approach": determine_therapeutic_approach(
+                    standardized_messages
+                ),
                 "licensed_therapist": True,
                 "professional_quality": True,
                 "conversation_length": len(standardized_messages),
-                "index": index
-            }
+                "index": index,
+            },
         }
 
     except Exception:
         return None
+
 
 def assess_counseling_quality(conversation: dict[str, Any]) -> bool:
     """Assess quality of counseling conversation."""
@@ -209,11 +221,24 @@ def assess_counseling_quality(conversation: dict[str, Any]) -> bool:
             # Check for therapeutic quality indicators
             if msg["role"] == "therapist":
                 therapeutic_indicators = [
-                    "understand", "feel", "experience", "explore", "share",
-                    "thoughts", "emotions", "support", "help", "together",
-                    "perspective", "coping", "strategies", "feelings"
+                    "understand",
+                    "feel",
+                    "experience",
+                    "explore",
+                    "share",
+                    "thoughts",
+                    "emotions",
+                    "support",
+                    "help",
+                    "together",
+                    "perspective",
+                    "coping",
+                    "strategies",
+                    "feelings",
                 ]
-                if not any(indicator in content.lower() for indicator in therapeutic_indicators):
+                if not any(
+                    indicator in content.lower() for indicator in therapeutic_indicators
+                ):
                     # Allow some flexibility but prefer therapeutic language
                     pass
 
@@ -225,26 +250,54 @@ def assess_counseling_quality(conversation: dict[str, Any]) -> bool:
     except Exception:
         return False
 
+
 def determine_therapeutic_approach(messages: list[dict[str, Any]]) -> str:
     """Determine therapeutic approach from conversation content."""
     all_text = " ".join([msg.get("content", "") for msg in messages]).lower()
 
     # Approach indicators
-    if any(word in all_text for word in ["cognitive", "thoughts", "thinking patterns", "beliefs", "cbt"]):
+    if any(
+        word in all_text
+        for word in ["cognitive", "thoughts", "thinking patterns", "beliefs", "cbt"]
+    ):
         return "cognitive_behavioral"
-    if any(word in all_text for word in ["feelings", "emotions", "emotional", "empathy", "validation"]):
+    if any(
+        word in all_text
+        for word in ["feelings", "emotions", "emotional", "empathy", "validation"]
+    ):
         return "emotion_focused"
-    if any(word in all_text for word in ["behavior", "actions", "habits", "patterns", "behavioral"]):
+    if any(
+        word in all_text
+        for word in ["behavior", "actions", "habits", "patterns", "behavioral"]
+    ):
         return "behavioral"
-    if any(word in all_text for word in ["mindfulness", "present", "awareness", "meditation", "mindful"]):
+    if any(
+        word in all_text
+        for word in ["mindfulness", "present", "awareness", "meditation", "mindful"]
+    ):
         return "mindfulness_based"
-    if any(word in all_text for word in ["relationship", "interpersonal", "social", "family", "communication"]):
+    if any(
+        word in all_text
+        for word in [
+            "relationship",
+            "interpersonal",
+            "social",
+            "family",
+            "communication",
+        ]
+    ):
         return "interpersonal"
-    if any(word in all_text for word in ["solution", "goals", "strengths", "resources", "brief"]):
+    if any(
+        word in all_text
+        for word in ["solution", "goals", "strengths", "resources", "brief"]
+    ):
         return "solution_focused"
     return "integrative"
 
-def generate_counseling_report(config: dict, conversations: list, stats: dict) -> dict[str, Any]:
+
+def generate_counseling_report(
+    config: dict, conversations: list, stats: dict
+) -> dict[str, Any]:
     """Generate comprehensive counseling processing report."""
 
     # Analyze therapeutic approaches
@@ -264,36 +317,45 @@ def generate_counseling_report(config: dict, conversations: list, stats: dict) -
             "dataset_name": config["name"],
             "total_conversations": len(conversations),
             "target_conversations": config["target_conversations"],
-            "completion_percentage": (len(conversations) / config["target_conversations"]) * 100,
-            "processing_timestamp": datetime.now().isoformat()
+            "completion_percentage": (
+                len(conversations) / config["target_conversations"]
+            )
+            * 100,
+            "processing_timestamp": datetime.now().isoformat(),
         },
         "quality_metrics": {
             "total_processed": stats["total_processed"],
             "total_accepted": stats["total_accepted"],
-            "acceptance_rate": (stats["total_accepted"] / stats["total_processed"]) * 100 if stats["total_processed"] > 0 else 0,
+            "acceptance_rate": (stats["total_accepted"] / stats["total_processed"])
+            * 100
+            if stats["total_processed"] > 0
+            else 0,
             "quality_filtered": stats["quality_filtered"],
-            "format_errors": stats["format_errors"]
+            "format_errors": stats["format_errors"],
         },
         "conversation_analysis": {
             "therapeutic_approaches": approaches,
             "conversation_length_stats": {
                 "min": min(conversation_lengths) if conversation_lengths else 0,
                 "max": max(conversation_lengths) if conversation_lengths else 0,
-                "average": sum(conversation_lengths) / len(conversation_lengths) if conversation_lengths else 0
-            }
+                "average": sum(conversation_lengths) / len(conversation_lengths)
+                if conversation_lengths
+                else 0,
+            },
         },
         "dataset_characteristics": {
             "source": "Licensed Mental Health Counselors",
             "quality_level": "Licensed Professional Grade",
             "tier": config["tier"],
             "expected_quality": config["expected_quality"],
-            "licensed_therapist_validation": True
+            "licensed_therapist_validation": True,
         },
         "next_steps": [
             "Task 5.9: Process SoulChat2.0 psychological counselor digital twin framework",
-            "Task 5.10: Integrate therapist_sft_format conversations"
-        ]
+            "Task 5.10: Integrate therapist_sft_format conversations",
+        ],
     }
+
 
 def create_error_report(config: dict, error: str) -> dict[str, Any]:
     """Create error report for failed processing."""
@@ -304,9 +366,10 @@ def create_error_report(config: dict, error: str) -> dict[str, Any]:
             "total_conversations": 0,
             "success": False,
             "error": error,
-            "timestamp": datetime.now().isoformat()
-        }
+            "timestamp": datetime.now().isoformat(),
+        },
     }
+
 
 if __name__ == "__main__":
     process_mental_health_counseling()

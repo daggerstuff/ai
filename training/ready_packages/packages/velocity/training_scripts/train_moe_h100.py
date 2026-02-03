@@ -72,7 +72,10 @@ class TimeConstraintCallback(TrainerCallback):
             control.should_save = True
 
             wandb.log(
-                {"training/stopped_reason": "time_limit", "training/elapsed_hours": elapsed_hours}
+                {
+                    "training/stopped_reason": "time_limit",
+                    "training/elapsed_hours": elapsed_hours,
+                }
             )
 
         # Periodic checkpointing (every 30 minutes)
@@ -285,7 +288,9 @@ def load_training_data(
             if teacher_count >= nemotron_teacher_max_samples:
                 break
 
-        print(f"   ✅ Added {teacher_count} Nemotron teacher examples to training texts")
+        print(
+            f"   ✅ Added {teacher_count} Nemotron teacher examples to training texts"
+        )
 
     dataset = Dataset.from_dict({"text": texts})
 
@@ -384,7 +389,9 @@ def main():
             nemotron_teacher_s3_path = nemotron_cfg.get("s3_path")
             nemotron_teacher_max_samples = int(nemotron_cfg.get("max_samples", 0))
             if not nemotron_teacher_s3_path:
-                print("⚠️ nemotron_teacher.enabled is true but s3_path is not set; ignoring.")
+                print(
+                    "⚠️ nemotron_teacher.enabled is true but s3_path is not set; ignoring."
+                )
                 nemotron_teacher_s3_path = None
                 nemotron_teacher_max_samples = 0
 
@@ -397,12 +404,15 @@ def main():
         wandb.log(
             {
                 "dataset/total_conversations": len(texts),
-                "dataset/avg_length": sum(len(text.split()) for text in texts) / len(texts),
+                "dataset/avg_length": sum(len(text.split()) for text in texts)
+                / len(texts),
             }
         )
 
         # Setup model
-        BASE_MODEL_NAME = training_config.get("base_model", "LatitudeGames/Wayfarer-2-12B")
+        BASE_MODEL_NAME = training_config.get(
+            "base_model", "LatitudeGames/Wayfarer-2-12B"
+        )
         device_available = torch.cuda.is_available()
 
         if not device_available:
@@ -414,7 +424,12 @@ def main():
         # Create MoE configuration
         moe_config = MoEConfig(
             num_experts=4,
-            expert_domains=["psychology", "mental_health", "bias_detection", "general_therapeutic"],
+            expert_domains=[
+                "psychology",
+                "mental_health",
+                "bias_detection",
+                "general_therapeutic",
+            ],
             lora_r=16,
             lora_alpha=32,
             lora_dropout=0.1,
@@ -424,7 +439,9 @@ def main():
         )
 
         # Create therapeutic MoE model
-        model = create_therapeutic_moe_model(BASE_MODEL_NAME, moe_config=moe_config, device="auto")
+        model = create_therapeutic_moe_model(
+            BASE_MODEL_NAME, moe_config=moe_config, device="auto"
+        )
 
         print("✅ MoE model created successfully")
         print(f"   - Experts: {moe_config.num_experts}")
@@ -490,8 +507,12 @@ def main():
         training_args = create_h100_training_args(
             output_dir="./therapeutic_moe_model",
             num_train_epochs=training_config.get("num_train_epochs", 3),
-            per_device_train_batch_size=training_config.get("per_device_train_batch_size", 4),
-            gradient_accumulation_steps=training_config.get("gradient_accumulation_steps", 8),
+            per_device_train_batch_size=training_config.get(
+                "per_device_train_batch_size", 4
+            ),
+            gradient_accumulation_steps=training_config.get(
+                "gradient_accumulation_steps", 8
+            ),
             learning_rate=training_config.get("learning_rate", 3e-4),
             warmup_steps=training_config.get("warmup_steps", 1000),
         )
@@ -531,7 +552,9 @@ def main():
 
             wandb.log({"training/status": "completed"})
 
-            training_duration = (datetime.now() - training_start_time).total_seconds() / 3600
+            training_duration = (
+                datetime.now() - training_start_time
+            ).total_seconds() / 3600
             print(f"\n✅ Training completed in {training_duration:.2f} hours!")
             print(f"📁 Model saved to: {training_args.output_dir}")
 
@@ -557,7 +580,9 @@ def main():
                 pass
 
         if training_start_time:
-            total_duration = (datetime.now() - training_start_time).total_seconds() / 3600
+            total_duration = (
+                datetime.now() - training_start_time
+            ).total_seconds() / 3600
             print(f"\n⏰ Total runtime: {total_duration:.2f} hours")
 
         print("🧹 Cleanup complete")

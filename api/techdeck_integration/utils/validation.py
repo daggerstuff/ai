@@ -18,11 +18,13 @@ from werkzeug.utils import secure_filename
 class ValidationError(Exception):
     """Custom validation error with detailed information."""
 
-    def __init__(self, message: str, field: Optional[str] = None, code: Optional[str] = None):
+    def __init__(
+        self, message: str, field: Optional[str] = None, code: Optional[str] = None
+    ):
         super().__init__(message)
         self.message = message
         self.field = field
-        self.code = code or 'VALIDATION_ERROR'
+        self.code = code or "VALIDATION_ERROR"
 
 
 class InputValidator:
@@ -35,22 +37,22 @@ class InputValidator:
 
     # Common patterns for validation
     PATTERNS = {
-        'email': r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
-        'uuid': r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-        'alphanumeric': r'^[a-zA-Z0-9_-]+$',
-        'numeric': r'^\d+$',
-        'float': r'^\d*\.?\d+$',
-        'date_iso': r'^\d{4}-\d{2}-\d{2}$',
-        'datetime_iso': r'^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?$'
+        "email": r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+        "uuid": r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+        "alphanumeric": r"^[a-zA-Z0-9_-]+$",
+        "numeric": r"^\d+$",
+        "float": r"^\d*\.?\d+$",
+        "date_iso": r"^\d{4}-\d{2}-\d{2}$",
+        "datetime_iso": r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z?$",
     }
 
     # Sensitive field patterns (for sanitization)
     SENSITIVE_PATTERNS = [
-        r'\b\d{3}-\d{2}-\d{4}\b',  # SSN
-        r'\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b',  # Credit card
-        r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',  # Email
-        r'\b\d{3}-\d{3}-\d{4}\b',  # Phone
-        r'\b\d+\.\d+\.\d+\.\d+\b',  # IP address
+        r"\b\d{3}-\d{2}-\d{4}\b",  # SSN
+        r"\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b",  # Credit card
+        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b",  # Email
+        r"\b\d{3}-\d{3}-\d{4}\b",  # Phone
+        r"\b\d+\.\d+\.\d+\.\d+\b",  # IP address
     ]
 
     def __init__(self, max_string_length: int = 1000, max_file_size_mb: int = 100):
@@ -72,7 +74,7 @@ class InputValidator:
         min_length: int = 1,
         max_length: Optional[int] = None,
         pattern: Optional[str] = None,
-        allow_empty: bool = False
+        allow_empty: bool = False,
     ) -> str:
         """
         Validate string input with comprehensive checks.
@@ -105,21 +107,17 @@ class InputValidator:
         if len(value) < min_length:
             raise ValidationError(
                 f"{field_name} must be at least {min_length} characters long",
-                field_name
+                field_name,
             )
 
         if len(value) > max_length:
             raise ValidationError(
-                f"{field_name} must not exceed {max_length} characters",
-                field_name
+                f"{field_name} must not exceed {max_length} characters", field_name
             )
 
         # Check pattern if provided
         if pattern and not re.match(pattern, value):
-            raise ValidationError(
-                f"{field_name} format is invalid",
-                field_name
-            )
+            raise ValidationError(f"{field_name} format is invalid", field_name)
 
         return self._sanitize_string(value)
 
@@ -137,11 +135,7 @@ class InputValidator:
         Raises:
             ValidationError: If validation fails
         """
-        return self.validate_string(
-            email,
-            field_name,
-            pattern=self.PATTERNS['email']
-        )
+        return self.validate_string(email, field_name, pattern=self.PATTERNS["email"])
 
     def validate_uuid(self, uuid_str: str, field_name: str = "id") -> str:
         """
@@ -157,18 +151,14 @@ class InputValidator:
         Raises:
             ValidationError: If validation fails
         """
-        return self.validate_string(
-            uuid_str,
-            field_name,
-            pattern=self.PATTERNS['uuid']
-        )
+        return self.validate_string(uuid_str, field_name, pattern=self.PATTERNS["uuid"])
 
     def validate_integer(
         self,
         value: Union[int, str],
         field_name: str,
         min_value: Optional[int] = None,
-        max_value: Optional[int] = None
+        max_value: Optional[int] = None,
     ) -> int:
         """
         Validate integer value.
@@ -199,7 +189,7 @@ class InputValidator:
         value: Union[float, str],
         field_name: str,
         min_value: Optional[float] = None,
-        max_value: Optional[float] = None
+        max_value: Optional[float] = None,
     ) -> float:
         """
         Validate float value.
@@ -228,16 +218,20 @@ class InputValidator:
     # TODO Rename this here and in `validate_integer` and `validate_float`
     def _extracted_from_validate_float_28(self, min_value, arg1, field_name, max_value):
         if min_value is not None and arg1 < min_value:
-            raise ValidationError(f"{field_name} must be at least {min_value}", field_name)
+            raise ValidationError(
+                f"{field_name} must be at least {min_value}", field_name
+            )
         if max_value is not None and arg1 > max_value:
-            raise ValidationError(f"{field_name} must not exceed {max_value}", field_name)
+            raise ValidationError(
+                f"{field_name} must not exceed {max_value}", field_name
+            )
         return arg1
 
     def validate_file_upload(
         self,
         file,
         allowed_extensions: Optional[List[str]] = None,
-        allowed_mime_types: Optional[List[str]] = None
+        allowed_mime_types: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Validate file upload with security checks.
@@ -257,7 +251,7 @@ class InputValidator:
             raise ValidationError("No file provided", "file")
 
         # Get file information
-        filename = getattr(file, 'filename', None)
+        filename = getattr(file, "filename", None)
         if not filename:
             raise ValidationError("File has no filename", "file")
 
@@ -267,12 +261,12 @@ class InputValidator:
             raise ValidationError("Invalid filename", "file")
 
         # Check file extension
-        file_extension = Path(secure_name).suffix.lower().lstrip('.')
+        file_extension = Path(secure_name).suffix.lower().lstrip(".")
 
         if allowed_extensions and file_extension not in allowed_extensions:
             raise ValidationError(
                 f"File type '{file_extension}' not allowed. Allowed: {', '.join(allowed_extensions)}",
-                "file"
+                "file",
             )
 
         # Check file size
@@ -282,8 +276,8 @@ class InputValidator:
 
         if file_size > self.max_file_size_bytes:
             raise ValidationError(
-                f"File size ({file_size / (1024*1024):.1f}MB) exceeds maximum allowed size ({self.max_file_size_mb}MB)",
-                "file"
+                f"File size ({file_size / (1024 * 1024):.1f}MB) exceeds maximum allowed size ({self.max_file_size_mb}MB)",
+                "file",
             )
 
         # Check MIME type if provided
@@ -291,15 +285,14 @@ class InputValidator:
             mime_type, _ = mimetypes.guess_type(secure_name)
             if mime_type not in allowed_mime_types:
                 raise ValidationError(
-                    f"File MIME type '{mime_type}' not allowed",
-                    "file"
+                    f"File MIME type '{mime_type}' not allowed", "file"
                 )
 
         return {
-            'filename': secure_name,
-            'extension': file_extension,
-            'size_bytes': file_size,
-            'mime_type': mime_type if allowed_mime_types else None
+            "filename": secure_name,
+            "extension": file_extension,
+            "size_bytes": file_size,
+            "mime_type": mime_type if allowed_mime_types else None,
         }
 
     def validate_dataset_metadata(self, metadata: Dict[str, Any]) -> Dict[str, Any]:
@@ -315,7 +308,7 @@ class InputValidator:
         Raises:
             ValidationError: If validation fails
         """
-        required_fields = ['name', 'description', 'format']
+        required_fields = ["name", "description", "format"]
 
         # Check required fields
         for field in required_fields:
@@ -324,67 +317,57 @@ class InputValidator:
 
         # Validate name
         name = self.validate_string(
-            metadata['name'],
-            'name',
-            min_length=3,
-            max_length=100
+            metadata["name"], "name", min_length=3, max_length=100
         )
 
         # Validate description
         description = self.validate_string(
-            metadata['description'],
-            'description',
-            min_length=10,
-            max_length=500
+            metadata["description"], "description", min_length=10, max_length=500
         )
 
         # Validate format
-        allowed_formats = ['csv', 'json', 'jsonl', 'parquet']
-        format_type = metadata['format'].lower()
+        allowed_formats = ["csv", "json", "jsonl", "parquet"]
+        format_type = metadata["format"].lower()
         if format_type not in allowed_formats:
             raise ValidationError(
                 f"Invalid format '{format_type}'. Allowed: {', '.join(allowed_formats)}",
-                'format'
+                "format",
             )
 
         # Validate optional fields
         validated_metadata = {
-            'name': name,
-            'description': description,
-            'format': format_type
+            "name": name,
+            "description": description,
+            "format": format_type,
         }
 
         # Validate tags if present
-        if 'tags' in metadata:
-            tags = metadata['tags']
+        if "tags" in metadata:
+            tags = metadata["tags"]
             if not isinstance(tags, list):
-                raise ValidationError("Tags must be a list", 'tags')
+                raise ValidationError("Tags must be a list", "tags")
 
             validated_tags = []
             for tag in tags:
                 validated_tag = self.validate_string(
-                    tag,
-                    'tag',
-                    min_length=1,
-                    max_length=50
+                    tag, "tag", min_length=1, max_length=50
                 )
                 validated_tags.append(validated_tag)
 
-            validated_metadata['tags'] = validated_tags
+            validated_metadata["tags"] = validated_tags
 
         # Validate privacy level if present
-        if 'privacy_level' in metadata:
+        if "privacy_level" in metadata:
             privacy_level = self.validate_string(
-                metadata['privacy_level'],
-                'privacy_level'
+                metadata["privacy_level"], "privacy_level"
             )
-            allowed_levels = ['public', 'internal', 'confidential', 'restricted']
+            allowed_levels = ["public", "internal", "confidential", "restricted"]
             if privacy_level not in allowed_levels:
                 raise ValidationError(
                     f"Invalid privacy level '{privacy_level}'. Allowed: {', '.join(allowed_levels)}",
-                    'privacy_level'
+                    "privacy_level",
                 )
-            validated_metadata['privacy_level'] = privacy_level
+            validated_metadata["privacy_level"] = privacy_level
 
         return validated_metadata
 
@@ -401,10 +384,9 @@ class InputValidator:
         if isinstance(data, dict):
             return {
                 key: (
-                    '[REDACTED]'
+                    "[REDACTED]"
                     if any(
-                        sensitive in key.lower()
-                        for sensitive in self.SENSITIVE_FIELDS
+                        sensitive in key.lower() for sensitive in self.SENSITIVE_FIELDS
                     )
                     else self.sanitize_for_output(value)
                 )
@@ -416,7 +398,7 @@ class InputValidator:
             # Remove sensitive patterns
             sanitized = data
             for pattern in self.SENSITIVE_PATTERNS:
-                sanitized = re.sub(pattern, '[REDACTED]', sanitized)
+                sanitized = re.sub(pattern, "[REDACTED]", sanitized)
             return sanitized
         else:
             return data
@@ -432,8 +414,8 @@ class InputValidator:
             Sanitized string
         """
         # Remove null bytes and control characters
-        sanitized = value.replace('\x00', '')
-        sanitized = re.sub(r'[\x00-\x1f\x7f-\x9f]', '', sanitized)
+        sanitized = value.replace("\x00", "")
+        sanitized = re.sub(r"[\x00-\x1f\x7f-\x9f]", "", sanitized)
 
         # Trim whitespace
         sanitized = sanitized.strip()
@@ -471,11 +453,11 @@ class DatasetValidator:
         try:
             return self._extracted_from_validate_csv_file_16(file_path)
         except pd.errors.EmptyDataError:
-            raise ValidationError("CSV file is empty", 'file')
+            raise ValidationError("CSV file is empty", "file")
         except pd.errors.ParserError as e:
-            raise ValidationError(f"CSV parsing error: {str(e)}", 'file')
+            raise ValidationError(f"CSV parsing error: {str(e)}", "file")
         except Exception as e:
-            raise ValidationError(f"CSV validation error: {str(e)}", 'file')
+            raise ValidationError(f"CSV validation error: {str(e)}", "file")
 
     # TODO Rename this here and in `validate_csv_file`
     def _extracted_from_validate_csv_file_16(self, file_path):
@@ -486,7 +468,7 @@ class DatasetValidator:
         if len(df.columns) > self.max_columns:
             raise ValidationError(
                 f"Too many columns ({len(df.columns)}). Maximum allowed: {self.max_columns}",
-                'columns'
+                "columns",
             )
 
         # Check for required columns (if any)
@@ -495,17 +477,13 @@ class DatasetValidator:
         # Validate column names
         for col in df.columns:
             if not isinstance(col, str) or not col.strip():
-                raise ValidationError(
-                    f"Invalid column name: {col}",
-                    'column_names'
-                )
+                raise ValidationError(f"Invalid column name: {col}", "column_names")
 
             # Check for potentially sensitive column names
-            sensitive_keywords = ['ssn', 'password', 'secret', 'key']
+            sensitive_keywords = ["ssn", "password", "secret", "key"]
             if any(keyword in col.lower() for keyword in sensitive_keywords):
                 raise ValidationError(
-                    f"Potentially sensitive column name detected: {col}",
-                    'column_names'
+                    f"Potentially sensitive column name detected: {col}", "column_names"
                 )
 
         # Get full row count
@@ -513,15 +491,14 @@ class DatasetValidator:
 
         if row_count > self.max_rows:
             raise ValidationError(
-                f"Too many rows ({row_count}). Maximum allowed: {self.max_rows}",
-                'rows'
+                f"Too many rows ({row_count}). Maximum allowed: {self.max_rows}", "rows"
             )
 
         return {
-            'columns': list(df.columns),
-            'sample_rows': len(df),
-            'total_rows': row_count,
-            'validation_status': 'valid'
+            "columns": list(df.columns),
+            "sample_rows": len(df),
+            "total_rows": row_count,
+            "validation_status": "valid",
         }
 
     def validate_json_file(self, file_path: str) -> Dict[str, Any]:
@@ -540,7 +517,7 @@ class DatasetValidator:
         try:
             import json
 
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
 
             # Basic structure validation
@@ -548,25 +525,29 @@ class DatasetValidator:
                 if len(data) > self.max_rows:
                     raise ValidationError(
                         f"Too many records ({len(data)}). Maximum allowed: {self.max_rows}",
-                        'records'
+                        "records",
                     )
 
-                if data and isinstance(data[0], dict) and len(data[0]) > self.max_columns:
+                if (
+                    data
+                    and isinstance(data[0], dict)
+                    and len(data[0]) > self.max_columns
+                ):
                     raise ValidationError(
                         f"Too many fields ({len(data[0])}). Maximum allowed: {self.max_columns}",
-                        'fields'
+                        "fields",
                     )
 
             return {
-                'data_type': type(data).__name__,
-                'record_count': len(data) if isinstance(data, list) else 1,
-                'validation_status': 'valid'
+                "data_type": type(data).__name__,
+                "record_count": len(data) if isinstance(data, list) else 1,
+                "validation_status": "valid",
             }
 
         except json.JSONDecodeError as e:
-            raise ValidationError(f"Invalid JSON format: {str(e)}", 'file')
+            raise ValidationError(f"Invalid JSON format: {str(e)}", "file")
         except Exception as e:
-            raise ValidationError(f"JSON validation error: {str(e)}", 'file')
+            raise ValidationError(f"JSON validation error: {str(e)}", "file")
 
 
 # Convenience validation functions
@@ -574,11 +555,7 @@ def validate_dataset_name(name: str) -> str:
     """Validate dataset name."""
     validator = InputValidator()
     return validator.validate_string(
-        name,
-        'dataset_name',
-        min_length=3,
-        max_length=100,
-        pattern=r'^[a-zA-Z0-9_-]+$'
+        name, "dataset_name", min_length=3, max_length=100, pattern=r"^[a-zA-Z0-9_-]+$"
     )
 
 
@@ -595,7 +572,7 @@ def validate_pipeline_config(config: Dict[str, Any]) -> Dict[str, Any]:
     Raises:
         ValidationError: If validation fails
     """
-    required_fields = ['stages', 'timeout']
+    required_fields = ["stages", "timeout"]
 
     # Check required fields
     for field in required_fields:
@@ -603,34 +580,36 @@ def validate_pipeline_config(config: Dict[str, Any]) -> Dict[str, Any]:
             raise ValidationError(f"Missing required field: {field}", field)
 
     # Validate stages
-    stages = config['stages']
+    stages = config["stages"]
     if not isinstance(stages, list) or len(stages) == 0:
-        raise ValidationError("Stages must be a non-empty list", 'stages')
+        raise ValidationError("Stages must be a non-empty list", "stages")
 
     allowed_stages = [
-        'data_ingestion', 'preprocessing', 'feature_engineering',
-        'model_training', 'validation', 'bias_detection', 'output_generation'
+        "data_ingestion",
+        "preprocessing",
+        "feature_engineering",
+        "model_training",
+        "validation",
+        "bias_detection",
+        "output_generation",
     ]
 
     for stage in stages:
         if stage not in allowed_stages:
             raise ValidationError(
                 f"Invalid stage '{stage}'. Allowed: {', '.join(allowed_stages)}",
-                'stages'
+                "stages",
             )
 
     # Validate timeout
-    timeout = config['timeout']
+    timeout = config["timeout"]
     if not isinstance(timeout, int) or timeout <= 0:
-        raise ValidationError("Timeout must be a positive integer", 'timeout')
+        raise ValidationError("Timeout must be a positive integer", "timeout")
 
     if timeout > 3600:  # 1 hour max
-        raise ValidationError("Timeout cannot exceed 3600 seconds (1 hour)", 'timeout')
+        raise ValidationError("Timeout cannot exceed 3600 seconds (1 hour)", "timeout")
 
-    return {
-        'stages': stages,
-        'timeout': timeout
-    }
+    return {"stages": stages, "timeout": timeout}
 
 
 def sanitize_user_input(data: Any) -> Any:
@@ -648,7 +627,9 @@ def sanitize_user_input(data: Any) -> Any:
 
 
 # Backwards-compatible helper expected by pipeline orchestrator
-def validate_pipeline_input(config: Dict[str, Any], dataset_info: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def validate_pipeline_input(
+    config: Dict[str, Any], dataset_info: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
     """Validate pipeline configuration and dataset info.
 
     This is a thin wrapper around validate_pipeline_config and dataset validation
@@ -659,13 +640,10 @@ def validate_pipeline_input(config: Dict[str, Any], dataset_info: Optional[Dict[
     if dataset_info:
         validator = InputValidator()
         # If dataset metadata present, validate it
-        if isinstance(dataset_info, dict) and 'metadata' in dataset_info:
-            validator.validate_dataset_metadata(dataset_info['metadata'])
+        if isinstance(dataset_info, dict) and "metadata" in dataset_info:
+            validator.validate_dataset_metadata(dataset_info["metadata"])
 
-    return {
-        'config': validated_config,
-        'dataset_info': dataset_info or {}
-    }
+    return {"config": validated_config, "dataset_info": dataset_info or {}}
 
 
 def sanitize_input(data: Any) -> Any:

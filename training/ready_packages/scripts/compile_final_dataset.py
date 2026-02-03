@@ -60,9 +60,11 @@ logging.basicConfig(
 # Data Classes
 # ============================================================================
 
+
 @dataclass
 class DatasetShard:
     """Represents a sharded dataset file"""
+
     shard_id: str
     s3_path: str
     size_bytes: int
@@ -74,6 +76,7 @@ class DatasetShard:
 @dataclass
 class SplitInfo:
     """Information about a dataset split"""
+
     conversations: int
     shards: list[DatasetShard]
     total_tokens_approx: int = 0
@@ -82,6 +85,7 @@ class SplitInfo:
 @dataclass
 class CompilerConfig:
     """Configuration for dataset compilation"""
+
     routing_config_path: Path
     coverage_report_path: Path
     output_dir: Path
@@ -98,6 +102,7 @@ class CompilerConfig:
 @dataclass
 class CheckpointInfo:
     """Enhanced checkpoint for resume capability"""
+
     stage: str
     processed_families: list[str] = field(default_factory=list)
     processed_files: list[str] = field(default_factory=list)
@@ -111,18 +116,23 @@ class CheckpointInfo:
 # Main Compilation Class
 # ============================================================================
 
+
 class FinalDatasetCompiler:
     """Compiles final training dataset with checkpoint/resume support"""
 
     def __init__(self, config: CompilerConfig):
         self.config = config
-        self.checkpoint_dir = config.checkpoint_dir or (config.output_dir / "checkpoints")
+        self.checkpoint_dir = config.checkpoint_dir or (
+            config.output_dir / "checkpoints"
+        )
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.checkpoint_file = self.checkpoint_dir / "collection_checkpoint.json"
 
         # Data storage
         self.all_conversations: list[dict[str, Any]] = []
-        self.deduplicator = EnhancedDeduplicator(similarity_threshold=config.dedup_threshold)
+        self.deduplicator = EnhancedDeduplicator(
+            similarity_threshold=config.dedup_threshold
+        )
         self.s3_loader = S3DatasetLoader(bucket="pixel-data")
 
         # Tracking
@@ -149,7 +159,9 @@ class FinalDatasetCompiler:
         """Load routing and coverage configs"""
         with open(self.config.routing_config_path) as f:
             self.routing_config = json.load(f)
-        logger.info(f"✓ Loaded routing config with {len(self.routing_config.get('families', {}))} families")
+        logger.info(
+            f"✓ Loaded routing config with {len(self.routing_config.get('families', {}))} families"
+        )
 
     def save_checkpoint(self, stage: str, progress: float = 0.0) -> None:
         """Save checkpoint for resume capability"""
@@ -186,16 +198,20 @@ class FinalDatasetCompiler:
         checkpoint_data = {k: v for k, v in data.items() if k != "stage"}
         return CheckpointInfo(stage=data["stage"], **checkpoint_data)
 
-    def collect_conversations_from_family(self, family_name: str) -> list[dict[str, Any]]:
+    def collect_conversations_from_family(
+        self, family_name: str
+    ) -> list[dict[str, Any]]:
         """Load all conversations for a family from S3 or local"""
         if family_name in self.processed_families:
             logger.debug(f"Skipping {family_name} (already processed)")
             return []
 
-        logger.info(f"[{len(self.processed_families)+1}/14] Loading {family_name}...")
+        logger.info(f"[{len(self.processed_families) + 1}/14] Loading {family_name}...")
         family_config = self.routing_config.get("families", {}).get(family_name, {})
         s3_path = family_config.get("s3_path")
-        logger.info(f"  Config for {family_name}: s3_path={s3_path}, status={family_config.get('status')}")
+        logger.info(
+            f"  Config for {family_name}: s3_path={s3_path}, status={family_config.get('status')}"
+        )
         convs = self._load_family_from_routing(family_name)
 
         # Add source_family and metadata
@@ -231,7 +247,7 @@ class FinalDatasetCompiler:
             else:
                 logger.warning(f"Unknown format for {s3_path}")
                 return []
-            
+
             logger.info(f"  Loaded {len(convs)} conversations from {family_name}")
             return convs
         except Exception as e:
@@ -248,10 +264,10 @@ class FinalDatasetCompiler:
             for line in self.s3_loader.stream_jsonl(s3_path):
                 if not line or not isinstance(line, dict):
                     continue
-                    
+
                 # Normalize to messages format - handle actual S3 data structure
                 conv = line.copy()
-                
+
                 # The actual S3 files have 'conversation' key with list of message dicts
                 if "conversation" in conv and isinstance(conv["conversation"], list):
                     # Already in correct format - rename for consistency
@@ -265,7 +281,7 @@ class FinalDatasetCompiler:
                     else:
                         # Skip if we can't find message-like data
                         continue
-                
+
                 # Ensure we have required fields
                 if "messages" in conv and conv["messages"]:
                     convs.append(conv)
@@ -335,7 +351,9 @@ class FinalDatasetCompiler:
                                         conv["metadata"] = {}
                                     conv["metadata"]["source_family"] = family_name
                                     self.all_conversations.append(conv)
-                                    self.family_stats[family_name] = self.family_stats.get(family_name, 0) + 1
+                                    self.family_stats[family_name] = (
+                                        self.family_stats.get(family_name, 0) + 1
+                                    )
                     logger.info(f"✓ Loaded {jsonl_file.name}")
                 except Exception as e:
                     logger.warning(f"Error loading {jsonl_file.name}: {e}")
@@ -353,11 +371,15 @@ class FinalDatasetCompiler:
         logger.info(f"Input: {len(self.all_conversations):,} conversations")
         for conv in self.all_conversations:
             # Compute content hash
-            content_hash = hashlib.sha256(json.dumps(conv.get("messages", []), sort_keys=True).encode()).hexdigest()
+            content_hash = hashlib.sha256(
+                json.dumps(conv.get("messages", []), sort_keys=True).encode()
+            ).hexdigest()
             entry = ConversationEntry(
                 messages=conv.get("messages", []),
                 source_family=conv.get("source_family", "unknown"),
-                source_key=conv.get("source_key", hashlib.sha256(str(conv).encode()).hexdigest()[:8]),
+                source_key=conv.get(
+                    "source_key", hashlib.sha256(str(conv).encode()).hexdigest()[:8]
+                ),
                 content_hash=content_hash,
             )
             self.deduplicator.add_conversation(entry)
@@ -391,11 +413,13 @@ class FinalDatasetCompiler:
         val_count = int(total * self.config.val_split)
 
         self.splits["train"] = self.all_conversations[:train_count]
-        self.splits["validation"] = self.all_conversations[train_count : train_count + val_count]
+        self.splits["validation"] = self.all_conversations[
+            train_count : train_count + val_count
+        ]
         self.splits["test"] = self.all_conversations[train_count + val_count :]
 
         for split, convs in self.splits.items():
-            pct = (len(convs)/total*100) if total > 0 else 0.0
+            pct = (len(convs) / total * 100) if total > 0 else 0.0
             logger.info(f"  {split}: {len(convs):,} conversations ({pct:.1f}%)")
 
         self.save_checkpoint("splits", progress=100.0)
@@ -407,11 +431,13 @@ class FinalDatasetCompiler:
         logger.info("=" * 80)
 
         holdout_in_train = [
-            c for c in self.splits["train"]
+            c
+            for c in self.splits["train"]
             if c.get("metadata", {}).get("source_family") in self.holdout_families
         ]
         holdout_in_val = [
-            c for c in self.splits["validation"]
+            c
+            for c in self.splits["validation"]
             if c.get("metadata", {}).get("source_family") in self.holdout_families
         ]
 
@@ -444,7 +470,9 @@ class FinalDatasetCompiler:
 
                 if current_size + conv_size > shard_size_bytes and current_shard:
                     # Save current shard
-                    shard = self._save_shard(split_name, len(split_shards), current_shard)
+                    shard = self._save_shard(
+                        split_name, len(split_shards), current_shard
+                    )
                     split_shards.append(shard)
                     current_shard = []
                     current_size = 0
@@ -462,7 +490,9 @@ class FinalDatasetCompiler:
 
         return shards
 
-    def _save_shard(self, split: str, shard_id: int, conversations: list) -> DatasetShard:
+    def _save_shard(
+        self, split: str, shard_id: int, conversations: list
+    ) -> DatasetShard:
         """Save a single shard to local disk"""
         shard_name = f"{split}_shard_{shard_id:04d}.jsonl"
         shard_path = self.config.output_dir / shard_name
@@ -478,7 +508,9 @@ class FinalDatasetCompiler:
         families = set()
         for conv in conversations:
             # Try direct source_family first, then metadata
-            fam = conv.get("source_family") or conv.get("metadata", {}).get("source_family")
+            fam = conv.get("source_family") or conv.get("metadata", {}).get(
+                "source_family"
+            )
             if fam:
                 families.add(fam)
 
@@ -504,7 +536,9 @@ class FinalDatasetCompiler:
                 try:
                     self.s3_loader.upload_file(str(local_path), shard.s3_path)
                     total_size += shard.size_bytes
-                    logger.info(f"  ✓ Uploaded {shard.shard_id} ({shard.size_bytes / 1024 / 1024:.1f} MB)")
+                    logger.info(
+                        f"  ✓ Uploaded {shard.shard_id} ({shard.size_bytes / 1024 / 1024:.1f} MB)"
+                    )
                 except Exception as e:
                     logger.error(f"  ❌ Failed to upload {shard.shard_id}: {e}")
 
@@ -519,7 +553,9 @@ class FinalDatasetCompiler:
                 split: {
                     "conversations": len(self.splits[split]),
                     "shards": len(shards.get(split, [])),
-                    "total_size_mb": sum(s.size_bytes for s in shards.get(split, [])) / 1024 / 1024,
+                    "total_size_mb": sum(s.size_bytes for s in shards.get(split, []))
+                    / 1024
+                    / 1024,
                 }
                 for split in self.splits
             },
@@ -582,13 +618,28 @@ class FinalDatasetCompiler:
 # CLI & Main
 # ============================================================================
 
+
 def main() -> int:
     """Main entry point"""
     parser = argparse.ArgumentParser(description="Compile final training dataset")
-    parser.add_argument("--routing-config", type=Path, default=Path("ai/training_ready/data/dataset_routing_config.json"))
-    parser.add_argument("--coverage-report", type=Path, default=Path("ai/training_ready/data/coverage_report.json"))
-    parser.add_argument("--output-dir", type=Path, default=Path("ai/training_ready/data/compiled"))
-    parser.add_argument("--s3-manifest", type=Path, default=Path("ai/training_ready/data/s3_manifest.json"))
+    parser.add_argument(
+        "--routing-config",
+        type=Path,
+        default=Path("ai/training_ready/data/dataset_routing_config.json"),
+    )
+    parser.add_argument(
+        "--coverage-report",
+        type=Path,
+        default=Path("ai/training_ready/data/coverage_report.json"),
+    )
+    parser.add_argument(
+        "--output-dir", type=Path, default=Path("ai/training_ready/data/compiled")
+    )
+    parser.add_argument(
+        "--s3-manifest",
+        type=Path,
+        default=Path("ai/training_ready/data/s3_manifest.json"),
+    )
     parser.add_argument("--train-split", type=float, default=0.80)
     parser.add_argument("--val-split", type=float, default=0.10)
     parser.add_argument("--test-split", type=float, default=0.05)

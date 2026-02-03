@@ -29,6 +29,7 @@ from .therapeutic_response_generator import TherapeuticModality
 
 class SpecializedPopulation(Enum):
     """Specialized therapeutic populations."""
+
     TRAUMA_SURVIVORS = "trauma_survivors"
     ADDICTION_RECOVERY = "addiction_recovery"
     LGBTQ_PLUS = "lgbtq_plus"
@@ -45,6 +46,7 @@ class SpecializedPopulation(Enum):
 
 class TraumaType(Enum):
     """Types of trauma experiences."""
+
     CHILDHOOD_ABUSE = "childhood_abuse"
     SEXUAL_ASSAULT = "sexual_assault"
     COMBAT_TRAUMA = "combat_trauma"
@@ -58,6 +60,7 @@ class TraumaType(Enum):
 
 class AddictionStage(Enum):
     """Stages of addiction recovery."""
+
     PRECONTEMPLATION = "precontemplation"
     CONTEMPLATION = "contemplation"
     PREPARATION = "preparation"
@@ -69,6 +72,7 @@ class AddictionStage(Enum):
 
 class CulturalFactor(Enum):
     """Cultural factors affecting treatment."""
+
     LANGUAGE_BARRIERS = "language_barriers"
     RELIGIOUS_BELIEFS = "religious_beliefs"
     FAMILY_DYNAMICS = "family_dynamics"
@@ -82,6 +86,7 @@ class CulturalFactor(Enum):
 @dataclass
 class PopulationCharacteristics:
     """Characteristics of specialized population."""
+
     id: str
     population: SpecializedPopulation
     name: str
@@ -100,6 +105,7 @@ class PopulationCharacteristics:
 @dataclass
 class SpecializedProtocol:
     """Specialized treatment protocol for population."""
+
     id: str
     population: SpecializedPopulation
     protocol_name: str
@@ -117,6 +123,7 @@ class SpecializedProtocol:
 @dataclass
 class PopulationConversation:
     """Specialized population conversation with tailored approaches."""
+
     id: str
     population_characteristics: PopulationCharacteristics
     specialized_protocol: SpecializedProtocol
@@ -147,134 +154,140 @@ class SpecializedPopulationsGenerator:
         self.cultural_frameworks = self._initialize_cultural_frameworks()
         self.trauma_informed_principles = self._initialize_trauma_informed_principles()
 
-    def _initialize_population_characteristics(self) -> dict[SpecializedPopulation, PopulationCharacteristics]:
+    def _initialize_population_characteristics(
+        self,
+    ) -> dict[SpecializedPopulation, PopulationCharacteristics]:
         """Initialize characteristics for specialized populations."""
         characteristics = {}
 
         # Trauma Survivors
-        characteristics[SpecializedPopulation.TRAUMA_SURVIVORS] = PopulationCharacteristics(
-            id="trauma_survivors",
-            population=SpecializedPopulation.TRAUMA_SURVIVORS,
-            name="Trauma Survivors",
-            description="Individuals who have experienced traumatic events requiring trauma-informed care",
-            common_presentations=[
-                "PTSD symptoms",
-                "Hypervigilance",
-                "Dissociation",
-                "Emotional dysregulation",
-                "Trust issues",
-                "Sleep disturbances",
-                "Intrusive memories"
-            ],
-            unique_challenges=[
-                "Trauma triggers in therapy",
-                "Difficulty with trust and safety",
-                "Potential for re-traumatization",
-                "Complex symptom presentations",
-                "Shame and self-blame",
-                "Avoidance behaviors"
-            ],
-            cultural_considerations=[
-                CulturalFactor.FAMILY_DYNAMICS,
-                CulturalFactor.RELIGIOUS_BELIEFS,
-                CulturalFactor.RACIAL_IDENTITY
-            ],
-            trauma_considerations=[
-                TraumaType.CHILDHOOD_ABUSE,
-                TraumaType.SEXUAL_ASSAULT,
-                TraumaType.COMPLEX_TRAUMA,
-                TraumaType.DEVELOPMENTAL_TRAUMA
-            ],
-            preferred_modalities=[
-                TherapeuticModality.TRAUMA_INFORMED,
-                TherapeuticModality.COGNITIVE_BEHAVIORAL,
-                TherapeuticModality.MINDFULNESS_BASED
-            ],
-            contraindicated_approaches=[
-                "Confrontational techniques",
-                "Forced disclosure",
-                "Intensive exposure without preparation"
-            ],
-            assessment_modifications=[
-                "Trauma screening tools",
-                "Safety assessment priority",
-                "Gradual disclosure approach",
-                "Trigger identification"
-            ],
-            therapeutic_goals=[
-                "Safety and stabilization",
-                "Trauma processing",
-                "Integration and recovery",
-                "Post-traumatic growth"
-            ],
-            treatment_considerations=[
-                "Trauma-informed environment",
-                "Paced treatment approach",
-                "Safety planning",
-                "Trigger management"
-            ]
+        characteristics[SpecializedPopulation.TRAUMA_SURVIVORS] = (
+            PopulationCharacteristics(
+                id="trauma_survivors",
+                population=SpecializedPopulation.TRAUMA_SURVIVORS,
+                name="Trauma Survivors",
+                description="Individuals who have experienced traumatic events requiring trauma-informed care",
+                common_presentations=[
+                    "PTSD symptoms",
+                    "Hypervigilance",
+                    "Dissociation",
+                    "Emotional dysregulation",
+                    "Trust issues",
+                    "Sleep disturbances",
+                    "Intrusive memories",
+                ],
+                unique_challenges=[
+                    "Trauma triggers in therapy",
+                    "Difficulty with trust and safety",
+                    "Potential for re-traumatization",
+                    "Complex symptom presentations",
+                    "Shame and self-blame",
+                    "Avoidance behaviors",
+                ],
+                cultural_considerations=[
+                    CulturalFactor.FAMILY_DYNAMICS,
+                    CulturalFactor.RELIGIOUS_BELIEFS,
+                    CulturalFactor.RACIAL_IDENTITY,
+                ],
+                trauma_considerations=[
+                    TraumaType.CHILDHOOD_ABUSE,
+                    TraumaType.SEXUAL_ASSAULT,
+                    TraumaType.COMPLEX_TRAUMA,
+                    TraumaType.DEVELOPMENTAL_TRAUMA,
+                ],
+                preferred_modalities=[
+                    TherapeuticModality.TRAUMA_INFORMED,
+                    TherapeuticModality.COGNITIVE_BEHAVIORAL,
+                    TherapeuticModality.MINDFULNESS_BASED,
+                ],
+                contraindicated_approaches=[
+                    "Confrontational techniques",
+                    "Forced disclosure",
+                    "Intensive exposure without preparation",
+                ],
+                assessment_modifications=[
+                    "Trauma screening tools",
+                    "Safety assessment priority",
+                    "Gradual disclosure approach",
+                    "Trigger identification",
+                ],
+                therapeutic_goals=[
+                    "Safety and stabilization",
+                    "Trauma processing",
+                    "Integration and recovery",
+                    "Post-traumatic growth",
+                ],
+                treatment_considerations=[
+                    "Trauma-informed environment",
+                    "Paced treatment approach",
+                    "Safety planning",
+                    "Trigger management",
+                ],
+            )
         )
 
         # Addiction Recovery
-        characteristics[SpecializedPopulation.ADDICTION_RECOVERY] = PopulationCharacteristics(
-            id="addiction_recovery",
-            population=SpecializedPopulation.ADDICTION_RECOVERY,
-            name="Addiction Recovery",
-            description="Individuals in various stages of addiction recovery requiring specialized treatment approaches",
-            common_presentations=[
-                "Substance use disorders",
-                "Cravings and urges",
-                "Withdrawal symptoms",
-                "Relapse concerns",
-                "Shame and guilt",
-                "Relationship problems",
-                "Legal/financial issues"
-            ],
-            unique_challenges=[
-                "Denial and minimization",
-                "Ambivalence about change",
-                "High relapse risk",
-                "Comorbid mental health issues",
-                "Social stigma",
-                "Environmental triggers"
-            ],
-            cultural_considerations=[
-                CulturalFactor.FAMILY_DYNAMICS,
-                CulturalFactor.SOCIOECONOMIC_STATUS,
-                CulturalFactor.RELIGIOUS_BELIEFS
-            ],
-            trauma_considerations=[
-                TraumaType.CHILDHOOD_ABUSE,
-                TraumaType.COMPLEX_TRAUMA
-            ],
-            preferred_modalities=[
-                TherapeuticModality.COGNITIVE_BEHAVIORAL,
-                TherapeuticModality.ACCEPTANCE_COMMITMENT,
-                TherapeuticModality.SOLUTION_FOCUSED
-            ],
-            contraindicated_approaches=[
-                "Confrontational interventions",
-                "Shame-based approaches",
-                "Rigid abstinence-only models without flexibility"
-            ],
-            assessment_modifications=[
-                "Substance use history",
-                "Readiness for change assessment",
-                "Trigger identification",
-                "Support system evaluation"
-            ],
-            therapeutic_goals=[
-                "Motivation enhancement",
-                "Relapse prevention",
-                "Coping skills development",
-                "Recovery maintenance"
-            ],
-            treatment_considerations=[
-                "Stage-matched interventions",
-                "Harm reduction principles",
-                "Relapse as learning opportunity",
-                "Holistic recovery approach"
-            ]
+        characteristics[SpecializedPopulation.ADDICTION_RECOVERY] = (
+            PopulationCharacteristics(
+                id="addiction_recovery",
+                population=SpecializedPopulation.ADDICTION_RECOVERY,
+                name="Addiction Recovery",
+                description="Individuals in various stages of addiction recovery requiring specialized treatment approaches",
+                common_presentations=[
+                    "Substance use disorders",
+                    "Cravings and urges",
+                    "Withdrawal symptoms",
+                    "Relapse concerns",
+                    "Shame and guilt",
+                    "Relationship problems",
+                    "Legal/financial issues",
+                ],
+                unique_challenges=[
+                    "Denial and minimization",
+                    "Ambivalence about change",
+                    "High relapse risk",
+                    "Comorbid mental health issues",
+                    "Social stigma",
+                    "Environmental triggers",
+                ],
+                cultural_considerations=[
+                    CulturalFactor.FAMILY_DYNAMICS,
+                    CulturalFactor.SOCIOECONOMIC_STATUS,
+                    CulturalFactor.RELIGIOUS_BELIEFS,
+                ],
+                trauma_considerations=[
+                    TraumaType.CHILDHOOD_ABUSE,
+                    TraumaType.COMPLEX_TRAUMA,
+                ],
+                preferred_modalities=[
+                    TherapeuticModality.COGNITIVE_BEHAVIORAL,
+                    TherapeuticModality.ACCEPTANCE_COMMITMENT,
+                    TherapeuticModality.SOLUTION_FOCUSED,
+                ],
+                contraindicated_approaches=[
+                    "Confrontational interventions",
+                    "Shame-based approaches",
+                    "Rigid abstinence-only models without flexibility",
+                ],
+                assessment_modifications=[
+                    "Substance use history",
+                    "Readiness for change assessment",
+                    "Trigger identification",
+                    "Support system evaluation",
+                ],
+                therapeutic_goals=[
+                    "Motivation enhancement",
+                    "Relapse prevention",
+                    "Coping skills development",
+                    "Recovery maintenance",
+                ],
+                treatment_considerations=[
+                    "Stage-matched interventions",
+                    "Harm reduction principles",
+                    "Relapse as learning opportunity",
+                    "Holistic recovery approach",
+                ],
+            )
         )
 
         # LGBTQ+ Population
@@ -290,7 +303,7 @@ class SpecializedPopulationsGenerator:
                 "Family rejection",
                 "Internalized stigma",
                 "Relationship challenges",
-                "Gender dysphoria"
+                "Gender dysphoria",
             ],
             unique_challenges=[
                 "Minority stress",
@@ -298,51 +311,53 @@ class SpecializedPopulationsGenerator:
                 "Legal discrimination",
                 "Healthcare barriers",
                 "Religious conflicts",
-                "Intersectional identities"
+                "Intersectional identities",
             ],
             cultural_considerations=[
                 CulturalFactor.GENDER_IDENTITY,
                 CulturalFactor.SEXUAL_ORIENTATION,
                 CulturalFactor.FAMILY_DYNAMICS,
-                CulturalFactor.RELIGIOUS_BELIEFS
+                CulturalFactor.RELIGIOUS_BELIEFS,
             ],
             trauma_considerations=[
                 TraumaType.COMPLEX_TRAUMA,
-                TraumaType.HISTORICAL_TRAUMA
+                TraumaType.HISTORICAL_TRAUMA,
             ],
             preferred_modalities=[
                 TherapeuticModality.HUMANISTIC,
                 TherapeuticModality.COGNITIVE_BEHAVIORAL,
-                TherapeuticModality.ACCEPTANCE_COMMITMENT
+                TherapeuticModality.ACCEPTANCE_COMMITMENT,
             ],
             contraindicated_approaches=[
                 "Conversion therapy",
                 "Pathologizing approaches",
-                "Assumptions about identity"
+                "Assumptions about identity",
             ],
             assessment_modifications=[
                 "Affirming language use",
                 "Identity exploration focus",
                 "Discrimination assessment",
-                "Support system evaluation"
+                "Support system evaluation",
             ],
             therapeutic_goals=[
                 "Identity affirmation",
                 "Minority stress reduction",
                 "Relationship enhancement",
-                "Community connection"
+                "Community connection",
             ],
             treatment_considerations=[
                 "Affirming therapeutic environment",
                 "Cultural competency required",
                 "Intersectional awareness",
-                "Community resource connection"
-            ]
+                "Community resource connection",
+            ],
         )
 
         return characteristics
 
-    def _initialize_specialized_protocols(self) -> dict[SpecializedPopulation, list[SpecializedProtocol]]:
+    def _initialize_specialized_protocols(
+        self,
+    ) -> dict[SpecializedPopulation, list[SpecializedProtocol]]:
         """Initialize specialized treatment protocols for populations."""
         protocols = {}
 
@@ -357,49 +372,49 @@ class SpecializedPopulationsGenerator:
                     "Intrusive memories",
                     "Avoidance behaviors",
                     "Negative cognitions",
-                    "Hyperarousal symptoms"
+                    "Hyperarousal symptoms",
                 ],
                 intervention_phases=[
                     "Stabilization and safety",
                     "Trauma processing",
-                    "Integration and reconnection"
+                    "Integration and reconnection",
                 ],
                 specialized_techniques=[
                     "Cognitive restructuring for trauma",
                     "Imaginal exposure",
                     "In-vivo exposure",
-                    "Relapse prevention"
+                    "Relapse prevention",
                 ],
                 cultural_adaptations=[
                     "Culturally relevant metaphors",
                     "Family involvement when appropriate",
                     "Spiritual/religious integration",
-                    "Historical trauma acknowledgment"
+                    "Historical trauma acknowledgment",
                 ],
                 safety_considerations=[
                     "Trauma trigger management",
                     "Dissociation monitoring",
                     "Safety planning",
-                    "Grounding techniques"
+                    "Grounding techniques",
                 ],
                 outcome_measures=[
                     "PTSD symptom reduction",
                     "Functional improvement",
                     "Quality of life enhancement",
-                    "Trauma-related cognition changes"
+                    "Trauma-related cognition changes",
                 ],
                 session_structure=[
                     "Safety check-in",
                     "Homework review",
                     "Skill building/processing",
-                    "Grounding and closure"
+                    "Grounding and closure",
                 ],
                 therapist_requirements=[
                     "Trauma-informed training",
                     "Cultural competency",
                     "Secondary trauma awareness",
-                    "Safety protocol knowledge"
-                ]
+                    "Safety protocol knowledge",
+                ],
             )
         ]
 
@@ -414,51 +429,51 @@ class SpecializedPopulationsGenerator:
                     "Ambivalence about change",
                     "Low motivation",
                     "Denial and minimization",
-                    "Resistance to treatment"
+                    "Resistance to treatment",
                 ],
                 intervention_phases=[
                     "Engagement and rapport",
                     "Focusing on change",
                     "Evoking motivation",
-                    "Planning for change"
+                    "Planning for change",
                 ],
                 specialized_techniques=[
                     "Open-ended questions",
                     "Affirmations",
                     "Reflective listening",
                     "Summarizing",
-                    "Change talk elicitation"
+                    "Change talk elicitation",
                 ],
                 cultural_adaptations=[
                     "Cultural values integration",
                     "Family system consideration",
                     "Spiritual/religious resources",
-                    "Community-based approaches"
+                    "Community-based approaches",
                 ],
                 safety_considerations=[
                     "Withdrawal monitoring",
                     "Suicide risk assessment",
                     "Medical complications",
-                    "Relapse prevention"
+                    "Relapse prevention",
                 ],
                 outcome_measures=[
                     "Motivation for change",
                     "Treatment engagement",
                     "Substance use reduction",
-                    "Functional improvement"
+                    "Functional improvement",
                 ],
                 session_structure=[
                     "Check-in and assessment",
                     "Motivation exploration",
                     "Change planning",
-                    "Commitment strengthening"
+                    "Commitment strengthening",
                 ],
                 therapist_requirements=[
                     "MI training and certification",
                     "Addiction knowledge",
                     "Non-judgmental approach",
-                    "Cultural sensitivity"
-                ]
+                    "Cultural sensitivity",
+                ],
             )
         ]
 
@@ -473,50 +488,50 @@ class SpecializedPopulationsGenerator:
                     "Minority stress",
                     "Internalized stigma",
                     "Identity confusion",
-                    "Discrimination trauma"
+                    "Discrimination trauma",
                 ],
                 intervention_phases=[
                     "Identity exploration",
                     "Minority stress processing",
                     "Affirmation and integration",
-                    "Community connection"
+                    "Community connection",
                 ],
                 specialized_techniques=[
                     "Identity affirmation",
                     "Minority stress reduction",
                     "Coming out support",
-                    "Intersectional awareness"
+                    "Intersectional awareness",
                 ],
                 cultural_adaptations=[
                     "Intersectional identity consideration",
                     "Cultural background integration",
                     "Religious/spiritual reconciliation",
-                    "Family dynamics navigation"
+                    "Family dynamics navigation",
                 ],
                 safety_considerations=[
                     "Disclosure safety assessment",
                     "Discrimination risk evaluation",
                     "Support system availability",
-                    "Crisis intervention planning"
+                    "Crisis intervention planning",
                 ],
                 outcome_measures=[
                     "Identity acceptance",
                     "Minority stress reduction",
                     "Relationship satisfaction",
-                    "Community connectedness"
+                    "Community connectedness",
                 ],
                 session_structure=[
                     "Affirming check-in",
                     "Identity exploration",
                     "Skill building",
-                    "Resource connection"
+                    "Resource connection",
                 ],
                 therapist_requirements=[
                     "LGBTQ+ competency training",
                     "Bias awareness",
                     "Affirming language use",
-                    "Community resource knowledge"
-                ]
+                    "Community resource knowledge",
+                ],
             )
         ]
 
@@ -530,61 +545,61 @@ class SpecializedPopulationsGenerator:
                     "Use of interpreters",
                     "Culturally adapted materials",
                     "Non-verbal communication awareness",
-                    "Concept translation challenges"
+                    "Concept translation challenges",
                 ],
                 "interventions": [
                     "Professional interpreter services",
                     "Bilingual therapy when available",
                     "Visual aids and materials",
-                    "Cultural broker involvement"
+                    "Cultural broker involvement",
                 ],
                 "assessment_modifications": [
                     "Language-appropriate instruments",
                     "Cultural concept clarification",
                     "Extended assessment time",
-                    "Family involvement in translation"
-                ]
+                    "Family involvement in translation",
+                ],
             },
             CulturalFactor.RELIGIOUS_BELIEFS: {
                 "considerations": [
                     "Spiritual coping mechanisms",
                     "Religious community support",
                     "Potential conflicts with treatment",
-                    "Sacred practices integration"
+                    "Sacred practices integration",
                 ],
                 "interventions": [
                     "Spiritual assessment",
                     "Religious resource integration",
                     "Clergy collaboration",
-                    "Values-based treatment planning"
+                    "Values-based treatment planning",
                 ],
                 "assessment_modifications": [
                     "Spiritual history taking",
                     "Religious coping assessment",
                     "Values clarification",
-                    "Community resource evaluation"
-                ]
+                    "Community resource evaluation",
+                ],
             },
             CulturalFactor.FAMILY_DYNAMICS: {
                 "considerations": [
                     "Collectivist vs individualist values",
                     "Family hierarchy and roles",
                     "Decision-making processes",
-                    "Intergenerational conflicts"
+                    "Intergenerational conflicts",
                 ],
                 "interventions": [
                     "Family therapy inclusion",
                     "Cultural mediator role",
                     "Respect for family values",
-                    "Gradual change approaches"
+                    "Gradual change approaches",
                 ],
                 "assessment_modifications": [
                     "Family system assessment",
                     "Cultural value exploration",
                     "Role and responsibility mapping",
-                    "Support system evaluation"
-                ]
-            }
+                    "Support system evaluation",
+                ],
+            },
         }
 
     def _initialize_trauma_informed_principles(self) -> dict[str, Any]:
@@ -595,49 +610,49 @@ class SpecializedPopulationsGenerator:
                     "Safe physical environment",
                     "Clear boundaries",
                     "Predictable routines",
-                    "Emergency procedures"
+                    "Emergency procedures",
                 ],
                 "psychological_safety": [
                     "Emotional safety assurance",
                     "Trust building",
                     "Confidentiality protection",
-                    "Non-judgmental approach"
-                ]
+                    "Non-judgmental approach",
+                ],
             },
             "trustworthiness": {
                 "transparency": [
                     "Clear communication",
                     "Honest information sharing",
                     "Process explanation",
-                    "Expectation setting"
+                    "Expectation setting",
                 ],
                 "reliability": [
                     "Consistent follow-through",
                     "Dependable presence",
                     "Promise keeping",
-                    "Predictable responses"
-                ]
+                    "Predictable responses",
+                ],
             },
             "choice": {
                 "empowerment": [
                     "Client autonomy respect",
                     "Decision-making involvement",
                     "Option provision",
-                    "Control restoration"
+                    "Control restoration",
                 ],
                 "collaboration": [
                     "Shared decision-making",
                     "Goal setting partnership",
                     "Treatment planning involvement",
-                    "Feedback incorporation"
-                ]
+                    "Feedback incorporation",
+                ],
             },
             "collaboration": {
                 "partnership": [
                     "Equal relationship",
                     "Mutual respect",
                     "Shared expertise",
-                    "Joint problem-solving"
+                    "Joint problem-solving",
                 ]
             },
             "cultural_humility": {
@@ -645,16 +660,16 @@ class SpecializedPopulationsGenerator:
                     "Cultural awareness",
                     "Bias recognition",
                     "Adaptation willingness",
-                    "Learning orientation"
+                    "Learning orientation",
                 ]
-            }
+            },
         }
 
     def generate_specialized_conversation(
         self,
         client_scenario: ClientScenario,
         population: SpecializedPopulation,
-        num_exchanges: int = 10
+        num_exchanges: int = 10,
     ) -> PopulationConversation:
         """
         Generate specialized population conversation with tailored approaches.
@@ -674,7 +689,9 @@ class SpecializedPopulationsGenerator:
 
         # Get specialized protocol
         protocols = self.specialized_protocols.get(population, [])
-        protocol = protocols[0] if protocols else self._create_generic_protocol(population)
+        protocol = (
+            protocols[0] if protocols else self._create_generic_protocol(population)
+        )
 
         # Generate conversation exchanges
         exchanges = self._generate_specialized_exchanges(
@@ -682,30 +699,46 @@ class SpecializedPopulationsGenerator:
         )
 
         # Identify cultural adaptations used
-        cultural_adaptations = self._identify_cultural_adaptations(exchanges, characteristics)
+        cultural_adaptations = self._identify_cultural_adaptations(
+            exchanges, characteristics
+        )
 
         # Identify trauma-informed elements
         trauma_informed_elements = self._identify_trauma_informed_elements(exchanges)
 
         # Identify population-specific techniques
-        population_techniques = self._identify_population_techniques(exchanges, protocol)
+        population_techniques = self._identify_population_techniques(
+            exchanges, protocol
+        )
 
         # Assess therapeutic alliance factors
-        alliance_factors = self._assess_therapeutic_alliance_factors(exchanges, characteristics)
+        alliance_factors = self._assess_therapeutic_alliance_factors(
+            exchanges, characteristics
+        )
 
         # Evaluate cultural competency
-        cultural_competency = self._evaluate_cultural_competency(exchanges, characteristics)
+        cultural_competency = self._evaluate_cultural_competency(
+            exchanges, characteristics
+        )
 
         # Identify specialized assessments
-        specialized_assessments = self._identify_specialized_assessments(exchanges, characteristics)
+        specialized_assessments = self._identify_specialized_assessments(
+            exchanges, characteristics
+        )
 
         # Determine treatment modifications
-        treatment_modifications = self._determine_treatment_modifications(exchanges, characteristics)
+        treatment_modifications = self._determine_treatment_modifications(
+            exchanges, characteristics
+        )
 
         # Consider outcome factors
-        outcome_considerations = self._consider_outcome_factors(protocol, characteristics)
+        outcome_considerations = self._consider_outcome_factors(
+            protocol, characteristics
+        )
 
-        conversation_id = f"specialized_{population.value}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        conversation_id = (
+            f"specialized_{population.value}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        )
 
         return PopulationConversation(
             id=conversation_id,
@@ -720,10 +753,12 @@ class SpecializedPopulationsGenerator:
             cultural_competency_demonstrated=cultural_competency,
             specialized_assessments=specialized_assessments,
             treatment_modifications=treatment_modifications,
-            outcome_considerations=outcome_considerations
+            outcome_considerations=outcome_considerations,
         )
 
-    def _create_generic_characteristics(self, population: SpecializedPopulation) -> PopulationCharacteristics:
+    def _create_generic_characteristics(
+        self, population: SpecializedPopulation
+    ) -> PopulationCharacteristics:
         """Create generic characteristics for unspecified populations."""
         return PopulationCharacteristics(
             id=f"generic_{population.value}",
@@ -738,10 +773,12 @@ class SpecializedPopulationsGenerator:
             contraindicated_approaches=["Generic contraindications"],
             assessment_modifications=["Standard modifications"],
             therapeutic_goals=["Population-appropriate goals"],
-            treatment_considerations=["Specialized considerations"]
+            treatment_considerations=["Specialized considerations"],
         )
 
-    def _create_generic_protocol(self, population: SpecializedPopulation) -> SpecializedProtocol:
+    def _create_generic_protocol(
+        self, population: SpecializedPopulation
+    ) -> SpecializedProtocol:
         """Create generic protocol for unspecified populations."""
         return SpecializedProtocol(
             id=f"generic_{population.value}_protocol",
@@ -755,7 +792,7 @@ class SpecializedPopulationsGenerator:
             safety_considerations=["Safety protocols"],
             outcome_measures=["Relevant outcomes"],
             session_structure=["Standard structure"],
-            therapist_requirements=["Specialized training"]
+            therapist_requirements=["Specialized training"],
         )
 
     def _generate_specialized_exchanges(
@@ -763,7 +800,7 @@ class SpecializedPopulationsGenerator:
         client_scenario: ClientScenario,
         characteristics: PopulationCharacteristics,
         protocol: SpecializedProtocol,
-        num_exchanges: int
+        num_exchanges: int,
     ) -> list[dict[str, Any]]:
         """Generate conversation exchanges with population-specific considerations."""
         exchanges = []
@@ -787,7 +824,7 @@ class SpecializedPopulationsGenerator:
         client_scenario: ClientScenario,
         characteristics: PopulationCharacteristics,
         protocol: SpecializedProtocol,
-        exchange_index: int
+        exchange_index: int,
     ) -> dict[str, Any]:
         """Generate therapist response with population-specific considerations."""
 
@@ -810,16 +847,20 @@ class SpecializedPopulationsGenerator:
             "content": content,
             "specialized_technique": technique,
             "population_focus": characteristics.population.value,
-            "cultural_adaptation": self._determine_cultural_adaptation(characteristics, exchange_index),
-            "trauma_informed_element": self._determine_trauma_informed_element(exchange_index),
-            "timestamp": datetime.now().isoformat()
+            "cultural_adaptation": self._determine_cultural_adaptation(
+                characteristics, exchange_index
+            ),
+            "trauma_informed_element": self._determine_trauma_informed_element(
+                exchange_index
+            ),
+            "timestamp": datetime.now().isoformat(),
         }
 
     def _generate_client_specialized_response(
         self,
         client_scenario: ClientScenario,
         characteristics: PopulationCharacteristics,
-        exchange_index: int
+        exchange_index: int,
     ) -> dict[str, Any]:
         """Generate client response with population-specific considerations."""
 
@@ -831,14 +872,22 @@ class SpecializedPopulationsGenerator:
         return {
             "speaker": "client",
             "content": content,
-            "emotional_state": self._determine_population_emotional_state(characteristics, exchange_index),
+            "emotional_state": self._determine_population_emotional_state(
+                characteristics, exchange_index
+            ),
             "cultural_expression": self._determine_cultural_expression(characteristics),
-            "population_specific_concerns": self._identify_population_concerns(characteristics, content),
-            "engagement_level": self._assess_population_engagement(characteristics, exchange_index),
-            "timestamp": datetime.now().isoformat()
+            "population_specific_concerns": self._identify_population_concerns(
+                characteristics, content
+            ),
+            "engagement_level": self._assess_population_engagement(
+                characteristics, exchange_index
+            ),
+            "timestamp": datetime.now().isoformat(),
         }
 
-    def _generate_population_opening(self, characteristics: PopulationCharacteristics) -> str:
+    def _generate_population_opening(
+        self, characteristics: PopulationCharacteristics
+    ) -> str:
         """Generate population-appropriate opening statement."""
 
         if characteristics.population == SpecializedPopulation.TRAUMA_SURVIVORS:
@@ -853,7 +902,9 @@ class SpecializedPopulationsGenerator:
             return "I know it might feel weird talking to an adult about personal stuff. This is your space, and I'm here to listen without judgment."
         return "I'm glad you're here today. I want to understand your unique experiences and how I can best support you."
 
-    def _generate_population_assessment(self, characteristics: PopulationCharacteristics) -> str:
+    def _generate_population_assessment(
+        self, characteristics: PopulationCharacteristics
+    ) -> str:
         """Generate population-specific assessment question."""
 
         if characteristics.population == SpecializedPopulation.TRAUMA_SURVIVORS:
@@ -868,7 +919,9 @@ class SpecializedPopulationsGenerator:
             return "What's been going on in your life lately? Sometimes it helps to start with what's most on your mind."
         return "Can you help me understand your unique experiences and what's brought you here today?"
 
-    def _generate_cultural_exploration(self, characteristics: PopulationCharacteristics) -> str:
+    def _generate_cultural_exploration(
+        self, characteristics: PopulationCharacteristics
+    ) -> str:
         """Generate cultural exploration question."""
 
         cultural_factors = characteristics.cultural_considerations
@@ -882,9 +935,7 @@ class SpecializedPopulationsGenerator:
         return "Your cultural background and values are important to understand. Can you share what's meaningful to you?"
 
     def _generate_population_intervention(
-        self,
-        characteristics: PopulationCharacteristics,
-        protocol: SpecializedProtocol
+        self, characteristics: PopulationCharacteristics, protocol: SpecializedProtocol
     ) -> str:
         """Generate population-specific intervention content."""
 
@@ -904,7 +955,7 @@ class SpecializedPopulationsGenerator:
         self,
         client_scenario: ClientScenario,
         characteristics: PopulationCharacteristics,
-        exchange_index: int
+        exchange_index: int,
     ) -> str:
         """Generate population-specific client response content."""
 
@@ -913,50 +964,48 @@ class SpecializedPopulationsGenerator:
                 "I don't know if I can talk about what happened. It still feels too raw.",
                 "Sometimes I feel like I'm back there, like it's happening all over again.",
                 "I don't trust easily anymore. Everyone seems like a potential threat.",
-                "I just want to feel normal again, but I don't remember what normal feels like."
+                "I just want to feel normal again, but I don't remember what normal feels like.",
             ]
         elif characteristics.population == SpecializedPopulation.ADDICTION_RECOVERY:
             responses = [
                 "I know I need to change, but I'm scared. This is all I've known for so long.",
                 "Everyone keeps telling me I have a problem, but I'm not sure I'm ready to admit it.",
                 "I've tried to quit before, but I always end up back where I started.",
-                "I want to get better, but I don't know if I'm strong enough."
+                "I want to get better, but I don't know if I'm strong enough.",
             ]
         elif characteristics.population == SpecializedPopulation.LGBTQ_PLUS:
             responses = [
                 "My family says they love me, but they want me to change who I am.",
                 "I'm tired of hiding, but I'm scared of what will happen if I'm open about who I am.",
                 "Sometimes I wonder if it would be easier to just pretend to be someone I'm not.",
-                "I just want to be accepted for who I am, not who others want me to be."
+                "I just want to be accepted for who I am, not who others want me to be.",
             ]
         elif characteristics.population == SpecializedPopulation.VETERANS:
             responses = [
                 "Civilian life is harder than I expected. Nothing makes sense anymore.",
                 "I feel like I don't fit in anywhere. Civilians don't understand what I've been through.",
                 "I miss the structure and purpose I had in the military. Now I feel lost.",
-                "The nightmares and flashbacks make it hard to function day to day."
+                "The nightmares and flashbacks make it hard to function day to day.",
             ]
         elif characteristics.population == SpecializedPopulation.ADOLESCENTS:
             responses = [
                 "My parents don't understand me at all. They think they know what's best, but they don't get it.",
                 "School is so stressful, and everyone expects me to have my whole life figured out.",
                 "I feel like I'm different from everyone else, and I don't know if that's okay.",
-                "Sometimes I feel like I'm drowning, and no one notices or cares."
+                "Sometimes I feel like I'm drowning, and no one notices or cares.",
             ]
         else:
             responses = [
                 "I'm struggling with some things that feel really overwhelming right now.",
                 "I don't know if anyone can really understand what I'm going through.",
                 "I want things to get better, but I don't know where to start.",
-                "Sometimes I feel like I'm the only one dealing with these issues."
+                "Sometimes I feel like I'm the only one dealing with these issues.",
             ]
 
         return responses[exchange_index % len(responses)]
 
     def _determine_cultural_adaptation(
-        self,
-        characteristics: PopulationCharacteristics,
-        exchange_index: int
+        self, characteristics: PopulationCharacteristics, exchange_index: int
     ) -> str:
         """Determine cultural adaptation being used."""
 
@@ -973,18 +1022,28 @@ class SpecializedPopulationsGenerator:
     def _determine_trauma_informed_element(self, exchange_index: int) -> str:
         """Determine trauma-informed element being demonstrated."""
 
-        elements = ["safety", "trustworthiness", "choice", "collaboration", "cultural_humility"]
+        elements = [
+            "safety",
+            "trustworthiness",
+            "choice",
+            "collaboration",
+            "cultural_humility",
+        ]
         return elements[exchange_index % len(elements)]
 
     def _determine_population_emotional_state(
-        self,
-        characteristics: PopulationCharacteristics,
-        exchange_index: int
+        self, characteristics: PopulationCharacteristics, exchange_index: int
     ) -> str:
         """Determine emotional state based on population characteristics."""
 
         if characteristics.population == SpecializedPopulation.TRAUMA_SURVIVORS:
-            states = ["hypervigilant", "dissociated", "triggered", "guarded", "overwhelmed"]
+            states = [
+                "hypervigilant",
+                "dissociated",
+                "triggered",
+                "guarded",
+                "overwhelmed",
+            ]
         elif characteristics.population == SpecializedPopulation.ADDICTION_RECOVERY:
             states = ["ambivalent", "defensive", "hopeful", "ashamed", "determined"]
         elif characteristics.population == SpecializedPopulation.LGBTQ_PLUS:
@@ -1002,7 +1061,9 @@ class SpecializedPopulationsGenerator:
 
         return random.choice(states)
 
-    def _determine_cultural_expression(self, characteristics: PopulationCharacteristics) -> str:
+    def _determine_cultural_expression(
+        self, characteristics: PopulationCharacteristics
+    ) -> str:
         """Determine cultural expression style."""
 
         cultural_factors = characteristics.cultural_considerations
@@ -1016,9 +1077,7 @@ class SpecializedPopulationsGenerator:
         return "individually_focused"
 
     def _identify_population_concerns(
-        self,
-        characteristics: PopulationCharacteristics,
-        content: str
+        self, characteristics: PopulationCharacteristics, content: str
     ) -> list[str]:
         """Identify population-specific concerns from client content."""
         concerns = []
@@ -1032,9 +1091,7 @@ class SpecializedPopulationsGenerator:
         return concerns
 
     def _assess_population_engagement(
-        self,
-        characteristics: PopulationCharacteristics,
-        exchange_index: int
+        self, characteristics: PopulationCharacteristics, exchange_index: int
     ) -> str:
         """Assess client engagement level for population."""
 
@@ -1060,37 +1117,46 @@ class SpecializedPopulationsGenerator:
     def _identify_cultural_adaptations(
         self,
         exchanges: list[dict[str, Any]],
-        characteristics: PopulationCharacteristics
+        characteristics: PopulationCharacteristics,
     ) -> list[str]:
         """Identify cultural adaptations used in conversation."""
         adaptations = set()
 
         for exchange in exchanges:
-            if exchange.get("speaker") == "therapist" and "cultural_adaptation" in exchange:
+            if (
+                exchange.get("speaker") == "therapist"
+                and "cultural_adaptation" in exchange
+            ):
                 adaptations.add(exchange["cultural_adaptation"])
 
         return list(adaptations)
 
-    def _identify_trauma_informed_elements(self, exchanges: list[dict[str, Any]]) -> list[str]:
+    def _identify_trauma_informed_elements(
+        self, exchanges: list[dict[str, Any]]
+    ) -> list[str]:
         """Identify trauma-informed elements demonstrated."""
         elements = set()
 
         for exchange in exchanges:
-            if exchange.get("speaker") == "therapist" and "trauma_informed_element" in exchange:
+            if (
+                exchange.get("speaker") == "therapist"
+                and "trauma_informed_element" in exchange
+            ):
                 elements.add(exchange["trauma_informed_element"])
 
         return list(elements)
 
     def _identify_population_techniques(
-        self,
-        exchanges: list[dict[str, Any]],
-        protocol: SpecializedProtocol
+        self, exchanges: list[dict[str, Any]], protocol: SpecializedProtocol
     ) -> list[str]:
         """Identify population-specific techniques used."""
         techniques = set()
 
         for exchange in exchanges:
-            if exchange.get("speaker") == "therapist" and "specialized_technique" in exchange:
+            if (
+                exchange.get("speaker") == "therapist"
+                and "specialized_technique" in exchange
+            ):
                 technique = exchange["specialized_technique"]
                 if technique in protocol.specialized_techniques:
                     techniques.add(technique)
@@ -1100,7 +1166,7 @@ class SpecializedPopulationsGenerator:
     def _assess_therapeutic_alliance_factors(
         self,
         exchanges: list[dict[str, Any]],
-        characteristics: PopulationCharacteristics
+        characteristics: PopulationCharacteristics,
     ) -> list[str]:
         """Assess therapeutic alliance factors demonstrated."""
         factors = []
@@ -1111,10 +1177,14 @@ class SpecializedPopulationsGenerator:
         if any("safe" in e.get("content", "").lower() for e in therapist_exchanges):
             factors.append("safety_establishment")
 
-        if any("your pace" in e.get("content", "").lower() for e in therapist_exchanges):
+        if any(
+            "your pace" in e.get("content", "").lower() for e in therapist_exchanges
+        ):
             factors.append("client_control")
 
-        if any("understand" in e.get("content", "").lower() for e in therapist_exchanges):
+        if any(
+            "understand" in e.get("content", "").lower() for e in therapist_exchanges
+        ):
             factors.append("empathic_understanding")
 
         if any("affirm" in e.get("content", "").lower() for e in therapist_exchanges):
@@ -1125,16 +1195,15 @@ class SpecializedPopulationsGenerator:
     def _evaluate_cultural_competency(
         self,
         exchanges: list[dict[str, Any]],
-        characteristics: PopulationCharacteristics
+        characteristics: PopulationCharacteristics,
     ) -> list[str]:
         """Evaluate cultural competency demonstrated."""
         competency = []
 
         # Check for cultural awareness
-        therapist_content = " ".join([
-            e.get("content", "") for e in exchanges
-            if e.get("speaker") == "therapist"
-        ]).lower()
+        therapist_content = " ".join(
+            [e.get("content", "") for e in exchanges if e.get("speaker") == "therapist"]
+        ).lower()
 
         if "cultural" in therapist_content or "background" in therapist_content:
             competency.append("cultural_awareness")
@@ -1153,15 +1222,18 @@ class SpecializedPopulationsGenerator:
     def _identify_specialized_assessments(
         self,
         exchanges: list[dict[str, Any]],
-        characteristics: PopulationCharacteristics
+        characteristics: PopulationCharacteristics,
     ) -> list[str]:
         """Identify specialized assessments conducted."""
         assessments = []
 
         # Check for population-specific assessment elements
         for modification in characteristics.assessment_modifications:
-            if any(modification.lower().split()[0] in e.get("content", "").lower()
-                   for e in exchanges if e.get("speaker") == "therapist"):
+            if any(
+                modification.lower().split()[0] in e.get("content", "").lower()
+                for e in exchanges
+                if e.get("speaker") == "therapist"
+            ):
                 assessments.append(modification.lower().replace(" ", "_"))
 
         return assessments
@@ -1169,23 +1241,24 @@ class SpecializedPopulationsGenerator:
     def _determine_treatment_modifications(
         self,
         exchanges: list[dict[str, Any]],
-        characteristics: PopulationCharacteristics
+        characteristics: PopulationCharacteristics,
     ) -> list[str]:
         """Determine treatment modifications implemented."""
         modifications = []
 
         # Check for population-specific treatment considerations
         for consideration in characteristics.treatment_considerations:
-            if any(consideration.lower().split()[0] in e.get("content", "").lower()
-                   for e in exchanges if e.get("speaker") == "therapist"):
+            if any(
+                consideration.lower().split()[0] in e.get("content", "").lower()
+                for e in exchanges
+                if e.get("speaker") == "therapist"
+            ):
                 modifications.append(consideration.lower().replace(" ", "_"))
 
         return modifications
 
     def _consider_outcome_factors(
-        self,
-        protocol: SpecializedProtocol,
-        characteristics: PopulationCharacteristics
+        self, protocol: SpecializedProtocol, characteristics: PopulationCharacteristics
     ) -> list[str]:
         """Consider outcome factors for population."""
 
@@ -1197,9 +1270,7 @@ class SpecializedPopulationsGenerator:
         return list(set(outcomes))
 
     def export_specialized_conversations(
-        self,
-        conversations: list[PopulationConversation],
-        output_file: str
+        self, conversations: list[PopulationConversation], output_file: str
     ) -> dict[str, Any]:
         """Export specialized population conversations to JSON file."""
 
@@ -1214,19 +1285,28 @@ class SpecializedPopulationsGenerator:
             "metadata": {
                 "total_conversations": len(conversations),
                 "export_timestamp": datetime.now().isoformat(),
-                "populations_covered": list({
-                    conv.population_characteristics.population.value for conv in conversations
-                }),
-                "cultural_adaptations_used": list({
-                    adaptation for conv in conversations
-                    for adaptation in conv.cultural_adaptations_used
-                }),
-                "trauma_informed_coverage": list({
-                    element for conv in conversations
-                    for element in conv.trauma_informed_elements
-                })
+                "populations_covered": list(
+                    {
+                        conv.population_characteristics.population.value
+                        for conv in conversations
+                    }
+                ),
+                "cultural_adaptations_used": list(
+                    {
+                        adaptation
+                        for conv in conversations
+                        for adaptation in conv.cultural_adaptations_used
+                    }
+                ),
+                "trauma_informed_coverage": list(
+                    {
+                        element
+                        for conv in conversations
+                        for element in conv.trauma_informed_elements
+                    }
+                ),
             },
-            "conversations": serializable_conversations
+            "conversations": serializable_conversations,
         }
 
         with open(output_file, "w", encoding="utf-8") as f:
@@ -1236,8 +1316,12 @@ class SpecializedPopulationsGenerator:
             "exported_conversations": len(conversations),
             "output_file": output_file,
             "populations_covered": len(export_data["metadata"]["populations_covered"]),
-            "cultural_adaptations": len(export_data["metadata"]["cultural_adaptations_used"]),
-            "trauma_informed_elements": len(export_data["metadata"]["trauma_informed_coverage"])
+            "cultural_adaptations": len(
+                export_data["metadata"]["cultural_adaptations_used"]
+            ),
+            "trauma_informed_elements": len(
+                export_data["metadata"]["trauma_informed_coverage"]
+            ),
         }
 
     def _convert_enums_to_strings(self, obj):

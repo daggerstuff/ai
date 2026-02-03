@@ -43,4 +43,3 @@ def create_api_router() -> APIRouter:
 api_router = create_api_router()
 
 __all__ = ["api_router", "create_api_router"]
-

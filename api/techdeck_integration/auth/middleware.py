@@ -34,7 +34,7 @@ class JWTAuthMiddleware:
             config: Configuration object with auth settings
         """
         self.app = app
-        self.config = config or current_app.config.get('TECHDECK_CONFIG')
+        self.config = config or current_app.config.get("TECHDECK_CONFIG")
         self.logger = get_logger(__name__)
 
         if app is not None:
@@ -61,19 +61,19 @@ class JWTAuthMiddleware:
             # Validate JWT token
             auth_result = self._validate_jwt_token(request)
 
-            if not auth_result['valid']:
-                return self._handle_auth_error(auth_result['error'], start_response)
+            if not auth_result["valid"]:
+                return self._handle_auth_error(auth_result["error"], start_response)
 
             # Set user context
-            g.user = auth_result['user']
-            g.user_id = auth_result['user']['id']
-            g.user_role = auth_result['user']['role']
+            g.user = auth_result["user"]
+            g.user_id = auth_result["user"]["id"]
+            g.user_role = auth_result["user"]["role"]
             g.request_id = self._generate_request_id()
 
             # Check rate limiting
             rate_limit_result = self._check_rate_limit(g.user_id, request.path)
 
-            if not rate_limit_result['allowed']:
+            if not rate_limit_result["allowed"]:
                 return self._handle_rate_limit_error(rate_limit_result, start_response)
 
             # Log authentication success for audit
@@ -96,12 +96,12 @@ class JWTAuthMiddleware:
             True if endpoint is public, False otherwise
         """
         public_endpoints = [
-            '/api/v1/system/health',
-            '/api/v1/system/ready',
-            '/api/v1/system/status',
-            '/docs',
-            '/swagger',
-            '/openapi.json'
+            "/api/v1/system/health",
+            "/api/v1/system/ready",
+            "/api/v1/system/status",
+            "/docs",
+            "/swagger",
+            "/openapi.json",
         ]
 
         return any(path.startswith(endpoint) for endpoint in public_endpoints)
@@ -118,67 +118,55 @@ class JWTAuthMiddleware:
         """
         try:
             # Extract token from Authorization header
-            auth_header = request.headers.get('Authorization', '')
+            auth_header = request.headers.get("Authorization", "")
 
-            if not auth_header.startswith('Bearer '):
+            if not auth_header.startswith("Bearer "):
                 return {
-                    'valid': False,
-                    'error': 'Missing or invalid Authorization header'
+                    "valid": False,
+                    "error": "Missing or invalid Authorization header",
                 }
 
-            token = auth_header.split(' ')[1]
+            token = auth_header.split(" ")[1]
 
             # Decode JWT token
             payload = jwt.decode(
                 token,
                 self.config.JWT_SECRET_KEY,
-                algorithms=[self.config.JWT_ALGORITHM]
+                algorithms=[self.config.JWT_ALGORITHM],
             )
 
             # Validate token claims
             validation_result = self._validate_token_claims(payload)
 
-            if not validation_result['valid']:
+            if not validation_result["valid"]:
                 return validation_result
 
             # Extract user information
             user_data = {
-                'id': payload.get('sub'),
-                'email': payload.get('email'),
-                'role': payload.get('role', 'user'),
-                'permissions': payload.get('permissions', []),
-                'session_id': payload.get('session_id'),
-                'issued_at': datetime.fromtimestamp(payload.get('iat', 0)),
-                'expires_at': datetime.fromtimestamp(payload.get('exp', 0))
+                "id": payload.get("sub"),
+                "email": payload.get("email"),
+                "role": payload.get("role", "user"),
+                "permissions": payload.get("permissions", []),
+                "session_id": payload.get("session_id"),
+                "issued_at": datetime.fromtimestamp(payload.get("iat", 0)),
+                "expires_at": datetime.fromtimestamp(payload.get("exp", 0)),
             }
 
             # Validate user exists and is active
-            user_validation = self._validate_user_active(user_data['id'])
+            user_validation = self._validate_user_active(user_data["id"])
 
-            if not user_validation['valid']:
+            if not user_validation["valid"]:
                 return user_validation
 
-            return {
-                'valid': True,
-                'user': user_data
-            }
+            return {"valid": True, "user": user_data}
 
         except jwt.ExpiredSignatureError:
-            return {
-                'valid': False,
-                'error': 'JWT token has expired'
-            }
+            return {"valid": False, "error": "JWT token has expired"}
         except jwt.InvalidTokenError as e:
-            return {
-                'valid': False,
-                'error': f'Invalid JWT token: {str(e)}'
-            }
+            return {"valid": False, "error": f"Invalid JWT token: {str(e)}"}
         except Exception as e:
             self.logger.error(f"JWT validation error: {e}")
-            return {
-                'valid': False,
-                'error': 'Token validation failed'
-            }
+            return {"valid": False, "error": "Token validation failed"}
 
     def _validate_token_claims(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -190,32 +178,23 @@ class JWTAuthMiddleware:
         Returns:
             Dictionary with validation result
         """
-        required_claims = ['sub', 'email', 'exp', 'iat']
+        required_claims = ["sub", "email", "exp", "iat"]
 
         for claim in required_claims:
             if claim not in payload:
-                return {
-                    'valid': False,
-                    'error': f'Missing required claim: {claim}'
-                }
+                return {"valid": False, "error": f"Missing required claim: {claim}"}
 
         # Check token expiration
-        exp_timestamp = payload.get('exp', 0)
+        exp_timestamp = payload.get("exp", 0)
         if datetime.utcnow().timestamp() > exp_timestamp:
-            return {
-                'valid': False,
-                'error': 'Token has expired'
-            }
+            return {"valid": False, "error": "Token has expired"}
 
         # Check token issued time (prevent future tokens)
-        iat_timestamp = payload.get('iat', 0)
+        iat_timestamp = payload.get("iat", 0)
         if datetime.utcnow().timestamp() < iat_timestamp - 60:  # 1 minute grace period
-            return {
-                'valid': False,
-                'error': 'Token issued in the future'
-            }
+            return {"valid": False, "error": "Token issued in the future"}
 
-        return {'valid': True}
+        return {"valid": True}
 
     def _validate_user_active(self, user_id: str) -> Dict[str, Any]:
         """
@@ -231,10 +210,7 @@ class JWTAuthMiddleware:
             # This would typically query the database
             # For now, we'll simulate validation
             if not user_id or len(user_id) < 1:
-                return {
-                    'valid': False,
-                    'error': 'Invalid user ID'
-                }
+                return {"valid": False, "error": "Invalid user ID"}
 
             # Simulate user lookup (replace with actual database query)
             # user = User.query.get(user_id)
@@ -244,14 +220,11 @@ class JWTAuthMiddleware:
             #         'error': 'User not found or inactive'
             #     }
 
-            return {'valid': True}
+            return {"valid": True}
 
         except Exception as e:
             self.logger.error(f"User validation error: {e}")
-            return {
-                'valid': False,
-                'error': 'User validation failed'
-            }
+            return {"valid": False, "error": "User validation failed"}
 
     def _check_rate_limit(self, user_id: str, path: str) -> Dict[str, Any]:
         """
@@ -283,19 +256,20 @@ class JWTAuthMiddleware:
             #     }
 
             return {
-                'allowed': True,
-                'current_count': 1,  # Simulated
-                'limit': self.config.RATE_LIMIT_PER_MINUTE
+                "allowed": True,
+                "current_count": 1,  # Simulated
+                "limit": self.config.RATE_LIMIT_PER_MINUTE,
             }
 
         except Exception as e:
             self.logger.error(f"Rate limit check error: {e}")
             # Fail open - allow request if rate limiting fails
-            return {'allowed': True}
+            return {"allowed": True}
 
     def _generate_request_id(self) -> str:
         """Generate unique request ID for tracking."""
         import uuid
+
         return str(uuid.uuid4())
 
     def _log_auth_success(self, user_id: str, path: str, request_id: str) -> None:
@@ -310,12 +284,12 @@ class JWTAuthMiddleware:
         self.logger.info(
             "Authentication successful",
             extra={
-                'user_id': user_id,
-                'path': path,
-                'request_id': request_id,
-                'timestamp': datetime.utcnow().isoformat(),
-                'event_type': 'auth_success'
-            }
+                "user_id": user_id,
+                "path": path,
+                "request_id": request_id,
+                "timestamp": datetime.utcnow().isoformat(),
+                "event_type": "auth_success",
+            },
         )
 
     def _handle_auth_error(self, error_message: str, start_response: Callable) -> Any:
@@ -332,26 +306,30 @@ class JWTAuthMiddleware:
         self.logger.warning(f"Authentication failed: {error_message}")
 
         response_data = {
-            'success': False,
-            'error': {
-                'code': 'AUTHENTICATION_FAILED',
-                'message': error_message,
-                'timestamp': datetime.utcnow().isoformat()
-            }
+            "success": False,
+            "error": {
+                "code": "AUTHENTICATION_FAILED",
+                "message": error_message,
+                "timestamp": datetime.utcnow().isoformat(),
+            },
         }
 
-        response_body = str(response_data).encode('utf-8')
+        response_body = str(response_data).encode("utf-8")
 
-        start_response('401 Unauthorized', [
-            ('Content-Type', 'application/json'),
-            ('Content-Length', str(len(response_body))),
-            ('WWW-Authenticate', 'Bearer')
-        ])
+        start_response(
+            "401 Unauthorized",
+            [
+                ("Content-Type", "application/json"),
+                ("Content-Length", str(len(response_body))),
+                ("WWW-Authenticate", "Bearer"),
+            ],
+        )
 
         return [response_body]
 
-    def _handle_rate_limit_error(self, rate_limit_result: Dict[str, Any],
-                                start_response: Callable) -> Any:
+    def _handle_rate_limit_error(
+        self, rate_limit_result: Dict[str, Any], start_response: Callable
+    ) -> Any:
         """
         Handle rate limit errors.
 
@@ -365,27 +343,32 @@ class JWTAuthMiddleware:
         self.logger.warning(f"Rate limit exceeded: {rate_limit_result}")
 
         response_data = {
-            'success': False,
-            'error': {
-                'code': 'RATE_LIMIT_EXCEEDED',
-                'message': 'Rate limit exceeded',
-                'retry_after': rate_limit_result.get('retry_after', 60),
-                'limit': rate_limit_result.get('limit', 0),
-                'timestamp': datetime.utcnow().isoformat()
-            }
+            "success": False,
+            "error": {
+                "code": "RATE_LIMIT_EXCEEDED",
+                "message": "Rate limit exceeded",
+                "retry_after": rate_limit_result.get("retry_after", 60),
+                "limit": rate_limit_result.get("limit", 0),
+                "timestamp": datetime.utcnow().isoformat(),
+            },
         }
 
-        response_body = str(response_data).encode('utf-8')
+        response_body = str(response_data).encode("utf-8")
 
-        start_response('429 Too Many Requests', [
-            ('Content-Type', 'application/json'),
-            ('Content-Length', str(len(response_body))),
-            ('Retry-After', str(rate_limit_result.get('retry_after', 60)))
-        ])
+        start_response(
+            "429 Too Many Requests",
+            [
+                ("Content-Type", "application/json"),
+                ("Content-Length", str(len(response_body))),
+                ("Retry-After", str(rate_limit_result.get("retry_after", 60))),
+            ],
+        )
 
         return [response_body]
 
-    def _handle_internal_error(self, error_message: str, start_response: Callable) -> Any:
+    def _handle_internal_error(
+        self, error_message: str, start_response: Callable
+    ) -> Any:
         """
         Handle internal server errors.
 
@@ -399,20 +382,23 @@ class JWTAuthMiddleware:
         self.logger.error(f"Internal server error in auth middleware: {error_message}")
 
         response_data = {
-            'success': False,
-            'error': {
-                'code': 'INTERNAL_ERROR',
-                'message': 'Internal server error',
-                'timestamp': datetime.utcnow().isoformat()
-            }
+            "success": False,
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": "Internal server error",
+                "timestamp": datetime.utcnow().isoformat(),
+            },
         }
 
-        response_body = str(response_data).encode('utf-8')
+        response_body = str(response_data).encode("utf-8")
 
-        start_response('500 Internal Server Error', [
-            ('Content-Type', 'application/json'),
-            ('Content-Length', str(len(response_body)))
-        ])
+        start_response(
+            "500 Internal Server Error",
+            [
+                ("Content-Type", "application/json"),
+                ("Content-Length", str(len(response_body))),
+            ],
+        )
 
         return [response_body]
 
@@ -427,16 +413,17 @@ def require_auth(roles: Optional[List[str]] = None):
     Returns:
         Decorator function
     """
+
     def decorator(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
             # Check if user is authenticated
-            if not hasattr(g, 'user') or not g.user:
-                raise Unauthorized('Authentication required')
+            if not hasattr(g, "user") or not g.user:
+                raise Unauthorized("Authentication required")
 
             # Check role requirements
             if roles and g.user_role not in roles:
-                raise Forbidden(f'Insufficient permissions. Required roles: {roles}')
+                raise Forbidden(f"Insufficient permissions. Required roles: {roles}")
 
             return f(*args, **kwargs)
 
@@ -447,9 +434,9 @@ def require_auth(roles: Optional[List[str]] = None):
 
 def require_admin(f):
     """Decorator to require admin role."""
-    return require_auth(['admin'])(f)
+    return require_auth(["admin"])(f)
 
 
 def require_moderator(f):
     """Decorator to require moderator or admin role."""
-    return require_auth(['moderator', 'admin'])(f)
+    return require_auth(["moderator", "admin"])(f)

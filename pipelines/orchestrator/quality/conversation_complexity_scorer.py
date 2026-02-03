@@ -15,6 +15,7 @@ logger = get_logger(__name__)
 
 class ComplexityLevel(Enum):
     """Complexity levels for conversations."""
+
     BASIC = "basic"
     INTERMEDIATE = "intermediate"
     ADVANCED = "advanced"
@@ -24,6 +25,7 @@ class ComplexityLevel(Enum):
 @dataclass
 class ComplexityScore:
     """Complexity scoring result."""
+
     conversation_id: str
     overall_score: float
     complexity_level: ComplexityLevel
@@ -45,32 +47,42 @@ class ConversationComplexityScorer:
 
         self.complexity_dimensions = {
             "therapeutic_depth": {
-                "indicators": ["insight", "interpretation", "transference", "unconscious"],
-                "weight": 0.25
+                "indicators": [
+                    "insight",
+                    "interpretation",
+                    "transference",
+                    "unconscious",
+                ],
+                "weight": 0.25,
             },
             "emotional_intensity": {
                 "indicators": ["crisis", "trauma", "intense", "overwhelming"],
-                "weight": 0.20
+                "weight": 0.20,
             },
             "clinical_sophistication": {
-                "indicators": ["diagnosis", "assessment", "formulation", "differential"],
-                "weight": 0.25
+                "indicators": [
+                    "diagnosis",
+                    "assessment",
+                    "formulation",
+                    "differential",
+                ],
+                "weight": 0.25,
             },
             "intervention_complexity": {
                 "indicators": ["technique", "intervention", "strategy", "approach"],
-                "weight": 0.15
+                "weight": 0.15,
             },
             "ethical_considerations": {
                 "indicators": ["ethical", "boundary", "confidentiality", "duty"],
-                "weight": 0.15
-            }
+                "weight": 0.15,
+            },
         }
 
         self.complexity_thresholds = {
             ComplexityLevel.BASIC: (0.0, 0.3),
             ComplexityLevel.INTERMEDIATE: (0.3, 0.6),
             ComplexityLevel.ADVANCED: (0.6, 0.8),
-            ComplexityLevel.EXPERT: (0.8, 1.0)
+            ComplexityLevel.EXPERT: (0.8, 1.0),
         }
 
         self.logger.info("ConversationComplexityScorer initialized")
@@ -102,14 +114,16 @@ class ConversationComplexityScorer:
             complexity_level = self._determine_complexity_level(overall_score)
 
             # Add conversation-specific factors
-            overall_score = self._adjust_for_conversation_factors(conversation, overall_score, reasoning)
+            overall_score = self._adjust_for_conversation_factors(
+                conversation, overall_score, reasoning
+            )
 
             return ComplexityScore(
                 conversation_id=conversation.id,
                 overall_score=overall_score,
                 complexity_level=complexity_level,
                 dimension_scores=dimension_scores,
-                reasoning=reasoning
+                reasoning=reasoning,
             )
 
         except Exception as e:
@@ -119,7 +133,7 @@ class ConversationComplexityScorer:
                 overall_score=0.5,
                 complexity_level=ComplexityLevel.INTERMEDIATE,
                 dimension_scores={},
-                reasoning=["Error in scoring"]
+                reasoning=["Error in scoring"],
             )
 
     def _score_dimension(self, content: str, indicators: list[str]) -> float:
@@ -134,7 +148,9 @@ class ConversationComplexityScorer:
                 return level
         return ComplexityLevel.EXPERT  # For scores >= 0.8
 
-    def _adjust_for_conversation_factors(self, conversation: Conversation, base_score: float, reasoning: list[str]) -> float:
+    def _adjust_for_conversation_factors(
+        self, conversation: Conversation, base_score: float, reasoning: list[str]
+    ) -> float:
         """Adjust score based on conversation-specific factors."""
         adjusted_score = base_score
 
@@ -164,7 +180,9 @@ class ConversationComplexityScorer:
 
         return min(adjusted_score, 1.0)  # Cap at 1.0
 
-    def score_conversations(self, conversations: list[Conversation]) -> list[ComplexityScore]:
+    def score_conversations(
+        self, conversations: list[Conversation]
+    ) -> list[ComplexityScore]:
         """Score multiple conversations."""
         scores = []
 
@@ -175,7 +193,9 @@ class ConversationComplexityScorer:
         self.logger.info(f"Scored {len(scores)} conversations for complexity")
         return scores
 
-    def get_complexity_distribution(self, scores: list[ComplexityScore]) -> dict[str, Any]:
+    def get_complexity_distribution(
+        self, scores: list[ComplexityScore]
+    ) -> dict[str, Any]:
         """Get distribution statistics for complexity scores."""
         if not scores:
             return {"error": "No scores to analyze"}
@@ -194,23 +214,27 @@ class ConversationComplexityScorer:
             "level_percentages": {
                 level: round((count / len(scores)) * 100, 1)
                 for level, count in level_counts.items()
-            }
+            },
         }
 
-    def recommend_training_allocation(self, scores: list[ComplexityScore]) -> dict[str, Any]:
+    def recommend_training_allocation(
+        self, scores: list[ComplexityScore]
+    ) -> dict[str, Any]:
         """Recommend training data allocation based on complexity."""
         distribution = self.get_complexity_distribution(scores)
 
         # Recommended distribution for balanced training
         target_distribution = {
-            "basic": 0.30,      # 30% basic conversations
-            "intermediate": 0.40, # 40% intermediate conversations
-            "advanced": 0.25,    # 25% advanced conversations
-            "expert": 0.05       # 5% expert conversations
+            "basic": 0.30,  # 30% basic conversations
+            "intermediate": 0.40,  # 40% intermediate conversations
+            "advanced": 0.25,  # 25% advanced conversations
+            "expert": 0.05,  # 5% expert conversations
         }
 
         recommendations = {}
-        current_percentages = {k: v/100 for k, v in distribution.get("level_percentages", {}).items()}
+        current_percentages = {
+            k: v / 100 for k, v in distribution.get("level_percentages", {}).items()
+        }
 
         for level, target_pct in target_distribution.items():
             current_pct = current_percentages.get(level, 0)
@@ -225,8 +249,11 @@ class ConversationComplexityScorer:
             "target_distribution": target_distribution,
             "current_distribution": current_percentages,
             "recommendations": recommendations,
-            "overall_balance": sum(abs(current_percentages.get(level, 0) - target_pct)
-                                 for level, target_pct in target_distribution.items()) / len(target_distribution)
+            "overall_balance": sum(
+                abs(current_percentages.get(level, 0) - target_pct)
+                for level, target_pct in target_distribution.items()
+            )
+            / len(target_distribution),
         }
 
 

@@ -68,7 +68,13 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output-dir",
-        default=str(Path(__file__).parents[1] / "datasets" / "cache" / "local" / "nemo_synthetic"),
+        default=str(
+            Path(__file__).parents[1]
+            / "datasets"
+            / "cache"
+            / "local"
+            / "nemo_synthetic"
+        ),
         help="Output directory",
     )
     parser.add_argument(
@@ -102,7 +108,9 @@ def _generate_synthetic_dialogue(data_type: str, topic: str) -> dict[str, Any]:
         assistant_msg = f"I hear that you're struggling with {topic}. Can you tell me more about what that feels like for you?"
     elif data_type == "edge_case":
         user_msg = "..."  # Silence
-        assistant_msg = "I notice you're quiet. Take your time, I'm here when you're ready."
+        assistant_msg = (
+            "I notice you're quiet. Take your time, I'm here when you're ready."
+        )
     elif data_type == "crisis":
         user_msg = "I don't know if I can keep going."
         assistant_msg = "I can hear how much pain you're in. Your safety is important to me. Are you safe right now?"
@@ -199,7 +207,9 @@ def main() -> int:
                     str(output_file), bucket, "datasets/nemo_synthetic/dialogues.jsonl"
                 )
                 loader.s3_client.upload_file(
-                    str(stats_path), bucket, "datasets/nemo_synthetic/nemo_synthetic_stats.json"
+                    str(stats_path),
+                    bucket,
+                    "datasets/nemo_synthetic/nemo_synthetic_stats.json",
                 )
                 logger.info("Uploaded to S3")
             except Exception:

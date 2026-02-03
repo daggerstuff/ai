@@ -14,7 +14,9 @@ def validate_turn(turn):
     text = turn.get("text", "")
     meta = turn.get("personality_metadata", {})
     # Simple heuristics
-    is_authentic = meta.get("has_emotion_word", False) and meta.get("avg_word_length", 0) > 3.5
+    is_authentic = (
+        meta.get("has_emotion_word", False) and meta.get("avg_word_length", 0) > 3.5
+    )
     is_natural = len(text.split()) > 3 and text[0].isupper() and text[-1] in ".!?"
     return {
         "start": turn.get("start"),

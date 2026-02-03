@@ -3,6 +3,7 @@
 Package Optimizations Analysis
 """
 
+
 def analyze_optimizations():
     """Identify potential improvements"""
 
@@ -13,44 +14,40 @@ def analyze_optimizations():
             "Add early stopping based on validation loss",
             "Use Flash Attention 2 for memory efficiency",
             "Add model compilation with torch.compile()",
-            "Implement dynamic batching for inference"
+            "Implement dynamic batching for inference",
         ],
-
         "monitoring": [
             "Add GPU memory tracking to WandB",
             "Monitor gradient norms and layer statistics",
             "Add training speed metrics (tokens/sec)",
             "Implement loss spike detection alerts",
             "Add model perplexity tracking",
-            "Monitor dataset loading bottlenecks"
+            "Monitor dataset loading bottlenecks",
         ],
-
         "robustness": [
             "Add automatic checkpoint cleanup (keep only best N)",
             "Implement graceful shutdown on SIGTERM",
             "Add retry logic for HuggingFace uploads",
             "Validate model outputs during training",
             "Add disk space monitoring",
-            "Implement training resume from any step"
+            "Implement training resume from any step",
         ],
-
         "usability": [
             "Add progress bars for all long operations",
             "Create training status dashboard",
             "Add email notifications on completion/failure",
             "Implement one-command setup script",
             "Add model size estimation before training",
-            "Create interactive config generator"
+            "Create interactive config generator",
         ],
-
         "deployment": [
             "Add model quantization options (int8, int4)",
             "Create Kubernetes deployment manifests",
             "Add load balancer configuration",
             "Implement model serving with vLLM",
             "Add health check endpoints",
-            "Create auto-scaling configuration"
-        ]
+            "Create auto-scaling configuration",
+        ],
     }
 
 
@@ -58,10 +55,7 @@ def create_quick_wins():
     """Implement quick optimization wins"""
 
     # 1. Add gradient clipping to training config
-    gradient_clip_config = {
-        "max_grad_norm": 1.0,
-        "gradient_clipping": True
-    }
+    gradient_clip_config = {"max_grad_norm": 1.0, "gradient_clipping": True}
 
     # 2. Enhanced monitoring script
     monitoring_script = '''#!/usr/bin/env python3
@@ -170,8 +164,9 @@ echo "Run: uv run python train.py"
     return {
         "gradient_clipping": gradient_clip_config,
         "monitoring_script": monitoring_script,
-        "setup_script": setup_script
+        "setup_script": setup_script,
     }
+
 
 def prioritize_optimizations():
     """Prioritize optimizations by impact/effort"""
@@ -181,23 +176,23 @@ def prioritize_optimizations():
         "Implement system monitoring (catch issues early)",
         "Add one-command setup script (better UX)",
         "Add progress bars (user feedback)",
-        "Implement graceful shutdown (prevent corruption)"
+        "Implement graceful shutdown (prevent corruption)",
     ]
 
     high_impact_high_effort = [
         "Add Flash Attention 2 (major memory savings)",
         "Implement model compilation (speed boost)",
         "Add early stopping (prevent overfitting)",
-        "Create Kubernetes deployment (production ready)"
+        "Create Kubernetes deployment (production ready)",
     ]
 
     return {
         "quick_wins": high_impact_low_effort,
-        "major_upgrades": high_impact_high_effort
+        "major_upgrades": high_impact_high_effort,
     }
 
-def main():
 
+def main():
     optimizations = analyze_optimizations()
     priorities = prioritize_optimizations()
     quick_wins = create_quick_wins()
@@ -211,12 +206,12 @@ def main():
     for _category, _items in optimizations.items():
         pass
 
-
     return {
         "optimizations": optimizations,
         "priorities": priorities,
-        "quick_wins": quick_wins
+        "quick_wins": quick_wins,
     }
+
 
 if __name__ == "__main__":
     main()

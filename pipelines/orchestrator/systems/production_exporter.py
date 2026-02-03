@@ -122,14 +122,18 @@ class ProductionExporter:
         export_results = []
 
         # Filter and organize conversations by tier
-        tiered_conversations = self._organize_by_tier(conversations, config.access_tiers)
+        tiered_conversations = self._organize_by_tier(
+            conversations, config.access_tiers
+        )
 
         # Export each tier in each format
         for access_tier in config.access_tiers:
             tier_conversations = tiered_conversations.get(access_tier, [])
 
             if not tier_conversations:
-                logger.warning(f"No conversations found for tier {access_tier.tier_name}")
+                logger.warning(
+                    f"No conversations found for tier {access_tier.tier_name}"
+                )
                 continue
 
             # Filter by quality threshold
@@ -157,7 +161,9 @@ class ProductionExporter:
         self.export_history.extend(export_results)
         self._save_export_history()
 
-        logger.info(f"Dataset export completed. Generated {len(export_results)} export packages")
+        logger.info(
+            f"Dataset export completed. Generated {len(export_results)} export packages"
+        )
         return export_results
 
     def _organize_by_tier(
@@ -214,7 +220,9 @@ class ProductionExporter:
     ) -> ExportMetadata:
         """Export conversations for a specific tier and format."""
         # Generate export metadata
-        export_id = f"{access_tier.tier_name}_{export_format.value}_{self.version_counter}"
+        export_id = (
+            f"{access_tier.tier_name}_{export_format.value}_{self.version_counter}"
+        )
         version = f"v{self.version_counter}.0"
 
         # Create output directory
@@ -230,11 +238,17 @@ class ProductionExporter:
         elif export_format == ExportFormat.CSV:
             file_paths, checksums = self._export_csv(conversations, output_dir, config)
         elif export_format == ExportFormat.PARQUET:
-            file_paths, checksums = self._export_parquet(conversations, output_dir, config)
+            file_paths, checksums = self._export_parquet(
+                conversations, output_dir, config
+            )
         elif export_format == ExportFormat.HUGGINGFACE:
-            file_paths, checksums = self._export_huggingface(conversations, output_dir, config)
+            file_paths, checksums = self._export_huggingface(
+                conversations, output_dir, config
+            )
         elif export_format == ExportFormat.JSONL:
-            file_paths, checksums = self._export_jsonl(conversations, output_dir, config)
+            file_paths, checksums = self._export_jsonl(
+                conversations, output_dir, config
+            )
         elif export_format == ExportFormat.OPENAI_FINE_TUNING:
             file_paths, checksums = self._export_openai_fine_tuning(
                 conversations, output_dir, config
@@ -275,18 +289,25 @@ class ProductionExporter:
         return metadata
 
     def _export_json(
-        self, conversations: list[dict[str, Any]], output_dir: Path, config: ExportConfig
+        self,
+        conversations: list[dict[str, Any]],
+        output_dir: Path,
+        config: ExportConfig,
     ) -> tuple[list[str], dict[str, str]]:
         """Export conversations as JSON."""
         file_paths = []
         checksums = {}
 
         # Split into chunks if needed
-        chunks = self._chunk_conversations(conversations, config.max_conversations_per_file)
+        chunks = self._chunk_conversations(
+            conversations, config.max_conversations_per_file
+        )
 
         for i, chunk in enumerate(chunks):
             filename = (
-                f"conversations_part_{i + 1:03d}.json" if len(chunks) > 1 else "conversations.json"
+                f"conversations_part_{i + 1:03d}.json"
+                if len(chunks) > 1
+                else "conversations.json"
             )
             file_path = output_dir / filename
 
@@ -299,7 +320,10 @@ class ProductionExporter:
         return file_paths, checksums
 
     def _export_csv(
-        self, conversations: list[dict[str, Any]], output_dir: Path, config: ExportConfig
+        self,
+        conversations: list[dict[str, Any]],
+        output_dir: Path,
+        config: ExportConfig,
     ) -> tuple[list[str], dict[str, str]]:
         """Export conversations as CSV."""
         file_paths = []
@@ -309,11 +333,15 @@ class ProductionExporter:
         flattened_data = self._flatten_conversations_for_csv(conversations)
 
         # Split into chunks if needed
-        chunks = self._chunk_conversations(flattened_data, config.max_conversations_per_file)
+        chunks = self._chunk_conversations(
+            flattened_data, config.max_conversations_per_file
+        )
 
         for i, chunk in enumerate(chunks):
             filename = (
-                f"conversations_part_{i + 1:03d}.csv" if len(chunks) > 1 else "conversations.csv"
+                f"conversations_part_{i + 1:03d}.csv"
+                if len(chunks) > 1
+                else "conversations.csv"
             )
             file_path = output_dir / filename
 
@@ -330,7 +358,10 @@ class ProductionExporter:
         return file_paths, checksums
 
     def _export_parquet(
-        self, conversations: list[dict[str, Any]], output_dir: Path, config: ExportConfig
+        self,
+        conversations: list[dict[str, Any]],
+        output_dir: Path,
+        config: ExportConfig,
     ) -> tuple[list[str], dict[str, str]]:
         """Export conversations as Parquet (requires pandas and pyarrow)."""
         if pd is None:
@@ -354,7 +385,9 @@ class ProductionExporter:
         flattened_data = self._flatten_conversations_for_csv(conversations)
 
         # Split into chunks if needed
-        chunks = self._chunk_conversations(flattened_data, config.max_conversations_per_file)
+        chunks = self._chunk_conversations(
+            flattened_data, config.max_conversations_per_file
+        )
 
         for i, chunk in enumerate(chunks):
             filename = (
@@ -374,22 +407,31 @@ class ProductionExporter:
         return file_paths, checksums
 
     def _export_huggingface(
-        self, conversations: list[dict[str, Any]], output_dir: Path, config: ExportConfig
+        self,
+        conversations: list[dict[str, Any]],
+        output_dir: Path,
+        config: ExportConfig,
     ) -> tuple[list[str], dict[str, str]]:
         """Export conversations in HuggingFace datasets format."""
         if Dataset is None:
-            logger.warning("datasets library not available, falling back to JSONL export")
+            logger.warning(
+                "datasets library not available, falling back to JSONL export"
+            )
             return self._export_jsonl(conversations, output_dir, config)
 
         try:
             return self._export_huggingface_data(conversations, output_dir)
         except ImportError:
-            logger.warning("datasets library not available, falling back to JSONL export")
+            logger.warning(
+                "datasets library not available, falling back to JSONL export"
+            )
             return self._export_jsonl(conversations, output_dir, config)
 
     def _export_huggingface_data(self, conversations, output_dir):
         # Assert that datasets library is available (checked in calling method)
-        assert Dataset is not None, "datasets library is required for HuggingFace export"
+        assert Dataset is not None, (
+            "datasets library is required for HuggingFace export"
+        )
 
         # Prepare data for HuggingFace format
         hf_data = self._prepare_huggingface_format(conversations)
@@ -413,14 +455,19 @@ class ProductionExporter:
         return file_paths, checksums
 
     def _export_jsonl(
-        self, conversations: list[dict[str, Any]], output_dir: Path, config: ExportConfig
+        self,
+        conversations: list[dict[str, Any]],
+        output_dir: Path,
+        config: ExportConfig,
     ) -> tuple[list[str], dict[str, str]]:
         """Export conversations as JSONL."""
         file_paths = []
         checksums = {}
 
         # Split into chunks if needed
-        chunks = self._chunk_conversations(conversations, config.max_conversations_per_file)
+        chunks = self._chunk_conversations(
+            conversations, config.max_conversations_per_file
+        )
 
         for i, chunk in enumerate(chunks):
             filename = (
@@ -440,7 +487,10 @@ class ProductionExporter:
         return file_paths, checksums
 
     def _export_openai_fine_tuning(
-        self, conversations: list[dict[str, Any]], output_dir: Path, config: ExportConfig
+        self,
+        conversations: list[dict[str, Any]],
+        output_dir: Path,
+        config: ExportConfig,
     ) -> tuple[list[str], dict[str, str]]:
         """Export conversations in OpenAI fine-tuning format."""
         file_paths = []
@@ -450,7 +500,9 @@ class ProductionExporter:
         openai_data = self._prepare_openai_fine_tuning_format(conversations)
 
         # Split into chunks if needed
-        chunks = self._chunk_conversations(openai_data, config.max_conversations_per_file)
+        chunks = self._chunk_conversations(
+            openai_data, config.max_conversations_per_file
+        )
 
         for i, chunk in enumerate(chunks):
             filename = (
@@ -481,7 +533,9 @@ class ProductionExporter:
 
             # Add system message if available
             if conversation.get("system_prompt"):
-                messages.append({"role": "system", "content": conversation["system_prompt"]})
+                messages.append(
+                    {"role": "system", "content": conversation["system_prompt"]}
+                )
 
             # Convert turns to messages
             turns = conversation.get("turns", [])
@@ -520,7 +574,9 @@ class ProductionExporter:
             flat_conv = {
                 "id": conversation.get("id", ""),
                 "content": conversation.get("content", ""),
-                "quality_score": conversation.get("metadata", {}).get("quality_score", 0.0),
+                "quality_score": conversation.get("metadata", {}).get(
+                    "quality_score", 0.0
+                ),
                 "source": conversation.get("metadata", {}).get("source", ""),
                 "condition": conversation.get("metadata", {}).get("condition", ""),
                 "approach": conversation.get("metadata", {}).get("approach", ""),
@@ -553,19 +609,24 @@ class ProductionExporter:
                     for turn in conversation.get("turns", [])
                 ],
                 "metadata": conversation.get("metadata", {}),
-                "quality_score": conversation.get("metadata", {}).get("quality_score", 0.0),
+                "quality_score": conversation.get("metadata", {}).get(
+                    "quality_score", 0.0
+                ),
             }
             hf_data.append(hf_conv)
 
         return hf_data
 
-    def _chunk_conversations(self, conversations: list[Any], max_per_file: int) -> list[list[Any]]:
+    def _chunk_conversations(
+        self, conversations: list[Any], max_per_file: int
+    ) -> list[list[Any]]:
         """Split conversations into chunks."""
         if len(conversations) <= max_per_file:
             return [conversations]
 
         return [
-            conversations[i : i + max_per_file] for i in range(0, len(conversations), max_per_file)
+            conversations[i : i + max_per_file]
+            for i in range(0, len(conversations), max_per_file)
         ]
 
     def _count_distribution(self, items: list[str]) -> dict[str, int]:
@@ -583,7 +644,9 @@ class ProductionExporter:
                 sha256_hash.update(byte_block)
         return sha256_hash.hexdigest()
 
-    def _calculate_export_statistics(self, conversations: list[dict[str, Any]]) -> dict[str, Any]:
+    def _calculate_export_statistics(
+        self, conversations: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """Calculate export statistics."""
         if not conversations:
             return {}
@@ -596,17 +659,22 @@ class ProductionExporter:
         quality_scores = [
             conv.get("metadata", {}).get("quality_score", 0.0) for conv in conversations
         ]
-        avg_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 0.0
+        avg_quality = (
+            sum(quality_scores) / len(quality_scores) if quality_scores else 0.0
+        )
         min_quality = min(quality_scores, default=0.0)
         max_quality = max(quality_scores, default=0.0)
 
         # Source distribution
-        sources = [conv.get("metadata", {}).get("source", "unknown") for conv in conversations]
+        sources = [
+            conv.get("metadata", {}).get("source", "unknown") for conv in conversations
+        ]
         source_counts = self._count_distribution(sources)
 
         # Condition distribution
         conditions = [
-            conv.get("metadata", {}).get("condition", "unknown") for conv in conversations
+            conv.get("metadata", {}).get("condition", "unknown")
+            for conv in conversations
         ]
         condition_counts = self._count_distribution(conditions)
 
@@ -666,7 +734,9 @@ class ProductionExporter:
 
         # Basic validation
         if metadata.total_conversations != len(original_conversations):
-            logger.warning(f"Conversation count mismatch in export {metadata.export_id}")
+            logger.warning(
+                f"Conversation count mismatch in export {metadata.export_id}"
+            )
 
         # File existence validation
         for file_path in metadata.file_paths:
@@ -718,7 +788,9 @@ class ProductionExporter:
             return {"message": "No exports performed yet"}
 
         total_exports = len(self.export_history)
-        total_conversations = sum(exp.total_conversations for exp in self.export_history)
+        total_conversations = sum(
+            exp.total_conversations for exp in self.export_history
+        )
 
         # Format distribution
         format_counts = {}
@@ -771,7 +843,10 @@ def main():
             "content": "Community-sourced conversation with moderate quality.",
             "turns": [
                 {"speaker": "user", "text": "Feeling down lately."},
-                {"speaker": "helper", "text": "That sounds tough. Want to talk about it?"},
+                {
+                    "speaker": "helper",
+                    "text": "That sounds tough. Want to talk about it?",
+                },
             ],
             "metadata": {
                 "source": "reddit",

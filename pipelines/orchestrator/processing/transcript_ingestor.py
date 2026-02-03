@@ -15,6 +15,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class TranscriptIngestor:
     """
     Ingests and filters local transcript files for Stage 4 (Voice/Persona) training.
@@ -33,24 +34,32 @@ class TranscriptIngestor:
         "Dr. Scott Eilers",
         "Dr. Todd Grande",
         "Psych2Go",
-        "Surviving Narcissism"
+        "Surviving Narcissism",
     ]
 
     BLOCKLIST = [
         "Jimmy Kimmel Live",
         "The Late Show",
         "LastWeekTonight",
-        "The Diary Of A CEO", # Often pop-psych or business
-        "Jay Shetty Podcast", # Often pop-psych
-        "Tedx Talks",         # Too varied
-        "Big Think"           # Too varied
+        "The Diary Of A CEO",  # Often pop-psych or business
+        "Jay Shetty Podcast",  # Often pop-psych
+        "Tedx Talks",  # Too varied
+        "Big Think",  # Too varied
     ]
 
-    def __init__(self, source_path: str = ".notes/transcripts", output_base_path: str = "ai/training/ready_packages/datasets"):
+    def __init__(
+        self,
+        source_path: str = ".notes/transcripts",
+        output_base_path: str = "ai/training/ready_packages/datasets",
+    ):
         self.source_path = Path(source_path)
-        self.output_path = Path(output_base_path) / "stage4_voice" / "processed_transcripts"
+        self.output_path = (
+            Path(output_base_path) / "stage4_voice" / "processed_transcripts"
+        )
         self.output_path.mkdir(parents=True, exist_ok=True)
-        self.llm = LLMClient(driver="mock") # Use mock for speed/cost, switch to OpenAI for real filtering
+        self.llm = LLMClient(
+            driver="mock"
+        )  # Use mock for speed/cost, switch to OpenAI for real filtering
 
     def get_files(self) -> List[Path]:
         """Recursively finds .txt files in allowed directories."""
@@ -96,7 +105,9 @@ class TranscriptIngestor:
                 if stripped.startswith("# ") or stripped.startswith("**"):
                     continue
 
-                if is_body or len(lines) < 20: # If short or no header found, take content
+                if (
+                    is_body or len(lines) < 20
+                ):  # If short or no header found, take content
                     if stripped:
                         content.append(stripped)
 
@@ -110,7 +121,7 @@ class TranscriptIngestor:
         Uses LLM to checking clinical relevance and safety.
         """
         # Quick heuristic check first
-        if len(text) < 1000: # Too short
+        if len(text) < 1000:  # Too short
             return False
 
         # Mock LLM check - In production, use real LLM
@@ -125,7 +136,8 @@ class TranscriptIngestor:
 
         processed_data = []
         for i, file_path in enumerate(files):
-            if i >= batch_size: break
+            if i >= batch_size:
+                break
 
             logger.info(f"Processing: {file_path.name}")
             raw_text = self.parse_transcript(file_path)
@@ -145,14 +157,16 @@ class TranscriptIngestor:
                             author = allowed
                             break
 
-                processed_data.append({
-                    "source_file": file_path.name,
-                    "author_persona": author,
-                    "is_primary_persona": is_primary_persona,
-                    "content": raw_text, # Full text, or chunked
-                    "type": "therapeutic_transcript",
-                    "validation_status": "filtered_ingested"
-                })
+                processed_data.append(
+                    {
+                        "source_file": file_path.name,
+                        "author_persona": author,
+                        "is_primary_persona": is_primary_persona,
+                        "content": raw_text,  # Full text, or chunked
+                        "type": "therapeutic_transcript",
+                        "validation_status": "filtered_ingested",
+                    }
+                )
 
         # Export
         if processed_data:

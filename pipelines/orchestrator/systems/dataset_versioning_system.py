@@ -19,6 +19,7 @@ logger = get_logger(__name__)
 @dataclass
 class DatasetVersion:
     """Dataset version information."""
+
     version_id: str
     version_number: str  # e.g., "1.0.0", "1.1.0"
     created_at: datetime
@@ -34,6 +35,7 @@ class DatasetVersion:
 @dataclass
 class VersionComparison:
     """Comparison between two dataset versions."""
+
     version_a: str
     version_b: str
     conversation_diff: dict[str, int]  # added, removed, modified
@@ -61,12 +63,15 @@ class DatasetVersioningSystem:
 
         self.logger.info(f"DatasetVersioningSystem initialized at {self.base_path}")
 
-    def create_version(self, conversations: list[Conversation],
-                      version_number: str,
-                      description: str,
-                      export_formats: list[str] | None = None,
-                      parent_version: str | None = None,
-                      tags: list[str] | None = None) -> DatasetVersion:
+    def create_version(
+        self,
+        conversations: list[Conversation],
+        version_number: str,
+        description: str,
+        export_formats: list[str] | None = None,
+        parent_version: str | None = None,
+        tags: list[str] | None = None,
+    ) -> DatasetVersion:
         """Create a new dataset version."""
         if export_formats is None:
             export_formats = ["jsonl"]
@@ -105,11 +110,11 @@ class DatasetVersioningSystem:
                 "export_formats": export_formats,
                 "total_messages": sum(len(conv.messages) for conv in conversations),
                 "average_quality": quality_metrics.get("average_quality", 0),
-                "creation_method": "manual"
+                "creation_method": "manual",
             },
             file_paths=file_paths,
             parent_version=parent_version,
-            tags=tags
+            tags=tags,
         )
 
         # Save version metadata
@@ -141,7 +146,8 @@ class DatasetVersioningSystem:
 
         if tags:
             versions = [
-                version for version in versions
+                version
+                for version in versions
                 if any(tag in version.tags for tag in tags)
             ]
 
@@ -149,7 +155,9 @@ class DatasetVersioningSystem:
         versions.sort(key=lambda v: v.created_at, reverse=True)
         return versions
 
-    def compare_versions(self, version_a_id: str, version_b_id: str) -> VersionComparison | None:
+    def compare_versions(
+        self, version_a_id: str, version_b_id: str
+    ) -> VersionComparison | None:
         """Compare two dataset versions."""
         version_a = self.get_version(version_a_id)
         version_b = self.get_version(version_b_id)
@@ -161,21 +169,26 @@ class DatasetVersioningSystem:
         conversation_diff = {
             "version_a_count": version_a.conversation_count,
             "version_b_count": version_b.conversation_count,
-            "difference": version_b.conversation_count - version_a.conversation_count
+            "difference": version_b.conversation_count - version_a.conversation_count,
         }
 
         # Calculate quality differences
         quality_diff = {}
         for metric in version_a.quality_metrics:
             if metric in version_b.quality_metrics:
-                quality_diff[metric] = version_b.quality_metrics[metric] - version_a.quality_metrics[metric]
+                quality_diff[metric] = (
+                    version_b.quality_metrics[metric]
+                    - version_a.quality_metrics[metric]
+                )
 
         # Identify metadata changes
         metadata_changes = []
         for key in version_a.metadata:
             if key in version_b.metadata:
                 if version_a.metadata[key] != version_b.metadata[key]:
-                    metadata_changes.append(f"Changed {key}: {version_a.metadata[key]} -> {version_b.metadata[key]}")
+                    metadata_changes.append(
+                        f"Changed {key}: {version_a.metadata[key]} -> {version_b.metadata[key]}"
+                    )
             else:
                 metadata_changes.append(f"Removed {key}")
 
@@ -188,10 +201,12 @@ class DatasetVersioningSystem:
             version_b=version_b.version_id,
             conversation_diff=conversation_diff,
             quality_diff=quality_diff,
-            metadata_changes=metadata_changes
+            metadata_changes=metadata_changes,
         )
 
-    def load_conversations(self, version_identifier: str, format_type: str = "jsonl") -> list[Conversation] | None:
+    def load_conversations(
+        self, version_identifier: str, format_type: str = "jsonl"
+    ) -> list[Conversation] | None:
         """Load conversations from a specific version."""
         version = self.get_version(version_identifier)
         if not version:
@@ -209,11 +224,15 @@ class DatasetVersioningSystem:
                     conv = self._dict_to_conversation(conv_data)
                     conversations.append(conv)
 
-            self.logger.info(f"Loaded {len(conversations)} conversations from version {version.version_number}")
+            self.logger.info(
+                f"Loaded {len(conversations)} conversations from version {version.version_number}"
+            )
             return conversations
 
         except Exception as e:
-            self.logger.error(f"Failed to load conversations from version {version_identifier}: {e}")
+            self.logger.error(
+                f"Failed to load conversations from version {version_identifier}: {e}"
+            )
             return None
 
     def delete_version(self, version_identifier: str) -> bool:
@@ -227,20 +246,25 @@ class DatasetVersioningSystem:
             version_dir = self.base_path / version.version_id
             if version_dir.exists():
                 import shutil
+
                 shutil.rmtree(version_dir)
 
             # Remove from registry
             del self.versions[version.version_id]
             self._save_versions()
 
-            self.logger.info(f"Deleted version {version.version_number} ({version.version_id})")
+            self.logger.info(
+                f"Deleted version {version.version_number} ({version.version_id})"
+            )
             return True
 
         except Exception as e:
             self.logger.error(f"Failed to delete version {version_identifier}: {e}")
             return False
 
-    def _generate_version_id(self, version_number: str, conversations: list[Conversation]) -> str:
+    def _generate_version_id(
+        self, version_number: str, conversations: list[Conversation]
+    ) -> str:
         """Generate unique version ID."""
         # Create hash based on version number and conversation content
         content_hash = hashlib.md5(
@@ -249,26 +273,38 @@ class DatasetVersioningSystem:
 
         return f"v_{version_number.replace('.', '_')}_{content_hash}"
 
-    def _calculate_quality_metrics(self, conversations: list[Conversation]) -> dict[str, float]:
+    def _calculate_quality_metrics(
+        self, conversations: list[Conversation]
+    ) -> dict[str, float]:
         """Calculate quality metrics for conversations."""
         if not conversations:
             return {}
 
-        quality_scores = [conv.quality_score for conv in conversations if conv.quality_score is not None]
+        quality_scores = [
+            conv.quality_score
+            for conv in conversations
+            if conv.quality_score is not None
+        ]
 
         return {
-            "average_quality": sum(quality_scores) / len(quality_scores) if quality_scores else 0,
+            "average_quality": sum(quality_scores) / len(quality_scores)
+            if quality_scores
+            else 0,
             "conversations_with_scores": len(quality_scores),
-            "score_coverage": len(quality_scores) / len(conversations)
+            "score_coverage": len(quality_scores) / len(conversations),
         }
 
-    def _export_conversations(self, conversations: list[Conversation], file_path: Path, format_type: str) -> bool:
+    def _export_conversations(
+        self, conversations: list[Conversation], file_path: Path, format_type: str
+    ) -> bool:
         """Export conversations to file."""
         try:
             with open(file_path, "w", encoding="utf-8") as f:
                 for conv in conversations:
                     conv_dict = self._conversation_to_dict(conv)
-                    f.write(json.dumps(conv_dict, ensure_ascii=False, default=str) + "\\n")
+                    f.write(
+                        json.dumps(conv_dict, ensure_ascii=False, default=str) + "\\n"
+                    )
             return True
         except Exception as e:
             self.logger.error(f"Failed to export conversations: {e}")
@@ -282,14 +318,14 @@ class DatasetVersioningSystem:
                 {
                     "role": msg.role,
                     "content": msg.content,
-                    "timestamp": msg.timestamp.isoformat() if msg.timestamp else None
+                    "timestamp": msg.timestamp.isoformat() if msg.timestamp else None,
                 }
                 for msg in conversation.messages
             ],
             "title": conversation.title,
             "metadata": conversation.metadata,
             "tags": conversation.tags,
-            "quality_score": conversation.quality_score
+            "quality_score": conversation.quality_score,
         }
 
     def _dict_to_conversation(self, conv_dict: dict[str, Any]) -> Conversation:
@@ -302,11 +338,13 @@ class DatasetVersioningSystem:
             if msg_data.get("timestamp"):
                 timestamp = datetime.fromisoformat(msg_data["timestamp"])
 
-            messages.append(Message(
-                role=msg_data["role"],
-                content=msg_data["content"],
-                timestamp=timestamp
-            ))
+            messages.append(
+                Message(
+                    role=msg_data["role"],
+                    content=msg_data["content"],
+                    timestamp=timestamp,
+                )
+            )
 
         return Conversation(
             id=conv_dict["id"],
@@ -314,7 +352,7 @@ class DatasetVersioningSystem:
             title=conv_dict.get("title"),
             metadata=conv_dict.get("metadata", {}),
             tags=conv_dict.get("tags", []),
-            quality_score=conv_dict.get("quality_score")
+            quality_score=conv_dict.get("quality_score"),
         )
 
     def _save_version_metadata(self, version: DatasetVersion) -> None:
@@ -323,18 +361,23 @@ class DatasetVersioningSystem:
         metadata_file = version_dir / "metadata.json"
 
         with open(metadata_file, "w", encoding="utf-8") as f:
-            json.dump({
-                "version_id": version.version_id,
-                "version_number": version.version_number,
-                "created_at": version.created_at.isoformat(),
-                "description": version.description,
-                "conversation_count": version.conversation_count,
-                "quality_metrics": version.quality_metrics,
-                "metadata": version.metadata,
-                "file_paths": version.file_paths,
-                "parent_version": version.parent_version,
-                "tags": version.tags
-            }, f, indent=2, ensure_ascii=False)
+            json.dump(
+                {
+                    "version_id": version.version_id,
+                    "version_number": version.version_number,
+                    "created_at": version.created_at.isoformat(),
+                    "description": version.description,
+                    "conversation_count": version.conversation_count,
+                    "quality_metrics": version.quality_metrics,
+                    "metadata": version.metadata,
+                    "file_paths": version.file_paths,
+                    "parent_version": version.parent_version,
+                    "tags": version.tags,
+                },
+                f,
+                indent=2,
+                ensure_ascii=False,
+            )
 
     def _load_versions(self) -> dict[str, DatasetVersion]:
         """Load versions registry."""
@@ -357,7 +400,7 @@ class DatasetVersioningSystem:
                     metadata=version_data.get("metadata", {}),
                     file_paths=version_data.get("file_paths", {}),
                     parent_version=version_data.get("parent_version"),
-                    tags=version_data.get("tags", [])
+                    tags=version_data.get("tags", []),
                 )
                 versions[version_id] = version
 
@@ -382,7 +425,7 @@ class DatasetVersioningSystem:
                     "metadata": version.metadata,
                     "file_paths": version.file_paths,
                     "parent_version": version.parent_version,
-                    "tags": version.tags
+                    "tags": version.tags,
                 }
 
             with open(self.versions_file, "w", encoding="utf-8") as f:

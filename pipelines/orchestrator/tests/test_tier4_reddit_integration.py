@@ -72,7 +72,9 @@ class TestTier4RedditLoader:
             f"✓ Tier 4 configured with {len(loader.condition_datasets)} conditions"
         )
 
-    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.tier4_reddit_loader.Path.exists")
+    @patch(
+        "ai.pipelines.orchestrator.ingestion.tier_loaders.tier4_reddit_loader.Path.exists"
+    )
     @patch(
         "builtins.open",
         new_callable=mock_open,
@@ -155,8 +157,12 @@ class TestTier4RedditLoader:
 
         logger.info("✓ Tier 4 training ratio (10%) validated")
 
-    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run")
-    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which")
+    @patch(
+        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run"
+    )
+    @patch(
+        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which"
+    )
     def test_tier4_s3_integration(self, mock_which, mock_subprocess, tier_processor):
         """Test that Tier 4 can use S3 download capability."""
         # Mock ovhai CLI availability

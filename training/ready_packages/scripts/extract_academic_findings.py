@@ -40,7 +40,9 @@ RESEARCH_QUERIES = [
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Extract academic research findings for training")
+    parser = argparse.ArgumentParser(
+        description="Extract academic research findings for training"
+    )
     parser.add_argument(
         "--query",
         help="Specific research query (omit for --all)",
@@ -52,7 +54,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output-dir",
-        default=str(Path(__file__).parents[1] / "data" / "generated" / "academic_research"),
+        default=str(
+            Path(__file__).parents[1] / "data" / "generated" / "academic_research"
+        ),
         help="Output directory for findings",
     )
     return parser
@@ -70,7 +74,9 @@ def _convert_abstract_to_chatml(record: dict[str, Any]) -> dict[str, Any]:
         "Respond with empathy, clarity, and practical support grounded in research."
     )
 
-    user_message = f"Research findings on {query}:\n\nTitle: {title}\nAbstract: {abstract}"
+    user_message = (
+        f"Research findings on {query}:\n\nTitle: {title}\nAbstract: {abstract}"
+    )
 
     # Generate a synthetic insight based on abstract (Placeholder for actual generation)
     # In real pipeline, we might use an LLM here. For now, we wrap the abstract as 'knowledge'.

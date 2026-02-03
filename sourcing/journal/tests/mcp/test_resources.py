@@ -146,7 +146,9 @@ async def test_progress_metrics_resource_returns_serialized_progress(
 
 @pytest.mark.asyncio
 async def test_progress_metrics_resource_missing_params_raises() -> None:
-    resource = ProgressMetricsResource(_FakeService(_build_orchestrator("session-1", SessionState())))
+    resource = ProgressMetricsResource(
+        _FakeService(_build_orchestrator("session-1", SessionState()))
+    )
 
     with pytest.raises(MCPError) as exc:
         await resource.read({})
@@ -208,7 +210,9 @@ async def test_session_metrics_resource_activity_only(
         sources=[sample_dataset_source],
         evaluations=[sample_evaluation],
     )
-    orchestrator = _build_orchestrator("session-4", session_state, progress_report={"summary": "report"})
+    orchestrator = _build_orchestrator(
+        "session-4", session_state, progress_report={"summary": "report"}
+    )
     resource = SessionMetricsResource(_FakeService(orchestrator))
 
     result = await resource.read({"session_id": "session-4", "metric_type": "activity"})
@@ -217,4 +221,3 @@ async def test_session_metrics_resource_activity_only(
     assert "activity_log" in payload
     assert "progress_report" not in payload
     assert payload["activity_log"][0]["activity_type"] == "session_start"
-

@@ -13,11 +13,15 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class CoTTemporalReasoningDataset:
     """Processes CoT temporal reasoning for time-based therapeutic planning."""
 
-    def __init__(self, dataset_path: str = "./CoT_Temporal_Reasoning_Dataset",
-                 output_dir: str = "./processed_cot"):
+    def __init__(
+        self,
+        dataset_path: str = "./CoT_Temporal_Reasoning_Dataset",
+        output_dir: str = "./processed_cot",
+    ):
         self.dataset_path = Path(dataset_path)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
@@ -29,7 +33,9 @@ class CoTTemporalReasoningDataset:
         result = {
             "success": True,
             "examples_processed": 30000,
-            "output_path": str(self.output_dir / "cot_temporal_reasoning_dataset_processed.json")
+            "output_path": str(
+                self.output_dir / "cot_temporal_reasoning_dataset_processed.json"
+            ),
         }
 
         output_data = {
@@ -37,7 +43,7 @@ class CoTTemporalReasoningDataset:
                 "name": "CoT Temporal Reasoning Dataset",
                 "description": "15MB, 30K time-based therapeutic planning examples",
                 "total_examples": 30000,
-                "processed_at": datetime.now().isoformat()
+                "processed_at": datetime.now().isoformat(),
             }
         }
 
@@ -46,6 +52,7 @@ class CoTTemporalReasoningDataset:
 
         logger.info("CoTTemporalReasoningDataset processing completed")
         return result
+
 
 if __name__ == "__main__":
     processor = CoTTemporalReasoningDataset()

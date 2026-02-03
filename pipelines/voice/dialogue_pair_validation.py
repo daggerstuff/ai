@@ -13,7 +13,9 @@ os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 
 logging.basicConfig(
-    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
 
@@ -60,7 +62,9 @@ def main():
     out_path = os.path.join(VALIDATED_DIR, "dialogue_pairs_validated.json")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(validated_pairs, f, indent=2)
-    logging.info(f"Validated {len(validated_pairs)} dialogue pairs. Saved to {out_path}")
+    logging.info(
+        f"Validated {len(validated_pairs)} dialogue pairs. Saved to {out_path}"
+    )
 
 
 if __name__ == "__main__":

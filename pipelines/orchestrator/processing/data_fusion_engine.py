@@ -342,9 +342,7 @@ class DataFusionEngine:
 
         return None
 
-    def _extract_therapeutic_approach(
-        self, conversation: dict[str, Any]
-    ) -> str | None:
+    def _extract_therapeutic_approach(self, conversation: dict[str, Any]) -> str | None:
         """Extract therapeutic approach from conversation."""
         content = conversation.get("content", "")
         if isinstance(content, list):
@@ -793,7 +791,6 @@ def main():
 
     for strategy in strategies:
         engine.fuse_datasets(strategy=strategy, target_size=4)
-
 
 
 if __name__ == "__main__":

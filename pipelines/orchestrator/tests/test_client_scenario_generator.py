@@ -45,8 +45,11 @@ class TestClientScenarioGenerator(unittest.TestCase):
     def test_scenario_types_enum(self):
         """Test ScenarioType enum values."""
         expected_types = {
-            "initial_assessment", "diagnostic_interview", "therapeutic_session",
-            "crisis_intervention", "follow_up_session"
+            "initial_assessment",
+            "diagnostic_interview",
+            "therapeutic_session",
+            "crisis_intervention",
+            "follow_up_session",
         }
         actual_types = {scenario_type.value for scenario_type in ScenarioType}
         assert expected_types == actual_types
@@ -60,8 +63,13 @@ class TestClientScenarioGenerator(unittest.TestCase):
     def test_demographic_categories_enum(self):
         """Test DemographicCategory enum values."""
         expected_categories = {
-            "young_adult", "middle_aged", "older_adult", "adolescent",
-            "college_student", "working_professional", "retired"
+            "young_adult",
+            "middle_aged",
+            "older_adult",
+            "adolescent",
+            "college_student",
+            "working_professional",
+            "retired",
         }
         actual_categories = {category.value for category in DemographicCategory}
         assert expected_categories == actual_categories
@@ -87,7 +95,7 @@ class TestClientScenarioGenerator(unittest.TestCase):
         scenario = self.generator.generate_client_scenario(
             scenario_type=ScenarioType.INITIAL_ASSESSMENT,
             severity_level=SeverityLevel.MODERATE,
-            demographic_category=DemographicCategory.YOUNG_ADULT
+            demographic_category=DemographicCategory.YOUNG_ADULT,
         )
 
         # Check scenario structure
@@ -130,7 +138,7 @@ class TestClientScenarioGenerator(unittest.TestCase):
             relationship_status="Single",
             living_situation="with parents",
             cultural_background="Caucasian American",
-            socioeconomic_status="Middle income"
+            socioeconomic_status="Middle income",
         )
 
         # Get a test disorder
@@ -162,7 +170,7 @@ class TestClientScenarioGenerator(unittest.TestCase):
             relationship_status="Married",
             living_situation="with spouse",
             cultural_background="Hispanic/Latino",
-            socioeconomic_status="Middle income"
+            socioeconomic_status="Middle income",
         )
 
         presenting_problem = PresentingProblem(
@@ -171,7 +179,7 @@ class TestClientScenarioGenerator(unittest.TestCase):
             onset="Gradual",
             symptoms=["worry", "restlessness"],
             triggers=["work stress"],
-            functional_impact=["difficulty concentrating"]
+            functional_impact=["difficulty concentrating"],
         )
 
         disorders = self.generator.dsm5_parser.get_disorders()
@@ -244,7 +252,7 @@ class TestClientScenarioGenerator(unittest.TestCase):
         """Test conversation template generation from scenarios."""
         scenario = self.generator.generate_client_scenario(
             scenario_type=ScenarioType.INITIAL_ASSESSMENT,
-            severity_level=SeverityLevel.MODERATE
+            severity_level=SeverityLevel.MODERATE,
         )
 
         conversations = self.generator.generate_conversation_templates(scenario)
@@ -276,9 +284,13 @@ class TestClientScenarioGenerator(unittest.TestCase):
         stats = self.generator.get_statistics(scenarios)
 
         expected_keys = {
-            "total_scenarios", "scenario_types", "severity_levels",
-            "age_distribution", "cultural_backgrounds", "disorders_represented",
-            "average_complexity_factors"
+            "total_scenarios",
+            "scenario_types",
+            "severity_levels",
+            "age_distribution",
+            "cultural_backgrounds",
+            "disorders_represented",
+            "average_complexity_factors",
         }
         assert set(stats.keys()) == expected_keys
 
@@ -308,7 +320,7 @@ class TestClientScenarioGenerator(unittest.TestCase):
         """Test scenario variation generation."""
         base_scenario = self.generator.generate_client_scenario(
             scenario_type=ScenarioType.THERAPEUTIC_SESSION,
-            severity_level=SeverityLevel.MILD
+            severity_level=SeverityLevel.MILD,
         )
 
         variations = self.generator.generate_scenario_variations(base_scenario, count=3)
@@ -325,7 +337,7 @@ class TestClientScenarioGenerator(unittest.TestCase):
         """Test crisis intervention scenario generation."""
         scenario = self.generator.generate_client_scenario(
             scenario_type=ScenarioType.CRISIS_INTERVENTION,
-            severity_level=SeverityLevel.CRISIS
+            severity_level=SeverityLevel.CRISIS,
         )
 
         assert scenario.scenario_type == ScenarioType.CRISIS_INTERVENTION

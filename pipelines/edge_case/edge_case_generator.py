@@ -25,6 +25,16 @@ try:
 except ImportError:
     openai = None
 
+import sys
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+try:
+    from ai.safety.dataset_validation import DatasetValidator
+except ImportError:
+    DatasetValidator = None
+
 
 @dataclass
 class EdgeCaseScenario:
@@ -57,9 +67,11 @@ class EdgeCaseGenerator:
         # Setup API client
         self._setup_api_client()
 
-    # Initialize validator if available
-    self.validator = DatasetValidator(strict_mode=False) if DatasetValidator else None
-    self.validation_failures = []
+        # Initialize validator if available
+        self.validator = (
+            DatasetValidator(strict_mode=False) if DatasetValidator else None
+        )
+        self.validation_failures = []
 
         # Define edge case categories and templates
         self.edge_case_categories = self._define_edge_case_categories()
@@ -68,12 +80,16 @@ class EdgeCaseGenerator:
         """Setup API client based on provider"""
         if self.api_provider == "openai":
             if openai is None:
-                raise ImportError("OpenAI package not installed. Run: pip install openai")
+                raise ImportError(
+                    "OpenAI package not installed. Run: pip install openai"
+                )
             self.client = openai.OpenAI(api_key=self.api_key)
 
         elif self.api_provider == "anthropic":
             if anthropic is None:
-                raise ImportError("Anthropic package not installed. Run: pip install anthropic")
+                raise ImportError(
+                    "Anthropic package not installed. Run: pip install anthropic"
+                )
             self.client = anthropic.Anthropic(api_key=self.api_key)
 
         elif self.api_provider == "ollama":
@@ -87,68 +103,145 @@ class EdgeCaseGenerator:
         """Define the 25 edge case categories with templates"""
         return {
             "suicidality": {
-                "description": "Clients presenting with suicidal ideation, plans, or attempts",
-                "template": "Simulate a therapy session set in a tense, dimly lit room. Bob is a 35-year-old man who has been struggling with severe depression. He expresses thoughts of ending his life.",
+                "description": (
+                    "Clients presenting with suicidal ideation, plans, or attempts"
+                ),
+                "template": (
+                    "Simulate a therapy session set in a tense, dimly lit room. "
+                    "Bob is a 35-year-old man who has been struggling with severe "
+                    "depression. He expresses thoughts of ending his life."
+                ),
                 "difficulty": "very_high",
-                "challenges": ["crisis_intervention", "safety_assessment", "resource_provision"],
+                "challenges": [
+                    "crisis_intervention",
+                    "safety_assessment",
+                    "resource_provision",
+                ],
             },
             "homicidal_client": {
                 "description": "Clients expressing violent thoughts toward others",
-                "template": "Simulate a therapy session with Sarah, a 28-year-old woman who has been having violent fantasies about harming her coworkers.",
+                "template": (
+                    "Simulate a therapy session with Sarah, a 28-year-old woman "
+                    "who has been having violent fantasies about harming her "
+                    "coworkers."
+                ),
                 "difficulty": "very_high",
-                "challenges": ["duty_to_warn", "safety_planning", "legal_considerations"],
+                "challenges": [
+                    "duty_to_warn",
+                    "safety_planning",
+                    "legal_considerations",
+                ],
             },
             "substance_abuse_crisis": {
-                "description": "Clients in active addiction crisis or withdrawal",
-                "template": "Create a therapy session with Mike, a 42-year-old who shows up to session clearly intoxicated and becoming increasingly agitated.",
+                "description": ("Clients in active addiction crisis or withdrawal"),
+                "template": (
+                    "Create a therapy session with Mike, a 42-year-old who shows up to "
+                    "session clearly intoxicated and becoming increasingly agitated."
+                ),
                 "difficulty": "high",
-                "challenges": ["immediate_safety", "medical_concerns", "boundary_setting"],
+                "challenges": [
+                    "immediate_safety",
+                    "medical_concerns",
+                    "boundary_setting",
+                ],
             },
             "psychotic_episode": {
                 "description": "Clients experiencing active psychosis or delusions",
-                "template": "Simulate a session with Lisa, a 24-year-old who believes the government is monitoring her through the therapy cameras.",
+                "template": (
+                    "Simulate a session with Lisa, a 24-year-old who believes the "
+                    "government is monitoring her through the therapy cameras."
+                ),
                 "difficulty": "very_high",
-                "challenges": ["reality_testing", "therapeutic_alliance", "psychiatric_emergency"],
+                "challenges": [
+                    "reality_testing",
+                    "therapeutic_alliance",
+                    "psychiatric_emergency",
+                ],
             },
             "severe_dissociation": {
-                "description": "Clients with dissociative identity disorder or severe dissociative episodes",
-                "template": "Create a therapy session where the client suddenly switches personalities mid-conversation and doesn't remember the previous discussion.",
+                "description": (
+                    "Clients with dissociative identity disorder or severe "
+                    "dissociative episodes"
+                ),
+                "template": (
+                    "Create a therapy session where the client suddenly switches "
+                    "personalities mid-conversation and doesn't remember the "
+                    "previous discussion."
+                ),
                 "difficulty": "high",
-                "challenges": ["continuity_of_care", "identity_validation", "grounding_techniques"],
+                "challenges": [
+                    "continuity_of_care",
+                    "identity_validation",
+                    "grounding_techniques",
+                ],
             },
             "manic_episode": {
                 "description": "Clients in manic or hypomanic states",
-                "template": "Simulate a session with David, who speaks rapidly, jumps between topics, and believes he has special powers.",
+                "template": (
+                    "Simulate a session with David, who speaks rapidly, jumps "
+                    "between topics, and believes he has special powers."
+                ),
                 "difficulty": "high",
-                "challenges": ["medication_compliance", "reality_orientation", "energy_management"],
+                "challenges": [
+                    "medication_compliance",
+                    "reality_orientation",
+                    "energy_management",
+                ],
             },
             "trauma_flashback": {
                 "description": "Clients experiencing active trauma flashbacks",
-                "template": "Create a session where the client suddenly becomes triggered and starts reliving a traumatic experience.",
+                "template": (
+                    "Create a session where the client suddenly becomes triggered "
+                    "and starts reliving a traumatic experience."
+                ),
                 "difficulty": "high",
                 "challenges": ["grounding", "safety", "present_moment_awareness"],
             },
             "eating_disorder_medical": {
                 "description": "Clients with severe eating disorders at medical risk",
-                "template": "Simulate a session with Alex, severely underweight and recently discharged from medical hospitalization for anorexia.",
+                "template": (
+                    "Simulate a session with Alex, severely underweight and recently "
+                    "discharged from medical hospitalization for anorexia."
+                ),
                 "difficulty": "high",
-                "challenges": ["medical_monitoring", "food_fear", "body_image_distortion"],
+                "challenges": [
+                    "medical_monitoring",
+                    "food_fear",
+                    "body_image_distortion",
+                ],
             },
             "borderline_crisis": {
                 "description": "Clients with BPD in emotional crisis",
-                "template": "Create a therapy session with Jordan, who threatens self-harm after feeling abandoned by the therapist's vacation.",
+                "template": (
+                    "Create a therapy session with Jordan, who threatens self-harm "
+                    "after feeling abandoned by the therapist's vacation."
+                ),
                 "difficulty": "high",
-                "challenges": ["emotional_regulation", "abandonment_fears", "self_harm_prevention"],
+                "challenges": [
+                    "emotional_regulation",
+                    "abandonment_fears",
+                    "self_harm_prevention",
+                ],
             },
             "paranoid_accusations": {
                 "description": "Clients making paranoid accusations against therapist",
-                "template": "Simulate a session where the client accuses the therapist of plotting against them with their family.",
+                "template": (
+                    "Simulate a session where the client accuses the therapist of "
+                    "plotting against them with their family."
+                ),
                 "difficulty": "high",
-                "challenges": ["therapeutic_alliance", "boundary_maintenance", "trust_building"],
+                "challenges": [
+                    "therapeutic_alliance",
+                    "boundary_maintenance",
+                    "trust_building",
+                ],
             },
             "sexual_trauma_disclosure": {
                 "description": "Clients disclosing sexual trauma for the first time",
-                "template": "Create a session where the client breaks down while revealing childhood sexual abuse.",
+                "template": (
+                    "Create a session where the client breaks down while revealing "
+                    "childhood sexual abuse."
+                ),
                 "difficulty": "high",
                 "challenges": [
                     "trauma_sensitive_response",
@@ -157,14 +250,26 @@ class EdgeCaseGenerator:
                 ],
             },
             "child_abuse_reporting": {
-                "description": "Situations requiring mandated reporting for child abuse",
-                "template": "Simulate a session where a parent admits to physically harming their child.",
+                "description": (
+                    "Situations requiring mandated reporting for child abuse"
+                ),
+                "template": (
+                    "Simulate a session where a parent admits to physically "
+                    "harming their child."
+                ),
                 "difficulty": "very_high",
-                "challenges": ["mandated_reporting", "therapeutic_alliance", "child_safety"],
+                "challenges": [
+                    "mandated_reporting",
+                    "therapeutic_alliance",
+                    "child_safety",
+                ],
             },
             "elder_abuse_concerns": {
                 "description": "Situations involving elder abuse or neglect",
-                "template": "Create a session with an elderly client showing signs of financial and physical abuse by caregivers.",
+                "template": (
+                    "Create a session with an elderly client showing signs of "
+                    "financial and physical abuse by caregivers."
+                ),
                 "difficulty": "high",
                 "challenges": [
                     "vulnerability_assessment",
@@ -174,61 +279,115 @@ class EdgeCaseGenerator:
             },
             "domestic_violence_active": {
                 "description": "Clients in active domestic violence situations",
-                "template": "Simulate a session with someone who arrives with fresh bruises and minimizes their partner's violence.",
+                "template": (
+                    "Simulate a session with someone who arrives with fresh bruises "
+                    "and minimizes their partner's violence."
+                ),
                 "difficulty": "high",
-                "challenges": ["safety_planning", "ambivalence", "lethality_assessment"],
+                "challenges": [
+                    "safety_planning",
+                    "ambivalence",
+                    "lethality_assessment",
+                ],
             },
             "stalking_harassment": {
                 "description": "Clients being stalked or harassed",
-                "template": "Create a session with a client who reports being followed and receiving threatening messages.",
+                "template": (
+                    "Create a session with a client who reports being followed "
+                    "and receiving threatening messages."
+                ),
                 "difficulty": "moderate",
                 "challenges": ["safety_measures", "documentation", "legal_resources"],
             },
             "religious_delusions": {
                 "description": "Clients with religious or spiritual delusions",
-                "template": "Simulate a session with someone who believes they are receiving direct messages from God to hurt others.",
+                "template": (
+                    "Simulate a session with someone who believes they are "
+                    "receiving direct messages from God to hurt others."
+                ),
                 "difficulty": "high",
-                "challenges": ["cultural_sensitivity", "delusion_vs_faith", "safety_assessment"],
+                "challenges": [
+                    "cultural_sensitivity",
+                    "delusion_vs_faith",
+                    "safety_assessment",
+                ],
             },
             "medication_refusal": {
                 "description": "Clients refusing essential psychiatric medications",
-                "template": "Create a session with a bipolar client who stops taking lithium because they miss feeling 'creative.'",
+                "template": (
+                    "Create a session with a bipolar client who stops taking lithium "
+                    "because they miss feeling 'creative.'"
+                ),
                 "difficulty": "moderate",
-                "challenges": ["medication_adherence", "autonomy_vs_safety", "psychoeducation"],
+                "challenges": [
+                    "medication_adherence",
+                    "autonomy_vs_safety",
+                    "psychoeducation",
+                ],
             },
             "family_therapy_conflict": {
                 "description": "Explosive conflicts in family therapy sessions",
-                "template": "Simulate a family session where parents start screaming at each other and threatening divorce.",
+                "template": (
+                    "Simulate a family session where parents start screaming at "
+                    "each other and threatening divorce."
+                ),
                 "difficulty": "moderate",
-                "challenges": ["de_escalation", "session_management", "safety_for_children"],
+                "challenges": [
+                    "de_escalation",
+                    "session_management",
+                    "safety_for_children",
+                ],
             },
             "adolescent_defiance": {
                 "description": "Extremely defiant or aggressive adolescent clients",
-                "template": "Create a session with a 16-year-old who refuses to speak, throws objects, and threatens to leave.",
+                "template": (
+                    "Create a session with a 16-year-old who refuses to speak, "
+                    "throws objects, and threatens to leave."
+                ),
                 "difficulty": "moderate",
                 "challenges": ["engagement", "boundary_setting", "family_dynamics"],
             },
             "couple_therapy_betrayal": {
                 "description": "Couples therapy with major betrayals revealed",
-                "template": "Simulate a couples session where one partner reveals an ongoing affair and secret financial debt.",
+                "template": (
+                    "Simulate a couples session where one partner reveals an ongoing "
+                    "affair and secret financial debt."
+                ),
                 "difficulty": "moderate",
-                "challenges": ["emotional_safety", "neutrality", "relationship_assessment"],
+                "challenges": [
+                    "emotional_safety",
+                    "neutrality",
+                    "relationship_assessment",
+                ],
             },
             "grief_complicated": {
                 "description": "Clients with complicated or traumatic grief",
-                "template": "Create a session with someone whose child died by suicide and they blame themselves completely.",
+                "template": (
+                    "Create a session with someone whose child died by suicide "
+                    "and they blame themselves completely."
+                ),
                 "difficulty": "high",
                 "challenges": ["guilt_processing", "meaning_making", "suicide_risk"],
             },
             "cultural_conflicts": {
                 "description": "Intense cultural or religious value conflicts",
-                "template": "Simulate a session with a client torn between family cultural expectations and personal identity.",
+                "template": (
+                    "Simulate a session with a client torn between family cultural "
+                    "expectations and personal identity."
+                ),
                 "difficulty": "moderate",
-                "challenges": ["cultural_competence", "identity_exploration", "family_dynamics"],
+                "challenges": [
+                    "cultural_competence",
+                    "identity_exploration",
+                    "family_dynamics",
+                ],
             },
             "therapist_boundaries": {
                 "description": "Clients testing or violating therapeutic boundaries",
-                "template": "Create a session where the client asks for personal information and suggests meeting outside of therapy.",
+                "template": (
+                    "Create a session where the client asks for personal "
+                    "information and suggests meeting outside of therapy."
+                ),
                 "difficulty": "moderate",
                 "challenges": [
                     "boundary_maintenance",
@@ -237,16 +396,28 @@ class EdgeCaseGenerator:
                 ],
             },
             "therapy_resistance": {
-                "description": "Clients showing extreme resistance to therapeutic process",
-                "template": "Simulate a session with someone court-ordered to therapy who insists they don't need help.",
+                "description": (
+                    "Clients showing extreme resistance to therapeutic process"
+                ),
+                "template": (
+                    "Simulate a session with someone court-ordered to therapy "
+                    "who insists they don't need help."
+                ),
                 "difficulty": "moderate",
                 "challenges": ["motivation", "engagement", "involuntary_treatment"],
             },
             "chronic_pain_despair": {
                 "description": "Clients with chronic pain considering ending treatment",
-                "template": "Create a session with someone in chronic pain who wants to stop all medical treatment and 'let nature take its course.'",
+                "template": (
+                    "Create a session with someone in chronic pain who wants to stop "
+                    "all medical treatment and 'let nature take its course.'"
+                ),
                 "difficulty": "moderate",
-                "challenges": ["pain_psychology", "medical_collaboration", "quality_of_life"],
+                "challenges": [
+                    "pain_psychology",
+                    "medical_collaboration",
+                    "quality_of_life",
+                ],
             },
         }
 
@@ -287,7 +458,9 @@ class EdgeCaseGenerator:
             " prompts and saved to ",
         )
 
-    def _create_template_variations(self, base_template: str, variation_num: int) -> list[str]:
+    def _create_template_variations(
+        self, base_template: str, variation_num: int
+    ) -> list[str]:
         """Create variations of base templates"""
         variations = [base_template]
         # Add age variations
@@ -339,7 +512,8 @@ class EdgeCaseGenerator:
                     failed_prompts.append(prompt_data)
             except Exception as e:
                 progress_bar.write(
-                    f"Error generating conversation for {prompt_data['scenario_id']}: {e}"
+                    f"Error generating conversation for "
+                    f"{prompt_data['scenario_id']}: {e}"
                 )
                 failed_prompts.append(prompt_data)
             # Add delay to avoid rate limiting
@@ -350,25 +524,29 @@ class EdgeCaseGenerator:
 
     def _generate_single_conversation(self, prompt_data: dict) -> dict | None:
         """Generate a single conversation from prompt"""
-        system_prompt = """You are a difficult therapy client simulator. Generate a realistic, challenging therapy dialogue that will help train therapists to handle difficult situations.
-
-Create a conversation with:
-1. Therapist statements that are professional and appropriate
-2. Client responses that demonstrate the specific challenging behavior described
-3. Realistic emotional dynamics
-4. Educational value for therapist training
-
-Format the response as a dialogue with clear speaker labels.
-Make the client responses authentic and challenging without being harmful or unethical."""
-        user_prompt = f"""Generate a therapy dialogue based on this scenario:
-
-{prompt_data["instructions"]}
-
-Category: {prompt_data["category"]}
-Difficulty: {prompt_data["difficulty_level"]}
-Expected challenges: {", ".join(prompt_data["expected_challenges"])}
-
-Create a realistic dialogue between therapist and client that demonstrates these challenges."""
+        system_prompt = (
+            "You are a difficult therapy client simulator. Generate a realistic, "
+            "challenging therapy dialogue that will help train therapists to "
+            "handle difficult situations.\n\n"
+            "Create a conversation with:\n"
+            "1. Therapist statements that are professional and appropriate\n"
+            "2. Client responses that demonstrate the specific challenging behavior "
+            "described\n"
+            "3. Realistic emotional dynamics\n"
+            "4. Educational value for therapist training\n\n"
+            "Format the response as a dialogue with clear speaker labels.\n"
+            "Make the client responses authentic and challenging without being "
+            "harmful or unethical."
+        )
+        user_prompt = (
+            f"Generate a therapy dialogue based on this scenario:\n\n"
+            f"{prompt_data['instructions']}\n\n"
+            f"Category: {prompt_data['category']}\n"
+            f"Difficulty: {prompt_data['difficulty_level']}\n"
+            f"Expected challenges: {', '.join(prompt_data['expected_challenges'])}\n\n"
+            f"Create a realistic dialogue between therapist and client that "
+            f"demonstrates these challenges."
+        )
         try:
             if self.api_provider == "openai":
                 response = self.client.chat.completions.create(
@@ -427,14 +605,23 @@ Create a realistic dialogue between therapist and client that demonstrates these
             # Look for therapist/client indicators
             if any(
                 indicator in stripped_line.lower()
-                for indicator in ["therapist:", "therapy:", "counselor:", "dr.", "psychologist:"]
+                for indicator in [
+                    "therapist:",
+                    "therapy:",
+                    "counselor:",
+                    "dr.",
+                    "psychologist:",
+                ]
             ):
                 if current_therapist and current_client:
                     pairs.append(
                         {
                             "prompt": current_therapist.strip(),
                             "response": current_client.strip(),
-                            "speaker_roles": {"prompt": "therapist", "response": "client"},
+                            "speaker_roles": {
+                                "prompt": "therapist",
+                                "response": "client",
+                            },
                         }
                     )
                     current_client = ""
@@ -493,7 +680,9 @@ Create a realistic dialogue between therapist and client that demonstrates these
             " training examples in ",
         )
 
-    def _save_and_return_data(self, filename: str, data: list[dict], _prefix: str, _suffix: str):
+    def _save_and_return_data(
+        self, filename: str, data: list[dict], _prefix: str, _suffix: str
+    ):
         """Save data to JSONL file and return it"""
         filepath = self.output_dir / filename
         self._write_jsonl_file(filepath, data)
@@ -506,47 +695,37 @@ Create a realistic dialogue between therapist and client that demonstrates these
         total_qa_pairs = sum(len(conv.get("qa_pairs", [])) for conv in conversations)
         category_counts = {}
         difficulty_counts = {}
+
         for conv in conversations:
             cat = conv.get("category", "unknown")
             diff = conv.get("difficulty_level", "unknown")
             category_counts[cat] = category_counts.get(cat, 0) + 1
             difficulty_counts[diff] = difficulty_counts.get(diff, 0) + 1
+
         # Create report
         report = (
             "# Edge Case Generation Summary Report\n"
-            f"Generated on: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
+            f"Generated on: "
+            f"{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
             "## Overall Statistics\n"
-        import logging
-        import sys
-
-        from dataclasses import dataclass
-        from datetime import datetime, timezone
-        from pathlib import Path
             f"- Total Conversations Generated: {total_conversations}\n"
             f"- Total Q&A Pairs: {total_qa_pairs}\n"
-            f"- Average Q&A Pairs per Conversation: {total_qa_pairs / max(total_conversations, 1):.1f}\n\n"
+            f"- Average Q&A Pairs per Conversation: "
+            f"{total_qa_pairs / max(total_conversations, 1):.1f}\n\n"
             "## Category Breakdown\n"
-        # Add parent directory to path for imports
-        sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-
-        try:
-            from ai.safety.dataset_validation import DatasetValidator, ValidationResult
-        except ImportError:
-            DatasetValidator = None
-            ValidationResult = None
-
         )
+
         for category, count in sorted(category_counts.items()):
             report += f"- {category}: {count} conversations\n"
+
         report += "\n## Difficulty Level Distribution\n"
         for difficulty, count in sorted(difficulty_counts.items()):
             report += f"- {difficulty}: {count} conversations\n"
+
         report += (
             "\n## Files Generated\n"
             "- Edge case prompts: edge_case_prompts.jsonl\n"
-            "- Generated conversations: generated_conversations.jsonl  \n"
-        logger = logging.getLogger(__name__)
-
+            "- Generated conversations: generated_conversations.jsonl\n"
             "- Training format: edge_cases_training_format.jsonl\n"
             "- Summary report: summary_report.md\n\n"
             "## Next Steps\n"
@@ -554,6 +733,7 @@ Create a realistic dialogue between therapist and client that demonstrates these
             "2. Integrate with main training pipeline\n"
             "3. Evaluate model performance on edge cases\n"
         )
+
         # Save report
         report_file = self.output_dir / "summary_report.md"
         with open(report_file, "w") as f:

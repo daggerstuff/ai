@@ -4,6 +4,7 @@
 import sys
 from ai.pipelines.design.service import NeMoDataDesignerService
 
+
 def main():
     print("=" * 80)
     print("NVIDIA NeMo Data Designer - Quick Demo")
@@ -22,7 +23,7 @@ def main():
             include_demographics=True,
             include_symptoms=True,
             include_treatments=True,
-            include_outcomes=True
+            include_outcomes=True,
         )
 
         print()
@@ -33,13 +34,13 @@ def main():
         print(f"Columns: {len(result['column_names'])} columns")
         print()
         print("Column names:")
-        for col in result['column_names']:
+        for col in result["column_names"]:
             print(f"  - {col}")
         print()
 
         # Display sample data
-        dataset = result['data']
-        if hasattr(dataset, 'to_pandas'):
+        dataset = result["data"]
+        if hasattr(dataset, "to_pandas"):
             df = dataset.to_pandas()
             print("Sample Data (first 5 rows):")
             print("-" * 80)
@@ -59,9 +60,10 @@ def main():
     except Exception as e:
         print(f"\n❌ Error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 
+
 if __name__ == "__main__":
     sys.exit(main())
-

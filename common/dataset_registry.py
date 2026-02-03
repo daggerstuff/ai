@@ -52,7 +52,9 @@ def _iter_registry_dataset_sections(
                 yield section_name, section
 
 
-def _iter_registry_groups(registry: dict[str, Any]) -> Iterable[tuple[str, dict[str, Any]]]:
+def _iter_registry_groups(
+    registry: dict[str, Any],
+) -> Iterable[tuple[str, dict[str, Any]]]:
     """
     Yield all top-level groups that contain dataset-like entries.
 
@@ -97,20 +99,30 @@ def iter_dataset_refs(registry: dict[str, Any]) -> Iterable[DatasetRef]:
             yield DatasetRef(
                 key=f"{section_name}.{dataset_name}",
                 s3_path=s3_path,
-                stage=dataset.get("stage") if isinstance(dataset.get("stage"), str) else None,
+                stage=dataset.get("stage")
+                if isinstance(dataset.get("stage"), str)
+                else None,
                 quality_profile=dataset.get("quality_profile")
                 if isinstance(dataset.get("quality_profile"), str)
                 else None,
-                type=dataset.get("type") if isinstance(dataset.get("type"), str) else None,
-                focus=dataset.get("focus") if isinstance(dataset.get("focus"), str) else None,
+                type=dataset.get("type")
+                if isinstance(dataset.get("type"), str)
+                else None,
+                focus=dataset.get("focus")
+                if isinstance(dataset.get("focus"), str)
+                else None,
                 fallback_paths={
-                    str(k): str(v) for k, v in fallback_paths.items() if isinstance(v, str)
+                    str(k): str(v)
+                    for k, v in fallback_paths.items()
+                    if isinstance(v, str)
                 },
                 legacy_paths=[str(p) for p in legacy_paths if isinstance(p, str)],
             )
 
 
-def resolve_fallback_path(dataset: DatasetRef, *, prefer: list[str] | None = None) -> str | None:
+def resolve_fallback_path(
+    dataset: DatasetRef, *, prefer: list[str] | None = None
+) -> str | None:
     """
     Return the first available fallback path by preference order.
 

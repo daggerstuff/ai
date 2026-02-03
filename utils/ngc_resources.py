@@ -51,7 +51,8 @@ class NGCResourceDownloader:
         Initialize NGC resource downloader.
 
         Args:
-            output_base: Base directory for downloads (defaults to training_ready/resources/)
+            output_base: Base directory for downloads (defaults to
+                training_ready/resources/)
             api_key: Optional NGC API key (if not set, will check environment or prompt)
         """
         if output_base is None:
@@ -143,7 +144,8 @@ class NGCResourceDownloader:
         Download a custom resource from NGC catalog.
 
         Args:
-            resource_path: Resource path (e.g., "nvidia/nemo-microservices/nemo-microservices-quickstart")
+            resource_path: Resource path (e.g.,
+                "nvidia/nemo-microservices/nemo-microservices-quickstart")
             version: Optional version tag
             output_dir: Optional output directory
 

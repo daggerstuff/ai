@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 
 class DSMDisorder(Enum):
     """Major DSM-5 disorder categories."""
+
     DEPRESSION = "depression"
     ANXIETY = "anxiety"
     BIPOLAR = "bipolar"
@@ -31,6 +32,7 @@ class DSMDisorder(Enum):
 
 class TherapeuticApproach(Enum):
     """Evidence-based therapeutic approaches."""
+
     CBT = "cognitive_behavioral_therapy"
     DBT = "dialectical_behavior_therapy"
     ACT = "acceptance_commitment_therapy"
@@ -43,6 +45,7 @@ class TherapeuticApproach(Enum):
 
 class ValidationCategory(Enum):
     """DSM-5 validation categories."""
+
     DIAGNOSTIC_ACCURACY = "diagnostic_accuracy"
     SYMPTOM_RECOGNITION = "symptom_recognition"
     THERAPEUTIC_INTERVENTION = "therapeutic_intervention"
@@ -56,6 +59,7 @@ class ValidationCategory(Enum):
 @dataclass
 class DSMCriteria:
     """DSM-5 diagnostic criteria for a disorder."""
+
     disorder: DSMDisorder
     primary_symptoms: list[str]
     duration_requirements: str
@@ -67,6 +71,7 @@ class DSMCriteria:
 @dataclass
 class TherapeuticIntervention:
     """Therapeutic intervention assessment."""
+
     approach: TherapeuticApproach
     techniques: list[str]
     appropriateness_score: float
@@ -77,6 +82,7 @@ class TherapeuticIntervention:
 @dataclass
 class DSMValidationResult:
     """DSM-5 validation result."""
+
     conversation_id: str
     overall_accuracy: float
     category_scores: dict[ValidationCategory, float]
@@ -104,47 +110,76 @@ class DSM5AccuracyValidator:
             DSMDisorder.DEPRESSION: DSMCriteria(
                 disorder=DSMDisorder.DEPRESSION,
                 primary_symptoms=[
-                    "depressed mood", "anhedonia", "weight changes", "sleep disturbance",
-                    "fatigue", "worthlessness", "concentration problems", "suicidal ideation"
+                    "depressed mood",
+                    "anhedonia",
+                    "weight changes",
+                    "sleep disturbance",
+                    "fatigue",
+                    "worthlessness",
+                    "concentration problems",
+                    "suicidal ideation",
                 ],
                 duration_requirements="2 weeks minimum",
                 severity_specifiers=["mild", "moderate", "severe"],
-                exclusion_criteria=["manic episodes", "substance use", "medical condition"],
-                associated_features=["anxiety", "irritability", "cognitive impairment"]
+                exclusion_criteria=[
+                    "manic episodes",
+                    "substance use",
+                    "medical condition",
+                ],
+                associated_features=["anxiety", "irritability", "cognitive impairment"],
             ),
             DSMDisorder.ANXIETY: DSMCriteria(
                 disorder=DSMDisorder.ANXIETY,
                 primary_symptoms=[
-                    "excessive worry", "restlessness", "fatigue", "concentration difficulty",
-                    "irritability", "muscle tension", "sleep disturbance"
+                    "excessive worry",
+                    "restlessness",
+                    "fatigue",
+                    "concentration difficulty",
+                    "irritability",
+                    "muscle tension",
+                    "sleep disturbance",
                 ],
                 duration_requirements="6 months minimum",
                 severity_specifiers=["mild", "moderate", "severe"],
-                exclusion_criteria=["substance use", "medical condition", "other mental disorder"],
-                associated_features=["avoidance", "physical symptoms", "panic attacks"]
+                exclusion_criteria=[
+                    "substance use",
+                    "medical condition",
+                    "other mental disorder",
+                ],
+                associated_features=["avoidance", "physical symptoms", "panic attacks"],
             ),
             DSMDisorder.PTSD: DSMCriteria(
                 disorder=DSMDisorder.PTSD,
                 primary_symptoms=[
-                    "intrusive memories", "avoidance", "negative cognitions", "hyperarousal",
-                    "flashbacks", "nightmares", "emotional numbing"
+                    "intrusive memories",
+                    "avoidance",
+                    "negative cognitions",
+                    "hyperarousal",
+                    "flashbacks",
+                    "nightmares",
+                    "emotional numbing",
                 ],
                 duration_requirements="1 month minimum",
                 severity_specifiers=["mild", "moderate", "severe"],
                 exclusion_criteria=["substance use", "medical condition"],
-                associated_features=["dissociation", "depression", "anxiety"]
+                associated_features=["dissociation", "depression", "anxiety"],
             ),
             DSMDisorder.BIPOLAR: DSMCriteria(
                 disorder=DSMDisorder.BIPOLAR,
                 primary_symptoms=[
-                    "manic episodes", "depressive episodes", "elevated mood", "grandiosity",
-                    "decreased sleep", "racing thoughts", "distractibility"
+                    "manic episodes",
+                    "depressive episodes",
+                    "elevated mood",
+                    "grandiosity",
+                    "decreased sleep",
+                    "racing thoughts",
+                    "distractibility",
                 ],
                 duration_requirements="4 days (hypomania) or 7 days (mania)",
                 severity_specifiers=["mild", "moderate", "severe"],
                 exclusion_criteria=["substance use", "medical condition"],
-                associated_features=["psychosis", "mixed features", "rapid cycling"]
-            )
+                associated_features=["psychosis", "mixed features", "rapid cycling"],
+            ),
         }
 
     def _load_therapeutic_guidelines(self) -> dict[TherapeuticApproach, dict[str, Any]]:
@@ -152,36 +187,52 @@ class DSM5AccuracyValidator:
         return {
             TherapeuticApproach.CBT: {
                 "primary_techniques": [
-                    "cognitive restructuring", "behavioral activation", "exposure therapy",
-                    "thought records", "behavioral experiments"
+                    "cognitive restructuring",
+                    "behavioral activation",
+                    "exposure therapy",
+                    "thought records",
+                    "behavioral experiments",
                 ],
-                "effective_for": [DSMDisorder.DEPRESSION, DSMDisorder.ANXIETY, DSMDisorder.PTSD],
+                "effective_for": [
+                    DSMDisorder.DEPRESSION,
+                    DSMDisorder.ANXIETY,
+                    DSMDisorder.PTSD,
+                ],
                 "evidence_level": "strong",
                 "session_structure": "structured, goal-oriented",
-                "contraindications": ["severe psychosis", "active substance use"]
+                "contraindications": ["severe psychosis", "active substance use"],
             },
             TherapeuticApproach.DBT: {
                 "primary_techniques": [
-                    "mindfulness", "distress tolerance", "emotion regulation",
-                    "interpersonal effectiveness"
+                    "mindfulness",
+                    "distress tolerance",
+                    "emotion regulation",
+                    "interpersonal effectiveness",
                 ],
                 "effective_for": [DSMDisorder.PERSONALITY_DISORDERS],
                 "evidence_level": "strong",
                 "session_structure": "skills-based, group and individual",
-                "contraindications": ["unwillingness to engage", "severe cognitive impairment"]
+                "contraindications": [
+                    "unwillingness to engage",
+                    "severe cognitive impairment",
+                ],
             },
             TherapeuticApproach.EMDR: {
                 "primary_techniques": [
-                    "bilateral stimulation", "resource installation", "trauma processing"
+                    "bilateral stimulation",
+                    "resource installation",
+                    "trauma processing",
                 ],
                 "effective_for": [DSMDisorder.PTSD],
                 "evidence_level": "strong",
                 "session_structure": "8-phase protocol",
-                "contraindications": ["dissociative disorders", "severe instability"]
-            }
+                "contraindications": ["dissociative disorders", "severe instability"],
+            },
         }
 
-    def validate_conversation(self, conversation: dict[str, Any]) -> DSMValidationResult:
+    def validate_conversation(
+        self, conversation: dict[str, Any]
+    ) -> DSMValidationResult:
         """
         Validate conversation against DSM-5 standards.
 
@@ -229,7 +280,7 @@ class DSM5AccuracyValidator:
             identified_disorders=identified_disorders,
             therapeutic_interventions=interventions,
             compliance_issues=compliance_issues,
-            recommendations=recommendations
+            recommendations=recommendations,
         )
 
         self.validation_history.append(result)
@@ -243,21 +294,45 @@ class DSM5AccuracyValidator:
         # Check for disorder-specific keywords
         disorder_keywords = {
             DSMDisorder.DEPRESSION: [
-                "depression", "depressed", "sad", "hopeless", "worthless",
-                "suicidal", "anhedonia", "fatigue", "sleep problems"
+                "depression",
+                "depressed",
+                "sad",
+                "hopeless",
+                "worthless",
+                "suicidal",
+                "anhedonia",
+                "fatigue",
+                "sleep problems",
             ],
             DSMDisorder.ANXIETY: [
-                "anxiety", "anxious", "worry", "panic", "fear", "nervous",
-                "restless", "tension", "phobia"
+                "anxiety",
+                "anxious",
+                "worry",
+                "panic",
+                "fear",
+                "nervous",
+                "restless",
+                "tension",
+                "phobia",
             ],
             DSMDisorder.PTSD: [
-                "trauma", "ptsd", "flashback", "nightmare", "avoidance",
-                "hypervigilant", "intrusive thoughts"
+                "trauma",
+                "ptsd",
+                "flashback",
+                "nightmare",
+                "avoidance",
+                "hypervigilant",
+                "intrusive thoughts",
             ],
             DSMDisorder.BIPOLAR: [
-                "bipolar", "manic", "mania", "mood swings", "elevated mood",
-                "grandiose", "racing thoughts"
-            ]
+                "bipolar",
+                "manic",
+                "mania",
+                "mood swings",
+                "elevated mood",
+                "grandiose",
+                "racing thoughts",
+            ],
         }
 
         for disorder, keywords in disorder_keywords.items():
@@ -267,10 +342,7 @@ class DSM5AccuracyValidator:
         return identified
 
     def _assess_interventions(
-        self,
-        content: str,
-        turns: list[dict],
-        disorders: list[DSMDisorder]
+        self, content: str, turns: list[dict], disorders: list[DSMDisorder]
     ) -> list[TherapeuticIntervention]:
         """Assess therapeutic interventions used."""
         interventions = []
@@ -278,39 +350,48 @@ class DSM5AccuracyValidator:
 
         # Check for CBT techniques
         cbt_techniques = [
-            "cognitive restructuring", "thought challenging", "behavioral activation",
-            "exposure", "thought record", "cognitive distortion", "cognitive behavioral",
-            "cbt", "negative thought patterns", "behavioral techniques"
+            "cognitive restructuring",
+            "thought challenging",
+            "behavioral activation",
+            "exposure",
+            "thought record",
+            "cognitive distortion",
+            "cognitive behavioral",
+            "cbt",
+            "negative thought patterns",
+            "behavioral techniques",
         ]
         if any(technique in content_lower for technique in cbt_techniques):
             appropriateness = self._calculate_intervention_appropriateness(
                 TherapeuticApproach.CBT, disorders
             )
-            interventions.append(TherapeuticIntervention(
-                approach=TherapeuticApproach.CBT,
-                techniques=cbt_techniques,
-                appropriateness_score=appropriateness,
-                evidence_level="strong",
-                contraindications=[]
-            ))
+            interventions.append(
+                TherapeuticIntervention(
+                    approach=TherapeuticApproach.CBT,
+                    techniques=cbt_techniques,
+                    appropriateness_score=appropriateness,
+                    evidence_level="strong",
+                    contraindications=[],
+                )
+            )
 
         # Check for mindfulness techniques
         mindfulness_keywords = ["mindfulness", "meditation", "breathing", "grounding"]
         if any(keyword in content_lower for keyword in mindfulness_keywords):
-            interventions.append(TherapeuticIntervention(
-                approach=TherapeuticApproach.MINDFULNESS,
-                techniques=mindfulness_keywords,
-                appropriateness_score=0.8,
-                evidence_level="moderate",
-                contraindications=[]
-            ))
+            interventions.append(
+                TherapeuticIntervention(
+                    approach=TherapeuticApproach.MINDFULNESS,
+                    techniques=mindfulness_keywords,
+                    appropriateness_score=0.8,
+                    evidence_level="moderate",
+                    contraindications=[],
+                )
+            )
 
         return interventions
 
     def _calculate_intervention_appropriateness(
-        self,
-        approach: TherapeuticApproach,
-        disorders: list[DSMDisorder]
+        self, approach: TherapeuticApproach, disorders: list[DSMDisorder]
     ) -> float:
         """Calculate appropriateness of intervention for identified disorders."""
         if approach not in self.therapeutic_guidelines:
@@ -333,29 +414,29 @@ class DSM5AccuracyValidator:
         content: str,
         turns: list[dict],
         disorders: list[DSMDisorder],
-        interventions: list[TherapeuticIntervention]
+        interventions: list[TherapeuticIntervention],
     ) -> dict[ValidationCategory, float]:
         """Calculate scores for each validation category."""
         scores = {}
 
         # Diagnostic accuracy
-        scores[ValidationCategory.DIAGNOSTIC_ACCURACY] = self._assess_diagnostic_accuracy(
-            content, disorders
+        scores[ValidationCategory.DIAGNOSTIC_ACCURACY] = (
+            self._assess_diagnostic_accuracy(content, disorders)
         )
 
         # Symptom recognition
-        scores[ValidationCategory.SYMPTOM_RECOGNITION] = self._assess_symptom_recognition(
-            content, disorders
+        scores[ValidationCategory.SYMPTOM_RECOGNITION] = (
+            self._assess_symptom_recognition(content, disorders)
         )
 
         # Therapeutic intervention
-        scores[ValidationCategory.THERAPEUTIC_INTERVENTION] = self._assess_therapeutic_quality(
-            interventions
+        scores[ValidationCategory.THERAPEUTIC_INTERVENTION] = (
+            self._assess_therapeutic_quality(interventions)
         )
 
         # Professional boundaries
-        scores[ValidationCategory.PROFESSIONAL_BOUNDARIES] = self._assess_professional_boundaries(
-            content, turns
+        scores[ValidationCategory.PROFESSIONAL_BOUNDARIES] = (
+            self._assess_professional_boundaries(content, turns)
         )
 
         # Ethical compliance
@@ -364,8 +445,8 @@ class DSM5AccuracyValidator:
         )
 
         # Evidence-based practice
-        scores[ValidationCategory.EVIDENCE_BASED_PRACTICE] = self._assess_evidence_based_practice(
-            interventions
+        scores[ValidationCategory.EVIDENCE_BASED_PRACTICE] = (
+            self._assess_evidence_based_practice(interventions)
         )
 
         # Crisis management
@@ -374,13 +455,15 @@ class DSM5AccuracyValidator:
         )
 
         # Cultural competency
-        scores[ValidationCategory.CULTURAL_COMPETENCY] = self._assess_cultural_competency(
-            content, turns
+        scores[ValidationCategory.CULTURAL_COMPETENCY] = (
+            self._assess_cultural_competency(content, turns)
         )
 
         return scores
 
-    def _assess_diagnostic_accuracy(self, content: str, disorders: list[DSMDisorder]) -> float:
+    def _assess_diagnostic_accuracy(
+        self, content: str, disorders: list[DSMDisorder]
+    ) -> float:
         """Assess diagnostic accuracy."""
         if not disorders:
             return 0.8  # Neutral score when no diagnosis attempted
@@ -397,7 +480,8 @@ class DSM5AccuracyValidator:
             if disorder in self.dsm_criteria:
                 criteria = self.dsm_criteria[disorder]
                 symptom_matches = sum(
-                    1 for symptom in criteria.primary_symptoms
+                    1
+                    for symptom in criteria.primary_symptoms
                     if symptom in content.lower()
                 )
                 if symptom_matches >= 2:
@@ -405,7 +489,9 @@ class DSM5AccuracyValidator:
 
         return min(1.0, accuracy_score)
 
-    def _assess_symptom_recognition(self, content: str, disorders: list[DSMDisorder]) -> float:
+    def _assess_symptom_recognition(
+        self, content: str, disorders: list[DSMDisorder]
+    ) -> float:
         """Assess symptom recognition accuracy."""
         recognition_score = 0.6  # Base score
 
@@ -421,18 +507,20 @@ class DSM5AccuracyValidator:
 
         return min(1.0, recognition_score)
 
-    def _assess_therapeutic_quality(self, interventions: list[TherapeuticIntervention]) -> float:
+    def _assess_therapeutic_quality(
+        self, interventions: list[TherapeuticIntervention]
+    ) -> float:
         """Assess quality of therapeutic interventions."""
         if not interventions:
             return 0.5  # Neutral score for no interventions
 
         # Average appropriateness scores
-        avg_appropriateness = sum(i.appropriateness_score for i in interventions) / len(interventions)
+        avg_appropriateness = sum(i.appropriateness_score for i in interventions) / len(
+            interventions
+        )
 
         # Bonus for evidence-based approaches
-        evidence_bonus = sum(
-            0.1 for i in interventions if i.evidence_level == "strong"
-        )
+        evidence_bonus = sum(0.1 for i in interventions if i.evidence_level == "strong")
 
         return min(1.0, avg_appropriateness + evidence_bonus)
 
@@ -442,8 +530,12 @@ class DSM5AccuracyValidator:
 
         # Check for boundary violations
         violations = [
-            "personal relationship", "friendship", "dating", "personal problems",
-            "my experience", "happened to me"
+            "personal relationship",
+            "friendship",
+            "dating",
+            "personal problems",
+            "my experience",
+            "happened to me",
         ]
 
         for violation in violations:
@@ -468,7 +560,9 @@ class DSM5AccuracyValidator:
 
         return min(1.0, ethics_score)
 
-    def _assess_evidence_based_practice(self, interventions: list[TherapeuticIntervention]) -> float:
+    def _assess_evidence_based_practice(
+        self, interventions: list[TherapeuticIntervention]
+    ) -> float:
         """Assess evidence-based practice adherence."""
         if not interventions:
             return 0.6  # Moderate score for no specific interventions
@@ -494,7 +588,12 @@ class DSM5AccuracyValidator:
 
         if has_crisis_content:
             # Check for appropriate crisis response
-            response_terms = ["safety plan", "crisis line", "emergency", "professional help"]
+            response_terms = [
+                "safety plan",
+                "crisis line",
+                "emergency",
+                "professional help",
+            ]
             if any(term in content.lower() for term in response_terms):
                 crisis_score = 0.95
             else:
@@ -523,24 +622,30 @@ class DSM5AccuracyValidator:
         content: str,
         turns: list[dict],
         disorders: list[DSMDisorder],
-        interventions: list[TherapeuticIntervention]
+        interventions: list[TherapeuticIntervention],
     ) -> list[str]:
         """Identify compliance issues."""
         issues = []
 
         # Check for diagnostic issues
-        if disorders and not ("assessment" in content.lower() or "evaluation" in content.lower()):
+        if disorders and not (
+            "assessment" in content.lower() or "evaluation" in content.lower()
+        ):
             issues.append("Diagnosis mentioned without proper assessment language")
 
         # Check for intervention appropriateness
         for intervention in interventions:
             if intervention.appropriateness_score < 0.6:
-                issues.append(f"Questionable appropriateness of {intervention.approach.value}")
+                issues.append(
+                    f"Questionable appropriateness of {intervention.approach.value}"
+                )
 
         # Check for crisis management
         crisis_terms = ["suicide", "harm", "kill"]
         if any(term in content.lower() for term in crisis_terms):
-            if not any(response in content.lower() for response in ["safety", "crisis", "help"]):
+            if not any(
+                response in content.lower() for response in ["safety", "crisis", "help"]
+            ):
                 issues.append("Crisis content without appropriate safety response")
 
         return issues
@@ -550,7 +655,7 @@ class DSM5AccuracyValidator:
         disorders: list[DSMDisorder],
         interventions: list[TherapeuticIntervention],
         compliance_issues: list[str],
-        category_scores: dict[ValidationCategory, float]
+        category_scores: dict[ValidationCategory, float],
     ) -> list[str]:
         """Generate improvement recommendations."""
         recommendations = []
@@ -566,14 +671,20 @@ class DSM5AccuracyValidator:
 
         # Intervention recommendations
         if not interventions:
-            recommendations.append("Consider incorporating evidence-based therapeutic techniques")
+            recommendations.append(
+                "Consider incorporating evidence-based therapeutic techniques"
+            )
 
         # Disorder-specific recommendations
         for disorder in disorders:
             if disorder == DSMDisorder.DEPRESSION:
-                recommendations.append("Consider CBT or behavioral activation for depression")
+                recommendations.append(
+                    "Consider CBT or behavioral activation for depression"
+                )
             elif disorder == DSMDisorder.ANXIETY:
-                recommendations.append("Consider exposure therapy or relaxation techniques for anxiety")
+                recommendations.append(
+                    "Consider exposure therapy or relaxation techniques for anxiety"
+                )
             elif disorder == DSMDisorder.PTSD:
                 recommendations.append("Consider trauma-focused therapy (EMDR, CPT)")
 
@@ -585,16 +696,22 @@ class DSM5AccuracyValidator:
             return {"message": "No validations performed yet"}
 
         total_validations = len(self.validation_history)
-        avg_accuracy = sum(r.overall_accuracy for r in self.validation_history) / total_validations
+        avg_accuracy = (
+            sum(r.overall_accuracy for r in self.validation_history) / total_validations
+        )
 
         # Category averages
         category_averages = {}
         for category in ValidationCategory:
-            scores = [r.category_scores.get(category, 0) for r in self.validation_history]
+            scores = [
+                r.category_scores.get(category, 0) for r in self.validation_history
+            ]
             category_averages[category.value] = sum(scores) / len(scores)
 
         # Most common disorders
-        all_disorders = [d for r in self.validation_history for d in r.identified_disorders]
+        all_disorders = [
+            d for r in self.validation_history for d in r.identified_disorders
+        ]
         disorder_counts = {}
         for disorder in all_disorders:
             disorder_counts[disorder.value] = disorder_counts.get(disorder.value, 0) + 1
@@ -604,7 +721,7 @@ class DSM5AccuracyValidator:
             "average_accuracy": avg_accuracy,
             "category_averages": category_averages,
             "disorder_distribution": disorder_counts,
-            "last_validation": self.validation_history[-1].timestamp.isoformat()
+            "last_validation": self.validation_history[-1].timestamp.isoformat(),
         }
 
 
@@ -619,23 +736,31 @@ def main():
             "content": "I understand you're experiencing symptoms of depression including persistent sadness, loss of interest, and sleep disturbances. Let's explore some cognitive behavioral techniques to help address these negative thought patterns.",
             "turns": [
                 {"speaker": "user", "text": "I've been feeling depressed for weeks."},
-                {"speaker": "therapist", "text": "I understand you're experiencing depression symptoms. Let's explore CBT techniques."}
-            ]
+                {
+                    "speaker": "therapist",
+                    "text": "I understand you're experiencing depression symptoms. Let's explore CBT techniques.",
+                },
+            ],
         },
         {
             "id": "dsm_002",
             "content": "You mentioned having panic attacks and constant worry. These are symptoms of anxiety. I want to help you develop coping strategies.",
             "turns": [
-                {"speaker": "user", "text": "I have panic attacks and worry constantly."},
-                {"speaker": "therapist", "text": "These are anxiety symptoms. Let's develop coping strategies."}
-            ]
-        }
+                {
+                    "speaker": "user",
+                    "text": "I have panic attacks and worry constantly.",
+                },
+                {
+                    "speaker": "therapist",
+                    "text": "These are anxiety symptoms. Let's develop coping strategies.",
+                },
+            ],
+        },
     ]
 
     # Validate conversations
     for conversation in sample_conversations:
         result = validator.validate_conversation(conversation)
-
 
         if result.compliance_issues:
             for _issue in result.compliance_issues:

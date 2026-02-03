@@ -2,11 +2,14 @@
 """
 ENTERPRISE-GRADE Build Release Manifest and Compiled Export
 
-Implements Issue 3: Release 0: Generate versioned manifest + compiled ChatML export in S3
+Implements Issue 3: Release 0: Generate versioned manifest + compiled
+ChatML export in S3
 
-This production-grade script creates the versioned release prefix (vYYYY-MM-DD) and publishes
-the release manifest + compiled export (single or sharded) with full enterprise integration
-including audit trails, provenance tracking, clinical validation, and NGC resource integration.
+This production-grade script creates the versioned release prefix
+(vYYYY-MM-DD) and publishes the release manifest + compiled export
+(single or sharded) with full enterprise integration including
+audit trails, provenance tracking, clinical validation, and NGC
+resource integration.
 
 Enterprise Features:
 - Integration with existing S3Connector enterprise infrastructure
@@ -24,15 +27,31 @@ import hashlib
 import json
 import logging
 import sys
-from datetime import datetime
+import traceback
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+
+from botocore.exceptions import ClientError
 
 # Add the dataset_pipeline to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Enterprise infrastructure imports
 from storage_config import StorageConfig, get_storage_config
+
+from pipelines.orchestrator.processing.enterprise_deduplication import (
+    EnterpriseConversationDeduplicator,
+)
+from pipelines.orchestrator.quality.final_enterprise_audit import FinalEnterpriseAuditor
+from pipelines.orchestrator.s3_connector import S3Config, S3Connector
+from pipelines.orchestrator.safety_ethics_audit_trail import ChangeType, get_audit_trail
+from pipelines.orchestrator.services.provenance_service import (
+    ProvenanceService,
+    get_provenance_service,
+)
+from pipelines.orchestrator.validation.clinical_validator import ClinicalValidator
 
 # Configure enterprise logging
 logging.basicConfig(
@@ -109,7 +128,7 @@ class EnterpriseReleaseManifestBuilder:
     def __init__(
         self, storage_config: StorageConfig, release_version: Optional[str] = None
     ):
-        """Initialize enterprise release manifest builder with full infrastructure integration"""
+        """Initialize enterprise release manifest builder with full integration"""
         self.config = storage_config
         self.release_version = (
             release_version or f"v{datetime.now(timezone.utc).strftime('%Y-%m-%d')}"
@@ -146,7 +165,8 @@ class EnterpriseReleaseManifestBuilder:
         )
 
         logger.info(
-            f"Enterprise Release Manifest Builder initialized for {self.release_version}"
+            f"Enterprise Release Manifest Builder initialized "
+            f"for {self.release_version}"
         )
 
     async def _initialize_provenance_service(self):
@@ -159,7 +179,8 @@ class EnterpriseReleaseManifestBuilder:
         try:
             self.s3_connector.connect()
             logger.info(
-                f"✓ Connected to S3 bucket via enterprise connector: {self.config.s3_bucket}"
+                f"✓ Connected to S3 bucket via enterprise connector: "
+                f"{self.config.s3_bucket}"
             )
 
             # Log audit trail
@@ -205,9 +226,9 @@ class EnterpriseReleaseManifestBuilder:
                     "operation": "file_hash_calculation",
                     "file_path": str(file_path),
                     "hash_algorithm": "SHA256",
-                    "hash_value": hash_value
+                    "hash_value": hash_value,
                 },
-                change_reason="Enterprise file integrity verification"
+                change_reason="Enterprise file integrity verification",
             )
 
             return hash_value
@@ -220,13 +241,15 @@ class EnterpriseReleaseManifestBuilder:
                 alert_type="hash_calculation_failure",
                 severity="medium",
                 conversation_id=self.session_id,
-                details={"error": str(e), "file_path": str(file_path)}
+                details={"error": str(e), "file_path": str(file_path)},
             )
 
             return "unknown"
 
-    def discover_enterprise_dataset_files(self) -> Dict[str, List[EnterpriseReleaseArtifact]]:
-        """Discover all dataset files using enterprise S3 connector with quality assessment"""
+    def discover_enterprise_dataset_files(
+        self,
+    ) -> Dict[str, List[EnterpriseReleaseArtifact]]:
+        """Discover dataset files using enterprise S3 connector"""
         print("🔍 Discovering dataset files via enterprise S3 connector...")
 
         # Initialize S3 connection
@@ -241,7 +264,7 @@ class EnterpriseReleaseManifestBuilder:
 
             for record in records:
                 # Extract S3 key from record ID
-                ix in scanid.startswith("s3://"):
+                if record.id.startswith("s3://"):
                     # Parse s3://bucket/key format
                     s3_path = record.id[5:]  # Remove s3:// prefix
                     bucket_and_key = s3_path.split("/", 1)
@@ -268,12 +291,28 @@ class EnterpriseReleaseManifestBuilder:
                 safety_score = 0.9  # Default safe
 
                 # Clinical validation for therapeutic content
-                if record.payload and any(term in key.lower() for term in ["therapeutic", "mental_health", "counseling", "therapy"]):
+                if record.payload and any(
+                    term in key.lower()
+                    for term in [
+                        "therapeutic",
+                        "mental_health",
+                        "counseling",
+                        "therapy",
+                    ]
+                ):
                     try:
-                        content_text = record.payload.decode('utf-8', errors='ignore')[:2000]
-                        validation_result = self.clinical_validator.validate_safety(content_text)
-                        clinical_score = 0.9 if validation_result.get("is_safe", False) else 0.3
-                        safety_score = 0.95 if validation_result.get("is_safe", False) else 0.1
+                        content_text = record.payload.decode("utf-8", errors="ignore")[
+                            :2000
+                        ]
+                        validation_result = self.clinical_validator.validate_safety(
+                            content_text
+                        )
+                        clinical_score = (
+                            0.9 if validation_result.get("is_safe", False) else 0.3
+                        )
+                        safety_score = (
+                            0.95 if validation_result.get("is_safe", False) else 0.1
+                        )
                         quality_score = min(quality_score, clinical_score)
                     except Exception as e:
                         logger.warning(f"Clinical validation failed for {key}: {e}")
@@ -282,8 +321,12 @@ class EnterpriseReleaseManifestBuilder:
                 # Create enterprise artifact
                 artifact = EnterpriseReleaseArtifact(
                     key=key,
-                    size=record.metadata.get("size", len(record.payload) if record.payload else 0),
-                    last_modified=record.metadata.get("last_modified", datetime.now(timezone.utc).isoformat()),
+                    size=record.metadata.get(
+                        "size", len(record.payload) if record.payload else 0
+                    ),
+                    last_modified=record.metadata.get(
+                        "last_modified", datetime.now(timezone.utc).isoformat()
+                    ),
                     etag=record.metadata.get("etag", "unknown"),
                     sha256=None,  # Will be calculated if needed
                     split="train",  # Will be assigned later
@@ -296,29 +339,36 @@ class EnterpriseReleaseManifestBuilder:
                         "scanned": False,
                         "pii_detected": None,
                         "redaction_applied": None,
-                        "scan_timestamp": None
+                        "scan_timestamp": None,
                     },
                     provenance={
                         "source_family": family,
                         "source_key": key,
                         "discovered_at": datetime.now(timezone.utc).isoformat(),
                         "record_id": record.id,
-                        "source_type": record.metadata.get("source_type", "s3_object")
+                        "source_type": record.metadata.get("source_type", "s3_object"),
                     },
                     content_metadata={
                         "format": self._detect_enterprise_format(key),
                         "estimated_records": None,
                         "estimated_tokens": None,
-                        "content_type": record.metadata.get("content_type", "application/octet-stream")
-                    }
+                        "content_type": record.metadata.get(
+                            "content_type", "application/octet-stream"
+                        ),
+                    },
                 )
 
                 dataset_files[family].append(artifact)
 
-            processing_time = (datetime.now(timezone.utc) - processing_start).total_seconds()
+            processing_time = (
+                datetime.now(timezone.utc) - processing_start
+            ).total_seconds()
             total_files = sum(len(files) for files in dataset_files.values())
 
-            logger.info(f"✓ Discovered {total_files} dataset files across {len(dataset_files)} families in {processing_time:.2f}s")
+            logger.info(
+                f"✓ Discovered {total_files} dataset files across "
+                f"{len(dataset_files)} families in {processing_time:.2f}s"
+            )
 
             # Log audit trail
             self.audit_trail.log_dataset_change(
@@ -329,15 +379,17 @@ class EnterpriseReleaseManifestBuilder:
                     "total_files": total_files,
                     "total_families": len(dataset_files),
                     "processing_time_seconds": processing_time,
-                    "families_found": list(dataset_files.keys())
+                    "families_found": list(dataset_files.keys()),
                 },
-                change_reason="Enterprise release manifest dataset discovery"
+                change_reason="Enterprise release manifest dataset discovery",
             )
 
             return dataset_files
 
         except Exception as e:
-            error_msg = f"Failed to discover dataset files via enterprise connector: {e}"
+            error_msg = (
+                f"Failed to discover dataset files via enterprise connector: {e}"
+            )
             logger.error(f"{error_msg}\n{traceback.format_exc()}")
 
             # Log audit trail
@@ -345,7 +397,7 @@ class EnterpriseReleaseManifestBuilder:
                 alert_type="dataset_discovery_failure",
                 severity="high",
                 conversation_id=self.session_id,
-                details={"error": str(e), "traceback": traceback.format_exc()}
+                details={"error": str(e), "traceback": traceback.format_exc()},
             )
 
             raise ValueError(error_msg)
@@ -385,9 +437,10 @@ class EnterpriseReleaseManifestBuilder:
         elif key.lower().endswith(".parquet"):
             return "parquet"
         elif key.lower().endswith(".txt"):
-            return "
-    else:
+            return "txt"
+        else:
             return "unknown"
+
     def assign_splits(
         self, dataset_files: Dict[str, List[Dict[str, Any]]]
     ) -> Dict[str, List[Dict[str, Any]]]:
@@ -454,7 +507,8 @@ class EnterpriseReleaseManifestBuilder:
                     ),
                 }
 
-                # Add PII/redaction status (placeholder - would be determined by actual PII scanning)
+                # Add PII/redaction status (placeholder -
+                # would be determined by actual PII scanning)
                 file_info["pii_status"] = {
                     "scanned": False,  # Would be True after PII scanning
                     "pii_detected": None,
@@ -756,7 +810,7 @@ def main():
 
     try:
         # Create builder and build release
-        builder = ReleaseManifestBuilder(config, release_version)
+        builder = EnterpriseReleaseManifestBuilder(config, release_version)
         result = builder.build_release()
 
         # Print results

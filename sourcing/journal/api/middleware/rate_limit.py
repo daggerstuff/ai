@@ -120,4 +120,3 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
             response.headers[key] = value
 
         return response
-

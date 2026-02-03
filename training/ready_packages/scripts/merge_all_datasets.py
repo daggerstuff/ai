@@ -117,9 +117,7 @@ logger = logging.getLogger(__name__)
 def _content_hash(messages: list[dict[str, str]]) -> str:
     """Generate a content hash for deduplication."""
     # Hash the concatenated content of all messages
-    content = "".join(
-        f"{m.get('role', '')}:{m.get('content', '')}" for m in messages
-    )
+    content = "".join(f"{m.get('role', '')}:{m.get('content', '')}" for m in messages)
     return f"sha256:{hashlib.sha256(content.encode('utf-8')).hexdigest()[:16]}"
 
 
@@ -128,7 +126,7 @@ def _iter_jsonl_file(path: Path) -> Iterator[dict[str, Any]]:
     if not path.exists():
         logger.warning(f"File not found: {path}")
         return
-    
+
     try:
         with open(path, "r", encoding="utf-8", errors="replace") as f:
             for line_num, line in enumerate(f, 1):
@@ -158,23 +156,23 @@ def _validate_record(record: dict[str, Any]) -> bool:
     """Validate a record has required ChatML structure."""
     if not isinstance(record, dict):
         return False
-    
+
     messages = record.get("messages")
     if not isinstance(messages, list) or len(messages) < 2:
         return False
-    
+
     # Check for at least one user and one assistant message
     roles = {m.get("role") for m in messages if isinstance(m, dict)}
     if "user" not in roles or "assistant" not in roles:
         return False
-    
+
     # Check all messages have content
     for m in messages:
         if not isinstance(m, dict):
             return False
         if not isinstance(m.get("content"), str) or not m["content"].strip():
             return False
-    
+
     return True
 
 
@@ -188,31 +186,31 @@ def _enrich_metadata(
     metadata = record.get("metadata", {})
     if not isinstance(metadata, dict):
         metadata = {}
-    
+
     # Add merge-specific fields
     stage_info = STAGE_MAPPINGS.get(source_name, ("stage1_foundation", 1))
-    
+
     metadata["merge_source"] = source_name
     metadata["merge_source_path"] = source_path
     metadata["merge_timestamp"] = datetime.now(timezone.utc).isoformat()
-    
+
     # Set stage/phase if not already set
     if "phase" not in metadata:
         metadata["phase"] = stage_info[0]
     if "curriculum_stage" not in metadata:
         metadata["curriculum_stage"] = stage_info[1]
-    
+
     # Ensure split is set
     if "split" not in metadata:
         metadata["split"] = "train"
-    
+
     record["metadata"] = metadata
     return record
 
 
 def _load_s3_config(manifest_path: Path) -> tuple[str, str]:
     """Load S3 configuration from manifest.
-    
+
     The manifest file can be large (several MB), so we parse it fully
     to extract bucket/endpoint from the top-level keys.
     """
@@ -225,7 +223,7 @@ def _load_s3_config(manifest_path: Path) -> tuple[str, str]:
             return bucket, endpoint
         except (OSError, json.JSONDecodeError) as e:
             logger.warning(f"Failed to read manifest: {e}")
-    
+
     return "pixel-data", "https://s3.us-east-va.io.cloud.ovh.us"
 
 
@@ -233,6 +231,7 @@ def _get_s3_loader(bucket: str, endpoint: str) -> Any:
     """Get S3 loader instance."""
     try:
         from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader
+
         return S3DatasetLoader(bucket=bucket, endpoint_url=endpoint)
     except ImportError:
         logger.warning("S3DatasetLoader not available, S3 sources will be skipped")
@@ -249,7 +248,7 @@ def _upload_to_s3(
     if loader is None:
         logger.warning("S3 loader not available, skipping upload")
         return False
-    
+
     try:
         logger.info(f"Uploading {local_path} to s3://{bucket}/{s3_key}")
         loader.s3_client.upload_file(str(local_path), bucket, s3_key)
@@ -271,28 +270,28 @@ def _write_split_files(
     total = len(records)
     train_end = int(total * train_ratio)
     val_end = train_end + int(total * val_ratio)
-    
+
     splits = {
         "train": records[:train_end],
         "val": records[train_end:val_end],
         "test": records[val_end:],
     }
-    
+
     paths = {}
     for split_name, split_records in splits.items():
         # Update split in metadata
         for r in split_records:
             if "metadata" in r:
                 r["metadata"]["split"] = split_name
-        
+
         split_path = output_dir / f"final_merged_{split_name}.jsonl"
         with open(split_path, "w", encoding="utf-8") as f:
             for r in split_records:
                 f.write(json.dumps(r, ensure_ascii=False) + "\n")
-        
+
         paths[split_name] = split_path
         logger.info(f"  {split_name}: {len(split_records):,} records -> {split_path}")
-    
+
     return paths
 
 
@@ -401,30 +400,34 @@ Examples:
 def main() -> int:
     parser = _build_arg_parser()
     args = parser.parse_args()
-    
+
     # Validate split ratios
     if args.split:
         total_ratio = args.train_ratio + args.val_ratio + args.test_ratio
         if abs(total_ratio - 1.0) > 0.001:
             parser.error(f"Split ratios must sum to 1.0, got {total_ratio}")
-    
+
     # Configure logging
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)s - %(levelname)s - %(message)s" if args.verbose else "%(message)s",
+        format="%(asctime)s - %(levelname)s - %(message)s"
+        if args.verbose
+        else "%(message)s",
     )
-    
+
     # Resolve paths relative to project root
-    project_root = Path(__file__).parents[3]  # ai/training_ready/scripts -> project root
+    project_root = Path(__file__).parents[
+        3
+    ]  # ai/training_ready/scripts -> project root
     output_path = project_root / args.output
     manifest_path = project_root / args.manifest
-    
+
     logger.info("=" * 60)
     logger.info("MERGE ALL TRAINING DATASETS")
     logger.info("=" * 60)
     logger.info(f"Output: {output_path}")
-    
+
     # Determine which local sources to include
     local_sources_to_use = {}
     if args.sources:
@@ -435,7 +438,7 @@ def main() -> int:
                 logger.warning(f"Unknown source: {name}")
     else:
         local_sources_to_use = DEFAULT_LOCAL_SOURCES.copy()
-    
+
     # Load S3 config if needed
     s3_loader = None
     bucket = None
@@ -445,7 +448,7 @@ def main() -> int:
         if s3_loader:
             logger.info(f"S3 bucket: {bucket}")
             logger.info(f"S3 endpoint: {endpoint}")
-    
+
     # Statistics tracking
     stats: dict[str, Any] = {
         "started_at": datetime.now(timezone.utc).isoformat(),
@@ -458,41 +461,43 @@ def main() -> int:
         "total_records": 0,
         "stage_distribution": Counter(),
     }
-    
+
     # Collect all records with deduplication
     all_records: list[dict[str, Any]] = []
     seen_hashes: set[str] = set()
     last_progress = 0
-    
+
     # Process local sources
     logger.info("")
     logger.info("Processing local sources...")
     for source_name, source_path in local_sources_to_use.items():
         full_path = project_root / source_path
-        
+
         if not full_path.exists():
             logger.info(f"  {source_name}: not found (skipping)")
             stats["sources_skipped"][source_name] = "not_found"
             continue
-        
+
         logger.info(f"  {source_name}: {full_path.name}")
         source_count = 0
         source_kept = 0
-        
+
         for record in _iter_jsonl_file(full_path):
             source_count += 1
-            
+
             # Progress logging
             total_seen = sum(stats["sources_processed"].values()) + source_count
             if total_seen - last_progress >= PROGRESS_LOG_INTERVAL:
-                logger.info(f"    Progress: {total_seen:,} seen, {len(all_records):,} kept")
+                logger.info(
+                    f"    Progress: {total_seen:,} seen, {len(all_records):,} kept"
+                )
                 last_progress = total_seen
-            
+
             # Validate
             if not _validate_record(record):
                 stats["invalid_records"] += 1
                 continue
-            
+
             # Deduplicate
             messages = record.get("messages", [])
             content_hash = _content_hash(messages)
@@ -500,51 +505,55 @@ def main() -> int:
                 stats["duplicates_removed"] += 1
                 continue
             seen_hashes.add(content_hash)
-            
+
             # Enrich metadata
             record = _enrich_metadata(record, source_name, str(source_path))
-            
+
             # Track stage
             stage = record.get("metadata", {}).get("phase", "unknown")
             stats["stage_distribution"][stage] += 1
-            
+
             all_records.append(record)
             source_kept += 1
-            
+
             # Check per-source limit
             if args.max_per_source > 0 and source_kept >= args.max_per_source:
-                logger.info(f"    Reached limit of {args.max_per_source} for {source_name}")
+                logger.info(
+                    f"    Reached limit of {args.max_per_source} for {source_name}"
+                )
                 break
-        
+
         stats["sources_processed"][source_name] = source_count
         stats["sources_kept"][source_name] = source_kept
         logger.info(f"    ✓ Kept {source_kept:,} / {source_count:,} records")
-    
+
     # Process S3 sources if requested
     if args.include_s3_datasets and s3_loader and bucket:
         logger.info("")
         logger.info("Processing S3 sources...")
-        
+
         for source_name, s3_key in S3_DATASET_SOURCES.items():
             logger.info(f"  {source_name}: s3://{bucket}/{s3_key}")
             source_count = 0
             source_kept = 0
-            
+
             try:
                 for record in _iter_s3_jsonl(s3_loader, bucket, s3_key):
                     source_count += 1
-                    
+
                     # Progress logging
                     total_seen = sum(stats["sources_processed"].values()) + source_count
                     if total_seen - last_progress >= PROGRESS_LOG_INTERVAL:
-                        logger.info(f"    Progress: {total_seen:,} seen, {len(all_records):,} kept")
+                        logger.info(
+                            f"    Progress: {total_seen:,} seen, {len(all_records):,} kept"
+                        )
                         last_progress = total_seen
-                    
+
                     # Validate
                     if not _validate_record(record):
                         stats["invalid_records"] += 1
                         continue
-                    
+
                     # Deduplicate
                     messages = record.get("messages", [])
                     content_hash = _content_hash(messages)
@@ -552,47 +561,51 @@ def main() -> int:
                         stats["duplicates_removed"] += 1
                         continue
                     seen_hashes.add(content_hash)
-                    
+
                     # Enrich metadata
-                    record = _enrich_metadata(record, source_name, f"s3://{bucket}/{s3_key}")
-                    
+                    record = _enrich_metadata(
+                        record, source_name, f"s3://{bucket}/{s3_key}"
+                    )
+
                     # Track stage
                     stage = record.get("metadata", {}).get("phase", "unknown")
                     stats["stage_distribution"][stage] += 1
-                    
+
                     all_records.append(record)
                     source_kept += 1
-                    
+
                     # Check per-source limit
                     if args.max_per_source > 0 and source_kept >= args.max_per_source:
-                        logger.info(f"    Reached limit of {args.max_per_source} for {source_name}")
+                        logger.info(
+                            f"    Reached limit of {args.max_per_source} for {source_name}"
+                        )
                         break
-                
+
                 stats["sources_processed"][source_name] = source_count
                 stats["sources_kept"][source_name] = source_kept
                 logger.info(f"    ✓ Kept {source_kept:,} / {source_count:,} records")
-                
+
             except Exception as e:
                 logger.warning(f"    ⚠ Failed to process: {e}")
                 stats["sources_skipped"][source_name] = str(e)
-    
+
     if not all_records:
         logger.error("No records collected from any source!")
         return 1
-    
+
     stats["total_records"] = len(all_records)
     logger.info("")
     logger.info(f"Total records collected: {len(all_records):,}")
-    
+
     # Shuffle if requested
     if not args.no_shuffle:
         logger.info(f"Shuffling with seed={args.seed}...")
         random.seed(args.seed)
         random.shuffle(all_records)
-    
+
     # Create output directory
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    
+
     # Write output
     if args.split:
         logger.info("")
@@ -608,7 +621,9 @@ def main() -> int:
         stats["split_counts"] = {
             "train": int(len(all_records) * args.train_ratio),
             "val": int(len(all_records) * args.val_ratio),
-            "test": len(all_records) - int(len(all_records) * args.train_ratio) - int(len(all_records) * args.val_ratio),
+            "test": len(all_records)
+            - int(len(all_records) * args.train_ratio)
+            - int(len(all_records) * args.val_ratio),
         }
     else:
         logger.info(f"Writing merged file to {output_path}...")
@@ -616,7 +631,7 @@ def main() -> int:
             for record in all_records:
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
         logger.info(f"✓ Wrote {len(all_records):,} records")
-    
+
     # Finalize stats
     stats["completed_at"] = datetime.now(timezone.utc).isoformat()
     stats["sources_processed"] = dict(stats["sources_processed"])
@@ -624,11 +639,13 @@ def main() -> int:
     stats["sources_skipped"] = dict(stats["sources_skipped"])
     stats["stage_distribution"] = dict(stats["stage_distribution"])
     stats["unique_hashes"] = len(seen_hashes)
-    
+
     # Write stats
     stats_path = output_path.with_name("final_merged_training_stats.json")
-    stats_path.write_text(json.dumps(stats, indent=2, ensure_ascii=False), encoding="utf-8")
-    
+    stats_path.write_text(
+        json.dumps(stats, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+
     # Summary
     logger.info("")
     logger.info("=" * 60)
@@ -643,19 +660,21 @@ def main() -> int:
         logger.info(f"  {source}: {count:,}")
     logger.info("")
     logger.info("Stage distribution:")
-    for stage, count in sorted(stats["stage_distribution"].items(), key=lambda x: -x[1]):
+    for stage, count in sorted(
+        stats["stage_distribution"].items(), key=lambda x: -x[1]
+    ):
         logger.info(f"  {stage}: {count:,}")
     logger.info("")
     logger.info(f"Output: {output_path}")
     logger.info(f"Stats: {stats_path}")
-    
+
     # Upload to S3 if requested
     if args.upload_s3 and s3_loader and bucket:
         logger.info("")
         logger.info("Uploading to S3...")
-        
+
         uploads_success = True
-        
+
         if args.split:
             # Upload split files
             for split_name, split_path in split_paths.items():
@@ -667,18 +686,18 @@ def main() -> int:
             s3_key = f"{args.s3_output_prefix}/final_merged_training.jsonl"
             if not _upload_to_s3(output_path, s3_key, bucket, s3_loader):
                 uploads_success = False
-        
+
         # Upload stats
         stats_s3_key = f"{args.s3_output_prefix}/final_merged_training_stats.json"
         if not _upload_to_s3(stats_path, stats_s3_key, bucket, s3_loader):
             uploads_success = False
-        
+
         if uploads_success:
             logger.info(f"✓ Uploaded to s3://{bucket}/{args.s3_output_prefix}/")
         else:
             logger.error("Some uploads failed")
             return 1
-    
+
     logger.info("=" * 60)
     return 0
 

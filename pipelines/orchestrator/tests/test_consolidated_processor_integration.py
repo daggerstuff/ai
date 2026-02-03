@@ -31,7 +31,6 @@ def test_consolidated_processor_integration():
 
     # Create temporary output directory
     with tempfile.TemporaryDirectory() as temp_dir:
-
         # Configure processor for small test run
         config = ConsolidatedProcessingConfig(
             input_file=dataset_path,
@@ -40,7 +39,7 @@ def test_consolidated_processor_integration():
             batch_size=50,
             quality_threshold=0.7,  # Lower threshold for testing
             therapeutic_accuracy_threshold=0.7,
-            emotional_authenticity_threshold=0.7
+            emotional_authenticity_threshold=0.7,
         )
 
         # Create processor
@@ -52,7 +51,6 @@ def test_consolidated_processor_integration():
 
             # Print results
 
-
             result["conversation_analysis"]["therapeutic_approaches"]
 
             result["conversation_analysis"]["emotional_intensity_distribution"]
@@ -60,7 +58,9 @@ def test_consolidated_processor_integration():
             result["conversation_analysis"]["conversation_length_stats"]
 
             # Check output files
-            output_file = os.path.join(temp_dir, "consolidated_mental_health_conversations.jsonl")
+            output_file = os.path.join(
+                temp_dir, "consolidated_mental_health_conversations.jsonl"
+            )
             report_file = os.path.join(temp_dir, "consolidated_processing_report.json")
 
             if os.path.exists(output_file):
@@ -77,6 +77,7 @@ def test_consolidated_processor_integration():
 
         except Exception:
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -88,12 +89,12 @@ def test_sample_conversation_processing():
     test_data = [
         {
             "prompt": "You are a helpful mental health counselling assistant, please answer the mental health questions based on the patient's description. I've been feeling anxious lately and can't sleep.",
-            "response": "I understand you're experiencing anxiety and sleep difficulties. Let's explore some strategies that might help you manage these symptoms."
+            "response": "I understand you're experiencing anxiety and sleep difficulties. Let's explore some strategies that might help you manage these symptoms.",
         },
         {
             "prompt": "You are a helpful mental health counselling assistant, please answer the mental health questions based on the patient's description. I'm having trouble with my relationships.",
-            "response": "Relationship difficulties can be challenging. Let's work together to identify some strategies that might help."
-        }
+            "response": "Relationship difficulties can be challenging. Let's work together to identify some strategies that might help.",
+        },
     ]
 
     with tempfile.TemporaryDirectory() as temp_dir:
@@ -102,6 +103,7 @@ def test_sample_conversation_processing():
         with open(test_input, "w") as f:
             for item in test_data:
                 import json
+
                 f.write(json.dumps(item) + "\n")
 
         # Configure processor
@@ -112,7 +114,7 @@ def test_sample_conversation_processing():
             batch_size=5,
             quality_threshold=0.5,  # Very low threshold for testing
             therapeutic_accuracy_threshold=0.5,
-            emotional_authenticity_threshold=0.5
+            emotional_authenticity_threshold=0.5,
         )
 
         # Create processor
@@ -122,17 +124,16 @@ def test_sample_conversation_processing():
             # Process the test data
             processor.process_consolidated_dataset()
 
-
             return True
 
         except Exception:
             import traceback
+
             traceback.print_exc()
             return False
 
 
 if __name__ == "__main__":
-
     # Test sample processing first
     sample_success = test_sample_conversation_processing()
 

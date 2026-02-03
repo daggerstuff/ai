@@ -45,4 +45,3 @@ def test_evaluate_sources_prompt_optional_source_ids() -> None:
         {"session_id": "session-456", "source_ids": ["source-1", "source-2"]}
     )
     assert '"source-1"' in rendered_with_sources
-

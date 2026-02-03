@@ -95,7 +95,12 @@ class TestDatasetEvaluationEngine:
             url="https://example.com/high-quality",
             doi="10.1000/high-quality",
             abstract="A large dataset of Cognitive Behavioral Therapy session transcripts with comprehensive metadata and anonymized patient data. Includes outcome measures and treatment protocols.",
-            keywords=["cbt", "cognitive behavioral therapy", "transcripts", "evidence-based"],
+            keywords=[
+                "cbt",
+                "cognitive behavioral therapy",
+                "transcripts",
+                "evidence-based",
+            ],
             open_access=True,
             data_availability="available",
             discovery_date=datetime.now(),
@@ -288,4 +293,3 @@ class TestDatasetEvaluationEngine:
         # The sample source should have some advantages
         if evaluation.therapeutic_relevance >= 7:
             assert len(evaluation.competitive_advantages) > 0
-

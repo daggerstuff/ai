@@ -40,9 +40,7 @@ class TestNvidiaMicroservicesIntegration(unittest.TestCase):
         logger.info("✅ NeMo Curator personalized integration verified.")
 
     @patch("ai.pipelines.orchestrator.youtube_rag_system.NemoRetrieverClient")
-    @patch(
-        "ai.pipelines.orchestrator.youtube_rag_system.SentenceTransformer", create=True
-    )
+    @patch("ai.pipelines.orchestrator.youtube_rag_system.SentenceTransformer", create=True)
     def test_retriever_integration(self, mock_st, mock_client):
         """Verify that YouTubeRAGSystem attempts to use NeMo Retriever."""
         mock_instance = mock_client.return_value
@@ -54,16 +52,12 @@ class TestNvidiaMicroservicesIntegration(unittest.TestCase):
                 rag.rag_index = [MagicMock()]
                 self.assertTrue(rag.use_nvidia)
                 rag.search_transcripts("depression query")
-                self.assertTrue(mock_instance.dual_persona_search.called)
+                self.assertTrue(mock_instance.tri_persona_search.called)
         logger.info("✅ NeMo Retriever personalized integration verified.")
 
     @patch("ai.models.components.therapeutic_finetuning.NemoCustomizerClient")
-    @patch(
-        "ai.models.components.therapeutic_finetuning.TherapeuticModelTrainer._load_tokenizer"
-    )
-    @patch(
-        "ai.models.components.therapeutic_finetuning.TherapeuticModelTrainer._load_model"
-    )
+    @patch("ai.models.components.therapeutic_finetuning.TherapeuticModelTrainer._load_tokenizer")
+    @patch("ai.models.components.therapeutic_finetuning.TherapeuticModelTrainer._load_model")
     def test_customizer_integration(self, mock_model, mock_tok, mock_client):
         """Verify that TherapeuticModelTrainer attempts to use NeMo Customizer."""
         mock_instance = mock_client.return_value
@@ -90,9 +84,7 @@ class TestNvidiaMicroservicesIntegration(unittest.TestCase):
         """Verify that ComprehensiveEvaluator attempts to use NeMo Evaluator."""
         mock_instance = mock_client.return_value
         evaluator = ComprehensiveEvaluator()
-        with patch(
-            "ai.pipelines.orchestrator.evaluation_system.USE_NVIDIA_EVALUATOR", True
-        ):
+        with patch("ai.pipelines.orchestrator.evaluation_system.USE_NVIDIA_EVALUATOR", True):
             evaluator.evaluate_model(model=None, tokenizer=None, dataset=MagicMock())
         self.assertTrue(mock_instance.evaluate_therapeutic_alignment.called)
         logger.info("✅ NeMo Evaluator personalized integration verified.")

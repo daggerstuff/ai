@@ -5,7 +5,6 @@ This module provides structured logging with HIPAA++ compliance,
 audit trail capabilities, and performance monitoring.
 """
 
-
 import logging
 import json
 import sys
@@ -27,19 +26,31 @@ class HIPAACompliantFormatter(logging.Formatter):
     """
 
     SENSITIVE_FIELDS = {
-        'password', 'token', 'secret', 'key', 'ssn', 'email',
-        'phone', 'address', 'dob', 'date_of_birth', 'medical_record',
-        'phi', 'pii', 'credit_card', 'bank_account'
+        "password",
+        "token",
+        "secret",
+        "key",
+        "ssn",
+        "email",
+        "phone",
+        "address",
+        "dob",
+        "date_of_birth",
+        "medical_record",
+        "phi",
+        "pii",
+        "credit_card",
+        "bank_account",
     }
 
     def format(self, record):
         """Format log record with HIPAA compliance."""
         # Sanitize sensitive data from log message
-        if hasattr(record, 'msg') and isinstance(record.msg, dict):
+        if hasattr(record, "msg") and isinstance(record.msg, dict):
             record.msg = self._sanitize_data(record.msg)
 
         # Sanitize extra data
-        if hasattr(record, 'extra_data'):
+        if hasattr(record, "extra_data"):
             record.extra_data = self._sanitize_data(record.extra_data)
 
         return super().format(record)
@@ -57,10 +68,9 @@ class HIPAACompliantFormatter(logging.Formatter):
         if isinstance(data, dict):
             return {
                 key: (
-                    '[REDACTED]'
+                    "[REDACTED]"
                     if any(
-                        sensitive in key.lower()
-                        for sensitive in self.SENSITIVE_FIELDS
+                        sensitive in key.lower() for sensitive in self.SENSITIVE_FIELDS
                     )
                     else self._sanitize_data(value)
                 )
@@ -78,22 +88,22 @@ class JSONFormatter(logging.Formatter):
     def format(self, record):
         """Format log record as JSON."""
         log_entry = {
-            'timestamp': datetime.now(timezone.utc).isoformat(),
-            'level': record.levelname,
-            'logger': record.name,
-            'message': record.getMessage(),
-            'module': record.module,
-            'function': record.funcName,
-            'line': record.lineno,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "level": record.levelname,
+            "logger": record.name,
+            "message": record.getMessage(),
+            "module": record.module,
+            "function": record.funcName,
+            "line": record.lineno,
         }
 
         # Add extra fields
-        if hasattr(record, 'extra_data'):
-            log_entry['extra'] = record.extra_data
+        if hasattr(record, "extra_data"):
+            log_entry["extra"] = record.extra_data
 
         # Add exception info if present
         if record.exc_info:
-            log_entry['exception'] = self.formatException(record.exc_info)
+            log_entry["exception"] = self.formatException(record.exc_info)
 
         return json.dumps(log_entry, ensure_ascii=False)
 
@@ -126,7 +136,7 @@ def setup_logging(config: TechDeckServiceConfig) -> None:
             config.LOG_FILE_PATH,
             maxBytes=config.LOG_MAX_FILE_SIZE_MB * 1024 * 1024,
             backupCount=config.LOG_BACKUP_COUNT,
-            encoding='utf-8'
+            encoding="utf-8",
         )
         _extracted_from_setup_logging_42(file_handler, config, root_logger)
     # Audit log handler for HIPAA compliance
@@ -140,9 +150,9 @@ def _extracted_from_setup_logging_42(arg0, config, root_logger):
 
     file_formatter = (
         JSONFormatter()
-        if config.LOG_FORMAT == 'json'
+        if config.LOG_FORMAT == "json"
         else HIPAACompliantFormatter(
-            '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
         )
     )
     arg0.setFormatter(file_formatter)
@@ -152,18 +162,20 @@ def _extracted_from_setup_logging_42(arg0, config, root_logger):
 # TODO Rename this here and in `setup_logging`
 def _extracted_from_setup_logging_56(config):
     audit_handler = TimedRotatingFileHandler(
-        config.LOG_FILE_PATH.replace('.log', '_audit.log') if config.LOG_FILE_PATH else 'audit.log',
-        when='midnight',
+        config.LOG_FILE_PATH.replace(".log", "_audit.log")
+        if config.LOG_FILE_PATH
+        else "audit.log",
+        when="midnight",
         interval=1,
         backupCount=config.AUDIT_LOG_RETENTION_DAYS,
-        encoding='utf-8'
+        encoding="utf-8",
     )
     audit_handler.setLevel(logging.INFO)
     audit_formatter = JSONFormatter()
     audit_handler.setFormatter(audit_formatter)
 
     # Create audit logger
-    audit_logger = logging.getLogger('audit')
+    audit_logger = logging.getLogger("audit")
     audit_logger.addHandler(audit_handler)
     audit_logger.setLevel(logging.INFO)
     audit_logger.propagate = False
@@ -184,16 +196,16 @@ def get_logger(name: str) -> logging.Logger:
 
 def get_request_logger() -> logging.Logger:
     """Return a logger specifically for request-scoped logging (compat shim)."""
-    return get_logger('request')
+    return get_logger("request")
 
 
 def log_operation(
     operation: str,
     user_id: Optional[str] = None,
     request_id: Optional[str] = None,
-    status: str = 'success',
+    status: str = "success",
     details: Optional[Dict[str, Any]] = None,
-    level: int = logging.INFO
+    level: int = logging.INFO,
 ) -> None:
     """
     Log operation with audit trail information.
@@ -206,16 +218,16 @@ def log_operation(
         details: Additional operation details
         level: Log level
     """
-    logger = get_logger('audit')
+    logger = get_logger("audit")
 
     audit_entry = {
-        'event_type': 'operation',
-        'operation': operation,
-        'status': status,
-        'timestamp': datetime.utcnow().isoformat(),
-        'user_id': user_id,
-        'request_id': request_id,
-        'details': details or {}
+        "event_type": "operation",
+        "operation": operation,
+        "status": status,
+        "timestamp": datetime.utcnow().isoformat(),
+        "user_id": user_id,
+        "request_id": request_id,
+        "details": details or {},
     }
 
     logger.log(level, audit_entry)
@@ -227,7 +239,7 @@ def log_security_event(
     request_id: Optional[str] = None,
     ip_address: Optional[str] = None,
     user_agent: Optional[str] = None,
-    details: Optional[Dict[str, Any]] = None
+    details: Optional[Dict[str, Any]] = None,
 ) -> None:
     """
     Log security-related events for compliance.
@@ -240,25 +252,30 @@ def log_security_event(
         user_agent: User agent string
         details: Additional event details
     """
-    logger = get_logger('security')
+    logger = get_logger("security")
 
     security_entry = {
-        'event_type': 'security',
-        'security_event': event_type,
-        'timestamp': datetime.utcnow().isoformat(),
-        'user_id': user_id,
-        'request_id': request_id,
-        'ip_address': ip_address,
-        'user_agent': user_agent,
-        'details': details or {}
+        "event_type": "security",
+        "security_event": event_type,
+        "timestamp": datetime.utcnow().isoformat(),
+        "user_id": user_id,
+        "request_id": request_id,
+        "ip_address": ip_address,
+        "user_agent": user_agent,
+        "details": details or {},
     }
 
     logger.warning(security_entry)
 
 
-def log_performance_metric(metric_name: str, value: Optional[float] = None, unit: Optional[str] = None,
-                           user_id: Optional[str] = None, request_id: Optional[str] = None,
-                           tags: Optional[Dict[str, str]] = None):
+def log_performance_metric(
+    metric_name: str,
+    value: Optional[float] = None,
+    unit: Optional[str] = None,
+    user_id: Optional[str] = None,
+    request_id: Optional[str] = None,
+    tags: Optional[Dict[str, str]] = None,
+):
     """Compatibility helper.
 
     This function serves two purposes:
@@ -268,19 +285,19 @@ def log_performance_metric(metric_name: str, value: Optional[float] = None, unit
       it returns a decorator that measures execution time and logs a metric
       entry with the measured duration in milliseconds.
     """
-    logger = get_logger('performance')
+    logger = get_logger("performance")
 
     # Direct logging usage
     if value is not None and unit is not None:
         metric_entry = {
-            'event_type': 'metric',
-            'metric_name': metric_name,
-            'value': value,
-            'unit': unit,
-            'timestamp': datetime.utcnow().isoformat(),
-            'user_id': user_id,
-            'request_id': request_id,
-            'tags': tags or {}
+            "event_type": "metric",
+            "metric_name": metric_name,
+            "value": value,
+            "unit": unit,
+            "timestamp": datetime.utcnow().isoformat(),
+            "user_id": user_id,
+            "request_id": request_id,
+            "tags": tags or {},
         }
         logger.info(metric_entry)
         return None
@@ -296,12 +313,12 @@ def log_performance_metric(metric_name: str, value: Optional[float] = None, unit
             result = func(*args, **kwargs)
             duration_ms = (time.time() - start) * 1000.0
             metric_entry = {
-                'event_type': 'metric',
-                'metric_name': metric_name,
-                'value': duration_ms,
-                'unit': 'ms',
-                'timestamp': datetime.utcnow().isoformat(),
-                'tags': tags or {}
+                "event_type": "metric",
+                "metric_name": metric_name,
+                "value": duration_ms,
+                "unit": "ms",
+                "timestamp": datetime.utcnow().isoformat(),
+                "tags": tags or {},
             }
             logger.info(metric_entry)
             return result
@@ -312,12 +329,12 @@ def log_performance_metric(metric_name: str, value: Optional[float] = None, unit
             result = await func(*args, **kwargs)
             duration_ms = (time.time() - start) * 1000.0
             metric_entry = {
-                'event_type': 'metric',
-                'metric_name': metric_name,
-                'value': duration_ms,
-                'unit': 'ms',
-                'timestamp': datetime.utcnow().isoformat(),
-                'tags': tags or {}
+                "event_type": "metric",
+                "metric_name": metric_name,
+                "value": duration_ms,
+                "unit": "ms",
+                "timestamp": datetime.utcnow().isoformat(),
+                "tags": tags or {},
             }
             logger.info(metric_entry)
             return result
@@ -335,7 +352,7 @@ def log_error_with_context(
     operation: str,
     user_id: Optional[str] = None,
     request_id: Optional[str] = None,
-    context: Optional[Dict[str, Any]] = None
+    context: Optional[Dict[str, Any]] = None,
 ) -> None:
     """
     Log error with comprehensive context for debugging.
@@ -347,17 +364,17 @@ def log_error_with_context(
         request_id: Request ID
         context: Additional context information
     """
-    logger = get_logger('error')
+    logger = get_logger("error")
 
     error_entry = {
-        'event_type': 'error',
-        'operation': operation,
-        'error_type': type(error).__name__,
-        'error_message': str(error),
-        'timestamp': datetime.utcnow().isoformat(),
-        'user_id': user_id,
-        'request_id': request_id,
-        'context': context or {}
+        "event_type": "error",
+        "operation": operation,
+        "error_type": type(error).__name__,
+        "error_message": str(error),
+        "timestamp": datetime.utcnow().isoformat(),
+        "user_id": user_id,
+        "request_id": request_id,
+        "context": context or {},
     }
 
     logger.error(error_entry, exc_info=True)
@@ -380,7 +397,7 @@ class PerformanceTimer:
         operation: str,
         user_id: Optional[str] = None,
         request_id: Optional[str] = None,
-        tags: Optional[Dict[str, str]] = None
+        tags: Optional[Dict[str, str]] = None,
     ):
         """
         Initialize performance timer.
@@ -406,33 +423,39 @@ class PerformanceTimer:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Stop timing and log metric."""
         self.end_time = datetime.utcnow()
-        duration = (self.end_time - self.start_time).total_seconds() * 1000  # Convert to milliseconds
+        duration = (
+            self.end_time - self.start_time
+        ).total_seconds() * 1000  # Convert to milliseconds
 
         # Add duration to tags
-        self.tags['duration_ms'] = str(duration)
+        self.tags["duration_ms"] = str(duration)
 
         # Log performance metric
         log_performance_metric(
-            metric_name=f'{self.operation}_duration',
+            metric_name=f"{self.operation}_duration",
             value=duration,
-            unit='milliseconds',
+            unit="milliseconds",
             user_id=self.user_id,
             request_id=self.request_id,
-            tags=self.tags
+            tags=self.tags,
         )
 
         # Log if operation took too long (>50ms for critical operations)
-        if duration > 50 and self.operation in ['dataset_processing', 'pipeline_execution', 'bias_detection']:
-            logger = get_logger('performance')
+        if duration > 50 and self.operation in [
+            "dataset_processing",
+            "pipeline_execution",
+            "bias_detection",
+        ]:
+            logger = get_logger("performance")
             logger.warning(
                 f"Operation {self.operation} took {duration:.2f}ms, exceeding 50ms threshold",
                 extra={
-                    'operation': self.operation,
-                    'duration_ms': duration,
-                    'threshold_ms': 50,
-                    'user_id': self.user_id,
-                    'request_id': self.request_id
-                }
+                    "operation": self.operation,
+                    "duration_ms": duration,
+                    "threshold_ms": 50,
+                    "user_id": self.user_id,
+                    "request_id": self.request_id,
+                },
             )
 
 
@@ -442,16 +465,16 @@ def log_dataset_operation(
     dataset_id: str,
     user_id: Optional[str] = None,
     request_id: Optional[str] = None,
-    status: str = 'success',
-    details: Optional[Dict[str, Any]] = None
+    status: str = "success",
+    details: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Log dataset-related operations."""
     log_operation(
-        operation=f'dataset_{operation}',
+        operation=f"dataset_{operation}",
         user_id=user_id,
         request_id=request_id,
         status=status,
-        details={'dataset_id': dataset_id, **(details or {})}
+        details={"dataset_id": dataset_id, **(details or {})},
     )
 
 
@@ -461,20 +484,20 @@ def log_pipeline_operation(
     stage: Optional[str] = None,
     user_id: Optional[str] = None,
     request_id: Optional[str] = None,
-    status: str = 'success',
-    details: Optional[Dict[str, Any]] = None
+    status: str = "success",
+    details: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Log pipeline-related operations."""
-    pipeline_details = {'pipeline_id': pipeline_id}
+    pipeline_details = {"pipeline_id": pipeline_id}
     if stage:
-        pipeline_details['stage'] = stage
+        pipeline_details["stage"] = stage
 
     log_operation(
-        operation=f'pipeline_{operation}',
+        operation=f"pipeline_{operation}",
         user_id=user_id,
         request_id=request_id,
         status=status,
-        details={**pipeline_details, **(details or {})}
+        details={**pipeline_details, **(details or {})},
     )
 
 
@@ -484,20 +507,20 @@ def log_bias_detection(
     passed: bool,
     user_id: Optional[str] = None,
     request_id: Optional[str] = None,
-    details: Optional[Dict[str, Any]] = None
+    details: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Log bias detection results."""
     log_operation(
-        operation='bias_detection',
+        operation="bias_detection",
         user_id=user_id,
         request_id=request_id,
-        status='success' if passed else 'failed',
+        status="success" if passed else "failed",
         details={
-            'bias_score': bias_score,
-            'threshold': threshold,
-            'passed': passed,
-            **(details or {})
-        }
+            "bias_score": bias_score,
+            "threshold": threshold,
+            "passed": passed,
+            **(details or {}),
+        },
     )
 
 
@@ -507,19 +530,19 @@ def log_file_upload(
     file_type: str,
     user_id: Optional[str] = None,
     request_id: Optional[str] = None,
-    status: str = 'success',
-    details: Optional[Dict[str, Any]] = None
+    status: str = "success",
+    details: Optional[Dict[str, Any]] = None,
 ) -> None:
     """Log file upload operations."""
     log_operation(
-        operation='file_upload',
+        operation="file_upload",
         user_id=user_id,
         request_id=request_id,
         status=status,
         details={
-            'filename': filename,
-            'file_size_bytes': file_size,
-            'file_type': file_type,
-            **(details or {})
-        }
+            "filename": filename,
+            "file_size_bytes": file_size,
+            "file_type": file_type,
+            **(details or {}),
+        },
     )

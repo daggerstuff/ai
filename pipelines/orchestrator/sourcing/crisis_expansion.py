@@ -4,6 +4,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
+
 class CrisisScenarioExpander:
     """
     Expander for nightmare fuel crisis scenarios.
@@ -12,10 +13,14 @@ class CrisisScenarioExpander:
 
     def __init__(self, output_base_path: str = "ai/training/ready_packages/datasets"):
         self.output_base_path = Path(output_base_path)
-        self.crisis_scenarios_path = self.output_base_path / "stage3_edge" / "crisis_scenarios"
+        self.crisis_scenarios_path = (
+            self.output_base_path / "stage3_edge" / "crisis_scenarios"
+        )
         self._ensure_directories()
 
-        logger.info(f"Initialized CrisisScenarioExpander. Output path: {self.crisis_scenarios_path}")
+        logger.info(
+            f"Initialized CrisisScenarioExpander. Output path: {self.crisis_scenarios_path}"
+        )
 
     def _ensure_directories(self):
         """Ensure output directories exist."""
@@ -47,7 +52,7 @@ class CrisisScenarioExpander:
             "Anorexia: Medical Instability",
             # Other
             "Manic Episode: High Risk Behavior",
-            "Severe Panic Attack: ER Presentation"
+            "Severe Panic Attack: ER Presentation",
         ]
 
     def generate_scenarios(self, categories: list[str]) -> list[dict]:
@@ -55,18 +60,24 @@ class CrisisScenarioExpander:
         Simulates generation of scenarios for each category.
         In production, this might use LLMs or templates.
         """
-        logger.info(f"Generating scenarios for {len(categories)} categories (Simulation)...")
+        logger.info(
+            f"Generating scenarios for {len(categories)} categories (Simulation)..."
+        )
 
         scenarios = []
         for cat in categories:
-            scenarios.append({
-                "category": cat,
-                "severity": "High" if "Risk" in cat or "Active" in cat else "Moderate",
-                "scenario_id": f"CRISIS-{abs(hash(cat)) % 10000}",
-                "context": f"Simulated context for {cat}...",
-                "safety_protocol_required": True,
-                "guard_rails": "OFF" # As per spec requirements for nightmare fuel
-            })
+            scenarios.append(
+                {
+                    "category": cat,
+                    "severity": "High"
+                    if "Risk" in cat or "Active" in cat
+                    else "Moderate",
+                    "scenario_id": f"CRISIS-{abs(hash(cat)) % 10000}",
+                    "context": f"Simulated context for {cat}...",
+                    "safety_protocol_required": True,
+                    "guard_rails": "OFF",  # As per spec requirements for nightmare fuel
+                }
+            )
 
         return scenarios
 
@@ -77,7 +88,9 @@ class CrisisScenarioExpander:
         try:
             with open(output_file, "w", encoding="utf-8") as f:
                 json.dump(data, f, indent=2)
-            logger.info(f"Successfully exported {len(data)} crisis scenarios to {output_file}")
+            logger.info(
+                f"Successfully exported {len(data)} crisis scenarios to {output_file}"
+            )
             return str(output_file)
         except Exception as e:
             logger.error(f"Failed to export data: {e}")

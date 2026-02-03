@@ -121,7 +121,10 @@ class SimpleMentalHealthProcessor:
                 return False
 
             # Check message structure
-            return all(not (not isinstance(msg, dict) or "content" not in msg) for msg in messages)
+            return all(
+                not (not isinstance(msg, dict) or "content" not in msg)
+                for msg in messages
+            )
 
         return bool("content" in item or "text" in item)
 
@@ -131,7 +134,9 @@ class SimpleMentalHealthProcessor:
 
         # Check for safety keywords
         content_lower = content.lower()
-        return all(keyword not in content_lower for keyword in self.config["safety_keywords"])
+        return all(
+            keyword not in content_lower for keyword in self.config["safety_keywords"]
+        )
 
     def _passes_quality_check(self, item: dict[str, Any]) -> bool:
         """Check if conversation passes quality requirements."""

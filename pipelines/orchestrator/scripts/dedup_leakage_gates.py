@@ -83,7 +83,7 @@ class EnterpriseLeakageDetector:
     def check_cross_split_leakage(
         self, files_by_split: Dict[str, List[Dict[str, Any]]]
     ) -> Dict[str, Any]:
-        """Check for data leakage across train/val/test splits using enterprise methods"""
+        """Check for data leakage across splits using enterprise methods"""
         logger.info("🔍 Running enterprise cross-split leakage detection...")
 
         leakage_results = {
@@ -182,7 +182,7 @@ class EnterpriseLeakageDetector:
 
                         except Exception as e:
                             logger.error(
-                                f"Enterprise deduplication failed for {split1}-{split2}: {e}"
+                                f"Enterprise dedup failed for {split1}-{split2}: {e}"
                             )
                             # Fallback to basic similarity check
                             self._basic_leakage_check(
@@ -250,7 +250,7 @@ class EnterpriseLeakageDetector:
 
 
 class EnterpriseDedupLeakageGates:
-    """Enterprise-grade deduplication and leakage gates with full infrastructure integration"""
+    """Enterprise-grade deduplication and leakage gates"""
 
     def __init__(self, storage_config: StorageConfig):
         self.config = storage_config
@@ -494,8 +494,8 @@ class EnterpriseDedupLeakageGates:
                                 family_name,
                                 {
                                     "issue_type": "excessive_duplication",
-                                    "deduplication_rate": dedup_result.deduplication_rate,
-                                    "duplicates_removed": dedup_result.duplicates_removed,
+                                    "rate": dedup_result.deduplication_rate,
+                                    "removed": dedup_result.duplicates_removed,
                                     "family": family_name,
                                 },
                             )
@@ -574,7 +574,8 @@ class EnterpriseDedupLeakageGates:
                 "families_with_leakage": 0,
                 "total_leakage_instances": 0,
                 "enterprise_grade": self.leakage_detector.deduplicator is not None,
-                "clinical_validated": self.leakage_detector.clinical_validator is not None
+                "clinical_validated": self.leakage_detector.clinical_validator
+                is not None,
             },
         }
 
@@ -592,15 +593,19 @@ class EnterpriseDedupLeakageGates:
 
                 # Add content sample for leakage detection
                 s3_key = file_info["key"]
-                content_sample = self.sample_file_content(s3_key, 1024)  # Smaller sample for leakage
+                content_sample = self.sample_file_content(
+                    s3_key, 1024
+                )  # Smaller sample for leakage
                 file_info_with_content = {**file_info, "content_sample": content_sample}
 
                 files_by_split[split].append(file_info_with_content)
 
             # Check for leakage using enterprise detector
-            leakage_result = self.leakage_detector.check_cross_split_leakage(files_by_split)
+            leakage_result = self.leakage_detector.check_cross_split_leakage(
+                files_by_split
+            )
 
-            # Determine if famild = Fals leakage gate
+            # Determine if family passed leakage gate
             family_passed = True
             if leakage_result["leakage_detected"]:
                 if family_name in priority_families:
@@ -612,8 +617,8 @@ class EnterpriseDedupLeakageGates:
                     if self.audit_trail:
                         self.audit_trail.log_intervention_required(
                             family_name,
-                            f"Cross-split leakage detected in priority family: {family_name}",
-                            "high"
+                            f"Cross-split leakage detected in: {family_name}",
+                            "high",
                         )
                 else:
                     # Warning for other families
@@ -635,8 +640,8 @@ class EnterpriseDedupLeakageGates:
                     **leakage_result,
                     # Limit details for readability
                     "exact_leakage": leakage_result["exact_leakage"][:5],
-                    "near_leakage": leakage_result["near_leakage"][:5]
-                }
+                    "near_leakage": leakage_result["near_leakage"][:5],
+                },
             }
 
             gate_results["family_results"][family_name] = family_result
@@ -644,16 +649,21 @@ class EnterpriseDedupLeakageGates:
 
             if leakage_result["leakage_detected"]:
                 gate_results["summary"]["families_with_leakage"] += 1
-                gate_results["summary"]["total_leakage_instances"] += (
-                    len(leakage_result["exact_leakage"]) + len(leakage_result["near_leakage"])
-                t(f"✓ Gate report saved: {report_url}")
+                gate_results["summary"]["total_leakage_instances"] += len(
+                    leakage_result["exact_leakage"]
+                ) + len(leakage_result["near_leakage"])
 
         # Enterprise readiness assessment
-        enterprise_families = sum(1 for result in gate_results["family_results"].values()
-                                 if result.get("enterprise_grade", False))
+        enterprise_families = sum(
+            1
+            for result in gate_results["family_results"].values()
+            if result.get("enterprise_grade", False)
+        )
         total_families = gate_results["summary"]["total_families"]
 
-        gate_results["enterprise_readiness"] = (enterprise_families / total_families) if total_families > 0 else 0
+        gate_results["enterprise_readiness"] = (
+            (enterprise_families / total_families) if total_families > 0 else 0
+        )
 
         return gate_results
 
@@ -662,7 +672,10 @@ class EnterpriseDedupLeakageGates:
     ) -> str:
         """Save gate results to S3 with enhanced metadata"""
         gate_name = gate_results["gate_name"]
-        report_key = f"{self.config.exports_prefix}/releases/{release_version}/gates/{gate_name}_report.json"
+        report_key = (
+            f"{self.config.exports_prefix}/releases/{release_version}/"
+            f"gates/{gate_name}_report.json"
+        )
 
         # Add enhanced metadata
         enhanced_results = {
@@ -674,8 +687,8 @@ class EnterpriseDedupLeakageGates:
                 "s3_key": report_key,
                 "enterprise_grade": True,
                 "audit_trail_enabled": self.audit_trail is not None,
-                "deduplicator_available": self.deduplicator is not None
-            }
+                "deduplicator_available": self.deduplicator is not None,
+            },
         }
 
         try:
@@ -687,8 +700,8 @@ class EnterpriseDedupLeakageGates:
                 Metadata={
                     "gate-type": gate_name,
                     "release-version": release_version,
-                    "enterprise-grade": "true"
-                }
+                    "enterprise-grade": "true",
+                },
             )
 
             report_url = f"s3://{self.config.s3_bucket}/{report_key}"
@@ -699,15 +712,14 @@ class EnterpriseDedupLeakageGates:
             logger.error(f"Failed to save gate report: {e}")
             raise ValueError(f"Failed to save gate report: {e}")
 
-    def run_all_gates(se, release_version: str) -> Dict[str, Any]:
+    def run_all_gates(self, release_version: str) -> Dict[str, Any]:
         """Run all enterprise deduplication and leakage gates"""
-        logger.info(f"🔍 Running enterprise deduplication and leakage gates for {release_version}...")
+        logger.info(f"🔍 Running enterprise gates for {release_version}...")
 
         # Initialize audit trail for this release
         if self.audit_trail:
             self.audit_trail.log_validation_started(
-                release_version,
-                user_id="enterprise_dedup_leakage_gates"
+                release_version, user_id="enterprise_dedup_leakage_gates"
             )
 
         # Load manifest
@@ -722,7 +734,7 @@ class EnterpriseDedupLeakageGates:
                 "gate_name": "enterprise_deduplication",
                 "passed": False,
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
         try:
@@ -733,7 +745,7 @@ class EnterpriseDedupLeakageGates:
                 "gate_name": "enterprise_cross_split_leakage",
                 "passed": False,
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
         # Save individual gate reports
@@ -746,32 +758,40 @@ class EnterpriseDedupLeakageGates:
             "timestamp": datetime.utcnow().isoformat(),
             "overall_passed": dedup_results["passed"] and leakage_results["passed"],
             "enterprise_ready": (
-                dedup_results.get("summary", {}).get("enterprise_grade", False) and
-                leakage_results.get("summary", {}).get("enterprise_grade", False)
+                dedup_results.get("summary", {}).get("enterprise_grade", False)
+                and leakage_results.get("summary", {}).get("enterprise_grade", False)
             ),
             "gates": {
                 "deduplication": {
                     "passed": dedup_results["passed"],
                     "report_url": dedup_report_url,
                     "summary": dedup_results.get("summary", {}),
-                    "enterprise_readiness": dedup_results.get("enterprise_readiness", 0)
+                    "enterprise_readiness": dedup_results.get(
+                        "enterprise_readiness", 0
+                    ),
                 },
                 "cross_split_leakage": {
                     "passed": leakage_results["passed"],
                     "report_url": leakage_report_url,
                     "summary": leakage_results.get("summary", {}),
-                    "enterprise_readiness": leakage_results.get("enterprise_readiness", 0)
+                    "enterprise_readiness": leakage_results.get(
+                        "enterprise_readiness", 0
+                    ),
                 },
             },
             "infrastructure_status": {
                 "enterprise_deduplicator": self.deduplicator is not None,
-                "clinical_validator": self.leakage_detector.clinical_validator is not None,
-                "audit_trail": self.audit_trail is not None
-            }
+                "clinical_validator": self.leakage_detector.clinical_validator
+                is not None,
+                "audit_trail": self.audit_trail is not None,
+            },
         }
 
         # Save combined report
-        combined_key = f"{self.config.exports_prefix}/releases/{release_version}/gates/enterprise_dedup_leakage_combined_report.json"
+        combined_key = (
+            f"{self.config.exports_prefix}/releases/{release_version}/"
+            f"gates/enterprise_dedup_leakage_combined_report.json"
+        )
 
         try:
             self.s3_client.put_object(
@@ -795,8 +815,8 @@ class EnterpriseDedupLeakageGates:
                 {
                     "overall_passed": combined_results["overall_passed"],
                     "enterprise_ready": combined_results["enterprise_ready"],
-                    "gates_run": ["deduplication", "cross_split_leakage"]
-                }
+                    "gates_run": ["deduplication", "cross_split_leakage"],
+                },
             )
 
         return combined_results
@@ -811,7 +831,11 @@ class EnterpriseDedupLeakageGates:
         print(f"Gate Run Time: {results['timestamp']}")
 
         overall_status = "✅ PASSED" if results["overall_passed"] else "❌ FAILED"
-        enterprise_status = "🏢 ENTERPRISE READY" if results.get("enterprise_ready", False) else "⚠️  STANDARD GRADE"
+        enterprise_status = (
+            "🏢 ENTERPRISE READY"
+            if results.get("enterprise_ready", False)
+            else "⚠️  STANDARD GRADE"
+        )
 
         print(f"Overall Status: {overall_status}")
         print(f"Enterprise Grade: {enterprise_status}")
@@ -821,32 +845,70 @@ class EnterpriseDedupLeakageGates:
         # Deduplication Gate
         dedup_gate = results["gates"]["deduplication"]
         dedup_status = "✅ PASSED" if dedup_gate["passed"] else "❌ FAILED"
-        enterprise_dedup = f"🏢 {dedup_gate.get('enterprise_readiness', 0):.1%}" if dedup_gate.get('enterprise_readiness', 0) > 0.8 else f"📊 {dedup_gate.get('enterprise_readiness', 0):.1%}"
+        enterprise_dedup = (
+            f"🏢 {dedup_gate.get('enterprise_readiness', 0):.1%}"
+            if dedup_gate.get("enterprise_readiness", 0) > 0.8
+            else f"📊 {dedup_gate.get('enterprise_readiness', 0):.1%}"
+        )
 
         print(f"  Deduplication: {dedup_status} ({enterprise_dedup})")
         print(f"    Total Files: {dedup_gate['summary'].get('total_files', 0)}")
-        print(f"    Exact Duplicates: {dedup_gate['summary'].get('exact_duplicates', 0)}")
+        print(
+            f"    Exact Duplicates: {dedup_gate['summary'].get('exact_duplicates', 0)}"
+        )
         print(f"    Near Duplicates: {dedup_gate['summary'].get('near_duplicates', 0)}")
-        print(f"    Enterprise Grade: {'✅' if dedup_gate['summary'].get('enterprise_grade', False) else '❌'}")
+        print(
+            f"    Enterprise Grade: "
+            f"{'✅' if dedup_gate['summary'].get('enterprise_grade', False) else '❌'}"
+        )
 
         # Leakage Gate
         leakage_gate = results["gates"]["cross_split_leakage"]
         leakage_status = "✅ PASSED" if leakage_gate["passed"] else "❌ FAILED"
-        enterprise_leakage = f"🏢 {leakage_gate.get('enterprise_readiness', 0):.1%}" if leakage_gate.get('enterprise_readiness', 0) > 0.8 else f"📊 {leakage_gate.get('enterprise_readiness', 0):.1%}"
+        enterprise_leakage = (
+            f"🏢 {leakage_gate.get('enterprise_readiness', 0):.1%}"
+            if leakage_gate.get("enterprise_readiness", 0) > 0.8
+            else f"📊 {leakage_gate.get('enterprise_readiness', 0):.1%}"
+        )
 
-        print(f"  Cross-Split Leakage: {leakage_status} ({enterprise_leakage})")
-        print(f"    Families Checked: {leakage_gate['summary'].get('total_families', 0)}")
-        print(f"    Families with Leakage: {leakage_gate['summary'].get('families_with_leakage', 0)}")
-        print(f"    Total Leakage Instances: {leakage_gate['summary'].get('total_leakage_instances', 0)}")
-        print(f"    Enterprise Grade: {'✅' if leakage_gate['summary'].get('enterprise_grade', False) else '❌'}")
-        print(f"    Clinical Validated: {'✅' if leakage_gate['summary'].get('clinical_validated', False) else '❌'}")
+        print(f"  Leakage: {leakage_status} ({enterprise_leakage})")
+        print(
+            f"    Families Checked: {leakage_gate['summary'].get('total_families', 0)}"
+        )
+        print(
+            f"    Families with Leakage: "
+            f"{leakage_gate['summary'].get('families_with_leakage', 0)}"
+        )
+        print(
+            f"    Total Leakage Instances: "
+            f"{leakage_gate['summary'].get('total_leakage_instances', 0)}"
+        )
+        print(
+            f"    Enterprise Grade: "
+            f"{'✅' if leakage_gate['summary'].get('enterprise_grade', False) else '❌'}"
+        )
+        print(
+            f"    Clinical Validated: "
+            f"{'✅' if leakage_gate['summary'].get('clinical_validated', False) else '❌'}"
+        )
 
         # Infrastructure Status
         infra_status = results.get("infrastructure_status", {})
-        print(f"\n🏗️  INFRASTRUCTURE STATUS:")
-        print(f"  Enterprise Deduplicator: {'✅ AVAILABLE' if infra_status.get('enterprise_deduplicator', False) else '❌ UNAVAILABLE'}")
-        print(f"  Clinical Validator: {'✅ AVAILABLE' if infra_status.get('clinical_validator', False) else '❌ UNAVAILABLE'}")
-        print(f"  Audit Trail: {'✅ ENABLED' if infra_status.get('audit_trail', False) else '⚠️  DISABLED'}")
+        print("\n🏗️  INFRASTRUCTURE STATUS:")
+        print(
+            f"  Enterprise Deduplicator: "
+            f"{'✅' if infra_status.get('enterprise_deduplicator', False) else '❌'} "
+            f"{'AVAILABLE' if infra_status.get('enterprise_deduplicator', False) else 'UNAVAILABLE'}"
+        )
+        print(
+            f"  Clinical Validator: "
+            f"{'✅' if infra_status.get('clinical_validator', False) else '❌'} "
+            f"{'AVAILABLE' if infra_status.get('clinical_validator', False) else 'UNAVAILABLE'}"
+        )
+        print(
+            f"  Audit Trail: "
+            f"{'✅ ENABLED' if infra_status.get('audit_trail', False) else '⚠️  DISABLED'}"
+        )
 
         if not results["overall_passed"]:
             print("\n🚨 RELEASE BLOCKED:")
@@ -863,7 +925,7 @@ class EnterpriseDedupLeakageGates:
             print(f"  {gate_name}: {gate_info.get('report_url', 'N/A')}")
 
         if "combined_report_url" in results:
-f"  Combined Report: {results['combined_report_url']}")
+            print(f"  Combined Report: {results['combined_report_url']}")
 
         print("\n" + "=" * 70)
 
@@ -904,13 +966,19 @@ def main():
         # Exit with appropriate code (fail closed)
         if results["overall_passed"]:
             if results.get("enterprise_ready", False):
-                print(f"\n🏢 Enterprise-grade dedup/leakage gates passed for {release_version}!")
+                print(
+                    f"\n🏢 Enterprise-grade dedup/leakage gates passed for {release_version}!"
+                )
                 sys.exit(0)
             else:
-                print(f"\n✅ Standard dedup/leakage gates passed for {release_version} (enterprise upgrade recommended)")
+                print(
+                    f"\n✅ Standard dedup/leakage gates passed for {release_version} (enterprise upgrade recommended)"
+                )
                 sys.exit(0)
         else:
-            print(f"\n❌ Dedup/leakage gates failed for {release_version} - RELEASE BLOCKED")
+            print(
+                f"\n❌ Dedup/leakage gates failed for {release_version} - RELEASE BLOCKED"
+            )
             sys.exit(1)
 
     except Exception as e:

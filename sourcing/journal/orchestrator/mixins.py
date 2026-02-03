@@ -116,7 +116,9 @@ class ProgressReportingMixin(RetryMixin):
             report_lines.extend(["", "## Weekly Targets"])
             for key, value in session.weekly_targets.items():
                 achieved = session.progress_metrics.get(key, 0)
-                report_lines.append(f"- {key.replace('_', ' ').title()}: {achieved}/{value}")
+                report_lines.append(
+                    f"- {key.replace('_', ' ').title()}: {achieved}/{value}"
+                )
 
         if latest_activity:
             report_lines.extend(
@@ -212,10 +214,14 @@ class ProgressReportingMixin(RetryMixin):
         start_progress: ResearchProgress, end_progress: ResearchProgress
     ) -> Dict[str, int]:
         deltas = {
-            "sources_identified": end_progress.sources_identified - start_progress.sources_identified,
-            "datasets_evaluated": end_progress.datasets_evaluated - start_progress.datasets_evaluated,
-            "access_established": end_progress.access_established - start_progress.access_established,
-            "datasets_acquired": end_progress.datasets_acquired - start_progress.datasets_acquired,
+            "sources_identified": end_progress.sources_identified
+            - start_progress.sources_identified,
+            "datasets_evaluated": end_progress.datasets_evaluated
+            - start_progress.datasets_evaluated,
+            "access_established": end_progress.access_established
+            - start_progress.access_established,
+            "datasets_acquired": end_progress.datasets_acquired
+            - start_progress.datasets_acquired,
             "integration_plans_created": end_progress.integration_plans_created
             - start_progress.integration_plans_created,
         }
@@ -225,14 +231,22 @@ class ProgressReportingMixin(RetryMixin):
     def _build_key_findings(deltas: Dict[str, int]) -> List[str]:
         findings: List[str] = []
         if deltas["sources_identified"]:
-            findings.append(f"Identified {deltas['sources_identified']} new dataset sources")
+            findings.append(
+                f"Identified {deltas['sources_identified']} new dataset sources"
+            )
         if deltas["datasets_evaluated"]:
-            findings.append(f"Completed evaluations for {deltas['datasets_evaluated']} datasets")
+            findings.append(
+                f"Completed evaluations for {deltas['datasets_evaluated']} datasets"
+            )
         if deltas["integration_plans_created"]:
-            findings.append(f"Produced {deltas['integration_plans_created']} integration plans")
+            findings.append(
+                f"Produced {deltas['integration_plans_created']} integration plans"
+            )
 
         if not findings:
-            findings.append("Maintained research infrastructure with no new datasets processed")
+            findings.append(
+                "Maintained research infrastructure with no new datasets processed"
+            )
         return findings
 
     def _build_challenges(
@@ -262,9 +276,13 @@ class ProgressReportingMixin(RetryMixin):
 
         if not priorities:
             if deltas["datasets_acquired"]:
-                priorities.append("Plan integration workflows for newly acquired datasets")
+                priorities.append(
+                    "Plan integration workflows for newly acquired datasets"
+                )
             else:
-                priorities.append("Review high-priority datasets and prepare next acquisition wave")
+                priorities.append(
+                    "Review high-priority datasets and prepare next acquisition wave"
+                )
 
         return priorities
 
@@ -288,15 +306,21 @@ class WorkflowMixin(RetryMixin):
         duration_minutes: int = 0,
     ) -> None:
         """Record a research activity entry. Implemented by the orchestrator."""
-        raise NotImplementedError("log_activity must be implemented by the orchestrator")
+        raise NotImplementedError(
+            "log_activity must be implemented by the orchestrator"
+        )
 
     def update_progress(self, session_id: str, metrics: Dict[str, int]) -> None:
         """Update progress metrics for a session. Implemented by the orchestrator."""
-        raise NotImplementedError("update_progress must be implemented by the orchestrator")
+        raise NotImplementedError(
+            "update_progress must be implemented by the orchestrator"
+        )
 
     def advance_phase(self, session_id: str) -> str:
         """Advance the research session to the next phase. Implemented by the orchestrator."""
-        raise NotImplementedError("advance_phase must be implemented by the orchestrator")
+        raise NotImplementedError(
+            "advance_phase must be implemented by the orchestrator"
+        )
 
     def _run_discovery_phase(
         self,
@@ -339,11 +363,7 @@ class WorkflowMixin(RetryMixin):
     def _run_evaluation_phase(
         self, session_id: str, state: SessionState, evaluator: str
     ) -> None:
-        if (
-            not self.evaluation_engine
-            or not state.sources
-            or state.evaluations
-        ):
+        if not self.evaluation_engine or not state.sources or state.evaluations:
             return
 
         self.log_activity(
@@ -537,7 +557,9 @@ class WorkflowMixin(RetryMixin):
 
         datasets = state.acquired_datasets
         if self.config.parallel_integration_planning and len(datasets) > 1:
-            return self._create_plans_parallel(session_id, state, datasets, target_format)
+            return self._create_plans_parallel(
+                session_id, state, datasets, target_format
+            )
 
         plans: List[IntegrationPlan] = []
         for dataset in datasets:
@@ -614,5 +636,3 @@ class WorkflowMixin(RetryMixin):
                 )
         state.integration_feasibility[dataset.source_id] = feasible
         return plan
-
-

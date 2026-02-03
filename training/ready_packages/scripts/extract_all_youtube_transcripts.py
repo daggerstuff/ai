@@ -40,7 +40,9 @@ class ProcessingContext:
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description="Extract YouTube creator transcripts for training")
+    parser = argparse.ArgumentParser(
+        description="Extract YouTube creator transcripts for training"
+    )
     parser.add_argument(
         "--creator",
         help="Specific creator to extract (optional filter)",
@@ -52,7 +54,9 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--output-dir",
-        default=str(Path(__file__).parents[1] / "data" / "generated" / "youtube_transcripts"),
+        default=str(
+            Path(__file__).parents[1] / "data" / "generated" / "youtube_transcripts"
+        ),
         help="Output directory for transcripts",
     )
     return parser
@@ -67,7 +71,9 @@ def _sanitize_filename(name: str) -> str:
     )
 
 
-def _convert_transcript_to_chatml(metadata: TranscriptMetadata, content: str) -> dict[str, Any]:
+def _convert_transcript_to_chatml(
+    metadata: TranscriptMetadata, content: str
+) -> dict[str, Any]:
     """Convert transcript to ChatML format"""
 
     # Create system prompt based on analysis

@@ -75,7 +75,14 @@ DEFAULT_TRANSCRIPTS_DIR = ".notes/transcripts"
 SOURCE_CONFIG: dict[str, dict[str, Any]] = {
     "tim_fletcher": {
         "display_name": "Tim Fletcher",
-        "topics": ["CPTSD", "complex trauma", "narcissism", "shame", "recovery", "boundaries"],
+        "topics": [
+            "CPTSD",
+            "complex trauma",
+            "narcissism",
+            "shame",
+            "recovery",
+            "boundaries",
+        ],
         "style": "educational therapeutic",
         "system_prompt": (
             "You are a trauma-informed therapeutic educator specializing in Complex PTSD (CPTSD) "
@@ -86,7 +93,12 @@ SOURCE_CONFIG: dict[str, dict[str, Any]] = {
     },
     "Understood": {
         "display_name": "Understood",
-        "topics": ["ADHD", "emotional dysregulation", "neurodivergence", "learning differences"],
+        "topics": [
+            "ADHD",
+            "emotional dysregulation",
+            "neurodivergence",
+            "learning differences",
+        ],
         "style": "educational supportive",
         "system_prompt": (
             "You are an educational mental health assistant specializing in ADHD and neurodivergent experiences. "
@@ -96,7 +108,12 @@ SOURCE_CONFIG: dict[str, dict[str, Any]] = {
     },
     "Unfilteredd": {
         "display_name": "Unfilteredd",
-        "topics": ["narcissistic families", "family dynamics", "golden child", "scapegoat"],
+        "topics": [
+            "narcissistic families",
+            "family dynamics",
+            "golden child",
+            "scapegoat",
+        ],
         "style": "educational therapeutic",
         "system_prompt": (
             "You are a therapeutic guide specializing in narcissistic family dynamics and recovery. "
@@ -106,7 +123,12 @@ SOURCE_CONFIG: dict[str, dict[str, Any]] = {
     },
     "Wu Wei Wisdom": {
         "display_name": "Wu Wei Wisdom",
-        "topics": ["attention seeking", "validation", "inner child", "approval seeking"],
+        "topics": [
+            "attention seeking",
+            "validation",
+            "inner child",
+            "approval seeking",
+        ],
         "style": "philosophical therapeutic",
         "system_prompt": (
             "You are a therapeutic guide combining Eastern philosophy with modern psychology. "
@@ -152,7 +174,12 @@ SOURCE_CONFIG: dict[str, dict[str, Any]] = {
     },
     "10_ Happier": {
         "display_name": "Ten Percent Happier",
-        "topics": ["meditation", "mindfulness", "somatic experiencing", "nervous system"],
+        "topics": [
+            "meditation",
+            "mindfulness",
+            "somatic experiencing",
+            "nervous system",
+        ],
         "style": "conversational therapeutic",
         "system_prompt": (
             "You are a mindfulness and meditation guide specializing in somatic experiencing and nervous system regulation. "
@@ -470,11 +497,15 @@ def main() -> int:
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)s - %(levelname)s - %(message)s" if args.verbose else "%(message)s",
+        format="%(asctime)s - %(levelname)s - %(message)s"
+        if args.verbose
+        else "%(message)s",
     )
 
     # Resolve paths relative to project root
-    project_root = Path(__file__).parents[3]  # ai/training_ready/scripts -> project root
+    project_root = Path(__file__).parents[
+        3
+    ]  # ai/training_ready/scripts -> project root
     transcripts_dir = project_root / args.transcripts_dir
     output_path = project_root / args.output
     manifest_path = project_root / args.manifest
@@ -615,7 +646,12 @@ def main() -> int:
                             "processing_pipeline": "convert_transcripts_to_chatml",
                             "processed_at": datetime.now(timezone.utc).isoformat(),
                             "dedup_status": "unique",
-                            "processing_steps": ["text_clean", "pii_redact", "chunk", "chatml_convert"],
+                            "processing_steps": [
+                                "text_clean",
+                                "pii_redact",
+                                "chunk",
+                                "chatml_convert",
+                            ],
                         },
                     },
                 }
@@ -635,11 +671,15 @@ def main() -> int:
     stats["examples_written"] = written
     stats["unique_hashes"] = len(seen_hashes)
     stats["sources_processed"] = dict(stats["sources_processed"])
-    stats["chunk_histogram"] = dict(sorted(stats["chunk_histogram"].items(), key=lambda x: int(x[0])))
+    stats["chunk_histogram"] = dict(
+        sorted(stats["chunk_histogram"].items(), key=lambda x: int(x[0]))
+    )
 
     # Save stats
     stats_path = output_path.with_name("all_transcripts_stats.json")
-    stats_path.write_text(json.dumps(stats, indent=2, ensure_ascii=False), encoding="utf-8")
+    stats_path.write_text(
+        json.dumps(stats, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
 
     # Summary
     logger.info("")
@@ -652,7 +692,9 @@ def main() -> int:
     logger.info(f"  Total characters: {stats['total_chars']:,}")
     logger.info("")
     logger.info("Sources breakdown:")
-    for source, count in sorted(stats["sources_processed"].items(), key=lambda x: -x[1]):
+    for source, count in sorted(
+        stats["sources_processed"].items(), key=lambda x: -x[1]
+    ):
         display = _get_source_config(source)["display_name"]
         logger.info(f"  {display}: {count} files")
     logger.info("")

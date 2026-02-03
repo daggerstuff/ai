@@ -80,7 +80,9 @@ class EmpathySafetyGate:
         # This is a loose gate to avoid false positives on valid unique responses.
         score = min(1.0, (empathy_hits * 0.3 + support_hits * 0.3))
 
-        passed = score >= 0.3 or len(last_response.split()) > 20  # Length heuristic as fallback
+        passed = (
+            score >= 0.3 or len(last_response.split()) > 20
+        )  # Length heuristic as fallback
 
         return {
             "passed": passed,

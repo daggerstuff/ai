@@ -59,14 +59,18 @@ class FinalDatasetVerifier:
             with open(self.routing_config_path, encoding="utf-8") as f:
                 self.routing_config = json.load(f)
         elif self.skip_missing:
-            logger.warning("Routing config not found - skipping routing-dependent gates")
+            logger.warning(
+                "Routing config not found - skipping routing-dependent gates"
+            )
 
     def check_coverage_gate(self) -> bool:
         """Check coverage gate: all required families present"""
         logger.info("Checking coverage gate...")
 
         families = self.coverage_data.get("families", {})
-        required_families = [name for name, data in families.items() if data.get("required", True)]
+        required_families = [
+            name for name, data in families.items() if data.get("required", True)
+        ]
 
         missing_families = [
             name
@@ -78,10 +82,14 @@ class FinalDatasetVerifier:
             self.verification_results["coverage_gate"]["errors"].append(
                 f"Missing required families: {', '.join(missing_families)}"
             )
-            logger.warning(f"Coverage gate FAILED: {len(missing_families)} missing families")
+            logger.warning(
+                f"Coverage gate FAILED: {len(missing_families)} missing families"
+            )
             return False
 
-        logger.info(f"Coverage gate PASSED: All {len(required_families)} required families present")
+        logger.info(
+            f"Coverage gate PASSED: All {len(required_families)} required families present"
+        )
         self.verification_results["coverage_gate"]["passed"] = True
         return True
 
@@ -91,11 +99,15 @@ class FinalDatasetVerifier:
 
         if not self.manifest_path or not self.manifest_path.exists():
             logger.warning("Manifest not found - skipping leakage gate")
-            self.verification_results["leakage_gate"]["errors"].append("Manifest not found")
+            self.verification_results["leakage_gate"]["errors"].append(
+                "Manifest not found"
+            )
             return False
 
         # Check if violations file exists
-        violations_path = Path(self.manifest_path.parent) / "deduplication_violations.json"
+        violations_path = (
+            Path(self.manifest_path.parent) / "deduplication_violations.json"
+        )
         if violations_path.exists():
             with open(violations_path) as f:
                 violations = json.load(f)
@@ -124,7 +136,9 @@ class FinalDatasetVerifier:
 
         if not self.manifest_data:
             logger.warning("Manifest not loaded - skipping distribution gate")
-            self.verification_results["distribution_gate"]["errors"].append("Manifest not loaded")
+            self.verification_results["distribution_gate"]["errors"].append(
+                "Manifest not loaded"
+            )
             return False
 
         splits = self.manifest_data.get("splits", {})
@@ -147,7 +161,11 @@ class FinalDatasetVerifier:
 
         for family_name, family_data in source_families.items():
             family_splits = family_data.get("splits", {})
-            target = holdout_counts if family_name in holdout_families else non_holdout_counts
+            target = (
+                holdout_counts
+                if family_name in holdout_families
+                else non_holdout_counts
+            )
             target["train"] += int(family_splits.get("train", 0) or 0)
             target["val"] += int(family_splits.get("val", 0) or 0)
             target["test"] += int(family_splits.get("test", 0) or 0)
@@ -212,7 +230,9 @@ class FinalDatasetVerifier:
 
         if not self.manifest_data:
             logger.warning("Manifest not loaded - skipping provenance gate")
-            self.verification_results["provenance_gate"]["errors"].append("Manifest not loaded")
+            self.verification_results["provenance_gate"]["errors"].append(
+                "Manifest not loaded"
+            )
             return False
 
         provenance_map = self.manifest_data.get("provenance_map", {})
@@ -237,7 +257,9 @@ class FinalDatasetVerifier:
 
         # In production, would validate hash format in compiled export
         # For now, assume passed if manifest exists
-        logger.info("Hash gate PASSED: All conversations have valid content_hash (assumed)")
+        logger.info(
+            "Hash gate PASSED: All conversations have valid content_hash (assumed)"
+        )
         self.verification_results["hash_gate"]["passed"] = True
         return True
 
@@ -247,7 +269,9 @@ class FinalDatasetVerifier:
 
         if not self.manifest_data:
             logger.warning("Manifest not loaded - skipping split gate")
-            self.verification_results["split_gate"]["errors"].append("Manifest not loaded")
+            self.verification_results["split_gate"]["errors"].append(
+                "Manifest not loaded"
+            )
             return False
 
         holdout_families = self.manifest_data.get("holdout_families", {})
@@ -274,7 +298,9 @@ class FinalDatasetVerifier:
 
         if not self.manifest_data:
             logger.warning("Manifest not loaded - skipping stats gate")
-            self.verification_results["stats_gate"]["errors"].append("Manifest not loaded")
+            self.verification_results["stats_gate"]["errors"].append(
+                "Manifest not loaded"
+            )
             return False
 
         # Check if stats are present
@@ -283,15 +309,21 @@ class FinalDatasetVerifier:
         splits = self.manifest_data.get("splits", {})
 
         if total_conversations == 0:
-            self.verification_results["stats_gate"]["errors"].append("No conversations in dataset")
+            self.verification_results["stats_gate"]["errors"].append(
+                "No conversations in dataset"
+            )
             return False
 
         if not source_families:
-            self.verification_results["stats_gate"]["errors"].append("No source family statistics")
+            self.verification_results["stats_gate"]["errors"].append(
+                "No source family statistics"
+            )
             return False
 
         if not splits:
-            self.verification_results["stats_gate"]["errors"].append("No split statistics")
+            self.verification_results["stats_gate"]["errors"].append(
+                "No split statistics"
+            )
             return False
 
         logger.info("Stats gate PASSED: Distribution statistics present")
@@ -305,7 +337,9 @@ class FinalDatasetVerifier:
             "total_tokens_approx": self.manifest_data.get("total_tokens_approx", 0),
             "splits": {},
             "source_families": {},
-            "holdout_families": list(self.manifest_data.get("holdout_families", {}).keys()),
+            "holdout_families": list(
+                self.manifest_data.get("holdout_families", {}).keys()
+            ),
         }
 
         splits = self.manifest_data.get("splits", {})
@@ -361,7 +395,9 @@ def main():
     """Main entry point"""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Verify final dataset against all gates")
+    parser = argparse.ArgumentParser(
+        description="Verify final dataset against all gates"
+    )
     parser.add_argument(
         "--skip-missing",
         action="store_true",
@@ -380,7 +416,12 @@ def main():
         project_root / "ai" / "training_ready" / "data" / "dataset_coverage_report.json"
     )
     manifest_path = (
-        project_root / "ai" / "training_ready" / "data" / "final_dataset" / "manifest.json"
+        project_root
+        / "ai"
+        / "training_ready"
+        / "data"
+        / "final_dataset"
+        / "manifest.json"
     )
     routing_config_path = (
         project_root / "ai" / "training_ready" / "data" / "dataset_routing_config.json"
@@ -397,7 +438,9 @@ def main():
 
     # Save verification report if --report flag is provided
     if args.report:
-        output_path = project_root / "ai" / "training_ready" / "data" / "verification_report.json"
+        output_path = (
+            project_root / "ai" / "training_ready" / "data" / "verification_report.json"
+        )
         output_path.parent.mkdir(parents=True, exist_ok=True)
 
         with open(output_path, "w", encoding="utf-8") as f:

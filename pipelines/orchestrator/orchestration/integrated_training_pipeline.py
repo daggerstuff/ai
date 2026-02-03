@@ -24,7 +24,9 @@ from ai.pipelines.orchestrator.ingestion.pixel_voice_loader import (
 from ai.pipelines.orchestrator.ingestion.psychology_knowledge_loader import (
     PsychologyKnowledgeLoader,
 )
-from ai.pipelines.orchestrator.quality.evidence_based_practice_validator import validate_bias
+from ai.pipelines.orchestrator.quality.evidence_based_practice_validator import (
+    validate_bias,
+)
 from ai.pipelines.orchestrator.storage_config import get_storage_config
 from ai.pipelines.orchestrator.storage_manager import StorageManager
 from ai.pipelines.orchestrator.utils.logger import get_logger
@@ -616,7 +618,9 @@ class IntegratedTrainingPipeline:
         logger.info("✓ Running quality validation...")
 
         try:
-            from ai.pipelines.orchestrator.quality.quality_filter_v1 import QualityFilterV1
+            from ai.pipelines.orchestrator.quality.quality_filter_v1 import (
+                QualityFilterV1,
+            )
 
             # Use Quality Scoring v1 for validation
             quality_filter = QualityFilterV1(

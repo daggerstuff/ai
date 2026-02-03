@@ -181,7 +181,6 @@ class SpecializedDatasetIntegrator:
             "individual_results": results,
         }
 
-
     def integrate_tfidf_dataset(self) -> dict[str, Any]:
         """Integrate TF-IDF feature vectors dataset."""
         config = self.dataset_configs["tfidf"]
@@ -420,9 +419,7 @@ class SpecializedDatasetIntegrator:
             "cognitive",
             "behavioral",
             "therapeutic",
-        ] + [
-            f"term_{i}" for i in range(235)
-        ]  # Total 256 terms
+        ] + [f"term_{i}" for i in range(235)]  # Total 256 terms
 
         # Generate mock documents with TF-IDF vectors
         documents = []
@@ -859,7 +856,11 @@ if __name__ == "__main__":
     for _dataset_key, result in results["individual_results"].items():
         status = "✅ Success" if result["success"] else "❌ Failed"
         if result["success"]:
-            if "documents_processed" in result or "entries_processed" in result or "posts_processed" in result:
+            if (
+                "documents_processed" in result
+                or "entries_processed" in result
+                or "posts_processed" in result
+            ):
                 pass
         else:
             pass

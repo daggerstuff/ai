@@ -100,7 +100,9 @@ class FakeAcquisitionManager:
         self.submissions = 0
         self.downloads = 0
 
-    def submit_access_request(self, source: DatasetSource, access_method=None, notes: str = ""):
+    def submit_access_request(
+        self, source: DatasetSource, access_method=None, notes: str = ""
+    ):
         self.submissions += 1
         return AccessRequest(
             source_id=source.source_id,
@@ -189,7 +191,10 @@ class TestResearchOrchestrator:
 
         assert session.session_id in orchestrator.sessions
         assert orchestrator.progress_states[session.session_id] == ResearchProgress()
-        assert orchestrator.get_activity_log(session.session_id)[0].activity_type == "session_start"
+        assert (
+            orchestrator.get_activity_log(session.session_id)[0].activity_type
+            == "session_start"
+        )
 
     def test_advance_phase_sequence(self, orchestrator):
         session = orchestrator.start_research_session(
@@ -256,7 +261,9 @@ class TestResearchOrchestrator:
         assert len(state.access_requests) == len(sample_sources)
         assert len(state.acquired_datasets) == len(sample_sources)
         assert len(state.integration_plans) == len(sample_sources)
-        assert orchestrator.progress_states[session.session_id].datasets_acquired == len(sample_sources)
+        assert orchestrator.progress_states[
+            session.session_id
+        ].datasets_acquired == len(sample_sources)
 
     def test_retry_logic_handles_transient_errors(self, sample_sources):
         orchestrator = ResearchOrchestrator(
@@ -275,7 +282,10 @@ class TestResearchOrchestrator:
         state = orchestrator.run_session(session.session_id)
         # should still discover sources after retry
         assert len(state.sources) == len(sample_sources)
-        assert any("discovery" in entry["operation"] for entry in orchestrator.get_error_log(session.session_id))
+        assert any(
+            "discovery" in entry["operation"]
+            for entry in orchestrator.get_error_log(session.session_id)
+        )
 
     def test_session_persistence_round_trip(self, tmp_path, sample_sources):
         config = OrchestratorConfig(
@@ -319,7 +329,9 @@ class TestResearchOrchestrator:
         visualization = restored_orchestrator.generate_progress_visualization_data(
             session.session_id
         )
-        assert visualization["current_metrics"]["datasets_evaluated"] >= len(sample_sources)
+        assert visualization["current_metrics"]["datasets_evaluated"] >= len(
+            sample_sources
+        )
         assert visualization["series"]
 
     def test_progress_visualization_reports_targets(self, orchestrator):
@@ -406,7 +418,8 @@ class TestResearchOrchestrator:
         fallback_activities = [
             log
             for log in activity_log
-            if "fallback" in log.description.lower() or "fallback" in log.outcome.lower()
+            if "fallback" in log.description.lower()
+            or "fallback" in log.outcome.lower()
         ]
         assert len(fallback_activities) > 0
 
@@ -436,4 +449,3 @@ class TestResearchOrchestrator:
         # Should raise when fallback is disabled
         with pytest.raises(RuntimeError, match="Discovery service unavailable"):
             orchestrator.run_session(session.session_id)
-
