@@ -65,6 +65,18 @@ class NemoCuratorClient(NvidiaBaseClient):
         }
         return self._post("/v1/curate", payload)
 
+    def identify_emotional_gaps(self, dataset_path: str) -> Dict[str, Any]:
+        """Analyzes dataset to find under-represented emotional archetypes."""
+        return self._post("/v1/analysis/emotional_coverage", {"path": dataset_path})
+
+    def detect_crisis_narratives(self, text: str) -> Dict[str, Any]:
+        """Detects subtle indicators of crisis beyond simple toxicity."""
+        return self._post("/v1/detect/crisis", {"text": text, "sensitivity": "ultra"})
+
+    def filter_cultural_bias(self, dataset_path: str) -> Dict[str, Any]:
+        """Ensures diverse empathy expressions across cultural dimensions."""
+        return self._post("/v1/filter/cultural_diversity", {"path": dataset_path})
+
 
 class NemoRetrieverClient(NvidiaBaseClient):
     """Client for NVIDIA NIM Retriever with Dual Persona support."""
@@ -110,6 +122,36 @@ class NemoRetrieverClient(NvidiaBaseClient):
             "reasoning_context": reasoning_docs,
         }
 
+    def temporal_context_search(
+        self, user_id: str, query: str, top_k: int = 5
+    ) -> Dict[str, Any]:
+        """Retrieves context weighted by chronological therapeutic progression."""
+        payload = {"user_id": user_id, "query": query, "strategy": "temporal_decay"}
+        return self.embedding_client._post("/v1/temporal_search", payload)
+
+    def safety_constrained_rerank(
+        self, query: str, documents: List[str], top_n: int = 5
+    ) -> List[Dict[str, Any]]:
+        """Reranks while force-injecting clinical safety guidelines."""
+        payload = {"query": query, "documents": documents, "force_safety": True}
+        return self.rerank_client._post("/v1/reranking/safety", payload)
+
+    def tri_persona_search(
+        self, query: str, documents: List[str], top_k: int = 5
+    ) -> Dict[str, Any]:
+        """
+        System 1 (Emotional), System 2 (Reasoning),
+        and System 3 (Grounding/Safety).
+        """
+        base = self.dual_persona_search(query, documents, top_k)
+        grounding_docs = self.rerank(
+            f"physical grounding and clinical safety for: {query}",
+            documents=documents,
+            top_n=top_k,
+        )
+        base["grounding_context"] = grounding_docs
+        return base
+
 
 class NemoCustomizerClient(NvidiaBaseClient):
     """Client for NeMo Customizer with Persona-aware training."""
@@ -149,6 +191,28 @@ class NemoCustomizerClient(NvidiaBaseClient):
         }
         return self._post("/v1/jobs", payload)
 
+    def resonance_optimal_tuning(
+        self, model_id: str, resonance_scores: List[float]
+    ) -> Dict[str, Any]:
+        """Auto-adjusts LoRA based on evaluator resonance feedback."""
+        return self._post(
+            "/v1/optimize/resonance", {"id": model_id, "scores": resonance_scores}
+        )
+
+    def distill_therapeutic_essence(self, teacher_id: str) -> Dict[str, Any]:
+        """Distills clinical expert model into a fast micro-adapter."""
+        return self._post(
+            "/v1/distill", {"teacher": teacher_id, "target_type": "micro"}
+        )
+
+    def merge_persona_weights(
+        self, adapter_ids: List[str], weights: List[float]
+    ) -> Dict[str, Any]:
+        """Dynamically merges persona adapters (e.g. Warmth + CBT)."""
+        return self._post(
+            "/v1/adapters/merge", {"ids": adapter_ids, "weights": weights}
+        )
+
 
 class NemoEvaluatorClient(NvidiaBaseClient):
     """Client for NeMo Evaluator with Empathy Benchmark."""
@@ -177,3 +241,25 @@ class NemoEvaluatorClient(NvidiaBaseClient):
             references,
             metrics=["empathy_scale", "safety_violation", "dark_humor_accuracy"],
         )
+
+    def measure_empathic_resonance(
+        self, user_utterance: str, bot_response: str
+    ) -> Dict[str, Any]:
+        """Quantifies emotional 'match' vs 'therapeutic detachment'."""
+        return self._post(
+            "/v1/measure/resonance", {"input": user_utterance, "output": bot_response}
+        )
+
+    def detect_therapeutic_drift(
+        self, session_history: List[str], persona: str
+    ) -> Dict[str, Any]:
+        """Monitors if bot is drifting away from intended therapeutic framework."""
+        return self._post(
+            "/v1/detect/drift", {"history": session_history, "persona": persona}
+        )
+
+    def longitudinal_impact_score(
+        self, scores_over_time: List[float]
+    ) -> Dict[str, Any]:
+        """Evaluates long-term emotional growth contributions."""
+        return self._post("/v1/analyze/longitudinal", {"scores": scores_over_time})

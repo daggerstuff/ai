@@ -477,15 +477,37 @@ class ComprehensiveEvaluator:
             try:
                 client = NemoEvaluatorClient()
                 # Use project-specific evaluation for therapeutic alignment
-                # In a real setup, we'd generate predictions here or pass them in
                 logger.info("Triggering NeMo Empathy Benchmark...")
-                _ = client.evaluate_therapeutic_alignment(
-                    predictions=["I see the abyss you're staring into..."],
-                    references=["I understand how you feel..."],
+                # Mock data for demonstration - in production these
+                # would come from the loop
+                sample_prediction = "I see the abyss you're staring into..."
+                sample_reference = "I understand how you feel..."
+
+                client.evaluate_therapeutic_alignment(
+                    predictions=[sample_prediction],
+                    references=[sample_reference],
                 )
+
+                resonance = client.measure_empathic_resonance(
+                    user_utterance="I feel so lost and empty inside.",
+                    bot_response=sample_prediction,
+                )
+
+                drift = client.detect_therapeutic_drift(
+                    session_history=[
+                        "User: I'm sad.",
+                        "Bot: I'm here for you.",
+                        "User: I appreciate it.",
+                    ],
+                    persona="therapeutic_empathy_v1",
+                )
+
+                logger.info(f"NeMo Resonance Score: {resonance.get('score')}")
                 logger.info(
-                    "NeMo Evaluator: Empathy scale and safety benchmark completed."
+                    f"NeMo Therapeutic Drift Detected: {drift.get('drift_detected')}"
                 )
+
+                # Merge into results if needed or just log for now
             except Exception as e:
                 logger.error(f"NeMo Evaluator failure: {e}. Falling back to local.")
 
