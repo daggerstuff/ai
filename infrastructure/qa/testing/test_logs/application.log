@@ -1,1 +1,0 @@
-{"timestamp": "2025-08-11T06:18:04.016299", "level": "INFO", "category": "application", "message": "Application started successfully", "logger": "pixelated.application", "module": "logging_system", "function": "log_application_event", "line": 424, "thread_id": 129292809226048, "process_id": 486948}
