@@ -53,3 +53,6 @@ dataset_pipeline/monitoring/metrics/
 firebase-debug.log
 data/tim_fletcher_voice/conversation_generation_prompt.txt
 AGENTS.md
+
+# Certificates
+utils/certs/*.pem
