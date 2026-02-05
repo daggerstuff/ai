@@ -62,3 +62,4 @@ data/unified_training/validation.json
 data/unified_training/expert_*.json
 coverage/
 training_data_consolidated/final_datasets/training_dataset_enhanced.json
+data/books/
