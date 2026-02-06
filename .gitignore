@@ -28,7 +28,7 @@ pipelines/data/
 lightning/
 data/conversation_system.db
 config/security/
-models/
+/models/
 
 # Dataset pipeline runtime artifacts (keep outside package tree; defaults to ../tmp/dataset_pipeline)
 dataset_pipeline/config/
@@ -46,10 +46,20 @@ dataset_pipeline/monitoring/metrics/
 *.log
 *.notes
 *.txt
+!*requirements*.txt
 **/checkpoint-*/optimizer.pt
 **/checkpoint-*/adapter_model.safetensors
 
 # Weights & Biases (wandb) offline run artifacts
 firebase-debug.log
 data/tim_fletcher_voice/conversation_generation_prompt.txt
-AGENTS.md
+
+# Certificates
+utils/certs/*.pem
+# Large Unified Training Data
+data/unified_training/train.json
+data/unified_training/validation.json
+data/unified_training/expert_*.json
+coverage/
+training_data_consolidated/final_datasets/training_dataset_enhanced.json
+data/books/
