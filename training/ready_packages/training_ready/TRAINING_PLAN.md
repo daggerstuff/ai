@@ -2,14 +2,20 @@
 
 ## Overview
 
-This training plan outlines the complete strategy for training the Pixelated Empathy model using the consolidated training assets. The plan follows a 4-stage architecture with clear objectives, dataset strategies, and success metrics for each stage.
+This training plan outlines the complete strategy for training the Pixelated
+Empathy model using the consolidated training assets. The plan follows a
+4-stage architecture with clear objectives, dataset strategies, and success
+metrics for each stage.
 
 ## Training Objectives
 
-1. **Foundation**: Establish baseline therapeutic tone, empathy, and rapport-building capabilities
-2. **Expertise**: Develop structured reasoning, clinical knowledge, and evidence-based therapeutic techniques
+1. **Foundation**: Establish baseline therapeutic tone, empathy, and
+   rapport-building capabilities
+2. **Expertise**: Develop structured reasoning, clinical knowledge, and
+   evidence-based therapeutic techniques
 3. **Edge Cases**: Stress-test with high-intensity crisis scenarios and trauma cases
-4. **Voice & Persona**: Refine authentic voice, persona consistency, and delivery style
+4. **Voice & Persona**: Refine authentic voice, persona consistency, and
+   delivery style
 
 ## Model Selection
 
@@ -41,7 +47,8 @@ This training plan outlines the complete strategy for training the Pixelated Emp
 
 ### Stage 1: Foundation & Rapport (40% of training data)
 
-**Objective**: Establish baseline therapeutic tone, reflective listening, and low-risk support capabilities.
+**Objective**: Establish baseline therapeutic tone, reflective listening, and
+low-risk support capabilities.
 
 **Dataset Strategy**:
 
@@ -71,7 +78,8 @@ This training plan outlines the complete strategy for training the Pixelated Emp
 
 ### Stage 2: Therapeutic Expertise & Reasoning (25% of training data)
 
-**Objective**: Develop structured reasoning, diagnosis scaffolding, knowledge grounding, and evidence-based techniques.
+**Objective**: Develop structured reasoning, diagnosis scaffolding, knowledge
+grounding, and evidence-based techniques.
 
 **Dataset Strategy**:
 
@@ -96,13 +104,15 @@ This training plan outlines the complete strategy for training the Pixelated Emp
 
 **Datasets** (from manifest):
 
-- CoT reasoning datasets (clinical diagnosis, neurodivergent interactions, mens mental health, etc.)
+- CoT reasoning datasets (clinical diagnosis, neurodivergent interactions,
+  mens mental health, etc.)
 - Professional psychology datasets
 - Reasoning JSON from psychology knowledge base
 
 ### Stage 3: Edge Stress Test & Scenario Bank (20% of training data)
 
-**Objective**: Stress-test model with nightmare-level edge cases, crisis scenarios, and high-intensity trauma cases.
+**Objective**: Stress-test model with nightmare-level edge cases, crisis
+scenarios, and high-intensity trauma cases.
 
 **Dataset Strategy**:
 
@@ -134,7 +144,8 @@ This training plan outlines the complete strategy for training the Pixelated Emp
 
 ### Stage 4: Voice, Persona & Delivery (15% of training data)
 
-**Objective**: Refine authentic voice, persona consistency, dual-persona capabilities, and delivery style.
+**Objective**: Refine authentic voice, persona consistency, dual-persona
+capabilities, and delivery style.
 
 **Dataset Strategy**:
 
@@ -291,7 +302,8 @@ This training plan outlines the complete strategy for training the Pixelated Emp
 
 ### Data Quality Risks
 
-- **Mitigation**: Comprehensive validation pipeline, bias detection, cultural competency checks
+- **Mitigation**: Comprehensive validation pipeline, bias detection, cultural
+  competency checks
 - **Monitoring**: Continuous quality metrics during training
 
 ### Training Instability Risks

@@ -75,7 +75,8 @@ uv run python3 -c "import torch; print(f'Torch {torch.__version__} - CPU: {not t
 ### Test S3 Access
 
 ```bash
-python3 -c "import boto3; s3 = boto3.client('s3'); print('S3 buckets:', [b['Name'] for b in s3.list_buckets()['Buckets']])"
+python3 -c "import boto3; s3 = boto3.client('s3'); \
+print('S3 buckets:', [b['Name'] for b in s3.list_buckets()['Buckets']])"
 ```
 
 ### Test HuggingFace

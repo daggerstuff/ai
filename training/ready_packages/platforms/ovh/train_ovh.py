@@ -171,9 +171,7 @@ def load_dataset_file(file_path: str) -> List[Dict[str, Any]]:
                 if isinstance(data, list):
                     return data
                 elif isinstance(data, dict):
-                    if "conversations" in data:
-                        return data["conversations"]
-                    return [data]
+                    return data["conversations"] if "conversations" in data else [data]
         elif ext == ".csv":
             df = pd.read_csv(file_path)
             return [{str(k): v for k, v in rec.items()} for rec in df.to_dict(orient="records")]
@@ -244,22 +242,31 @@ def convert_to_chatml(records: List[Dict[str, Any]], system_prompt: str) -> List
             messages.extend(rec["messages"])
 
         elif "input" in rec and "output" in rec:
-            messages.append({"role": "user", "content": rec["input"]})
-            messages.append({"role": "assistant", "content": rec["output"]})
-
+            messages.extend(
+                (
+                    {"role": "user", "content": rec["input"]},
+                    {"role": "assistant", "content": rec["output"]},
+                )
+            )
         elif "question" in rec and "answer" in rec:
-            messages.append({"role": "user", "content": rec["question"]})
-            messages.append({"role": "assistant", "content": rec["answer"]})
-
+            messages.extend(
+                (
+                    {"role": "user", "content": rec["question"]},
+                    {"role": "assistant", "content": rec["answer"]},
+                )
+            )
         elif "context" in rec:
             # CoT format with reasoning
             content = rec.get("context", "")
             if "reasoning" in rec:
                 content += f"\n\n[Reasoning: {rec['reasoning']}]"
             if "response" in rec:
-                messages.append({"role": "user", "content": content})
-                messages.append({"role": "assistant", "content": rec["response"]})
-
+                messages.extend(
+                    (
+                        {"role": "user", "content": content},
+                        {"role": "assistant", "content": rec["response"]},
+                    )
+                )
         else:
             # Try to extract any text field
             for field in ["text", "content", "dialogue"]:
@@ -334,63 +341,67 @@ def setup_wandb(config: Dict, stage_name: str):
 def create_model(config: Dict):
     """Create or load the model with LoRA configuration."""
     try:
-        from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-        from transformers import AutoModelForCausalLM, AutoTokenizer
-
-        base_model = config.get("base_model", DEFAULT_CONFIG["base_model"])
-        lora_config = config.get("lora", DEFAULT_CONFIG["lora"])
-
-        logger.info(f"Loading base model: {base_model}")
-
-        # Load tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
-        if tokenizer.pad_token is None:
-            tokenizer.pad_token = tokenizer.eos_token
-
-        # Configure 4-bit quantization
-        bnb_config = BitsAndBytesConfig(
-            load_in_4bit=True,
-            bnb_4bit_quant_type="nf4",
-            bnb_4bit_compute_dtype=torch.bfloat16,
-            bnb_4bit_use_double_quant=True,
-        )
-
-        # Load model with appropriate settings for GPU
-        model = AutoModelForCausalLM.from_pretrained(
-            base_model,
-            quantization_config=bnb_config,
-            device_map="auto",
-            trust_remote_code=True,
-        )
-
-        # Prepare for training
-        model = prepare_model_for_kbit_training(model)
-
-        # Apply LoRA
-        peft_config = LoraConfig(
-            r=lora_config["r"],
-            lora_alpha=lora_config["alpha"],
-            lora_dropout=lora_config["dropout"],
-            target_modules=lora_config["target_modules"],
-            bias="none",
-            task_type="CAUSAL_LM",
-        )
-
-        model = get_peft_model(model, peft_config)
-
-        # Log trainable parameters
-        trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
-        total_params = sum(p.numel() for p in model.parameters())
-        logger.info(
-            f"Trainable params: {trainable_params:,} / {total_params:,} ({100 * trainable_params / total_params:.2f}%)"
-        )
-
-        return model, tokenizer
-
+        return _extracted_from_create_model_4(config)
     except ImportError as e:
         logger.error(f"Missing required package: {e}")
         logger.error("Install with: pip install transformers peft accelerate bitsandbytes")
         raise
+
+
+# TODO Rename this here and in `create_model`
+def _extracted_from_create_model_4(config):
+    from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+    from transformers import AutoModelForCausalLM, AutoTokenizer
+
+    base_model = config.get("base_model", DEFAULT_CONFIG["base_model"])
+    lora_config = config.get("lora", DEFAULT_CONFIG["lora"])
+
+    logger.info(f"Loading base model: {base_model}")
+
+    # Load tokenizer
+    tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
+    if tokenizer.pad_token is None:
+        tokenizer.pad_token = tokenizer.eos_token
+
+    # Configure 4-bit quantization
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit=True,
+        bnb_4bit_quant_type="nf4",
+        bnb_4bit_compute_dtype=torch.bfloat16,
+        bnb_4bit_use_double_quant=True,
+    )
+
+    # Load model with appropriate settings for GPU
+    model = AutoModelForCausalLM.from_pretrained(
+        base_model,
+        quantization_config=bnb_config,
+        device_map="auto",
+        trust_remote_code=True,
+    )
+
+    # Prepare for training
+    model = prepare_model_for_kbit_training(model)
+
+    # Apply LoRA
+    peft_config = LoraConfig(
+        r=lora_config["r"],
+        lora_alpha=lora_config["alpha"],
+        lora_dropout=lora_config["dropout"],
+        target_modules=lora_config["target_modules"],
+        bias="none",
+        task_type="CAUSAL_LM",
+    )
+
+    model = get_peft_model(model, peft_config)
+
+    # Log trainable parameters
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    total_params = sum(p.numel() for p in model.parameters())
+    logger.info(
+        f"Trainable params: {trainable_params:,} / {total_params:,} ({100 * trainable_params / total_params:.2f}%)"
+    )
+
+    return model, tokenizer
 
 
 def train_stage(
@@ -572,64 +583,7 @@ def main():
     wandb_run = setup_wandb(config, args.stage)
 
     try:
-        # Create model
-        model, tokenizer = create_model(config)
-
-        # Determine stages to run
-        stages_to_run = []
-        if args.stage == "all":
-            stages_to_run = ["foundation", "reasoning", "voice"]
-        else:
-            stages_to_run = [args.stage]
-
-        # Run training stages
-        last_checkpoint = args.resume_from
-
-        for stage_name in stages_to_run:
-            if shutdown_requested:
-                logger.warning("Shutdown requested, stopping training")
-                break
-
-            stage_config = config.get("training_stages", {}).get(stage_name, {})
-            datasets = stage_config.get("datasets", [])
-
-            # Load datasets
-            train_data = load_stage_datasets(
-                args.data_dir,
-                datasets,
-                config.get("system_prompt", DEFAULT_CONFIG["system_prompt"]),
-            )
-
-            if not train_data:
-                logger.warning(f"No data found for stage '{stage_name}', skipping")
-                continue
-
-            # Train stage
-            checkpoint = train_stage(
-                stage_name=stage_name,
-                model=model,
-                tokenizer=tokenizer,
-                train_data=train_data,
-                config=config,
-                checkpoint_dir=args.checkpoint_dir,
-                resume_from=last_checkpoint,
-            )
-
-            if checkpoint:
-                last_checkpoint = checkpoint
-
-        # Final save
-        if last_checkpoint:
-            final_model_path = os.path.join(args.checkpoint_dir, "final_model")
-            logger.info(f"Saving final model to: {final_model_path}")
-            model.save_pretrained(final_model_path)
-            tokenizer.save_pretrained(final_model_path)
-
-        logger.info("=" * 60)
-        logger.info("Training completed successfully!")
-        logger.info(f"Total duration: {datetime.now() - training_start_time}")
-        logger.info("=" * 60)
-
+        _extracted_from_main_53(config, args, training_start_time)
     except Exception as e:
         logger.error(f"Training failed: {e}")
         raise
@@ -639,6 +593,64 @@ def main():
             import wandb
 
             wandb.finish()
+
+
+# TODO Rename this here and in `main`
+def _extracted_from_main_53(config, args, training_start_time):
+    # Create model
+    model, tokenizer = create_model(config)
+
+    # Determine stages to run
+    stages_to_run = []
+    stages_to_run = (
+        ["foundation", "reasoning", "voice"]
+        if args.stage == "all"
+        else [args.stage]
+    )
+    # Run training stages
+    last_checkpoint = args.resume_from
+
+    for stage_name in stages_to_run:
+        if shutdown_requested:
+            logger.warning("Shutdown requested, stopping training")
+            break
+
+        stage_config = config.get("training_stages", {}).get(stage_name, {})
+        datasets = stage_config.get("datasets", [])
+
+        # Load datasets
+        train_data = load_stage_datasets(
+            args.data_dir,
+            datasets,
+            config.get("system_prompt", DEFAULT_CONFIG["system_prompt"]),
+        )
+
+        if not train_data:
+            logger.warning(f"No data found for stage '{stage_name}', skipping")
+            continue
+
+        if checkpoint := train_stage(
+            stage_name=stage_name,
+            model=model,
+            tokenizer=tokenizer,
+            train_data=train_data,
+            config=config,
+            checkpoint_dir=args.checkpoint_dir,
+            resume_from=last_checkpoint,
+        ):
+            last_checkpoint = checkpoint
+
+    # Final save
+    if last_checkpoint:
+        final_model_path = os.path.join(args.checkpoint_dir, "final_model")
+        logger.info(f"Saving final model to: {final_model_path}")
+        model.save_pretrained(final_model_path)
+        tokenizer.save_pretrained(final_model_path)
+
+    logger.info("=" * 60)
+    logger.info("Training completed successfully!")
+    logger.info(f"Total duration: {datetime.now() - training_start_time}")
+    logger.info("=" * 60)
 
 
 if __name__ == "__main__":

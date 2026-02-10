@@ -99,14 +99,14 @@ ehthumbs.db
 Thumbs.db
 
 # Large data files
-datasets/
-data/
+/datasets/
+/data/
 *.db
 *.sqlite
 *.sqlite3
 
 # Model files (too large for container)
-models/
+/models/
 *.pkl
 *.joblib
 *.h5
@@ -134,9 +134,9 @@ docker-compose*.yml
 .dockerignore
 
 # Monitoring and metrics
-monitoring/
-grafana/
-prometheus/
+/monitoring/
+/grafana/
+/prometheus/
 
 # Backup files
 *.bak
@@ -182,7 +182,9 @@ coverage/
 .eslintcache
 .stylelintcache
 
-# Package manager locks (keep only uv.lock)
+# Package manager locks (explicitly allow uv.lock)
+!uv.lock
+!**/uv.lock
 package-lock.json
 yarn.lock
 Pipfile.lock
