@@ -90,16 +90,6 @@ find = { where = [
 [tool.uv]
 index-strategy = "unsafe-best-match"
 
-[tool.uv.sources]
-torch = { index = "pytorch-cpu" }
-torchvision = { index = "pytorch-cpu" }
-torchaudio = { index = "pytorch-cpu" }
-
-[[tool.uv.index]]
-name = "pytorch-cpu"
-url = "https://download.pytorch.org/whl/cpu"
-explicit = true
-
 [tool.ruff]
 # Exclude Jupyter notebooks from direct linting
 extend-exclude = ["*.ipynb"]

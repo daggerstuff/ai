@@ -45,7 +45,7 @@ build_image() {
     cd "$PROJECT_ROOT"
     
     docker build \
-        -f ai/ovh/Dockerfile.training \
+        -f ai/training/ready_packages/platforms/ovh/Dockerfile.training \
         -t "$IMAGE_NAME:$IMAGE_TAG" \
         .
     
@@ -60,8 +60,15 @@ push_image() {
     ovhai registry login
     
     # Tag for OVH registry
-    OVH_REGISTRY=$(ovhai registry url)
-    docker tag "$IMAGE_NAME:$IMAGE_TAG" "$OVH_REGISTRY/$IMAGE_NAME:$IMAGE_TAG"
+    # Registry URL
+    # If OVH_REGISTRY is not set, default to the known working registry for this tenant
+    if [ -z "${OVH_REGISTRY:-}" ]; then
+         # Fallback to Tenant ID based registry
+         # Tenant ID: 49c5c3226340459a8dea2fcfd6237e7f
+         OVH_REGISTRY="registry.us-east-va.ai.cloud.ovh.us/49c5c3226340459a8dea2fcfd6237e7f"
+         log_warn "Could not auto-detect registry, using default: $OVH_REGISTRY"
+    fi
+    # docker tag "$IMAGE_NAME:$IMAGE_TAG" "$OVH_REGISTRY/$IMAGE_NAME:$IMAGE_TAG"
     
     # Push
     docker push "$OVH_REGISTRY/$IMAGE_NAME:$IMAGE_TAG"
@@ -72,7 +79,7 @@ push_image() {
 # Run training job
 run_job() {
     local stage="${1:-all}"
-    local flavor="${2:-gpu_nvidia_l40s_1}"
+    local flavor="${2:-l40s-1-gpu}"
     
     log_info "Launching training job for stage: $stage"
     log_info "GPU flavor: $flavor"
@@ -91,7 +98,14 @@ run_job() {
     esac
     
     # Get OVH registry URL
-    OVH_REGISTRY=$(ovhai registry url)
+    if [ -z "${OVH_REGISTRY:-}" ]; then
+         if command -v ovhai &> /dev/null && ovhai registry url &> /dev/null; then
+             OVH_REGISTRY=$(ovhai registry url)
+         else
+             # Fallback
+             OVH_REGISTRY="registry.us-east-va.ai.cloud.ovh.us/49c5c3226340459a8dea2fcfd6237e7f"
+         fi
+    fi
     
     # Environment variables
     local env_args=""
@@ -173,7 +187,7 @@ usage() {
     echo "  push                  Push image to OVH registry"
     echo "  run [stage] [flavor]  Launch training job"
     echo "                        stage: all, foundation, reasoning, voice (default: all)"
-    echo "                        flavor: gpu_nvidia_l40s_1, gpu_nvidia_h100_1 (default: l40s)"
+    echo "                        flavor: l40s-1-gpu, l4-1-gpu (default: l40s-1-gpu)"
     echo "  list                  List running/completed jobs"
     echo "  logs <job-id>         Show job logs (follow mode)"
     echo "  stop <job-id>         Stop a running job"

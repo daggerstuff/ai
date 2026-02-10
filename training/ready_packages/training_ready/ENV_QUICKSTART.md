@@ -18,6 +18,7 @@ cd ai/training_ready
 ```
 
 Or manually:
+
 ```bash
 # CPU-only torch (for local)
 uv pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
@@ -36,6 +37,7 @@ export S3_BUCKET="your-bucket-name"
 ```
 
 Or use AWS CLI:
+
 ```bash
 aws configure
 ```
@@ -65,21 +67,25 @@ huggingface-cli login
 ## Verification
 
 ### Test Torch
+
 ```bash
 uv run python3 -c "import torch; print(f'Torch {torch.__version__} - CPU: {not torch.cuda.is_available()}')"
 ```
 
 ### Test S3 Access
+
 ```bash
 python3 -c "import boto3; s3 = boto3.client('s3'); print('S3 buckets:', [b['Name'] for b in s3.list_buckets()['Buckets']])"
 ```
 
 ### Test HuggingFace
+
 ```bash
 uv run python3 -c "from datasets import load_dataset; print('HF available')"
 ```
 
 ### Test Kaggle
+
 ```bash
 python3 -c "import kaggle; print('Kaggle available')"
 ```
@@ -102,11 +108,13 @@ export HF_TOKEN="..."
 ## Running Scripts
 
 ### With uv (Recommended)
+
 ```bash
 uv run python3 scripts/prepare_training_data.py --all
 ```
 
 ### Direct Python
+
 ```bash
 python3 scripts/prepare_training_data.py --all
 ```
@@ -114,20 +122,24 @@ python3 scripts/prepare_training_data.py --all
 ## Common Issues
 
 ### Torch not found
+
 - Use `uv run` to ensure correct environment
 - Or install system-wide: `uv pip install --system torch ...`
 
 ### AWS credentials not found
+
 - Set environment variables
 - Or use `aws configure`
 - Or use IAM role (on EC2)
 
 ### Kaggle API errors
+
 - Verify `~/.kaggle/kaggle.json` exists
 - Check file permissions: `chmod 600 ~/.kaggle/kaggle.json`
 - Verify API key is valid
 
 ### S3 permission errors
+
 - Verify IAM policy allows S3 read/write
 - Check bucket name is correct
 - Verify region matches bucket region
@@ -135,18 +147,22 @@ python3 scripts/prepare_training_data.py --all
 ## Dependencies List
 
 ### Core
+
 - `torch>=2.0.0` (CPU or GPU)
 - `torchvision`
 - `torchaudio`
 
 ### Data Sources
+
 - `datasets>=2.14.0` (HuggingFace)
 - `kaggle>=1.5.0` (Kaggle API)
 
 ### Cloud Storage
+
 - `boto3>=1.26.0` (AWS S3)
 
 ### Utilities
+
 - `requests>=2.28.0` (HTTP downloads)
 - `numpy>=1.24.0`
 - `pandas>=2.0.0`
@@ -154,8 +170,7 @@ python3 scripts/prepare_training_data.py --all
 ## Project Dependencies
 
 The main project `pyproject.toml` includes many of these. Check:
+
 ```bash
 uv pip list | grep -E "torch|datasets|kaggle|boto3"
 ```
-
-

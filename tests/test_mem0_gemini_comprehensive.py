@@ -2,17 +2,18 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from memory.mem0_gemini import (
-    AgentContext,
+from ai.memory.mem0_gemini.agent_memory_tools import AgentContext
+from ai.memory.mem0_gemini.manager import GeminiMem0Config, GeminiMem0Manager
+from ai.memory.mem0_gemini.memory_ingestion_config import (
+    CrisisDetector,
+    PIIFilter,
+    SpeculationFilter,
+)
+from ai.memory.mem0_gemini.multi_agent_memory import (
     AgentIdentity,
     AgentRole,
     CollaborationContext,
-    CrisisDetector,
-    GeminiMem0Config,
-    GeminiMem0Manager,
     MultiAgentMemory,
-    PIIFilter,
-    SpeculationFilter,
 )
 
 
@@ -31,9 +32,9 @@ def mock_mem0_client():
 
 
 def test_pii_filter():
-    filter = PIIFilter()
+    pii_filter = PIIFilter()
     text = "Call me at 650-555-0199 or visit 123 Main St. My SSN is 000-11-2222."
-    filtered = filter.filter_for_storage(text)
+    filtered = pii_filter.filter_for_storage(text)
     assert "[REDACTED]" in filtered
     assert "000-11-2222" not in filtered
 

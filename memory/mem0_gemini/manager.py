@@ -258,11 +258,16 @@ class GeminiMem0Manager:
             "response": response_text,
             "latency_ms": latency,
             "memories_used": len(memories),
+            "memories_content": [m.get("memory") or m.get("content", "") for m in memories],
             "user_id": uid,
             "crisis_detected": crisis_severity != "none",
             "crisis_severity": crisis_severity,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
+
+    def search_memories(self, query: str, user_id: str) -> List[Dict[str, Any]]:
+        """Public alias for memory search."""
+        return self._search_memories(query, user_id)
 
     def _search_memories(self, query: str, user_id: str) -> List[Dict[str, Any]]:
         """Search for relevant memories."""
@@ -439,6 +444,56 @@ class GeminiMem0Manager:
             return self.memory.get(memory_id=memory_id)
         except Exception as e:
             logger.error(f"Error retrieving memory {memory_id}: {e}")
+            return None
+
+    def add_memory(
+        self,
+        content: str,
+        user_id: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        category: Optional[str] = None,
+    ) -> Optional[str]:
+        """
+        Add a single memory with PII and speculation filtering.
+
+        Args:
+            content: Content to store
+            user_id: User identifier
+            metadata: Optional metadata
+            category: Optional category
+
+        Returns:
+            Memory ID if stored, None if filtered out or error
+        """
+        try:
+            filtered_content = self._filter_for_storage(content)
+            if not filtered_content:
+                logger.warning("Memory addition rejected: content failed filtering")
+                return None
+
+            full_metadata = metadata or {}
+            if category:
+                full_metadata["category"] = category
+
+            # Add timestamp if not present
+            if "timestamp" not in full_metadata:
+                full_metadata["timestamp"] = datetime.now(timezone.utc).isoformat()
+
+            result = self.memory.add(
+                filtered_content,
+                user_id=user_id,
+                metadata=full_metadata,
+            )
+
+            # Extract memory ID - Mem0 returns dict with 'results' list
+            if isinstance(result, dict) and "results" in result and result["results"]:
+                return result["results"][0].get("id", "stored")
+            elif isinstance(result, list) and result:
+                return result[0].get("id", "stored")
+            return "stored"
+
+        except Exception as e:
+            logger.error(f"Error adding memory: {e}")
             return None
 
 

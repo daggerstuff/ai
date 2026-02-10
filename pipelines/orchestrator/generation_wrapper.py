@@ -1,3 +1,4 @@
+import contextlib
 import json
 import logging
 import subprocess
@@ -82,19 +83,16 @@ class GenerationWrapper:
         port = 8000
 
         # Check if port is open
-        try:
+        with contextlib.suppress(Exception):
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 s.settimeout(1)
                 result = s.connect_ex((host, port))
                 if result == 0:
                     logger.info("NeMo service is already running on port 8000.")
                     return True
-        except Exception:
-            pass
-
         logger.info("NeMo service not found. Attempting to start via Docker Compose...")
 
-        nemo_quickstart_dir = Path("/home/vivi/nemo-microservices-quickstart_v25.12")
+        nemo_quickstart_dir = Path("/home/vivi/pixelated/ai/nemo")
         compose_file = (
             nemo_quickstart_dir / "docker-compose.yaml"
             if (nemo_quickstart_dir / "docker-compose.yaml").exists()
@@ -164,8 +162,8 @@ class GenerationWrapper:
 
             # Wait for service to be ready
             logger.info("Waiting for NeMo service to become ready...")
-            for i in range(120):  # Wait up to 4 minutes (increased for full stack)
-                try:
+            for _ in range(120):
+                with contextlib.suppress(Exception):
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                         s.settimeout(1)
                         if s.connect_ex((host, port)) == 0:
@@ -174,8 +172,6 @@ class GenerationWrapper:
                             )
                             time.sleep(10)  # Give app time to initialize
                             return True
-                except Exception:
-                    pass
                 time.sleep(2)
 
             logger.error("NeMo service failed to become ready within timeout.")
@@ -220,31 +216,35 @@ class GenerationWrapper:
             return True
 
         try:
-            service = NeMoDataDesignerService()
-            logger.info("Triggering NeMo Data Designer service...")
-            result = service.generate_therapeutic_dataset(
-                num_samples=target_count,
-                include_demographics=True,
-                include_symptoms=True,
-                include_treatments=True,
-                include_outcomes=True,
-            )
-
-            # Save to disk
-            data = result.get("data", [])
-            with open(output_file, "w") as f:
-                if isinstance(data, list):
-                    for record in data:
-                        f.write(json.dumps(record) + "\n")
-                else:
-                    logger.error(f"Unexpected data format from NeMo: {type(data)}")
-                    return False
-
-            logger.info(f"Saved {len(data)} NeMo samples to {output_file}")
-            return True
+            return self._extracted_from_ensure_nemo_synthetic_33(target_count, output_file)
         except Exception as e:
             logger.error(f"NeMo generation failed: {e}")
             return False
+
+    # TODO Rename this here and in `ensure_nemo_synthetic`
+    def _extracted_from_ensure_nemo_synthetic_33(self, target_count, output_file):
+        service = NeMoDataDesignerService()
+        logger.info("Triggering NeMo Data Designer service...")
+        result = service.generate_therapeutic_dataset(
+            num_samples=target_count,
+            include_demographics=True,
+            include_symptoms=True,
+            include_treatments=True,
+            include_outcomes=True,
+        )
+
+        # Save to disk
+        data = result.get("data", [])
+        with open(output_file, "w") as f:
+            if isinstance(data, list):
+                for record in data:
+                    f.write(json.dumps(record) + "\n")
+            else:
+                logger.error(f"Unexpected data format from NeMo: {type(data)}")
+                return False
+
+        logger.info(f"Saved {len(data)} NeMo samples to {output_file}")
+        return True
 
     def ensure_edge_cases(self, count: int = 10000) -> bool:
         """
@@ -278,9 +278,7 @@ class GenerationWrapper:
         ]
 
         try:
-            logger.info(f"Running command: {' '.join(cmd)}")
-            subprocess.check_call(cmd, cwd=self.workspace_root)
-            return True
+            return self._extracted_from_ensure_transcripts_extraction_33(cmd)
         except subprocess.CalledProcessError as e:
             logger.error(f"Edge case generation failed check_call: {e}")
             return False
@@ -321,9 +319,7 @@ class GenerationWrapper:
         ]
 
         try:
-            logger.info(f"Running command: {' '.join(cmd)}")
-            subprocess.check_call(cmd, cwd=self.workspace_root)
-            return True
+            return self._extracted_from_ensure_transcripts_extraction_33(cmd)
         except subprocess.CalledProcessError as e:
             logger.error(f"Long running extraction failed: {e}")
             return False
@@ -338,9 +334,7 @@ class GenerationWrapper:
 
         cmd = ["uv", "run", "python", str(script_path)]
         try:
-            logger.info(f"Running command: {' '.join(cmd)}")
-            subprocess.check_call(cmd, cwd=self.workspace_root)
-            return True
+            return self._extracted_from_ensure_transcripts_extraction_33(cmd)
         except Exception as e:
             logger.error(f"Hydration failed: {e}")
             return False
@@ -391,27 +385,31 @@ class GenerationWrapper:
             return False
 
         try:
-            # Configure storage to go into the training ready area
-            storage_path = (
-                self.workspace_root
-                / "ai/training/ready_packages/datasets/cache/local/journal_research"
-            )
-            config = {"acquisition": {"storage_base_path": str(storage_path)}}
-
-            executor = WorkflowExecutor(config=config, dry_run=False, interactive=False)
-            search_keywords = {
-                "therapeutic": keywords,
-                "dataset": keywords,
-            }
-            # This triggers discovery, evaluation, acquisition, and integration
-            executor.execute_workflow(
-                search_keywords=search_keywords,
-                target_sources=["pubmed", "doaj"],
-            )
-            return True
+            return self._extracted_from_ensure_journal_research_24(keywords)
         except Exception as e:
             logger.error(f"Journal research workflow failed: {e}")
             return False
+
+    # TODO Rename this here and in `ensure_journal_research`
+    def _extracted_from_ensure_journal_research_24(self, keywords):
+        # Configure storage to go into the training ready area
+        storage_path = (
+            self.workspace_root
+            / "ai/training/ready_packages/datasets/cache/local/journal_research"
+        )
+        config = {"acquisition": {"storage_base_path": str(storage_path)}}
+
+        executor = WorkflowExecutor(config=config, dry_run=False, interactive=False)
+        search_keywords = {
+            "therapeutic": keywords,
+            "dataset": keywords,
+        }
+        # This triggers discovery, evaluation, acquisition, and integration
+        executor.execute_workflow(
+            search_keywords=search_keywords,
+            target_sources=["pubmed", "doaj"],
+        )
+        return True
 
     def ensure_books_extraction(self) -> bool:
         """
@@ -433,9 +431,7 @@ class GenerationWrapper:
         ]
 
         try:
-            logger.info(f"Running command: {' '.join(cmd)}")
-            subprocess.check_call(cmd, cwd=self.workspace_root)
-            return True
+            return self._extracted_from_ensure_transcripts_extraction_33(cmd)
         except subprocess.CalledProcessError as e:
             logger.error(f"Book extraction failed: {e}")
             return False
@@ -463,15 +459,19 @@ class GenerationWrapper:
         ]
 
         try:
-            logger.info(f"Running command: {' '.join(cmd)}")
-            subprocess.check_call(cmd, cwd=self.workspace_root)
-            return True
+            return self._extracted_from_ensure_transcripts_extraction_33(cmd)
         except subprocess.CalledProcessError as e:
             logger.error(f"Transcript extraction failed: {e}")
             return False
         except Exception as e:
             logger.error(f"Transcript extraction failed: {e}")
             return False
+
+    # TODO Rename this here and in `ensure_edge_cases`, `ensure_long_running_extraction`, `ensure_hydration`, `ensure_books_extraction` and `ensure_transcripts_extraction`
+    def _extracted_from_ensure_transcripts_extraction_33(self, cmd):
+        logger.info(f"Running command: {' '.join(cmd)}")
+        subprocess.check_call(cmd, cwd=self.workspace_root)
+        return True
 
     def run_all_checks(self) -> None:
         """Run all generation checks in sequence."""

@@ -2,14 +2,14 @@
 # Optimized for production deployment with security and performance
 
 # Build arguments
-ARG PYTHON_VERSION=3.11
+ARG BASE_IMAGE=nvcr.io/nvidia/pytorch:26.01-py3
 ARG BUILD_DATE
 ARG GIT_COMMIT
 ARG GIT_BRANCH
 ARG VERSION
 
 # Base image for Python dependencies
-FROM python:${PYTHON_VERSION}-slim as python-base
+FROM ${BASE_IMAGE} AS python-base
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -18,17 +18,21 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1
 
 # Install system dependencies
+# NVIDIA image is Ubuntu-based, so apt-get is correct
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     git \
     && rm -rf /var/lib/apt/lists/*
 
+# Create non-root user
+
+
 # Install uv for faster Python package management
 RUN pip install uv
 
 # Development stage
-FROM python-base as development
+FROM python-base AS development
 
 WORKDIR /app
 
@@ -36,13 +40,15 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies with uv
+# system base image has torch, but uv might try to reinstall if not careful.
+# For now, we rely on uv sync to ensure consistent environment in .venv
 RUN uv sync --dev
 
 # Copy source code
 COPY . .
 
 # Production dependencies stage
-FROM python-base as deps
+FROM python-base AS deps
 
 WORKDIR /app
 
@@ -53,16 +59,22 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --no-dev
 
 # Production stage
-FROM python:${PYTHON_VERSION}-slim as production
+FROM ${BASE_IMAGE} AS production
+
+# Redeclare build arguments for this stage
+ARG BUILD_DATE
+ARG GIT_COMMIT
+ARG GIT_BRANCH
+ARG VERSION
 
 # Build metadata
 LABEL org.opencontainers.image.title="Pixelated Empathy AI" \
-      org.opencontainers.image.description="AI-powered empathetic conversation system" \
-      org.opencontainers.image.vendor="Pixelated Team" \
-      org.opencontainers.image.created="${BUILD_DATE}" \
-      org.opencontainers.image.revision="${GIT_COMMIT}" \
-      org.opencontainers.image.version="${VERSION}" \
-      org.opencontainers.image.source="https://github.com/pixelated/empathy-ai"
+    org.opencontainers.image.description="AI-powered empathetic conversation system" \
+    org.opencontainers.image.vendor="Pixelated Team" \
+    org.opencontainers.image.created="${BUILD_DATE}" \
+    org.opencontainers.image.revision="${GIT_COMMIT}" \
+    org.opencontainers.image.version="${VERSION}" \
+    org.opencontainers.image.source="https://github.com/pixelated/empathy-ai"
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1 \
@@ -81,23 +93,23 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # Create non-root user
-RUN groupadd -r appuser && useradd -r -g appuser -u 1000 appuser
+
 
 # Create application directory
 WORKDIR /app
 
 # Copy virtual environment from deps stage
-COPY --from=deps --chown=appuser:appuser /app/.venv /app/.venv
+COPY --from=deps --chown=ubuntu:ubuntu /app/.venv /app/.venv
 
 # Copy application code
-COPY --chown=appuser:appuser . .
+COPY --chown=ubuntu:ubuntu . .
 
 # Create necessary directories
 RUN mkdir -p /app/logs /app/data /app/tmp \
-    && chown -R appuser:appuser /app
+    && chown -R ubuntu:ubuntu /app
 
 # Switch to non-root user
-USER appuser
+USER ubuntu
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
@@ -110,11 +122,11 @@ EXPOSE 8000
 CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
 
 # Development override
-FROM development as dev
+FROM development AS dev
 USER root
 RUN apt-get update && apt-get install -y \
     vim \
     htop \
     && rm -rf /var/lib/apt/lists/*
-USER appuser
+USER ubuntu
 CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
