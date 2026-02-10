@@ -1,0 +1,542 @@
+{
+  "inventory_generated_at": "2026-02-10T20:14:00Z",
+  "summary": {
+    "total_sources_identified": 0,
+    "total_files": 0,
+    "total_size_bytes": 0,
+    "sources_by_author": {}
+  },
+  "sources": {
+    "heidi_priebe": {
+      "author": "Heidi Priebe",
+      "description": "CPTSD-focused content on survival lies, toxic shame, and procrastination cycles",
+      "files": [
+        {
+          "key": "datasets/gdrive/tier4_voice_persona/Heidi Priebe/10 'Survival Lies' You May Tell If You Have CPTSD.txt",
+          "size_bytes": 50508,
+          "size_formatted": "49.32 KB",
+          "topics": ["survival lies", "cptsd", "self-deception patterns"]
+        },
+        {
+          "key": "datasets/gdrive/tier4_voice_persona/Heidi Priebe/CPTSD： Breaking The Toxic Shame⧸Procrastination Cycle With Self-Compassion.txt",
+          "size_bytes": 40166,
+          "size_formatted": "39.23 KB",
+          "topics": ["toxic shame", "procrastination", "self-compassion", "cptsd"]
+        }
+      ],
+      "total_files": 2,
+      "total_size_bytes": 90674,
+      "total_size_formatted": "88.55 KB"
+    },
+    "patrick_teahan": {
+      "author": "Patrick Teahan",
+      "description": "CPTSD shame examples and trauma recovery content",
+      "files": [
+        {
+          "key": "datasets/gdrive/tier4_voice_persona/Patrick Teahan /9 Random Examples of Shame from PTSD & CPTSD.txt",
+          "size_bytes": 39656,
+          "size_formatted": "38.73 KB",
+          "topics": ["shame", "ptsd", "cptsd", "shame examples"]
+        }
+      ],
+      "total_files": 1,
+      "total_size_bytes": 39656,
+      "total_size_formatted": "38.73 KB"
+    },
+    "tim_fletcher": {
+      "author": "Tim Fletcher",
+      "description": "Extensive complex trauma content with #complextrauma tag",
+      "files": [
+        {
+          "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/'Big T' vs 'Little t' Trauma | Understanding Trauma - Part 28 | #complextrauma.txt",
+          "size_bytes": 10337,
+          "size_formatted": "10.09 KB",
+          "topics": ["big t trauma", "little t trauma", "trauma types", "complex trauma"]
+        },
+        {
+          "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Betrayal Trauma | Understanding Trauma - Part 13 | #complextrauma.txt",
+          "size_bytes": 40652,
+          "size_formatted": "39.70 KB",
+          "topics": ["betrayal trauma", "complex trauma", "trust issues"]
+        },
+        {
+          "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Depletion and Self-Care | Re-Parenting - Part 89 | #complextrauma.txt",
+          "size_bytes": 39413,
+          "size_formatted": "38.49 KB",
+          "topics": ["depletion", "self-care", "re-parenting", "complex trauma"]
+        },
+        {
+          "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Healing | Understanding Trauma - Part 10 | #complextrauma.txt",
+          "size_bytes": 51084,
+          "size_formatted": "49.89 KB",
+          "topics": ["healing", "trauma recovery", "complex trauma"]
+        },
+        {
+          "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Recovery and Letting Go | Re-Parenting - Part 93 | #complextrauma.txt",
+          "size_bytes": 43933,
+          "size_formatted": "42.90 KB",
+          "topics": ["recovery", "letting go", "re-parenting", "complex trauma"]
+        },
+        {
+          "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Sex | Re-Parenting - Part 25 | #complextrauma.txt",
+          "size_bytes": 40261,
+          "size_formatted": "39.32 KB",
+          "topics": ["sexuality", "re-parenting", "complex trauma", "intimacy"]
+        },
+        {
+          "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/These 12 Needs Are Non-Negotiable for a Healthy & Whole Life | #complextrauma #whatstuck.txt",
+          "size_bytes": 26065,
+          "size_formatted": "25.46 KB",
+          "topics": ["needs", "healthy life", "complex trauma", "recovery"]
+        },
+        {
+          "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Trauma Bonding | Understanding Trauma - Part 31 | #complextrauma.txt",
+          "size_bytes": 40514,
+          "size_formatted": "39.57 KB",
+          "topics": ["trauma bonding", "complex trauma", "attachment"]
+        }
+      ],
+      "total_files": 8,
+      "total_size_bytes": 292259,
+      "total_size_formatted": "285.41 KB"
+    },
+    "processed_transcripts": {
+      "author": "Various (Processed)",
+      "description": "Already processed complex trauma transcripts in pixelated-v2 dataset",
+      "files": [
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned__big_t__vs__little_t__trauma_|_understanding_trauma-part_28_|_#complextrauma.txt",
+          "size_bytes": 10725,
+          "size_formatted": "10.47 KB",
+          "topics": ["big t trauma", "little t trauma", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_anger_and_complex_trauma-part_11⧸11-gaslighting_main.txt",
+          "size_bytes": 25789,
+          "size_formatted": "25.18 KB",
+          "topics": ["anger", "complex trauma", "gaslighting"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_anger_and_complex_trauma-part_1⧸11-intro_main.txt",
+          "size_bytes": 20290,
+          "size_formatted": "19.82 KB",
+          "topics": ["anger", "complex trauma", "introduction"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_anger_and_complex_trauma-part_9⧸11-characteristics_of_abusers_main.txt",
+          "size_bytes": 18275,
+          "size_formatted": "17.85 KB",
+          "topics": ["anger", "complex trauma", "abuser characteristics"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_are_you_seeking_approval_or_attention?-complex_trauma_prisons.txt",
+          "size_bytes": 37010,
+          "size_formatted": "36.14 KB",
+          "topics": ["approval seeking", "attention seeking", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_being_a_chameleon:_complex_trauma_s_effect_on_your_sense_of_self.txt",
+          "size_bytes": 9903,
+          "size_formatted": "9.67 KB",
+          "topics": ["chameleon", "sense of self", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_being_your_own_dark_cloud:_how_complex_trauma_can_cause_you_to_fall_into_a_negative_mindset.txt",
+          "size_bytes": 18500,
+          "size_formatted": "18.07 KB",
+          "topics": ["negative mindset", "complex trauma", "depression"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_betrayal_trauma_|_understanding_trauma-part_13_|_#complextrauma_main.txt",
+          "size_bytes": 25042,
+          "size_formatted": "24.46 KB",
+          "topics": ["betrayal trauma", "complex trauma", "trust"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_brain_fog_and_complex_trauma.txt",
+          "size_bytes": 15985,
+          "size_formatted": "15.61 KB",
+          "topics": ["brain fog", "complex trauma", "cognitive issues"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_codependency_and_complex_trauma-part_2⧸10-narcissist_or_co-narcissist?_main.txt",
+          "size_bytes": 20395,
+          "size_formatted": "19.92 KB",
+          "topics": ["codependency", "complex trauma", "narcissism"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_codependency_and_complex_trauma-part_7⧸10-attachment_issues_main.txt",
+          "size_bytes": 24038,
+          "size_formatted": "23.48 KB",
+          "topics": ["codependency", "complex trauma", "attachment issues"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_complex_trauma_explained:_why_fear_controls_our_responses.txt",
+          "size_bytes": 20654,
+          "size_formatted": "20.17 KB",
+          "topics": ["complex trauma", "fear", "response patterns"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_depletion_and_self-care_|_re-parenting-part-89_|_#complextrauma.txt",
+          "size_bytes": 39986,
+          "size_formatted": "39.05 KB",
+          "topics": ["depletion", "self-care", "re-parenting", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_depression_&_the_fear_of_hope:_complex_trauma_s_double_bind.txt",
+          "size_bytes": 15811,
+          "size_formatted": "15.44 KB",
+          "topics": ["depression", "fear of hope", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_healing_|_understanding_trauma-part-10_|_#complextrauma.txt",
+          "size_bytes": 52173,
+          "size_formatted": "50.95 KB",
+          "topics": ["healing", "trauma recovery", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_complex_trauma_affects_emotional_resilience_and_leads_to_long-term_consequences.txt",
+          "size_bytes": 24569,
+          "size_formatted": "23.99 KB",
+          "topics": ["emotional resilience", "long-term consequences", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_complex_trauma_leads_to_a_hypersensitivity_to_disrespect_and_criticism.txt",
+          "size_bytes": 12332,
+          "size_formatted": "12.04 KB",
+          "topics": ["hypersensitivity", "disrespect", "criticism", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_complex_trauma_messes_with_relationships_|_the_characteristics_of_complex_trauma-part-10.txt",
+          "size_bytes": 41180,
+          "size_formatted": "40.22 KB",
+          "topics": ["relationships", "complex trauma characteristics"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_do_people_become_so_angry?-complex_trauma.txt",
+          "size_bytes": 7899,
+          "size_formatted": "7.71 KB",
+          "topics": ["anger", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_does_complex_trauma_cause_people_to_confuse_validation_with_love?_|_with_@lisamtickel.txt",
+          "size_bytes": 14389,
+          "size_formatted": "14.05 KB",
+          "topics": ["validation", "love", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_narcissistic_relationships_create_complex_trauma.txt",
+          "size_bytes": 13998,
+          "size_formatted": "13.67 KB",
+          "topics": ["narcissistic relationships", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_to_set_boundaries_and_stop_people_pleasing-boundaries_and_complex_trauma-part-2⧸12_main.txt",
+          "size_bytes": 17764,
+          "size_formatted": "17.35 KB",
+          "topics": ["boundaries", "people pleasing", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_to_spot_a_narcissist-18_characteristics_of_narcissism_|_complex_trauma_recovery.txt",
+          "size_bytes": 10267,
+          "size_formatted": "10.03 KB",
+          "topics": ["narcissist spotting", "narcissism characteristics", "complex trauma recovery"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_recovery_and_letting_go_|_re-parenting-part-93_|_#complextrauma.txt",
+          "size_bytes": 44602,
+          "size_formatted": "43.56 KB",
+          "topics": ["recovery", "letting go", "re-parenting", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_relationships_and_complex_trauma-part-11⧸11-when_to_end_one_main.txt",
+          "size_bytes": 23488,
+          "size_formatted": "22.94 KB",
+          "topics": ["relationships", "ending relationships", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_relationships_and_complex_trauma-part-2⧸11-family_roles-part-1⧸2_main.txt",
+          "size_bytes": 20986,
+          "size_formatted": "20.49 KB",
+          "topics": ["relationships", "family roles", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_set_boundaries_and_stop_people_pleasing:_the_subjugation_life_trap-complex_trauma_prisons.txt",
+          "size_bytes": 38671,
+          "size_formatted": "37.77 KB",
+          "topics": ["boundaries", "people pleasing", "subjugation", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_sex_|_re-parenting-part-25_|_#complextrauma.txt",
+          "size_bytes": 40960,
+          "size_formatted": "40.00 KB",
+          "topics": ["sexuality", "re-parenting", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_sexuality_as_love-complex_trauma_prisons.txt",
+          "size_bytes": 40720,
+          "size_formatted": "39.77 KB",
+          "topics": ["sexuality", "love", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-1⧸6-what_is_shame?_main.txt",
+          "size_bytes": 22878,
+          "size_formatted": "22.34 KB",
+          "topics": ["shame", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-2⧸6-unhealthy_solutions_main.txt",
+          "size_bytes": 23776,
+          "size_formatted": "23.22 KB",
+          "topics": ["shame", "unhealthy solutions", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-2⧸7-unhealthy_solutions-repeat_main.txt",
+          "size_bytes": 22641,
+          "size_formatted": "22.11 KB",
+          "topics": ["shame", "unhealthy solutions", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-3⧸6_main.txt",
+          "size_bytes": 23479,
+          "size_formatted": "22.93 KB",
+          "topics": ["shame", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-4⧸6-shame_test_main.txt",
+          "size_bytes": 21163,
+          "size_formatted": "20.67 KB",
+          "topics": ["shame", "shame test", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-5⧸6_main.txt",
+          "size_bytes": 22396,
+          "size_formatted": "21.87 KB",
+          "topics": ["shame", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-6⧸6-healing_main.txt",
+          "size_bytes": 22614,
+          "size_formatted": "22.08 KB",
+          "topics": ["shame", "healing", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shedding_the_weight_of_negativity_is_essential_for_freedom_from_complex_trauma.txt",
+          "size_bytes": 14017,
+          "size_formatted": "13.69 KB",
+          "topics": ["negativity", "freedom", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_signs_and_relationship_patterns_of_dating_a_narcissist-codependency_and_complex_trauma-part-3⧸10_main.txt",
+          "size_bytes": 21081,
+          "size_formatted": "20.59 KB",
+          "topics": ["narcissist dating", "relationship patterns", "codependency", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_surviving_vs_thriving:_moving_beyond_survival_mode_after_complex_trauma.txt",
+          "size_bytes": 15162,
+          "size_formatted": "14.81 KB",
+          "topics": ["surviving vs thriving", "survival mode", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_basics_of_anger_issues_and_complex_trauma.txt",
+          "size_bytes": 7251,
+          "size_formatted": "7.08 KB",
+          "topics": ["anger", "complex trauma basics"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_basics_of_complex_trauma:_understanding_the_hidden_impact_of_unmet_needs.txt",
+          "size_bytes": 25495,
+          "size_formatted": "24.90 KB",
+          "topics": ["complex trauma basics", "unmet needs"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_characteristics_of_complex_trauma-part-20-emotional_dysregulation_main.txt",
+          "size_bytes": 24423,
+          "size_formatted": "23.85 KB",
+          "topics": ["emotional dysregulation", "complex trauma characteristics"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_characteristics_of_complex_trauma-part-23-afraid_to_be_a_burden.txt",
+          "size_bytes": 33446,
+          "size_formatted": "32.67 KB",
+          "topics": ["afraid to be a burden", "complex trauma characteristics"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_difference_between_guilt_and_shame-why_it_matters_for_complex_trauma_healing_and_recovery.txt",
+          "size_bytes": 28860,
+          "size_formatted": "28.18 KB",
+          "topics": ["guilt vs shame", "complex trauma healing", "recovery"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_key_to_letting_go-healing_complex_trauma.txt",
+          "size_bytes": 14598,
+          "size_formatted": "14.26 KB",
+          "topics": ["letting go", "healing complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_these_12_needs_are_non-negotiable_for_a_healthy_&_whole_life_|_#complextrauma_#whatstuck.txt",
+          "size_bytes": 26700,
+          "size_formatted": "26.07 KB",
+          "topics": ["needs", "healthy life", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_trauma_bonding_|_understanding_trauma-part-31_|_#complextrauma.txt",
+          "size_bytes": 41283,
+          "size_formatted": "40.32 KB",
+          "topics": ["trauma bonding", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_trust_and_commitment:_the_foundations_of_healing_from_complex_trauma.txt",
+          "size_bytes": 25176,
+          "size_formatted": "24.59 KB",
+          "topics": ["trust", "commitment", "healing complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_what_complex_trauma_does_to_love,_attachment,_and_loyalty.txt",
+          "size_bytes": 9402,
+          "size_formatted": "9.18 KB",
+          "topics": ["love", "attachment", "loyalty", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_what_complex_trauma_really_does_to_your_emotions_|_the_characteristics_of_complex_trauma-part-7.txt",
+          "size_bytes": 41629,
+          "size_formatted": "40.66 KB",
+          "topics": ["emotions", "complex trauma characteristics"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_what_complex_trauma_survivors_need_to_know_about_their_anger.txt",
+          "size_bytes": 12959,
+          "size_formatted": "12.65 KB",
+          "topics": ["anger", "complex trauma survivors"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_why_complex_trauma_survivors_struggle_with_money.txt",
+          "size_bytes": 13422,
+          "size_formatted": "13.11 KB",
+          "topics": ["money", "complex trauma survivors"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_why_procrastination_is_tied_to_complex_trauma_and_how_to_heal_it.txt",
+          "size_bytes": 39017,
+          "size_formatted": "38.10 KB",
+          "topics": ["procrastination", "complex trauma", "healing"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_why_shame_affects_100__of_people_with_complex_trauma.txt",
+          "size_bytes": 9225,
+          "size_formatted": "9.01 KB",
+          "topics": ["shame", "complex trauma"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_'am_i_ever_going_to_heal_from_my_shame?'_|_healing_shame_as_part_of_complex_trauma_recovery.txt",
+          "size_bytes": 33702,
+          "size_formatted": "32.91 KB",
+          "topics": ["shame healing", "complex trauma recovery"]
+        },
+        {
+          "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_'if_you_leave_me,_can_i_come_too?'-codependency_and_complex_trauma-part-1⧸10_main.txt",
+          "size_bytes": 22259,
+          "size_formatted": "21.74 KB",
+          "topics": ["codependency", "complex trauma", "attachment"]
+        }
+      ],
+      "total_files": 50,
+      "total_size_bytes": 1198485,
+      "total_size_formatted": "1.14 MB"
+    },
+    "existing_cptsd_dataset": {
+      "author": "Existing Dataset",
+      "description": "Current CPTSD dataset with 91 examples",
+      "files": [
+        {
+          "key": "datasets/gdrive/processed/edge_cases/cptsd/cptsd_transcripts.jsonl",
+          "size_bytes": 4694831,
+          "size_formatted": "4.48 MB",
+          "topics": ["cptsd", "existing dataset", "91 examples"]
+        }
+      ],
+      "total_files": 1,
+      "total_size_bytes": 4694831,
+      "total_size_formatted": "4.48 MB"
+    }
+  },
+  "topic_coverage": {
+    "emotional_flashbacks": {
+      "covered": false,
+      "sources_needed": ["Heidi Priebe", "Patrick Teahan", "Tim Fletcher"]
+    },
+    "triggers": {
+      "covered": false,
+      "sources_needed": ["Heidi Priebe", "Patrick Teahan", "Tim Fletcher"]
+    },
+    "shame_cycles": {
+      "covered": true,
+      "sources": ["Heidi Priebe", "Patrick Teahan", "Tim Fletcher (processed)"]
+    },
+    "trauma_bonding": {
+      "covered": true,
+      "sources": ["Tim Fletcher", "Tim Fletcher (processed)"]
+    },
+    "betrayal_trauma": {
+      "covered": true,
+      "sources": ["Tim Fletcher", "Tim Fletcher (processed)"]
+    },
+    "survival_mode": {
+      "covered": true,
+      "sources": ["Tim Fletcher (processed)"]
+    },
+    "hypervigilance": {
+      "covered": false,
+      "sources_needed": ["Heidi Priebe", "Patrick Teahan", "Tim Fletcher"]
+    },
+    "dissociation": {
+      "covered": false,
+      "sources_needed": ["Heidi Priebe", "Patrick Teahan", "Tim Fletcher"]
+    },
+    "emotional_dysregulation": {
+      "covered": true,
+      "sources": ["Tim Fletcher (processed)"]
+    },
+    "inner_child": {
+      "covered": false,
+      "sources_needed": ["Heidi Priebe", "Patrick Teahan", "Tim Fletcher"]
+    },
+    "reparenting": {
+      "covered": true,
+      "sources": ["Tim Fletcher", "Tim Fletcher (processed)"]
+    },
+    "codependency": {
+      "covered": true,
+      "sources": ["Tim Fletcher (processed)"]
+    },
+    "narcissistic_abuse": {
+      "covered": true,
+      "sources": ["Tim Fletcher (processed)"]
+    },
+    "boundaries": {
+      "covered": true,
+      "sources": ["Tim Fletcher (processed)"]
+    },
+    "procrastination": {
+      "covered": true,
+      "sources": ["Heidi Priebe", "Tim Fletcher (processed)"]
+    },
+    "toxic_shame": {
+      "covered": true,
+      "sources": ["Heidi Priebe", "Patrick Teahan", "Tim Fletcher (processed)"]
+    }
+  },
+  "recommendations": [
+    "Download and process Heidi Priebe files (2 files, 88.55 KB)",
+    "Download and process Patrick Teahan file (1 file, 38.73 KB)",
+    "Download and process Tim Fletcher raw files (8 files, 285.41 KB)",
+    "Leverage existing 50 processed transcripts (1.14 MB) from pixelated-v2",
+    "Focus on missing topics: emotional flashbacks, triggers, hypervigilance, dissociation, inner child",
+    "Create voice profiles for Heidi Priebe and Patrick Teahan",
+    "Enhance chunking strategy to 6 chunks per file for better context",
+    "Add CPTSD-specific topic tagging to all examples",
+    "Implement crisis signal detection for CPTSD content",
+    "Generate synthetic examples for missing topics"
+  ]
+}
