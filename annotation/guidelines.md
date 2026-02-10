@@ -49,7 +49,7 @@ Annotators must evaluate the **User**'s input for any signs of crisis or risk.
 - **Immediate**: Intervention needed within <1 hour.
 - **Urgent**: Intervention needed within <24 hours.
 - **Soon**: Follow-up needed within <1 week.
-- **Monitor**: Ongoing observation required.
+- **monitor**: Ongoing observation required.
 
 ### Confidence
 

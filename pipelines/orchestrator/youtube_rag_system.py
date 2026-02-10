@@ -100,9 +100,11 @@ class YouTubeRAGSystem:
         model_name: str = "all-MiniLM-L6-v2",
         include_knowledge_sources: bool = True,
     ):
-        self.transcripts_dir = Path("archive/gdrive/raw/backups/homebase/root/pixelated/ai/lightning/pixelated-training/transcripts")
+        self.transcripts_dir = Path(
+            "archive/gdrive/raw/backups/homebase/root/pixelated/ai/lightning/pixelated-training/transcripts"
+        )
         if not self.transcripts_dir.exists():
-             self.transcripts_dir = Path("ai/training_data_consolidated/transcripts") # Fallback
+            self.transcripts_dir = Path("ai/training_data_consolidated/transcripts")  # Fallback
 
         self.index_dir = get_dataset_pipeline_output_root() / "rag_index"
         # Create the full directory path if it doesn't exist
@@ -284,9 +286,7 @@ class YouTubeRAGSystem:
     def _extract_processed_date(self, content: str) -> str:
         """Extract processed date from transcript content"""
         date_match = re.search(r"\*\*Processed:\*\* (.+)", content)
-        return (
-            date_match[1] if date_match else datetime.now(timezone.utc).isoformat()
-        )
+        return date_match[1] if date_match else datetime.now(timezone.utc).isoformat()
 
     def _extract_transcript_content(self, content: str) -> str:
         """Extract actual transcript content"""
@@ -301,9 +301,7 @@ class YouTubeRAGSystem:
         """Extract therapeutic topics from content"""
         content_lower = content.lower()
         topics_found = [
-            topic
-            for topic in self.therapeutic_topics
-            if topic.lower() in content_lower
+            topic for topic in self.therapeutic_topics if topic.lower() in content_lower
         ]
         return list(set(topics_found))
 
@@ -462,7 +460,9 @@ class YouTubeRAGSystem:
             if transcript_file.exists():
                 self._process_single_transcript(video_id, metadata, transcript_file)
 
-    def _process_single_transcript(self, video_id: str, metadata: TranscriptMetadata, transcript_file: Path):
+    def _process_single_transcript(
+        self, video_id: str, metadata: TranscriptMetadata, transcript_file: Path
+    ):
         """Process and index a single transcript file"""
         try:
             with open(transcript_file, "r", encoding="utf-8") as f:
@@ -475,12 +475,14 @@ class YouTubeRAGSystem:
                 entry_id = f"{video_id}_{i}"
                 embedding = self._get_embedding(chunk)
 
-                self.rag_index.append(RAGIndexEntry(
-                    transcript_id=entry_id,
-                    content=chunk,
-                    embedding=embedding,
-                    metadata=metadata,
-                ))
+                self.rag_index.append(
+                    RAGIndexEntry(
+                        transcript_id=entry_id,
+                        content=chunk,
+                        embedding=embedding,
+                        metadata=metadata,
+                    )
+                )
         except Exception as e:
             logger.error(f"Error building index for {video_id}: {str(e)}")
 
@@ -519,12 +521,14 @@ class YouTubeRAGSystem:
 
             # Create entries
             for chunk_content, meta, emb in zip(processed_chunks, chunk_metadatas, embeddings):
-                self.rag_index.append(RAGIndexEntry(
-                    transcript_id=meta["id"],
-                    content=chunk_content,
-                    embedding=emb,
-                    metadata=meta["metadata"],
-                ))
+                self.rag_index.append(
+                    RAGIndexEntry(
+                        transcript_id=meta["id"],
+                        content=chunk_content,
+                        embedding=emb,
+                        metadata=meta["metadata"],
+                    )
+                )
         except Exception as e:
             logger.error(f"Error loading knowledge sources: {e}")
 
@@ -567,7 +571,6 @@ class YouTubeRAGSystem:
                 logger.error(f"Batch encoding failed: {e}")
                 return [None] * len(texts)
         return [None] * len(texts)
-
 
     def _load_knowledge_sources(self) -> List:
         """Load and return knowledge source chunks."""
@@ -649,8 +652,10 @@ class YouTubeRAGSystem:
         top_candidates = similarities[: top_k * 2]
 
         # 4. Apply NVIDIA reranking if enabled
-        if self.use_nvidia and self.retriever_client and (
-            reranked := self._apply_nvidia_reranking(query, top_candidates, top_k)
+        if (
+            self.use_nvidia
+            and self.retriever_client
+            and (reranked := self._apply_nvidia_reranking(query, top_candidates, top_k))
         ):
             return self._format_reranked_results(reranked, top_candidates, dual_context)
 
@@ -714,16 +719,18 @@ class YouTubeRAGSystem:
             content = item.get("text", item.get("document", ""))
             for entry, sim in top_candidates:
                 if entry.content == content:
-                    results.append({
-                        "content": entry.content,
-                        "similarity": float(item.get("relevance_score", sim)),
-                        "metadata": {
-                            **self._get_basic_metadata(entry),
-                            "dual_persona_context": {} if results else dual_context,
-                            "safety_reranked": True,
-                        },
-                        "transcript_id": entry.transcript_id,
-                    })
+                    results.append(
+                        {
+                            "content": entry.content,
+                            "similarity": float(item.get("relevance_score", sim)),
+                            "metadata": {
+                                **self._get_basic_metadata(entry),
+                                "dual_persona_context": {} if results else dual_context,
+                                "safety_reranked": True,
+                            },
+                            "transcript_id": entry.transcript_id,
+                        }
+                    )
                     break
         return results
 
@@ -752,7 +759,6 @@ class YouTubeRAGSystem:
             "therapeutic_approaches": entry.metadata.therapeutic_approaches,
             "summary": entry.metadata.summary,
         }
-
 
     def _keyword_search(self, query: str, top_k: int = 5) -> List[Dict[str, Any]]:
         """Fallback keyword-based search"""

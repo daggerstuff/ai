@@ -105,7 +105,7 @@ grounding, and evidence-based techniques.
 **Datasets** (from manifest):
 
 - CoT reasoning datasets (clinical diagnosis, neurodivergent interactions,
-  mens mental health, etc.)
+  men's mental health, etc.)
 - Professional psychology datasets
 - Reasoning JSON from psychology knowledge base
 

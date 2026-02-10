@@ -7,11 +7,10 @@ and catalogs them with proper metadata for processing.
 """
 
 import json
-import os
+import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Any
-import subprocess
+from typing import Any, Dict, List
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -59,7 +58,7 @@ class CPTSDSourceDownloader:
             # Use ovhai CLI to download
             cmd = ["ovhai", "object", "download", "pixel-data", s3_key, str(local_path)]
 
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, shell=False)
 
             if result.returncode == 0:
                 print(f"✓ Downloaded: {s3_key}")
@@ -194,7 +193,7 @@ class CPTSDSourceDownloader:
 
         catalog["total_size_formatted"] = f"{catalog['total_size_bytes'] / 1024:.2f} KB"
 
-        print(f"\nSource Summary:")
+        print("\nSource Summary:")
         print(f"  Total files: {catalog['total_files']}")
         print(f"  Downloaded: {catalog['downloaded_files']}")
         print(f"  Failed: {catalog['failed_files']}")
@@ -204,9 +203,7 @@ class CPTSDSourceDownloader:
 
     def download_all_sources(self) -> Dict[str, Any]:
         """Download all CPTSD sources."""
-        print(f"\n{'=' * 60}")
-        print("CPTSD Source Downloader")
-        print(f"{'=' * 60}")
+        self._extracted_from_download_all_sources_3("CPTSD Source Downloader")
         print(f"Output directory: {self.output_dir}")
 
         master_catalog = {
@@ -242,9 +239,7 @@ class CPTSDSourceDownloader:
         with open(catalog_path, "w") as f:
             json.dump(master_catalog, f, indent=2)
 
-        print(f"\n{'=' * 60}")
-        print("Download Summary")
-        print(f"{'=' * 60}")
+        self._extracted_from_download_all_sources_3("Download Summary")
         print(f"Total sources: {master_catalog['summary']['total_sources']}")
         print(f"Total files: {master_catalog['summary']['total_files']}")
         print(f"Downloaded: {master_catalog['summary']['total_downloaded']}")
@@ -254,11 +249,17 @@ class CPTSDSourceDownloader:
 
         return master_catalog
 
+    # TODO Rename this here and in `download_all_sources`
+    def _extracted_from_download_all_sources_3(self, arg0):
+        print(f"\n{'=' * 60}")
+        print(arg0)
+        print(f"{'=' * 60}")
+
 
 def main():
     """Main entry point."""
     downloader = CPTSDSourceDownloader()
-    catalog = downloader.download_all_sources()
+    downloader.download_all_sources()
 
     # Print next steps
     print(f"\n{'=' * 60}")

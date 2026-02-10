@@ -78,7 +78,8 @@ class CPTSDSourceCataloger:
                 command,
                 capture_output=True,
                 text=True,
-                check=True
+                check=True,
+                shell=False  # Security: Disable shell execution for list of args
             )
             return result.stdout
         except subprocess.CalledProcessError as e:

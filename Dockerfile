@@ -93,7 +93,7 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # Create non-root user
-
+RUN groupadd -r ubuntu && useradd -r -g ubuntu ubuntu
 
 # Create application directory
 WORKDIR /app
