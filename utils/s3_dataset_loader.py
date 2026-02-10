@@ -381,6 +381,13 @@ class S3DatasetLoader:
 
             bucket, key = self._parse_s3_path(s3_key)
 
+            # Validate that the bucket matches the configured bucket
+            if bucket != self.bucket:
+                raise ValueError(
+                    f"Cross-bucket upload attempted: {bucket} != {self.bucket}. "
+                    "This loader is restricted to the configured bucket."
+                )
+
             logger.info(f"Uploading {local_path} to s3://{bucket}/{key}")
             self.s3_client.upload_file(str(local_path), bucket, key)
         except Exception:
