@@ -126,20 +126,16 @@ class MemoryManager:
             ]
 
             # Convert to MemoryMessage
-            messages = []
-            for m in session_messages[:limit]:
-                # Mem0 returns content directly
-                messages.append(
-                    MemoryMessage(
-                        content=m["content"],
-                        role=MessageRole(m.get("metadata", {}).get("role", "user")),
-                        timestamp=datetime.now(
-                            timezone.utc
-                        ),  # Mem0 might not store exact original timestamp in direct recall
-                        message_id=m.get("id"),
-                        metadata=m.get("metadata", {}),
-                    )
+            messages = [
+                MemoryMessage(
+                    content=m["content"],
+                    role=MessageRole(m.get("metadata", {}).get("role", "user")),
+                    timestamp=datetime.now(timezone.utc),
+                    message_id=m.get("id"),
+                    metadata=m.get("metadata", {}),
                 )
+                for m in session_messages[:limit]
+            ]
             return messages
         except Exception as e:
             logger.error(f"Error retrieving history from Mem0: {e}")
@@ -149,7 +145,7 @@ class MemoryManager:
         # Simplified for now, just adding as a factual memory
         summary_text = f"Session Summary: {args[2] if len(args) > 2 else kwargs.get('summary')}"
         return self.add_message(
-            user_id=args[0] if len(args) > 0 else kwargs.get("user_id"),
+            user_id=args[0] if args else kwargs.get("user_id"),
             session_id=args[1] if len(args) > 1 else kwargs.get("session_id"),
             content=summary_text,
             role=MessageRole.SYSTEM,
@@ -160,10 +156,14 @@ class MemoryManager:
         # Search for emotional state in Mem0
         results = self.client.search("emotional state", user_id=user_id)
         # Filter for current session if possible
-        for r in results:
-            if r.get("metadata", {}).get("session_id") == session_id:
-                return {"content": r["content"], "metadata": r.get("metadata")}
-        return None
+        return next(
+            (
+                {"content": r["content"], "metadata": r.get("metadata")}
+                for r in results
+                if r.get("metadata", {}).get("session_id") == session_id
+            ),
+            None,
+        )
 
     def store_emotional_state(
         self,
@@ -211,7 +211,7 @@ def get_memory_manager(mem0_client: Optional[Memory] = None) -> MemoryManager:
         if not mem0_client:
             # Create a null Memory implementation for development/fallback
             # This ensures the server can always start (AGENTS.md: complete implementation)
-            from ai.api.memory.null_memory import NullMemoryManager
+            from api.memory.null_memory import NullMemoryManager
 
             mem0_client = NullMemoryManager()
             logger.info("Using null Memory implementation for MemoryManager")

@@ -18,12 +18,12 @@ from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
-from ai.api.memory import (
+from api.memory import (
     MemoryType,
     MessageRole,
     get_memory_manager,
 )
-from ai.api.memory.null_memory import NullMemoryManager
+from api.memory.null_memory import NullMemoryManager
 
 logger = logging.getLogger(__name__)
 
@@ -497,7 +497,7 @@ def run_server():
     import uvicorn
 
     port = int(os.environ.get("MEMORY_SERVER_PORT", 5003))
-    uvicorn.run("ai.api.mcp_server.memory_server:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("api.mcp_server.memory_server:app", host="0.0.0.0", port=port, reload=True)
 
 
 if __name__ == "__main__":

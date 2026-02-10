@@ -100,11 +100,13 @@ class YouTubeRAGSystem:
         model_name: str = "all-MiniLM-L6-v2",
         include_knowledge_sources: bool = True,
     ):
-        self.transcripts_dir = Path(
-            "archive/gdrive/raw/backups/homebase/root/pixelated/ai/lightning/pixelated-training/transcripts"
-        )
-        if not self.transcripts_dir.exists():
-            self.transcripts_dir = Path("ai/training_data_consolidated/transcripts")  # Fallback
+        # Use environment variable for transcript directory with project-relative default
+        transcripts_root = os.getenv("YOUTUBE_TRANSCRIPTS_DIR")
+        if transcripts_root:
+            self.transcripts_dir = Path(transcripts_root)
+        else:
+            # Default to project-relative path
+            self.transcripts_dir = Path("ai/training_data_consolidated/transcripts")
 
         self.index_dir = get_dataset_pipeline_output_root() / "rag_index"
         # Create the full directory path if it doesn't exist
