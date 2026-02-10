@@ -7,6 +7,7 @@ It ensures the first sentence doesn't start with common validation clichés.
 
 import logging
 import re
+from typing import ClassVar
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +17,7 @@ class AntiEchoHook:
     Acts as a 'pre-push' (or post-generation) filter to ensure human-like starts.
     """
 
-    ECHO_PATTERNS = [
+    ECHO_PATTERNS: ClassVar[tuple[str, ...]] = (
         r"^i hear (that )?you",
         r"^it sounds like",
         r"^i understand (that )?you",
@@ -30,7 +31,7 @@ class AntiEchoHook:
         r"^thank you for sharing",
         r"^i'm here to help",
         r"^i'm sorry to hear",
-    ]
+    )
 
     def __init__(self, fallback_mode: str = "strip"):
         """
@@ -39,6 +40,8 @@ class AntiEchoHook:
             'flag'  -> Returns a warning (for RL training).
         """
         self.compiled_echoes = [re.compile(p, re.IGNORECASE) for p in self.ECHO_PATTERNS]
+        if fallback_mode not in {"strip", "flag"}:
+            raise ValueError(f"Unsupported fallback_mode: {fallback_mode}")
         self.fallback_mode = fallback_mode
 
     def process_response(self, text: str) -> str:
@@ -49,7 +52,7 @@ class AntiEchoHook:
         current_text = text
 
         while True:
-            sentences = current_text.split(". ", 1)
+            sentences = re.split(r"(?<=[.!?])\s+", current_text, maxsplit=1)
             if not sentences:
                 break
 
@@ -59,12 +62,15 @@ class AntiEchoHook:
             if not is_echo:
                 break
 
+            # Safe logging: mask user content
+            redacted_start = f"{first_sentence[:10]}...[REDACTED]"
+
             if self.fallback_mode == "strip" and len(sentences) > 1:
-                logger.info(f"Anti-Echo Hook: Stripping echo start: '{first_sentence}'")
-                current_text = sentences[1]
+                logger.info(f"Anti-Echo Hook: Stripping echo start: '{redacted_start}'")
+                current_text = sentences[1].lstrip()
             else:
                 logger.warning(
-                    f"Response failed Human-Pivot check (cannot strip further): '{first_sentence}'"
+                    f"Response failed Human-Pivot check (cannot strip further): '{redacted_start}'"
                 )
                 break
         return current_text

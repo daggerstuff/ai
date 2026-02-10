@@ -238,7 +238,7 @@ class GeminiMem0Manager:
             "response": response_text,
             "latency_ms": latency,
             "memories_used": len(memories),
-            "memories_content": [m.get("memory") or m.get("content", "") for m in memories],
+            # "memories_content": [m.get("memory") or m.get("content", "") for m in memories], # Removed for privacy
             "user_id": uid,
             "crisis_detected": crisis_severity != "none",
             "crisis_severity": crisis_severity,
@@ -466,11 +466,14 @@ class GeminiMem0Manager:
             )
 
             # Extract memory ID - Mem0 returns dict with 'results' list
-            if isinstance(result, dict) and "results" in result and result["results"]:
-                return result["results"][0].get("id", "stored")
-            elif isinstance(result, list) and result:
+            if isinstance(result, dict):
+                results = result.get("results") or []
+                if results:
+                    return results[0].get("id", "stored")
+                return None
+            if isinstance(result, list) and result:
                 return result[0].get("id", "stored")
-            return "stored"
+            return None
 
         except Exception as e:
             logger.error(f"Error adding memory: {e}")

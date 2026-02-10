@@ -238,8 +238,10 @@ class BaseAgent(ABC):
                 try:
                     data = json.loads(clean_content[start : end + 1])
                 except json.JSONDecodeError as e:
+                    # Log error safely without exposing full content
                     print(f"[{self.agent_id}] JSON Parse Error: {e}")
-                    print(f"[{self.agent_id}] Raw content: {content}")
+                    safe_snip = content[:100] + "..." if len(content) > 100 else content
+                    print(f"[{self.agent_id}] Raw content snippet: {safe_snip}")
                     raise e
             return AnnotationResult(
                 crisis_label=data.get("crisis_label", 0),
@@ -338,7 +340,7 @@ Focus on:
         return AnnotationResult(
             crisis_label=random.randint(2, 7) if is_crisis else 0,
             crisis_confidence=random.randint(4, 5),
-            primary_emotion=random.choice(["Fear", "Sadness", "Anger", "Anxiety"]),
+            primary_emotion=random.choice(["Fear", "Sadness", "Anger", "Neutral"]),
             emotion_intensity=random.randint(6, 9),
             valence=round(random.uniform(-0.8, -0.2), 2),
             arousal=round(random.uniform(0.6, 0.9), 2),
@@ -427,7 +429,7 @@ Focus on:
         return AnnotationResult(
             crisis_label=random.randint(1, 2) if is_crisis else 0,
             crisis_confidence=random.randint(3, 4),
-            primary_emotion=random.choice(["Sadness", "Joy", "Fear", "Neutral", "Hope"]),
+            primary_emotion=random.choice(["Sadness", "Joy", "Fear", "Neutral", "Anticipation"]),
             emotion_intensity=random.randint(4, 7),
             valence=round(random.uniform(-0.5, 0.5), 2),
             arousal=round(random.uniform(0.3, 0.7), 2),
@@ -521,6 +523,8 @@ class ConsensusOrchestrator:
         """
         Run all agents and build consensus
         """
+        if not self.agents:
+            raise ValueError("No agents registered for consensus")
         results = []
         metadata_list = []
 
@@ -619,7 +623,12 @@ class ConsensusOrchestrator:
     def _calculate_agreement(self, results: List[AnnotationResult]) -> Dict[str, float]:
         """Calculate inter-agent agreement metrics"""
         if len(results) < 2:
-            return {"agreement": 1.0}
+            return {
+                "crisis_agreement": 1.0,
+                "emotion_agreement": 1.0,
+                "intensity_variance": 0.0,
+                "overall_agreement": 1.0,
+            }
 
         # Simple agreement on crisis label
         crisis_labels = [r.crisis_label for r in results]

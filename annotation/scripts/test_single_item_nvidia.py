@@ -14,7 +14,9 @@ def test_single_item_nvidia():
         print("System initialized.")
     except Exception as e:
         print(f"FAILED to initialize: {e}")
-        return
+        import sys
+
+        sys.exit(1)
 
     task = {"task_id": "test_nvidia_1", "data": {"text": "I feel really sad and hopeless."}}
 
