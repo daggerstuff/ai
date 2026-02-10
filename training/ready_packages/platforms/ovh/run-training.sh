@@ -68,7 +68,7 @@ push_image() {
          OVH_REGISTRY="registry.us-east-va.ai.cloud.ovh.us/49c5c3226340459a8dea2fcfd6237e7f"
          log_warn "Could not auto-detect registry, using default: $OVH_REGISTRY"
     fi
-    # docker tag "$IMAGE_NAME:$IMAGE_TAG" "$OVH_REGISTRY/$IMAGE_NAME:$IMAGE_TAG"
+    docker tag "$IMAGE_NAME:$IMAGE_TAG" "$OVH_REGISTRY/$IMAGE_NAME:$IMAGE_TAG"
     
     # Push
     docker push "$OVH_REGISTRY/$IMAGE_NAME:$IMAGE_TAG"
@@ -223,7 +223,7 @@ main() {
             push_image
             ;;
         run)
-            run_job "${2:-all}" "${3:-gpu_nvidia_l40s_1}"
+            run_job "${2:-all}" "${3:-l40s-1-gpu}"
             ;;
         list)
             list_jobs

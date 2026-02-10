@@ -49,8 +49,7 @@ class GenerationWrapper:
         Uses direct python import if available.
         """
         logger.info(
-            f"Ensuring Ultra Nightmare scenarios ("
-            f"count_per_category={count_per_category})..."
+            f"Ensuring Ultra Nightmare scenarios (count_per_category={count_per_category})..."
         )
 
         if not UltraNightmareGenerator:
@@ -69,8 +68,8 @@ class GenerationWrapper:
             # This generates directly to high-intensity edge cases area
             generator.generate_all(count_per_category=count_per_category)
             return True
-        except Exception as e:
-            logger.error(f"Failed to generate Ultra Nightmares: {e}")
+        except Exception:
+            logger.exception("Failed to generate Ultra Nightmares")
             return False
 
     def _ensure_nemo_service_running(self) -> bool:
@@ -106,16 +105,12 @@ class GenerationWrapper:
         try:
             env = os.environ.copy()
             if "NVIDIA_API_KEY" not in env:
-                logger.warning(
-                    "NVIDIA_API_KEY not set, NeMo service might fail to start."
-                )
+                logger.warning("NVIDIA_API_KEY not set, NeMo service might fail to start.")
             else:
                 # Setup required NeMo env vars
                 env["NIM_API_KEY"] = env["NVIDIA_API_KEY"]
                 env["NGC_API_KEY"] = env["NVIDIA_API_KEY"]
-                env["NEMO_MICROSERVICES_IMAGE_REGISTRY"] = (
-                    "nvcr.io/nvidia/nemo-microservices"
-                )
+                env["NEMO_MICROSERVICES_IMAGE_REGISTRY"] = "nvcr.io/nvidia/nemo-microservices"
                 env["NEMO_MICROSERVICES_IMAGE_TAG"] = "25.12"
 
                 # Attempt docker login for NGC
@@ -142,8 +137,7 @@ class GenerationWrapper:
                     # Log warning but proceed, maybe we are already logged in or using
                     # cached image
                     logger.warning(
-                        f"⚠️ Docker login failed (this might differ if already "
-                        f"logged in): {e}"
+                        f"⚠️ Docker login failed (this might differ if already logged in): {e}"
                     )
 
             # Force recreate to ensure fresh state if needed
@@ -167,9 +161,7 @@ class GenerationWrapper:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                         s.settimeout(1)
                         if s.connect_ex((host, port)) == 0:
-                            logger.info(
-                                "NeMo service port is open. Waiting for app init..."
-                            )
+                            logger.info("NeMo service port is open. Waiting for app init...")
                             time.sleep(10)  # Give app time to initialize
                             return True
                 time.sleep(2)
@@ -177,11 +169,11 @@ class GenerationWrapper:
             logger.error("NeMo service failed to become ready within timeout.")
             return False
 
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Failed to start NeMo service: {e}")
+        except subprocess.CalledProcessError:
+            logger.exception("Failed to start NeMo service")
             return False
-        except Exception as e:
-            logger.error(f"Unexpected error starting NeMo service: {e}")
+        except Exception:
+            logger.exception("Unexpected error starting NeMo service")
             return False
 
     def ensure_nemo_synthetic(self, target_count: int = 10000) -> bool:
@@ -203,8 +195,7 @@ class GenerationWrapper:
             return False
 
         output_dir = (
-            self.workspace_root
-            / "ai/training/ready_packages/datasets/cache/local/nemo_synthetic"
+            self.workspace_root / "ai/training/ready_packages/datasets/cache/local/nemo_synthetic"
         )
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / "nemo_synthetic_dataset.jsonl"
@@ -216,13 +207,12 @@ class GenerationWrapper:
             return True
 
         try:
-            return self._extracted_from_ensure_nemo_synthetic_33(target_count, output_file)
-        except Exception as e:
-            logger.error(f"NeMo generation failed: {e}")
+            return self._trigger_nemo_generation(target_count, output_file)
+        except Exception:
+            logger.exception("NeMo generation failed")
             return False
 
-    # TODO Rename this here and in `ensure_nemo_synthetic`
-    def _extracted_from_ensure_nemo_synthetic_33(self, target_count, output_file):
+    def _trigger_nemo_generation(self, target_count, output_file):
         service = NeMoDataDesignerService()
         logger.info("Triggering NeMo Data Designer service...")
         result = service.generate_therapeutic_dataset(
@@ -278,12 +268,12 @@ class GenerationWrapper:
         ]
 
         try:
-            return self._extracted_from_ensure_transcripts_extraction_33(cmd)
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Edge case generation failed check_call: {e}")
+            return self._run_shell_command(cmd)
+        except subprocess.CalledProcessError:
+            logger.exception("Edge case generation failed check_call")
             return False
-        except Exception as e:
-            logger.error(f"Edge case generation failed: {e}")
+        except Exception:
+            logger.exception("Edge case generation failed")
             return False
 
     def ensure_long_running_extraction(self) -> bool:
@@ -319,9 +309,9 @@ class GenerationWrapper:
         ]
 
         try:
-            return self._extracted_from_ensure_transcripts_extraction_33(cmd)
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Long running extraction failed: {e}")
+            return self._run_shell_command(cmd)
+        except subprocess.CalledProcessError:
+            logger.exception("Long running extraction failed")
             return False
 
     def ensure_hydration(self) -> bool:
@@ -334,9 +324,9 @@ class GenerationWrapper:
 
         cmd = ["uv", "run", "python", str(script_path)]
         try:
-            return self._extracted_from_ensure_transcripts_extraction_33(cmd)
-        except Exception as e:
-            logger.error(f"Hydration failed: {e}")
+            return self._run_shell_command(cmd)
+        except Exception:
+            logger.exception("Hydration failed")
             return False
 
     def ensure_academic_sourcing(self, limit_per_query: int = 10) -> bool:
@@ -344,9 +334,7 @@ class GenerationWrapper:
         Ensure academic findings are sourced (PubMed/Scholar).
         Uses AcademicSourcingEngine.
         """
-        logger.info(
-            f"Ensuring Academic findings (limit_per_query={limit_per_query})..."
-        )
+        logger.info(f"Ensuring Academic findings (limit_per_query={limit_per_query})...")
 
         if not AcademicSourcingEngine:
             logger.error("AcademicSourcingEngine could not be imported.")
@@ -359,8 +347,8 @@ class GenerationWrapper:
             engine = AcademicSourcingEngine(output_base_path=str(output_path))
             engine.run_sourcing_pipeline(limit_per_query=limit_per_query)
             return True
-        except Exception as e:
-            logger.error(f"Academic sourcing failed: {e}")
+        except Exception:
+            logger.exception("Academic sourcing failed")
             return False
 
     def ensure_journal_research(self, keywords: list[str] | None = None) -> bool:
@@ -379,24 +367,21 @@ class GenerationWrapper:
         logger.info(f"Ensuring Journal research (keywords={keywords})...")
 
         if not WorkflowExecutor:
-            logger.error(
-                "WorkflowExecutor could not be imported from journal sourcing."
-            )
+            logger.error("WorkflowExecutor could not be imported from journal sourcing.")
             return False
 
         try:
-            return self._extracted_from_ensure_journal_research_24(keywords)
-        except Exception as e:
-            logger.error(f"Journal research workflow failed: {e}")
+            return self._run_journal_workflow(keywords)
+        except Exception:
+            logger.exception("Journal research workflow failed")
             return False
 
-    # TODO Rename this here and in `ensure_journal_research`
-    def _extracted_from_ensure_journal_research_24(self, keywords):
+    def _run_journal_workflow(self, keywords):
         # Configure storage to go into the training ready area
         storage_path = (
-            self.workspace_root
-            / "ai/training/ready_packages/datasets/cache/local/journal_research"
+            self.workspace_root / "ai/training/ready_packages/datasets/cache/local/journal_research"
         )
+        storage_path.mkdir(parents=True, exist_ok=True)
         config = {"acquisition": {"storage_base_path": str(storage_path)}}
 
         executor = WorkflowExecutor(config=config, dry_run=False, interactive=False)
@@ -431,12 +416,12 @@ class GenerationWrapper:
         ]
 
         try:
-            return self._extracted_from_ensure_transcripts_extraction_33(cmd)
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Book extraction failed: {e}")
+            return self._run_shell_command(cmd)
+        except subprocess.CalledProcessError:
+            logger.exception("Book extraction failed")
             return False
-        except Exception as e:
-            logger.error(f"Book extraction failed: {e}")
+        except Exception:
+            logger.exception("Book extraction failed")
             return False
 
     def ensure_transcripts_extraction(self) -> bool:
@@ -459,16 +444,15 @@ class GenerationWrapper:
         ]
 
         try:
-            return self._extracted_from_ensure_transcripts_extraction_33(cmd)
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Transcript extraction failed: {e}")
+            return self._run_shell_command(cmd)
+        except subprocess.CalledProcessError:
+            logger.exception("Transcript extraction failed")
             return False
-        except Exception as e:
-            logger.error(f"Transcript extraction failed: {e}")
+        except Exception:
+            logger.exception("Transcript extraction failed")
             return False
 
-    # TODO Rename this here and in `ensure_edge_cases`, `ensure_long_running_extraction`, `ensure_hydration`, `ensure_books_extraction` and `ensure_transcripts_extraction`
-    def _extracted_from_ensure_transcripts_extraction_33(self, cmd):
+    def _run_shell_command(self, cmd):
         logger.info(f"Running command: {' '.join(cmd)}")
         subprocess.check_call(cmd, cwd=self.workspace_root)
         return True

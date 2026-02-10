@@ -18,16 +18,18 @@ services:
     networks:
       - nmp
     healthcheck:
-      test: [
-        "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7331/health"
-      ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:7331/health",
+        ]
       interval: 10s
       timeout: 3s
       retries: 3
       start_period: 20s
     environment:
       MODE: standalone
-      POSTGRES_URI: postgresql://nmp:nmp@postgres:5432/evaluator
+      POSTGRES_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/evaluator
       DATA_STORE_URL: http://datastore:3000/v1/hf
       EVALUATIONS_CALLBACK_URL: http://evaluator-internal:7332
       NEMO_MICROSERVICES_JOBS_URL: http://nmp-core:8000
@@ -35,7 +37,6 @@ services:
       ENTITY_STORE_URL: http://entity-store:8000
       EVALUATOR_IMAGE: ${NEMO_MICROSERVICES_IMAGE_REGISTRY}/evaluator:${NEMO_MICROSERVICES_IMAGE_TAG}
     entrypoint: ["python", "-m", "evaluator.server"]
-
 
   evaluator-internal:
     image: ${NEMO_MICROSERVICES_IMAGE_REGISTRY}/evaluator:${NEMO_MICROSERVICES_IMAGE_TAG}
@@ -50,26 +51,27 @@ services:
     networks:
       - nmp
     healthcheck:
-      test: [
-        "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:7332/health"
-      ]
+      test:
+        [
+          "CMD-SHELL",
+          "wget --no-verbose --tries=1 --spider http://localhost:7332/health",
+        ]
       interval: 10s
       timeout: 3s
       retries: 5
       start_period: 20s
     environment:
       MODE: standalone
-      POSTGRES_URI: postgresql://nmp:nmp@postgres:5432/evaluator
+      POSTGRES_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/evaluator
       EVALUATOR_PORT_INTERNAL: 7332
     entrypoint: ["python", "-m", "evaluator.internal_server"]
-
 
   evaluator-postgres-db-migration:
     image: ${NEMO_MICROSERVICES_IMAGE_REGISTRY}/evaluator:${NEMO_MICROSERVICES_IMAGE_TAG}
     profiles: [evaluator, platform]
     environment:
       MODE: standalone
-      POSTGRES_URI: "postgresql://nmp:nmp@postgres:5432/evaluator"
+      POSTGRES_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/evaluator"
       DATA_STORE_URL: none
     entrypoint: /bin/sh
     command: ["-c", "/app/scripts/run-db-migration.sh"]

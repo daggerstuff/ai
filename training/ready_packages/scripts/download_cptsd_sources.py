@@ -6,11 +6,21 @@ This script downloads CPTSD-related transcript files from the S3 bucket
 and catalogs them with proper metadata for processing.
 """
 
+
 import json
+import logging
+import os
 import subprocess
 import sys
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger(__name__)
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -19,12 +29,18 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 class CPTSDSourceDownloader:
     """Download and catalog CPTSD sources from S3."""
 
-    def __init__(self, output_dir: str = "ai/training/ready_packages/data/cptsd_sources"):
+    def __init__(self, output_dir: Optional[str] = None):
+        if output_dir is None:
+            output_dir = os.environ.get(
+                "CPTSD_DATA_DIR", "ai/training/ready_packages/data/cptsd_sources"
+            )
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(parents=True, exist_ok=True)
 
         # Load S3 manifest
-        manifest_path = Path("ai/training/ready_packages/data/s3_manifest.json")
+        manifest_path = Path(
+            os.environ.get("S3_MANIFEST_PATH", "ai/training/ready_packages/data/s3_manifest.json")
+        )
         with open(manifest_path, "r") as f:
             self.manifest = json.load(f)
 
@@ -58,20 +74,21 @@ class CPTSDSourceDownloader:
             # Use ovhai CLI to download
             cmd = ["ovhai", "object", "download", "pixel-data", s3_key, str(local_path)]
 
+            logger.info(f"Downloading {s3_key} to {local_path}...")
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, shell=False)
 
             if result.returncode == 0:
-                print(f"✓ Downloaded: {s3_key}")
+                logger.info(f"✓ Downloaded: {s3_key}")
                 return True
             else:
-                print(f"✗ Failed to download: {s3_key}")
-                print(f"  Error: {result.stderr}")
+                logger.error(f"✗ Failed to download: {s3_key}")
+                logger.error(f"  Error: {result.stderr}")
                 return False
         except subprocess.TimeoutExpired:
-            print(f"✗ Timeout downloading: {s3_key}")
+            logger.error(f"✗ Timeout downloading: {s3_key}")
             return False
-        except Exception as e:
-            print(f"✗ Error downloading {s3_key}: {e}")
+        except Exception:
+            logger.exception(f"✗ Error downloading {s3_key}")
             return False
 
     def catalog_file(self, source: str, s3_key: str, local_path: Path) -> Dict[str, Any]:
@@ -91,7 +108,7 @@ class CPTSDSourceDownloader:
         )
 
         if not file_info:
-            print(f"⚠ Warning: File not found in manifest: {s3_key}")
+            logger.warning(f"File not found in manifest: {s3_key}")
             file_info = {
                 "key": s3_key,
                 "size": local_path.stat().st_size if local_path.exists() else 0,
@@ -103,6 +120,7 @@ class CPTSDSourceDownloader:
         # Extract topics from filename
         topics = self._extract_topics(s3_key)
 
+        # Create catalog entry
         # Create catalog entry
         # Create catalog entry
         return {
@@ -151,15 +169,13 @@ class CPTSDSourceDownloader:
 
     def _get_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
-        from datetime import datetime
-
-        return f"{datetime.utcnow().isoformat()}Z"
+        return f"{datetime.now(timezone.utc).isoformat()}Z"
 
     def download_source(self, source: str, files: List[str]) -> Dict[str, Any]:
         """Download all files for a source."""
-        print(f"\n{'=' * 60}")
-        print(f"Downloading {source.replace('_', ' ').title()}")
-        print(f"{'=' * 60}")
+        logger.info(f"\n{'=' * 60}")
+        logger.info(f"Downloading {source.replace('_', ' ').title()}")
+        logger.info(f"{'=' * 60}")
 
         source_dir = self.output_dir / source
         source_dir.mkdir(parents=True, exist_ok=True)
@@ -193,18 +209,18 @@ class CPTSDSourceDownloader:
 
         catalog["total_size_formatted"] = f"{catalog['total_size_bytes'] / 1024:.2f} KB"
 
-        print("\nSource Summary:")
-        print(f"  Total files: {catalog['total_files']}")
-        print(f"  Downloaded: {catalog['downloaded_files']}")
-        print(f"  Failed: {catalog['failed_files']}")
-        print(f"  Total size: {catalog['total_size_formatted']}")
+        logger.info("\nSource Summary:")
+        logger.info(f"  Total files: {catalog['total_files']}")
+        logger.info(f"  Downloaded: {catalog['downloaded_files']}")
+        logger.info(f"  Failed: {catalog['failed_files']}")
+        logger.info(f"  Total size: {catalog['total_size_formatted']}")
 
         return catalog
 
     def download_all_sources(self) -> Dict[str, Any]:
         """Download all CPTSD sources."""
-        self._extracted_from_download_all_sources_3("CPTSD Source Downloader")
-        print(f"Output directory: {self.output_dir}")
+        self._log_section_header("CPTSD Source Downloader")
+        logger.info(f"Output directory: {self.output_dir}")
 
         master_catalog = {
             "download_started_at": self._get_timestamp(),
@@ -239,21 +255,21 @@ class CPTSDSourceDownloader:
         with open(catalog_path, "w") as f:
             json.dump(master_catalog, f, indent=2)
 
-        self._extracted_from_download_all_sources_3("Download Summary")
-        print(f"Total sources: {master_catalog['summary']['total_sources']}")
-        print(f"Total files: {master_catalog['summary']['total_files']}")
-        print(f"Downloaded: {master_catalog['summary']['total_downloaded']}")
-        print(f"Failed: {master_catalog['summary']['total_failed']}")
-        print(f"Total size: {master_catalog['summary']['total_size_formatted']}")
-        print(f"Catalog saved to: {catalog_path}")
+        self._log_section_header("Download Summary")
+        logger.info(f"Total sources: {master_catalog['summary']['total_sources']}")
+        logger.info(f"Total files: {master_catalog['summary']['total_files']}")
+        logger.info(f"Downloaded: {master_catalog['summary']['total_downloaded']}")
+        logger.info(f"Failed: {master_catalog['summary']['total_failed']}")
+        logger.info(f"Total size: {master_catalog['summary']['total_size_formatted']}")
+        logger.info(f"Catalog saved to: {catalog_path}")
 
         return master_catalog
 
-    # TODO Rename this here and in `download_all_sources`
-    def _extracted_from_download_all_sources_3(self, arg0):
-        print(f"\n{'=' * 60}")
-        print(arg0)
-        print(f"{'=' * 60}")
+    def _log_section_header(self, title: str) -> None:
+        """Log a formatted section header."""
+        logger.info("\n" + "=" * 60)
+        logger.info(title)
+        logger.info("=" * 60)
 
 
 def main():
@@ -262,14 +278,14 @@ def main():
     downloader.download_all_sources()
 
     # Print next steps
-    print(f"\n{'=' * 60}")
-    print("Next Steps")
-    print(f"{'=' * 60}")
-    print(f"1. Review downloaded files in: {downloader.output_dir}")
-    print("2. Analyze content for CPTSD topics")
-    print("3. Create voice profiles for each source")
-    print("4. Process files with enhanced chunking strategy")
-    print("5. Generate synthetic examples for missing topics")
+    logger.info(f"\n{'=' * 60}")
+    logger.info("Next Steps")
+    logger.info(f"{'=' * 60}")
+    logger.info(f"1. Review downloaded files in: {downloader.output_dir}")
+    logger.info("2. Analyze content for CPTSD topics")
+    logger.info("3. Create voice profiles for each source")
+    logger.info("4. Process files with enhanced chunking strategy")
+    logger.info("5. Generate synthetic examples for missing topics")
 
 
 if __name__ == "__main__":

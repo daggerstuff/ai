@@ -393,6 +393,8 @@ services:
       - NIM_SERVED_MODEL_NAME=llama-3.1-nemoguard-8b-content-safety
       - NIM_CUSTOM_MODEL_NAME=llama-3.1-nemoguard-8b-content-safety
       - NIM_ENABLE_KV_CACHE_REUSE=1
+    volumes:
+      - nim_model_cache:/opt/nim/.cache
     deploy:
       resources:
         reservations:

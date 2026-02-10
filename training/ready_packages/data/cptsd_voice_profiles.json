@@ -41,9 +41,9 @@
       ],
       "emotional_range": {
         "empathy": 0.85,
-        "warmth": 0.80,
-        "directness": 0.60,
-        "professionalism": 0.90,
+        "warmth": 0.8,
+        "directness": 0.6,
+        "professionalism": 0.9,
         "authenticity": 0.95
       },
       "metadata_enhancements": {
@@ -98,7 +98,7 @@
         ],
         "response_style": "Direct, practical, validating"
       },
-      "sample_phrases [
+      "sample_phrases": [
         "Here's a random example of shame you might recognize.",
         "Shame affects 100% of people with complex trauma.",
         "This is what shame looks like in real life.",
@@ -107,10 +107,10 @@
       ],
       "emotional_range": {
         "empathy": 0.75,
-        "warmth": 0.70,
+        "warmth": 0.7,
         "directness": 0.85,
         "professionalism": 0.85,
-        "authenticity": 0.90
+        "authenticity": 0.9
       },
       "metadata_enhancements": {
         "cptsd_specific_tags": [
@@ -189,9 +189,9 @@
         "Letting go is essential for recovery."
       ],
       "emotional_range": {
-        "empathy": 0.90,
+        "empathy": 0.9,
         "warmth": 0.85,
-        "directness": 0.70,
+        "directness": 0.7,
         "professionalism": 0.95,
         "authenticity": 0.95
       },
@@ -361,7 +361,7 @@
         "I'm just watching myself",
         "I feel disconnected from reality"
       ],
-      "therapeutic": "Grounding techniques, mindfulness, somatic experiencing"
+      "therapeutic_approach": "Grounding techniques, mindfulness, somatic experiencing"
     },
     "inner_child": {
       "description": "Child parts that hold trauma memories",
@@ -397,7 +397,7 @@
     },
     "codependency": {
       "description": "Excessive reliance on others for self-worth",
-      "symptoms [
+      "symptoms": [
         "People pleasing",
         "Difficulty saying no",
         "Enmeshment in others' problems",
@@ -461,7 +461,7 @@
     },
     "toxic_shame": {
       "description": "Deep-seated shame affecting self-worth",
-      "symptoms [
+      "symptoms": [
         "Feeling fundamentally flawed",
         "Self-criticism",
         "Imposter syndrome",

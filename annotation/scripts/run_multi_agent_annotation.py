@@ -82,7 +82,8 @@ def process_batch_multi_agent(
     print("\n" + "=" * 60)
     print(f"✅ Completed: {processed_count} annotations")
     print(f"⏱️  Total time: {total_processing_time:.2f}s")
-    print(f"📈 Average time per annotation: {total_processing_time / processed_count:.2f}s")
+    avg_time = (total_processing_time / processed_count) if processed_count else 0.0
+    print(f"📈 Average time per annotation: {avg_time:.2f}s")
     print(f"💾 Saved to: {output_path}")
     print("=" * 60)
 

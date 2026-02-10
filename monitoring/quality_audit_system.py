@@ -5,17 +5,19 @@ Provides comprehensive audit trails and compliance reporting for quality metrics
 """
 
 import json
+import logging
 import sqlite3
+import warnings
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
-import pandas as pd
+from typing import Any, Dict, List
+
 import numpy as np
-from dataclasses import dataclass
-import hashlib
-import warnings
+import pandas as pd
 
 warnings.filterwarnings("ignore")
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -116,25 +118,19 @@ class QualityAuditSystem:
             "compliance_adherence",
         ]
 
-    def conduct_comprehensive_audit(
-        self, framework: str = "healthcare"
-    ) -> ComplianceReport:
+    def conduct_comprehensive_audit(self, framework: str = "healthcare") -> ComplianceReport:
         """Conduct comprehensive quality audit"""
-        print(f"🔍 Conducting comprehensive quality audit ({framework} framework)...")
+        logger.info(f"Conducting comprehensive quality audit ({framework} framework)...")
 
         try:
             # Generate audit records
             audit_records = self._generate_audit_records(framework)
 
             # Calculate compliance score
-            compliance_score = self._calculate_compliance_score(
-                audit_records, framework
-            )
+            compliance_score = self._calculate_compliance_score(audit_records, framework)
 
             # Create compliance summary
-            compliance_summary = self._create_compliance_summary(
-                audit_records, framework
-            )
+            compliance_summary = self._create_compliance_summary(audit_records, framework)
 
             # Perform risk assessment
             risk_assessment = self._perform_risk_assessment(audit_records)
@@ -161,13 +157,13 @@ class QualityAuditSystem:
                 certification_status=certification_status,
             )
 
-            print(
-                f"✅ Audit complete: {len(audit_records)} findings, {compliance_score:.1f}% compliance"
+            logger.info(
+                f"Audit complete: {len(audit_records)} findings, {compliance_score:.1f}% compliance"
             )
             return report
 
-        except Exception as e:
-            print(f"❌ Error conducting audit: {e}")
+        except Exception:
+            logger.exception(f"Error conducting audit for framework: {framework}")
             return ComplianceReport(
                 report_id="ERROR",
                 generated_at=datetime.now(),
@@ -211,8 +207,8 @@ class QualityAuditSystem:
 
             return audit_records
 
-        except Exception as e:
-            print(f"❌ Error generating audit records: {e}")
+        except Exception:
+            logger.exception("Error generating audit records")
             return []
 
     def _get_quality_audit_data(self) -> Dict[str, Any]:
@@ -225,9 +221,7 @@ class QualityAuditSystem:
             cursor = conn.execute("SELECT COUNT(*) FROM conversations")
             total_conversations = cursor.fetchone()[0]
 
-            cursor = conn.execute(
-                "SELECT COUNT(DISTINCT dataset_source) FROM conversations"
-            )
+            cursor = conn.execute("SELECT COUNT(DISTINCT dataset_source) FROM conversations")
             unique_datasets = cursor.fetchone()[0]
 
             cursor = conn.execute(
@@ -243,8 +237,7 @@ class QualityAuditSystem:
                 "clinical_compliance": np.random.uniform(0.82, 0.92),
                 "therapeutic_accuracy": np.random.uniform(0.78, 0.88),
                 "data_quality": np.random.uniform(0.85, 0.95),
-                "processing_efficiency": (processed_conversations / total_conversations)
-                * 100
+                "processing_efficiency": (processed_conversations / total_conversations) * 100
                 if total_conversations > 0
                 else 0,
             }
@@ -257,8 +250,8 @@ class QualityAuditSystem:
                 "audit_timestamp": datetime.now(),
             }
 
-        except Exception as e:
-            print(f"❌ Error getting audit data: {e}")
+        except Exception:
+            logger.exception("Error getting audit data from database")
             return {}
 
     def _audit_quality_metrics(
@@ -278,26 +271,20 @@ class QualityAuditSystem:
                 if value >= threshold:
                     status = "pass"
                     risk_level = "low"
-                    finding = (
-                        f"{metric.replace('_', ' ').title()} meets compliance threshold"
-                    )
-                    recommendation = (
-                        f"Maintain current {metric.replace('_', ' ')} standards"
-                    )
+                    finding = f"{metric.replace('_', ' ').title()} meets compliance threshold"
+                    recommendation = f"Maintain current {metric.replace('_', ' ')} standards"
                 elif value >= threshold - 0.05:
                     status = "warning"
                     risk_level = "medium"
                     finding = f"{metric.replace('_', ' ').title()} approaching compliance threshold"
-                    recommendation = f"Implement improvements to strengthen {metric.replace('_', ' ')}"
+                    recommendation = (
+                        f"Implement improvements to strengthen {metric.replace('_', ' ')}"
+                    )
                 else:
                     status = "fail"
                     risk_level = "high" if metric == "safety_score" else "medium"
-                    finding = (
-                        f"{metric.replace('_', ' ').title()} below compliance threshold"
-                    )
-                    recommendation = (
-                        f"URGENT: Address {metric.replace('_', ' ')} compliance gap"
-                    )
+                    finding = f"{metric.replace('_', ' ').title()} below compliance threshold"
+                    recommendation = f"URGENT: Address {metric.replace('_', ' ')} compliance gap"
 
                 audit_record = AuditRecord(
                     audit_id=f"QM_{metric}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
@@ -321,8 +308,8 @@ class QualityAuditSystem:
 
             return audit_records
 
-        except Exception as e:
-            print(f"❌ Error auditing quality metrics: {e}")
+        except Exception:
+            logger.exception("Error auditing quality metrics")
             return []
 
     def _audit_data_governance(self) -> List[AuditRecord]:
@@ -436,9 +423,7 @@ class QualityAuditSystem:
                     "backup_frequency": "daily",
                     "backup_retention": "90_days",
                     "recovery_testing": "monthly",
-                    "last_recovery_test": (
-                        datetime.now() - timedelta(days=15)
-                    ).isoformat(),
+                    "last_recovery_test": (datetime.now() - timedelta(days=15)).isoformat(),
                 },
                 risk_level="low",
                 recommendation="Maintain current backup and recovery schedule",
@@ -494,9 +479,7 @@ class QualityAuditSystem:
                 status = "fail"
                 risk_level = "high"
                 finding = f"{requirement} significant compliance gaps"
-                recommendation = (
-                    f"URGENT: Address {requirement.lower()} compliance gaps"
-                )
+                recommendation = f"URGENT: Address {requirement.lower()} compliance gaps"
 
             audit_record = AuditRecord(
                 audit_id=f"COMP_{framework.upper()}_{i}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
@@ -551,8 +534,8 @@ class QualityAuditSystem:
 
             return (weighted_score / total_weight) * 100 if total_weight > 0 else 0.0
 
-        except Exception as e:
-            print(f"❌ Error calculating compliance score: {e}")
+        except Exception:
+            logger.exception(f"Error calculating compliance score for framework: {framework}")
             return 0.0
 
     def _create_compliance_summary(
@@ -560,14 +543,8 @@ class QualityAuditSystem:
     ) -> Dict[str, Any]:
         """Create compliance summary"""
         try:
-            status_counts = (
-                pd.Series([r.status for r in audit_records]).value_counts().to_dict()
-            )
-            risk_counts = (
-                pd.Series([r.risk_level for r in audit_records])
-                .value_counts()
-                .to_dict()
-            )
+            status_counts = pd.Series([r.status for r in audit_records]).value_counts().to_dict()
+            risk_counts = pd.Series([r.risk_level for r in audit_records]).value_counts().to_dict()
 
             return {
                 "total_audits": len(audit_records),
@@ -576,37 +553,27 @@ class QualityAuditSystem:
                 "pass_rate": (status_counts.get("pass", 0) / len(audit_records)) * 100
                 if audit_records
                 else 0,
-                "critical_findings": len(
-                    [r for r in audit_records if r.risk_level == "critical"]
-                ),
-                "high_risk_findings": len(
-                    [r for r in audit_records if r.risk_level == "high"]
-                ),
+                "critical_findings": len([r for r in audit_records if r.risk_level == "critical"]),
+                "high_risk_findings": len([r for r in audit_records if r.risk_level == "high"]),
                 "framework_compliance": framework,
                 "audit_date": datetime.now().isoformat(),
             }
 
-        except Exception as e:
-            print(f"❌ Error creating compliance summary: {e}")
+        except Exception:
+            logger.exception(f"Error creating compliance summary for framework: {framework}")
             return {}
 
-    def _perform_risk_assessment(
-        self, audit_records: List[AuditRecord]
-    ) -> Dict[str, Any]:
+    def _perform_risk_assessment(self, audit_records: List[AuditRecord]) -> Dict[str, Any]:
         """Perform risk assessment based on audit findings"""
         try:
             # Risk scoring
             risk_scores = {"critical": 10, "high": 7, "medium": 4, "low": 1}
 
-            total_risk_score = sum(
-                risk_scores.get(r.risk_level, 0) for r in audit_records
-            )
+            total_risk_score = sum(risk_scores.get(r.risk_level, 0) for r in audit_records)
             max_possible_score = len(audit_records) * 10
 
             risk_percentage = (
-                (total_risk_score / max_possible_score) * 100
-                if max_possible_score > 0
-                else 0
+                (total_risk_score / max_possible_score) * 100 if max_possible_score > 0 else 0
             )
 
             # Risk level determination
@@ -641,13 +608,11 @@ class QualityAuditSystem:
                 "max_possible_score": max_possible_score,
                 "top_risk_areas": [area for area, score in top_risk_areas[:5]],
                 "risk_trend": "stable",  # Would be calculated from historical data
-                "mitigation_priority": "high"
-                if overall_risk in ["critical", "high"]
-                else "medium",
+                "mitigation_priority": "high" if overall_risk in ["critical", "high"] else "medium",
             }
 
-        except Exception as e:
-            print(f"❌ Error performing risk assessment: {e}")
+        except Exception:
+            logger.exception("Error performing risk assessment")
             return {}
 
     def _generate_remediation_plan(self, audit_records: List[AuditRecord]) -> List[str]:
@@ -655,14 +620,10 @@ class QualityAuditSystem:
         remediation_items = []
 
         # Group by risk level and component
-        high_risk_items = [
-            r for r in audit_records if r.risk_level in ["critical", "high"]
-        ]
+        high_risk_items = [r for r in audit_records if r.risk_level in ["critical", "high"]]
 
         for record in high_risk_items:
-            remediation_items.append(
-                f"[{record.risk_level.upper()}] {record.recommendation}"
-            )
+            remediation_items.append(f"[{record.risk_level.upper()}] {record.recommendation}")
 
         # Add general remediation items
         if len(high_risk_items) > 3:
@@ -676,11 +637,7 @@ class QualityAuditSystem:
     ) -> str:
         """Determine certification status"""
         critical_failures = len(
-            [
-                r
-                for r in audit_records
-                if r.status == "fail" and r.risk_level == "critical"
-            ]
+            [r for r in audit_records if r.status == "fail" and r.risk_level == "critical"]
         )
 
         if critical_failures > 0:
@@ -694,7 +651,7 @@ class QualityAuditSystem:
 
     def export_audit_report(self, report: ComplianceReport) -> str:
         """Export comprehensive audit report"""
-        print("📄 Exporting audit report...")
+        logger.info("Exporting audit report...")
 
         try:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -750,18 +707,18 @@ class QualityAuditSystem:
             with open(report_file, "w") as f:
                 json.dump(export_data, f, indent=2, default=str)
 
-            print(f"✅ Exported audit report to: {report_file}")
+            logger.info(f"Exported audit report to: {report_file}")
             return str(report_file)
 
-        except Exception as e:
-            print(f"❌ Error exporting audit report: {e}")
+        except Exception:
+            logger.exception("Error exporting audit report")
             return ""
 
 
 def main():
     """Main execution function"""
-    print("🔍 Quality Audit and Compliance Reporting System")
-    print("=" * 55)
+    logger.info("🔍 Quality Audit and Compliance Reporting System")
+    logger.info("=" * 55)
 
     # Initialize audit system
     audit_system = QualityAuditSystem()
@@ -770,22 +727,22 @@ def main():
     report = audit_system.conduct_comprehensive_audit(framework="healthcare")
 
     if not report.audit_records:
-        print("❌ No audit records generated")
+        logger.warning("❌ No audit records generated")
         return
 
     # Export report
     report_file = audit_system.export_audit_report(report)
 
     # Display summary
-    print(f"\n✅ Quality Audit Complete")
-    print(f"   - Compliance Score: {report.overall_compliance_score:.1f}%")
-    print(f"   - Certification Status: {report.certification_status.upper()}")
-    print(f"   - Total Findings: {len(report.audit_records)}")
-    print(f"   - Report saved: {report_file}")
+    logger.info("\n✅ Quality Audit Complete")
+    logger.info(f"   - Compliance Score: {report.overall_compliance_score:.1f}%")
+    logger.info(f"   - Certification Status: {report.certification_status.upper()}")
+    logger.info(f"   - Total Findings: {len(report.audit_records)}")
+    logger.info(f"   - Report saved: {report_file}")
 
     # Show audit summary
     status_counts = pd.Series([r.status for r in report.audit_records]).value_counts()
-    print(f"\n📊 Audit Summary:")
+    logger.info("\n📊 Audit Summary:")
     for status, count in status_counts.items():
         icon = (
             "✅"
@@ -796,17 +753,15 @@ def main():
             if status == "fail"
             else "ℹ️"
         )
-        print(f"   {icon} {status.title()}: {count}")
+        logger.info(f"   {icon} {status.title()}: {count}")
 
     # Show top risks
-    high_risk_findings = [
-        r for r in report.audit_records if r.risk_level in ["critical", "high"]
-    ]
+    high_risk_findings = [r for r in report.audit_records if r.risk_level in ["critical", "high"]]
     if high_risk_findings:
-        print(f"\n🚨 High Risk Findings ({len(high_risk_findings)}):")
+        logger.info(f"\n🚨 High Risk Findings ({len(high_risk_findings)}):")
         for finding in high_risk_findings[:3]:  # Top 3
             risk_icon = "🔴" if finding.risk_level == "critical" else "🟠"
-            print(f"   {risk_icon} {finding.component}: {finding.finding}")
+            logger.info(f"   {risk_icon} {finding.component}: {finding.finding}")
 
 
 if __name__ == "__main__":

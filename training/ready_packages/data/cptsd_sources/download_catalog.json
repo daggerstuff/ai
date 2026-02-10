@@ -27,8 +27,8 @@
           "source": "heidi_priebe",
           "s3_key": "datasets/gdrive/tier4_voice_persona/Heidi Priebe/CPTSD\uff1a Breaking The Toxic Shame\u29f8Procrastination Cycle With Self-Compassion.txt",
           "local_path": "ai/training/ready_packages/data/cptsd_sources/heidi_priebe/CPTSD\uff1a Breaking The Toxic Shame\u29f8Procrastination Cycle With Self-Compassion.txt",
-          "size_bytes": 40166,
-          "size_formatted": "39.22 KB",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
           "topics": [
             "toxic shame",
             "procrastination",
@@ -54,8 +54,8 @@
           "source": "patrick_teahan",
           "s3_key": "datasets/gdrive/tier4_voice_persona/Patrick Teahan /9 Random Examples of Shame from PTSD & CPTSD.txt",
           "local_path": "ai/training/ready_packages/data/cptsd_sources/patrick_teahan/9 Random Examples of Shame from PTSD & CPTSD.txt",
-          "size_bytes": 39656,
-          "size_formatted": "38.73 KB",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
           "topics": [
             "shame",
             "ptsd",

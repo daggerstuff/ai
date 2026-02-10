@@ -26,9 +26,7 @@ if TYPE_CHECKING:
     class ClientError(Exception):
         response: dict[str, Any]
 else:
-    ClientError = (
-        _BotocoreClientError if _BotocoreClientError is not None else Exception
-    )  # type: ignore[assignment]
+    ClientError = _BotocoreClientError if _BotocoreClientError is not None else Exception  # type: ignore[assignment]
 
 BOTO3_AVAILABLE = boto3 is not None
 
@@ -79,8 +77,7 @@ class S3DatasetLoader:
         """
         if boto3 is None:
             raise ImportError(
-                "boto3 is required for S3 dataset loading. "
-                "Install with: uv pip install boto3"
+                "boto3 is required for S3 dataset loading. Install with: uv pip install boto3"
             )
 
         # Always allow env to override bucket for OVH S3
@@ -120,13 +117,11 @@ class S3DatasetLoader:
         # OVH uses self-signed certificates, so verify=False is required
         verify_ssl = os.getenv("OVH_S3_CA_BUNDLE", True)
         # Handle string "False" or "0" from env
-        if str(verify_ssl).lower() in ("false", "0", "no"):
+        if str(verify_ssl).lower() in {"false", "0", "no"}:
             verify_ssl = False
 
         if verify_ssl is False:
-            logger.warning(
-                "Initializing S3 client with SSL verification DISABLED (insecure)"
-            )
+            logger.warning("Initializing S3 client with SSL verification DISABLED (insecure)")
 
         self.s3_client = boto3.client(
             "s3",
@@ -208,9 +203,7 @@ class S3DatasetLoader:
             return data
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                raise FileNotFoundError(
-                    f"Dataset not found in S3: s3://{bucket}/{key}"
-                ) from e
+                raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}") from e
             raise
 
     def load_bytes(self, s3_path: str) -> bytes:
@@ -231,9 +224,7 @@ class S3DatasetLoader:
             return response["Body"].read()
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                raise FileNotFoundError(
-                    f"Dataset not found in S3: s3://{bucket}/{key}"
-                ) from e
+                raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}") from e
             raise
 
     def load_text(
@@ -349,9 +340,7 @@ class S3DatasetLoader:
 
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                raise FileNotFoundError(
-                    f"Dataset not found in S3: s3://{bucket}/{key}"
-                ) from e
+                raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}") from e
             raise
 
     def list_datasets(self, prefix: str = "training/v1/") -> list[str]:
@@ -379,10 +368,10 @@ class S3DatasetLoader:
                         if obj["Key"].endswith((".json", ".jsonl"))
                     )
 
-        except ClientError as e:
-            logger.error(f"Failed to list S3 objects: {e}")
+        except ClientError:
+            logger.exception("Failed to list S3 objects")
+            raise
         return datasets
-
 
     def upload_file(self, local_path: Path | str, s3_key: str) -> None:
         """Upload a local file to S3"""
@@ -390,18 +379,12 @@ class S3DatasetLoader:
             if not isinstance(local_path, Path):
                 local_path = Path(local_path)
 
-            # Remove bucket from key if present (generic fix)
-            if s3_key.startswith(f"s3://{self.bucket}/"):
-                s3_key = s3_key.replace(f"s3://{self.bucket}/", "")
-            elif s3_key.startswith("s3://"):
-                # If uploading to different bucket, we might need logic change,
-                # but for now assume same bucket or valid key
-                pass
+            bucket, key = self._parse_s3_path(s3_key)
 
-            logger.info(f"Uploading {local_path} to s3://{self.bucket}/{s3_key}")
-            self.s3_client.upload_file(str(local_path), self.bucket, s3_key)
-        except Exception as e:
-            logger.error(f"Failed to upload {local_path} to {s3_key}: {e}")
+            logger.info(f"Uploading {local_path} to s3://{bucket}/{key}")
+            self.s3_client.upload_file(str(local_path), bucket, key)
+        except Exception:
+            logger.exception(f"Failed to upload {local_path} to {s3_key}")
             raise
 
 

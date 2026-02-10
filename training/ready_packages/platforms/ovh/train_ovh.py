@@ -343,8 +343,8 @@ def create_model(config: Dict):
     try:
         return _extracted_from_create_model_4(config)
     except ImportError as e:
-        logger.error(f"Missing required package: {e}")
-        logger.error("Install with: pip install transformers peft accelerate bitsandbytes")
+        logger.exception(f"Missing required package: {e}")
+        logger.info("Install with: pip install transformers peft accelerate bitsandbytes")
         raise
 
 

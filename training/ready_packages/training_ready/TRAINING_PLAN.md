@@ -21,7 +21,7 @@ metrics for each stage.
 
 ### Base Model
 
-- **Primary**: Harbringer-24B / Mistral Small 3.1
+- **Primary**: Harbinger-24B / Mistral Small 3.1
 - **Rationale**:
   - Industry consensus for conversational and role-playing excellence
   - Superior dialogue capabilities
