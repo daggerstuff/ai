@@ -30,6 +30,7 @@ for dataset in manifest['datasets']:
 ### Consolidation Scripts
 
 The consolidation scripts in `scripts/` can be run when disk space is available:
+
 - `consolidate_assets.py` - Consolidates all assets (requires disk space)
 - Uses symlinks for files > 100MB by default
 - Can be configured to use references instead of copies
@@ -48,4 +49,3 @@ The consolidation scripts in `scripts/` can be run when disk space is available:
 - ✅ Documentation complete
 - ⚠️  Full file consolidation deferred due to disk space
 - ✅ All assets cataloged and accessible via manifest
-

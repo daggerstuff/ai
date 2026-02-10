@@ -63,11 +63,11 @@ RUN pip install --upgrade pip && \
     safetensors>=0.4.0
 
 # Copy training code
-COPY lightning/moe_architecture.py /app/
-COPY lightning/training_optimizer.py /app/
-COPY lightning/train_moe_h100.py /app/
-COPY ovh/train_ovh.py /app/
-COPY lightning/moe_training_config.json /app/config/
+COPY ai/training/ready_packages/models/moe_architecture.py /app/
+COPY ai/training/ready_packages/packages/velocity/training_scripts/training_optimizer.py /app/
+COPY ai/training/ready_packages/packages/velocity/training_scripts/train_moe_h100.py /app/
+COPY ai/training/ready_packages/platforms/ovh/train_ovh.py /app/
+COPY ai/training/ready_packages/configs/hyperparameters/moe_training_config.json /app/config/
 
 # Create necessary directories
 RUN mkdir -p /data /checkpoints /tmp/transformers_cache /tmp/huggingface

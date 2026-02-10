@@ -381,9 +381,28 @@ class S3DatasetLoader:
 
         except ClientError as e:
             logger.error(f"Failed to list S3 objects: {e}")
-            raise
-
         return datasets
+
+
+    def upload_file(self, local_path: Path | str, s3_key: str) -> None:
+        """Upload a local file to S3"""
+        try:
+            if not isinstance(local_path, Path):
+                local_path = Path(local_path)
+
+            # Remove bucket from key if present (generic fix)
+            if s3_key.startswith(f"s3://{self.bucket}/"):
+                s3_key = s3_key.replace(f"s3://{self.bucket}/", "")
+            elif s3_key.startswith("s3://"):
+                # If uploading to different bucket, we might need logic change,
+                # but for now assume same bucket or valid key
+                pass
+
+            logger.info(f"Uploading {local_path} to s3://{self.bucket}/{s3_key}")
+            self.s3_client.upload_file(str(local_path), self.bucket, s3_key)
+        except Exception as e:
+            logger.error(f"Failed to upload {local_path} to {s3_key}: {e}")
+            raise
 
 
 def get_s3_dataset_path(

@@ -39,6 +39,7 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 import torch
+from transformers import BitsAndBytesConfig
 
 # Configure logging
 logging.basicConfig(
@@ -175,10 +176,7 @@ def load_dataset_file(file_path: str) -> List[Dict[str, Any]]:
                     return [data]
         elif ext == ".csv":
             df = pd.read_csv(file_path)
-            return [
-                {str(k): v for k, v in rec.items()}
-                for rec in df.to_dict(orient="records")
-            ]
+            return [{str(k): v for k, v in rec.items()} for rec in df.to_dict(orient="records")]
     except Exception as e:
         logger.error(f"Failed to load {file_path}: {e}")
 
@@ -223,9 +221,7 @@ def deduplicate(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return deduped
 
 
-def convert_to_chatml(
-    records: List[Dict[str, Any]], system_prompt: str
-) -> List[Dict[str, Any]]:
+def convert_to_chatml(records: List[Dict[str, Any]], system_prompt: str) -> List[Dict[str, Any]]:
     """Convert records to ChatML format."""
     chatml_data = []
 
@@ -347,14 +343,22 @@ def create_model(config: Dict):
         logger.info(f"Loading base model: {base_model}")
 
         # Load tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(base_model)
+        tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
         if tokenizer.pad_token is None:
             tokenizer.pad_token = tokenizer.eos_token
+
+        # Configure 4-bit quantization
+        bnb_config = BitsAndBytesConfig(
+            load_in_4bit=True,
+            bnb_4bit_quant_type="nf4",
+            bnb_4bit_compute_dtype=torch.bfloat16,
+            bnb_4bit_use_double_quant=True,
+        )
 
         # Load model with appropriate settings for GPU
         model = AutoModelForCausalLM.from_pretrained(
             base_model,
-            torch_dtype=torch.bfloat16,
+            quantization_config=bnb_config,
             device_map="auto",
             trust_remote_code=True,
         )
@@ -385,9 +389,7 @@ def create_model(config: Dict):
 
     except ImportError as e:
         logger.error(f"Missing required package: {e}")
-        logger.error(
-            "Install with: pip install transformers peft accelerate bitsandbytes"
-        )
+        logger.error("Install with: pip install transformers peft accelerate bitsandbytes")
         raise
 
 
@@ -442,12 +444,23 @@ def train_stage(
             max_length=training_config.get("max_length", 2048),
         )
         result["labels"] = result["input_ids"].copy()
+
+        # Mask padding tokens in labels so we don't train on them
+        # (Fixes potential warnings and ensures correct loss calculation)
+        if tokenizer.pad_token_id is not None:
+            labels = []
+            for input_ids in result["input_ids"]:
+                label = list(input_ids)
+                for i, token_id in enumerate(label):
+                    if token_id == tokenizer.pad_token_id:
+                        label[i] = -100
+                labels.append(label)
+            result["labels"] = labels
+
         return result
 
     dataset = Dataset.from_list(train_data)
-    tokenized = dataset.map(
-        tokenize_function, batched=True, remove_columns=["messages"]
-    )
+    tokenized = dataset.map(tokenize_function, batched=True, remove_columns=["messages"])
 
     # Split train/eval
     split = tokenized.train_test_split(test_size=0.1, seed=42)
@@ -457,9 +470,7 @@ def train_stage(
         output_dir=output_dir,
         num_train_epochs=epochs,
         per_device_train_batch_size=training_config.get("per_device_batch_size", 4),
-        gradient_accumulation_steps=training_config.get(
-            "gradient_accumulation_steps", 8
-        ),
+        gradient_accumulation_steps=training_config.get("gradient_accumulation_steps", 8),
         learning_rate=lr,
         warmup_steps=training_config.get("warmup_steps", 1000),
         weight_decay=training_config.get("weight_decay", 0.01),
