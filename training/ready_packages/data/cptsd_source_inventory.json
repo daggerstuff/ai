@@ -1,10 +1,16 @@
 {
   "inventory_generated_at": "2026-02-10T20:14:00Z",
   "summary": {
-    "total_sources_identified": 0,
-    "total_files": 0,
-    "total_size_bytes": 0,
-    "sources_by_author": {}
+    "total_sources_identified": 5,
+    "total_files": 62,
+    "total_size_bytes": 6225844,
+    "sources_by_author": {
+      "heidi_priebe": 2,
+      "patrick_teahan": 1,
+      "tim_fletcher": 8,
+      "processed_transcripts": 50,
+      "existing_cptsd_dataset": 1
+    }
   },
   "sources": {
     "heidi_priebe": {

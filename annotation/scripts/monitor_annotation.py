@@ -19,23 +19,27 @@ def monitor(batch_id="batch_001"):
 
     if output_file.exists():
         count = 0
+        last_line = None
         with open(output_file, "r") as f:
-            for _ in f:
+            for line in f:
                 count += 1
+                last_line = line
         print(f"Completed items: {count} / 500")
 
-        if count > 0:
+        if count > 0 and last_line:
             # Check agreement for last item
-            with open(output_file, "r") as f:
-                _extracted_from_monitor_26(f)
+            _inspect_last_output(last_line)
     else:
         print("Output status: WAITING")
 
 
-# TODO Rename this here and in `monitor`
-def _extracted_from_monitor_26(f):
-    last_line = f.readlines()[-1]
-    data = json.loads(last_line)
+def _inspect_last_output(last_line: str):
+    try:
+        data = json.loads(last_line)
+    except json.JSONDecodeError:
+        print("⚠️ Latest output line is not valid JSON yet.")
+        return
+
     agreement = data.get("agreement_metrics", {})
     print(
         f"Latest Agreement: Crisis={agreement.get('crisis_agreement', 0):.2f}, Emotion={agreement.get('emotion_agreement', 0):.2f}"

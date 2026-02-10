@@ -52,7 +52,7 @@ services:
     command: |
       sh -c "
       mkdir -p /mount/models && chown -R 1000:1000 /mount/models && chmod -R 755 /mount/models &&
-      mkdir -p /mount/workspace && chown -R 1000:1000 /mount/workspace && chmod -R 755 /mount/workspace
+      mkdir -p /mount/workspace && chown -R 1000:1000 /mount/workspace && chmod -R 755 /mount/workspace &&
       mkdir -p /app/data && chown -R 1000:1000 /app/data && chmod -R 755 /app/data &&
       mkdir -p /scratch && chown -R 1000:1000 /scratch && chmod -R 755 /scratch
       "

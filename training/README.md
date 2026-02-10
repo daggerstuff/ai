@@ -8,7 +8,7 @@ To run the training pipeline (supports Unsloth optimization if installed):
 
 ```bash
 # From project root
-uv run python ai/training/train_pixel.py --config ai/training/ready_packages/configs/hyperparameters/enhanced_training_config.json
+uv run python training/train_pixel.py --config training/ready_packages/configs/hyperparameters/enhanced_training_config.json
 ```
 
 ## 🏗️ Architecture

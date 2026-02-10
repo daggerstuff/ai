@@ -199,11 +199,13 @@ class PixelTrainer:
         # Split logic checks config
         train_split = data_config.get("train_split", 0.9)
         val_split = data_config.get("val_split", 0.1)
-        # Normalize
-        total_split = train_split + val_split
-        train_split = train_split / total_split
+        # Normalize ratios
+        total = train_split + val_split
+        train_ratio = train_split / total
+        val_ratio = val_split / total
 
-        splits = dataset.train_test_split(test_size=1.0 - train_split, seed=42)
+        # First split: train vs rest
+        splits = dataset.train_test_split(test_size=val_ratio, seed=42)
 
         return splits
 
@@ -226,7 +228,13 @@ class PixelTrainer:
             fp16=not h100_opts.get("bf16", False),
             bf16=h100_opts.get("bf16", False),
             logging_steps=self.config.get("logging", {}).get("logging_steps", 10),
-            optim="adamw_8bit" if UNSLOTH_AVAILABLE else "paged_adamw_8bit",
+            optim=(
+                "adamw_8bit"
+                if UNSLOTH_AVAILABLE and torch.cuda.is_available()
+                else "paged_adamw_8bit"
+                if torch.cuda.is_available()
+                else "adamw_torch"
+            ),
             weight_decay=params.get("weight_decay", 0.01),
             lr_scheduler_type="linear",
             seed=3407,

@@ -7,6 +7,7 @@ Rejected: Validating echo, 'I hear that...', AI-style mirroring.
 """
 
 import json
+from pathlib import Path
 
 
 def create_dpo_pair(patient_query: str, ai_style_response: str, human_pivot_response: str):
@@ -51,7 +52,9 @@ def _extracted_from_generate_human_pivot_dataset_5(arg0, arg1, arg2, data):
 
 if __name__ == "__main__":
     dataset = generate_human_pivot_dataset()
-    with open("ai/training/rlhf/anti_echo_prefs.jsonl", "w") as f:
+    output_path = Path("ai/training/rlhf/anti_echo_prefs.jsonl")
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(output_path, "w") as f:
         for item in dataset:
             f.write(json.dumps(item) + "\n")
     print(f"Generated {len(dataset)} anti-echo DPO pairs.")

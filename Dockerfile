@@ -26,6 +26,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create non-root user
+RUN groupadd -r ubuntu && useradd -m -r -g ubuntu -s /bin/bash ubuntu
 
 
 # Install uv for faster Python package management
@@ -92,8 +93,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Create non-root user
-RUN groupadd -r ubuntu && useradd -r -g ubuntu ubuntu
+# Non-root user created in base stage
 
 # Create application directory
 WORKDIR /app

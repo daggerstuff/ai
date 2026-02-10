@@ -3,8 +3,8 @@ services:
     image: ${NEMO_MICROSERVICES_IMAGE_REGISTRY}/auditor:${NEMO_MICROSERVICES_IMAGE_TAG}
     profiles: [auditor, platform]
     environment:
-      - POSTGRES_URI=postgresql://nmp:nmp@postgres:5432/auditor
-      - CELERY_RESULT_BACKEND_URL=db+postgresql://nmp:nmp@postgres:5432/auditor
+      - POSTGRES_URI=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/auditor
+      - CELERY_RESULT_BACKEND_URL=db+postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/auditor
       - NIM_API_KEY
       - REST_API_KEY
       - OPENAI_API_KEY
@@ -28,4 +28,10 @@ services:
       nmp-core:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; assert urllib.request.urlopen('http://localhost:5000/health/ready').status == 200"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; assert urllib.request.urlopen('http://localhost:5000/health/ready').status == 200",
+        ]

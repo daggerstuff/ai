@@ -150,7 +150,7 @@ Only applicable if an Assistant response is present.
     "crisis": {
       "type": 0,
       "level": 0,
-      "urgency": "monitor",
+      "urgency": "Monitor",
       "confidence": 5
     },
     "emotions": {

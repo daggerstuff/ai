@@ -258,8 +258,8 @@ class GeminiMem0Manager:
             else:
                 result = self.memory.search(query, user_id=user_id)
                 return result if isinstance(result, list) else result.get("results", [])
-        except Exception as e:
-            logger.error(f"Error searching memories: {e}")
+        except Exception:
+            logger.exception("Error searching memories")
             return []
 
     def _format_memories(self, memories: List[Dict[str, Any]]) -> str:
@@ -338,8 +338,8 @@ class GeminiMem0Manager:
                     if session_id
                     else {"role": "assistant"},
                 )
-        except Exception as e:
-            logger.error(f"Error storing interaction: {e}")
+        except Exception:
+            logger.exception("Error storing interaction")
 
     def update_memory(
         self, memory_id: str, new_content: str, metadata: Optional[Dict[str, Any]] = None
@@ -370,8 +370,8 @@ class GeminiMem0Manager:
             self.memory.update(**update_args)
             logger.info(f"Updated memory {memory_id}")
             return True
-        except Exception as e:
-            logger.error(f"Error updating memory: {e}")
+        except Exception:
+            logger.exception(f"Error updating memory {memory_id}")
             return False
 
     def delete_memory(self, memory_id: str) -> bool:
@@ -388,8 +388,8 @@ class GeminiMem0Manager:
             self.memory.delete(memory_id=memory_id)
             logger.info(f"Deleted memory {memory_id}")
             return True
-        except Exception as e:
-            logger.error(f"Error deleting memory: {e}")
+        except Exception:
+            logger.exception(f"Error deleting memory {memory_id}")
             return False
 
     def clear_memory(self, user_id: str):
@@ -404,8 +404,8 @@ class GeminiMem0Manager:
                     if m.get("id"):
                         self.delete_memory(m["id"])
             logger.info(f"Cleared all memories for user: {user_id}")
-        except Exception as e:
-            logger.error(f"Error clearing memory: {e}")
+        except Exception:
+            logger.exception(f"Error clearing memory for user {user_id}")
 
     def get_all_memories(self, user_id: str) -> List[Dict[str, Any]]:
         """Retrieve all memories for a user."""
@@ -414,16 +414,16 @@ class GeminiMem0Manager:
             if isinstance(result, dict):
                 return result.get("results", [])
             return result if isinstance(result, list) else []
-        except Exception as e:
-            logger.error(f"Error retrieving memories: {e}")
+        except Exception:
+            logger.exception(f"Error retrieving memories for user {user_id}")
             return []
 
     def get_memory(self, memory_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve a specific memory by ID."""
         try:
             return self.memory.get(memory_id=memory_id)
-        except Exception as e:
-            logger.error(f"Error retrieving memory {memory_id}: {e}")
+        except Exception:
+            logger.exception(f"Error retrieving memory {memory_id}")
             return None
 
     def add_memory(
@@ -476,7 +476,7 @@ class GeminiMem0Manager:
             return None
 
         except Exception as e:
-            logger.error(f"Error adding memory: {e}")
+            logger.exception(f"Error adding memory: {e}")
             return None
 
 
@@ -486,7 +486,7 @@ async def test_integration():
     mem0_key = os.environ.get("MEM0_API_KEY")
 
     if not gemini_key:
-        print("Error: GEMINI_API_KEY not found in environment.")
+        logger.error("Error: GEMINI_API_KEY not found in environment.")
         return
 
     # Create therapeutic config with high confidence threshold
@@ -513,10 +513,10 @@ async def test_integration():
     ]
 
     for q in queries:
-        print(f"\nUSER: {q}")
+        logger.info(f"\nUSER: {q}")
         result = await manager.get_response(q)
-        print(f"AI: {result['response']}")
-        print(
+        logger.info(f"AI: {result['response']}")
+        logger.info(
             f"(Memories used: {result['memories_used']}, Crisis detected: {result['crisis_detected']})"
         )
 

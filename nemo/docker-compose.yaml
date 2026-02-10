@@ -25,7 +25,7 @@ configs:
           providers:
             - name: "nvidiabuild"
               endpoint: "https://integrate.api.nvidia.com/v1"
-              api_key: "NIM_API_KEY"
+              api_key: "${NIM_API_KEY}"
       safe_synthesizer:
         classify_llm_endpoint_url: "https://integrate.api.nvidia.com/v1"
         classify_llm_model_id: "qwen/qwen2.5-coder-32b-instruct"
@@ -38,7 +38,7 @@ configs:
           backend: vault
           vault:
             address: "http://openbao:8200"
-            token: "root"
+            token: "${VAULT_TOKEN:-root}"
 
         executors:
           - provider: cpu
@@ -69,7 +69,7 @@ configs:
           backend: vault
           vault:
             address: "http://openbao:8200"
-            token: "root"
+            token: "${VAULT_TOKEN:-root}"
 
       inference_gateway:
         host: "0.0.0.0"
@@ -79,7 +79,7 @@ configs:
           backend: vault
           vault:
             address: "http://openbao:8200"
-            token: "root"
+            token: "${VAULT_TOKEN:-root}"
 
 include:
   # Platform infra
@@ -94,7 +94,6 @@ include:
   - services/customizer.yaml
   - services/safe_synthesizer.yaml
   - services/intake.yaml
-
 
 networks:
   nmp:

@@ -163,7 +163,7 @@ targeting >0.85 Cohen's Kappa coefficient for inter-annotator agreement.
 - **Encryption**: AES-256 at rest, TLS 1.3 in transit
 - **Access Control**: Role-based permissions
 - **Audit Trail**: All actions logged
-- **Data Retention**: 7 years per HIPAA requirements
+- **Data Retention**: Per applicable jurisdiction/organizational policy (HIPAA requires 6y for compliance docs)
 
 ## Success Criteria
 

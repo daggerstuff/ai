@@ -28,3 +28,7 @@ services:
           "-c",
           "import urllib.request; assert urllib.request.urlopen('http://localhost:8000/health').status == 200",
         ]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 20s
