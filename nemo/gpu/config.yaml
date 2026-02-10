@@ -1,10 +1,22 @@
 services:
-  docker: !override
+  docker:
     build:
       context: ./gpu
       dockerfile: Dockerfile
-    profiles: [platform, customizer, evaluator, data-designer, safe-synthesizer, auditor]
-    privileged: true
+    profiles:
+      [
+        platform,
+        customizer,
+        evaluator,
+        data-designer,
+        safe-synthesizer,
+        auditor,
+      ]
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - seccomp=unconfined
+      - apparmor=unconfined
     environment:
       - DOCKER_TLS_CERTDIR=/certs
     volumes:

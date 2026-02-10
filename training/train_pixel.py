@@ -22,7 +22,7 @@ from transformers import (
     AutoTokenizer,
     TrainingArguments,
     Trainer,
-    DataCollatorForSeq2Seq,
+    DataCollatorForLanguageModeling,
     BitsAndBytesConfig,
 )
 from peft import LoraConfig, get_peft_model
@@ -247,7 +247,7 @@ class PixelTrainer:
             train_dataset=dataset["train"],
             eval_dataset=dataset["test"],
             args=args,
-            data_collator=DataCollatorForSeq2Seq(tokenizer=tokenizer, padding=True),
+            data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False),
         )
 
         logger.info("🚀 Starting training...")

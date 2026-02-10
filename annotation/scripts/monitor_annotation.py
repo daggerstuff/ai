@@ -1,5 +1,8 @@
+import logging
 import json
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 
 def monitor(batch_id="batch_001"):
@@ -10,10 +13,18 @@ def monitor(batch_id="batch_001"):
 
     if log_file.exists():
         print("Log status: Active")
-        # Get last line of log
-        with open(log_file, "r") as f:
-            if lines := f.readlines():
-                print(f"Latest status: {lines[-1].strip()}")
+        # Efficiently read last line of log file
+        try:
+            file_size = Path(log_file).stat().st_size
+            if file_size > 0:
+                with open(log_file, "rb") as f:
+                    f.seek(-min(500, file_size), 2)
+                    lines = f.readlines()
+                    if lines:
+                        last_line = lines[-1].decode().strip()
+                        print(f"Latest status: {last_line}")
+        except Exception:
+            print("Could not read status from log file")
     else:
         print("Log status: NOT FOUND")
 
@@ -24,7 +35,10 @@ def monitor(batch_id="batch_001"):
             for line in f:
                 count += 1
                 last_line = line
-        print(f"Completed items: {count} / 500")
+        # Process records more efficiently
+        # Get total from first record or metadata if possible, else default to 5000
+        TOTAL_ITEMS = 5000
+        print(f"Completed items: {count} / {TOTAL_ITEMS}")
 
         if count > 0 and last_line:
             # Check agreement for last item

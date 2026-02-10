@@ -52,11 +52,19 @@ class AntiEchoHook:
         current_text = text
 
         while True:
-            sentences = re.split(r"(?<=[.!?])\s+", current_text, maxsplit=1)
-            if not sentences:
+            # Improved sentence splitting regex that handles end of string correctly
+            m = re.search(r"(.+?[.!?])(?:\s+|$)", current_text.strip(), re.S)
+            if not m:
+                # If no sentence separator found, the whole text is the first sentence
+                first_sentence = current_text.strip()
+                rest = ""
+            else:
+                first_sentence = m.group(1).strip()
+                rest = current_text[len(first_sentence) :].lstrip()
+
+            if not first_sentence:
                 break
 
-            first_sentence = sentences[0].strip()
             is_echo = any(pattern.match(first_sentence) for pattern in self.compiled_echoes)
 
             if not is_echo:
@@ -65,9 +73,9 @@ class AntiEchoHook:
             # Safe logging: mask user content
             redacted_start = f"{first_sentence[:10]}...[REDACTED]"
 
-            if self.fallback_mode == "strip" and len(sentences) > 1:
+            if self.fallback_mode == "strip" and rest:
                 logger.info(f"Anti-Echo Hook: Stripping echo start: '{redacted_start}'")
-                current_text = sentences[1].lstrip()
+                current_text = rest
             else:
                 logger.warning(
                     f"Response failed Human-Pivot check (cannot strip further): '{redacted_start}'"
