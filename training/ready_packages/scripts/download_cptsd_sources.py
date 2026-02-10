@@ -6,7 +6,6 @@ This script downloads CPTSD-related transcript files from the S3 bucket
 and catalogs them with proper metadata for processing.
 """
 
-
 import json
 import logging
 import os
@@ -74,7 +73,10 @@ class CPTSDSourceDownloader:
             # Use ovhai CLI to download
             cmd = ["ovhai", "object", "download", "pixel-data", s3_key, str(local_path)]
 
+            import shlex
+
             logger.info(f"Downloading {s3_key} to {local_path}...")
+            logger.debug(f"Command: {shlex.join(cmd)}")
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, shell=False)
 
             if result.returncode == 0:

@@ -4,17 +4,36 @@ Configuration Validation System for Pixelated Empathy AI
 Validates all configuration files and environment variables
 """
 
-import os
-import sys
+import base64
+import contextlib
 import json
-import yaml
 import logging
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
+import os
+import re
+import sys
 from dataclasses import dataclass, field
 from enum import Enum
-import re
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
+
+import yaml
+
+
+# Register custom YAML tags used by NVIDIA NeMo Microservices Platform
+def override_constructor(loader, node):
+    """Handle !override tag by returning the underlying data"""
+    if isinstance(node, yaml.MappingNode):
+        return loader.construct_mapping(node)
+    if isinstance(node, yaml.SequenceNode):
+        return loader.construct_sequence(node)
+    return loader.construct_scalar(node)
+
+
+yaml.SafeLoader.add_constructor("!override", override_constructor)
+yaml.SafeLoader.add_constructor("!merge", override_constructor)
+yaml.Loader.add_constructor("!override", override_constructor)
+yaml.Loader.add_constructor("!merge", override_constructor)
 
 # Configure logging
 logging.basicConfig(
@@ -48,9 +67,7 @@ class ValidationReport:
 
     results: List[ValidationResult] = field(default_factory=list)
 
-    def add_error(
-        self, message: str, field: str = None, value: Any = None, suggestion: str = None
-    ):
+    def add_error(self, message: str, field: str = None, value: Any = None, suggestion: str = None):
         """Add an error to the report"""
         self.results.append(
             ValidationResult(
@@ -79,9 +96,7 @@ class ValidationReport:
     def add_info(self, message: str, field: str = None, value: Any = None):
         """Add an info message to the report"""
         self.results.append(
-            ValidationResult(
-                level=ValidationLevel.INFO, message=message, field=field, value=value
-            )
+            ValidationResult(level=ValidationLevel.INFO, message=message, field=field, value=value)
         )
 
     @property
@@ -155,20 +170,18 @@ class ConfigValidator:
 
         # Check required variables
         for var_name, validator in required_vars.items():
-            value = os.getenv(var_name)
-            if not value:
+            if value := os.getenv(var_name):
+                validator(value, var_name)
+
+            else:
                 self.report.add_error(
                     f"Required environment variable '{var_name}' is not set",
                     field=var_name,
                     suggestion=f"Set {var_name} environment variable",
                 )
-            else:
-                validator(value, var_name)
-
         # Check optional variables
         for var_name, validator in optional_vars.items():
-            value = os.getenv(var_name)
-            if value:
+            if value := os.getenv(var_name):
                 validator(value, var_name)
 
     def _validate_database_url(self, value: str, field: str):
@@ -177,11 +190,11 @@ class ConfigValidator:
             parsed = urlparse(value)
             if not parsed.scheme:
                 self.report.add_error(
-                    f"Database URL missing scheme",
+                    "Database URL missing scheme",
                     field=field,
                     suggestion="Use format: postgresql://user:pass@host:port/db",
                 )
-            elif parsed.scheme not in ["postgresql", "postgres"]:
+            elif parsed.scheme not in {"postgresql", "postgres"}:
                 self.report.add_warning(
                     f"Unexpected database scheme: {parsed.scheme}",
                     field=field,
@@ -189,12 +202,10 @@ class ConfigValidator:
                 )
 
             if not parsed.hostname:
-                self.report.add_error(f"Database URL missing hostname", field=field)
+                self.report.add_error("Database URL missing hostname", field=field)
 
             if not parsed.path or parsed.path == "/":
-                self.report.add_error(
-                    f"Database URL missing database name", field=field
-                )
+                self.report.add_error("Database URL missing database name", field=field)
 
         except Exception as e:
             self.report.add_error(f"Invalid database URL format: {e}", field=field)
@@ -205,11 +216,11 @@ class ConfigValidator:
             parsed = urlparse(value)
             if not parsed.scheme:
                 self.report.add_error(
-                    f"Redis URL missing scheme",
+                    "Redis URL missing scheme",
                     field=field,
                     suggestion="Use format: redis://[:password@]host:port[/db]",
                 )
-            elif parsed.scheme not in ["redis", "rediss"]:
+            elif parsed.scheme not in {"redis", "rediss"}:
                 self.report.add_error(
                     f"Invalid Redis scheme: {parsed.scheme}",
                     field=field,
@@ -217,7 +228,7 @@ class ConfigValidator:
                 )
 
             if not parsed.hostname:
-                self.report.add_error(f"Redis URL missing hostname", field=field)
+                self.report.add_error("Redis URL missing hostname", field=field)
 
         except Exception as e:
             self.report.add_error(f"Invalid Redis URL format: {e}", field=field)
@@ -226,23 +237,23 @@ class ConfigValidator:
         """Validate JWT secret strength"""
         if len(value) < 32:
             self.report.add_error(
-                f"JWT secret too short (minimum 32 characters)",
+                "JWT secret too short (minimum 32 characters)",
                 field=field,
                 value=f"Length: {len(value)}",
                 suggestion="Generate a longer, more secure secret",
             )
         elif len(value) < 64:
             self.report.add_warning(
-                f"JWT secret could be longer for better security",
+                "JWT secret could be longer for better security",
                 field=field,
                 value=f"Length: {len(value)}",
                 suggestion="Consider using 64+ character secret",
             )
 
         # Check for common weak patterns
-        if value.lower() in ["secret", "password", "changeme", "default"]:
+        if value.lower() in {"secret", "password", "changeme", "default"}:
             self.report.add_error(
-                f"JWT secret uses common weak value",
+                "JWT secret uses common weak value",
                 field=field,
                 suggestion="Generate a cryptographically secure random secret",
             )
@@ -251,27 +262,18 @@ class ConfigValidator:
         """Validate encryption key"""
         if len(value) < 32:
             self.report.add_error(
-                f"Encryption key too short (minimum 32 characters)",
+                "Encryption key too short (minimum 32 characters)",
                 field=field,
                 value=f"Length: {len(value)}",
             )
 
-        # Check if it's base64 encoded (common for encryption keys)
-        try:
-            import base64
-
-            base64.b64decode(value)
+        with contextlib.suppress(Exception):
             if len(base64.b64decode(value)) < 32:
-                self.report.add_warning(
-                    f"Decoded encryption key may be too short", field=field
-                )
-        except Exception:
-            # Not base64, check raw length
-            pass
+                self.report.add_warning("Decoded encryption key may be too short", field=field)
 
     def _validate_log_level(self, value: str, field: str):
         """Validate log level"""
-        valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
         if value.upper() not in valid_levels:
             self.report.add_error(
                 f"Invalid log level: {value}",
@@ -280,16 +282,16 @@ class ConfigValidator:
             )
         elif value.upper() == "DEBUG":
             env = os.getenv("ENVIRONMENT", "").lower()
-            if env in ["production", "prod"]:
+            if env in {"production", "prod"}:
                 self.report.add_warning(
-                    f"DEBUG log level in production environment",
+                    "DEBUG log level in production environment",
                     field=field,
                     suggestion="Use INFO or WARNING for production",
                 )
 
     def _validate_environment(self, value: str, field: str):
         """Validate environment setting"""
-        valid_envs = ["development", "dev", "staging", "production", "prod", "test"]
+        valid_envs = {"development", "dev", "staging", "production", "prod", "test"}
         if value.lower() not in valid_envs:
             self.report.add_warning(
                 f"Unexpected environment value: {value}",
@@ -302,56 +304,48 @@ class ConfigValidator:
         try:
             workers = int(value)
             if workers < 1:
-                self.report.add_error(
-                    f"Max workers must be positive", field=field, value=workers
-                )
+                self.report.add_error("Max workers must be positive", field=field, value=workers)
             elif workers > 32:
                 self.report.add_warning(
-                    f"Very high worker count may cause resource issues",
+                    "Very high worker count may cause resource issues",
                     field=field,
                     value=workers,
                     suggestion="Consider CPU core count when setting workers",
                 )
         except ValueError:
-            self.report.add_error(
-                f"Max workers must be an integer", field=field, value=value
-            )
+            self.report.add_error("Max workers must be an integer", field=field, value=value)
 
     def _validate_batch_size(self, value: str, field: str):
         """Validate batch size setting"""
         try:
             batch_size = int(value)
             if batch_size < 1:
-                self.report.add_error(
-                    f"Batch size must be positive", field=field, value=batch_size
-                )
+                self.report.add_error("Batch size must be positive", field=field, value=batch_size)
             elif batch_size > 1000:
                 self.report.add_warning(
-                    f"Large batch size may cause memory issues",
+                    "Large batch size may cause memory issues",
                     field=field,
                     value=batch_size,
                     suggestion="Consider memory constraints when setting batch size",
                 )
         except ValueError:
-            self.report.add_error(
-                f"Batch size must be an integer", field=field, value=value
-            )
+            self.report.add_error("Batch size must be an integer", field=field, value=value)
 
     def _validate_debug_flag(self, value: str, field: str):
         """Validate debug flag"""
-        if value.lower() not in ["true", "false", "1", "0", "yes", "no"]:
+        if value.lower() not in {"true", "false", "1", "0", "yes", "no"}:
             self.report.add_warning(
-                f"Debug flag should be boolean-like",
+                "Debug flag should be boolean-like",
                 field=field,
                 value=value,
                 suggestion="Use 'true', 'false', '1', or '0'",
             )
 
-        if value.lower() in ["true", "1", "yes"]:
+        if value.lower() in {"true", "1", "yes"}:
             env = os.getenv("ENVIRONMENT", "").lower()
-            if env in ["production", "prod"]:
+            if env in {"production", "prod"}:
                 self.report.add_warning(
-                    f"Debug enabled in production environment",
+                    "Debug enabled in production environment",
                     field=field,
                     suggestion="Disable debug in production",
                 )
@@ -362,7 +356,7 @@ class ConfigValidator:
             parsed = urlparse(value)
             if not parsed.scheme or not parsed.hostname:
                 self.report.add_error(
-                    f"Invalid Sentry DSN format",
+                    "Invalid Sentry DSN format",
                     field=field,
                     suggestion="Check Sentry project settings for correct DSN",
                 )
@@ -373,21 +367,19 @@ class ConfigValidator:
         """Validate database configuration files"""
         logger.info("Validating database configuration...")
 
-        # Check for database config files
-        db_config_files = ["database.yaml", "database.json", "db_config.yaml"]
-
-        for config_file in db_config_files:
-            config_path = self.config_dir / config_file
-            if config_path.exists():
-                self._validate_config_file(config_path)
+        for config_file in ["database.yaml", "database.json", "db_config.yaml"]:
+            self._validate_yaml_file_if_exists(config_file, "Database")
 
     def _validate_redis_config(self):
         """Validate Redis configuration"""
-        logger.info("Validating Redis configuration...")
+        self._validate_yaml_file_if_exists("redis.yaml", "Redis")
 
-        redis_config = self.config_dir / "redis.yaml"
-        if redis_config.exists():
-            self._validate_config_file(redis_config)
+    def _validate_yaml_file_if_exists(self, filename: str, label: str):
+        """Helper to validate a config file if it exists"""
+        logger.info(f"Validating {label} configuration...")
+        config_path = self.config_dir / filename
+        if config_path.exists():
+            self._validate_config_file(config_path)
 
     def _validate_security_config(self):
         """Validate security configuration"""
@@ -400,19 +392,18 @@ class ConfigValidator:
                     config = yaml.safe_load(f)
 
                 # Check security settings
-                if "encryption" in config:
-                    if not config["encryption"].get("enabled", False):
-                        self.report.add_warning(
-                            "Encryption is disabled",
-                            field="encryption.enabled",
-                            suggestion="Enable encryption for production",
-                        )
+                if "encryption" in config and not config["encryption"].get("enabled", False):
+                    self.report.add_warning(
+                        "Encryption is disabled",
+                        field="encryption.enabled",
+                        suggestion="Enable encryption for production",
+                    )
 
                 if "authentication" in config:
                     auth_config = config["authentication"]
                     if auth_config.get("require_2fa", False) is False:
                         env = os.getenv("ENVIRONMENT", "").lower()
-                        if env in ["production", "prod"]:
+                        if env in {"production", "prod"}:
                             self.report.add_warning(
                                 "2FA not required in production",
                                 field="authentication.require_2fa",
@@ -420,17 +411,11 @@ class ConfigValidator:
                             )
 
             except Exception as e:
-                self.report.add_error(
-                    f"Error reading security config: {e}", field="security.yaml"
-                )
+                self.report.add_error(f"Error reading security config: {e}", field="security.yaml")
 
     def _validate_monitoring_config(self):
         """Validate monitoring configuration"""
-        logger.info("Validating monitoring configuration...")
-
-        monitoring_config = self.config_dir / "monitoring.yaml"
-        if monitoring_config.exists():
-            self._validate_config_file(monitoring_config)
+        self._validate_yaml_file_if_exists("monitoring.yaml", "Monitoring")
 
     def _validate_file_permissions(self):
         """Validate file permissions for security"""
@@ -461,7 +446,7 @@ class ConfigValidator:
         bind_host = os.getenv("BIND_HOST", "0.0.0.0")
         if bind_host == "0.0.0.0":
             env = os.getenv("ENVIRONMENT", "").lower()
-            if env in ["production", "prod"]:
+            if env in {"production", "prod"}:
                 self.report.add_warning(
                     "Binding to all interfaces (0.0.0.0) in production",
                     field="BIND_HOST",
@@ -470,7 +455,8 @@ class ConfigValidator:
 
         # Check port configuration
         port = os.getenv("PORT", "8000")
-        try:
+
+        with contextlib.suppress(Exception):
             port_num = int(port)
             if port_num < 1024 and os.getuid() != 0:
                 self.report.add_warning(
@@ -478,16 +464,13 @@ class ConfigValidator:
                     field="PORT",
                     suggestion="Use port >= 1024 or run as root",
                 )
-        except (ValueError, AttributeError):
-            pass
 
     def _validate_resource_limits(self):
         """Validate resource limit configurations"""
         logger.info("Validating resource limits...")
 
         # Check memory limits
-        max_memory = os.getenv("MAX_MEMORY")
-        if max_memory:
+        if max_memory := os.getenv("MAX_MEMORY"):
             try:
                 # Parse memory value (e.g., "2G", "512M")
                 if max_memory.endswith("G"):
@@ -525,7 +508,7 @@ class ConfigValidator:
 
                 if not config.get("enabled", False):
                     env = os.getenv("ENVIRONMENT", "").lower()
-                    if env in ["production", "prod"]:
+                    if env in {"production", "prod"}:
                         self.report.add_error(
                             "Backups disabled in production",
                             field="backup.enabled",
@@ -533,29 +516,24 @@ class ConfigValidator:
                         )
 
                 # Check backup schedule
-                schedule = config.get("schedule")
-                if schedule:
-                    # Basic cron validation
-                    if not re.match(
-                        r"^[\d\*\-,/]+\s+[\d\*\-,/]+\s+[\d\*\-,/]+\s+[\d\*\-,/]+\s+[\d\*\-,/]+$",
-                        schedule,
-                    ):
-                        self.report.add_warning(
-                            f"Invalid cron schedule format: {schedule}",
-                            field="backup.schedule",
-                            suggestion="Use valid cron format (e.g., '0 2 * * *')",
-                        )
+                if (schedule := config.get("schedule")) and not re.match(
+                    r"^[\d\*\-,/]+\s+[\d\*\-,/]+\s+[\d\*\-,/]+\s+[\d\*\-,/]+\s+[\d\*\-,/]+$",
+                    schedule,
+                ):
+                    self.report.add_warning(
+                        f"Invalid cron schedule format: {schedule}",
+                        field="backup.schedule",
+                        suggestion="Use valid cron format (e.g., '0 2 * * *')",
+                    )
 
             except Exception as e:
-                self.report.add_error(
-                    f"Error reading backup config: {e}", field="backup.yaml"
-                )
+                self.report.add_error(f"Error reading backup config: {e}", field="backup.yaml")
 
     def _validate_config_file(self, filepath: Path):
         """Validate a configuration file"""
         try:
             with open(filepath, "r") as f:
-                if filepath.suffix in [".yaml", ".yml"]:
+                if filepath.suffix in {".yaml", ".yml"}:
                     yaml.safe_load(f)
                 elif filepath.suffix == ".json":
                     json.load(f)
@@ -565,17 +543,11 @@ class ConfigValidator:
             )
 
         except yaml.YAMLError as e:
-            self.report.add_error(
-                f"Invalid YAML in '{filepath.name}': {e}", field=str(filepath)
-            )
+            self.report.add_error(f"Invalid YAML in '{filepath.name}': {e}", field=str(filepath))
         except json.JSONDecodeError as e:
-            self.report.add_error(
-                f"Invalid JSON in '{filepath.name}': {e}", field=str(filepath)
-            )
+            self.report.add_error(f"Invalid JSON in '{filepath.name}': {e}", field=str(filepath))
         except Exception as e:
-            self.report.add_error(
-                f"Error reading '{filepath.name}': {e}", field=str(filepath)
-            )
+            self.report.add_error(f"Error reading '{filepath.name}': {e}", field=str(filepath))
 
     def print_report(self, report: ValidationReport = None):
         """Print validation report in a readable format"""
@@ -587,13 +559,13 @@ class ConfigValidator:
         print("=" * 80)
 
         summary = report.get_summary()
-        print(f"\nSUMMARY:")
+        print("\nSUMMARY:")
         print(f"  Errors:   {summary['error']}")
         print(f"  Warnings: {summary['warning']}")
         print(f"  Info:     {summary['info']}")
 
         if report.results:
-            print(f"\nDETAILS:")
+            print("\nDETAILS:")
             for result in report.results:
                 icon = {"error": "❌", "warning": "⚠️", "info": "ℹ️"}[result.level.value]
                 print(f"\n{icon} {result.level.value.upper()}: {result.message}")
@@ -622,15 +594,9 @@ def main():
     """Main entry point for configuration validation"""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Validate Pixelated Empathy AI configuration"
-    )
-    parser.add_argument(
-        "--config-dir", default=None, help="Configuration directory path"
-    )
-    parser.add_argument(
-        "--json", action="store_true", help="Output report in JSON format"
-    )
+    parser = argparse.ArgumentParser(description="Validate Pixelated Empathy AI configuration")
+    parser.add_argument("--config-dir", default=None, help="Configuration directory path")
+    parser.add_argument("--json", action="store_true", help="Output report in JSON format")
     parser.add_argument(
         "--fail-on-warnings",
         action="store_true",

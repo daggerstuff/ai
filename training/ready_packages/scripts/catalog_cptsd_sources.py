@@ -106,7 +106,9 @@ class CPTSDSourceCataloger:
     def run_ovhai_command(self, command: List[str]) -> str:
         """Execute an ovhai CLI command and return output."""
         try:
-            logger.debug(f"Executing command: {' '.join(command)}")
+            import shlex
+
+            logger.debug(f"Executing command: {shlex.join(command)}")
             result = subprocess.run(
                 command, capture_output=True, text=True, check=True, shell=False
             )

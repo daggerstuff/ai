@@ -28,16 +28,16 @@ services:
     environment:
       DATABASE_NAME: jobs
       DATABASE_DIALECT: postgresql
-      DATABASE_USER: ${POSTGRES_USER:-nmp}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-nmp}
+      DATABASE_USER: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       MODELS_DATABASE_NAME: entitystore
       MODELS_DATABASE_DIALECT: postgresql
       MODELS_DATABASE_HOST: postgres
       MODELS_DATABASE_PORT: 5432
-      MODELS_DATABASE_USER: ${POSTGRES_USER:-nmp}
-      MODELS_DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-nmp}
+      MODELS_DATABASE_USER: ${POSTGRES_USER}
+      MODELS_DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
     networks:
       - nmp
     depends_on:
@@ -76,16 +76,16 @@ services:
     environment:
       DATABASE_NAME: jobs
       DATABASE_DIALECT: postgresql
-      DATABASE_USER: ${POSTGRES_USER:-nmp}
-      DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-nmp}
+      DATABASE_USER: ${POSTGRES_USER}
+      DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
       DATABASE_HOST: postgres
       DATABASE_PORT: 5432
       MODELS_DATABASE_NAME: entitystore
       MODELS_DATABASE_DIALECT: postgresql
       MODELS_DATABASE_HOST: postgres
       MODELS_DATABASE_PORT: 5432
-      MODELS_DATABASE_USER: ${POSTGRES_USER:-nmp}
-      MODELS_DATABASE_PASSWORD: ${POSTGRES_PASSWORD:-nmp}
+      MODELS_DATABASE_USER: ${POSTGRES_USER}
+      MODELS_DATABASE_PASSWORD: ${POSTGRES_PASSWORD}
       # Docker configuration for jobs-controller
       NEMO_JOBS_IMAGE_REGISTRY: ${NEMO_JOBS_IMAGE_REGISTRY:-${NGC_REGISTRY:-nvcr.io}}
       NEMO_JOBS_IMAGE_REGISTRY_USER_NAME: ${NEMO_JOBS_IMAGE_REGISTRY_USER_NAME:-${NGC_USER_NAME:-$$oauthtoken}}
@@ -130,7 +130,11 @@ services:
         safe-synthesizer,
       ]
     restart: unless-stopped
-    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - seccomp=unconfined
+      - apparmor=unconfined
     environment:
       - DOCKER_TLS_CERTDIR=/certs
     volumes:
@@ -194,8 +198,8 @@ services:
       - /fluent-bit/etc/fluent-bit.conf
     restart: unless-stopped
     environment:
-      DB_USER: ${POSTGRES_USER:-nmp}
-      DB_PASS: ${POSTGRES_PASSWORD:-nmp}
+      DB_USER: ${POSTGRES_USER}
+      DB_PASS: ${POSTGRES_PASSWORD}
       DB_NAME: jobs
       DB_HOST: postgres
       DB_PORT: 5432
@@ -232,8 +236,8 @@ services:
     ports:
       - 8000
     environment:
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nmp}
-      POSTGRES_USER: ${POSTGRES_USER:-nmp}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_HOST: postgres
       POSTGRES_DB: entitystore
       BASE_URL_DATASTORE: http://datastore:3000/v1/hf
@@ -266,8 +270,8 @@ services:
     working_dir: /app/services/entity-store
     environment:
       POSTGRES_HOST: postgres
-      POSTGRES_USER: ${POSTGRES_USER:-nmp}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nmp}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: entitystore
     depends_on:
       postgres:
@@ -327,8 +331,8 @@ services:
       GITEA__DATABASE__DB_TYPE: postgres
       GITEA__DATABASE__HOST: postgres:5432
       GITEA__DATABASE__NAME: datastore
-      GITEA__DATABASE__USER: ${POSTGRES_USER:-nmp}
-      GITEA__DATABASE__PASSWD: ${POSTGRES_PASSWORD:-nmp}
+      GITEA__DATABASE__USER: ${POSTGRES_USER}
+      GITEA__DATABASE__PASSWD: ${POSTGRES_PASSWORD}
       GITEA__DATABASE__SSL_MODE: disable
       GITEA__LFS__STORAGE_TYPE: minio
       GITEA__LFS__MINIO_ENDPOINT: minio:9000
@@ -398,8 +402,8 @@ services:
     image: postgres:16.1
     restart: always
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-nmp}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-nmp}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - 5432
     configs:
@@ -413,7 +417,7 @@ services:
     networks:
       - nmp
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER:-nmp}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
       interval: 10s
       timeout: 30s
       retries: 20
@@ -422,10 +426,19 @@ services:
   # Secrets are not persisted to disk in Openbao's development mode.
   openbao:
     image: openbao/openbao:2.3.2
-    profiles: [platform, core, auditor, customizer, evaluator, data-designer, safe-synthesizer]
+    profiles:
+      [
+        platform,
+        core,
+        auditor,
+        customizer,
+        evaluator,
+        data-designer,
+        safe-synthesizer,
+      ]
     ports:
       - "8200"
-    command: server -dev -dev-root-token-id=${VAULT_TOKEN:-root}
+    command: server -dev -dev-root-token-id=${VAULT_TOKEN}
     restart: unless-stopped
     networks:
       - nmp
@@ -501,8 +514,8 @@ configs:
           Match        *
           Host         postgres
           Port         5432
-          User         $${POSTGRES_USER:-nmp}
-          Password     $${POSTGRES_PASSWORD:-nmp}
+          User         $${POSTGRES_USER}
+          Password     $${POSTGRES_PASSWORD}
           Database     jobs
           Table        platformjoblogfluentbitlanding
           # Use the Fluent Bit internal timestamp for the 'time' column

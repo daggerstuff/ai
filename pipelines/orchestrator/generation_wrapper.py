@@ -91,7 +91,7 @@ class GenerationWrapper:
                     return True
         logger.info("NeMo service not found. Attempting to start via Docker Compose...")
 
-        nemo_quickstart_dir = Path("/home/vivi/pixelated/ai/nemo")
+        nemo_quickstart_dir = self.workspace_root / "ai/nemo"
         compose_file = (
             nemo_quickstart_dir / "docker-compose.yaml"
             if (nemo_quickstart_dir / "docker-compose.yaml").exists()

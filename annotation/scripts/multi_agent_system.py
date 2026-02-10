@@ -6,6 +6,7 @@ This module implements a sophisticated multi-agent system for annotating
 therapeutic conversations with high reliability and psychological safety.
 """
 
+import concurrent.futures
 import json
 import time
 from abc import ABC, abstractmethod
@@ -20,6 +21,10 @@ try:
     OPENAI_AVAILABLE = True
 except ImportError:
     OPENAI_AVAILABLE = False
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class AgentRole(Enum):
@@ -258,7 +263,7 @@ class BaseAgent(ABC):
             )
 
         except Exception as e:
-            print(f"[{self.agent_id}] LLM error: {e}")
+            logger.error(f"[{self.agent_id}] LLM error: {e}")
             return self._mock_annotation({})
 
     @abstractmethod
@@ -528,32 +533,33 @@ class ConsensusOrchestrator:
         results = []
         metadata_list = []
 
-        import concurrent.futures
-
-        # Parallel execution for speed
-        with concurrent.futures.ThreadPoolExecutor(max_workers=len(self.agents)) as executor:
-            future_to_agent = {
-                executor.submit(agent.annotate, task): agent for agent in self.agents
+        # Parallel execution with deterministic order and capped concurrency
+        max_workers = min(4, len(self.agents)) if self.agents else 1
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Map futures to their original agent index to preserve order
+            future_to_index = {
+                executor.submit(agent.annotate, task): i for i, agent in enumerate(self.agents)
             }
 
-            # Use a dictionary to store results by agent index to maintain order if needed,
-            # or just append. Order doesn't strictly matter for consensus, but good for debugging.
-            # We'll just collect them as they complete.
-
-            completed_futures = []
-            completed_futures.extend(iter(concurrent.futures.as_completed(future_to_agent)))
-            # Retrieve results
+            ordered_results = [None] * len(self.agents)
+            ordered_metadata = [None] * len(self.agents)
             failed_agents = []
-            for future in completed_futures:
-                agent = future_to_agent[future]
+
+            for future in concurrent.futures.as_completed(future_to_index):
+                index = future_to_index[future]
+                agent = self.agents[index]
                 try:
                     result, metadata = future.result()
-                    results.append(result)
-                    metadata_list.append(metadata)
+                    ordered_results[index] = result
+                    ordered_metadata[index] = metadata
                 except Exception as e:
                     error_msg = f"Agent {agent.agent_id} failed: {e}"
-                    print(error_msg)
+                    logger.error(error_msg)
                     failed_agents.append({"agent_id": agent.agent_id, "error": str(e)})
+
+        # Filter out failed results
+        results = [r for r in ordered_results if r is not None]
+        metadata_list = [m for m in ordered_metadata if m is not None]
 
         if not results:
             return {
@@ -563,8 +569,19 @@ class ConsensusOrchestrator:
                 "consensus_annotation": None,
             }
 
+        # Enforce minimum quorum (e.g., at least 2 results if more than 1 agent exists)
+        if len(self.agents) > 1 and len(results) < 2:
+            logger.warning(
+                f"Quorum not met for task {task.get('task_id')}: only {len(results)} results"
+            )
+            # We still proceed but mark it clearly
+            consensus_notes_extra = " | Degraded quorum - use with caution"
+        else:
+            consensus_notes_extra = ""
+
         # Build consensus
         consensus = self._build_consensus(results)
+        consensus.notes += consensus_notes_extra
 
         # Calculate agreement metrics
         agreement = self._calculate_agreement(results)
