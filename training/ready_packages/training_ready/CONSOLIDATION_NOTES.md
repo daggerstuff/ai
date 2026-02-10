@@ -2,11 +2,14 @@
 
 ## Disk Space Considerations
 
-Due to disk space constraints during consolidation, large files are referenced in the manifest rather than copied. The `TRAINING_MANIFEST.json` contains absolute paths to all original files.
+Due to disk space constraints during consolidation, large files are referenced
+in the manifest rather than copied. The `TRAINING_MANIFEST.json` contains
+absolute paths to all original files.
 
 ### Asset Access Strategy
 
-1. **Small Files**: Configs, scripts, and small model files have been copied where possible
+1. **Small Files**: Configs, scripts, and small model files have been copied
+   where possible
 2. **Large Files**: Large datasets use symlinks or are referenced via manifest entries
 3. **Original Locations**: All original file paths are preserved in `TRAINING_MANIFEST.json`
 
@@ -47,5 +50,5 @@ The consolidation scripts in `scripts/` can be run when disk space is available:
 - ✅ Directory structure created
 - ✅ Manifest generated with all asset paths
 - ✅ Documentation complete
-- ⚠️  Full file consolidation deferred due to disk space
+- ⚠️ Full file consolidation deferred due to disk space
 - ✅ All assets cataloged and accessible via manifest

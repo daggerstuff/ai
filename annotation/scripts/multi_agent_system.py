@@ -47,6 +47,22 @@ class AnnotationResult:
     reasoning_chain: List[str] = field(default_factory=list)
     confidence_scores: Dict[str, float] = field(default_factory=dict)
 
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to JSON-serializable dictionary"""
+        return {
+            "crisis_label": self.crisis_label,
+            "crisis_confidence": self.crisis_confidence,
+            "primary_emotion": self.primary_emotion,
+            "emotion_intensity": self.emotion_intensity,
+            "valence": self.valence,
+            "arousal": self.arousal,
+            "empathy_score": self.empathy_score,
+            "safety_pass": self.safety_pass,
+            "notes": self.notes,
+            "reasoning_chain": self.reasoning_chain,
+            "confidence_scores": self.confidence_scores,
+        }
+
 
 @dataclass
 class AgentMetadata:
@@ -58,6 +74,17 @@ class AgentMetadata:
     timestamp: float
     processing_time: float
     token_count: Optional[int] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to JSON-serializable dictionary"""
+        return {
+            "agent_id": self.agent_id,
+            "role": self.role.value if isinstance(self.role, AgentRole) else self.role,
+            "model": self.model,
+            "timestamp": self.timestamp,
+            "processing_time": self.processing_time,
+            "token_count": self.token_count,
+        }
 
 
 class BaseAgent(ABC):
@@ -88,8 +115,7 @@ class BaseAgent(ABC):
             print(f"[{self.agent_id}] Running in MOCK mode")
             return None
 
-        base_url = os.getenv("OPENAI_BASE_URL")
-        if base_url:
+        if base_url := os.getenv("OPENAI_BASE_URL"):
             client = OpenAI(base_url=base_url)
             print(f"[{self.agent_id}] Using custom endpoint: {base_url}")
         else:
@@ -150,6 +176,11 @@ class BaseAgent(ABC):
         if "transcript" in data:
             return f"TRANSCRIPT:\n{data['transcript']}"
 
+        # Handle standard text/prompt/scenario fields
+        for key in ["text", "scenario", "prompt", "input"]:
+            if key in data and data[key]:
+                return f"{key.upper()}:\n{data[key]}"
+
         # Handle messages format
         if "messages" in data:
             lines = ["CONVERSATION HISTORY:"]
@@ -164,18 +195,52 @@ class BaseAgent(ABC):
     def _call_llm(self, conversation: str) -> AnnotationResult:
         """Call LLM for annotation"""
         try:
+            print(f"[{self.agent_id}] Sending request...")
+            system_prompt = self.get_system_prompt()
+            user_prompt = self.get_user_prompt(conversation)
+            print(f"[{self.agent_id}] System prompt length: {len(system_prompt)}")
+            print(f"[{self.agent_id}] User prompt length: {len(user_prompt)}")
+            print(f"[{self.agent_id}] Temperature: {self.temperature}")
+            print(f"[{self.agent_id}] Model: {self.model}")
+
             response = self.client.chat.completions.create(
                 model=self.model,
                 messages=[
-                    {"role": "system", "content": self.get_system_prompt()},
-                    {"role": "user", "content": self.get_user_prompt(conversation)},
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
                 ],
                 temperature=self.temperature,
             )
+            print(f"[{self.agent_id}] Response received")
 
             content = response.choices[0].message.content
-            data = json.loads(content)
 
+            # Clean up content for JSON parsing
+            clean_content = content.strip()
+            if clean_content.startswith("```"):
+                # Remove code blocks
+                clean_content = clean_content.split("```")[1]
+                if clean_content.startswith("json"):
+                    clean_content = clean_content[4:]
+
+            clean_content = clean_content.strip()
+            # Handle potential trailing characters if needed, but usually block stripping is enough
+
+            try:
+                data = json.loads(clean_content)
+            except json.JSONDecodeError as e:
+                # Fallback: try to find the first { and last }
+                start = clean_content.find("{")
+                end = clean_content.rfind("}")
+                if start == -1 or end == -1:
+                    raise json.JSONDecodeError("No JSON object found", clean_content, 0) from e
+
+                try:
+                    data = json.loads(clean_content[start : end + 1])
+                except json.JSONDecodeError as e:
+                    print(f"[{self.agent_id}] JSON Parse Error: {e}")
+                    print(f"[{self.agent_id}] Raw content: {content}")
+                    raise e
             return AnnotationResult(
                 crisis_label=data.get("crisis_label", 0),
                 crisis_confidence=data.get("crisis_confidence", 3),
@@ -240,9 +305,9 @@ TASK: Annotate the following therapeutic conversation with focus on crisis indic
 
 RESPOND WITH VALID JSON ONLY:
 {{
-  "crisis_label": <int 0-5>,
+  "crisis_label": <int 0-7>,
   "crisis_confidence": <int 1-5>,
-  "primary_emotion": <string>,
+  "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation, Calm, Neutral>,
   "emotion_intensity": <int 1-10>,
   "valence": <float -1.0 to 1.0>,
   "arousal": <float 0.0 to 1.0>,
@@ -271,7 +336,7 @@ Focus on:
         is_crisis = random.random() < 0.4
 
         return AnnotationResult(
-            crisis_label=random.randint(2, 4) if is_crisis else 0,
+            crisis_label=random.randint(2, 7) if is_crisis else 0,
             crisis_confidence=random.randint(4, 5),
             primary_emotion=random.choice(["Fear", "Sadness", "Anger", "Anxiety"]),
             emotion_intensity=random.randint(6, 9),
@@ -329,9 +394,9 @@ TASK: Annotate the following therapeutic conversation with focus on emotional dy
 
 RESPOND WITH VALID JSON ONLY:
 {{
-  "crisis_label": <int 0-5>,
+  "crisis_label": <int 0-7>,
   "crisis_confidence": <int 1-5>,
-  "primary_emotion": <string>,
+  "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation, Calm, Neutral>,
   "emotion_intensity": <int 1-10>,
   "valence": <float -1.0 to 1.0>,
   "arousal": <float 0.0 to 1.0>,
@@ -362,9 +427,7 @@ Focus on:
         return AnnotationResult(
             crisis_label=random.randint(1, 2) if is_crisis else 0,
             crisis_confidence=random.randint(3, 4),
-            primary_emotion=random.choice(
-                ["Sadness", "Joy", "Fear", "Neutral", "Hope"]
-            ),
+            primary_emotion=random.choice(["Sadness", "Joy", "Fear", "Neutral", "Hope"]),
             emotion_intensity=random.randint(4, 7),
             valence=round(random.uniform(-0.5, 0.5), 2),
             arousal=round(random.uniform(0.3, 0.7), 2),
@@ -377,6 +440,68 @@ Focus on:
                 "Assessed empathy quality",
             ],
             confidence_scores={"crisis": 0.70, "emotion": 0.85},
+        )
+
+
+class QualityAssuranceAgent(BaseAgent):
+    """
+    Dr. C - Critical Reviewer / QA
+    Acts as a tie-breaker and quality auditor
+    """
+
+    def __init__(self, model: str = "nvidia/nemotron-3-nano-30b-a3b"):
+        super().__init__(
+            agent_id="dr_c_qa_specialist",
+            role=AgentRole.QUALITY_ASSURANCE,
+            model=model,
+            temperature=0.0,  # Deterministic
+        )
+
+    def get_system_prompt(self) -> str:
+        return """You are Dr. C, a meticulous clinical supervisor and data quality specialist.
+Your role is to provide highly accurate, objective, and consistent annotations.
+You follow the guidelines strictly and avoid defaulting to 'Neutral' unless the content is truly devoid of emotional signaling.
+You are excellent at identifying subtle emotional nuances and ensuring safety protocol adherence."""
+
+    def get_user_prompt(self, conversation: str) -> str:
+        return f"""{self.guidelines}
+
+TASK: Provide a master annotation for this therapeutic conversation. Be precise and thorough.
+
+{conversation}
+
+RESPOND WITH VALID JSON ONLY:
+{{
+  "crisis_label": <int 0-7>,
+  "crisis_confidence": <int 1-5>,
+  "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation, Calm, Neutral>,
+  "emotion_intensity": <int 1-10>,
+  "valence": <float -1.0 to 1.0>,
+  "arousal": <float 0.0 to 1.0>,
+  "empathy_score": <int 1-5 or null>,
+  "safety_pass": <bool or null>,
+  "notes": <string>,
+  "reasoning_chain": [<list of reasoning steps>],
+  "confidence_scores": {{"crisis": <float>, "emotion": <float>}}
+}}"""
+
+    def _mock_annotation(self, task: Dict[str, Any]) -> AnnotationResult:
+        import random
+
+        seed = len(str(task)) + 2
+        random.seed(seed)
+        return AnnotationResult(
+            crisis_label=0,
+            crisis_confidence=5,
+            primary_emotion="Neutral",
+            emotion_intensity=3,
+            valence=0.0,
+            arousal=0.3,
+            empathy_score=4,
+            safety_pass=True,
+            notes="QA review - focused on stability",
+            reasoning_chain=["Applied QA standards"],
+            confidence_scores={"crisis": 0.9, "emotion": 0.9},
         )
 
 
@@ -399,23 +524,46 @@ class ConsensusOrchestrator:
         results = []
         metadata_list = []
 
-        # Collect annotations from all agents
-        for agent in self.agents:
-            result, metadata = agent.annotate(task)
-            results.append(result)
-            metadata_list.append(metadata)
+        import concurrent.futures
 
+        # Parallel execution for speed
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(self.agents)) as executor:
+            future_to_agent = {
+                executor.submit(agent.annotate, task): agent for agent in self.agents
+            }
+
+            # Use a dictionary to store results by agent index to maintain order if needed,
+            # or just append. Order doesn't strictly matter for consensus, but good for debugging.
+            # We'll just collect them as they complete.
+
+            completed_futures = []
+            completed_futures.extend(
+                iter(concurrent.futures.as_completed(future_to_agent))
+            )
+            # Retrieve results
+            for future in completed_futures:
+                try:
+                    result, metadata = future.result()
+                    results.append(result)
+                    metadata_list.append(metadata)
+                except Exception as e:
+                    print(f"Agent failed: {e}")
         # Build consensus
         consensus = self._build_consensus(results)
 
         # Calculate agreement metrics
         agreement = self._calculate_agreement(results)
 
+        # Finalize consensus based on agreement
+        if agreement.get("overall_agreement", 0.0) < 0.5:
+            consensus.notes += " | Low agreement - requires expert review"
+
         return {
             "task_id": task.get("task_id", task.get("data", {}).get("id")),
-            "consensus_annotation": consensus.__dict__,
-            "individual_annotations": [r.__dict__ for r in results],
-            "agent_metadata": [m.__dict__ for m in metadata_list],
+            "data": task.get("data"),
+            "consensus_annotation": consensus.to_dict(),
+            "individual_annotations": [r.to_dict() for r in results],
+            "agent_metadata": [m.to_dict() for m in metadata_list],
             "agreement_metrics": agreement,
         }
 
@@ -437,9 +585,7 @@ class ConsensusOrchestrator:
 
         # Average empathy scores (if present)
         empathy_scores = [r.empathy_score for r in results if r.empathy_score]
-        avg_empathy = (
-            int(sum(empathy_scores) / len(empathy_scores)) if empathy_scores else None
-        )
+        avg_empathy = int(sum(empathy_scores) / len(empathy_scores)) if empathy_scores else None
 
         # Safety pass if all agree
         safety_passes = [r.safety_pass for r in results if r.safety_pass is not None]
@@ -496,5 +642,6 @@ def create_multi_agent_system(
     # Add specialized agents
     orchestrator.add_agent(CrisisExpertAgent(model=model))
     orchestrator.add_agent(EmotionAnalystAgent(model=model))
+    orchestrator.add_agent(QualityAssuranceAgent(model=model))
 
     return orchestrator

@@ -2,13 +2,16 @@
 
 ## Overview
 
-This document outlines the comprehensive annotation framework for creating high-quality labeled therapeutic conversation datasets for Pixel model training, targeting >0.85 Cohen's Kappa coefficient for inter-annotator agreement.
+This document outlines the comprehensive annotation framework for creating
+high-quality labeled therapeutic conversation datasets for Pixel model training,
+targeting >0.85 Cohen's Kappa coefficient for inter-annotator agreement.
 
 ## Annotation Categories
 
 ### 1. Crisis Detection Labels
 
 **Primary Crisis Types**:
+
 - **Immediate Harm**: Suicidal ideation with plan/intent, self-harm in progress
 - **Self-Harm**: Non-suicidal self-injury, cutting behaviors
 - **Substance Crisis**: Overdose, withdrawal, addiction crisis
@@ -17,6 +20,7 @@ This document outlines the comprehensive annotation framework for creating high-
 - **Passive Ideation**: Passive suicidal thoughts without plan/intent
 
 **Labeling Criteria**:
+
 - **Crisis Level**: None (0), Low (1), Moderate (2), High (3), Critical (4)
 - **Urgency**: Immediate (<1hr), Urgent (<24hr), Soon (<1week), Monitor (ongoing)
 - **Intervention Type**: Safety planning, medication, hospitalization, therapy
@@ -24,14 +28,17 @@ This document outlines the comprehensive annotation framework for creating high-
 ### 2. Emotional Intelligence Annotations
 
 **Emotional Dimensions**:
+
 - **Valence**: Positive (1.0) to Negative (-1.0)
-- **Arousal**: High (1.0) to Low (-1.0) 
+- **Arousal**: High (1.0) to Low (-1.0)
 - **Dominance**: High (1.0) to Low (-1.0)
 
 **Specific Emotions**:
+
 - Happiness, Sadness, Anger, Fear, Surprise, Disgust, Calm, Neutral
 
 **Therapeutic Responses**:
+
 - **Empathy Level**: 1-5 scale (1=minimal, 5=exceptional)
 - **Validation**: Present/Absent
 - **Reflection**: Present/Absent
@@ -41,6 +48,7 @@ This document outlines the comprehensive annotation framework for creating high-
 ### 3. Bias Detection Labels
 
 **Bias Categories**:
+
 - **Gender Bias**: Stereotypical gender assumptions
 - **Racial Bias**: Cultural insensitivity, racial stereotypes
 - **Cultural Bias**: Ethnocentrism, cultural assumptions
@@ -49,11 +57,13 @@ This document outlines the comprehensive annotation framework for creating high-
 - **Religious Bias**: Faith assumptions, spiritual insensitivity
 
 **Severity Scale**:
+
 - None (0), Mild (1), Moderate (2), Severe (3)
 
 ### 4. Therapeutic Effectiveness
 
 **Outcome Measures**:
+
 - **Engagement**: Patient participation level (1-5)
 - **Progress**: Therapeutic goal advancement (1-5)
 - **Alliance**: Therapeutic relationship strength (1-5)
@@ -78,12 +88,14 @@ This document outlines the comprehensive annotation framework for creating high-
 ### Training Requirements
 
 **Annotator Qualifications**:
+
 - Licensed mental health professional (LCSW, LPC, LMFT, Psychologist)
 - Minimum 2 years clinical experience
 - Crisis intervention training
 - Cultural competency certification
 
 **Training Components**:
+
 - 8-hour annotation training workshop
 - Practice annotation with feedback
 - Inter-annotator calibration sessions
@@ -135,7 +147,7 @@ This document outlines the comprehensive annotation framework for creating high-
 
 ### Storage Structure
 
-```
+```text
 /annotation_data/
 ├── raw_samples/
 ├── annotations/
@@ -173,16 +185,19 @@ This document outlines the comprehensive annotation framework for creating high-
 ## Implementation Timeline
 
 ### Week 1: Setup and Training
+
 - Day 1-2: Platform setup and testing
 - Day 3-4: Annotator recruitment and screening
 - Day 5-7: Training and calibration sessions
 
 ### Week 2: Annotation and Quality Control
+
 - Day 8-10: Primary annotation phase
 - Day 11-12: Quality checks and conflict resolution
 - Day 13-14: Final validation and dataset compilation
 
 ---
 
-**Status**: Framework ready for implementation
-**Next Step**: Begin annotator recruitment and platform setup
+**Status**: Implementation IN PROGRESS (Multi-agent AI consensus system operational)
+**Next Step**: Scale annotation to full dataset (5,000+ samples) and finalize
+Kappa validation

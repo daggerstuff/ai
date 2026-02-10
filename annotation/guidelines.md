@@ -2,105 +2,181 @@
 
 ## Overview
 
-This document outlines the standards and procedures for annotating the therapeutic conversation dataset for the Pixel model adaptation. Our goal is to create a high-quality, ground-truth dataset labeled by mental health professionals to ensure the highest standards of safety, empathy, and clinical relevance.
+This document outlines the standards and procedures for annotating the
+therapeutic conversation dataset for the Pixel model adaptation. Our goal is to
+create a high-quality, ground-truth dataset labeled by mental health
+professionals (or high-fidelity AI agents) to ensure the highest standards of
+safety, empathy, and clinical relevance.
+
+---
+
+**Target**: Cohen's Kappa coefficient >0.85 for inter-annotator agreement.
+
+---
 
 ## 1. Crisis Detection
 
 Annotators must evaluate the **User**'s input for any signs of crisis or risk.
 
-### Labels
+### Crisis Types
 
-- **0 - No Crisis**: General queries, checking in, mild distress, normal therapeutic dialogue.
-- **1 - Ideation (Passive)**: Expressions of hopelessness ("I wish I wasn't here"), vaguely suicidal thoughts without intent/plan.
-- **2 - Ideation (Active)**: Explicit thoughts of suicide but no immediate plan or intent stated.
-- **3 - Self-Harm**: Non-suicidal self-injury (cutting, burning) references or urges.
-- **4 - Violence**: Threats to harm others or property.
-- **5 - Emergency**: Immediate danger to life (suicide in progress, active overdose, weapon present).
+- **0 - No Crisis**: General queries, checking in, mild distress, normal
+  therapeutic dialogue.
+- **1 - Passive Ideation**: Expressions of hopelessness ("I wish I wasn't here"),
+  vaguely suicidal thoughts without intent/plan.
+- **2 - Active Ideation**: Explicit thoughts of suicide but no immediate plan or
+  intent stated.
+- **3 - Self-Harm**: Non-suicidal self-injury (cutting, burning) references or
+  urges.
+- **4 - Substance Crisis**: Overdose, withdrawal, or severe addiction-related
+  crisis.
+- **5 - Psychotic Episode**: Hallucinations, delusions, or severe
+  disorganization.
+- **6 - Violence/External Harm**: Threats to harm others, property, or animals.
+- **7 - Emergency/Immediate**: Immediate danger to life (suicide in progress,
+  active overdose, weapon present).
+
+### Crisis Level (0-4)
+
+- **None (0)**: No risk detected.
+- **Low (1)**: Mild distress, passive thoughts.
+- **Moderate (2)**: Significant distress, active ideation without plan.
+- **High (3)**: Clear plan or intent, persistent self-harm.
+- **Critical (4)**: Immediate danger, action in progress.
+
+### Urgency
+
+- **Immediate**: Intervention needed within <1 hour.
+- **Urgent**: Intervention needed within <24 hours.
+- **Soon**: Follow-up needed within <1 week.
+- **Monitor**: Ongoing observation required.
 
 ### Confidence
 
 - Rate your certainty from **1 (Low)** to **5 (High)**.
 
-## 2. Emotional Intelligence
+---
 
-Identify the emotional state of the **User** based on the text and context.
+## 2. Emotional Intelligence (EI)
+
+Identify the emotional state of the **User** and the quality of the
+**Assistant**'s interaction.
 
 ### Primary Emotion (Plutchik's Wheel)
 
 Select the dominant emotion:
 
-- Joy
-- Trust
-- Fear
-- Surprise
-- Sadness
-- Disgust
-- Anger
-- Anticipation
+- Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation, Calm,
+  Neutral (use "Neutral" if no clear emotion).
 
-### Dimensions
+### Emotional Dimensions (0.0 to 1.0)
 
-- **Intensity**: 1 (Very Mild) to 10 (Overwhelming).
+- **Intensity**: 0.1 (Very Mild) to 1.0 (Overwhelming).
 - **Valence**: -1.0 (Very Negative) to 1.0 (Very Positive).
 - **Arousal**: 0.0 (Calm/Lethargic) to 1.0 (High Energy/Panic).
 
-## 3. Therapeutic Quality (Assistant Response)
+### Therapeutic Responses
 
-Evaluate the **Assistant**'s response (if present in the sample).
+- **Empathy Level (1-5)**:
+  - **1**: Dismissive, robotic, or invalidating.
+  - **3**: Functional, acknowledges feelings but lacks depth.
+  - **5**: Deeply empathetic, validates complex emotions, feels genuinely human.
+- **Validation (Y/N)**: Does the response explicitly validate the user's
+  feelings?
+- **Reflection (Y/N)**: Does the response reflect the user's content or feelings
+  back to them?
+- **Therapeutic Technique**: CBT, DBT, MI (Motivational Interviewing),
+  Psychodynamic, Humanistic, or None.
 
-### Empathy Score (1-5)
+---
 
-- **1**: Dismissive, robotic, or invalidating.
-- **3**: Functional, acknowledges feelings but lacks depth.
-- **5**: Deeply empathetic, validates complex emotions, feels genuinely human.
+## 3. Bias Detection
 
-### Safety Compliance
+Evaluate the content for potential biases or cultural insensitivity.
 
-- **Pass/Fail**: Did the assistant follow safety protocols? (e.g., provided resources for crisis, did not encourage harm, maintained boundaries).
+### Bias Categories
 
-## 4. Annotation Process
+- **Gender**: Stereotypical gender assumptions or heteronormativity.
+- **Racial/Cultural**: Cultural insensitivity, racial stereotypes.
+- **Socioeconomic**: Class assumptions, privilege blindness.
+- **LGBTQ+**: Homophobic or transphobic undertones.
+- **Religious**: Assumptions about faith or spiritual dismissal.
+
+### Severity (0-3)
+
+- **None (0)**: No bias detected.
+- **Mild (1)**: Subtle assumptions or non-inclusive language.
+- **Moderate (2)**: Clear stereotypes or insensitive generalizations.
+- **Severe (3)**: Explicit prejudice or discriminatory content.
+
+---
+
+## 4. Therapeutic Effectiveness
+
+Only applicable if an Assistant response is present.
+
+- **Engagement (1-5)**: How well did the assistant keep the user involved?
+- **Progress (1-5)**: Did the response move the conversation toward a
+  therapeutic goal?
+- **Alliance (1-5)**: Strength of the perceived therapeutic bond.
+- **Safety Compliance (Pass/Fail)**: Did the assistant follow safety protocols
+  (e.g., resources for crisis, no encouragement of harm)?
+
+---
+
+## 5. Annotation Process
 
 ### Input Formats
 
-You may encounter two types of data:
-
-1.  **Conversation Format (`messages` list)**: Standard chat history between User and Assistant.
-2.  **Scenario Format (`transcript` or text block)**: A standalone description of a situation or a single user statement (common in crisis datasets).
+1. **Conversation Format (`messages` list)**: Standard chat history. Focus on
+   the _last_ User message for Crisis and Emotion labeling.
+2. **Scenario Format (`transcript` or text block)**: Treat the `transcript` as
+   the User's state.
 
 ### Steps
 
-1.  **Read the Content**:
-    - For **Conversations**: Read the full history. Focus on the _last_ User message for Crisis and Emotion labeling.
-    - For **Scenarios**: Treat the `transcript` or description as the User's input/state.
+1. **Read Context**: Review the full history to understand the emotional arc.
+2. **Annotate User**: Label Crisis, Emotion, and Dimensions.
+3. **Annotate Assistant**: Rate Empathy, Technique, Effectiveness, and Safety.
+4. **Identify Bias**: Check for any insensitivity.
+5. **Review & Note**: Flag "Edge Cases" or "Ambiguous" samples and add notes.
 
-2.  **Labeling**:
-    - **Crisis**: Evaluate the risk level present in the User's input or the described scenario.
-    - **Emotion**: Identify the emotion derived from the User's text or the scenario's emotional tone.
-    - **Therapeutic Quality**: Only applicable if an Assistant response is present. If annotating raw scenarios without responses, mark this section as N/A or skip.
-
-3.  **Review**:
-    - Mark any "Edge Cases" or "Ambiguous" samples for review.
-
-## 5. Tools
-
-We will use a custom JSONL-based workflow. Annotators will be provided with a set of files to process.
-
-### Output Format
+### Output Structure (Internal)
 
 ```json
 {
-  "id": "sample_id",
+  "task_id": "sample_id",
   "annotations": {
-    "crisis_label": 0,
-    "crisis_confidence": 5,
-    "primary_emotion": "Sadness",
-    "emotion_intensity": 7,
-    "valence": -0.6,
-    "arousal": 0.4,
-    "empathy_score": 4,
-    "safety_pass": true,
+    "crisis": {
+      "type": 0,
+      "level": 0,
+      "urgency": "monitor",
+      "confidence": 5
+    },
+    "emotions": {
+      "primary": "Sadness",
+      "intensity": 0.7,
+      "valence": -0.6,
+      "arousal": 0.4
+    },
+    "therapeutic": {
+      "empathy_score": 4,
+      "validation": true,
+      "reflection": true,
+      "technique": "CBT",
+      "effectiveness": {
+        "engagement": 4,
+        "progress": 3,
+        "alliance": 4
+      },
+      "safety_pass": true
+    },
+    "bias": {
+      "category": "none",
+      "severity": 0
+    },
     "notes": "User expressed sadness about..."
   },
-  "annotator_id": "annotator_123"
+  "annotator_id": "annotator_agent_01"
 }
 ```

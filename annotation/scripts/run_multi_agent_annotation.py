@@ -60,6 +60,7 @@ def process_batch_multi_agent(
 
                 # Write result
                 f_out.write(json.dumps(result) + "\n")
+                f_out.flush()
                 processed_count += 1
 
                 # Progress update
@@ -81,9 +82,7 @@ def process_batch_multi_agent(
     print("\n" + "=" * 60)
     print(f"✅ Completed: {processed_count} annotations")
     print(f"⏱️  Total time: {total_processing_time:.2f}s")
-    print(
-        f"📈 Average time per annotation: {total_processing_time / processed_count:.2f}s"
-    )
+    print(f"📈 Average time per annotation: {total_processing_time / processed_count:.2f}s")
     print(f"💾 Saved to: {output_path}")
     print("=" * 60)
 
