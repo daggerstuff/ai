@@ -537,17 +537,28 @@ class ConsensusOrchestrator:
             # We'll just collect them as they complete.
 
             completed_futures = []
-            completed_futures.extend(
-                iter(concurrent.futures.as_completed(future_to_agent))
-            )
+            completed_futures.extend(iter(concurrent.futures.as_completed(future_to_agent)))
             # Retrieve results
+            failed_agents = []
             for future in completed_futures:
+                agent = future_to_agent[future]
                 try:
                     result, metadata = future.result()
                     results.append(result)
                     metadata_list.append(metadata)
                 except Exception as e:
-                    print(f"Agent failed: {e}")
+                    error_msg = f"Agent {agent.agent_id} failed: {e}"
+                    print(error_msg)
+                    failed_agents.append({"agent_id": agent.agent_id, "error": str(e)})
+
+        if not results:
+            return {
+                "task_id": task.get("task_id", task.get("data", {}).get("id")),
+                "error": "All agents failed to annotate task",
+                "failed_agents": failed_agents,
+                "consensus_annotation": None,
+            }
+
         # Build consensus
         consensus = self._build_consensus(results)
 
@@ -565,6 +576,7 @@ class ConsensusOrchestrator:
             "individual_annotations": [r.to_dict() for r in results],
             "agent_metadata": [m.to_dict() for m in metadata_list],
             "agreement_metrics": agreement,
+            "failed_agents": failed_agents,
         }
 
     def _build_consensus(self, results: List[AnnotationResult]) -> AnnotationResult:
