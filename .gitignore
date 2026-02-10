@@ -61,5 +61,11 @@ data/unified_training/train.json
 data/unified_training/validation.json
 data/unified_training/expert_*.json
 coverage/
-training_data_consolidated/final_datasets/training_dataset_enhanced.json
+training_data_consolidated/
 data/books/
+mcp_server/
+evaluation/
+training_ready/scripts/
+training_ready/data/
+training/ready_packages/platforms/
+/api/
