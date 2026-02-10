@@ -38,6 +38,7 @@ except ImportError:
 if not MemoryClient and not Memory:
     raise ImportError("Please install mem0ai: uv add mem0ai")
 
+from ai.api.memory.null_memory import NullMemoryManager
 from google import genai
 from pydantic import BaseModel, Field
 
@@ -134,34 +135,13 @@ class GeminiMem0Manager:
             logger.warning(f"Failed to initialize Mem0: {e}. Falling back to null memory.")
             self._create_null_memory()
 
+            self.memory = NullMemoryManager()
+            self._is_platform_client = False
+
     def _create_null_memory(self):
         """Create a null memory shim for development/fallback."""
-
-        class NullMemory:
-            def add(self, *args, **kwargs):
-                return {"results": []}
-
-            def search(self, *args, **kwargs):
-                return {"results": []}
-
-            def get_all(self, *args, **kwargs):
-                return {"results": []}
-
-            def update(self, *args, **kwargs):
-                pass
-
-            def delete(self, *args, **kwargs):
-                pass
-
-            @property
-            def project(self):
-                class NullProject:
-                    def update(self, **kwargs):
-                        pass
-
-                return NullProject()
-
-        self.memory = NullMemory()
+        # Deprecated: use NullMemoryManager directly
+        self.memory = NullMemoryManager()
         self._is_platform_client = False
 
     def _apply_custom_instructions(self):

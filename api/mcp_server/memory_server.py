@@ -18,11 +18,12 @@ from typing import Any, Dict, List, Optional
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
 
-from api.memory import (
+from ai.api.memory import (
     MemoryType,
     MessageRole,
     get_memory_manager,
 )
+from ai.api.memory.null_memory import NullMemoryManager
 
 logger = logging.getLogger(__name__)
 
@@ -89,14 +90,70 @@ def create_memory_server() -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         """Initialize memory services on startup."""
+        gemini_key = os.environ.get("GEMINI_API_KEY")
+        mem0_key = os.environ.get("MEM0_API_KEY")
+
         try:
-            get_memory_manager()
-            get_mem0_client()
-            logger.info("Memory services initialized (Mem0)")
+            # 1. Try GeminiMem0Manager (Preferred)
+            if gemini_key:
+                from ai.memory.mem0_gemini.manager import GeminiMem0Config, GeminiMem0Manager
+
+                config = GeminiMem0Config(
+                    gemini_api_key=gemini_key,
+                    mem0_api_key=mem0_key,
+                    user_id="mcp_http_user",
+                )
+                app.state.memory_manager = GeminiMem0Manager(config)
+                logger.info("Initialized GeminiMem0Manager (Enhanced Memory)")
+
+            # 2. Try simple Mem0 Client
+            elif mem0_key:
+                from mem0 import MemoryClient
+
+                # Wrap Mem0 client to match interface
+                class Mem0Wrapper:
+                    def __init__(self, client):
+                        self.client = client
+
+                    def add_memory(self, content, user_id, metadata=None, **kwargs):
+                        res = self.client.add(content, user_id=user_id, metadata=metadata)
+                        # Normalize return ID
+                        if isinstance(res, dict) and "results" in res and res["results"]:
+                            return res["results"][0].get("id")
+                        if isinstance(res, list) and res:
+                            return res[0].get("id")
+                        return "stored"
+
+                    def search_memories(self, query, user_id, **kwargs):
+                        return self.client.search(query, user_id=user_id, **kwargs)
+
+                    def get_all_memories(self, user_id):
+                        return self.client.get_all(user_id=user_id)
+
+                    def update_memory(self, memory_id, new_content, **kwargs):
+                        return self.client.update(memory_id, new_content)
+
+                    def delete_memory(self, memory_id):
+                        return self.client.delete(memory_id)
+
+                    def get_memory(self, memory_id):
+                        return self.client.get(memory_id)
+
+                app.state.memory_manager = Mem0Wrapper(MemoryClient(api_key=mem0_key))
+                logger.info("Initialized Mem0 Platform Client (Basic Memory)")
+
+            else:
+                # 3. Fallback to NullMemory
+                raise ImportWarning("No API keys found")
+
         except Exception as e:
-            logger.error(f"Failed to initialize memory services: {e}")
-            # Don't raise here to allow server to start even if memory is offline in dev
+            logger.warning(f"Using NullMemoryManager (fallback): {e}")
+            app.state.memory_manager = NullMemoryManager()
+
         yield
+
+        # Cleanup if needed
+        app.state.memory_manager = None
 
     app = FastAPI(
         title="Pixelated Memory Server",
@@ -107,75 +164,9 @@ def create_memory_server() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # Store for direct Mem0 client access (for MCP tools)
-    _mem0_client = None
-
-    def get_mem0_client():
-        """
-        Get or create Mem0 client with proper fallback hierarchy.
-
-        Priority:
-        1. Mem0 Platform API (if MEM0_API_KEY provided)
-        2. Null memory implementation (always works)
-
-        Returns:
-            Configured memory client or null implementation
-        """
-        nonlocal _mem0_client
-        if _mem0_client is None:
-            api_key = os.environ.get("MEM0_API_KEY")
-
-            if api_key:
-                try:
-                    from mem0 import MemoryClient
-
-                    _mem0_client = MemoryClient(api_key=api_key)
-                    logger.info("Initialized Mem0 Platform API client")
-                    return _mem0_client
-                except ImportError:
-                    logger.warning("mem0 package not installed, using null memory")
-                except Exception as e:
-                    logger.error(f"Failed to initialize Mem0 Platform client: {e}")
-            else:
-                logger.info("No MEM0_API_KEY provided, using null memory implementation")
-
-            # Create null memory implementation (complete, no stubs)
-            class NullMemory:
-                """Complete null memory implementation for development/fallback."""
-
-                def add(self, content: str, user_id: str, metadata: dict = None, **kwargs):
-                    """Simulate adding memory."""
-                    memory_id = f"null-{hash(content) % 10000}"
-                    return {"results": [{"id": memory_id, "memory": content}]}
-
-                def search(self, query: str, user_id: str, limit: int = 10, **kwargs):
-                    """Simulate searching (returns empty)."""
-                    return {"results": []}
-
-                def get_all(self, user_id: str, **kwargs):
-                    """Simulate getting all memories (returns empty)."""
-                    return {"results": []}
-
-                def get(self, memory_id: str, **kwargs):
-                    """Simulate getting specific memory (returns None)."""
-                    return None
-
-                def update(self, memory_id: str, text: str, metadata: dict = None, **kwargs):
-                    """Simulate updating memory."""
-                    return {"message": "updated (null implementation)"}
-
-                def delete(self, memory_id: str, **kwargs):
-                    """Simulate deleting memory."""
-                    return {"message": "deleted (null implementation)"}
-
-                def delete_all(self, user_id: str, **kwargs):
-                    """Simulate deleting all user memories."""
-                    return {"message": "deleted all (null implementation)"}
-
-            _mem0_client = NullMemory()
-            logger.info("Using null memory implementation")
-
-        return _mem0_client
+    def get_mcp_manager():
+        """Get Memory Manager from app state."""
+        return getattr(app.state, "memory_manager", NullMemoryManager())
 
     # ==================== MCP MEMORY TOOLS ====================
 
@@ -187,8 +178,8 @@ def create_memory_server() -> FastAPI:
         Stores information in long-term memory with optional metadata.
         """
         try:
-            client = get_mem0_client()
-            if not client:
+            manager = get_mcp_manager()
+            if not manager:
                 raise HTTPException(status_code=503, detail="Memory service unavailable")
 
             metadata = request.metadata or {}
@@ -196,21 +187,16 @@ def create_memory_server() -> FastAPI:
                 metadata["session_id"] = request.session_id
             if request.agent_id:
                 metadata["agent_id"] = request.agent_id
-            if request.category:
-                metadata["category"] = request.category
 
-            result = client.add(
+            memory_id = manager.add_memory(
                 request.content,
                 user_id=request.user_id,
-                metadata=metadata if metadata else None,
+                metadata=metadata or None,
+                category=request.category,
             )
 
-            # Handle different response formats
-            memory_id = "stored"
-            if isinstance(result, dict) and "results" in result:
-                results = result["results"]
-                if results:
-                    memory_id = results[0].get("id", "stored")
+            if not memory_id:
+                raise HTTPException(status_code=400, detail="Memory rejected by safety filters")
 
             return {
                 "success": True,
@@ -231,21 +217,18 @@ def create_memory_server() -> FastAPI:
         Performs semantic search across user's memories.
         """
         try:
-            client = get_mem0_client()
-            if not client:
+            manager = get_mcp_manager()
+            if not manager:
                 raise HTTPException(status_code=503, detail="Memory service unavailable")
 
-            result = client.search(
+            memories = manager.search_memories(
                 request.query,
                 user_id=request.user_id,
-                limit=request.limit,
             )
 
-            memories = []
-            if isinstance(result, dict) and "results" in result:
-                memories = result["results"]
-            elif isinstance(result, list):
-                memories = result
+            # Handle case where result might be a dict with 'results' key (wrapper vs manager)
+            if isinstance(memories, dict) and "results" in memories:
+                memories = memories["results"]
 
             return {
                 "success": True,
@@ -267,12 +250,13 @@ def create_memory_server() -> FastAPI:
         Get all memories for a user (MCP Tool: get_all_memory).
         """
         try:
-            client = get_mem0_client()
-            if not client:
+            manager = get_mcp_manager()
+            if not manager:
                 raise HTTPException(status_code=503, detail="Memory service unavailable")
 
-            result = client.get_all(user_id=user_id)
+            result = manager.get_all_memories(user_id=user_id)
 
+            # Unpack if needed
             memories = []
             if isinstance(result, dict) and "results" in result:
                 memories = result["results"]
@@ -296,11 +280,11 @@ def create_memory_server() -> FastAPI:
         Get a specific memory by ID (MCP Tool: get_memory).
         """
         try:
-            client = get_mem0_client()
-            if not client:
+            manager = get_mcp_manager()
+            if not manager:
                 raise HTTPException(status_code=503, detail="Memory service unavailable")
 
-            result = client.get(memory_id=memory_id)
+            result = manager.get_memory(memory_id=memory_id)
 
             if not result:
                 raise HTTPException(status_code=404, detail="Memory not found")
@@ -320,15 +304,23 @@ def create_memory_server() -> FastAPI:
         Updates the content of an existing memory without creating duplicates.
         """
         try:
-            client = get_mem0_client()
-            if not client:
+            manager = get_mcp_manager()
+            if not manager:
                 raise HTTPException(status_code=503, detail="Memory service unavailable")
 
-            update_args = {"memory_id": memory_id, "text": request.text}
-            if request.metadata:
-                update_args["metadata"] = request.metadata
+            success = manager.update_memory(
+                memory_id=memory_id, new_content=request.text, metadata=request.metadata
+            )
 
-            client.update(**update_args)
+            # manager.update_memory returns bool. Wrapper client.update returns dict.
+            # Handle both cases if needed, but mainly bool for GeminiManager.
+
+            # If wrapper returns dict, assume success for now or check contents
+            if isinstance(success, dict):
+                success = True
+
+            if not success:
+                raise HTTPException(status_code=400, detail="Update rejected or failed")
 
             return {
                 "success": True,
@@ -345,11 +337,11 @@ def create_memory_server() -> FastAPI:
         Delete a specific memory (MCP Tool: delete_memory).
         """
         try:
-            client = get_mem0_client()
-            if not client:
+            manager = get_mcp_manager()
+            if not manager:
                 raise HTTPException(status_code=503, detail="Memory service unavailable")
 
-            client.delete(memory_id=memory_id)
+            manager.delete_memory(memory_id=memory_id)
 
             return {
                 "success": True,
@@ -366,23 +358,15 @@ def create_memory_server() -> FastAPI:
         Delete all memories for a user (MCP Tool: delete_all).
         """
         try:
-            client = get_mem0_client()
-            if not client:
+            manager = get_mcp_manager()
+            if not manager:
                 raise HTTPException(status_code=503, detail="Memory service unavailable")
 
-            if hasattr(client, "delete_all"):
-                client.delete_all(user_id=user_id)
-            else:
-                # Fallback: delete individually
-                all_memories = client.get_all(user_id=user_id)
-                memories = (
-                    all_memories.get("results", [])
-                    if isinstance(all_memories, dict)
-                    else all_memories
-                )
-                for m in memories:
-                    if m.get("id"):
-                        client.delete(memory_id=m["id"])
+            if hasattr(manager, "clear_memory"):
+                manager.clear_memory(user_id=user_id)
+            elif hasattr(manager, "client") and hasattr(manager.client, "delete_all"):
+                # Wrapper fallback
+                manager.client.delete_all(user_id=user_id)
 
             return {
                 "success": True,
@@ -513,7 +497,7 @@ def run_server():
     import uvicorn
 
     port = int(os.environ.get("MEMORY_SERVER_PORT", 5003))
-    uvicorn.run("api.mcp_server.memory_server:app", host="0.0.0.0", port=port, reload=True)
+    uvicorn.run("ai.api.mcp_server.memory_server:app", host="0.0.0.0", port=port, reload=True)
 
 
 if __name__ == "__main__":

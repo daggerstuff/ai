@@ -211,22 +211,9 @@ def get_memory_manager(mem0_client: Optional[Memory] = None) -> MemoryManager:
         if not mem0_client:
             # Create a null Memory implementation for development/fallback
             # This ensures the server can always start (AGENTS.md: complete implementation)
-            class NullMemory:
-                """Complete null Memory implementation for development."""
+            from ai.api.memory.null_memory import NullMemoryManager
 
-                def add(self, messages, user_id: str = None, **kwargs):
-                    """Simulate adding memory."""
-                    return {"results": [{"id": f"null-{hash(str(messages)) % 10000}"}]}
-
-                def search(self, query: str, user_id: str = None, **kwargs):
-                    """Simulate searching (returns empty)."""
-                    return {"results": []}
-
-                def get_all(self, user_id: str = None, **kwargs):
-                    """Simulate getting all memories (returns empty)."""
-                    return {"results": []}
-
-            mem0_client = NullMemory()
+            mem0_client = NullMemoryManager()
             logger.info("Using null Memory implementation for MemoryManager")
 
         _memory_manager_instance = MemoryManager(mem0_client)
