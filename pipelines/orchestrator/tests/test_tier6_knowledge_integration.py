@@ -107,12 +107,8 @@ class TestTier6KnowledgeLoader:
 
         logger.info("✓ Tier 6 metadata structure validated")
 
-    @patch(
-        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run"
-    )
-    @patch(
-        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which"
-    )
+    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run")
+    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which")
     def test_tier6_s3_integration(self, mock_which, mock_subprocess, tier_processor):
         """Test that Tier 6 can use S3 download capability."""
         # Mock ovhai CLI availability

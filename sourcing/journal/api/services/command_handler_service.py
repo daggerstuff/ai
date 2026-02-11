@@ -247,10 +247,7 @@ class CommandHandlerService:
         }
 
         # Update session if needed
-        if (
-            session.target_sources != sources
-            or session.search_keywords != search_keywords
-        ):
+        if session.target_sources != sources or session.search_keywords != search_keywords:
             session.target_sources = sources
             session.search_keywords = search_keywords
             orchestrator.save_session_state(session_id)
@@ -436,16 +433,14 @@ class CommandHandlerService:
             for source in sources_to_acquire:
                 try:
                     # Submit access request
-                    access_request = (
-                        orchestrator.acquisition_manager.submit_access_request(source)
+                    access_request = orchestrator.acquisition_manager.submit_access_request(
+                        source
                     )
                     state.access_requests.append(access_request)
 
                     # Download dataset
-                    acquired_dataset = (
-                        orchestrator.acquisition_manager.download_dataset(
-                            source, access_request
-                        )
+                    acquired_dataset = orchestrator.acquisition_manager.download_dataset(
+                        source, access_request
                     )
                     state.acquired_datasets.append(acquired_dataset)
                     acquired_count += 1
@@ -537,9 +532,7 @@ class CommandHandlerService:
                     state.integration_plans.append(plan)
                     plans_count += 1
                 except Exception as e:
-                    logger.exception(
-                        f"Error creating plan for {dataset.source_id}: {e}"
-                    )
+                    logger.exception(f"Error creating plan for {dataset.source_id}: {e}")
                     raise
         else:
             raise ValueError("No integration engine configured")
@@ -564,7 +557,9 @@ class CommandHandlerService:
         state = orchestrator.get_session_state(session_id)
         return state.integration_plans
 
-    def get_integration_plan(self, session_id: str, plan_id: str) -> IntegrationPlan:
+    def get_integration_plan(
+        self, session_id: str, plan_id: str
+    ) -> IntegrationPlan:
         """Get integration plan details by ID."""
         plans = self.get_integration_plans(session_id)
         # plan_id format is "plan_{source_id}"
@@ -572,9 +567,7 @@ class CommandHandlerService:
         for plan in plans:
             if plan.source_id == source_id:
                 return plan
-        raise ValueError(
-            f"Integration plan {plan_id} not found in session {session_id}"
-        )
+        raise ValueError(f"Integration plan {plan_id} not found in session {session_id}")
 
     # Progress methods
     def get_progress(self, session_id: str) -> Dict[str, Any]:
@@ -587,9 +580,7 @@ class CommandHandlerService:
 
         # Calculate progress percentage
         total_metrics = sum(session.progress_metrics.values())
-        total_targets = (
-            sum(session.weekly_targets.values()) if session.weekly_targets else 1
-        )
+        total_targets = sum(session.weekly_targets.values()) if session.weekly_targets else 1
         progress_percentage = (
             (total_metrics / total_targets * 100) if total_targets > 0 else 0.0
         )
@@ -619,9 +610,7 @@ class CommandHandlerService:
             "datasets_evaluated": progress.datasets_evaluated,
             "datasets_acquired": progress.datasets_acquired,
             "integration_plans_created": progress.integration_plans_created,
-            "last_updated": progress.last_updated.isoformat()
-            if progress.last_updated
-            else None,
+            "last_updated": progress.last_updated.isoformat() if progress.last_updated else None,
         }
 
     # Report methods
@@ -646,7 +635,9 @@ class CommandHandlerService:
             "progress_metrics": session.progress_metrics,
             "weekly_targets": session.weekly_targets,
             "sources": [self._source_to_dict(s) for s in state.sources],
-            "evaluations": [self._evaluation_to_dict(e) for e in state.evaluations],
+            "evaluations": [
+                self._evaluation_to_dict(e) for e in state.evaluations
+            ],
             "acquired_datasets": [
                 self._acquisition_to_dict(d) for d in state.acquired_datasets
             ],
@@ -692,14 +683,10 @@ class CommandHandlerService:
                 try:
                     loop = asyncio.get_event_loop()
                     if loop.is_running():
-                        loop.create_task(
-                            self._async_broadcast_progress_update(session_id)
-                        )
+                        loop.create_task(self._async_broadcast_progress_update(session_id))
                     else:
                         # No loop running, skip broadcast (can't create task without running loop)
-                        logger.debug(
-                            f"No running event loop for WebSocket broadcast: {session_id}"
-                        )
+                        logger.debug(f"No running event loop for WebSocket broadcast: {session_id}")
                 except RuntimeError:
                     # No event loop at all, skip broadcast
                     logger.debug(f"No event loop for WebSocket broadcast: {session_id}")
@@ -732,3 +719,4 @@ class CommandHandlerService:
         except Exception as e:
             # Don't fail the request if WebSocket broadcast fails
             logger.warning(f"Failed to broadcast progress update: {e}")
+

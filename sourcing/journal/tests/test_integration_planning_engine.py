@@ -322,9 +322,7 @@ class TestPreprocessingScriptGeneration:
             assert "def main" in content
             assert "def transform_data" in content
 
-    def test_generate_script_creates_directory(
-        self, engine, sample_csv_dataset, tmp_path
-    ):
+    def test_generate_script_creates_directory(self, engine, sample_csv_dataset, tmp_path):
         """Test that script generation creates directory if needed."""
         plan = engine.create_integration_plan(sample_csv_dataset)
         script_path = tmp_path / "scripts" / "preprocess.py"
@@ -399,3 +397,4 @@ class TestHelperMethods:
 
         value = engine._get_nested_value(obj, "level1.nonexistent")
         assert value is None
+

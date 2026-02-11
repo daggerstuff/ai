@@ -41,9 +41,7 @@ class LegacyDatasetIngestor:
                         record = {
                             "instruction": "Analyze this text for mental health signals.",
                             "input": text,
-                            "output": row.get(label_col, "No label")
-                            if label_col
-                            else "N/A",
+                            "output": row.get(label_col, "No label") if label_col else "N/A",
                             "source": input_path.name,
                         }
                         out_f.write(json.dumps(record) + "\n")

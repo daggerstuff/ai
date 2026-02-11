@@ -61,13 +61,19 @@ class PrivacyVerifier:
     """
 
     # PII patterns
-    EMAIL_PATTERN = re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b")
+    EMAIL_PATTERN = re.compile(
+        r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"
+    )
     PHONE_PATTERN = re.compile(
         r"(\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b"
     )
     SSN_PATTERN = re.compile(r"\b\d{3}-\d{2}-\d{4}\b|\b\d{9}\b")
-    CREDIT_CARD_PATTERN = re.compile(r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b")
-    IP_ADDRESS_PATTERN = re.compile(r"\b(?:\d{1,3}\.){3}\d{1,3}\b")
+    CREDIT_CARD_PATTERN = re.compile(
+        r"\b\d{4}[-\s]?\d{4}[-\s]?\d{4}[-\s]?\d{4}\b"
+    )
+    IP_ADDRESS_PATTERN = re.compile(
+        r"\b(?:\d{1,3}\.){3}\d{1,3}\b"
+    )
     DATE_PATTERN = re.compile(
         r"\b\d{1,2}[/-]\d{1,2}[/-]\d{2,4}\b|\b\d{4}[/-]\d{1,2}[/-]\d{1,2}\b"
     )
@@ -117,8 +123,7 @@ class PrivacyVerifier:
             re.compile(pattern, re.IGNORECASE) for pattern in self.MEDICAL_ID_PATTERNS
         ]
         self._compiled_anonymization_patterns = [
-            re.compile(pattern, re.IGNORECASE)
-            for pattern in self.ANONYMIZATION_PATTERNS
+            re.compile(pattern, re.IGNORECASE) for pattern in self.ANONYMIZATION_PATTERNS
         ]
 
     def verify_privacy(
@@ -363,10 +368,7 @@ class PrivacyVerifier:
                 f"PII detected: {', '.join(sorted(pii_types))} ({pii_count} instances)"
             )
 
-        if anonymization_quality in [
-            AnonymizationQuality.POOR,
-            AnonymizationQuality.NONE,
-        ]:
+        if anonymization_quality in [AnonymizationQuality.POOR, AnonymizationQuality.NONE]:
             issues.append(f"Poor anonymization quality: {anonymization_quality.value}")
 
         if re_identification_risk in [PrivacyRiskLevel.HIGH, PrivacyRiskLevel.CRITICAL]:
@@ -396,10 +398,7 @@ class PrivacyVerifier:
                 f"Remove or anonymize detected PII types: {', '.join(sorted(pii_types))}"
             )
 
-        if anonymization_quality in [
-            AnonymizationQuality.POOR,
-            AnonymizationQuality.NONE,
-        ]:
+        if anonymization_quality in [AnonymizationQuality.POOR, AnonymizationQuality.NONE]:
             recommendations.append(
                 "Implement proper anonymization techniques (redaction, pseudonymization, generalization)"
             )
@@ -408,9 +407,7 @@ class PrivacyVerifier:
             recommendations.append(
                 "High re-identification risk - implement additional privacy protections"
             )
-            recommendations.append(
-                "Consider differential privacy or k-anonymity techniques"
-            )
+            recommendations.append("Consider differential privacy or k-anonymity techniques")
 
         if "medical_id" in pii_types:
             recommendations.append(
@@ -418,9 +415,7 @@ class PrivacyVerifier:
             )
 
         if not pii_types and anonymization_quality == AnonymizationQuality.EXCELLENT:
-            recommendations.append(
-                "Dataset appears well-anonymized - verify with full dataset sample"
-            )
+            recommendations.append("Dataset appears well-anonymized - verify with full dataset sample")
 
         return recommendations
 
@@ -468,3 +463,4 @@ class PrivacyVerifier:
         # 4. Return combined sample text
         logger.warning(f"File sampling not yet implemented for {file_path}")
         return ""
+

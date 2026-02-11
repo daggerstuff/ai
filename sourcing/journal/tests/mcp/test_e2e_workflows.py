@@ -112,12 +112,12 @@ async def test_agent_workflow_end_to_end(
                 "id": "discover",
                 "method": "tools/call",
                 "params": {
-                    "name": "discover_sources",
-                    "arguments": {
-                        "session_id": session_id,
-                        "keywords": ["therapy"],
-                        "sources": ["pubmed"],
-                    },
+                        "name": "discover_sources",
+                        "arguments": {
+                            "session_id": session_id,
+                            "keywords": ["therapy"],
+                            "sources": ["pubmed"],
+                        },
                 },
             }
         )
@@ -238,3 +238,4 @@ async def test_agent_workflow_end_to_end(
     )
     payload = json.loads(error_response)
     assert payload["error"]["code"] == -32000  # Tool execution error
+

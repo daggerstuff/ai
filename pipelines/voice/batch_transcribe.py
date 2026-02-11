@@ -17,9 +17,7 @@ os.makedirs(TRANSCRIPT_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 logging.basicConfig(
-    filename=LOG_FILE,
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
+    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
 
@@ -57,6 +55,7 @@ def transcribe_with_whisperx(
 
 
 def main():
+
     audio_files = glob.glob(os.path.join(SEGMENT_DIR, "*.wav"))
     if not audio_files:
         logging.error(f"No audio files found in {SEGMENT_DIR}")

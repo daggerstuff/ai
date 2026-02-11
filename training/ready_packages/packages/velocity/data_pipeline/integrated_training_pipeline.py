@@ -13,41 +13,17 @@ from datetime import datetime
 # Note: These imports reference ai/dataset_pipeline which still exists
 # They are not part of the training_ready consolidation
 try:
-    from ai.pipelines.orchestrator.ingestion.edge_case_jsonl_loader import (
-        EdgeCaseJSONLLoader,
-        load_edge_case_training_data,
-    )
-    from ai.pipelines.orchestrator.ingestion.psychology_knowledge_loader import (
-        PsychologyKnowledgeLoader,
-        load_psychology_knowledge,
-    )
-    from ai.pipelines.orchestrator.ingestion.pixel_voice_loader import (
-        PixelVoiceLoader,
-        load_pixel_voice_training_data,
-    )
-    from ai.pipelines.orchestrator.ingestion.dual_persona_loader import (
-        DualPersonaLoader,
-        load_dual_persona_training_data,
-    )
+    from ai.pipelines.orchestrator.ingestion.edge_case_jsonl_loader import EdgeCaseJSONLLoader, load_edge_case_training_data
+    from ai.pipelines.orchestrator.ingestion.psychology_knowledge_loader import PsychologyKnowledgeLoader, load_psychology_knowledge
+    from ai.pipelines.orchestrator.ingestion.pixel_voice_loader import PixelVoiceLoader, load_pixel_voice_training_data
+    from ai.pipelines.orchestrator.ingestion.dual_persona_loader import DualPersonaLoader, load_dual_persona_training_data
     from ai.pipelines.orchestrator.utils.logger import get_logger
 except ImportError:
     # Fallback for relative imports if run from different context
-    from ..ingestion.edge_case_jsonl_loader import (
-        EdgeCaseJSONLLoader,
-        load_edge_case_training_data,
-    )
-    from ..ingestion.psychology_knowledge_loader import (
-        PsychologyKnowledgeLoader,
-        load_psychology_knowledge,
-    )
-    from ..ingestion.pixel_voice_loader import (
-        PixelVoiceLoader,
-        load_pixel_voice_training_data,
-    )
-    from ..ingestion.dual_persona_loader import (
-        DualPersonaLoader,
-        load_dual_persona_training_data,
-    )
+    from ..ingestion.edge_case_jsonl_loader import EdgeCaseJSONLLoader, load_edge_case_training_data
+    from ..ingestion.psychology_knowledge_loader import PsychologyKnowledgeLoader, load_psychology_knowledge
+    from ..ingestion.pixel_voice_loader import PixelVoiceLoader, load_pixel_voice_training_data
+    from ..ingestion.dual_persona_loader import DualPersonaLoader, load_dual_persona_training_data
     from ..utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.integrated_training_pipeline")
@@ -56,7 +32,6 @@ logger = get_logger("dataset_pipeline.integrated_training_pipeline")
 @dataclass
 class DataSourceConfig:
     """Configuration for each data source"""
-
     enabled: bool = True
     target_percentage: float = 0.0  # Target percentage of final dataset
     max_samples: Optional[int] = None
@@ -68,45 +43,35 @@ class IntegratedPipelineConfig:
     """Configuration for integrated training pipeline"""
 
     # Data source configurations
-    edge_cases: DataSourceConfig = field(
-        default_factory=lambda: DataSourceConfig(
-            enabled=True,
-            target_percentage=0.25,  # 25% edge cases
-            source_path="ai/pipelines/edge_case_pipeline_standalone/output",
-        )
-    )
+    edge_cases: DataSourceConfig = field(default_factory=lambda: DataSourceConfig(
+        enabled=True,
+        target_percentage=0.25,  # 25% edge cases
+        source_path="ai/pipelines/edge_case_pipeline_standalone/output"
+    ))
 
-    pixel_voice: DataSourceConfig = field(
-        default_factory=lambda: DataSourceConfig(
-            enabled=True,
-            target_percentage=0.20,  # 20% voice-derived
-            source_path="ai/pipelines/pixel_voice",
-        )
-    )
+    pixel_voice: DataSourceConfig = field(default_factory=lambda: DataSourceConfig(
+        enabled=True,
+        target_percentage=0.20,  # 20% voice-derived
+        source_path="ai/pipelines/pixel_voice"
+    ))
 
-    psychology_knowledge: DataSourceConfig = field(
-        default_factory=lambda: DataSourceConfig(
-            enabled=True,
-            target_percentage=0.15,  # 15% psychology knowledge
-            source_path="ai/training_data_consolidated",
-        )
-    )
+    psychology_knowledge: DataSourceConfig = field(default_factory=lambda: DataSourceConfig(
+        enabled=True,
+        target_percentage=0.15,  # 15% psychology knowledge
+        source_path="ai/training_data_consolidated"
+    ))
 
-    dual_persona: DataSourceConfig = field(
-        default_factory=lambda: DataSourceConfig(
-            enabled=True,
-            target_percentage=0.10,  # 10% dual persona
-            source_path="ai/pipelines/dual_persona_training",
-        )
-    )
+    dual_persona: DataSourceConfig = field(default_factory=lambda: DataSourceConfig(
+        enabled=True,
+        target_percentage=0.10,  # 10% dual persona
+        source_path="ai/pipelines/dual_persona_training"
+    ))
 
-    standard_therapeutic: DataSourceConfig = field(
-        default_factory=lambda: DataSourceConfig(
-            enabled=True,
-            target_percentage=0.30,  # 30% standard conversations
-            source_path="ai/dataset_pipeline/pixelated-training",
-        )
-    )
+    standard_therapeutic: DataSourceConfig = field(default_factory=lambda: DataSourceConfig(
+        enabled=True,
+        target_percentage=0.30,  # 30% standard conversations
+        source_path="ai/dataset_pipeline/pixelated-training"
+    ))
 
     # Output configuration
     output_dir: str = "ai/training_ready/data"  # Updated after consolidation
@@ -128,7 +93,6 @@ class IntegratedPipelineConfig:
 @dataclass
 class IntegrationStats:
     """Statistics from pipeline integration"""
-
     total_samples: int = 0
     samples_by_source: Dict[str, int] = field(default_factory=dict)
     samples_by_category: Dict[str, int] = field(default_factory=dict)
@@ -165,35 +129,35 @@ class IntegratedTrainingPipeline:
         if self.config.edge_cases.enabled:
             edge_data = self._load_edge_cases()
             all_training_data.extend(edge_data)
-            self.stats.samples_by_source["edge_cases"] = len(edge_data)
+            self.stats.samples_by_source['edge_cases'] = len(edge_data)
             logger.info(f"✅ Loaded {len(edge_data)} edge case examples")
 
         # 2. Load Pixel Voice Data
         if self.config.pixel_voice.enabled:
             voice_data = self._load_pixel_voice()
             all_training_data.extend(voice_data)
-            self.stats.samples_by_source["pixel_voice"] = len(voice_data)
+            self.stats.samples_by_source['pixel_voice'] = len(voice_data)
             logger.info(f"✅ Loaded {len(voice_data)} voice-derived examples")
 
         # 3. Load Psychology Knowledge
         if self.config.psychology_knowledge.enabled:
             psych_data = self._load_psychology_knowledge()
             all_training_data.extend(psych_data)
-            self.stats.samples_by_source["psychology_knowledge"] = len(psych_data)
+            self.stats.samples_by_source['psychology_knowledge'] = len(psych_data)
             logger.info(f"✅ Loaded {len(psych_data)} psychology knowledge examples")
 
         # 4. Load Dual Persona Data
         if self.config.dual_persona.enabled:
             persona_data = self._load_dual_persona()
             all_training_data.extend(persona_data)
-            self.stats.samples_by_source["dual_persona"] = len(persona_data)
+            self.stats.samples_by_source['dual_persona'] = len(persona_data)
             logger.info(f"✅ Loaded {len(persona_data)} dual persona examples")
 
         # 5. Load Standard Therapeutic Conversations
         if self.config.standard_therapeutic.enabled:
             standard_data = self._load_standard_therapeutic()
             all_training_data.extend(standard_data)
-            self.stats.samples_by_source["standard_therapeutic"] = len(standard_data)
+            self.stats.samples_by_source['standard_therapeutic'] = len(standard_data)
             logger.info(f"✅ Loaded {len(standard_data)} standard therapeutic examples")
 
         # 6. Balance dataset according to target percentages
@@ -223,10 +187,10 @@ class IntegratedTrainingPipeline:
         logger.info(f"⏱️  Time: {self.stats.integration_time:.2f}s")
 
         return {
-            "training_data": balanced_data,
-            "statistics": self.stats,
-            "output_path": output_path,
-            "report": report,
+            'training_data': balanced_data,
+            'statistics': self.stats,
+            'output_path': output_path,
+            'report': report
         }
 
     def _load_edge_cases(self) -> List[Dict]:
@@ -303,32 +267,27 @@ class IntegratedTrainingPipeline:
     def _load_standard_therapeutic(self) -> List[Dict]:
         """Load standard therapeutic conversations"""
         try:
-            standard_file = (
-                Path(self.config.standard_therapeutic.source_path)
-                / "training_dataset.json"
-            )
+            standard_file = Path(self.config.standard_therapeutic.source_path) / "training_dataset.json"
             if not standard_file.exists():
                 warning = f"Standard therapeutic data not found: {standard_file}"
                 logger.warning(warning)
                 self.stats.warnings.append(warning)
                 return []
 
-            with open(standard_file, "r") as f:
+            with open(standard_file, 'r') as f:
                 data = json.load(f)
-                conversations = data.get("conversations", [])
+                conversations = data.get('conversations', [])
 
             # Convert to standard format
             training_data = []
             for conv in conversations:
-                training_data.append(
-                    {
-                        "text": conv.get("text", ""),
-                        "metadata": {
-                            "source": "standard_therapeutic",
-                            "is_edge_case": False,
-                        },
+                training_data.append({
+                    'text': conv.get('text', ''),
+                    'metadata': {
+                        'source': 'standard_therapeutic',
+                        'is_edge_case': False
                     }
-                )
+                })
 
             return training_data
 
@@ -345,33 +304,18 @@ class IntegratedTrainingPipeline:
         # Group by source
         by_source = {}
         for item in data:
-            source = item.get("metadata", {}).get("source", "unknown")
+            source = item.get('metadata', {}).get('source', 'unknown')
             if source not in by_source:
                 by_source[source] = []
             by_source[source].append(item)
 
         # Calculate target counts
         target_counts = {
-            "edge_cases": int(
-                self.config.target_total_samples
-                * self.config.edge_cases.target_percentage
-            ),
-            "pixel_voice": int(
-                self.config.target_total_samples
-                * self.config.pixel_voice.target_percentage
-            ),
-            "psychology_knowledge": int(
-                self.config.target_total_samples
-                * self.config.psychology_knowledge.target_percentage
-            ),
-            "dual_persona": int(
-                self.config.target_total_samples
-                * self.config.dual_persona.target_percentage
-            ),
-            "standard_therapeutic": int(
-                self.config.target_total_samples
-                * self.config.standard_therapeutic.target_percentage
-            ),
+            'edge_cases': int(self.config.target_total_samples * self.config.edge_cases.target_percentage),
+            'pixel_voice': int(self.config.target_total_samples * self.config.pixel_voice.target_percentage),
+            'psychology_knowledge': int(self.config.target_total_samples * self.config.psychology_knowledge.target_percentage),
+            'dual_persona': int(self.config.target_total_samples * self.config.dual_persona.target_percentage),
+            'standard_therapeutic': int(self.config.target_total_samples * self.config.standard_therapeutic.target_percentage),
         }
 
         # Sample from each source
@@ -381,7 +325,6 @@ class IntegratedTrainingPipeline:
             if len(source_data) >= target_count:
                 # Sample down
                 import random
-
                 balanced.extend(random.sample(source_data, target_count))
             else:
                 # Use all available
@@ -405,16 +348,16 @@ class IntegratedTrainingPipeline:
             filtered_data = []
 
             for item in data:
-                text = item.get("text", "")
+                text = item.get('text', '')
                 if validate_bias(text):
                     filtered_data.append(item)
                 else:
                     flagged_count += 1
 
             self.stats.bias_detection_results = {
-                "total_checked": len(data),
-                "flagged": flagged_count,
-                "passed": len(filtered_data),
+                'total_checked': len(data),
+                'flagged': flagged_count,
+                'passed': len(filtered_data)
             }
 
             logger.info(f"   Flagged {flagged_count} items for bias")
@@ -439,18 +382,18 @@ class IntegratedTrainingPipeline:
         """
         # Convert to expected format
         output_data = {
-            "conversations": data,
-            "metadata": {
-                "total_conversations": len(data),
-                "sources": list(self.stats.samples_by_source.keys()),
-                "generated_at": datetime.now().isoformat(),
-                "pipeline_version": "1.0",
-                "integration_stats": {
-                    "samples_by_source": self.stats.samples_by_source,
-                    "warnings": self.stats.warnings,
-                    "errors": self.stats.errors,
-                },
-            },
+            'conversations': data,
+            'metadata': {
+                'total_conversations': len(data),
+                'sources': list(self.stats.samples_by_source.keys()),
+                'generated_at': datetime.now().isoformat(),
+                'pipeline_version': '1.0',
+                'integration_stats': {
+                    'samples_by_source': self.stats.samples_by_source,
+                    'warnings': self.stats.warnings,
+                    'errors': self.stats.errors
+                }
+            }
         }
 
         # Save locally first
@@ -458,32 +401,26 @@ class IntegratedTrainingPipeline:
         output_dir.mkdir(parents=True, exist_ok=True)
         output_path = output_dir / self.config.output_filename
 
-        with open(output_path, "w") as f:
+        with open(output_path, 'w') as f:
             json.dump(output_data, f, indent=2)
 
         logger.info(f"💾 Saved dataset locally to {output_path}")
 
         # Save to S3 if enabled (canonical location)
-        if getattr(self.config, "output_to_s3", False):
+        if getattr(self.config, 'output_to_s3', False):
             try:
-                from ai.training.ready_packages.utils.s3_dataset_loader import (
-                    S3DatasetLoader,
-                )
+                from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader
 
                 loader = S3DatasetLoader()
-                s3_key = getattr(
-                    self.config,
-                    "s3_output_path",
-                    "gdrive/processed/unified/training_dataset.json",
-                )
+                s3_key = getattr(self.config, 's3_output_path', 'gdrive/processed/unified/training_dataset.json')
                 s3_path = f"s3://{loader.bucket}/{s3_key}"
 
                 # Upload to S3
                 loader.s3_client.put_object(
                     Bucket=loader.bucket,
                     Key=s3_key,
-                    Body=json.dumps(output_data, indent=2).encode("utf-8"),
-                    ContentType="application/json",
+                    Body=json.dumps(output_data, indent=2).encode('utf-8'),
+                    ContentType='application/json'
                 )
 
                 logger.info(f"💾 Saved dataset to S3 (canonical): {s3_path}")
@@ -495,26 +432,24 @@ class IntegratedTrainingPipeline:
     def _generate_report(self) -> Dict:
         """Generate integration report"""
         return {
-            "timestamp": datetime.now().isoformat(),
-            "total_samples": self.stats.total_samples,
-            "samples_by_source": self.stats.samples_by_source,
-            "target_percentages": {
-                "edge_cases": self.config.edge_cases.target_percentage,
-                "pixel_voice": self.config.pixel_voice.target_percentage,
-                "psychology_knowledge": self.config.psychology_knowledge.target_percentage,
-                "dual_persona": self.config.dual_persona.target_percentage,
-                "standard_therapeutic": self.config.standard_therapeutic.target_percentage,
+            'timestamp': datetime.now().isoformat(),
+            'total_samples': self.stats.total_samples,
+            'samples_by_source': self.stats.samples_by_source,
+            'target_percentages': {
+                'edge_cases': self.config.edge_cases.target_percentage,
+                'pixel_voice': self.config.pixel_voice.target_percentage,
+                'psychology_knowledge': self.config.psychology_knowledge.target_percentage,
+                'dual_persona': self.config.dual_persona.target_percentage,
+                'standard_therapeutic': self.config.standard_therapeutic.target_percentage,
             },
-            "actual_percentages": {
-                source: count / self.stats.total_samples
-                if self.stats.total_samples > 0
-                else 0
+            'actual_percentages': {
+                source: count / self.stats.total_samples if self.stats.total_samples > 0 else 0
                 for source, count in self.stats.samples_by_source.items()
             },
-            "integration_time_seconds": self.stats.integration_time,
-            "warnings": self.stats.warnings,
-            "errors": self.stats.errors,
-            "bias_detection": self.stats.bias_detection_results,
+            'integration_time_seconds': self.stats.integration_time,
+            'warnings': self.stats.warnings,
+            'errors': self.stats.errors,
+            'bias_detection': self.stats.bias_detection_results
         }
 
 
@@ -540,4 +475,4 @@ if __name__ == "__main__":
     result = run_integrated_pipeline()
 
     print("\n📊 Integration Report:")
-    print(json.dumps(result["report"], indent=2))
+    print(json.dumps(result['report'], indent=2))

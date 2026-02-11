@@ -17,10 +17,7 @@ def check_process():
     """Check if fix_encoding.py is running"""
     try:
         result = subprocess.run(
-            ["pgrep", "-f", "fix_encoding.py"],
-            check=False,
-            capture_output=True,
-            text=True,
+            ["pgrep", "-f", "fix_encoding.py"], check=False, capture_output=True, text=True
         )
         if result.returncode == 0:
             pids = result.stdout.strip().split("\n")
@@ -31,9 +28,7 @@ def check_process():
     except FileNotFoundError:
         # pgrep not available, try ps
         try:
-            result = subprocess.run(
-                ["ps", "aux"], check=False, capture_output=True, text=True
-            )
+            result = subprocess.run(["ps", "aux"], check=False, capture_output=True, text=True)
             if "fix_encoding.py" in result.stdout:
                 print("✅ fix_encoding.py appears to be running")
                 return True

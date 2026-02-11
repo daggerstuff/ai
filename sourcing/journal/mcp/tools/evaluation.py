@@ -94,6 +94,7 @@ class EvaluateSourcesTool(MCPTool):
             ) from e
 
 
+
 class GetEvaluationsTool(MCPTool):
     """Tool for getting all evaluations for a session."""
 
@@ -135,11 +136,7 @@ class GetEvaluationsTool(MCPTool):
                     },
                     "sort_by": {
                         "type": "string",
-                        "enum": [
-                            "overall_score",
-                            "evaluation_date",
-                            "therapeutic_relevance",
-                        ],
+                        "enum": ["overall_score", "evaluation_date", "therapeutic_relevance"],
                         "description": "Field to sort by",
                     },
                     "sort_order": {
@@ -180,9 +177,7 @@ class GetEvaluationsTool(MCPTool):
             sort_by = params.get("sort_by")
             sort_order = params.get("sort_order", "desc")
             if sort_by:
-                evaluations_list = self._apply_sorting(
-                    evaluations_list, sort_by, sort_order
-                )
+                evaluations_list = self._apply_sorting(evaluations_list, sort_by, sort_order)
 
             # Convert evaluations to dicts
             evaluations_data = []
@@ -215,9 +210,7 @@ class GetEvaluationsTool(MCPTool):
         filtered = evaluations
 
         if "priority_tier" in filters:
-            filtered = [
-                e for e in filtered if e.priority_tier == filters["priority_tier"]
-            ]
+            filtered = [e for e in filtered if e.priority_tier == filters["priority_tier"]]
 
         if "min_overall_score" in filters:
             min_score = filters["min_overall_score"]
@@ -454,21 +447,13 @@ class UpdateEvaluationTool(MCPTool):
                 raise ValueError("evaluation_id is required")
 
             # Validate score ranges if provided
-            if therapeutic_relevance is not None and not (
-                1 <= therapeutic_relevance <= 10
-            ):
+            if therapeutic_relevance is not None and not (1 <= therapeutic_relevance <= 10):
                 raise ValueError("therapeutic_relevance must be between 1 and 10")
-            if data_structure_quality is not None and not (
-                1 <= data_structure_quality <= 10
-            ):
+            if data_structure_quality is not None and not (1 <= data_structure_quality <= 10):
                 raise ValueError("data_structure_quality must be between 1 and 10")
-            if training_integration is not None and not (
-                1 <= training_integration <= 10
-            ):
+            if training_integration is not None and not (1 <= training_integration <= 10):
                 raise ValueError("training_integration must be between 1 and 10")
-            if ethical_accessibility is not None and not (
-                1 <= ethical_accessibility <= 10
-            ):
+            if ethical_accessibility is not None and not (1 <= ethical_accessibility <= 10):
                 raise ValueError("ethical_accessibility must be between 1 and 10")
 
             # Update evaluation
@@ -523,3 +508,4 @@ class UpdateEvaluationTool(MCPTool):
             "privacy_compliant": evaluation.privacy_compliant,
             "hipaa_compliant": evaluation.hipaa_compliant,
         }
+

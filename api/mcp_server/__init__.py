@@ -19,18 +19,17 @@ __version__ = "1.0.0"
 __author__ = "TechDeck Team"
 __description__ = "MCP Server for Agent Interaction Management"
 
-# from .app import create_mcp_app
+from .app import create_mcp_app
 from .config import MCPConfig, get_mcp_config
-
-# from .core.agent_manager import AgentManager
-# from .core.pipeline_integration import PipelineIntegrationManager
-# from .core.task_orchestrator import TaskOrchestrator
+from .core.agent_manager import AgentManager
+from .core.pipeline_integration import PipelineIntegrationManager
+from .core.task_orchestrator import TaskOrchestrator
 
 __all__ = [
-    # "create_mcp_app",
+    "create_mcp_app",
     "MCPConfig",
     "get_mcp_config",
-    # "AgentManager",
-    # "TaskOrchestrator",
-    # "PipelineIntegrationManager",
+    "AgentManager",
+    "TaskOrchestrator",
+    "PipelineIntegrationManager",
 ]

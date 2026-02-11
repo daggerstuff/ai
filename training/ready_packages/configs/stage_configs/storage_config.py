@@ -13,7 +13,6 @@ from enum import Enum
 
 class StorageBackend(Enum):
     """Supported storage backends"""
-
     LOCAL = "local"
     S3 = "s3"
     GCS = "gcs"
@@ -46,9 +45,7 @@ class StorageConfig:
     logs_prefix: str = "logs"
 
     # Local fallback paths (used when backend is LOCAL or as cache)
-    local_base_path: Path = field(
-        default_factory=lambda: Path("ai/dataset_pipeline/data")
-    )
+    local_base_path: Path = field(default_factory=lambda: Path("ai/dataset_pipeline/data"))
 
     @classmethod
     def from_env(cls) -> "StorageConfig":
@@ -63,9 +60,7 @@ class StorageConfig:
             backend = StorageBackend.LOCAL
 
         # Local path
-        local_base = Path(
-            os.getenv("DATASET_STORAGE_LOCAL_PATH", "ai/dataset_pipeline/data")
-        )
+        local_base = Path(os.getenv("DATASET_STORAGE_LOCAL_PATH", "ai/dataset_pipeline/data"))
 
         config = cls(
             backend=backend,
@@ -73,17 +68,13 @@ class StorageConfig:
             # S3
             s3_bucket=os.getenv("DATASET_S3_BUCKET"),
             s3_region=os.getenv("DATASET_S3_REGION", "us-east-1"),
-            s3_access_key_id=os.getenv("AWS_ACCESS_KEY_ID")
-            or os.getenv("DATASET_S3_ACCESS_KEY_ID"),
-            s3_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY")
-            or os.getenv("DATASET_S3_SECRET_ACCESS_KEY"),
+            s3_access_key_id=os.getenv("AWS_ACCESS_KEY_ID") or os.getenv("DATASET_S3_ACCESS_KEY_ID"),
+            s3_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY") or os.getenv("DATASET_S3_SECRET_ACCESS_KEY"),
             s3_endpoint_url=os.getenv("DATASET_S3_ENDPOINT_URL"),
             # GCS
             gcs_bucket=os.getenv("DATASET_GCS_BUCKET"),
-            gcs_project_id=os.getenv("DATASET_GCS_PROJECT_ID")
-            or os.getenv("GOOGLE_CLOUD_PROJECT"),
-            gcs_credentials_path=os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-            or os.getenv("DATASET_GCS_CREDENTIALS_PATH"),
+            gcs_project_id=os.getenv("DATASET_GCS_PROJECT_ID") or os.getenv("GOOGLE_CLOUD_PROJECT"),
+            gcs_credentials_path=os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or os.getenv("DATASET_GCS_CREDENTIALS_PATH"),
             # Prefixes
             raw_data_prefix=os.getenv("DATASET_RAW_PREFIX", "raw"),
             processed_data_prefix=os.getenv("DATASET_PROCESSED_PREFIX", "processed"),
@@ -140,23 +131,13 @@ class StorageConfig:
                 return False, "S3 bucket name is required"
             if not self.s3_access_key_id or not self.s3_secret_access_key:
                 # Check if credentials are in environment
-                if not os.getenv("AWS_ACCESS_KEY_ID") and not os.getenv(
-                    "AWS_SECRET_ACCESS_KEY"
-                ):
-                    return (
-                        False,
-                        "S3 credentials are required (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)",
-                    )
+                if not os.getenv("AWS_ACCESS_KEY_ID") and not os.getenv("AWS_SECRET_ACCESS_KEY"):
+                    return False, "S3 credentials are required (AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY)"
         elif self.backend == StorageBackend.GCS:
             if not self.gcs_bucket:
                 return False, "GCS bucket name is required"
-            if not self.gcs_credentials_path and not os.getenv(
-                "GOOGLE_APPLICATION_CREDENTIALS"
-            ):
-                return (
-                    False,
-                    "GCS credentials are required (GOOGLE_APPLICATION_CREDENTIALS or credentials_path)",
-                )
+            if not self.gcs_credentials_path and not os.getenv("GOOGLE_APPLICATION_CREDENTIALS"):
+                return False, "GCS credentials are required (GOOGLE_APPLICATION_CREDENTIALS or credentials_path)"
 
         return True, None
 
@@ -177,3 +158,4 @@ def set_storage_config(config: StorageConfig) -> None:
     """Set the default storage configuration"""
     global _default_config
     _default_config = config
+

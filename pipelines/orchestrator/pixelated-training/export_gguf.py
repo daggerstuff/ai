@@ -12,26 +12,19 @@ from pathlib import Path
 def check_llama_cpp():
     """Check if llama.cpp is available"""
     try:
-        result = subprocess.run(
-            ["python", "-c", "import llama_cpp"],
-            check=False,
-            capture_output=True,
-            text=True,
-        )
+        result = subprocess.run(["python", "-c", "import llama_cpp"],
+                              check=False, capture_output=True, text=True)
         if result.returncode == 0:
             return True
     except:
         pass
 
-    subprocess.run(
-        [sys.executable, "-m", "pip", "install", "llama-cpp-python[server]"],
-        check=False,
-    )
+    subprocess.run([sys.executable, "-m", "pip", "install", "llama-cpp-python[server]"], check=False)
     return True
-
 
 def export_to_gguf(model_path, output_dir):
     """Export model to GGUF format with multiple quantizations"""
+
 
     # Create output directory
     output_path = Path(output_dir)
@@ -42,7 +35,7 @@ def export_to_gguf(model_path, output_dir):
         ("Q8_0", "q8_0", "8-bit quantization (recommended)"),
         ("Q6_K", "q6_k", "6-bit quantization (good balance)"),
         ("Q4_K_M", "q4_k_m", "4-bit quantization (smaller size)"),
-        ("Q2_K", "q2_k", "2-bit quantization (minimal size)"),
+        ("Q2_K", "q2_k", "2-bit quantization (minimal size)")
     ]
 
     # Base GGUF conversion (FP16)
@@ -51,22 +44,16 @@ def export_to_gguf(model_path, output_dir):
     try:
         # Convert to GGUF using llama.cpp convert script
         convert_cmd = [
-            "python",
-            "-m",
-            "llama_cpp.convert",
-            "--model",
-            str(model_path),
-            "--output",
-            str(base_gguf),
-            "--vocab-type",
-            "hf",
+            "python", "-m", "llama_cpp.convert",
+            "--model", str(model_path),
+            "--output", str(base_gguf),
+            "--vocab-type", "hf"
         ]
 
-        result = subprocess.run(
-            convert_cmd, check=False, capture_output=True, text=True
-        )
+        result = subprocess.run(convert_cmd, check=False, capture_output=True, text=True)
         if result.returncode != 0:
             return False
+
 
     except Exception:
         return False
@@ -77,17 +64,13 @@ def export_to_gguf(model_path, output_dir):
 
         try:
             quant_cmd = [
-                "python",
-                "-m",
-                "llama_cpp.quantize",
+                "python", "-m", "llama_cpp.quantize",
                 str(base_gguf),
                 str(output_file),
-                quant_type,
+                quant_type
             ]
 
-            result = subprocess.run(
-                quant_cmd, check=False, capture_output=True, text=True
-            )
+            result = subprocess.run(quant_cmd, check=False, capture_output=True, text=True)
             if result.returncode == 0:
                 pass
             else:
@@ -97,7 +80,6 @@ def export_to_gguf(model_path, output_dir):
             pass
 
     return True
-
 
 def main():
     model_path = sys.argv[1] if len(sys.argv) > 1 else "./wayfarer-finetuned"
@@ -118,7 +100,6 @@ def main():
         pass
 
     return success
-
 
 if __name__ == "__main__":
     main()

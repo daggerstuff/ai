@@ -20,12 +20,13 @@ from ai.pipelines.design.edge_case_generator import (
 from ai.pipelines.design.edge_case_api import EdgeCaseAPI
 
 __all__ = [
-    "NeMoDataDesignerService",
-    "DataDesignerConfig",
-    "BiasDetectionIntegration",
-    "DatasetPipelineIntegration",
-    "TherapeuticDatasetIntegration",
-    "EdgeCaseGenerator",
-    "EdgeCaseType",
-    "EdgeCaseAPI",
+    'NeMoDataDesignerService',
+    'DataDesignerConfig',
+    'BiasDetectionIntegration',
+    'DatasetPipelineIntegration',
+    'TherapeuticDatasetIntegration',
+    'EdgeCaseGenerator',
+    'EdgeCaseType',
+    'EdgeCaseAPI',
 ]
+

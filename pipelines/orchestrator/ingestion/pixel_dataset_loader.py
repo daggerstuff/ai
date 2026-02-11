@@ -90,9 +90,7 @@ class ValidationResult:
     issues: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
-    validation_time: datetime = field(
-        default_factory=lambda: datetime.now(timezone.utc)
-    )
+    validation_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class PixelDatasetLoader:
@@ -154,6 +152,7 @@ class PixelDatasetLoader:
             return False
 
         dataset_info = self.datasets[dataset_id]
+
 
         try:
             # Update status
@@ -253,7 +252,9 @@ class PixelDatasetLoader:
 
             return results
 
-    async def _download_dataset(self, dataset_info: DatasetInfo) -> bool:
+    async def _download_dataset(
+        self, dataset_info: DatasetInfo
+    ) -> bool:
         """Download dataset (mock implementation)."""
         try:
             # Simulate download with progress updates
@@ -298,7 +299,9 @@ class PixelDatasetLoader:
             logger.error(f"Download failed for {dataset_info.id}: {e}")
             return False
 
-    async def _validate_dataset(self, dataset_info: DatasetInfo) -> ValidationResult:
+    async def _validate_dataset(
+        self, dataset_info: DatasetInfo
+    ) -> ValidationResult:
         """Validate downloaded dataset."""
         validation_result = ValidationResult(
             dataset_id=dataset_info.id, is_valid=True, quality_score=0.8
@@ -346,7 +349,9 @@ class PixelDatasetLoader:
             validation_result.issues.append(f"Validation error: {e!s}")
             return validation_result
 
-    async def _process_dataset(self, dataset_info: DatasetInfo) -> bool:
+    async def _process_dataset(
+        self, dataset_info: DatasetInfo
+    ) -> bool:
         """Process validated dataset."""
         try:
             # Simulate processing
@@ -355,9 +360,7 @@ class PixelDatasetLoader:
             # Update metadata
             dataset_info.updated_at = datetime.now(timezone.utc)
             dataset_info.metadata["processed"] = True
-            dataset_info.metadata["processing_time"] = datetime.now(
-                timezone.utc
-            ).isoformat()
+            dataset_info.metadata["processing_time"] = datetime.now(timezone.utc).isoformat()
 
             return True
 
@@ -546,6 +549,7 @@ if __name__ == "__main__":
         # Load datasets
         dataset_ids = [d.id for d in datasets]
         await loader.load_multiple_datasets(dataset_ids)
+
 
         # Show summary
         loader.get_summary_stats()

@@ -8,16 +8,9 @@ class QualityValidator:
     Validates data quality: minimum length, missing fields, basic entropy.
     """
 
-    def __init__(
-        self, min_text_length: int = 10, required_fields: list[str] | None = None
-    ):
+    def __init__(self, min_text_length: int = 10, required_fields: list[str] | None = None):
         self.min_text_length = min_text_length
-        self.required_fields = required_fields or [
-            "title",
-            "content",
-            "items",
-            "description",
-        ]
+        self.required_fields = required_fields or ["title", "content", "items", "description"]
 
     def validate_entry(self, entry: dict) -> dict:
         """
@@ -35,9 +28,7 @@ class QualityValidator:
                 # Check length for text fields
                 val = entry[field]
                 if isinstance(val, str) and len(val) < self.min_text_length:
-                    issues.append(
-                        f"Field '{field}' is too short (<{self.min_text_length} chars)."
-                    )
+                    issues.append(f"Field '{field}' is too short (<{self.min_text_length} chars).")
                 elif isinstance(val, list) and len(val) == 0:
                     issues.append(f"Field '{field}' is an empty list.")
 
@@ -68,7 +59,5 @@ class QualityValidator:
                 entry_with_issues["_validation_issues"] = report["issues"]
                 invalid_data.append(entry_with_issues)
 
-        logger.info(
-            f"Validation complete. Valid: {len(valid_data)}, Invalid: {len(invalid_data)}"
-        )
+        logger.info(f"Validation complete. Valid: {len(valid_data)}, Invalid: {len(invalid_data)}")
         return valid_data, invalid_data

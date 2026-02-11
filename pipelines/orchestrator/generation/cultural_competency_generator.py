@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 class CulturalDimension(Enum):
     """Cultural dimensions for analysis."""
-
     INDIVIDUALISM_COLLECTIVISM = "individualism_collectivism"
     POWER_DISTANCE = "power_distance"
     UNCERTAINTY_AVOIDANCE = "uncertainty_avoidance"
@@ -27,7 +26,6 @@ class CulturalDimension(Enum):
 
 class CulturalBackground(Enum):
     """Major cultural backgrounds."""
-
     WESTERN_INDIVIDUALISTIC = "western_individualistic"
     EAST_ASIAN_COLLECTIVISTIC = "east_asian_collectivistic"
     LATIN_AMERICAN = "latin_american"
@@ -40,7 +38,6 @@ class CulturalBackground(Enum):
 
 class DiversityFactor(Enum):
     """Diversity factors to consider."""
-
     ETHNICITY = "ethnicity"
     RELIGION = "religion"
     SOCIOECONOMIC_STATUS = "socioeconomic_status"
@@ -54,7 +51,6 @@ class DiversityFactor(Enum):
 @dataclass
 class CulturalProfile:
     """Cultural profile of a person."""
-
     primary_background: CulturalBackground
     cultural_dimensions: dict[CulturalDimension, float]
     diversity_factors: dict[DiversityFactor, str]
@@ -70,7 +66,6 @@ class CulturalProfile:
 @dataclass
 class CulturalAdaptation:
     """Cultural adaptation recommendations."""
-
     cultural_profile: CulturalProfile
     communication_adjustments: list[str]
     therapeutic_considerations: list[str]
@@ -101,61 +96,33 @@ class CulturalCompetencyGenerator:
         """Load cultural indicators for different backgrounds."""
         return {
             "western_individualistic": [
-                "personal autonomy",
-                "individual achievement",
-                "self-reliance",
-                "direct communication",
-                "personal space",
-                "nuclear family",
+                "personal autonomy", "individual achievement", "self-reliance",
+                "direct communication", "personal space", "nuclear family"
             ],
             "east_asian_collectivistic": [
-                "family harmony",
-                "group consensus",
-                "respect for elders",
-                "indirect communication",
-                "saving face",
-                "extended family",
+                "family harmony", "group consensus", "respect for elders",
+                "indirect communication", "saving face", "extended family"
             ],
             "latin_american": [
-                "family loyalty",
-                "personalismo",
-                "respeto",
-                "simpatía",
-                "extended family networks",
-                "religious faith",
+                "family loyalty", "personalismo", "respeto", "simpatía",
+                "extended family networks", "religious faith"
             ],
             "middle_eastern": [
-                "family honor",
-                "hospitality",
-                "religious observance",
-                "gender roles",
-                "community support",
-                "respect for authority",
+                "family honor", "hospitality", "religious observance",
+                "gender roles", "community support", "respect for authority"
             ],
             "african": [
-                "ubuntu philosophy",
-                "community support",
-                "oral tradition",
-                "extended family",
-                "spiritual beliefs",
-                "collective responsibility",
+                "ubuntu philosophy", "community support", "oral tradition",
+                "extended family", "spiritual beliefs", "collective responsibility"
             ],
             "south_asian": [
-                "family hierarchy",
-                "dharma",
-                "karma",
-                "joint family system",
-                "respect for elders",
-                "religious diversity",
+                "family hierarchy", "dharma", "karma", "joint family system",
+                "respect for elders", "religious diversity"
             ],
             "indigenous": [
-                "connection to land",
-                "tribal identity",
-                "oral tradition",
-                "spiritual practices",
-                "community healing",
-                "intergenerational trauma",
-            ],
+                "connection to land", "tribal identity", "oral tradition",
+                "spiritual practices", "community healing", "intergenerational trauma"
+            ]
         }
 
     def _load_adaptation_guidelines(self) -> dict[str, dict[str, Any]]:
@@ -163,25 +130,21 @@ class CulturalCompetencyGenerator:
         return {
             "communication_styles": {
                 "high_context": {
-                    "characteristics": [
-                        "indirect",
-                        "nonverbal_important",
-                        "relationship_focused",
-                    ],
+                    "characteristics": ["indirect", "nonverbal_important", "relationship_focused"],
                     "adaptations": [
                         "Pay attention to nonverbal cues",
                         "Allow for silence and reflection",
-                        "Focus on relationship building first",
-                    ],
+                        "Focus on relationship building first"
+                    ]
                 },
                 "low_context": {
                     "characteristics": ["direct", "explicit", "task_focused"],
                     "adaptations": [
                         "Be clear and specific",
                         "Provide direct feedback",
-                        "Focus on concrete goals",
-                    ],
-                },
+                        "Focus on concrete goals"
+                    ]
+                }
             },
             "family_involvement": {
                 "collectivistic": {
@@ -189,18 +152,18 @@ class CulturalCompetencyGenerator:
                     "considerations": [
                         "Include family in treatment planning",
                         "Respect family hierarchy",
-                        "Consider family shame and honor",
-                    ],
+                        "Consider family shame and honor"
+                    ]
                 },
                 "individualistic": {
                     "level": "moderate",
                     "considerations": [
                         "Respect individual autonomy",
                         "Balance family and personal needs",
-                        "Support independent decision-making",
-                    ],
-                },
-            },
+                        "Support independent decision-making"
+                    ]
+                }
+            }
         }
 
     def _load_bias_patterns(self) -> dict[str, list[str]]:
@@ -209,23 +172,23 @@ class CulturalCompetencyGenerator:
             "stereotyping": [
                 "assuming all members of a culture are the same",
                 "making generalizations based on appearance",
-                "expecting certain behaviors based on ethnicity",
+                "expecting certain behaviors based on ethnicity"
             ],
             "cultural_blindness": [
                 "ignoring cultural differences",
                 "assuming universal applicability of Western approaches",
-                "dismissing cultural explanations for behavior",
+                "dismissing cultural explanations for behavior"
             ],
             "microaggressions": [
                 "commenting on language skills",
                 "asking 'where are you really from'",
-                "making assumptions about cultural practices",
+                "making assumptions about cultural practices"
             ],
             "pathologizing_culture": [
                 "viewing cultural practices as pathological",
                 "misinterpreting cultural expressions as symptoms",
-                "ignoring cultural context in diagnosis",
-            ],
+                "ignoring cultural context in diagnosis"
+            ]
         }
 
     def _load_cultural_strengths(self) -> dict[str, list[str]]:
@@ -234,23 +197,23 @@ class CulturalCompetencyGenerator:
             "collectivistic_cultures": [
                 "strong family support systems",
                 "community-based healing traditions",
-                "emphasis on interdependence and mutual aid",
+                "emphasis on interdependence and mutual aid"
             ],
             "indigenous_cultures": [
                 "holistic healing approaches",
                 "connection to nature and spirituality",
-                "traditional healing practices",
+                "traditional healing practices"
             ],
             "religious_communities": [
                 "faith-based coping mechanisms",
                 "spiritual support networks",
-                "meaning-making through religious frameworks",
+                "meaning-making through religious frameworks"
             ],
             "immigrant_communities": [
                 "resilience and adaptability",
                 "bicultural competence",
-                "strong work ethic and determination",
-            ],
+                "strong work ethic and determination"
+            ]
         }
 
     def analyze_cultural_profile(self, conversation: dict[str, Any]) -> CulturalProfile:
@@ -281,89 +244,60 @@ class CulturalCompetencyGenerator:
                 language_preferences=self._detect_language_preferences(content),
                 communication_style=communication_style,
                 family_structure=self._infer_family_structure(content),
-                religious_considerations=self._identify_religious_considerations(
-                    content
-                ),
+                religious_considerations=self._identify_religious_considerations(content),
                 cultural_values=values,
                 potential_barriers=barriers,
-                confidence_score=self._calculate_confidence_score(content),
+                confidence_score=self._calculate_confidence_score(content)
             )
 
-            logger.info(
-                f"Generated cultural profile with {profile.confidence_score:.2f} confidence"
-            )
+            logger.info(f"Generated cultural profile with {profile.confidence_score:.2f} confidence")
             return profile
 
         except Exception as e:
             logger.error(f"Error analyzing cultural profile: {e}")
             return self._get_default_cultural_profile()
 
-    def generate_cultural_adaptation(
-        self, cultural_profile: CulturalProfile
-    ) -> CulturalAdaptation:
+    def generate_cultural_adaptation(self, cultural_profile: CulturalProfile) -> CulturalAdaptation:
         """Generate cultural adaptation recommendations."""
         try:
             return CulturalAdaptation(
                 cultural_profile=cultural_profile,
-                communication_adjustments=self._generate_communication_adjustments(
-                    cultural_profile
-                ),
-                therapeutic_considerations=self._generate_therapeutic_considerations(
-                    cultural_profile
-                ),
-                language_adaptations=self._generate_language_adaptations(
-                    cultural_profile
-                ),
-                family_involvement_level=self._determine_family_involvement(
-                    cultural_profile
-                ),
-                religious_sensitivity_notes=self._generate_religious_sensitivity_notes(
-                    cultural_profile
-                ),
-                potential_biases_to_avoid=self._identify_biases_to_avoid(
-                    cultural_profile
-                ),
-                recommended_approaches=self._recommend_therapeutic_approaches(
-                    cultural_profile
-                ),
-                cultural_strengths_to_leverage=self._identify_cultural_strengths(
-                    cultural_profile
-                ),
-                adaptation_confidence=cultural_profile.confidence_score,
+                communication_adjustments=self._generate_communication_adjustments(cultural_profile),
+                therapeutic_considerations=self._generate_therapeutic_considerations(cultural_profile),
+                language_adaptations=self._generate_language_adaptations(cultural_profile),
+                family_involvement_level=self._determine_family_involvement(cultural_profile),
+                religious_sensitivity_notes=self._generate_religious_sensitivity_notes(cultural_profile),
+                potential_biases_to_avoid=self._identify_biases_to_avoid(cultural_profile),
+                recommended_approaches=self._recommend_therapeutic_approaches(cultural_profile),
+                cultural_strengths_to_leverage=self._identify_cultural_strengths(cultural_profile),
+                adaptation_confidence=cultural_profile.confidence_score
             )
+
 
         except Exception as e:
             logger.error(f"Error generating cultural adaptation: {e}")
             return self._get_default_adaptation()
 
-    def generate_culturally_aware_response(
-        self, original_response: str, cultural_adaptation: CulturalAdaptation
-    ) -> str:
+    def generate_culturally_aware_response(self, original_response: str,
+                                         cultural_adaptation: CulturalAdaptation) -> str:
         """Generate culturally aware response."""
         try:
             adapted_response = original_response
 
             # Apply communication adjustments
             for adjustment in cultural_adaptation.communication_adjustments:
-                adapted_response = self._apply_communication_adjustment(
-                    adapted_response, adjustment
-                )
+                adapted_response = self._apply_communication_adjustment(adapted_response, adjustment)
 
             # Apply language adaptations
             for adaptation in cultural_adaptation.language_adaptations:
-                adapted_response = self._apply_language_adaptation(
-                    adapted_response, adaptation
-                )
+                adapted_response = self._apply_language_adaptation(adapted_response, adaptation)
 
             # Add cultural sensitivity
-            adapted_response = self._add_cultural_sensitivity(
-                adapted_response, cultural_adaptation
-            )
+            adapted_response = self._add_cultural_sensitivity(adapted_response, cultural_adaptation)
 
             # Leverage cultural strengths
-            return self._leverage_cultural_strengths(
-                adapted_response, cultural_adaptation
-            )
+            return self._leverage_cultural_strengths(adapted_response, cultural_adaptation)
+
 
         except Exception as e:
             logger.error(f"Error generating culturally aware response: {e}")
@@ -393,9 +327,7 @@ class CulturalCompetencyGenerator:
         # Default to mixed multicultural if no clear indicators
         return CulturalBackground.MIXED_MULTICULTURAL
 
-    def _analyze_cultural_dimensions(
-        self, content: str
-    ) -> dict[CulturalDimension, float]:
+    def _analyze_cultural_dimensions(self, content: str) -> dict[CulturalDimension, float]:
         """Analyze cultural dimensions from content."""
         dimensions = {}
 
@@ -429,29 +361,17 @@ class CulturalCompetencyGenerator:
         # In practice, you'd use more sophisticated NLP and be very careful about assumptions
 
         # Age/Generation indicators
-        if any(
-            term in content.lower()
-            for term in ["young", "teenager", "college", "millennial"]
-        ):
+        if any(term in content.lower() for term in ["young", "teenager", "college", "millennial"]):
             factors[DiversityFactor.AGE_GENERATION] = "young_adult"
-        elif any(
-            term in content.lower()
-            for term in ["elderly", "senior", "retirement", "grandparent"]
-        ):
+        elif any(term in content.lower() for term in ["elderly", "senior", "retirement", "grandparent"]):
             factors[DiversityFactor.AGE_GENERATION] = "older_adult"
         else:
             factors[DiversityFactor.AGE_GENERATION] = "adult"
 
         # Socioeconomic indicators
-        if any(
-            term in content.lower()
-            for term in ["financial stress", "can't afford", "struggling financially"]
-        ):
+        if any(term in content.lower() for term in ["financial stress", "can't afford", "struggling financially"]):
             factors[DiversityFactor.SOCIOECONOMIC_STATUS] = "lower_income"
-        elif any(
-            term in content.lower()
-            for term in ["private school", "vacation home", "investment"]
-        ):
+        elif any(term in content.lower() for term in ["private school", "vacation home", "investment"]):
             factors[DiversityFactor.SOCIOECONOMIC_STATUS] = "higher_income"
         else:
             factors[DiversityFactor.SOCIOECONOMIC_STATUS] = "middle_income"
@@ -463,12 +383,8 @@ class CulturalCompetencyGenerator:
         direct_indicators = ["directly", "straight", "honestly", "bluntly"]
         indirect_indicators = ["maybe", "perhaps", "might", "could be"]
 
-        direct_count = sum(
-            1 for indicator in direct_indicators if indicator in content.lower()
-        )
-        indirect_count = sum(
-            1 for indicator in indirect_indicators if indicator in content.lower()
-        )
+        direct_count = sum(1 for indicator in direct_indicators if indicator in content.lower())
+        indirect_count = sum(1 for indicator in indirect_indicators if indicator in content.lower())
 
         if direct_count > indirect_count:
             return "direct"
@@ -483,14 +399,9 @@ class CulturalCompetencyGenerator:
         value_indicators = {
             "family_oriented": ["family", "parents", "siblings", "relatives"],
             "achievement_oriented": ["success", "goals", "achievement", "accomplish"],
-            "relationship_oriented": [
-                "friends",
-                "relationships",
-                "connection",
-                "community",
-            ],
+            "relationship_oriented": ["friends", "relationships", "connection", "community"],
             "spiritual": ["faith", "prayer", "spiritual", "religious", "god"],
-            "traditional": ["tradition", "traditional", "customs", "heritage"],
+            "traditional": ["tradition", "traditional", "customs", "heritage"]
         }
 
         for value, indicators in value_indicators.items():
@@ -507,17 +418,8 @@ class CulturalCompetencyGenerator:
             "language_barrier": ["english is not", "language barrier", "translation"],
             "cultural_stigma": ["shame", "stigma", "embarrassing", "family reputation"],
             "religious_conflict": ["against my religion", "religious beliefs", "sin"],
-            "gender_role_conflict": [
-                "not appropriate for",
-                "gender roles",
-                "traditional expectations",
-            ],
-            "immigration_stress": [
-                "immigration",
-                "visa",
-                "documentation",
-                "deportation",
-            ],
+            "gender_role_conflict": ["not appropriate for", "gender roles", "traditional expectations"],
+            "immigration_stress": ["immigration", "visa", "documentation", "deportation"]
         }
 
         for barrier, indicators in barrier_indicators.items():
@@ -534,15 +436,9 @@ class CulturalCompetencyGenerator:
 
     def _infer_family_structure(self, content: str) -> str:
         """Infer family structure from content."""
-        if any(
-            term in content.lower()
-            for term in ["extended family", "grandparents", "aunts", "uncles"]
-        ):
+        if any(term in content.lower() for term in ["extended family", "grandparents", "aunts", "uncles"]):
             return "extended"
-        if any(
-            term in content.lower()
-            for term in ["single parent", "divorced", "separated"]
-        ):
+        if any(term in content.lower() for term in ["single parent", "divorced", "separated"]):
             return "single_parent"
         return "nuclear"
 
@@ -552,15 +448,9 @@ class CulturalCompetencyGenerator:
 
         religious_terms = {
             "prayer_important": ["prayer", "pray", "praying"],
-            "religious_observance": [
-                "church",
-                "mosque",
-                "temple",
-                "synagogue",
-                "religious service",
-            ],
+            "religious_observance": ["church", "mosque", "temple", "synagogue", "religious service"],
             "faith_based_coping": ["faith", "god", "divine", "spiritual guidance"],
-            "religious_restrictions": ["forbidden", "not allowed", "against religion"],
+            "religious_restrictions": ["forbidden", "not allowed", "against religion"]
         }
 
         for consideration, terms in religious_terms.items():
@@ -580,28 +470,22 @@ class CulturalCompetencyGenerator:
             return 0.6
         return None
 
-    def _generate_communication_adjustments(
-        self, profile: CulturalProfile
-    ) -> list[str]:
+    def _generate_communication_adjustments(self, profile: CulturalProfile) -> list[str]:
         """Generate communication adjustments based on cultural profile."""
         adjustments = []
 
         if profile.communication_style == "indirect":
-            adjustments.extend(
-                [
-                    "Use more indirect communication patterns",
-                    "Allow for longer pauses and reflection time",
-                    "Pay attention to nonverbal cues and context",
-                ]
-            )
+            adjustments.extend([
+                "Use more indirect communication patterns",
+                "Allow for longer pauses and reflection time",
+                "Pay attention to nonverbal cues and context"
+            ])
         elif profile.communication_style == "direct":
-            adjustments.extend(
-                [
-                    "Be clear and specific in communication",
-                    "Provide direct feedback when appropriate",
-                    "Focus on concrete examples and solutions",
-                ]
-            )
+            adjustments.extend([
+                "Be clear and specific in communication",
+                "Provide direct feedback when appropriate",
+                "Focus on concrete examples and solutions"
+            ])
 
         # Add family-oriented adjustments
         if "family_oriented" in profile.cultural_values:
@@ -609,39 +493,28 @@ class CulturalCompetencyGenerator:
 
         return adjustments
 
-    def _generate_therapeutic_considerations(
-        self, profile: CulturalProfile
-    ) -> list[str]:
+    def _generate_therapeutic_considerations(self, profile: CulturalProfile) -> list[str]:
         """Generate therapeutic considerations."""
         considerations = []
 
         # Based on cultural background
         if profile.primary_background == CulturalBackground.EAST_ASIAN_COLLECTIVISTIC:
-            considerations.extend(
-                [
-                    "Consider family shame and saving face",
-                    "Respect hierarchical family structures",
-                    "Be aware of indirect communication preferences",
-                ]
-            )
+            considerations.extend([
+                "Consider family shame and saving face",
+                "Respect hierarchical family structures",
+                "Be aware of indirect communication preferences"
+            ])
         elif profile.primary_background == CulturalBackground.LATIN_AMERICAN:
-            considerations.extend(
-                [
-                    "Acknowledge importance of family loyalty",
-                    "Consider personalismo in therapeutic relationship",
-                    "Respect religious and spiritual beliefs",
-                ]
-            )
+            considerations.extend([
+                "Acknowledge importance of family loyalty",
+                "Consider personalismo in therapeutic relationship",
+                "Respect religious and spiritual beliefs"
+            ])
 
         # Based on diversity factors
         if DiversityFactor.SOCIOECONOMIC_STATUS in profile.diversity_factors:
-            if (
-                profile.diversity_factors[DiversityFactor.SOCIOECONOMIC_STATUS]
-                == "lower_income"
-            ):
-                considerations.append(
-                    "Consider financial constraints on treatment options"
-                )
+            if profile.diversity_factors[DiversityFactor.SOCIOECONOMIC_STATUS] == "lower_income":
+                considerations.append("Consider financial constraints on treatment options")
 
         return considerations
 
@@ -650,49 +523,39 @@ class CulturalCompetencyGenerator:
         adaptations = []
 
         if "english" not in profile.language_preferences:
-            adaptations.extend(
-                [
-                    "Consider using interpreter services",
-                    "Speak slowly and clearly",
-                    "Use simple, concrete language",
-                ]
-            )
+            adaptations.extend([
+                "Consider using interpreter services",
+                "Speak slowly and clearly",
+                "Use simple, concrete language"
+            ])
 
         # Cultural language considerations
-        if profile.primary_background in [
-            CulturalBackground.EAST_ASIAN_COLLECTIVISTIC,
-            CulturalBackground.MIDDLE_EASTERN,
-        ]:
+        if profile.primary_background in [CulturalBackground.EAST_ASIAN_COLLECTIVISTIC,
+                                        CulturalBackground.MIDDLE_EASTERN]:
             adaptations.append("Avoid idioms and colloquialisms")
 
         return adaptations
 
     def _determine_family_involvement(self, profile: CulturalProfile) -> str:
         """Determine appropriate level of family involvement."""
-        if profile.primary_background in [
-            CulturalBackground.EAST_ASIAN_COLLECTIVISTIC,
-            CulturalBackground.LATIN_AMERICAN,
-            CulturalBackground.MIDDLE_EASTERN,
-        ]:
+        if profile.primary_background in [CulturalBackground.EAST_ASIAN_COLLECTIVISTIC,
+                                        CulturalBackground.LATIN_AMERICAN,
+                                        CulturalBackground.MIDDLE_EASTERN]:
             return "high"
         if profile.primary_background == CulturalBackground.WESTERN_INDIVIDUALISTIC:
             return "moderate"
         return "flexible"
 
-    def _generate_religious_sensitivity_notes(
-        self, profile: CulturalProfile
-    ) -> list[str]:
+    def _generate_religious_sensitivity_notes(self, profile: CulturalProfile) -> list[str]:
         """Generate religious sensitivity notes."""
         notes = []
 
         if "spiritual" in profile.cultural_values:
-            notes.extend(
-                [
-                    "Respect religious beliefs and practices",
-                    "Consider faith-based coping mechanisms",
-                    "Be aware of religious restrictions on treatment",
-                ]
-            )
+            notes.extend([
+                "Respect religious beliefs and practices",
+                "Consider faith-based coping mechanisms",
+                "Be aware of religious restrictions on treatment"
+            ])
 
         if "prayer_important" in profile.religious_considerations:
             notes.append("Acknowledge the importance of prayer in coping")
@@ -704,19 +567,15 @@ class CulturalCompetencyGenerator:
         biases = []
 
         # General biases to avoid
-        biases.extend(
-            [
-                "Avoid cultural stereotyping",
-                "Don't assume all cultural practices are the same",
-                "Avoid pathologizing cultural expressions",
-            ]
-        )
+        biases.extend([
+            "Avoid cultural stereotyping",
+            "Don't assume all cultural practices are the same",
+            "Avoid pathologizing cultural expressions"
+        ])
 
         # Specific biases based on background
         if profile.primary_background != CulturalBackground.WESTERN_INDIVIDUALISTIC:
-            biases.append(
-                "Avoid imposing Western therapeutic models without adaptation"
-            )
+            biases.append("Avoid imposing Western therapeutic models without adaptation")
 
         return biases
 
@@ -726,24 +585,18 @@ class CulturalCompetencyGenerator:
 
         # Based on cultural background
         if profile.primary_background == CulturalBackground.INDIGENOUS:
-            approaches.extend(
-                [
-                    "Consider traditional healing practices",
-                    "Incorporate connection to nature and spirituality",
-                    "Use narrative and storytelling approaches",
-                ]
-            )
-        elif profile.primary_background in [
-            CulturalBackground.EAST_ASIAN_COLLECTIVISTIC,
-            CulturalBackground.LATIN_AMERICAN,
-        ]:
-            approaches.extend(
-                [
-                    "Family therapy or family involvement",
-                    "Group therapy approaches",
-                    "Community-based interventions",
-                ]
-            )
+            approaches.extend([
+                "Consider traditional healing practices",
+                "Incorporate connection to nature and spirituality",
+                "Use narrative and storytelling approaches"
+            ])
+        elif profile.primary_background in [CulturalBackground.EAST_ASIAN_COLLECTIVISTIC,
+                                          CulturalBackground.LATIN_AMERICAN]:
+            approaches.extend([
+                "Family therapy or family involvement",
+                "Group therapy approaches",
+                "Community-based interventions"
+            ])
 
         # Based on values
         if "spiritual" in profile.cultural_values:
@@ -756,27 +609,21 @@ class CulturalCompetencyGenerator:
         strengths = []
 
         # Based on cultural background
-        if profile.primary_background in [
-            CulturalBackground.EAST_ASIAN_COLLECTIVISTIC,
-            CulturalBackground.LATIN_AMERICAN,
-            CulturalBackground.AFRICAN,
-        ]:
-            strengths.extend(
-                [
-                    "Strong family support systems",
-                    "Community-based support networks",
-                    "Collective problem-solving approaches",
-                ]
-            )
+        if profile.primary_background in [CulturalBackground.EAST_ASIAN_COLLECTIVISTIC,
+                                        CulturalBackground.LATIN_AMERICAN,
+                                        CulturalBackground.AFRICAN]:
+            strengths.extend([
+                "Strong family support systems",
+                "Community-based support networks",
+                "Collective problem-solving approaches"
+            ])
 
         if profile.primary_background == CulturalBackground.INDIGENOUS:
-            strengths.extend(
-                [
-                    "Holistic healing traditions",
-                    "Connection to nature and spirituality",
-                    "Intergenerational wisdom",
-                ]
-            )
+            strengths.extend([
+                "Holistic healing traditions",
+                "Connection to nature and spirituality",
+                "Intergenerational wisdom"
+            ])
 
         # Based on values
         if "spiritual" in profile.cultural_values:
@@ -807,9 +654,7 @@ class CulturalCompetencyGenerator:
 
         return response
 
-    def _add_cultural_sensitivity(
-        self, response: str, adaptation: CulturalAdaptation
-    ) -> str:
+    def _add_cultural_sensitivity(self, response: str, adaptation: CulturalAdaptation) -> str:
         """Add cultural sensitivity to response."""
         # Add culturally sensitive language
         if "family perspectives" in str(adaptation.communication_adjustments):
@@ -818,23 +663,17 @@ class CulturalCompetencyGenerator:
 
         return response
 
-    def _leverage_cultural_strengths(
-        self, response: str, adaptation: CulturalAdaptation
-    ) -> str:
+    def _leverage_cultural_strengths(self, response: str, adaptation: CulturalAdaptation) -> str:
         """Leverage cultural strengths in response."""
         strengths = adaptation.cultural_strengths_to_leverage
 
         if "Strong family support systems" in strengths:
             if "support" in response.lower() and "family" not in response.lower():
-                response += (
-                    " Your family's support can be a valuable resource in this process."
-                )
+                response += " Your family's support can be a valuable resource in this process."
 
         if "Faith-based coping and resilience" in strengths:
             if "coping" in response.lower() and "faith" not in response.lower():
-                response += (
-                    " Your faith can provide strength and guidance during this time."
-                )
+                response += " Your faith can provide strength and guidance during this time."
 
         return response
 
@@ -850,7 +689,7 @@ class CulturalCompetencyGenerator:
             religious_considerations=[],
             cultural_values=[],
             potential_barriers=[],
-            confidence_score=0.3,
+            confidence_score=0.3
         )
 
     def _get_default_adaptation(self) -> CulturalAdaptation:
@@ -867,7 +706,7 @@ class CulturalCompetencyGenerator:
             potential_biases_to_avoid=["Avoid cultural assumptions"],
             recommended_approaches=["Person-centered approach"],
             cultural_strengths_to_leverage=["Individual resilience"],
-            adaptation_confidence=0.3,
+            adaptation_confidence=0.3
         )
 
     def get_cultural_summary(self, adaptation: CulturalAdaptation) -> dict[str, Any]:
@@ -880,7 +719,7 @@ class CulturalCompetencyGenerator:
             "communication_adjustments": adaptation.communication_adjustments,
             "therapeutic_considerations": adaptation.therapeutic_considerations,
             "cultural_strengths": adaptation.cultural_strengths_to_leverage,
-            "confidence": adaptation.adaptation_confidence,
+            "confidence": adaptation.adaptation_confidence
         }
 
 
@@ -894,25 +733,30 @@ def main():
         "turns": [
             {
                 "speaker": "user",
-                "content": "I'm struggling with anxiety, but I don't want to bring shame to my family. In our culture, mental health issues are not talked about openly. My parents expect me to be strong and successful, and I feel like I'm letting them down.",
+                "content": "I'm struggling with anxiety, but I don't want to bring shame to my family. In our culture, mental health issues are not talked about openly. My parents expect me to be strong and successful, and I feel like I'm letting them down."
             },
             {
                 "speaker": "assistant",
-                "content": "I understand you're dealing with anxiety. It's important to take care of your mental health.",
-            },
-        ],
+                "content": "I understand you're dealing with anxiety. It's important to take care of your mental health."
+            }
+        ]
     }
 
     # Analyze cultural profile
     cultural_profile = generator.analyze_cultural_profile(test_conversation)
 
+
     # Generate cultural adaptation
     adaptation = generator.generate_cultural_adaptation(cultural_profile)
+
 
     # Test culturally aware response generation
     original_response = "You should seek professional help for your anxiety. It's important to prioritize your mental health."
 
-    generator.generate_culturally_aware_response(original_response, adaptation)
+    generator.generate_culturally_aware_response(
+        original_response, adaptation
+    )
+
 
 
 if __name__ == "__main__":

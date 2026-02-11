@@ -17,7 +17,6 @@ logger = get_logger(__name__)
 @dataclass
 class ReasoningPattern:
     """Represents a chain-of-thought reasoning pattern."""
-
     pattern_id: str
     reasoning_type: str  # clinical, diagnostic, therapeutic, etc.
     steps: list[str]
@@ -29,7 +28,6 @@ class ReasoningPattern:
 @dataclass
 class ProcessedReasoningData:
     """Result of reasoning dataset processing."""
-
     conversations: list[Conversation]
     reasoning_patterns: list[ReasoningPattern]
     quality_metrics: dict[str, float]
@@ -59,7 +57,7 @@ class ReasoningDatasetProcessor:
             "medical_psychology": "Medical Psychology Reasoning",
             "temporal": "Time-Based Therapeutic Planning",
             "scientific": "Evidence-Based Practice Reasoning",
-            "cultural": "Culturally-Sensitive Therapeutic Approaches",
+            "cultural": "Culturally-Sensitive Therapeutic Approaches"
         }
 
         # Quality thresholds
@@ -67,14 +65,12 @@ class ReasoningDatasetProcessor:
             "reasoning_coherence": 0.7,
             "therapeutic_relevance": 0.8,
             "step_clarity": 0.75,
-            "clinical_accuracy": 0.85,
+            "clinical_accuracy": 0.85
         }
 
         self.logger.info("ReasoningDatasetProcessor initialized")
 
-    def process_cot_dataset(
-        self, dataset_path: str, reasoning_type: str
-    ) -> ProcessedReasoningData:
+    def process_cot_dataset(self, dataset_path: str, reasoning_type: str) -> ProcessedReasoningData:
         """
         Process a chain-of-thought reasoning dataset.
 
@@ -85,9 +81,7 @@ class ReasoningDatasetProcessor:
         Returns:
             ProcessedReasoningData with conversations and patterns
         """
-        self.logger.info(
-            f"Processing CoT dataset: {dataset_path} (type: {reasoning_type})"
-        )
+        self.logger.info(f"Processing CoT dataset: {dataset_path} (type: {reasoning_type})")
 
         try:
             # Load dataset
@@ -108,54 +102,42 @@ class ReasoningDatasetProcessor:
                 conversation = self._convert_to_conversation(item, reasoning_type)
                 if conversation:
                     # Assess quality
-                    quality_score = self._assess_reasoning_quality(
-                        conversation, pattern
-                    )
+                    quality_score = self._assess_reasoning_quality(conversation, pattern)
 
-                    if quality_score >= self.quality_thresholds.get(
-                        "therapeutic_relevance", 0.8
-                    ):
+                    if quality_score >= self.quality_thresholds.get("therapeutic_relevance", 0.8):
                         conversations.append(conversation)
                         quality_scores.append(quality_score)
 
             # Calculate metrics
             quality_metrics = {
-                "average_quality": sum(quality_scores) / len(quality_scores)
-                if quality_scores
-                else 0,
+                "average_quality": sum(quality_scores) / len(quality_scores) if quality_scores else 0,
                 "total_processed": len(raw_data),
                 "conversations_created": len(conversations),
                 "patterns_extracted": len(reasoning_patterns),
-                "acceptance_rate": len(conversations) / len(raw_data)
-                if raw_data
-                else 0,
+                "acceptance_rate": len(conversations) / len(raw_data) if raw_data else 0
             }
 
             processing_stats = {
                 "reasoning_type": reasoning_type,
                 "dataset_path": dataset_path,
                 "processed_at": datetime.now().isoformat(),
-                "quality_thresholds": self.quality_thresholds,
+                "quality_thresholds": self.quality_thresholds
             }
 
-            self.logger.info(
-                f"Processed {len(conversations)} conversations from {len(raw_data)} items"
-            )
+            self.logger.info(f"Processed {len(conversations)} conversations from {len(raw_data)} items")
 
             return ProcessedReasoningData(
                 conversations=conversations,
                 reasoning_patterns=reasoning_patterns,
                 quality_metrics=quality_metrics,
-                processing_stats=processing_stats,
+                processing_stats=processing_stats
             )
 
         except Exception as e:
             self.logger.error(f"Error processing CoT dataset {dataset_path}: {e}")
             raise
 
-    def _extract_reasoning_pattern(
-        self, item: dict[str, Any], reasoning_type: str
-    ) -> ReasoningPattern | None:
+    def _extract_reasoning_pattern(self, item: dict[str, Any], reasoning_type: str) -> ReasoningPattern | None:
         """Extract reasoning pattern from dataset item."""
         try:
             # Look for reasoning steps in various formats
@@ -164,11 +146,7 @@ class ReasoningDatasetProcessor:
             if "reasoning_steps" in item:
                 steps = item["reasoning_steps"]
             elif "chain_of_thought" in item:
-                steps = (
-                    item["chain_of_thought"].split("\n")
-                    if isinstance(item["chain_of_thought"], str)
-                    else item["chain_of_thought"]
-                )
+                steps = item["chain_of_thought"].split("\n") if isinstance(item["chain_of_thought"], str) else item["chain_of_thought"]
             elif "steps" in item:
                 steps = item["steps"]
             elif "thinking" in item:
@@ -189,74 +167,57 @@ class ReasoningDatasetProcessor:
                 reasoning_type=reasoning_type,
                 steps=steps,
                 complexity_level=complexity,
-                therapeutic_domain=self.reasoning_types.get(
-                    reasoning_type, reasoning_type
-                ),
+                therapeutic_domain=self.reasoning_types.get(reasoning_type, reasoning_type),
                 metadata={
                     "original_item_keys": list(item.keys()),
                     "step_count": len(steps),
-                    "avg_step_length": sum(len(str(step)) for step in steps)
-                    / len(steps),
-                },
+                    "avg_step_length": sum(len(str(step)) for step in steps) / len(steps)
+                }
             )
 
         except Exception as e:
             self.logger.warning(f"Could not extract reasoning pattern: {e}")
             return None
 
-    def _convert_to_conversation(
-        self, item: dict[str, Any], reasoning_type: str
-    ) -> Conversation | None:
+    def _convert_to_conversation(self, item: dict[str, Any], reasoning_type: str) -> Conversation | None:
         """Convert dataset item to conversation format."""
         try:
             messages = []
 
             # Extract input/output or question/answer pairs
             if "input" in item and "output" in item:
-                messages.append(
-                    Message(
-                        role="user",
-                        content=str(item["input"]),
-                        timestamp=datetime.now(),
-                    )
-                )
-                messages.append(
-                    Message(
-                        role="assistant",
-                        content=str(item["output"]),
-                        timestamp=datetime.now(),
-                    )
-                )
+                messages.append(Message(
+                    role="user",
+                    content=str(item["input"]),
+                    timestamp=datetime.now()
+                ))
+                messages.append(Message(
+                    role="assistant",
+                    content=str(item["output"]),
+                    timestamp=datetime.now()
+                ))
             elif "question" in item and "answer" in item:
-                messages.append(
-                    Message(
-                        role="user",
-                        content=str(item["question"]),
-                        timestamp=datetime.now(),
-                    )
-                )
-                messages.append(
-                    Message(
-                        role="assistant",
-                        content=str(item["answer"]),
-                        timestamp=datetime.now(),
-                    )
-                )
+                messages.append(Message(
+                    role="user",
+                    content=str(item["question"]),
+                    timestamp=datetime.now()
+                ))
+                messages.append(Message(
+                    role="assistant",
+                    content=str(item["answer"]),
+                    timestamp=datetime.now()
+                ))
             elif "prompt" in item and "response" in item:
-                messages.append(
-                    Message(
-                        role="user",
-                        content=str(item["prompt"]),
-                        timestamp=datetime.now(),
-                    )
-                )
-                messages.append(
-                    Message(
-                        role="assistant",
-                        content=str(item["response"]),
-                        timestamp=datetime.now(),
-                    )
-                )
+                messages.append(Message(
+                    role="user",
+                    content=str(item["prompt"]),
+                    timestamp=datetime.now()
+                ))
+                messages.append(Message(
+                    role="assistant",
+                    content=str(item["response"]),
+                    timestamp=datetime.now()
+                ))
             else:
                 return None
 
@@ -272,21 +233,17 @@ class ReasoningDatasetProcessor:
                 metadata={
                     "reasoning_type": reasoning_type,
                     "source": "cot_dataset",
-                    "therapeutic_domain": self.reasoning_types.get(
-                        reasoning_type, reasoning_type
-                    ),
-                    "original_keys": list(item.keys()),
+                    "therapeutic_domain": self.reasoning_types.get(reasoning_type, reasoning_type),
+                    "original_keys": list(item.keys())
                 },
-                tags=["reasoning", "cot", reasoning_type],
+                tags=["reasoning", "cot", reasoning_type]
             )
 
         except Exception as e:
             self.logger.warning(f"Could not convert item to conversation: {e}")
             return None
 
-    def _assess_reasoning_quality(
-        self, conversation: Conversation, pattern: ReasoningPattern | None
-    ) -> float:
+    def _assess_reasoning_quality(self, conversation: Conversation, pattern: ReasoningPattern | None) -> float:
         """Assess the quality of reasoning in a conversation."""
         try:
             scores = []
@@ -304,15 +261,8 @@ class ReasoningDatasetProcessor:
 
             # Check therapeutic relevance
             therapeutic_keywords = [
-                "therapy",
-                "therapeutic",
-                "clinical",
-                "diagnosis",
-                "treatment",
-                "mental health",
-                "psychology",
-                "counseling",
-                "intervention",
+                "therapy", "therapeutic", "clinical", "diagnosis", "treatment",
+                "mental health", "psychology", "counseling", "intervention"
             ]
 
             content = " ".join([msg.content.lower() for msg in conversation.messages])
@@ -320,9 +270,7 @@ class ReasoningDatasetProcessor:
                 scores.append(0.9)
 
             # Check content quality
-            avg_length = sum(len(msg.content) for msg in conversation.messages) / len(
-                conversation.messages
-            )
+            avg_length = sum(len(msg.content) for msg in conversation.messages) / len(conversation.messages)
             if avg_length > 50:  # Substantial content
                 scores.append(0.8)
 
@@ -332,9 +280,7 @@ class ReasoningDatasetProcessor:
             self.logger.warning(f"Could not assess reasoning quality: {e}")
             return 0.5
 
-    def process_multiple_datasets(
-        self, dataset_configs: list[dict[str, str]]
-    ) -> dict[str, ProcessedReasoningData]:
+    def process_multiple_datasets(self, dataset_configs: list[dict[str, str]]) -> dict[str, ProcessedReasoningData]:
         """
         Process multiple CoT datasets.
 
@@ -359,9 +305,7 @@ class ReasoningDatasetProcessor:
 
         return results
 
-    def get_reasoning_statistics(
-        self, processed_data: ProcessedReasoningData
-    ) -> dict[str, Any]:
+    def get_reasoning_statistics(self, processed_data: ProcessedReasoningData) -> dict[str, Any]:
         """Get detailed statistics about processed reasoning data."""
         conversations = processed_data.conversations
         patterns = processed_data.reasoning_patterns
@@ -380,9 +324,7 @@ class ReasoningDatasetProcessor:
             complexity_counts[complexity] = complexity_counts.get(complexity, 0) + 1
 
         # Content statistics
-        total_chars = sum(
-            sum(len(msg.content) for msg in conv.messages) for conv in conversations
-        )
+        total_chars = sum(sum(len(msg.content) for msg in conv.messages) for conv in conversations)
         avg_chars_per_conv = total_chars / len(conversations)
 
         return {
@@ -393,9 +335,7 @@ class ReasoningDatasetProcessor:
             "complexity_distribution": complexity_counts,
             "avg_characters_per_conversation": round(avg_chars_per_conv, 2),
             "quality_metrics": processed_data.quality_metrics,
-            "reasoning_type": processed_data.processing_stats.get(
-                "reasoning_type", "unknown"
-            ),
+            "reasoning_type": processed_data.processing_stats.get("reasoning_type", "unknown")
         }
 
 

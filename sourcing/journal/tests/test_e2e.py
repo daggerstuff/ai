@@ -89,9 +89,7 @@ class TestCompleteResearchWorkflow:
             "report_dir": report_dir,
         }
 
-    def test_complete_workflow_with_sample_data(
-        self, workflow_setup, sample_csv_dataset
-    ):
+    def test_complete_workflow_with_sample_data(self, workflow_setup, sample_csv_dataset):
         """Test complete workflow with sample dataset."""
         setup = workflow_setup
 
@@ -180,9 +178,7 @@ class TestCompleteResearchWorkflow:
 class TestReportGeneration:
     """Tests for report generation in end-to-end workflow."""
 
-    def test_evaluation_report_generation(
-        self, temp_dir, sample_dataset_source, sample_evaluation
-    ):
+    def test_evaluation_report_generation(self, temp_dir, sample_dataset_source, sample_evaluation):
         """Test evaluation report generation."""
         report_dir = temp_dir / "reports"
         report_dir.mkdir()
@@ -225,9 +221,7 @@ class TestReportGeneration:
         assert "10" in content
         assert "5" in content
 
-    def test_research_summary_report(
-        self, temp_dir, multiple_sources, sample_evaluation
-    ):
+    def test_research_summary_report(self, temp_dir, multiple_sources, sample_evaluation):
         """Test research summary report generation."""
         report_dir = temp_dir / "reports"
         report_dir.mkdir()
@@ -349,13 +343,7 @@ class TestIntegrationWithTrainingPipeline:
         if result["conversion"]["success"]:
             assert Path(output_path).exists()
 
-    def test_dataset_catalog_export(
-        self,
-        temp_dir,
-        sample_dataset_source,
-        sample_evaluation,
-        sample_acquired_dataset,
-    ):
+    def test_dataset_catalog_export(self, temp_dir, sample_dataset_source, sample_evaluation, sample_acquired_dataset):
         """Test dataset catalog export in end-to-end workflow."""
         catalog = DatasetCatalog()
         catalog.add_source(sample_dataset_source)
@@ -389,7 +377,6 @@ class TestCompleteWorkflowWithOrchestrator:
 
     def test_orchestrator_complete_workflow(self, temp_dir):
         """Test complete workflow using orchestrator."""
-
         # Create mock services
         class MockDiscoveryService:
             def discover_sources(self, session):
@@ -439,3 +426,4 @@ class TestCompleteWorkflowWithOrchestrator:
         report = orchestrator.generate_progress_report(session.session_id)
         assert report is not None
         assert "Research Progress Report" in report or "Progress" in report
+

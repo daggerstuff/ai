@@ -2,13 +2,11 @@
 """
 ENTERPRISE-GRADE Build Coverage Matrix from S3 Inventory
 
-Implements Issue 2: Build coverage matrix from S3 inventory for
-Mental Health Datasets Expansion Release 0
+Implements Issue 2: Build coverage matrix from S3 inventory for Mental Health Datasets Expansion Release 0
 
-This production-grade script produces a comprehensive coverage report mapping
-required dataset families (Release 0 minimum) to S3 evidence paths, marking
-present/partial/missing with full enterprise integration including audit trails,
-provenance tracking, and quality validation.
+This production-grade script produces a comprehensive coverage report mapping required dataset families
+(Release 0 minimum) to S3 evidence paths, marking present/partial/missing with full enterprise
+integration including audit trails, provenance tracking, and quality validation.
 
 Enterprise Features:
 - Integration with existing S3Connector enterprise infrastructure
@@ -24,9 +22,7 @@ Enterprise Features:
 import json
 import logging
 import sys
-import traceback
-from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -35,23 +31,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Enterprise infrastructure imports
 from storage_config import StorageConfig, get_storage_config
-
-from pipelines.orchestrator.processing.enterprise_deduplication import (
-    EnterpriseConversationDeduplicator,
-)
-from pipelines.orchestrator.quality.final_enterprise_audit import (
-    FinalEnterpriseAuditor,
-)
-from pipelines.orchestrator.s3_connector import S3Config, S3Connector
-from pipelines.orchestrator.safety_ethics_audit_trail import (
-    ChangeType,
-    get_audit_trail,
-)
-from pipelines.orchestrator.services.provenance_service import (
-    ProvenanceService,
-    get_provenance_service,
-)
-from pipelines.orchestrator.validation.clinical_validator import ClinicalValidator
 
 # Configure enterprise logging
 logging.basicConfig(
@@ -118,10 +97,7 @@ class EnterpriseS3CoverageAnalyzer:
     """
 
     def __init__(self, storage_config: StorageConfig):
-        """
-        Initialize enterprise coverage analyzer with full infrastructure
-        integration
-        """
+        """Initialize enterprise coverage analyzer with full infrastructure integration"""
         self.config = storage_config
         self.audit_trail = get_audit_trail()
         self.clinical_validator = ClinicalValidator()
@@ -153,8 +129,7 @@ class EnterpriseS3CoverageAnalyzer:
         )
 
         logger.info(
-            "Enterprise S3 Coverage Analyzer initialized with full "
-            "infrastructure integration"
+            "Enterprise S3 Coverage Analyzer initialized with full infrastructure integration"
         )
 
     async def _initialize_provenance_service(self):
@@ -167,8 +142,7 @@ class EnterpriseS3CoverageAnalyzer:
         try:
             self.s3_connector.connect()
             logger.info(
-                f"✓ Connected to S3 bucket via enterprise connector: "
-                f"{self.config.s3_bucket}"
+                f"✓ Connected to S3 bucket via enterprise connector: {self.config.s3_bucket}"
             )
 
             # Log audit trail
@@ -193,10 +167,7 @@ class EnterpriseS3CoverageAnalyzer:
             raise ValueError(error_msg)
 
     def get_enterprise_s3_inventory(self) -> Dict[str, List[Dict[str, Any]]]:
-        """
-        Get complete S3 bucket inventory using enterprise connector with
-        quality assessment
-        """
+        """Get complete S3 bucket inventory using enterprise connector with quality assessment"""
         inventory = {}
         processing_start = datetime.now(timezone.utc)
 
@@ -282,8 +253,7 @@ class EnterpriseS3CoverageAnalyzer:
             total_objects = sum(len(files) for files in inventory.values())
 
             logger.info(
-                f"✓ Retrieved enterprise inventory: {total_objects} objects "
-                f"in {processing_time:.2f}s"
+                f"✓ Retrieved enterprise inventory: {total_objects} objects in {processing_time:.2f}s"
             )
 
             # Log audit trail
@@ -343,8 +313,7 @@ class EnterpriseS3CoverageAnalyzer:
                 registry = json.load(f)
 
             logger.info(
-                f"✓ Loaded dataset registry: {len(registry.get('datasets', {}))} "
-                f"families from {registry_path}"
+                f"✓ Loaded dataset registry: {len(registry.get('datasets', {}))} families from {registry_path}"
             )
 
             # Log audit trail
@@ -375,10 +344,7 @@ class EnterpriseS3CoverageAnalyzer:
         }
 
     def get_enterprise_release_0_requirements(self) -> EnterpriseReleaseRequirements:
-        """
-        Define Release 0 minimum required dataset families with enterprise
-        NGC integration
-        """
+        """Define Release 0 minimum required dataset families with enterprise NGC integration"""
 
         # Stage 1 — Foundation (therapeutic dialogue)
         stage1_foundation = {
@@ -439,7 +405,7 @@ class EnterpriseS3CoverageAnalyzer:
         }
 
         # Stage 4 — Voice/persona
-        stage4_voice_persona = {
+        stage4_voice_pers = {
             "voice_persona": {
                 "stage": "stage4_voice_persona",
                 "purpose": "Voice and persona training data",
@@ -455,9 +421,7 @@ class EnterpriseS3CoverageAnalyzer:
         # NGC Resources for dataset generation
         ngc_resources = {
             "nemo_microservices": {
-                "resource": (
-                    "nvidia/nemo-microservices/nemo-microservices-quickstart:25.10"
-                ),
+                "resource": "nvidia/nemo-microservices/nemo-microservices-quickstart:25.10",
                 "purpose": "Therapeutic conversation model deployment",
                 "required_for_stages": ["stage1_foundation"],
                 "download_required": True,
@@ -498,10 +462,7 @@ class EnterpriseS3CoverageAnalyzer:
         requirements: Dict[str, Any],
         inventory: Dict[str, List[Dict[str, Any]]],
     ) -> EnterpriseCoverageMetrics:
-        """
-        Analyze coverage for a specific dataset family with enterprise
-        quality assessment
-        """
+        """Analyze coverage for a specific dataset family with enterprise quality assessment"""
 
         processing_start = datetime.now(timezone.utc)
         found_files = []
@@ -605,13 +566,9 @@ class EnterpriseS3CoverageAnalyzer:
         )
 
     def generate_enterprise_coverage_report(self) -> Dict[str, Any]:
-        """
-        Generate comprehensive enterprise coverage report with full
-        infrastructure integration
-        """
+        """Generate comprehensive enterprise coverage report with full infrastructure integration"""
         print(
-            "🔍 Generating Enterprise S3 Coverage Matrix with Full "
-            "Infrastructure Integration..."
+            "🔍 Generating Enterprise S3 Coverage Matrix with Full Infrastructure Integration..."
         )
 
         # Initialize S3 connection
@@ -621,8 +578,7 @@ class EnterpriseS3CoverageAnalyzer:
         inventory = self.get_enterprise_s3_inventory()
 
         # Load dataset registry with enterprise validation
-        # registry = self.load_dataset_registry()
-        _ = self.load_dataset_registry()
+        registry = self.load_dataset_registry()
 
         # Get enterprise Release 0 requirements with NGC integration
         requirements = self.get_enterprise_release_0_requirements()
@@ -838,9 +794,9 @@ class EnterpriseS3CoverageAnalyzer:
         if output_path is None:
             output_dir = Path(__file__).parent.parent / "reports"
             output_dir.mkdir(exist_ok=True)
-            output_path = output_dir / (
-                f"enterprise_coverage_matrix_"
-                f"{report['metadata']['release_version']}.json"
+            output_path = (
+                output_dir
+                / f"enterprise_coverage_matrix_{report['metadata']['release_version']}.json"
             )
 
         try:
@@ -856,12 +812,10 @@ class EnterpriseS3CoverageAnalyzer:
                 details={
                     "operation": "report_saved",
                     "output_path": str(output_path),
-                    "report_size_bytes": output_path.stat().st_size,
-                    "enterprise_ready": report["enterprise_summary"][
-                        "enterprise_ready"
-                    ],
+                    "report_size_bytes": output_pa']['ret().st_size,
+                    "enterprise_ready": report["enterprise_summary"]["enterprise_ready"]
                 },
-                change_reason="Enterprise coverage report generation completed",
+                change_reason="Enterprise coverage report generation completed"
             )
 
             return output_path
@@ -875,7 +829,7 @@ class EnterpriseS3CoverageAnalyzer:
                 alert_type="report_save_failure",
                 severity="high",
                 conversation_id=self.session_id,
-                details={"error": str(e), "output_path": str(output_path)},
+                details={"error": str(e), "output_path": str(output_path)}
             )
 
             raise ValueError(error_msg)
@@ -899,43 +853,26 @@ class EnterpriseS3CoverageAnalyzer:
 
         print("\n📈 ENTERPRISE COVERAGE STATISTICS:")
         print(f"  Total Families: {summary['total_families']}")
-        print(
-            f"  Present: {summary['present_families']} "
-            f"({summary['readiness_percentage']}%)"
-        )
+        print(f"  Present: {summary['present_families']} ({summary['readiness_percentage']}%)")
         print(f"  Partial: {summary['partial_families']}")
         print(f"  Missing: {summary['missing_families']}")
 
         print("\n🏢 ENTERPRISE QUALITY METRICS:")
         quality_metrics = summary["quality_metrics"]
         print(f"  Average Quality Score: {quality_metrics['avg_quality_score']:.3f}")
-        print(
-            f"  Clinical Validation Score: "
-            f"{quality_metrics['avg_clinical_validation_score']:.3f}"
-        )
-        print(
-            f"  Deduplication Score: {quality_metrics['avg_deduplication_score']:.3f}"
-        )
-        print(
-            f"  Provenance Completeness: "
-            f"{quality_metrics['avg_provenance_completeness']:.3f}"
-        )
+        print(f"  Clinical Validation Score: {qualityics['avg_clinical_validation_score']:.3f}")
+        print(f"  Deduplication Score: {quality_metrics['avg_deduplication_score']:.3f}")
+        print(f"  Provenance Completeness: {quality_metrics['avg_provenance_completeness']:.3f}")
 
         print("\n✅ THRESHOLD COMPLIANCE:")
         threshold_compliance = summary["threshold_compliance"]
         for threshold, met in threshold_compliance.items():
             status_icon = "✅" if met else "❌"
-            print(
-                f"  {status_icon} {threshold.replace('_', ' ').title()}: "
-                f"{'PASSED' if met else 'FAILED'}"
-            )
+            print(f"  {status_icon} {threshold.replace('_', ' ').title()}: {'PASSED' if met else 'FAILED'}")
 
         print("\n🚨 ENTERPRISE RELEASE READINESS:")
         if summary["enterprise_ready"]:
-            print(
-                "  ✅ ENTERPRISE READY - All critical families present and "
-                "quality thresholds met"
-            )
+            print("  ✅ ENTERPRISE READY - All critical families present and quality thresholds met")
         else:
             print("  ❌ NOT ENTERPRISE READY")
             if summary["critical_missing"]:
@@ -951,14 +888,10 @@ class EnterpriseS3CoverageAnalyzer:
 
         print("\n📁 FAMILY DETAILS:")
         for family_name, result in report["family_coverage"].items():
-            status_icon = {"present": "✅", "partial": "⚠️", "missing": "❌"}[
-                result["status"]
-            ]
+            status_icon = {"present": "✅", "partial": "⚠️", "missing": "❌"}[result["status"]]
             print(f"  {status_icon} {family_name} ({result['priority']})")
             print(f"    Stage: {result['stage']}")
-            print(
-                f"    Files: {result['found_files']}/{result['minimum_files']} required"
-            )
+            print(f"    Files: {result['found_files']}/{result['minimum_files']} required")
             print(f"    Size: {result['total_size_mb']} MB")
             print(f"    Quality Score: {result['quality_score']:.3f}")
             print(f"    Clinical Score: {result['clinical_validation_score']:.3f}")
@@ -1014,9 +947,7 @@ def main():
         print(f"📄 Full Enterprise Report: {output_path}")
 
         # Export audit trail
-        audit_trail_path = (
-            output_path.parent / f"audit_trail_{analyzer.session_id}.json"
-        )
+        audit_trail_path = output_path.parent / f"audit_trail_{analyzer.session_id}.json"
         analyzer.audit_trail.export_audit_trail(str(audit_trail_path))
         print(f"📋 Audit Trail: {audit_trail_path}")
 

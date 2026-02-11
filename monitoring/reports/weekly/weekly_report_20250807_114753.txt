@@ -1,0 +1,2 @@
+Sample weekly_report generated at 2025-08-07 11:47:53.995418
+Configuration: {'frequency': 'weekly', 'day': 'monday', 'time': '09:00', 'recipients': ['management@pixelated.ai'], 'sections': ['quality_trends', 'performance_analysis', 'recommendations'], 'format': 'pdf'}

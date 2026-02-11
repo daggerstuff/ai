@@ -16,7 +16,7 @@ from models.therapeutic_progress_tracker import (
     TherapeuticGoal,
     Milestone,
     EmotionalState,
-    ProgressTrajectory,
+    ProgressTrajectory
 )
 
 
@@ -85,7 +85,7 @@ class ProgressReportResponse(BaseModel):
 app = FastAPI(
     title="Therapeutic Progress Tracking API",
     description="API for long-term therapeutic progress tracking",
-    version="1.0.0",
+    version="1.0.0"
 )
 
 # Initialize tracker
@@ -110,7 +110,7 @@ async def log_session(request: SessionLogRequest):
             techniques_used=request.techniques_used,
             homework_assigned=request.homework_assigned,
             crisis_flags=request.crisis_flags,
-            metadata=request.metadata,
+            metadata=request.metadata
         )
 
         tracker.log_session(session)
@@ -118,7 +118,7 @@ async def log_session(request: SessionLogRequest):
         return {
             "status": "success",
             "message": "Session logged successfully",
-            "session_id": request.session_id,
+            "session_id": request.session_id
         }
 
     except Exception as e:
@@ -130,7 +130,7 @@ async def get_sessions(
     client_id: str,
     start_date: Optional[datetime] = None,
     end_date: Optional[datetime] = None,
-    limit: Optional[int] = None,
+    limit: Optional[int] = None
 ):
     """Get sessions for a client"""
     try:
@@ -145,10 +145,10 @@ async def get_sessions(
                     "timestamp": s.timestamp.isoformat(),
                     "emotional_state": s.emotional_state.value,
                     "conversation_summary": s.conversation_summary,
-                    "progress_notes": s.progress_notes,
+                    "progress_notes": s.progress_notes
                 }
                 for s in sessions
-            ],
+            ]
         }
 
     except Exception as e:
@@ -165,7 +165,7 @@ async def create_goal(request: GoalRequest):
             target_date=request.target_date,
             completion_percentage=request.completion_percentage,
             milestones=request.milestones,
-            notes=request.notes,
+            notes=request.notes
         )
 
         tracker.create_goal(request.client_id, goal)
@@ -173,7 +173,7 @@ async def create_goal(request: GoalRequest):
         return {
             "status": "success",
             "message": "Goal created successfully",
-            "goal_id": request.goal_id,
+            "goal_id": request.goal_id
         }
 
     except Exception as e:
@@ -185,14 +185,16 @@ async def update_goal(goal_id: str, request: GoalUpdateRequest):
     """Update goal progress"""
     try:
         tracker.update_goal_progress(
-            goal_id, request.completion_percentage, request.notes
+            goal_id,
+            request.completion_percentage,
+            request.notes
         )
 
         return {
             "status": "success",
             "message": "Goal updated successfully",
             "goal_id": goal_id,
-            "completion_percentage": request.completion_percentage,
+            "completion_percentage": request.completion_percentage
         }
 
     except Exception as e:
@@ -214,10 +216,10 @@ async def get_goals(client_id: str, active_only: bool = True):
                     "description": g.description,
                     "completion_percentage": g.completion_percentage,
                     "target_date": g.target_date.isoformat() if g.target_date else None,
-                    "created_at": g.created_at.isoformat(),
+                    "created_at": g.created_at.isoformat()
                 }
                 for g in goals
-            ],
+            ]
         }
 
     except Exception as e:
@@ -233,7 +235,7 @@ async def add_milestone(request: MilestoneRequest):
             goal_id=request.goal_id,
             description=request.description,
             achieved_date=request.achieved_date or datetime.now(),
-            significance=request.significance,
+            significance=request.significance
         )
 
         tracker.add_milestone(milestone, request.client_id)
@@ -241,7 +243,7 @@ async def add_milestone(request: MilestoneRequest):
         return {
             "status": "success",
             "message": "Milestone added successfully",
-            "milestone_id": request.milestone_id,
+            "milestone_id": request.milestone_id
         }
 
     except Exception as e:
@@ -263,7 +265,7 @@ async def get_progress_report(client_id: str, timeframe_days: int = 30):
             goal_progress=report.goal_progress,
             overall_trajectory=report.overall_trajectory.value,
             recommendations=report.recommendations,
-            summary=report.summary,
+            summary=report.summary
         )
 
     except Exception as e:
@@ -271,7 +273,10 @@ async def get_progress_report(client_id: str, timeframe_days: int = 30):
 
 
 @app.get("/api/v1/trends/{client_id}")
-async def get_emotional_trends(client_id: str, timeframe_days: int = 30):
+async def get_emotional_trends(
+    client_id: str,
+    timeframe_days: int = 30
+):
     """Get emotional trends for a client"""
     try:
         end_date = datetime.now()
@@ -287,10 +292,10 @@ async def get_emotional_trends(client_id: str, timeframe_days: int = 30):
                     "avg_emotional_score": t.avg_emotional_score,
                     "trend_direction": t.trend_direction,
                     "volatility": t.volatility,
-                    "data_points": t.data_points,
+                    "data_points": t.data_points
                 }
                 for t in trends
-            ],
+            ]
         }
 
     except Exception as e:
@@ -307,7 +312,7 @@ async def export_history(client_id: str):
         return {
             "status": "success",
             "message": "History exported successfully",
-            "file_path": output_path,
+            "file_path": output_path
         }
 
     except Exception as e:
@@ -317,10 +322,13 @@ async def export_history(client_id: str):
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "service": "Progress Tracking API", "version": "1.0.0"}
+    return {
+        "status": "healthy",
+        "service": "Progress Tracking API",
+        "version": "1.0.0"
+    }
 
 
 if __name__ == "__main__":
     import uvicorn
-
     uvicorn.run(app, host="0.0.0.0", port=8001)

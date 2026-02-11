@@ -15,7 +15,6 @@ from enum import Enum
 
 try:
     import redis.asyncio as redis
-
     HAS_REDIS = True
 except ImportError:
     HAS_REDIS = False
@@ -24,7 +23,6 @@ except ImportError:
 
 class QueueType(Enum):
     """Type of queue to use."""
-
     REDIS = "redis"
     INTERNAL_ASYNC = "internal_async"
 
@@ -32,7 +30,6 @@ class QueueType(Enum):
 @dataclass
 class QueueItem:
     """Item in the ingestion queue."""
-
     id: str
     payload: Any
     metadata: Dict[str, Any]
@@ -48,7 +45,7 @@ class QueueItem:
         """Convert to JSON string."""
         d = asdict(self)
         # Convert non-serializable types
-        d["payload"] = str(d["payload"]) if d["payload"] is not None else None
+        d['payload'] = str(d['payload']) if d['payload'] is not None else None
         return json.dumps(d)
 
     @classmethod
@@ -67,7 +64,7 @@ class IngestionQueue:
         redis_url: Optional[str] = None,
         queue_name: str = "ingestion_queue",
         max_size: int = 10000,
-        batch_size: int = 10,
+        batch_size: int = 10
     ):
         self.queue_type = queue_type
         self.redis_url = redis_url
@@ -76,7 +73,7 @@ class IngestionQueue:
         self.batch_size = batch_size
         self.redis_client = None
         self.internal_queue = None
-
+        
         if queue_type == QueueType.REDIS and HAS_REDIS:
             self.redis_client = redis.from_url(redis_url or "redis://localhost:6379")
         else:
@@ -100,13 +97,12 @@ class IngestionQueue:
                 queue_size = await self.redis_client.zcard(self.queue_name)
                 if queue_size >= self.max_size:
                     return False  # Backpressure - queue is full
-
+                
                 # Use priority as score (higher priority = lower score in Redis)
-                priority_score = (
-                    -item.priority
-                )  # Invert so higher priority = earlier processing
+                priority_score = -item.priority  # Invert so higher priority = earlier processing
                 await self.redis_client.zadd(
-                    self.queue_name, {item.to_json(): priority_score}
+                    self.queue_name,
+                    {item.to_json(): priority_score}
                 )
                 return True
             except Exception:
@@ -122,7 +118,7 @@ class IngestionQueue:
     async def dequeue_batch(self, timeout: float = 5.0) -> list[QueueItem]:
         """Dequeue a batch of items."""
         items = []
-
+        
         if self.queue_type == QueueType.REDIS and self.redis_client:
             # Get and remove a batch of items from Redis sorted set
             try:
@@ -130,24 +126,24 @@ class IngestionQueue:
                 raw_items = await self.redis_client.zrange(
                     self.queue_name, 0, self.batch_size - 1, withscores=True
                 )
-
+                
                 if not raw_items:
                     return []
-
+                
                 # Convert to QueueItem and remove from queue
                 items_to_remove = []
                 for raw_json, score in raw_items:
                     try:
-                        item = QueueItem.from_json(raw_json.decode("utf-8"))
+                        item = QueueItem.from_json(raw_json.decode('utf-8'))
                         items.append(item)
                         items_to_remove.append(raw_json)
                     except json.JSONDecodeError:
                         continue  # Skip malformed items
-
+                
                 # Remove processed items from Redis
                 if items_to_remove:
                     await self.redis_client.zrem(self.queue_name, *items_to_remove)
-
+                
                 return items
             except Exception:
                 return []
@@ -164,7 +160,7 @@ class IngestionQueue:
                         break  # No more items available
             except Exception:
                 pass
-
+            
             return items
 
     async def get_queue_size(self) -> int:
@@ -200,12 +196,12 @@ class BackpressureMonitor:
         """Check if queue is approaching capacity."""
         size = await self.queue.get_queue_size()
         is_backpressured = size >= (self.queue.max_size * self.threshold)
-
+        
         if is_backpressured and self.alert_callback:
             await self.alert_callback(
-                f"Backpressure alert: Queue at {size}/{self.queue.max_size} ({size / self.queue.max_size:.1%})"
+                f"Backpressure alert: Queue at {size}/{self.queue.max_size} ({size/self.queue.max_size:.1%})"
             )
-
+        
         return is_backpressured
 
 
@@ -217,13 +213,15 @@ _backpressure_monitor: Optional[BackpressureMonitor] = None
 async def get_ingestion_queue(
     queue_type: QueueType = QueueType.INTERNAL_ASYNC,
     redis_url: Optional[str] = None,
-    max_size: int = 10000,
+    max_size: int = 10000
 ) -> IngestionQueue:
     """Get or create global ingestion queue."""
     global _ingestion_queue
     if _ingestion_queue is None:
         _ingestion_queue = IngestionQueue(
-            queue_type=queue_type, redis_url=redis_url, max_size=max_size
+            queue_type=queue_type,
+            redis_url=redis_url,
+            max_size=max_size
         )
         await _ingestion_queue.connect()
     return _ingestion_queue
@@ -251,12 +249,12 @@ async def dequeue_batch() -> list[QueueItem]:
 
 
 __all__ = [
-    "QueueType",
-    "QueueItem",
-    "IngestionQueue",
-    "BackpressureMonitor",
-    "get_ingestion_queue",
-    "get_backpressure_monitor",
-    "enqueue_item",
-    "dequeue_batch",
+    'QueueType',
+    'QueueItem',
+    'IngestionQueue',
+    'BackpressureMonitor',
+    'get_ingestion_queue',
+    'get_backpressure_monitor',
+    'enqueue_item',
+    'dequeue_batch'
 ]

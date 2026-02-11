@@ -16,11 +16,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 import uvicorn
 
-from inference_optimizer import (
-    OptimizedInferenceEngine,
-    InferenceConfig,
-    create_optimized_engine,
-)
+from inference_optimizer import OptimizedInferenceEngine, InferenceConfig, create_optimized_engine
 from models.therapeutic_progress_tracker import TherapeuticProgressTracker
 import logging
 
@@ -43,7 +39,10 @@ async def lifespan(app: FastAPI):
     # Load model
     model_path = "./therapeutic_moe_model"
     inference_engine = create_optimized_engine(
-        model_path=model_path, device="cuda", enable_cache=True, compile_model=True
+        model_path=model_path,
+        device="cuda",
+        enable_cache=True,
+        compile_model=True
     )
 
     # Initialize progress tracker
@@ -65,7 +64,7 @@ app = FastAPI(
     title="Therapeutic AI Inference API",
     description="Optimized inference service for therapeutic MoE model",
     version="1.0.0",
-    lifespan=lifespan,
+    lifespan=lifespan
 )
 
 # Add CORS middleware
@@ -81,43 +80,50 @@ app.add_middleware(
 # Request/Response models
 class Message(BaseModel):
     """Conversation message"""
-
     role: str = Field(..., description="Role: 'user', 'assistant', or 'system'")
     content: str = Field(..., description="Message content")
 
 
 class InferenceRequest(BaseModel):
     """Request for inference"""
-
     user_input: str = Field(..., description="User's input text", min_length=1)
     conversation_history: Optional[List[Message]] = Field(
-        default=None, description="Previous conversation messages"
+        default=None,
+        description="Previous conversation messages"
     )
     system_prompt: Optional[str] = Field(
-        default=None, description="System prompt for context"
+        default=None,
+        description="System prompt for context"
     )
-    use_cache: bool = Field(default=True, description="Whether to use response cache")
+    use_cache: bool = Field(
+        default=True,
+        description="Whether to use response cache"
+    )
     max_new_tokens: Optional[int] = Field(
-        default=None, description="Maximum tokens to generate"
+        default=None,
+        description="Maximum tokens to generate"
     )
     temperature: Optional[float] = Field(
-        default=None, description="Sampling temperature (0.0-2.0)"
+        default=None,
+        description="Sampling temperature (0.0-2.0)"
     )
     # Progress tracking fields
     client_id: Optional[str] = Field(
-        default=None, description="Client ID for progress tracking"
+        default=None,
+        description="Client ID for progress tracking"
     )
     session_id: Optional[str] = Field(
-        default=None, description="Session ID for progress tracking"
+        default=None,
+        description="Session ID for progress tracking"
     )
     track_progress: bool = Field(
-        default=True, description="Whether to track this interaction for progress"
+        default=True,
+        description="Whether to track this interaction for progress"
     )
 
 
 class InferenceResponse(BaseModel):
     """Response from inference"""
-
     response: str = Field(..., description="Generated response")
     latency: float = Field(..., description="Response latency in seconds")
     cache_hit: bool = Field(..., description="Whether response was cached")
@@ -127,7 +133,6 @@ class InferenceResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Health check response"""
-
     status: str
     model_loaded: bool
     uptime_seconds: float
@@ -140,7 +145,6 @@ class HealthResponse(BaseModel):
 
 class MetricsResponse(BaseModel):
     """Metrics response"""
-
     total_requests: int
     avg_latency: float
     p50_latency: float
@@ -165,8 +169,8 @@ async def root():
         "endpoints": {
             "inference": "/api/v1/inference",
             "health": "/health",
-            "metrics": "/metrics",
-        },
+            "metrics": "/metrics"
+        }
     }
 
 
@@ -194,7 +198,7 @@ async def inference(request: InferenceRequest, background_tasks: BackgroundTasks
             user_input=request.user_input,
             conversation_history=conversation_history,
             system_prompt=request.system_prompt,
-            use_cache=request.use_cache,
+            use_cache=request.use_cache
         )
 
         # Track progress if enabled and client_id provided
@@ -205,15 +209,15 @@ async def inference(request: InferenceRequest, background_tasks: BackgroundTasks
                 session_id=request.session_id or f"session_{int(time.time())}",
                 user_input=request.user_input,
                 ai_response=response_text,
-                conversation_history=conversation_history,
+                conversation_history=conversation_history
             )
 
         return InferenceResponse(
             response=response_text,
-            latency=metadata["latency"],
-            cache_hit=metadata["cache_hit"],
-            tokens_generated=metadata["tokens_generated"],
-            metadata=metadata,
+            latency=metadata['latency'],
+            cache_hit=metadata['cache_hit'],
+            tokens_generated=metadata['tokens_generated'],
+            metadata=metadata
         )
 
     except Exception as e:
@@ -225,7 +229,7 @@ async def _log_session_progress(
     session_id: str,
     user_input: str,
     ai_response: str,
-    conversation_history: Optional[List[Dict]] = None,
+    conversation_history: Optional[List[Dict]] = None
 ):
     """Background task to log session progress"""
     try:
@@ -247,7 +251,7 @@ async def _log_session_progress(
             therapeutic_goals=[],  # Could be extracted from conversation
             progress_notes=f"Session on {datetime.now().strftime('%Y-%m-%d')}",
             therapist_observations="",
-            next_session_focus="",
+            next_session_focus=""
         )
 
     except Exception as e:
@@ -261,31 +265,19 @@ def _analyze_emotional_state(text: str) -> str:
     text_lower = text.lower()
 
     # Very negative indicators
-    if any(
-        word in text_lower
-        for word in ["suicidal", "hopeless", "worthless", "hate myself"]
-    ):
+    if any(word in text_lower for word in ['suicidal', 'hopeless', 'worthless', 'hate myself']):
         return EmotionalState.VERY_NEGATIVE.value
 
     # Negative indicators
-    if any(
-        word in text_lower
-        for word in ["anxious", "depressed", "sad", "worried", "stressed"]
-    ):
+    if any(word in text_lower for word in ['anxious', 'depressed', 'sad', 'worried', 'stressed']):
         return EmotionalState.NEGATIVE.value
 
     # Positive indicators
-    if any(
-        word in text_lower
-        for word in ["better", "good", "happy", "hopeful", "improving"]
-    ):
+    if any(word in text_lower for word in ['better', 'good', 'happy', 'hopeful', 'improving']):
         return EmotionalState.POSITIVE.value
 
     # Very positive indicators
-    if any(
-        word in text_lower
-        for word in ["great", "wonderful", "amazing", "fantastic", "excellent"]
-    ):
+    if any(word in text_lower for word in ['great', 'wonderful', 'amazing', 'fantastic', 'excellent']):
         return EmotionalState.VERY_POSITIVE.value
 
     # Default to neutral
@@ -304,7 +296,7 @@ async def health():
             avg_latency=0.0,
             p95_latency=0.0,
             cache_hit_rate=0.0,
-            meets_sla=False,
+            meets_sla=False
         )
 
     metrics = inference_engine.get_metrics()
@@ -313,11 +305,11 @@ async def health():
         status="healthy",
         model_loaded=True,
         uptime_seconds=time.time() - service_start_time,
-        total_requests=metrics["total_requests"],
-        avg_latency=metrics["avg_latency"],
-        p95_latency=metrics["p95_latency"],
-        cache_hit_rate=metrics["cache_hit_rate"],
-        meets_sla=metrics["meets_sla"],
+        total_requests=metrics['total_requests'],
+        avg_latency=metrics['avg_latency'],
+        p95_latency=metrics['p95_latency'],
+        cache_hit_rate=metrics['cache_hit_rate'],
+        meets_sla=metrics['meets_sla']
     )
 
 
@@ -356,7 +348,10 @@ async def add_process_time_header(request: Request, call_next):
 
 
 def start_service(
-    host: str = "0.0.0.0", port: int = 8000, workers: int = 1, reload: bool = False
+    host: str = "0.0.0.0",
+    port: int = 8000,
+    workers: int = 1,
+    reload: bool = False
 ):
     """Start the inference service"""
     uvicorn.run(
@@ -365,9 +360,14 @@ def start_service(
         port=port,
         workers=workers,
         reload=reload,
-        log_level="info",
+        log_level="info"
     )
 
 
 if __name__ == "__main__":
-    start_service(host="0.0.0.0", port=8000, workers=1, reload=False)
+    start_service(
+        host="0.0.0.0",
+        port=8000,
+        workers=1,
+        reload=False
+    )

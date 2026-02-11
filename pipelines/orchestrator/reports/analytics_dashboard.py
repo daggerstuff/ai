@@ -18,7 +18,6 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DashboardMetrics:
     """Dashboard metrics data."""
-
     total_conversations: int
     quality_distribution: dict[str, int]
     tier_distribution: dict[str, int]
@@ -63,13 +62,13 @@ class AnalyticsDashboard:
                 "quality_distribution": "pie",
                 "tier_distribution": "bar",
                 "performance_trends": "line",
-                "safety_metrics": "gauge",
+                "safety_metrics": "gauge"
             },
             "alert_thresholds": {
                 "low_quality_percentage": 0.2,
                 "safety_score_minimum": 0.8,
-                "export_failure_rate": 0.05,
-            },
+                "export_failure_rate": 0.05
+            }
         }
 
     def generate_dashboard_data(self) -> DashboardMetrics:
@@ -88,13 +87,8 @@ class AnalyticsDashboard:
             # Validate collected data
             if not isinstance(conversations_data, dict):
                 logger.warning("Invalid conversations data, using defaults")
-                conversations_data = {
-                    "total": 0,
-                    "tier_distribution": {},
-                    "source_distribution": {},
-                    "condition_distribution": {},
-                    "approach_distribution": {},
-                }
+                conversations_data = {"total": 0, "tier_distribution": {}, "source_distribution": {},
+                                    "condition_distribution": {}, "approach_distribution": {}}
 
             # Create dashboard metrics
             metrics = DashboardMetrics(
@@ -102,16 +96,12 @@ class AnalyticsDashboard:
                 quality_distribution=quality_data.get("distribution", {}),
                 tier_distribution=conversations_data.get("tier_distribution", {}),
                 source_distribution=conversations_data.get("source_distribution", {}),
-                condition_distribution=conversations_data.get(
-                    "condition_distribution", {}
-                ),
-                approach_distribution=conversations_data.get(
-                    "approach_distribution", {}
-                ),
+                condition_distribution=conversations_data.get("condition_distribution", {}),
+                approach_distribution=conversations_data.get("approach_distribution", {}),
                 safety_metrics=safety_data,
                 effectiveness_metrics=effectiveness_data,
                 export_statistics=export_data,
-                performance_trends=performance_data,
+                performance_trends=performance_data
             )
 
             # Store metrics with validation
@@ -138,7 +128,7 @@ class AnalyticsDashboard:
                 safety_metrics={},
                 effectiveness_metrics=effectiveness_data,
                 export_statistics=export_data,
-                performance_trends=performance_data,
+                performance_trends=performance_data
             )
 
         # Store metrics
@@ -158,14 +148,14 @@ class AnalyticsDashboard:
                 "cot": 4626,
                 "reddit": 4626,
                 "research": 1542,
-                "archive": 0,
+                "archive": 0
             },
             "source_distribution": {
                 "priority_clinical": 1542,
                 "professional_therapists": 3084,
                 "chain_of_thought": 4626,
                 "reddit_mentalhealth": 4626,
-                "research_papers": 1542,
+                "research_papers": 1542
             },
             "condition_distribution": {
                 "anxiety": 4626,
@@ -173,7 +163,7 @@ class AnalyticsDashboard:
                 "ptsd": 1542,
                 "bipolar": 1542,
                 "ocd": 1542,
-                "adhd": 1542,
+                "adhd": 1542
             },
             "approach_distribution": {
                 "cbt": 6168,
@@ -181,18 +171,18 @@ class AnalyticsDashboard:
                 "mindfulness": 2313,
                 "psychodynamic": 1542,
                 "humanistic": 1542,
-                "emdr": 771,
-            },
+                "emdr": 771
+            }
         }
 
     def _collect_quality_data(self) -> dict[str, Any]:
         """Collect quality metrics."""
         return {
             "distribution": {
-                "excellent": 3084,  # >0.9
-                "good": 6168,  # 0.8-0.9
-                "acceptable": 4626,  # 0.7-0.8
-                "poor": 1542,  # <0.7
+                "excellent": 3084,    # >0.9
+                "good": 6168,         # 0.8-0.9
+                "acceptable": 4626,   # 0.7-0.8
+                "poor": 1542          # <0.7
             },
             "average_score": 0.82,
             "tier_averages": {
@@ -201,8 +191,8 @@ class AnalyticsDashboard:
                 "cot": 0.84,
                 "reddit": 0.78,
                 "research": 0.85,
-                "archive": 0.65,
-            },
+                "archive": 0.65
+            }
         }
 
     def _collect_safety_data(self) -> dict[str, float]:
@@ -213,7 +203,7 @@ class AnalyticsDashboard:
             "ethics_violations": 0.02,
             "crisis_content_handled": 0.98,
             "boundary_violations": 0.01,
-            "safety_compliance_rate": 0.94,
+            "safety_compliance_rate": 0.94
         }
 
     def _collect_effectiveness_data(self) -> dict[str, float]:
@@ -224,7 +214,7 @@ class AnalyticsDashboard:
             "intervention_appropriateness": 0.82,
             "outcome_prediction_confidence": 0.76,
             "evidence_based_compliance": 0.88,
-            "clinical_validity": 0.83,
+            "clinical_validity": 0.83
         }
 
     def _collect_export_data(self) -> dict[str, Any]:
@@ -239,11 +229,11 @@ class AnalyticsDashboard:
                 "csv": 6,
                 "parquet": 5,
                 "huggingface": 3,
-                "jsonl": 2,
+                "jsonl": 2
             },
             "total_conversations_exported": 142380,
             "average_export_time": 45.2,
-            "last_export": "2025-08-10T07:15:00Z",
+            "last_export": "2025-08-10T07:15:00Z"
         }
 
     def _collect_performance_data(self) -> dict[str, list[float]]:
@@ -254,7 +244,7 @@ class AnalyticsDashboard:
             "safety_scores": [0.89, 0.90, 0.91, 0.92, 0.91, 0.93, 0.91],
             "effectiveness_scores": [0.75, 0.76, 0.77, 0.78, 0.79, 0.78, 0.78],
             "processing_times": [12.5, 11.8, 11.2, 10.9, 11.1, 10.7, 10.5],
-            "export_volumes": [8420, 9150, 9680, 10200, 11500, 12800, 15420],
+            "export_volumes": [8420, 9150, 9680, 10200, 11500, 12800, 15420]
         }
 
     def generate_summary_report(self) -> dict[str, Any]:
@@ -266,19 +256,13 @@ class AnalyticsDashboard:
 
         # Calculate key performance indicators
         total_conversations = latest_metrics.total_conversations
-        avg_quality = sum(
-            latest_metrics.performance_trends.get("quality_scores", [0])
-        ) / max(len(latest_metrics.performance_trends.get("quality_scores", [1])), 1)
+        avg_quality = sum(latest_metrics.performance_trends.get("quality_scores", [0])) / max(len(latest_metrics.performance_trends.get("quality_scores", [1])), 1)
         safety_score = latest_metrics.safety_metrics.get("overall_safety_score", 0.0)
-        effectiveness_score = latest_metrics.effectiveness_metrics.get(
-            "predicted_effectiveness", 0.0
-        )
+        effectiveness_score = latest_metrics.effectiveness_metrics.get("predicted_effectiveness", 0.0)
 
         # Quality distribution analysis
         quality_dist = latest_metrics.quality_distribution
-        high_quality_percentage = (
-            quality_dist.get("excellent", 0) + quality_dist.get("good", 0)
-        ) / max(total_conversations, 1)
+        high_quality_percentage = (quality_dist.get("excellent", 0) + quality_dist.get("good", 0)) / max(total_conversations, 1)
 
         # Tier analysis
         tier_dist = latest_metrics.tier_distribution
@@ -301,9 +285,7 @@ class AnalyticsDashboard:
         elif safety_score > 0.8:
             insights.append("⚠️ Good safety compliance - monitor closely")
         else:
-            insights.append(
-                "🚨 Safety compliance below threshold - immediate attention required"
-            )
+            insights.append("🚨 Safety compliance below threshold - immediate attention required")
 
         if export_success_rate > 0.95:
             insights.append("✅ Export pipeline performing excellently")
@@ -324,11 +306,11 @@ class AnalyticsDashboard:
                 "predicted_effectiveness": round(effectiveness_score, 3),
                 "high_quality_percentage": round(high_quality_percentage, 3),
                 "priority_tier_percentage": round(priority_percentage, 3),
-                "export_success_rate": round(export_success_rate, 3),
+                "export_success_rate": round(export_success_rate, 3)
             },
             "key_insights": insights,
             "recommendations": self._generate_recommendations(latest_metrics),
-            "performance_status": self._assess_overall_performance(latest_metrics),
+            "performance_status": self._assess_overall_performance(latest_metrics)
         }
 
     def _generate_recommendations(self, metrics: DashboardMetrics) -> list[str]:
@@ -370,18 +352,12 @@ class AnalyticsDashboard:
     def _assess_overall_performance(self, metrics: DashboardMetrics) -> str:
         """Assess overall system performance."""
         # Calculate composite score
-        quality_score = sum(
-            metrics.performance_trends.get("quality_scores", [0])
-        ) / max(len(metrics.performance_trends.get("quality_scores", [1])), 1)
+        quality_score = sum(metrics.performance_trends.get("quality_scores", [0])) / max(len(metrics.performance_trends.get("quality_scores", [1])), 1)
         safety_score = metrics.safety_metrics.get("overall_safety_score", 0.0)
-        effectiveness_score = metrics.effectiveness_metrics.get(
-            "predicted_effectiveness", 0.0
-        )
+        effectiveness_score = metrics.effectiveness_metrics.get("predicted_effectiveness", 0.0)
         export_success = metrics.export_statistics.get("export_success_rate", 0.0)
 
-        composite_score = (
-            quality_score + safety_score + effectiveness_score + export_success
-        ) / 4
+        composite_score = (quality_score + safety_score + effectiveness_score + export_success) / 4
 
         if composite_score >= 0.9:
             return "🟢 EXCELLENT - System performing at optimal levels"
@@ -411,11 +387,11 @@ class AnalyticsDashboard:
                     "safety_metrics": m.safety_metrics,
                     "effectiveness_metrics": m.effectiveness_metrics,
                     "export_statistics": m.export_statistics,
-                    "performance_trends": m.performance_trends,
+                    "performance_trends": m.performance_trends
                 }
                 for m in self.metrics_history
             ],
-            "summary_report": self.generate_summary_report(),
+            "summary_report": self.generate_summary_report()
         }
 
         with open(filepath, "w") as f:
@@ -429,7 +405,8 @@ class AnalyticsDashboard:
         cutoff_date = datetime.now() - timedelta(days=retention_days)
 
         self.metrics_history = [
-            m for m in self.metrics_history if m.timestamp >= cutoff_date
+            m for m in self.metrics_history
+            if m.timestamp >= cutoff_date
         ]
 
     def get_real_time_status(self) -> dict[str, Any]:
@@ -443,16 +420,10 @@ class AnalyticsDashboard:
             "system_status": self._assess_overall_performance(latest),
             "last_update": latest.timestamp.isoformat(),
             "total_conversations": latest.total_conversations,
-            "quality_score": round(
-                sum(latest.performance_trends.get("quality_scores", [0]))
-                / max(len(latest.performance_trends.get("quality_scores", [1])), 1),
-                3,
-            ),
-            "safety_score": round(
-                latest.safety_metrics.get("overall_safety_score", 0.0), 3
-            ),
+            "quality_score": round(sum(latest.performance_trends.get("quality_scores", [0])) / max(len(latest.performance_trends.get("quality_scores", [1])), 1), 3),
+            "safety_score": round(latest.safety_metrics.get("overall_safety_score", 0.0), 3),
             "active_exports": latest.export_statistics.get("total_exports", 0),
-            "alerts": self._check_alerts(latest),
+            "alerts": self._check_alerts(latest)
         }
 
     def _check_alerts(self, metrics: DashboardMetrics) -> list[str]:
@@ -461,13 +432,9 @@ class AnalyticsDashboard:
         thresholds = self.dashboard_config.get("alert_thresholds", {})
 
         # Quality alerts
-        poor_quality_ratio = metrics.quality_distribution.get("poor", 0) / max(
-            metrics.total_conversations, 1
-        )
+        poor_quality_ratio = metrics.quality_distribution.get("poor", 0) / max(metrics.total_conversations, 1)
         if poor_quality_ratio > thresholds.get("low_quality_percentage", 0.2):
-            alerts.append(
-                f"High proportion of low-quality conversations: {poor_quality_ratio:.1%}"
-            )
+            alerts.append(f"High proportion of low-quality conversations: {poor_quality_ratio:.1%}")
 
         # Safety alerts
         safety_score = metrics.safety_metrics.get("overall_safety_score", 0.0)
@@ -475,9 +442,7 @@ class AnalyticsDashboard:
             alerts.append(f"Safety score below threshold: {safety_score:.3f}")
 
         # Export alerts
-        export_failure_rate = 1 - metrics.export_statistics.get(
-            "export_success_rate", 1.0
-        )
+        export_failure_rate = 1 - metrics.export_statistics.get("export_success_rate", 1.0)
         if export_failure_rate > thresholds.get("export_failure_rate", 0.05):
             alerts.append(f"High export failure rate: {export_failure_rate:.1%}")
 
@@ -490,6 +455,7 @@ def main():
 
     # Generate dashboard data
     dashboard.generate_dashboard_data()
+
 
     # Generate summary report
     report = dashboard.generate_summary_report()

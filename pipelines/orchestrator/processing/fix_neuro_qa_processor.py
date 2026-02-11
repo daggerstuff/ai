@@ -16,15 +16,11 @@ from typing import Any
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-
 class NeuroQAProcessor:
     """Fixed neuro QA SFT processor."""
 
-    def __init__(
-        self,
-        datasets_path: str = "/home/vivi/pixelated/ai/datasets",
-        output_path: str = "/home/vivi/pixelated/ai/data/processed/professional_complete_integration",
-    ):
+    def __init__(self, datasets_path: str = "/home/vivi/pixelated/ai/datasets",
+                 output_path: str = "/home/vivi/pixelated/ai/data/processed/professional_complete_integration"):
         self.datasets_path = Path(datasets_path)
         self.output_path = Path(output_path)
         self.output_path.mkdir(parents=True, exist_ok=True)
@@ -47,9 +43,7 @@ class NeuroQAProcessor:
         # Check the structure
         if isinstance(raw_data, list) and len(raw_data) > 0:
             first_item = raw_data[0]
-            logger.info(
-                f"📋 First item keys: {first_item.keys() if isinstance(first_item, dict) else 'Not a dict'}"
-            )
+            logger.info(f"📋 First item keys: {first_item.keys() if isinstance(first_item, dict) else 'Not a dict'}")
 
             if "text" in first_item:
                 concatenated_text = first_item["text"]
@@ -83,14 +77,11 @@ class NeuroQAProcessor:
                     "dataset_name": "neuro_qa_SFT_Trainer_Fixed",
                     "total_parsed": len(conversations),
                     "total_processed": len(deduplicated),
-                    "duplicates_removed": len(processed_conversations)
-                    - len(deduplicated),
-                    "output_file": str(output_file),
+                    "duplicates_removed": len(processed_conversations) - len(deduplicated),
+                    "output_file": str(output_file)
                 }
 
-                logger.info(
-                    f"✅ neuro_qa_SFT fixed: {len(deduplicated)} conversations processed"
-                )
+                logger.info(f"✅ neuro_qa_SFT fixed: {len(deduplicated)} conversations processed")
                 return result
 
         raise ValueError("Could not parse neuro_qa_SFT_Trainer data structure")
@@ -139,9 +130,7 @@ class NeuroQAProcessor:
 
         return conversations
 
-    def _convert_to_standard_format(
-        self, conversation_data: list[dict[str, Any]], index: int
-    ) -> dict[str, Any] | None:
+    def _convert_to_standard_format(self, conversation_data: list[dict[str, Any]], index: int) -> dict[str, Any] | None:
         """Convert to standard conversation format."""
         try:
             if len(conversation_data) >= 2:
@@ -151,14 +140,9 @@ class NeuroQAProcessor:
                         user_msg = conversation_data[i]
                         assistant_msg = conversation_data[i + 1]
 
-                        if (
-                            user_msg["role"] == "user"
-                            and assistant_msg["role"] == "assistant"
-                        ):
+                        if user_msg["role"] == "user" and assistant_msg["role"] == "assistant":
                             conversations.append({"human": user_msg["content"]})
-                            conversations.append(
-                                {"assistant": assistant_msg["content"]}
-                            )
+                            conversations.append({"assistant": assistant_msg["content"]})
 
                 if conversations:
                     return {
@@ -169,8 +153,8 @@ class NeuroQAProcessor:
                             "dataset": "neuro_qa_SFT_Trainer",
                             "format": "technical_qa_fixed",
                             "professional_type": "neurological_consultation",
-                            "clinical_domain": "neurology",
-                        },
+                            "clinical_domain": "neurology"
+                        }
                     }
             return None
 
@@ -178,9 +162,7 @@ class NeuroQAProcessor:
             logger.error(f"Error converting format: {e}")
             return None
 
-    def _remove_duplicates(
-        self, conversations: list[dict[str, Any]]
-    ) -> list[dict[str, Any]]:
+    def _remove_duplicates(self, conversations: list[dict[str, Any]]) -> list[dict[str, Any]]:
         """Remove duplicates based on content hash."""
         seen_hashes = set()
         deduplicated = []
@@ -202,5 +184,8 @@ class NeuroQAProcessor:
 if __name__ == "__main__":
     processor = NeuroQAProcessor()
 
+
     with contextlib.suppress(Exception):
         result = processor.process_neuro_qa_fixed()
+
+

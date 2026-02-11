@@ -266,16 +266,11 @@ class YouTubePlaylistProcessor:
 
         # User agents for anti-detection
         self.user_agents = [
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
-            "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) "
-            "Gecko/20100101 Firefox/89.0",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:89.0) "
-            "Gecko/20100101 Firefox/89.0",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
+            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:89.0) Gecko/20100101 Firefox/89.0",
         ]
 
         # Track processing state
@@ -320,12 +315,7 @@ class YouTubePlaylistProcessor:
             ]
 
             result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=30,
-                check=False,
-                shell=False,
+                cmd, capture_output=True, text=True, timeout=30, check=False
             )
 
             if result.returncode == 0 and result.stdout:
@@ -452,7 +442,6 @@ class YouTubePlaylistProcessor:
                 text=True,
                 timeout=3600,  # 1 hour timeout
                 check=False,
-                shell=False,
             )
 
             processing_time = time.time() - start_time
@@ -462,8 +451,7 @@ class YouTubePlaylistProcessor:
 
             if result.returncode == 0 and audio_files:
                 self.logger.info(
-                    f"Successfully downloaded {len(audio_files)} audio files for "
-                    f"playlist {playlist_id}"
+                    f"Successfully downloaded {len(audio_files)} audio files for playlist {playlist_id}"
                 )
 
                 # Mark proxy as successful if used
@@ -538,8 +526,7 @@ class YouTubePlaylistProcessor:
 
         if playlist_info := self.get_playlist_info(url):
             self.logger.info(
-                f"Processing playlist: {playlist_info.title} "
-                f"({playlist_info.video_count} videos)"
+                f"Processing playlist: {playlist_info.title} ({playlist_info.video_count} videos)"
             )
 
         # Attempt download with retries
@@ -653,8 +640,7 @@ class YouTubePlaylistProcessor:
         )
 
         self.logger.info(
-            f"Batch processing complete: {batch_result.successful_playlists}/"
-            f"{batch_result.total_playlists} successful"
+            f"Batch processing complete: {batch_result.successful_playlists}/{batch_result.total_playlists} successful"
         )
         return batch_result
 
@@ -694,8 +680,7 @@ class YouTubePlaylistProcessor:
             f"Failed: {result.failed_playlists}",
             f"Total Audio Files: {result.total_audio_files}",
             f"Processing Time: {result.total_processing_time:.2f} seconds",
-            f"Success Rate: "
-            f"{result.successful_playlists / result.total_playlists * 100:.1f}%",
+            f"Success Rate: {result.successful_playlists / result.total_playlists * 100:.1f}%",
             "",
         ]
         if result.results:
@@ -703,8 +688,7 @@ class YouTubePlaylistProcessor:
             for res in result.results:
                 status = "✅ SUCCESS" if res.success else "❌ FAILED"
                 report.append(
-                    f"{status} | {res.playlist_id} | {len(res.audio_files)} files | "
-                    f"{res.processing_time:.1f}s"
+                    f"{status} | {res.playlist_id} | {len(res.audio_files)} files | {res.processing_time:.1f}s"
                 )
                 if not res.success and res.error_message:
                     report.append(f"    Error: {res.error_message[:100]}...")

@@ -45,9 +45,7 @@ class MetadataParser:
             keywords = self._extract_keywords(raw_data)
 
             # Determine data availability
-            data_availability = self._detect_data_availability(
-                raw_data, abstract, title
-            )
+            data_availability = self._detect_data_availability(raw_data, abstract, title)
 
             # Determine open access status
             open_access = self._detect_open_access(raw_data, source_type)
@@ -109,7 +107,7 @@ class MetadataParser:
                                 author.get("name")
                                 or author.get("Name")
                                 or author.get("fullName")
-                                or f"{author.get('firstName', '')} {author.get('lastName', '')}".strip()
+                                or f'{author.get("firstName", "")} {author.get("lastName", "")}'.strip()
                             )
                             if name:
                                 authors.append(name)
@@ -268,11 +266,7 @@ class MetadataParser:
                         if isinstance(keyword, str):
                             keywords.append(keyword)
                         elif isinstance(keyword, dict):
-                            kw = (
-                                keyword.get("name")
-                                or keyword.get("value")
-                                or keyword.get("term")
-                            )
+                            kw = keyword.get("name") or keyword.get("value") or keyword.get("term")
                             if kw:
                                 keywords.append(kw)
                 elif isinstance(keyword_list, str):
@@ -284,25 +278,18 @@ class MetadataParser:
 
         return list(dict.fromkeys(keywords))  # Remove duplicates
 
-    def _detect_data_availability(
-        self, data: Dict[str, Any], abstract: str, title: str
-    ) -> str:
+    def _detect_data_availability(self, data: Dict[str, Any], abstract: str, title: str) -> str:
         """Detect data availability from metadata and text."""
         text = (abstract + " " + title).lower()
 
         # Check metadata fields
         if "dataAvailability" in data or "data_availability" in data:
-            availability = data.get("dataAvailability") or data.get(
-                "data_availability", ""
-            )
+            availability = data.get("dataAvailability") or data.get("data_availability", "")
             if isinstance(availability, str):
                 availability_lower = availability.lower()
                 if "available" in availability_lower:
                     return "available"
-                elif (
-                    "upon request" in availability_lower
-                    or "upon_request" in availability_lower
-                ):
+                elif "upon request" in availability_lower or "upon_request" in availability_lower:
                     return "upon_request"
                 elif "restricted" in availability_lower:
                     return "restricted"
@@ -383,3 +370,4 @@ class MetadataParser:
 
         # Fallback to hash of title
         return f"{source_type}_{abs(hash(title))}"
+

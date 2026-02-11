@@ -113,3 +113,4 @@ class ToolRegistry:
     def __repr__(self) -> str:
         """String representation of registry."""
         return f"<ToolRegistry tools={len(self._tools)}>"
+

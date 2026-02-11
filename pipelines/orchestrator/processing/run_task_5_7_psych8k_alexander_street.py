@@ -17,6 +17,7 @@ def process_psych8k_alexander_street():
     output_dir = "ai/data/processed/phase_2_professional_datasets/task_5_7_psych8k_alexander_street"
     os.makedirs(output_dir, exist_ok=True)
 
+
     # Dataset configuration
     dataset_config = {
         "name": "psych8k_alexander_street",
@@ -24,7 +25,7 @@ def process_psych8k_alexander_street():
         "target_conversations": 8000,  # Process 8K high-quality conversations
         "tier": 2,
         "expected_quality": 0.90,
-        "description": "Alexander Street professional therapy conversations (40K+ samples, 6.3MB)",
+        "description": "Alexander Street professional therapy conversations (40K+ samples, 6.3MB)"
     }
 
     if not os.path.exists(dataset_config["path"]):
@@ -35,13 +36,14 @@ def process_psych8k_alexander_street():
         with open(dataset_config["path"], encoding="utf-8") as f:
             raw_data = json.load(f)
 
+
         # Process conversations
         processed_conversations = []
         processing_stats = {
             "total_processed": 0,
             "total_accepted": 0,
             "quality_filtered": 0,
-            "format_errors": 0,
+            "format_errors": 0
         }
 
         for i, item in enumerate(raw_data):
@@ -63,10 +65,7 @@ def process_psych8k_alexander_street():
                 processing_stats["total_accepted"] += 1
 
                 # Stop when we reach target
-                if (
-                    len(processed_conversations)
-                    >= dataset_config["target_conversations"]
-                ):
+                if len(processed_conversations) >= dataset_config["target_conversations"]:
                     break
 
             except Exception:
@@ -80,9 +79,7 @@ def process_psych8k_alexander_street():
                 f.write(json.dumps(conv) + "\n")
 
         # Generate report
-        report = generate_psych8k_report(
-            dataset_config, processed_conversations, processing_stats
-        )
+        report = generate_psych8k_report(dataset_config, processed_conversations, processing_stats)
 
         # Save report
         report_path = os.path.join(output_dir, "task_5_7_psych8k_alexander_report.json")
@@ -94,10 +91,7 @@ def process_psych8k_alexander_street():
     except Exception as e:
         return create_error_report(dataset_config, str(e))
 
-
-def standardize_alexander_street_conversation(
-    item: dict[str, Any], index: int
-) -> dict[str, Any]:
+def standardize_alexander_street_conversation(item: dict[str, Any], index: int) -> dict[str, Any]:
     """Standardize Alexander Street conversation format."""
     try:
         # Alexander Street format uses instruction/input/output format
@@ -113,8 +107,14 @@ def standardize_alexander_street_conversation(
 
         # Create standardized conversation
         standardized_messages = [
-            {"role": "client", "content": client_content},
-            {"role": "therapist", "content": therapist_content},
+            {
+                "role": "client",
+                "content": client_content
+            },
+            {
+                "role": "therapist",
+                "content": therapist_content
+            }
         ]
 
         return {
@@ -125,19 +125,16 @@ def standardize_alexander_street_conversation(
                 "source": "alexander_street",
                 "dataset": "psych8k_alexander_street",
                 "tier": 2,
-                "therapeutic_approach": determine_therapeutic_approach(
-                    standardized_messages
-                ),
+                "therapeutic_approach": determine_therapeutic_approach(standardized_messages),
                 "professional_quality": True,
                 "conversation_length": len(standardized_messages),
                 "index": index,
-                "instruction": item.get("instruction", ""),
-            },
+                "instruction": item.get("instruction", "")
+            }
         }
 
     except Exception:
         return None
-
 
 def assess_alexander_street_quality(conversation: dict[str, Any]) -> bool:
     """Assess quality of Alexander Street conversation."""
@@ -159,20 +156,10 @@ def assess_alexander_street_quality(conversation: dict[str, Any]) -> bool:
             # Check for therapeutic indicators
             if msg["role"] == "therapist":
                 therapeutic_indicators = [
-                    "feel",
-                    "understand",
-                    "experience",
-                    "explore",
-                    "share",
-                    "thoughts",
-                    "emotions",
-                    "support",
-                    "help",
-                    "together",
+                    "feel", "understand", "experience", "explore", "share",
+                    "thoughts", "emotions", "support", "help", "together"
                 ]
-                if not any(
-                    indicator in content.lower() for indicator in therapeutic_indicators
-                ):
+                if not any(indicator in content.lower() for indicator in therapeutic_indicators):
                     continue  # Allow some therapist responses without indicators
 
         # Check conversation flow
@@ -182,39 +169,24 @@ def assess_alexander_street_quality(conversation: dict[str, Any]) -> bool:
     except Exception:
         return False
 
-
 def determine_therapeutic_approach(messages: list[dict[str, Any]]) -> str:
     """Determine therapeutic approach from conversation content."""
     all_text = " ".join([msg.get("content", "") for msg in messages]).lower()
 
     # Approach indicators
-    if any(
-        word in all_text
-        for word in ["cognitive", "thoughts", "thinking patterns", "beliefs"]
-    ):
+    if any(word in all_text for word in ["cognitive", "thoughts", "thinking patterns", "beliefs"]):
         return "cognitive_behavioral"
-    if any(
-        word in all_text for word in ["feelings", "emotions", "emotional", "empathy"]
-    ):
+    if any(word in all_text for word in ["feelings", "emotions", "emotional", "empathy"]):
         return "emotion_focused"
     if any(word in all_text for word in ["behavior", "actions", "habits", "patterns"]):
         return "behavioral"
-    if any(
-        word in all_text
-        for word in ["mindfulness", "present", "awareness", "meditation"]
-    ):
+    if any(word in all_text for word in ["mindfulness", "present", "awareness", "meditation"]):
         return "mindfulness_based"
-    if any(
-        word in all_text
-        for word in ["relationship", "interpersonal", "social", "family"]
-    ):
+    if any(word in all_text for word in ["relationship", "interpersonal", "social", "family"]):
         return "interpersonal"
     return "integrative"
 
-
-def generate_psych8k_report(
-    config: dict, conversations: list, stats: dict
-) -> dict[str, Any]:
+def generate_psych8k_report(config: dict, conversations: list, stats: dict) -> dict[str, Any]:
     """Generate comprehensive Psych8k processing report."""
 
     # Analyze therapeutic approaches
@@ -234,45 +206,36 @@ def generate_psych8k_report(
             "dataset_name": config["name"],
             "total_conversations": len(conversations),
             "target_conversations": config["target_conversations"],
-            "completion_percentage": (
-                len(conversations) / config["target_conversations"]
-            )
-            * 100,
-            "processing_timestamp": datetime.now().isoformat(),
+            "completion_percentage": (len(conversations) / config["target_conversations"]) * 100,
+            "processing_timestamp": datetime.now().isoformat()
         },
         "quality_metrics": {
             "total_processed": stats["total_processed"],
             "total_accepted": stats["total_accepted"],
-            "acceptance_rate": (stats["total_accepted"] / stats["total_processed"])
-            * 100
-            if stats["total_processed"] > 0
-            else 0,
+            "acceptance_rate": (stats["total_accepted"] / stats["total_processed"]) * 100 if stats["total_processed"] > 0 else 0,
             "quality_filtered": stats["quality_filtered"],
-            "format_errors": stats["format_errors"],
+            "format_errors": stats["format_errors"]
         },
         "conversation_analysis": {
             "therapeutic_approaches": approaches,
             "conversation_length_stats": {
                 "min": min(conversation_lengths) if conversation_lengths else 0,
                 "max": max(conversation_lengths) if conversation_lengths else 0,
-                "average": sum(conversation_lengths) / len(conversation_lengths)
-                if conversation_lengths
-                else 0,
-            },
+                "average": sum(conversation_lengths) / len(conversation_lengths) if conversation_lengths else 0
+            }
         },
         "dataset_characteristics": {
             "source": "Alexander Street Professional Therapy Database",
             "quality_level": "Professional/Clinical Grade",
             "tier": config["tier"],
             "expected_quality": config["expected_quality"],
-            "professional_validation": True,
+            "professional_validation": True
         },
         "next_steps": [
             "Task 5.8: Integrate mental_health_counseling_conversations (3.5K licensed therapist responses)",
-            "Task 5.9: Process SoulChat2.0 psychological counselor digital twin framework",
-        ],
+            "Task 5.9: Process SoulChat2.0 psychological counselor digital twin framework"
+        ]
     }
-
 
 def create_error_report(config: dict, error: str) -> dict[str, Any]:
     """Create error report for failed processing."""
@@ -283,10 +246,9 @@ def create_error_report(config: dict, error: str) -> dict[str, Any]:
             "total_conversations": 0,
             "success": False,
             "error": error,
-            "timestamp": datetime.now().isoformat(),
-        },
+            "timestamp": datetime.now().isoformat()
+        }
     }
-
 
 if __name__ == "__main__":
     process_psych8k_alexander_street()

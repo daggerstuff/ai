@@ -34,9 +34,7 @@ class TestPipelineFormatConverter:
         """Create a format converter instance."""
         return PipelineFormatConverter()
 
-    def test_convert_csv_to_chatml(
-        self, converter, sample_csv_dataset, sample_integration_plan, temp_dir
-    ):
+    def test_convert_csv_to_chatml(self, converter, sample_csv_dataset, sample_integration_plan, temp_dir):
         """Test converting CSV to ChatML format."""
         dataset = AcquiredDataset(
             source_id="test-001",
@@ -56,9 +54,7 @@ class TestPipelineFormatConverter:
         assert output_path.exists()
         assert result.records_converted > 0
 
-    def test_convert_jsonl_to_chatml(
-        self, converter, sample_jsonl_dataset, sample_integration_plan, temp_dir
-    ):
+    def test_convert_jsonl_to_chatml(self, converter, sample_jsonl_dataset, sample_integration_plan, temp_dir):
         """Test converting JSONL to ChatML format."""
         dataset = AcquiredDataset(
             source_id="test-001",
@@ -77,9 +73,7 @@ class TestPipelineFormatConverter:
         assert result.success
         assert output_path.exists()
 
-    def test_convert_to_conversation_record(
-        self, converter, sample_csv_dataset, sample_integration_plan, temp_dir
-    ):
+    def test_convert_to_conversation_record(self, converter, sample_csv_dataset, sample_integration_plan, temp_dir):
         """Test converting to ConversationRecord format."""
         dataset = AcquiredDataset(
             source_id="test-001",
@@ -231,10 +225,7 @@ class TestQualityChecker:
                 "id": "test-001",
                 "messages": [
                     {"role": "user", "content": "I'm feeling depressed"},
-                    {
-                        "role": "assistant",
-                        "content": "I understand. Let's talk about that.",
-                    },
+                    {"role": "assistant", "content": "I understand. Let's talk about that."},
                 ],
             }
             f.write(json.dumps(record) + "\n")
@@ -289,12 +280,7 @@ class TestPipelineIntegrationService:
         return PipelineIntegrationService()
 
     def test_integrate_dataset_full_workflow(
-        self,
-        service,
-        sample_acquired_dataset,
-        sample_integration_plan,
-        sample_csv_dataset,
-        temp_dir,
+        self, service, sample_acquired_dataset, sample_integration_plan, sample_csv_dataset, temp_dir
     ):
         """Test complete integration workflow."""
         # Update dataset to point to actual file
@@ -318,12 +304,7 @@ class TestPipelineIntegrationService:
         assert "quality_check" in result
 
     def test_integrate_dataset_with_merging(
-        self,
-        service,
-        sample_acquired_dataset,
-        sample_integration_plan,
-        sample_csv_dataset,
-        temp_dir,
+        self, service, sample_acquired_dataset, sample_integration_plan, sample_csv_dataset, temp_dir
     ):
         """Test integration with dataset merging."""
         sample_acquired_dataset.storage_path = str(sample_csv_dataset)
@@ -354,9 +335,7 @@ class TestPipelineIntegrationService:
         assert "merge" in result
         assert result["merge"]["success"]
 
-    def test_integrate_dataset_validation_failure(
-        self, service, sample_acquired_dataset, sample_integration_plan, temp_dir
-    ):
+    def test_integrate_dataset_validation_failure(self, service, sample_acquired_dataset, sample_integration_plan, temp_dir):
         """Test integration with validation failure."""
         # Create invalid dataset file
         invalid_file = temp_dir / "invalid.csv"
@@ -378,3 +357,4 @@ class TestPipelineIntegrationService:
         # Should handle validation failure gracefully
         assert "conversion" in result
         assert "validation" in result
+

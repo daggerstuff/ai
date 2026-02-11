@@ -73,7 +73,7 @@ class TestSingleEmbedding:
         response = service.embed_text(request)
 
         # Check L2 norm is approximately 1
-        norm_squared = sum(x**2 for x in response.embedding)
+        norm_squared = sum(x ** 2 for x in response.embedding)
         assert abs(norm_squared - 1.0) < 0.01
 
     def test_embed_text_caching(self, service: EmbeddingAgentService):
@@ -290,3 +290,4 @@ class TestEdgeCases:
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

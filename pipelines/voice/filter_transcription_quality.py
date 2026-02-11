@@ -14,10 +14,7 @@ def filter_segments(transcript, threshold):
     # Assumes transcript is a dict with a "segments" key (Faster Whisper/WhisperX format)
     filtered = []
     for seg in transcript.get("segments", []):
-        if (
-            seg.get("avg_logprob", 0) >= threshold
-            or seg.get("confidence", 1) >= threshold
-        ):
+        if seg.get("avg_logprob", 0) >= threshold or seg.get("confidence", 1) >= threshold:
             filtered.append(seg)
     return filtered
 
@@ -30,9 +27,7 @@ def process_file(input_path, output_path, threshold):
     filtered_data["segments"] = filtered_segments
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(filtered_data, f, indent=2)
-    print(
-        f"Filtered {input_path} -> {output_path} ({len(filtered_segments)} segments kept)"
-    )
+    print(f"Filtered {input_path} -> {output_path} ({len(filtered_segments)} segments kept)")
 
 
 def main():

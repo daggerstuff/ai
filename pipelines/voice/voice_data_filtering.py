@@ -13,9 +13,7 @@ os.makedirs(OPTIMIZED_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 logging.basicConfig(
-    filename=LOG_FILE,
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
+    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
 # Filtering thresholds and optimization parameters
@@ -49,9 +47,7 @@ def select_diverse_pairs(pairs, cluster_key="turn_1_cluster"):
 def optimize_dataset(consistency_data, therapeutic_pairs):
     # Filter by composite score
     high_quality_files = {
-        d["file"]
-        for d in consistency_data
-        if d["composite_score"] >= MIN_COMPOSITE_SCORE
+        d["file"] for d in consistency_data if d["composite_score"] >= MIN_COMPOSITE_SCORE
     }
     # Filter therapeutic pairs by empathy/toxicity
     filtered_pairs = []
@@ -95,9 +91,7 @@ def main():
     out_path = os.path.join(OPTIMIZED_DIR, "voice_optimized_dataset.json")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(optimized, f, indent=2)
-    logging.info(
-        f"Optimized dataset created with {len(optimized)} pairs. Saved to {out_path}"
-    )
+    logging.info(f"Optimized dataset created with {len(optimized)} pairs. Saved to {out_path}")
 
 
 if __name__ == "__main__":

@@ -22,7 +22,6 @@ sys.path.insert(0, str(project_root))
 logger = None
 try:
     import logging
-
     logging.basicConfig(level=logging.INFO)
     logger = logging.getLogger(__name__)
 except:
@@ -62,17 +61,15 @@ class DatasetCataloger:
         name = dataset.get("name", "").lower()
 
         # Check for HuggingFace
-        if any(
-            x in path.lower() or x in source or x in name
-            for x in ["huggingface", "hf://", "hf:", "datasets/", "huggingface.co"]
-        ):
+        if any(x in path.lower() or x in source or x in name for x in [
+            "huggingface", "hf://", "hf:", "datasets/", "huggingface.co"
+        ]):
             return "huggingface"
 
         # Check for Kaggle
-        if any(
-            x in path.lower() or x in source or x in name
-            for x in ["kaggle", "kaggle.com", "kaggle/datasets"]
-        ):
+        if any(x in path.lower() or x in source or x in name for x in [
+            "kaggle", "kaggle.com", "kaggle/datasets"
+        ]):
             return "kaggle"
 
         # Check for URLs
@@ -98,16 +95,14 @@ class DatasetCataloger:
 
         for dataset in datasets:
             classification = self.classify_dataset(dataset)
-            self.catalog[classification].append(
-                {
-                    "name": dataset.get("name", ""),
-                    "path": dataset.get("path", ""),
-                    "source": dataset.get("source", ""),
-                    "stage": dataset.get("stage", "unassigned"),
-                    "size": dataset.get("size", 0),
-                    "format": dataset.get("format", "unknown"),
-                }
-            )
+            self.catalog[classification].append({
+                "name": dataset.get("name", ""),
+                "path": dataset.get("path", ""),
+                "source": dataset.get("source", ""),
+                "stage": dataset.get("stage", "unassigned"),
+                "size": dataset.get("size", 0),
+                "format": dataset.get("format", "unknown"),
+            })
 
         # Generate summary
         summary = {
@@ -141,14 +136,7 @@ def main():
     result = cataloger.catalog_all()
 
     # Save catalog
-    output_path = (
-        base_path
-        / "ai"
-        / "training_ready"
-        / "scripts"
-        / "output"
-        / "dataset_accessibility_catalog.json"
-    )
+    output_path = base_path / "ai" / "training_ready" / "scripts" / "output" / "dataset_accessibility_catalog.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(output_path, "w") as f:
@@ -164,17 +152,10 @@ def main():
     log(f"\n💾 Catalog saved to: {output_path}")
 
     # Generate upload list for local-only
-    if result["summary"]["local_only"] > 0:
-        upload_list_path = (
-            base_path
-            / "ai"
-            / "training_ready"
-            / "scripts"
-            / "output"
-            / "local_only_upload_list.txt"
-        )
+    if result['summary']['local_only'] > 0:
+        upload_list_path = base_path / "ai" / "training_ready" / "scripts" / "output" / "local_only_upload_list.txt"
         with open(upload_list_path, "w") as f:
-            for dataset in result["catalog"]["local_only"]:
+            for dataset in result['catalog']['local_only']:
                 f.write(f"{dataset['path']}\n")
         log(f"📋 Local-only upload list: {upload_list_path}")
 
@@ -183,3 +164,5 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+
+

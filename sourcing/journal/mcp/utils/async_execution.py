@@ -249,9 +249,7 @@ class AsyncToolExecutor:
                 # Create progress callback wrapper
                 async def progress_wrapper(progress: float, message: str = "") -> None:
                     if cancellation_flag.is_set():
-                        raise OperationCancelledError(
-                            f"Operation {operation_id} was cancelled"
-                        )
+                        raise OperationCancelledError(f"Operation {operation_id} was cancelled")
                     await self._send_progress_update(
                         operation_id,
                         session_id or "unknown",
@@ -276,9 +274,7 @@ class AsyncToolExecutor:
         except Exception as e:
             # Check if cancellation was requested during execution
             if cancellation_flag.is_set():
-                raise OperationCancelledError(
-                    f"Operation {operation_id} was cancelled"
-                ) from e
+                raise OperationCancelledError(f"Operation {operation_id} was cancelled") from e
             raise
 
     async def _send_progress_update(
@@ -406,3 +402,4 @@ class AsyncToolExecutor:
             Unique operation ID
         """
         return f"{prefix}_{uuid.uuid4().hex[:8]}"
+

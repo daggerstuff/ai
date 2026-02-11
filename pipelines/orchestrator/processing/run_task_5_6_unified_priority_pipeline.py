@@ -14,10 +14,9 @@ def create_unified_priority_pipeline():
     """Create unified priority dataset pipeline for Task 5.6."""
 
     # Create output directory
-    output_dir = (
-        "ai/data/processed/phase_1_priority_conversations/task_5_6_unified_priority"
-    )
+    output_dir = "ai/data/processed/phase_1_priority_conversations/task_5_6_unified_priority"
     os.makedirs(output_dir, exist_ok=True)
+
 
     # Priority dataset configuration
     priority_datasets = {
@@ -25,20 +24,20 @@ def create_unified_priority_pipeline():
             "path": "ai/data/processed/task_5_1_priority_1/priority_1_conversations.jsonl",
             "report": "ai/data/processed/task_5_1_priority_1/task_5_1_priority_1_report.json",
             "tier": 1,
-            "weight": 0.40,  # 40% weight - highest quality
+            "weight": 0.40  # 40% weight - highest quality
         },
         "priority_2": {
             "path": "ai/data/processed/task_5_2_priority_2/priority_2_conversations.jsonl",
             "report": "ai/data/processed/task_5_2_priority_2/task_5_2_priority_2_report.json",
             "tier": 1,
-            "weight": 0.35,  # 35% weight
+            "weight": 0.35  # 35% weight
         },
         "priority_3": {
             "path": "ai/data/processed/task_5_3_priority_3/priority_3_conversations.jsonl",
             "report": "ai/data/processed/task_5_3_priority_3/task_5_3_priority_3_report.json",
             "tier": 1,
-            "weight": 0.25,  # 25% weight
-        },
+            "weight": 0.25  # 25% weight
+        }
     }
 
     try:
@@ -47,6 +46,7 @@ def create_unified_priority_pipeline():
         dataset_stats = {}
 
         for dataset_name, config in priority_datasets.items():
+
             if not os.path.exists(config["path"]):
                 continue
 
@@ -74,7 +74,7 @@ def create_unified_priority_pipeline():
                 "conversation_count": len(conversations),
                 "weight": config["weight"],
                 "tier": config["tier"],
-                "report_summary": report.get("processing_summary", {}),
+                "report_summary": report.get("processing_summary", {})
             }
 
             all_conversations.extend(conversations)
@@ -83,9 +83,7 @@ def create_unified_priority_pipeline():
         quality_assessment = perform_unified_quality_assessment(all_conversations)
 
         # Create balanced dataset
-        balanced_conversations = create_balanced_dataset(
-            all_conversations, priority_datasets
-        )
+        balanced_conversations = create_balanced_dataset(all_conversations, priority_datasets)
 
         # Save unified conversations
         unified_path = os.path.join(output_dir, "unified_priority_conversations.jsonl")
@@ -99,7 +97,7 @@ def create_unified_priority_pipeline():
             dataset_stats,
             all_conversations,
             balanced_conversations,
-            quality_assessment,
+            quality_assessment
         )
 
         # Save unified report
@@ -110,15 +108,13 @@ def create_unified_priority_pipeline():
         # Create quality dashboard
         create_priority_quality_dashboard(unified_report, output_dir)
 
+
         return unified_report
 
     except Exception as e:
         return create_error_report(str(e))
 
-
-def perform_unified_quality_assessment(
-    conversations: list[dict[str, Any]],
-) -> dict[str, Any]:
+def perform_unified_quality_assessment(conversations: list[dict[str, Any]]) -> dict[str, Any]:
     """Perform comprehensive quality assessment across all priority conversations."""
 
     assessment = {
@@ -129,7 +125,7 @@ def perform_unified_quality_assessment(
         "priority_distribution": {},
         "average_quality_score": 0.0,
         "conversation_length_stats": {"min": 0, "max": 0, "average": 0.0},
-        "quality_issues": [],
+        "quality_issues": []
     }
 
     if not conversations:
@@ -157,15 +153,9 @@ def perform_unified_quality_assessment(
         source = metadata.get("source", "unknown")
         priority = str(metadata.get("priority", "unknown"))
 
-        assessment["tier_distribution"][tier] = (
-            assessment["tier_distribution"].get(tier, 0) + 1
-        )
-        assessment["source_distribution"][source] = (
-            assessment["source_distribution"].get(source, 0) + 1
-        )
-        assessment["priority_distribution"][priority] = (
-            assessment["priority_distribution"].get(priority, 0) + 1
-        )
+        assessment["tier_distribution"][tier] = assessment["tier_distribution"].get(tier, 0) + 1
+        assessment["source_distribution"][source] = assessment["source_distribution"].get(source, 0) + 1
+        assessment["priority_distribution"][priority] = assessment["priority_distribution"].get(priority, 0) + 1
 
         # Conversation length
         conv_length = len(conv.get("conversation", []))
@@ -179,24 +169,17 @@ def perform_unified_quality_assessment(
         assessment["conversation_length_stats"] = {
             "min": min(conversation_lengths),
             "max": max(conversation_lengths),
-            "average": sum(conversation_lengths) / len(conversation_lengths),
+            "average": sum(conversation_lengths) / len(conversation_lengths)
         }
 
     # Identify quality issues
-    low_quality_pct = (
-        assessment["quality_distribution"]["low"] / len(conversations)
-    ) * 100
+    low_quality_pct = (assessment["quality_distribution"]["low"] / len(conversations)) * 100
     if low_quality_pct > 10:
-        assessment["quality_issues"].append(
-            f"High percentage of low quality conversations: {low_quality_pct:.1f}%"
-        )
+        assessment["quality_issues"].append(f"High percentage of low quality conversations: {low_quality_pct:.1f}%")
 
     return assessment
 
-
-def create_balanced_dataset(
-    conversations: list[dict[str, Any]], priority_configs: dict
-) -> list[dict[str, Any]]:
+def create_balanced_dataset(conversations: list[dict[str, Any]], priority_configs: dict) -> list[dict[str, Any]]:
     """Create a balanced dataset respecting priority weights."""
 
     # Group conversations by priority dataset
@@ -224,13 +207,12 @@ def create_balanced_dataset(
 
     return balanced_conversations
 
-
 def generate_unified_priority_report(
     priority_configs: dict,
     dataset_stats: dict,
     all_conversations: list,
     balanced_conversations: list,
-    quality_assessment: dict,
+    quality_assessment: dict
 ) -> dict[str, Any]:
     """Generate comprehensive unified priority report."""
 
@@ -240,7 +222,7 @@ def generate_unified_priority_report(
             "total_priority_datasets": len(priority_configs),
             "total_conversations_processed": len(all_conversations),
             "balanced_conversations_created": len(balanced_conversations),
-            "processing_timestamp": datetime.now().isoformat(),
+            "processing_timestamp": datetime.now().isoformat()
         },
         "dataset_breakdown": dataset_stats,
         "quality_assessment": quality_assessment,
@@ -248,25 +230,22 @@ def generate_unified_priority_report(
             "tier_1_focus": True,
             "multi_priority_integration": True,
             "weighted_balancing": True,
-            "comprehensive_quality_validation": True,
+            "comprehensive_quality_validation": True
         },
         "pipeline_configuration": {
-            "priority_weights": {
-                name: config["weight"] for name, config in priority_configs.items()
-            },
+            "priority_weights": {name: config["weight"] for name, config in priority_configs.items()},
             "target_balanced_size": 50000,
             "quality_threshold": 0.75,
-            "tier_focus": 1,
+            "tier_focus": 1
         },
         "recommendations": [
             "Priority 1 conversations provide highest quality foundation",
             "Priority 2 adds clinical reasoning capabilities",
             "Priority 3 contributes cultural nuance understanding",
             "Balanced dataset maintains quality while ensuring diversity",
-            "Continue monitoring quality metrics for future iterations",
-        ],
+            "Continue monitoring quality metrics for future iterations"
+        ]
     }
-
 
 def create_priority_quality_dashboard(report: dict[str, Any], output_dir: str):
     """Create a quality dashboard for the unified priority dataset."""
@@ -275,29 +254,20 @@ def create_priority_quality_dashboard(report: dict[str, Any], output_dir: str):
         "title": "Unified Priority Dataset Quality Dashboard",
         "generated": datetime.now().isoformat(),
         "summary": {
-            "total_conversations": report["processing_summary"][
-                "total_conversations_processed"
-            ],
-            "balanced_conversations": report["processing_summary"][
-                "balanced_conversations_created"
-            ],
+            "total_conversations": report["processing_summary"]["total_conversations_processed"],
+            "balanced_conversations": report["processing_summary"]["balanced_conversations_created"],
             "average_quality": report["quality_assessment"]["average_quality_score"],
-            "high_quality_percentage": (
-                report["quality_assessment"]["quality_distribution"]["high"]
-                / report["quality_assessment"]["total_conversations"]
-            )
-            * 100,
+            "high_quality_percentage": (report["quality_assessment"]["quality_distribution"]["high"] / report["quality_assessment"]["total_conversations"]) * 100
         },
         "dataset_contributions": report["dataset_breakdown"],
         "quality_metrics": report["quality_assessment"],
-        "recommendations": report["recommendations"],
+        "recommendations": report["recommendations"]
     }
 
     # Save dashboard
     dashboard_path = os.path.join(output_dir, "priority_quality_dashboard.json")
     with open(dashboard_path, "w", encoding="utf-8") as f:
         json.dump(dashboard, f, indent=2, ensure_ascii=False)
-
 
 def create_error_report(error: str) -> dict[str, Any]:
     """Create error report for failed processing."""
@@ -307,10 +277,9 @@ def create_error_report(error: str) -> dict[str, Any]:
             "total_conversations": 0,
             "success": False,
             "error": error,
-            "timestamp": datetime.now().isoformat(),
-        },
+            "timestamp": datetime.now().isoformat()
+        }
     }
-
 
 if __name__ == "__main__":
     create_unified_priority_pipeline()

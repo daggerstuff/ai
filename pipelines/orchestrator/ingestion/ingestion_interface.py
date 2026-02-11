@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Ingestion interface for dataset pipeline
 
 Defines a minimal abstract connector API and a simple registry/factory for connectors.
@@ -5,8 +7,6 @@ Defines a minimal abstract connector API and a simple registry/factory for conne
 This is intentionally small and lightweight—connectors should implement the
 IngestionConnector ABC and register themselves via the `register_connector` helper.
 """
-
-from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
@@ -112,8 +112,7 @@ class LocalFileConnector(IngestionConnector):
     ):
         super().__init__(name=name)
         self.directory = Path(directory)
-        # retry_options passed to read_with_retry
-        # (e.g., {'retries': 3, 'backoff_factor': 0.2})
+        # retry_options passed to read_with_retry (e.g., {'retries': 3, 'backoff_factor': 0.2})
         self.retry_options = retry_options or {"retries": 3, "backoff_factor": 0.2}
         # rate_limit: dict with capacity and refill_rate
         self.rate_limiter = None
@@ -157,8 +156,7 @@ class LocalFileConnector(IngestionConnector):
                         acquired = self.rate_limiter.acquire(blocking=True, timeout=5)
                         if not acquired:
                             raise IngestionError(f"Rate limiter timeout reading {p}")
-                    # read with retry helper; read_with_retry here expects a Path-like
-                    # and retry options
+                    # read with retry helper; read_with_retry here expects a Path-like and retry options
                     payload = read_with_retry(p, retry_options=self.retry_options)
 
                     # Deduplication check at ingestion stage
@@ -178,7 +176,7 @@ class LocalFileConnector(IngestionConnector):
                     # Source-level validation (e.g., file type check)
                     if not self.validate(rec):
                         # Log and quarantine source-level failure
-                        from ai.pipelines.orchestrator import quarantine
+                                            from ai.pipelines.orchestrator import quarantine
 
                         store = quarantine.get_quarantine_store()
                         errors = [f"Source validation failed for {self.name} connector"]
@@ -193,7 +191,7 @@ class LocalFileConnector(IngestionConnector):
                         yield validated
                     except validation.ValidationError as ve:
                         # Quarantine schema validation failure and continue
-                        from ai.pipelines.orchestrator import quarantine
+                                            from ai.pipelines.orchestrator import quarantine
 
                         store = quarantine.get_quarantine_store()
                         errors = [
@@ -204,7 +202,7 @@ class LocalFileConnector(IngestionConnector):
                         continue  # Skip to next record
                     except Exception as e:
                         # Quarantine general ingestion errors
-                        from ai.pipelines.orchestrator import quarantine
+                                            from ai.pipelines.orchestrator import quarantine
 
                         store = quarantine.get_quarantine_store()
                         errors = [f"Unexpected ingestion error: {e}"]
@@ -213,17 +211,15 @@ class LocalFileConnector(IngestionConnector):
                         continue  # Skip to next record
 
                 except Exception as e:
-                    # Outer-level catch: quarantine and continue.
-                    # Use best-effort because `rec` may not be defined.
-                    from ai.pipelines.orchestrator import quarantine
+                    # Outer-level catch: quarantine and continue. Use best-effort because `rec` may not be defined.
+                                    from ai.pipelines.orchestrator import quarantine
 
                     store = quarantine.get_quarantine_store()
                     errors = [f"Unexpected ingestion error: {e}"]
                     try:
                         store.quarantine_record(rec, errors)  # type: ignore[name-defined]
                     except Exception:
-                        # If rec isn't defined or quarantine fails,
-                        # ignore to avoid crashing the connector.
+                        # If rec isn't defined or quarantine fails, ignore to avoid crashing the connector.
                         pass
                     # Log
                     try:

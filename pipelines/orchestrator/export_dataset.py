@@ -14,10 +14,14 @@ import pyarrow.parquet as pq
 
 from .orchestration.integrated_training_pipeline import (
     IntegratedTrainingPipeline,
-    IntegratedPipelineConfig,
+    IntegratedPipelineConfig
 )
 from .config_lock import lock_config, LockedConfig
-from .export_manifest import DatasetManifest, FileManifest, QualitySummary
+from .export_manifest import (
+    DatasetManifest,
+    FileManifest,
+    QualitySummary
+)
 from .storage_manager import StorageManager
 from .storage_config import get_dataset_pipeline_output_root, get_storage_config
 
@@ -27,10 +31,10 @@ def export_to_jsonl(data: list, output_path: Path) -> int:
     output_path.parent.mkdir(parents=True, exist_ok=True)
     row_count = 0
 
-    with open(output_path, "w", encoding="utf-8") as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         for item in data:
             json.dump(item, f, ensure_ascii=False)
-            f.write("\n")
+            f.write('\n')
             row_count += 1
 
     return row_count
@@ -54,7 +58,7 @@ def count_by_source(data: list) -> Dict[str, int]:
     """Count samples by source"""
     counts = {}
     for item in data:
-        source = item.get("metadata", {}).get("source", "unknown")
+        source = item.get('metadata', {}).get('source', 'unknown')
         counts[source] = counts.get(source, 0) + 1
     return counts
 
@@ -65,7 +69,7 @@ def export_dataset_v1(
     output_dir: Optional[Path] = None,
     seed: Optional[int] = None,
     upload_to_storage: bool = True,
-    enable_quality_validation: bool = True,
+    enable_quality_validation: bool = True
 ) -> DatasetManifest:
     """Export dataset v1.0 with full manifest and storage upload"""
 
@@ -75,9 +79,7 @@ def export_dataset_v1(
 
     # Setup output directory
     if output_dir is None:
-        output_dir = (
-            get_dataset_pipeline_output_root() / "production_exports" / f"v{version}"
-        )
+        output_dir = get_dataset_pipeline_output_root() / "production_exports" / f"v{version}"
     output_dir = Path(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -87,34 +89,34 @@ def export_dataset_v1(
         output_dir=str(output_dir),
         output_filename="dataset.json",
         enable_bias_detection=True,
-        enable_quality_validation=enable_quality_validation,
+        enable_quality_validation=enable_quality_validation
     )
 
     # Lock configuration
     config_dict = {
-        "target_samples": target_samples,
-        "pipeline_config": {
-            "edge_cases": {
-                "enabled": pipeline_config.edge_cases.enabled,
-                "target_percentage": pipeline_config.edge_cases.target_percentage,
+        'target_samples': target_samples,
+        'pipeline_config': {
+            'edge_cases': {
+                'enabled': pipeline_config.edge_cases.enabled,
+                'target_percentage': pipeline_config.edge_cases.target_percentage
             },
-            "pixel_voice": {
-                "enabled": pipeline_config.pixel_voice.enabled,
-                "target_percentage": pipeline_config.pixel_voice.target_percentage,
+            'pixel_voice': {
+                'enabled': pipeline_config.pixel_voice.enabled,
+                'target_percentage': pipeline_config.pixel_voice.target_percentage
             },
-            "psychology_knowledge": {
-                "enabled": pipeline_config.psychology_knowledge.enabled,
-                "target_percentage": pipeline_config.psychology_knowledge.target_percentage,
+            'psychology_knowledge': {
+                'enabled': pipeline_config.psychology_knowledge.enabled,
+                'target_percentage': pipeline_config.psychology_knowledge.target_percentage
             },
-            "dual_persona": {
-                "enabled": pipeline_config.dual_persona.enabled,
-                "target_percentage": pipeline_config.dual_persona.target_percentage,
+            'dual_persona': {
+                'enabled': pipeline_config.dual_persona.enabled,
+                'target_percentage': pipeline_config.dual_persona.target_percentage
             },
-            "standard_therapeutic": {
-                "enabled": pipeline_config.standard_therapeutic.enabled,
-                "target_percentage": pipeline_config.standard_therapeutic.target_percentage,
-            },
-        },
+            'standard_therapeutic': {
+                'enabled': pipeline_config.standard_therapeutic.enabled,
+                'target_percentage': pipeline_config.standard_therapeutic.target_percentage
+            }
+        }
     }
 
     locked_config = lock_config(config_dict, seed=seed)
@@ -127,14 +129,14 @@ def export_dataset_v1(
     result = pipeline.run()
 
     # Load generated dataset
-    dataset_path = Path(result["output_file"])
+    dataset_path = Path(result['output_file'])
     if not dataset_path.exists():
         raise FileNotFoundError(f"Dataset file not found: {dataset_path}")
 
-    with open(dataset_path, "r") as f:
+    with open(dataset_path, 'r') as f:
         dataset_data = json.load(f)
 
-    conversations = dataset_data.get("conversations", [])
+    conversations = dataset_data.get('conversations', [])
     total_samples = len(conversations)
 
     print(f"✅ Generated {total_samples} samples")
@@ -158,14 +160,14 @@ def export_dataset_v1(
         jsonl_path,
         format="jsonl",
         row_count=jsonl_row_count,
-        source_distribution=samples_by_source,
+        source_distribution=samples_by_source
     )
 
     parquet_manifest = FileManifest.from_file(
         parquet_path,
         format="parquet",
         row_count=parquet_row_count,
-        source_distribution=samples_by_source,
+        source_distribution=samples_by_source
     )
 
     # Create quality summary (simplified - would need actual quality metrics)
@@ -174,7 +176,7 @@ def export_dataset_v1(
         crisis_flags_count=0,  # Would be calculated from quality validation
         crisis_flags_percentage=0.0,
         pii_detected_count=0,
-        pii_detected_percentage=0.0,
+        pii_detected_percentage=0.0
     )
 
     # Create dataset manifest
@@ -183,7 +185,7 @@ def export_dataset_v1(
         created_at=locked_config.created_at,
         created_by=locked_config.git_info.commit_sha[:8],
         total_samples=total_samples,
-        samples_by_source=samples_by_source,
+        samples_by_source=samples_by_source
     )
 
     manifest.add_file(jsonl_manifest)
@@ -198,35 +200,31 @@ def export_dataset_v1(
         storage_config = get_storage_config()
 
         # Upload JSONL
-        jsonl_storage_path = storage_config.get_export_path(
-            version, jsonl_manifest.filename
-        )
+        jsonl_storage_path = storage_config.get_export_path(version, jsonl_manifest.filename)
         jsonl_upload_info = storage_manager.upload_with_checksum(
             jsonl_path,
             jsonl_storage_path,
             metadata={
-                "version": version,
-                "format": "jsonl",
-                "row_count": jsonl_row_count,
-            },
+                'version': version,
+                'format': 'jsonl',
+                'row_count': jsonl_row_count
+            }
         )
-        manifest.storage_urls["jsonl"] = jsonl_upload_info["storage_url"]
+        manifest.storage_urls['jsonl'] = jsonl_upload_info['storage_url']
         print(f"   ✅ JSONL: {jsonl_upload_info['storage_url']}")
 
         # Upload Parquet
-        parquet_storage_path = storage_config.get_export_path(
-            version, parquet_manifest.filename
-        )
+        parquet_storage_path = storage_config.get_export_path(version, parquet_manifest.filename)
         parquet_upload_info = storage_manager.upload_with_checksum(
             parquet_path,
             parquet_storage_path,
             metadata={
-                "version": version,
-                "format": "parquet",
-                "row_count": parquet_row_count,
-            },
+                'version': version,
+                'format': 'parquet',
+                'row_count': parquet_row_count
+            }
         )
-        manifest.storage_urls["parquet"] = parquet_upload_info["storage_url"]
+        manifest.storage_urls['parquet'] = parquet_upload_info['storage_url']
         print(f"   ✅ Parquet: {parquet_upload_info['storage_url']}")
 
     # Save manifest
@@ -255,15 +253,11 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Export dataset v1.0")
     parser.add_argument("--version", default="1.0.0", help="Dataset version")
-    parser.add_argument(
-        "--target-samples", type=int, default=1000, help="Target number of samples"
-    )
+    parser.add_argument("--target-samples", type=int, default=1000, help="Target number of samples")
     parser.add_argument("--output-dir", type=Path, help="Output directory")
     parser.add_argument("--seed", type=int, help="Random seed for reproducibility")
     parser.add_argument("--no-upload", action="store_true", help="Skip storage upload")
-    parser.add_argument(
-        "--no-quality", action="store_true", help="Skip quality validation"
-    )
+    parser.add_argument("--no-quality", action="store_true", help="Skip quality validation")
 
     args = parser.parse_args()
 
@@ -274,7 +268,7 @@ if __name__ == "__main__":
             output_dir=args.output_dir,
             seed=args.seed,
             upload_to_storage=not args.no_upload,
-            enable_quality_validation=not args.no_quality,
+            enable_quality_validation=not args.no_quality
         )
 
         print("\n✅ Export successful!")
@@ -282,6 +276,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ Export failed: {e}", file=sys.stderr)
         import traceback
-
         traceback.print_exc()
         sys.exit(1)
+

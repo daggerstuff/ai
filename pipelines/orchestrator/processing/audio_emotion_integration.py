@@ -16,7 +16,6 @@ logger = logging.getLogger(__name__)
 
 class EmotionCategory(Enum):
     """Primary emotion categories."""
-
     JOY = "joy"
     SADNESS = "sadness"
     ANGER = "anger"
@@ -31,7 +30,6 @@ class EmotionCategory(Enum):
 
 class AudioFeature(Enum):
     """Audio features for emotion recognition."""
-
     PITCH = "pitch"
     TONE = "tone"
     VOLUME = "volume"
@@ -44,7 +42,6 @@ class AudioFeature(Enum):
 @dataclass
 class AudioEmotionData:
     """Audio emotion recognition data."""
-
     timestamp: float
     emotion: EmotionCategory
     confidence: float
@@ -56,7 +53,6 @@ class AudioEmotionData:
 @dataclass
 class EmotionAnalysis:
     """Complete emotion analysis result."""
-
     conversation_id: str
     audio_emotions: list[AudioEmotionData]
     text_emotions: list[dict[str, Any]]
@@ -85,148 +81,75 @@ class AudioEmotionIntegration:
         """Load emotion keywords for text analysis."""
         return {
             EmotionCategory.JOY: [
-                "happy",
-                "joy",
-                "excited",
-                "pleased",
-                "delighted",
-                "cheerful",
-                "elated",
-                "euphoric",
-                "content",
-                "satisfied",
-                "glad",
-                "thrilled",
+                "happy", "joy", "excited", "pleased", "delighted", "cheerful",
+                "elated", "euphoric", "content", "satisfied", "glad", "thrilled"
             ],
             EmotionCategory.SADNESS: [
-                "sad",
-                "depressed",
-                "down",
-                "blue",
-                "melancholy",
-                "sorrowful",
-                "dejected",
-                "despondent",
-                "gloomy",
-                "mournful",
-                "grief",
-                "despair",
+                "sad", "depressed", "down", "blue", "melancholy", "sorrowful",
+                "dejected", "despondent", "gloomy", "mournful", "grief", "despair"
             ],
             EmotionCategory.ANGER: [
-                "angry",
-                "mad",
-                "furious",
-                "irritated",
-                "annoyed",
-                "rage",
-                "frustrated",
-                "livid",
-                "outraged",
-                "hostile",
-                "resentful",
-                "bitter",
+                "angry", "mad", "furious", "irritated", "annoyed", "rage",
+                "frustrated", "livid", "outraged", "hostile", "resentful", "bitter"
             ],
             EmotionCategory.FEAR: [
-                "afraid",
-                "scared",
-                "fearful",
-                "terrified",
-                "anxious",
-                "worried",
-                "nervous",
-                "apprehensive",
-                "panicked",
-                "frightened",
-                "alarmed",
+                "afraid", "scared", "fearful", "terrified", "anxious", "worried",
+                "nervous", "apprehensive", "panicked", "frightened", "alarmed"
             ],
             EmotionCategory.SURPRISE: [
-                "surprised",
-                "shocked",
-                "amazed",
-                "astonished",
-                "stunned",
-                "bewildered",
-                "startled",
-                "taken aback",
-                "unexpected",
+                "surprised", "shocked", "amazed", "astonished", "stunned",
+                "bewildered", "startled", "taken aback", "unexpected"
             ],
             EmotionCategory.ANXIETY: [
-                "anxious",
-                "worried",
-                "nervous",
-                "stressed",
-                "tense",
-                "uneasy",
-                "restless",
-                "agitated",
-                "overwhelmed",
-                "panic",
-                "dread",
+                "anxious", "worried", "nervous", "stressed", "tense", "uneasy",
+                "restless", "agitated", "overwhelmed", "panic", "dread"
             ],
             EmotionCategory.EXCITEMENT: [
-                "excited",
-                "thrilled",
-                "enthusiastic",
-                "energetic",
-                "pumped",
-                "eager",
-                "animated",
-                "exhilarated",
-                "stimulated",
+                "excited", "thrilled", "enthusiastic", "energetic", "pumped",
+                "eager", "animated", "exhilarated", "stimulated"
             ],
             EmotionCategory.FRUSTRATION: [
-                "frustrated",
-                "annoyed",
-                "irritated",
-                "exasperated",
-                "fed up",
-                "aggravated",
-                "vexed",
-                "bothered",
-                "irked",
-            ],
+                "frustrated", "annoyed", "irritated", "exasperated", "fed up",
+                "aggravated", "vexed", "bothered", "irked"
+            ]
         }
 
-    def _load_audio_patterns(
-        self,
-    ) -> dict[EmotionCategory, dict[AudioFeature, tuple[float, float]]]:
+    def _load_audio_patterns(self) -> dict[EmotionCategory, dict[AudioFeature, tuple[float, float]]]:
         """Load audio feature patterns for emotions (mock data)."""
         return {
             EmotionCategory.JOY: {
                 AudioFeature.PITCH: (0.6, 0.8),  # Higher pitch
                 AudioFeature.VOLUME: (0.7, 0.9),  # Louder
-                AudioFeature.PACE: (0.6, 0.8),  # Faster pace
-                AudioFeature.TONE: (0.7, 0.9),  # Brighter tone
+                AudioFeature.PACE: (0.6, 0.8),    # Faster pace
+                AudioFeature.TONE: (0.7, 0.9)     # Brighter tone
             },
             EmotionCategory.SADNESS: {
-                AudioFeature.PITCH: (0.2, 0.4),  # Lower pitch
+                AudioFeature.PITCH: (0.2, 0.4),   # Lower pitch
                 AudioFeature.VOLUME: (0.3, 0.5),  # Quieter
-                AudioFeature.PACE: (0.2, 0.4),  # Slower pace
-                AudioFeature.TONE: (0.2, 0.4),  # Duller tone
+                AudioFeature.PACE: (0.2, 0.4),    # Slower pace
+                AudioFeature.TONE: (0.2, 0.4)     # Duller tone
             },
             EmotionCategory.ANGER: {
-                AudioFeature.PITCH: (0.7, 0.9),  # Higher pitch
+                AudioFeature.PITCH: (0.7, 0.9),   # Higher pitch
                 AudioFeature.VOLUME: (0.8, 1.0),  # Loudest
-                AudioFeature.PACE: (0.7, 0.9),  # Faster pace
-                AudioFeature.TONE: (0.6, 0.8),  # Harsh tone
+                AudioFeature.PACE: (0.7, 0.9),    # Faster pace
+                AudioFeature.TONE: (0.6, 0.8)     # Harsh tone
             },
             EmotionCategory.FEAR: {
-                AudioFeature.PITCH: (0.6, 0.8),  # Higher pitch
+                AudioFeature.PITCH: (0.6, 0.8),   # Higher pitch
                 AudioFeature.VOLUME: (0.4, 0.6),  # Variable volume
-                AudioFeature.PACE: (0.7, 0.9),  # Faster pace
-                AudioFeature.TONE: (0.3, 0.5),  # Tense tone
+                AudioFeature.PACE: (0.7, 0.9),    # Faster pace
+                AudioFeature.TONE: (0.3, 0.5)     # Tense tone
             },
             EmotionCategory.ANXIETY: {
-                AudioFeature.PITCH: (0.5, 0.7),  # Slightly higher
+                AudioFeature.PITCH: (0.5, 0.7),   # Slightly higher
                 AudioFeature.VOLUME: (0.4, 0.6),  # Variable
-                AudioFeature.PACE: (0.6, 0.8),  # Faster
-                AudioFeature.PAUSES: (0.3, 0.5),  # More pauses
-            },
+                AudioFeature.PACE: (0.6, 0.8),    # Faster
+                AudioFeature.PAUSES: (0.3, 0.5)   # More pauses
+            }
         }
 
-    def _load_emotion_transitions(
-        self,
-    ) -> dict[tuple[EmotionCategory, EmotionCategory], float]:
+    def _load_emotion_transitions(self) -> dict[tuple[EmotionCategory, EmotionCategory], float]:
         """Load emotion transition probabilities."""
         return {
             (EmotionCategory.SADNESS, EmotionCategory.JOY): 0.3,
@@ -236,12 +159,10 @@ class AudioEmotionIntegration:
             (EmotionCategory.NEUTRAL, EmotionCategory.JOY): 0.5,
             (EmotionCategory.NEUTRAL, EmotionCategory.SADNESS): 0.4,
             (EmotionCategory.FRUSTRATION, EmotionCategory.ANGER): 0.6,
-            (EmotionCategory.EXCITEMENT, EmotionCategory.JOY): 0.8,
+            (EmotionCategory.EXCITEMENT, EmotionCategory.JOY): 0.8
         }
 
-    def analyze_conversation_emotions(
-        self, conversation: dict[str, Any]
-    ) -> EmotionAnalysis:
+    def analyze_conversation_emotions(self, conversation: dict[str, Any]) -> EmotionAnalysis:
         """Analyze emotions in conversation with audio integration."""
         conversation_id = conversation.get("id", "unknown")
 
@@ -252,19 +173,13 @@ class AudioEmotionIntegration:
         text_emotions = self._analyze_text_emotions(text_content)
 
         # Simulate audio emotion analysis (in real implementation, this would use actual audio)
-        audio_emotions = self._simulate_audio_emotion_analysis(
-            conversation, text_emotions
-        )
+        audio_emotions = self._simulate_audio_emotion_analysis(conversation, text_emotions)
 
         # Calculate emotion alignment between text and audio
-        emotion_alignment = self._calculate_emotion_alignment(
-            text_emotions, audio_emotions
-        )
+        emotion_alignment = self._calculate_emotion_alignment(text_emotions, audio_emotions)
 
         # Determine dominant emotion
-        dominant_emotion = self._determine_dominant_emotion(
-            text_emotions, audio_emotions
-        )
+        dominant_emotion = self._determine_dominant_emotion(text_emotions, audio_emotions)
 
         # Create emotion trajectory
         emotion_trajectory = self._create_emotion_trajectory(audio_emotions)
@@ -291,12 +206,10 @@ class AudioEmotionIntegration:
             emotion_trajectory=emotion_trajectory,
             emotional_coherence=emotional_coherence,
             analysis_confidence=analysis_confidence,
-            insights=insights,
+            insights=insights
         )
 
-        logger.info(
-            f"Emotion analysis completed for {conversation_id}: dominant emotion {dominant_emotion.value}"
-        )
+        logger.info(f"Emotion analysis completed for {conversation_id}: dominant emotion {dominant_emotion.value}")
         return analysis
 
     def _extract_text_content(self, conversation: dict[str, Any]) -> str:
@@ -334,21 +247,18 @@ class AudioEmotionIntegration:
                 primary_emotion = max(emotion_scores, key=emotion_scores.get)
                 confidence = emotion_scores[primary_emotion]
 
-                text_emotions.append(
-                    {
-                        "sentence_index": i,
-                        "sentence": sentence,
-                        "emotion": primary_emotion,
-                        "confidence": confidence,
-                        "all_scores": emotion_scores,
-                    }
-                )
+                text_emotions.append({
+                    "sentence_index": i,
+                    "sentence": sentence,
+                    "emotion": primary_emotion,
+                    "confidence": confidence,
+                    "all_scores": emotion_scores
+                })
 
         return text_emotions
 
-    def _simulate_audio_emotion_analysis(
-        self, conversation: dict[str, Any], text_emotions: list[dict[str, Any]]
-    ) -> list[AudioEmotionData]:
+    def _simulate_audio_emotion_analysis(self, conversation: dict[str, Any],
+                                       text_emotions: list[dict[str, Any]]) -> list[AudioEmotionData]:
         """Simulate audio emotion analysis (mock implementation)."""
         audio_emotions = []
 
@@ -369,10 +279,7 @@ class AudioEmotionIntegration:
 
             # Add some noise/variation to confidence
             import random
-
-            audio_confidence = min(
-                1.0, max(0.1, base_confidence + random.uniform(-0.2, 0.2))
-            )
+            audio_confidence = min(1.0, max(0.1, base_confidence + random.uniform(-0.2, 0.2)))
             intensity = random.uniform(0.3, 0.9)
 
             audio_emotion = AudioEmotionData(
@@ -381,16 +288,14 @@ class AudioEmotionIntegration:
                 confidence=audio_confidence,
                 intensity=intensity,
                 audio_features=audio_features,
-                duration=duration_per_segment,
+                duration=duration_per_segment
             )
 
             audio_emotions.append(audio_emotion)
 
         return audio_emotions
 
-    def _generate_audio_features(
-        self, emotion: EmotionCategory
-    ) -> dict[AudioFeature, float]:
+    def _generate_audio_features(self, emotion: EmotionCategory) -> dict[AudioFeature, float]:
         """Generate audio features for given emotion."""
         import random
 
@@ -411,11 +316,8 @@ class AudioEmotionIntegration:
 
         return features
 
-    def _calculate_emotion_alignment(
-        self,
-        text_emotions: list[dict[str, Any]],
-        audio_emotions: list[AudioEmotionData],
-    ) -> float:
+    def _calculate_emotion_alignment(self, text_emotions: list[dict[str, Any]],
+                                   audio_emotions: list[AudioEmotionData]) -> float:
         """Calculate alignment between text and audio emotions."""
         if not text_emotions or not audio_emotions:
             return 0.0
@@ -438,24 +340,19 @@ class AudioEmotionIntegration:
 
         return sum(alignments) / len(alignments) if alignments else 0.0
 
-    def _are_emotions_related(
-        self, emotion1: EmotionCategory, emotion2: EmotionCategory
-    ) -> bool:
+    def _are_emotions_related(self, emotion1: EmotionCategory, emotion2: EmotionCategory) -> bool:
         """Check if two emotions are related."""
         related_groups = [
             {EmotionCategory.SADNESS, EmotionCategory.FEAR, EmotionCategory.ANXIETY},
             {EmotionCategory.ANGER, EmotionCategory.FRUSTRATION},
             {EmotionCategory.JOY, EmotionCategory.EXCITEMENT},
-            {EmotionCategory.FEAR, EmotionCategory.ANXIETY},
+            {EmotionCategory.FEAR, EmotionCategory.ANXIETY}
         ]
 
         return any(emotion1 in group and emotion2 in group for group in related_groups)
 
-    def _determine_dominant_emotion(
-        self,
-        text_emotions: list[dict[str, Any]],
-        audio_emotions: list[AudioEmotionData],
-    ) -> EmotionCategory:
+    def _determine_dominant_emotion(self, text_emotions: list[dict[str, Any]],
+                                  audio_emotions: list[AudioEmotionData]) -> EmotionCategory:
         """Determine dominant emotion across conversation."""
         emotion_counts = {}
 
@@ -475,9 +372,7 @@ class AudioEmotionIntegration:
             return max(emotion_counts, key=emotion_counts.get)
         return EmotionCategory.NEUTRAL
 
-    def _create_emotion_trajectory(
-        self, audio_emotions: list[AudioEmotionData]
-    ) -> list[tuple[float, EmotionCategory]]:
+    def _create_emotion_trajectory(self, audio_emotions: list[AudioEmotionData]) -> list[tuple[float, EmotionCategory]]:
         """Create emotion trajectory over time."""
         trajectory = []
 
@@ -486,9 +381,7 @@ class AudioEmotionIntegration:
 
         return trajectory
 
-    def _calculate_emotional_coherence(
-        self, trajectory: list[tuple[float, EmotionCategory]]
-    ) -> float:
+    def _calculate_emotional_coherence(self, trajectory: list[tuple[float, EmotionCategory]]) -> float:
         """Calculate emotional coherence of trajectory."""
         if len(trajectory) < 2:
             return 1.0
@@ -507,35 +400,24 @@ class AudioEmotionIntegration:
                 if transition_key in self.emotion_transitions:
                     coherence_scores.append(self.emotion_transitions[transition_key])
                 else:
-                    coherence_scores.append(
-                        0.3
-                    )  # Low coherence for unexpected transitions
+                    coherence_scores.append(0.3)  # Low coherence for unexpected transitions
 
-        return (
-            sum(coherence_scores) / len(coherence_scores) if coherence_scores else 1.0
-        )
+        return sum(coherence_scores) / len(coherence_scores) if coherence_scores else 1.0
 
-    def _calculate_analysis_confidence(
-        self,
-        text_emotions: list[dict[str, Any]],
-        audio_emotions: list[AudioEmotionData],
-        emotion_alignment: float,
-    ) -> float:
+    def _calculate_analysis_confidence(self, text_emotions: list[dict[str, Any]],
+                                     audio_emotions: list[AudioEmotionData],
+                                     emotion_alignment: float) -> float:
         """Calculate overall analysis confidence."""
         confidence_factors = []
 
         # Text emotion confidence
         if text_emotions:
-            avg_text_confidence = sum(e["confidence"] for e in text_emotions) / len(
-                text_emotions
-            )
+            avg_text_confidence = sum(e["confidence"] for e in text_emotions) / len(text_emotions)
             confidence_factors.append(avg_text_confidence)
 
         # Audio emotion confidence
         if audio_emotions:
-            avg_audio_confidence = sum(e.confidence for e in audio_emotions) / len(
-                audio_emotions
-            )
+            avg_audio_confidence = sum(e.confidence for e in audio_emotions) / len(audio_emotions)
             confidence_factors.append(avg_audio_confidence)
 
         # Alignment factor
@@ -545,40 +427,25 @@ class AudioEmotionIntegration:
         data_factor = min(1.0, (len(text_emotions) + len(audio_emotions)) / 10)
         confidence_factors.append(data_factor)
 
-        return (
-            sum(confidence_factors) / len(confidence_factors)
-            if confidence_factors
-            else 0.0
-        )
+        return sum(confidence_factors) / len(confidence_factors) if confidence_factors else 0.0
 
-    def _generate_emotion_insights(
-        self,
-        text_emotions: list[dict[str, Any]],
-        audio_emotions: list[AudioEmotionData],
-        dominant_emotion: EmotionCategory,
-        emotion_alignment: float,
-    ) -> list[str]:
+    def _generate_emotion_insights(self, text_emotions: list[dict[str, Any]],
+                                 audio_emotions: list[AudioEmotionData],
+                                 dominant_emotion: EmotionCategory,
+                                 emotion_alignment: float) -> list[str]:
         """Generate insights about emotional content."""
         insights = []
 
         # Dominant emotion insight
-        insights.append(
-            f"Dominant emotion throughout conversation: {dominant_emotion.value}"
-        )
+        insights.append(f"Dominant emotion throughout conversation: {dominant_emotion.value}")
 
         # Alignment insight
         if emotion_alignment > 0.8:
-            insights.append(
-                "High alignment between text and audio emotions - consistent emotional expression"
-            )
+            insights.append("High alignment between text and audio emotions - consistent emotional expression")
         elif emotion_alignment > 0.5:
-            insights.append(
-                "Moderate alignment between text and audio emotions - some emotional complexity"
-            )
+            insights.append("Moderate alignment between text and audio emotions - some emotional complexity")
         else:
-            insights.append(
-                "Low alignment between text and audio emotions - potential emotional masking or complexity"
-            )
+            insights.append("Low alignment between text and audio emotions - potential emotional masking or complexity")
 
         # Emotion variety insight
         unique_emotions = set()
@@ -596,9 +463,7 @@ class AudioEmotionIntegration:
 
         # Intensity insights
         if audio_emotions:
-            avg_intensity = sum(e.intensity for e in audio_emotions) / len(
-                audio_emotions
-            )
+            avg_intensity = sum(e.intensity for e in audio_emotions) / len(audio_emotions)
             if avg_intensity > 0.7:
                 insights.append("High emotional intensity detected in audio")
             elif avg_intensity < 0.4:
@@ -631,9 +496,7 @@ class AudioEmotionIntegration:
         for insight in all_insights:
             insight_counts[insight] = insight_counts.get(insight, 0) + 1
 
-        common_insights = sorted(
-            insight_counts.items(), key=lambda x: x[1], reverse=True
-        )[:5]
+        common_insights = sorted(insight_counts.items(), key=lambda x: x[1], reverse=True)[:5]
 
         return {
             "total_analyses": len(analyses),
@@ -642,10 +505,7 @@ class AudioEmotionIntegration:
             "average_coherence": avg_coherence,
             "average_confidence": avg_confidence,
             "common_insights": common_insights,
-            "high_alignment_rate": len(
-                [a for a in analyses if a.emotion_alignment > 0.7]
-            )
-            / len(analyses),
+            "high_alignment_rate": len([a for a in analyses if a.emotion_alignment > 0.7]) / len(analyses)
         }
 
 
@@ -657,17 +517,18 @@ def main():
     test_conversations = [
         {
             "id": "conv_1",
-            "content": "I'm feeling really anxious about my presentation tomorrow. I'm worried I'll mess up and everyone will judge me. This fear is overwhelming me.",
+            "content": "I'm feeling really anxious about my presentation tomorrow. I'm worried I'll mess up and everyone will judge me. This fear is overwhelming me."
         },
         {
             "id": "conv_2",
-            "content": "I'm so excited about my new job! I can't wait to start. This is such a happy moment for me. I feel thrilled and energetic.",
+            "content": "I'm so excited about my new job! I can't wait to start. This is such a happy moment for me. I feel thrilled and energetic."
         },
         {
             "id": "conv_3",
-            "content": "I've been feeling sad lately. Everything seems difficult and I don't have much energy. I feel down and discouraged most days.",
-        },
+            "content": "I've been feeling sad lately. Everything seems difficult and I don't have much energy. I feel down and discouraged most days."
+        }
     ]
+
 
     # Analyze conversations
     analyses = []
@@ -675,12 +536,14 @@ def main():
         analysis = integration.analyze_conversation_emotions(conv)
         analyses.append(analysis)
 
+
         if analysis.insights:
             for _insight in analysis.insights[:3]:
                 pass
 
     # Generate summary
     integration.get_emotion_summary(analyses)
+
 
 
 if __name__ == "__main__":
@@ -707,10 +570,8 @@ class MultiModalTherapeuticAnalyzer:
                 "conversation_id": conversation.get("id", "unknown"),
                 "emotion_analysis": analysis,
                 "multimodal_score": analysis.alignment_score,
-                "therapeutic_indicators": self._extract_therapeutic_indicators(
-                    analysis
-                ),
-                "recommendations": self._generate_recommendations(analysis),
+                "therapeutic_indicators": self._extract_therapeutic_indicators(analysis),
+                "recommendations": self._generate_recommendations(analysis)
             }
 
         except Exception as e:
@@ -718,7 +579,7 @@ class MultiModalTherapeuticAnalyzer:
             return {
                 "conversation_id": conversation.get("id", "unknown"),
                 "error": str(e),
-                "multimodal_score": 0.0,
+                "multimodal_score": 0.0
             }
 
     def _extract_therapeutic_indicators(self, analysis) -> list[str]:

@@ -29,12 +29,7 @@ def hydrate():
     # For now, we move them to hydrated and tag them for discovery
     count = 0
     for file_path in UNUSED_DIR.iterdir():
-        if file_path.is_file() and file_path.suffix in (
-            ".txt",
-            ".json",
-            ".jsonl",
-            ".csv",
-        ):
+        if file_path.is_file() and file_path.suffix in (".txt", ".json", ".jsonl", ".csv"):
             target_path = PROCESSED_DIR / file_path.name
             shutil.copy2(file_path, target_path)
             logger.info(f"Hydrated: {file_path.name}")

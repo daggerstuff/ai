@@ -20,17 +20,8 @@ project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from ai.pipelines.orchestrator.schemas.conversation_schema import (
-        Conversation,
-        Message,
-    )
-    from ai.pipelines.orchestrator.configs.stages import (
-        STAGE1_ID,
-        STAGE2_ID,
-        STAGE3_ID,
-        STAGE4_ID,
-        get_stage_config,
-    )
+    from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
+    from ai.pipelines.orchestrator.configs.stages import STAGE1_ID, STAGE2_ID, STAGE3_ID, STAGE4_ID, get_stage_config
 except ImportError as e:
     logging.error(f"Failed to import pipeline modules: {e}")
     logging.error(f"Project root: {project_root}")
@@ -60,10 +51,7 @@ class DataFilter:
         self.stage_thresholds = {
             STAGE1_ID: {"min_empathy": 0.55, "min_safety": 0.7},
             STAGE2_ID: {"min_empathy": 0.5, "min_safety": 0.68},
-            STAGE3_ID: {
-                "min_empathy": 0.35,
-                "min_safety": 0.55,
-            },  # Lower for edge cases
+            STAGE3_ID: {"min_empathy": 0.35, "min_safety": 0.55},  # Lower for edge cases
             STAGE4_ID: {"min_empathy": 0.6, "min_safety": 0.75},
         }
 
@@ -148,9 +136,7 @@ class DataFilter:
         thresholds = self.stage_thresholds.get(stage, self.stage_thresholds[STAGE1_ID])
 
         metadata = conversation.get("metadata", {})
-        empathy = metadata.get(
-            "empathy_score", 1.0
-        )  # Default to passing if not present
+        empathy = metadata.get("empathy_score", 1.0)  # Default to passing if not present
         safety = metadata.get("safety_score", 1.0)
 
         # For edge cases (stage 3), allow crisis override
@@ -160,13 +146,9 @@ class DataFilter:
                 # Lower safety threshold for high-intensity crisis scenarios
                 return safety >= 0.45
 
-        return (
-            empathy >= thresholds["min_empathy"] and safety >= thresholds["min_safety"]
-        )
+        return empathy >= thresholds["min_empathy"] and safety >= thresholds["min_safety"]
 
-    def clean_conversation(
-        self, conversation: Dict[str, Any], stage: str
-    ) -> Optional[Dict[str, Any]]:
+    def clean_conversation(self, conversation: Dict[str, Any], stage: str) -> Optional[Dict[str, Any]]:
         """Clean a single conversation"""
         self.stats["total_processed"] += 1
 
@@ -202,9 +184,7 @@ class DataFilter:
         self.stats["final_count"] += 1
         return conversation
 
-    def filter_dataset(
-        self, input_path: Path, output_path: Path, stage: str
-    ) -> Dict[str, Any]:
+    def filter_dataset(self, input_path: Path, output_path: Path, stage: str) -> Dict[str, Any]:
         """Filter a single dataset file"""
         logger.info(f"Filtering {input_path.name} (stage: {stage})...")
 
@@ -235,9 +215,7 @@ class DataFilter:
                 for conv in filtered_conversations:
                     f.write(json.dumps(conv, ensure_ascii=False) + "\n")
 
-            logger.info(
-                f"  ✅ Filtered: {len(filtered_conversations)}/{self.stats['total_processed']} conversations"
-            )
+            logger.info(f"  ✅ Filtered: {len(filtered_conversations)}/{self.stats['total_processed']} conversations")
 
             return {
                 "input_path": str(input_path),
@@ -288,14 +266,7 @@ class DataFilter:
 def main():
     """Main function"""
     base_path = Path.cwd()
-    processing_report_path = (
-        base_path
-        / "ai"
-        / "training_ready"
-        / "scripts"
-        / "output"
-        / "processing_report.json"
-    )
+    processing_report_path = base_path / "ai" / "training_ready" / "scripts" / "output" / "processing_report.json"
     output_dir = base_path / "ai" / "training_ready" / "datasets" / "filtered"
 
     if not processing_report_path.exists():
@@ -309,14 +280,7 @@ def main():
     report = filterer.filter_all_datasets(output_dir)
 
     # Save report
-    report_path = (
-        base_path
-        / "ai"
-        / "training_ready"
-        / "scripts"
-        / "output"
-        / "filtering_report.json"
-    )
+    report_path = base_path / "ai" / "training_ready" / "scripts" / "output" / "filtering_report.json"
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(report_path, "w") as f:
@@ -336,3 +300,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

@@ -97,9 +97,7 @@ class KAN28EnhancedTrainer:
                 for line in f:
                     if line.strip():
                         main_conversations.append(json.loads(line))
-            logger.info(
-                f"Loaded {len(main_conversations)} conversations from ultimate dataset"
-            )
+            logger.info(f"Loaded {len(main_conversations)} conversations from ultimate dataset")
 
         # Load component-enhanced dataset
         component_conversations = []
@@ -108,9 +106,7 @@ class KAN28EnhancedTrainer:
                 for line in f:
                     if line.strip():
                         component_conversations.append(json.loads(line))
-            logger.info(
-                f"Loaded {len(component_conversations)} component-enhanced conversations"
-            )
+            logger.info(f"Loaded {len(component_conversations)} component-enhanced conversations")
 
         # Combine and prepare datasets
         all_conversations = main_conversations + component_conversations
@@ -138,9 +134,7 @@ class KAN28EnhancedTrainer:
         )
 
         self.datasets["val"] = self.datasets["val"].map(
-            self._tokenize_function,
-            batched=True,
-            remove_columns=self.datasets["val"].column_names,
+            self._tokenize_function, batched=True, remove_columns=self.datasets["val"].column_names
         )
 
         return self.datasets
@@ -185,9 +179,7 @@ class KAN28EnhancedTrainer:
             examples["text"],
             truncation=True,
             padding=False,
-            max_length=self.config.get("context_config", {}).get(
-                "training_max_length", 2048
-            ),
+            max_length=self.config.get("context_config", {}).get("training_max_length", 2048),
             return_overflowing_tokens=False,
         )
 
@@ -204,15 +196,9 @@ class KAN28EnhancedTrainer:
         training_args = TrainingArguments(
             output_dir=output_dir,
             num_train_epochs=self.config.get("num_train_epochs", 3),
-            per_device_train_batch_size=self.config.get(
-                "per_device_train_batch_size", 4
-            ),
-            per_device_eval_batch_size=self.config.get(
-                "per_device_train_batch_size", 4
-            ),
-            gradient_accumulation_steps=self.config.get(
-                "gradient_accumulation_steps", 8
-            ),
+            per_device_train_batch_size=self.config.get("per_device_train_batch_size", 4),
+            per_device_eval_batch_size=self.config.get("per_device_train_batch_size", 4),
+            gradient_accumulation_steps=self.config.get("gradient_accumulation_steps", 8),
             learning_rate=self.config.get("learning_rate", 3e-4),
             weight_decay=self.config.get("weight_decay", 0.01),
             warmup_steps=self.config.get("warmup_steps", 1000),
@@ -222,18 +208,14 @@ class KAN28EnhancedTrainer:
             gradient_checkpointing=self.config.get("h100_optimizations", {}).get(
                 "gradient_checkpointing", True
             ),
-            optim=self.config.get("h100_optimizations", {}).get(
-                "optim", "adamw_torch_fused"
-            ),
+            optim=self.config.get("h100_optimizations", {}).get("optim", "adamw_torch_fused"),
             dataloader_num_workers=self.config.get("h100_optimizations", {}).get(
                 "dataloader_num_workers", 4
             ),
             dataloader_pin_memory=self.config.get("h100_optimizations", {}).get(
                 "dataloader_pin_memory", True
             ),
-            group_by_length=self.config.get("h100_optimizations", {}).get(
-                "group_by_length", True
-            ),
+            group_by_length=self.config.get("h100_optimizations", {}).get("group_by_length", True),
             # Logging and checkpoints
             logging_steps=self.config.get("logging", {}).get("logging_steps", 10),
             eval_steps=self.config.get("logging", {}).get("eval_steps", 500),
@@ -298,8 +280,7 @@ class KAN28EnhancedTrainer:
             {
                 "final_loss": train_result.training_loss,
                 "kan28_components_integrated": 6,
-                "total_conversations": len(self.datasets["train"])
-                + len(self.datasets["val"]),
+                "total_conversations": len(self.datasets["train"]) + len(self.datasets["val"]),
                 "component_enhanced_conversations": 39,
             }
         )

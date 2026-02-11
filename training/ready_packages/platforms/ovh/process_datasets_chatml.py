@@ -44,29 +44,15 @@ logger = logging.getLogger(__name__)
 
 # System prompts for different training stages
 SYSTEM_PROMPTS = {
-    "foundation": (
-        "You are a compassionate and skilled mental health counselor.\n"
-        "Your role is to provide supportive, empathetic responses while maintaining "
-        "professional boundaries.\n"
-        "Listen actively, validate emotions, and help clients explore their "
-        "feelings and develop coping strategies."
-    ),
-    "reasoning": (
-        "You are a clinical mental health expert who thinks through problems "
-        "systematically.\n"
-        "When responding, consider the psychological context, potential "
-        "underlying issues, and evidence-based approaches.\n"
-        "Demonstrate your clinical reasoning process while remaining warm and "
-        "supportive."
-    ),
-    "voice": (
-        "You are a therapeutic guide in the style of Tim Fletcher, combining "
-        "trauma-informed insights\n"
-        "with accessible, educational explanations. Use clear analogies, "
-        "validate experiences,\n"
-        "and help people understand the 'why' behind their patterns while "
-        "offering practical pathways forward."
-    ),
+    "foundation": """You are a compassionate and skilled mental health counselor.
+Your role is to provide supportive, empathetic responses while maintaining professional boundaries.
+Listen actively, validate emotions, and help clients explore their feelings and develop coping strategies.""",
+    "reasoning": """You are a clinical mental health expert who thinks through problems systematically.
+When responding, consider the psychological context, potential underlying issues, and evidence-based approaches.
+Demonstrate your clinical reasoning process while remaining warm and supportive.""",
+    "voice": """You are a therapeutic guide in the style of Tim Fletcher, combining trauma-informed insights
+with accessible, educational explanations. Use clear analogies, validate experiences,
+and help people understand the 'why' behind their patterns while offering practical pathways forward.""",
 }
 
 
@@ -140,8 +126,9 @@ class DatasetProcessor:
         logger.info("Processing: mental_health_counseling_conversations")
         conversations = []
 
-        data_file = self.base_dir / (
-            "professional/mental_health_counseling_conversations/combined_dataset.json"
+        data_file = (
+            self.base_dir
+            / "professional/mental_health_counseling_conversations/combined_dataset.json"
         )
         if not data_file.exists():
             logger.warning(f"File not found: {data_file}")
@@ -457,19 +444,12 @@ class DatasetProcessor:
                     question = item.get("question", item.get("prompt", ""))
                     if not question:
                         # Try to infer a question from the answer context
-                        question = (
-                            "Can you help me understand this situation and "
-                            "provide guidance?"
-                        )
+                        question = "Can you help me understand this situation and provide guidance?"
                     question = self.clean_text(question)
 
                     # Build response with reasoning (if available)
                     if reasoning:
-                        response = (
-                            f"Let me think through this carefully.\n\n"
-                            f"**Reasoning:**\n{reasoning}\n\n"
-                            f"**Response:**\n{answer}"
-                        )
+                        response = f"Let me think through this carefully.\n\n**Reasoning:**\n{reasoning}\n\n**Response:**\n{answer}"
                     else:
                         response = answer
 
@@ -622,50 +602,6 @@ class DatasetProcessor:
         logger.info("\n📁 STAGE 3: Processing Already Processed Data")
         processed_data = self.process_already_processed()
 
-        # Combine for global specific curation
-        all_data = []
-        all_data.extend(foundation_data)
-        all_data.extend(reasoning_data)
-        all_data.extend(processed_data)
-
-        # NVIDIA NeMo Curation
-        import os
-
-        USE_NVIDIA_CURATOR = os.getenv("USE_NVIDIA_CURATOR", "false").lower() == "true"
-        if USE_NVIDIA_CURATOR:
-            logger.info("\n🛡️ NVIDIA NeMo Curator: Therapeutic Alignment Check")
-            try:
-                from ai.pipelines.orchestrator.processing.nvidia_clients import (
-                    NemoCuratorClient,
-                )
-
-                _client = NemoCuratorClient()
-                temp_consolidated_path = self.output_dir / "temp_consolidated.jsonl"
-                self.save_jsonl(all_data, temp_consolidated_path)
-
-                # Advanced Curation Stage
-                logger.info("  ↪ Running Emotional Gap analysis...")
-                gaps = _client.identify_emotional_gaps(str(temp_consolidated_path))
-                logger.info(
-                    "  ↪ Emotional Gaps identified: "
-                    f"{gaps.get('underrepresented', 'None')}"
-                )
-
-                logger.info("  ↪ Running Cultural Empathy Alignment...")
-                bias_check = _client.filter_cultural_bias(str(temp_consolidated_path))
-                logger.info(
-                    "  ↪ Cultural Bias Score: "
-                    f"{bias_check.get('diversity_score', 'N/A')}"
-                )
-
-                # Intention for crisis narratives (usually real-time,
-                # but here as a batch check)
-                logger.info("  ↪ Batch checking for subtle Crisis Narratives...")
-                # _client.detect_crisis_narratives("Batch context")
-
-            except Exception as e:
-                logger.error(f"NeMo Curation failed: {e}. Proceeding with local data.")
-
         # Combine and create splits
         logger.info("\n🔀 Creating Training Splits")
 
@@ -753,8 +689,7 @@ class DatasetProcessor:
         for name, stats in sorted(self.stats.items()):
             logger.info(f"{name}:")
             logger.info(
-                f"  Total: {stats['total']}, Valid: {stats['valid']}, "
-                f"Skipped: {stats['skipped']}"
+                f"  Total: {stats['total']}, Valid: {stats['valid']}, Skipped: {stats['skipped']}"
             )
 
         logger.info("-" * 60)

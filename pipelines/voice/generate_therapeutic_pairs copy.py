@@ -17,8 +17,7 @@ def is_empathetic(turn):
     # Placeholder: Replace with advanced empathy detection
     text = turn.get("text", "").lower()
     return any(
-        word in text
-        for word in ["understand", "feel", "support", "empath", "care", "listen"]
+        word in text for word in ["understand", "feel", "support", "empath", "care", "listen"]
     )
 
 

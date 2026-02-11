@@ -13,6 +13,7 @@ from huggingface_hub import HfApi, create_repo, upload_file, upload_folder
 def upload_to_huggingface(model_path, gguf_path, model_name="Wayfarer2-Pixelated"):
     """Upload model and GGUF variants to HuggingFace"""
 
+
     # Initialize HF API
     api = HfApi()
 
@@ -26,7 +27,12 @@ def upload_to_huggingface(model_path, gguf_path, model_name="Wayfarer2-Pixelated
 
     # Create repository
     try:
-        create_repo(repo_id=repo_id, exist_ok=True, repo_type="model", private=False)
+        create_repo(
+            repo_id=repo_id,
+            exist_ok=True,
+            repo_type="model",
+            private=False
+        )
     except Exception:
         return False
 
@@ -37,7 +43,7 @@ def upload_to_huggingface(model_path, gguf_path, model_name="Wayfarer2-Pixelated
                 folder_path=model_path,
                 repo_id=repo_id,
                 repo_type="model",
-                commit_message="Upload fine-tuned Wayfarer2-Pixelated model",
+                commit_message="Upload fine-tuned Wayfarer2-Pixelated model"
             )
         except Exception:
             return False
@@ -46,6 +52,7 @@ def upload_to_huggingface(model_path, gguf_path, model_name="Wayfarer2-Pixelated
 
     # Upload GGUF variants
     if os.path.exists(gguf_path):
+
         gguf_files = list(Path(gguf_path).glob("*.gguf"))
 
         for gguf_file in gguf_files:
@@ -55,7 +62,7 @@ def upload_to_huggingface(model_path, gguf_path, model_name="Wayfarer2-Pixelated
                     path_in_repo=gguf_file.name,
                     repo_id=repo_id,
                     repo_type="model",
-                    commit_message=f"Add GGUF variant: {gguf_file.name}",
+                    commit_message=f"Add GGUF variant: {gguf_file.name}"
                 )
     else:
         pass
@@ -69,11 +76,10 @@ def upload_to_huggingface(model_path, gguf_path, model_name="Wayfarer2-Pixelated
                 path_in_repo="README.md",
                 repo_id=repo_id,
                 repo_type="model",
-                commit_message="Add comprehensive model card",
+                commit_message="Add comprehensive model card"
             )
 
     return True
-
 
 def main():
     import sys
@@ -90,7 +96,6 @@ def main():
         pass
 
     return success
-
 
 if __name__ == "__main__":
     main()

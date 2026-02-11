@@ -88,21 +88,21 @@ class AcquireDatasetsTool(MCPTool):
 
             # Get acquired datasets
             acquisitions_list = self.service.get_acquisitions(session_id)
-
+            
             # Auto-integrate with training pipeline if bridge is configured
             integration_results = []
             auto_integrate = params.get("auto_integrate", True)
-
+            
             if self.pipeline_bridge and auto_integrate:
                 logger.info(
                     f"Auto-integrating {len(acquisitions_list)} acquired datasets "
                     "into training pipeline"
                 )
-
+                
                 # Get orchestrator to access evaluations and integration plans
                 orchestrator = self.service.orchestrator
                 state = orchestrator.get_session_state(session_id)
-
+                
                 for acquisition in acquisitions_list:
                     try:
                         # Get evaluation if available
@@ -111,43 +111,37 @@ class AcquireDatasetsTool(MCPTool):
                             if eval_item.source_id == acquisition.source_id:
                                 evaluation = eval_item
                                 break
-
+                        
                         # Get integration plan if available
                         integration_plan = None
                         for plan in state.integration_plans:
                             if plan.source_id == acquisition.source_id:
                                 integration_plan = plan
                                 break
-
+                        
                         # Trigger pipeline integration
                         integration_result = self.pipeline_bridge.on_dataset_acquired(
                             dataset=acquisition,
                             evaluation=evaluation,
                             integration_plan=integration_plan,
                         )
-                        integration_results.append(
-                            {
-                                "source_id": acquisition.source_id,
-                                "integration_status": integration_result.get("status"),
-                                "auto_integrated": integration_result.get(
-                                    "auto_integrated", False
-                                ),
-                            }
-                        )
-
+                        integration_results.append({
+                            "source_id": acquisition.source_id,
+                            "integration_status": integration_result.get("status"),
+                            "auto_integrated": integration_result.get("auto_integrated", False),
+                        })
+                        
                     except Exception as e:
                         logger.error(
                             f"Error auto-integrating dataset {acquisition.source_id}: {e}",
                             exc_info=True,
                         )
-                        integration_results.append(
-                            {
-                                "source_id": acquisition.source_id,
-                                "integration_status": "failed",
-                                "auto_integrated": False,
-                                "error": str(e),
-                            }
-                        )
+                        integration_results.append({
+                            "source_id": acquisition.source_id,
+                            "integration_status": "failed",
+                            "auto_integrated": False,
+                            "error": str(e),
+                        })
 
             # Convert acquisitions to dicts
             acquisitions_data = []
@@ -164,8 +158,7 @@ class AcquireDatasetsTool(MCPTool):
                     "enabled": self.pipeline_bridge is not None and auto_integrate,
                     "results": integration_results,
                     "total_integrated": sum(
-                        1
-                        for r in integration_results
+                        1 for r in integration_results
                         if r.get("integration_status") == "completed"
                     ),
                 },
@@ -250,12 +243,7 @@ class GetAcquisitionsTool(MCPTool):
                             },
                             "compliance_status": {
                                 "type": "string",
-                                "enum": [
-                                    "compliant",
-                                    "partially_compliant",
-                                    "non_compliant",
-                                    "unknown",
-                                ],
+                                "enum": ["compliant", "partially_compliant", "non_compliant", "unknown"],
                             },
                         },
                     },
@@ -302,9 +290,7 @@ class GetAcquisitionsTool(MCPTool):
             sort_by = params.get("sort_by")
             sort_order = params.get("sort_order", "desc")
             if sort_by:
-                acquisitions_list = self._apply_sorting(
-                    acquisitions_list, sort_by, sort_order
-                )
+                acquisitions_list = self._apply_sorting(acquisitions_list, sort_by, sort_order)
 
             # Convert acquisitions to dicts
             acquisitions_data = []
@@ -368,9 +354,7 @@ class GetAcquisitionsTool(MCPTool):
         reverse = sort_order == "desc"
 
         if sort_by == "acquired_date":
-            return sorted(
-                acquisitions, key=lambda a: a.acquisition_date, reverse=reverse
-            )
+            return sorted(acquisitions, key=lambda a: a.acquisition_date, reverse=reverse)
         elif sort_by == "file_size_mb":
             return sorted(acquisitions, key=lambda a: a.file_size_mb, reverse=reverse)
         elif sort_by == "source_id":
@@ -520,13 +504,7 @@ class UpdateAcquisitionTool(MCPTool):
                     },
                     "status": {
                         "type": "string",
-                        "enum": [
-                            "pending",
-                            "approved",
-                            "denied",
-                            "downloaded",
-                            "error",
-                        ],
+                        "enum": ["pending", "approved", "denied", "downloaded", "error"],
                         "description": "New status for the acquisition",
                     },
                 },
@@ -601,3 +579,4 @@ class UpdateAcquisitionTool(MCPTool):
             "hipaa_compliant": acquisition.hipaa_compliant,
             "privacy_assessed": acquisition.privacy_assessed,
         }
+

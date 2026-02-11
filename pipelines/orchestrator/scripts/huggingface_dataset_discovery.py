@@ -25,7 +25,8 @@ from pathlib import Path
 from typing import Any
 
 logging.basicConfig(
-    level=logging.INFO, format="[%(asctime)s] %(levelname)s: %(message)s"
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s: %(message)s'
 )
 logger = logging.getLogger(__name__)
 
@@ -52,55 +53,55 @@ KNOWN_DATASETS = {
         "hub_id": "facebook/empathetic_dialogues",
         "description": "Facebook's empathy dataset with 25k conversations",
         "relevance": "high",
-        "category": "empathetic_dialogue",
+        "category": "empathetic_dialogue"
     },
     "ESConv": {
         "hub_id": "thu-coai/esconv",
         "description": "Emotional support conversation dataset",
         "relevance": "high",
-        "category": "emotional_support",
+        "category": "emotional_support"
     },
     "MELD": {
         "hub_id": "declare-lab/MELD",
         "description": "Multimodal emotion lines dataset",
         "relevance": "medium",
-        "category": "emotion_recognition",
+        "category": "emotion_recognition"
     },
     "DailyDialog": {
         "hub_id": "daily_dialog",
         "description": "High-quality multi-turn dialogues",
         "relevance": "medium",
-        "category": "multi_turn_dialogue",
+        "category": "multi_turn_dialogue"
     },
     "PersonaChat": {
         "hub_id": "bavard/personachat_truecased",
         "description": "Persona-based conversations",
         "relevance": "medium",
-        "category": "persona_dialogue",
+        "category": "persona_dialogue"
     },
     "Amod_mental_health": {
         "hub_id": "Amod/mental_health_counseling_conversations",
         "description": "Mental health counseling conversations",
         "relevance": "high",
-        "category": "therapeutic",
+        "category": "therapeutic"
     },
     "EmoCareAI_Psych8k": {
         "hub_id": "EmoCareAI/Psych8k",
         "description": "Psychology conversations dataset",
         "relevance": "high",
-        "category": "therapeutic",
+        "category": "therapeutic"
     },
     "heliosbrahma_mental_health": {
         "hub_id": "heliosbrahma/mental_health_chatbot_dataset",
         "description": "Mental health chatbot training data",
         "relevance": "high",
-        "category": "therapeutic",
+        "category": "therapeutic"
     },
     "counsel_chat": {
         "hub_id": "nbertagnolli/counsel-chat",
         "description": "Counseling chat dataset",
         "relevance": "high",
-        "category": "therapeutic",
+        "category": "therapeutic"
     },
 }
 
@@ -108,7 +109,6 @@ KNOWN_DATASETS = {
 @dataclass
 class DatasetInfo:
     """Information about a discovered dataset."""
-
     hub_id: str
     name: str
     description: str = ""
@@ -130,33 +130,27 @@ def search_huggingface_datasets(query: str, limit: int = 20) -> list[dict[str, A
         from huggingface_hub import HfApi
 
         api = HfApi()
-        datasets = list(
-            api.list_datasets(
-                search=query,
-                sort="downloads",
-                direction=-1,
-                limit=limit,
-            )
-        )
+        datasets = list(api.list_datasets(
+            search=query,
+            sort="downloads",
+            direction=-1,
+            limit=limit,
+        ))
 
         results = []
         for ds in datasets:
-            results.append(
-                {
-                    "id": ds.id,
-                    "author": ds.author,
-                    "downloads": ds.downloads,
-                    "likes": ds.likes,
-                    "tags": ds.tags or [],
-                    "last_modified": str(ds.last_modified) if ds.last_modified else "",
-                }
-            )
+            results.append({
+                "id": ds.id,
+                "author": ds.author,
+                "downloads": ds.downloads,
+                "likes": ds.likes,
+                "tags": ds.tags or [],
+                "last_modified": str(ds.last_modified) if ds.last_modified else "",
+            })
 
         return results
     except ImportError:
-        logger.warning(
-            "huggingface_hub not installed. Install with: pip install huggingface_hub"
-        )
+        logger.warning("huggingface_hub not installed. Install with: pip install huggingface_hub")
         return []
     except Exception as e:
         logger.error(f"Error searching HuggingFace: {e}")
@@ -194,7 +188,6 @@ def calculate_relevance_score(dataset: dict[str, Any], query: str) -> float:
     downloads = dataset.get("downloads", 0)
     if downloads > 0:
         import math
-
         score += min(math.log10(downloads + 1) / 6, 1.0) * 30  # Max 30 points
 
     # Likes weight
@@ -203,18 +196,9 @@ def calculate_relevance_score(dataset: dict[str, Any], query: str) -> float:
 
     # Tag relevance
     tags = dataset.get("tags", [])
-    relevant_tags = [
-        "mental-health",
-        "psychology",
-        "therapy",
-        "counseling",
-        "emotion",
-        "dialogue",
-        "conversation",
-        "empathy",
-        "text-generation",
-        "question-answering",
-    ]
+    relevant_tags = ["mental-health", "psychology", "therapy", "counseling",
+                     "emotion", "dialogue", "conversation", "empathy",
+                     "text-generation", "question-answering"]
     tag_matches = sum(1 for t in tags if any(rt in t.lower() for rt in relevant_tags))
     score += min(tag_matches * 5, 25)  # Max 25 points
 
@@ -284,7 +268,9 @@ def discover_datasets(output_dir: Path | None = None) -> dict[str, Any]:
 
     # Sort by relevance
     sorted_datasets = sorted(
-        all_datasets.values(), key=lambda x: x.relevance_score, reverse=True
+        all_datasets.values(),
+        key=lambda x: x.relevance_score,
+        reverse=True
     )
 
     # Generate report
@@ -309,27 +295,24 @@ def discover_datasets(output_dir: Path | None = None) -> dict[str, Any]:
         ],
         "recommendations": {
             "high_priority": [
-                ds.hub_id
-                for ds in sorted_datasets
+                ds.hub_id for ds in sorted_datasets
                 if ds.relevance_score >= 70 or ds.status == "known_quality"
             ][:15],
             "medium_priority": [
-                ds.hub_id for ds in sorted_datasets if 40 <= ds.relevance_score < 70
+                ds.hub_id for ds in sorted_datasets
+                if 40 <= ds.relevance_score < 70
             ][:15],
             "for_review": [
-                ds.hub_id for ds in sorted_datasets if ds.relevance_score < 40
+                ds.hub_id for ds in sorted_datasets
+                if ds.relevance_score < 40
             ][:10],
         },
-        "categories_found": list(
-            set(ds.category for ds in all_datasets.values() if ds.category != "unknown")
-        ),
+        "categories_found": list(set(ds.category for ds in all_datasets.values() if ds.category != "unknown")),
     }
 
     # Save report
-    report_path = (
-        output_dir / f"hf_discovery_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    )
-    with open(report_path, "w") as f:
+    report_path = output_dir / f"hf_discovery_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+    with open(report_path, 'w') as f:
         json.dump(report, f, indent=2)
 
     logger.info(f"Discovery complete! Found {len(all_datasets)} unique datasets")
@@ -341,15 +324,13 @@ def discover_datasets(output_dir: Path | None = None) -> dict[str, Any]:
     print("=" * 60)
     print(f"\nTotal unique datasets found: {len(all_datasets)}")
     print(f"\nHigh Priority ({len(report['recommendations']['high_priority'])}):")
-    for ds_id in report["recommendations"]["high_priority"][:10]:
+    for ds_id in report['recommendations']['high_priority'][:10]:
         ds = all_datasets.get(ds_id)
         if ds:
-            print(
-                f"  • {ds_id} (score: {ds.relevance_score:.1f}, downloads: {ds.downloads:,})"
-            )
+            print(f"  • {ds_id} (score: {ds.relevance_score:.1f}, downloads: {ds.downloads:,})")
 
     print(f"\nMedium Priority ({len(report['recommendations']['medium_priority'])}):")
-    for ds_id in report["recommendations"]["medium_priority"][:5]:
+    for ds_id in report['recommendations']['medium_priority'][:5]:
         ds = all_datasets.get(ds_id)
         if ds:
             print(f"  • {ds_id} (score: {ds.relevance_score:.1f})")
@@ -363,12 +344,8 @@ def main():
     """Main entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Discover HuggingFace datasets for mental health AI"
-    )
-    parser.add_argument(
-        "--output-dir", type=Path, help="Output directory for discovery report"
-    )
+    parser = argparse.ArgumentParser(description="Discover HuggingFace datasets for mental health AI")
+    parser.add_argument("--output-dir", type=Path, help="Output directory for discovery report")
     parser.add_argument("--query", help="Single search query (for testing)")
 
     args = parser.parse_args()
@@ -384,3 +361,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -10,7 +10,6 @@ from typing import Any, Dict, Optional, Union
 
 try:
     import yaml
-
     YAML_AVAILABLE = True
 except ImportError:
     YAML_AVAILABLE = False
@@ -142,17 +141,11 @@ class ConfigManager:
         target[keys[-1]] = value
         self.save(config)
 
-    def _merge_config(
-        self, default: Dict[str, Any], user: Dict[str, Any]
-    ) -> Dict[str, Any]:
+    def _merge_config(self, default: Dict[str, Any], user: Dict[str, Any]) -> Dict[str, Any]:
         """Recursively merge user config into default config."""
         result = default.copy()
         for key, value in user.items():
-            if (
-                key in result
-                and isinstance(result[key], dict)
-                and isinstance(value, dict)
-            ):
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
                 result[key] = self._merge_config(result[key], value)
             else:
                 result[key] = value
@@ -224,9 +217,7 @@ def load_config(config_path: Optional[Union[Path, str]] = None) -> Dict[str, Any
     return config
 
 
-def save_config(
-    config: Dict[str, Any], config_path: Optional[Union[Path, str]] = None
-) -> None:
+def save_config(config: Dict[str, Any], config_path: Optional[Union[Path, str]] = None) -> None:
     """Save configuration to file."""
     # Convert string to Path if needed
     if config_path is not None and isinstance(config_path, str):
@@ -238,3 +229,4 @@ def save_config(
 def get_config_value(key_path: str, default: Any = None) -> Any:
     """Get a configuration value by dot-separated path."""
     return _config_manager.get(key_path, default)
+

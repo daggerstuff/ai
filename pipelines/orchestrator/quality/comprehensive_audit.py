@@ -69,14 +69,12 @@ class TaskAuditor:
                 "functions": functions,
                 "lines": len(lines),
                 "docstring": has_docstring,
-                "size_kb": len(content) / 1024,
+                "size_kb": len(content) / 1024
             }
         except:
             return {"classes": 0, "functions": 0, "lines": 0, "docstring": False}
 
-    def audit_task(
-        self, task_id: str, filename: str, description: str
-    ) -> dict[str, Any]:
+    def audit_task(self, task_id: str, filename: str, description: str) -> dict[str, Any]:
         """Comprehensive audit of a single task"""
 
         result = {
@@ -88,7 +86,7 @@ class TaskAuditor:
             "imports_ok": False,
             "content_analysis": {},
             "status": "MISSING",
-            "issues": [],
+            "issues": []
         }
 
         # Check existence
@@ -147,141 +145,50 @@ class TaskAuditor:
         # Define all 36 tasks as claimed in phase6.md
         tasks = [
             # Phase 1: Ecosystem-Scale Data Processing Pipeline
-            (
-                "6.1",
-                "distributed_architecture.py",
-                "Distributed processing architecture",
-            ),
+            ("6.1", "distributed_architecture.py", "Distributed processing architecture"),
             ("6.2", "data_fusion_engine.py", "Intelligent data fusion algorithms"),
-            (
-                "6.3",
-                "quality_assessment_framework.py",
-                "Hierarchical quality assessment framework",
-            ),
+            ("6.3", "quality_assessment_framework.py", "Hierarchical quality assessment framework"),
             ("6.4", "deduplication.py", "Automated conversation deduplication"),
             ("6.5", "cross_dataset_linker.py", "Cross-dataset conversation linking"),
             ("6.6", "metadata_schema.py", "Unified metadata schema"),
+
             # Phase 2: Advanced Therapeutic Intelligence
-            (
-                "6.7",
-                "therapeutic_intelligence.py",
-                "Comprehensive therapeutic approach classification",
-            ),
-            (
-                "6.8",
-                "condition_pattern_recognition.py",
-                "Mental health condition pattern recognition",
-            ),
+            ("6.7", "therapeutic_intelligence.py", "Comprehensive therapeutic approach classification"),
+            ("6.8", "condition_pattern_recognition.py", "Mental health condition pattern recognition"),
             ("6.9", "outcome_prediction.py", "Therapeutic outcome prediction models"),
-            (
-                "6.10",
-                "crisis_intervention_detector.py",
-                "Crisis intervention detection and escalation",
-            ),
-            (
-                "6.11",
-                "personality_adapter.py",
-                "Personality-aware conversation adaptation",
-            ),
-            (
-                "6.12",
-                "cultural_competency_generator.py",
-                "Cultural competency and diversity-aware response generation",
-            ),
+            ("6.10", "crisis_intervention_detector.py", "Crisis intervention detection and escalation"),
+            ("6.11", "personality_adapter.py", "Personality-aware conversation adaptation"),
+            ("6.12", "cultural_competency_generator.py", "Cultural competency and diversity-aware response generation"),
+
             # Phase 3: Multi-Modal Integration
-            (
-                "6.13",
-                "audio_emotion_integration.py",
-                "Audio emotion recognition integration",
-            ),
-            (
-                "6.14",
-                "multimodal_disorder_analysis.py",
-                "Multi-modal mental disorder analysis pipeline",
-            ),
-            (
-                "6.15",
-                "emotion_cause_extraction.py",
-                "Emotion cause extraction and intervention mapping",
-            ),
-            (
-                "6.16",
-                "tfidf_clusterer.py",
-                "TF-IDF feature-based conversation clustering",
-            ),
+            ("6.13", "audio_emotion_integration.py", "Audio emotion recognition integration"),
+            ("6.14", "multimodal_disorder_analysis.py", "Multi-modal mental disorder analysis pipeline"),
+            ("6.15", "emotion_cause_extraction.py", "Emotion cause extraction and intervention mapping"),
+            ("6.16", "tfidf_clusterer.py", "TF-IDF feature-based conversation clustering"),
             ("6.17", "temporal_reasoner.py", "Temporal reasoning integration"),
-            (
-                "6.18",
-                "evidence_validator.py",
-                "Scientific evidence-based practice validation",
-            ),
+            ("6.18", "evidence_validator.py", "Scientific evidence-based practice validation"),
+
             # Phase 4: Intelligent Dataset Balancing & Optimization
-            (
-                "6.19",
-                "priority_weighted_sampler.py",
-                "Priority-weighted sampling algorithms",
-            ),
+            ("6.19", "priority_weighted_sampler.py", "Priority-weighted sampling algorithms"),
             ("6.20", "condition_balancer.py", "Condition-specific balancing system"),
-            (
-                "6.21",
-                "approach_diversity_optimizer.py",
-                "Therapeutic approach diversity optimization",
-            ),
-            (
-                "6.22",
-                "demographic_balancer.py",
-                "Demographic and cultural diversity balancing",
-            ),
-            (
-                "6.23",
-                "complexity_stratifier.py",
-                "Conversation complexity stratification",
-            ),
-            (
-                "6.24",
-                "crisis_routine_balancer.py",
-                "Crisis-to-routine conversation ratio optimization",
-            ),
+            ("6.21", "approach_diversity_optimizer.py", "Therapeutic approach diversity optimization"),
+            ("6.22", "demographic_balancer.py", "Demographic and cultural diversity balancing"),
+            ("6.23", "complexity_stratifier.py", "Conversation complexity stratification"),
+            ("6.24", "crisis_routine_balancer.py", "Crisis-to-routine conversation ratio optimization"),
+
             # Phase 5: Advanced Quality Validation & Safety Systems
             ("6.25", "multi_tier_validator.py", "Multi-tier quality validation system"),
-            (
-                "6.26",
-                "dsm5_accuracy_validator.py",
-                "DSM-5 therapeutic accuracy validation",
-            ),
-            (
-                "6.27",
-                "safety_ethics_validator.py",
-                "Conversation safety and ethics validation",
-            ),
-            (
-                "6.28",
-                "effectiveness_predictor.py",
-                "Therapeutic effectiveness prediction",
-            ),
-            (
-                "6.29",
-                "coherence_validator.py",
-                "Conversation coherence validation using CoT reasoning",
-            ),
-            (
-                "6.30",
-                "realtime_quality_monitor.py",
-                "Real-time conversation quality monitoring",
-            ),
+            ("6.26", "dsm5_accuracy_validator.py", "DSM-5 therapeutic accuracy validation"),
+            ("6.27", "safety_ethics_validator.py", "Conversation safety and ethics validation"),
+            ("6.28", "effectiveness_predictor.py", "Therapeutic effectiveness prediction"),
+            ("6.29", "coherence_validator.py", "Conversation coherence validation using CoT reasoning"),
+            ("6.30", "realtime_quality_monitor.py", "Real-time conversation quality monitoring"),
+
             # Phase 6: Production Deployment & Adaptive Learning
-            (
-                "6.31",
-                "production_exporter.py",
-                "Production-ready dataset export with tiered access",
-            ),
+            ("6.31", "production_exporter.py", "Production-ready dataset export with tiered access"),
             ("6.32", "adaptive_learner.py", "Adaptive learning pipeline"),
             ("6.33", "analytics_dashboard.py", "Comprehensive analytics dashboard"),
-            (
-                "6.34",
-                "automated_maintenance.py",
-                "Automated dataset update and maintenance procedures",
-            ),
+            ("6.34", "automated_maintenance.py", "Automated dataset update and maintenance procedures"),
             ("6.35", "feedback_loops.py", "Conversation effectiveness feedback loops"),
             ("6.36", "comprehensive_api.py", "Comprehensive documentation and API"),
         ]
@@ -301,6 +208,7 @@ class TaskAuditor:
         partial = sum(1 for r in self.results.values() if r["status"] == "PARTIAL")
         missing = sum(1 for r in self.results.values() if r["status"] == "MISSING")
 
+
         # Phase breakdown
         phases = {
             "Phase 1": [f"6.{i}" for i in range(1, 7)],
@@ -312,21 +220,9 @@ class TaskAuditor:
         }
 
         for phase_name, task_ids in phases.items():
-            phase_complete = sum(
-                1
-                for tid in task_ids
-                if self.results.get(tid, {}).get("status") == "COMPLETE"
-            )
-            phase_partial = sum(
-                1
-                for tid in task_ids
-                if self.results.get(tid, {}).get("status") == "PARTIAL"
-            )
-            sum(
-                1
-                for tid in task_ids
-                if self.results.get(tid, {}).get("status") == "MISSING"
-            )
+            phase_complete = sum(1 for tid in task_ids if self.results.get(tid, {}).get("status") == "COMPLETE")
+            phase_partial = sum(1 for tid in task_ids if self.results.get(tid, {}).get("status") == "PARTIAL")
+            sum(1 for tid in task_ids if self.results.get(tid, {}).get("status") == "MISSING")
             total_phase = len(task_ids)
 
             "✅" if phase_complete == total_phase else "⚠️" if phase_complete + phase_partial > 0 else "❌"
@@ -371,23 +267,18 @@ class TaskAuditor:
             "completion_rate": complete / self.total_tasks,
             "overall_status": overall_status,
             "phase_breakdown": {},
-            "detailed_results": self.results,
+            "detailed_results": self.results
         }
 
         for phase_name, task_ids in phases.items():
-            phase_complete = sum(
-                1
-                for tid in task_ids
-                if self.results.get(tid, {}).get("status") == "COMPLETE"
-            )
+            phase_complete = sum(1 for tid in task_ids if self.results.get(tid, {}).get("status") == "COMPLETE")
             report["phase_breakdown"][phase_name] = {
                 "complete": phase_complete,
                 "total": len(task_ids),
-                "completion_rate": phase_complete / len(task_ids),
+                "completion_rate": phase_complete / len(task_ids)
             }
 
         return report
-
 
 def main():
     """Run comprehensive audit"""
@@ -396,11 +287,9 @@ def main():
 
     # Save report
     import json
-
-    with open(
-        "/home/vivi/pixelated/ai/pipelines/orchestrator/audit_report.json", "w"
-    ) as f:
+    with open("/home/vivi/pixelated/ai/pipelines/orchestrator/audit_report.json", "w") as f:
         json.dump(report, f, indent=2)
+
 
     # Return appropriate exit code
     if report["overall_status"] == "COMPLETE":
@@ -408,7 +297,6 @@ def main():
     if report["overall_status"] == "MOSTLY_COMPLETE":
         return 1
     return 2
-
 
 if __name__ == "__main__":
     sys.exit(main())

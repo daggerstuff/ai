@@ -57,9 +57,7 @@ def list_all_objects(loader: object, prefix: str = "") -> list[dict[str, Any]]:
                         "size": obj["Size"],
                         "size_formatted": format_size(obj["Size"]),
                         "last_modified": (
-                            obj["LastModified"].isoformat()
-                            if "LastModified" in obj
-                            else None
+                            obj["LastModified"].isoformat() if "LastModified" in obj else None
                         ),
                         "etag": obj.get("ETag", "").strip('"'),
                     }
@@ -196,9 +194,7 @@ def generate_manifest(loader: object) -> dict[str, Any]:
             "voice": build_category_section(categories["voice"]),
             "pixel_voice": build_category_section(categories["pixel_voice"]),
             "metadata": {
-                "consolidation": build_category_section(
-                    categories["metadata"]["consolidation"]
-                ),
+                "consolidation": build_category_section(categories["metadata"]["consolidation"]),
             },
             "other": build_category_section(categories["other"]),
         },
@@ -235,9 +231,7 @@ def print_summary(manifest: dict[str, Any]) -> None:
     logger.info("   Files: %s", f"{raw.get('count', 0):,}")
     logger.info("   Size: %s", raw.get("size_formatted", format_size(0)))
     raw_status = (
-        "✅ Synced"
-        if raw.get("count", 0) > 0
-        else "⏳ In Progress (per .notes/markdown/one.md)"
+        "✅ Synced" if raw.get("count", 0) > 0 else "⏳ In Progress (per .notes/markdown/one.md)"
     )
     logger.info(
         "   Status: %s",
@@ -245,12 +239,8 @@ def print_summary(manifest: dict[str, Any]) -> None:
     )
 
     processed = categories.get("gdrive", {}).get("processed", {})
-    processed_total = (
-        sum(cat["count"] for cat in processed.values()) if processed else 0
-    )
-    processed_size = (
-        sum(cat["size_bytes"] for cat in processed.values()) if processed else 0
-    )
+    processed_total = sum(cat["count"] for cat in processed.values()) if processed else 0
+    processed_size = sum(cat["size_bytes"] for cat in processed.values()) if processed else 0
     logger.info("📁 Google Drive Processed (canonical):")
     logger.info("   Files: %s", f"{processed_total:,}")
     logger.info("   Size: %s", format_size(processed_size))
@@ -271,9 +261,7 @@ def print_summary(manifest: dict[str, Any]) -> None:
         logger.info("📋 Consolidation Metadata:")
         logger.info("   Files: %s", f"{metadata['consolidation']['count']:,}")
         logger.info("   Size: %s", metadata["consolidation"]["size_formatted"])
-        logger.info(
-            "   Location: s3://%s/datasets/metadata/consolidation/", manifest["bucket"]
-        )
+        logger.info("   Location: s3://%s/datasets/metadata/consolidation/", manifest["bucket"])
 
     for name, key in [
         ("Acquired", "acquired"),
@@ -311,9 +299,7 @@ def generate_and_save_manifest(*, project_root: Path, loader: object) -> Path:
     logger.info("✅ Manifest saved to: %s", manifest_path)
     logger.info("💡 Next steps:")
     logger.info("   1. Review manifest to see what's synced")
-    logger.info(
-        "   2. Check sync progress in tmux session (per .notes/markdown/one.md)"
-    )
+    logger.info("   2. Check sync progress in tmux session (per .notes/markdown/one.md)")
     logger.info("   3. Once raw sync completes, organize into processed/ structure")
     return manifest_path
 

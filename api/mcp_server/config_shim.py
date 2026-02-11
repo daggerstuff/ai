@@ -3,7 +3,6 @@
 This module lazily re-exports MCPConfig, get_config, and settings from
 `mcp_server.config` to avoid duplicating configuration logic.
 """
-
 from importlib import import_module
 from types import ModuleType
 from typing import Any

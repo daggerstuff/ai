@@ -14,7 +14,6 @@ LOG_FILE = "logs/dataset_pipeline.log"
 MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 BACKUP_COUNT = 5
 
-
 def get_logger(name: str, level: int = LOG_LEVEL) -> logging.Logger:
     """
     Initializes and returns a configured logger.
@@ -60,7 +59,6 @@ def get_logger(name: str, level: int = LOG_LEVEL) -> logging.Logger:
     logger.propagate = False
 
     return logger
-
 
 # Example usage:
 # from logger import get_logger

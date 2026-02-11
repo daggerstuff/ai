@@ -27,9 +27,7 @@ def install_requirements():
 
     for package in requirements:
         try:
-            subprocess.check_call(
-                [sys.executable, "-m", "pip", "install", package], shell=False
-            )
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
             sys.stdout.write(f"✅ Installed {package}\n")
         except Exception as e:
             sys.stderr.write(f"❌ Failed to install {package}: {e}\n")
@@ -53,41 +51,30 @@ def setup_colab_environment():
             if ipython_instance is not None:
                 colab_output.enable_custom_widget_manager()
                 sys.stdout.write(
-                    "✅ Enabled custom widget manager (running in Colab notebook "
-                    "context).\n"
+                    "✅ Enabled custom widget manager (running in Colab notebook context).\n"
                 )
             else:
                 sys.stdout.write(
-                    "INFO: IPython environment not detected (e.g., running via "
-                    "'!python script.py').\n"
+                    "INFO: IPython environment not detected (e.g., running via '!python script.py').\n"
                 )
                 sys.stdout.write(
-                    "   Skipping custom widget manager setup. If you use custom "
-                    "third-party ipywidgets,\n"
+                    "   Skipping custom widget manager setup. If you use custom third-party ipywidgets,\n"
                 )
+                sys.stdout.write("   you may need to run the following in a separate Colab cell:\n")
                 sys.stdout.write(
-                    "   you may need to run the following in a separate Colab cell:\n"
-                )
-                sys.stdout.write(
-                    "   from google.colab import output; "
-                    "output.enable_custom_widget_manager()\n"
+                    "   from google.colab import output; output.enable_custom_widget_manager()\n"
                 )
         except Exception as e:
+            sys.stderr.write(f"⚠️ Could not enable custom widget manager due to an error: {e}\n")
             sys.stderr.write(
-                f"⚠️ Could not enable custom widget manager due to an error: {e}\n"
+                "   If you use custom third-party ipywidgets, you may need to run the following\n"
             )
             sys.stderr.write(
-                "   If you use custom third-party ipywidgets, you may need to "
-                "run the following\n"
-            )
-            sys.stderr.write(
-                "   in a separate Colab cell: from google.colab import output; "
-                "output.enable_custom_widget_manager()\n"
+                "   in a separate Colab cell: from google.colab import output; output.enable_custom_widget_manager()\n"
             )
     else:
         sys.stdout.write(
-            "INFO: Not running in a Google Colab environment - skipping "
-            "Colab-specific widget setup.\n"
+            "INFO: Not running in a Google Colab environment - skipping Colab-specific widget setup.\n"
         )
 
     # Create output directory
@@ -96,8 +83,7 @@ def setup_colab_environment():
 
     # The message below was originally in your main function,
     # but it's better placed after all setup steps within this function.
-    # print("\n🎯 Setup complete! You can now run the edge case generator.")
-    # Original line
+    # print("\n🎯 Setup complete! You can now run the edge case generator.") # Original line
     # Let main handle the final "Setup completed!" message for overall script.
 
 

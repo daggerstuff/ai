@@ -17,7 +17,6 @@ sys.path.insert(0, str(workspace_root))
 
 from ai.pipelines.orchestrator.storage_config import get_dataset_pipeline_output_root
 
-
 def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
     """
     Validate the quality of the integrated dataset
@@ -38,15 +37,13 @@ def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
         "record_count": 0,
         "quality_metrics": {},
         "validation_errors": [],
-        "recommendations": [],
+        "recommendations": []
     }
 
     try:
         # Check if file exists
         if not os.path.exists(dataset_path):
-            validation_results["validation_errors"].append(
-                f"Dataset file not found: {dataset_path}"
-            )
+            validation_results["validation_errors"].append(f"Dataset file not found: {dataset_path}")
             return validation_results
 
         validation_results["file_exists"] = True
@@ -64,10 +61,10 @@ def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
             "metadata": 0,
             "_source": 0,
             "messages": 0,
-            "text": 0,
+            "text": 0
         }
 
-        with open(dataset_path, "r") as f:
+        with open(dataset_path, 'r') as f:
             for line_num, line in enumerate(f, 1):
                 if not line.strip():
                     continue
@@ -100,10 +97,7 @@ def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
                     # Sample validation for first 100 records
                     if record_count <= 100:
                         # Validate basic structure - at least one content field should be present
-                        has_content = any(
-                            field in record
-                            for field in ["instructions", "text", "messages"]
-                        )
+                        has_content = any(field in record for field in ["instructions", "text", "messages"])
                         if not has_content:
                             validation_results["validation_errors"].append(
                                 f"Record {record_count} missing content fields (instructions, text, or messages)"
@@ -136,11 +130,9 @@ def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
                     for field, count in field_coverage.items()
                 },
                 "source_type_distribution": source_types,
-                "average_content_length": sum(content_lengths) / len(content_lengths)
-                if content_lengths
-                else 0,
+                "average_content_length": sum(content_lengths) / len(content_lengths) if content_lengths else 0,
                 "min_content_length": min(content_lengths) if content_lengths else 0,
-                "max_content_length": max(content_lengths) if content_lengths else 0,
+                "max_content_length": max(content_lengths) if content_lengths else 0
             }
 
         # Generate recommendations
@@ -149,22 +141,14 @@ def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
         if record_count == 0:
             recommendations.append("Dataset is empty - check data processing pipeline")
         elif record_count < 1000:
-            recommendations.append(
-                "Dataset is small - consider adding more data sources"
-            )
+            recommendations.append("Dataset is small - consider adding more data sources")
 
         # Check content length
-        avg_length = validation_results["quality_metrics"].get(
-            "average_content_length", 0
-        )
+        avg_length = validation_results["quality_metrics"].get("average_content_length", 0)
         if avg_length < 50:
-            recommendations.append(
-                f"Average content length is very short: {avg_length:.1f} characters"
-            )
+            recommendations.append(f"Average content length is very short: {avg_length:.1f} characters")
         elif avg_length > 50000:
-            recommendations.append(
-                f"Average content length is very long: {avg_length:.1f} characters"
-            )
+            recommendations.append(f"Average content length is very long: {avg_length:.1f} characters")
 
         validation_results["recommendations"] = recommendations
 
@@ -180,11 +164,9 @@ def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
         validation_results["validation_errors"].append(f"Validation failed: {str(e)}")
         validation_results["overall_status"] = "FAILED"
         import traceback
-
         validation_results["error_traceback"] = traceback.format_exc()
 
     return validation_results
-
 
 def find_latest_dataset() -> str:
     """Find the latest dataset file in the output directory"""
@@ -201,7 +183,6 @@ def find_latest_dataset() -> str:
     latest_file = max(jsonl_files, key=lambda f: f.stat().st_mtime)
     return str(latest_file)
 
-
 def main():
     """Main validation function"""
     print("Dataset Quality Validation")
@@ -216,7 +197,7 @@ def main():
         common_paths = [
             "ai/training_data_consolidated/final_datasets/ULTIMATE_FINAL_DATASET.jsonl",
             str(output_root / "final_output" / "unified_training_dataset.jsonl"),
-            "ai/training_data_consolidated/datasets/merged_dataset.jsonl",
+            "ai/training_data_consolidated/datasets/merged_dataset.jsonl"
         ]
 
         for path in common_paths:
@@ -242,35 +223,35 @@ def main():
     print(f"  Records: {results['record_count']:,}")
     print(f"  File readable: {results['file_readable']}")
 
-    if results["quality_metrics"]:
+    if results['quality_metrics']:
         print(f"\nQuality Metrics:")
-        metrics = results["quality_metrics"]
-        if "field_coverage" in metrics:
+        metrics = results['quality_metrics']
+        if 'field_coverage' in metrics:
             print(f"  Field Coverage:")
-            for field, coverage in metrics["field_coverage"].items():
+            for field, coverage in metrics['field_coverage'].items():
                 print(f"    {field}: {coverage}")
 
-        if "source_type_distribution" in metrics:
+        if 'source_type_distribution' in metrics:
             print(f"  Source Types:")
-            for source_type, count in metrics["source_type_distribution"].items():
+            for source_type, count in metrics['source_type_distribution'].items():
                 print(f"    {source_type}: {count:,}")
 
-        avg_length = metrics.get("average_content_length", 0)
+        avg_length = metrics.get('average_content_length', 0)
         print(f"  Content Length Stats:")
         print(f"    Average: {avg_length:.1f} characters")
         print(f"    Min: {metrics.get('min_content_length', 0):.1f} characters")
         print(f"    Max: {metrics.get('max_content_length', 0):.1f} characters")
 
-    if results["recommendations"]:
+    if results['recommendations']:
         print(f"\nRecommendations:")
-        for rec in results["recommendations"]:
+        for rec in results['recommendations']:
             print(f"  ⚠️  {rec}")
 
-    if results["validation_errors"]:
+    if results['validation_errors']:
         print(f"\nValidation Errors (showing first 10):")
-        for error in results["validation_errors"][:10]:
+        for error in results['validation_errors'][:10]:
             print(f"  ❌ {error}")
-        if len(results["validation_errors"]) > 10:
+        if len(results['validation_errors']) > 10:
             print(f"  ... and {len(results['validation_errors']) - 10} more errors")
 
     # Save results
@@ -278,13 +259,12 @@ def main():
     output_dir.mkdir(exist_ok=True)
     results_file = output_dir / "dataset_validation_report.json"
 
-    with open(results_file, "w") as f:
+    with open(results_file, 'w') as f:
         json.dump(results, f, indent=2)
 
     print(f"\nValidation report saved to: {results_file}")
 
-    return results["overall_status"] == "PASSED"
-
+    return results['overall_status'] == 'PASSED'
 
 if __name__ == "__main__":
     success = main()

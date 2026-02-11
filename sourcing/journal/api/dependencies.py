@@ -123,5 +123,4 @@ def get_training_pipeline_service():
     from ai.sourcing.journal.api.services.training_pipeline_service import (
         TrainingPipelineService,
     )
-
     return TrainingPipelineService()

@@ -41,13 +41,9 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
         # Create scenarios with specific characteristics for testing
         for i in range(10):
             scenario = self.scenario_generator.generate_client_scenario(
-                scenario_type=ScenarioType.INITIAL_ASSESSMENT
-                if i < 5
-                else ScenarioType.THERAPEUTIC_SESSION,
-                severity_level=SeverityLevel.MODERATE
-                if i < 7
-                else SeverityLevel.SEVERE,
-                demographic_category=DemographicCategory.YOUNG_ADULT,
+                scenario_type=ScenarioType.INITIAL_ASSESSMENT if i < 5 else ScenarioType.THERAPEUTIC_SESSION,
+                severity_level=SeverityLevel.MODERATE if i < 7 else SeverityLevel.SEVERE,
+                demographic_category=DemographicCategory.YOUNG_ADULT
             )
             self.test_scenarios.append(scenario)
 
@@ -63,10 +59,8 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
     def test_balance_strategy_enum(self):
         """Test BalanceStrategy enum values."""
         expected_strategies = {
-            "equal_distribution",
-            "clinical_prevalence",
-            "therapeutic_priority",
-            "custom_weights",
+            "equal_distribution", "clinical_prevalence",
+            "therapeutic_priority", "custom_weights"
         }
         actual_strategies = {strategy.value for strategy in BalanceStrategy}
         assert expected_strategies == actual_strategies
@@ -89,7 +83,8 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
     def test_analyze_dataset_balance_basic(self):
         """Test basic dataset balance analysis."""
         report = self.balancer.analyze_dataset_balance(
-            self.test_scenarios, strategy=BalanceStrategy.EQUAL_DISTRIBUTION
+            self.test_scenarios,
+            strategy=BalanceStrategy.EQUAL_DISTRIBUTION
         )
 
         # Check report structure
@@ -107,41 +102,27 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
         """Test target distribution retrieval for different strategies."""
 
         # Test equal distribution
-        equal_targets = self.balancer._get_target_distributions(
-            BalanceStrategy.EQUAL_DISTRIBUTION
-        )
+        equal_targets = self.balancer._get_target_distributions(BalanceStrategy.EQUAL_DISTRIBUTION)
         assert "dsm5_categories" in equal_targets
         assert "severity_levels" in equal_targets
 
         # Test clinical prevalence
-        prevalence_targets = self.balancer._get_target_distributions(
-            BalanceStrategy.CLINICAL_PREVALENCE
-        )
+        prevalence_targets = self.balancer._get_target_distributions(BalanceStrategy.CLINICAL_PREVALENCE)
         assert "dsm5_categories" in prevalence_targets
 
         # Verify anxiety has higher prevalence target than other categories
-        anxiety_target = prevalence_targets["dsm5_categories"][
-            DSMCategory.ANXIETY.value
-        ]
-        depressive_target = prevalence_targets["dsm5_categories"][
-            DSMCategory.DEPRESSIVE.value
-        ]
+        anxiety_target = prevalence_targets["dsm5_categories"][DSMCategory.ANXIETY.value]
+        depressive_target = prevalence_targets["dsm5_categories"][DSMCategory.DEPRESSIVE.value]
         assert anxiety_target > depressive_target * 0.8  # Allow some tolerance
 
     def test_analyze_current_distributions(self):
         """Test analysis of current distributions."""
-        distributions = self.balancer._analyze_current_distributions(
-            self.test_scenarios
-        )
+        distributions = self.balancer._analyze_current_distributions(self.test_scenarios)
 
         # Check expected categories
         expected_categories = {
-            "dsm5_categories",
-            "pdm2_attachment",
-            "big_five_factors",
-            "severity_levels",
-            "scenario_types",
-            "demographic_categories",
+            "dsm5_categories", "pdm2_attachment", "big_five_factors",
+            "severity_levels", "scenario_types", "demographic_categories"
         }
         assert set(distributions.keys()) == expected_categories
 
@@ -154,12 +135,8 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
 
     def test_calculate_balance_score(self):
         """Test balance score calculation."""
-        distributions = self.balancer._analyze_current_distributions(
-            self.test_scenarios
-        )
-        targets = self.balancer._get_target_distributions(
-            BalanceStrategy.EQUAL_DISTRIBUTION
-        )
+        distributions = self.balancer._analyze_current_distributions(self.test_scenarios)
+        targets = self.balancer._get_target_distributions(BalanceStrategy.EQUAL_DISTRIBUTION)
 
         score = self.balancer._calculate_balance_score(distributions, targets)
 
@@ -169,12 +146,8 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
 
     def test_calculate_balance_metrics(self):
         """Test balance metrics calculation."""
-        distributions = self.balancer._analyze_current_distributions(
-            self.test_scenarios
-        )
-        targets = self.balancer._get_target_distributions(
-            BalanceStrategy.EQUAL_DISTRIBUTION
-        )
+        distributions = self.balancer._analyze_current_distributions(self.test_scenarios)
+        targets = self.balancer._get_target_distributions(BalanceStrategy.EQUAL_DISTRIBUTION)
 
         metrics = self.balancer._calculate_balance_metrics(distributions, targets)
 
@@ -194,16 +167,10 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
 
     def test_generate_balance_recommendations(self):
         """Test balance recommendation generation."""
-        distributions = self.balancer._analyze_current_distributions(
-            self.test_scenarios
-        )
-        targets = self.balancer._get_target_distributions(
-            BalanceStrategy.EQUAL_DISTRIBUTION
-        )
+        distributions = self.balancer._analyze_current_distributions(self.test_scenarios)
+        targets = self.balancer._get_target_distributions(BalanceStrategy.EQUAL_DISTRIBUTION)
 
-        recommendations = self.balancer._generate_balance_recommendations(
-            distributions, targets
-        )
+        recommendations = self.balancer._generate_balance_recommendations(distributions, targets)
 
         assert isinstance(recommendations, list)
         for recommendation in recommendations:
@@ -214,7 +181,8 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
         """Test balanced scenario generation."""
         target_count = 20
         scenarios = self.balancer.generate_balanced_scenarios(
-            target_count, strategy=BalanceStrategy.EQUAL_DISTRIBUTION
+            target_count,
+            strategy=BalanceStrategy.EQUAL_DISTRIBUTION
         )
 
         assert isinstance(scenarios, list)
@@ -230,9 +198,7 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
     def test_calculate_target_counts(self):
         """Test target count calculation."""
         total_count = 100
-        targets = self.balancer._get_target_distributions(
-            BalanceStrategy.EQUAL_DISTRIBUTION
-        )
+        targets = self.balancer._get_target_distributions(BalanceStrategy.EQUAL_DISTRIBUTION)
 
         target_counts = self.balancer._calculate_target_counts(total_count, targets)
 
@@ -246,9 +212,7 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
 
     def test_select_balanced_attributes(self):
         """Test balanced attribute selection."""
-        targets = self.balancer._get_target_distributions(
-            BalanceStrategy.EQUAL_DISTRIBUTION
-        )
+        targets = self.balancer._get_target_distributions(BalanceStrategy.EQUAL_DISTRIBUTION)
 
         # Test severity selection
         severity = self.balancer._select_balanced_severity(targets)
@@ -269,7 +233,7 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
         for _ in range(5):
             scenario = self.scenario_generator.generate_client_scenario(
                 scenario_type=ScenarioType.INITIAL_ASSESSMENT,
-                severity_level=SeverityLevel.MILD,
+                severity_level=SeverityLevel.MILD
             )
             imbalanced_scenarios.append(scenario)
 
@@ -277,7 +241,7 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
         balanced_scenarios, report = self.balancer.rebalance_existing_dataset(
             imbalanced_scenarios,
             target_strategy=BalanceStrategy.EQUAL_DISTRIBUTION,
-            max_additions=10,
+            max_additions=10
         )
 
         # Check results
@@ -288,7 +252,8 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
     def test_export_balance_report(self):
         """Test balance report export."""
         report = self.balancer.analyze_dataset_balance(
-            self.test_scenarios, strategy=BalanceStrategy.EQUAL_DISTRIBUTION
+            self.test_scenarios,
+            strategy=BalanceStrategy.EQUAL_DISTRIBUTION
         )
 
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -317,19 +282,16 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
         reports = []
         for _ in range(3):
             report = self.balancer.analyze_dataset_balance(
-                self.test_scenarios, strategy=BalanceStrategy.EQUAL_DISTRIBUTION
+                self.test_scenarios,
+                strategy=BalanceStrategy.EQUAL_DISTRIBUTION
             )
             reports.append(report)
 
         stats = self.balancer.get_balance_statistics(reports)
 
         expected_keys = {
-            "total_reports",
-            "average_balance_score",
-            "score_distribution",
-            "common_recommendations",
-            "strategy_usage",
-            "improvement_trends",
+            "total_reports", "average_balance_score", "score_distribution",
+            "common_recommendations", "strategy_usage", "improvement_trends"
         }
         assert set(stats.keys()) == expected_keys
 
@@ -354,7 +316,7 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
         optimized_scenarios = self.balancer.optimize_dataset_composition(
             target_size,
             strategy=BalanceStrategy.EQUAL_DISTRIBUTION,
-            quality_threshold=0.6,
+            quality_threshold=0.6
         )
 
         assert isinstance(optimized_scenarios, list)
@@ -362,7 +324,8 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
 
         # Verify optimization improved balance
         final_report = self.balancer.analyze_dataset_balance(
-            optimized_scenarios, strategy=BalanceStrategy.EQUAL_DISTRIBUTION
+            optimized_scenarios,
+            strategy=BalanceStrategy.EQUAL_DISTRIBUTION
         )
         assert final_report.balance_score >= 0.0
 
@@ -372,7 +335,7 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
         requirements = {
             "severity_levels": {
                 SeverityLevel.MODERATE.value: 0.3,  # At least 30%
-                SeverityLevel.SEVERE.value: 0.1,  # At least 10%
+                SeverityLevel.SEVERE.value: 0.1     # At least 10%
             }
         }
 
@@ -395,7 +358,7 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
             percentage=0.5,
             target_percentage=0.4,
             deviation=0.1,
-            subcategories={"sub1": 60, "sub2": 40},
+            subcategories={"sub1": 60, "sub2": 40}
         )
 
         assert distribution.category_name == "test_category"
@@ -411,7 +374,7 @@ class TestKnowledgeCategoryBalancer(unittest.TestCase):
             dataset_id="test_dataset",
             total_items=50,
             balance_score=0.75,
-            strategy_used=BalanceStrategy.EQUAL_DISTRIBUTION,
+            strategy_used=BalanceStrategy.EQUAL_DISTRIBUTION
         )
 
         assert report.dataset_id == "test_dataset"

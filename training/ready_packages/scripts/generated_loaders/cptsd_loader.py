@@ -1,3 +1,4 @@
+
 def load_cptsd_datasets():
     """Load CPTSD-specific datasets"""
     from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader
@@ -6,7 +7,7 @@ def load_cptsd_datasets():
     # Tim Fletcher transcripts are CPTSD-focused
     s3_paths = [
         "s3://pixel-data/gdrive/processed/voice_persona/tim_fletcher/...",
-        "s3://pixel-data/gdrive/processed/edge_cases/cptsd/...",
+        "s3://pixel-data/gdrive/processed/edge_cases/cptsd/..."
     ]
 
     cptsd_data = []

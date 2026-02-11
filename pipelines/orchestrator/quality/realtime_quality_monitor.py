@@ -244,7 +244,9 @@ class RealtimeQualityMonitor:
         try:
             # Check for essential fields
             essential_fields = ["content", "messages", "id"]
-            present_essential = sum(1 for field in essential_fields if item.get(field))
+            present_essential = sum(
+                1 for field in essential_fields if item.get(field)
+            )
             score += (present_essential / len(essential_fields)) * 0.4
 
             # Check for metadata

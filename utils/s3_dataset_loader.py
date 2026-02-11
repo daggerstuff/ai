@@ -84,8 +84,7 @@ class S3DatasetLoader:
         # This ensures OVH_S3_BUCKET is always used when set
         self.bucket = os.getenv("OVH_S3_BUCKET", bucket)
         print(
-            f"[DEBUG] S3Loader: env OVH_S3_BUCKET={os.getenv('OVH_S3_BUCKET')}, "
-            f"input bucket={bucket}, final={self.bucket}",
+            f"[DEBUG] S3Loader: env OVH_S3_BUCKET={os.getenv('OVH_S3_BUCKET')}, input bucket={bucket}, final={self.bucket}",
             flush=True,
         )
         self.endpoint_url = endpoint_url or os.getenv(
@@ -113,6 +112,8 @@ class S3DatasetLoader:
                 "or AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY)."
             )
 
+        # Initialize S3 client (OVH S3 compatible)
+        # OVH uses self-signed certificates, so verify=False is required
         # Initialize S3 client (OVH S3 compatible)
         # OVH uses self-signed certificates, so verify=False is required
         verify_ssl = os.getenv("OVH_S3_CA_BUNDLE", True)
@@ -343,12 +344,12 @@ class S3DatasetLoader:
                 raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}") from e
             raise
 
-    def list_datasets(self, prefix: str = "training/v1/") -> list[str]:
+    def list_datasets(self, prefix: str = "gdrive/processed/") -> list[str]:
         """
         List available datasets in S3.
 
         Args:
-            prefix: S3 prefix to search (default: training/v1/)
+            prefix: S3 prefix to search (default: gdrive/processed/)
 
         Returns:
             List of S3 paths
@@ -397,62 +398,50 @@ class S3DatasetLoader:
 
 def get_s3_dataset_path(
     dataset_name: str,
-    stage: str | None = None,
     category: str | None = None,
     bucket: str = "pixel-data",
+    prefer_processed: bool = True,
 ) -> str:
     """
     Get S3 path for dataset - S3 is canonical training data location.
-    Prioritizes training/v1/ structure.
 
     Args:
         dataset_name: Name of the dataset file
-        stage: Training stage (stage1_foundation, stage2_expertise, etc.)
-        category: Category within stage (professional, reasoning, etc.)
+        category: Optional category (cot_reasoning, professional_therapeutic, etc.)
         bucket: S3 bucket name
+        prefer_processed: Prefer processed/canonical structure over raw
 
     Returns:
         S3 path (s3://bucket/path)
     """
     loader = S3DatasetLoader(bucket=bucket)
 
-    # 1. Try new training structure
-    if stage and category:
-        path = f"s3://{bucket}/training/v1/{stage}/{category}/{dataset_name}"
-        if loader.object_exists(path):
-            return path
-
-    # 2. Try knowledge base (books/transcripts)
-    if category in ("books", "transcripts", "knowledge"):
-        path = f"s3://{bucket}/knowledge/{category}/{dataset_name}"
-        if loader.object_exists(path):
-            return path
-
-    # 3. Fallback to legacy processed structure
-    if category:
+    # Try canonical processed structure first
+    if category and prefer_processed:
         path = f"s3://{bucket}/gdrive/processed/{category}/{dataset_name}"
         if loader.object_exists(path):
             return path
 
-    # 4. Fallback to raw structure
-    path = f"s3://{bucket}/gdrive/raw/{dataset_name}"
-    if loader.object_exists(path):
-        return path
+    # Fallback to raw structure
+    if prefer_processed:
+        path = f"s3://{bucket}/gdrive/raw/{dataset_name}"
+        if loader.object_exists(path):
+            return path
 
-    # 5. Fallback to acquired
+    # Fallback to acquired
     path = f"s3://{bucket}/acquired/{dataset_name}"
     if loader.object_exists(path):
         return path
 
-    # Default to new structure for future usage if nothing found
-    if stage and category:
-        return f"s3://{bucket}/training/v1/{stage}/{category}/{dataset_name}"
-    return f"s3://{bucket}/training/v1/misc/{dataset_name}"
+    # If category provided, construct path even if doesn't exist yet
+    if category:
+        return f"s3://{bucket}/gdrive/processed/{category}/{dataset_name}"
+
+    return f"s3://{bucket}/gdrive/raw/{dataset_name}"
 
 
 def load_dataset_from_s3(
     dataset_name: str,
-    stage: str | None = None,
     category: str | None = None,
     cache_local: Path | None = None,
     bucket: str = "pixel-data",
@@ -462,7 +451,6 @@ def load_dataset_from_s3(
 
     Args:
         dataset_name: Name of the dataset file
-        stage: Optional training stage
         category: Optional category for canonical structure
         cache_local: Optional local cache path
         bucket: S3 bucket name
@@ -471,7 +459,7 @@ def load_dataset_from_s3(
         Dataset data
     """
     loader = S3DatasetLoader(bucket=bucket)
-    s3_path = get_s3_dataset_path(dataset_name, stage, category, bucket)
+    s3_path = get_s3_dataset_path(dataset_name, category, bucket)
 
     if dataset_name.endswith(".jsonl"):
         # For JSONL, convert to list

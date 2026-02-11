@@ -49,15 +49,15 @@ def get_embedding_service() -> EmbeddingAgentService:
     global _embedding_service
     if _embedding_service is None:
         config = EmbeddingAgentConfig(
-            model_name=EmbeddingModel(os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")),
+            model_name=EmbeddingModel(
+                os.getenv("EMBEDDING_MODEL", "all-MiniLM-L6-v2")
+            ),
             batch_size=int(os.getenv("EMBEDDING_BATCH_SIZE", "32")),
             max_text_length=int(os.getenv("EMBEDDING_MAX_LENGTH", "512")),
             cache_embeddings=os.getenv("EMBEDDING_CACHE", "true").lower() == "true",
             use_gpu=os.getenv("EMBEDDING_USE_GPU", "false").lower() == "true",
         )
-        project_root = Path(
-            os.getenv("PROJECT_ROOT", Path(__file__).parent.parent.parent.parent)
-        )
+        project_root = Path(os.getenv("PROJECT_ROOT", Path(__file__).parent.parent.parent.parent))
         _embedding_service = EmbeddingAgentService(
             config=config,
             project_root=project_root,
@@ -448,14 +448,12 @@ async def list_models() -> Dict[str, Any]:
     models = []
     for model in EmbeddingModel:
         dim = EmbeddingAgentService.MODEL_DIMENSIONS.get(model, 384)
-        models.append(
-            {
-                "id": model.value,
-                "name": model.name,
-                "dimension": dim,
-                "description": _get_model_description(model),
-            }
-        )
+        models.append({
+            "id": model.value,
+            "name": model.name,
+            "dimension": dim,
+            "description": _get_model_description(model),
+        })
     return {"models": models}
 
 
@@ -516,3 +514,4 @@ if __name__ == "__main__":
         reload=os.getenv("EMBEDDING_AGENT_RELOAD", "false").lower() == "true",
         log_level=os.getenv("LOG_LEVEL", "info").lower(),
     )
+

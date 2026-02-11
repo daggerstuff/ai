@@ -16,22 +16,14 @@ from typing import Any
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-
 class QualityValidationReportUpdater:
     """Updates quality validation reports with new professional dataset data."""
 
     def __init__(self):
         self.base_path = Path("/home/vivi/pixelated/ai")
-        self.old_report_path = (
-            self.base_path
-            / "data/processed/phase_2_professional_datasets/task_5_14_quality_validation/quality_validation_report.json"
-        )
-        self.new_report_path = (
-            self.base_path / "data/processed/quality_validation_updated_report.json"
-        )
-        self.professional_datasets_path = (
-            self.base_path / "data/processed/professional_datasets_final"
-        )
+        self.old_report_path = self.base_path / "data/processed/phase_2_professional_datasets/task_5_14_quality_validation/quality_validation_report.json"
+        self.new_report_path = self.base_path / "data/processed/quality_validation_updated_report.json"
+        self.professional_datasets_path = self.base_path / "data/processed/professional_datasets_final"
 
     def load_old_report(self) -> dict[str, Any]:
         """Load the existing quality validation report."""
@@ -49,9 +41,7 @@ class QualityValidationReportUpdater:
                 counts["psychology_10k"] = sum(1 for _ in f)
 
         # SoulChat2.0
-        soul_file = (
-            self.professional_datasets_path / "soulchat_2_0_complete_no_limits.jsonl"
-        )
+        soul_file = self.professional_datasets_path / "soulchat_2_0_complete_no_limits.jsonl"
         if soul_file.exists():
             with open(soul_file) as f:
                 counts["soulchat_2_0"] = sum(1 for _ in f)
@@ -64,26 +54,20 @@ class QualityValidationReportUpdater:
 
         return counts
 
-    def calculate_new_totals(
-        self, old_report: dict[str, Any], professional_counts: dict[str, int]
-    ) -> dict[str, Any]:
+    def calculate_new_totals(self, old_report: dict[str, Any], professional_counts: dict[str, int]) -> dict[str, Any]:
         """Calculate new totals with updated professional dataset counts."""
 
         # Old professional dataset counts (from the incomplete data)
         old_soulchat_count = 5000  # Was artificially limited
         old_neuro_qa_count = 3398  # Was incomplete
-        old_psychology_count = 0  # Wasn't processed before
-        old_professional_total = (
-            old_soulchat_count + old_neuro_qa_count + old_psychology_count
-        )
+        old_psychology_count = 0   # Wasn't processed before
+        old_professional_total = old_soulchat_count + old_neuro_qa_count + old_psychology_count
 
         # New professional dataset counts
         new_psychology_count = professional_counts.get("psychology_10k", 0)
         new_soulchat_count = professional_counts.get("soulchat_2_0", 0)
         new_neuro_qa_count = professional_counts.get("neuro_qa_sft", 0)
-        new_professional_total = (
-            new_psychology_count + new_soulchat_count + new_neuro_qa_count
-        )
+        new_professional_total = new_psychology_count + new_soulchat_count + new_neuro_qa_count
 
         # Calculate the difference
         professional_increase = new_professional_total - old_professional_total
@@ -107,8 +91,8 @@ class QualityValidationReportUpdater:
             "professional_breakdown": {
                 "psychology_10k": new_psychology_count,
                 "soulchat_2_0": new_soulchat_count,
-                "neuro_qa_sft": new_neuro_qa_count,
-            },
+                "neuro_qa_sft": new_neuro_qa_count
+            }
         }
 
     def create_updated_report(self) -> dict[str, Any]:
@@ -128,17 +112,13 @@ class QualityValidationReportUpdater:
         updated_report = old_report.copy()
 
         # Update validation summary
-        updated_report["validation_summary"].update(
-            {
-                "total_conversations": totals["new_grand_total"],
-                "validation_timestamp": datetime.now(timezone.utc).isoformat(),
-                "professional_datasets_updated": True,
-                "professional_dataset_update_date": datetime.now(
-                    timezone.utc
-                ).isoformat(),
-                "professional_conversations_added": totals["professional_increase"],
-            }
-        )
+        updated_report["validation_summary"].update({
+            "total_conversations": totals["new_grand_total"],
+            "validation_timestamp": datetime.now(timezone.utc).isoformat(),
+            "professional_datasets_updated": True,
+            "professional_dataset_update_date": datetime.now(timezone.utc).isoformat(),
+            "professional_conversations_added": totals["professional_increase"]
+        })
 
         # Add professional dataset details
         updated_report["professional_datasets_update"] = {
@@ -147,13 +127,13 @@ class QualityValidationReportUpdater:
                 "Removed artificial 5,000 conversation limit from SoulChat2.0",
                 "Added complete Psychology-10K dataset (9,846 conversations)",
                 "Updated neuro_qa_SFT_Trainer processing",
-                "Implemented real NLP-based quality validation",
+                "Implemented real NLP-based quality validation"
             ],
             "old_professional_total": totals["old_professional_total"],
             "new_professional_total": totals["new_professional_total"],
             "professional_breakdown": totals["professional_breakdown"],
             "data_location": "data/processed/professional_datasets_final/",
-            "quality_validation": "Real NLP-based validation with clinical accuracy assessment",
+            "quality_validation": "Real NLP-based validation with clinical accuracy assessment"
         }
 
         # Update dataset validations for professional datasets
@@ -173,11 +153,11 @@ class QualityValidationReportUpdater:
                 "therapeutic_score": 0.724,
                 "clinical_accuracy": 0.651,
                 "metadata_score": 1.0,
-                "overall_score": 0.835,
+                "overall_score": 0.835
             },
             "validation_status": "PASSED",
             "data_location": "data/processed/professional_datasets_final/psychology_10k_complete.jsonl",
-            "processing_date": datetime.now(timezone.utc).isoformat(),
+            "processing_date": datetime.now(timezone.utc).isoformat()
         }
 
         updated_report["dataset_validations"]["soulchat_2_0_complete"] = {
@@ -192,12 +172,12 @@ class QualityValidationReportUpdater:
                 "therapeutic_score": 0.780,
                 "clinical_accuracy": 0.750,
                 "metadata_score": 1.0,
-                "overall_score": 0.876,
+                "overall_score": 0.876
             },
             "validation_status": "PASSED",
             "data_location": "data/processed/professional_datasets_final/soulchat_2_0_complete_no_limits.jsonl",
             "processing_date": datetime.now(timezone.utc).isoformat(),
-            "notes": "Removed artificial 5,000 conversation limit, recovered 4,071 conversations",
+            "notes": "Removed artificial 5,000 conversation limit, recovered 4,071 conversations"
         }
 
         updated_report["dataset_validations"]["neuro_qa_sft_complete"] = {
@@ -212,11 +192,11 @@ class QualityValidationReportUpdater:
                 "therapeutic_score": 0.720,
                 "clinical_accuracy": 0.680,
                 "metadata_score": 1.0,
-                "overall_score": 0.830,
+                "overall_score": 0.830
             },
             "validation_status": "PASSED",
             "data_location": "data/processed/professional_datasets_final/neuro_qa_sft_complete.jsonl",
-            "processing_date": datetime.now(timezone.utc).isoformat(),
+            "processing_date": datetime.now(timezone.utc).isoformat()
         }
 
         return updated_report
@@ -254,18 +234,10 @@ class QualityValidationReportUpdater:
 
         logger.info("📊 Quality Validation Report Update Summary:")
         logger.info(f"   Total conversations: {summary['total_conversations']:,}")
-        logger.info(
-            f"   Professional conversations added: {summary['professional_conversations_added']:,}"
-        )
-        logger.info(
-            f"   Psychology-10K: {professional_update['professional_breakdown']['psychology_10k']:,}"
-        )
-        logger.info(
-            f"   SoulChat2.0: {professional_update['professional_breakdown']['soulchat_2_0']:,}"
-        )
-        logger.info(
-            f"   neuro_qa_SFT: {professional_update['professional_breakdown']['neuro_qa_sft']:,}"
-        )
+        logger.info(f"   Professional conversations added: {summary['professional_conversations_added']:,}")
+        logger.info(f"   Psychology-10K: {professional_update['professional_breakdown']['psychology_10k']:,}")
+        logger.info(f"   SoulChat2.0: {professional_update['professional_breakdown']['soulchat_2_0']:,}")
+        logger.info(f"   neuro_qa_SFT: {professional_update['professional_breakdown']['neuro_qa_sft']:,}")
 
         return updated_report
 
@@ -273,4 +245,6 @@ class QualityValidationReportUpdater:
 if __name__ == "__main__":
     updater = QualityValidationReportUpdater()
 
+
     updated_report = updater.run_update()
+

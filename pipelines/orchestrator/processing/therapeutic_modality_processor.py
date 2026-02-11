@@ -16,7 +16,6 @@ logger = get_logger(__name__)
 
 class TherapeuticModality(Enum):
     """Different therapeutic modalities."""
-
     CBT = "cognitive_behavioral_therapy"
     DBT = "dialectical_behavior_therapy"
     PSYCHODYNAMIC = "psychodynamic_therapy"
@@ -34,7 +33,6 @@ class TherapeuticModality(Enum):
 @dataclass
 class ModalityCharacteristics:
     """Characteristics of a therapeutic modality."""
-
     modality: TherapeuticModality
     core_principles: list[str]
     key_techniques: list[str]
@@ -48,7 +46,6 @@ class ModalityCharacteristics:
 @dataclass
 class ProcessedModalityData:
     """Result of modality-specific processing."""
-
     conversations: list[Conversation]
     modality_characteristics: ModalityCharacteristics
     technique_examples: dict[str, list[str]]
@@ -79,14 +76,12 @@ class TherapeuticModalityProcessor:
             "modality_adherence": 0.8,
             "technique_accuracy": 0.85,
             "therapeutic_alliance": 0.8,
-            "intervention_appropriateness": 0.9,
+            "intervention_appropriateness": 0.9
         }
 
         self.logger.info("TherapeuticModalityProcessor initialized")
 
-    def process_modality_data(
-        self, data: list[dict[str, Any]], target_modality: TherapeuticModality
-    ) -> ProcessedModalityData:
+    def process_modality_data(self, data: list[dict[str, Any]], target_modality: TherapeuticModality) -> ProcessedModalityData:
         """
         Process data for a specific therapeutic modality.
 
@@ -109,9 +104,7 @@ class TherapeuticModalityProcessor:
             conversation = self._convert_to_modality_conversation(item, target_modality)
             if conversation:
                 # Assess modality adherence
-                quality_score = self._assess_modality_quality(
-                    conversation, target_modality
-                )
+                quality_score = self._assess_modality_quality(conversation, target_modality)
 
                 if quality_score >= self.quality_thresholds["modality_adherence"]:
                     conversations.append(conversation)
@@ -126,15 +119,10 @@ class TherapeuticModalityProcessor:
 
         # Calculate quality metrics
         quality_metrics = {
-            "average_quality": sum(quality_scores) / len(quality_scores)
-            if quality_scores
-            else 0,
-            "modality_adherence": sum(quality_scores) / len(quality_scores)
-            if quality_scores
-            else 0,
-            "technique_coverage": len(technique_examples)
-            / len(modality_chars.key_techniques),
-            "conversation_count": len(conversations),
+            "average_quality": sum(quality_scores) / len(quality_scores) if quality_scores else 0,
+            "modality_adherence": sum(quality_scores) / len(quality_scores) if quality_scores else 0,
+            "technique_coverage": len(technique_examples) / len(modality_chars.key_techniques),
+            "conversation_count": len(conversations)
         }
 
         processing_stats = {
@@ -142,24 +130,20 @@ class TherapeuticModalityProcessor:
             "processed_items": len(data),
             "accepted_conversations": len(conversations),
             "acceptance_rate": len(conversations) / len(data) if data else 0,
-            "processed_at": datetime.now().isoformat(),
+            "processed_at": datetime.now().isoformat()
         }
 
-        self.logger.info(
-            f"Processed {len(conversations)} conversations for {target_modality.value}"
-        )
+        self.logger.info(f"Processed {len(conversations)} conversations for {target_modality.value}")
 
         return ProcessedModalityData(
             conversations=conversations,
             modality_characteristics=modality_chars,
             technique_examples=technique_examples,
             quality_metrics=quality_metrics,
-            processing_stats=processing_stats,
+            processing_stats=processing_stats
         )
 
-    def _initialize_modality_definitions(
-        self,
-    ) -> dict[TherapeuticModality, ModalityCharacteristics]:
+    def _initialize_modality_definitions(self) -> dict[TherapeuticModality, ModalityCharacteristics]:
         """Initialize definitions for each therapeutic modality."""
         return {
             TherapeuticModality.CBT: ModalityCharacteristics(
@@ -168,22 +152,16 @@ class TherapeuticModalityProcessor:
                     "Thoughts, feelings, and behaviors are interconnected",
                     "Present-focused and problem-solving oriented",
                     "Collaborative therapeutic relationship",
-                    "Homework and skill practice",
+                    "Homework and skill practice"
                 ],
                 key_techniques=[
-                    "cognitive restructuring",
-                    "behavioral activation",
-                    "exposure therapy",
-                    "thought records",
-                    "behavioral experiments",
-                    "homework assignments",
+                    "cognitive restructuring", "behavioral activation", "exposure therapy",
+                    "thought records", "behavioral experiments", "homework assignments"
                 ],
                 therapeutic_focus="Changing maladaptive thought patterns and behaviors",
                 typical_interventions=[
-                    "identify cognitive distortions",
-                    "challenge negative thoughts",
-                    "behavioral scheduling",
-                    "graded exposure",
+                    "identify cognitive distortions", "challenge negative thoughts",
+                    "behavioral scheduling", "graded exposure"
                 ],
                 contraindications=["severe psychosis", "active substance abuse"],
                 evidence_base="Strong empirical support for anxiety, depression, PTSD",
@@ -191,31 +169,26 @@ class TherapeuticModalityProcessor:
                     "agenda_setting": True,
                     "homework_review": True,
                     "skill_practice": True,
-                    "between_session_tasks": True,
-                },
+                    "between_session_tasks": True
+                }
             ),
+
             TherapeuticModality.DBT: ModalityCharacteristics(
                 modality=TherapeuticModality.DBT,
                 core_principles=[
                     "Dialectical thinking and balance",
                     "Mindfulness and acceptance",
                     "Distress tolerance skills",
-                    "Emotion regulation",
+                    "Emotion regulation"
                 ],
                 key_techniques=[
-                    "mindfulness skills",
-                    "distress tolerance",
-                    "emotion regulation",
-                    "interpersonal effectiveness",
-                    "radical acceptance",
-                    "wise mind",
+                    "mindfulness skills", "distress tolerance", "emotion regulation",
+                    "interpersonal effectiveness", "radical acceptance", "wise mind"
                 ],
                 therapeutic_focus="Managing intense emotions and improving relationships",
                 typical_interventions=[
-                    "skills training",
-                    "mindfulness practice",
-                    "crisis survival",
-                    "emotion surfing",
+                    "skills training", "mindfulness practice", "crisis survival",
+                    "emotion surfing"
                 ],
                 contraindications=["unwillingness to commit to treatment"],
                 evidence_base="Strong support for borderline personality disorder",
@@ -223,31 +196,26 @@ class TherapeuticModalityProcessor:
                     "skills_training": True,
                     "individual_therapy": True,
                     "phone_coaching": True,
-                    "therapist_consultation": True,
-                },
+                    "therapist_consultation": True
+                }
             ),
+
             TherapeuticModality.PSYCHODYNAMIC: ModalityCharacteristics(
                 modality=TherapeuticModality.PSYCHODYNAMIC,
                 core_principles=[
                     "Unconscious processes influence behavior",
                     "Past experiences shape present relationships",
                     "Transference and countertransference",
-                    "Defense mechanisms and resistance",
+                    "Defense mechanisms and resistance"
                 ],
                 key_techniques=[
-                    "free association",
-                    "interpretation",
-                    "transference analysis",
-                    "dream analysis",
-                    "defense analysis",
-                    "working through",
+                    "free association", "interpretation", "transference analysis",
+                    "dream analysis", "defense analysis", "working through"
                 ],
                 therapeutic_focus="Understanding unconscious conflicts and patterns",
                 typical_interventions=[
-                    "explore childhood experiences",
-                    "analyze transference",
-                    "interpret defenses",
-                    "work through resistance",
+                    "explore childhood experiences", "analyze transference",
+                    "interpret defenses", "work through resistance"
                 ],
                 contraindications=["severe cognitive impairment", "active psychosis"],
                 evidence_base="Moderate support for personality disorders, depression",
@@ -255,31 +223,26 @@ class TherapeuticModalityProcessor:
                     "free_association": True,
                     "interpretation": True,
                     "process_focus": True,
-                    "long_term_treatment": True,
-                },
+                    "long_term_treatment": True
+                }
             ),
+
             TherapeuticModality.HUMANISTIC: ModalityCharacteristics(
                 modality=TherapeuticModality.HUMANISTIC,
                 core_principles=[
                     "Inherent human potential for growth",
                     "Client-centered approach",
                     "Unconditional positive regard",
-                    "Empathy and genuineness",
+                    "Empathy and genuineness"
                 ],
                 key_techniques=[
-                    "active listening",
-                    "reflection",
-                    "empathy",
-                    "genuineness",
-                    "unconditional positive regard",
-                    "here-and-now focus",
+                    "active listening", "reflection", "empathy", "genuineness",
+                    "unconditional positive regard", "here-and-now focus"
                 ],
                 therapeutic_focus="Facilitating self-actualization and personal growth",
                 typical_interventions=[
-                    "reflect feelings",
-                    "provide empathy",
-                    "facilitate self-exploration",
-                    "support autonomy",
+                    "reflect feelings", "provide empathy", "facilitate self-exploration",
+                    "support autonomy"
                 ],
                 contraindications=["need for structured intervention"],
                 evidence_base="Moderate support across various conditions",
@@ -287,14 +250,12 @@ class TherapeuticModalityProcessor:
                     "client_led": True,
                     "process_oriented": True,
                     "relationship_focus": True,
-                    "non_directive": True,
-                },
-            ),
+                    "non_directive": True
+                }
+            )
         }
 
-    def _initialize_technique_patterns(
-        self,
-    ) -> dict[TherapeuticModality, dict[str, list[str]]]:
+    def _initialize_technique_patterns(self) -> dict[TherapeuticModality, dict[str, list[str]]]:
         """Initialize technique patterns for each modality."""
         return {
             TherapeuticModality.CBT: {
@@ -302,124 +263,84 @@ class TherapeuticModalityProcessor:
                     "what evidence supports this thought",
                     "is there another way to look at this",
                     "what would you tell a friend",
-                    "thought record",
-                    "cognitive distortion",
+                    "thought record", "cognitive distortion"
                 ],
                 "behavioral_activation": [
-                    "activity scheduling",
-                    "behavioral experiment",
-                    "graded task assignment",
-                    "pleasant activities",
+                    "activity scheduling", "behavioral experiment",
+                    "graded task assignment", "pleasant activities"
                 ],
                 "exposure_therapy": [
-                    "gradual exposure",
-                    "hierarchy",
-                    "systematic desensitization",
-                    "in vivo exposure",
-                    "imaginal exposure",
-                ],
+                    "gradual exposure", "hierarchy", "systematic desensitization",
+                    "in vivo exposure", "imaginal exposure"
+                ]
             },
+
             TherapeuticModality.DBT: {
                 "mindfulness": [
-                    "observe",
-                    "describe",
-                    "participate",
-                    "non-judgmentally",
-                    "one-mindfully",
-                    "effectively",
-                    "wise mind",
+                    "observe", "describe", "participate", "non-judgmentally",
+                    "one-mindfully", "effectively", "wise mind"
                 ],
                 "distress_tolerance": [
-                    "TIPP",
-                    "distract",
-                    "self-soothe",
-                    "improve the moment",
-                    "radical acceptance",
-                    "distress tolerance skills",
+                    "TIPP", "distract", "self-soothe", "improve the moment",
+                    "radical acceptance", "distress tolerance skills"
                 ],
                 "emotion_regulation": [
-                    "emotion surfing",
-                    "opposite action",
-                    "PLEASE skills",
-                    "emotion regulation",
-                    "check the facts",
-                ],
+                    "emotion surfing", "opposite action", "PLEASE skills",
+                    "emotion regulation", "check the facts"
+                ]
             },
+
             TherapeuticModality.PSYCHODYNAMIC: {
                 "interpretation": [
-                    "it seems like",
-                    "I wonder if",
-                    "perhaps",
-                    "this reminds me of",
-                    "pattern",
-                    "unconscious",
+                    "it seems like", "I wonder if", "perhaps",
+                    "this reminds me of", "pattern", "unconscious"
                 ],
                 "transference": [
-                    "relationship with me",
-                    "how you experience me",
-                    "feelings toward me",
-                    "transference",
-                    "here and now",
-                ],
+                    "relationship with me", "how you experience me",
+                    "feelings toward me", "transference", "here and now"
+                ]
             },
+
             TherapeuticModality.HUMANISTIC: {
                 "reflection": [
-                    "it sounds like",
-                    "you're feeling",
-                    "I hear",
-                    "what I'm hearing is",
-                    "reflection",
-                    "empathy",
+                    "it sounds like", "you're feeling", "I hear",
+                    "what I'm hearing is", "reflection", "empathy"
                 ],
                 "genuineness": [
-                    "I'm wondering",
-                    "my sense is",
-                    "I notice",
-                    "authentic",
-                    "genuine",
-                    "real",
-                ],
-            },
+                    "I'm wondering", "my sense is", "I notice",
+                    "authentic", "genuine", "real"
+                ]
+            }
         }
 
-    def _convert_to_modality_conversation(
-        self, item: dict[str, Any], modality: TherapeuticModality
-    ) -> Conversation | None:
+    def _convert_to_modality_conversation(self, item: dict[str, Any], modality: TherapeuticModality) -> Conversation | None:
         """Convert data item to modality-specific conversation."""
         try:
             messages = []
 
             # Extract conversation content
             if "therapist" in item and "client" in item:
-                messages.append(
-                    Message(
-                        role="user",
-                        content=str(item["client"]),
-                        timestamp=datetime.now(),
-                    )
-                )
-                messages.append(
-                    Message(
-                        role="assistant",
-                        content=str(item["therapist"]),
-                        timestamp=datetime.now(),
-                    )
-                )
+                messages.append(Message(
+                    role="user",
+                    content=str(item["client"]),
+                    timestamp=datetime.now()
+                ))
+                messages.append(Message(
+                    role="assistant",
+                    content=str(item["therapist"]),
+                    timestamp=datetime.now()
+                ))
             elif "input" in item and "output" in item:
-                messages.append(
-                    Message(
-                        role="user",
-                        content=str(item["input"]),
-                        timestamp=datetime.now(),
-                    )
-                )
-                messages.append(
-                    Message(
-                        role="assistant",
-                        content=str(item["output"]),
-                        timestamp=datetime.now(),
-                    )
-                )
+                messages.append(Message(
+                    role="user",
+                    content=str(item["input"]),
+                    timestamp=datetime.now()
+                ))
+                messages.append(Message(
+                    role="assistant",
+                    content=str(item["output"]),
+                    timestamp=datetime.now()
+                ))
             else:
                 return None
 
@@ -435,18 +356,16 @@ class TherapeuticModalityProcessor:
                 metadata={
                     "therapeutic_modality": modality.value,
                     "modality_specific": True,
-                    "source": "modality_processor",
+                    "source": "modality_processor"
                 },
-                tags=["therapeutic_modality", modality.value, "processed"],
+                tags=["therapeutic_modality", modality.value, "processed"]
             )
 
         except Exception as e:
             self.logger.warning(f"Could not convert item to modality conversation: {e}")
             return None
 
-    def _assess_modality_quality(
-        self, conversation: Conversation, modality: TherapeuticModality
-    ) -> float:
+    def _assess_modality_quality(self, conversation: Conversation, modality: TherapeuticModality) -> float:
         """Assess how well a conversation adheres to a specific modality."""
         try:
             scores = []
@@ -475,21 +394,11 @@ class TherapeuticModalityProcessor:
 
             # Check for therapeutic language
             therapeutic_indicators = [
-                "feel",
-                "think",
-                "experience",
-                "explore",
-                "understand",
-                "support",
-                "help",
-                "work together",
-                "therapy",
-                "therapeutic",
+                "feel", "think", "experience", "explore", "understand",
+                "support", "help", "work together", "therapy", "therapeutic"
             ]
 
-            indicator_count = sum(
-                1 for indicator in therapeutic_indicators if indicator in content
-            )
+            indicator_count = sum(1 for indicator in therapeutic_indicators if indicator in content)
             if indicator_count >= 3:
                 scores.append(0.9)
             elif indicator_count >= 1:
@@ -501,9 +410,7 @@ class TherapeuticModalityProcessor:
             self.logger.warning(f"Could not assess modality quality: {e}")
             return 0.5
 
-    def _extract_techniques(
-        self, conversation: Conversation, modality: TherapeuticModality
-    ) -> dict[str, list[str]]:
+    def _extract_techniques(self, conversation: Conversation, modality: TherapeuticModality) -> dict[str, list[str]]:
         """Extract technique examples from a conversation."""
         techniques = {}
         patterns = self.technique_patterns.get(modality, {})
@@ -528,9 +435,7 @@ class TherapeuticModalityProcessor:
 
         return techniques
 
-    def process_multiple_modalities(
-        self, data: list[dict[str, Any]]
-    ) -> dict[TherapeuticModality, ProcessedModalityData]:
+    def process_multiple_modalities(self, data: list[dict[str, Any]]) -> dict[TherapeuticModality, ProcessedModalityData]:
         """Process data for multiple therapeutic modalities."""
         results = {}
 
@@ -544,26 +449,20 @@ class TherapeuticModalityProcessor:
 
         return results
 
-    def get_modality_comparison(
-        self, results: dict[TherapeuticModality, ProcessedModalityData]
-    ) -> dict[str, Any]:
+    def get_modality_comparison(self, results: dict[TherapeuticModality, ProcessedModalityData]) -> dict[str, Any]:
         """Compare results across different modalities."""
         comparison = {
             "modality_counts": {},
             "quality_comparison": {},
             "technique_coverage": {},
-            "total_conversations": 0,
+            "total_conversations": 0
         }
 
         for modality, data in results.items():
             modality_name = modality.value
             comparison["modality_counts"][modality_name] = len(data.conversations)
-            comparison["quality_comparison"][modality_name] = data.quality_metrics.get(
-                "average_quality", 0
-            )
-            comparison["technique_coverage"][modality_name] = data.quality_metrics.get(
-                "technique_coverage", 0
-            )
+            comparison["quality_comparison"][modality_name] = data.quality_metrics.get("average_quality", 0)
+            comparison["technique_coverage"][modality_name] = data.quality_metrics.get("technique_coverage", 0)
             comparison["total_conversations"] += len(data.conversations)
 
         return comparison

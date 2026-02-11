@@ -109,15 +109,11 @@ def main():
         save_json(valid_data, output_path, batch_name)
 
         if invalid_data:
-            save_json(
-                invalid_data, output_path / "quarantine", f"invalid_{path.name}.json"
-            )
+            save_json(invalid_data, output_path / "quarantine", f"invalid_{path.name}.json")
 
         total_processed += len(valid_data)
 
-    logger.info(
-        f"Phase 2 Processing Completed. Total valid records generated: {total_processed}"
-    )
+    logger.info(f"Phase 2 Processing Completed. Total valid records generated: {total_processed}")
 
 
 if __name__ == "__main__":

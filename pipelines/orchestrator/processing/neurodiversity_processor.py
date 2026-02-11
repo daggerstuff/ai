@@ -15,7 +15,6 @@ logger = get_logger(__name__)
 
 class NeurodivergentType(Enum):
     """Types of neurodivergence."""
-
     AUTISM = "autism"
     ADHD = "adhd"
     DYSLEXIA = "dyslexia"
@@ -38,21 +37,13 @@ class NeurodiversityProcessor:
 
         self.neurodivergent_considerations = {
             NeurodivergentType.AUTISM: [
-                "sensory processing",
-                "communication differences",
-                "routine importance",
-                "special interests",
-                "masking",
-                "stimming",
+                "sensory processing", "communication differences", "routine importance",
+                "special interests", "masking", "stimming"
             ],
             NeurodivergentType.ADHD: [
-                "attention regulation",
-                "hyperactivity",
-                "impulsivity",
-                "executive function",
-                "time blindness",
-                "hyperfocus",
-            ],
+                "attention regulation", "hyperactivity", "impulsivity",
+                "executive function", "time blindness", "hyperfocus"
+            ]
         }
 
         self.affirming_approaches = [
@@ -60,14 +51,12 @@ class NeurodiversityProcessor:
             "accommodation over normalization",
             "sensory-friendly environment",
             "clear communication",
-            "respect for differences",
+            "respect for differences"
         ]
 
         self.logger.info("NeurodiversityProcessor initialized")
 
-    def process_neurodiversity_data(
-        self, data: list[dict[str, Any]]
-    ) -> list[Conversation]:
+    def process_neurodiversity_data(self, data: list[dict[str, Any]]) -> list[Conversation]:
         """Process neurodiversity-aware therapeutic data."""
         conversations = []
 
@@ -79,22 +68,20 @@ class NeurodiversityProcessor:
         self.logger.info(f"Processed {len(conversations)} neurodiversity conversations")
         return conversations
 
-    def _create_neurodiversity_conversation(
-        self, item: dict[str, Any]
-    ) -> Conversation | None:
+    def _create_neurodiversity_conversation(self, item: dict[str, Any]) -> Conversation | None:
         """Create a neurodiversity-aware conversation."""
         try:
             messages = [
                 Message(
                     role="user",
                     content="I'm neurodivergent and looking for therapy that understands my differences.",
-                    timestamp=datetime.now(),
+                    timestamp=datetime.now()
                 ),
                 Message(
                     role="assistant",
                     content="I'm committed to providing neurodiversity-affirming care that honors your unique neurological differences as natural variations, not deficits.",
-                    timestamp=datetime.now(),
-                ),
+                    timestamp=datetime.now()
+                )
             ]
 
             return Conversation(
@@ -102,7 +89,7 @@ class NeurodiversityProcessor:
                 messages=messages,
                 title="Neurodiversity-Affirming Therapy",
                 metadata={"neurodiversity_aware": True, "affirming_approach": True},
-                tags=["neurodiversity", "affirming", "inclusive"],
+                tags=["neurodiversity", "affirming", "inclusive"]
             )
 
         except Exception as e:

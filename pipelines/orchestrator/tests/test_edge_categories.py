@@ -20,10 +20,7 @@ def test_edge_category_enum():
     """Test that EdgeCategory enum has expected values."""
     assert EdgeCategory.SUICIDAL_IDEATION.value == "suicidal_ideation"
     assert EdgeCategory.DOMESTIC_VIOLENCE.value == "domestic_violence"
-    assert (
-        EdgeCategory.BORDERLINE_PERSONALITY_CRISIS.value
-        == "borderline_personality_crisis"
-    )
+    assert EdgeCategory.BORDERLINE_PERSONALITY_CRISIS.value == "borderline_personality_crisis"
 
     # Verify we have at least 20 categories (brief mentions 25+)
     categories = get_all_edge_categories()
@@ -227,9 +224,7 @@ def test_edge_profile_missing_required_fields():
 
 
 # TODO Rename this here and in `test_edge_profile_missing_required_fields`
-def _extracted_from_test_edge_profile_missing_required_fields_12(
-    base_data, arg1, match
-):
+def _extracted_from_test_edge_profile_missing_required_fields_12(base_data, arg1, match):
     # Test missing category
     result = base_data.copy()
     del result[arg1]
@@ -239,9 +234,7 @@ def _extracted_from_test_edge_profile_missing_required_fields_12(
     return result
 
 
-@pytest.mark.parametrize(
-    "tone_enum", [Tone.FOUNDATION, Tone.CLINICAL, Tone.CRISIS_DIRECT]
-)
+@pytest.mark.parametrize("tone_enum", [Tone.FOUNDATION, Tone.CLINICAL, Tone.CRISIS_DIRECT])
 def test_edge_profile_tone_serialization_roundtrip(tone_enum):
     """Test that tone serialization/deserialization preserves all Tone enum values."""
     profile = EdgeProfile(
@@ -258,3 +251,4 @@ def test_edge_profile_tone_serialization_roundtrip(tone_enum):
 
     assert restored.tone == tone_enum
     assert restored.tone.value == tone_enum.value
+

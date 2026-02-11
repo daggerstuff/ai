@@ -25,9 +25,7 @@ class CBTIntegration:
 
     def __init__(self, output_base_path: str = "ai/training/ready_packages/datasets"):
         self.output_base_path = Path(output_base_path)
-        self.cbt_content_path = (
-            self.output_base_path / "stage2_reasoning" / "cbt_content"
-        )
+        self.cbt_content_path = self.output_base_path / "stage2_reasoning" / "cbt_content"
         self._ensure_directories()
 
         # Initialize GenAI Client
@@ -80,10 +78,7 @@ class CBTIntegration:
                     "evidence_for": "[List evidence supporting thought]",
                     "evidence_against": "[List evidence contradicting thought]",
                 },
-                "outcome_emotion": {
-                    "label": emotion,
-                    "intensity_percent": "[Re-rate intensity]",
-                },
+                "outcome_emotion": {"label": emotion, "intensity_percent": "[Re-rate intensity]"},
             },
             "validation_status": "template_verified",
         }
@@ -206,9 +201,7 @@ class CBTIntegration:
             elif item_type == 1:
                 item = self.generate_behavioral_activation("Morning Walk", 3, 5, 7)
             elif item_type == 2:
-                item = self.generate_cognitive_restructuring(
-                    context["negative_thought"]
-                )
+                item = self.generate_cognitive_restructuring(context["negative_thought"])
             else:
                 item = self.get_cbt_session_template(
                     phase=random.choice(["initial", "middle", "termination"])

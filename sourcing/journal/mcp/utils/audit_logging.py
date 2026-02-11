@@ -435,3 +435,4 @@ def create_audit_logger(config: LoggingConfig) -> AuditLogger:
         AuditLogger instance
     """
     return AuditLogger(config)
+

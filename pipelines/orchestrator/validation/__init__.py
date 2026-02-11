@@ -23,3 +23,4 @@ __all__ = [
     "CulturalCompetencyAnalyzer",
     "analyze_cultural_competency",
 ]
+

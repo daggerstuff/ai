@@ -13,22 +13,19 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 from datetime import datetime
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
 
 class ConversationInterfaceBuilder:
     """Builder for immersive conversation interface components"""
-
+    
     def __init__(self):
         self.conversation_components = {}
         self._initialize_conversation_components()
-
+    
     def _initialize_conversation_components(self):
         """Initialize all conversation-specific UI components"""
-
+        
         # Main Chat Interface
         self.conversation_components["chat_interface"] = {
             "component_type": "ChatInterface",
@@ -40,13 +37,13 @@ class ConversationInterfaceBuilder:
                 "Message composition",
                 "Therapeutic response suggestions",
                 "Crisis detection alerts",
-                "Session timing",
-            ],
+                "Session timing"
+            ]
         }
-
+        
         # Client Avatar with Emotional Display
         self.conversation_components["emotional_avatar"] = {
-            "component_type": "EmotionalAvatar",
+            "component_type": "EmotionalAvatar", 
             "react_code": self._generate_emotional_avatar_react(),
             "styling": self._generate_avatar_styles(),
             "features": [
@@ -55,10 +52,10 @@ class ConversationInterfaceBuilder:
                 "Voice tone visualization",
                 "Eye contact patterns",
                 "Stress level indicators",
-                "Breakthrough moment celebrations",
-            ],
+                "Breakthrough moment celebrations"
+            ]
         }
-
+        
         # Message Composer with AI Assistance
         self.conversation_components["message_composer"] = {
             "component_type": "MessageComposer",
@@ -70,10 +67,10 @@ class ConversationInterfaceBuilder:
                 "Intervention type selection",
                 "Character count and guidance",
                 "Send confidence indicator",
-                "Emergency intervention button",
-            ],
+                "Emergency intervention button"
+            ]
         }
-
+        
         # Real-time Feedback Overlay
         self.conversation_components["feedback_overlay"] = {
             "component_type": "FeedbackOverlay",
@@ -85,13 +82,13 @@ class ConversationInterfaceBuilder:
                 "Resistance level monitoring",
                 "Crisis risk alerts",
                 "Breakthrough opportunity highlights",
-                "Supervisor notifications",
-            ],
+                "Supervisor notifications"
+            ]
         }
-
+    
     def _generate_chat_interface_react(self) -> str:
         """Generate React component for main chat interface"""
-        return """
+        return '''
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageBubble } from './MessageBubble';
 import { TypingIndicator } from './TypingIndicator';
@@ -181,11 +178,11 @@ export const ChatInterface = ({
     </div>
   );
 };
-"""
-
+'''
+    
     def _generate_emotional_avatar_react(self) -> str:
         """Generate React component for emotional avatar"""
-        return """
+        return '''
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -321,11 +318,11 @@ export const EmotionalAvatar = ({
     </div>
   );
 };
-"""
-
+'''
+    
     def _generate_message_composer_react(self) -> str:
         """Generate React component for message composer"""
-        return """
+        return '''
 import React, { useState, useEffect } from 'react';
 import { SuggestionPanel } from './SuggestionPanel';
 import { InterventionSelector } from './InterventionSelector';
@@ -504,11 +501,11 @@ export const MessageComposer = ({
     </div>
   );
 };
-"""
-
+'''
+    
     def _generate_chat_interface_styles(self) -> str:
         """Generate CSS styles for chat interface"""
-        return """
+        return '''
 .chat-interface {
   display: flex;
   flex-direction: column;
@@ -604,46 +601,47 @@ export const MessageComposer = ({
     padding: 0.75rem;
   }
 }
-"""
-
+'''
+    
     def save_conversation_components(self) -> Dict[str, str]:
         """Save all conversation interface components"""
-
+        
         ui_dir = Path("ai/platform/ui")
         ui_dir.mkdir(exist_ok=True)
-
+        
         components_dir = ui_dir / "conversation_components"
         components_dir.mkdir(exist_ok=True)
-
+        
         # Save React components
         for component_name, component_data in self.conversation_components.items():
+            
             # Save React component
             react_file = components_dir / f"{component_data['component_type']}.jsx"
-            with open(react_file, "w") as f:
-                f.write(component_data["react_code"])
-
+            with open(react_file, 'w') as f:
+                f.write(component_data['react_code'])
+            
             # Save styles
-            if "styling" in component_data:
+            if 'styling' in component_data:
                 css_file = components_dir / f"{component_data['component_type']}.css"
-                with open(css_file, "w") as f:
-                    f.write(component_data["styling"])
-
+                with open(css_file, 'w') as f:
+                    f.write(component_data['styling'])
+        
         # Save component documentation
         docs_file = components_dir / "README.md"
-        with open(docs_file, "w") as f:
+        with open(docs_file, 'w') as f:
             f.write(self._generate_component_documentation())
-
+        
         logger.info(f"✅ Conversation components saved to {components_dir}")
-
+        
         return {
             "components_saved": len(self.conversation_components),
             "output_directory": str(components_dir),
-            "react_components": list(self.conversation_components.keys()),
+            "react_components": list(self.conversation_components.keys())
         }
-
+    
     def _generate_component_documentation(self) -> str:
         """Generate documentation for conversation components"""
-        return """# Pixelated Empathy Conversation Interface Components
+        return '''# Pixelated Empathy Conversation Interface Components
 
 ## Overview
 These components create an immersive, realistic therapeutic conversation experience between trainees and AI clients.
@@ -697,20 +695,18 @@ import { MessageComposer } from './MessageComposer';
 
 ## Styling
 Each component includes responsive CSS with the Pixelated Empathy theme colors and professional therapeutic design.
-"""
-
+'''
 
 def main():
     """Generate conversation interface components"""
     logger.info("🎨 Generating Conversation Interface Components")
-
+    
     builder = ConversationInterfaceBuilder()
     result = builder.save_conversation_components()
-
+    
     logger.info("✅ Conversation Interface Components Complete!")
     logger.info(f"📱 Components created: {result['components_saved']}")
     logger.info(f"📁 Saved to: {result['output_directory']}")
-
 
 if __name__ == "__main__":
     main()

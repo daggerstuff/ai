@@ -1,5 +1,4 @@
 """Monitoring dashboard types and utilities."""
-
 from enum import Enum
 
 

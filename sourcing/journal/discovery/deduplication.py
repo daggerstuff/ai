@@ -67,14 +67,10 @@ class Deduplicator:
                 deduplicated.append(best)
                 processed_ids.add(best.source_id)
 
-        logger.info(
-            f"Deduplicated {len(sources)} sources to {len(deduplicated)} unique sources"
-        )
+        logger.info(f"Deduplicated {len(sources)} sources to {len(deduplicated)} unique sources")
         return deduplicated
 
-    def _group_by_doi(
-        self, sources: List[DatasetSource]
-    ) -> Dict[str, List[DatasetSource]]:
+    def _group_by_doi(self, sources: List[DatasetSource]) -> Dict[str, List[DatasetSource]]:
         """Group sources by normalized DOI."""
         groups: Dict[str, List[DatasetSource]] = {}
 
@@ -105,9 +101,7 @@ class Deduplicator:
 
         return doi.lower()
 
-    def _group_by_similarity(
-        self, sources: List[DatasetSource]
-    ) -> List[List[DatasetSource]]:
+    def _group_by_similarity(self, sources: List[DatasetSource]) -> List[List[DatasetSource]]:
         """Group sources by title and author similarity."""
         if not sources:
             return []
@@ -238,3 +232,4 @@ class Deduplicator:
         # Sort by score (descending) and return the best
         scored.sort(key=lambda x: x[0], reverse=True)
         return scored[0][1]
+

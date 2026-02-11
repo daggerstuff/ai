@@ -187,9 +187,7 @@ class CommandHandler:
 
                     if interactive:
                         # Allow manual override
-                        override = prompt_for_manual_evaluation_override(
-                            source.source_id
-                        )
+                        override = prompt_for_manual_evaluation_override(source.source_id)
                         if override:
                             for key, value in override.items():
                                 setattr(evaluation, key, value)
@@ -281,26 +279,30 @@ class CommandHandler:
 
                 try:
                     # Submit access request
-                    access_request = (
-                        orchestrator.acquisition_manager.submit_access_request(source)
+                    access_request = orchestrator.acquisition_manager.submit_access_request(
+                        source
                     )
                     state.access_requests.append(access_request)
 
                     # Download dataset
-                    acquired_dataset = (
-                        orchestrator.acquisition_manager.download_dataset(
-                            source, access_request
-                        )
+                    acquired_dataset = orchestrator.acquisition_manager.download_dataset(
+                        source, access_request
                     )
                     state.acquired_datasets.append(acquired_dataset)
                     acquired_count += 1
 
-                    console.print(f"[green]Acquired: {source.source_id}[/green]")
+                    console.print(
+                        f"[green]Acquired: {source.source_id}[/green]"
+                    )
                 except Exception as e:
-                    console.print(f"[red]Error acquiring {source.source_id}: {e}[/red]")
+                    console.print(
+                        f"[red]Error acquiring {source.source_id}: {e}[/red]"
+                    )
                     logger.exception("Acquisition error")
         else:
-            console.print("[yellow]Warning: No acquisition manager configured[/yellow]")
+            console.print(
+                "[yellow]Warning: No acquisition manager configured[/yellow]"
+            )
 
         orchestrator.update_progress(
             session_id, {"datasets_acquired": len(state.acquired_datasets)}
@@ -368,9 +370,7 @@ class CommandHandler:
             for dataset in datasets_to_integrate:
                 if interactive:
                     # Show dataset info
-                    console.print(
-                        f"\n[cyan]Creating plan for: {dataset.source_id}[/cyan]"
-                    )
+                    console.print(f"\n[cyan]Creating plan for: {dataset.source_id}[/cyan]")
 
                 try:
                     plan = orchestrator.integration_engine.create_integration_plan(
@@ -386,14 +386,18 @@ class CommandHandler:
                     state.integration_plans.append(plan)
                     plans_count += 1
 
-                    console.print(f"[green]Created plan: {dataset.source_id}[/green]")
+                    console.print(
+                        f"[green]Created plan: {dataset.source_id}[/green]"
+                    )
                 except Exception as e:
                     console.print(
                         f"[red]Error creating plan for {dataset.source_id}: {e}[/red]"
                     )
                     logger.exception("Integration planning error")
         else:
-            console.print("[yellow]Warning: No integration engine configured[/yellow]")
+            console.print(
+                "[yellow]Warning: No integration engine configured[/yellow]"
+            )
 
         orchestrator.update_progress(
             session_id, {"integration_plans_created": len(state.integration_plans)}
@@ -457,9 +461,7 @@ class CommandHandler:
             sessions_dir = Path(orchestrator._session_storage_path)
             if sessions_dir.exists():
                 session_files = list(sessions_dir.glob("*.json"))
-                console.print(
-                    f"\n[bold blue]Found {len(session_files)} sessions:[/bold blue]\n"
-                )
+                console.print(f"\n[bold blue]Found {len(session_files)} sessions:[/bold blue]\n")
 
                 table = Table(title="Research Sessions")
                 table.add_column("Session ID", style="cyan")
@@ -499,7 +501,9 @@ class CommandHandler:
             "progress_metrics": session.progress_metrics,
             "weekly_targets": session.weekly_targets,
             "sources": [self._source_to_dict(s) for s in state.sources],
-            "evaluations": [self._evaluation_to_dict(e) for e in state.evaluations],
+            "evaluations": [
+                self._evaluation_to_dict(e) for e in state.evaluations
+            ],
             "acquired_datasets": [
                 {
                     "source_id": d.source_id,
@@ -562,3 +566,4 @@ class CommandHandler:
             "estimated_effort_hours": plan.estimated_effort_hours,
             "required_transformations": plan.required_transformations,
         }
+

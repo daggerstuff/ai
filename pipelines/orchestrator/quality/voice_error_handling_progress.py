@@ -12,7 +12,6 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
-
 class VoiceErrorHandlingProgress:
     """Comprehensive error handling and progress tracking for voice processing."""
 
@@ -22,15 +21,13 @@ class VoiceErrorHandlingProgress:
         self.logger = get_logger(__name__)
         logger.info("VoiceErrorHandlingProgress initialized")
 
-    def track_progress(
-        self, task_id: str, progress: float, status: str
-    ) -> dict[str, Any]:
+    def track_progress(self, task_id: str, progress: float, status: str) -> dict[str, Any]:
         """Track progress of voice processing tasks."""
         return {
             "task_id": task_id,
             "progress": progress,
             "status": status,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now().isoformat()
         }
 
     def handle_error(self, error: Exception, context: dict[str, Any]) -> dict[str, Any]:
@@ -39,9 +36,8 @@ class VoiceErrorHandlingProgress:
             "error_handled": True,
             "error_type": type(error).__name__,
             "context": context,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now().isoformat()
         }
-
 
 # Example usage
 if __name__ == "__main__":

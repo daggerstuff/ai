@@ -67,12 +67,7 @@ DEFAULT_S3_PREFIXES = [
 
 # Voice profile path (ai/data/tim_fletcher_voice/tim_fletcher_voice_profile.json)
 # Script is at ai/training_ready/scripts/, so parents[2] = ai/
-VOICE_PROFILE_PATH = (
-    Path(__file__).parents[2]
-    / "data"
-    / "tim_fletcher_voice"
-    / "tim_fletcher_voice_profile.json"
-)
+VOICE_PROFILE_PATH = Path(__file__).parents[2] / "data" / "tim_fletcher_voice" / "tim_fletcher_voice_profile.json"
 
 logger = logging.getLogger(__name__)
 
@@ -96,30 +91,26 @@ def _build_system_prompt(voice_profile: dict[str, Any] | None = None) -> str:
         "Explain CPTSD concepts clearly, with compassion and actionable steps. "
         "Do not include personal identifying information."
     )
-
+    
     if not voice_profile:
         return base_prompt
-
+    
     # Extract key elements from voice profile
     empathy_markers = voice_profile.get("empathy_markers", {})
     teaching_patterns = voice_profile.get("teaching_patterns", [])
     transition_phrases = voice_profile.get("transition_phrases", {})
-
+    
     # Build enhanced prompt with voice characteristics
-    top_empathy = [
-        k for k, _ in sorted(empathy_markers.items(), key=lambda x: -x[1])[:3]
-    ]
-    top_transitions = [
-        k for k, _ in sorted(transition_phrases.items(), key=lambda x: -x[1])[:3]
-    ]
-
+    top_empathy = [k for k, _ in sorted(empathy_markers.items(), key=lambda x: -x[1])[:3]]
+    top_transitions = [k for k, _ in sorted(transition_phrases.items(), key=lambda x: -x[1])[:3]]
+    
     teaching_tips = []
     for p in teaching_patterns[:3]:
         if isinstance(p, dict) and "pattern" in p:
             teaching_tips.append(p["pattern"])
         elif isinstance(p, str):
             teaching_tips.append(p)
-
+    
     enhanced_prompt = (
         f"{base_prompt}\n\n"
         "Voice characteristics:\n"
@@ -129,7 +120,7 @@ def _build_system_prompt(voice_profile: dict[str, Any] | None = None) -> str:
         "- Provide concrete examples and analogies\n"
         "- Acknowledge the difficulty while offering hope and practical steps"
     )
-
+    
     return enhanced_prompt
 
 
@@ -202,7 +193,7 @@ def _list_txt_files_in_dir(
 ) -> list[str]:
     """List all .txt files in a directory (S3 prefix or local)."""
     files: list[str] = []
-
+    
     if input_dir.startswith("s3://"):
         # Parse S3 URI
         without_prefix = input_dir[5:]  # Remove s3://
@@ -211,16 +202,16 @@ def _list_txt_files_in_dir(
         else:
             s3_bucket = without_prefix
             prefix = ""
-
+        
         if loader is None:
             logger.error("S3DatasetLoader required for S3 paths")
             return files
-
+            
         logger.info(f"Scanning S3 prefix: s3://{s3_bucket}/{prefix}")
         try:
             paginator = loader.s3_client.get_paginator("list_objects_v2")
             pages = paginator.paginate(Bucket=s3_bucket, Prefix=prefix)
-
+            
             for page in pages:
                 if "Contents" in page:
                     for obj in page["Contents"]:
@@ -243,13 +234,13 @@ def _list_txt_files_in_dir(
         if loader is None:
             logger.error("S3DatasetLoader required for S3 paths")
             return files
-
+            
         prefix = input_dir
         logger.info(f"Scanning S3 prefix: s3://{bucket}/{prefix}")
         try:
             paginator = loader.s3_client.get_paginator("list_objects_v2")
             pages = paginator.paginate(Bucket=bucket, Prefix=prefix)
-
+            
             for page in pages:
                 if "Contents" in page:
                     for obj in page["Contents"]:
@@ -258,7 +249,7 @@ def _list_txt_files_in_dir(
                             files.append(key)
         except Exception as e:
             logger.error(f"Failed to list S3 objects: {e}")
-
+    
     logger.info(f"Found {len(files)} .txt files")
     return files
 
@@ -273,11 +264,7 @@ def _list_transcript_keys_from_manifest(manifest: dict, *, prefix: str) -> list[
             if isinstance(objs, list):
                 for o in objs:
                     k = o.get("key")
-                    if (
-                        isinstance(k, str)
-                        and k.startswith(prefix)
-                        and k.lower().endswith(".txt")
-                    ):
+                    if isinstance(k, str) and k.startswith(prefix) and k.lower().endswith(".txt"):
                         keys.append(k)
             for v in node.values():
                 walk(v)
@@ -308,17 +295,17 @@ def _load_text(
     """Load text from S3 or local path."""
     if _is_local_path(path):
         return _load_local_text(path)
-
+    
     if loader is None:
         logger.warning(f"S3DatasetLoader required for S3 path: {path}")
         return None
-
+    
     # Handle S3 paths
     if path.startswith("s3://"):
         s3_path = path
     else:
         s3_path = f"s3://{bucket}/{path}"
-
+    
     try:
         return loader.load_text(s3_path)
     except FileNotFoundError:
@@ -367,9 +354,7 @@ def _iter_source_files(
     else:
         # Default: scan default S3 prefixes
         for default_prefix in DEFAULT_S3_PREFIXES:
-            yield from _list_txt_files_in_dir(
-                loader, bucket=bucket, input_dir=default_prefix
-            )
+            yield from _list_txt_files_in_dir(loader, bucket=bucket, input_dir=default_prefix)
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
@@ -410,9 +395,7 @@ Examples:
     )
     parser.add_argument(
         "--output",
-        default=str(
-            Path(__file__).parents[1] / "data" / "generated" / "cptsd_transcripts.jsonl"
-        ),
+        default=str(Path(__file__).parents[1] / "data" / "generated" / "cptsd_transcripts.jsonl"),
         metavar="PATH",
         help="Output JSONL file path (default: ai/training_ready/data/generated/cptsd_transcripts.jsonl)",
     )
@@ -461,7 +444,7 @@ def _load_s3_manifest(manifest_path: Path) -> tuple[str, str, dict | None]:
     if not manifest_path.exists():
         logger.warning(f"Manifest not found: {manifest_path}")
         return "pixel-data", "https://s3.us-east-va.io.cloud.ovh.us", None
-
+    
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     bucket = manifest.get("bucket", "pixel-data")
     endpoint = manifest.get("endpoint", "https://s3.us-east-va.io.cloud.ovh.us")
@@ -476,14 +459,12 @@ def main() -> int:
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)s - %(levelname)s - %(message)s"
-        if args.verbose
-        else "%(message)s",
+        format="%(asctime)s - %(levelname)s - %(message)s" if args.verbose else "%(message)s",
     )
 
     # Load manifest for S3 config
     bucket, endpoint, manifest = _load_s3_manifest(Path(args.manifest))
-
+    
     # Initialize S3 loader if needed (for S3 sources or uploads)
     loader: S3DatasetLoader | None = None
     needs_s3 = (
@@ -492,7 +473,7 @@ def main() -> int:
         or (not args.input_dir and not args.source_key)  # Using default S3 sources
         or any(not _is_local_path(k) for k in args.source_key)
     )
-
+    
     if needs_s3:
         try:
             loader = S3DatasetLoader(bucket=bucket, endpoint_url=endpoint)
@@ -501,7 +482,7 @@ def main() -> int:
             if not args.input_dir or not _is_local_path(args.input_dir):
                 return 1
             logger.info("Continuing with local files only")
-
+    
     # Load voice profile for enhanced system prompts
     voice_profile = None
     if not args.no_voice_profile:
@@ -510,28 +491,26 @@ def main() -> int:
             logger.info("✓ Loaded Tim Fletcher voice profile")
         else:
             logger.info("Voice profile not found, using standard prompts")
-
+    
     system_prompt = _build_system_prompt(voice_profile)
-
+    
     # Collect source files
-    source_files = list(
-        _iter_source_files(
-            loader,
-            bucket=bucket,
-            source_keys=args.source_key,
-            input_dir=args.input_dir,
-            manifest=manifest,
-            prefix=args.prefix,
-        )
-    )
-
+    source_files = list(_iter_source_files(
+        loader,
+        bucket=bucket,
+        source_keys=args.source_key,
+        input_dir=args.input_dir,
+        manifest=manifest,
+        prefix=args.prefix,
+    ))
+    
     if args.max_files > 0:
-        source_files = source_files[: args.max_files]
-
+        source_files = source_files[:args.max_files]
+    
     if not source_files:
         logger.error("No source files found to process")
         return 1
-
+    
     logger.info(f"Processing {len(source_files)} transcript file(s)")
 
     out_path = Path(args.output)
@@ -555,16 +534,16 @@ def main() -> int:
                 display_path = source_path
             else:
                 display_path = f"s3://{bucket}/{source_path}"
-
+            
             if args.verbose:
                 logger.info(f"[{idx}/{len(source_files)}] Processing: {display_path}")
-
+            
             # Load text
             raw = _load_text(loader, source_path, bucket)
             if not raw:
                 files_skipped += 1
                 continue
-
+            
             cleaned = _clean_text(raw)
             if not cleaned:
                 files_skipped += 1
@@ -579,9 +558,9 @@ def main() -> int:
             files_processed += 1
             file_written = 0
 
-            chunks_to_use = chunks[: args.max_chunks_per_file]
+            chunks_to_use = chunks[:args.max_chunks_per_file]
             total_chunks = len(chunks_to_use)
-
+            
             for chunk_index, chunk in enumerate(chunks_to_use):
                 record = {
                     "messages": [
@@ -607,12 +586,7 @@ def main() -> int:
                             "processing_pipeline": "build_cptsd_dataset_from_transcripts",
                             "processed_at": datetime.now(timezone.utc).isoformat(),
                             "dedup_status": "unique",
-                            "processing_steps": [
-                                "text_clean",
-                                "pii_redact",
-                                "chunk",
-                                "chatml_convert",
-                            ],
+                            "processing_steps": ["text_clean", "pii_redact", "chunk", "chatml_convert"],
                             "voice_profile_used": voice_profile is not None,
                         },
                     },
@@ -624,12 +598,10 @@ def main() -> int:
 
             sources_kept[source_path] = file_written
             chunk_hist[str(min(len(chunks), 25))] += 1
-
+            
             # Progress logging
             if idx - last_progress_log >= PROGRESS_LOG_INTERVAL:
-                logger.info(
-                    f"  Progress: {idx:,}/{len(source_files):,} files, {written:,} examples written"
-                )
+                logger.info(f"  Progress: {idx:,}/{len(source_files):,} files, {written:,} examples written")
                 last_progress_log = idx
 
     # Build stats
@@ -648,15 +620,11 @@ def main() -> int:
         "examples_written": written,
         "max_chunks_per_file": args.max_chunks_per_file,
         "voice_profile_used": voice_profile is not None,
-        "chunk_histogram_capped_25": dict(
-            sorted(chunk_hist.items(), key=lambda x: int(x[0]))
-        ),
+        "chunk_histogram_capped_25": dict(sorted(chunk_hist.items(), key=lambda x: int(x[0]))),
     }
 
     stats_path = out_path.with_name("cptsd_transcripts_stats.json")
-    stats_path.write_text(
-        json.dumps(stats, indent=2, ensure_ascii=False), encoding="utf-8"
-    )
+    stats_path.write_text(json.dumps(stats, indent=2, ensure_ascii=False), encoding="utf-8")
 
     # Summary
     logger.info("")
@@ -673,22 +641,18 @@ def main() -> int:
         if loader is None:
             logger.error("Cannot upload to S3: S3DatasetLoader not initialized")
             return 1
-
+            
         logger.info("")
         logger.info("Uploading to S3...")
-
+        
         # Upload main output
         output_s3_key = f"{args.s3_output_prefix}/cptsd_transcripts.jsonl"
-        success1 = _upload_to_s3(
-            loader, local_path=out_path, s3_key=output_s3_key, bucket=bucket
-        )
-
+        success1 = _upload_to_s3(loader, local_path=out_path, s3_key=output_s3_key, bucket=bucket)
+        
         # Upload stats
         stats_s3_key = f"{args.s3_output_prefix}/cptsd_transcripts_stats.json"
-        success2 = _upload_to_s3(
-            loader, local_path=stats_path, s3_key=stats_s3_key, bucket=bucket
-        )
-
+        success2 = _upload_to_s3(loader, local_path=stats_path, s3_key=stats_s3_key, bucket=bucket)
+        
         if success1 and success2:
             logger.info(f"✓ Uploaded to s3://{bucket}/{args.s3_output_prefix}/")
         else:

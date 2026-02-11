@@ -13,9 +13,7 @@ from pathlib import Path
 from typing import Any
 
 # Setup logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -69,9 +67,7 @@ class LocalDryRunTester:
 
         # Check data file sizes
         ultimate_dataset_size = file_sizes.get("data/ULTIMATE_FINAL_DATASET.jsonl", 0)
-        logger.info(
-            f"📊 ULTIMATE_FINAL_DATASET.jsonl: {ultimate_dataset_size / (1024**3):.2f}GB"
-        )
+        logger.info(f"📊 ULTIMATE_FINAL_DATASET.jsonl: {ultimate_dataset_size / (1024**3):.2f}GB")
 
         if ultimate_dataset_size < 1000000:  # Less than 1MB indicates problem
             logger.warning("⚠️ ULTIMATE_FINAL_DATASET.jsonl seems too small")
@@ -103,16 +99,10 @@ class LocalDryRunTester:
 
                 # Validate key fields exist
                 if config_file == "config/enhanced_training_config.json":
-                    required_keys = [
-                        "base_model",
-                        "kan28_components",
-                        "training_parameters",
-                    ]
+                    required_keys = ["base_model", "kan28_components", "training_parameters"]
                     missing_keys = [key for key in required_keys if key not in config]
                     if missing_keys:
-                        config_errors.append(
-                            f"{config_file}: missing keys {missing_keys}"
-                        )
+                        config_errors.append(f"{config_file}: missing keys {missing_keys}")
 
                 logger.info(f"✅ {config_file}: Valid JSON")
 
@@ -126,10 +116,7 @@ class LocalDryRunTester:
                 config_errors.append(error_msg)
 
         if config_errors:
-            self.test_results["configuration"] = {
-                "passed": False,
-                "errors": config_errors,
-            }
+            self.test_results["configuration"] = {"passed": False, "errors": config_errors}
             return False
 
         logger.info("✅ All configuration files valid")
@@ -146,9 +133,7 @@ class LocalDryRunTester:
         # Test unified 6-component dataset
         component_file = self.package_root / "data/unified_6_component_dataset.jsonl"
         if component_file.exists():
-            component_stats = self._test_jsonl_file(
-                component_file, "6-component dataset"
-            )
+            component_stats = self._test_jsonl_file(component_file, "6-component dataset")
             data_tests["unified_6_component"] = component_stats
         else:
             logger.error("❌ Missing unified_6_component_dataset.jsonl")
@@ -187,12 +172,7 @@ class LocalDryRunTester:
 
         logger.info(f"  📄 Testing {description}...")
 
-        stats = {
-            "valid": True,
-            "total_lines": 0,
-            "valid_json_lines": 0,
-            "sample_conversations": [],
-        }
+        stats = {"valid": True, "total_lines": 0, "valid_json_lines": 0, "sample_conversations": []}
 
         try:
             with open(file_path) as f:
@@ -206,12 +186,8 @@ class LocalDryRunTester:
 
                             # Collect samples
                             if (
-                                sample_size
-                                and len(stats["sample_conversations"]) < sample_size
-                            ) or (
-                                not sample_size
-                                and len(stats["sample_conversations"]) < 5
-                            ):
+                                sample_size and len(stats["sample_conversations"]) < sample_size
+                            ) or (not sample_size and len(stats["sample_conversations"]) < 5):
                                 stats["sample_conversations"].append(conv_data)
 
                         except json.JSONDecodeError:
@@ -289,9 +265,7 @@ class LocalDryRunTester:
         except json.JSONDecodeError:
             return None
 
-    def _update_component_counts(
-        self, conv: dict, components_found: dict, expected: set
-    ) -> None:
+    def _update_component_counts(self, conv: dict, components_found: dict, expected: set) -> None:
         """Update component counts from conversation data"""
         if "integration_metadata" not in conv:
             return
@@ -301,9 +275,7 @@ class LocalDryRunTester:
             if component in expected:
                 components_found[component] = components_found.get(component, 0) + 1
 
-    def _update_expert_counts(
-        self, conv: dict, experts_found: dict, expected: set
-    ) -> None:
+    def _update_expert_counts(self, conv: dict, experts_found: dict, expected: set) -> None:
         """Update expert voice counts from conversation data"""
         if "expert_voices" not in conv or not isinstance(conv["expert_voices"], dict):
             return
@@ -341,13 +313,11 @@ class LocalDryRunTester:
 
         if validation["components_found"]:
             logger.info(
-                "    ✅ Components found: %s",
-                sorted(validation["components_found"].keys()),
+                "    ✅ Components found: %s", sorted(validation["components_found"].keys())
             )
         if validation["expert_voices_found"]:
             logger.info(
-                "    ✅ Expert voices found: %s",
-                sorted(validation["expert_voices_found"].keys()),
+                "    ✅ Expert voices found: %s", sorted(validation["expert_voices_found"].keys())
             )
 
     def test_script_imports(self) -> bool:
@@ -384,10 +354,7 @@ class LocalDryRunTester:
                 import_errors.append(error_msg)
 
         if import_errors:
-            self.test_results["script_imports"] = {
-                "passed": False,
-                "errors": import_errors,
-            }
+            self.test_results["script_imports"] = {"passed": False, "errors": import_errors}
             return False
 
         logger.info("✅ All scripts importable")
@@ -404,8 +371,7 @@ class LocalDryRunTester:
                 config = json.load(f)
 
             compatibility_checks = {
-                "base_model_valid": "base_model" in config
-                and bool(config["base_model"]),
+                "base_model_valid": "base_model" in config and bool(config["base_model"]),
                 "h100_optimizations": "h100_optimizations" in config,
                 "lora_config_present": "lora_config" in config,
                 "kan28_components": "kan28_components" in config,
@@ -422,9 +388,7 @@ class LocalDryRunTester:
             passed_checks = sum(int(check) for check in compatibility_checks.values())
             total_checks = len(compatibility_checks)
 
-            logger.info(
-                f"  📊 Compatibility: {passed_checks}/{total_checks} checks passed"
-            )
+            logger.info(f"  📊 Compatibility: {passed_checks}/{total_checks} checks passed")
 
             for check_name, passed in compatibility_checks.items():
                 status = "✅" if passed else "❌"
@@ -442,10 +406,7 @@ class LocalDryRunTester:
 
         except Exception as e:
             logger.error(f"❌ Lightning.ai compatibility test failed: {e}")
-            self.test_results["lightning_compatibility"] = {
-                "passed": False,
-                "error": str(e),
-            }
+            self.test_results["lightning_compatibility"] = {"passed": False, "error": str(e)}
             return False
 
     def generate_test_report(self) -> str:
@@ -453,9 +414,7 @@ class LocalDryRunTester:
 
         report_path = self.package_root / "DRY_RUN_TEST_REPORT.json"
 
-        overall_success = all(
-            result.get("passed", False) for result in self.test_results.values()
-        )
+        overall_success = all(result.get("passed", False) for result in self.test_results.values())
 
         test_report = {
             "test_timestamp": "2024-10-28",
@@ -475,12 +434,8 @@ class LocalDryRunTester:
                 "Upload package to Lightning.ai Studio"
                 if overall_success
                 else "Fix failing tests first",
-                "Run quick_start.py"
-                if overall_success
-                else "Address configuration issues",
-                "Monitor training with W&B"
-                if overall_success
-                else "Validate data files",
+                "Run quick_start.py" if overall_success else "Address configuration issues",
+                "Monitor training with W&B" if overall_success else "Validate data files",
             ],
         }
 

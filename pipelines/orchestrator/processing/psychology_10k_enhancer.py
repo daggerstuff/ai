@@ -17,14 +17,13 @@ sys.path.insert(0, str(project_root))
 
 logger = logging.getLogger(__name__)
 
-
 class Psychology10kEnhancer:
     """Enhancer for psychology knowledge base with psychology-10k data."""
 
     def __init__(
         self,
         knowledge_base_path: str = "ai/models/pixel_core/knowledge/enhanced_psychology_knowledge_base.json",
-        psychology_10k_path: str = "ai/training_data_consolidated/psychology_10k_processed.jsonl",
+        psychology_10k_path: str = "ai/training_data_consolidated/psychology_10k_processed.jsonl"
     ):
         """Initialize the enhancer with paths to the knowledge base and psychology-10k data."""
         self.knowledge_base_path = Path(knowledge_base_path)
@@ -34,24 +33,18 @@ class Psychology10kEnhancer:
     def load_knowledge_base(self) -> Dict[str, Any]:
         """Load the existing psychology knowledge base."""
         if not self.knowledge_base_path.exists():
-            raise FileNotFoundError(
-                f"Knowledge base not found: {self.knowledge_base_path}"
-            )
+            raise FileNotFoundError(f"Knowledge base not found: {self.knowledge_base_path}")
 
         with open(self.knowledge_base_path, "r", encoding="utf-8") as f:
             knowledge_base = json.load(f)
 
-        logger.info(
-            f"Loaded psychology knowledge base with {len(knowledge_base.get('concepts', {}))} concepts"
-        )
+        logger.info(f"Loaded psychology knowledge base with {len(knowledge_base.get('concepts', {}))} concepts")
         return knowledge_base
 
     def load_psychology_10k_data(self) -> List[Dict[str, Any]]:
         """Load the processed psychology-10k data."""
         if not self.psychology_10k_path.exists():
-            raise FileNotFoundError(
-                f"psychology-10k data not found: {self.psychology_10k_path}"
-            )
+            raise FileNotFoundError(f"psychology-10k data not found: {self.psychology_10k_path}")
 
         psychology_10k_data = []
         with open(self.psychology_10k_path, "r", encoding="utf-8") as f:
@@ -62,19 +55,13 @@ class Psychology10kEnhancer:
                     entry = json.loads(line)
                     psychology_10k_data.append(entry)
                 except json.JSONDecodeError as e:
-                    logger.warning(
-                        f"Failed to parse line {line_num} in psychology-10k data: {e}"
-                    )
+                    logger.warning(f"Failed to parse line {line_num} in psychology-10k data: {e}")
                     continue
 
-        logger.info(
-            f"Loaded {len(psychology_10k_data)} entries from psychology-10k data"
-        )
+        logger.info(f"Loaded {len(psychology_10k_data)} entries from psychology-10k data")
         return psychology_10k_data
 
-    def extract_therapeutic_examples(
-        self, psychology_10k_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    def extract_therapeutic_examples(self, psychology_10k_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Extract therapeutic conversation examples for knowledge enhancement."""
         therapeutic_examples = []
 
@@ -98,8 +85,8 @@ class Psychology10kEnhancer:
                     "confidence_score": 0.95,
                     "therapeutic_example_metadata": {
                         "conversation_id": entry.get("conversation_id", ""),
-                        "source": entry.get("source", ""),
-                    },
+                        "source": entry.get("source", "")
+                    }
                 }
 
                 therapeutic_examples.append(therapeutic_concept)
@@ -107,9 +94,7 @@ class Psychology10kEnhancer:
         logger.info(f"Extracted {len(therapeutic_examples)} therapeutic examples")
         return therapeutic_examples
 
-    def enhance_knowledge_base(
-        self, knowledge_base: Dict[str, Any], therapeutic_examples: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+    def enhance_knowledge_base(self, knowledge_base: Dict[str, Any], therapeutic_examples: List[Dict[str, Any]]) -> Dict[str, Any]:
         """Enhance the knowledge base with therapeutic examples."""
         # Create a copy of the knowledge base
         enhanced_kb = json.loads(json.dumps(knowledge_base))
@@ -131,14 +116,10 @@ class Psychology10kEnhancer:
         enhanced_kb["metadata"]["psychology_10k_count"] = len(therapeutic_examples)
         enhanced_kb["metadata"]["enhancement_timestamp"] = "2025-12-25"
 
-        logger.info(
-            f"Enhanced knowledge base with {len(therapeutic_examples)} therapeutic examples"
-        )
+        logger.info(f"Enhanced knowledge base with {len(therapeutic_examples)} therapeutic examples")
         return enhanced_kb
 
-    def save_enhanced_knowledge_base(
-        self, enhanced_kb: Dict[str, Any], output_path: str
-    ) -> None:
+    def save_enhanced_knowledge_base(self, enhanced_kb: Dict[str, Any], output_path: str) -> None:
         """Save the enhanced knowledge base to a file."""
         output_file = Path(output_path)
         output_file.parent.mkdir(parents=True, exist_ok=True)
@@ -148,14 +129,9 @@ class Psychology10kEnhancer:
 
         logger.info(f"Saved enhanced knowledge base to {output_file}")
 
-    def enhance(
-        self,
-        output_path: str = "ai/models/pixel_core/knowledge/further_enhanced_psychology_knowledge_base.json",
-    ) -> None:
+    def enhance(self, output_path: str = "ai/models/pixel_core/knowledge/further_enhanced_psychology_knowledge_base.json") -> None:
         """Main enhancement process."""
-        logger.info(
-            "Starting psychology knowledge base enhancement with psychology-10k data"
-        )
+        logger.info("Starting psychology knowledge base enhancement with psychology-10k data")
 
         # Load existing knowledge base
         knowledge_base = self.load_knowledge_base()
@@ -174,28 +150,25 @@ class Psychology10kEnhancer:
 
         logger.info("Psychology knowledge base enhancement complete")
 
-
 def main():
     """Main function to enhance the psychology knowledge base."""
     import argparse
 
-    parser = argparse.ArgumentParser(
-        description="Enhance psychology knowledge base with psychology-10k data"
-    )
+    parser = argparse.ArgumentParser(description="Enhance psychology knowledge base with psychology-10k data")
     parser.add_argument(
         "--knowledge-base-path",
         default="ai/models/pixel_core/knowledge/enhanced_psychology_knowledge_base.json",
-        help="Path to the existing psychology knowledge base",
+        help="Path to the existing psychology knowledge base"
     )
     parser.add_argument(
         "--psychology-10k-path",
         default="ai/training_data_consolidated/psychology_10k_processed.jsonl",
-        help="Path to the processed psychology-10k data",
+        help="Path to the processed psychology-10k data"
     )
     parser.add_argument(
         "--output-path",
         default="ai/models/pixel_core/knowledge/further_enhanced_psychology_knowledge_base.json",
-        help="Path to save the enhanced knowledge base",
+        help="Path to save the enhanced knowledge base"
     )
 
     args = parser.parse_args()
@@ -203,14 +176,14 @@ def main():
     # Setup logging
     logging.basicConfig(
         level=logging.INFO,
-        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
 
     try:
         # Enhance the knowledge base
         enhancer = Psychology10kEnhancer(
             knowledge_base_path=args.knowledge_base_path,
-            psychology_10k_path=args.psychology_10k_path,
+            psychology_10k_path=args.psychology_10k_path
         )
         enhancer.enhance(output_path=args.output_path)
 
@@ -220,7 +193,6 @@ def main():
     except Exception as e:
         logger.error(f"Error enhancing knowledge base: {e}")
         raise
-
 
 if __name__ == "__main__":
     main()

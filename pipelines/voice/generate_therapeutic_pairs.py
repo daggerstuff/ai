@@ -10,9 +10,7 @@ os.makedirs(THERAPEUTIC_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 logging.basicConfig(
-    filename=LOG_FILE,
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
+    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
 # Thresholds for therapeutic selection (can be tuned)
@@ -60,9 +58,7 @@ def main():
     out_path = os.path.join(THERAPEUTIC_DIR, "therapeutic_pairs.json")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(therapeutic_pairs, f, indent=2)
-    logging.info(
-        f"Selected {len(therapeutic_pairs)} therapeutic pairs. Saved to {out_path}"
-    )
+    logging.info(f"Selected {len(therapeutic_pairs)} therapeutic pairs. " f"Saved to {out_path}")
 
 
 if __name__ == "__main__":
