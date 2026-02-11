@@ -309,13 +309,7 @@ class ZenodoClient:
             doi = None
             doi_list = metadata.get("doi", "")
             if doi_list:
-                doi = (
-                    doi_list
-                    if isinstance(doi_list, str)
-                    else doi_list[0]
-                    if isinstance(doi_list, list)
-                    else None
-                )
+                doi = doi_list if isinstance(doi_list, str) else doi_list[0] if isinstance(doi_list, list) else None
 
             # Extract abstract/description
             abstract = metadata.get("description", "")
@@ -331,9 +325,7 @@ class ZenodoClient:
 
             # Extract URL
             links = record.get("links", {})
-            url = links.get("html") or links.get(
-                "self", f"https://zenodo.org/record/{id}"
-            )
+            url = links.get("html") or links.get("self", f"https://zenodo.org/record/{id}")
 
             # Generate source ID
             source_id = f"zenodo_{id}"
@@ -423,7 +415,7 @@ class ClinicalTrialsClient:
         if condition:
             query_parts.append(f'CONDITION:"{condition}"')
 
-        query_parts.append(f"STATUS:{status}")
+        query_parts.append(f'STATUS:{status}')
 
         # Add therapeutic terms
         therapeutic_terms = ["therapy", "counseling", "psychotherapy", "mental health"]
@@ -514,9 +506,7 @@ class ClinicalTrialsClient:
             url = f"https://clinicaltrials.gov/study/{nct_id}"
 
             # Check data availability
-            data_availability = (
-                "upon_request"  # Clinical trials typically require request
-            )
+            data_availability = "upon_request"  # Clinical trials typically require request
 
             # Generate source ID
             source_id = f"clinical_trial_{nct_id}"
@@ -555,3 +545,4 @@ class ClinicalTrialsClient:
             pass
 
         return datetime.now()
+

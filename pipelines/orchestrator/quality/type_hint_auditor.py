@@ -15,11 +15,9 @@ from typing import Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 @dataclass
 class TypeHintIssue:
     """Represents a type hint issue found during audit."""
-
     file_path: str
     line_number: int
     issue_type: str
@@ -28,11 +26,9 @@ class TypeHintIssue:
     suggestion: str
     function_name: str
 
-
 @dataclass
 class TypeHintAuditReport:
     """Comprehensive type hint audit report."""
-
     total_files: int
     total_functions: int
     total_methods: int
@@ -42,7 +38,6 @@ class TypeHintAuditReport:
     coverage_score: float
     quality_score: float
     import_suggestions: set[str]
-
 
 class TypeHintAuditor:
     """
@@ -73,18 +68,13 @@ class TypeHintAuditor:
             "dict": "Dict",
             "tuple": "Tuple",
             "set": "Set",
-            "None": "None",
+            "None": "None"
         }
 
         # Functions that typically don't need return type hints
         self.skip_return_hint = {
-            "__init__",
-            "__enter__",
-            "__exit__",
-            "setUp",
-            "tearDown",
-            "setup_method",
-            "teardown_method",
+            "__init__", "__enter__", "__exit__", "setUp", "tearDown",
+            "setup_method", "teardown_method"
         }
 
         # Severity weights for scoring
@@ -92,7 +82,7 @@ class TypeHintAuditor:
             "critical": 1.0,
             "high": 0.8,
             "medium": 0.5,
-            "low": 0.2,
+            "low": 0.2
         }
 
     def audit_directory(self, directory_path: str) -> TypeHintAuditReport:
@@ -145,12 +135,10 @@ class TypeHintAuditor:
             issues=self.issues.copy(),
             coverage_score=coverage_score,
             quality_score=quality_score,
-            import_suggestions=self.import_suggestions.copy(),
+            import_suggestions=self.import_suggestions.copy()
         )
 
-        logger.info(
-            f"Type hint audit complete: {total_files} files, {len(self.issues)} issues found"
-        )
+        logger.info(f"Type hint audit complete: {total_files} files, {len(self.issues)} issues found")
         return report
 
     def _audit_file(self, file_path: str) -> dict[str, int]:
@@ -201,17 +189,12 @@ class TypeHintAuditor:
                 "functions": functions,
                 "methods": methods,
                 "typed_functions": typed_functions,
-                "typed_methods": typed_methods,
+                "typed_methods": typed_methods
             }
 
         except Exception as e:
             logger.error(f"Error auditing file {file_path}: {e}")
-            return {
-                "functions": 0,
-                "methods": 0,
-                "typed_functions": 0,
-                "typed_methods": 0,
-            }
+            return {"functions": 0, "methods": 0, "typed_functions": 0, "typed_methods": 0}
 
     def _get_existing_imports(self, tree: ast.AST) -> set[str]:
         """Get existing typing imports from the AST."""
@@ -241,13 +224,12 @@ class TypeHintAuditor:
         has_param_hints = any(arg.annotation is not None for arg in node.args.args)
 
         # Check return type (skip certain functions)
-        has_return_hint = node.returns is not None or node.name in self.skip_return_hint
+        has_return_hint = (node.returns is not None or
+                          node.name in self.skip_return_hint)
 
         return has_param_hints or has_return_hint
 
-    def _add_type_hint_issue(
-        self, node: ast.FunctionDef, file_path: str, func_type: str
-    ) -> None:
+    def _add_type_hint_issue(self, node: ast.FunctionDef, file_path: str, func_type: str) -> None:
         """Add a type hint issue for a function/method."""
         severity = "high" if func_type == "function" else "medium"
 
@@ -266,44 +248,33 @@ class TypeHintAuditor:
             severity=severity,
             description=f"{func_type.title()} '{node.name}' missing type hints",
             suggestion=self._generate_type_hint_suggestion(node),
-            function_name=node.name,
+            function_name=node.name
         )
         self.issues.append(issue)
 
-    def _check_type_hint_quality(
-        self, node: ast.FunctionDef, file_path: str, existing_imports: set[str]
-    ) -> None:
+    def _check_type_hint_quality(self, node: ast.FunctionDef, file_path: str,
+                                existing_imports: set[str]) -> None:
         """Check the quality of existing type hints."""
         # Check for generic types without proper imports
         for arg in node.args.args:
             if arg.annotation:
-                self._check_annotation_quality(
-                    arg.annotation, file_path, node.lineno, existing_imports, node.name
-                )
+                self._check_annotation_quality(arg.annotation, file_path, node.lineno,
+                                              existing_imports, node.name)
 
         if node.returns:
-            self._check_annotation_quality(
-                node.returns, file_path, node.lineno, existing_imports, node.name
-            )
+            self._check_annotation_quality(node.returns, file_path, node.lineno,
+                                          existing_imports, node.name)
 
-    def _check_annotation_quality(
-        self,
-        annotation: ast.AST,
-        file_path: str,
-        line_number: int,
-        existing_imports: set[str],
-        function_name: str,
-    ) -> None:
+    def _check_annotation_quality(self, annotation: ast.AST, file_path: str,
+                                 line_number: int, existing_imports: set[str],
+                                 function_name: str) -> None:
         """Check the quality of a specific type annotation."""
         if isinstance(annotation, ast.Name):
             type_name = annotation.id
 
             # Check for generic types that need typing imports
             if type_name in ["List", "Dict", "Tuple", "Set", "Optional", "Union"]:
-                if (
-                    type_name not in existing_imports
-                    and "typing" not in existing_imports
-                ):
+                if type_name not in existing_imports and "typing" not in existing_imports:
                     self.import_suggestions.add(f"from typing import {type_name}")
 
                     issue = TypeHintIssue(
@@ -313,7 +284,7 @@ class TypeHintAuditor:
                         severity="medium",
                         description=f"Type hint '{type_name}' used without import",
                         suggestion=f"Add 'from typing import {type_name}'",
-                        function_name=function_name,
+                        function_name=function_name
                     )
                     self.issues.append(issue)
 
@@ -330,9 +301,7 @@ class TypeHintAuditor:
                 param_hints.append(f"{arg.arg}: Any")
 
             if param_hints:
-                suggestions.append(
-                    f"Add parameter type hints: {', '.join(param_hints)}"
-                )
+                suggestions.append(f"Add parameter type hints: {', '.join(param_hints)}")
                 self.import_suggestions.add("from typing import Any")
 
         # Return type suggestion
@@ -342,13 +311,8 @@ class TypeHintAuditor:
 
         return "; ".join(suggestions)
 
-    def _calculate_coverage_score(
-        self,
-        typed_functions: int,
-        total_functions: int,
-        typed_methods: int,
-        total_methods: int,
-    ) -> float:
+    def _calculate_coverage_score(self, typed_functions: int, total_functions: int,
+                                 typed_methods: int, total_methods: int) -> float:
         """Calculate type hint coverage score."""
         if total_functions + total_methods == 0:
             return 1.0
@@ -364,9 +328,8 @@ class TypeHintAuditor:
             return 1.0
 
         # Weight issues by severity
-        total_weight = sum(
-            self.severity_weights.get(issue.severity, 0.5) for issue in self.issues
-        )
+        total_weight = sum(self.severity_weights.get(issue.severity, 0.5)
+                          for issue in self.issues)
 
         # Normalize by number of issues (lower is better)
         max_possible_weight = len(self.issues) * 1.0  # All critical
@@ -410,13 +373,9 @@ class TypeHintAuditor:
             f.write("## Issues by Severity\n\n")
             for severity in ["critical", "high", "medium", "low"]:
                 if severity in issues_by_severity:
-                    f.write(
-                        f"### {severity.title()} ({len(issues_by_severity[severity])} issues)\n\n"
-                    )
+                    f.write(f"### {severity.title()} ({len(issues_by_severity[severity])} issues)\n\n")
                     for issue in issues_by_severity[severity][:20]:  # Limit to first 20
-                        f.write(
-                            f"- **{issue.file_path}:{issue.line_number}** - {issue.description}\n"
-                        )
+                        f.write(f"- **{issue.file_path}:{issue.line_number}** - {issue.description}\n")
                         f.write(f"  - *Suggestion*: {issue.suggestion}\n\n")
 
         logger.info(f"Type hint audit report generated: {output_path}")
@@ -439,9 +398,7 @@ class TypeHintAuditor:
             stub_lines = []
 
             # Add imports
-            stub_lines.append(
-                "from typing import Any, Dict, List, Optional, Tuple, Union"
-            )
+            stub_lines.append("from typing import Any, Dict, List, Optional, Tuple, Union")
             stub_lines.append("")
 
             # Process classes and functions
@@ -450,17 +407,11 @@ class TypeHintAuditor:
                     stub_lines.append(f"class {node.name}:")
                     for item in node.body:
                         if isinstance(item, ast.FunctionDef):
-                            stub_lines.append(
-                                f"    def {item.name}(self, *args: Any, **kwargs: Any) -> Any: ..."
-                            )
+                            stub_lines.append(f"    def {item.name}(self, *args: Any, **kwargs: Any) -> Any: ...")
                     stub_lines.append("")
 
-                elif isinstance(node, ast.FunctionDef) and not self._is_method(
-                    node, tree
-                ):
-                    stub_lines.append(
-                        f"def {node.name}(*args: Any, **kwargs: Any) -> Any: ..."
-                    )
+                elif isinstance(node, ast.FunctionDef) and not self._is_method(node, tree):
+                    stub_lines.append(f"def {node.name}(*args: Any, **kwargs: Any) -> Any: ...")
 
             return "\n".join(stub_lines)
 

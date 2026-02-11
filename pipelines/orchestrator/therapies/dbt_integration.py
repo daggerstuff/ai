@@ -14,13 +14,9 @@ class DBTIntegration:
     Task 3.2 in Mental Health Datasets Expansion.
     """
 
-    def __init__(
-        self, output_base_path: str | None = "ai/training/ready_packages/datasets"
-    ):
+    def __init__(self, output_base_path: str | None = "ai/training/ready_packages/datasets"):
         self.output_base_path = Path(output_base_path)
-        self.dbt_content_path = (
-            self.output_base_path / "stage2_reasoning" / "dbt_content"
-        )
+        self.dbt_content_path = self.output_base_path / "stage2_reasoning" / "dbt_content"
         self._ensure_directories()
 
         self.modules = {
@@ -59,9 +55,7 @@ class DBTIntegration:
         """Ensure output directories exist."""
         self.dbt_content_path.mkdir(parents=True, exist_ok=True)
 
-    def generate_skill_exercise(
-        self, module: str | None = None, skill_name: str | None = None
-    ) -> dict:
+    def generate_skill_exercise(self, module: str | None = None, skill_name: str | None = None) -> dict:
         """
         Generates a skills training exercise.
         """

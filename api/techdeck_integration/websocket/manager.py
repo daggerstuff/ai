@@ -5,7 +5,6 @@ by the app factory (init and attach to app). The full implementation
 is in progress; here we provide enough for imports during pytest
 collection.
 """
-
 from typing import Any, Optional
 
 from flask import Flask

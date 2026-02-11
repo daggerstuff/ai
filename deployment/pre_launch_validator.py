@@ -17,9 +17,7 @@ from enum import Enum
 from pathlib import Path
 
 # Configure logging
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
@@ -267,9 +265,7 @@ class PreLaunchValidator:
             total_checks = len(checks)
             score = (passed_checks / total_checks) * 100
 
-            status = (
-                ValidationStatus.PASSED if score >= 100 else ValidationStatus.FAILED
-            )
+            status = ValidationStatus.PASSED if score >= 100 else ValidationStatus.FAILED
             details = f"Compliance checks: {passed_checks}/{total_checks} passed"
 
             if score < 100:
@@ -444,10 +440,7 @@ class PreLaunchValidator:
         """Check authentication system."""
         try:
             # Check if auth system files exist
-            auth_files = [
-                "inference/api/auth_system.py",
-                "inference/api/auth_system_fixed.py",
-            ]
+            auth_files = ["inference/api/auth_system.py", "inference/api/auth_system_fixed.py"]
             return any(os.path.exists(f) for f in auth_files)
         except Exception:
             return False
@@ -703,9 +696,7 @@ class PreLaunchValidator:
         total_validations = len(validations)
 
         # Determine overall status
-        overall_status = (
-            ValidationStatus.PASSED if average_score >= 95 else ValidationStatus.FAILED
-        )
+        overall_status = ValidationStatus.PASSED if average_score >= 95 else ValidationStatus.FAILED
         go_live_ready = overall_status == ValidationStatus.PASSED
 
         # Generate report
@@ -721,9 +712,7 @@ class PreLaunchValidator:
             "failed_validations": total_validations - passed_validations,
             "validation_results": [asdict(result) for result in validations],
             "execution_time_ms": (time.time() - self.start_time) * 1000,
-            "recommendations": self._generate_recommendations(
-                validations, average_score
-            ),
+            "recommendations": self._generate_recommendations(validations, average_score),
         }
 
         # Save report
@@ -733,9 +722,7 @@ class PreLaunchValidator:
         with open(report_file, "w") as f:
             json.dump(report, f, indent=2, default=str)
 
-        logger.info(
-            f"Pre-launch validation completed. Overall score: {average_score:.1f}%"
-        )
+        logger.info(f"Pre-launch validation completed. Overall score: {average_score:.1f}%")
         logger.info(f"Go-live ready: {go_live_ready}")
         logger.info(f"Report saved to: {report_file}")
 
@@ -759,8 +746,7 @@ class PreLaunchValidator:
         # Add specific recommendations for failed validations
         recommendations.extend(
             f"Address {validation.name} validation failures before launch"
-            for validation in validations
-            if validation.status == ValidationStatus.FAILED
+            for validation in validations if validation.status == ValidationStatus.FAILED
         )
 
         if overall_score < 90:
@@ -786,15 +772,12 @@ def main():
         logger.error(f"Pre-launch validation failed: {e!s}")
         return {"error": str(e)}
 
-
 def _log_results(results):
     """Log validation summary and recommendations (extracted for clarity)."""
     logger.info("\nPRE-LAUNCH VALIDATION RESULTS")
     logger.info(f"Overall Score: {results['overall_score']:.1f}%")
     logger.info(f"Go-Live Ready: {'✅ YES' if results['go_live_ready'] else '❌ NO'}")
-    logger.info(
-        f"Passed Validations: {results['passed_validations']}/{results['total_validations']}"
-    )
+    logger.info(f"Passed Validations: {results['passed_validations']}/{results['total_validations']}")
     if results["recommendations"]:
         logger.info("\nRECOMMENDATIONS:")
         for rec in results["recommendations"]:
@@ -803,3 +786,4 @@ def _log_results(results):
 
 if __name__ == "__main__":
     main()
+

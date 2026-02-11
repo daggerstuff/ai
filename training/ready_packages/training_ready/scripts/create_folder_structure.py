@@ -18,31 +18,38 @@ def create_folder_structure(base_path: Path) -> None:
         "configs/model_configs",
         "configs/infrastructure",
         "configs/hyperparameters",
+
         # Datasets by stage
         "datasets/stage1_foundation",
         "datasets/stage2_reasoning",
         "datasets/stage3_edge",
         "datasets/stage4_voice",
+
         # Models
         "models/moe",
         "models/base",
         "models/experimental",
+
         # Pipelines
         "pipelines/integrated",
         "pipelines/edge",
         "pipelines/voice",
+
         # Infrastructure
         "infrastructure/kubernetes",
         "infrastructure/helm",
         "infrastructure/docker",
+
         # Tools
         "tools/data_preparation",
         "tools/validation",
         "tools/monitoring",
+
         # Experimental
         "experimental/research_models",
         "experimental/novel_pipelines",
         "experimental/future_features",
+
         # Scripts output
         "scripts/output",
     ]
@@ -75,16 +82,10 @@ def create_folder_structure(base_path: Path) -> None:
 def print_structure(base: Path, current: Path, indent: int) -> None:
     """Print folder structure tree."""
     # Get subdirectories (excluding hidden and __pycache__)
-    subdirs = sorted(
-        [
-            d
-            for d in current.iterdir()
-            if d.is_dir()
-            and not d.name.startswith(".")
-            and d.name != "__pycache__"
-            and d.name != "scripts"
-        ]
-    )
+    subdirs = sorted([
+        d for d in current.iterdir()
+        if d.is_dir() and not d.name.startswith('.') and d.name != '__pycache__' and d.name != 'scripts'
+    ])
 
     for i, subdir in enumerate(subdirs):
         is_last = i == len(subdirs) - 1
@@ -111,5 +112,5 @@ def main():
 
 if __name__ == "__main__":
     import sys
-
     sys.exit(main())
+

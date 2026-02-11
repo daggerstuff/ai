@@ -17,7 +17,6 @@ logger = logging.getLogger(__name__)
 
 class DatasetType(Enum):
     """Types of datasets."""
-
     PRIORITY = "priority"
     COT = "cot"
     REDDIT = "reddit"
@@ -27,7 +26,6 @@ class DatasetType(Enum):
 
 class ConversationStatus(Enum):
     """Status of conversation processing."""
-
     RAW = "raw"
     VALIDATED = "validated"
     PROCESSED = "processed"
@@ -37,7 +35,6 @@ class ConversationStatus(Enum):
 
 class QualityTier(Enum):
     """Quality tiers for conversations."""
-
     PRIORITY = "priority"
     PROFESSIONAL = "professional"
     COT = "cot"
@@ -49,7 +46,6 @@ class QualityTier(Enum):
 @dataclass
 class PersonMetadata:
     """Metadata about a person in conversation."""
-
     person_id: str | None = None
     role: str | None = None  # "user", "therapist", "assistant"
     age_range: str | None = None
@@ -62,7 +58,6 @@ class PersonMetadata:
 @dataclass
 class TurnMetadata:
     """Metadata for individual conversation turn."""
-
     turn_id: str
     speaker: str
     content: str
@@ -78,7 +73,6 @@ class TurnMetadata:
 @dataclass
 class QualityMetrics:
     """Quality assessment metrics."""
-
     overall_score: float = 0.0
     therapeutic_relevance: float = 0.0
     conversation_coherence: float = 0.0
@@ -95,7 +89,6 @@ class QualityMetrics:
 @dataclass
 class ProcessingMetadata:
     """Processing pipeline metadata."""
-
     pipeline_version: str = "1.0"
     processing_stages: list[str] = field(default_factory=list)
     processing_timestamps: dict[str, datetime] = field(default_factory=dict)
@@ -107,7 +100,6 @@ class ProcessingMetadata:
 @dataclass
 class ConversationMetadata:
     """Complete conversation metadata schema."""
-
     # Core identifiers
     conversation_id: str
     dataset_type: DatasetType
@@ -174,35 +166,28 @@ class MetadataSchema:
         """Initialize metadata schema manager."""
         self.schema_version = "1.0"
         self.required_fields = [
-            "conversation_id",
-            "dataset_type",
-            "dataset_name",
-            "status",
-            "created_at",
+            "conversation_id", "dataset_type", "dataset_name",
+            "status", "created_at"
         ]
 
         logger.info("MetadataSchema initialized")
 
-    def create_conversation_metadata(
-        self,
-        conversation_id: str,
-        dataset_type: DatasetType,
-        dataset_name: str,
-        **kwargs,
-    ) -> ConversationMetadata:
+    def create_conversation_metadata(self,
+                                   conversation_id: str,
+                                   dataset_type: DatasetType,
+                                   dataset_name: str,
+                                   **kwargs) -> ConversationMetadata:
         """Create new conversation metadata."""
         metadata = ConversationMetadata(
             conversation_id=conversation_id,
             dataset_type=dataset_type,
             dataset_name=dataset_name,
-            **kwargs,
+            **kwargs
         )
 
         # Set processing metadata
         metadata.processing_metadata.processing_stages.append("metadata_creation")
-        metadata.processing_metadata.processing_timestamps["metadata_creation"] = (
-            datetime.now(timezone.utc)
-        )
+        metadata.processing_metadata.processing_timestamps["metadata_creation"] = datetime.now(timezone.utc)
 
         return metadata
 
@@ -212,7 +197,7 @@ class MetadataSchema:
             "is_valid": True,
             "errors": [],
             "warnings": [],
-            "missing_fields": [],
+            "missing_fields": []
         }
 
         # Check required fields
@@ -223,9 +208,7 @@ class MetadataSchema:
 
         # Validate conversation_id format
         if not metadata.conversation_id or len(metadata.conversation_id) < 8:
-            validation_result["errors"].append(
-                "conversation_id must be at least 8 characters"
-            )
+            validation_result["errors"].append("conversation_id must be at least 8 characters")
             validation_result["is_valid"] = False
 
         # Validate turn metadata
@@ -242,24 +225,19 @@ class MetadataSchema:
         if metadata.quality_metrics:
             qm = metadata.quality_metrics
             if not (0 <= qm.overall_score <= 1):
-                validation_result["errors"].append(
-                    "overall_score must be between 0 and 1"
-                )
+                validation_result["errors"].append("overall_score must be between 0 and 1")
                 validation_result["is_valid"] = False
 
         # Validate participants
         if metadata.participants:
             for i, participant in enumerate(metadata.participants):
                 if not participant.role:
-                    validation_result["warnings"].append(
-                        f"Participant {i} missing role"
-                    )
+                    validation_result["warnings"].append(f"Participant {i} missing role")
 
         return validation_result
 
-    def enrich_metadata(
-        self, metadata: ConversationMetadata, conversation_data: dict[str, Any]
-    ) -> ConversationMetadata:
+    def enrich_metadata(self, metadata: ConversationMetadata,
+                       conversation_data: dict[str, Any]) -> ConversationMetadata:
         """Enrich metadata with conversation data analysis."""
         # Extract turns if not already present
         if not metadata.turns and "turns" in conversation_data:
@@ -268,7 +246,7 @@ class MetadataSchema:
                     turn_id=f"{metadata.conversation_id}_turn_{i}",
                     speaker=turn_data.get("speaker", "unknown"),
                     content=turn_data.get("content", ""),
-                    word_count=len(turn_data.get("content", "").split()),
+                    word_count=len(turn_data.get("content", "").split())
                 )
                 metadata.turns.append(turn)
 
@@ -282,15 +260,11 @@ class MetadataSchema:
 
         # Extract mental health conditions
         if not metadata.mental_health_conditions:
-            metadata.mental_health_conditions = self._extract_conditions(
-                conversation_data
-            )
+            metadata.mental_health_conditions = self._extract_conditions(conversation_data)
 
         # Update processing metadata
         metadata.processing_metadata.processing_stages.append("metadata_enrichment")
-        metadata.processing_metadata.processing_timestamps["metadata_enrichment"] = (
-            datetime.now(timezone.utc)
-        )
+        metadata.processing_metadata.processing_timestamps["metadata_enrichment"] = datetime.now(timezone.utc)
         metadata.updated_at = datetime.now(timezone.utc)
 
         return metadata
@@ -306,7 +280,7 @@ class MetadataSchema:
             "relationships": ["relationship", "partner", "marriage", "family"],
             "work": ["work", "job", "career", "workplace"],
             "therapy": ["therapy", "counseling", "treatment"],
-            "trauma": ["trauma", "abuse", "ptsd", "flashback"],
+            "trauma": ["trauma", "abuse", "ptsd", "flashback"]
         }
 
         content_lower = content.lower()
@@ -327,7 +301,7 @@ class MetadataSchema:
             "bipolar": ["bipolar", "manic depression"],
             "ptsd": ["ptsd", "post-traumatic stress"],
             "ocd": ["ocd", "obsessive compulsive"],
-            "adhd": ["adhd", "attention deficit"],
+            "adhd": ["adhd", "attention deficit"]
         }
 
         content_lower = content.lower()
@@ -347,9 +321,8 @@ class MetadataSchema:
             content = " ".join(turn.get("content", "") for turn in turns)
         return content
 
-    def update_quality_metrics(
-        self, metadata: ConversationMetadata, quality_metrics: QualityMetrics
-    ) -> ConversationMetadata:
+    def update_quality_metrics(self, metadata: ConversationMetadata,
+                              quality_metrics: QualityMetrics) -> ConversationMetadata:
         """Update quality metrics in metadata."""
         quality_metrics.assessment_timestamp = datetime.now(timezone.utc)
         metadata.quality_metrics = quality_metrics
@@ -368,19 +341,14 @@ class MetadataSchema:
 
         # Update processing metadata
         metadata.processing_metadata.processing_stages.append("quality_assessment")
-        metadata.processing_metadata.processing_timestamps["quality_assessment"] = (
-            datetime.now(timezone.utc)
-        )
+        metadata.processing_metadata.processing_timestamps["quality_assessment"] = datetime.now(timezone.utc)
         metadata.updated_at = datetime.now(timezone.utc)
 
         return metadata
 
-    def update_status(
-        self,
-        metadata: ConversationMetadata,
-        new_status: ConversationStatus,
-        notes: str | None = None,
-    ) -> ConversationMetadata:
+    def update_status(self, metadata: ConversationMetadata,
+                     new_status: ConversationStatus,
+                     notes: str | None = None) -> ConversationMetadata:
         """Update conversation status."""
         old_status = metadata.status
         metadata.status = new_status
@@ -389,9 +357,7 @@ class MetadataSchema:
         # Add to processing metadata
         stage_name = f"status_change_{old_status.value}_to_{new_status.value}"
         metadata.processing_metadata.processing_stages.append(stage_name)
-        metadata.processing_metadata.processing_timestamps[stage_name] = datetime.now(
-            timezone.utc
-        )
+        metadata.processing_metadata.processing_timestamps[stage_name] = datetime.now(timezone.utc)
 
         if notes:
             if not metadata.notes:
@@ -434,7 +400,7 @@ class MetadataSchema:
             "data_types": {
                 "DatasetType": [e.value for e in DatasetType],
                 "ConversationStatus": [e.value for e in ConversationStatus],
-                "QualityTier": [e.value for e in QualityTier],
+                "QualityTier": [e.value for e in QualityTier]
             },
             "field_descriptions": {
                 "conversation_id": "Unique identifier for the conversation",
@@ -445,13 +411,13 @@ class MetadataSchema:
                 "quality_metrics": "Detailed quality assessment scores",
                 "turns": "Individual conversation turns with metadata",
                 "participants": "Information about conversation participants",
-                "processing_metadata": "Pipeline processing information",
+                "processing_metadata": "Pipeline processing information"
             },
             "validation_rules": {
                 "conversation_id": "Must be at least 8 characters",
                 "quality_scores": "Must be between 0 and 1",
-                "required_fields": self.required_fields,
-            },
+                "required_fields": self.required_fields
+            }
         }
 
 
@@ -464,25 +430,21 @@ def main():
         conversation_id="test_conv_001",
         dataset_type=DatasetType.PRIORITY,
         dataset_name="priority_therapeutic_conversations",
-        title="Anxiety Support Session",
+        title="Anxiety Support Session"
     )
+
 
     # Test conversation data
     conversation_data = {
         "turns": [
-            {
-                "speaker": "user",
-                "content": "I'm feeling really anxious about my presentation tomorrow.",
-            },
-            {
-                "speaker": "therapist",
-                "content": "I understand that presentations can be anxiety-provoking. Tell me more about what specifically worries you.",
-            },
+            {"speaker": "user", "content": "I'm feeling really anxious about my presentation tomorrow."},
+            {"speaker": "therapist", "content": "I understand that presentations can be anxiety-provoking. Tell me more about what specifically worries you."}
         ]
     }
 
     # Enrich metadata
     metadata = schema.enrich_metadata(metadata, conversation_data)
+
 
     # Validate metadata
     validation = schema.validate_metadata(metadata)
@@ -496,15 +458,13 @@ def main():
         overall_score=0.85,
         therapeutic_relevance=0.9,
         safety_compliance=1.0,
-        assessed_by="automated_system",
+        assessed_by="automated_system"
     )
 
     metadata = schema.update_quality_metrics(metadata, quality_metrics)
 
     # Test status update
-    metadata = schema.update_status(
-        metadata, ConversationStatus.VALIDATED, "Passed quality assessment"
-    )
+    metadata = schema.update_status(metadata, ConversationStatus.VALIDATED, "Passed quality assessment")
 
     # Export to dict and back
     schema.to_dict(metadata)

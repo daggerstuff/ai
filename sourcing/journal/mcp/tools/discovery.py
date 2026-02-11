@@ -48,14 +48,7 @@ class DiscoverSourcesTool(MCPTool):
                         "type": "array",
                         "items": {"type": "string"},
                         "description": "List of target sources (e.g., ['pubmed', 'doaj', 'dryad'])",
-                        "enum": [
-                            "pubmed",
-                            "pubmed_central",
-                            "doaj",
-                            "dryad",
-                            "zenodo",
-                            "clinical_trials",
-                        ],
+                        "enum": ["pubmed", "pubmed_central", "doaj", "dryad", "zenodo", "clinical_trials"],
                     },
                 },
                 "required": ["session_id", "keywords", "sources"],
@@ -166,24 +159,14 @@ class GetSourcesTool(MCPTool):
                         "properties": {
                             "source_type": {
                                 "type": "string",
-                                "enum": [
-                                    "journal",
-                                    "repository",
-                                    "clinical_trial",
-                                    "training_material",
-                                ],
+                                "enum": ["journal", "repository", "clinical_trial", "training_material"],
                             },
                             "open_access": {
                                 "type": "boolean",
                             },
                             "data_availability": {
                                 "type": "string",
-                                "enum": [
-                                    "available",
-                                    "upon_request",
-                                    "restricted",
-                                    "unknown",
-                                ],
+                                "enum": ["available", "upon_request", "restricted", "unknown"],
                             },
                         },
                     },
@@ -256,9 +239,7 @@ class GetSourcesTool(MCPTool):
                 {"params": params, "error": str(e)},
             ) from e
 
-    def _apply_filters(
-        self, sources: List[DatasetSource], filters: Dict[str, Any]
-    ) -> List[DatasetSource]:
+    def _apply_filters(self, sources: List[DatasetSource], filters: Dict[str, Any]) -> List[DatasetSource]:
         """Apply filters to sources list."""
         filtered = sources
 
@@ -269,11 +250,7 @@ class GetSourcesTool(MCPTool):
             filtered = [s for s in filtered if s.open_access == filters["open_access"]]
 
         if "data_availability" in filters:
-            filtered = [
-                s
-                for s in filtered
-                if s.data_availability == filters["data_availability"]
-            ]
+            filtered = [s for s in filtered if s.data_availability == filters["data_availability"]]
 
         return filtered
 
@@ -428,12 +405,7 @@ class FilterSourcesTool(MCPTool):
                                 "type": "array",
                                 "items": {
                                     "type": "string",
-                                    "enum": [
-                                        "journal",
-                                        "repository",
-                                        "clinical_trial",
-                                        "training_material",
-                                    ],
+                                    "enum": ["journal", "repository", "clinical_trial", "training_material"],
                                 },
                                 "description": "Filter by source types",
                             },
@@ -445,12 +417,7 @@ class FilterSourcesTool(MCPTool):
                                 "type": "array",
                                 "items": {
                                     "type": "string",
-                                    "enum": [
-                                        "available",
-                                        "upon_request",
-                                        "restricted",
-                                        "unknown",
-                                    ],
+                                    "enum": ["available", "upon_request", "restricted", "unknown"],
                                 },
                                 "description": "Filter by data availability",
                             },
@@ -518,9 +485,7 @@ class FilterSourcesTool(MCPTool):
             sort_by = params.get("sort_by")
             sort_order = params.get("sort_order", "desc")
             if sort_by:
-                filtered_sources = self._apply_sorting(
-                    filtered_sources, sort_by, sort_order
-                )
+                filtered_sources = self._apply_sorting(filtered_sources, sort_by, sort_order)
 
             # Convert sources to dicts
             sources_data = []
@@ -584,7 +549,9 @@ class FilterSourcesTool(MCPTool):
         if "author_match" in filters:
             author = filters["author_match"].lower()
             filtered = [
-                s for s in filtered if any(author in a.lower() for a in s.authors)
+                s
+                for s in filtered
+                if any(author in a.lower() for a in s.authors)
             ]
 
         # Filter by date range
@@ -641,3 +608,4 @@ class FilterSourcesTool(MCPTool):
             "discovery_date": source.discovery_date.isoformat(),
             "discovery_method": source.discovery_method,
         }
+

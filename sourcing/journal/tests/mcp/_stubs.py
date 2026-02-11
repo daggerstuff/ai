@@ -178,7 +178,9 @@ class FakeCommandHandlerService:
         self.sources = [deepcopy(source) for source in sources]
         self.evaluations = [deepcopy(evaluation) for evaluation in evaluations]
         self.acquisitions = [deepcopy(acquisition) for acquisition in acquisitions]
-        self.integration_plans = [deepcopy(plan) for plan in integration_plans]
+        self.integration_plans = [
+            deepcopy(plan) for plan in integration_plans
+        ]
         self.report = deepcopy(report) if report else None
         self.orchestrator = FakeOrchestrator(
             self.session,
@@ -445,3 +447,5 @@ class FakeCommandHandlerService:
     def list_reports(self, session_id: str) -> List[Dict[str, Any]]:
         self.orchestrator._validate_session_id(session_id)
         return [deepcopy(report) for report in self._reports.values()]
+
+

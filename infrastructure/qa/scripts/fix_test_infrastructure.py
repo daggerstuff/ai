@@ -43,8 +43,6 @@ class TestInfrastructureFixer:
             cwd=self.project_root,
             capture_output=True,
             text=True,
-            shell=False,
-            check=False,
         )
 
         errors = {}
@@ -80,10 +78,7 @@ class TestInfrastructureFixer:
                 # Fix missing type imports
                 (
                     r"from typing import",
-                    (
-                        "from typing import Tuple, Callable, Dict, List, Optional, "
-                        "Union, Any"
-                    ),
+                    r"from typing import Tuple, Callable, Dict, List, Optional, Union, Any",
                 ),
                 # Fix dataset_pipeline imports
                 (r"from dataset_pipeline\.", r"from ai.pipelines.orchestrator."),
@@ -161,15 +156,14 @@ class TestInfrastructureFixer:
             original_content = content
 
             # Fix common test issues
-            # Fix missing test class inheritance
-            content = re.sub(
-                r"class Test(\w+):", r"class Test\1(unittest.TestCase):", content
-            )
-            # Fix missing unittest import
-            if not re.search(r"^import unittest", content, re.MULTILINE):
-                content = "import unittest\n" + content
-            # Fix missing pytest fixtures
-            content = re.sub(r"def test_", "@pytest.fixture\ndef test_", content)
+            fixes = [
+                # Fix missing test class inheritance
+                (r"class Test(\w+):", r"class Test\1(unittest.TestCase):"),
+                # Fix missing unittest import
+                (r"^(?!.*import unittest)", "import unittest\n"),
+                # Fix missing pytest fixtures
+                (r"def test_", "@pytest.fixture\ndef test_"),
+            ]
 
             # Add proper test structure if missing
             if "class Test" not in content and "def test_" in content:
@@ -215,8 +209,6 @@ class TestInfrastructureFixer:
             cwd=self.project_root,
             capture_output=True,
             text=True,
-            shell=False,
-            check=False,
         )
 
         # Count collected tests and errors
@@ -242,8 +234,6 @@ class TestInfrastructureFixer:
             cwd=self.project_root,
             capture_output=True,
             text=True,
-            shell=False,
-            check=False,
         )
 
         # Extract coverage percentage
@@ -278,15 +268,10 @@ class TestInfrastructureFixer:
 ## Coverage Results
 - Coverage percentage: {coverage_results["coverage_percent"]}%
 - Tests run: {coverage_results["tests_run"]}
-"""
-        if validation_results["collection_errors"] < 10:
-            status = "✅ Infrastructure fixes successful"
-        else:
-            status = "❌ More fixes needed"
+- Tests failed: {coverage_results["tests_failed"]}
 
-        report += f"""
 ## Status
-{status}
+{"✅ Infrastructure fixes successful" if validation_results["collection_errors"] < 10 else "❌ More fixes needed"}
 """
         return report
 
@@ -299,7 +284,7 @@ class TestInfrastructureFixer:
         self.scan_test_files()
 
         # Step 2: Analyze current errors
-        self.analyze_import_errors()
+        errors = self.analyze_import_errors()
 
         # Step 3: Create missing infrastructure
         self.create_missing_modules()

@@ -12,7 +12,6 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
-
 class VoiceOptimizationSystematicValidation:
     """Voice data optimization pipeline with systematic consistency validation."""
 
@@ -28,12 +27,8 @@ class VoiceOptimizationSystematicValidation:
             "success": True,
             "optimization_score": 0.87,
             "consistency_validation": "passed",
-            "optimizations_applied": [
-                "noise_reduction",
-                "normalization",
-                "quality_enhancement",
-            ],
-            "validation_checks": ["consistency", "quality", "integrity"],
+            "optimizations_applied": ["noise_reduction", "normalization", "quality_enhancement"],
+            "validation_checks": ["consistency", "quality", "integrity"]
         }
 
     def validate_consistency(self, voice_data: dict[str, Any]) -> dict[str, Any]:
@@ -41,9 +36,8 @@ class VoiceOptimizationSystematicValidation:
         return {
             "validation_passed": True,
             "consistency_score": 0.92,
-            "validation_timestamp": datetime.now().isoformat(),
+            "validation_timestamp": datetime.now().isoformat()
         }
-
 
 # Example usage
 if __name__ == "__main__":

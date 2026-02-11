@@ -89,3 +89,4 @@ def get_logger(name: Optional[str] = None) -> logging.Logger:
     if name:
         return logging.getLogger(f"ai.sourcing.journal.mcp.{name}")
     return logging.getLogger("ai.sourcing.journal.mcp")
+

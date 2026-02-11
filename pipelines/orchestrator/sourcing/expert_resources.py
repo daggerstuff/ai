@@ -4,7 +4,6 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-
 class ExpertResourceAggregator:
     """
     Aggregator for peer-reviewed research papers and trauma-informed care documentation.
@@ -13,14 +12,10 @@ class ExpertResourceAggregator:
 
     def __init__(self, output_base_path: str = "ai/training/ready_packages/datasets"):
         self.output_base_path = Path(output_base_path)
-        self.expert_knowledge_path = (
-            self.output_base_path / "stage2_reasoning" / "expert_knowledge"
-        )
+        self.expert_knowledge_path = self.output_base_path / "stage2_reasoning" / "expert_knowledge"
         self._ensure_directories()
 
-        logger.info(
-            f"Initialized ExpertResourceAggregator. Output path: {self.expert_knowledge_path}"
-        )
+        logger.info(f"Initialized ExpertResourceAggregator. Output path: {self.expert_knowledge_path}")
 
     def _ensure_directories(self):
         """Ensure output directories exist."""
@@ -39,7 +34,7 @@ class ExpertResourceAggregator:
                 "year": 2024,
                 "type": "Meta-analysis",
                 "credibility_score": 0.95,
-                "content_summary": "EMDR shows significant positive outcomes...",
+                "content_summary": "EMDR shows significant positive outcomes..."
             },
             {
                 "title": "Trauma-Informed Care in Clinical Settings",
@@ -47,8 +42,8 @@ class ExpertResourceAggregator:
                 "year": 2023,
                 "type": "Protocol Review",
                 "credibility_score": 0.98,
-                "content_summary": "Core principles include safety, trustworthiness...",
-            },
+                "content_summary": "Core principles include safety, trustworthiness..."
+            }
         ]
 
     def integrate_trauma_protocols(self) -> list[dict]:
@@ -61,21 +56,17 @@ class ExpertResourceAggregator:
             {
                 "protocol_name": "SAMHSA Trauma-Informed Approach",
                 "source": "SAMHSA",
-                "principles": [
-                    "Safety",
-                    "Trustworthiness",
-                    "Peer Support",
-                    "Collaboration",
-                    "Empowerment",
-                    "Cultural Issues",
-                ],
-                "validation": "Federal Guideline",
+                "principles": ["Safety", "Trustworthiness", "Peer Support", "Collaboration", "Empowerment", "Cultural Issues"],
+                "validation": "Federal Guideline"
             }
         ]
 
     def export_data(self, papers: list[dict], protocols: list[dict]):
         """Exports the aggregated data."""
-        combined_data = {"research_papers": papers, "trauma_protocols": protocols}
+        combined_data = {
+            "research_papers": papers,
+            "trauma_protocols": protocols
+        }
 
         output_file = self.expert_knowledge_path / "expert_resources_batch_001.json"
 

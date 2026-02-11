@@ -136,9 +136,7 @@ def run_evaluation(
     model = os.getenv("NEMOTRON3_MODEL", "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16")
 
     print("📂 Loading evaluation dataset from S3")
-    dataset = load_dataset_from_s3(
-        dataset_name=dataset_name, category=category, bucket=bucket
-    )
+    dataset = load_dataset_from_s3(dataset_name=dataset_name, category=category, bucket=bucket)
 
     # Support both {"conversations": [...]} and plain list formats
     if isinstance(dataset, dict) and "conversations" in dataset:
@@ -192,13 +190,9 @@ def run_evaluation(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Run Nemotron 3 Nano evaluation on an S3 dataset."
-    )
+    parser = argparse.ArgumentParser(description="Run Nemotron 3 Nano evaluation on an S3 dataset.")
     parser.add_argument(
-        "--dataset-name",
-        required=True,
-        help="Dataset file name in S3 (e.g. my_eval.jsonl)",
+        "--dataset-name", required=True, help="Dataset file name in S3 (e.g. my_eval.jsonl)"
     )
     parser.add_argument(
         "--category",

@@ -149,9 +149,7 @@ def prompt_for_manual_evaluation_override(
     source_id: str,
 ) -> Optional[Dict[str, Any]]:
     """Prompt user for manual evaluation override."""
-    console.print(
-        f"\n[bold yellow]Manual Evaluation Override: {source_id}[/bold yellow]\n"
-    )
+    console.print(f"\n[bold yellow]Manual Evaluation Override: {source_id}[/bold yellow]\n")
 
     override = {}
     if Confirm.ask("Override therapeutic relevance score?", default=False):
@@ -231,3 +229,4 @@ def prompt_for_action(actions: List[str]) -> str:
         if choice.isdigit() and 1 <= int(choice) <= len(actions):
             return actions[int(choice) - 1]
         console.print("[red]Invalid choice. Please try again.[/red]")
+

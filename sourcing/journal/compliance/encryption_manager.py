@@ -59,7 +59,9 @@ class EncryptionManager:
 
         logger.info(f"Encryption manager initialized: {self.key_directory}")
 
-    def encrypt_file(self, file_path: str, output_path: Optional[str] = None) -> str:
+    def encrypt_file(
+        self, file_path: str, output_path: Optional[str] = None
+    ) -> str:
         """
         Encrypt a file at rest.
 
@@ -76,9 +78,7 @@ class EncryptionManager:
             raise FileNotFoundError(f"File not found: {file_path}")
 
         if output_path is None:
-            output_path = str(
-                file_path_obj.with_suffix(file_path_obj.suffix + ".encrypted")
-            )
+            output_path = str(file_path_obj.with_suffix(file_path_obj.suffix + ".encrypted"))
 
         try:
             # Read file content
@@ -424,3 +424,4 @@ class EncryptionManager:
         )
         key = kdf.derive(password.encode("utf-8"))
         return key
+

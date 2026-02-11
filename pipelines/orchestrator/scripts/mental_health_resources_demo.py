@@ -20,7 +20,8 @@ pipeline_root = script_path.parent.parent
 sys.path.insert(0, str(pipeline_root))
 
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -115,10 +116,7 @@ def demo_empathy_validator():
             EmpathyMentalHealthValidator,
             EmpathyLevel,
         )
-        from ai.pipelines.orchestrator.schemas.conversation_schema import (
-            Conversation,
-            Message,
-        )
+        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
 
         # Create validator
         validator = EmpathyMentalHealthValidator(min_empathy_threshold=0.5)
@@ -130,13 +128,13 @@ def demo_empathy_validator():
             messages=[
                 Message(
                     role="user",
-                    content="I've been feeling really anxious lately and I can't sleep.",
+                    content="I've been feeling really anxious lately and I can't sleep."
                 ),
                 Message(
                     role="assistant",
                     content="I'm so sorry to hear you've been struggling with anxiety. "
                     "That sounds really overwhelming, especially when it's affecting your sleep. "
-                    "Can you tell me more about what's been on your mind?",
+                    "Can you tell me more about what's been on your mind?"
                 ),
             ],
         )
@@ -168,7 +166,6 @@ def demo_empathy_validator():
     except Exception as e:
         print(f"✗ Error: {e}")
         import traceback
-
         traceback.print_exc()
         return False
 
@@ -233,15 +230,12 @@ def demo_dpo_training_style():
             print(f"  - {style.value}")
 
         # Create DPO config
-        config = cast(
-            DPOConfig,
-            manager.create_config(
-                TrainingStyle.DPO,
-                name="therapeutic_dpo_demo",
-                beta=0.1,
-                loss_type="sigmoid",
-            ),
-        )
+        config = cast(DPOConfig, manager.create_config(
+            TrainingStyle.DPO,
+            name="therapeutic_dpo_demo",
+            beta=0.1,
+            loss_type="sigmoid",
+        ))
 
         print(f"\n✓ DPO config created")
         print(f"  Name: {config.name}")
@@ -268,10 +262,7 @@ def demo_memo_summarizer():
             MEMODatasetLoader,
             CounselingSummarizer,
         )
-        from ai.pipelines.orchestrator.schemas.conversation_schema import (
-            Conversation,
-            Message,
-        )
+        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
 
         # Check MEMO access
         loader = MEMODatasetLoader()
@@ -281,7 +272,7 @@ def demo_memo_summarizer():
         print(f"  Has Access: {access['has_access']}")
         print(f"  Path: {access['dataset_path']}")
 
-        if not access["has_access"]:
+        if not access['has_access']:
             print(f"\n  ⚠ MEMO dataset requires academic access request")
             print(f"    Visit: https://github.com/LCS2-IIITD/MEMO")
 
@@ -293,18 +284,9 @@ def demo_memo_summarizer():
             source="demo",
             messages=[
                 Message(role="user", content="I've been having trouble at work."),
-                Message(
-                    role="assistant",
-                    content="Tell me more about what's happening at work.",
-                ),
-                Message(
-                    role="user",
-                    content="My boss keeps criticizing me and I feel worthless.",
-                ),
-                Message(
-                    role="assistant",
-                    content="It sounds like the criticism is really affecting your self-worth. That's understandable.",
-                ),
+                Message(role="assistant", content="Tell me more about what's happening at work."),
+                Message(role="user", content="My boss keeps criticizing me and I feel worthless."),
+                Message(role="assistant", content="It sounds like the criticism is really affecting your self-worth. That's understandable."),
             ],
         )
 
@@ -332,10 +314,7 @@ def demo_safety_validator():
             SafetyAlignmentValidator,
             SafetySeverity,
         )
-        from ai.pipelines.orchestrator.schemas.conversation_schema import (
-            Conversation,
-            Message,
-        )
+        from ai.pipelines.orchestrator.schemas.conversation_schema import Conversation, Message
 
         # Create validator
         validator = SafetyAlignmentValidator(safety_threshold=0.85)
@@ -355,10 +334,7 @@ def demo_safety_validator():
             source="demo",
             messages=[
                 Message(role="user", content="I've been feeling stressed about work."),
-                Message(
-                    role="assistant",
-                    content="That sounds challenging. Can you tell me more about what's causing the stress?",
-                ),
+                Message(role="assistant", content="That sounds challenging. Can you tell me more about what's causing the stress?"),
             ],
         )
 
@@ -374,12 +350,9 @@ def demo_safety_validator():
             source="demo",
             messages=[
                 Message(role="user", content="I don't want to live anymore."),
-                Message(
-                    role="assistant",
-                    content="I'm deeply concerned about what you just shared. "
-                    "If you're having thoughts of ending your life, please call 988 right now. "
-                    "You matter and help is available. Can you tell me more about what's going on?",
-                ),
+                Message(role="assistant", content="I'm deeply concerned about what you just shared. "
+                        "If you're having thoughts of ending your life, please call 988 right now. "
+                        "You matter and help is available. Can you tell me more about what's going on?"),
             ],
         )
 
@@ -401,7 +374,6 @@ def demo_safety_validator():
     except Exception as e:
         print(f"✗ Error: {e}")
         import traceback
-
         traceback.print_exc()
         return False
 
@@ -444,9 +416,7 @@ def main():
         print("  1. Load datasets: python huggingface_mental_health_loader.py")
         print("  2. Generate synthetic data: Start Ollama, then run distillation")
         print("  3. Request MEMO access: https://github.com/LCS2-IIITD/MEMO")
-        print(
-            "  4. See full guide: ai/pipelines/orchestrator/MENTAL_HEALTH_RESOURCES_GUIDE.md"
-        )
+        print("  4. See full guide: ai/pipelines/orchestrator/MENTAL_HEALTH_RESOURCES_GUIDE.md")
     else:
         print("\n⚠ Some components need attention. Check errors above.")
 
@@ -456,3 +426,4 @@ def main():
 if __name__ == "__main__":
     success = main()
     sys.exit(0 if success else 1)
+

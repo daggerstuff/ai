@@ -6,7 +6,6 @@ from typing import Optional
 
 try:
     from dotenv import load_dotenv
-
     load_dotenv()
 except ImportError:
     pass  # dotenv is optional
@@ -16,9 +15,7 @@ except ImportError:
 class DataDesignerConfig:
     """Configuration for NeMo Data Designer client."""
 
-    base_url: str = (
-        "http://localhost:8000"  # For local Docker Compose, use http://localhost:8000
-    )
+    base_url: str = "http://localhost:8000"  # For local Docker Compose, use http://localhost:8000
     api_key: Optional[str] = None
     timeout: int = 300  # 5 minutes default timeout
     max_retries: int = 3
@@ -53,3 +50,4 @@ class DataDesignerConfig:
             raise ValueError("max_retries must be non-negative")
         if self.batch_size <= 0:
             raise ValueError("batch_size must be positive")
+

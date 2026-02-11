@@ -25,7 +25,6 @@ try:
         DatasetEvaluation as DatasetEvaluationModel,
         IntegrationPlan as IntegrationPlanModel,
     )
-
     PIPELINE_ORCHESTRATOR_AVAILABLE = True
 except ImportError:
     PIPELINE_ORCHESTRATOR_AVAILABLE = False
@@ -49,9 +48,7 @@ class TrainingPipelineService:
     def _initialize_orchestrator(self) -> None:
         """Initialize pipeline orchestrator if available."""
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
-            logger.warning(
-                "PipelineOrchestrator not available, training integration disabled"
-            )
+            logger.warning("PipelineOrchestrator not available, training integration disabled")
             return
 
         try:
@@ -67,9 +64,7 @@ class TrainingPipelineService:
             self.pipeline_orchestrator = PipelineOrchestrator(config=config)
             logger.info("Training pipeline orchestrator initialized")
         except Exception as e:
-            logger.error(
-                f"Failed to initialize pipeline orchestrator: {e}", exc_info=True
-            )
+            logger.error(f"Failed to initialize pipeline orchestrator: {e}", exc_info=True)
             self.pipeline_orchestrator = None
 
     async def integrate_dataset(
@@ -112,13 +107,9 @@ class TrainingPipelineService:
         try:
             # Convert dictionaries to model objects
             acquired_dataset_obj = self._dict_to_acquired_dataset(acquired_dataset)
-            evaluation_obj = (
-                self._dict_to_evaluation(evaluation) if evaluation else None
-            )
+            evaluation_obj = self._dict_to_evaluation(evaluation) if evaluation else None
             integration_plan_obj = (
-                self._dict_to_integration_plan(integration_plan)
-                if integration_plan
-                else None
+                self._dict_to_integration_plan(integration_plan) if integration_plan else None
             )
 
             # Register with training pipeline
@@ -126,12 +117,12 @@ class TrainingPipelineService:
             evaluation_score = None
             evaluation_details = None
             if evaluation_obj:
-                if hasattr(evaluation_obj, "overall_score"):
+                if hasattr(evaluation_obj, 'overall_score'):
                     evaluation_score = evaluation_obj.overall_score
                 elif isinstance(evaluation_obj, dict):
-                    evaluation_score = evaluation_obj.get("overall_score")
+                    evaluation_score = evaluation_obj.get('overall_score')
 
-                if hasattr(evaluation_obj, "__dict__"):
+                if hasattr(evaluation_obj, '__dict__'):
                     evaluation_details = evaluation_obj.__dict__
                 elif isinstance(evaluation_obj, dict):
                     evaluation_details = evaluation_obj
@@ -195,19 +186,15 @@ class TrainingPipelineService:
                 continue
 
             # Check integration status
-            integration_status = (
-                self.pipeline_orchestrator.get_journal_research_integration_status(
-                    source_id
-                )
+            integration_status = self.pipeline_orchestrator.get_journal_research_integration_status(
+                source_id
             )
 
-            statuses.append(
-                {
-                    "source_id": source_id,
-                    "integrated": integration_status is not None,
-                    "integration_status": integration_status,
-                }
-            )
+            statuses.append({
+                "source_id": source_id,
+                "integrated": integration_status is not None,
+                "integration_status": integration_status,
+            })
 
         return {
             "session_id": session_id,
@@ -244,9 +231,7 @@ class TrainingPipelineService:
                 "accepted_conversations": metrics.accepted_conversations,
                 "rejected_conversations": metrics.rejected_conversations,
                 "journal_research_datasets": len(journal_datasets),
-                "current_stage": metrics.current_stage.value
-                if metrics.current_stage
-                else None,
+                "current_stage": metrics.current_stage.value if metrics.current_stage else None,
             }
         except Exception as e:
             logger.error(f"Error getting pipeline status: {e}", exc_info=True)
@@ -260,71 +245,53 @@ class TrainingPipelineService:
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
             # Create a simple object that can be used
             from types import SimpleNamespace
-
             return SimpleNamespace(**data)
 
         try:
             # Handle datetime strings if present
             if "acquisition_date" in data and isinstance(data["acquisition_date"], str):
                 from datetime import datetime
-
-                data["acquisition_date"] = datetime.fromisoformat(
-                    data["acquisition_date"]
-                )
+                data["acquisition_date"] = datetime.fromisoformat(data["acquisition_date"])
 
             return AcquiredDatasetModel(**data)
         except Exception as e:
-            logger.warning(
-                f"Failed to convert to AcquiredDataset model: {e}, using dict"
-            )
+            logger.warning(f"Failed to convert to AcquiredDataset model: {e}, using dict")
             from types import SimpleNamespace
-
             return SimpleNamespace(**data)
 
     def _dict_to_evaluation(self, data: Dict[str, Any]) -> Any:
         """Convert dictionary to DatasetEvaluation model."""
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
             from types import SimpleNamespace
-
             return SimpleNamespace(**data)
 
         try:
             # Handle datetime strings if present
             if "evaluation_date" in data and isinstance(data["evaluation_date"], str):
                 from datetime import datetime
-
-                data["evaluation_date"] = datetime.fromisoformat(
-                    data["evaluation_date"]
-                )
+                data["evaluation_date"] = datetime.fromisoformat(data["evaluation_date"])
 
             return DatasetEvaluationModel(**data)
         except Exception as e:
-            logger.warning(
-                f"Failed to convert to DatasetEvaluation model: {e}, using dict"
-            )
+            logger.warning(f"Failed to convert to DatasetEvaluation model: {e}, using dict")
             from types import SimpleNamespace
-
             return SimpleNamespace(**data)
 
     def _dict_to_integration_plan(self, data: Dict[str, Any]) -> Any:
         """Convert dictionary to IntegrationPlan model."""
         if not PIPELINE_ORCHESTRATOR_AVAILABLE:
             from types import SimpleNamespace
-
             return SimpleNamespace(**data)
 
         try:
             # Handle datetime strings if present
             if "created_date" in data and isinstance(data["created_date"], str):
                 from datetime import datetime
-
                 data["created_date"] = datetime.fromisoformat(data["created_date"])
 
             return IntegrationPlanModel(**data)
         except Exception as e:
-            logger.warning(
-                f"Failed to convert to IntegrationPlan model: {e}, using dict"
-            )
+            logger.warning(f"Failed to convert to IntegrationPlan model: {e}, using dict")
             from types import SimpleNamespace
-
             return SimpleNamespace(**data)
+

@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 class ProcessingMode(Enum):
     """Processing modes for distributed architecture."""
-
     SEQUENTIAL = "sequential"
     PARALLEL = "parallel"
     DISTRIBUTED = "distributed"
@@ -31,7 +30,6 @@ class ProcessingMode(Enum):
 
 class NodeStatus(Enum):
     """Status of processing nodes."""
-
     IDLE = "idle"
     PROCESSING = "processing"
     ERROR = "error"
@@ -40,7 +38,6 @@ class NodeStatus(Enum):
 
 class DataTier(Enum):
     """Data processing tiers for distributed architecture."""
-
     RAW = "raw"
     PROCESSED = "processed"
     VALIDATED = "validated"
@@ -50,7 +47,6 @@ class DataTier(Enum):
 @dataclass
 class ProcessingNode:
     """Individual processing node in distributed system."""
-
     node_id: str
     node_type: str
     capacity: int
@@ -65,7 +61,6 @@ class ProcessingNode:
 @dataclass
 class ProcessingTask:
     """Task to be processed in distributed system."""
-
     task_id: str
     task_type: str
     data: Any
@@ -82,7 +77,6 @@ class ProcessingTask:
 @dataclass
 class ProcessingResult:
     """Result from distributed processing."""
-
     task_id: str
     node_id: str
     result: Any
@@ -122,8 +116,8 @@ class DistributedArchitecture:
                 performance_metrics={
                     "avg_processing_time": 0.0,
                     "success_rate": 1.0,
-                    "throughput": 0.0,
-                },
+                    "throughput": 0.0
+                }
             )
             self.nodes[node.node_id] = node
 
@@ -137,15 +131,16 @@ class DistributedArchitecture:
         task_id = self._generate_task_id(task_type, data)
 
         task = ProcessingTask(
-            task_id=task_id, task_type=task_type, data=data, priority=priority
+            task_id=task_id,
+            task_type=task_type,
+            data=data,
+            priority=priority
         )
 
         self.task_queue.append(task)
         self.task_queue.sort(key=lambda t: t.priority, reverse=True)
 
-        logger.info(
-            f"Task submitted: {task_id} (type: {task_type}, priority: {priority})"
-        )
+        logger.info(f"Task submitted: {task_id} (type: {task_type}, priority: {priority})")
         return task_id
 
     def submit_batch(self, tasks: list[dict[str, Any]]) -> list[str]:
@@ -156,7 +151,7 @@ class DistributedArchitecture:
             task_id = self.submit_task(
                 task_type=task_data["task_type"],
                 data=task_data["data"],
-                priority=task_data.get("priority", 1),
+                priority=task_data.get("priority", 1)
             )
             task_ids.append(task_id)
 
@@ -182,9 +177,7 @@ class DistributedArchitecture:
         finally:
             self.is_running = False
 
-    def process_tasks_sync(
-        self, mode: ProcessingMode = ProcessingMode.PARALLEL
-    ) -> dict[str, ProcessingResult]:
+    def process_tasks_sync(self, mode: ProcessingMode = ProcessingMode.PARALLEL) -> dict[str, ProcessingResult]:
         """Process tasks synchronously."""
         logger.info(f"Starting sync processing in {mode.value} mode")
 
@@ -210,8 +203,8 @@ class DistributedArchitecture:
 
         while self.task_queue and self.is_running:
             # Process up to max_workers tasks concurrently
-            current_batch = self.task_queue[: self.max_workers]
-            self.task_queue = self.task_queue[self.max_workers :]
+            current_batch = self.task_queue[:self.max_workers]
+            self.task_queue = self.task_queue[self.max_workers:]
 
             if current_batch:
                 tasks = [process_with_semaphore(task) for task in current_batch]
@@ -225,7 +218,7 @@ class DistributedArchitecture:
                             result=None,
                             processing_time=0.0,
                             success=False,
-                            error=str(result),
+                            error=str(result)
                         )
                     self.completed_tasks[task.task_id] = result
 
@@ -233,7 +226,6 @@ class DistributedArchitecture:
 
     async def _process_streaming(self):
         """Process tasks in streaming mode."""
-
         async def task_generator():
             while self.task_queue and self.is_running:
                 if self.task_queue:
@@ -251,8 +243,7 @@ class DistributedArchitecture:
         """Process tasks in distributed mode across nodes."""
         while self.task_queue and self.is_running:
             available_nodes = [
-                node
-                for node in self.nodes.values()
+                node for node in self.nodes.values()
                 if node.status == NodeStatus.IDLE and node.current_load < node.capacity
             ]
 
@@ -272,9 +263,7 @@ class DistributedArchitecture:
 
             if tasks_to_process:
                 # Process tasks concurrently
-                coroutines = [
-                    self._process_task_on_node(task) for task in tasks_to_process
-                ]
+                coroutines = [self._process_task_on_node(task) for task in tasks_to_process]
                 await asyncio.gather(*coroutines, return_exceptions=True)
 
             await asyncio.sleep(0.01)
@@ -291,10 +280,9 @@ class DistributedArchitecture:
             # Update node metrics
             node.processed_count += 1
             node.performance_metrics["avg_processing_time"] = (
-                node.performance_metrics["avg_processing_time"]
-                * (node.processed_count - 1)
-                + processing_time
-            ) / node.processed_count
+                (node.performance_metrics["avg_processing_time"] * (node.processed_count - 1) + processing_time)
+                / node.processed_count
+            )
             node.performance_metrics["success_rate"] = (
                 node.processed_count - node.error_count
             ) / node.processed_count
@@ -313,7 +301,7 @@ class DistributedArchitecture:
                 result=None,
                 processing_time=time.time() - start_time,
                 success=False,
-                error=str(e),
+                error=str(e)
             )
             self.completed_tasks[task.task_id] = result
 
@@ -340,8 +328,8 @@ class DistributedArchitecture:
 
         while self.task_queue:
             # Process batch of tasks
-            current_batch = self.task_queue[: self.max_workers]
-            self.task_queue = self.task_queue[self.max_workers :]
+            current_batch = self.task_queue[:self.max_workers]
+            self.task_queue = self.task_queue[self.max_workers:]
 
             if current_batch:
                 futures = []
@@ -362,24 +350,20 @@ class DistributedArchitecture:
                             result=None,
                             processing_time=0.0,
                             success=False,
-                            error=str(e),
+                            error=str(e)
                         )
                         results[task_id] = error_result
                         self.completed_tasks[task_id] = error_result
 
         return results
 
-    async def _process_single_task_async(
-        self, task: ProcessingTask
-    ) -> ProcessingResult:
+    async def _process_single_task_async(self, task: ProcessingTask) -> ProcessingResult:
         """Process a single task asynchronously."""
         start_time = time.time()
 
         try:
             if task.task_type not in self.processing_functions:
-                raise ValueError(
-                    f"No processing function registered for task type: {task.task_type}"
-                )
+                raise ValueError(f"No processing function registered for task type: {task.task_type}")
 
             func = self.processing_functions[task.task_type]
 
@@ -395,7 +379,7 @@ class DistributedArchitecture:
                 result=result,
                 processing_time=processing_time,
                 success=True,
-                metadata={"task_type": task.task_type},
+                metadata={"task_type": task.task_type}
             )
 
         except Exception as e:
@@ -408,7 +392,7 @@ class DistributedArchitecture:
                 result=None,
                 processing_time=processing_time,
                 success=False,
-                error=str(e),
+                error=str(e)
             )
 
     def _process_single_task_sync(self, task: ProcessingTask) -> ProcessingResult:
@@ -417,9 +401,7 @@ class DistributedArchitecture:
 
         try:
             if task.task_type not in self.processing_functions:
-                raise ValueError(
-                    f"No processing function registered for task type: {task.task_type}"
-                )
+                raise ValueError(f"No processing function registered for task type: {task.task_type}")
 
             func = self.processing_functions[task.task_type]
             result = func(task.data)
@@ -432,7 +414,7 @@ class DistributedArchitecture:
                 result=result,
                 processing_time=processing_time,
                 success=True,
-                metadata={"task_type": task.task_type},
+                metadata={"task_type": task.task_type}
             )
 
         except Exception as e:
@@ -445,7 +427,7 @@ class DistributedArchitecture:
                 result=None,
                 processing_time=processing_time,
                 success=False,
-                error=str(e),
+                error=str(e)
             )
 
     def _generate_task_id(self, task_type: str, data: Any) -> str:
@@ -461,9 +443,7 @@ class DistributedArchitecture:
         return {
             "is_running": self.is_running,
             "nodes": len(self.nodes),
-            "active_nodes": len(
-                [n for n in self.nodes.values() if n.status != NodeStatus.OFFLINE]
-            ),
+            "active_nodes": len([n for n in self.nodes.values() if n.status != NodeStatus.OFFLINE]),
             "queue_size": len(self.task_queue),
             "completed_tasks": len(self.completed_tasks),
             "total_processed": total_processed,
@@ -475,17 +455,13 @@ class DistributedArchitecture:
                     "load": f"{node.current_load}/{node.capacity}",
                     "processed": node.processed_count,
                     "errors": node.error_count,
-                    "avg_time": node.performance_metrics.get(
-                        "avg_processing_time", 0.0
-                    ),
+                    "avg_time": node.performance_metrics.get("avg_processing_time", 0.0)
                 }
                 for node_id, node in self.nodes.items()
-            },
+            }
         }
 
-    def get_results(
-        self, task_ids: list[str] | None = None
-    ) -> dict[str, ProcessingResult]:
+    def get_results(self, task_ids: list[str] | None = None) -> dict[str, ProcessingResult]:
         """Get processing results."""
         if task_ids is None:
             return self.completed_tasks.copy()
@@ -520,7 +496,7 @@ def example_conversation_processor(data: dict[str, Any]) -> dict[str, Any]:
         "conversation_id": conversation.get("id", "unknown"),
         "word_count": len(conversation.get("content", "").split()),
         "processed_at": datetime.now().isoformat(),
-        "quality_score": 0.85,  # Mock quality score
+        "quality_score": 0.85  # Mock quality score
     }
 
 
@@ -535,7 +511,7 @@ def example_quality_validator(data: dict[str, Any]) -> dict[str, Any]:
         "conversation_id": conversation.get("id", "unknown"),
         "is_valid": True,
         "quality_score": 0.92,
-        "validation_notes": ["Good therapeutic content", "Appropriate length"],
+        "validation_notes": ["Good therapeutic content", "Appropriate length"]
     }
 
 
@@ -545,17 +521,12 @@ def main():
     arch = DistributedArchitecture(max_workers=4)
 
     # Register processing functions
-    arch.register_processing_function(
-        "conversation_processing", example_conversation_processor
-    )
+    arch.register_processing_function("conversation_processing", example_conversation_processor)
     arch.register_processing_function("quality_validation", example_quality_validator)
 
     # Submit test tasks
     test_conversations = [
-        {
-            "id": f"conv_{i}",
-            "content": f"This is test conversation {i} with some therapeutic content.",
-        }
+        {"id": f"conv_{i}", "content": f"This is test conversation {i} with some therapeutic content."}
         for i in range(10)
     ]
 
@@ -564,9 +535,10 @@ def main():
         task_id = arch.submit_task(
             task_type="conversation_processing" if i % 2 == 0 else "quality_validation",
             data={"conversation": conv},
-            priority=1 if i < 5 else 2,
+            priority=1 if i < 5 else 2
         )
         task_ids.append(task_id)
+
 
     # Process tasks synchronously
     results = arch.process_tasks_sync(ProcessingMode.PARALLEL)
@@ -575,6 +547,7 @@ def main():
 
     successful = sum(1 for r in results.values() if r.success)
     len(results) - successful
+
 
     if successful > 0:
         sum(r.processing_time for r in results.values() if r.success) / successful

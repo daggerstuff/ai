@@ -78,13 +78,13 @@ except ImportError as e:
 def create_all_clients(enable_cache: bool = True) -> dict[str, Any]:
     """
     Create instances of all available API clients.
-
+    
     Args:
         enable_cache: Whether to enable request caching for all clients
-
+    
     Returns:
         Dictionary mapping client names to instances
-
+    
     Raises:
         ImportError: If required clients could not be imported
     """
@@ -92,7 +92,7 @@ def create_all_clients(enable_cache: bool = True) -> dict[str, Any]:
         raise ImportError(
             f"Cannot create clients due to import errors: {', '.join(_import_errors)}"
         )
-
+    
     return {
         "pubmed": PubMedClient(enable_cache=enable_cache),
         "doaj": DOAJClient(enable_cache=enable_cache),
@@ -105,66 +105,66 @@ def create_all_clients(enable_cache: bool = True) -> dict[str, Any]:
 def create_unified_client(enable_cache: bool = True) -> Any:
     """
     Create a unified search client that coordinates all API clients.
-
+    
     Args:
         enable_cache: Whether to enable request caching for all clients
-
+    
     Returns:
         UnifiedSearchClient instance
-
+    
     Raises:
         ImportError: If UnifiedSearchClient could not be imported
     """
     if UnifiedSearchClient is None:
         raise ImportError("UnifiedSearchClient could not be imported")
-
+    
     return UnifiedSearchClient(enable_cache=enable_cache)
 
 
 def create_deduplicator(similarity_threshold: float = 0.8) -> Any:
     """
     Create a configured deduplicator instance.
-
+    
     Args:
         similarity_threshold: Minimum similarity for title matching (0-1)
-
+    
     Returns:
         Configured DatasetDeduplicator instance
-
+    
     Raises:
         ImportError: If DatasetDeduplicator could not be imported
     """
     if DatasetDeduplicator is None:
         raise ImportError("DatasetDeduplicator could not be imported")
-
+    
     return DatasetDeduplicator(title_similarity_threshold=similarity_threshold)
 
 
 def create_metadata_parser() -> Any:
     """
     Create a metadata parser instance.
-
+    
     Returns:
         MetadataParser instance
-
+    
     Raises:
         ImportError: If MetadataParser could not be imported
     """
     if MetadataParser is None:
         raise ImportError("MetadataParser could not be imported")
-
+    
     return MetadataParser()
 
 
 def get_available_clients() -> list[str]:
     """
     Get list of successfully imported client names.
-
+    
     Returns:
         List of available client names
     """
     available = []
-
+    
     if PubMedClient is not None:
         available.append("PubMedClient")
     if DOAJClient is not None:
@@ -177,14 +177,14 @@ def get_available_clients() -> list[str]:
         available.append("ClinicalTrialsClient")
     if UnifiedSearchClient is not None:
         available.append("UnifiedSearchClient")
-
+    
     return available
 
 
 def get_import_errors() -> list[str]:
     """
     Get list of components that failed to import.
-
+    
     Returns:
         List of component names with import errors
     """

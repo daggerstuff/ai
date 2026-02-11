@@ -10,11 +10,7 @@ logger = get_logger("dataset_pipeline.data_loader")
 
 
 def load_hf_dataset(
-    dataset_name: str,
-    split: str = "train",
-    progress_callback=None,
-    error_callback=None,
-    **kwargs,
+    dataset_name: str, split: str = "train", progress_callback=None, error_callback=None, **kwargs
 ):
     """
     Load a dataset from the HuggingFace Hub with optional progress and error callbacks.
@@ -36,9 +32,7 @@ def load_hf_dataset(
             dataset_size = len(ds)  # type: ignore[arg-type]
             logger.info(f"Loaded dataset '{dataset_name}' with {dataset_size} records.")
             if progress_callback:
-                progress_callback(
-                    f"Loaded dataset '{dataset_name}' with {dataset_size} records."
-                )
+                progress_callback(f"Loaded dataset '{dataset_name}' with {dataset_size} records.")
         else:
             logger.info(f"Loaded iterable dataset '{dataset_name}'.")
             if progress_callback:
@@ -71,9 +65,7 @@ def load_local_dataset(path: str, progress_callback=None, error_callback=None):
         if hasattr(ds, "__len__"):
             # Type checker: we've verified ds has __len__ method
             dataset_size = len(ds)  # type: ignore[arg-type]
-            logger.info(
-                f"Loaded local dataset from '{path}' with {dataset_size} records."
-            )
+            logger.info(f"Loaded local dataset from '{path}' with {dataset_size} records.")
             if progress_callback:
                 progress_callback(
                     f"Loaded local dataset from '{path}' with {dataset_size} records."

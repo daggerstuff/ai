@@ -16,9 +16,7 @@ class ACTIntegration:
 
     def __init__(self, output_base_path: str = "ai/training/ready_packages/datasets"):
         self.output_base_path = Path(output_base_path)
-        self.act_content_path = (
-            self.output_base_path / "stage2_reasoning" / "act_content"
-        )
+        self.act_content_path = self.output_base_path / "stage2_reasoning" / "act_content"
         self._ensure_directories()
 
         self.hexaflex_processes = [
@@ -91,10 +89,7 @@ class ACTIntegration:
         Generates a specific cognitive defusion script.
         """
         techniques = [
-            (
-                "Leaves on a Stream",
-                "Visualize your thoughts as leaves floating down a stream.",
-            ),
+            ("Leaves on a Stream", "Visualize your thoughts as leaves floating down a stream."),
             ("Voice Shifting", "Say the thought in a silly voice (e.g., Donald Duck)."),
             (
                 "I'm having the thought that...",
@@ -160,9 +155,7 @@ class ACTIntegration:
                 item = self.generate_hexaflex_exercise()
             elif item_type == 1:
                 item = self.generate_values_exercise(
-                    random.choice(
-                        ["Relationships", "Work/Education", "Health", "Leisure"]
-                    )
+                    random.choice(["Relationships", "Work/Education", "Health", "Leisure"])
                 )
             elif item_type == 2:
                 item = self.generate_defusion_technique("I am not good enough")

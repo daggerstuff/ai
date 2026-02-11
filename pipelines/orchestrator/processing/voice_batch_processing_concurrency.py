@@ -10,7 +10,6 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
-
 class VoiceBatchProcessingConcurrency:
     """Implements batch processing with concurrency control for voice data."""
 
@@ -25,9 +24,8 @@ class VoiceBatchProcessingConcurrency:
             "success": True,
             "files_processed": len(voice_files),
             "processing_time": 1.5,
-            "concurrency_level": self.max_workers,
+            "concurrency_level": self.max_workers
         }
-
 
 # Example usage
 if __name__ == "__main__":

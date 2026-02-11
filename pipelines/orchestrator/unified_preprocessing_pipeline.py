@@ -800,12 +800,6 @@ class UnifiedPreprocessingPipeline:
                     items = data[key]
                     break
 
-            if not items:
-                logger.warning(
-                    f"Could not find valid list of items in JSON for {source.name}. "
-                    f"Keys found: {list(data.keys())}"
-                )
-
         records = []
         for item in items:
             if processed_record := self._process_single_record(item, source):

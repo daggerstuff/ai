@@ -138,3 +138,4 @@ class MCPPrompt(ABC):
     def __repr__(self) -> str:
         """String representation of prompt."""
         return f"<MCPPrompt name={self.name!r}>"
+

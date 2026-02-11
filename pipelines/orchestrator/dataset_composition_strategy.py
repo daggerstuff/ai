@@ -114,24 +114,6 @@ class DatasetComposer:
                     categorized["voice_derived_dialogues"].append(record)
                 else:
                     categorized["standard_therapeutic"].append(record)
-            elif source_type == "academic_findings":
-                categorized["psychology_knowledge"].append(record)
-            elif source_type == "generated_synthetic":
-                source_name = record.get("_source", "").lower()
-                metadata_generator = (
-                    record.get("metadata", {}).get("generator", "").lower()
-                )
-
-                if (
-                    "edge_case" in source_name
-                    or "nightmare" in source_name
-                    or "edge_case" in metadata_generator
-                ):
-                    categorized["edge_case_scenarios"].append(record)
-                elif "nemo" in source_name or "nemo" in metadata_generator:
-                    categorized["standard_therapeutic"].append(record)
-                else:
-                    categorized["standard_therapeutic"].append(record)
             elif source_type == "knowledge_base":
                 categorized["psychology_knowledge"].append(record)
             elif source_type == "youtube_transcripts":
@@ -167,14 +149,10 @@ class DatasetComposer:
                 if len(available_records) >= target_count:
                     # Randomly sample the required number
                     sampled_records = random.sample(available_records, target_count)
-                    for record in sampled_records:
-                        record["_source_type_category"] = category
                     balanced_records.extend(sampled_records)
                     logger.info(f"Sampled {target_count} records from {category}")
                 else:
                     # Use all available records
-                    for record in available_records:
-                        record["_source_type_category"] = category
                     balanced_records.extend(available_records)
                     logger.warning(
                         f"Only {len(available_records)} available for {category}, using all"
@@ -277,7 +255,13 @@ class DatasetComposer:
         balanced_records = self.balance_dataset(categorized_records, target_size)
 
         # Enhance records with composition metadata
-        # (Already handled in balance_dataset)
+        for i, record in enumerate(balanced_records):
+            if "_source_type_category" not in record:
+                # Determine which category this record belongs to
+                for category, category_records in categorized_records.items():
+                    if record in category_records:
+                        record["_source_type_category"] = category
+                        break
 
         # Generate composition report
         report = self.generate_composition_report(

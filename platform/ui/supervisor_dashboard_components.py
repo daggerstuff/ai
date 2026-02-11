@@ -14,22 +14,19 @@ from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
 
 class SupervisorDashboardBuilder:
     """Builder for supervisor dashboard UI components"""
-
+    
     def __init__(self):
         self.dashboard_components = {}
         self._initialize_supervisor_components()
-
+    
     def _initialize_supervisor_components(self):
         """Initialize all supervisor dashboard components"""
-
+        
         # Real-time Session Monitor
         self.dashboard_components["session_monitor"] = {
             "component_type": "SessionMonitor",
@@ -41,10 +38,10 @@ class SupervisorDashboardBuilder:
                 "Skill performance monitoring",
                 "Crisis alert notifications",
                 "Session recording controls",
-                "Multi-session support",
-            ],
+                "Multi-session support"
+            ]
         }
-
+        
         # Competency Assessment Grid
         self.dashboard_components["competency_grid"] = {
             "component_type": "CompetencyGrid",
@@ -56,13 +53,13 @@ class SupervisorDashboardBuilder:
                 "Real-time skill updates",
                 "Evidence collection",
                 "Rubric integration",
-                "Progress tracking",
-            ],
+                "Progress tracking"
+            ]
         }
-
+    
     def _generate_session_monitor_react(self) -> str:
         """Generate React component for session monitoring"""
-        return """
+        return '''
 import React, { useState, useEffect } from 'react';
 import { CompetencyRating } from './CompetencyRating';
 import { InterventionPanel } from './InterventionPanel';
@@ -242,11 +239,11 @@ export const SessionMonitor = ({
       </div>
     </div>
   );
-};"""
-
+};'''
+    
     def _generate_competency_grid_react(self) -> str:
         """Generate React component for competency assessment grid"""
-        return """
+        return '''
 import React, { useState, useEffect } from 'react';
 import { SkillRubric } from './SkillRubric';
 import { EvidenceCollector } from './EvidenceCollector';
@@ -439,4 +436,4 @@ export const CompetencyGrid = ({
       )}
     </div>
   );
-};"""
+};'''

@@ -18,23 +18,9 @@ project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from ai.pipelines.orchestrator.unified_preprocessing_pipeline import (
-        UnifiedPreprocessingPipeline,
-        ProcessingConfig,
-        DataSource,
-        StagePolicy,
-    )
-    from ai.pipelines.orchestrator.orchestration.integrated_training_pipeline import (
-        IntegratedTrainingPipeline,
-        IntegratedPipelineConfig,
-    )
-    from ai.pipelines.orchestrator.configs.stages import (
-        get_all_stages,
-        STAGE1_ID,
-        STAGE2_ID,
-        STAGE3_ID,
-        STAGE4_ID,
-    )
+    from ai.pipelines.orchestrator.unified_preprocessing_pipeline import UnifiedPreprocessingPipeline, ProcessingConfig, DataSource, StagePolicy
+    from ai.pipelines.orchestrator.orchestration.integrated_training_pipeline import IntegratedTrainingPipeline, IntegratedPipelineConfig
+    from ai.pipelines.orchestrator.configs.stages import get_all_stages, STAGE1_ID, STAGE2_ID, STAGE3_ID, STAGE4_ID
 except ImportError as e:
     logging.error(f"Failed to import pipeline modules: {e}")
     logging.error(f"Project root: {project_root}")
@@ -85,30 +71,18 @@ class DatasetProcessor:
         path = dataset_info.get("path", "").lower()
         name = dataset_info.get("name", "").lower()
 
-        if any(
-            x in path or x in name for x in ["edge", "crisis", "trauma", "suicidality"]
-        ):
+        if any(x in path or x in name for x in ["edge", "crisis", "trauma", "suicidality"]):
             return STAGE3_ID
-        if any(
-            x in path or x in name
-            for x in ["cot", "reasoning", "therapeutic_expertise"]
-        ):
+        if any(x in path or x in name for x in ["cot", "reasoning", "therapeutic_expertise"]):
             return STAGE2_ID
-        if any(
-            x in path or x in name
-            for x in ["voice", "persona", "wayfarer", "tim_fletcher"]
-        ):
+        if any(x in path or x in name for x in ["voice", "persona", "wayfarer", "tim_fletcher"]):
             return STAGE4_ID
         return STAGE1_ID
 
-    def process_dataset(
-        self, sourcing_result: Dict[str, Any], dataset_info: Dict[str, Any]
-    ) -> Optional[Dict[str, Any]]:
+    def process_dataset(self, sourcing_result: Dict[str, Any], dataset_info: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Process a single dataset through pipeline"""
         if not sourcing_result.get("success"):
-            logger.warning(
-                f"Skipping {sourcing_result['name']}: {sourcing_result.get('error')}"
-            )
+            logger.warning(f"Skipping {sourcing_result['name']}: {sourcing_result.get('error')}")
             return None
 
         file_path = Path(sourcing_result["path"])
@@ -170,18 +144,10 @@ class DatasetProcessor:
             "timestamp": datetime.now().isoformat(),
             "processed_datasets": len(self.processed_datasets),
             "by_stage": {
-                STAGE1_ID: sum(
-                    1 for d in self.processed_datasets if d.get("stage") == STAGE1_ID
-                ),
-                STAGE2_ID: sum(
-                    1 for d in self.processed_datasets if d.get("stage") == STAGE2_ID
-                ),
-                STAGE3_ID: sum(
-                    1 for d in self.processed_datasets if d.get("stage") == STAGE3_ID
-                ),
-                STAGE4_ID: sum(
-                    1 for d in self.processed_datasets if d.get("stage") == STAGE4_ID
-                ),
+                STAGE1_ID: sum(1 for d in self.processed_datasets if d.get("stage") == STAGE1_ID),
+                STAGE2_ID: sum(1 for d in self.processed_datasets if d.get("stage") == STAGE2_ID),
+                STAGE3_ID: sum(1 for d in self.processed_datasets if d.get("stage") == STAGE3_ID),
+                STAGE4_ID: sum(1 for d in self.processed_datasets if d.get("stage") == STAGE4_ID),
             },
             "datasets": self.processed_datasets,
         }
@@ -191,14 +157,7 @@ def main():
     """Main function"""
     base_path = Path.cwd()
     manifest_path = base_path / "ai" / "training_ready" / "TRAINING_MANIFEST.json"
-    sourcing_report_path = (
-        base_path
-        / "ai"
-        / "training_ready"
-        / "scripts"
-        / "output"
-        / "sourcing_report.json"
-    )
+    sourcing_report_path = base_path / "ai" / "training_ready" / "scripts" / "output" / "sourcing_report.json"
 
     if not manifest_path.exists():
         logger.error(f"Manifest not found: {manifest_path}")
@@ -216,14 +175,7 @@ def main():
 
     # Generate report
     report = processor.generate_processing_report()
-    report_path = (
-        base_path
-        / "ai"
-        / "training_ready"
-        / "scripts"
-        / "output"
-        / "processing_report.json"
-    )
+    report_path = base_path / "ai" / "training_ready" / "scripts" / "output" / "processing_report.json"
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(report_path, "w") as f:
@@ -242,3 +194,4 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
+

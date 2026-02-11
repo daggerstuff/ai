@@ -65,9 +65,7 @@ class ProgressStreamer:
         # Subscriptions: operation_id -> set of callbacks
         self._subscriptions: Dict[str, Set[Callable[[ProgressUpdate], None]]] = {}
         # Session subscriptions: session_id -> set of callbacks
-        self._session_subscriptions: Dict[
-            str, Set[Callable[[ProgressUpdate], None]]
-        ] = {}
+        self._session_subscriptions: Dict[str, Set[Callable[[ProgressUpdate], None]]] = {}
         # Operation status tracking: operation_id -> ProgressStatus
         self._operation_status: Dict[str, ProgressStatus] = {}
         # Progress history: operation_id -> list of ProgressUpdate
@@ -126,9 +124,7 @@ class ProgressStreamer:
                 if not self._session_subscriptions[session_id]:
                     del self._session_subscriptions[session_id]
 
-            logger.debug(
-                f"Unsubscribed from progress updates for operation {operation_id}"
-            )
+            logger.debug(f"Unsubscribed from progress updates for operation {operation_id}")
 
     async def broadcast_update(self, update: ProgressUpdate) -> None:
         """
@@ -296,3 +292,4 @@ class ProgressStreamer:
         if operation_id:
             return len(self._subscriptions.get(operation_id, set()))
         return sum(len(subs) for subs in self._subscriptions.values())
+

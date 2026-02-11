@@ -25,7 +25,9 @@ def create_access_token(
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=settings.jwt_expiration_minutes)
+        expire = datetime.utcnow() + timedelta(
+            minutes=settings.jwt_expiration_minutes
+        )
     to_encode.update({"exp": expire, "iat": datetime.utcnow()})
     encoded_jwt = pyjwt.encode(
         to_encode, settings.jwt_secret, algorithm=settings.jwt_algorithm
@@ -67,3 +69,4 @@ def get_user_from_token(token: str) -> Dict[str, Any]:
         "role": payload.get("role", "viewer"),
         "permissions": payload.get("permissions", []),
     }
+

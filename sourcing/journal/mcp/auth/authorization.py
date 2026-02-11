@@ -108,7 +108,9 @@ class AuthorizationHandler(ABC):
     """Base class for authorization handlers."""
 
     @abstractmethod
-    async def authorize(self, user: Dict[str, Any], resource: str, action: str) -> bool:
+    async def authorize(
+        self, user: Dict[str, Any], resource: str, action: str
+    ) -> bool:
         """
         Check if user is authorized to perform action on resource.
 
@@ -252,7 +254,9 @@ class RBAC(AuthorizationHandler):
 
         return None
 
-    async def authorize(self, user: Dict[str, Any], resource: str, action: str) -> bool:
+    async def authorize(
+        self, user: Dict[str, Any], resource: str, action: str
+    ) -> bool:
         """
         Check if user is authorized to perform action on resource.
 
@@ -331,3 +335,4 @@ def create_authorization_handler() -> AuthorizationHandler:
         Authorization handler instance (currently only RBAC is supported)
     """
     return RBAC()
+

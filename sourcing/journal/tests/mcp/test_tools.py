@@ -114,10 +114,7 @@ class _IntegrationServiceStub:
     ) -> Dict[str, Any]:
         return {
             "session_id": session_id,
-            "plans": [
-                {"source_id": plan.source_id, "target_format": target_format}
-                for plan in self.plans
-            ],
+            "plans": [{"source_id": plan.source_id, "target_format": target_format} for plan in self.plans],
         }
 
     def get_integration_plans(self, session_id: str) -> List[IntegrationPlan]:
@@ -155,9 +152,7 @@ class _ReportServiceStub:
 
 
 @pytest.mark.asyncio
-async def test_create_session_tool_success(
-    sample_research_session: ResearchSession,
-) -> None:
+async def test_create_session_tool_success(sample_research_session: ResearchSession) -> None:
     service = _SessionServiceStub(sample_research_session)
     tool = CreateSessionTool(service)
 
@@ -175,9 +170,7 @@ async def test_create_session_tool_success(
 
 
 @pytest.mark.asyncio
-async def test_create_session_tool_validation_error(
-    sample_research_session: ResearchSession,
-) -> None:
+async def test_create_session_tool_validation_error(sample_research_session: ResearchSession) -> None:
     service = _SessionServiceStub(sample_research_session)
     tool = CreateSessionTool(service)
 
@@ -269,18 +262,11 @@ async def test_create_integration_plans_tool_success(
     service = _IntegrationServiceStub([sample_integration_plan])
     tool = CreateIntegrationPlansTool(service)
 
-    result = await tool.execute(
-        {"session_id": sample_research_session.session_id, "target_format": "chatml"}
-    )
+    result = await tool.execute({"session_id": sample_research_session.session_id, "target_format": "chatml"})
 
     assert result["total_plans"] == 1
-    assert (
-        result["integration_plans"][0]["source_id"] == sample_integration_plan.source_id
-    )
-    assert (
-        result["integration_plans"][0]["dataset_format"]
-        == sample_integration_plan.dataset_format
-    )
+    assert result["integration_plans"][0]["source_id"] == sample_integration_plan.source_id
+    assert result["integration_plans"][0]["dataset_format"] == sample_integration_plan.dataset_format
 
 
 @pytest.mark.asyncio
@@ -354,3 +340,4 @@ async def test_tool_executor_missing_tool_raises() -> None:
         await executor.execute_tool("missing_tool")
 
     assert exc.value.code == MCPErrorCode.TOOL_EXECUTION_ERROR
+

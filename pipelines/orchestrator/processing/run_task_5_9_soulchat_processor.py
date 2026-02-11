@@ -17,6 +17,7 @@ def process_soulchat_2_0():
     output_dir = "ai/data/processed/phase_2_professional_datasets/task_5_9_soulchat"
     os.makedirs(output_dir, exist_ok=True)
 
+
     # Dataset configuration
     dataset_config = {
         "name": "soulchat_2_0",
@@ -25,7 +26,7 @@ def process_soulchat_2_0():
         "target_conversations": 5000,
         "tier": 2,
         "expected_quality": 0.90,
-        "description": "SoulChat2.0 Chinese REBT psychological counseling conversations",
+        "description": "SoulChat2.0 Chinese REBT psychological counseling conversations"
     }
 
     try:
@@ -37,7 +38,7 @@ def process_soulchat_2_0():
             "quality_filtered": 0,
             "format_errors": 0,
             "multi_turn_processed": 0,
-            "single_turn_processed": 0,
+            "single_turn_processed": 0
         }
 
         # Process multi-turn data
@@ -45,7 +46,7 @@ def process_soulchat_2_0():
             multi_conversations = process_soulchat_file(
                 dataset_config["multi_turn_path"],
                 "multi_turn",
-                dataset_config["target_conversations"] // 2,
+                dataset_config["target_conversations"] // 2
             )
             all_conversations.extend(multi_conversations)
             processing_stats["multi_turn_processed"] = len(multi_conversations)
@@ -55,7 +56,7 @@ def process_soulchat_2_0():
             single_conversations = process_soulchat_file(
                 dataset_config["single_turn_path"],
                 "single_turn",
-                dataset_config["target_conversations"] // 2,
+                dataset_config["target_conversations"] // 2
             )
             all_conversations.extend(single_conversations)
             processing_stats["single_turn_processed"] = len(single_conversations)
@@ -71,9 +72,7 @@ def process_soulchat_2_0():
                 f.write(json.dumps(conv, ensure_ascii=False) + "\n")
 
         # Generate report
-        report = generate_soulchat_report(
-            dataset_config, all_conversations, processing_stats
-        )
+        report = generate_soulchat_report(dataset_config, all_conversations, processing_stats)
 
         # Save report
         report_path = os.path.join(output_dir, "task_5_9_soulchat_report.json")
@@ -85,10 +84,7 @@ def process_soulchat_2_0():
     except Exception as e:
         return create_error_report(dataset_config, str(e))
 
-
-def process_soulchat_file(
-    file_path: str, data_type: str, target_count: int
-) -> list[dict[str, Any]]:
+def process_soulchat_file(file_path: str, data_type: str, target_count: int) -> list[dict[str, Any]]:
     """Process a single SoulChat data file."""
     conversations = []
 
@@ -112,10 +108,7 @@ def process_soulchat_file(
 
     return conversations
 
-
-def standardize_soulchat_conversation(
-    item: dict[str, Any], data_type: str, index: int
-) -> dict[str, Any]:
+def standardize_soulchat_conversation(item: dict[str, Any], data_type: str, index: int) -> dict[str, Any]:
     """Standardize SoulChat conversation format."""
     try:
         if "messages" not in item:
@@ -129,13 +122,15 @@ def standardize_soulchat_conversation(
         standardized_messages = []
         for msg in messages:
             if msg.get("role") == "user":
-                standardized_messages.append(
-                    {"role": "client", "content": msg.get("content", "").strip()}
-                )
+                standardized_messages.append({
+                    "role": "client",
+                    "content": msg.get("content", "").strip()
+                })
             elif msg.get("role") == "assistant":
-                standardized_messages.append(
-                    {"role": "therapist", "content": msg.get("content", "").strip()}
-                )
+                standardized_messages.append({
+                    "role": "therapist",
+                    "content": msg.get("content", "").strip()
+                })
 
         # Must have at least one client-therapist exchange
         if len(standardized_messages) < 2:
@@ -164,17 +159,14 @@ def standardize_soulchat_conversation(
                 "data_type": data_type,
                 "topic": normalized_tag,
                 "conversation_length": len(standardized_messages),
-                "index": index,
-            },
+                "index": index
+            }
         }
 
     except Exception:
         return None
 
-
-def generate_soulchat_report(
-    config: dict, conversations: list, stats: dict
-) -> dict[str, Any]:
+def generate_soulchat_report(config: dict, conversations: list, stats: dict) -> dict[str, Any]:
     """Generate comprehensive SoulChat processing report."""
 
     # Analyze topics and conversation types
@@ -198,19 +190,16 @@ def generate_soulchat_report(
             "dataset_name": config["name"],
             "total_conversations": len(conversations),
             "target_conversations": config["target_conversations"],
-            "completion_percentage": (
-                len(conversations) / config["target_conversations"]
-            )
-            * 100,
+            "completion_percentage": (len(conversations) / config["target_conversations"]) * 100,
             "multi_turn_processed": stats["multi_turn_processed"],
             "single_turn_processed": stats["single_turn_processed"],
-            "processing_timestamp": datetime.now().isoformat(),
+            "processing_timestamp": datetime.now().isoformat()
         },
         "quality_metrics": {
             "total_processed": stats["total_processed"],
             "total_accepted": stats["total_accepted"],
             "acceptance_rate": 100.0,
-            "format_errors": stats["format_errors"],
+            "format_errors": stats["format_errors"]
         },
         "conversation_analysis": {
             "topics": topics,
@@ -218,10 +207,8 @@ def generate_soulchat_report(
             "conversation_length_stats": {
                 "min": min(conversation_lengths) if conversation_lengths else 0,
                 "max": max(conversation_lengths) if conversation_lengths else 0,
-                "average": sum(conversation_lengths) / len(conversation_lengths)
-                if conversation_lengths
-                else 0,
-            },
+                "average": sum(conversation_lengths) / len(conversation_lengths) if conversation_lengths else 0
+            }
         },
         "dataset_characteristics": {
             "source": "SoulChat2.0 Digital Twin Framework",
@@ -230,10 +217,9 @@ def generate_soulchat_report(
             "expected_quality": config["expected_quality"],
             "language": "Chinese",
             "therapeutic_approach": "Rational Emotive Behavior Therapy (REBT)",
-            "digital_twin_validation": True,
-        },
+            "digital_twin_validation": True
+        }
     }
-
 
 def create_error_report(config: dict, error: str) -> dict[str, Any]:
     """Create error report for failed processing."""
@@ -244,10 +230,9 @@ def create_error_report(config: dict, error: str) -> dict[str, Any]:
             "total_conversations": 0,
             "success": False,
             "error": error,
-            "timestamp": datetime.now().isoformat(),
-        },
+            "timestamp": datetime.now().isoformat()
+        }
     }
-
 
 if __name__ == "__main__":
     process_soulchat_2_0()

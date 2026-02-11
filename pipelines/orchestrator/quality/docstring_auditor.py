@@ -15,11 +15,9 @@ from typing import Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 @dataclass
 class DocstringIssue:
     """Represents a docstring issue found during audit."""
-
     file_path: str
     line_number: int
     issue_type: str
@@ -27,11 +25,9 @@ class DocstringIssue:
     description: str
     suggestion: str
 
-
 @dataclass
 class DocstringAuditReport:
     """Comprehensive docstring audit report."""
-
     total_files: int
     total_functions: int
     total_classes: int
@@ -40,7 +36,6 @@ class DocstringAuditReport:
     issues: list[DocstringIssue]
     coverage_score: float
     quality_score: float
-
 
 class DocstringAuditor:
     """
@@ -62,14 +57,12 @@ class DocstringAuditor:
 
         # Quality criteria
         self.min_docstring_length = self.config.get("min_docstring_length", 20)
-        self.required_sections = self.config.get(
-            "required_sections", ["Args", "Returns"]
-        )
+        self.required_sections = self.config.get("required_sections", ["Args", "Returns"])
         self.severity_weights = {
             "critical": 1.0,
             "high": 0.8,
             "medium": 0.5,
-            "low": 0.2,
+            "low": 0.2
         }
 
     def audit_directory(self, directory_path: str) -> DocstringAuditReport:
@@ -108,7 +101,8 @@ class DocstringAuditor:
 
         # Calculate scores
         coverage_score = self._calculate_coverage_score(
-            documented_functions, total_functions, documented_classes, total_classes
+            documented_functions, total_functions,
+            documented_classes, total_classes
         )
         quality_score = self._calculate_quality_score()
 
@@ -120,12 +114,10 @@ class DocstringAuditor:
             documented_classes=documented_classes,
             issues=self.issues.copy(),
             coverage_score=coverage_score,
-            quality_score=quality_score,
+            quality_score=quality_score
         )
 
-        logger.info(
-            f"Audit complete: {total_files} files, {len(self.issues)} issues found"
-        )
+        logger.info(f"Audit complete: {total_files} files, {len(self.issues)} issues found")
         return report
 
     def _audit_file(self, file_path: str) -> dict[str, int]:
@@ -157,12 +149,9 @@ class DocstringAuditor:
                         self._check_docstring_quality(node, file_path)
                     else:
                         self._add_issue(
-                            file_path,
-                            node.lineno,
-                            "missing_docstring",
-                            "high",
+                            file_path, node.lineno, "missing_docstring", "high",
                             f"Function '{node.name}' missing docstring",
-                            f"Add comprehensive docstring for function '{node.name}'",
+                            f"Add comprehensive docstring for function '{node.name}'"
                         )
 
                 elif isinstance(node, ast.ClassDef):
@@ -172,39 +161,29 @@ class DocstringAuditor:
                         self._check_docstring_quality(node, file_path)
                     else:
                         self._add_issue(
-                            file_path,
-                            node.lineno,
-                            "missing_docstring",
-                            "critical",
+                            file_path, node.lineno, "missing_docstring", "critical",
                             f"Class '{node.name}' missing docstring",
-                            f"Add comprehensive docstring for class '{node.name}'",
+                            f"Add comprehensive docstring for class '{node.name}'"
                         )
 
             return {
                 "functions": functions,
                 "classes": classes,
                 "documented_functions": documented_functions,
-                "documented_classes": documented_classes,
+                "documented_classes": documented_classes
             }
 
         except Exception as e:
             logger.error(f"Error auditing file {file_path}: {e}")
-            return {
-                "functions": 0,
-                "classes": 0,
-                "documented_functions": 0,
-                "documented_classes": 0,
-            }
+            return {"functions": 0, "classes": 0, "documented_functions": 0, "documented_classes": 0}
 
     def _has_docstring(self, node: ast.AST) -> bool:
         """Check if a node has a docstring."""
-        return (
-            hasattr(node, "body")
-            and len(node.body) > 0
-            and isinstance(node.body[0], ast.Expr)
-            and isinstance(node.body[0].value, ast.Constant)
-            and isinstance(node.body[0].value.value, str)
-        )
+        return (hasattr(node, "body") and
+                len(node.body) > 0 and
+                isinstance(node.body[0], ast.Expr) and
+                isinstance(node.body[0].value, ast.Constant) and
+                isinstance(node.body[0].value.value, str))
 
     def _get_docstring(self, node: ast.AST) -> str | None:
         """Extract docstring from a node."""
@@ -229,68 +208,41 @@ class DocstringAuditor:
         # Check length
         if len(docstring.strip()) < self.min_docstring_length:
             self._add_issue(
-                file_path,
-                node.lineno,
-                "short_docstring",
-                "medium",
+                file_path, node.lineno, "short_docstring", "medium",
                 f"Docstring for '{node_name}' is too short ({len(docstring)} chars)",
-                f"Expand docstring for '{node_name}' with more detailed description",
+                f"Expand docstring for '{node_name}' with more detailed description"
             )
 
         # Check for required sections (for functions with parameters)
         if isinstance(node, ast.FunctionDef) and node.args.args:
             if "Args:" not in docstring and "Parameters:" not in docstring:
                 self._add_issue(
-                    file_path,
-                    node.lineno,
-                    "missing_args_section",
-                    "medium",
+                    file_path, node.lineno, "missing_args_section", "medium",
                     f"Function '{node_name}' missing Args section in docstring",
-                    f"Add Args section documenting parameters for '{node_name}'",
+                    f"Add Args section documenting parameters for '{node_name}'"
                 )
 
         # Check for Returns section (for functions that return values)
         if isinstance(node, ast.FunctionDef):
-            has_return = any(
-                isinstance(n, ast.Return) and n.value is not None
-                for n in ast.walk(node)
-            )
-            if (
-                has_return
-                and "Returns:" not in docstring
-                and "Return:" not in docstring
-            ):
+            has_return = any(isinstance(n, ast.Return) and n.value is not None
+                           for n in ast.walk(node))
+            if has_return and "Returns:" not in docstring and "Return:" not in docstring:
                 self._add_issue(
-                    file_path,
-                    node.lineno,
-                    "missing_returns_section",
-                    "medium",
+                    file_path, node.lineno, "missing_returns_section", "medium",
                     f"Function '{node_name}' missing Returns section in docstring",
-                    f"Add Returns section documenting return value for '{node_name}'",
+                    f"Add Returns section documenting return value for '{node_name}'"
                 )
 
         # Check for proper formatting
-        if not docstring.strip().startswith('"""') and not docstring.strip().startswith(
-            "'''"
-        ):
+        if not docstring.strip().startswith('"""') and not docstring.strip().startswith("'''"):
             self._add_issue(
-                file_path,
-                node.lineno,
-                "improper_formatting",
-                "low",
+                file_path, node.lineno, "improper_formatting", "low",
                 f"Docstring for '{node_name}' not properly formatted",
-                f"Use triple quotes for docstring in '{node_name}'",
+                f"Use triple quotes for docstring in '{node_name}'"
             )
 
-    def _add_issue(
-        self,
-        file_path: str,
-        line_number: int,
-        issue_type: str,
-        severity: str,
-        description: str,
-        suggestion: str,
-    ) -> None:
+    def _add_issue(self, file_path: str, line_number: int, issue_type: str,
+                   severity: str, description: str, suggestion: str) -> None:
         """Add a docstring issue to the list."""
         issue = DocstringIssue(
             file_path=file_path,
@@ -298,17 +250,12 @@ class DocstringAuditor:
             issue_type=issue_type,
             severity=severity,
             description=description,
-            suggestion=suggestion,
+            suggestion=suggestion
         )
         self.issues.append(issue)
 
-    def _calculate_coverage_score(
-        self,
-        documented_functions: int,
-        total_functions: int,
-        documented_classes: int,
-        total_classes: int,
-    ) -> float:
+    def _calculate_coverage_score(self, documented_functions: int, total_functions: int,
+                                 documented_classes: int, total_classes: int) -> float:
         """Calculate docstring coverage score."""
         if total_functions + total_classes == 0:
             return 1.0
@@ -324,9 +271,8 @@ class DocstringAuditor:
             return 1.0
 
         # Weight issues by severity
-        total_weight = sum(
-            self.severity_weights.get(issue.severity, 0.5) for issue in self.issues
-        )
+        total_weight = sum(self.severity_weights.get(issue.severity, 0.5)
+                          for issue in self.issues)
 
         # Normalize by number of issues (lower is better)
         max_possible_weight = len(self.issues) * 1.0  # All critical
@@ -364,20 +310,15 @@ class DocstringAuditor:
             f.write("## Issues by Severity\n\n")
             for severity in ["critical", "high", "medium", "low"]:
                 if severity in issues_by_severity:
-                    f.write(
-                        f"### {severity.title()} ({len(issues_by_severity[severity])} issues)\n\n"
-                    )
+                    f.write(f"### {severity.title()} ({len(issues_by_severity[severity])} issues)\n\n")
                     for issue in issues_by_severity[severity]:
-                        f.write(
-                            f"- **{issue.file_path}:{issue.line_number}** - {issue.description}\n"
-                        )
+                        f.write(f"- **{issue.file_path}:{issue.line_number}** - {issue.description}\n")
                         f.write(f"  - *Suggestion*: {issue.suggestion}\n\n")
 
         logger.info(f"Audit report generated: {output_path}")
 
-    def fix_missing_docstrings(
-        self, report: DocstringAuditReport, auto_fix: bool = False
-    ) -> list[str]:
+    def fix_missing_docstrings(self, report: DocstringAuditReport,
+                              auto_fix: bool = False) -> list[str]:
         """
         Generate fixes for missing docstrings.
 

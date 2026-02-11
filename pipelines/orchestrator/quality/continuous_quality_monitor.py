@@ -19,7 +19,6 @@ logger = get_logger(__name__)
 @dataclass
 class QualityAlert:
     """Quality alert notification."""
-
     alert_id: str
     severity: str  # 'low', 'medium', 'high', 'critical'
     message: str
@@ -45,7 +44,7 @@ class ContinuousQualityMonitor:
             "overall_quality": {"warning": 0.7, "critical": 0.5},
             "conversation_coherence": {"warning": 0.8, "critical": 0.6},
             "therapeutic_accuracy": {"warning": 0.75, "critical": 0.6},
-            "safety_compliance": {"warning": 0.9, "critical": 0.8},
+            "safety_compliance": {"warning": 0.9, "critical": 0.8}
         }
 
         self.monitoring_active = False
@@ -64,13 +63,13 @@ class ContinuousQualityMonitor:
 
         self.monitoring_active = True
         self.monitor_thread = threading.Thread(
-            target=self._monitoring_loop, args=(check_interval,), daemon=True
+            target=self._monitoring_loop,
+            args=(check_interval,),
+            daemon=True
         )
         self.monitor_thread.start()
 
-        self.logger.info(
-            f"Started continuous quality monitoring (interval: {check_interval}s)"
-        )
+        self.logger.info(f"Started continuous quality monitoring (interval: {check_interval}s)")
         return True
 
     def stop_monitoring(self) -> bool:
@@ -89,9 +88,7 @@ class ContinuousQualityMonitor:
     def update_conversations(self, conversations: list[Conversation]) -> None:
         """Update the conversations being monitored."""
         self.current_conversations = conversations
-        self.logger.debug(
-            f"Updated monitoring dataset: {len(conversations)} conversations"
-        )
+        self.logger.debug(f"Updated monitoring dataset: {len(conversations)} conversations")
 
     def add_alert_callback(self, callback: Callable[[QualityAlert], None]) -> None:
         """Add callback function for quality alerts."""
@@ -123,54 +120,37 @@ class ContinuousQualityMonitor:
 
         # Overall quality (based on conversation structure)
         valid_conversations = sum(
-            1
-            for conv in self.current_conversations
-            if len(conv.messages) >= 2
-            and all(len(msg.content.strip()) > 10 for msg in conv.messages)
+            1 for conv in self.current_conversations
+            if len(conv.messages) >= 2 and all(len(msg.content.strip()) > 10 for msg in conv.messages)
         )
-        overall_quality = (
-            valid_conversations / total_conversations if total_conversations > 0 else 0
-        )
+        overall_quality = valid_conversations / total_conversations if total_conversations > 0 else 0
 
         # Conversation coherence (proper turn-taking)
         coherent_conversations = sum(
-            1
-            for conv in self.current_conversations
+            1 for conv in self.current_conversations
             if self._check_conversation_coherence(conv)
         )
-        conversation_coherence = (
-            coherent_conversations / total_conversations
-            if total_conversations > 0
-            else 0
-        )
+        conversation_coherence = coherent_conversations / total_conversations if total_conversations > 0 else 0
 
         # Therapeutic accuracy (presence of therapeutic language)
         therapeutic_conversations = sum(
-            1
-            for conv in self.current_conversations
+            1 for conv in self.current_conversations
             if self._check_therapeutic_content(conv)
         )
-        therapeutic_accuracy = (
-            therapeutic_conversations / total_conversations
-            if total_conversations > 0
-            else 0
-        )
+        therapeutic_accuracy = therapeutic_conversations / total_conversations if total_conversations > 0 else 0
 
         # Safety compliance (no unhandled safety issues)
         safe_conversations = sum(
-            1
-            for conv in self.current_conversations
+            1 for conv in self.current_conversations
             if self._check_safety_compliance(conv)
         )
-        safety_compliance = (
-            safe_conversations / total_conversations if total_conversations > 0 else 1.0
-        )
+        safety_compliance = safe_conversations / total_conversations if total_conversations > 0 else 1.0
 
         return {
             "overall_quality": overall_quality,
             "conversation_coherence": conversation_coherence,
             "therapeutic_accuracy": therapeutic_accuracy,
-            "safety_compliance": safety_compliance,
+            "safety_compliance": safety_compliance
         }
 
     def _check_conversation_coherence(self, conversation: Conversation) -> bool:
@@ -180,29 +160,19 @@ class ContinuousQualityMonitor:
 
         # Check for proper turn-taking
         roles = [msg.role for msg in conversation.messages]
-        return all(roles[i] != roles[i + 1] for i in range(len(roles) - 1))
+        return all(roles[i] != roles[i+1] for i in range(len(roles)-1))
 
     def _check_therapeutic_content(self, conversation: Conversation) -> bool:
         """Check if conversation contains therapeutic content."""
         therapeutic_keywords = [
-            "feel",
-            "emotion",
-            "support",
-            "understand",
-            "help",
-            "therapy",
-            "therapeutic",
-            "coping",
-            "healing",
+            "feel", "emotion", "support", "understand", "help",
+            "therapy", "therapeutic", "coping", "healing"
         ]
 
-        assistant_content = " ".join(
-            [
-                msg.content.lower()
-                for msg in conversation.messages
-                if msg.role == "assistant"
-            ]
-        )
+        assistant_content = " ".join([
+            msg.content.lower() for msg in conversation.messages
+            if msg.role == "assistant"
+        ])
 
         return any(keyword in assistant_content for keyword in therapeutic_keywords)
 
@@ -217,13 +187,10 @@ class ContinuousQualityMonitor:
             return True
 
         # If safety keywords present, check for appropriate responses
-        assistant_content = " ".join(
-            [
-                msg.content.lower()
-                for msg in conversation.messages
-                if msg.role == "assistant"
-            ]
-        )
+        assistant_content = " ".join([
+            msg.content.lower() for msg in conversation.messages
+            if msg.role == "assistant"
+        ])
 
         safety_responses = ["safety", "help", "support", "professional", "crisis"]
         return any(response in assistant_content for response in safety_responses)
@@ -243,7 +210,7 @@ class ContinuousQualityMonitor:
                         metric_name=metric_name,
                         current_value=value,
                         threshold=thresholds["critical"],
-                        timestamp=datetime.now(),
+                        timestamp=datetime.now()
                     )
                     self._trigger_alert(alert)
 
@@ -256,15 +223,13 @@ class ContinuousQualityMonitor:
                         metric_name=metric_name,
                         current_value=value,
                         threshold=thresholds["warning"],
-                        timestamp=datetime.now(),
+                        timestamp=datetime.now()
                     )
                     self._trigger_alert(alert)
 
     def _trigger_alert(self, alert: QualityAlert) -> None:
         """Trigger quality alert."""
-        self.logger.warning(
-            f"Quality Alert [{alert.severity.upper()}]: {alert.message}"
-        )
+        self.logger.warning(f"Quality Alert [{alert.severity.upper()}]: {alert.message}")
 
         # Call registered callbacks
         for callback in self.alert_callbacks:
@@ -275,7 +240,10 @@ class ContinuousQualityMonitor:
 
     def _record_quality_history(self, quality_metrics: dict[str, float]) -> None:
         """Record quality metrics in history."""
-        history_entry = {"timestamp": datetime.now(), "metrics": quality_metrics.copy()}
+        history_entry = {
+            "timestamp": datetime.now(),
+            "metrics": quality_metrics.copy()
+        }
 
         self.quality_history.append(history_entry)
 
@@ -288,14 +256,13 @@ class ContinuousQualityMonitor:
         cutoff_time = datetime.now() - timedelta(hours=hours)
 
         return [
-            entry for entry in self.quality_history if entry["timestamp"] >= cutoff_time
+            entry for entry in self.quality_history
+            if entry["timestamp"] >= cutoff_time
         ]
 
     def get_current_status(self) -> dict[str, Any]:
         """Get current monitoring status."""
-        current_metrics = (
-            self._calculate_current_quality() if self.current_conversations else {}
-        )
+        current_metrics = self._calculate_current_quality() if self.current_conversations else {}
 
         return {
             "monitoring_active": self.monitoring_active,
@@ -303,7 +270,7 @@ class ContinuousQualityMonitor:
             "current_metrics": current_metrics,
             "alert_callbacks_registered": len(self.alert_callbacks),
             "quality_history_entries": len(self.quality_history),
-            "thresholds": self.quality_thresholds,
+            "thresholds": self.quality_thresholds
         }
 
 

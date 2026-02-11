@@ -6,12 +6,9 @@ Simple test script to verify book references in enhanced psychology knowledge ba
 import json
 from pathlib import Path
 
-
 def check_book_references():
     """Check for book references in the enhanced psychology knowledge base."""
-    kb_path = Path(
-        "ai/models/pixel_core/knowledge/enhanced_psychology_knowledge_base.json"
-    )
+    kb_path = Path("ai/models/pixel_core/knowledge/enhanced_psychology_knowledge_base.json")
 
     if not kb_path.exists():
         print(f"Knowledge base not found: {kb_path}")
@@ -33,11 +30,10 @@ def check_book_references():
 
     # Show examples
     for i, (concept_id, concept) in enumerate(book_refs[:3]):
-        print(f"\nBook reference {i + 1}:")
+        print(f"\nBook reference {i+1}:")
         print(f"  Concept ID: {concept_id}")
         print(f"  Name: {concept.get('name', 'N/A')}")
         print(f"  Definition preview: {concept.get('definition', '')[:100]}...")
-
 
 if __name__ == "__main__":
     check_book_references()

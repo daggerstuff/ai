@@ -16,9 +16,7 @@ os.makedirs(REPORTS_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 logging.basicConfig(
-    filename=LOG_FILE,
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
+    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
 
@@ -26,8 +24,7 @@ def filter_segments(segments, threshold):
     filtered = [
         seg
         for seg in segments
-        if seg.get("avg_logprob", 0) >= threshold
-        or seg.get("confidence", 1) >= threshold
+        if seg.get("avg_logprob", 0) >= threshold or seg.get("confidence", 1) >= threshold
     ]
     return filtered
 
@@ -56,9 +53,7 @@ def process_file(input_path, filtered_dir, report_dir, threshold):
     with open(report_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=2)
 
-    logging.info(
-        f"Filtered {input_path}: {len(filtered_segments)}/{len(segments)} segments kept"
-    )
+    logging.info(f"Filtered {input_path}: {len(filtered_segments)}/{len(segments)} segments kept")
 
 
 def main():

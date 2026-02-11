@@ -144,10 +144,7 @@ CHATML_CONVERSATION_SCHEMA = {
                         "processing_pipeline": {"type": "string"},
                         "processed_at": {"type": "string", "format": "date-time"},
                         "dedup_status": {"type": "string"},
-                        "processing_steps": {
-                            "type": "array",
-                            "items": {"type": "string"},
-                        },
+                        "processing_steps": {"type": "array", "items": {"type": "string"}},
                     },
                 },
             },
@@ -322,9 +319,7 @@ def main() -> None:
     """Main entry point"""
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     project_root = Path(__file__).parents[3]
-    output_dir = (
-        project_root / "ai" / "training_ready" / "data" / "contract_definitions"
-    )
+    output_dir = project_root / "ai" / "training_ready" / "data" / "contract_definitions"
 
     create_contract_definitions(output_dir)
     logger.info("✅ Contract definitions created successfully")

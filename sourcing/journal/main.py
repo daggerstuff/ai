@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 from rich.console import Console
+from rich.progress import Progress, SpinnerColumn, TextColumn
 
 from ai.sourcing.journal.cli.commands import CommandHandler
 from ai.sourcing.journal.cli.config import load_config
@@ -47,12 +48,7 @@ class WorkflowExecutor:
         self.config = config or load_config()
         self.dry_run = dry_run
         self.interactive = interactive
-
-        # Ensure absolute path for checkpoints to avoid permission issues
-        default_checkpoint_dir = Path(
-            "/home/vivi/pixelated/ai/sourcing/journal/checkpoints"
-        )
-        self.checkpoint_dir = checkpoint_dir or default_checkpoint_dir
+        self.checkpoint_dir = checkpoint_dir or Path("checkpoints")
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
         self.command_handler = CommandHandler(self.config, dry_run)
 
@@ -81,28 +77,17 @@ class WorkflowExecutor:
             try:
                 console.print(f"[cyan]Resuming session: {session_id}[/cyan]")
                 session = orchestrator.load_session_state(session_id)
-                # state = orchestrator.get_session_state(session_id)
-
+                state = orchestrator.get_session_state(session_id)
                 current_phase = session.current_phase
             except FileNotFoundError:
-                console.print(
-                    "[yellow]Session not found, creating new session[/yellow]"
-                )
+                console.print(f"[yellow]Session not found, creating new session[/yellow]")
                 session = self._create_session(
-                    orchestrator,
-                    session_id,
-                    target_sources,
-                    search_keywords,
-                    weekly_targets,
+                    orchestrator, session_id, target_sources, search_keywords, weekly_targets
                 )
                 current_phase = start_phase
         else:
             session = self._create_session(
-                orchestrator,
-                session_id,
-                target_sources,
-                search_keywords,
-                weekly_targets,
+                orchestrator, session_id, target_sources, search_keywords, weekly_targets
             )
             current_phase = start_phase
 
@@ -110,16 +95,16 @@ class WorkflowExecutor:
         console.print(f"[green]Session ID: {session_id}[/green]\n")
 
         # Determine which phases to run
-        phase_index = (
-            self.PHASES.index(current_phase) if current_phase in self.PHASES else 0
-        )
+        phase_index = self.PHASES.index(current_phase) if current_phase in self.PHASES else 0
         phases_to_run = self.PHASES[phase_index:]
 
         # Execute phases
         for phase in phases_to_run:
             if self.interactive:
                 if phase != phases_to_run[0]:
-                    if not prompt_for_phase_transition(session.current_phase, phase):
+                    if not prompt_for_phase_transition(
+                        session.current_phase, phase
+                    ):
                         console.print("[yellow]Workflow paused by user[/yellow]")
                         break
 
@@ -145,9 +130,7 @@ class WorkflowExecutor:
             except Exception as e:
                 console.print(f"\n[red]Error in phase {phase}: {e}[/red]")
                 logger.exception("Phase execution error")
-                if not self.config.get("orchestrator", {}).get(
-                    "fallback_on_failure", True
-                ):
+                if not self.config.get("orchestrator", {}).get("fallback_on_failure", True):
                     raise
                 console.print("[yellow]Continuing with next phase...[/yellow]")
 
@@ -208,11 +191,7 @@ class WorkflowExecutor:
             self._execute_integration_phase(orchestrator, session_id, state)
 
     def _execute_discovery_phase(
-        self,
-        orchestrator: ResearchOrchestrator,
-        session_id: str,
-        session: ResearchSession,
-        state,
+        self, orchestrator: ResearchOrchestrator, session_id: str, session: ResearchSession, state
     ) -> None:
         """Execute discovery phase."""
         console.print("[cyan]Discovering dataset sources...[/cyan]")
@@ -248,9 +227,7 @@ class WorkflowExecutor:
                     )
                     evaluations.append(evaluation)
                 except Exception as e:
-                    console.print(
-                        f"[red]Error evaluating {source.source_id}: {e}[/red]"
-                    )
+                    console.print(f"[red]Error evaluating {source.source_id}: {e}[/red]")
                     logger.exception("Evaluation error")
 
             state.evaluations.extend(evaluations)
@@ -277,15 +254,13 @@ class WorkflowExecutor:
             acquired_count = 0
             for source in state.sources:
                 try:
-                    access_request = (
-                        orchestrator.acquisition_manager.submit_access_request(source)
+                    access_request = orchestrator.acquisition_manager.submit_access_request(
+                        source
                     )
                     state.access_requests.append(access_request)
 
-                    acquired_dataset = (
-                        orchestrator.acquisition_manager.download_dataset(
-                            source, access_request
-                        )
+                    acquired_dataset = orchestrator.acquisition_manager.download_dataset(
+                        source, access_request
                     )
                     state.acquired_datasets.append(acquired_dataset)
                     acquired_count += 1
@@ -312,9 +287,7 @@ class WorkflowExecutor:
             console.print("[yellow]No datasets to integrate[/yellow]")
             return
 
-        target_format = self.config.get("integration", {}).get(
-            "target_format", "chatml"
-        )
+        target_format = self.config.get("integration", {}).get("target_format", "chatml")
 
         if orchestrator.integration_engine:
             plans_count = 0
@@ -326,9 +299,7 @@ class WorkflowExecutor:
                     state.integration_plans.append(plan)
                     plans_count += 1
                 except Exception as e:
-                    console.print(
-                        f"[red]Error creating plan for {dataset.source_id}: {e}[/red]"
-                    )
+                    console.print(f"[red]Error creating plan for {dataset.source_id}: {e}[/red]")
                     logger.exception("Integration planning error")
 
             orchestrator.update_progress(
@@ -338,9 +309,7 @@ class WorkflowExecutor:
         else:
             console.print("[yellow]No integration engine configured[/yellow]")
 
-    def _save_checkpoint(
-        self, orchestrator: ResearchOrchestrator, session_id: str
-    ) -> None:
+    def _save_checkpoint(self, orchestrator: ResearchOrchestrator, session_id: str) -> None:
         """Save workflow checkpoint."""
         try:
             checkpoint_path = orchestrator.save_session_state(
@@ -448,7 +417,7 @@ def main() -> None:
             resume=args.resume,
         )
 
-        console.print("\n[bold green]Workflow completed successfully![/bold green]")
+        console.print(f"\n[bold green]Workflow completed successfully![/bold green]")
         console.print(f"Session ID: {result['session_id']}")
 
     except Exception as e:
@@ -459,3 +428,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

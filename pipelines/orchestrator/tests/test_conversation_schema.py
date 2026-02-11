@@ -8,6 +8,7 @@ from ai.pipelines.orchestrator.conversation_schema import Conversation, Message
 
 
 class TestConversationSchema(unittest.TestCase):
+
     def test_message_creation(self):
         """Test basic Message object creation."""
         msg = Message(role="user", content="Hello")
@@ -43,13 +44,12 @@ class TestConversationSchema(unittest.TestCase):
         data = {
             "conversation_id": "test-123",
             "source": "deserialization_test",
-            "messages": [{"role": "user", "content": "Hello from dict"}],
+            "messages": [{"role": "user", "content": "Hello from dict"}]
         }
         conv = Conversation.from_dict(data)
         assert conv.conversation_id == "test-123"
         assert len(conv.messages) == 1
         assert conv.messages[0].content == "Hello from dict"
-
 
 if __name__ == "__main__":
     unittest.main()

@@ -57,18 +57,14 @@ class EdgeCaseConfig:
 class EdgeCaseJSONLLoader:
     """Loader for edge case training data in JSONL format"""
 
-    def __init__(
-        self, config: EdgeCaseConfig | None = None, file_path: Path | None = None
-    ):
+    def __init__(self, config: EdgeCaseConfig | None = None, file_path: Path | None = None):
         self.config = config or EdgeCaseConfig()
 
         # Allow overriding the file path (e.g. from S3 cache)
         if file_path:
             self.training_file = Path(file_path)
         else:
-            self.training_file = (
-                Path(self.config.output_path) / "edge_cases_training_format.jsonl"
-            )
+            self.training_file = Path(self.config.output_path) / "edge_cases_training_format.jsonl"
 
     def load_edge_cases(self) -> list[EdgeCaseExample]:
         """Load all edge case examples from JSONL file"""
@@ -98,9 +94,7 @@ class EdgeCaseJSONLLoader:
                         logger.error(f"Error parsing line {line_num}: {e}")
                         continue
 
-            logger.info(
-                f"Loaded {len(examples)} edge case examples from {self.training_file}"
-            )
+            logger.info(f"Loaded {len(examples)} edge case examples from {self.training_file}")
             return examples
 
         except Exception as e:

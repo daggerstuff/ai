@@ -24,3 +24,4 @@ __all__ = [
     "get_user_role",
     "require_role",
 ]
+

@@ -13,15 +13,11 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
-
 class CoTPhilosophicalUnderstanding:
     """Processes CoT philosophical understanding for existential therapy."""
 
-    def __init__(
-        self,
-        dataset_path: str = "./CoT_Philosophical_Understanding",
-        output_dir: str = "./processed_cot",
-    ):
+    def __init__(self, dataset_path: str = "./CoT_Philosophical_Understanding",
+                 output_dir: str = "./processed_cot"):
         self.dataset_path = Path(dataset_path)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
@@ -33,9 +29,7 @@ class CoTPhilosophicalUnderstanding:
         result = {
             "success": True,
             "examples_processed": 60000,
-            "output_path": str(
-                self.output_dir / "cot_philosophical_understanding_processed.json"
-            ),
+            "output_path": str(self.output_dir / "cot_philosophical_understanding_processed.json")
         }
 
         output_data = {
@@ -43,7 +37,7 @@ class CoTPhilosophicalUnderstanding:
                 "name": "CoT Philosophical Understanding",
                 "description": "33MB, 60K existential/philosophical therapy examples",
                 "total_examples": 60000,
-                "processed_at": datetime.now().isoformat(),
+                "processed_at": datetime.now().isoformat()
             }
         }
 
@@ -52,7 +46,6 @@ class CoTPhilosophicalUnderstanding:
 
         logger.info("CoTPhilosophicalUnderstanding processing completed")
         return result
-
 
 if __name__ == "__main__":
     processor = CoTPhilosophicalUnderstanding()

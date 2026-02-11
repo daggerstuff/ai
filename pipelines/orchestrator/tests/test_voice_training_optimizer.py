@@ -25,7 +25,7 @@ class TestVoiceTrainingOptimizer:
             min_consistency_threshold=0.8,
             min_authenticity_threshold=0.7,
             batch_size=10,
-            max_workers=2,
+            max_workers=2
         )
         return VoiceTrainingOptimizer(config=config)
 
@@ -39,11 +39,8 @@ class TestVoiceTrainingOptimizer:
             id="conv_1",
             messages=[
                 Message(role="user", content="I'm feeling really sad today"),
-                Message(
-                    role="assistant",
-                    content="I understand how you're feeling. That must be really difficult for you. I'm here to support you.",
-                ),
-            ],
+                Message(role="assistant", content="I understand how you're feeling. That must be really difficult for you. I'm here to support you.")
+            ]
         )
         conversations.append(conv1)
 
@@ -52,11 +49,8 @@ class TestVoiceTrainingOptimizer:
             id="conv_2",
             messages=[
                 Message(role="user", content="Can you help me analyze this problem?"),
-                Message(
-                    role="assistant",
-                    content="Let me think about this carefully. I need to consider all the factors involved.",
-                ),
-            ],
+                Message(role="assistant", content="Let me think about this carefully. I need to consider all the factors involved.")
+            ]
         )
         conversations.append(conv2)
 
@@ -65,11 +59,8 @@ class TestVoiceTrainingOptimizer:
             id="conv_3",
             messages=[
                 Message(role="user", content="I don't think I can do this"),
-                Message(
-                    role="assistant",
-                    content="I believe in you. You're stronger than you think and you can do this.",
-                ),
-            ],
+                Message(role="assistant", content="I believe in you. You're stronger than you think and you can do this.")
+            ]
         )
         conversations.append(conv3)
 
@@ -85,9 +76,9 @@ class TestVoiceTrainingOptimizer:
                 "conscientiousness": 0.8,
                 "extraversion": 0.6,
                 "agreeableness": 0.9,
-                "neuroticism": 0.3,
+                "neuroticism": 0.3
             },
-            "confidence": 0.85,
+            "confidence": 0.85
         }
         return extractor
 
@@ -103,7 +94,6 @@ class TestVoiceTrainingOptimizer:
 
     def test_register_quality_validator(self, optimizer):
         """Test registering quality validator."""
-
         def dummy_validator(conversation):
             return {"valid": True, "score": 0.9}
 
@@ -112,9 +102,7 @@ class TestVoiceTrainingOptimizer:
         assert len(optimizer.quality_validators) == 1
         assert optimizer.quality_validators[0] == dummy_validator
 
-    def test_extract_single_profile(
-        self, optimizer, sample_conversations, mock_personality_extractor
-    ):
+    def test_extract_single_profile(self, optimizer, sample_conversations, mock_personality_extractor):
         """Test extracting single personality profile."""
         optimizer.personality_extractor = mock_personality_extractor
 
@@ -127,9 +115,7 @@ class TestVoiceTrainingOptimizer:
         assert len(profile.empathy_indicators) > 0
         assert profile.sample_count == 1
 
-    def test_extract_conversation_profiles(
-        self, optimizer, sample_conversations, mock_personality_extractor
-    ):
+    def test_extract_conversation_profiles(self, optimizer, sample_conversations, mock_personality_extractor):
         """Test extracting profiles from multiple conversations."""
         optimizer.personality_extractor = mock_personality_extractor
 
@@ -154,7 +140,7 @@ class TestVoiceTrainingOptimizer:
                 emotional_patterns={"empathetic": 0.9, "positive": 0.7},
                 empathy_indicators=["I understand", "that must be hard"],
                 authenticity_score=0.85,
-                confidence=0.9,
+                confidence=0.9
             ),
             "conv_2": PersonalityProfile(
                 big_five_scores={"openness": 0.7, "agreeableness": 0.8},
@@ -162,17 +148,15 @@ class TestVoiceTrainingOptimizer:
                 emotional_patterns={"empathetic": 0.8, "positive": 0.8},
                 empathy_indicators=["I understand", "I feel for you"],
                 authenticity_score=0.8,
-                confidence=0.85,
-            ),
+                confidence=0.85
+            )
         }
 
         baseline = optimizer._establish_baseline_profile(profiles)
 
         assert isinstance(baseline, PersonalityProfile)
         assert baseline.big_five_scores["openness"] == 0.75  # Average of 0.8 and 0.7
-        assert (
-            baseline.big_five_scores["agreeableness"] == 0.85
-        )  # Average of 0.9 and 0.8
+        assert baseline.big_five_scores["agreeableness"] == 0.85  # Average of 0.9 and 0.8
         assert "I understand" in baseline.empathy_indicators
         assert baseline.sample_count == 2
         assert optimizer.baseline_profile == baseline
@@ -182,29 +166,25 @@ class TestVoiceTrainingOptimizer:
         baseline = PersonalityProfile(
             big_five_scores={"openness": 0.8, "agreeableness": 0.9},
             communication_style={"supportive": 0.8},
-            emotional_patterns={"empathetic": 0.9},
+            emotional_patterns={"empathetic": 0.9}
         )
 
         # High consistency profile
         high_consistency_profile = PersonalityProfile(
             big_five_scores={"openness": 0.82, "agreeableness": 0.88},
             communication_style={"supportive": 0.78},
-            emotional_patterns={"empathetic": 0.92},
+            emotional_patterns={"empathetic": 0.92}
         )
 
         # Low consistency profile
         low_consistency_profile = PersonalityProfile(
             big_five_scores={"openness": 0.3, "agreeableness": 0.4},
             communication_style={"supportive": 0.2},
-            emotional_patterns={"empathetic": 0.1},
+            emotional_patterns={"empathetic": 0.1}
         )
 
-        high_score = optimizer._calculate_consistency_score(
-            high_consistency_profile, baseline
-        )
-        low_score = optimizer._calculate_consistency_score(
-            low_consistency_profile, baseline
-        )
+        high_score = optimizer._calculate_consistency_score(high_consistency_profile, baseline)
+        low_score = optimizer._calculate_consistency_score(low_consistency_profile, baseline)
 
         assert high_score > 0.9
         assert low_score < 0.5
@@ -213,9 +193,7 @@ class TestVoiceTrainingOptimizer:
     def test_calculate_empathy_score(self, optimizer, sample_conversations):
         """Test calculating empathy score."""
         # High empathy conversation
-        high_empathy_conv = sample_conversations[
-            0
-        ]  # Contains "I understand", "difficult", "support"
+        high_empathy_conv = sample_conversations[0]  # Contains "I understand", "difficult", "support"
 
         # Low empathy conversation
         low_empathy_conv = sample_conversations[1]  # More analytical, less empathetic
@@ -238,9 +216,7 @@ class TestVoiceTrainingOptimizer:
 
     def test_analyze_communication_style(self, optimizer, sample_conversations):
         """Test analyzing communication style."""
-        supportive_conv = sample_conversations[
-            2
-        ]  # Contains "believe", "support" language
+        supportive_conv = sample_conversations[2]  # Contains "believe", "support" language
 
         style = optimizer._analyze_communication_style(supportive_conv)
 
@@ -296,35 +272,27 @@ class TestVoiceTrainingOptimizer:
             "conv_1": PersonalityProfile(
                 big_five_scores={"openness": 0.8, "agreeableness": 0.9},
                 communication_style={"supportive": 0.8},
-                emotional_patterns={"empathetic": 0.9},
+                emotional_patterns={"empathetic": 0.9}
             ),
             "conv_2": PersonalityProfile(
-                big_five_scores={
-                    "openness": 0.2,
-                    "agreeableness": 0.1,
-                },  # Very different
+                big_five_scores={"openness": 0.2, "agreeableness": 0.1},  # Very different
                 communication_style={"supportive": 0.1},
-                emotional_patterns={"empathetic": 0.1},
+                emotional_patterns={"empathetic": 0.1}
             ),
             "conv_3": PersonalityProfile(
-                big_five_scores={
-                    "openness": 0.82,
-                    "agreeableness": 0.88,
-                },  # Similar to baseline
+                big_five_scores={"openness": 0.82, "agreeableness": 0.88},  # Similar to baseline
                 communication_style={"supportive": 0.78},
-                emotional_patterns={"empathetic": 0.92},
-            ),
+                emotional_patterns={"empathetic": 0.92}
+            )
         }
 
         baseline = PersonalityProfile(
             big_five_scores={"openness": 0.8, "agreeableness": 0.9},
             communication_style={"supportive": 0.8},
-            emotional_patterns={"empathetic": 0.9},
+            emotional_patterns={"empathetic": 0.9}
         )
 
-        filtered = optimizer._filter_by_consistency(
-            sample_conversations, profiles, baseline
-        )
+        filtered = optimizer._filter_by_consistency(sample_conversations, profiles, baseline)
 
         # Should filter out the inconsistent conversation (conv_2)
         assert len(filtered) < len(sample_conversations)
@@ -332,14 +300,10 @@ class TestVoiceTrainingOptimizer:
         # Remaining conversations should have consistency scores in metadata
         for conv in filtered:
             assert "personality_consistency" in conv.meta
-            assert (
-                conv.meta["personality_consistency"]
-                >= optimizer.config.min_consistency_threshold
-            )
+            assert conv.meta["personality_consistency"] >= optimizer.config.min_consistency_threshold
 
     def test_apply_quality_validation(self, optimizer, sample_conversations):
         """Test applying quality validation."""
-
         # Register validators
         def good_validator(conversation):
             return {"valid": True, "score": 0.9}
@@ -360,9 +324,7 @@ class TestVoiceTrainingOptimizer:
         validated = optimizer._apply_quality_validation(sample_conversations)
         assert len(validated) == 0
 
-    def test_optimize_voice_conversations_integration(
-        self, optimizer, sample_conversations, mock_personality_extractor
-    ):
+    def test_optimize_voice_conversations_integration(self, optimizer, sample_conversations, mock_personality_extractor):
         """Test full optimization pipeline integration."""
         optimizer.personality_extractor = mock_personality_extractor
 
@@ -389,9 +351,7 @@ class TestVoiceTrainingOptimizer:
             assert "empathy_score" in conv.meta
             assert "authenticity_score" in conv.meta
 
-    def test_analyze_personality_consistency(
-        self, optimizer, sample_conversations, mock_personality_extractor
-    ):
+    def test_analyze_personality_consistency(self, optimizer, sample_conversations, mock_personality_extractor):
         """Test personality consistency analysis."""
         optimizer.personality_extractor = mock_personality_extractor
 
@@ -446,7 +406,7 @@ class TestPersonalityProfile:
             empathy_indicators=["I understand"],
             authenticity_score=0.85,
             sample_count=5,
-            confidence=0.9,
+            confidence=0.9
         )
 
         assert profile.big_five_scores == {"openness": 0.8}
@@ -464,7 +424,9 @@ class TestVoiceOptimizationConfig:
     def test_initialization(self):
         """Test VoiceOptimizationConfig initialization."""
         config = VoiceOptimizationConfig(
-            min_consistency_threshold=0.9, batch_size=100, max_workers=8
+            min_consistency_threshold=0.9,
+            batch_size=100,
+            max_workers=8
         )
 
         assert config.min_consistency_threshold == 0.9
@@ -488,7 +450,7 @@ class TestOptimizationResult:
             quality_metrics={"score": 0.8},
             filtered_count=5,
             total_processed=10,
-            processing_time=1.5,
+            processing_time=1.5
         )
 
         assert result.success is True

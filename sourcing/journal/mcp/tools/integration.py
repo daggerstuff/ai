@@ -73,9 +73,7 @@ class CreateIntegrationPlansTool(MCPTool):
             if not session_id:
                 raise ValueError("session_id is required")
             if target_format not in ["chatml", "conversation_record"]:
-                raise ValueError(
-                    "target_format must be 'chatml' or 'conversation_record'"
-                )
+                raise ValueError("target_format must be 'chatml' or 'conversation_record'")
 
             # Initiate integration planning
             result = self.service.initiate_integration(
@@ -175,12 +173,7 @@ class GetIntegrationPlansTool(MCPTool):
                     },
                     "sort_by": {
                         "type": "string",
-                        "enum": [
-                            "created_date",
-                            "estimated_effort_hours",
-                            "complexity",
-                            "integration_priority",
-                        ],
+                        "enum": ["created_date", "estimated_effort_hours", "complexity", "integration_priority"],
                         "description": "Field to sort by",
                     },
                     "sort_order": {
@@ -280,9 +273,7 @@ class GetIntegrationPlansTool(MCPTool):
         if sort_by == "created_date":
             return sorted(plans, key=lambda p: p.created_date, reverse=reverse)
         elif sort_by == "estimated_effort_hours":
-            return sorted(
-                plans, key=lambda p: p.estimated_effort_hours, reverse=reverse
-            )
+            return sorted(plans, key=lambda p: p.estimated_effort_hours, reverse=reverse)
         elif sort_by == "complexity":
             complexity_order = {"low": 1, "medium": 2, "high": 3}
             return sorted(
@@ -501,3 +492,4 @@ class GeneratePreprocessingScriptTool(MCPTool):
                 f"Failed to generate preprocessing script: {str(e)}",
                 {"params": params, "error": str(e)},
             ) from e
+

@@ -1,3 +1,4 @@
+
 def load_edge_case_synthetic():
     """Load synthetic edge case dataset"""
     from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader
@@ -9,6 +10,4 @@ def load_edge_case_synthetic():
         return list(loader.stream_jsonl(s3_path))
     else:
         # Generate synthetic edge cases
-        raise FileNotFoundError(
-            "Synthetic edge cases not found. Generate using edge case generator."
-        )
+        raise FileNotFoundError("Synthetic edge cases not found. Generate using edge case generator.")

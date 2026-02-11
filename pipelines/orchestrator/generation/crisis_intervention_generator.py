@@ -395,9 +395,7 @@ class CrisisInterventionGenerator:
             },
         }
 
-    def _initialize_intervention_strategies(
-        self,
-    ) -> dict[InterventionTechnique, dict[str, Any]]:
+    def _initialize_intervention_strategies(self) -> dict[InterventionTechnique, dict[str, Any]]:
         """Initialize crisis intervention strategies."""
         return {
             InterventionTechnique.DE_ESCALATION: {
@@ -472,10 +470,7 @@ class CrisisInterventionGenerator:
         }
 
     def generate_crisis_conversation(
-        self,
-        client_scenario: ClientScenario,
-        crisis_type: CrisisType,
-        num_exchanges: int = 12,
+        self, client_scenario: ClientScenario, crisis_type: CrisisType, num_exchanges: int = 12
     ) -> CrisisConversation:
         """
         Generate crisis intervention conversation with safety protocols.
@@ -494,19 +489,13 @@ class CrisisInterventionGenerator:
             protocol = self._create_generic_crisis_protocol(crisis_type)
 
         # Generate conversation exchanges
-        exchanges = self._generate_crisis_exchanges(
-            client_scenario, protocol, num_exchanges
-        )
+        exchanges = self._generate_crisis_exchanges(client_scenario, protocol, num_exchanges)
 
         # Conduct crisis assessment
-        crisis_assessment = self._conduct_crisis_assessment(
-            exchanges, protocol, client_scenario
-        )
+        crisis_assessment = self._conduct_crisis_assessment(exchanges, protocol, client_scenario)
 
         # Create safety plan if appropriate
-        safety_plan = self._create_safety_plan(
-            crisis_assessment, client_scenario, crisis_type
-        )
+        safety_plan = self._create_safety_plan(crisis_assessment, client_scenario, crisis_type)
 
         # Identify techniques used
         techniques_used = self._identify_techniques_used(exchanges)
@@ -515,29 +504,21 @@ class CrisisInterventionGenerator:
         de_escalation_success = self._assess_de_escalation_success(exchanges)
 
         # Determine risk levels
-        risk_level_initial = self._assess_initial_risk_level(
-            client_scenario, crisis_type
-        )
+        risk_level_initial = self._assess_initial_risk_level(client_scenario, crisis_type)
         risk_level_final = self._assess_final_risk_level(exchanges, crisis_assessment)
 
         # Identify emergency actions
-        emergency_actions = self._identify_emergency_actions(
-            crisis_assessment, protocol
-        )
+        emergency_actions = self._identify_emergency_actions(crisis_assessment, protocol)
 
         # Schedule follow-up
-        follow_up_scheduled = self._determine_follow_up_needs(
-            crisis_assessment, protocol
-        )
+        follow_up_scheduled = self._determine_follow_up_needs(crisis_assessment, protocol)
 
         # Generate clinical notes
         clinical_notes = self._generate_crisis_clinical_notes(
             exchanges, crisis_assessment, protocol
         )
 
-        conversation_id = (
-            f"crisis_{crisis_type.value}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-        )
+        conversation_id = f"crisis_{crisis_type.value}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         return CrisisConversation(
             id=conversation_id,
@@ -555,9 +536,7 @@ class CrisisInterventionGenerator:
             clinical_notes=clinical_notes,
         )
 
-    def _create_generic_crisis_protocol(
-        self, crisis_type: CrisisType
-    ) -> CrisisProtocol:
+    def _create_generic_crisis_protocol(self, crisis_type: CrisisType) -> CrisisProtocol:
         """Create generic crisis protocol for unspecified crisis types."""
         return CrisisProtocol(
             id=f"generic_{crisis_type.value}",
@@ -566,20 +545,13 @@ class CrisisInterventionGenerator:
             name=f"General {crisis_type.value.replace('_', ' ').title()} Protocol",
             description=f"General intervention protocol for {crisis_type.value}",
             immediate_actions=["Ensure safety", "Assess situation", "Provide support"],
-            assessment_priorities=[
-                "Current risk",
-                "Support systems",
-                "Coping resources",
-            ],
+            assessment_priorities=["Current risk", "Support systems", "Coping resources"],
             intervention_techniques=[
                 InterventionTechnique.ACTIVE_LISTENING,
                 InterventionTechnique.VALIDATION,
                 InterventionTechnique.CRISIS_COUNSELING,
             ],
-            safety_protocols=[
-                SafetyProtocol.SAFETY_PLANNING,
-                SafetyProtocol.SUPPORT_ACTIVATION,
-            ],
+            safety_protocols=[SafetyProtocol.SAFETY_PLANNING, SafetyProtocol.SUPPORT_ACTIVATION],
             de_escalation_steps=["Listen", "Validate", "Support", "Plan"],
             risk_factors=["Current crisis", "Limited support"],
             protective_factors=["Help-seeking", "Insight"],
@@ -590,10 +562,7 @@ class CrisisInterventionGenerator:
         )
 
     def _generate_crisis_exchanges(
-        self,
-        client_scenario: ClientScenario,
-        protocol: CrisisProtocol,
-        num_exchanges: int,
+        self, client_scenario: ClientScenario, protocol: CrisisProtocol, num_exchanges: int
     ) -> list[dict[str, Any]]:
         """Generate crisis intervention conversation exchanges."""
         exchanges = []
@@ -604,19 +573,14 @@ class CrisisInterventionGenerator:
                     client_scenario, protocol, i // 2
                 )
             else:  # Client turn
-                exchange = self._generate_client_crisis_response(
-                    client_scenario, protocol, i // 2
-                )
+                exchange = self._generate_client_crisis_response(client_scenario, protocol, i // 2)
 
             exchanges.append(exchange)
 
         return exchanges
 
     def _generate_therapist_crisis_response(
-        self,
-        client_scenario: ClientScenario,
-        protocol: CrisisProtocol,
-        exchange_index: int,
+        self, client_scenario: ClientScenario, protocol: CrisisProtocol, exchange_index: int
     ) -> dict[str, Any]:
         """Generate therapist response in crisis situation."""
 
@@ -632,12 +596,12 @@ class CrisisInterventionGenerator:
             content = self._generate_safety_assessment_question(protocol.crisis_type)
         elif exchange_index == 3:
             technique = InterventionTechnique.DE_ESCALATION
-            content = "Let's take this one step at a time. Right now, let's focus on keeping you safe."
+            content = (
+                "Let's take this one step at a time. Right now, let's focus on keeping you safe."
+            )
         else:
             technique = random.choice(protocol.intervention_techniques)
-            content = self._generate_technique_specific_content(
-                technique, protocol.crisis_type
-            )
+            content = self._generate_technique_specific_content(technique, protocol.crisis_type)
 
         return {
             "speaker": "therapist",
@@ -649,10 +613,7 @@ class CrisisInterventionGenerator:
         }
 
     def _generate_client_crisis_response(
-        self,
-        client_scenario: ClientScenario,
-        protocol: CrisisProtocol,
-        exchange_index: int,
+        self, client_scenario: ClientScenario, protocol: CrisisProtocol, exchange_index: int
     ) -> dict[str, Any]:
         """Generate client response in crisis situation."""
 
@@ -667,12 +628,8 @@ class CrisisInterventionGenerator:
             "emotional_state": self._determine_crisis_emotional_state(
                 protocol.crisis_type, exchange_index
             ),
-            "cooperation_level": self._assess_crisis_cooperation(
-                client_scenario, exchange_index
-            ),
-            "risk_indicators": self._identify_risk_indicators(
-                content, protocol.crisis_type
-            ),
+            "cooperation_level": self._assess_crisis_cooperation(client_scenario, exchange_index),
+            "risk_indicators": self._identify_risk_indicators(content, protocol.crisis_type),
             "timestamp": datetime.now().isoformat(),
         }
 
@@ -705,10 +662,7 @@ class CrisisInterventionGenerator:
         return content_map.get(technique, "How can I best support you right now?")
 
     def _generate_client_crisis_content(
-        self,
-        client_scenario: ClientScenario,
-        crisis_type: CrisisType,
-        exchange_index: int,
+        self, client_scenario: ClientScenario, crisis_type: CrisisType, exchange_index: int
     ) -> str:
         """Generate realistic client crisis response content."""
 
@@ -753,9 +707,7 @@ class CrisisInterventionGenerator:
             return "intervention"
         return "stabilization"
 
-    def _determine_safety_focus(
-        self, exchange_index: int, protocol: CrisisProtocol
-    ) -> str:
+    def _determine_safety_focus(self, exchange_index: int, protocol: CrisisProtocol) -> str:
         """Determine safety focus for current exchange."""
         if exchange_index <= 1:
             return "immediate_safety"
@@ -795,9 +747,7 @@ class CrisisInterventionGenerator:
             return "guarded"
         return "improving"
 
-    def _identify_risk_indicators(
-        self, content: str, crisis_type: CrisisType
-    ) -> list[str]:
+    def _identify_risk_indicators(self, content: str, crisis_type: CrisisType) -> list[str]:
         """Identify risk indicators from client response."""
         indicators = []
         content_lower = content.lower()
@@ -805,9 +755,7 @@ class CrisisInterventionGenerator:
         # Suicide risk indicators
         if any(word in content_lower for word in ["plan", "method", "when", "how"]):
             indicators.append("specific_plan")
-        if any(
-            word in content_lower for word in ["hopeless", "no_way_out", "can't_take"]
-        ):
+        if any(word in content_lower for word in ["hopeless", "no_way_out", "can't_take"]):
             indicators.append("hopelessness")
         if any(word in content_lower for word in ["weeks", "months", "long_time"]):
             indicators.append("chronic_ideation")
@@ -843,14 +791,10 @@ class CrisisInterventionGenerator:
             risk_indicators.extend(exchange.get("risk_indicators", []))
 
         # Assess current risk level
-        current_risk = self._calculate_current_risk(
-            risk_indicators, protocol.crisis_type
-        )
+        current_risk = self._calculate_current_risk(risk_indicators, protocol.crisis_type)
 
         # Identify protective factors
-        protective_factors = self._identify_protective_factors_from_conversation(
-            client_exchanges
-        )
+        protective_factors = self._identify_protective_factors_from_conversation(client_exchanges)
 
         # Assess support systems
         support_assessment = self._assess_support_systems(client_exchanges)
@@ -863,14 +807,10 @@ class CrisisInterventionGenerator:
             "support_systems": support_assessment,
             "immediate_safety": self._assess_immediate_safety(risk_indicators),
             "intervention_needed": self._determine_intervention_level(current_risk),
-            "emergency_criteria_met": self._check_emergency_criteria(
-                risk_indicators, protocol
-            ),
+            "emergency_criteria_met": self._check_emergency_criteria(risk_indicators, protocol),
         }
 
-    def _calculate_current_risk(
-        self, risk_indicators: list[str], crisis_type: CrisisType
-    ) -> str:
+    def _calculate_current_risk(self, risk_indicators: list[str], crisis_type: CrisisType) -> str:
         """Calculate current risk level based on indicators."""
 
         high_risk_indicators = [
@@ -914,9 +854,7 @@ class CrisisInterventionGenerator:
 
         return list(set(protective_factors))
 
-    def _assess_support_systems(
-        self, client_exchanges: list[dict[str, Any]]
-    ) -> dict[str, Any]:
+    def _assess_support_systems(self, client_exchanges: list[dict[str, Any]]) -> dict[str, Any]:
         """Assess support systems from conversation."""
 
         support_mentioned = False
@@ -925,9 +863,7 @@ class CrisisInterventionGenerator:
         for exchange in client_exchanges:
             content = exchange.get("content", "").lower()
 
-            if any(
-                word in content for word in ["family", "friends", "support", "help"]
-            ):
+            if any(word in content for word in ["family", "friends", "support", "help"]):
                 support_mentioned = True
                 if any(word in content for word in ["close", "caring", "loving"]):
                     support_quality = "strong"
@@ -945,14 +881,8 @@ class CrisisInterventionGenerator:
 
     def _assess_immediate_safety(self, risk_indicators: list[str]) -> bool:
         """Assess if client is in immediate safety."""
-        immediate_risk_indicators = [
-            "specific_plan",
-            "violence_intent",
-            "loss_of_control",
-        ]
-        return not any(
-            indicator in risk_indicators for indicator in immediate_risk_indicators
-        )
+        immediate_risk_indicators = ["specific_plan", "violence_intent", "loss_of_control"]
+        return not any(indicator in risk_indicators for indicator in immediate_risk_indicators)
 
     def _determine_intervention_level(self, current_risk: str) -> str:
         """Determine level of intervention needed."""
@@ -990,7 +920,9 @@ class CrisisInterventionGenerator:
         reasons_for_living = self._generate_reasons_for_living()
         professional_contacts = self._generate_professional_contacts()
 
-        safety_plan_id = f"safety_plan_{client_scenario.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        safety_plan_id = (
+            f"safety_plan_{client_scenario.id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        )
 
         return SafetyPlan(
             id=safety_plan_id,
@@ -1054,17 +986,9 @@ class CrisisInterventionGenerator:
         """Generate support contacts for safety plan."""
 
         return [
-            {
-                "name": "Family Member",
-                "phone": "XXX-XXX-XXXX",
-                "relationship": "family",
-            },
+            {"name": "Family Member", "phone": "XXX-XXX-XXXX", "relationship": "family"},
             {"name": "Close Friend", "phone": "XXX-XXX-XXXX", "relationship": "friend"},
-            {
-                "name": "Support Person",
-                "phone": "XXX-XXX-XXXX",
-                "relationship": "support",
-            },
+            {"name": "Support Person", "phone": "XXX-XXX-XXXX", "relationship": "support"},
         ]
 
     def _generate_emergency_contacts(self) -> list[dict[str, str]]:
@@ -1073,11 +997,7 @@ class CrisisInterventionGenerator:
         return [
             {"name": "Crisis Hotline", "phone": "988", "available": "24/7"},
             {"name": "Emergency Services", "phone": "911", "available": "24/7"},
-            {
-                "name": "Crisis Text Line",
-                "phone": "Text HOME to 741741",
-                "available": "24/7",
-            },
+            {"name": "Crisis Text Line", "phone": "Text HOME to 741741", "available": "24/7"},
         ]
 
     def _generate_environmental_safety(self, crisis_type: CrisisType) -> list[str]:
@@ -1121,11 +1041,7 @@ class CrisisInterventionGenerator:
                 "Stay away from triggering locations",
                 "Have someone monitor access to means",
             ]
-        return [
-            "Remove potential triggers",
-            "Limit access to stressors",
-            "Create safe spaces",
-        ]
+        return ["Remove potential triggers", "Limit access to stressors", "Create safe spaces"]
 
     def _generate_reasons_for_living(self) -> list[str]:
         """Generate reasons for living for safety plan."""
@@ -1156,10 +1072,7 @@ class CrisisInterventionGenerator:
         techniques = set()
 
         for exchange in exchanges:
-            if (
-                exchange.get("speaker") == "therapist"
-                and "intervention_technique" in exchange
-            ):
+            if exchange.get("speaker") == "therapist" and "intervention_technique" in exchange:
                 technique_value = exchange["intervention_technique"]
                 for technique in InterventionTechnique:
                     if technique.value == technique_value:
@@ -1275,9 +1188,7 @@ class CrisisInterventionGenerator:
 
         # De-escalation outcome
         if self._assess_de_escalation_success(exchanges):
-            notes.append(
-                "De-escalation successful - client showed improvement in emotional state"
-            )
+            notes.append("De-escalation successful - client showed improvement in emotional state")
         else:
             notes.append("De-escalation ongoing - continued monitoring required")
 
@@ -1319,9 +1230,7 @@ class CrisisInterventionGenerator:
                 / len(conversations)
                 if conversations
                 else 0,
-                "average_risk_reduction": self._calculate_average_risk_reduction(
-                    conversations
-                ),
+                "average_risk_reduction": self._calculate_average_risk_reduction(conversations),
             },
             "conversations": serializable_conversations,
         }
@@ -1333,14 +1242,10 @@ class CrisisInterventionGenerator:
             "exported_conversations": len(conversations),
             "output_file": output_file,
             "crisis_types_covered": len(export_data["metadata"]["crisis_types"]),
-            "success_rate": round(
-                export_data["metadata"]["de_escalation_success_rate"], 2
-            ),
+            "success_rate": round(export_data["metadata"]["de_escalation_success_rate"], 2),
         }
 
-    def _calculate_average_risk_reduction(
-        self, conversations: list[CrisisConversation]
-    ) -> float:
+    def _calculate_average_risk_reduction(self, conversations: list[CrisisConversation]) -> float:
         """Calculate average risk reduction across conversations."""
         if not conversations:
             return 0.0

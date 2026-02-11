@@ -17,7 +17,6 @@ from typing import Any
 @dataclass
 class SimplePattern:
     """Simple pattern detection result."""
-
     pattern_type: str
     description: str
     confidence: float
@@ -27,7 +26,6 @@ class SimplePattern:
 @dataclass
 class SimpleComplexity:
     """Simple complexity metrics."""
-
     overall_complexity: float
     word_count: int
     unique_words: int
@@ -39,7 +37,6 @@ class SimpleComplexity:
 @dataclass
 class SimpleAnalysis:
     """Simple conversation analysis result."""
-
     conversation_id: str
     quality_score: float
     sophistication_level: str
@@ -55,64 +52,36 @@ class SimplePatternDetector:
         self.therapeutic_patterns = {
             "empathic_reflection": [
                 r"\b(I understand|I hear you|that sounds|I can imagine)\b",
-                r"\b(you\'re feeling|it seems like|I sense)\b",
+                r"\b(you\'re feeling|it seems like|I sense)\b"
             ],
             "active_listening": [
                 r"\b(tell me more|go on|what else|help me understand)\b",
-                r"\b(I\'m listening|I\'m here|continue)\b",
+                r"\b(I\'m listening|I\'m here|continue)\b"
             ],
             "cognitive_restructuring": [
                 r"\b(what evidence|alternative thought|different perspective)\b",
-                r"\b(is that helpful|realistic|balanced view)\b",
+                r"\b(is that helpful|realistic|balanced view)\b"
             ],
             "validation": [
                 r"\b(that\'s valid|makes sense|understandable|legitimate)\b",
-                r"\b(anyone would feel|normal to feel|reasonable)\b",
+                r"\b(anyone would feel|normal to feel|reasonable)\b"
             ],
             "questioning": [
                 r"\b(what|how|when|where|why|can you tell me)\b",
-                r"\b(what do you think|how does that feel)\b",
-            ],
+                r"\b(what do you think|how does that feel)\b"
+            ]
         }
 
         self.emotional_words = [
-            "anxious",
-            "depressed",
-            "sad",
-            "happy",
-            "angry",
-            "frustrated",
-            "hopeful",
-            "worried",
-            "scared",
-            "excited",
-            "overwhelmed",
-            "grateful",
-            "ashamed",
-            "guilty",
-            "proud",
-            "lonely",
-            "confused",
+            "anxious", "depressed", "sad", "happy", "angry", "frustrated",
+            "hopeful", "worried", "scared", "excited", "overwhelmed",
+            "grateful", "ashamed", "guilty", "proud", "lonely", "confused"
         ]
 
         self.therapeutic_concepts = [
-            "therapy",
-            "counseling",
-            "coping",
-            "stress",
-            "anxiety",
-            "depression",
-            "trauma",
-            "healing",
-            "growth",
-            "insight",
-            "awareness",
-            "mindfulness",
-            "relationship",
-            "attachment",
-            "boundaries",
-            "self-care",
-            "resilience",
+            "therapy", "counseling", "coping", "stress", "anxiety", "depression",
+            "trauma", "healing", "growth", "insight", "awareness", "mindfulness",
+            "relationship", "attachment", "boundaries", "self-care", "resilience"
         ]
 
     def detect_patterns(self, conversation: dict[str, Any]) -> list[SimplePattern]:
@@ -128,14 +97,12 @@ class SimplePatternDetector:
 
             if matches:
                 confidence = min(len(matches) / 3.0, 1.0)  # Normalize
-                patterns.append(
-                    SimplePattern(
-                        pattern_type=pattern_type,
-                        description=f"Detected {pattern_type.replace('_', ' ')}",
-                        confidence=confidence,
-                        evidence=matches[:3],
-                    )
-                )
+                patterns.append(SimplePattern(
+                    pattern_type=pattern_type,
+                    description=f"Detected {pattern_type.replace('_', ' ')}",
+                    confidence=confidence,
+                    evidence=matches[:3]
+                ))
 
         return patterns
 
@@ -166,16 +133,12 @@ class SimpleComplexityScorer:
         vocabulary_diversity = unique_words / max(word_count, 1)
 
         # Therapeutic concepts
-        therapeutic_count = sum(
-            1
-            for concept in self.detector.therapeutic_concepts
-            if concept in text.lower()
-        )
+        therapeutic_count = sum(1 for concept in self.detector.therapeutic_concepts
+                              if concept in text.lower())
 
         # Emotional words
-        emotional_count = sum(
-            1 for emotion in self.detector.emotional_words if emotion in text.lower()
-        )
+        emotional_count = sum(1 for emotion in self.detector.emotional_words
+                            if emotion in text.lower())
 
         # Calculate overall complexity
         length_factor = min(word_count / 200.0, 1.0)
@@ -184,10 +147,10 @@ class SimpleComplexityScorer:
         emotional_factor = min(emotional_count / 3.0, 1.0)
 
         overall_complexity = (
-            length_factor * 0.3
-            + diversity_factor * 0.3
-            + concept_factor * 0.2
-            + emotional_factor * 0.2
+            length_factor * 0.3 +
+            diversity_factor * 0.3 +
+            concept_factor * 0.2 +
+            emotional_factor * 0.2
         )
 
         return SimpleComplexity(
@@ -196,7 +159,7 @@ class SimpleComplexityScorer:
             unique_words=unique_words,
             vocabulary_diversity=vocabulary_diversity,
             therapeutic_concepts=therapeutic_count,
-            emotional_words=emotional_count,
+            emotional_words=emotional_count
         )
 
     def _extract_text(self, conversation: dict[str, Any]) -> str:
@@ -231,9 +194,7 @@ class SimpleAnalyticsEngine:
         quality_score = self._calculate_quality_score(patterns, complexity)
 
         # Determine sophistication level
-        sophistication_level = self._determine_sophistication_level(
-            complexity, patterns
-        )
+        sophistication_level = self._determine_sophistication_level(complexity, patterns)
 
         # Generate recommendations
         recommendations = self._generate_recommendations(patterns, complexity)
@@ -245,7 +206,7 @@ class SimpleAnalyticsEngine:
             sophistication_level=sophistication_level,
             patterns=patterns,
             complexity=complexity,
-            recommendations=recommendations,
+            recommendations=recommendations
         )
 
         # Store result
@@ -253,28 +214,24 @@ class SimpleAnalyticsEngine:
 
         return analysis
 
-    def _calculate_quality_score(
-        self, patterns: list[SimplePattern], complexity: SimpleComplexity
-    ) -> float:
+    def _calculate_quality_score(self, patterns: list[SimplePattern],
+                                complexity: SimpleComplexity) -> float:
         """Calculate overall quality score."""
-        pattern_score = (
-            0.0 if not patterns else statistics.mean([p.confidence for p in patterns])
-        )
+        pattern_score = 0.0 if not patterns else statistics.mean([p.confidence for p in patterns])
 
         # Combine pattern quality with complexity (higher complexity can indicate quality)
         quality_score = pattern_score * 0.7 + complexity.overall_complexity * 0.3
         return min(quality_score, 1.0)
 
-    def _determine_sophistication_level(
-        self, complexity: SimpleComplexity, patterns: list[SimplePattern]
-    ) -> str:
+    def _determine_sophistication_level(self, complexity: SimpleComplexity,
+                                      patterns: list[SimplePattern]) -> str:
         """Determine sophistication level."""
         # Base on complexity and pattern diversity
         pattern_diversity = len({p.pattern_type for p in patterns})
 
         sophistication_score = (
-            complexity.overall_complexity * 0.6
-            + min(pattern_diversity / 5.0, 1.0) * 0.4
+            complexity.overall_complexity * 0.6 +
+            min(pattern_diversity / 5.0, 1.0) * 0.4
         )
 
         if sophistication_score >= 0.8:
@@ -285,9 +242,8 @@ class SimpleAnalyticsEngine:
             return "intermediate"
         return "basic"
 
-    def _generate_recommendations(
-        self, patterns: list[SimplePattern], complexity: SimpleComplexity
-    ) -> list[str]:
+    def _generate_recommendations(self, patterns: list[SimplePattern],
+                                complexity: SimpleComplexity) -> list[str]:
         """Generate improvement recommendations."""
         recommendations = []
 
@@ -326,12 +282,8 @@ class SimpleAnalyticsEngine:
 
         # Calculate summary statistics
         quality_scores = [r.quality_score for r in self.results_history]
-        complexity_scores = [
-            r.complexity.overall_complexity for r in self.results_history
-        ]
-        sophistication_counts = Counter(
-            r.sophistication_level for r in self.results_history
-        )
+        complexity_scores = [r.complexity.overall_complexity for r in self.results_history]
+        sophistication_counts = Counter(r.sophistication_level for r in self.results_history)
 
         return {
             "total_conversations": len(self.results_history),
@@ -341,8 +293,8 @@ class SimpleAnalyticsEngine:
             "quality_distribution": {
                 "high": len([q for q in quality_scores if q >= 0.7]),
                 "medium": len([q for q in quality_scores if 0.4 <= q < 0.7]),
-                "low": len([q for q in quality_scores if q < 0.4]),
-            },
+                "low": len([q for q in quality_scores if q < 0.4])
+            }
         }
 
 
@@ -355,72 +307,36 @@ def create_sample_conversations():
                 {"role": "client", "content": "I feel sad today."},
                 {"role": "therapist", "content": "I understand. Can you tell me more?"},
                 {"role": "client", "content": "Work is stressful."},
-                {"role": "therapist", "content": "What about work is stressful?"},
-            ],
+                {"role": "therapist", "content": "What about work is stressful?"}
+            ]
         },
         {
             "id": "intermediate_conversation",
             "messages": [
-                {
-                    "role": "client",
-                    "content": "I've been having anxiety attacks. They come out of nowhere and I can't breathe.",
-                },
-                {
-                    "role": "therapist",
-                    "content": "I hear you saying you're experiencing panic attacks, and that sounds really frightening. When you say they come out of nowhere, have you noticed any patterns or triggers?",
-                },
-                {
-                    "role": "client",
-                    "content": "Now that you mention it, they often happen in crowded places or before meetings.",
-                },
-                {
-                    "role": "therapist",
-                    "content": "That's a really important insight. It sounds like social situations might be triggering your anxiety. Let's explore some coping strategies you can use.",
-                },
-            ],
+                {"role": "client", "content": "I've been having anxiety attacks. They come out of nowhere and I can't breathe."},
+                {"role": "therapist", "content": "I hear you saying you're experiencing panic attacks, and that sounds really frightening. When you say they come out of nowhere, have you noticed any patterns or triggers?"},
+                {"role": "client", "content": "Now that you mention it, they often happen in crowded places or before meetings."},
+                {"role": "therapist", "content": "That's a really important insight. It sounds like social situations might be triggering your anxiety. Let's explore some coping strategies you can use."}
+            ]
         },
         {
             "id": "advanced_conversation",
             "messages": [
-                {
-                    "role": "client",
-                    "content": "I've been reflecting on my attachment patterns. I think my childhood experiences with my emotionally unavailable father are affecting my relationships.",
-                },
-                {
-                    "role": "therapist",
-                    "content": "That's a profound insight. Making connections between early attachment experiences and current patterns shows significant growth. What specific patterns are you noticing?",
-                },
-                {
-                    "role": "client",
-                    "content": "I have this anxious attachment where I seek reassurance but also push people away. I'm terrified of both abandonment and intimacy.",
-                },
-                {
-                    "role": "therapist",
-                    "content": "You've articulated something many struggle with - that paradox of craving connection while fearing it. This awareness is the first step toward developing more secure attachment behaviors.",
-                },
-            ],
+                {"role": "client", "content": "I've been reflecting on my attachment patterns. I think my childhood experiences with my emotionally unavailable father are affecting my relationships."},
+                {"role": "therapist", "content": "That's a profound insight. Making connections between early attachment experiences and current patterns shows significant growth. What specific patterns are you noticing?"},
+                {"role": "client", "content": "I have this anxious attachment where I seek reassurance but also push people away. I'm terrified of both abandonment and intimacy."},
+                {"role": "therapist", "content": "You've articulated something many struggle with - that paradox of craving connection while fearing it. This awareness is the first step toward developing more secure attachment behaviors."}
+            ]
         },
         {
             "id": "expert_conversation",
             "messages": [
-                {
-                    "role": "client",
-                    "content": "I've been practicing mindfulness and noticing my dissociative episodes. There's a somatic component - I feel disconnection starting in my chest before my mind goes blank.",
-                },
-                {
-                    "role": "therapist",
-                    "content": "That's remarkable somatic awareness. Tracking embodied precursors to dissociation suggests your window of tolerance is expanding. You're catching the nervous system response before full dissociation.",
-                },
-                {
-                    "role": "client",
-                    "content": "Yes, and when I notice that chest sensation, I use bilateral stimulation. It helps me stay present and connected to my body.",
-                },
-                {
-                    "role": "therapist",
-                    "content": "This is beautiful integration of somatic awareness with self-regulation. You're rewiring your nervous system's trauma response. This neuroplasticity-informed healing is exactly what we're aiming for.",
-                },
-            ],
-        },
+                {"role": "client", "content": "I've been practicing mindfulness and noticing my dissociative episodes. There's a somatic component - I feel disconnection starting in my chest before my mind goes blank."},
+                {"role": "therapist", "content": "That's remarkable somatic awareness. Tracking embodied precursors to dissociation suggests your window of tolerance is expanding. You're catching the nervous system response before full dissociation."},
+                {"role": "client", "content": "Yes, and when I notice that chest sensation, I use bilateral stimulation. It helps me stay present and connected to my body."},
+                {"role": "therapist", "content": "This is beautiful integration of somatic awareness with self-regulation. You're rewiring your nervous system's trauma response. This neuroplasticity-informed healing is exactly what we're aiming for."}
+            ]
+        }
     ]
 
 
@@ -433,9 +349,11 @@ def main():
     # Get sample conversations
     conversations = create_sample_conversations()
 
+
     # Analyze each conversation
     for conv in conversations:
         analysis = engine.analyze_conversation(conv)
+
 
         # Show detected patterns
         if analysis.patterns:
@@ -457,6 +375,8 @@ def main():
 
     for _level, _count in summary["quality_distribution"].items():
         pass
+
+
 
 
 if __name__ == "__main__":

@@ -155,7 +155,9 @@ class MCPErrorHandler:
             Error category
         """
         error_type = type(error).__name__
-        return MCPErrorHandler.ERROR_CATEGORY_MAP.get(error_type, ErrorCategory.UNKNOWN)
+        return MCPErrorHandler.ERROR_CATEGORY_MAP.get(
+            error_type, ErrorCategory.UNKNOWN
+        )
 
     @staticmethod
     def get_error_severity(error: Exception) -> ErrorSeverity:
@@ -169,7 +171,9 @@ class MCPErrorHandler:
             Error severity
         """
         category = MCPErrorHandler.get_error_category(error)
-        return MCPErrorHandler.CATEGORY_SEVERITY_MAP.get(category, ErrorSeverity.MEDIUM)
+        return MCPErrorHandler.CATEGORY_SEVERITY_MAP.get(
+            category, ErrorSeverity.MEDIUM
+        )
 
     @staticmethod
     def is_recoverable(error: Exception) -> bool:
@@ -376,9 +380,10 @@ class MCPErrorHandler:
                     last_error = e
 
                     # Check if error is recoverable
-                    is_recoverable = isinstance(
-                        e, recoverable_errors
-                    ) or MCPErrorHandler.is_recoverable(e)
+                    is_recoverable = (
+                        isinstance(e, recoverable_errors)
+                        or MCPErrorHandler.is_recoverable(e)
+                    )
 
                     if not is_recoverable or attempt == max_retries - 1:
                         # Not recoverable or last attempt
@@ -394,7 +399,6 @@ class MCPErrorHandler:
                         await asyncio.sleep(retry_delay * (attempt + 1))
                     else:
                         import time
-
                         time.sleep(retry_delay * (attempt + 1))
 
             # Should not reach here, but just in case
@@ -403,3 +407,4 @@ class MCPErrorHandler:
             raise RuntimeError("Unexpected error in error recovery wrapper")
 
         return wrapper
+

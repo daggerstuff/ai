@@ -66,9 +66,7 @@ def hash_conversation(conv: Conversation) -> str:
             if isinstance(conv["conversation"], list):
                 for turn in conv["conversation"]:
                     if isinstance(turn, dict):
-                        text_parts.append(
-                            str(turn.get("content", turn.get("text", "")))
-                        )
+                        text_parts.append(str(turn.get("content", turn.get("text", ""))))
                     else:
                         text_parts.append(str(turn))
             else:
@@ -157,9 +155,7 @@ def _sample_json_dataset(
         logger.warning("    ⚠️  Unexpected JSON structure, skipping")
         return []
 
-    sampled = (
-        random.sample(entries, sample_size) if len(entries) > sample_size else entries
-    )
+    sampled = random.sample(entries, sample_size) if len(entries) > sample_size else entries
     return [(entry, s3_path) for entry in sampled]
 
 
@@ -187,9 +183,7 @@ def _sample_jsonl_dataset(
     except Exception:
         logger.exception("    ⚠️  Streaming error")
 
-    return (
-        random.sample(entries, sample_size) if len(entries) > sample_size else entries
-    )
+    return random.sample(entries, sample_size) if len(entries) > sample_size else entries
 
 
 def sample_dataset(loader: Any, s3_path: str, sample_size: int = 100) -> list[Sample]:
@@ -251,9 +245,7 @@ def find_overlaps(datasets: dict[str, list[Sample]]) -> dict[str, Any]:
 
                 for dataset in unique_datasets:
                     overlap_summary[dataset].count += 1
-                    overlap_summary[dataset].with_datasets.update(
-                        unique_datasets - {dataset}
-                    )
+                    overlap_summary[dataset].with_datasets.update(unique_datasets - {dataset})
 
     return {
         "duplicates": duplicates,
@@ -280,9 +272,7 @@ def extract_processed_dataset_files(
 ) -> list[ProcessedDatasetFile]:
     """Extract processed dataset objects (JSON/JSONL only) from manifest."""
     processed_files: list[ProcessedDatasetFile] = []
-    processed_cats = (
-        manifest.get("categories", {}).get("gdrive", {}).get("processed", {})
-    )
+    processed_cats = manifest.get("categories", {}).get("gdrive", {}).get("processed", {})
 
     logger.info("📂 Finding processed datasets...")
     for category, files_info in processed_cats.items():
@@ -416,13 +406,9 @@ def build_overlap_report(
             str(k): {
                 "datasets": list(k),
                 "count": len(v),
-                "sample_entry": (
-                    extract_text_sample(v[0][1], max_length=200) if v else None
-                ),
+                "sample_entry": (extract_text_sample(v[0][1], max_length=200) if v else None),
             }
-            for k, v in list(overlap_results["duplicates"].items())[
-                :20
-            ]  # Limit to first 20
+            for k, v in list(overlap_results["duplicates"].items())[:20]  # Limit to first 20
         },
     }
 
@@ -443,9 +429,7 @@ def main() -> None:
     from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader  # noqa: PLC0415
 
     # Suppress verbose warnings from S3DatasetLoader
-    logging.getLogger("ai.training.ready_packages.utils.s3_dataset_loader").setLevel(
-        logging.ERROR
-    )
+    logging.getLogger("ai.training.ready_packages.utils.s3_dataset_loader").setLevel(logging.ERROR)
 
     logger.info("🔍 Dataset Overlap Analysis")
     logger.info("%s", "=" * 80)

@@ -211,7 +211,8 @@ class AuthenticationSystem:
                 # Check expiration
                 if (
                     api_key_obj.expires_at
-                    and datetime.utcnow() > api_key_obj.expires_at
+                    and
+                    datetime.utcnow() > api_key_obj.expires_at
                 ):
                     logger.warning(f"Expired API key used: {api_key_obj.name}")
                     return None

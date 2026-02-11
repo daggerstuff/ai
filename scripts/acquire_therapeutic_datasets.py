@@ -11,9 +11,7 @@ from typing import Dict, List, Optional
 from datasets import load_dataset
 from tqdm import tqdm
 
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -30,31 +28,29 @@ class TherapeuticDatasetAcquisition:
                 "source": "Amod/mental_health_counseling_conversations",
                 "type": "huggingface",
                 "description": "Mental health counseling conversations",
-                "priority": 1,
+                "priority": 1
             },
             "psych_101": {
                 "source": "marcelbinz/Psych-101",
                 "type": "huggingface",
                 "description": "Psychology educational dataset",
-                "priority": 2,
+                "priority": 2
             },
             "empathetic_dialogues": {
                 "source": "empathetic_dialogues",
                 "type": "huggingface",
                 "description": "Empathetic conversation dataset",
-                "priority": 1,
+                "priority": 1
             },
             "counselchat": {
                 "source": "nbertagnolli/counsel-chat",
                 "type": "huggingface",
                 "description": "Mental health counseling Q&A",
-                "priority": 2,
+                "priority": 2
             },
         }
 
-    def download_huggingface_dataset(
-        self, dataset_name: str, config: Dict
-    ) -> List[Dict]:
+    def download_huggingface_dataset(self, dataset_name: str, config: Dict) -> List[Dict]:
         """Download dataset from HuggingFace"""
         logger.info(f"📥 Downloading {dataset_name} from HuggingFace...")
 
@@ -68,9 +64,7 @@ class TherapeuticDatasetAcquisition:
                 if conv:
                     conversations.append(conv)
 
-            logger.info(
-                f"✅ Downloaded {len(conversations)} conversations from {dataset_name}"
-            )
+            logger.info(f"✅ Downloaded {len(conversations)} conversations from {dataset_name}")
             return conversations
 
         except Exception as e:
@@ -87,30 +81,36 @@ class TherapeuticDatasetAcquisition:
         if "conversation" in item:
             return {
                 "conversation": item["conversation"],
-                "metadata": {"source": source, "original_format": "conversation"},
+                "metadata": {
+                    "source": source,
+                    "original_format": "conversation"
+                }
             }
 
         # Pattern 2: Question/Answer pairs
         if "Context" in item and "Response" in item:
             conversation = [
                 {"role": "client", "content": item["Context"]},
-                {"role": "therapist", "content": item["Response"]},
+                {"role": "therapist", "content": item["Response"]}
             ]
         elif "input" in item and "response" in item:
             conversation = [
                 {"role": "client", "content": item["input"]},
-                {"role": "therapist", "content": item["response"]},
+                {"role": "therapist", "content": item["response"]}
             ]
         elif "question" in item and "answer" in item:
             conversation = [
                 {"role": "client", "content": item["question"]},
-                {"role": "therapist", "content": item["answer"]},
+                {"role": "therapist", "content": item["answer"]}
             ]
 
         if conversation:
             return {
                 "conversation": conversation,
-                "metadata": {"source": source, "original_item": item},
+                "metadata": {
+                    "source": source,
+                    "original_item": item
+                }
             }
 
         return None
@@ -127,7 +127,7 @@ class TherapeuticDatasetAcquisition:
         if cot_data:
             all_datasets["cot_reasoning"] = cot_data
             output_file = self.output_dir / "cot_reasoning.json"
-            with open(output_file, "w", encoding="utf-8") as f:
+            with open(output_file, 'w', encoding='utf-8') as f:
                 json.dump(cot_data, f, indent=2, ensure_ascii=False)
             logger.info(f"💾 Saved cot_reasoning to {output_file}")
 
@@ -140,7 +140,7 @@ class TherapeuticDatasetAcquisition:
 
                     # Save individual dataset
                     output_file = self.output_dir / f"{name}.json"
-                    with open(output_file, "w", encoding="utf-8") as f:
+                    with open(output_file, 'w', encoding='utf-8') as f:
                         json.dump(conversations, f, indent=2, ensure_ascii=False)
                     logger.info(f"💾 Saved {name} to {output_file}")
 
@@ -151,22 +151,20 @@ class TherapeuticDatasetAcquisition:
             "datasets": {
                 name: {
                     "count": len(convs),
-                    "source": self.datasets.get(name, {}).get("source", "local")
-                    if name != "cot_reasoning"
-                    else "local_cot_datasets",
+                    "source": self.datasets.get(name, {}).get("source", "local") if name != "cot_reasoning" else "local_cot_datasets"
                 }
                 for name, convs in all_datasets.items()
-            },
+            }
         }
 
         summary_file = self.output_dir / "acquisition_summary.json"
-        with open(summary_file, "w", encoding="utf-8") as f:
+        with open(summary_file, 'w', encoding='utf-8') as f:
             json.dump(summary, f, indent=2)
 
         logger.info(f"\n📊 Acquisition Summary:")
         logger.info(f"   Total datasets: {summary['total_datasets']}")
         logger.info(f"   Total conversations: {summary['total_conversations']}")
-        for name, info in summary["datasets"].items():
+        for name, info in summary['datasets'].items():
             logger.info(f"   - {name}: {info['count']} conversations")
         logger.info(f"   Summary saved to: {summary_file}")
 
@@ -177,42 +175,30 @@ class TherapeuticDatasetAcquisition:
         cot_conversations = []
 
         # Load filtered CoT reasoning dataset
-        cot_file = Path(
-            "ai/training_data_consolidated/datasets/cot_reasoning_filtered.json"
-        )
+        cot_file = Path("ai/training_data_consolidated/datasets/cot_reasoning_filtered.json")
         if cot_file.exists():
             try:
-                with open(cot_file, "r", encoding="utf-8") as f:
+                with open(cot_file, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     if "filtered_conversations" in data:
                         for item in data["filtered_conversations"]:
                             # Convert to standard format
                             conversation = []
                             for msg in item.get("messages", []):
-                                role = (
-                                    "client" if msg["role"] == "user" else "therapist"
-                                )
-                                conversation.append(
-                                    {"role": role, "content": msg["content"]}
-                                )
+                                role = "client" if msg["role"] == "user" else "therapist"
+                                conversation.append({"role": role, "content": msg["content"]})
 
                             if conversation:
-                                cot_conversations.append(
-                                    {
-                                        "conversation": conversation,
-                                        "metadata": {
-                                            "source": "cot_reasoning",
-                                            "dataset": "cot_reasoning",
-                                            "quality_level": item.get(
-                                                "metadata", {}
-                                            ).get("quality_level", "unknown"),
-                                            "original_id": item.get("id"),
-                                        },
+                                cot_conversations.append({
+                                    "conversation": conversation,
+                                    "metadata": {
+                                        "source": "cot_reasoning",
+                                        "dataset": "cot_reasoning",
+                                        "quality_level": item.get("metadata", {}).get("quality_level", "unknown"),
+                                        "original_id": item.get("id")
                                     }
-                                )
-                logger.info(
-                    f"✅ Loaded {len(cot_conversations)} CoT reasoning conversations"
-                )
+                                })
+                logger.info(f"✅ Loaded {len(cot_conversations)} CoT reasoning conversations")
             except Exception as e:
                 logger.error(f"❌ Error loading CoT dataset: {e}")
 

@@ -289,9 +289,7 @@ class AcquisitionMonitor:
                     "dataset_name": t.dataset_name,
                     "progress": t.progress,
                     "duration": (
-                        (
-                            datetime.now(tz=datetime.timezone.utc) - t.start_time
-                        ).total_seconds()
+                        (datetime.now(tz=datetime.timezone.utc) - t.start_time).total_seconds()
                         if t.start_time
                         else 0
                     ),
@@ -309,8 +307,7 @@ class AcquisitionMonitor:
                 for t in tasks
                 if t.status == AcquisitionStatus.FAILED
                 and t.end_time
-                and t.end_time
-                > datetime.now(tz=datetime.timezone.utc) - timedelta(hours=24)
+                and t.end_time > datetime.now(tz=datetime.timezone.utc) - timedelta(hours=24)
             ],
         }
 
@@ -329,9 +326,7 @@ class AcquisitionMonitor:
                 self.metrics_history.append(current_metrics)
 
                 # Keep only last 24 hours of metrics
-                cutoff_time = datetime.now(tz=datetime.timezone.utc) - timedelta(
-                    hours=24
-                )
+                cutoff_time = datetime.now(tz=datetime.timezone.utc) - timedelta(hours=24)
                 self.metrics_history = [
                     m for m in self.metrics_history if m.last_update > cutoff_time
                 ]
@@ -389,6 +384,7 @@ class AcquisitionMonitor:
                     and task.start_time
                     and current_time - task.start_time > max_duration
                 ):
+
                     alert = {
                         "type": "stuck_task",
                         "message": f"Task {task.task_id} running for {current_time - task.start_time}",

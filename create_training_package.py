@@ -70,7 +70,7 @@ def _get_package_config():
                 "ai/training_data_consolidated/dsm5_concepts.json",
                 "ai/training_data_consolidated/therapeutic_techniques.json",
             ],
-        },
+        }
     }
 
 
@@ -364,8 +364,8 @@ def _create_package_manifest(package_dir, copied_files, missing_files, files_con
         "copied_files": sorted(copied_files),
         "missing_files": sorted(missing_files),
         "categories": sorted(
-            list(files_config["files_to_copy"].keys())
-            + list(files_config["data_files"].keys())
+            list(files_config["files_to_copy"].keys()) +
+            list(files_config["data_files"].keys())
         ),
     }
 
@@ -439,8 +439,8 @@ def create_training_package():
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         handlers=[
             logging.StreamHandler(),
-            logging.FileHandler("training_package_creation.log"),
-        ],
+            logging.FileHandler("training_package_creation.log")
+        ]
     )
     logger = logging.getLogger(__name__)
 

@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 class MaintenanceTask(Enum):
     """Types of maintenance tasks."""
-
     DATA_VALIDATION = "data_validation"
     QUALITY_CHECK = "quality_check"
     BACKUP_CREATION = "backup_creation"
@@ -35,7 +34,6 @@ class MaintenanceTask(Enum):
 
 class TaskStatus(Enum):
     """Task execution status."""
-
     PENDING = "pending"
     RUNNING = "running"
     COMPLETED = "completed"
@@ -46,7 +44,6 @@ class TaskStatus(Enum):
 @dataclass
 class MaintenanceResult:
     """Result of a maintenance task."""
-
     task_id: str
     task_type: MaintenanceTask
     status: TaskStatus
@@ -60,7 +57,6 @@ class MaintenanceResult:
 @dataclass
 class MaintenanceSchedule:
     """Maintenance task schedule."""
-
     task_type: MaintenanceTask
     interval_hours: int
     enabled: bool = True
@@ -108,43 +104,43 @@ class AutomatedMaintenance:
             MaintenanceTask.HEALTH_CHECK: MaintenanceSchedule(
                 task_type=MaintenanceTask.HEALTH_CHECK,
                 interval_hours=1,
-                max_duration_minutes=10,
+                max_duration_minutes=10
             ),
             MaintenanceTask.DATA_VALIDATION: MaintenanceSchedule(
                 task_type=MaintenanceTask.DATA_VALIDATION,
                 interval_hours=6,
-                max_duration_minutes=30,
+                max_duration_minutes=30
             ),
             MaintenanceTask.QUALITY_CHECK: MaintenanceSchedule(
                 task_type=MaintenanceTask.QUALITY_CHECK,
                 interval_hours=12,
-                max_duration_minutes=45,
+                max_duration_minutes=45
             ),
             MaintenanceTask.STATISTICS_UPDATE: MaintenanceSchedule(
                 task_type=MaintenanceTask.STATISTICS_UPDATE,
                 interval_hours=6,
-                max_duration_minutes=20,
+                max_duration_minutes=20
             ),
             MaintenanceTask.BACKUP_CREATION: MaintenanceSchedule(
                 task_type=MaintenanceTask.BACKUP_CREATION,
                 interval_hours=24,
-                max_duration_minutes=60,
+                max_duration_minutes=60
             ),
             MaintenanceTask.CLEANUP_OLD_DATA: MaintenanceSchedule(
                 task_type=MaintenanceTask.CLEANUP_OLD_DATA,
                 interval_hours=168,  # Weekly
-                max_duration_minutes=30,
+                max_duration_minutes=30
             ),
             MaintenanceTask.INDEX_REBUILD: MaintenanceSchedule(
                 task_type=MaintenanceTask.INDEX_REBUILD,
                 interval_hours=168,  # Weekly
-                max_duration_minutes=90,
+                max_duration_minutes=90
             ),
             MaintenanceTask.EXPORT_REFRESH: MaintenanceSchedule(
                 task_type=MaintenanceTask.EXPORT_REFRESH,
                 interval_hours=24,
-                max_duration_minutes=45,
-            ),
+                max_duration_minutes=45
+            )
         }
 
     def start_maintenance(self):
@@ -154,9 +150,7 @@ class AutomatedMaintenance:
             return
 
         self.is_running = True
-        self.maintenance_thread = threading.Thread(
-            target=self._maintenance_loop, daemon=True
-        )
+        self.maintenance_thread = threading.Thread(target=self._maintenance_loop, daemon=True)
         self.maintenance_thread.start()
 
         logger.info("Automated maintenance started")
@@ -203,9 +197,7 @@ class AutomatedMaintenance:
                 if schedule.last_run is None:
                     schedule.next_run = current_time
                 else:
-                    schedule.next_run = schedule.last_run + timedelta(
-                        hours=schedule.interval_hours
-                    )
+                    schedule.next_run = schedule.last_run + timedelta(hours=schedule.interval_hours)
 
             # Check if task is due
             if current_time >= schedule.next_run:
@@ -223,7 +215,7 @@ class AutomatedMaintenance:
             task_id=task_id,
             task_type=task_type,
             status=TaskStatus.RUNNING,
-            start_time=datetime.now(),
+            start_time=datetime.now()
         )
 
         try:
@@ -262,9 +254,7 @@ class AutomatedMaintenance:
             # Update schedule
             schedule = self.schedules[task_type]
             schedule.last_run = result.start_time
-            schedule.next_run = result.start_time + timedelta(
-                hours=schedule.interval_hours
-            )
+            schedule.next_run = result.start_time + timedelta(hours=schedule.interval_hours)
 
             # Store result
             self.task_history.append(result)
@@ -276,9 +266,7 @@ class AutomatedMaintenance:
                 except Exception as e:
                     logger.error(f"Error in task callback: {e}")
 
-            logger.info(
-                f"Completed maintenance task: {task_type.value} ({result.status.value})"
-            )
+            logger.info(f"Completed maintenance task: {task_type.value} ({result.status.value})")
 
     def _perform_health_check(self) -> dict[str, Any]:
         """Perform system health check."""
@@ -286,10 +274,10 @@ class AutomatedMaintenance:
             "timestamp": datetime.now().isoformat(),
             "data_directory_accessible": self.data_directory.exists(),
             "disk_space_available": True,  # Would check actual disk space
-            "memory_usage": "normal",  # Would check actual memory
-            "active_processes": 1,  # Would check actual processes
-            "error_rate": 0.02,  # Would calculate from logs
-            "response_time": 0.15,  # Would measure actual response time
+            "memory_usage": "normal",      # Would check actual memory
+            "active_processes": 1,         # Would check actual processes
+            "error_rate": 0.02,           # Would calculate from logs
+            "response_time": 0.15         # Would measure actual response time
         }
 
         # Determine overall health
@@ -314,7 +302,7 @@ class AutomatedMaintenance:
             "missing_metadata": 5,
             "schema_violations": 2,
             "duplicate_entries": 8,
-            "validation_errors": [],
+            "validation_errors": []
         }
 
         # Add specific validation errors if any
@@ -328,9 +316,7 @@ class AutomatedMaintenance:
                 f"{validation_results['schema_violations']} schema violations found"
             )
 
-        validation_results["validation_passed"] = (
-            len(validation_results["validation_errors"]) == 0
-        )
+        validation_results["validation_passed"] = len(validation_results["validation_errors"]) == 0
 
         return validation_results
 
@@ -343,26 +329,23 @@ class AutomatedMaintenance:
                 "excellent": 3084,
                 "good": 6168,
                 "acceptable": 4626,
-                "poor": 1542,
+                "poor": 1542
             },
-            "quality_trends": {"improving": 0.65, "stable": 0.30, "declining": 0.05},
-            "recommendations": [],
+            "quality_trends": {
+                "improving": 0.65,
+                "stable": 0.30,
+                "declining": 0.05
+            },
+            "recommendations": []
         }
 
         # Generate recommendations based on quality
-        poor_percentage = (
-            quality_results["quality_distribution"]["poor"]
-            / quality_results["conversations_analyzed"]
-        )
+        poor_percentage = quality_results["quality_distribution"]["poor"] / quality_results["conversations_analyzed"]
         if poor_percentage > 0.15:
-            quality_results["recommendations"].append(
-                "Consider implementing stricter quality filters"
-            )
+            quality_results["recommendations"].append("Consider implementing stricter quality filters")
 
         if quality_results["quality_trends"]["declining"] > 0.1:
-            quality_results["recommendations"].append(
-                "Investigate declining quality trends"
-            )
+            quality_results["recommendations"].append("Investigate declining quality trends")
 
         return quality_results
 
@@ -376,8 +359,9 @@ class AutomatedMaintenance:
             "unique_approaches": 15,
             "data_sources": 8,
             "quality_metrics_recalculated": True,
-            "index_statistics_updated": True,
+            "index_statistics_updated": True
         }
+
 
     def _create_backup(self) -> dict[str, Any]:
         """Create data backup."""
@@ -391,7 +375,7 @@ class AutomatedMaintenance:
             "files_backed_up": 1250,
             "backup_size_mb": 2450.5,
             "compression_ratio": 0.65,
-            "backup_integrity_verified": True,
+            "backup_integrity_verified": True
         }
 
         # Clean up old backups
@@ -401,9 +385,7 @@ class AutomatedMaintenance:
 
     def _cleanup_old_data(self) -> dict[str, Any]:
         """Clean up old data files."""
-        cleanup_threshold = datetime.now() - timedelta(
-            days=self.config["cleanup_threshold_days"]
-        )
+        cleanup_threshold = datetime.now() - timedelta(days=self.config["cleanup_threshold_days"])
 
         return {
             "cleanup_threshold": cleanup_threshold.isoformat(),
@@ -411,8 +393,9 @@ class AutomatedMaintenance:
             "space_freed_mb": 125.8,
             "temporary_files_cleaned": 23,
             "log_files_rotated": 8,
-            "cache_cleared": True,
+            "cache_cleared": True
         }
+
 
     def _rebuild_indexes(self) -> dict[str, Any]:
         """Rebuild data indexes."""
@@ -422,12 +405,13 @@ class AutomatedMaintenance:
                 "quality_score_index",
                 "timestamp_index",
                 "condition_index",
-                "approach_index",
+                "approach_index"
             ],
             "index_build_time_seconds": 45.2,
             "index_size_mb": 89.5,
-            "query_performance_improvement": 0.35,
+            "query_performance_improvement": 0.35
         }
+
 
     def _refresh_exports(self) -> dict[str, Any]:
         """Refresh export data."""
@@ -437,8 +421,9 @@ class AutomatedMaintenance:
             "total_conversations_exported": 15420,
             "export_time_seconds": 125.8,
             "export_validation_passed": True,
-            "checksums_updated": True,
+            "checksums_updated": True
         }
+
 
     def _cleanup_old_backups(self):
         """Clean up old backup files."""
@@ -474,16 +459,13 @@ class AutomatedMaintenance:
 
         # Get recent task results
         recent_tasks = [
-            task
-            for task in self.task_history
+            task for task in self.task_history
             if task.start_time >= current_time - timedelta(hours=24)
         ]
 
         # Calculate success rate
         if recent_tasks:
-            successful_tasks = [
-                task for task in recent_tasks if task.status == TaskStatus.COMPLETED
-            ]
+            successful_tasks = [task for task in recent_tasks if task.status == TaskStatus.COMPLETED]
             success_rate = len(successful_tasks) / len(recent_tasks)
         else:
             success_rate = 1.0
@@ -492,13 +474,11 @@ class AutomatedMaintenance:
         next_tasks = []
         for task_type, schedule in self.schedules.items():
             if schedule.enabled and schedule.next_run:
-                next_tasks.append(
-                    {
-                        "task_type": task_type.value,
-                        "next_run": schedule.next_run.isoformat(),
-                        "time_until_run": str(schedule.next_run - current_time),
-                    }
-                )
+                next_tasks.append({
+                    "task_type": task_type.value,
+                    "next_run": schedule.next_run.isoformat(),
+                    "time_until_run": str(schedule.next_run - current_time)
+                })
 
         # Sort by next run time
         next_tasks.sort(key=lambda x: x["next_run"])
@@ -510,14 +490,13 @@ class AutomatedMaintenance:
             "success_rate_24h": round(success_rate, 3),
             "next_scheduled_tasks": next_tasks[:5],  # Next 5 tasks
             "last_health_check": self._get_last_task_time(MaintenanceTask.HEALTH_CHECK),
-            "last_backup": self._get_last_task_time(MaintenanceTask.BACKUP_CREATION),
+            "last_backup": self._get_last_task_time(MaintenanceTask.BACKUP_CREATION)
         }
 
     def _get_last_task_time(self, task_type: MaintenanceTask) -> str | None:
         """Get the last execution time for a specific task type."""
         task_results = [
-            task
-            for task in self.task_history
+            task for task in self.task_history
             if task.task_type == task_type and task.status == TaskStatus.COMPLETED
         ]
 

@@ -82,12 +82,8 @@ class TestTierPipelineIntegration:
 
         logger.info("✓ Tier loaders successfully discovered datasets from registry")
 
-    @patch(
-        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run"
-    )
-    @patch(
-        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which"
-    )
+    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run")
+    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which")
     def test_s3_download_capability(self, mock_which, mock_subprocess, tier_processor):
         """Test that tier loaders can handle S3 downloads (mocked)."""
         # Mock ovhai CLI availability
@@ -172,12 +168,8 @@ class TestTierPipelineIntegration:
         logger.info("✓ TierProcessor can generate statistics")
 
     @pytest.mark.slow
-    @patch(
-        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run"
-    )
-    @patch(
-        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which"
-    )
+    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run")
+    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which")
     def test_process_single_tier(self, mock_which, mock_subprocess, tier_processor):
         """Test processing a single tier (Tier 1 - smallest dataset)."""
         # Mock ovhai CLI

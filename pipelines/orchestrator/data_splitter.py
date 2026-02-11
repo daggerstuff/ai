@@ -30,19 +30,14 @@ class DataSplitter:
     """
 
     def __init__(
-        self,
-        train_ratio: float = 0.70,
-        val_ratio: float = 0.15,
-        test_ratio: float = 0.15,
+        self, train_ratio: float = 0.70, val_ratio: float = 0.15, test_ratio: float = 0.15
     ):
         """
         Initialize the splitter with specified ratios.
         Ratios must sum to 1.0.
         """
         if not (0.99 <= (train_ratio + val_ratio + test_ratio) <= 1.01):
-            raise ValueError(
-                f"Ratios must sum to 1.0, got {train_ratio + val_ratio + test_ratio}"
-            )
+            raise ValueError(f"Ratios must sum to 1.0, got {train_ratio + val_ratio + test_ratio}")
 
         self.train_ratio = train_ratio
         self.val_ratio = val_ratio
@@ -80,11 +75,7 @@ class DataSplitter:
             "train_count": len(train_set),
             "val_count": len(val_set),
             "test_count": len(test_set),
-            "ratios": {
-                "train": self.train_ratio,
-                "val": self.val_ratio,
-                "test": self.test_ratio,
-            },
+            "ratios": {"train": self.train_ratio, "val": self.val_ratio, "test": self.test_ratio},
             "seed": seed if shuffle else None,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
@@ -93,9 +84,7 @@ class DataSplitter:
             f"Dataset split complete: {metadata['train_count']} train, {metadata['val_count']} val, {metadata['test_count']} test"
         )
 
-        return DatasetSplit(
-            train=train_set, val=val_set, test=test_set, metadata=metadata
-        )
+        return DatasetSplit(train=train_set, val=val_set, test=test_set, metadata=metadata)
 
     def split_by_source(
         self, data: list[dict[str, Any]], source_key: str = "source"
@@ -112,9 +101,7 @@ class DataSplitter:
 
         results = {}
         for source, source_data in by_source.items():
-            logger.info(
-                f"Splitting data for source: {source} ({len(source_data)} records)"
-            )
+            logger.info(f"Splitting data for source: {source} ({len(source_data)} records)")
             results[source] = self.split(source_data)
 
         return results
