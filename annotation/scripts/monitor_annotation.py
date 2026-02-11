@@ -1,5 +1,5 @@
-import logging
 import json
+import logging
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
@@ -48,6 +48,13 @@ def monitor(batch_id="batch_001"):
                 # Get last line efficiently
                 f.seek(0, 2)  # Go to end
                 file_size = f.tell()
+
+                # Account for missing trailing newline
+                if file_size > 0:
+                    f.seek(-1, 2)
+                    if f.read(1) != b"\n":
+                        count += 1
+                    f.seek(0, 2)  # Restore position
                 if file_size > 0:
                     # Look back 2KB for the last line
                     f.seek(-min(2048, file_size), 2)
