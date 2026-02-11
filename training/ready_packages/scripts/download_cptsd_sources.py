@@ -77,6 +77,7 @@ class CPTSDSourceDownloader:
 
             logger.info(f"Downloading {s3_key} to {local_path}...")
             logger.debug(f"Command: {shlex.join(cmd)}")
+            # SECURITY: shell=False with a list is safe from shell injection.
             result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, shell=False)
 
             if result.returncode == 0:

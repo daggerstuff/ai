@@ -125,13 +125,15 @@ class PixelTrainer:
                 quantization_config=quantization_config,
                 device_map=device_map,
                 torch_dtype=torch.bfloat16 if use_cuda else torch.float32,
-                trust_remote_code=True,
+                trust_remote_code=True,  # SECURITY: Only trust known repositories. Allows arbitrary code execution.
                 attn_implementation="flash_attention_2"
                 if use_cuda and torch.cuda.get_device_capability()[0] >= 8
                 else None,
             )
 
-            tokenizer = AutoTokenizer.from_pretrained(self.model_name, trust_remote_code=True)
+            tokenizer = AutoTokenizer.from_pretrained(
+                self.model_name, trust_remote_code=True
+            )  # SECURITY: Only trust known repositories.
             tokenizer.padding_side = "right"  # Fix weird overflow issue with clean llama2/mistral
 
             # Configure LoRA via PEFT

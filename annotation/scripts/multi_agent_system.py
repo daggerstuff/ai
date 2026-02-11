@@ -200,13 +200,15 @@ class BaseAgent(ABC):
     def _call_llm(self, conversation: str) -> AnnotationResult:
         """Call LLM for annotation"""
         try:
-            print(f"[{self.agent_id}] Sending request...")
             system_prompt = self.get_system_prompt()
             user_prompt = self.get_user_prompt(conversation)
-            print(f"[{self.agent_id}] System prompt length: {len(system_prompt)}")
-            print(f"[{self.agent_id}] User prompt length: {len(user_prompt)}")
-            print(f"[{self.agent_id}] Temperature: {self.temperature}")
-            print(f"[{self.agent_id}] Model: {self.model}")
+
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"[{self.agent_id}] Sending request...")
+                logger.debug(f"[{self.agent_id}] System prompt length: {len(system_prompt)}")
+                logger.debug(f"[{self.agent_id}] User prompt length: {len(user_prompt)}")
+                logger.debug(f"[{self.agent_id}] Temperature: {self.temperature}")
+                logger.debug(f"[{self.agent_id}] Model: {self.model}")
 
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -216,7 +218,8 @@ class BaseAgent(ABC):
                 ],
                 temperature=self.temperature,
             )
-            print(f"[{self.agent_id}] Response received")
+            if logger.isEnabledFor(logging.DEBUG):
+                logger.debug(f"[{self.agent_id}] Response received")
 
             content = response.choices[0].message.content
 
@@ -244,9 +247,10 @@ class BaseAgent(ABC):
                     data = json.loads(clean_content[start : end + 1])
                 except json.JSONDecodeError as e:
                     # Log error safely without exposing full content
-                    print(f"[{self.agent_id}] JSON Parse Error: {e}")
-                    safe_snip = content[:100] + "..." if len(content) > 100 else content
-                    print(f"[{self.agent_id}] Raw content snippet: {safe_snip}")
+                    if logger.isEnabledFor(logging.DEBUG):
+                        logger.error(f"[{self.agent_id}] JSON Parse Error: {e}")
+                        safe_snip = content[:100] + "..." if len(content) > 100 else content
+                        logger.debug(f"[{self.agent_id}] Raw content snippet: {safe_snip}")
                     raise e
             return AnnotationResult(
                 crisis_label=data.get("crisis_label", 0),
