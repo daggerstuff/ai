@@ -120,20 +120,24 @@ class PixelTrainer:
                     bnb_4bit_compute_dtype=torch.bfloat16,
                 )
 
+            # SECURITY: trust_remote_code allows arbitrary code execution.
+            # Only enable for verified repositories.
+            trust_remote = os.environ.get("TRUST_REMOTE_CODE", "false").lower() == "true"
+
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
                 quantization_config=quantization_config,
                 device_map=device_map,
                 torch_dtype=torch.bfloat16 if use_cuda else torch.float32,
-                trust_remote_code=True,  # SECURITY: Only trust known repositories. Allows arbitrary code execution.
+                trust_remote_code=trust_remote,
                 attn_implementation="flash_attention_2"
                 if use_cuda and torch.cuda.get_device_capability()[0] >= 8
                 else None,
             )
 
             tokenizer = AutoTokenizer.from_pretrained(
-                self.model_name, trust_remote_code=True
-            )  # SECURITY: Only trust known repositories.
+                self.model_name, trust_remote_code=trust_remote
+            )
             tokenizer.padding_side = "right"  # Fix weird overflow issue with clean llama2/mistral
 
             # Configure LoRA via PEFT
@@ -206,10 +210,10 @@ class PixelTrainer:
         train_ratio = train_split / total
         val_ratio = val_split / total
 
-        # First split: train vs rest
+        # First split: train vs validation
         splits = dataset.train_test_split(test_size=val_ratio, seed=42)
-
-        return splits
+        # Rename 'test' to 'validation' for clarity
+        return DatasetDict({"train": splits["train"], "validation": splits["test"]})
 
     def train(self):
         """Execute the training loop."""
@@ -247,7 +251,7 @@ class PixelTrainer:
             model=model,
             tokenizer=tokenizer,
             train_dataset=dataset["train"],
-            eval_dataset=dataset["test"],
+            eval_dataset=dataset["validation"],
             args=args,
             data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False),
         )

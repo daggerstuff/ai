@@ -40,7 +40,7 @@ dependencies = [
   # CLI dependencies
   "click>=8.1.0",
   "pyyaml>=6.0",
-  "cryptography>=44.0.0",
+  "cryptography>=46.0.5",
   "pyjwt>=2.9.0",
   "psutil>=5.9.0",
   "rich>=13.0.0",
@@ -50,7 +50,7 @@ dependencies = [
   "aiofiles>=23.0.0",
   "openai>=2.6.0",
   # Embedding Agent API dependencies
-  "fastapi>=0.115.0",
+  "fastapi>=0.124.4",
   "uvicorn[standard]>=0.34.0",
   "sentence-transformers>=3.0.0",
   "faiss-cpu>=1.8.0",

@@ -85,7 +85,7 @@ services:
       - customizer_scratch:/scratch
     environment:
       - CONFIG_PATH=/mount/cfg/config.yaml
-      - DATABASE_URL=postgresql://nmp:nmp@postgres:5432/customizer
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/customizer
       - PORT=8001
       - TOKENIZERS_PARALLELISM=false
       - OTEL_SDK_DISABLED=true

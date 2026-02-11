@@ -109,8 +109,10 @@ class CPTSDSourceCataloger:
             import shlex
 
             logger.debug(f"Executing command: {shlex.join(command)}")
-            # SECURITY: shell=False with a list is safe from shell injection.
-            # Only use trusted binaries (ovhai).
+            # SECURITY: Always hardcode the base command and validate arguments
+            if command[0] != "ovhai":
+                raise ValueError(f"Unauthorized command: {command[0]}")
+
             result = subprocess.run(
                 command, capture_output=True, text=True, check=True, shell=False
             )

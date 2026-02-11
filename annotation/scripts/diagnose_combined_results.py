@@ -29,10 +29,33 @@ def analyze_combined_results(results_file: str):
             if len(individual) < 2:
                 continue
 
-            # Assuming first is Dr. A (Crisis) and second is Dr. B (Emotion)
-            # But let's look for them by agent_id if possible
-            dr_a = next((a for a in individual if "dr_a" in a.get("agent_id", "")), individual[0])
-            dr_b = next((a for a in individual if "dr_b" in a.get("agent_id", "")), individual[1])
+            # Identify agents by their known IDs or roles
+            # Fallback to positional index only if IDs are not found
+            dr_a = next(
+                (
+                    a
+                    for a in individual
+                    if "dr_a" in a.get("agent_id", "") or "crisis_expert" in a.get("role", "")
+                ),
+                None,
+            )
+            dr_b = next(
+                (
+                    a
+                    for a in individual
+                    if "dr_b" in a.get("agent_id", "") or "emotion_analyst" in a.get("role", "")
+                ),
+                None,
+            )
+
+            # If matching failed, use positional fallback only as last resort
+            if not dr_a and len(individual) > 0:
+                dr_a = individual[0]
+            if not dr_b and len(individual) > 1:
+                dr_b = individual[1]
+
+            if not dr_a or not dr_b:
+                continue
 
             # Crisis Disagreement
             a_crisis = dr_a.get("crisis_label")

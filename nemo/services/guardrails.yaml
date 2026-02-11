@@ -238,7 +238,7 @@ services:
     environment:
       - OTEL_SDK_DISABLED=true
       - LOG_LEVEL=INFO
-      - DB_URI="postgresql://nmp:nmp@postgres:5432/guardrails"
+      - DB_URI="postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/guardrails"
       - DEMO=true
       - CONFIG_STORE_PATH=/config-store
       - NIM_ENDPOINT_API_KEY
@@ -275,7 +275,13 @@ services:
         uid: "1000"
         mode: 0444
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; assert urllib.request.urlopen('http://localhost:7331/v1/health').status == 200"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; assert urllib.request.urlopen('http://localhost:7331/v1/health').status == 200",
+        ]
     depends_on:
       guardrails-db-migration:
         condition: service_completed_successfully
@@ -292,7 +298,7 @@ services:
     platform: linux/amd64
     entrypoint: ["alembic", "upgrade", "head"]
     environment:
-      POSTGRES_URI: "postgresql://nmp:nmp@postgres:5432/guardrails"
+      POSTGRES_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/guardrails"
     depends_on:
       postgres:
         condition: service_healthy

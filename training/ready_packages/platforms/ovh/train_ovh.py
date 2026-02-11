@@ -341,25 +341,26 @@ def setup_wandb(config: Dict, stage_name: str):
 def create_model(config: Dict):
     """Create or load the model with LoRA configuration."""
     try:
-        return _initialize_model_and_tokenizer(config)
+        return setup_model_for_staged_training(config)
     except ImportError as e:
         logger.exception(f"Missing required package: {e}")
         logger.info("Install with: pip install transformers peft accelerate bitsandbytes")
         raise
 
 
-# TODO Rename this here and in `create_model`
-def _initialize_model_and_tokenizer(config):
+def setup_model_for_staged_training(config):
     from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
     base_model = config.get("base_model", DEFAULT_CONFIG["base_model"])
     lora_config = config.get("lora", DEFAULT_CONFIG["lora"])
 
-    logger.info(f"Loading base model: {base_model}")
+    # SECURITY: trust_remote_code allows arbitrary code execution.
+    # Only enable for verified repositories.
+    trust_remote = os.environ.get("TRUST_REMOTE_CODE", "false").lower() == "true"
 
     # Load tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=True)
+    tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=trust_remote)
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -376,7 +377,7 @@ def _initialize_model_and_tokenizer(config):
         base_model,
         quantization_config=bnb_config,
         device_map="auto",
-        trust_remote_code=True,
+        trust_remote_code=trust_remote,
     )
 
     # Prepare for training
@@ -583,7 +584,7 @@ def main():
     wandb_run = setup_wandb(config, args.stage)
 
     try:
-        _execute_training_stages(config, args, training_start_time)
+        run_staged_training_pipeline(config, args, training_start_time)
     except Exception as e:
         logger.error(f"Training failed: {e}")
         raise
@@ -595,8 +596,7 @@ def main():
             wandb.finish()
 
 
-# TODO Rename this here and in `main`
-def _execute_training_stages(config, args, training_start_time):
+def run_staged_training_pipeline(config, args, training_start_time):
     # Create model
     model, tokenizer = create_model(config)
 
