@@ -56,6 +56,9 @@ dependencies = [
   "faiss-cpu>=1.8.0",
   # Memory & User Management
   "zep-cloud>=1.2.0",
+  "mem0ai>=1.0.3",
+  "google-genai>=1.62.0",
+  "qdrant-client>=1.16.2",
 ]
 
 [dependency-groups]
