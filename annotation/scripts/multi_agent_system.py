@@ -117,16 +117,16 @@ class BaseAgent(ABC):
         import os
 
         if not OPENAI_AVAILABLE or not os.getenv("OPENAI_API_KEY"):
-            print(f"[{self.agent_id}] Running in MOCK mode")
+            logger.warning(f"[{self.agent_id}] Running in MOCK mode")
             return None
 
         if base_url := os.getenv("OPENAI_BASE_URL"):
             client = OpenAI(base_url=base_url)
-            print(f"[{self.agent_id}] Using custom endpoint: {base_url}")
+            logger.info(f"[{self.agent_id}] Using custom endpoint: {base_url}")
         else:
             client = OpenAI()
 
-        print(f"[{self.agent_id}] Initialized with model: {self.model}")
+        logger.info(f"[{self.agent_id}] Initialized with model: {self.model}")
         return client
 
     def _load_guidelines(self) -> str:
@@ -247,10 +247,9 @@ class BaseAgent(ABC):
                     data = json.loads(clean_content[start : end + 1])
                 except json.JSONDecodeError as e:
                     # Log error safely without exposing full content
-                    if logger.isEnabledFor(logging.DEBUG):
-                        logger.error(f"[{self.agent_id}] JSON Parse Error: {e}")
-                        safe_snip = content[:100] + "..." if len(content) > 100 else content
-                        logger.debug(f"[{self.agent_id}] Raw content snippet: {safe_snip}")
+                    logger.error(f"[{self.agent_id}] JSON Parse Error: {e}")
+                    safe_snip = f"{content[:100]}..." if len(content) > 100 else content
+                    logger.debug(f"[{self.agent_id}] Raw content snippet: {safe_snip}")
                     raise e
             return AnnotationResult(
                 crisis_label=data.get("crisis_label", 0),
@@ -573,15 +572,19 @@ class ConsensusOrchestrator:
                 "consensus_annotation": None,
             }
 
-        # Enforce minimum quorum (e.g., at least 2 results if more than 1 agent exists)
+        # Enforce minimum quorum (at least 2 successful results if multiple agents are registered)
         if len(self.agents) > 1 and len(results) < 2:
-            logger.warning(
-                f"Quorum not met for task {task.get('task_id')}: only {len(results)} results"
-            )
-            # We still proceed but mark it clearly
-            consensus_notes_extra = " | Degraded quorum - use with caution"
-        else:
-            consensus_notes_extra = ""
+            error_msg = f"Quorum not met for task {task.get('task_id')}: only {len(results)} results out of {len(self.agents)} agents"
+            logger.error(error_msg)
+            return {
+                "task_id": task.get("task_id", task.get("data", {}).get("id")),
+                "error": "Quorum not met",
+                "details": error_msg,
+                "failed_agents": failed_agents,
+                "consensus_annotation": None,
+            }
+
+        consensus_notes_extra = ""
 
         # Build consensus
         consensus = self._build_consensus(results)

@@ -8,7 +8,7 @@ services:
     networks:
       - nmp
     environment:
-      POSTGRES_URI: postgresql://nmp:nmp@postgres:5432/intake
+      POSTGRES_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/intake
       DATASTORE_URL: http://datastore:3000
       ENTITY_STORE_URL: http://entity-store:8000
     depends_on:
@@ -34,7 +34,7 @@ services:
     profiles: [intake]
     working_dir: /app/services/intake
     environment:
-      POSTGRES_URI: postgresql://nmp:nmp@postgres:5432/intake
+      POSTGRES_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/intake
     entrypoint: ["/app/.venv/bin/alembic"]
     command: ["upgrade", "head"]
     depends_on:

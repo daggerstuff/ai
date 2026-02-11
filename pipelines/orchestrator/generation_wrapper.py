@@ -268,7 +268,7 @@ class GenerationWrapper:
         ]
 
         try:
-            return self._run_shell_command(cmd)
+            return self.execute_subprocess_command(cmd)
         except subprocess.CalledProcessError:
             logger.exception("Edge case generation failed check_call")
             return False
@@ -309,7 +309,7 @@ class GenerationWrapper:
         ]
 
         try:
-            return self._run_shell_command(cmd)
+            return self.execute_subprocess_command(cmd)
         except subprocess.CalledProcessError:
             logger.exception("Long running extraction failed")
             return False
@@ -324,7 +324,7 @@ class GenerationWrapper:
 
         cmd = ["uv", "run", "python", str(script_path)]
         try:
-            return self._run_shell_command(cmd)
+            return self.execute_subprocess_command(cmd)
         except Exception:
             logger.exception("Hydration failed")
             return False
@@ -416,7 +416,7 @@ class GenerationWrapper:
         ]
 
         try:
-            return self._run_shell_command(cmd)
+            return self.execute_subprocess_command(cmd)
         except subprocess.CalledProcessError:
             logger.exception("Book extraction failed")
             return False
@@ -444,7 +444,7 @@ class GenerationWrapper:
         ]
 
         try:
-            return self._run_shell_command(cmd)
+            return self.execute_subprocess_command(cmd)
         except subprocess.CalledProcessError:
             logger.exception("Transcript extraction failed")
             return False
@@ -452,7 +452,7 @@ class GenerationWrapper:
             logger.exception("Transcript extraction failed")
             return False
 
-    def _run_shell_command(self, cmd):
+    def execute_subprocess_command(self, cmd):
         logger.info(f"Running command: {' '.join(cmd)}")
         subprocess.check_call(cmd, cwd=self.workspace_root)
         return True

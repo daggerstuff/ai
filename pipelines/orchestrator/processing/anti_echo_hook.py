@@ -52,15 +52,14 @@ class AntiEchoHook:
         current_text = text
 
         while True:
-            # Improved sentence splitting regex that handles end of string correctly
-            m = re.search(r"(.+?[.!?])(?:\s+|$)", current_text.strip(), re.S)
-            if not m:
-                # If no sentence separator found, the whole text is the first sentence
-                first_sentence = current_text.strip()
-                rest = ""
-            else:
-                first_sentence = m.group(1).strip()
-                rest = current_text[len(first_sentence) :].lstrip()
+            # More robust sentence splitting: look for punctuation followed by space or end of string
+            # Handle multiple punctuations like '...' or '!!!'
+            sentences = re.split(r"(?<=[.!?])\s+", current_text.strip())
+            if not sentences or not sentences[0]:
+                break
+
+            first_sentence = sentences[0].strip()
+            rest = " ".join(sentences[1:]).strip() if len(sentences) > 1 else ""
 
             if not first_sentence:
                 break
