@@ -50,9 +50,16 @@ def analyze_combined_results(results_file: str):
 
             # If matching failed, use positional fallback only as last resort
             if not dr_a and len(individual) > 0:
-                dr_a = individual[0]
-            if not dr_b and len(individual) > 1:
-                dr_b = individual[1]
+                # Ensure we don't pick the same agent if dr_b is already confirmed
+                candidates = [a for a in individual if a != dr_b]
+                if candidates:
+                    dr_a = candidates[0]
+
+            if not dr_b and len(individual) > 0:
+                # Ensure we don't pick the same agent if dr_a is already confirmed
+                candidates = [a for a in individual if a != dr_a]
+                if candidates:
+                    dr_b = candidates[0]
 
             if not dr_a or not dr_b:
                 continue
