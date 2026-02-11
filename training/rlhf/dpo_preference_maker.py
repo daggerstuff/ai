@@ -26,23 +26,23 @@ def create_dpo_pair(patient_query: str, ai_style_response: str, human_pivot_resp
 def generate_human_pivot_dataset():
     data = []
 
-    _extracted_from_generate_human_pivot_dataset_5(
+    _add_dpo_example(
         "I finally left him. I should be happy, I've wanted this for years. But I just feel... hollow.",
         "I hear that you're feeling hollow after leaving him. It's completely normal to feel a sense of loss after a big change.",
         "I was thinking about the way shadows stretch in the winter—they’re long and thin, and they don't provide any warmth, but when they’re gone, the ground just looks featureless. Is it the person you miss, or just the shape of the life you had?",
         data,
     )
-    _extracted_from_generate_human_pivot_dataset_5(
+    _add_dpo_example(
         "I'm just a failure at everything. Every job, every relationship.",
         "It sounds like you're feeling really down on yourself right now. I can see you've had a lot of difficult experiences.",
-        "Why are you trying so hard to convince me that you're a failure? It's like you're building a cage and asking me to lock the door. Tell me about the first time you decided this was your 'story'.",
+        "Why are you trying so hard to convince me that you're a failure? It's like you're building a cage and asking me lock the door. Tell me about the first time you decided this was your 'story'.",
         data,
     )
     return data
 
 
 # TODO Rename this here and in `generate_human_pivot_dataset`
-def _extracted_from_generate_human_pivot_dataset_5(arg0, arg1, arg2, data):
+def _add_dpo_example(arg0, arg1, arg2, data):
     # CASE 1: The Hollow Test
     query_1 = arg0
     rejected_1 = arg1

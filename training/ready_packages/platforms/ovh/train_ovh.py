@@ -341,7 +341,7 @@ def setup_wandb(config: Dict, stage_name: str):
 def create_model(config: Dict):
     """Create or load the model with LoRA configuration."""
     try:
-        return _extracted_from_create_model_4(config)
+        return _initialize_model_and_tokenizer(config)
     except ImportError as e:
         logger.exception(f"Missing required package: {e}")
         logger.info("Install with: pip install transformers peft accelerate bitsandbytes")
@@ -349,7 +349,7 @@ def create_model(config: Dict):
 
 
 # TODO Rename this here and in `create_model`
-def _extracted_from_create_model_4(config):
+def _initialize_model_and_tokenizer(config):
     from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
@@ -583,7 +583,7 @@ def main():
     wandb_run = setup_wandb(config, args.stage)
 
     try:
-        _extracted_from_main_53(config, args, training_start_time)
+        _execute_training_stages(config, args, training_start_time)
     except Exception as e:
         logger.error(f"Training failed: {e}")
         raise
@@ -596,17 +596,13 @@ def main():
 
 
 # TODO Rename this here and in `main`
-def _extracted_from_main_53(config, args, training_start_time):
+def _execute_training_stages(config, args, training_start_time):
     # Create model
     model, tokenizer = create_model(config)
 
     # Determine stages to run
     stages_to_run = []
-    stages_to_run = (
-        ["foundation", "reasoning", "voice"]
-        if args.stage == "all"
-        else [args.stage]
-    )
+    stages_to_run = ["foundation", "reasoning", "voice"] if args.stage == "all" else [args.stage]
     # Run training stages
     last_checkpoint = args.resume_from
 

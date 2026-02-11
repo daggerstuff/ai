@@ -32,9 +32,7 @@ class BiasDetectionIntegrator:
 
     def __init__(
         self,
-        bias_detection_path: str = (
-            "ai/api/techdeck_integration/integration/bias_detection.py"
-        ),
+        bias_detection_path: str = ("ai/api/techdeck_integration/integration/bias_detection.py"),
     ):
         self.bias_detection_path = Path(bias_detection_path)
         self.bias_categories = self._initialize_bias_categories()
@@ -95,9 +93,7 @@ class BiasDetectionIntegrator:
 
         # Run bias checks
         for category, bias_types in self.bias_categories.items():
-            category_results = self._check_category_bias(
-                text_content, category, bias_types
-            )
+            category_results = self._check_category_bias(text_content, category, bias_types)
             # Convert BiasCheck objects to dictionaries for JSON serialization
             category_dicts = [
                 {
@@ -119,13 +115,12 @@ class BiasDetectionIntegrator:
         ]
 
         if high_severity_issues:
-            self._extracted_from_check_dataset_for_bias_40("unsafe", bias_results, 0.3)
+            self._update_safety_results("unsafe", bias_results, 0.3)
         elif any(not check["passed"] for check in bias_results["bias_checks"]):
-            self._extracted_from_check_dataset_for_bias_40("caution", bias_results, 0.6)
+            self._update_safety_results("caution", bias_results, 0.6)
         return bias_results
 
-    # TODO Rename this here and in `check_dataset_for_bias`
-    def _extracted_from_check_dataset_for_bias_40(self, arg0, bias_results, arg2):
+    def _update_safety_results(self, arg0, bias_results, arg2):
         bias_results["overall_safety"] = arg0
         bias_results["requires_modification"] = True
         bias_results["ethical_score"] = arg2
@@ -155,9 +150,7 @@ class BiasDetectionIntegrator:
         if "expert_responses" in dataset:
             responses = dataset["expert_responses"]
             if isinstance(responses, dict):
-                text_parts.extend(
-                    [str(v) for v in responses.values() if isinstance(v, str)]
-                )
+                text_parts.extend([str(v) for v in responses.values() if isinstance(v, str)])
 
         return " ".join(text_parts).lower()
 
@@ -169,9 +162,7 @@ class BiasDetectionIntegrator:
         checks = []
 
         for bias_type in bias_types:
-            bias_check = self._perform_specific_bias_check(
-                text_content, category, bias_type
-            )
+            bias_check = self._perform_specific_bias_check(text_content, category, bias_type)
             checks.append(bias_check)
 
         return checks
@@ -235,9 +226,7 @@ class BiasDetectionIntegrator:
                 "structural",
                 "environmental factors",
             ]
-            includes_systemic = any(
-                phrase in text_content for phrase in positive_phrases
-            )
+            includes_systemic = any(phrase in text_content for phrase in positive_phrases)
             return BiasCheck(
                 bias_type=bias_type,
                 severity="low" if includes_systemic else "medium",
@@ -268,9 +257,7 @@ class BiasDetectionIntegrator:
                 "i'll solve this for you",
                 "tell me everything",
             ]
-            has_boundary_issues = any(
-                phrase in text_content for phrase in boundary_issues
-            )
+            has_boundary_issues = any(phrase in text_content for phrase in boundary_issues)
             return BiasCheck(
                 bias_type=bias_type,
                 severity="high" if has_boundary_issues else "low",
@@ -300,9 +287,7 @@ class BiasDetectionIntegrator:
             passed=True,
         )
 
-    def validate_and_enhance_datasets(
-        self, datasets: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+    def validate_and_enhance_datasets(self, datasets: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Validate datasets for bias and enhance with ethical safeguards."""
 
         validated_datasets = []
@@ -324,9 +309,7 @@ class BiasDetectionIntegrator:
 
             # Only include safe datasets or apply mitigations
             if bias_results["overall_safety"] == "unsafe":
-                enhanced_dataset = self._apply_bias_mitigations(
-                    enhanced_dataset, bias_results
-                )
+                enhanced_dataset = self._apply_bias_mitigations(enhanced_dataset, bias_results)
 
             validated_datasets.append(enhanced_dataset)
 
@@ -364,18 +347,10 @@ class BiasDetectionIntegrator:
         # Generate validation summary
         total_datasets = len(validated_datasets)
         safe_datasets = len(
-            [
-                d
-                for d in validated_datasets
-                if d["bias_detection"]["overall_safety"] == "safe"
-            ]
+            [d for d in validated_datasets if d["bias_detection"]["overall_safety"] == "safe"]
         )
         caution_datasets = len(
-            [
-                d
-                for d in validated_datasets
-                if d["bias_detection"]["overall_safety"] == "caution"
-            ]
+            [d for d in validated_datasets if d["bias_detection"]["overall_safety"] == "caution"]
         )
 
         validation_summary = {
@@ -404,8 +379,7 @@ class BiasDetectionIntegrator:
             json.dump(validation_summary, f, indent=2)
 
         logger.info(
-            f"Validated {total_datasets} datasets: {safe_datasets} safe, "
-            f"{caution_datasets} caution"
+            f"Validated {total_datasets} datasets: {safe_datasets} safe, {caution_datasets} caution"
         )
         logger.info(f"Results saved to {output_file}")
 
@@ -422,8 +396,7 @@ def main():
             "conversation": {
                 "client": "I'm feeling really overwhelmed with work",
                 "therapist": (
-                    "That sounds difficult. Let's explore what's "
-                    "contributing to that feeling."
+                    "That sounds difficult. Let's explore what's contributing to that feeling."
                 ),
             }
         },

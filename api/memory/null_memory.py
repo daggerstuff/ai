@@ -75,7 +75,7 @@ class NullMemoryManager:
                 if memory["id"] == memory_id:
                     memory["content"] = new_content
                     memory["updated_at"] = datetime.now(timezone.utc).isoformat()
-                    if "metadata" in kwargs:
+                    if kwargs.get("metadata") is not None:
                         memory["metadata"].update(kwargs["metadata"])
                     return True
         return False
