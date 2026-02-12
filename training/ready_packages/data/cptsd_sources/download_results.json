@@ -1,0 +1,276 @@
+{
+  "total": 67,
+  "downloaded": 0,
+  "skipped": 0,
+  "failed": 67,
+  "errors": [
+    {
+      "key": "datasets/gdrive/tier4_voice_persona/Heidi Priebe/10 'Survival Lies' You May Tell If You Have CPTSD.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/gdrive/tier4_voice_persona/Heidi Priebe/CPTSD\uff1a Breaking The Toxic Shame\u29f8Procrastination Cycle With Self-Compassion.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/gdrive/tier4_voice_persona/Patrick Teahan /9 Random Examples of Shame from PTSD & CPTSD.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/'Big T' vs 'Little t' Trauma | Understanding Trauma - Part 28 | #complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Betrayal Trauma | Understanding Trauma - Part 13 | #complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Depletion and Self-Care | Re-Parenting - Part 89 | #complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Healing | Understanding Trauma - Part 10 | #complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Recovery and Letting Go | Re-Parenting - Part 93 | #complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Sex | Re-Parenting - Part 25 | #complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/These 12 Needs Are Non-Negotiable for a Healthy & Whole Life | #complextrauma #whatstuck.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Trauma Bonding | Understanding Trauma - Part 31 | #complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned__big_t__vs__little_t__trauma_|_understanding_trauma-part_28_|_#complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_anger_and_complex_trauma-part_11\u29f811-gaslighting_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_anger_and_complex_trauma-part_1\u29f811-intro_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_anger_and_complex_trauma-part_9\u29f811-characteristics_of_abusers_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_are_you_seeking_approval_or_attention?-complex_trauma_prisons.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_being_a_chameleon:_complex_trauma_s_effect_on_your_sense_of_self.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_being_your_own_dark_cloud:_how_complex_trauma_can_cause_you_to_fall_into_a_negative_mindset.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_betrayal_trauma_|_understanding_trauma-part_13_|_#complextrauma_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_brain_fog_and_complex_trauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_codependency_and_complex_trauma-part_2\u29f810-narcissist_or_co-narcissist?_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_codependency_and_complex_trauma-part_7\u29f810-attachment_issues_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_complex_trauma_explained:_why_fear_controls_our_responses.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_depletion_and_self-care_|_re-parenting-part-89_|_#complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_depression_&_the_fear_of_hope:_complex_trauma_s_double_bind.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_healing_|_understanding_trauma-part-10_|_#complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_complex_trauma_affects_emotional_resilience_and_leads_to_long-term_consequences.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_complex_trauma_leads_to_a_hypersensitivity_to_disrespect_and_criticism.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_complex_trauma_messes_with_relationships_|_the_characteristics_of_complex_trauma-part-10.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_do_people_become_so_angry?-complex_trauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_does_complex_trauma_cause_people_to_confuse_validation_with_love?_|_with_@lisamtickel.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_narcissistic_relationships_create_complex_trauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_to_set_boundaries_and_stop_people_pleasing-boundaries_and_complex_trauma-part-2\u29f812_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_how_to_spot_a_narcissist-18_characteristics_of_narcissism_|_complex_trauma_recovery.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_recovery_and_letting_go_|_re-parenting-part-93_|_#complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_relationships_and_complex_trauma-part-11\u29f811-when_to_end_one_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_relationships_and_complex_trauma-part-2\u29f811-family_roles-part-1\u29f82_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_set_boundaries_and_stop_people_pleasing:_the_subjugation_life_trap-complex_trauma_prisons.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_sex_|_re-parenting-part-25_|_#complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_sexuality_as_love-complex_trauma_prisons.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-1\u29f86-what_is_shame?_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-2\u29f86-unhealthy_solutions_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-2\u29f87-unhealthy_solutions-repeat_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-3\u29f86_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-4\u29f86-shame_test_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-5\u29f86_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shame_and_complex_trauma-part-6\u29f86-healing_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_shedding_the_weight_of_negativity_is_essential_for_freedom_from_complex_trauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_signs_and_relationship_patterns_of_dating_a_narcissist-codependency_and_complex_trauma-part-3\u29f810_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_surviving_vs_thriving:_moving_beyond_survival_mode_after_complex_trauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_basics_of_anger_issues_and_complex_trauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_basics_of_complex_trauma:_understanding_the_hidden_impact_of_unmet_needs.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_characteristics_of_complex_trauma-part-20-emotional_dysregulation_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_characteristics_of_complex_trauma-part-23-afraid_to_be_a_burden.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_difference_between_guilt_and_shame-why_it_matters_for_complex_trauma_healing_and_recovery.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_the_key_to_letting_go-healing_complex_trauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_these_12_needs_are_non-negotiable_for_a_healthy_&_whole_life_|_#complextrauma_#whatstuck.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_trauma_bonding_|_understanding_trauma-part-31_|_#complextrauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_trust_and_commitment:_the_foundations_of_healing_from_complex_trauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_what_complex_trauma_does_to_love,_attachment,_and_loyalty.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_what_complex_trauma_really_does_to_your_emotions_|_the_characteristics_of_complex_trauma-part-7.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_what_complex_trauma_survivors_need_to_know_about_their_anger.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_why_complex_trauma_survivors_struggle_with_money.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_why_procrastination_is_tied_to_complex_trauma_and_how_to_heal_it.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_why_shame_affects_100__of_people_with_complex_trauma.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_'am_i_ever_going_to_heal_from_my_shame?'_|_healing_shame_as_part_of_complex_trauma_recovery.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    },
+    {
+      "key": "datasets/local/ai/lightning/pixelated-v2/data/processed/cleaned_'if_you_leave_me,_can_i_come_too?'-codependency_and_complex_trauma-part-1\u29f810_main.txt",
+      "error": "An error occurred (404) when calling the HeadObject operation: Not Found"
+    }
+  ]
+}

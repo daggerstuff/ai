@@ -15,7 +15,9 @@ class PipelineLogger:
     Structured logger for dataset pipeline operations.
     """
 
-    def __init__(self, name: str, level: int = logging.INFO):
+    def __init__(
+        self, name: str, level: int = logging.INFO, log_path: str | None = None
+    ):
         self.logger = logging.getLogger(name)
         self.logger.setLevel(level)
 
@@ -25,9 +27,17 @@ class PipelineLogger:
 
         # Console handler with formatting
         console_handler = logging.StreamHandler(sys.stdout)
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         console_handler.setFormatter(formatter)
         self.logger.addHandler(console_handler)
+
+        # Optional File handler
+        if log_path:
+            file_handler = logging.FileHandler(log_path)
+            file_handler.setFormatter(formatter)
+            self.logger.addHandler(file_handler)
 
     def info(self, msg: str, *args: Any, **kwargs: Any) -> None:
         """Log an info message."""
@@ -57,6 +67,13 @@ def get_logger(name: str) -> PipelineLogger:
     return PipelineLogger(name)
 
 
+def setup_logger(name: str, log_path: str | None = None) -> PipelineLogger:
+    """
+    Alias for get_logger for backward compatibility.
+    """
+    return PipelineLogger(name, log_path=log_path)
+
+
 def setup_pipeline_logging(output_dir: Path | None = None) -> None:
     """
     Initializes global logging configuration for the pipeline.
@@ -66,7 +83,8 @@ def setup_pipeline_logging(output_dir: Path | None = None) -> None:
     if output_dir:
         output_dir.mkdir(parents=True, exist_ok=True)
         log_file = (
-            output_dir / f"pipeline_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.log"
+            output_dir
+            / f"pipeline_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}.log"
         )
         handlers.append(logging.FileHandler(str(log_file)))
 

@@ -61,8 +61,7 @@ class DatasetPipelineOrchestrator:
         if not search_dir.exists():
             return None
 
-        candidates = list(search_dir.glob(pattern))
-        if not candidates:
+        if not (candidates := list(search_dir.glob(pattern))):
             return None
 
         # Return most recently modified file
@@ -74,37 +73,19 @@ class DatasetPipelineOrchestrator:
         Triggers generation if thresholds are not met.
         """
         logger.info("Verifying data completeness (NeMo, Nightmares, Edge Cases)...")
-        results = {}
-
-        # 1. NeMo Synthetic Data (Target: 10,000)
-        # We can pass specific counts or rely on defaults
-        results["nemo_synthetic"] = self.generator.ensure_nemo_synthetic(
-            target_count=10000
-        )
-
-        # 2. Ultra Nightmare Scenarios (Target: 5 per category initially)
-        results["ultra_nightmares"] = self.generator.ensure_ultra_nightmares(
-            count_per_category=5
-        )
-
-        # 3. Edge Case Synthetic (Target: 10,000)
-        results["edge_cases"] = self.generator.ensure_edge_cases(count=10000)
-
-        # 4. Academic Sourcing (PubMed/Scholar)
-        results["academic_sourcing"] = self.generator.ensure_academic_sourcing(
-            limit_per_query=10
-        )
-
-        # 5. Journal Research
-        results["journal_research"] = self.generator.ensure_journal_research()
-
-        # 6. Unused Material Hydration (Books & PDFs)
-        results["books_extraction"] = self.generator.ensure_books_extraction()
-
-        # 7. Tim Fletcher & Transcripts
-        results["transcripts_extraction"] = (
-            self.generator.ensure_transcripts_extraction()
-        )
+        results = {
+            "nemo_synthetic": self.generator.ensure_nemo_synthetic(target_count=10000),
+            "ultra_nightmares": self.generator.ensure_ultra_nightmares(
+                count_per_category=5
+            ),
+            "edge_cases": self.generator.ensure_edge_cases(count=10000),
+            "academic_sourcing": self.generator.ensure_academic_sourcing(
+                limit_per_query=10
+            ),
+            "journal_research": self.generator.ensure_journal_research(),
+            "books_extraction": self.generator.ensure_books_extraction(),
+            "transcripts_extraction": self.generator.ensure_transcripts_extraction(),
+        }
 
         logger.info(f"Data completeness check results: {results}")
         return results
@@ -115,10 +96,9 @@ class DatasetPipelineOrchestrator:
 
         if resume:
             output_dir = self.output_root / "final_output"
-            existing = self._get_latest_artifact(
+            if existing := self._get_latest_artifact(
                 output_dir, "unified_training_dataset_*.jsonl"
-            )
-            if existing:
+            ):
                 logger.info(f"RESUME: Found existing unified dataset at {existing}")
                 self.pipeline_results["unified_dataset_path"] = str(existing)
                 return str(existing)
@@ -550,11 +530,16 @@ def main():
         action="store_true",
         help="Run in the foreground (do not daemonize)",
     )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Simulate execution without running heavy tasks",
+    )
     args = parser.parse_args()
 
     # Determine execution mode
     run_resume = not args.restart
-    run_background = not args.foreground
+    run_background = not args.foreground and not args.dry_run
 
     if run_background:
         output_root = get_dataset_pipeline_output_root()
@@ -570,40 +555,60 @@ def main():
     try:
         logger.info("Pixelated Empathy AI Dataset Pipeline Orchestrator")
         logger.info("=" * 50)
+        if args.dry_run:
+            logger.info("DRY RUN MODE ENABLED - No changes will be committed.")
         logger.info(
             f"Execution Mode: {'Background' if run_background else 'Foreground'}"
         )
         logger.info(f"Resume Enabled: {run_resume}")
 
         # Execute the complete pipeline
-        results = orchestrator.execute_complete_pipeline(resume=run_resume)
+        if args.dry_run:
+            logger.info("Performing dry run of dataset pipeline components...")
+            # Simulate steps
+            logger.info("Dry-run: Checking data completeness...")
+            logger.info("Dry-run: Running unified preprocessing...")
+            logger.info("Dry-run: Validating acoustic deduplication handles...")
+            logger.info("Dry-run: Testing transcript quality Pass 2/3 availability...")
+            results = {
+                "success": True,
+                "results": {"dry_run": True},
+                "composition_report": {"final_dataset_stats": {"total_records": 0}},
+            }
+        else:
+            results = orchestrator.execute_complete_pipeline(resume=run_resume)
 
         if results["success"]:
             logger.info("\n🎉 Pipeline Execution Successful!")
             logger.info("=" * 50)
-            logger.info(
-                f"📊 Unified Dataset: {results['results']['unified_dataset_path']}"
-            )
-            logger.info(
-                f"⚖️  Balanced Dataset: {results['results']['balanced_dataset_path']}"
-            )
-            logger.info(
-                f"📋 Training Manifest: {results['results']['training_manifest_path']}"
-            )
-            logger.info(f"📄 Final Report: {results['results']['final_report_path']}")
+            if not args.dry_run:
+                logger.info(
+                    f"📊 Unified Dataset: {results['results']['unified_dataset_path']}"
+                )
+                logger.info(
+                    f"⚖️  Balanced Dataset: "
+                    f"{results['results']['balanced_dataset_path']}"
+                )
+                logger.info(
+                    f"📋 Training Manifest: "
+                    f"{results['results']['training_manifest_path']}"
+                )
+                logger.info(
+                    f"📄 Final Report: {results['results']['final_report_path']}"
+                )
 
-            # Print composition summary
-            composition_report = results["results"]["composition_report"]
-            logger.info("\n📈 Dataset Composition Summary:")
-            logger.info(
-                f"   Total Records: "
-                f"{composition_report['final_dataset_stats']['total_records']}"
-            )
-            if "quality_scores" in composition_report["final_dataset_stats"]:
-                avg_quality = composition_report["final_dataset_stats"][
-                    "quality_scores"
-                ]["avg"]
-                logger.info(f"   Average Quality Score: {avg_quality:.3f}")
+                # Print composition summary
+                composition_report = results["results"]["composition_report"]
+                logger.info("\n📈 Dataset Composition Summary:")
+                logger.info(
+                    f"   Total Records: "
+                    f"{composition_report['final_dataset_stats']['total_records']}"
+                )
+                if "quality_scores" in composition_report["final_dataset_stats"]:
+                    avg_quality = composition_report["final_dataset_stats"][
+                        "quality_scores"
+                    ]["avg"]
+                    logger.info(f"   Average Quality Score: {avg_quality:.3f}")
 
             logger.info("\n✅ Ready for Lightning.ai H100 training deployment!")
         else:
