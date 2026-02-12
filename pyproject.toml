@@ -59,6 +59,8 @@ dependencies = [
   "google-genai>=1.62.0",
   "qdrant-client>=1.16.2",
   "mcp>=1.26.0",
+  "e2b>=1.4.0",
+  "yt-dlp>=2025.1.15",
 ]
 
 [dependency-groups]

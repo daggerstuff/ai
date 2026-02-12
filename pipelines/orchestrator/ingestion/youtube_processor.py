@@ -357,6 +357,8 @@ class YouTubePlaylistProcessor:
             "--write-info-json",
             "--write-description",
             "--write-thumbnail",
+            "--js-runtimes",
+            "node",
         ]
 
         # Anti-detection measures

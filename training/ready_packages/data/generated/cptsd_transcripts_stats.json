@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-01-26T01:06:52.265680+00:00",
-  "started_at": "2026-01-26T01:06:51.696499+00:00",
+  "generated_at": "2026-02-12T09:25:09.541132+00:00",
+  "started_at": "2026-02-12T09:25:09.517978+00:00",
   "bucket": "pixel-data",
   "endpoint": "https://s3.us-east-va.io.cloud.ovh.us",
-  "input_dir": "/home/vivi/datasets/gdrive/tier4_voice_persona/Tim Fletcher/",
+  "input_dir": "/home/vivi/pixelated/ai/training/ready_packages/data/cptsd_sources/tim_fletcher/",
   "prefix": null,
   "source_keys_provided": 0,
-  "output": "ai/training_ready/data/generated/cptsd_transcripts.jsonl",
-  "files_discovered": 91,
-  "files_processed": 91,
+  "output": "/home/vivi/pixelated/ai/training/ready_packages/data/generated/cptsd_transcripts.jsonl",
+  "files_discovered": 1,
+  "files_processed": 1,
   "files_skipped": 0,
-  "examples_written": 91,
-  "max_chunks_per_file": 6,
-  "voice_profile_used": true,
+  "examples_written": 1,
+  "max_chunks_per_file": 12,
+  "voice_profile_used": false,
   "chunk_histogram_capped_25": {
-    "1": 91
+    "1": 1
   }
 }
