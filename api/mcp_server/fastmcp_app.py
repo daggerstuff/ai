@@ -88,6 +88,20 @@ def get_manager():
     return _manager
 
 
+@mcp.on_startup()
+async def startup():
+    """Initialization logic for the MCP server."""
+    logger.info("Pixelated Memory Server starting up...")
+    get_manager()
+
+
+@mcp.on_shutdown()
+async def shutdown():
+    """Cleanup logic for the MCP server."""
+    logger.info("Pixelated Memory Server shutting down...")
+    # Add any explicit manager cleanup if needed
+
+
 # --- Resources ---
 
 
@@ -95,6 +109,7 @@ def get_manager():
 def get_user_profile(user_id: str) -> str:
     """
     Get a summary of the user's profile and key preferences.
+    Follows Memory Forensics principles by extracting core identity artifacts.
     """
     manager = get_manager()
     memories = manager.get_all_memories(user_id)
@@ -105,7 +120,8 @@ def get_user_profile(user_id: str) -> str:
     profile_data = [
         m.get("memory") or m.get("content", "")
         for m in memories
-        if m.get("metadata", {}).get("category") in ["preference", "fact", "bio"]
+        if m.get("metadata", {}).get("category")
+        in ["preference", "fact", "bio", "identity"]
     ] or [m.get("memory") or m.get("content", "") for m in memories[:10]]
 
     return f"### 👤 User Profile: {user_id}\n\n" + "\n".join(
@@ -249,6 +265,125 @@ async def add_memory(
 
 
 @mcp.tool()
+async def update_memory(memory_id: str, content: str, metadata: str = None) -> str:
+    """
+    Update an existing memory with new content.
+
+    Args:
+        memory_id: The ID of the memory to update.
+        content: The new text content.
+        metadata: Optional JSON string of updated metadata.
+    """
+    import contextlib
+
+    manager = get_manager()
+    meta_dict = {}
+    if metadata:
+        with contextlib.suppress(Exception):
+            meta_dict = json.loads(metadata) or {}
+
+    try:
+        if hasattr(manager, "update_memory") and (
+            manager.update_memory(memory_id, content, metadata=meta_dict)
+        ):
+            return (
+                f"### 🔄 Memory Refined\n\n"
+                f"I've updated the insight (ID: {memory_id}).\n\n"
+                f"**New Content:** {content}"
+            )
+        return "Update not supported by current manager or failed."
+    except Exception as e:
+        return f"Error updating memory: {str(e)}"
+
+
+@mcp.tool()
+async def get_memory(memory_id: str) -> str:
+    """
+    Retrieve a specific memory by its ID.
+    """
+    manager = get_manager()
+    try:
+        if mem := manager.get_memory(memory_id):
+            return f"### 🧠 Memory Retrieval\n\n{json.dumps(mem, indent=2)}"
+        return f"Memory with ID {memory_id} not found."
+    except Exception as e:
+        return f"Error retrieving: {str(e)}"
+
+
+@mcp.tool()
+async def extract_memory_artifacts(memory_id: str) -> str:
+    """
+    Perform deep forensic analysis on a specific memory to extract
+    structured artifacts (entities, relationships, emotional tone).
+
+    This implements 'Memory Forensics' by identifying hidden context
+    within raw memory strings.
+    """
+    manager = get_manager()
+    if not hasattr(manager, "get_memory") or not hasattr(manager, "client"):
+        return "Artifact extraction not supported."
+
+    if not (memory := manager.get_memory(memory_id)):
+        return f"Memory {memory_id} not found."
+
+    content = memory.get("memory") or memory.get("content", "")
+    prompt = (
+        "Extract structured artifacts from the following memory content. "
+        "Identify: Entities (People, Places, Things), Relationships (A is a B), "
+        "Emotional Tone (Primary emotion), and Scientific Validity "
+        "(Is it a fact or feeling?).\n\n"
+        f"CONTENT: {content}\n\n"
+        "Return the result as a Markdown list of artifacts."
+    )
+
+    try:
+        response = manager.client.models.generate_content(
+            model=manager.config.model_name,
+            contents=prompt,
+        )
+        return (
+            f"### 🔍 Memory Artifacts: {memory_id}\n\n"
+            f"**Raw:** {content}\n\n"
+            f"{response.text}"
+        )
+    except Exception as e:
+        return f"Error extracting artifacts: {str(e)}"
+
+
+@mcp.tool()
+async def list_memory_history(user_id: str, limit: int = 50) -> str:
+    """
+    Perform a forensic chronological listing of all memories for a user.
+    Useful for auditing narrative evolution and identifying state changes.
+    """
+    manager = get_manager()
+    memories = manager.get_all_memories(user_id)
+
+    if not memories:
+        return f"No memories found for user: {user_id}"
+
+    # Sort chronologically
+    sorted_mems = sorted(
+        memories,
+        key=lambda x: x.get("metadata", {}).get("timestamp", ""),
+    )
+
+    lines = []
+    for m in sorted_mems[:limit]:
+        ts = m.get("metadata", {}).get("timestamp", "unknown")
+        cid = m.get("id", "unk")
+        content = m.get("memory") or m.get("content", "")
+        cat = m.get("metadata", {}).get("category", "general")
+        lines.append(f"| {ts} | {cid} | {cat} | {content} |")
+
+    return (
+        f"### 📊 Memory Audit Log: {user_id}\n\n"
+        "| Timestamp | ID | Category | Content |\n"
+        "| :--- | :--- | :--- | :--- |\n" + "\n".join(lines)
+    )
+
+
+@mcp.tool()
 async def search_memory(query: str, user_id: str) -> str:
     """
     Search for memories relevant to a query.
@@ -288,14 +423,16 @@ async def delete_memory(memory_id: str) -> str:
     """Delete a memory by ID."""
     manager = get_manager()
     try:
-        success = False
         if hasattr(manager, "delete_memory"):
-            success = manager.delete_memory(memory_id)
+            res = manager.delete_memory(memory_id)
+            if res:
+                return (
+                    "### 🗑️ Memory Released\n\n"
+                    "The insight has been removed from context."
+                )
+            return "Delete failed."
         elif hasattr(manager, "client") and hasattr(manager.client, "delete"):
             manager.client.delete(memory_id)
-            success = True
-
-        if success:
             return "### 🗑️ Memory Released\n\nThe insight has been removed from context."
         return "Delete not supported or failed."
     except Exception as e:
@@ -329,6 +466,7 @@ async def execute_in_sandbox(
     code: str,
     language: str = "python",
     timeout_seconds: int = 30,
+    files_json: str = None,
 ) -> str:
     """
     Execute code in a secure, ephemeral E2B sandbox.
@@ -340,17 +478,26 @@ async def execute_in_sandbox(
         code: The code to execute.
         language: 'python' or 'shell'. Defaults to 'python'.
         timeout_seconds: Max execution time (1-120s). Defaults to 30.
+        files_json: Optional JSON string of {filename: content} to upload.
     """
+    import contextlib
     from ai.api.mcp_server.sandbox_executor import SandboxExecutor
 
     executor = SandboxExecutor()
+    files_dict = None
+    if files_json:
+        with contextlib.suppress(Exception):
+            files_dict = json.loads(files_json)
 
     try:
-        result = executor.execute_code(
-            language=language,
-            code=code,
-            timeout_seconds=timeout_seconds,
-        )
+        # Use RAII pattern with context manager
+        with executor as ex:
+            result = ex.execute_code(
+                language=language,
+                code=code,
+                timeout_seconds=timeout_seconds,
+                files=files_dict,
+            )
     except ValueError as exc:
         return f"### ❌ Validation Error\n\n{exc}"
 
@@ -371,6 +518,100 @@ async def execute_in_sandbox(
     )
 
     return "\n".join(parts)
+
+
+@mcp.tool()
+async def detect_cognitive_conflicts(user_id: str) -> str:
+    """
+    EXPERIMENTAL: Analyze all memories for a user to detect contradictions
+    or emergent conflicts in their narrative.
+
+    This uses Gemini to perform a deep scan of the 'Emotional Cartography'
+    for a given user ID.
+    """
+    manager = get_manager()
+    if not hasattr(manager, "get_all_memories") or not hasattr(manager, "client"):
+        return "Conflict detection not supported by current manager."
+
+    memories = manager.get_all_memories(user_id)
+    if not memories:
+        return f"No memories found for **{user_id}** to analyze."
+
+    # Prepare memories for analysis
+    mem_list = [
+        {"id": m.get("id", "unk"), "content": m.get("memory") or m.get("content", "")}
+        for m in memories
+    ]
+
+    prompt = (
+        "You are an expert at Narrative Consistency and Cognitive Dissonance analysis. "
+        "Examine the following list of memories (id and content) for a single user. "
+        "Identify any contradictions, obsolete facts, or emergent conflicts. "
+        "A conflict is when two memories can't both be true at the same time, "
+        "or when a later memory suggests an earlier one has been superseded.\n\n"
+        f"USER MEMORIES for {user_id}:\n"
+        f"{json.dumps(mem_list, indent=2)}\n\n"
+        "Return a structured report in Markdown. For each conflict, list the "
+        "affected memory IDs, the nature of the contradiction, and a recommendation. "
+        "If no conflicts are found, say 'No narrative conflicts detected.'"
+    )
+
+    try:
+        # Use manager's Gemini client directly if available
+        # manager.client is genai.Client
+        response = manager.client.models.generate_content(
+            model=manager.config.model_name,
+            contents=prompt,
+        )
+        return f"### 🧩 Cognitive Conflict Report: {user_id}\n\n{response.text}"
+    except Exception as e:
+        return f"Error during conflict detection: {str(e)}"
+
+
+@mcp.tool()
+async def analyze_narrative_evolution(user_id: str) -> str:
+    """
+    OUTSIDE THE BOX: Analyze the chronological evolution of the user's narrative.
+    Looks for shifting perspectives, growth patterns, or recurring themes over time.
+
+    This implements 'Emotional Cartography' by mapping the journey through memory.
+    """
+    manager = get_manager()
+    memories = manager.get_all_memories(user_id)
+    if not memories:
+        return f"No memories found for **{user_id}** to analyze journey."
+
+    # Sort memories chronologically
+    sorted_memories = sorted(
+        memories,
+        key=lambda x: x.get("metadata", {}).get("timestamp", ""),
+    )
+
+    history_str = ""
+    for m in sorted_memories:
+        ts = m.get("metadata", {}).get("timestamp", "unknown")
+        content = m.get("memory") or m.get("content", "")
+        history_str += f"[{ts}] {content}\n"
+
+    prompt = (
+        "You are a specialist in Narrative Therapy and Longitudinal Data Analysis. "
+        "Analyze the following chronological sequence of memories for a user. "
+        "Identify: 1) Major narrative shifts, 2) Recurring themes that persist, "
+        "3) Signs of emotional growth or stagnation, 4) The evolution of their "
+        "'Self' concept.\n\n"
+        f"USER JOURNEY for {user_id}:\n{history_str}\n\n"
+        "Return a deep reflective report in Markdown titled "
+        "'Narrative Evolution of [User ID]'."
+    )
+
+    try:
+        response = manager.client.models.generate_content(
+            model=manager.config.model_name,
+            contents=prompt,
+        )
+        return response.text
+    except Exception as e:
+        return f"Error analyzing journey: {str(e)}"
 
 
 if __name__ == "__main__":
