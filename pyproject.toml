@@ -55,10 +55,10 @@ dependencies = [
   "sentence-transformers>=3.0.0",
   "faiss-cpu>=1.8.0",
   # Memory & User Management
-  "zep-cloud>=1.2.0",
   "mem0ai>=1.0.3",
   "google-genai>=1.62.0",
   "qdrant-client>=1.16.2",
+  "mcp>=1.26.0",
 ]
 
 [dependency-groups]
@@ -69,7 +69,7 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages]
-find = { where = ["."], include = ["monitoring*"] }
+find = { where = ["."], include = ["*"] }
 
 [tool.uv]
 index-strategy = "unsafe-best-match"
