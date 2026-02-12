@@ -85,7 +85,9 @@ class RAGIndexEntry:
     embedding: Optional[List[float]] = None
 
     metadata: TranscriptMetadata = None
-    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
+    timestamp: str = field(
+        default_factory=lambda: datetime.now(timezone.utc).isoformat()
+    )
 
 
 class YouTubeRAGSystem:
@@ -100,7 +102,8 @@ class YouTubeRAGSystem:
         model_name: str = "all-MiniLM-L6-v2",
         include_knowledge_sources: bool = True,
     ):
-        # Use environment variable for transcript directory with project-relative default
+        # Use environment variable for transcript directory
+        # with project-relative default
         transcripts_root = os.getenv("YOUTUBE_TRANSCRIPTS_DIR")
         if transcripts_root:
             self.transcripts_dir = Path(transcripts_root)
@@ -202,7 +205,9 @@ class YouTubeRAGSystem:
         logger.info(f"Processed {len(self.transcripts)} transcripts")
         return self.transcripts
 
-    def _extract_transcript_metadata(self, transcript_file: Path) -> Optional[TranscriptMetadata]:
+    def _extract_transcript_metadata(
+        self, transcript_file: Path
+    ) -> Optional[TranscriptMetadata]:
         """Extract metadata from a transcript file"""
         try:
             with open(transcript_file, "r", encoding="utf-8") as f:
@@ -253,7 +258,9 @@ class YouTubeRAGSystem:
             )
 
         except Exception as e:
-            logger.error(f"Error extracting metadata from {transcript_file.name}: {str(e)}")
+            logger.error(
+                f"Error extracting metadata from {transcript_file.name}: {str(e)}"
+            )
             return None
 
     def _extract_title(self, content: str) -> str:
@@ -344,7 +351,10 @@ class YouTubeRAGSystem:
         authoritative_count = sum(word in content_lower for word in authoritative_words)
         educational_count = sum(word in content_lower for word in educational_words)
 
-        if compassionate_count > authoritative_count and compassionate_count > educational_count:
+        if (
+            compassionate_count > authoritative_count
+            and compassionate_count > educational_count
+        ):
             return "compassionate"
         elif authoritative_count > educational_count:
             return "authoritative"
@@ -522,7 +532,9 @@ class YouTubeRAGSystem:
             embeddings = self._get_embeddings_batch(processed_chunks)
 
             # Create entries
-            for chunk_content, meta, emb in zip(processed_chunks, chunk_metadatas, embeddings):
+            for chunk_content, meta, emb in zip(
+                processed_chunks, chunk_metadatas, embeddings
+            ):
                 self.rag_index.append(
                     RAGIndexEntry(
                         transcript_id=meta["id"],
@@ -711,10 +723,14 @@ class YouTubeRAGSystem:
                 query, documents=candidate_texts, top_n=top_k
             )
         except Exception as e:
-            logger.error(f"NVIDIA Safety Rerank failed: {e}. Returning raw similarity results.")
+            logger.error(
+                f"NVIDIA Safety Rerank failed: {e}. Returning raw similarity results."
+            )
             return None
 
-    def _format_reranked_results(self, reranked: List, top_candidates: List, dual_context: Dict):
+    def _format_reranked_results(
+        self, reranked: List, top_candidates: List, dual_context: Dict
+    ):
         """Format reranked search results"""
         results = []
         for item in reranked:
@@ -816,7 +832,9 @@ class YouTubeRAGSystem:
 
         # Select diverse examples
         selected_entries = (
-            relevant_entries[:count] if len(relevant_entries) >= count else relevant_entries
+            relevant_entries[:count]
+            if len(relevant_entries) >= count
+            else relevant_entries
         )
 
         for entry in selected_entries:
@@ -895,7 +913,9 @@ class YouTubeRAGSystem:
                     content_hash=entry_data["metadata"]["content_hash"],
                     word_count=entry_data["metadata"]["word_count"],
                     topics=entry_data["metadata"]["topics"],
-                    therapeutic_approaches=entry_data["metadata"]["therapeutic_approaches"],
+                    therapeutic_approaches=entry_data["metadata"][
+                        "therapeutic_approaches"
+                    ],
                     personality_markers=entry_data["metadata"]["personality_markers"],
                     key_quotes=entry_data["metadata"]["key_quotes"],
                     summary=entry_data["metadata"]["summary"],
@@ -997,7 +1017,10 @@ if __name__ == "__main__":
         print("\nExample search for 'complex trauma':")
         results = system.search_transcripts("complex trauma", top_k=2)
         for i, result in enumerate(results, 1):
-            print(f"  {i}. {result['metadata']['title']} (similarity: {result['similarity']:.3f})")
+            print(
+                f"  {i}. {result['metadata']['title']} "
+                f"(similarity: {result['similarity']:.3f})"
+            )
             print(f"     Content preview: {result['content'][:100]}...")
             print()
 

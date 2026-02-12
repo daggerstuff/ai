@@ -116,7 +116,11 @@ DEFAULT_CONFIG = {
         "max_hours": 12,
     },
     # ChatML system prompt
-    "system_prompt": "You are Wendy, an empathetic and supportive mental health companion. You provide thoughtful, therapeutic responses while maintaining appropriate boundaries.",
+    "system_prompt": (
+        "You are Wendy, an empathetic and supportive mental health companion. "
+        "You provide thoughtful, therapeutic responses while maintaining "
+        "appropriate boundaries."
+    ),
 }
 
 # Global state
@@ -174,7 +178,10 @@ def load_dataset_file(file_path: str) -> List[Dict[str, Any]]:
                     return data["conversations"] if "conversations" in data else [data]
         elif ext == ".csv":
             df = pd.read_csv(file_path)
-            return [{str(k): v for k, v in rec.items()} for rec in df.to_dict(orient="records")]
+            return [
+                {str(k): v for k, v in rec.items()}
+                for rec in df.to_dict(orient="records")
+            ]
     except Exception as e:
         logger.error(f"Failed to load {file_path}: {e}")
 
@@ -219,7 +226,9 @@ def deduplicate(records: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return deduped
 
 
-def convert_to_chatml(records: List[Dict[str, Any]], system_prompt: str) -> List[Dict[str, Any]]:
+def convert_to_chatml(
+    records: List[Dict[str, Any]], system_prompt: str
+) -> List[Dict[str, Any]]:
     """Convert records to ChatML format."""
     chatml_data = []
 
@@ -344,7 +353,9 @@ def create_model(config: Dict):
         return setup_model_for_staged_training(config)
     except ImportError as e:
         logger.exception(f"Missing required package: {e}")
-        logger.info("Install with: pip install transformers peft accelerate bitsandbytes")
+        logger.info(
+            "Install with: pip install transformers peft accelerate bitsandbytes"
+        )
         raise
 
 
@@ -360,7 +371,9 @@ def setup_model_for_staged_training(config):
     trust_remote = os.environ.get("TRUST_REMOTE_CODE", "false").lower() == "true"
 
     # Load tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(base_model, trust_remote_code=trust_remote)
+    tokenizer = AutoTokenizer.from_pretrained(
+        base_model, trust_remote_code=trust_remote
+    )
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -399,7 +412,8 @@ def setup_model_for_staged_training(config):
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
     logger.info(
-        f"Trainable params: {trainable_params:,} / {total_params:,} ({100 * trainable_params / total_params:.2f}%)"
+        f"Trainable params: {trainable_params:,} / {total_params:,} "
+        f"({100 * trainable_params / total_params:.2f}%)"
     )
 
     return model, tokenizer
@@ -472,7 +486,9 @@ def train_stage(
         return result
 
     dataset = Dataset.from_list(train_data)
-    tokenized = dataset.map(tokenize_function, batched=True, remove_columns=["messages"])
+    tokenized = dataset.map(
+        tokenize_function, batched=True, remove_columns=["messages"]
+    )
 
     # Split train/eval
     split = tokenized.train_test_split(test_size=0.1, seed=42)
@@ -482,7 +498,9 @@ def train_stage(
         output_dir=output_dir,
         num_train_epochs=epochs,
         per_device_train_batch_size=training_config.get("per_device_batch_size", 4),
-        gradient_accumulation_steps=training_config.get("gradient_accumulation_steps", 8),
+        gradient_accumulation_steps=training_config.get(
+            "gradient_accumulation_steps", 8
+        ),
         learning_rate=lr,
         warmup_steps=training_config.get("warmup_steps", 1000),
         weight_decay=training_config.get("weight_decay", 0.01),
@@ -602,7 +620,9 @@ def run_staged_training_pipeline(config, args, training_start_time):
 
     # Determine stages to run
     stages_to_run = []
-    stages_to_run = ["foundation", "reasoning", "voice"] if args.stage == "all" else [args.stage]
+    stages_to_run = (
+        ["foundation", "reasoning", "voice"] if args.stage == "all" else [args.stage]
+    )
     # Run training stages
     last_checkpoint = args.resume_from
 

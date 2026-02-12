@@ -39,7 +39,9 @@ class AntiEchoHook:
             'strip' -> Removes the first sentence if it's an echo.
             'flag'  -> Returns a warning (for RL training).
         """
-        self.compiled_echoes = [re.compile(p, re.IGNORECASE) for p in self.ECHO_PATTERNS]
+        self.compiled_echoes = [
+            re.compile(p, re.IGNORECASE) for p in self.ECHO_PATTERNS
+        ]
         if fallback_mode not in {"strip", "flag"}:
             raise ValueError(f"Unsupported fallback_mode: {fallback_mode}")
         self.fallback_mode = fallback_mode
@@ -52,7 +54,8 @@ class AntiEchoHook:
         current_text = text
 
         while True:
-            # More robust sentence splitting: look for punctuation followed by space or end of string
+            # More robust sentence splitting: look for punctuation followed
+            # by space or end of string
             # Handle multiple punctuations like '...' or '!!!'
             sentences = re.split(r"(?<=[.!?])\s+", current_text.strip())
             if not sentences or not sentences[0]:
@@ -64,7 +67,9 @@ class AntiEchoHook:
             if not first_sentence:
                 break
 
-            is_echo = any(pattern.match(first_sentence) for pattern in self.compiled_echoes)
+            is_echo = any(
+                pattern.match(first_sentence) for pattern in self.compiled_echoes
+            )
 
             if not is_echo:
                 break
@@ -77,7 +82,8 @@ class AntiEchoHook:
                 current_text = rest
             else:
                 logger.warning(
-                    f"Response failed Human-Pivot check (cannot strip further): '{redacted_start}'"
+                    f"Response failed Human-Pivot check (cannot strip further): "
+                    f"'{redacted_start}'"
                 )
                 break
         return current_text
@@ -87,7 +93,10 @@ class AntiEchoHook:
 if __name__ == "__main__":
     hook = AntiEchoHook()
     test_1 = "I hear that you are feeling sad. Let's talk about your father."
-    test_2 = "My own father used to say that silence was a weapon. I wonder if yours felt the same?"
+    test_2 = (
+        "My own father used to say that silence was a weapon. "
+        "I wonder if yours felt the same?"
+    )
 
     print(f"Test 1 Before: {test_1}")
     print(f"Test 1 After:  {hook.process_response(test_1)}")

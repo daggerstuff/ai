@@ -8,7 +8,7 @@ with hybrid Mem0 and Gemini backend.
 import logging
 import os
 from contextlib import asynccontextmanager
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -58,7 +58,10 @@ def create_memory_server() -> FastAPI:
         try:
             # 1. Try GeminiMem0Manager (Preferred)
             if gemini_key:
-                from ai.memory.mem0_gemini.manager import GeminiMem0Config, GeminiMem0Manager
+                from ai.memory.mem0_gemini.manager import (
+                    GeminiMem0Config,
+                    GeminiMem0Manager,
+                )
 
                 config = GeminiMem0Config(
                     gemini_api_key=gemini_key,
@@ -77,17 +80,26 @@ def create_memory_server() -> FastAPI:
                     def __init__(self, client):
                         self.client = client
 
-                    def add_memory(self, content, user_id, metadata=None, category=None, **kwargs):
+                    def add_memory(
+                        self, content, user_id, metadata=None, category=None, **kwargs
+                    ):
                         final_metadata = metadata or {}
                         if category:
                             final_metadata["category"] = category
-                        res = self.client.add(content, user_id=user_id, metadata=final_metadata)
+                        res = self.client.add(
+                            content, user_id=user_id, metadata=final_metadata
+                        )
                         # Normalize return ID
-                        if isinstance(res, dict) and "results" in res and res["results"]:
+                        if (
+                            isinstance(res, dict)
+                            and "results" in res
+                            and res["results"]
+                        ):
                             return res["results"][0].get("id")
-                        if isinstance(res, list) and res:
+                        elif isinstance(res, list) and res:
                             return res[0].get("id")
-                        return "stored"
+                        else:
+                            return "stored"
 
                     def search_memories(self, query, user_id, **kwargs):
                         return self.client.search(query, user_id=user_id, **kwargs)
@@ -144,7 +156,9 @@ def create_memory_server() -> FastAPI:
         try:
             manager = get_mcp_manager()
             if not manager:
-                raise HTTPException(status_code=503, detail="Memory service unavailable")
+                raise HTTPException(
+                    status_code=503, detail="Memory service unavailable"
+                )
 
             metadata = request.metadata or {}
             if request.session_id:
@@ -153,7 +167,8 @@ def create_memory_server() -> FastAPI:
                 metadata["agent_id"] = request.agent_id
 
             # Call add_memory on the manager (GeminiMem0Manager or Wrapper)
-            # Note: GeminiMem0Manager.add_memory arguments: content, user_id, metadata=None, category=None
+            # Note: GeminiMem0Manager.add_memory arguments:
+            # content, user_id, metadata=None, category=None
             memory_id = manager.add_memory(
                 request.content,
                 user_id=request.user_id,
@@ -162,7 +177,9 @@ def create_memory_server() -> FastAPI:
             )
 
             if not memory_id:
-                raise HTTPException(status_code=400, detail="Memory rejected by safety filters")
+                raise HTTPException(
+                    status_code=400, detail="Memory rejected by safety filters"
+                )
 
             return {
                 "success": True,
@@ -185,14 +202,17 @@ def create_memory_server() -> FastAPI:
         try:
             manager = get_mcp_manager()
             if not manager:
-                raise HTTPException(status_code=503, detail="Memory service unavailable")
+                raise HTTPException(
+                    status_code=503, detail="Memory service unavailable"
+                )
 
             memories = manager.search_memories(
                 request.query,
                 user_id=request.user_id,
             )
 
-            # Handle case where result might be a dict with 'results' key (wrapper vs manager)
+            # Handle case where result might be a dict with 'results' key
+            # (wrapper vs manager)
             # GeminiMem0Manager.search_memories already returns a list.
             # Wrapper returns client.search which might be list or dict.
             if isinstance(memories, dict) and "results" in memories:
@@ -219,13 +239,18 @@ def create_memory_server() -> FastAPI:
         try:
             manager = get_mcp_manager()
             if not manager:
-                raise HTTPException(status_code=503, detail="Memory service unavailable")
+                raise HTTPException(
+                    status_code=503, detail="Memory service unavailable"
+                )
 
             success = manager.update_memory(
-                memory_id=memory_id, new_content=request.text, metadata=request.metadata
+                memory_id=memory_id,
+                new_content=request.text,
+                metadata=request.metadata,
             )
 
-            # manager.update_memory returns bool. Wrapper client.update returns dict/list/bool.
+            # manager.update_memory returns bool.
+            # Wrapper client.update returns dict/list/bool.
             if isinstance(success, (dict, list)):
                 success = True
 
@@ -247,7 +272,9 @@ def create_memory_server() -> FastAPI:
         try:
             manager = get_mcp_manager()
             if not manager:
-                raise HTTPException(status_code=503, detail="Memory service unavailable")
+                raise HTTPException(
+                    status_code=503, detail="Memory service unavailable"
+                )
 
             manager.delete_memory(memory_id=memory_id)
             return {"success": True, "message": "Memory deleted"}
@@ -281,7 +308,9 @@ def create_memory_server() -> FastAPI:
         try:
             manager = get_mcp_manager()
             if not manager:
-                raise HTTPException(status_code=503, detail="Memory service unavailable")
+                raise HTTPException(
+                    status_code=503, detail="Memory service unavailable"
+                )
 
             # Check if we can fetch memories for this user
             memories = getattr(manager, "get_all_memories", lambda uid: [])(user_id)
@@ -306,7 +335,9 @@ def create_memory_server() -> FastAPI:
             manager = get_mcp_manager()
             status = "healthy" if manager else "degraded"
             provider = (
-                "GeminiMem0" if "GeminiMem0Manager" in str(type(manager)) else str(type(manager))
+                "GeminiMem0"
+                if "GeminiMem0Manager" in str(type(manager))
+                else str(type(manager))
             )
 
             return {

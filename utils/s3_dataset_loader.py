@@ -26,7 +26,9 @@ if TYPE_CHECKING:
     class ClientError(Exception):
         response: dict[str, Any]
 else:
-    ClientError = _BotocoreClientError if _BotocoreClientError is not None else Exception  # type: ignore[assignment]
+    ClientError = (
+        _BotocoreClientError if _BotocoreClientError is not None else Exception
+    )  # type: ignore[assignment]
 
 BOTO3_AVAILABLE = boto3 is not None
 
@@ -77,14 +79,16 @@ class S3DatasetLoader:
         """
         if boto3 is None:
             raise ImportError(
-                "boto3 is required for S3 dataset loading. Install with: uv pip install boto3"
+                "boto3 is required for S3 dataset loading. "
+                "Install with: uv pip install boto3"
             )
 
         # Always allow env to override bucket for OVH S3
         # This ensures OVH_S3_BUCKET is always used when set
         self.bucket = os.getenv("OVH_S3_BUCKET", bucket)
         print(
-            f"[DEBUG] S3Loader: env OVH_S3_BUCKET={os.getenv('OVH_S3_BUCKET')}, input bucket={bucket}, final={self.bucket}",
+            f"[DEBUG] S3Loader: env OVH_S3_BUCKET={os.getenv('OVH_S3_BUCKET')}, "
+            f"input bucket={bucket}, final={self.bucket}",
             flush=True,
         )
         self.endpoint_url = endpoint_url or os.getenv(
@@ -122,7 +126,9 @@ class S3DatasetLoader:
             verify_ssl = False
 
         if verify_ssl is False:
-            logger.warning("Initializing S3 client with SSL verification DISABLED (insecure)")
+            logger.warning(
+                "Initializing S3 client with SSL verification DISABLED (insecure)"
+            )
 
         self.s3_client = boto3.client(
             "s3",
@@ -204,7 +210,9 @@ class S3DatasetLoader:
             return data
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}") from e
+                raise FileNotFoundError(
+                    f"Dataset not found in S3: s3://{bucket}/{key}"
+                ) from e
             raise
 
     def load_bytes(self, s3_path: str) -> bytes:
@@ -225,7 +233,9 @@ class S3DatasetLoader:
             return response["Body"].read()
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}") from e
+                raise FileNotFoundError(
+                    f"Dataset not found in S3: s3://{bucket}/{key}"
+                ) from e
             raise
 
     def load_text(
@@ -341,7 +351,9 @@ class S3DatasetLoader:
 
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
-                raise FileNotFoundError(f"Dataset not found in S3: s3://{bucket}/{key}") from e
+                raise FileNotFoundError(
+                    f"Dataset not found in S3: s3://{bucket}/{key}"
+                ) from e
             raise
 
     def list_datasets(self, prefix: str = "gdrive/processed/") -> list[str]:

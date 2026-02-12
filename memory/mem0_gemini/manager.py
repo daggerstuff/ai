@@ -64,7 +64,10 @@ class GeminiMem0Config(BaseModel):
     user_id: str = Field("default_user", description="Default user ID for memory")
     memory_config: Dict[str, Any] = Field(
         default_factory=lambda: {
-            "vector_store": {"provider": "qdrant", "config": {"host": "localhost", "port": 6333}}
+            "vector_store": {
+                "provider": "qdrant",
+                "config": {"host": "localhost", "port": 6333},
+            }
         },
         description="Mem0 memory configuration",
     )
@@ -108,7 +111,9 @@ class GeminiMem0Manager:
         # Apply custom instructions to project if using Platform API
         self._apply_custom_instructions()
 
-        logger.info(f"Initialized GeminiMem0Manager with model {self.config.model_name}")
+        logger.info(
+            f"Initialized GeminiMem0Manager with model {self.config.model_name}"
+        )
 
     def _initialize_mem0(self):
         """Initialize Mem0 client with fallback chain."""
@@ -120,34 +125,31 @@ class GeminiMem0Manager:
                     self._is_platform_client = True
                     logger.info("Initialized Mem0 Platform Client")
                 else:
-                    self.memory = Memory.from_config({"api_key": self.config.mem0_api_key})
+                    self.memory = Memory.from_config(
+                        {"api_key": self.config.mem0_api_key}
+                    )
                     self._is_platform_client = False
                     logger.info("Initialized Mem0 with API key")
-            else:
+            elif Memory:
                 # Use local/self-hosted Mem0
-                if Memory:
-                    self.memory = Memory.from_config(self.config.memory_config)
-                    self._is_platform_client = False
-                    logger.info("Initialized local Mem0")
-                else:
-                    raise ImportError("Memory class not available")
+                self.memory = Memory.from_config(self.config.memory_config)
+                self._is_platform_client = False
+                logger.info("Initialized local Mem0")
+            else:
+                raise ImportError("Memory class not available")
         except Exception as e:
-            logger.warning(f"Failed to initialize Mem0: {e}. Falling back to null memory.")
-            self._create_null_memory()
-
+            logger.warning(
+                f"Failed to initialize Mem0: {e}. Falling back to null memory."
+            )
             self.memory = NullMemoryManager()
             self._is_platform_client = False
-
-    def _create_null_memory(self):
-        """Create a null memory shim for development/fallback."""
-        # Deprecated: use NullMemoryManager directly
-        self.memory = NullMemoryManager()
-        self._is_platform_client = False
 
     def _apply_custom_instructions(self):
         """Apply therapeutic custom instructions to Mem0 project."""
         try:
-            if hasattr(self.memory, "project") and hasattr(self.memory.project, "update"):
+            if hasattr(self.memory, "project") and hasattr(
+                self.memory.project, "update"
+            ):
                 self.memory.project.update(
                     custom_instructions=self.therapeutic_config.custom_instructions
                 )
@@ -182,7 +184,7 @@ class GeminiMem0Manager:
 
         # Truncate if too long
         if len(filtered) > self.therapeutic_config.max_memory_length:
-            filtered = filtered[: self.therapeutic_config.max_memory_length] + "..."
+            filtered = f"{filtered[: self.therapeutic_config.max_memory_length]}..."
 
         return filtered
 
@@ -217,7 +219,9 @@ class GeminiMem0Manager:
         memory_context = self._format_memories(memories)
 
         # 3. Build the system prompt with memory
-        system_instructions = self._build_system_prompt(memory_context, context, crisis_severity)
+        system_instructions = self._build_system_prompt(
+            memory_context, context, crisis_severity
+        )
 
         # 4. Generate response using Gemini
         start_time = datetime.now()
@@ -238,7 +242,9 @@ class GeminiMem0Manager:
             "response": response_text,
             "latency_ms": latency,
             "memories_used": len(memories),
-            # "memories_content": [m.get("memory") or m.get("content", "") for m in memories], # Removed for privacy
+            # "memories_content": [
+            #     m.get("memory") or m.get("content", "") for m in memories
+            # ],  # Removed for privacy
             "user_id": uid,
             "crisis_detected": crisis_severity != "none",
             "crisis_severity": crisis_severity,
@@ -269,20 +275,24 @@ class GeminiMem0Manager:
 
         formatted = []
         for m in memories:
-            content = m.get("memory") or m.get("content", "")
-            if content:
+            if content := m.get("memory") or m.get("content", ""):
                 formatted.append(f"- {content}")
 
         return "\n".join(formatted) if formatted else "No previous relevant memories."
 
     def _build_system_prompt(
-        self, memory_context: str, additional_context: Optional[str], crisis_severity: str
+        self,
+        memory_context: str,
+        additional_context: Optional[str],
+        crisis_severity: str,
     ) -> str:
         """Build the system prompt with memory and crisis handling."""
         prompt = (
-            "You are Pixelated Empathy, an empathetic AI assistant trained in therapeutic dialogue. "
-            "Use the following memories about the user to personalize your response and demonstrate continuity. "
-            "If the memories contradict the current query, prioritize the current query but acknowledge the change if appropriate.\n\n"
+            "You are Pixelated Empathy, an empathetic AI assistant trained"
+            " in therapeutic dialogue. Use the following memories about the user"
+            " to personalize your response and demonstrate continuity. "
+            "If the memories contradict the current query, prioritize the current "
+            "query but acknowledge the change if appropriate.\n\n"
             f"USER MEMORIES:\n{memory_context}\n\n"
         )
 
@@ -293,9 +303,10 @@ class GeminiMem0Manager:
             prompt += (
                 f"⚠️ CRISIS ALERT (Severity: {crisis_severity.upper()}):\n"
                 "The user may be expressing thoughts of self-harm or crisis. "
-                "Respond with compassion, validate their feelings, and gently encourage "
-                "professional support. Provide crisis resources if appropriate. "
-                "Do NOT dismiss their concerns or offer toxic positivity.\n\n"
+                "Respond with compassion, validate their feelings, and gently "
+                "encourage professional support. Provide crisis resources if "
+                "appropriate. Do NOT dismiss their concerns or offer toxic "
+                "positivity.\n\n"
             )
 
         return prompt
@@ -311,8 +322,7 @@ class GeminiMem0Manager:
         """Store interaction in memory with filtering."""
         try:
             # Filter and store user query
-            filtered_query = self._filter_for_storage(f"User shared: {query}")
-            if filtered_query:
+            if filtered_query := self._filter_for_storage(f"User shared: {query}"):
                 metadata = {"role": "user"}
                 if session_id:
                     metadata["session_id"] = session_id
@@ -329,8 +339,9 @@ class GeminiMem0Manager:
 
             # Store key response insights (truncated)
             response_summary = response[:500] if len(response) > 500 else response
-            filtered_response = self._filter_for_storage(f"Assistant provided: {response_summary}")
-            if filtered_response:
+            if filtered_response := self._filter_for_storage(
+                f"Assistant provided: {response_summary}"
+            ):
                 self.memory.add(
                     filtered_response,
                     user_id=user_id,
@@ -342,7 +353,10 @@ class GeminiMem0Manager:
             logger.exception("Error storing interaction")
 
     def update_memory(
-        self, memory_id: str, new_content: str, metadata: Optional[Dict[str, Any]] = None
+        self,
+        memory_id: str,
+        new_content: str,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """
         Update an existing memory without creating duplicates.
@@ -446,8 +460,7 @@ class GeminiMem0Manager:
             Memory ID if stored, None if filtered out or error
         """
         try:
-            filtered_content = self._filter_for_storage(content)
-            if not filtered_content:
+            if not (filtered_content := self._filter_for_storage(content)):
                 logger.warning("Memory addition rejected: content failed filtering")
                 return None
 
@@ -468,12 +481,12 @@ class GeminiMem0Manager:
             # Extract memory ID - Mem0 returns dict with 'results' list
             if isinstance(result, dict):
                 results = result.get("results") or []
-                if results:
-                    return results[0].get("id", "stored")
-                return None
-            if isinstance(result, list) and result:
-                return result[0].get("id", "stored")
-            return None
+                return results[0].get("id", "stored") if results else None
+            return (
+                result[0].get("id", "stored")
+                if isinstance(result, list) and result
+                else None
+            )
 
         except Exception as e:
             logger.exception(f"Error adding memory: {e}")
@@ -506,9 +519,14 @@ async def test_integration():
 
     # Test queries including speculation filtering
     queries = [
-        "Hi, I'm Alex. I've been feeling a bit overwhelmed with my new job as a developer.",
-        "I think I might have anxiety, but I'm not sure.",  # Should be filtered (speculation)
-        "Dr. Smith diagnosed me with generalized anxiety disorder last month.",  # Should be stored
+        (
+            "Hi, I'm Alex. I've been feeling a bit overwhelmed with "
+            "my new job as a developer."
+        ),
+        # Should be filtered (speculation)
+        "I think I might have anxiety, but I'm not sure.",
+        # Should be stored
+        "Dr. Smith diagnosed me with generalized anxiety disorder last month.",
         "Do you remember my name and what's bothering me?",
     ]
 
@@ -517,7 +535,8 @@ async def test_integration():
         result = await manager.get_response(q)
         logger.info(f"AI: {result['response']}")
         logger.info(
-            f"(Memories used: {result['memories_used']}, Crisis detected: {result['crisis_detected']})"
+            f"(Memories used: {result['memories_used']}, "
+            f"Crisis detected: {result['crisis_detected']})"
         )
 
 

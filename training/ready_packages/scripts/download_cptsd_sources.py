@@ -38,7 +38,9 @@ class CPTSDSourceDownloader:
 
         # Load S3 manifest
         manifest_path = Path(
-            os.environ.get("S3_MANIFEST_PATH", "ai/training/ready_packages/data/s3_manifest.json")
+            os.environ.get(
+                "S3_MANIFEST_PATH", "ai/training/ready_packages/data/s3_manifest.json"
+            )
         )
         with open(manifest_path, "r") as f:
             self.manifest = json.load(f)
@@ -46,21 +48,36 @@ class CPTSDSourceDownloader:
         # CPTSD sources to download
         self.cptsd_sources = {
             "heidi_priebe": [
-                "datasets/gdrive/tier4_voice_persona/Heidi Priebe/10 'Survival Lies' You May Tell If You Have CPTSD.txt",
-                "datasets/gdrive/tier4_voice_persona/Heidi Priebe/CPTSD： Breaking The Toxic Shame⧸Procrastination Cycle With Self-Compassion.txt",
+                "datasets/gdrive/tier4_voice_persona/Heidi Priebe/"
+                "10 'Survival Lies' You May Tell If You Have CPTSD.txt",
+                "datasets/gdrive/tier4_voice_persona/Heidi Priebe/"
+                "CPTSD： Breaking The Toxic Shame⧸Procrastination Cycle "
+                "With Self-Compassion.txt",
             ],
             "patrick_teahan": [
-                "datasets/gdrive/tier4_voice_persona/Patrick Teahan /9 Random Examples of Shame from PTSD & CPTSD.txt"
+                "datasets/gdrive/tier4_voice_persona/Patrick Teahan /"
+                "9 Random Examples of Shame from PTSD & CPTSD.txt"
             ],
             "tim_fletcher": [
-                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/'Big T' vs 'Little t' Trauma | Understanding Trauma - Part 28 | #complextrauma.txt",
-                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Betrayal Trauma | Understanding Trauma - Part 13 | #complextrauma.txt",
-                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Depletion and Self-Care | Re-Parenting - Part 89 | #complextrauma.txt",
-                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Healing | Understanding Trauma - Part 10 | #complextrauma.txt",
-                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Recovery and Letting Go | Re-Parenting - Part 93 | #complextrauma.txt",
-                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Sex | Re-Parenting - Part 25 | #complextrauma.txt",
-                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/These 12 Needs Are Non-Negotiable for a Healthy & Whole Life | #complextrauma #whatstuck.txt",
-                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Trauma Bonding | Understanding Trauma - Part 31 | #complextrauma.txt",
+                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/"
+                "'Big T' vs 'Little t' Trauma | Understanding Trauma - Part 28 | "
+                "#complextrauma.txt",
+                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Betrayal Trauma | "
+                "Understanding Trauma - Part 13 | #complextrauma.txt",
+                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/"
+                "Depletion and Self-Care | Re-Parenting - Part 89 | "
+                "#complextrauma.txt",
+                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Healing | "
+                "Understanding Trauma - Part 10 | #complextrauma.txt",
+                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/"
+                "Recovery and Letting Go | Re-Parenting - Part 93 | #complextrauma.txt",
+                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Sex | "
+                "Re-Parenting - Part 25 | #complextrauma.txt",
+                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/"
+                "These 12 Needs Are Non-Negotiable for a Healthy & Whole Life | "
+                "#complextrauma #whatstuck.txt",
+                "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Trauma Bonding | "
+                "Understanding Trauma - Part 31 | #complextrauma.txt",
             ],
         }
 
@@ -81,7 +98,9 @@ class CPTSDSourceDownloader:
             if cmd[0] != "ovhai":
                 raise ValueError(f"Unauthorized command: {cmd[0]}")
 
-            result = subprocess.run(cmd, capture_output=True, text=True, timeout=300, shell=False)
+            result = subprocess.run(
+                cmd, capture_output=True, text=True, timeout=300, shell=False
+            )
 
             if result.returncode == 0:
                 logger.info(f"✓ Downloaded: {s3_key}")
@@ -97,7 +116,9 @@ class CPTSDSourceDownloader:
             logger.exception(f"✗ Error downloading {s3_key}")
             return False
 
-    def catalog_file(self, source: str, s3_key: str, local_path: Path) -> Dict[str, Any]:
+    def catalog_file(
+        self, source: str, s3_key: str, local_path: Path
+    ) -> Dict[str, Any]:
         """Catalog a downloaded file with metadata."""
         # Get file info from manifest
         file_info = None
@@ -118,9 +139,11 @@ class CPTSDSourceDownloader:
             file_info = {
                 "key": s3_key,
                 "size": local_path.stat().st_size if local_path.exists() else 0,
-                "size_formatted": f"{local_path.stat().st_size / 1024:.2f} KB"
-                if local_path.exists()
-                else "0.00 KB",
+                "size_formatted": (
+                    f"{local_path.stat().st_size / 1024:.2f} KB"
+                    if local_path.exists()
+                    else "0.00 KB"
+                ),
             }
 
         # Extract topics from filename

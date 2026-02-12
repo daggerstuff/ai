@@ -86,7 +86,8 @@ def _inspect_last_output(last_line: str):
 
     agreement = data.get("agreement_metrics", {})
     print(
-        f"Latest Agreement: Crisis={agreement.get('crisis_agreement', 0):.2f}, Emotion={agreement.get('emotion_agreement', 0):.2f}"
+        f"Latest Agreement: Crisis={agreement.get('crisis_agreement', 0):.2f}, "
+        f"Emotion={agreement.get('emotion_agreement', 0):.2f}"
     )
 
     # Check for "No conversation data" bug again

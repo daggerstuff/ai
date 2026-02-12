@@ -4,28 +4,29 @@ Pixelated Empathy Model Training Script (Phase 3.1)
 Supports Unsloth (optimized) and HuggingFace (standard) training pipelines.
 
 Usage:
-    uv run python ai/training/train_pixel.py --config ai/training/ready_packages/configs/hyperparameters/enhanced_training_config.json
+    uv run python ai/training/train_pixel.py --config \\
+    ai/training/ready_packages/configs/hyperparameters/enhanced_training_config.json
 """
 
-import os
-import sys
+import argparse
 import json
 import logging
-import argparse
+import os
+import sys
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Any, Dict, Tuple
 
 import torch
-from datasets import load_dataset, Dataset, DatasetDict
+from datasets import Dataset, DatasetDict, load_dataset
+from peft import LoraConfig, get_peft_model
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    TrainingArguments,
-    Trainer,
-    DataCollatorForLanguageModeling,
     BitsAndBytesConfig,
+    DataCollatorForLanguageModeling,
+    Trainer,
+    TrainingArguments,
 )
-from peft import LoraConfig, get_peft_model
 
 # Try to import Unsloth for optimization
 try:
@@ -48,7 +49,9 @@ class PixelTrainer:
     def __init__(self, config_path: str):
         self.config = self._load_config(config_path)
         self.model_name = self.config.get("base_model", "LatitudeGames/Wayfarer-2-12B")
-        self.output_dir = self.config.get("training_parameters", {}).get("output_dir", "./output")
+        self.output_dir = self.config.get("training_parameters", {}).get(
+            "output_dir", "./output"
+        )
         self.device_map = "auto"
 
         # Load component config for weights
@@ -69,9 +72,14 @@ class PixelTrainer:
         return config
 
     def setup_model_and_tokenizer(self) -> Tuple[Any, AutoTokenizer]:
-        """Load model and tokenizer using Unsloth if available, else HF. Handles CPU fallback."""
+        """
+        Load model and tokenizer using Unsloth if available, else HF.
+        Handles CPU fallback.
+        """
 
-        max_seq_length = self.config.get("context_config", {}).get("training_max_length", 2048)
+        max_seq_length = self.config.get("context_config", {}).get(
+            "training_max_length", 2048
+        )
         dtype = None  # Auto detection
 
         use_cuda = torch.cuda.is_available()
@@ -95,7 +103,8 @@ class PixelTrainer:
                 model,
                 r=lora_conf.get("lora_r", 16),
                 target_modules=lora_conf.get(
-                    "lora_target_modules", ["q_proj", "k_proj", "v_proj", "o_proj"]
+                    "lora_target_modules",
+                    ["q_proj", "k_proj", "v_proj", "o_proj"],
                 ),
                 lora_alpha=lora_conf.get("lora_alpha", 16),
                 lora_dropout=lora_conf.get(
@@ -108,7 +117,11 @@ class PixelTrainer:
                 loftq_config=None,
             )
         else:
-            mode_str = "Standard HuggingFace (GPU)" if use_cuda else "Standard HuggingFace (CPU)"
+            mode_str = (
+                "Standard HuggingFace (GPU)"
+                if use_cuda
+                else "Standard HuggingFace (CPU)"
+            )
             logger.info(f"🐢 Loading model via {mode_str}...")
 
             quantization_config = None
@@ -122,7 +135,9 @@ class PixelTrainer:
 
             # SECURITY: trust_remote_code allows arbitrary code execution.
             # Only enable for verified repositories.
-            trust_remote = os.environ.get("TRUST_REMOTE_CODE", "false").lower() == "true"
+            trust_remote = (
+                os.environ.get("TRUST_REMOTE_CODE", "false").lower() == "true"
+            )
 
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
@@ -130,15 +145,19 @@ class PixelTrainer:
                 device_map=device_map,
                 torch_dtype=torch.bfloat16 if use_cuda else torch.float32,
                 trust_remote_code=trust_remote,
-                attn_implementation="flash_attention_2"
-                if use_cuda and torch.cuda.get_device_capability()[0] >= 8
-                else None,
+                attn_implementation=(
+                    "flash_attention_2"
+                    if use_cuda and torch.cuda.get_device_capability()[0] >= 8
+                    else None
+                ),
             )
 
             tokenizer = AutoTokenizer.from_pretrained(
                 self.model_name, trust_remote_code=trust_remote
             )
-            tokenizer.padding_side = "right"  # Fix weird overflow issue with clean llama2/mistral
+            tokenizer.padding_side = (
+                "right"  # Fix weird overflow issue with clean llama2/mistral
+            )
 
             # Configure LoRA via PEFT
             lora_conf = self.config.get("lora_config", {})
@@ -149,7 +168,8 @@ class PixelTrainer:
                 bias=lora_conf.get("lora_bias", "none"),
                 task_type="CAUSAL_LM",
                 target_modules=lora_conf.get(
-                    "lora_target_modules", ["q_proj", "k_proj", "v_proj", "o_proj"]
+                    "lora_target_modules",
+                    ["q_proj", "k_proj", "v_proj", "o_proj"],
                 ),
             )
             model = get_peft_model(model, peft_config)
@@ -172,7 +192,8 @@ class PixelTrainer:
 
         if not data_path:
             logger.warning(
-                f"Main dataset {main_file} not found. Using dummy data for pipeline verification."
+                f"Main dataset {main_file} not found. "
+                "Using dummy data for pipeline verification."
             )
             # Create dummy data for pipeline validation
             dummy_data = [
@@ -207,7 +228,7 @@ class PixelTrainer:
         val_split = data_config.get("val_split", 0.1)
         # Normalize ratios
         total = train_split + val_split
-        train_ratio = train_split / total
+        # train_ratio = train_split / total  # Unused variable
         val_ratio = val_split / total
 
         # First split: train vs validation
@@ -253,7 +274,9 @@ class PixelTrainer:
             train_dataset=dataset["train"],
             eval_dataset=dataset["validation"],
             args=args,
-            data_collator=DataCollatorForLanguageModeling(tokenizer=tokenizer, mlm=False),
+            data_collator=DataCollatorForLanguageModeling(
+                tokenizer=tokenizer, mlm=False
+            ),
         )
 
         logger.info("🚀 Starting training...")
