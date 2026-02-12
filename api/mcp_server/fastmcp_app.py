@@ -11,7 +11,6 @@ Usage:
 import logging
 import os
 import sys
-from typing import Any, Dict, Optional
 
 # Add 'ai' to path if running directly to find siblings
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
@@ -102,16 +101,15 @@ async def add_memory(
         metadata: Optional JSON string of metadata.
         category: Optional category (e.g. 'preference', 'fact').
     """
+    import contextlib
     import json
 
     manager = get_manager()
 
     meta_dict = {}
     if metadata:
-        try:
+        with contextlib.suppress(Exception):
             meta_dict = json.loads(metadata)
-        except:
-            pass
 
     # Handle different manager signatures
     try:

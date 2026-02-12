@@ -10,7 +10,9 @@ import json
 from pathlib import Path
 
 
-def create_dpo_pair(patient_query: str, ai_style_response: str, human_pivot_response: str):
+def create_dpo_pair(
+    patient_query: str, ai_style_response: str, human_pivot_response: str
+):
     """
     Creates a DPO data point.
     """
@@ -27,15 +29,23 @@ def generate_human_pivot_dataset():
     data = []
 
     append_dpo_pair_to_list(
-        "I finally left him. I should be happy, I've wanted this for years. But I just feel... hollow.",
-        "I hear that you're feeling hollow after leaving him. It's completely normal to feel a sense of loss after a big change.",
-        "I was thinking about the way shadows stretch in the winter—they’re long and thin, and they don't provide any warmth, but when they’re gone, the ground just looks featureless. Is it the person you miss, or just the shape of the life you had?",
+        "I finally left him. I should be happy, I've wanted this for years. "
+        "But I just feel... hollow.",
+        "I hear that you're feeling hollow after leaving him. "
+        "It's completely normal to feel a sense of loss after a big change.",
+        "I was thinking about the way shadows stretch in the winter—they’re long "
+        "and thin, and they don't provide any warmth, but when they’re gone, "
+        "the ground just looks featureless. Is it the person you miss, "
+        "or just the shape of the life you had?",
         data,
     )
     append_dpo_pair_to_list(
         "I'm just a failure at everything. Every job, every relationship.",
-        "It sounds like you're feeling really down on yourself right now. I can see you've had a lot of difficult experiences.",
-        "Why are you trying so hard to convince me that you're a failure? It's like you're building a cage and asking me lock the door. Tell me about the first time you decided this was your 'story'.",
+        "It sounds like you're feeling really down on yourself right now. "
+        "I can see you've had a lot of difficult experiences.",
+        "Why are you trying so hard to convince me that you're a failure? "
+        "It's like you're building a cage and asking me lock the door. "
+        "Tell me about the first time you decided this was your 'story'.",
         data,
     )
     return data

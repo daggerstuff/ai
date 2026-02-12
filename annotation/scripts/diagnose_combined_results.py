@@ -29,37 +29,7 @@ def analyze_combined_results(results_file: str):
             if len(individual) < 2:
                 continue
 
-            # Identify agents by their known IDs or roles
-            # Fallback to positional index only if IDs are not found
-            dr_a = next(
-                (
-                    a
-                    for a in individual
-                    if "dr_a" in a.get("agent_id", "") or "crisis_expert" in a.get("role", "")
-                ),
-                None,
-            )
-            dr_b = next(
-                (
-                    a
-                    for a in individual
-                    if "dr_b" in a.get("agent_id", "") or "emotion_analyst" in a.get("role", "")
-                ),
-                None,
-            )
-
-            # If matching failed, use positional fallback only as last resort
-            if not dr_a and len(individual) > 0:
-                # Ensure we don't pick the same agent if dr_b is already confirmed
-                candidates = [a for a in individual if a != dr_b]
-                if candidates:
-                    dr_a = candidates[0]
-
-            if not dr_b and len(individual) > 0:
-                # Ensure we don't pick the same agent if dr_a is already confirmed
-                candidates = [a for a in individual if a != dr_a]
-                if candidates:
-                    dr_b = candidates[0]
+            dr_a, dr_b = _resolve_agent_pair(individual)
 
             if not dr_a or not dr_b:
                 continue
@@ -88,12 +58,17 @@ def analyze_combined_results(results_file: str):
     for category, items in disagreements.items():
         count = len(items)
         pct = (count / total_items * 100) if total_items > 0 else 0
-        print(f"\nDisagreements in {category.replace('_', ' ').upper()}: {count} ({pct:.1f}%)")
+        print(
+            f"\nDisagreements in {category.replace('_', ' ').upper()}: "
+            f"{count} ({pct:.1f}%)"
+        )
 
         if count > 0:
             print("Sample disagreements:")
             for item in items[:5]:
-                print(f"  • {item['task_id']}: Dr.A={item['dr_a']}, Dr.B={item['dr_b']}")
+                print(
+                    f"  • {item['task_id']}: Dr.A={item['dr_a']}, Dr.B={item['dr_b']}"
+                )
 
     print("\n" + "=" * 60)
 
@@ -102,6 +77,42 @@ if __name__ == "__main__":
     import sys
 
     input_file = (
-        sys.argv[1] if len(sys.argv) > 1 else "ai/annotation/results/batch_001_annotated.jsonl"
+        sys.argv[1]
+        if len(sys.argv) > 1
+        else "ai/annotation/results/batch_001_annotated.jsonl"
     )
     analyze_combined_results(input_file)
+
+
+def _resolve_agent_pair(individual: list[dict]):
+    # Identify agents by their known IDs or roles
+    # Fallback to positional index only if IDs are not found
+    dr_a = next(
+        (
+            a
+            for a in individual
+            if "dr_a" in a.get("agent_id", "") or "crisis_expert" in a.get("role", "")
+        ),
+        None,
+    )
+    dr_b = next(
+        (
+            a
+            for a in individual
+            if "dr_b" in a.get("agent_id", "") or "emotion_analyst" in a.get("role", "")
+        ),
+        None,
+    )
+
+    # If matching failed, use positional fallback only as last resort
+    if not dr_a and individual:
+        # Ensure we don't pick the same agent if dr_b is already confirmed
+        if candidates := [a for a in individual if a != dr_b]:
+            dr_a = candidates[0]
+
+    if not dr_b and individual:
+        # Ensure we don't pick the same agent if dr_a is already confirmed
+        if candidates := [a for a in individual if a != dr_a]:
+            dr_b = candidates[0]
+
+    return dr_a, dr_b

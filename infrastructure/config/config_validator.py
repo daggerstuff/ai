@@ -67,7 +67,9 @@ class ValidationReport:
 
     results: List[ValidationResult] = field(default_factory=list)
 
-    def add_error(self, message: str, field: str = None, value: Any = None, suggestion: str = None):
+    def add_error(
+        self, message: str, field: str = None, value: Any = None, suggestion: str = None
+    ):
         """Add an error to the report"""
         self.results.append(
             ValidationResult(
@@ -96,7 +98,9 @@ class ValidationReport:
     def add_info(self, message: str, field: str = None, value: Any = None):
         """Add an info message to the report"""
         self.results.append(
-            ValidationResult(level=ValidationLevel.INFO, message=message, field=field, value=value)
+            ValidationResult(
+                level=ValidationLevel.INFO, message=message, field=field, value=value
+            )
         )
 
     @property
@@ -269,7 +273,9 @@ class ConfigValidator:
 
         with contextlib.suppress(Exception):
             if len(base64.b64decode(value)) < 32:
-                self.report.add_warning("Decoded encryption key may be too short", field=field)
+                self.report.add_warning(
+                    "Decoded encryption key may be too short", field=field
+                )
 
     def _validate_log_level(self, value: str, field: str):
         """Validate log level"""
@@ -304,7 +310,9 @@ class ConfigValidator:
         try:
             workers = int(value)
             if workers < 1:
-                self.report.add_error("Max workers must be positive", field=field, value=workers)
+                self.report.add_error(
+                    "Max workers must be positive", field=field, value=workers
+                )
             elif workers > 32:
                 self.report.add_warning(
                     "Very high worker count may cause resource issues",
@@ -313,14 +321,18 @@ class ConfigValidator:
                     suggestion="Consider CPU core count when setting workers",
                 )
         except ValueError:
-            self.report.add_error("Max workers must be an integer", field=field, value=value)
+            self.report.add_error(
+                "Max workers must be an integer", field=field, value=value
+            )
 
     def _validate_batch_size(self, value: str, field: str):
         """Validate batch size setting"""
         try:
             batch_size = int(value)
             if batch_size < 1:
-                self.report.add_error("Batch size must be positive", field=field, value=batch_size)
+                self.report.add_error(
+                    "Batch size must be positive", field=field, value=batch_size
+                )
             elif batch_size > 1000:
                 self.report.add_warning(
                     "Large batch size may cause memory issues",
@@ -329,7 +341,9 @@ class ConfigValidator:
                     suggestion="Consider memory constraints when setting batch size",
                 )
         except ValueError:
-            self.report.add_error("Batch size must be an integer", field=field, value=value)
+            self.report.add_error(
+                "Batch size must be an integer", field=field, value=value
+            )
 
     def _validate_debug_flag(self, value: str, field: str):
         """Validate debug flag"""
@@ -392,7 +406,9 @@ class ConfigValidator:
                     config = yaml.safe_load(f)
 
                 # Check security settings
-                if "encryption" in config and not config["encryption"].get("enabled", False):
+                if "encryption" in config and not config["encryption"].get(
+                    "enabled", False
+                ):
                     self.report.add_warning(
                         "Encryption is disabled",
                         field="encryption.enabled",
@@ -411,7 +427,9 @@ class ConfigValidator:
                             )
 
             except Exception as e:
-                self.report.add_error(f"Error reading security config: {e}", field="security.yaml")
+                self.report.add_error(
+                    f"Error reading security config: {e}", field="security.yaml"
+                )
 
     def _validate_monitoring_config(self):
         """Validate monitoring configuration"""
@@ -479,7 +497,7 @@ class ConfigValidator:
                         self.report.add_warning(
                             f"Low memory limit: {max_memory}",
                             field="MAX_MEMORY",
-                            suggestion="Consider increasing memory for better performance",
+                            suggestion="Increase memory for better performance",
                         )
                 elif max_memory.endswith("M"):
                     memory_mb = float(max_memory[:-1])
@@ -527,7 +545,9 @@ class ConfigValidator:
                     )
 
             except Exception as e:
-                self.report.add_error(f"Error reading backup config: {e}", field="backup.yaml")
+                self.report.add_error(
+                    f"Error reading backup config: {e}", field="backup.yaml"
+                )
 
     def _validate_config_file(self, filepath: Path):
         """Validate a configuration file"""
@@ -543,11 +563,17 @@ class ConfigValidator:
             )
 
         except yaml.YAMLError as e:
-            self.report.add_error(f"Invalid YAML in '{filepath.name}': {e}", field=str(filepath))
+            self.report.add_error(
+                f"Invalid YAML in '{filepath.name}': {e}", field=str(filepath)
+            )
         except json.JSONDecodeError as e:
-            self.report.add_error(f"Invalid JSON in '{filepath.name}': {e}", field=str(filepath))
+            self.report.add_error(
+                f"Invalid JSON in '{filepath.name}': {e}", field=str(filepath)
+            )
         except Exception as e:
-            self.report.add_error(f"Error reading '{filepath.name}': {e}", field=str(filepath))
+            self.report.add_error(
+                f"Error reading '{filepath.name}': {e}", field=str(filepath)
+            )
 
     def print_report(self, report: ValidationReport = None):
         """Print validation report in a readable format"""
@@ -594,9 +620,15 @@ def main():
     """Main entry point for configuration validation"""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Validate Pixelated Empathy AI configuration")
-    parser.add_argument("--config-dir", default=None, help="Configuration directory path")
-    parser.add_argument("--json", action="store_true", help="Output report in JSON format")
+    parser = argparse.ArgumentParser(
+        description="Validate Pixelated Empathy AI configuration"
+    )
+    parser.add_argument(
+        "--config-dir", default=None, help="Configuration directory path"
+    )
+    parser.add_argument(
+        "--json", action="store_true", help="Output report in JSON format"
+    )
     parser.add_argument(
         "--fail-on-warnings",
         action="store_true",

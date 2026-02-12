@@ -205,8 +205,12 @@ class BaseAgent(ABC):
 
             if logger.isEnabledFor(logging.DEBUG):
                 logger.debug(f"[{self.agent_id}] Sending request...")
-                logger.debug(f"[{self.agent_id}] System prompt length: {len(system_prompt)}")
-                logger.debug(f"[{self.agent_id}] User prompt length: {len(user_prompt)}")
+                logger.debug(
+                    f"[{self.agent_id}] System prompt length: {len(system_prompt)}"
+                )
+                logger.debug(
+                    f"[{self.agent_id}] User prompt length: {len(user_prompt)}"
+                )
                 logger.debug(f"[{self.agent_id}] Temperature: {self.temperature}")
                 logger.debug(f"[{self.agent_id}] Model: {self.model}")
 
@@ -232,7 +236,8 @@ class BaseAgent(ABC):
                     clean_content = clean_content[4:]
 
             clean_content = clean_content.strip()
-            # Handle potential trailing characters if needed, but usually block stripping is enough
+            # Handle potential trailing characters if needed,
+            # but usually block stripping is enough
 
             try:
                 data = json.loads(clean_content)
@@ -241,7 +246,9 @@ class BaseAgent(ABC):
                 start = clean_content.find("{")
                 end = clean_content.rfind("}")
                 if start == -1 or end == -1:
-                    raise json.JSONDecodeError("No JSON object found", clean_content, 0) from e
+                    raise json.JSONDecodeError(
+                        "No JSON object found", clean_content, 0
+                    ) from e
 
                 try:
                     data = json.loads(clean_content[start : end + 1])
@@ -290,7 +297,8 @@ class CrisisExpertAgent(BaseAgent):
         )
 
     def get_system_prompt(self) -> str:
-        return """You are Dr. A, a conservative clinical psychologist specializing in crisis intervention and safety assessment.
+        return """You are Dr. A, a conservative clinical psychologist
+specializing in crisis intervention and safety assessment.
 
 Your expertise:
 - Trauma-informed care
@@ -304,12 +312,14 @@ Your approach:
 - Document all risk indicators
 - Provide clear reasoning for crisis ratings
 
-You are thorough, cautious, and always consider worst-case scenarios to ensure patient safety."""
+You are thorough, cautious, and always consider worst-case scenarios
+to ensure patient safety."""
 
     def get_user_prompt(self, conversation: str) -> str:
         return f"""{self.guidelines}
 
-TASK: Annotate the following therapeutic conversation with focus on crisis indicators and safety.
+Task: Annotate the following therapeutic conversation with focus on
+crisis indicators and safety.
 
 {conversation}
 
@@ -317,7 +327,8 @@ RESPOND WITH VALID JSON ONLY:
 {{
   "crisis_label": <int 0-7>,
   "crisis_confidence": <int 1-5>,
-  "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation, Calm, Neutral>,
+  "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust,
+                     Anger, Anticipation, Calm, Neutral>,
   "emotion_intensity": <int 1-10>,
   "valence": <float -1.0 to 1.0>,
   "arousal": <float 0.0 to 1.0>,
@@ -379,7 +390,8 @@ class EmotionAnalystAgent(BaseAgent):
         )
 
     def get_system_prompt(self) -> str:
-        return """You are Dr. B, a pragmatic research psychologist specializing in emotion analysis and therapeutic empathy.
+        return """You are Dr. B, a pragmatic research psychologist specializing
+in emotion analysis and therapeutic empathy.
 
 Your expertise:
 - Affective computing
@@ -393,12 +405,14 @@ Your approach:
 - Nuanced emotional understanding
 - Focus on therapeutic quality
 
-You are analytical, balanced, and grounded in research while maintaining clinical sensitivity."""
+You are analytical, balanced, and grounded in research
+while maintaining clinical sensitivity."""
 
     def get_user_prompt(self, conversation: str) -> str:
         return f"""{self.guidelines}
 
-TASK: Annotate the following therapeutic conversation with focus on emotional dynamics and empathy.
+TASK: Annotate the following therapeutic conversation with focus on
+emotional dynamics and empathy.
 
 {conversation}
 
@@ -406,7 +420,8 @@ RESPOND WITH VALID JSON ONLY:
 {{
   "crisis_label": <int 0-7>,
   "crisis_confidence": <int 1-5>,
-  "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation, Calm, Neutral>,
+  "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust,
+                     Anger, Anticipation, Calm, Neutral>,
   "emotion_intensity": <int 1-10>,
   "valence": <float -1.0 to 1.0>,
   "arousal": <float 0.0 to 1.0>,
@@ -437,7 +452,9 @@ Focus on:
         return AnnotationResult(
             crisis_label=random.randint(1, 2) if is_crisis else 0,
             crisis_confidence=random.randint(3, 4),
-            primary_emotion=random.choice(["Sadness", "Joy", "Fear", "Neutral", "Anticipation"]),
+            primary_emotion=random.choice(
+                ["Sadness", "Joy", "Fear", "Neutral", "Anticipation"]
+            ),
             emotion_intensity=random.randint(4, 7),
             valence=round(random.uniform(-0.5, 0.5), 2),
             arousal=round(random.uniform(0.3, 0.7), 2),
@@ -468,15 +485,19 @@ class QualityAssuranceAgent(BaseAgent):
         )
 
     def get_system_prompt(self) -> str:
-        return """You are Dr. C, a meticulous clinical supervisor and data quality specialist.
+        return """You are Dr. C, a meticulous clinical supervisor
+and data quality specialist.
 Your role is to provide highly accurate, objective, and consistent annotations.
-You follow the guidelines strictly and avoid defaulting to 'Neutral' unless the content is truly devoid of emotional signaling.
-You are excellent at identifying subtle emotional nuances and ensuring safety protocol adherence."""
+You follow the guidelines strictly and avoid defaulting to 'Neutral'
+unless the content is truly devoid of emotional signaling.
+You are excellent at identifying subtle emotional nuances
+and ensuring safety protocol adherence."""
 
     def get_user_prompt(self, conversation: str) -> str:
         return f"""{self.guidelines}
 
-TASK: Provide a master annotation for this therapeutic conversation. Be precise and thorough.
+TASK: Provide a master annotation for this therapeutic conversation.
+Be precise and thorough.
 
 {conversation}
 
@@ -484,7 +505,8 @@ RESPOND WITH VALID JSON ONLY:
 {{
   "crisis_label": <int 0-7>,
   "crisis_confidence": <int 1-5>,
-  "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust, Anger, Anticipation, Calm, Neutral>,
+  "primary_emotion": <string: Joy, Trust, Fear, Surprise, Sadness, Disgust,
+                     Anger, Anticipation, Calm, Neutral>,
   "emotion_intensity": <int 1-10>,
   "valence": <float -1.0 to 1.0>,
   "arousal": <float 0.0 to 1.0>,
@@ -541,7 +563,8 @@ class ConsensusOrchestrator:
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
             # Map futures to their original agent index to preserve order
             future_to_index = {
-                executor.submit(agent.annotate, task): i for i, agent in enumerate(self.agents)
+                executor.submit(agent.annotate, task): i
+                for i, agent in enumerate(self.agents)
             }
 
             ordered_results = [None] * len(self.agents)
@@ -572,9 +595,13 @@ class ConsensusOrchestrator:
                 "consensus_annotation": None,
             }
 
-        # Enforce minimum quorum (at least 2 successful results if multiple agents are registered)
+        # Enforce minimum quorum (at least 2 successful results if multiple
+        # agents are registered)
         if len(self.agents) > 1 and len(results) < 2:
-            error_msg = f"Quorum not met for task {task.get('task_id')}: only {len(results)} results out of {len(self.agents)} agents"
+            error_msg = (
+                f"Quorum not met for task {task.get('task_id')}: "
+                f"only {len(results)} results out of {len(self.agents)} agents"
+            )
             logger.error(error_msg)
             return {
                 "task_id": task.get("task_id", task.get("data", {}).get("id")),
@@ -625,7 +652,9 @@ class ConsensusOrchestrator:
 
         # Average empathy scores (if present)
         empathy_scores = [r.empathy_score for r in results if r.empathy_score]
-        avg_empathy = int(sum(empathy_scores) / len(empathy_scores)) if empathy_scores else None
+        avg_empathy = (
+            int(sum(empathy_scores) / len(empathy_scores)) if empathy_scores else None
+        )
 
         # Safety pass if all agree
         safety_passes = [r.safety_pass for r in results if r.safety_pass is not None]

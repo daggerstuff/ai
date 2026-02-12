@@ -20,16 +20,26 @@ class NullMemoryManager:
     """
 
     def __init__(self, *args, **kwargs):
+        import threading
+
         # In-memory storage: user_id -> list of memory dicts
         self._memories: Dict[str, List[Dict[str, Any]]] = {}
         self._memory_counter = 0
+        self._lock = threading.Lock()
+        self.MAX_MEMORIES_PER_USER = 1000  # Prevent OOM
 
     def _generate_id(self) -> str:
         """Generate unique memory ID."""
         self._memory_counter += 1
         return f"mem-{self._memory_counter}"
 
-    def add(self, content: str, user_id: str, metadata: Optional[Dict[str, Any]] = None, **kwargs):
+    def add(
+        self,
+        content: str,
+        user_id: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        **kwargs,
+    ):
         """Add memory (raw client interface)."""
         memory_id = self._generate_id()
         memory = {
@@ -40,60 +50,77 @@ class NullMemoryManager:
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
 
-        if user_id not in self._memories:
-            self._memories[user_id] = []
-        self._memories[user_id].append(memory)
+        with self._lock:
+            if user_id not in self._memories:
+                self._memories[user_id] = []
+
+            # Enforce capacity limit
+            if len(self._memories[user_id]) >= self.MAX_MEMORIES_PER_USER:
+                # Remove oldest (first index)
+                self._memories[user_id].pop(0)
+
+            self._memories[user_id].append(memory)
 
         return {"results": [{"id": memory_id}]}
 
     def search(self, query: str, user_id: str, **kwargs):
         """Search memories (raw client interface)."""
-        if user_id not in self._memories:
-            return {"results": []}
+        with self._lock:
+            if user_id not in self._memories:
+                return {"results": []}
 
-        # Simple substring search
-        query_lower = query.lower()
-        results = [m for m in self._memories[user_id] if query_lower in m["content"].lower()]
-        return {"results": results}
+            # Simple substring search
+            query_lower = query.lower()
+            results = [
+                m
+                for m in self._memories[user_id]
+                if query_lower in m["content"].lower()
+            ]
+            return {"results": results}
 
     def get_all(self, user_id: str, **kwargs):
         """Get all memories for user (raw client interface)."""
-        return {"results": self._memories.get(user_id, [])}
+        with self._lock:
+            return {"results": list(self._memories.get(user_id, []))}
 
     def get(self, memory_id: str, **kwargs):
         """Get specific memory by ID (raw client interface)."""
-        for memories in self._memories.values():
-            for memory in memories:
-                if memory["id"] == memory_id:
-                    return memory
+        with self._lock:
+            for memories in self._memories.values():
+                for memory in memories:
+                    if memory["id"] == memory_id:
+                        return memory
         return None
 
     def update(self, memory_id: str, new_content: str, **kwargs):
         """Update memory (raw client interface)."""
-        for memories in self._memories.values():
-            for memory in memories:
-                if memory["id"] == memory_id:
-                    memory["content"] = new_content
-                    memory["updated_at"] = datetime.now(timezone.utc).isoformat()
-                    if kwargs.get("metadata") is not None:
-                        memory["metadata"].update(kwargs["metadata"])
-                    return True
+        with self._lock:
+            for memories in self._memories.values():
+                for memory in memories:
+                    if memory["id"] == memory_id:
+                        memory["content"] = new_content
+                        memory["updated_at"] = datetime.now(timezone.utc).isoformat()
+                        if kwargs.get("metadata") is not None:
+                            memory["metadata"].update(kwargs["metadata"])
+                        return True
         return False
 
     def delete(self, memory_id: str, **kwargs):
         """Delete memory (raw client interface)."""
-        for user_id, memories in self._memories.items():
-            for i, memory in enumerate(memories):
-                if memory["id"] == memory_id:
-                    del self._memories[user_id][i]
-                    return True
+        with self._lock:
+            for user_id, memories in self._memories.items():
+                for i, memory in enumerate(memories):
+                    if memory["id"] == memory_id:
+                        del self._memories[user_id][i]
+                        return True
         return False
 
     def delete_all(self, user_id: str, **kwargs):
         """Delete all memories for user (raw client interface)."""
-        if user_id in self._memories:
-            del self._memories[user_id]
-            return True
+        with self._lock:
+            if user_id in self._memories:
+                del self._memories[user_id]
+                return True
         return False
 
     # --- High Level Interface matches GeminiMem0Manager ---
@@ -129,7 +156,10 @@ class NullMemoryManager:
         return self.get(memory_id)
 
     def update_memory(
-        self, memory_id: str, new_content: str, metadata: Optional[Dict[str, Any]] = None
+        self,
+        memory_id: str,
+        new_content: str,
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """Update memory content."""
         return self.update(memory_id, new_content, metadata=metadata)

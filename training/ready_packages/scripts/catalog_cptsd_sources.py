@@ -127,7 +127,15 @@ class CPTSDSourceCataloger:
     def list_s3_objects(self, prefix: str) -> List[Dict]:
         """List objects in S3 with given prefix."""
         output = self.run_ovhai_command(
-            ["ovhai", "bucket", "object", "list", "pixel-data@US-EAST-VA", "--prefix", prefix]
+            [
+                "ovhai",
+                "bucket",
+                "object",
+                "list",
+                "pixel-data@US-EAST-VA",
+                "--prefix",
+                prefix,
+            ]
         )
 
         objects = []
@@ -152,15 +160,33 @@ class CPTSDSourceCataloger:
 
         # Topic mapping
         topic_keywords = {
-            "emotional_flashbacks": ["flashback", "flashbacks", "emotional flashback"],
-            "shame_cycles": ["shame", "shame cycle", "toxic shame", "procrastination shame"],
-            "inner_child": ["inner child", "inner_child", "reparenting", "re-parenting"],
+            "emotional_flashbacks": [
+                "flashback",
+                "flashbacks",
+                "emotional flashback",
+            ],
+            "shame_cycles": [
+                "shame",
+                "shame cycle",
+                "toxic shame",
+                "procrastination shame",
+            ],
+            "inner_child": [
+                "inner child",
+                "inner_child",
+                "reparenting",
+                "re-parenting",
+            ],
             "trauma_bonding": ["trauma bonding", "trauma_bonding", "bonding"],
             "betrayal_trauma": ["betrayal trauma", "betrayal_trauma", "betrayal"],
             "survival_mode": ["survival mode", "survival_mode", "survival"],
             "hypervigilance": ["hypervigilance", "hyper-vigilance", "vigilance"],
             "dissociation": ["dissociation", "dissociate"],
-            "emotional_dysregulation": ["dysregulation", "emotional dysregulation", "regulation"],
+            "emotional_dysregulation": [
+                "dysregulation",
+                "emotional dysregulation",
+                "regulation",
+            ],
             "recovery": ["recovery", "healing", "heal", "thriving"],
             "triggers": ["trigger", "triggers"],
             "boundaries": ["boundary", "boundaries"],
@@ -191,7 +217,8 @@ class CPTSDSourceCataloger:
             filename = obj["key"].split("/")[-1]
             # Filter for CPTSD-related content
             if any(
-                keyword in filename.lower() for keyword in ["cptsd", "complex", "shame", "survival"]
+                keyword in filename.lower()
+                for keyword in ["cptsd", "complex", "shame", "survival"]
             ):
                 topics = self.identify_cptsd_content(filename)
                 sources.append(
@@ -219,7 +246,10 @@ class CPTSDSourceCataloger:
         for obj in objects:
             filename = obj["key"].split("/")[-1]
             # Filter for CPTSD-related content
-            if any(keyword in filename.lower() for keyword in ["cptsd", "ptsd", "shame", "trauma"]):
+            if any(
+                keyword in filename.lower()
+                for keyword in ["cptsd", "ptsd", "shame", "trauma"]
+            ):
                 topics = self.identify_cptsd_content(filename)
                 sources.append(
                     CPTSDSource(
@@ -248,7 +278,13 @@ class CPTSDSourceCataloger:
             # Tim Fletcher has extensive complex trauma content
             if any(
                 keyword in filename.lower()
-                for keyword in ["complex", "trauma", "shame", "characteristics", "recovery"]
+                for keyword in [
+                    "complex",
+                    "trauma",
+                    "shame",
+                    "characteristics",
+                    "recovery",
+                ]
             ):
                 topics = self.identify_cptsd_content(filename)
                 sources.append(
@@ -345,7 +381,10 @@ class CPTSDSourceCataloger:
             total_size = sum(s.file_size for s in sources)
             logger.info(f"\n{source_name.upper().replace('_', ' ')}:")
             logger.info(f"  Files: {len(sources)}")
-            logger.info(f"  Total Size: {total_size:,} bytes ({total_size / 1024 / 1024:.2f} MB)")
+            logger.info(
+                f"  Total Size: {total_size:,} bytes "
+                f"({total_size / 1024 / 1024:.2f} MB)"
+            )
 
             # Show unique topics
             all_topics = set()
@@ -361,7 +400,9 @@ class CPTSDSourceCataloger:
 
         logger.info("\nOVERALL:")
         logger.info(f"  Total Files: {len(self.sources)}")
-        logger.info(f"  Total Size: {total_size:,} bytes ({total_size / 1024 / 1024:.2f} MB)")
+        logger.info(
+            f"  Total Size: {total_size:,} bytes ({total_size / 1024 / 1024:.2f} MB)"
+        )
         logger.info(f"  Unique Topics: {len(all_topics)}")
         logger.info(f"  Topics: {', '.join(sorted(all_topics))}")
 

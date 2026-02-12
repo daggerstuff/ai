@@ -206,7 +206,9 @@ class ChatMLExportGenerator:
         else:
             yield parsed
 
-    def convert_to_chatml(self, conversation: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def convert_to_chatml(
+        self, conversation: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
         """Convert a conversation to ChatML format"""
         messages = []
 
@@ -241,7 +243,9 @@ class ChatMLExportGenerator:
                 {"role": turn.get("from", "user"), "content": turn.get("value", "")}
                 for turn in conversation["conversations"]
             )
-        elif "conversation" in conversation and isinstance(conversation.get("conversation"), list):
+        elif "conversation" in conversation and isinstance(
+            conversation.get("conversation"), list
+        ):
             # Alternate nested key name
             messages.extend(
                 {
@@ -252,7 +256,9 @@ class ChatMLExportGenerator:
             )
         else:
             # Unknown format - log and skip
-            print(f"Warning: Unknown conversation format: {list(conversation.keys())[:5]}")
+            print(
+                f"Warning: Unknown conversation format: {list(conversation.keys())[:5]}"
+            )
             return None
 
         return {
@@ -304,8 +310,12 @@ class ChatMLExportGenerator:
         def start_new_shard() -> None:
             nonlocal writer, shard_idx, lines_in_shard, current_key
             finalize_shard()
-            current_key = f"{output_prefix}/{family_name}_chatml-shard-{shard_idx:05d}.jsonl"
-            writer = S3MultipartWriter(self.s3_client, self.bucket, current_key, part_size_bytes)
+            current_key = (
+                f"{output_prefix}/{family_name}_chatml-shard-{shard_idx:05d}.jsonl"
+            )
+            writer = S3MultipartWriter(
+                self.s3_client, self.bucket, current_key, part_size_bytes
+            )
             lines_in_shard = 0
 
         start_new_shard()
@@ -335,7 +345,9 @@ class ChatMLExportGenerator:
                             chatml_conv.setdefault("metadata", {})
                             chatml_conv["metadata"]["family"] = family_name
                             chatml_conv["metadata"]["source_file"] = s3_key
-                            writer.write_line(json.dumps(chatml_conv, ensure_ascii=False))
+                            writer.write_line(
+                                json.dumps(chatml_conv, ensure_ascii=False)
+                            )
                             lines_in_shard += 1
                             stats["successful_conversions"] += 1
 
@@ -361,7 +373,9 @@ class ChatMLExportGenerator:
         )
         return stats
 
-    def generate_release_0_export(self, manifest_key: str, output_prefix: str) -> Dict[str, Any]:
+    def generate_release_0_export(
+        self, manifest_key: str, output_prefix: str
+    ) -> Dict[str, Any]:
         """Generate complete Release 0 ChatML export directly to S3 (streaming)."""
         print(f"Loading manifest from {manifest_key}...")
         manifest = self.load_manifest(manifest_key)

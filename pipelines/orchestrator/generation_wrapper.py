@@ -49,7 +49,8 @@ class GenerationWrapper:
         Uses direct python import if available.
         """
         logger.info(
-            f"Ensuring Ultra Nightmare scenarios (count_per_category={count_per_category})..."
+            f"Ensuring Ultra Nightmare scenarios "
+            f"(count_per_category={count_per_category})..."
         )
 
         if not UltraNightmareGenerator:
@@ -105,12 +106,16 @@ class GenerationWrapper:
         try:
             env = os.environ.copy()
             if "NVIDIA_API_KEY" not in env:
-                logger.warning("NVIDIA_API_KEY not set, NeMo service might fail to start.")
+                logger.warning(
+                    "NVIDIA_API_KEY not set, NeMo service might fail to start."
+                )
             else:
                 # Setup required NeMo env vars
                 env["NIM_API_KEY"] = env["NVIDIA_API_KEY"]
                 env["NGC_API_KEY"] = env["NVIDIA_API_KEY"]
-                env["NEMO_MICROSERVICES_IMAGE_REGISTRY"] = "nvcr.io/nvidia/nemo-microservices"
+                env["NEMO_MICROSERVICES_IMAGE_REGISTRY"] = (
+                    "nvcr.io/nvidia/nemo-microservices"
+                )
                 env["NEMO_MICROSERVICES_IMAGE_TAG"] = "25.12"
 
                 # Attempt docker login for NGC
@@ -137,7 +142,8 @@ class GenerationWrapper:
                     # Log warning but proceed, maybe we are already logged in or using
                     # cached image
                     logger.warning(
-                        f"⚠️ Docker login failed (this might differ if already logged in): {e}"
+                        f"⚠️ Docker login failed (this might differ if "
+                        f"already logged in): {e}"
                     )
 
             # Force recreate to ensure fresh state if needed
@@ -161,7 +167,9 @@ class GenerationWrapper:
                     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                         s.settimeout(1)
                         if s.connect_ex((host, port)) == 0:
-                            logger.info("NeMo service port is open. Waiting for app init...")
+                            logger.info(
+                                "NeMo service port is open. Waiting for app init..."
+                            )
                             time.sleep(10)  # Give app time to initialize
                             return True
                 time.sleep(2)
@@ -195,7 +203,8 @@ class GenerationWrapper:
             return False
 
         output_dir = (
-            self.workspace_root / "ai/training/ready_packages/datasets/cache/local/nemo_synthetic"
+            self.workspace_root
+            / "ai/training/ready_packages/datasets/cache/local/nemo_synthetic"
         )
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / "nemo_synthetic_dataset.jsonl"
@@ -334,7 +343,9 @@ class GenerationWrapper:
         Ensure academic findings are sourced (PubMed/Scholar).
         Uses AcademicSourcingEngine.
         """
-        logger.info(f"Ensuring Academic findings (limit_per_query={limit_per_query})...")
+        logger.info(
+            f"Ensuring Academic findings (limit_per_query={limit_per_query})..."
+        )
 
         if not AcademicSourcingEngine:
             logger.error("AcademicSourcingEngine could not be imported.")
@@ -367,7 +378,9 @@ class GenerationWrapper:
         logger.info(f"Ensuring Journal research (keywords={keywords})...")
 
         if not WorkflowExecutor:
-            logger.error("WorkflowExecutor could not be imported from journal sourcing.")
+            logger.error(
+                "WorkflowExecutor could not be imported from journal sourcing."
+            )
             return False
 
         try:
@@ -379,7 +392,8 @@ class GenerationWrapper:
     def _run_journal_workflow(self, keywords):
         # Configure storage to go into the training ready area
         storage_path = (
-            self.workspace_root / "ai/training/ready_packages/datasets/cache/local/journal_research"
+            self.workspace_root
+            / "ai/training/ready_packages/datasets/cache/local/journal_research"
         )
         storage_path.mkdir(parents=True, exist_ok=True)
         config = {"acquisition": {"storage_base_path": str(storage_path)}}

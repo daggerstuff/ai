@@ -124,7 +124,8 @@ class MemoryManager:
             if not hasattr(self.client, "get_all"):
                 return []
 
-            # Mem0 search returns relevant memories, but for history we might want get_all or a particular filter
+            # Mem0 search returns relevant memories,
+            # but for history we might want get_all or a particular filter
             memories = self.client.get_all(user_id=user_id)
             if isinstance(memories, dict):
                 memories = memories.get("results", [])
