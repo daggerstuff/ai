@@ -701,3 +701,34 @@ def validate_state_data(state: Any) -> Dict[str, Any]:
 
     # If start_time is a string, try to accept it (further parsing occurs elsewhere)
     return {"is_valid": True, "errors": []}
+
+
+def validate_file_upload(
+    file,
+    config: Optional[Any] = None,
+    allowed_extensions: Optional[List[str]] = None,
+    allowed_mime_types: Optional[List[str]] = None,
+) -> Dict[str, Any]:
+    """
+    Validate file upload (top-level helper).
+
+    Args:
+        file: File object to validate
+        config: Configuration object or dict containing max size settings
+        allowed_extensions: List of allowed file extensions
+        allowed_mime_types: List of allowed MIME types
+
+    Returns:
+        Dictionary with validated file information
+    """
+    # Default max size 100MB
+    max_size_mb = 100
+
+    if config:
+        if isinstance(config, dict):
+            max_size_mb = config.get("MAX_FILE_SIZE_MB", 100)
+        else:
+            max_size_mb = getattr(config, "MAX_FILE_SIZE_MB", 100)
+
+    validator = InputValidator(max_file_size_mb=max_size_mb)
+    return validator.validate_file_upload(file, allowed_extensions, allowed_mime_types)
