@@ -325,12 +325,15 @@ services:
       - nim_model_cache:/opt/nim/.cache
     deploy:
       resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: ["0"]
-              capabilities: [gpu]
-    runtime: nvidia
+        limits:
+          memory: 4G
+          cpus: "2.0"
+    #    reservations:
+    #      devices:
+    #        - driver: nvidia
+    #          device_ids: ["0"]
+    #          capabilities: [gpu]
+    # runtime: nvidia
     networks:
       - nmp
 
@@ -352,12 +355,15 @@ services:
       - nim_model_cache:/opt/nim/.cache
     deploy:
       resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: ["1"]
-              capabilities: [gpu]
-    runtime: nvidia
+        limits:
+          memory: 4G
+          cpus: "2.0"
+    #    reservations:
+    #      devices:
+    #        - driver: nvidia
+    #          device_ids: ["1"]
+    #          capabilities: [gpu]
+    # runtime: nvidia
     networks:
       - nmp
 
@@ -376,12 +382,15 @@ services:
       - nim_model_cache:/opt/nim/.cache
     deploy:
       resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: ["2"]
-              capabilities: [gpu]
-    runtime: nvidia
+        limits:
+          memory: 2G
+          cpus: "1.0"
+    #    reservations:
+    #      devices:
+    #        - driver: nvidia
+    #          device_ids: ["2"]
+    #          capabilities: [gpu]
+    # runtime: nvidia
     networks:
       - nmp
 
@@ -403,12 +412,15 @@ services:
       - nim_model_cache:/opt/nim/.cache
     deploy:
       resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: ["3"]
-              capabilities: [gpu]
-    runtime: nvidia
+        limits:
+          memory: 4G
+          cpus: "2.0"
+    #    reservations:
+    #      devices:
+    #        - driver: nvidia
+    #          device_ids: ["3"]
+    #          capabilities: [gpu]
+    # runtime: nvidia
     networks:
       - nmp
 
