@@ -25,8 +25,8 @@ RUN apt-get update && apt-get install -y \
     git \
     && rm -rf /var/lib/apt/lists/*
 
-# Create non-root user
-RUN groupadd -r ubuntu && useradd -m -r -g ubuntu -s /bin/bash ubuntu
+# Create non-root user if it doesn't exist
+RUN id -u ubuntu >/dev/null 2>&1 || (groupadd -r ubuntu && useradd -m -r -g ubuntu -s /bin/bash ubuntu)
 
 
 # Install uv for faster Python package management
@@ -119,7 +119,7 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 EXPOSE 8000
 
 # Default command
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["/app/.venv/bin/python", "-m", "api.main"]
 
 # Development override
 FROM development AS dev
@@ -129,4 +129,4 @@ RUN apt-get update && apt-get install -y \
     htop \
     && rm -rf /var/lib/apt/lists/*
 USER ubuntu
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+CMD ["/app/.venv/bin/python", "-m", "api.main"]

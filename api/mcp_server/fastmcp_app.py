@@ -12,6 +12,7 @@ import json
 import logging
 import os
 import sys
+from datetime import datetime, timezone
 from typing import Any, Dict, List
 
 # Add 'ai' to path if running directly to find siblings
@@ -26,7 +27,7 @@ logger = logging.getLogger("mcp_server")
 # Initialize FastMCP
 mcp = FastMCP(
     "Pixelated Memory",
-    dependencies=["mem0ai", "google-genai", "pydantic", "e2b"],
+    dependencies=["mem0ai", "google-genai", "pydantic"],
 )
 
 # --- Manager Initialization Patterns ---
@@ -86,20 +87,6 @@ def get_manager():
     if not _manager:
         _manager = get_best_manager()
     return _manager
-
-
-@mcp.on_startup()
-async def startup():
-    """Initialization logic for the MCP server."""
-    logger.info("Pixelated Memory Server starting up...")
-    get_manager()
-
-
-@mcp.on_shutdown()
-async def shutdown():
-    """Cleanup logic for the MCP server."""
-    logger.info("Pixelated Memory Server shutting down...")
-    # Add any explicit manager cleanup if needed
 
 
 # --- Resources ---
@@ -238,6 +225,10 @@ async def add_memory(
     if metadata:
         with contextlib.suppress(Exception):
             meta_dict = json.loads(metadata) or {}
+
+    # Auto-inject timestamp for temporal features
+    if "timestamp" not in meta_dict:
+        meta_dict["timestamp"] = datetime.now(timezone.utc).isoformat()
 
     # Handle different manager signatures
     try:
@@ -462,65 +453,6 @@ async def get_empathy_score(user_id: str) -> str:
 
 
 @mcp.tool()
-async def execute_in_sandbox(
-    code: str,
-    language: str = "python",
-    timeout_seconds: int = 30,
-    files_json: str = None,
-) -> str:
-    """
-    Execute code in a secure, ephemeral E2B sandbox.
-
-    Runs code in an isolated Linux VM that is destroyed after
-    execution. No secrets or sensitive data are forwarded.
-
-    Args:
-        code: The code to execute.
-        language: 'python' or 'shell'. Defaults to 'python'.
-        timeout_seconds: Max execution time (1-120s). Defaults to 30.
-        files_json: Optional JSON string of {filename: content} to upload.
-    """
-    import contextlib
-    from ai.api.mcp_server.sandbox_executor import SandboxExecutor
-
-    executor = SandboxExecutor()
-    files_dict = None
-    if files_json:
-        with contextlib.suppress(Exception):
-            files_dict = json.loads(files_json)
-
-    try:
-        # Use RAII pattern with context manager
-        with executor as ex:
-            result = ex.execute_code(
-                language=language,
-                code=code,
-                timeout_seconds=timeout_seconds,
-                files=files_dict,
-            )
-    except ValueError as exc:
-        return f"### ❌ Validation Error\n\n{exc}"
-
-    data = result.to_dict()
-
-    if data.get("error"):
-        return f"### ⚠️ Sandbox Error\n\n{data['error']}"
-
-    parts = [f"### 🖥️ Sandbox Execution ({language})"]
-
-    if data["stdout"]:
-        parts.append(f"\n**stdout:**\n```\n{data['stdout']}\n```")
-    if data["stderr"]:
-        parts.append(f"\n**stderr:**\n```\n{data['stderr']}\n```")
-
-    parts.append(
-        f"\n**Exit code:** {data['exit_code']} | **Duration:** {data['duration_ms']}ms"
-    )
-
-    return "\n".join(parts)
-
-
-@mcp.tool()
 async def detect_cognitive_conflicts(user_id: str) -> str:
     """
     EXPERIMENTAL: Analyze all memories for a user to detect contradictions
@@ -612,6 +544,241 @@ async def analyze_narrative_evolution(user_id: str) -> str:
         return response.text
     except Exception as e:
         return f"Error analyzing journey: {str(e)}"
+
+
+@mcp.tool()
+async def weave_resonances(memory_id: str) -> str:
+    """
+    Find semantic and emotional echoes between a specific memory
+    and all other memories for that user.
+
+    Returns a "resonance map" showing which memories echo the target
+    and why they are connected.
+
+    Args:
+        memory_id: The ID of the memory to find resonances for.
+    """
+    manager = get_manager()
+    target = manager.get_memory(memory_id)
+    if not target:
+        return f"Memory `{memory_id}` not found."
+
+    target_content = target.get("memory") or target.get("content", "")
+    user_id = target.get("user_id", "user")
+    all_memories = manager.get_all_memories(user_id)
+
+    others = [
+        {
+            "id": m.get("id", "unk"),
+            "content": m.get("memory") or m.get("content", ""),
+        }
+        for m in all_memories
+        if m.get("id") != memory_id
+    ]
+
+    if not others:
+        return "No other memories to compare against."
+
+    prompt = (
+        "You are a Narrative Resonance Analyst trained in therapeutic "
+        "pattern recognition. Given a TARGET memory and a list of OTHER "
+        "memories from the same user, identify semantic and emotional "
+        "echoes — memories that resonate with the target.\n\n"
+        "A resonance is when two memories share emotional themes, "
+        "recurring language, connected life events, or complementary "
+        "perspectives on the same core experience.\n\n"
+        f"TARGET MEMORY (ID: {memory_id}):\n"
+        f"{target_content}\n\n"
+        f"OTHER MEMORIES:\n{json.dumps(others, indent=2)}\n\n"
+        "Return a Markdown report titled 'Resonance Map'. For each "
+        "connected memory, list its ID, the nature of the echo, and "
+        "the emotional thread linking them. If few resonances exist, "
+        "say so honestly."
+    )
+
+    try:
+        response = manager.client.models.generate_content(
+            model=manager.config.model_name,
+            contents=prompt,
+        )
+        return f"### 🕸️ Resonance Map: `{memory_id}`\n\n{response.text}"
+    except Exception as e:
+        return f"Error finding resonances: {str(e)}"
+
+
+@mcp.tool()
+async def get_emotional_tide(user_id: str, window: str = "30d") -> str:
+    """
+    Extract emotional valence from memories within a time window
+    and render a temporal trajectory of emotional movement.
+
+    Uses simplified Plutchik categories: Joy, Sadness, Anger, Fear,
+    Trust, Surprise.
+
+    Args:
+        user_id: The ID of the user.
+        window: Time window (e.g. '7d', '30d', '90d'). Defaults to '30d'.
+    """
+    manager = get_manager()
+    memories = manager.get_all_memories(user_id)
+
+    if not memories:
+        return f"No memories for **{user_id}** to analyze."
+
+    sorted_memories = sorted(
+        memories,
+        key=lambda x: x.get("metadata", {}).get("timestamp", ""),
+    )
+
+    timeline = ""
+    for m in sorted_memories:
+        ts = m.get("metadata", {}).get("timestamp", "unknown")
+        content = m.get("memory") or m.get("content", "")
+        timeline += f"[{ts}] {content}\n"
+
+    prompt = (
+        "You are an Emotional Cartographer specializing in mapping "
+        "emotional trajectories over time. Analyze the following "
+        "chronological memories and produce an 'Emotional Tide' report.\n\n"
+        "For each memory, identify the dominant emotion from the "
+        "simplified Plutchik categories: Joy, Sadness, Anger, Fear, "
+        "Trust, Surprise, Anticipation, Disgust.\n\n"
+        f"MEMORIES (chronological, window: {window}):\n{timeline}\n\n"
+        "Return a Markdown report with:\n"
+        "1. A timeline showing the emotional category for each memory\n"
+        "2. The overall emotional trajectory (rising, falling, cycling)\n"
+        "3. Key emotional turning points\n"
+        "4. A one-sentence 'Emotional Weather' summary\n\n"
+        "Be compassionate and non-judgmental."
+    )
+
+    try:
+        response = manager.client.models.generate_content(
+            model=manager.config.model_name,
+            contents=prompt,
+        )
+        return f"### 🌊 Emotional Tide: {user_id}\n\n{response.text}"
+    except Exception as e:
+        return f"Error analyzing emotional tide: {str(e)}"
+
+
+@mcp.tool()
+async def reconstruct_self(user_id: str, before_date: str) -> str:
+    """
+    Reconstruct who the user was at a specific point in time.
+
+    Filters memories to only those that existed before the given date,
+    then synthesizes a narrative of the user's identity at that moment.
+    A time machine for emotional growth.
+
+    Args:
+        user_id: The ID of the user.
+        before_date: ISO date string (e.g. '2026-01-15').
+    """
+    manager = get_manager()
+    memories = manager.get_all_memories(user_id)
+
+    if not memories:
+        return f"No memories for **{user_id}** to reconstruct."
+
+    filtered = [
+        m for m in memories if m.get("metadata", {}).get("timestamp", "") <= before_date
+    ]
+
+    if not filtered:
+        return (
+            f"No memories found before **{before_date}** for {user_id}. "
+            "Either no memories existed then, or they lack timestamps."
+        )
+
+    sorted_memories = sorted(
+        filtered,
+        key=lambda x: x.get("metadata", {}).get("timestamp", ""),
+    )
+
+    history = ""
+    for m in sorted_memories:
+        ts = m.get("metadata", {}).get("timestamp", "unknown")
+        content = m.get("memory") or m.get("content", "")
+        history += f"[{ts}] {content}\n"
+
+    prompt = (
+        "You are a Temporal Identity Reconstructor. Given a set of "
+        "memories that existed BEFORE a specific date, reconstruct "
+        "who this person was at that point in time.\n\n"
+        f"MEMORIES BEFORE {before_date} for {user_id}:\n{history}\n\n"
+        "Produce a compassionate, reflective report titled "
+        f"'Who Was {user_id} on {before_date}?' that synthesizes:\n"
+        "1. Core beliefs and perspectives at that time\n"
+        "2. Emotional state and dominant feelings\n"
+        "3. Key relationships and concerns\n"
+        "4. What they seemed to be working through\n\n"
+        "Write in a warm, therapeutic tone. This is a mirror, "
+        "not a judgment."
+    )
+
+    try:
+        response = manager.client.models.generate_content(
+            model=manager.config.model_name,
+            contents=prompt,
+        )
+        return response.text
+    except Exception as e:
+        return f"Error reconstructing self: {str(e)}"
+
+
+@mcp.tool()
+async def distill_themes(user_id: str) -> str:
+    """
+    Synthesize all memories into core themes, recurring patterns,
+    and emotional anchors.
+
+    This is synthesis only — it never modifies or deletes originals.
+    Like dreaming for AI memory: finding the signal across all memories.
+
+    Args:
+        user_id: The ID of the user.
+    """
+    manager = get_manager()
+    memories = manager.get_all_memories(user_id)
+
+    if not memories:
+        return f"No memories for **{user_id}** to distill."
+
+    mem_list = [
+        {
+            "id": m.get("id", "unk"),
+            "content": m.get("memory") or m.get("content", ""),
+            "category": m.get("metadata", {}).get("category", "general"),
+            "timestamp": m.get("metadata", {}).get("timestamp", "unknown"),
+        }
+        for m in memories
+    ]
+
+    prompt = (
+        "You are a Narrative Distillation Specialist. Analyze ALL of "
+        "the following memories for a single user and produce a "
+        "'Theme Distillation' report.\n\n"
+        f"ALL MEMORIES for {user_id} ({len(mem_list)} total):\n"
+        f"{json.dumps(mem_list, indent=2)}\n\n"
+        "Produce a Markdown report with:\n"
+        "1. **Core Themes** — The 3-5 dominant themes across all memories\n"
+        "2. **Emotional Anchors** — Emotions that appear repeatedly\n"
+        "3. **Recurring Language** — Phrases or words the user returns to\n"
+        "4. **Unresolved Tensions** — Contradictions or open questions\n"
+        "5. **Growth Edges** — Areas where change is emerging\n\n"
+        "This is a therapist's session notes, written by memory itself. "
+        "Be warm, insightful, and honest."
+    )
+
+    try:
+        response = manager.client.models.generate_content(
+            model=manager.config.model_name,
+            contents=prompt,
+        )
+        return f"### 💎 Theme Distillation: {user_id}\n\n{response.text}"
+    except Exception as e:
+        return f"Error distilling themes: {str(e)}"
 
 
 if __name__ == "__main__":

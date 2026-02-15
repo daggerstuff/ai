@@ -105,13 +105,13 @@ services:
         condition: service_started
     networks:
       - nmp
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              capabilities: [gpu]
-              count: all
+    #    deploy:
+    #      resources:
+    #        reservations:
+    #          devices:
+    #            - driver: nvidia
+    #              capabilities: [gpu]
+    #              count: all
     shm_size: "1G"
 
 volumes:
