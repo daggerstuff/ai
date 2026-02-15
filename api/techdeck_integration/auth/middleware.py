@@ -5,9 +5,9 @@ This module implements JWT-based authentication with role-based access control,
 rate limiting, and comprehensive security measures for HIPAA++ compliance.
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, Optional
 
 import jwt
 from flask import current_app, g
@@ -106,6 +106,19 @@ class JWTAuthMiddleware:
 
         return any(path.startswith(endpoint) for endpoint in public_endpoints)
 
+    def _extract_token(self, request: Request) -> Optional[str]:
+        """
+        Extract JWT token from request Authorization header.
+
+        Args:
+            request: Flask request object
+
+        Returns:
+            Token string or None if missing/invalid
+        """
+        auth_header = request.headers.get("Authorization", "")
+        return auth_header.split(" ")[1] if auth_header.startswith("Bearer ") else None
+
     def _validate_jwt_token(self, request: Request) -> Dict[str, Any]:
         """
         Validate JWT token from request headers.
@@ -117,49 +130,7 @@ class JWTAuthMiddleware:
             Dictionary with validation result and user data
         """
         try:
-            # Extract token from Authorization header
-            auth_header = request.headers.get("Authorization", "")
-
-            if not auth_header.startswith("Bearer "):
-                return {
-                    "valid": False,
-                    "error": "Missing or invalid Authorization header",
-                }
-
-            token = auth_header.split(" ")[1]
-
-            # Decode JWT token
-            payload = jwt.decode(
-                token,
-                self.config.JWT_SECRET_KEY,
-                algorithms=[self.config.JWT_ALGORITHM],
-            )
-
-            # Validate token claims
-            validation_result = self._validate_token_claims(payload)
-
-            if not validation_result["valid"]:
-                return validation_result
-
-            # Extract user information
-            user_data = {
-                "id": payload.get("sub"),
-                "email": payload.get("email"),
-                "role": payload.get("role", "user"),
-                "permissions": payload.get("permissions", []),
-                "session_id": payload.get("session_id"),
-                "issued_at": datetime.fromtimestamp(payload.get("iat", 0)),
-                "expires_at": datetime.fromtimestamp(payload.get("exp", 0)),
-            }
-
-            # Validate user exists and is active
-            user_validation = self._validate_user_active(user_data["id"])
-
-            if not user_validation["valid"]:
-                return user_validation
-
-            return {"valid": True, "user": user_data}
-
+            return self._extracted_from__validate_jwt_token_13(request)
         except jwt.ExpiredSignatureError:
             return {"valid": False, "error": "JWT token has expired"}
         except jwt.InvalidTokenError as e:
@@ -167,6 +138,48 @@ class JWTAuthMiddleware:
         except Exception as e:
             self.logger.error(f"JWT validation error: {e}")
             return {"valid": False, "error": "Token validation failed"}
+
+    # TODO Rename this here and in `_validate_jwt_token`
+    def _extracted_from__validate_jwt_token_13(self, request):
+        # Extract token
+        token = self._extract_token(request)
+        if not token:
+            return {
+                "valid": False,
+                "error": "Missing or invalid Authorization header",
+            }
+
+        # Decode JWT token
+        payload = jwt.decode(
+            token,
+            self.config.JWT_SECRET_KEY,
+            algorithms=[self.config.JWT_ALGORITHM],
+        )
+
+        # Validate token claims
+        validation_result = self._validate_token_claims(payload)
+
+        if not validation_result["valid"]:
+            return validation_result
+
+        # Extract user information
+        user_data = {
+            "id": payload.get("sub"),
+            "email": payload.get("email"),
+            "role": payload.get("role", "user"),
+            "permissions": payload.get("permissions", []),
+            "session_id": payload.get("session_id"),
+            "issued_at": datetime.fromtimestamp(payload.get("iat", 0)),
+            "expires_at": datetime.fromtimestamp(payload.get("exp", 0)),
+        }
+
+        # Validate user exists and is active
+        user_validation = self._validate_user_active(user_data["id"])
+
+        if not user_validation["valid"]:
+            return user_validation
+
+        return {"valid": True, "user": user_data}
 
     def _validate_token_claims(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """
@@ -186,12 +199,14 @@ class JWTAuthMiddleware:
 
         # Check token expiration
         exp_timestamp = payload.get("exp", 0)
-        if datetime.utcnow().timestamp() > exp_timestamp:
+        if datetime.now(timezone.utc).timestamp() > exp_timestamp:
             return {"valid": False, "error": "Token has expired"}
 
         # Check token issued time (prevent future tokens)
         iat_timestamp = payload.get("iat", 0)
-        if datetime.utcnow().timestamp() < iat_timestamp - 60:  # 1 minute grace period
+        if (
+            datetime.now(timezone.utc).timestamp() < iat_timestamp - 60
+        ):  # 1 minute grace period
             return {"valid": False, "error": "Token issued in the future"}
 
         return {"valid": True}
@@ -209,7 +224,7 @@ class JWTAuthMiddleware:
         try:
             # This would typically query the database
             # For now, we'll simulate validation
-            if not user_id or len(user_id) < 1:
+            if not user_id:
                 return {"valid": False, "error": "Invalid user ID"}
 
             # Simulate user lookup (replace with actual database query)
@@ -241,7 +256,7 @@ class JWTAuthMiddleware:
             # This would typically use Redis or similar for rate limiting
             # For now, we'll simulate rate limiting logic
 
-            rate_limit_key = f"rate_limit:{user_id}:{path}"
+            # rate_limit_key = f"rate_limit:{user_id}:{path}"
 
             # Simulate rate limit check (replace with actual Redis implementation)
             # current_count = redis_client.incr(rate_limit_key)
@@ -287,7 +302,7 @@ class JWTAuthMiddleware:
                 "user_id": user_id,
                 "path": path,
                 "request_id": request_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "event_type": "auth_success",
             },
         )
@@ -310,7 +325,7 @@ class JWTAuthMiddleware:
             "error": {
                 "code": "AUTHENTICATION_FAILED",
                 "message": error_message,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         }
 
@@ -349,7 +364,7 @@ class JWTAuthMiddleware:
                 "message": "Rate limit exceeded",
                 "retry_after": rate_limit_result.get("retry_after", 60),
                 "limit": rate_limit_result.get("limit", 0),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         }
 
@@ -386,7 +401,7 @@ class JWTAuthMiddleware:
             "error": {
                 "code": "INTERNAL_ERROR",
                 "message": "Internal server error",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
             },
         }
 
@@ -409,7 +424,8 @@ def require_auth(roles: Optional[Any] = None):
     Can be used as @require_auth or @require_auth(roles=['admin']).
 
     Args:
-        roles: List of required roles (optional) OR the view function if called without parens
+        roles: List of required roles (optional) OR the view function if called
+               without parens
 
     Returns:
         Decorator function or decorated function
@@ -440,9 +456,7 @@ def require_auth(roles: Optional[Any] = None):
 
         return decorated_function
 
-    if func:
-        return decorator(func)
-    return decorator
+    return decorator(func) if func else decorator
 
 
 def require_admin(f):
