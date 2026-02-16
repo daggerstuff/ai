@@ -7,6 +7,7 @@ from ai.pipelines.orchestrator.processing.nvidia_clients import (
     NemoEvaluatorClient,
 )
 from ai.pipelines.orchestrator.processing.voice_transcriber import VoiceTranscriber
+from ai.utils.transcript_corrector import TranscriptCorrector
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +26,7 @@ class TranscriptQualityPipeline:
         )
         self.curator = NemoCuratorClient()
         self.evaluator = NemoEvaluatorClient()
+        self.corrector = TranscriptCorrector()
 
     def process_audio(self, audio_path: Path) -> Dict[str, Any]:
         """
@@ -73,16 +75,10 @@ class TranscriptQualityPipeline:
 
     def _correct_text(self, text: str) -> str:
         """
-        Internal correction logic (Pass 2).
-        Uses simple normalization if advanced NIM is offline.
+        Apply corrective pass using TranscriptCorrector
+        (Simulated LLM + Terminology check).
         """
-        # Placeholder for LLM-based correction
-        # In production, this call would go to a specialized NIM for text refinement
-        import re
-
-        text = re.sub(r"\b(um|uh|err|ah|like)\b", "", text, flags=re.IGNORECASE)
-        text = re.sub(r"\s+", " ", text).strip()
-        return text
+        return self.corrector.correct_transcript(text, context="therapy_session")
 
     def _check_therapeutic_alignment(self, text: str) -> Dict[str, Any]:
         """

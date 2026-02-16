@@ -6,6 +6,9 @@ quality control, segmentation, noise reduction, and preprocessing for
 optimal transcription and voice training data preparation.
 """
 
+import builtins
+import contextlib
+import importlib.util
 import json
 import os
 import subprocess
@@ -14,11 +17,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 import numpy as np
+from ai.pipelines.orchestrator.logger import setup_logger
 
 # Optional imports with fallbacks
 try:
     import librosa
-    import soundfile as sf
 
     LIBROSA_AVAILABLE = True
 except ImportError:
@@ -33,17 +36,7 @@ try:
 except ImportError:
     PYDUB_AVAILABLE = False
 
-try:
-    import webrtcvad
-
-    WEBRTCVAD_AVAILABLE = True
-except ImportError:
-    WEBRTCVAD_AVAILABLE = False
-
-import builtins
-import contextlib
-
-from logger import setup_logger
+WEBRTCVAD_AVAILABLE = importlib.util.find_spec("webrtcvad") is not None
 
 
 @dataclass
@@ -145,6 +138,34 @@ class AudioProcessor:
                     f"⚠️ {dep} not available - some features will be limited"
                 )
 
+    def _create_initial_metrics(
+        self, file_path: str, basic_info: dict
+    ) -> AudioQualityMetrics:
+        """Create initial audio quality metrics from basic info."""
+        return AudioQualityMetrics(
+            file_path=file_path,
+            duration=basic_info.get("duration", 0.0),
+            sample_rate=basic_info.get("sample_rate", 0),
+            channels=basic_info.get("channels", 0),
+            bit_depth=basic_info.get("bit_depth"),
+        )
+
+    def _validate_segments(self, segments: list[AudioSegment]) -> list[AudioSegment]:
+        """Validate and filter audio segments based on quality."""
+        valid_segments = []
+        for segment in segments:
+            segment_metrics = self.assess_audio_quality(segment.file_path)
+            segment.quality_metrics = segment_metrics
+
+            if segment_metrics.quality_score >= self.quality_threshold:
+                valid_segments.append(segment)
+            else:
+                self.logger.debug(f"Rejecting low-quality segment: {segment.file_path}")
+                # Remove low-quality segment file
+                with contextlib.suppress(builtins.BaseException):
+                    os.remove(segment.file_path)
+        return valid_segments
+
     def assess_audio_quality(self, file_path: str) -> AudioQualityMetrics:
         """Comprehensive audio quality assessment."""
         start_time = time.time()
@@ -152,14 +173,7 @@ class AudioProcessor:
         try:
             # Basic file info using ffprobe
             basic_info = self._get_audio_info_ffprobe(file_path)
-
-            metrics = AudioQualityMetrics(
-                file_path=file_path,
-                duration=basic_info.get("duration", 0.0),
-                sample_rate=basic_info.get("sample_rate", 0),
-                channels=basic_info.get("channels", 0),
-                bit_depth=basic_info.get("bit_depth"),
-            )
+            metrics = self._create_initial_metrics(file_path, basic_info)
 
             # Advanced analysis with librosa if available
             if LIBROSA_AVAILABLE:
@@ -220,13 +234,14 @@ class AudioProcessor:
                 data = json.loads(result.stdout)
 
                 # Find audio stream
-                audio_stream = None
-                for stream in data.get("streams", []):
-                    if stream.get("codec_type") == "audio":
-                        audio_stream = stream
-                        break
-
-                if audio_stream:
+                if audio_stream := next(
+                    (
+                        stream
+                        for stream in data.get("streams", [])
+                        if stream.get("codec_type") == "audio"
+                    ),
+                    None,
+                ):
                     return {
                         "duration": float(audio_stream.get("duration", 0)),
                         "sample_rate": int(audio_stream.get("sample_rate", 0)),
@@ -563,10 +578,10 @@ class AudioProcessor:
             enhanced_path = input_path
             if quality_metrics.quality_score < self.quality_threshold:
                 self.logger.info(
-                    f"Enhancing audio (quality score: {quality_metrics.quality_score:.2f})"
+                    f"Enhancing audio (score: {quality_metrics.quality_score:.2f})"
                 )
                 enhanced_path = os.path.join(
-                    output_dir, "enhanced_" + os.path.basename(input_path)
+                    output_dir, f"enhanced_{os.path.basename(input_path)}"
                 )
 
                 if not self.enhance_audio(input_path, enhanced_path):
@@ -578,20 +593,7 @@ class AudioProcessor:
             segments = self.segment_audio_by_silence(enhanced_path, output_dir)
 
             # Step 4: Quality check segments
-            valid_segments = []
-            for segment in segments:
-                segment_metrics = self.assess_audio_quality(segment.file_path)
-                segment.quality_metrics = segment_metrics
-
-                if segment_metrics.quality_score >= self.quality_threshold:
-                    valid_segments.append(segment)
-                else:
-                    self.logger.debug(
-                        f"Rejecting low-quality segment: {segment.file_path}"
-                    )
-                    # Remove low-quality segment file
-                    with contextlib.suppress(builtins.BaseException):
-                        os.remove(segment.file_path)
+            valid_segments = self._validate_segments(segments)
 
             processing_time = time.time() - start_time
 
@@ -611,7 +613,8 @@ class AudioProcessor:
             )
 
             self.logger.info(
-                f"Processed {input_path}: {len(valid_segments)} valid segments in {processing_time:.2f}s"
+                f"Processed {input_path}: {len(valid_segments)} valid "
+                f"segments in {processing_time:.2f}s"
             )
             return result
 
@@ -645,11 +648,12 @@ class AudioProcessor:
             results.append(result)
 
         # Summary
-        successful = sum(1 for r in results if r.success)
+        successful = sum(r.success for r in results)
         total_segments = sum(len(r.segments) for r in results)
 
         self.logger.info(
-            f"Batch processing complete: {successful}/{len(input_files)} files, {total_segments} total segments"
+            f"Batch processing complete: {successful}/{len(input_files)} files, "
+            f"{total_segments} total segments"
         )
 
         return results

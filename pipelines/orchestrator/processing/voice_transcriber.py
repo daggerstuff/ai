@@ -37,9 +37,11 @@ except ImportError:
     TORCH_AVAILABLE = False
 
 
-from audio_processor import AudioProcessor, AudioQualityMetrics
-
-from logger import setup_logger
+from ai.pipelines.orchestrator.logger import setup_logger
+from ai.pipelines.orchestrator.processing.audio_processor import (
+    AudioProcessor,
+    AudioQualityMetrics,
+)
 
 
 @dataclass
@@ -136,13 +138,29 @@ class VoiceTranscriber:
         # Initialize audio processor for quality assessment
         self.audio_processor = AudioProcessor()
 
+    def _check_quality(
+        self, quality_metrics: AudioQualityMetrics, file_path: str
+    ) -> TranscriptionResult | None:
+        """Check if audio quality meets the threshold."""
+        if quality_metrics.quality_score < self.min_quality_score:
+            return TranscriptionResult(
+                file_path=file_path,
+                success=False,
+                quality_score=quality_metrics.quality_score,
+                error_message=(
+                    f"Audio quality too low: {quality_metrics.quality_score:.2f} "
+                    f"< {self.min_quality_score}"
+                ),
+            )
+        return None
+
     def _determine_device(self, device: str) -> str:
         """Determine the best device to use."""
-        if device == "auto":
-            if TORCH_AVAILABLE and torch.cuda.is_available():
-                return "cuda"
-            return "cpu"
-        return device
+        if device != "auto":
+            return device
+        if TORCH_AVAILABLE and torch.cuda.is_available():
+            return "cuda"
+        return "cpu"
 
     def _initialize_model(self):
         """Initialize the Whisper model."""
@@ -186,13 +204,11 @@ class VoiceTranscriber:
             # Quality assessment
             quality_metrics = self.audio_processor.assess_audio_quality(file_path)
 
-            if quality_metrics.quality_score < self.min_quality_score:
-                return TranscriptionResult(
-                    file_path=file_path,
-                    success=False,
-                    quality_score=quality_metrics.quality_score,
-                    error_message=f"Audio quality too low: {quality_metrics.quality_score:.2f} < {self.min_quality_score}",
-                )
+            # Quality assessment
+            quality_metrics = self.audio_processor.assess_audio_quality(file_path)
+
+            if quality_result := self._check_quality(quality_metrics, file_path):
+                return quality_result
 
             # Transcribe based on model type
             if self.model_type == "faster-whisper":
@@ -211,10 +227,14 @@ class VoiceTranscriber:
             # Filter by confidence
             if result.confidence_score < self.min_confidence:
                 result.success = False
-                result.error_message = f"Confidence too low: {result.confidence_score:.2f} < {self.min_confidence}"
+                result.error_message = (
+                    f"Confidence too low: {result.confidence_score:.2f} < "
+                    f"{self.min_confidence}"
+                )
 
             self.logger.info(
-                f"Transcription complete: {len(result.segments)} segments, confidence: {result.confidence_score:.2f}"
+                f"Transcription complete: {len(result.segments)} segments, "
+                f"confidence: {result.confidence_score:.2f}"
             )
             return result
 
@@ -298,7 +318,7 @@ class VoiceTranscriber:
             )
 
         except Exception as e:
-            raise Exception(f"Faster-Whisper transcription failed: {e}")
+            raise RuntimeError(f"Faster-Whisper transcription failed: {e}") from e
 
     def _transcribe_openai_whisper(
         self, file_path: str, quality_metrics: AudioQualityMetrics
@@ -346,24 +366,23 @@ class VoiceTranscriber:
             )
 
         except Exception as e:
-            raise Exception(f"OpenAI Whisper transcription failed: {e}")
+            raise RuntimeError(f"OpenAI Whisper transcription failed: {e}") from e
 
     def _logprob_to_confidence(self, avg_logprob: float) -> float:
         """Convert average log probability to confidence score (0-1)."""
         # Empirical mapping based on Whisper behavior
-        # avg_logprob typically ranges from -1.0 (high confidence) to -3.0+ (low confidence)
-        if avg_logprob >= -0.5:
-            return 0.95
-        if avg_logprob >= -1.0:
-            return 0.85
-        if avg_logprob >= -1.5:
-            return 0.75
-        if avg_logprob >= -2.0:
-            return 0.65
-        if avg_logprob >= -2.5:
-            return 0.55
-        if avg_logprob >= -3.0:
-            return 0.45
+        # avg_logprob typically ranges from -1.0 (high) to -3.0+ (low)
+        thresholds = [
+            (-0.5, 0.95),
+            (-1.0, 0.85),
+            (-1.5, 0.75),
+            (-2.0, 0.65),
+            (-2.5, 0.55),
+            (-3.0, 0.45),
+        ]
+        for threshold, score in thresholds:
+            if avg_logprob >= threshold:
+                return score
         return 0.35
 
     def _estimate_openai_confidence(self, segment: dict) -> float:
@@ -376,14 +395,15 @@ class VoiceTranscriber:
         compression_ratio = segment.get("compression_ratio", 2.0)
 
         # Lower compression ratio generally indicates better transcription
-        if compression_ratio < 1.5:
-            return 0.9
-        if compression_ratio < 2.0:
-            return 0.8
-        if compression_ratio < 2.5:
-            return 0.7
-        if compression_ratio < 3.0:
-            return 0.6
+        thresholds = [
+            (1.5, 0.9),
+            (2.0, 0.8),
+            (2.5, 0.7),
+            (3.0, 0.6),
+        ]
+        for threshold, score in thresholds:
+            if compression_ratio < threshold:
+                return score
         return 0.5
 
     def transcribe_batch(
@@ -395,15 +415,12 @@ class VoiceTranscriber:
         self.logger.info(f"Starting batch transcription of {len(file_paths)} files")
 
         results = []
-        successful_count = 0
-        total_segments = 0
-        confidence_scores = []
-        quality_scores = []
         errors = []
 
         for i, file_path in enumerate(file_paths):
             self.logger.info(
-                f"Processing file {i + 1}/{len(file_paths)}: {os.path.basename(file_path)}"
+                f"Processing file {i + 1}/{len(file_paths)}: "
+                f"{os.path.basename(file_path)}"
             )
 
             try:
@@ -411,11 +428,6 @@ class VoiceTranscriber:
                 results.append(result)
 
                 if result.success:
-                    successful_count += 1
-                    total_segments += len(result.segments)
-                    confidence_scores.append(result.confidence_score)
-                    quality_scores.append(result.quality_score)
-
                     # Save transcription if output directory specified
                     if output_dir:
                         self._save_transcription(result, output_dir)
@@ -435,6 +447,14 @@ class VoiceTranscriber:
                     )
                 )
 
+        # Calculate statistics
+        successful_results = [r for r in results if r.success]
+        successful_count = len(successful_results)
+        total_segments = sum(len(r.segments) for r in successful_results)
+
+        confidence_scores = [r.confidence_score for r in successful_results]
+        quality_scores = [r.quality_score for r in successful_results]
+
         total_processing_time = time.time() - start_time
 
         batch_result = BatchTranscriptionResult(
@@ -450,7 +470,8 @@ class VoiceTranscriber:
         )
 
         self.logger.info(
-            f"Batch transcription complete: {successful_count}/{len(file_paths)} successful"
+            f"Batch transcription complete: {successful_count}/{len(file_paths)} "
+            "successful"
         )
         return batch_result
 
@@ -535,21 +556,21 @@ class VoiceTranscriber:
 
     def generate_transcription_report(self, result: BatchTranscriptionResult) -> str:
         """Generate a detailed transcription report."""
-        report = []
-        report.append("=" * 60)
-        report.append("VOICE TRANSCRIPTION REPORT")
-        report.append("=" * 60)
-        report.append(f"Total Files: {result.total_files}")
-        report.append(f"Successful: {result.successful_files}")
-        report.append(f"Failed: {result.failed_files}")
-        report.append(f"Total Segments: {result.total_segments}")
-        report.append(f"Average Confidence: {result.average_confidence:.2f}")
-        report.append(f"Average Quality: {result.average_quality:.2f}")
-        report.append(f"Processing Time: {result.total_processing_time:.2f} seconds")
-        report.append(
-            f"Success Rate: {(result.successful_files / result.total_files * 100):.1f}%"
-        )
-        report.append("")
+        report = [
+            "=" * 60,
+            "VOICE TRANSCRIPTION REPORT",
+            "=" * 60,
+            f"Total Files: {result.total_files}",
+            f"Successful: {result.successful_files}",
+            f"Failed: {result.failed_files}",
+            f"Total Segments: {result.total_segments}",
+            f"Average Confidence: {result.average_confidence:.2f}",
+            f"Average Quality: {result.average_quality:.2f}",
+            f"Processing Time: {result.total_processing_time:.2f} seconds",
+            f"Success Rate: "
+            f"{(result.successful_files / result.total_files * 100):.1f}%",
+            "",
+        ]
 
         if result.results:
             report.append("DETAILED RESULTS:")
@@ -558,7 +579,8 @@ class VoiceTranscriber:
                 status = "✅ SUCCESS" if res.success else "❌ FAILED"
                 filename = os.path.basename(res.file_path)
                 report.append(
-                    f"{status} | {filename} | {len(res.segments)} segments | conf: {res.confidence_score:.2f} | qual: {res.quality_score:.2f}"
+                    f"{status} | {filename} | {len(res.segments)} segments | "
+                    f"conf: {res.confidence_score:.2f} | qual: {res.quality_score:.2f}"
                 )
                 if not res.success and res.error_message:
                     report.append(f"    Error: {res.error_message[:100]}...")
