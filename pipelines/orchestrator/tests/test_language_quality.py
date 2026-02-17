@@ -10,26 +10,26 @@ LANGUAGE_QUALITY_EMPTY_SCORE = 0.0
 
 def test_language_quality_high():
     conv = Conversation(
-        id="lq1",
+        conversation_id="lq1",
         messages=[
             Message(
                 role="user",
                 content="I appreciate your thoughtful response. It was insightful and helpful.",
-                timestamp=None,
+                timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
             ),
             Message(
                 role="assistant",
                 content="Thank you! I'm glad my explanation provided clarity and support.",
-                timestamp=None,
+                timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
             ),
             Message(
                 role="user",
                 content="Absolutely. The vocabulary you used was quite advanced.",
-                timestamp=None,
+                timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
             ),
         ],
         source="testset",
-        created_at=datetime.datetime.now(datetime.UTC),
+        created_at=datetime.datetime.now(datetime.UTC).isoformat(),
     )
     result = assess_language_quality(conv)
     assert result["score"] > LANGUAGE_QUALITY_HIGH_THRESHOLD
@@ -38,14 +38,24 @@ def test_language_quality_high():
 
 def test_language_quality_low():
     conv = Conversation(
-        id="lq2",
+        conversation_id="lq2",
         messages=[
-            Message(role="user", content="thx uuuuu", timestamp=None),
-            Message(role="assistant", content="np", timestamp=None),
-            Message(role="user", content="ok", timestamp=None),
+            Message(
+                role="user",
+                content="thx uuuuu",
+                timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
+            ),
+            Message(
+                role="assistant",
+                content="np",
+                timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
+            ),
+            Message(
+                role="user", content="ok", timestamp=datetime.datetime.now(datetime.UTC).isoformat()
+            ),
         ],
         source="testset",
-        created_at=datetime.datetime.now(datetime.UTC),
+        created_at=datetime.datetime.now(datetime.UTC).isoformat(),
     )
     result = assess_language_quality(conv)
     assert result["score"] < LANGUAGE_QUALITY_LOW_THRESHOLD
@@ -57,10 +67,10 @@ def test_language_quality_low():
 
 def test_language_quality_no_messages():
     conv = Conversation(
-        id="lq3",
+        conversation_id="lq3",
         messages=[],
         source="testset",
-        created_at=datetime.datetime.now(datetime.timezone.utc),
+        created_at=datetime.datetime.now(datetime.timezone.utc).isoformat(),
     )
     result = assess_language_quality(conv)
     assert result["score"] == LANGUAGE_QUALITY_EMPTY_SCORE
