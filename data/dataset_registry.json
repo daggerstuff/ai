@@ -449,6 +449,43 @@
         "enabled": true,
         "priority": "low"
       }
+    },
+    "therapeutic": {
+      "s3_ultimate_final_dataset": {
+        "path": "s3://pixel-data/ai/training_ready/ULTIMATE_FINAL_DATASET.jsonl",
+        "priority": "critical",
+        "format": "messages",
+        "streaming": true,
+        "estimated_records": 8000000
+      },
+      "s3_mental_health_clean": {
+        "path": "s3://pixel-data/ai/data/compress/processed/mental_health_clean.jsonl",
+        "priority": "high",
+        "format": "messages",
+        "streaming": true,
+        "estimated_records": 65000
+      },
+      "s3_tier1_curated": {
+        "path": "s3://pixel-data/processed/pixelated_tier1_priority_curated_dark_humor.jsonl",
+        "priority": "critical",
+        "format": "messages",
+        "streaming": true,
+        "estimated_records": 1700000
+      },
+      "s3_tier2_professional": {
+        "path": "s3://pixel-data/processed/pixelated_tier2_professional_therapeutic_dark_humor.jsonl",
+        "priority": "high",
+        "format": "messages",
+        "streaming": true,
+        "estimated_records": 150000
+      },
+      "s3_tier3_clinical": {
+        "path": "s3://pixel-data/processed/pixelated_tier3_clinical_cot_dark_humor.jsonl",
+        "priority": "high",
+        "format": "messages",
+        "streaming": true,
+        "estimated_records": 50000
+      }
     }
   },
   "edge_case_sources": {
