@@ -11,9 +11,9 @@ import sqlite3
 import threading
 import time
 from dataclasses import asdict, dataclass
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any
 
 import psutil
 from checkpoint_system import (
@@ -39,9 +39,7 @@ class CheckpointConfig:
     compression_enabled: bool = True
     encryption_enabled: bool = False
     backup_enabled: bool = True
-    backup_path: str = (
-        "/home/vivi/pixelated/ai/infrastructure/distributed/checkpoint_backups"
-    )
+    backup_path: str = "/home/vivi/pixelated/ai/infrastructure/distributed/checkpoint_backups"
     monitoring_enabled: bool = True
     performance_tracking: bool = True
 
@@ -54,7 +52,7 @@ class CheckpointOptimizer:
         self.storage = CheckpointStorage(config.storage_path)
         self.performance_metrics = {}
 
-    def optimize_storage(self) -> Dict[str, Any]:
+    def optimize_storage(self) -> dict[str, Any]:
         """Optimize checkpoint storage"""
 
         optimization_results = {
@@ -72,9 +70,7 @@ class CheckpointOptimizer:
 
         # Check if we need to free space
         if current_size_gb > self.config.max_storage_size_gb:
-            space_to_free = (current_size_gb - self.config.max_storage_size_gb) * (
-                1024**3
-            )
+            space_to_free = (current_size_gb - self.config.max_storage_size_gb) * (1024**3)
             freed_space = self._free_storage_space(space_to_free)
             optimization_results["space_freed_mb"] = freed_space / (1024**2)
             optimization_results["actions_taken"].append("freed_storage_space")
@@ -109,20 +105,18 @@ class CheckpointOptimizer:
         with sqlite3.connect(self.storage.db_path) as conn:
             old_checkpoints = conn.execute("""
                 SELECT checkpoint_id, size_bytes, created_at, status
-                FROM checkpoints 
+                FROM checkpoints
                 WHERE status IN ('completed', 'expired')
                 ORDER BY created_at ASC
             """).fetchall()
 
-        for checkpoint_id, size_bytes, created_at, status in old_checkpoints:
+        for checkpoint_id, size_bytes, _, _ in old_checkpoints:
             if freed_bytes >= target_bytes:
                 break
 
             if self.storage.delete_checkpoint(checkpoint_id):
                 freed_bytes += size_bytes
-                logger.info(
-                    f"Deleted old checkpoint {checkpoint_id} ({size_bytes} bytes)"
-                )
+                logger.info(f"Deleted old checkpoint {checkpoint_id} ({size_bytes} bytes)")
 
         return freed_bytes
 
@@ -133,7 +127,7 @@ class CheckpointOptimizer:
             return 0
 
         archived_count = 0
-        cutoff_date = datetime.utcnow() - timedelta(days=days_old)
+        cutoff_date = datetime.now(tz=timezone.utc) - timedelta(days=days_old)
 
         # Create backup directory
         backup_path = Path(self.config.backup_path)
@@ -174,9 +168,7 @@ class CheckpointOptimizer:
                     logger.info(f"Archived checkpoint {metadata.checkpoint_id}")
 
                 except Exception as e:
-                    logger.error(
-                        f"Failed to archive checkpoint {metadata.checkpoint_id}: {e}"
-                    )
+                    logger.error(f"Failed to archive checkpoint {metadata.checkpoint_id}: {e}")
 
         return archived_count
 
@@ -187,12 +179,12 @@ class CheckpointOptimizer:
 
         with sqlite3.connect(self.storage.db_path) as conn:
             uncompressed = conn.execute("""
-                SELECT checkpoint_id, file_path 
-                FROM checkpoints 
+                SELECT checkpoint_id, file_path
+                FROM checkpoints
                 WHERE compression = 0 AND status = 'active'
             """).fetchall()
 
-        for checkpoint_id, file_path in uncompressed:
+        for checkpoint_id, _ in uncompressed:
             try:
                 # Load and recompress
                 metadata, data = self.storage.load_checkpoint(checkpoint_id)
@@ -218,7 +210,7 @@ class CheckpointOptimizer:
         with sqlite3.connect(self.storage.db_path) as conn:
             checkpoints = conn.execute("""
                 SELECT checkpoint_id, process_id, checkpoint_type, checksum, created_at
-                FROM checkpoints 
+                FROM checkpoints
                 WHERE status = 'active'
                 ORDER BY process_id, checkpoint_type, created_at
             """).fetchall()
@@ -238,7 +230,7 @@ class CheckpointOptimizer:
             checksum_groups[key].append((checkpoint_id, created_at))
 
         # Remove older duplicates
-        for key, group in checksum_groups.items():
+        for _, group in checksum_groups.items():
             if len(group) > 1:
                 # Sort by creation time, keep newest
                 group.sort(key=lambda x: x[1], reverse=True)
@@ -250,7 +242,7 @@ class CheckpointOptimizer:
 
         return deduplicated_count
 
-    def analyze_performance(self) -> Dict[str, Any]:
+    def analyze_performance(self) -> dict[str, Any]:
         """Analyze checkpoint system performance"""
 
         analysis = {
@@ -262,9 +254,7 @@ class CheckpointOptimizer:
 
         # Generate recommendations
         if analysis["storage_efficiency"]["compression_ratio"] < 0.5:
-            analysis["recommendations"].append(
-                "Enable compression for better storage efficiency"
-            )
+            analysis["recommendations"].append("Enable compression for better storage efficiency")
 
         if analysis["storage_efficiency"]["fragmentation_ratio"] > 0.3:
             analysis["recommendations"].append("Consider storage defragmentation")
@@ -274,7 +264,7 @@ class CheckpointOptimizer:
 
         return analysis
 
-    def _analyze_storage_efficiency(self) -> Dict[str, float]:
+    def _analyze_storage_efficiency(self) -> dict[str, float]:
         """Analyze storage efficiency metrics"""
 
         stats = self.storage.get_storage_stats()
@@ -307,9 +297,7 @@ class CheckpointOptimizer:
                 if (storage_path / "data").exists()
                 else 0
             )
-            fragmentation_ratio = (
-                (total_files - data_files) / total_files if total_files > 0 else 0
-            )
+            fragmentation_ratio = (total_files - data_files) / total_files if total_files > 0 else 0
         else:
             fragmentation_ratio = 0
 
@@ -320,7 +308,7 @@ class CheckpointOptimizer:
             / (self.config.max_storage_size_gb * 1024),
         }
 
-    def _analyze_access_patterns(self) -> Dict[str, float]:
+    def _analyze_access_patterns(self) -> dict[str, float]:
         """Analyze checkpoint access patterns"""
 
         # This would be enhanced with actual access logging
@@ -330,7 +318,7 @@ class CheckpointOptimizer:
             "frequent_access_ratio": 0.2,  # Placeholder
         }
 
-    def _get_performance_metrics(self) -> Dict[str, Any]:
+    def _get_performance_metrics(self) -> dict[str, Any]:
         """Get current performance metrics"""
 
         # System resource usage
@@ -366,9 +354,7 @@ class CheckpointMonitor:
             return
 
         self.monitoring_active = True
-        self.monitor_thread = threading.Thread(
-            target=self._monitoring_loop, daemon=True
-        )
+        self.monitor_thread = threading.Thread(target=self._monitoring_loop, daemon=True)
         self.monitor_thread.start()
 
         logger.info("Started checkpoint monitoring")
@@ -392,7 +378,7 @@ class CheckpointMonitor:
                 self.metrics_history.append(metrics)
 
                 # Keep only last 24 hours of metrics
-                cutoff_time = datetime.utcnow() - timedelta(hours=24)
+                cutoff_time = datetime.now(tz=timezone.utc) - timedelta(hours=24)
                 self.metrics_history = [
                     m
                     for m in self.metrics_history
@@ -413,13 +399,13 @@ class CheckpointMonitor:
                 logger.error(f"Monitoring error: {e}")
                 time.sleep(60)
 
-    def _collect_metrics(self) -> Dict[str, Any]:
+    def _collect_metrics(self) -> dict[str, Any]:
         """Collect current system metrics"""
 
         stats = self.manager.get_system_stats()
 
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(tz=timezone.utc).isoformat(),
             "storage_stats": stats["storage"],
             "active_processes": stats["active_processes"],
             "system_resources": {
@@ -429,7 +415,7 @@ class CheckpointMonitor:
             },
         }
 
-    def _check_health_issues(self, metrics: Dict[str, Any]):
+    def _check_health_issues(self, metrics: dict[str, Any]):
         """Check for health issues and alert if necessary"""
 
         issues = []
@@ -441,9 +427,7 @@ class CheckpointMonitor:
 
         # Check system resources
         if metrics["system_resources"]["cpu_percent"] > 90:
-            issues.append(
-                f"High CPU usage: {metrics['system_resources']['cpu_percent']:.1f}%"
-            )
+            issues.append(f"High CPU usage: {metrics['system_resources']['cpu_percent']:.1f}%")
 
         if metrics["system_resources"]["memory_percent"] > 90:
             issues.append(
@@ -451,15 +435,13 @@ class CheckpointMonitor:
             )
 
         if metrics["system_resources"]["disk_percent"] > 90:
-            issues.append(
-                f"High disk usage: {metrics['system_resources']['disk_percent']:.1f}%"
-            )
+            issues.append(f"High disk usage: {metrics['system_resources']['disk_percent']:.1f}%")
 
         # Log issues
         for issue in issues:
             logger.warning(f"Health issue detected: {issue}")
 
-    def _should_auto_optimize(self, metrics: Dict[str, Any]) -> bool:
+    def _should_auto_optimize(self, metrics: dict[str, Any]) -> bool:
         """Determine if auto-optimization should run"""
 
         # Optimize if storage is over 80% of limit
@@ -469,12 +451,9 @@ class CheckpointMonitor:
 
         # Optimize if too many completed checkpoints
         completed_count = metrics["storage_stats"]["status_counts"].get("completed", 0)
-        if completed_count > 100:
-            return True
+        return completed_count > 100
 
-        return False
-
-    def get_health_report(self) -> Dict[str, Any]:
+    def get_health_report(self) -> dict[str, Any]:
         """Generate comprehensive health report"""
 
         if not self.metrics_history:
@@ -532,7 +511,7 @@ class CheckpointMonitor:
             "recommendations": self._generate_recommendations(latest_metrics),
         }
 
-    def _generate_recommendations(self, metrics: Dict[str, Any]) -> List[str]:
+    def _generate_recommendations(self, metrics: dict[str, Any]) -> list[str]:
         """Generate recommendations based on current metrics"""
 
         recommendations = []
@@ -557,7 +536,7 @@ class CheckpointMonitor:
 
 # Utility functions
 def create_checkpoint_config(
-    storage_path: str = None,
+    storage_path: str | None = None,
     max_storage_gb: float = 10.0,
     auto_checkpoint_interval: int = 300,
     compression: bool = True,
@@ -578,7 +557,7 @@ def create_checkpoint_config(
 
 
 def setup_checkpoint_system(
-    config: CheckpointConfig = None,
+    config: CheckpointConfig | None = None,
 ) -> tuple[CheckpointManager, CheckpointMonitor]:
     """Setup complete checkpoint system with monitoring"""
 
@@ -613,7 +592,7 @@ async def example_checkpoint_utilities():
         # Create some test checkpoints
         for i in range(5):
             process_id = f"test_process_{i}"
-            state = manager.register_process(
+            manager.register_process(
                 process_id=process_id,
                 task_id="test_task",
                 total_steps=10,
@@ -629,14 +608,14 @@ async def example_checkpoint_utilities():
 
         # Get health report
         health_report = monitor.get_health_report()
-        print("Health Report:")
-        print(json.dumps(health_report, indent=2, default=str))
+        logger.info("Health Report:")
+        logger.info(json.dumps(health_report, indent=2, default=str))
 
         # Run optimization
         optimizer = CheckpointOptimizer(config)
         optimization_results = optimizer.optimize_storage()
-        print("\nOptimization Results:")
-        print(json.dumps(optimization_results, indent=2))
+        logger.info("\nOptimization Results:")
+        logger.info(json.dumps(optimization_results, indent=2))
 
     finally:
         # Cleanup
