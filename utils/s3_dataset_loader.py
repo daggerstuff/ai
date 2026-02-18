@@ -151,13 +151,16 @@ class S3DatasetLoader:
         Returns:
             Tuple of (bucket, key)
         """
-        s3_path = s3_path.removeprefix("s3://")
-
-        if "/" in s3_path:
-            parts = s3_path.split("/", 1)
-            return parts[0], parts[1]
-
-        # Just key, use default bucket
+        # If path starts with s3://, it includes bucket
+        if s3_path.startswith("s3://"):
+            s3_path = s3_path.removeprefix("s3://")
+            if "/" in s3_path:
+                parts = s3_path.split("/", 1)
+                return parts[0], parts[1]
+            # s3://bucket-only (no key)
+            return s3_path, ""
+        
+        # Otherwise, it's just a key - use configured bucket
         return self.bucket, s3_path
 
     def object_exists(self, s3_path: str) -> bool:
