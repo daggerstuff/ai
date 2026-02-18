@@ -15,7 +15,7 @@ except ImportError:
 class DataDesignerConfig:
     """Configuration for NeMo Data Designer client."""
 
-    base_url: str = "http://localhost:8000"  # Default for local Docker Compose
+    base_url: str = "http://localhost:8080"  # Envoy gateway endpoint
     api_key: Optional[str] = None
     timeout: int = 300  # 5 minutes default timeout
     max_retries: int = 3
@@ -38,7 +38,7 @@ class DataDesignerConfig:
         return cls(
             base_url=os.getenv(
                 "NEMO_DATA_DESIGNER_BASE_URL",
-                "http://localhost:8000",
+                "http://localhost:8080",
             ),
             api_key=os.getenv("NVIDIA_API_KEY"),
             timeout=int(os.getenv("NEMO_DATA_DESIGNER_TIMEOUT", "300")),
