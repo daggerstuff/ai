@@ -27,15 +27,13 @@ def test_adaptive_learner():
 
         spec = importlib.util.spec_from_file_location(
             "adaptive_learner",
-            "/home/vivi/pixelated/ai/pipelines/orchestrator/adaptive_learner.py",
+            "/home/vivi/pixelated/ai/dataset_pipeline/adaptive_learner.py",
         )
         importlib.util.module_from_spec(spec)
         # Check if file exists and has proper structure
-        with open(
-            "/home/vivi/pixelated/ai/pipelines/orchestrator/adaptive_learner.py"
-        ) as f:
+        with open("/home/vivi/pixelated/ai/dataset_pipeline/adaptive_learner.py") as f:
             content = f.read()
-            return bool(
+            return (
                 "class AdaptiveLearner" in content
                 and "def start_adaptive_learning" in content
             )
@@ -117,28 +115,7 @@ def main():
     passed = sum(results)
     total = len(results)
 
-    if passed == total:
-        pass
-    else:
-        pass
-
     # Check key capabilities
-    capabilities = [
-        "✅ Multi-format dataset export (JSON, CSV, JSONL, Parquet)",
-        "✅ Tiered access control (Priority → Archive)",
-        "✅ Real-time analytics and monitoring",
-        "✅ Automated maintenance and updates",
-        "✅ Feedback loops for continuous improvement",
-        "✅ Complete API documentation and integration guides",
-    ]
-
-    for _capability in capabilities:
-        pass
-
-    if passed == total:
-        pass
-    else:
-        pass
 
     return passed == total
 

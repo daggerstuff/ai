@@ -49,7 +49,7 @@ from typing import (
 import ray
 
 # Import local checkpoint system
-from checkpoint_system import CheckpointManager
+from .checkpoint_system import CheckpointManager
 from ray.exceptions import RayActorError, RayTaskError, WorkerCrashedError
 
 # Configure logging
@@ -137,12 +137,10 @@ class ExecutorStats:
     progress_percent: float = 0.0
 
     total_execution_time: float = 0.0
-    avg_task_time: float = 0.0
     min_task_time: float = float("inf")
     max_task_time: float = 0.0
 
     total_memory_mb: float = 0.0
-    avg_memory_mb: float = 0.0
     peak_memory_mb: float = 0.0
 
     workers_active: int = 0
@@ -400,12 +398,12 @@ class RayExecutor:
 
         # Create worker actors with resource allocation
         resources = {
-            "CPU": self.config.cpu_per_worker,
-            "memory": self._parse_memory(self.config.memory_per_worker) / (1024 * 1024),
+            "num_cpus": self.config.cpu_per_worker,
+            "memory": self._parse_memory(self.config.memory_per_worker),
         }
 
         if self.config.gpu_per_worker > 0:
-            resources["GPU"] = self.config.gpu_per_worker
+            resources["num_gpus"] = self.config.gpu_per_worker
 
         self.logger.info(f"Creating {num_workers} workers with resources: {resources}")
 

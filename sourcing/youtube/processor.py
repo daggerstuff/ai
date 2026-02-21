@@ -15,20 +15,20 @@ from typing import List, Optional
 
 from ai.sourcing.youtube.api import (
     ChannelAnalyzer,
-    ChannelHunter,
     ChannelHunterConfig,
     YouTubeAPI,
+    YouTubeChannelHunter,
 )
 from ai.sourcing.youtube.models import (
     Channel,
     ChannelQualityThresholds,
-    ChannelRegistry,
     ChannelStatus,
     ContentCategory,
-    LicensingInfo,
     QualityMetrics,
 )
-from ai.sourcing.youtube.monitoring import ChannelMonitor
+
+# Removed unused imports: ChannelRegistry, LicensingInfo, ChannelMonitor
+
 
 logger = logging.getLogger(__name__)
 
@@ -122,7 +122,7 @@ class ChannelProcessor:
             if progress_callback:
                 progress_callback(
                     0.5 + (0.3 * len(results.found_channels) / len(discovered)),
-                    f"Evaluating {channel.channel_name}"
+                    f"Evaluating {channel.channel_name}",
                 )
 
             # Phase 2: Evaluate channel quality
@@ -180,6 +180,7 @@ class ChannelProcessor:
         # Analyze quality metrics
         metrics = QualityMetrics()
         for video in videos[:5]:  # Sample first 5 videos
+            audio_id = video.get("audio_id")
             self._analyze_video(audio_id, metrics)
 
         channel.quality_metrics = metrics
@@ -189,7 +190,7 @@ class ChannelProcessor:
         channel.categories = self.analyzer.classify_category(
             details.get("title", ""),
             details.get("description", ""),
-            [tag for tags in video_tags for tag in tags]
+            [tag for tags in video_tags for tag in tags],
         )
 
         # Detect language
@@ -202,16 +203,14 @@ class ChannelProcessor:
 
         # Verify professional credentials
         is_professional, credentials = self.analyzer.verify_professional(
-            details.get("description", ""),
-            channel.channel_id
+            details.get("description", ""), channel.channel_id
         )
         channel.is_professional = is_professional
         channel.credentials = credentials
 
         # Extract licensing info
         channel.licensing = self.analyzer.extract_licensing_info(
-            details.get("description", ""),
-            video_descriptions
+            details.get("description", ""), video_descriptions
         )
 
         # Set status
@@ -281,7 +280,11 @@ class ChannelProcessor:
 
         for i, channel in enumerate(results.qualified_channels[:50]):
             cats = ", ".join([c.value for c in channel.categories])
-            report += f"| {i+1} | {channel.channel_name} | {channel.subscriber_count:,} | {channel.video_count:,} | {channel.quality_score:.2f} | {channel.primary_language} | {cats} |\n"
+            report += (
+                f"| {i + 1} | {channel.channel_name} | {channel.subscriber_count:,} | "
+                f"{channel.video_count:,} | {channel.quality_score:.2f} | "
+                f"{channel.primary_language} | {cats} |\n"
+            )
 
         return report
 
@@ -295,9 +298,10 @@ class ChannelProcessor:
         """
         import json
 
-        channels_data = []
-        for channel in results.qualified_channels:
-            channels_data.append({
+        # Export qualified channels to JSON
+        # Using list comprehension for better performance
+        channels_data = [
+            {
                 "channel_id": channel.channel_id,
                 "channel_name": channel.channel_name,
                 "channel_url": channel.channel_url,
@@ -312,14 +316,24 @@ class ChannelProcessor:
                 "credentials": channel.credentials,
                 "organization": channel.organization,
                 "licensing": {
-                    "cc_license": channel.licensing.cc_license if channel.licensing else False,
-                    "cc_type": channel.licensing.cc_type if channel.licensing else None,
-                    "commercial_use": channel.licensing.commercial_use if channel.licensing else False,
-                } if channel.licensing else None,
+                    "cc_license": channel.licensing.cc_license
+                    if channel.licensing
+                    else False,
+                    "cc_type": channel.licensing.cc_type
+                    if channel.licensing
+                    else None,
+                    "commercial_use": channel.licensing.commercial_use
+                    if channel.licensing
+                    else False,
+                }
+                if channel.licensing
+                else None,
                 "status": channel.status.value,
-            })
+            }
+            for channel in results.qualified_channels
+        ]
 
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             json.dump(channels_data, f, indent=2)
 
         logger.info(f"Exported {len(channels_data)} channels to {output_path}")

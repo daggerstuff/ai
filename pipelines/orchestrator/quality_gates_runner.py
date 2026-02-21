@@ -367,8 +367,9 @@ def main():
     """Execute Release 0 quality gates"""
     # Load routing config
     config_path = (
-        Path(__file__).parent.parent
-        / "training_ready"
+        Path(__file__).parent.parent.parent
+        / "training"
+        / "ready_packages"
         / "config"
         / "release_0_routing_config.json"
     )
@@ -409,8 +410,9 @@ def main():
 
     # Generate report
     report_path = (
-        Path(__file__).parent.parent
-        / "training_ready"
+        Path(__file__).parent.parent.parent
+        / "training"
+        / "ready_packages"
         / "reports"
         / "release_0_quality_gates_report.json"
     )

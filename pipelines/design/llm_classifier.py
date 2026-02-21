@@ -10,15 +10,17 @@ Uses NVIDIA NIM with GLM4.7 for intelligent classification with reasoning.
 import json
 import logging
 import os
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
+from typing import List, Optional
 
-from openai import OpenAI
-
+from ai.pipelines.design.context_detector import ContextDetector
+from ai.pipelines.design.reasoning_parser import ReasoningOutputParser
+from ai.pipelines.design.situational_awareness import SituationalAwarenessAgent
 from ai.pipelines.design.taxonomy_classifier import (
-    TherapeuticCategory,
     CategoryClassification,
+    TherapeuticCategory,
 )
+from openai import OpenAI
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +35,7 @@ class LLMClassificationConfig:
     max_tokens: int = 2000  # Increased for reasoning models
     confidence_threshold: float = 0.70
     enable_reasoning: bool = True
+    timeout: int = 60  # Timeout for API calls in seconds
 
 
 class LLMTaxonomyClassifier:
@@ -59,60 +62,97 @@ class LLMTaxonomyClassifier:
         self.client = OpenAI(
             api_key=api_key or os.getenv("OPENAI_API_KEY"),
             base_url=os.getenv("OPENAI_BASE_URL") or self.config.base_url,
+            timeout=self.config.timeout,
         )
 
         # System prompt for classification
         self.system_prompt = self._build_system_prompt()
 
+        # Reasoning parser for GLM4.7 output
+        self.reasoning_parser = ReasoningOutputParser()
+
+        # Context detector for educational/theoretical detection
+        self.context_detector = ContextDetector()
+
+        # Situational awareness agent for deeper analysis
+        self.situational_agent = SituationalAwarenessAgent()
+
     def _build_system_prompt(self) -> str:
         """Build the system prompt for classification."""
-        return """You are an expert clinical psychologist specializing in therapeutic conversation analysis.
+        return (
+            "You are an expert clinical psychologist specializing in "
+            "therapeutic conversation classification with CONTEXT "
+            "AWARENESS.\n"
+            "\n"
+            "## CRITICAL CONTEXT RULES\n"
+            "Distinguish between:\n"
+            "1. ACTUAL THERAPY: Patient discussing their OWN issues "
+            '(first-person: "I feel", "my trauma")\n'
+            "2. EDUCATIONAL: Training, discussing therapy techniques "
+            '(third-person: "clients who", "patients with")\n'
+            '3. THEORETICAL: Hypothetical scenarios, "therapists '
+            'might..."\n'
+            "4. META: Talking ABOUT therapy, not doing actual therapy\n"
+            "\n"
+            "IF EDUCATIONAL/THEORETICAL/META → classify as "
+            '"therapeutic_conversation" with confidence <0.60\n'
+            "\n"
+            "## CATEGORIES (strict definitions)\n"
+            "\n"
+            "1. **crisis_support** — ACTIVE, IMMEDIATE danger: "
+            'suicidal ideation (including passive: "better off '
+            'without me"), self-harm, acute crisis RIGHT NOW\n'
+            "\n"
+            "2. **trauma_processing** — Patient's OWN trauma "
+            "experiences: PTSD, abuse, assault, flashbacks, "
+            "nightmares from traumatic events\n"
+            "\n"
+            "3. **relationship_therapy** — Interpersonal conflicts: "
+            "couples, family, partner, domestic issues, "
+            "communication breakdown\n"
+            "\n"
+            "4. **clinical_assessment** — Formal diagnostic "
+            "evaluation: screening tools (PHQ-9, GAD-7), DSM "
+            "criteria, psychiatric intake, medication evaluation\n"
+            "\n"
+            "5. **mental_health_support** — CLINICAL mental health "
+            "symptoms: diagnosed depression, clinical anxiety, "
+            "panic attacks, sleep disorders, OCD, eating disorders, "
+            "substance abuse, specific phobias. ALSO includes "
+            "severe stress, burnout, and emotional overwhelm.\n"
+            "\n"
+            "6. **therapeutic_conversation** — GENERAL life "
+            "challenges, personal growth, self-improvement, "
+            "work-life balance, finding purpose, self-esteem, "
+            "confidence building, career stress, existential "
+            "questions, life transitions. Focus is on optimization "
+            "and growth rather than symptom management.\n"
+            "\n"
+            "## KEY BOUNDARY: mental_health_support vs "
+            "therapeutic_conversation\n"
+            "\n"
+            'Ask: "Is the person describing CLINICAL SYMPTOMS or '
+            'SIGNIFICANT DISTRESS?"\n'
+            '- YES → mental_health_support ("I\'m depressed", '
+            '"panic attacks", "can\'t function", "stress/burnout")\n'
+            '- NO → therapeutic_conversation ("want to improve", '
+            '"finding purpose", "building confidence", '
+            '"career planning")\n'
+            "\n"
+            "## OUTPUT FORMAT\n"
+            "After your analysis, you MUST end with a JSON object:\n"
+            '{"category": "category_name", "confidence": 0.85, '
+            '"reasoning": "brief explanation", "key_indicators": '
+            '["indicator1", "indicator2"]}'
+        )
 
-Your task is to classify therapeutic conversations into ONE of these 6 categories:
-
-1. **therapeutic_conversation** - Standard therapy sessions with general discussion, progress tracking, and therapeutic exploration
-2. **crisis_support** - Active crisis intervention (suicide risk, self-harm, immediate danger)
-3. **mental_health_support** - Mental health guidance (depression, anxiety, stress management, coping strategies)
-4. **trauma_processing** - PTSD, abuse, assault, or trauma-focused therapy
-5. **relationship_therapy** - Couples, family, or interpersonal relationship issues
-6. **clinical_assessment** - Diagnosis, evaluation, intake sessions, or symptom screening
-
-CLASSIFICATION GUIDELINES:
-- **Priority Order**: If multiple categories apply, use this priority:
-  1. crisis_support (if ANY crisis indicators)
-  2. trauma_processing (if processing traumatic events)
-  3. relationship_therapy (if primary focus is relationships)
-  4. clinical_assessment (if diagnostic/evaluation focus)
-  5. mental_health_support (if general mental health focus)
-  6. therapeutic_conversation (default for general sessions)
-
-- **Crisis Indicators**: suicidal thoughts, self-harm, immediate danger, wanting to die
-- **Trauma Indicators**: PTSD symptoms, processing abuse/assault, flashbacks, trauma-specific therapy
-- **Relationship Indicators**: couples therapy, family conflicts, relationship problems
-- **Assessment Indicators**: diagnostic criteria, symptom checklists (PHQ-9, GAD-7), intake evaluations
-- **Mental Health Indicators**: depression/anxiety management, coping strategies, wellness focus
-- **Therapeutic Conversation**: General therapy work without specific crisis/trauma/relationship focus
-
-Respond in JSON format:
-{
-    "category": "category_name",
-    "confidence": 0.85,
-    "reasoning": "Brief explanation of why this category was chosen",
-    "key_indicators": ["indicator1", "indicator2", "indicator3"]
-}
-
-Be decisive but honest about confidence. Use confidence scores:
-- 0.90-1.00: Very clear category indicators
-- 0.75-0.89: Strong indicators with some ambiguity
-- 0.60-0.74: Moderate confidence, could fit multiple categories
-- Below 0.60: Unclear, use therapeutic_conversation as default"""
-
-    def _build_user_prompt(self, conversation_text: str) -> str:
+    def _build_user_prompt(self, conversation_text: str, situation=None) -> str:
         """
-        Build the user prompt with conversation text.
+        Build the user prompt with conversation text and situational context.
 
         Args:
             conversation_text: The conversation to classify
+            situation: Optional SituationalContext from awareness agent
 
         Returns:
             Formatted user prompt
@@ -123,15 +163,41 @@ Be decisive but honest about confidence. Use confidence scores:
                 conversation_text[:4000] + "\n\n[... conversation truncated ...]"
             )
 
+        # Build context hints from situational analysis
+        context_hints = ""
+        if situation:
+            hints = []
+            if situation.is_growth_focused and situation.has_metaphorical_language:
+                hints.append(
+                    "⚠️ GROWTH/METAPHORICAL language detected - NOT literal crisis"
+                )
+            if situation.is_relationship_focused and not situation.is_crisis:
+                hints.append(
+                    "⚠️ RELATIONSHIP context - consider relationship_therapy over crisis"
+                )
+            if situation.has_processing_language:
+                hints.append("⚠️ PROCESSING language - active coping, NOT acute crisis")
+            if situation.is_past_tense:
+                hints.append(
+                    "⚠️ PAST TENSE - historical/processed, NOT current active issue"
+                )
+            if situation.is_assessment:
+                hints.append("⚠️ ASSESSMENT markers - consider clinical_assessment")
+
+            if hints:
+                context_hints = "\n\n**CONTEXTUAL AWARENESS:**\n" + "\n".join(hints)
+                if situation.reasoning:
+                    context_hints += f"\n**Analysis**: {situation.reasoning}"
+
         return f"""Classify this therapeutic conversation:
 
-{conversation_text}
+{conversation_text}{context_hints}
 
-Provide your classification in JSON format."""
+Provide your analysis and end with the JSON classification object."""
 
     def classify(self, conversation_text: str) -> CategoryClassification:
         """
-        Classify a conversation using LLM.
+        Classify a conversation using LLM with context awareness.
 
         Args:
             conversation_text: The conversation text to classify
@@ -140,13 +206,27 @@ Provide your classification in JSON format."""
             Classification result with category, confidence, and reasoning
         """
         try:
+            # Pre-check context to help LLM
+            context = self.context_detector.detect_context(conversation_text)
+
+            # Get situational awareness
+            situation = self.situational_agent.analyze(conversation_text)
+
+            # If strongly educational/theoretical, downgrade confidence
+            if not context.is_therapeutic and context.confidence >= 0.8:
+                logger.info(
+                    f"Educational/theoretical context detected: {context.indicators}"
+                )
+                # Still send to LLM but it will be informed via prompt
             response = self.client.chat.completions.create(
                 model=self.config.model,
                 messages=[
                     {"role": "system", "content": self.system_prompt},
                     {
                         "role": "user",
-                        "content": self._build_user_prompt(conversation_text),
+                        "content": self._build_user_prompt(
+                            conversation_text, situation
+                        ),
                     },
                 ],
                 temperature=self.config.temperature,
@@ -163,7 +243,8 @@ Provide your classification in JSON format."""
             if not content:
                 raise ValueError(f"Empty response from LLM. Full response: {response}")
 
-            # Try to extract JSON from response (handle markdown code blocks and reasoning text)
+            # Try to extract JSON from response
+            # (handle markdown code blocks and reasoning text)
             content = content.strip()
 
             # Remove markdown code fences
@@ -175,17 +256,40 @@ Provide your classification in JSON format."""
                 content = content[:-3]
             content = content.strip()
 
-            # Try to find JSON object in the content
-            # Some models may include reasoning text before/after JSON
-            start_idx = content.find("{")
-            end_idx = content.rfind("}")
+            # GLM4.7 is a reasoning model that provides analysis, not JSON
+            # Try two strategies:
+            # 1. Look for JSON in the response (if prompt worked)
+            # 2. Parse the reasoning text using our dedicated parser
 
-            if start_idx != -1 and end_idx != -1 and start_idx < end_idx:
-                json_str = content[start_idx : end_idx + 1]
-                result = json.loads(json_str)
-            else:
-                # Fallback: try parsing whole content
-                result = json.loads(content)
+            import re
+
+            # Strategy 1: Look for JSON objects
+            json_pattern = r"\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}"
+            json_matches = list(re.finditer(json_pattern, content))
+
+            result = None
+            for match in reversed(json_matches):
+                json_str = match.group()
+                try:
+                    candidate = json.loads(json_str)
+                    if "category" in candidate and "confidence" in candidate:
+                        result = candidate
+                        logger.debug(f"Found valid JSON at position {match.start()}")
+                        break
+                except json.JSONDecodeError:
+                    continue
+
+            # Strategy 2: If no JSON found, parse the reasoning text
+            if not result:
+                logger.info("No JSON found - using reasoning parser")
+                parsed_result = self.reasoning_parser.parse_reasoning_output(content)
+                # Convert CategoryClassification to dict format
+                result = {
+                    "category": parsed_result.category.value,
+                    "confidence": parsed_result.confidence,
+                    "reasoning": parsed_result.reasoning,
+                    "key_indicators": parsed_result.keywords_detected,
+                }
 
             # Validate category
             category_str = result.get("category", "therapeutic_conversation")
@@ -200,6 +304,32 @@ Provide your classification in JSON format."""
             confidence = float(result.get("confidence", 0.70))
             reasoning = result.get("reasoning", "LLM classification")
             key_indicators = result.get("key_indicators", [])
+
+            # Post-process with context detector
+            # If educational context detected, cap confidence
+            # and ensure appropriate category
+            if not context.is_therapeutic and context.confidence >= 0.7:
+                # Force lower confidence for educational content
+                if confidence > 0.65:
+                    confidence = min(confidence, 0.55)
+                    reasoning += (
+                        " [Context: Educational/theoretical - confidence capped]"
+                    )
+
+                # Downgrade crisis/trauma to general therapeutic if educational
+                if category in [
+                    TherapeuticCategory.CRISIS_SUPPORT,
+                    TherapeuticCategory.TRAUMA_PROCESSING,
+                ]:
+                    logger.warning(
+                        "Educational context detected but classified as "
+                        f"{category.value} - downgrading to "
+                        "therapeutic_conversation"
+                    )
+                    category = TherapeuticCategory.THERAPEUTIC_CONVERSATION
+                    reasoning += (
+                        " [Downgraded from crisis/trauma due to educational context]"
+                    )
 
             return CategoryClassification(
                 category=category,
@@ -267,11 +397,14 @@ def main():
     test_text = (
         args.text
         or """
-    Patient: I've been having intrusive thoughts about the car accident. 
+    Patient: I've been having intrusive thoughts about the car accident.
     I keep seeing it happen over and over again.
-    Therapist: Those sound like flashbacks. Can you tell me more about when these occur?
-    Patient: Mostly when I'm driving or hear loud noises. My heart races and I feel like I'm back there.
-    Therapist: That's a common PTSD symptom. Let's work on some grounding techniques.
+    Therapist: Those sound like flashbacks. Can you tell me more
+        about when these occur?
+    Patient: Mostly when I'm driving or hear loud noises. My heart
+        races and I feel like I'm back there.
+    Therapist: That's a common PTSD symptom. Let's work on some
+        grounding techniques.
     """
     )
 
