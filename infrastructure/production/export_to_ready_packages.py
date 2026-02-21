@@ -416,7 +416,9 @@ class DatasetExporter:
         if not self.config.create_manifest:
             return None
 
-        manifest_path = self.export_dir / f"{self.config.dataset_name}_manifest.json"
+        manifest_path = (
+            self.config.export_dir / f"{self.config.dataset_name}_manifest.json"
+        )
 
         # Load source metadata if needed
         source_checksum = ""
@@ -490,7 +492,7 @@ class DatasetExporter:
             output_filename += f".{self.config.compression_format}"
         output_filename += f".{self.config.export_format}"
 
-        output_path = self.export_dir / output_filename
+        output_path = self.config.export_dir / output_filename
 
         try:
             # Load and write records

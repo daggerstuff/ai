@@ -26,6 +26,7 @@ from ai.pipelines.design.llm_classifier import (
     LLMTaxonomyClassifier,
     LLMClassificationConfig,
 )
+from ai.pipelines.design.context_detector import ContextDetector
 
 logger = logging.getLogger(__name__)
 
@@ -81,6 +82,7 @@ class HybridTaxonomyClassifier:
         self.llm_classifier = (
             LLMTaxonomyClassifier(config=llm_config) if enable_llm else None
         )
+        self.context_detector = ContextDetector()
 
         self.keyword_confidence_threshold = keyword_confidence_threshold
         self.final_confidence_threshold = final_confidence_threshold
@@ -117,10 +119,85 @@ class HybridTaxonomyClassifier:
                 keywords_detected=[],
             )
 
-        # Step 1: Try keyword-based classification
+        # Step 1: Check context for educational/theoretical content
+        conversation_text = self.keyword_classifier._extract_conversation_text(record)
+        context = self.context_detector.detect_context(conversation_text)
+
+        # Step 2: Try keyword-based classification
         keyword_result = self.keyword_classifier.classify_record(record)
 
-        # If high confidence, use keyword result
+        # Step 3: Override if educational/theoretical context detected
+        if not context.is_therapeutic and context.confidence >= 0.7:
+            # Educational/theoretical - downgrade crisis/trauma even if keywords matched
+            if keyword_result.category in [
+                TherapeuticCategory.CRISIS_SUPPORT,
+                TherapeuticCategory.TRAUMA_PROCESSING,
+            ]:
+                logger.info(
+                    f"Educational context detected - downgrading "
+                    f"{keyword_result.category.value}"
+                )
+                keyword_result = CategoryClassification(
+                    category=TherapeuticCategory.THERAPEUTIC_CONVERSATION,
+                    confidence=0.50,
+                    reasoning=(
+                        f"Educational/theoretical context: "
+                        f"{', '.join(context.indicators[:3])}"
+                    ),
+                    keywords_detected=keyword_result.keywords_detected,
+                )
+
+        # Step 3b: Detect resolved/past-tense crisis or mental health language
+        # "I used to have suicidal thoughts but I'm better now" → NOT crisis
+        text_lower = text.lower()
+        resolved_patterns = [
+            "used to",
+            "years ago",
+            "in the past",
+            "much better now",
+            "i'm better now",
+            "worked through it",
+            "fully processed",
+            "no longer",
+            "overcame",
+            "recovered from",
+            "got over",
+            "moved past",
+            "behind me",
+        ]
+        active_crisis_patterns = [
+            "right now",
+            "currently",
+            "today",
+            "can't take it",
+            "need help now",
+            "i want to",
+            "i'm going to",
+        ]
+        has_resolved = any(p in text_lower for p in resolved_patterns)
+        has_active = any(p in text_lower for p in active_crisis_patterns)
+
+        if has_resolved and not has_active:
+            if keyword_result.category in [
+                TherapeuticCategory.CRISIS_SUPPORT,
+                TherapeuticCategory.MENTAL_HEALTH_SUPPORT,
+            ]:
+                logger.info(
+                    f"Resolved/past context detected - downgrading "
+                    f"{keyword_result.category.value} to "
+                    f"therapeutic_conversation"
+                )
+                keyword_result = CategoryClassification(
+                    category=(TherapeuticCategory.THERAPEUTIC_CONVERSATION),
+                    confidence=0.85,
+                    reasoning=(
+                        "Resolved/past issue: crisis/mental health "
+                        "language present but in past tense context"
+                    ),
+                    keywords_detected=(keyword_result.keywords_detected),
+                )
+
+        # Step 4: If high confidence, use keyword result
         if keyword_result.confidence >= self.keyword_confidence_threshold:
             keyword_result.reasoning = (
                 f"Keyword (high confidence): {keyword_result.reasoning}"

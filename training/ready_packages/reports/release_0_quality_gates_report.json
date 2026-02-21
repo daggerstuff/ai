@@ -1,6 +1,6 @@
 {
   "release": "v2026-01-07",
-  "generated_at": "2026-01-07T07:43:17.031489+00:00",
+  "generated_at": "2026-02-20T21:07:25.223456+00:00",
   "gates": {
     "pii_detection": {
       "gate_name": "PII Detection",
@@ -8,8 +8,8 @@
       "conversations_processed": 1,
       "issues_found": 0,
       "issues": [],
-      "execution_time_seconds": 3.4e-05,
-      "timestamp": "2026-01-07T07:43:17.031343+00:00"
+      "execution_time_seconds": 2.6e-05,
+      "timestamp": "2026-02-20T21:07:25.223345+00:00"
     },
     "provenance_validation": {
       "gate_name": "Provenance Validation",
@@ -22,8 +22,8 @@
           "severity": "WARNING"
         }
       ],
-      "execution_time_seconds": 9e-06,
-      "timestamp": "2026-01-07T07:43:17.031373+00:00"
+      "execution_time_seconds": 5e-06,
+      "timestamp": "2026-02-20T21:07:25.223374+00:00"
     },
     "deduplication": {
       "gate_name": "Deduplication",
@@ -31,8 +31,8 @@
       "conversations_processed": 1,
       "issues_found": 0,
       "issues": [],
-      "execution_time_seconds": 3.1e-05,
-      "timestamp": "2026-01-07T07:43:17.031412+00:00"
+      "execution_time_seconds": 3.2e-05,
+      "timestamp": "2026-02-20T21:07:25.223409+00:00"
     },
     "bias_detection": {
       "gate_name": "Bias Detection",
@@ -40,8 +40,8 @@
       "conversations_processed": 1,
       "issues_found": 0,
       "issues": [],
-      "execution_time_seconds": 2.5e-05,
-      "timestamp": "2026-01-07T07:43:17.031443+00:00"
+      "execution_time_seconds": 1.5e-05,
+      "timestamp": "2026-02-20T21:07:25.223426+00:00"
     }
   },
   "summary": {

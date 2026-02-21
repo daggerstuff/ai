@@ -322,6 +322,7 @@ class ConnectionPool:
         self.create_connection = create_connection
         self._pool: List[sqlite3.Connection] = []
         self._in_use: set = set()
+        self._created_at: dict = {}
         self._lock = threading.Lock()
         self.metrics = DatabaseMetrics()
 
@@ -344,6 +345,7 @@ class ConnectionPool:
             if len(self._in_use) < self.config.pool_size:
                 conn = self.create_connection()
                 self._in_use.add(conn)
+                self._created_at[id(conn)] = time.time()
                 self.metrics.connection_pool_size = len(self._in_use) + len(self._pool)
                 self.metrics.active_connections = len(self._in_use)
                 return conn
@@ -358,9 +360,10 @@ class ConnectionPool:
                 self._in_use.remove(conn)
 
                 # Check if connection should be recycled
-                age_seconds = time.time() - getattr(conn, "_created_at", 0)
+                age_seconds = time.time() - self._created_at.get(id(conn), 0)
                 if age_seconds > self.config.pool_recycle:
                     conn.close()
+                    self._created_at.pop(id(conn), None)
                 else:
                     self._pool.append(conn)
 
@@ -376,6 +379,7 @@ class ConnectionPool:
                     pass
             self._pool.clear()
             self._in_use.clear()
+            self._created_at.clear()
 
 
 class SimpleCache:
@@ -905,7 +909,6 @@ class DatabaseManager:
     def _create_sqlite_connection(self) -> sqlite3.Connection:
         """Create a new SQLite connection with optimizations."""
         conn = sqlite3.connect(str(self.config.database_path), check_same_thread=False)
-        setattr(conn, "_created_at", time.time())
 
         # Set optimization pragmas
         if self.config.enable_wal_mode:

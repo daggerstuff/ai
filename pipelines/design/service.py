@@ -14,7 +14,6 @@ try:
     from nemo_microservices.data_designer.essentials import (
         CategorySamplerParams,
         DataDesignerConfigBuilder,
-        GaussianSamplerParams,
         NeMoDataDesignerClient,
         SamplerColumnConfig,
         SamplerType,
@@ -48,102 +47,370 @@ class NeMoDataDesignerService:
             base_url=self.config.base_url,
             default_headers={"Authorization": f"Bearer {self.config.api_key}"},
         )
-        
+
         # Monkey-patch the client's create method to add column_type to columns
         # This is required for SDK 1.5.0 compatibility with NeMo 25.12 service
         original_create = self.client.create
-        
+
         def patched_create(config_builder=None, wait_until_done=True, **kwargs):
-            # If config_builder provided, build and patch it
+            # If config_builder is provided, use custom implementation
             if config_builder:
-                import requests
                 import time
-                
+
+                import requests
+
                 config = config_builder.build()
                 # Patch columns to include column_type
-                config_dict = config.model_dump(mode='json')
-                for col in config_dict.get('columns', []):
-                    if 'column_type' not in col:
-                        col['column_type'] = 'sampler'
-                
+                config_dict = config.model_dump(mode="json")
+                for col in config_dict.get("columns", []):
+                    if "column_type" not in col:
+                        col["column_type"] = "sampler"
+
                 # Create job via API
                 response = requests.post(
                     f"{self.config.base_url}/v1/data-designer/jobs",
-                    json={"spec": {"num_records": kwargs.get('num_records', 100), "config": config_dict}},
+                    json={
+                        "spec": {
+                            "num_records": kwargs.get("num_records", 100),
+                            "config": config_dict,
+                        }
+                    },
                     headers={"Authorization": f"Bearer {self.config.api_key}"},
                 )
                 response.raise_for_status()
                 job_data = response.json()
-                job_id = job_data['id']
-                
-                logger.info(f"🎨 Creating Data Designer generation job")
-                
+                job_id = job_data["id"]
+
+                logger.info("🎨 Creating Data Designer generation job")
+
                 # If wait_until_done, poll for completion
-                if wait_until_done:
-                    max_wait = self.config.timeout
-                    poll_interval = 2
-                    elapsed = 0
-                    
-                    while elapsed < max_wait:
-                        time.sleep(poll_interval)
-                        elapsed += poll_interval
-                        
-                        # Check job status
-                        status_response = requests.get(
-                            f"{self.config.base_url}/v1/data-designer/jobs/{job_id}",
-                            headers={"Authorization": f"Bearer {self.config.api_key}"},
-                        )
-                        status_response.raise_for_status()
-                        job_status = status_response.json()
-                        
-                        state = job_status.get('status', 'unknown')
-                        
-                        if state in ['completed', 'succeeded', 'success']:
-                            # Job completed, use SDK to fetch results
-                            job_results = self.client.get_job_results(job_id=job_id)
-                            dataset = job_results.load_dataset()
-                            
-                            # Convert DataFrame to list of dicts
-                            try:
-                                import pandas as pd
-                                if isinstance(dataset, pd.DataFrame):
-                                    data = dataset.to_dict('records')
-                                else:
-                                    data = dataset
-                            except ImportError:
+                if not wait_until_done:
+                    # If not waiting, return job ID
+                    class JobResult:
+                        def __init__(self, job_id):
+                            self.id = job_id
+                            self.job_id = job_id
+
+                    return JobResult(job_id)
+
+                max_wait = self.config.timeout
+                poll_interval = 2
+                elapsed = 0
+
+                while elapsed < max_wait:
+                    time.sleep(poll_interval)
+                    elapsed += poll_interval
+
+                    # Check job status
+                    status_response = requests.get(
+                        f"{self.config.base_url}/v1/data-designer/jobs/{job_id}",
+                        headers={"Authorization": f"Bearer {self.config.api_key}"},
+                    )
+                    status_response.raise_for_status()
+                    job_status = status_response.json()
+
+                    state = job_status.get("status", "unknown")
+
+                    if state in ["completed", "succeeded", "success"]:
+                        # Job completed, use SDK to fetch results
+                        job_results = self.client.get_job_results(job_id=job_id)
+                        dataset = job_results.load_dataset()
+
+                        # Convert DataFrame to list of dicts
+                        try:
+                            import pandas as pd
+
+                            if isinstance(dataset, pd.DataFrame):
+                                data = dataset.to_dict("records")
+                            else:
                                 data = dataset
-                            
-                            # Return result wrapped in object with data attribute
-                            class JobResult:
-                                def __init__(self, data):
-                                    self.data = data
-                                    self.dataset = data
-                            
-                            return JobResult(data)
-                        
-                        elif state in ['failed', 'error']:
-                            raise Exception(f"Job {job_id} failed with status: {state}")
-                        
-                        # Log progress every 30s
-                        if elapsed % 30 == 0:
-                            logger.info(f"⏳ Job {job_id} status: {state} ({elapsed}s elapsed)")
-                    
-                    raise TimeoutError(f"Job {job_id} did not complete within {max_wait} seconds")
-                
-                # If not waiting, return job ID
-                class JobResult:
-                    def __init__(self, job_id):
-                        self.id = job_id
-                        self.job_id = job_id
-                return JobResult(job_id)
-            
-            return original_create(config_builder=config_builder, wait_until_done=wait_until_done, **kwargs)
-        
+                        except ImportError:
+                            data = dataset
+
+                        # Return result wrapped in object with data attribute
+                        class JobResult:
+                            def __init__(self, data):
+                                self.data = data
+                                self.dataset = data
+
+                        return JobResult(data)
+
+                    if state in ["failed", "error"]:
+                        raise RuntimeError(f"Job {job_id} failed with status: {state}")
+
+                    # Log progress every 30s
+                    if elapsed % 30 == 0:
+                        logger.info(
+                            f"⏳ Job {job_id} status: {state} ({elapsed}s elapsed)"
+                        )
+
+                raise TimeoutError(
+                    f"Job {job_id} did not complete within {max_wait} seconds"
+                )
+
+            # No config_builder, delegate to original
+            return original_create(
+                config_builder=config_builder,
+                wait_until_done=wait_until_done,
+                **kwargs,
+            )
+
         self.client.create = patched_create
 
         logger.info(
-            f"NeMo Data Designer service initialized with base_url: {self.config.base_url}"
+            "NeMo Data Designer service initialized"
+            f" with base_url: {self.config.base_url}"
         )
+
+    def _build_therapeutic_columns(
+        self,
+        include_demographics: bool,
+        include_symptoms: bool,
+        include_treatments: bool,
+        include_outcomes: bool,
+    ) -> list[SamplerColumnConfig]:
+        """Build column configurations for therapeutic datasets."""
+        columns = []
+
+        if include_demographics:
+            columns.extend(
+                [
+                    SamplerColumnConfig(
+                        name="age",
+                        sampler_type="uniform",
+                        params=UniformSamplerParams(
+                            low=18.0, high=80.0, decimal_places=0
+                        ),
+                    ),
+                    SamplerColumnConfig(
+                        name="gender",
+                        sampler_type="category",
+                        params=CategorySamplerParams(
+                            values=[
+                                "male",
+                                "female",
+                                "non-binary",
+                                "prefer not to say",
+                            ],
+                        ),
+                    ),
+                    SamplerColumnConfig(
+                        name="ethnicity",
+                        sampler_type="category",
+                        params=CategorySamplerParams(
+                            values=[
+                                "White",
+                                "Black or African American",
+                                "Hispanic or Latino",
+                                "Asian",
+                                "Native American",
+                                "Pacific Islander",
+                                "Other",
+                            ],
+                        ),
+                    ),
+                ]
+            )
+
+        if include_symptoms:
+            columns.extend(
+                [
+                    SamplerColumnConfig(
+                        name="primary_diagnosis",
+                        sampler_type="category",
+                        params=CategorySamplerParams(
+                            values=[
+                                "Anxiety Disorders",
+                                "Depressive Disorders",
+                                "Bipolar Disorders",
+                                "PTSD",
+                                "OCD",
+                                "ADHD",
+                                "Personality Disorders",
+                                "Eating Disorders",
+                                "Substance Use Disorders",
+                                "Other",
+                            ],
+                        ),
+                    ),
+                    SamplerColumnConfig(
+                        name="symptom_severity",
+                        sampler_type="uniform",
+                        params=UniformSamplerParams(
+                            low=1.0, high=10.0, decimal_places=0
+                        ),
+                    ),
+                    SamplerColumnConfig(
+                        name="symptom_duration_months",
+                        sampler_type="uniform",
+                        params=UniformSamplerParams(low=0.5, high=120.0),
+                    ),
+                ]
+            )
+
+        if include_treatments:
+            columns.extend(
+                [
+                    SamplerColumnConfig(
+                        name="treatment_type",
+                        sampler_type="category",
+                        params=CategorySamplerParams(
+                            values=[
+                                "Cognitive Behavioral Therapy",
+                                "Dialectical Behavior Therapy",
+                                "Psychodynamic Therapy",
+                                "Humanistic Therapy",
+                                "Medication Only",
+                                "Combined Therapy and Medication",
+                                "Group Therapy",
+                                "Other",
+                            ],
+                        ),
+                    ),
+                    SamplerColumnConfig(
+                        name="session_frequency",
+                        sampler_type="category",
+                        params=CategorySamplerParams(
+                            values=["Weekly", "Bi-weekly", "Monthly", "As needed"],
+                        ),
+                    ),
+                    SamplerColumnConfig(
+                        name="treatment_duration_weeks",
+                        sampler_type="uniform",
+                        params=UniformSamplerParams(
+                            low=1.0, high=104.0, decimal_places=0
+                        ),
+                    ),
+                ]
+            )
+
+        if include_outcomes:
+            columns.extend(
+                [
+                    SamplerColumnConfig(
+                        name="improvement_score",
+                        sampler_type="uniform",
+                        params=UniformSamplerParams(low=0.0, high=10.0),
+                    ),
+                    SamplerColumnConfig(
+                        name="treatment_success",
+                        sampler_type="category",
+                        params=CategorySamplerParams(
+                            values=["Yes", "Partial", "No"],
+                        ),
+                    ),
+                    SamplerColumnConfig(
+                        name="client_satisfaction",
+                        sampler_type="uniform",
+                        params=UniformSamplerParams(
+                            low=1.0, high=5.0, decimal_places=0
+                        ),
+                    ),
+                ]
+            )
+
+        return columns
+
+    def _extract_dataset_from_result(self, job_result: Any) -> Any:
+        """Extract the dataset from a successful job result."""
+        if hasattr(job_result, "load_dataset"):
+            return job_result.load_dataset()
+        if hasattr(job_result, "dataset"):
+            return job_result.dataset
+        return job_result.data if hasattr(job_result, "data") else None
+
+    def _poll_job_status(
+        self, job_result: Any, job_id: str, start_time: float
+    ) -> tuple[Any, float]:
+        """Manually poll the job for completion."""
+        max_wait_time = self.config.timeout
+        poll_interval = 5
+        elapsed = 0
+
+        while elapsed < max_wait_time:
+            time.sleep(poll_interval)
+            elapsed += poll_interval
+
+            try:
+                if hasattr(job_result, "get_job_status"):
+                    status = job_result.get_job_status()
+                    if status in ["completed", "done", "success"] and hasattr(
+                        job_result, "load_dataset"
+                    ):
+                        return job_result.load_dataset(), time.time() - start_time
+                else:
+                    job_status = self.client.get_job_results(job_id=job_id)
+                    if hasattr(job_status, "data") and job_status.data:
+                        return job_status.data, time.time() - start_time
+
+                    if elapsed % 30 == 0:
+                        status = getattr(job_status, "status", "unknown")
+                        logger.info(f"⏳ Job status: {status} ({elapsed}s elapsed)")
+            except Exception as poll_error:
+                logger.warning(f"Error checking job status: {poll_error}")
+                if elapsed > 60:
+                    raise RuntimeError("Failed to poll job status") from poll_error
+
+        raise TimeoutError(
+            f"Job {job_id} did not complete within {max_wait_time} seconds"
+        )
+
+    def _execute_job_with_fallback(
+        self, config_builder: DataDesignerConfigBuilder, num_samples: int
+    ) -> tuple[Any, float]:
+        """
+        Execute job with wait_until_done and fallback to polling.
+        Returns a tuple of (data, elapsed_time).
+        """
+        start_time = time.time()
+        job_result = None
+
+        try:
+            job_result = self.client.create(
+                config_builder=config_builder,
+                num_records=num_samples,
+                wait_until_done=True,
+            )
+
+            if data := self._extract_dataset_from_result(job_result):
+                return data, time.time() - start_time
+
+            job_id = getattr(job_result, "job_id", None) or getattr(
+                job_result, "id", None
+            )
+            if not job_id:
+                raise ValueError("Could not extract dataset from job_result")
+
+            logger.info(f"Job completed, fetching dataset for job_id: {job_id}")
+            data_response = self.client.get_job_results(job_id=job_id)
+            return (
+                getattr(data_response, "data", data_response),
+                time.time() - start_time,
+            )
+
+        except Exception as e:
+            logger.warning(f"wait_until_done failed, trying manual polling: {e}")
+
+            if job_result is None:
+                raise RuntimeError("Failed to create job") from e
+
+            if hasattr(job_result, "wait_until_done"):
+                job_result.wait_until_done()
+                if hasattr(job_result, "load_dataset"):
+                    return job_result.load_dataset(), time.time() - start_time
+                raise ValueError("job_result missing load_dataset method") from e
+
+            job_id = (
+                getattr(job_result, "job_id", None)
+                or getattr(job_result, "id", None)
+                or str(job_result)
+            )
+            logger.info(f"Job created: {job_id}, polling for completion...")
+
+            try:
+                return self._poll_job_status(job_result, job_id, start_time)
+            except TimeoutError as timeout_err:
+                raise timeout_err from e
 
     def generate_therapeutic_dataset(
         self,
@@ -167,305 +434,24 @@ class NeMoDataDesignerService:
             Dictionary containing generated dataset
         """
         config_builder = DataDesignerConfigBuilder()
-        column_names = []
+        columns = self._build_therapeutic_columns(
+            include_demographics,
+            include_symptoms,
+            include_treatments,
+            include_outcomes,
+        )
+        for col in columns:
+            config_builder.add_column(col)
+        column_names = [col.name for col in columns]
 
-        # Demographic columns
-        if include_demographics:
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="age",
-                    sampler_type="uniform",
-                    params=UniformSamplerParams(low=18.0, high=80.0, decimal_places=0),
-                )
-            )
-            column_names.append("age")
-
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="gender",
-                    sampler_type="category",
-                    params=CategorySamplerParams(
-                        values=["male", "female", "non-binary", "prefer not to say"],
-                    ),
-                )
-            )
-            column_names.append("gender")
-
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="ethnicity",
-                    sampler_type="category",
-                    params=CategorySamplerParams(
-                        values=[
-                            "White",
-                            "Black or African American",
-                            "Hispanic or Latino",
-                            "Asian",
-                            "Native American",
-                            "Pacific Islander",
-                            "Other",
-                        ],
-                    ),
-                )
-            )
-            column_names.append("ethnicity")
-
-        # Symptom columns
-        if include_symptoms:
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="primary_diagnosis",
-                    sampler_type="category",
-                    params=CategorySamplerParams(
-                        values=[
-                            "Anxiety Disorders",
-                            "Depressive Disorders",
-                            "Bipolar Disorders",
-                            "PTSD",
-                            "OCD",
-                            "ADHD",
-                            "Personality Disorders",
-                            "Eating Disorders",
-                            "Substance Use Disorders",
-                            "Other",
-                        ],
-                    ),
-                )
-            )
-            column_names.append("primary_diagnosis")
-
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="symptom_severity",
-                    sampler_type="uniform",
-                    params=UniformSamplerParams(low=1.0, high=10.0, decimal_places=0),
-                )
-            )
-            column_names.append("symptom_severity")
-
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="symptom_duration_months",
-                    sampler_type="uniform",
-                    params=UniformSamplerParams(low=0.5, high=120.0),
-                )
-            )
-            column_names.append("symptom_duration_months")
-
-        # Treatment columns
-        if include_treatments:
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="treatment_type",
-                    sampler_type="category",
-                    params=CategorySamplerParams(
-                        values=[
-                            "Cognitive Behavioral Therapy",
-                            "Dialectical Behavior Therapy",
-                            "Psychodynamic Therapy",
-                            "Humanistic Therapy",
-                            "Medication Only",
-                            "Combined Therapy and Medication",
-                            "Group Therapy",
-                            "Other",
-                        ],
-                    ),
-                )
-            )
-            column_names.append("treatment_type")
-
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="session_frequency",
-                    sampler_type="category",
-                    params=CategorySamplerParams(
-                        values=["Weekly", "Bi-weekly", "Monthly", "As needed"],
-                    ),
-                )
-            )
-            column_names.append("session_frequency")
-
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="treatment_duration_weeks",
-                    sampler_type="uniform",
-                    params=UniformSamplerParams(low=1.0, high=104.0, decimal_places=0),
-                )
-            )
-            column_names.append("treatment_duration_weeks")
-
-        # Outcome columns
-        if include_outcomes:
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="improvement_score",
-                    sampler_type="uniform",
-                    params=UniformSamplerParams(low=0.0, high=10.0),
-                )
-            )
-            column_names.append("improvement_score")
-
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="treatment_success",
-                    sampler_type="category",
-                    params=CategorySamplerParams(
-                        values=["Yes", "Partial", "No"],
-                    ),
-                )
-            )
-            column_names.append("treatment_success")
-
-            config_builder.add_column(
-                SamplerColumnConfig(
-                    name="client_satisfaction",
-                    sampler_type="uniform",
-                    params=UniformSamplerParams(low=1.0, high=5.0, decimal_places=0),
-                )
-            )
-            column_names.append("client_satisfaction")
-
-        # Generate the dataset
         logger.info(
             f"Generating {num_samples} synthetic therapeutic dataset samples..."
         )
-        start_time = time.time()
 
         try:
-            # For small datasets, use preview (fast, no job execution)
-            # Preview API only supports up to 10 records
-            # For larger datasets, use job creation with progress polling
-            if num_samples <= 10:
-                logger.info("Using preview API for fast generation...")
-                preview_results = self.client.preview(
-                    config_builder=config_builder,
-                    num_records=num_samples,
-                )
-                elapsed_time = time.time() - start_time
-                logger.info(
-                    f"Dataset generation completed in {elapsed_time:.2f} seconds"
-                )
-
-                # Extract dataset from preview results
-                # PreviewResults has a 'dataset' attribute containing the actual data
-                if hasattr(preview_results, "dataset"):
-                    data = preview_results.dataset
-                elif hasattr(preview_results, "data"):
-                    data = preview_results.data
-                else:
-                    data = preview_results
-            else:
-                # Create the job - use wait_until_done for simplicity
-                # According to docs, job_result has wait_until_done() and load_dataset() methods
-                logger.info("Creating generation job...")
-                try:
-                    # Try using wait_until_done=True first (simplest approach)
-                    job_result = self.client.create(
-                        config_builder=config_builder,
-                        num_records=num_samples,
-                        wait_until_done=True,
-                    )
-
-                    # Load the dataset using the job_result object
-                    if hasattr(job_result, "load_dataset"):
-                        data = job_result.load_dataset()
-                    elif hasattr(job_result, "dataset"):
-                        data = job_result.dataset
-                    elif hasattr(job_result, "data"):
-                        data = job_result.data
-                    else:
-                        # Fallback: try to get job ID and retrieve results
-                        job_id = getattr(job_result, "job_id", None) or getattr(
-                            job_result, "id", None
-                        )
-                        if job_id:
-                            logger.info(
-                                f"Job completed, fetching dataset for job_id: {job_id}"
-                            )
-                            # Try alternative API endpoint
-                            data = self.client.get_job_results(job_id=job_id)
-                            if hasattr(data, "data"):
-                                data = data.data
-                        else:
-                            raise ValueError(
-                                "Could not extract dataset from job_result"
-                            )
-
-                    elapsed_time = time.time() - start_time
-                    logger.info(f"✅ Job completed in {elapsed_time:.2f} seconds")
-
-                except Exception as e:
-                    # If wait_until_done fails, fall back to manual polling
-                    logger.warning(
-                        f"wait_until_done failed, trying manual polling: {e}"
-                    )
-                    job_result = self.client.create(
-                        config_builder=config_builder,
-                        num_records=num_samples,
-                        wait_until_done=False,
-                    )
-
-                    # Use job_result methods if available
-                    if hasattr(job_result, "wait_until_done"):
-                        job_result.wait_until_done()
-                        if hasattr(job_result, "load_dataset"):
-                            data = job_result.load_dataset()
-                        else:
-                            raise ValueError("job_result missing load_dataset method")
-                    else:
-                        # Fallback: manual polling using job_result object
-                        job_id = (
-                            getattr(job_result, "job_id", None)
-                            or getattr(job_result, "id", None)
-                            or str(job_result)
-                        )
-                        logger.info(f"Job created: {job_id}, polling for completion...")
-
-                        max_wait_time = self.config.timeout
-                        poll_interval = 5
-                        elapsed = 0
-
-                        while elapsed < max_wait_time:
-                            time.sleep(poll_interval)
-                            elapsed += poll_interval
-
-                            try:
-                                # Try using job_result methods
-                                if hasattr(job_result, "get_job_status"):
-                                    status = job_result.get_job_status()
-                                    if status in ["completed", "done", "success"]:
-                                        if hasattr(job_result, "load_dataset"):
-                                            data = job_result.load_dataset()
-                                            break
-                                else:
-                                    # Fallback: use client method
-                                    job_status = self.client.get_job_results(
-                                        job_id=job_id
-                                    )
-                                    if hasattr(job_status, "data") and job_status.data:
-                                        data = job_status.data
-                                        break
-
-                                    # Log progress every 30 seconds
-                                    if elapsed % 30 == 0:
-                                        status = getattr(
-                                            job_status, "status", "unknown"
-                                        )
-                                        logger.info(
-                                            f"⏳ Job status: {status} ({elapsed}s elapsed)"
-                                        )
-                            except Exception as poll_error:
-                                logger.warning(
-                                    f"Error checking job status: {poll_error}"
-                                )
-                                if elapsed > 60:
-                                    raise
-                        else:
-                            raise TimeoutError(
-                                f"Job {job_id} did not complete within {max_wait_time} seconds"
-                            )
-
-                    elapsed_time = time.time() - start_time
+            data, elapsed_time = self._execute_job_with_fallback(
+                config_builder, num_samples
+            )
 
             return {
                 "data": data,
@@ -576,7 +562,8 @@ class NeMoDataDesignerService:
             )
             elapsed_time = time.time() - start_time
             logger.info(
-                f"✅ Bias detection dataset generation completed in {elapsed_time:.2f} seconds"
+                "✅ Bias detection dataset generation completed"
+                f" in {elapsed_time:.2f} seconds"
             )
 
             # Load the dataset using the job_result object

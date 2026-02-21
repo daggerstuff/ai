@@ -1,14 +1,14 @@
 {
-  "generated_at": "2026-01-26T01:01:04.648997+00:00",
-  "started_at": "2026-01-26T01:01:03.942621+00:00",
+  "generated_at": "2026-02-20T15:26:24.320514+00:00",
+  "started_at": "2026-02-20T15:26:19.348448+00:00",
   "bucket": "pixel-data",
   "endpoint": "https://s3.us-east-va.io.cloud.ovh.us",
-  "prompts_key": "datasets/consolidated/edge_cases/edge_case_output/edge_case_prompts.jsonl",
-  "output": "ai/training_ready/data/generated/edge_case_synthetic.jsonl",
-  "generated": 50,
-  "crisis_keyword_hits": 4,
+  "prompts_key": "datasets/consolidated/edge_cases/edge_case_output/augmented_prompts_10k.json",
+  "output": "/home/vivi/pixelated/ai/training/ready_packages/data/generated/edge_case_synthetic.jsonl",
+  "generated": 10000,
+  "crisis_keyword_hits": 416,
   "prompt_parse_failures": 0,
   "counts": {
-    "edge_case_prompts": 50
+    "edge_case_prompts": 10000
   }
 }
