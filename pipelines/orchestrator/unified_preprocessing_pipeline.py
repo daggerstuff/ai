@@ -17,6 +17,7 @@ import logging
 import os
 import re
 from collections import OrderedDict
+from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -715,7 +716,11 @@ class UnifiedPreprocessingPipeline:
             return False
 
     def process_dataset(self, source: DataSource) -> list[dict[str, Any]]:
-        """Process a single dataset"""
+        """Process a single dataset (loads all records into memory).
+
+        WARNING: For large datasets (>100MB), prefer stream_process_dataset()
+        which yields records one at a time without accumulating in memory.
+        """
         logger.info(f"Processing dataset: {source.name}")
 
         try:
@@ -728,6 +733,70 @@ class UnifiedPreprocessingPipeline:
         except Exception as e:
             logger.error(f"Error processing {source.name}: {e!s}")
             return []
+
+    def stream_process_dataset(self, source: DataSource) -> Iterator[dict[str, Any]]:
+        """Stream-process a dataset, yielding one record at a time.
+
+        Memory-safe alternative to process_dataset() for large files.
+        Never holds the entire dataset in memory.
+        """
+        logger.info(f"Stream-processing dataset: {source.name}")
+
+        try:
+            if source.format == "jsonl":
+                yield from self._stream_process_jsonl(source)
+                return
+            if source.format == "json":
+                # JSON must be loaded into memory, but we yield records
+                for record in self._process_json(source):
+                    yield record
+                return
+            logger.warning(f"Unsupported format '{source.format}' for {source.name}")
+        except Exception as e:
+            logger.error(f"Error stream-processing {source.name}: {e!s}")
+
+    def _stream_process_jsonl(self, source: DataSource) -> Iterator[dict[str, Any]]:
+        """Stream-process JSONL, yielding one processed record at a time."""
+        processed_count = 0
+
+        if source.path.startswith("s3://"):
+            loader = self._get_s3_loader()
+            if loader is None:
+                logger.error("S3 loader unavailable, cannot process S3 JSONL source")
+                return
+
+            for record in loader.stream_jsonl(source.path):
+                if processed_record := self._process_single_record(record, source):
+                    processed_count += 1
+                    if processed_count % self.PROGRESS_LOG_INTERVAL == 0:
+                        logger.info(
+                            f"Streamed {processed_count} records from {source.name}"
+                        )
+                    yield processed_record
+        else:
+            with open(source.path) as f:
+                for line_num, line in enumerate(f, 1):
+                    try:
+                        record = json.loads(line.strip())
+                        if processed_record := self._process_single_record(
+                            record, source
+                        ):
+                            processed_count += 1
+                            if processed_count % self.PROGRESS_LOG_INTERVAL == 0:
+                                logger.info(
+                                    "Streamed %s records from %s",
+                                    processed_count,
+                                    source.name,
+                                )
+                            yield processed_record
+                    except json.JSONDecodeError as e:
+                        logger.warning(
+                            f"Invalid JSON on line {line_num} of {source.name}: {e!s}"
+                        )
+
+        logger.info(
+            f"Completed streaming {source.name}: {processed_count} valid records"
+        )
 
     def _process_jsonl(self, source: DataSource) -> list[dict[str, Any]]:
         """Process a JSONL format dataset"""
