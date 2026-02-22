@@ -68,4 +68,5 @@ evaluation/
 training_ready/scripts/
 training_ready/data/
 training/ready_packages/platforms/
-/api/
+/api/data/transcripts/ingested/
+training/v1/
