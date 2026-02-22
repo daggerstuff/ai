@@ -16,7 +16,7 @@ from datetime import datetime
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from logger import setup_logger
+from ai.pipelines.orchestrator.logger import setup_logger
 
 
 @dataclass
@@ -357,8 +357,6 @@ class YouTubePlaylistProcessor:
             "--write-info-json",
             "--write-description",
             "--write-thumbnail",
-            "--js-runtimes",
-            "node",
         ]
 
         # Anti-detection measures

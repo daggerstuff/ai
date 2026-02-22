@@ -17,6 +17,7 @@ from ai.sourcing.youtube.models import (
     Channel,
     ChannelRegistry,
     ChannelStatus,
+    ContentCategory,
 )
 
 logger = logging.getLogger(__name__)
@@ -56,7 +57,6 @@ class ChannelRegistryDB:
                 video_count INTEGER DEFAULT 0,
                 total_views INTEGER DEFAULT 0,
                 created_date TEXT,
-                last_updated TEXT,
                 primary_language TEXT DEFAULT 'en',
                 languages TEXT DEFAULT '[]',
                 categories TEXT DEFAULT '[]',
@@ -66,12 +66,11 @@ class ChannelRegistryDB:
                 is_professional INTEGER DEFAULT 0,
                 credentials TEXT DEFAULT '[]',
                 organization TEXT,
-                licensing_info TEXT,
+                notes TEXT,
                 status TEXT DEFAULT 'unknown',
                 health_score REAL DEFAULT 0.0,
                 last_monitored TEXT,
                 tags TEXT DEFAULT '[]',
-                notes TEXT,
                 source TEXT DEFAULT 'api',
                 first_seen TEXT NOT NULL,
                 last_updated TEXT NOT NULL
@@ -82,18 +81,14 @@ class ChannelRegistryDB:
         self.conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_quality ON channels (quality_score)"
         )
-        self.conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_status ON channels (status)"
-        )
+        self.conn.execute("CREATE INDEX IF NOT EXISTS idx_status ON channels (status)")
         self.conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_language ON channels (primary_language)"
         )
 
         self.conn.commit()
 
-    def add_channel(
-        self, channel: Channel
-    ) -> int:
+    def add_channel(self, channel: Channel) -> int:
         """
         Add or update a channel in the registry.
 
@@ -106,32 +101,42 @@ class ChannelRegistryDB:
         now = datetime.now().isoformat()
 
         data = {
-            'channel_id': channel.channel_id,
-            'channel_name': channel.channel_name,
-            'channel_url': channel.channel_url,
-            'subscriber_count': channel.subscriber_count,
-            'video_count': channel.video_count,
-            'total_views': channel.total_views,
-            'created_date': channel.created_date.isoformat() if channel.created_date else None,
-            'last_updated': channel.last_updated.isoformat() if channel.last_updated else None,
-            'primary_language': channel.primary_language,
-            'languages': json.dumps(list(channel.languages)),
-            'categories': json.dumps([c.value for c in channel.categories]),
-            'description': channel.description,
-            'quality_score': channel.quality_score,
-            'quality_metrics': json.dumps(channel.quality_metrics.__dict__()) if channel.quality_metrics else None,
-            'is_professional': 1 if channel.is_professional else 0,
-            'credentials': json.dumps(channel.credentials),
-            'organization': channel.organization,
-            'licensing_info': json.dumps(channel.licensing.__dict__()) if channel.licensing else None,
-            'status': channel.status.value,
-            'health_score': channel.health_score,
-            'last_monitored': channel.last_monitored.isoformat() if channel.last_monitored else None,
-            'tags': json.dumps(channel.tags),
-            'notes': channel.notes,
-            'source': channel.source,
-            'first_seen': now,
-            'last_updated': now,
+            "channel_id": channel.channel_id,
+            "channel_name": channel.channel_name,
+            "channel_url": channel.channel_url,
+            "subscriber_count": channel.subscriber_count,
+            "video_count": channel.video_count,
+            "total_views": channel.total_views,
+            "created_date": channel.created_date.isoformat()
+            if channel.created_date
+            else None,
+            "last_updated": channel.last_updated.isoformat()
+            if channel.last_updated
+            else None,
+            "primary_language": channel.primary_language,
+            "languages": json.dumps(list(channel.languages)),
+            "categories": json.dumps([c.value for c in channel.categories]),
+            "description": channel.description,
+            "quality_score": channel.quality_score,
+            "quality_metrics": json.dumps(channel.quality_metrics.__dict__())
+            if channel.quality_metrics
+            else None,
+            "is_professional": 1 if channel.is_professional else 0,
+            "credentials": json.dumps(channel.credentials),
+            "organization": channel.organization,
+            "licensing_info": json.dumps(channel.licensing.__dict__())
+            if channel.licensing
+            else None,
+            "status": channel.status.value,
+            "health_score": channel.health_score,
+            "last_monitored": channel.last_monitored.isoformat()
+            if channel.last_monitored
+            else None,
+            "tags": json.dumps(channel.tags),
+            "notes": channel.notes,
+            "source": channel.source,
+            "first_seen": now,
+            "last_updated": now,
         }
 
         try:
@@ -181,7 +186,7 @@ class ChannelRegistryDB:
                     source = COALESCE(EXCLUDED.source, :source),
                     last_updated = :last_updated
             """,
-                data
+                data,
             )
 
             self.conn.commit()
@@ -210,7 +215,7 @@ class ChannelRegistryDB:
             """
             SELECT * FROM channels WHERE channel_id = ?
             """,
-            (channel_id,)
+            (channel_id,),
         )
 
         row = cursor.fetchone()
@@ -239,19 +244,15 @@ class ChannelRegistryDB:
         if status_filter:
             cursor.execute(
                 "SELECT * FROM channels WHERE status = ? ORDER BY quality_score DESC",
-                (status_filter.value,)
+                (status_filter.value,),
             )
         else:
-            cursor.execute(
-                "SELECT * FROM channels ORDER BY quality_score DESC"
-            )
+            cursor.execute("SELECT * FROM channels ORDER BY quality_score DESC")
 
         rows = cursor.fetchall()
         return [self._row_to_channel(row) for row in rows]
 
-    def get_channels_by_language(
-        self, language: str
-    ) -> List[Channel]:
+    def get_channels_by_language(self, language: str) -> List[Channel]:
         """
         Get channels that support a specific language.
 
@@ -270,15 +271,13 @@ class ChannelRegistryDB:
             WHERE languages LIKE ?
             ORDER BY quality_score DESC
             """,
-            (f'%"{language}"%',)
+            (f'%"{language}"%',),
         )
 
         rows = cursor.fetchall()
         return [self._row_to_channel(row) for row in rows]
 
-    def get_channels_by_category(
-        self, category: ContentCategory
-    ) -> List[Channel]:
+    def get_channels_by_category(self, category: ContentCategory) -> List[Channel]:
         """
         Get channels that belong to a specific category.
 
@@ -297,15 +296,13 @@ class ChannelRegistryDB:
             WHERE categories LIKE ?
             ORDER BY quality_score DESC
             """,
-            (f'%"{category.value}"%',)
+            (f'%"{category.value}"%',),
         )
 
         rows = cursor.fetchall()
         return [self._row_to_channel(row) for row in rows]
 
-    def update_channel_status(
-        self, channel_id: str, status: ChannelStatus
-    ) -> bool:
+    def update_channel_status(self, channel_id: str, status: ChannelStatus) -> bool:
         """
         Update status of a channel.
 
@@ -324,7 +321,7 @@ class ChannelRegistryDB:
                 SET status = ?, last_monitored = ?
                 WHERE channel_id = ?
                 """,
-                (status.value, datetime.now().isoformat(), channel_id)
+                (status.value, datetime.now().isoformat(), channel_id),
             )
 
             self.conn.commit()
@@ -335,9 +332,7 @@ class ChannelRegistryDB:
             logger.error(f"Failed to update status: {e}")
             return False
 
-    def update_channel_health(
-        self, channel_id: str, health_score: float
-    ) -> bool:
+    def update_channel_health(self, channel_id: str, health_score: float) -> bool:
         """
         Update health score of a channel.
 
@@ -356,7 +351,7 @@ class ChannelRegistryDB:
                 SET health_score = ?, last_monitored = ?
                 WHERE channel_id = ?
                 """,
-                (health_score, datetime.now().isoformat(), channel_id)
+                (health_score, datetime.now().isoformat(), channel_id),
             )
 
             self.conn.commit()
@@ -380,16 +375,18 @@ class ChannelRegistryDB:
         by_status = {row[0]: row[1] for row in cursor.fetchall()}
 
         # Quality distribution
-        cursor.execute("SELECT "
-                    "    quality_score * 10 AS quality_bucket, "
-                    "    COUNT(*) as count "
-                    "FROM channels "
-                    "GROUP BY quality_score * 10 "
-                    "ORDER BY quality_bucket"
-                   )
+        cursor.execute(
+            "SELECT "
+            "    quality_score * 10 AS quality_bucket, "
+            "    COUNT(*) as count "
+            "FROM channels "
+            "GROUP BY quality_score * 10 "
+            "ORDER BY quality_bucket"
+        )
+        quality_dist_raw = cursor.fetchall()
         quality_dist = {
-            f"{i/10:.1f}-{(i+1)/10:.1f}": count
-            for i, count in enumerate(quality_dist)
+            f"{row[0] / 10:.1f}-{(row[0] + 1) / 10:.1f}": row[1]
+            for row in quality_dist_raw
         }
 
         # By language
@@ -400,9 +397,7 @@ class ChannelRegistryDB:
             ORDER BY 2 DESC
             LIMIT 10
         """)
-        by_language = {
-            row[0]: row[1] for row in cursor.fetchall()
-        }
+        by_language = {row[0]: row[1] for row in cursor.fetchall()}
 
         # By category
         cursor.execute("""
@@ -412,43 +407,49 @@ class ChannelRegistryDB:
             ORDER BY 2 DESC
             LIMIT 10
         """)
-        by_category = {
-            row[0]: row[1] for row in cursor.fetchall()
-        }
+        by_category = {row[0]: row[1] for row in cursor.fetchall()}
 
         return {
-            'total': total,
-            'by_status': by_status,
-            'quality_distribution': quality_dist,
-            'by_language': by_language,
-            'by_category': by_category,
+            "total": total,
+            "by_status": by_status,
+            "quality_distribution": quality_dist,
+            "by_language": by_language,
+            "by_category": by_category,
         }
 
     def _row_to_channel(self, row) -> Channel:
         """Convert database row to Channel object."""
         return Channel(
-            channel_id=row['channel_id'],
-            channel_name=row['channel_name'],
-            channel_url=row['channel_url'],
-            subscriber_count=row['subscriber_count'],
-            video_count=row['video_count'],
-            total_views=row['total_views'],
-            created_date=datetime.fromisoformat(row['created_date']) if row['created_date'] else None,
-            last_updated=datetime.fromisoformat(row['last_updated']) if row['last_updated'] else None,
-            primary_language=row['primary_language'],
-            languages=set(json.loads(row['languages'])) if row['languages'] else set(),
-            categories=[ContentCategory(c) for c in json.loads(row['categories'])] if row['categories'] else [],
-            description=row['description'],
-            quality_score=row['quality_score'],
-            is_professional=bool(row['is_professional']),
-            credentials=json.loads(row['credentials']) if row['credentials'] else [],
-            organization=row['organization'],
-            status=ChannelStatus(row['status']),
-            health_score=row['health_score'],
-            last_monitored=datetime.fromisoformat(row['last_monitored']) if row['last_monitored'] else None,
-            tags=json.loads(row['tags']) if row['tags'] else [],
-            notes=row['notes'],
-            source=row['source'],
+            channel_id=row["channel_id"],
+            channel_name=row["channel_name"],
+            channel_url=row["channel_url"],
+            subscriber_count=row["subscriber_count"],
+            video_count=row["video_count"],
+            total_views=row["total_views"],
+            created_date=datetime.fromisoformat(row["created_date"])
+            if row["created_date"]
+            else None,
+            last_updated=datetime.fromisoformat(row["last_updated"])
+            if row["last_updated"]
+            else None,
+            primary_language=row["primary_language"],
+            languages=set(json.loads(row["languages"])) if row["languages"] else set(),
+            categories=[ContentCategory(c) for c in json.loads(row["categories"])]
+            if row["categories"]
+            else [],
+            description=row["description"],
+            quality_score=row["quality_score"],
+            is_professional=bool(row["is_professional"]),
+            credentials=json.loads(row["credentials"]) if row["credentials"] else [],
+            organization=row["organization"],
+            status=ChannelStatus(row["status"]),
+            health_score=row["health_score"],
+            last_monitored=datetime.fromisoformat(row["last_monitored"])
+            if row["last_monitored"]
+            else None,
+            tags=json.loads(row["tags"]) if row["tags"] else [],
+            notes=row["notes"],
+            source=row["source"],
         )
 
     def close(self):
