@@ -5,6 +5,7 @@
 ### Successfully Acquired (3,812 total conversations)
 
 #### 1. **CoT Reasoning Dataset** (300 conversations)
+
 - **Source**: Local (`ai/training_data_consolidated/datasets/cot_reasoning_filtered.json`)
 - **Style**: Chain of Thought reasoning - mental health focused
 - **Format**: Structured therapeutic conversations with reasoning patterns
@@ -17,6 +18,7 @@
   - May include step-by-step clinical reasoning
 
 #### 2. **Mental Health Counseling** (3,512 conversations)
+
 - **Source**: HuggingFace `Amod/mental_health_counseling_conversations`
 - **Style**: Real therapeutic conversations
 - **Format**: Multi-turn client-therapist dialogues
@@ -34,13 +36,15 @@
 ### CoT Reasoning vs Standard Conversations
 
 **CoT (Chain of Thought) Reasoning**:
-- Demonstrates *how* the therapist thinks through problems
+
+- Demonstrates _how_ the therapist thinks through problems
 - Makes reasoning explicit and structured
 - Better for teaching the model clinical reasoning patterns
 - May include more pedagogical elements
 - Often shows step-by-step problem decomposition
 
 **Standard Therapeutic Conversations**:
+
 - Focus on natural dialogue flow
 - Emphasis on empathy and rapport building
 - Real-world interaction patterns
@@ -51,25 +55,30 @@
 ## Training Strategy Options
 
 ### Option 1: **Staged Training** (RECOMMENDED)
+
 Train the model in distinct phases with different datasets:
 
-**Phase 1: Foundation**
+### Phase 1: Foundation
+
 - Dataset: Standard therapeutic conversations (mental_health_counseling)
 - Purpose: Learn natural therapeutic dialogue patterns
 - Epochs: 2-3
 
-**Phase 2: Reasoning Enhancement**
+### Phase 2: Reasoning Enhancement
+
 - Dataset: CoT reasoning datasets
 - Purpose: Learn explicit clinical reasoning patterns
 - Epochs: 1-2
 - Note: Fine-tune on top of Phase 1 checkpoint
 
-**Phase 3: Voice Injection**
+### Phase 3: Voice Injection
+
 - Dataset: Tim Fletcher style-extracted synthetic conversations
 - Purpose: Adopt Tim's teaching style and personality
 - Epochs: 1-2
 
 **Advantages**:
+
 - Clear separation of concerns
 - Can evaluate each phase independently
 - Prevents style conflicts
@@ -78,19 +87,23 @@ Train the model in distinct phases with different datasets:
 ---
 
 ### Option 2: **Mixed Training**
+
 Combine all datasets with weighted sampling:
 
 **Dataset Weights**:
+
 - Standard conversations: 60%
 - CoT reasoning: 20%
 - Tim Fletcher voice: 20%
 
 **Advantages**:
+
 - Single training run
 - Model learns to blend styles naturally
 - Potentially more flexible outputs
 
 **Disadvantages**:
+
 - Risk of style confusion
 - Harder to debug issues
 - Less control over specific behaviors
@@ -98,6 +111,7 @@ Combine all datasets with weighted sampling:
 ---
 
 ### Option 3: **Curriculum Learning** (ADVANCED)
+
 Progressive difficulty increase:
 
 1. Start with CoT reasoning (explicit patterns)
@@ -111,13 +125,14 @@ Progressive difficulty increase:
 ### **Staged Training (Option 1) - Here's Why:**
 
 **Your Goals**:
+
 1. ✅ Natural therapeutic conversation ability
 2. ✅ Clinical reasoning skills
 3. ✅ Tim Fletcher's voice/teaching style
 
 **Training Sequence**:
 
-```
+```text
 Stage 1: Base Therapeutic Skills (3,512 conversations)
 ├── mental_health_counseling
 └── Goal: Natural dialogue, empathy, therapeutic flow
@@ -132,6 +147,7 @@ Stage 3: Voice & Style (TBD - synthetic from Tim Fletcher)
 ```
 
 **Why This Works**:
+
 - Foundation first (largest dataset)
 - Reasoning enhancement second (specialized skill)
 - Voice/personality last (style overlay)
@@ -142,9 +158,10 @@ Stage 3: Voice & Style (TBD - synthetic from Tim Fletcher)
 
 ## Lightning.ai Configuration Notes
 
-### For Staged Training:
+### For Staged Training
 
 **Stage 1 Config** (`moe_training_config.json`):
+
 ```json
 {
   "training": {
@@ -156,6 +173,7 @@ Stage 3: Voice & Style (TBD - synthetic from Tim Fletcher)
 ```
 
 **Stage 2 Config** (continue from Stage 1 checkpoint):
+
 ```json
 {
   "training": {
@@ -168,6 +186,7 @@ Stage 3: Voice & Style (TBD - synthetic from Tim Fletcher)
 ```
 
 **Stage 3 Config** (continue from Stage 2):
+
 ```json
 {
   "training": {
@@ -226,10 +245,15 @@ All datasets use standardized conversation format:
 
 ## Questions to Consider
 
-1. **For CoT datasets**: Do you want the reasoning to be explicit in outputs, or just inform the model's internal processing?
+1. **For CoT datasets**: Do you want the reasoning to
+   be explicit in outputs, or just inform the model's
+   internal processing?
 
-2. **For mixing styles**: Should Tim Fletcher's voice be dominant, or should it blend with clinical patterns?
+2. **For mixing styles**: Should Tim Fletcher's voice be
+   dominant, or should it blend with clinical patterns?
 
-3. **For training duration**: Typical LoRA fine-tuning: 2-5 epochs per stage. How aggressive do you want adaptation?
+3. **For training duration**: Typical LoRA fine-tuning: 2-5
+   epochs per stage. How aggressive do you want adaptation?
 
-4. **For evaluation**: What metrics matter most - empathy, clinical accuracy, or style matching?
+4. **For evaluation**: What metrics matter most - empathy,
+   clinical accuracy, or style matching?

@@ -1,22 +1,26 @@
 # 🎯 MASTER TRAINING EPIC: Mental Health Dataset Consolidation & Training Pipeline
 
+<!-- markdownlint-disable MD060 MD013 MD031 MD058 -->
+
 ## Production Ready | January 2025
 
-> **Single Source of Truth** for all training dataset work, VPS execution, S3 streaming, and training curriculum.
-> This EPIC supersedes all scattered documentation and provides actionable tasks for all coding agents.
+> **Single Source of Truth** for all training dataset work, VPS execution,
+> S3 streaming, and training curriculum.
+> This EPIC supersedes all scattered documentation and provides actionable tasks
+> for all coding agents.
 
 ---
 
 ## 📋 EPIC SUMMARY
 
 | Attribute          | Value                                                                                            |
-|--------------------|--------------------------------------------------------------------------------------------------|
-| **Mission**        | Deliver production-ready mental health training dataset with multi-source transcript integration |
-| **Status**         | 🟡 75% Complete - **Dataset Completion Focus**                                                   |
+| ------------------ | ------------------------------------------------------------------------------------------------ |
 | **Dataset Size**   | 52.20GB across 19,330 objects                                                                    |
-| **Location**       | `s3://pixel-data/` (OVH S3 canonical)                                                            |
 | **Format**         | ChatML JSONL with metadata                                                                       |
+| **Location**       | `s3://pixel-data/` (OVH S3 canonical)                                                            |
+| **Mission**        | Deliver production-ready mental health training dataset with multi-source transcript integration |
 | **Model Target**   | Wayfarer-2-12B / Harbringer-24B mental health specialization                                     |
+| **Status**         | 🟡 75% Complete - **Dataset Completion Focus**                                                    |
 | **Synthetic Data** | Nemotron3 + NeMo Data Designer for cost-effective generation                                     |
 
 ---
@@ -25,7 +29,7 @@
 
 ### Data Flow: Google Drive → VPS → S3 → Training
 
-```
+```text
 ┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
 │  Google Drive   │────▶│   VPS Server    │────▶│   OVH S3        │
 │  (Staging)      │     │  (Processing)   │     │  (Canonical)    │
@@ -40,7 +44,7 @@
 
 ### S3 Canonical Structure
 
-```
+```text
 s3://pixel-data/
 ├── gdrive/processed/
 │   ├── professional_therapeutic/     # Stage 1: 3,512 conversations
@@ -69,6 +73,7 @@ s3://pixel-data/
 ## 🚀 VPS STREAMING PIPELINE SETUP
 
 ### Why VPS + S3 Streaming?
+
 - **Local connection too slow** for large uploads
 - **52.20GB dataset** requires server-side processing
 - **Stream directly** from S3 → process → push back
@@ -141,6 +146,7 @@ wandb login && ./ai/ovh/monitor-training.sh
 ## 📊 TRAINING CURRICULUM 2025
 
 ### Phase A: Continued Pretraining (4 hours)
+
 - Mental health text corpus
 - **ALL transcripts** from multiple sources (see Transcript Sources below)
 - Clinical documentation
@@ -148,53 +154,58 @@ wandb login && ./ai/ovh/monitor-training.sh
 
 ### Phase B: 7-Stage SFT Curriculum (8-12 hours)
 
-| Stage | Name | Weight | Dataset Size | Purpose |
-|-------|------|--------|--------------|---------|
-| 1 | Foundation Therapeutic Dialogue | 25% | 15.2GB | High-quality therapeutic conversations |
-| 2 | Clinical Reasoning | 20% | 8.5GB | Chain-of-thought clinical reasoning |
-| 3 | Crisis Stress Test | 15% | 12.8GB | Edge cases, crisis intervention |
-| 4 | Multi-Source Voice Personas | 15% | 7.1GB | ALL transcripts from diverse sources |
-| 5 | Long Running Therapy | 10% | 5.4GB | Extended sessions, continuity |
-| 6 | Specialized Domains | 10% | 8.9GB | CPTSD, addiction, trauma |
-| 7 | Simulator Tasks | 5% | 3.1GB | Roleplay, therapeutic simulation |
+| Stage | Name                            | Weight | Dataset Size | Purpose                                |
+| ----- | ------------------------------- | ------ | ------------ | -------------------------------------- |
+| 1     | Foundation Therapeutic Dialogue | 25%    | 15.2GB       | High-quality therapeutic conversations |
+| 2     | Clinical Reasoning              | 20%    | 8.5GB        | Chain-of-thought clinical reasoning    |
+| 3     | Crisis Stress Test              | 15%    | 12.8GB       | Edge cases, crisis intervention        |
+| 4     | Multi-Source Voice Personas     | 15%    | 7.1GB        | ALL transcripts from diverse sources   |
+| 5     | Long Running Therapy            | 10%    | 5.4GB        | Extended sessions, continuity          |
+| 6     | Specialized Domains             | 10%    | 8.9GB        | CPTSD, addiction, trauma               |
+| 7     | Simulator Tasks                 | 5%     | 3.1GB        | Roleplay, therapeutic simulation       |
 
 ### 📚 TRANSCRIPT SOURCES (ALL INCLUDED)
 
 We leverage **ALL available transcripts**, not just Tim Fletcher:
 
-| Source | Content Type | Location |
-|--------|-------------|----------|
-| **Tim Fletcher** | CPTSD, narcissism, trauma, shame, recovery | `.notes/transcripts/tim_fletcher/` |
-| **Understood** | ADHD, emotional dysregulation | `.notes/transcripts/Understood/` |
-| **Unfilteredd** | Narcissistic family dynamics | `.notes/transcripts/Unfilteredd/` |
-| **Wu Wei Wisdom** | Attention seeking, validation, inner child | `.notes/transcripts/Wu Wei Wisdom/` |
-| **Veritasium** | Human connection | `.notes/transcripts/Veritasium/` |
-| **WDR** | ADHD diagnosis, mental health | `.notes/transcripts/WDR/` |
-| **Y-Kollektiv** | Educational psychology | `.notes/transcripts/Y-Kollektiv/` |
-| **ZDFheute** | Current affairs/mental health | `.notes/transcripts/ZDFheute Nachrichten/` |
-| **Standalone Files** | Complex trauma characteristics, fears, gratification | `.notes/transcripts/*.txt` |
+| Source               | Content Type                                         | Location                                   |
+| -------------------- | ---------------------------------------------------- | ------------------------------------------ |
+| **Standalone Files** | Complex trauma characteristics, fears, gratification | `.notes/transcripts/*.txt`                 |
+| **Tim Fletcher**     | CPTSD, narcissism, trauma, shame, recovery           | `.notes/transcripts/tim_fletcher/`         |
+| **Understood**       | ADHD, emotional dysregulation                        | `.notes/transcripts/Understood/`           |
+| **Unfilteredd**      | Narcissistic family dynamics                         | `.notes/transcripts/Unfilteredd/`          |
+| **Veritasium**       | Human connection                                     | `.notes/transcripts/Veritasium/`           |
+| **WDR**              | ADHD diagnosis, mental health                        | `.notes/transcripts/WDR/`                  |
+| **Wu Wei Wisdom**    | Attention seeking, validation, inner child           | `.notes/transcripts/Wu Wei Wisdom/`        |
+| **Y-Kollektiv**      | Educational psychology                               | `.notes/transcripts/Y-Kollektiv/`          |
+| **ZDFheute**         | Current affairs/mental health                        | `.notes/transcripts/ZDFheute Nachrichten/` |
 
-**Total Transcript Files**: 150+ unique source files across all directories (Tim Fletcher alone has 80+ files, plus standalone transcript files)
+**Total Transcript Files**: 150+ unique source files across all directories
+(Tim Fletcher alone has 80+ files, plus standalone transcript files)
+
 ### Phase C: Preference Alignment (2 hours)
+
 - ORPO/DPO/KTO implementation
 - Human preference feedback integration
 
 ### Success Metrics
 
-| Metric | Target |
-|--------|--------|
-| Crisis Response Accuracy | ≥85% |
-| Voice Persona Matching | ≥90% |
-| Clinical Reasoning Score | ≥80% |
-| Cultural Competency | ≥75% |
-| Dataset Coverage | 100% |
+| Metric                   | Target |
+| ------------------------ | ------ |
+| Clinical Reasoning Score | ≥80%   |
+| Crisis Response Accuracy | ≥85%   |
+| Cultural Competency      | ≥75%   |
+| Dataset Coverage         | 100%   |
+| Voice Persona Matching   | ≥90%   |
 
 ---
 
 ## 🔄 DATASET CONVERSION & ALIGNMENT
 
 ### Problem: Datasets in Various Formats
+
 Many datasets don't match our ChatML training format. We need to:
+
 1. **Detect format** automatically
 2. **Convert** to ChatML (not erase)
 3. **Validate** conversation structure
@@ -244,7 +255,8 @@ python ai/dataset_pipeline/validation/validate_conversations.py \
 
 ### Long-Running Conversation Extraction ✅ IMPLEMENTED
 
-The `extract_long_running_therapy.py` script supports full S3 streaming with multiple input modes:
+The `extract_long_running_therapy.py` script supports full S3 streaming with
+multiple input modes:
 
 ```bash
 # Extract from default S3 sources (11 pre-configured datasets)
@@ -274,17 +286,17 @@ python ai/training_ready/scripts/extract_long_running_therapy.py \
 ```
 
 **CLI Options:**
-| Option | Description |
-|--------|-------------|
-| `--manifest` | Path to S3 manifest JSON |
-| `--source-key` | S3 key or local path (repeatable) |
-| `--input-dir` | S3 prefix or local dir to scan for JSONL files |
-| `--min-turns` | Minimum conversation turns (default: 20) |
-| `--limit` | Max conversations to extract |
-| `--output` | Local output path (default: long_running_therapy.jsonl) |
-| `--upload-s3` | Upload output to S3 after extraction |
+| Option               | Description                                                            |
+| -------------------- | ---------------------------------------------------------------------- |
+| `--input-dir`        | S3 prefix or local dir to scan for JSONL files                         |
+| `--limit`            | Max conversations to extract                                           |
+| `--manifest`         | Path to S3 manifest JSON                                               |
+| `--min-turns`        | Minimum conversation turns (default: 20)                               |
+| `--output`           | Local output path (default: long_running_therapy.jsonl)                |
 | `--s3-output-prefix` | S3 prefix for upload (default: gdrive/processed/long_running_therapy/) |
-| `--verbose` | Enable detailed progress logging |
+| `--source-key`       | S3 key or local path (repeatable)                                      |
+| `--upload-s3`        | Upload output to S3 after extraction                                   |
+| `--verbose`          | Enable detailed progress logging                                       |
 
 ### Role-Play Enhancement
 
@@ -304,6 +316,7 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
 ### Phase 1: Foundation Completion (Weeks 1-2) - **CURRENT FOCUS**
 
 #### 1.1 Download Missing GDrive Data
+
 - [x] **Tier 1 Priority** (1.16GB, 40% training weight) - **COMPLETE** ✅
   - Evidence: priority_1_FINAL_summary.json, priority_2_FINAL_summary.json, priority_3_FINAL_summary.json
   - Completion date: ~2026-01-25
@@ -312,6 +325,7 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
 - [ ] **Tier 3 CoT Datasets** (86MB) - **PENDING VERIFICATION**
   - Check if already downloaded to VPS
   - If needed:
+
   ```bash
   rclone copy gdrive:datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions ~/datasets/consolidated/cot/
   rclone copy gdrive:datasets/CoT_Philosophical_Understanding ~/datasets/consolidated/cot/
@@ -326,10 +340,12 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
   ```
 
 #### 1.2 Generate Missing Datasets
+
 - [ ] **Edge Case Stress Test Generation** - **PARTIAL: 50/10,000 SAMPLES**
   - Status: Script executed but needs scaling
   - Evidence: `edge_case_synthetic_stats.json` exists with 50 samples
   - **Action**: Re-run with full count:
+
   ```bash
   uv run python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
     --output ai/training_ready/data/generated/edge_case_synthetic.jsonl \
@@ -340,6 +356,7 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
   - Script: `extract_long_running_therapy.py` with full CLI options
   - Features: S3 streaming, directory scanning, batch processing, direct S3 upload
   - **Action**: Execute with:
+
   ```bash
   uv run python ai/training_ready/scripts/extract_long_running_therapy.py \
     --input-dir s3://pixel-data/gdrive/processed/ \
@@ -354,6 +371,7 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
   - Status: Ready for training pipeline
 
 #### 1.3 Quality Optimization
+
 - [x] **Deduplication** ✅ **COMPLETE**
   - Evidence: `DEDUPLICATION_FINDINGS.md`, `full_deduplication_report.json`, `FULL_DEDUPLICATION_SUMMARY.md`
   - Target achieved: <1% duplicate rate
@@ -365,9 +383,11 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
   - Completion date: ~2026-01-26
 
 - [ ] **8-Gate Quality Validation** ✅ **INFRASTRUCTURE READY** (Execute to verify)
+
   ```bash
   uv run python ai/training_ready/scripts/verify_final_dataset.py --report
   ```
+
   - [ ] Coverage Gate: All 14 families present
   - [ ] Leakage Gate: No cross-split duplicates
   - [ ] Distribution Gate: Balanced splits (90/5/5)
@@ -378,7 +398,9 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
   - [ ] Stats Gate: Distribution statistics present
 
 #### 1.4 Final Dataset Compilation
+
 - [ ] **Compile and Upload** - **PENDING** (execute after 1.2 & 1.3)
+
   ```bash
   uv run python ai/training_ready/scripts/compile_final_dataset.py \
     --s3-bucket pixel-data \
@@ -395,7 +417,9 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
 ### Phase 2: Baseline Validation (Weeks 3-4) - **PENDING**
 
 #### 2.1 Stage 1 Training
+
 - [ ] **Launch Foundation Training**
+
   ```bash
   python ai/training_ready/scripts/train_enhanced.py \
     --phase sft --stage 1 \
@@ -408,6 +432,7 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
   - [ ] Safety: ≥ 0.80
 
 #### 2.2 Metrics Analysis
+
 - [ ] Generate metrics dashboard
 - [ ] Identify specific gaps
 - [ ] Decision: Proceed to Phase 3 or optimize current data
@@ -416,9 +441,12 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
 
 ### Phase 3: Conditional Strategic Expansion (Weeks 5-8) - **PENDING**
 
-*Only triggered if Phase 2 metrics show specific gaps*
+#### Trigger Condition
+
+Only triggered if Phase 2 metrics show specific gaps
 
 #### 3.1 Journal Research Searches (6 parallel)
+
 - [ ] Psychotherapy Transcripts Search
 - [ ] Clinical Reasoning Search
 - [ ] Emotion Recognition Search
@@ -427,12 +455,14 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
 - [ ] Motivational Interviewing Search
 
 #### 3.2 HuggingFace Deep Dive
+
 - [ ] Search mental health conversation datasets
 - [ ] Search Chain-of-thought reasoning datasets
 - [ ] Search emotional support datasets
 - [ ] Evaluate and prioritize discoveries
 
 #### 3.3 Integration
+
 - [ ] Integrate top 5 discoveries
 - [ ] Update manifest
 - [ ] Re-run quality validation
@@ -443,68 +473,75 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
 ## 🔒 COMPLIANCE & SAFETY
 
 ### Privacy Protection Checklist
+
 - [ ] Zero PII leakage confirmed
 - [ ] Context-preserving redaction applied
 - [ ] Provenance tracking complete
 - [ ] Licensed psychologist validation
 
 ### Crisis Protocol Verification
+
 - [ ] Suicide/self-harm keyword detection
 - [ ] Empathetic, safe response validation
 - [ ] Crisis hotline references included
 - [ ] Multi-expert review completed
 
 ### 8-Gate Verification System
+
 All gates must pass before training launch:
 
-| Gate | Description | Status |
-|------|-------------|--------|
-| Coverage | All 14 dataset families present | ⏳ |
-| Leakage | No cross-split duplicates | ⏳ |
-| Distribution | Balanced 90/5/5 splits | ⏳ |
-| PII | No requires_review conversations | ⏳ |
-| Provenance | All records have source tracking | ⏳ |
-| Hash | All records have content_hash | ⏳ |
-| Split | Holdout families only in test | ⏳ |
-| Stats | Distribution statistics generated | ⏳ |
+| Gate         | Description                       | Status |
+| ------------ | --------------------------------- | ------ |
+| Coverage     | All 14 dataset families present   | ⏳     |
+| Distribution | Balanced 90/5/5 splits            | ⏳     |
+| Hash         | All records have content_hash     | ⏳     |
+| Leakage      | No cross-split duplicates         | ⏳     |
+| PII          | No requires_review conversations  | ⏳     |
+| Provenance   | All records have source tracking  | ⏳     |
+| Split        | Holdout families only in test     | ⏳     |
+| Stats        | Distribution statistics generated | ⏳     |
 
 ---
 
 ## 📁 KEY FILE REFERENCES
 
 ### Configuration Files
-| File | Purpose |
-|------|---------|
+
+| File                                                      | Purpose             |
+| --------------------------------------------------------- | ------------------- |
 | `ai/training_ready/configs/training_curriculum_2025.json` | Training curriculum |
-| `ai/training_ready/data/s3_manifest.json` | S3 inventory |
-| `ai/training_ready/data/dataset_routing_config.json` | Family routing |
-| `ai/training_ready/data/dataset_coverage_report.json` | Coverage status |
+| `ai/training_ready/data/dataset_coverage_report.json`     | Coverage status     |
+| `ai/training_ready/data/dataset_routing_config.json`      | Family routing      |
+| `ai/training_ready/data/s3_manifest.json`                 | S3 inventory        |
 
 ### Key Scripts
-| Script | Purpose |
-|--------|---------|
-| `ai/training_ready/scripts/compile_final_dataset.py` | Dataset compilation |
-| `ai/training_ready/scripts/verify_final_dataset.py` | 8-gate validation |
-| `ai/training_ready/scripts/enhanced_deduplication.py` | Deduplication |
-| `ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py` | Edge case generation |
-| `ai/training_ready/scripts/build_cptsd_dataset_from_transcripts.py` | CPTSD from transcripts |
-| `ai/training_ready/scripts/extract_long_running_therapy.py` | Long-running conversation extraction (20+ turns) |
+
+| Script                                                              | Purpose                                          |
+| ------------------------------------------------------------------- | ------------------------------------------------ |
+| `ai/training_ready/scripts/build_cptsd_dataset_from_transcripts.py` | CPTSD from transcripts                           |
+| `ai/training_ready/scripts/compile_final_dataset.py`                | Dataset compilation                              |
+| `ai/training_ready/scripts/enhanced_deduplication.py`               | Deduplication                                    |
+| `ai/training_ready/scripts/extract_long_running_therapy.py`         | Long-running conversation extraction (20+ turns) |
+| `ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py` | Edge case generation                             |
+| `ai/training_ready/scripts/verify_final_dataset.py`                 | 8-gate validation                                |
 
 ### Documentation
-| Document | Purpose |
-|----------|---------|
-| `ai/training_ready/MASTER_TRAINING_EPIC.md` | **THIS FILE** - Single source of truth |
-| `ai/training_ready/docs/S3_TRAINING_DATA_STRUCTURE.md` | S3 layout |
-| `ai/training_ready/TRAINING_PLAN.md` | Training strategy |
-| `ai/dataset_pipeline/MasterTrainingPlan.md` | 4-stage training ladder |
-| `docs/prd/mental-health-datasets-expansion.md` | PRD |
-| `docs/epics/mental-health-datasets-expansion.md` | Epic |
+
+| Document                                               | Purpose                                |
+| ------------------------------------------------------ | -------------------------------------- |
+| `ai/dataset_pipeline/MasterTrainingPlan.md`            | 4-stage training ladder                |
+| `ai/training_ready/docs/S3_TRAINING_DATA_STRUCTURE.md` | S3 layout                              |
+| `ai/training_ready/MASTER_TRAINING_EPIC.md`            | **THIS FILE** - Single source of truth |
+| `ai/training_ready/TRAINING_PLAN.md`                   | Training strategy                      |
+| `docs/epics/mental-health-datasets-expansion.md`       | Epic                                   |
+| `docs/prd/mental-health-datasets-expansion.md`         | PRD                                    |
 
 ---
 
 ## 🎯 IMMEDIATE ACTIONS (Copy-Paste Ready)
 
 ### For Dataset Completion
+
 ```bash
 # 1. Download priority datasets (CRITICAL)
 rclone copy gdrive:datasets/datasets-wendy ~/datasets/consolidated/priority_wendy/
@@ -541,29 +578,29 @@ aws s3 ls s3://pixel-data/final_dataset/ --recursive
 
 ## 📊 DATASET FAMILIES INVENTORY
 
-| Family | Status | Count | Stage | Notes |
-|--------|--------|-------|-------|-------|
-| `mental_health_datasets` | ✅ Present | 450 | 1 | Largest family |
-| `professional_therapeutic` | ✅ Present | 3,512 | 1 | High quality |
-| `priority_datasets` | ⚠️ Incomplete | - | 1 | Wendy curated |
-| `cot_reasoning` | ⚠️ Incomplete | - | 2 | Clinical CoT |
-| `edge_case_generator` | ✅ Present | 33 | 3 | Crisis scenarios |
-| `edge_case_resulting_chats` | ⚠️ Partial | 1 | 3 | Needs expansion |
-| `edge_case_synthetic` | ⚠️ Partial | 1 | 3 | Needs generation |
-| `safety_guardrails_annihilator` | ✅ Present | 257 | 3 | Reddit archives |
-| `voice_persona` | ✅ Present | 154+ | 4 | Multi-source (Tim Fletcher, Understood, Wu Wei, etc.) |
-| `video_transcripts` | ✅ Present | 403+ | 4 | ALL transcripts from .notes/transcripts/ |
-| `cptsd` | ⚠️ Incomplete | - | 6 | Needs building from transcripts |
-| `addiction` | ✅ Present | 32 | 6 | Adequate |
-| `long_running_therapy` | ✅ Script Ready | 1 | 5 | Extraction script enhanced |
-| `sarcasm` | ⚠️ Partial | 1 | 6 | Needs expansion |
+| Family                          | Status          | Count | Stage | Notes                                                 |
+| ------------------------------- | --------------- | ----- | ----- | ----------------------------------------------------- |
+| `addiction`                     | ✅ Present      | 32    | 6     | Adequate                                              |
+| `cot_reasoning`                 | ⚠️ Incomplete   | -     | 2     | Clinical CoT                                          |
+| `cptsd`                         | ⚠️ Incomplete   | -     | 6     | Needs building from transcripts                       |
+| `edge_case_generator`           | ✅ Present      | 33    | 3     | Crisis scenarios                                      |
+| `edge_case_resulting_chats`     | ⚠️ Partial      | 1     | 3     | Needs expansion                                       |
+| `edge_case_synthetic`           | ⚠️ Partial      | 1     | 3     | Needs generation                                      |
+| `long_running_therapy`          | ✅ Script Ready | 1     | 5     | Extraction script enhanced                            |
+| `mental_health_datasets`        | ✅ Present      | 450   | 1     | Largest family                                        |
+| `priority_datasets`             | ⚠️ Incomplete   | -     | 1     | Wendy curated                                         |
+| `professional_therapeutic`      | ✅ Present      | 3,512 | 1     | High quality                                          |
+| `safety_guardrails_annihilator` | ✅ Present      | 257   | 3     | Reddit archives                                       |
+| `sarcasm`                       | ⚠️ Partial      | 1     | 6     | Needs expansion                                       |
+| `video_transcripts`             | ✅ Present      | 403+  | 4     | ALL transcripts from .notes/transcripts/              |
+| `voice_persona`                 | ✅ Present      | 154+  | 4     | Multi-source (Tim Fletcher, Understood, Wu Wei, etc.) |
 
 ---
 
 ## 🔗 JIRA & CONFLUENCE LINKS
 
-- **Jira Project**: https://ratchetaf.atlassian.net/browse/KAN
-- **Confluence Index**: https://ratchetaf.atlassian.net/wiki/spaces/PE/pages/7307265
+- **Jira Project**: <https://ratchetaf.atlassian.net/browse/KAN>
+- **Confluence Index**: <https://ratchetaf.atlassian.net/wiki/spaces/PE/pages/7307265>
   - Governance & Licensing: KAN-1
   - Ingestion & Quality Scoring: KAN-7
   - Quality-Aware Curriculum: KAN-2
@@ -578,17 +615,19 @@ aws s3 ls s3://pixel-data/final_dataset/ --recursive
 
 ## 🤖 NEMOTRON3 & NEMO DATA DESIGNER INTEGRATION
 
-> **Cost-Effective Synthetic Data Generation**: Use Nemotron3 and NVIDIA NeMo Data Designer to generate high-quality synthetic therapeutic conversations at scale, saving significant time and money.
+> **Cost-Effective Synthetic Data Generation**: Use Nemotron3 and NVIDIA NeMo
+> Data Designer to generate high-quality synthetic therapeutic conversations at
+> scale, saving significant time and money.
 
 ### Why Nemotron3 + NeMo Data Designer?
 
-| Benefit | Description |
-|---------|-------------|
-| **Cost Savings** | Generate thousands of conversations without expensive API calls |
-| **Quality Control** | Built-in quality scoring and validation |
-| **Scalability** | Batch generate millions of training examples |
-| **Domain Expertise** | Pre-configured for therapeutic/mental health content |
-| **S3 Integration** | Direct pipeline to `s3://pixel-data/` |
+| Benefit              | Description                                                     |
+| -------------------- | --------------------------------------------------------------- |
+| **Cost Savings**     | Generate thousands of conversations without expensive API calls |
+| **Domain Expertise** | Pre-configured for therapeutic/mental health content            |
+| **Quality Control**  | Built-in quality scoring and validation                         |
+| **S3 Integration**   | Direct pipeline to `s3://pixel-data/`                           |
+| **Scalability**      | Batch generate millions of training examples                    |
 
 ### Configuration (from .env)
 
@@ -646,13 +685,13 @@ python ai/data_designer/examples.py  # See integration examples
 
 ### Integration Points
 
-| Component | File | Purpose |
-|-----------|------|---------|
-| Service | `ai/data_designer/service.py` | Main NeMo Data Designer client |
-| Config | `ai/data_designer/config.py` | Environment-based configuration |
-| Integration | `ai/data_designer/integration.py` | Pipeline & bias detection hooks |
-| Ingestion | `ai/training_ready/scripts/ingest_nemotron_datasets.py` | HF → S3 mirroring |
-| Evaluation | `ai/training_ready/scripts/nemotron3_evaluate.py` | Teacher model evaluation |
+| Component   | File                                                    | Purpose                         |
+| ----------- | ------------------------------------------------------- | ------------------------------- |
+| Config      | `ai/data_designer/config.py`                            | Environment-based configuration |
+| Evaluation  | `ai/training_ready/scripts/nemotron3_evaluate.py`       | Teacher model evaluation        |
+| Ingestion   | `ai/training_ready/scripts/ingest_nemotron_datasets.py` | HF → S3 mirroring               |
+| Integration | `ai/data_designer/integration.py`                       | Pipeline & bias detection hooks |
+| Service     | `ai/data_designer/service.py`                           | Main NeMo Data Designer client  |
 
 ### Recommended Workflow
 
@@ -667,7 +706,9 @@ python ai/data_designer/examples.py  # See integration examples
 ## 🎯 QUALITY & COMPLETENESS STANDARDS FOR PHASE 1
 
 ### Therapeutic Data Requirements
+
 Before any data enters training pipeline:
+
 1. **Authenticity**: Real conversations or ethically synthesized scenarios
 2. **Coherence**: Q&A pairs are genuinely related, not topic-adjacent
 3. **Value**: Responses provide genuine therapeutic insight/support
@@ -677,6 +718,7 @@ Before any data enters training pipeline:
 7. **Evidence-Based**: Research-backed recommendations with citations
 
 ### Rejection Criteria
+
 - Buzword-heavy without substance ❌
 - Q&A with unrelated or tangential responses ❌
 - Auto-generated content lacking empathy ❌
@@ -685,6 +727,7 @@ Before any data enters training pipeline:
 - Single-perspective data without diverse therapeutic voices ❌
 
 ### Completeness Requirements (Phase 1 Extended)
+
 - [x] Tim Fletcher (CPTSD education - 91 files)
 - [ ] Understood (ADHD support - NEW)
 - [ ] Unfilteredd (Family dynamics - NEW)
@@ -697,25 +740,26 @@ Before any data enters training pipeline:
 
 ## 📝 CHANGE LOG
 
-| Date | Change | Author |
-|------|--------|--------|
-| 2026-01-30 | Added Quality Standards section; all Phase 1 data must meet therapeutic efficacy requirements | Rovo Dev |
+| Date       | Change                                                                                                                                                                                                           | Author   |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| 2025-01-13 | Updated Jira URLs to metalpixel.atlassian.net                                                                                                                                                                    | AI       |
+| 2025-01-13 | Expanded transcripts to ALL sources (not just Tim Fletcher)                                                                                                                                                      | AI       |
+| 2025-01-13 | Added Nemotron3 & NeMo Data Designer integration section                                                                                                                                                         | AI       |
+| 2025-12-29 | Created MASTER_TRAINING_EPIC consolidating all scattered docs                                                                                                                                                    | AI       |
+| 2025-12-29 | Tim Fletcher integration complete (913 transcripts)                                                                                                                                                              | Team     |
+| 2025-12-29 | 52.20GB dataset confirmed in S3                                                                                                                                                                                  | Team     |
+| 2025-12-29 | Training curriculum 2025 finalized                                                                                                                                                                               | Team     |
+| 2025-12-29 | Enhanced extract_long_running_therapy.py with S3 streaming, upload, and dir scanning                                                                                                                             | AI       |
+| 2026-01-25 | Expanded edge cases with Nightmare Fuel & Ultra Nightmares; added crisis quality filters                                                                                                                         | AI       |
+| 2026-01-25 | Updated status to focus on dataset completion; marked Phase 1 as in progress                                                                                                                                     | AI       |
+| 2026-01-30 | Added Quality Standards section; all Phase 1 data must meet therapeutic efficacy requirements                                                                                                                    | Rovo Dev |
 | 2026-01-30 | **MAJOR UPDATE**: Verified Phase 1 completion (85%); corrected task statuses against actual artifacts; Tier 1, CPTSD, dedup, encoding all COMPLETE; edge cases need scaling; nightmare fuel infrastructure ready | Rovo Dev |
-| 2026-01-30 | Created `.memory/48-completion-verification.md` with artifact-based verification | Rovo Dev |
-| 2026-01-25 | Expanded edge cases with Nightmare Fuel & Ultra Nightmares; added crisis quality filters | AI |
-| 2026-01-25 | Updated status to focus on dataset completion; marked Phase 1 as in progress | AI |
-| 2025-01-13 | Updated Jira URLs to metalpixel.atlassian.net | AI |
-| 2025-01-13 | Expanded transcripts to ALL sources (not just Tim Fletcher) | AI |
-| 2025-01-13 | Added Nemotron3 & NeMo Data Designer integration section | AI |
-| 2025-12-29 | Created MASTER_TRAINING_EPIC consolidating all scattered docs | AI |
-| 2025-12-29 | Tim Fletcher integration complete (913 transcripts) | Team |
-| 2025-12-29 | 52.20GB dataset confirmed in S3 | Team |
-| 2025-12-29 | Training curriculum 2025 finalized | Team |
-| 2025-12-29 | Enhanced extract_long_running_therapy.py with S3 streaming, upload, and dir scanning | AI |
+| 2026-01-30 | Created `.memory/48-completion-verification.md` with artifact-based verification                                                                                                                                 | Rovo Dev |
 
 ---
 
 ## Infrastructure Issue
+
 - **Azure Host Platform**: LOST - Need to find alternative hosting solution
 - **Current Options to Explore**:
   - OVHcloud AI Training (existing S3 integration)
@@ -726,6 +770,8 @@ Before any data enters training pipeline:
 
 ---
 
-**Status: DATASET COMPLETION IN PROGRESS**
+### Status
 
-*This EPIC is the single source of truth for all training dataset work. Update this document when new stages, validators, or data sources are introduced.*
+DATASET COMPLETION IN PROGRESS
+
+_This EPIC is the single source of truth for all training dataset work. Update this document when new stages, validators, or data sources are introduced._

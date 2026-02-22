@@ -10,6 +10,7 @@
 ## Comprehensive Task Checklist
 
 ### Phase 1: Platform Setup & Framework (Days 1-3)
+
 - [ ] **1.1** Set up annotation platform infrastructure
   - [ ] Deploy web-based annotation tool with multi-label support
   - [ ] Implement secure data storage with AES-256 encryption
@@ -46,6 +47,7 @@
   - [ ] Perform security penetration testing
 
 ### Phase 2: Annotator Recruitment & Training (Days 4-7)
+
 - [ ] **2.1** Recruit qualified mental health professional annotators
   - [ ] Post recruitment announcements on professional platforms
   - [ ] Contact university psychology/psychiatry departments
@@ -90,6 +92,7 @@
   - [ ] Prepare ongoing reference materials
 
 ### Phase 3: Primary Annotation Phase (Days 8-12)
+
 - [ ] **3.1** Launch double-blind annotation process
   - [ ] Assign samples to annotator pairs
   - [ ] Distribute annotation workload evenly
@@ -133,6 +136,7 @@
   - [ ] Ensure therapeutic effectiveness scoring
 
 ### Phase 4: Quality Validation & Conflict Resolution (Days 13-14)
+
 - [ ] **4.1** Calculate Cohen's Kappa coefficient for all categories
   - [ ] Compute overall project Kappa
   - [ ] Calculate category-specific Kappa values
@@ -176,6 +180,7 @@
   - [ ] Ensure consistency across annotators
 
 ### Phase 5: Dataset Finalization (Days 15-14)
+
 - [ ] **5.1** Compile final consensus dataset
   - [ ] Merge all resolved annotations
   - [ ] Create unified dataset structure
@@ -221,6 +226,7 @@
 ## Success Criteria Validation
 
 ### Quantitative Targets
+
 - [ ] **Cohen's Kappa**: >0.85 achieved (target: 0.85-0.95)
 - [ ] **Annotation Coverage**: 100% of 5,000+ samples completed
 - [ ] **Quality Score**: >90% average annotator confidence
@@ -228,6 +234,7 @@
 - [ ] **Timeline Adherence**: Complete within 14 days (Jan 24, 2026)
 
 ### Qualitative Standards
+
 - [ ] **Clinical Accuracy**: Expert validation of crisis detection labels
 - [ ] **Cultural Sensitivity**: Diverse annotator perspectives incorporated
 - [ ] **Ethical Compliance**: HIPAA and professional standards met
@@ -236,12 +243,14 @@
 ## Risk Mitigation Status
 
 ### Timeline Risks
+
 - [ ] **Annotator Availability**: Backup annotators recruited and ready
 - [ ] **Quality Issues**: Robust QA processes implemented and tested
 - [ ] **Technical Problems**: Platform alternatives prepared and tested
 - [ ] **Kappa Below Target**: Additional training and calibration sessions planned
 
 ### Quality Risks
+
 - [ ] **Inconsistent Annotations**: Weekly calibration sessions scheduled
 - [ ] **Bias in Annotators**: Diverse recruitment strategy implemented
 - [ ] **Rushed Completion**: Quality checkpoints and reviews integrated
@@ -250,6 +259,7 @@
 ## Deliverables Status
 
 ### Primary Outputs
+
 - [ ] **Consensus Dataset**: 5,000+ labeled therapeutic conversations
 - [ ] **Quality Report**: Comprehensive annotation quality analysis
 - [ ] **Kappa Analysis**: Inter-annotator agreement statistics
@@ -257,6 +267,7 @@
 - [ ] **Training Materials**: Updated guidelines and examples
 
 ### Supporting Documentation
+
 - [ ] **Annotator Performance Metrics**: Individual and team statistics
 - [ ] **Conflict Resolution Log**: All disagreements and resolutions
 - [ ] **Security Compliance Report**: HIPAA and data protection validation

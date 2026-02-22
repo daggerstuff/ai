@@ -1,6 +1,7 @@
 # Environment Management
 
-This directory contains comprehensive environment management for Pixelated Empathy across different deployment environments.
+This directory contains comprehensive environment management for
+  Pixelated Empathy across different deployment environments.
 
 ## Overview
 
@@ -14,7 +15,7 @@ The environment management system provides:
 
 ## Directory Structure
 
-```
+```bash
 config/
 ├── environments/
 │   ├── development.json    # Development environment configuration
@@ -26,21 +27,25 @@ config/
 ## Quick Start
 
 ### Switch to Development Environment
+
 ```bash
 ./scripts/env-manager switch development
 ```
 
 ### List Available Environments
+
 ```bash
 ./scripts/env-manager list
 ```
 
 ### Generate .env File for Staging
+
 ```bash
 ./scripts/env-manager generate staging .env.staging
 ```
 
 ### Compare Environments
+
 ```bash
 ./scripts/env-manager compare development production
 ```
@@ -48,6 +53,7 @@ config/
 ## Environment Configurations
 
 ### Development Environment
+
 - **Purpose**: Local development and testing
 - **Database**: Local PostgreSQL with relaxed security
 - **Debug**: Enabled with detailed logging
@@ -56,6 +62,7 @@ config/
 - **Monitoring**: Basic health checks and metrics
 
 ### Staging Environment
+
 - **Purpose**: Pre-production testing and validation
 - **Database**: Managed PostgreSQL with SSL
 - **Debug**: Disabled with structured logging
@@ -64,6 +71,7 @@ config/
 - **Monitoring**: Full monitoring with Sentry and Datadog
 
 ### Production Environment
+
 - **Purpose**: Live production deployment
 - **Database**: High-availability PostgreSQL with backups
 - **Debug**: Disabled with minimal logging
@@ -74,6 +82,7 @@ config/
 ## Configuration Sections
 
 ### Database Configuration
+
 ```json
 {
   "database": {
@@ -94,6 +103,7 @@ config/
 ```
 
 ### Redis Configuration
+
 ```json
 {
   "redis": {
@@ -109,6 +119,7 @@ config/
 ```
 
 ### API Configuration
+
 ```json
 {
   "api": {
@@ -128,6 +139,7 @@ config/
 ```
 
 ### Authentication Configuration
+
 ```json
 {
   "auth": {
@@ -146,6 +158,7 @@ config/
 ```
 
 ### AI Services Configuration
+
 ```json
 {
   "ai": {
@@ -165,6 +178,7 @@ config/
 ```
 
 ### Monitoring Configuration
+
 ```json
 {
   "monitoring": {
@@ -184,6 +198,7 @@ config/
 ```
 
 ### Feature Flags
+
 ```json
 {
   "features": {
@@ -200,6 +215,7 @@ config/
 ```
 
 ### Security Configuration
+
 ```json
 {
   "security": {
@@ -223,97 +239,123 @@ config/
 ## Environment Manager Commands
 
 ### List Environments
+
 ```bash
 ./scripts/env-manager list
 ```
+
 Shows all available environment configurations.
 
 ### Validate Environment
+
 ```bash
 ./scripts/env-manager validate production
 ```
+
 Validates the JSON syntax and required fields for an environment.
 
 ### Switch Environment
+
 ```bash
 ./scripts/env-manager switch staging
 ```
+
 Switches to the specified environment by generating a new .env file.
 
 ### Show Current Environment
+
 ```bash
 ./scripts/env-manager current
 ```
+
 Displays information about the currently active environment.
 
 ### Generate .env File
+
 ```bash
 ./scripts/env-manager generate production .env.prod
 ```
+
 Generates an .env file for the specified environment.
 
-### Compare Environments
+### Compare Environments 2
+
 ```bash
 ./scripts/env-manager compare development production
 ```
+
 Shows configuration differences between two environments.
 
 ### Create New Environment
+
 ```bash
 ./scripts/env-manager create testing
 ```
+
 Creates a new environment template that can be customized.
 
 ## Environment Variables
 
 ### Required Variables
+
 These variables must be set in your actual environment:
 
 #### Database
+
 - `DB_HOST` - Database server hostname
 - `DB_USERNAME` - Database username
 - `DB_PASSWORD` - Database password
 
 #### Redis
+
 - `REDIS_HOST` - Redis server hostname
 - `REDIS_PASSWORD` - Redis password
 
 #### Authentication
+
 - `JWT_SECRET` - JWT signing secret (minimum 32 characters)
 - `SESSION_SECRET` - Session signing secret (minimum 32 characters)
 - `CSRF_SECRET` - CSRF protection secret (minimum 32 characters)
 
 #### AI Services
+
 - `OPENAI_API_KEY` - OpenAI API key
 - `ANTHROPIC_API_KEY` - Anthropic API key
 
 #### Monitoring
+
 - `SENTRY_DSN` - Sentry error tracking DSN
 - `DATADOG_API_KEY` - Datadog monitoring API key
 
 #### Security
+
 - `ENCRYPTION_KEY` - Data encryption key (32 characters)
 
 ### Optional Variables
+
 These variables have defaults but can be customized:
 
 #### AWS (for S3 storage)
+
 - `AWS_REGION` - AWS region
 - `AWS_ACCESS_KEY_ID` - AWS access key
 - `AWS_SECRET_ACCESS_KEY` - AWS secret key
 - `S3_BUCKET` - S3 bucket name
 
 #### OAuth
+
 - `GOOGLE_CLIENT_ID` - Google OAuth client ID
 - `GOOGLE_CLIENT_SECRET` - Google OAuth client secret
 
 #### CDN
+
 - `CLOUDFLARE_ZONE_ID` - Cloudflare zone ID
 - `CLOUDFLARE_API_TOKEN` - Cloudflare API token
 
 ## Best Practices
 
-### Security
+### Security 2
+
 1. **Never commit .env files** to version control
 2. **Use strong secrets** (minimum 32 characters for keys)
 3. **Rotate secrets regularly** in production
@@ -321,13 +363,15 @@ These variables have defaults but can be customized:
 5. **Enable SSL/TLS** in staging and production
 
 ### Configuration Management
+
 1. **Validate configurations** before deployment
 2. **Use feature flags** to control functionality
 3. **Document configuration changes** in commit messages
 4. **Test configuration changes** in staging first
 5. **Keep environment parity** as close as possible
 
-### Monitoring
+### Monitoring 2
+
 1. **Enable monitoring** in all non-development environments
 2. **Set up alerts** for critical metrics
 3. **Monitor configuration drift** between environments
@@ -339,37 +383,41 @@ These variables have defaults but can be customized:
 ### Common Issues
 
 1. **Invalid JSON Configuration**
+
    ```bash
    # Validate configuration
    ./scripts/env-manager validate production
-   
+
    # Check JSON syntax
    jq . config/environments/production.json
    ```
 
 2. **Missing Environment Variables**
+
    ```bash
    # Check current environment
    ./scripts/env-manager current
-   
+
    # Regenerate .env file
    ./scripts/env-manager switch production
    ```
 
 3. **Configuration Differences**
+
    ```bash
    # Compare environments
    ./scripts/env-manager compare staging production
-   
+
    # Check specific sections
    jq '.database' config/environments/staging.json
    ```
 
 4. **Environment Switch Issues**
+
    ```bash
    # Check prerequisites
    which jq
-   
+
    # Manual .env generation
    ./scripts/env-manager generate development .env.manual
    ```
@@ -396,6 +444,7 @@ If the environment manager fails, you can manually configure:
 The environment management system integrates with:
 
 ### CI/CD Pipeline
+
 ```bash
 # In CI/CD scripts
 ./scripts/env-manager switch $ENVIRONMENT
@@ -403,6 +452,7 @@ The environment management system integrates with:
 ```
 
 ### Docker Compose
+
 ```yaml
 # docker-compose.yml
 services:
@@ -412,9 +462,12 @@ services:
 ```
 
 ### Application Code
+
 ```javascript
 // Load configuration
-const config = require('./config/environments/' + process.env.ENVIRONMENT + '.json');
+const config = require(
+  './config/environments/' + process.env.ENVIRONMENT + '.json',
+)
 ```
 
 ## Support
