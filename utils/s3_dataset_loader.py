@@ -159,7 +159,7 @@ class S3DatasetLoader:
                 return parts[0], parts[1]
             # s3://bucket-only (no key)
             return s3_path, ""
-        
+
         # Otherwise, it's just a key - use configured bucket
         return self.bucket, s3_path
 
@@ -344,13 +344,14 @@ class S3DatasetLoader:
             response = self.s3_client.get_object(Bucket=bucket, Key=key)
             body = response["Body"]
 
-            # Prefer iter_lines() which handles chunk boundaries robustly
-            iter_lines = getattr(body, "iter_lines", None)
-            if callable(iter_lines):
-                yield from self._stream_with_iter_lines(body)
-            else:
-                # Fallback to manual buffering
-                yield from self._stream_with_manual_buffering(body)
+            with contextlib.closing(body):
+                # Prefer iter_lines() which handles chunk boundaries robustly
+                iter_lines = getattr(body, "iter_lines", None)
+                if callable(iter_lines):
+                    yield from self._stream_with_iter_lines(body)
+                else:
+                    # Fallback to manual buffering
+                    yield from self._stream_with_manual_buffering(body)
 
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":
