@@ -15,39 +15,36 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from ai.sourcing.youtube.api_impl import (
-    YouTubeAPI,
-    test_api_connection,
     get_api_quota_status,
-    ChannelAnalyzer,
-    ChannelHunter,
-    ChannelHunterConfig,
-)
-from ai.sourcing.youtube.models import (
-    Channel,
-    ChannelQualityThresholds,
+    test_api_connection,
 )
 from ai.sourcing.youtube.channel_registry import ChannelRegistryDB
+from ai.sourcing.youtube.models import (
+    Channel,
+    ChannelStatus,
+    ContentCategory,
+    LicensingInfo,
+    QualityMetrics,
+)
 
 
 def setup_logging(level: str = "INFO"):
     """Configure logging with color support."""
-    import logging
-
     COLORS = {
-        'RED': '\033[0;31m',
-        'GREEN': '\033[0;32m',
-        'YELLOW': '\033[0;33m',
-        'BLUE': '\033[0;34m',
-        'CYAN': '\033[0;36m',
-        'MAGENTA': '\033[0;35m',
-        'WHITE': '\033[0;37m',
-        'GRAY': '\033[0;90m',
-        'NC': '\033[0m'  # No Color
+        "RED": "\033[0;31m",
+        "GREEN": "\033[0;32m",
+        "YELLOW": "\033[0;33m",
+        "BLUE": "\033[0;34m",
+        "CYAN": "\033[0;36m",
+        "MAGENTA": "\033[0;35m",
+        "WHITE": "\033[0;37m",
+        "GRAY": "\033[0;90m",
+        "NC": "\033[0m",  # No Color
     }
 
     class ColorFormatter(logging.Formatter):
         def format(self, record: logging.LogRecord) -> str:
-            color = COLORS.get(record.levelname, COLORS['WHITE'])
+            color = COLORS.get(record.levelname, COLORS["WHITE"])
             message = record.getMessage()
             levelname = record.levelname
             timestamp = self.formatTime(record, "%H:%M:%S")
@@ -66,10 +63,10 @@ def command_test_connection(args) -> int:
     """Test YouTube API connection and quota."""
     setup_logging(args.verbose)
 
-    load_dotenv('.env.youtube.example', override=True)
+    load_dotenv(".env.youtube.example", override=True)
 
     api_key = None
-    if hasattr(args, 'api_key') and args.api_key:
+    if hasattr(args, "api_key") and args.api_key:
         api_key = args.api_key
 
     print("Testing YouTube API connection...\n")
@@ -82,11 +79,11 @@ def command_check_quota(args) -> int:
     """Check YouTube API quota status."""
     setup_logging(args.verbose)
 
-    load_dotenv('.env.youtube.example', override=True)
+    load_dotenv(".env.youtube.example", override=True)
 
     has_quota, used, limit = get_api_quota_status()
 
-    print(f"Quota Status Check:")
+    print("Quota Status Check:")
     print(f"  Available: {'Yes' if has_quota else 'No'}")
     print(f"  Used Today: {used}/{limit} units")
     print(f"  Remaining: {limit - used} units")
@@ -97,7 +94,7 @@ def command_check_quota(args) -> int:
         print("  - Increase project quota in Google Cloud Console")
     else:
         print(f"\n  Estimated capacity: ~{(limit - used) // 100} searches")
-        print("  Estimated capacity: ~{(limit - used) // 10} channel lookups")
+        print(f"  Estimated capacity: ~{(limit - used) // 10} channel lookups")
 
     return 0
 
@@ -128,15 +125,19 @@ def command_list_registry(args) -> int:
         print("=" * 80)
         print()
         print(f"By Status: {stats['total']:.0f} total")
-        for status, count in sorted(stats['by_status'].items()):
+        for status, count in sorted(stats["by_status"].items()):
             print(f"  {status}: {count}")
         print()
-        print(f"Top Languages:")
-        for lang, count in sorted(stats['by_language'].items(), key=lambda x: -x[1])[:10]:
+        print("Top Languages:")
+        for lang, count in sorted(stats["by_language"].items(), key=lambda x: -x[1])[
+            :10
+        ]:
             print(f"  {lang}: {count}")
         print()
-        print(f"Top Categories:")
-        for cat, count in sorted(stats['by_category'].items(), key=lambda x: -x[1])[:10]:
+        print("Top Categories:")
+        for cat, count in sorted(stats["by_category"].items(), key=lambda x: -x[1])[
+            :10
+        ]:
             print(f"  {cat}: {count}")
         print()
         print("=" * 80)
@@ -157,7 +158,7 @@ def command_list_registry(args) -> int:
                 categories = f"{categories}, ..."
 
             print(
-                f"{status_emoji} {i+1:<3} "
+                f"{status_emoji} {i + 1:<3} "
                 f"{channel.channel_name:<40} "
                 f"{channel.quality_score:<8.2f} "
                 f"{channel.video_count:<8,}"
@@ -177,9 +178,9 @@ def command_init_db(args) -> int:
     with ChannelRegistryDB(db_path) as registry:
         stats = registry.get_statistics()
 
-    print(f"Registry initialized successfully.")
+    print("Registry initialized successfully.")
     print(f"  Total: {stats['total']} channels")
-    print(f"  Ready for channel imports.")
+    print("  Ready for channel imports.")
 
     return 0
 
@@ -188,7 +189,7 @@ def command_import_channels(args) -> int:
     """Import channels from a JSON file."""
     setup_logging(args.verbose)
 
-    load_dotenv('.env.youtube.example', override=True)
+    load_dotenv(".env.youtube.example", override=True)
 
     input_path = Path(args.input)
 
@@ -214,40 +215,38 @@ def command_import_channels(args) -> int:
         for data in channels_data:
             try:
                 # Parse quality metrics
-                metrics = None
-                if data.get('quality_metrics'):
-                    metrics_obj = QualityMetrics(**data['quality_metrics'])
+                if data.get("quality_metrics"):
+                    metrics_obj = QualityMetrics(**data["quality_metrics"])
                 else:
                     metrics_obj = QualityMetrics()
 
                 # Parse licensing info
-                licensing = None
-                if data.get('licensing'):
-                    licensing_obj = LicensingInfo(**data['licensing'])
+                if data.get("licensing"):
+                    licensing_obj = LicensingInfo(**data["licensing"])
                 else:
                     licensing_obj = LicensingInfo()
 
                 # Determine status
-                status = ChannelStatus(data.get('status', 'unknown'))
+                status = ChannelStatus(data.get("status", "unknown"))
 
                 channel = Channel(
-                    channel_id=data['channel_id'],
-                    channel_name=data['channel_name'],
-                    channel_url=data['channel_url'],
-                    subscriber_count=data.get('subscriber_count', 0),
-                    video_count=data.get('video_count', 0),
+                    channel_id=data["channel_id"],
+                    channel_name=data["channel_name"],
+                    channel_url=data["channel_url"],
+                    subscriber_count=data.get("subscriber_count", 0),
+                    video_count=data.get("video_count", 0),
                 )
                 channel.quality_metrics = metrics_obj
                 channel.licensing = licensing_obj
                 channel.status = status
 
                 # Add additional fields
-                channel.primary_language = data.get('primary_language', 'en')
-                channel.languages = set(data.get('languages', ['en']))
+                channel.primary_language = data.get("primary_language", "en")
+                channel.languages = set(data.get("languages", ["en"]))
                 channel.categories = [
                     ChannelStatus.ACTIVE  # Will be parsed correctly
                 ]
-                if k := data.get('categories'):
+                if k := data.get("categories"):
                     channel.categories = [ContentCategory(c) for c in k]
 
                 # Add to registry
@@ -257,7 +256,7 @@ def command_import_channels(args) -> int:
                 print(f"  ✓ {channel.channel_name}: {row_id}")
 
             except Exception as e:
-                print(f"  ✗ Skipping {data.get('channel_name', channel_id)}: {e}")
+                print(f"  ✗ Skipping {data.get('channel_name', 'unknown')}: {e}")
                 skipped += 1
 
         print(f"\nImport complete: {imported} channels, {skipped} skipped")
@@ -285,39 +284,61 @@ Examples:
 
   # Initialize new database
   python -m ai.sourcing.youtube init-db -d channels.db
-        """
+        """,
     )
 
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Test connection
-    test_parser = subparsers.add_parser('test-connection', help='Test YouTube API connection')
-    test_parser.add_argument('--api-key', help='YouTube API key')
-    test_parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+    test_parser = subparsers.add_parser(
+        "test-connection", help="Test YouTube API connection"
+    )
+    test_parser.add_argument("--api-key", help="YouTube API key")
+    test_parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Verbose output"
+    )
     test_parser.set_defaults(func=command_test_connection)
 
     # Check quota
-    quota_parser = subparsers.add_parser('check-quota', help='Check YouTube API quota')
-    quota_parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+    quota_parser = subparsers.add_parser("check-quota", help="Check YouTube API quota")
+    quota_parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Verbose output"
+    )
     quota_parser.set_defaults(func=command_check_quota)
 
     # List registry
-    list_parser = subparsers.add_parser('list-registry', help='List channels in registry')
-    list_parser.add_argument('--registry', '-r', help='Registry database file path')
-    list_parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+    list_parser = subparsers.add_parser(
+        "list-registry", help="List channels in registry"
+    )
+    list_parser.add_argument("--registry", "-r", help="Registry database file path")
+    list_parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Verbose output"
+    )
     list_parser.set_defaults(func=command_list_registry)
 
     # Import channels
-    import_parser = subparsers.add_parser('import-channels', help='Import channels from JSON file')
-    import_parser.add_argument('--input', '-i', required=True, help='Input JSON file path')
-    import_parser.add_argument('--registry', '-r', help='Target registry database file')
-    import_parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+    import_parser = subparsers.add_parser(
+        "import-channels", help="Import channels from JSON file"
+    )
+    import_parser.add_argument(
+        "--input", "-i", required=True, help="Input JSON file path"
+    )
+    import_parser.add_argument("--registry", "-r", help="Target registry database file")
+    import_parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Verbose output"
+    )
     import_parser.set_defaults(func=command_import_channels)
 
     # Initialize database
-    init_parser = subparsers.add_parser('init-db', help='Initialize channel registry database')
-    init_parser.add_argument('--db', '-d', default='channels.db', help='Database file path')
-    init_parser.add_argument('--verbose', '-v', action='store_true', help='Verbose output')
+    init_parser = subparsers.add_parser(
+        "init-db", help="Initialize channel registry database"
+    )
+    init_parser.add_argument(
+        "--db", "-d", default="channels.db", help="Database file path"
+    )
+    init_parser.add_argument(
+        "--verbose", "-v", action="store_true", help="Verbose output"
+    )
     init_parser.set_defaults(func=command_init_db)
 
     args = parser.parse_args()
@@ -330,5 +351,5 @@ Examples:
     return args.command.func(args)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main())
