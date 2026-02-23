@@ -4,6 +4,8 @@ Therapeutic AI Training with MoE Architecture on H100
 Optimized for 12-hour training window with LoRA fine-tuning
 """
 
+
+import contextlib
 import json
 import os
 import signal
@@ -146,7 +148,8 @@ class MoETrainingCallback(TrainerCallback):
             if "epoch" in logs:
                 progress = (logs["epoch"] / args.num_train_epochs) * 100
                 print(
-                    f"📊 Progress: {progress:.1f}% | Loss: {current_loss:.4f} | Step: {self.step_count}"
+                    f"📊 Progress: {progress:.1f}% | "
+                    f"Loss: {current_loss:.4f} | Step: {self.step_count}"
                 )
 
             # Enhanced logging
@@ -174,7 +177,7 @@ def setup_wandb(config_path: str = "wandb_config.json"):
         print("⚠️ No CUDA - using offline mode")
         os.environ["WANDB_MODE"] = "offline"
 
-    run = wandb.init(
+    return wandb.init(
         project=config["project"],
         entity=config.get("entity"),
         name=f"{config['name']}_moe_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
@@ -182,8 +185,6 @@ def setup_wandb(config_path: str = "wandb_config.json"):
         notes=f"MoE training with LoRA on H100 - {config['notes']}",
         config=config["config"],
     )
-
-    return run
 
 
 def _nemotron_record_to_text(record: dict[str, Any]) -> str | None:
@@ -204,19 +205,14 @@ def _nemotron_record_to_text(record: dict[str, Any]) -> str | None:
     if messages and isinstance(messages, list):
         for msg in messages:
             role = msg.get("role", "user")
-            content = msg.get("content", "")
-            if not content:
-                continue
-            lines.append(f"{role}: {content}")
-    else:
+            if content := msg.get("content", ""):
+                lines.append(f"{role}: {content}")
+    elif prompt := inp.get("prompt") or inp.get("input"):
         # Fallback to single-turn prompt
-        prompt = inp.get("prompt") or inp.get("input")
-        if prompt:
-            lines.append(f"user: {prompt}")
+        lines.append(f"user: {prompt}")
 
     answer = record.get("nemotron3_response") or {}
-    answer_content = answer.get("content", "")
-    if answer_content:
+    if answer_content := answer.get("content", ""):
         lines.append(f"{answer.get('role', 'assistant')}: {answer_content}")
 
     text = "\n".join(lines).strip()
@@ -268,7 +264,7 @@ def load_training_data(
             raise FileNotFoundError(
                 f"Dataset not found. Provide dataset_path or s3_path, "
                 f"or ensure training_dataset.json exists in S3. Error: {e}"
-            )
+            ) from e
 
     texts = [conv["text"] for conv in tqdm(data["conversations"], desc="Loading")]
 
@@ -281,8 +277,7 @@ def load_training_data(
         for record in loader.stream_jsonl(nemotron_teacher_s3_path):
             if not isinstance(record, dict):
                 continue
-            text = _nemotron_record_to_text(record)
-            if text:
+            if text := _nemotron_record_to_text(record):
                 texts.append(text)
                 teacher_count += 1
             if teacher_count >= nemotron_teacher_max_samples:
@@ -390,7 +385,8 @@ def main():
             nemotron_teacher_max_samples = int(nemotron_cfg.get("max_samples", 0))
             if not nemotron_teacher_s3_path:
                 print(
-                    "⚠️ nemotron_teacher.enabled is true but s3_path is not set; ignoring."
+                    "⚠️ nemotron_teacher.enabled is true but "
+                    "s3_path is not set; ignoring."
                 )
                 nemotron_teacher_s3_path = None
                 nemotron_teacher_max_samples = 0
@@ -466,9 +462,8 @@ def main():
 
         print("📊 Model parameters:")
         print(f"   - Total: {total_params:,}")
-        print(
-            f"   - Trainable: {trainable_params:,} ({(trainable_params / total_params) * 100:.2f}%)"
-        )
+        trainable_percent = (trainable_params / total_params) * 100
+        print(f"   - Trainable: {trainable_params:,} ({trainable_percent:.2f}%)")
 
         # Setup tokenizer
         tokenizer = AutoTokenizer.from_pretrained(BASE_MODEL_NAME)
@@ -536,9 +531,11 @@ def main():
 
             print("\n🎯 Starting training...")
             print(f"⏰ Maximum duration: {MAX_TRAINING_HOURS} hours")
-            print(
-                f"📊 Effective batch size: {training_args.per_device_train_batch_size * training_args.gradient_accumulation_steps}"
+            effective_batch = (
+                training_args.per_device_train_batch_size
+                * training_args.gradient_accumulation_steps
             )
+            print(f"📊 Effective batch size: {effective_batch}")
             print("=" * 60)
 
             trainer.train()
@@ -566,19 +563,14 @@ def main():
     except Exception as e:
         print(f"\n❌ Training failed: {e}")
         if wandb_run:
-            try:
+            with contextlib.suppress(Exception):
                 wandb.log({"training/status": "failed", "training/error": str(e)})
-            except:
-                pass
         raise
 
     finally:
         if wandb_run:
-            try:
+            with contextlib.suppress(Exception):
                 wandb.finish()
-            except:
-                pass
-
         if training_start_time:
             total_duration = (
                 datetime.now() - training_start_time
