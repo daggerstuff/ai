@@ -379,6 +379,28 @@ python ai/training_ready/scripts/generate_edge_case_synthetic_dataset.py \
 - [x] Metrics verified
 - [x] Decision: Proceed to proper Phase 2 SFT Execution.
 
+#### 2.3 Stage 1 Foundation SFT (Wayfarer-12B) - **🚀 IN PROGRESS**
+
+- [x] **Provision GPU Infrastructure**
+  - Instance: OVH AI Notebook `wayfarer-12b-stage1`
+  - Hardware: 2x NVIDIA L40S (48GB VRAM each)
+  - Environment: PyTorch 2.10.0-py313-cudadevel128-gpu
+
+- [x] **Configure Multi-GPU Training Script**
+  - Strategy: DDP (Distributed Data Parallel)
+  - Precision: bf16-mixed
+  - Memory: 4-bit QLoRA enabled to prevent CUDA OOM
+  - Optimizations: Gradient Checkpointing enabled, Batch Size 1 (32 accumulation)
+
+- [x] **Link S3 Dataset**
+  - Source: `s3://pixel-data/datasets/consolidated/final_datasets/ULTIMATE_FINAL_DATASET.jsonl`
+  - Protocol: Native S3 Streaming via `IterableDataset`
+
+- [ ] **Monitor Training**
+  - WandB Project: `pixelated-empathy-training`
+  - Run: `stage1_foundation`
+  - Target: Completion of 3 Epochs over 32k Golden-Path conversations.
+
 ---
 
 ### Phase 3: Conditional Strategic Expansion (Weeks 5-8) - **PENDING**
