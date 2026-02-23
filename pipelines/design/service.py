@@ -54,79 +54,78 @@ class NeMoDataDesignerService:
 
         def patched_create(config_builder=None, wait_until_done=True, **kwargs):
             # If config_builder is provided, use custom implementation
-            if config_builder:
-                import time
+            if not config_builder:
+                # No config_builder, delegate to original
+                return original_create(
+                    config_builder=config_builder,
+                    wait_until_done=wait_until_done,
+                    **kwargs,
+                )
 
-                import requests
+            import requests
 
-                config = config_builder.build()
-                # Patch columns to include column_type
-                config_dict = config.model_dump(mode="json")
-                for col in config_dict.get("columns", []):
-                    if "column_type" not in col:
-                        col["column_type"] = "sampler"
+            config = config_builder.build()
+            # Patch columns to include column_type
+            config_dict = config.model_dump(mode="json")
+            for col in config_dict.get("columns", []):
+                if "column_type" not in col:
+                    col["column_type"] = "sampler"
 
-                # Generate synchronously using the preview API logic since standalone docker lacks a platform job manager
-                num_records = kwargs.get("num_records", 5)
-                # The preview API might restrict to 10 max, we use 5 to be safe
-                all_data = []
-                remaining = num_records
+            # Generate synchronously using the preview API logic since standalone docker
+            # lacks a platform job manager
+            num_records = kwargs.get("num_records", 5)
+            # The preview API might restrict to 10 max, we use 5 to be safe
+            all_data = []
+            remaining = num_records
 
-                while remaining > 0:
-                    chunk_size = min(remaining, 5)
-                    response = requests.post(
-                        f"{self.config.base_url}/v1/data-designer/preview",
-                        json={
-                            "num_records": chunk_size,
-                            "config": config_dict,
-                        },
-                        headers={"Authorization": f"Bearer {self.config.api_key}"},
-                    )
-                    response.raise_for_status()
-                    try:
-                        job_data = response.json()
-                    except Exception:
-                        # Fallback for JSONL responses
-                        import json
+            while remaining > 0:
+                chunk_size = min(remaining, 5)
+                response = requests.post(
+                    f"{self.config.base_url}/v1/data-designer/preview",
+                    json={
+                        "num_records": chunk_size,
+                        "config": config_dict,
+                    },
+                    headers={"Authorization": f"Bearer {self.config.api_key}"},
+                )
+                response.raise_for_status()
+                try:
+                    job_data = response.json()
+                except Exception:
+                    # Fallback for JSONL responses
+                    import json
 
-                        job_data = [
-                            json.loads(line)
-                            for line in response.text.split("\n")
-                            if line.strip()
-                        ]
+                    job_data = [
+                        json.loads(line)
+                        for line in response.text.split("\n")
+                        if line.strip()
+                    ]
 
-                    if "data" in job_data:
-                        all_data.extend(job_data["data"])
-                    elif "preview" in job_data:
-                        all_data.extend(job_data["preview"])
-                    elif isinstance(job_data, list):
-                        all_data.extend(job_data)
-                    else:
-                        # Sometimes pydantic responses nest inside other objects
-                        all_data.extend(job_data.get("rows", []))
+                if "data" in job_data:
+                    all_data.extend(job_data["data"])
+                elif "preview" in job_data:
+                    all_data.extend(job_data["preview"])
+                elif isinstance(job_data, list):
+                    all_data.extend(job_data)
+                else:
+                    # Sometimes pydantic responses nest inside other objects
+                    all_data.extend(job_data.get("rows", []))
 
-                    remaining -= chunk_size
+                remaining -= chunk_size
 
-                class JobResult:
-                    def __init__(self, data):
-                        self.data = data
-                        self.dataset = data
-                        self.id = "synchronous-preview"
+            class JobResult:
+                def __init__(self, data):
+                    self.data = data
+                    self.dataset = data
+                    self.id = "synchronous-preview"
 
-                    def load_dataset(self):
-                        return self.data
+                def load_dataset(self):
+                    return self.data
 
-                    def wait_until_done(self):
-                        pass
+                def wait_until_done(self):
+                    pass
 
-                return JobResult(all_data)
-
-            # No config_builder, delegate to original
-            return original_create(
-                config_builder=config_builder,
-                wait_until_done=wait_until_done,
-                **kwargs,
-            )
+            return JobResult(all_data)
 
         self.client.create = patched_create
 
