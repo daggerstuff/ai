@@ -60,7 +60,9 @@ class OpenAIDriver(LLMDriver):
 
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
 
-    def generate(self, prompt: str, system_prompt: str | None = None) -> str:
+    def generate(
+        self, prompt: str, system_prompt: str | None = None, max_tokens: int = 8192
+    ) -> str:
         messages = []
         if system_prompt:
             messages.append({"role": "system", "content": system_prompt})
@@ -68,7 +70,10 @@ class OpenAIDriver(LLMDriver):
 
         try:
             response = self.client.chat.completions.create(
-                model=self.model, messages=messages, temperature=0.7, max_tokens=1024
+                model=self.model,
+                messages=messages,
+                temperature=0.7,
+                max_tokens=max_tokens,
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -91,7 +96,8 @@ class OpenAIDriver(LLMDriver):
         full_prompt = prompt + schema_prompt
 
         try:
-            # Force JSON format if supported (Nvidia/OpenAI usually support response_format={"type": "json_object"})
+            # Force JSON format if supported (Nvidia/OpenAI usually support
+            #   response_format={"type": "json_object"})
             # But for broad compatibility, we just ask for it in the prompt.
             content = self.generate(full_prompt, system_prompt)
 
@@ -111,13 +117,10 @@ class LLMClient:
 
     def __init__(self, driver: str = "mock", config: dict | None = None):
         self.config = config or {}
-        if driver.lower() == "openai":
-            self.driver = OpenAIDriver()
-        else:
-            self.driver = MockDriver()
+        self.driver = OpenAIDriver() if driver.lower() == "openai" else MockDriver()
 
-    def generate(self, prompt: str, system_prompt: str | None = None) -> str:
-        return self.driver.generate(prompt, system_prompt)
+    def generate(self, prompt: str, system_prompt: str | None = None, **kwargs) -> str:
+        return self.driver.generate(prompt, system_prompt, **kwargs)
 
     def generate_structured(
         self, prompt: str, schema: dict[str, Any], system_prompt: str | None = None

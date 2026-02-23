@@ -66,87 +66,60 @@ class NeMoDataDesignerService:
                     if "column_type" not in col:
                         col["column_type"] = "sampler"
 
-                # Create job via API
-                response = requests.post(
-                    f"{self.config.base_url}/v1/data-designer/jobs",
-                    json={
-                        "spec": {
-                            "num_records": kwargs.get("num_records", 100),
+                # Generate synchronously using the preview API logic since standalone docker lacks a platform job manager
+                num_records = kwargs.get("num_records", 5)
+                # The preview API might restrict to 10 max, we use 5 to be safe
+                all_data = []
+                remaining = num_records
+
+                while remaining > 0:
+                    chunk_size = min(remaining, 5)
+                    response = requests.post(
+                        f"{self.config.base_url}/v1/data-designer/preview",
+                        json={
+                            "num_records": chunk_size,
                             "config": config_dict,
-                        }
-                    },
-                    headers={"Authorization": f"Bearer {self.config.api_key}"},
-                )
-                response.raise_for_status()
-                job_data = response.json()
-                job_id = job_data["id"]
-
-                logger.info("🎨 Creating Data Designer generation job")
-
-                # If wait_until_done, poll for completion
-                if not wait_until_done:
-                    # If not waiting, return job ID
-                    class JobResult:
-                        def __init__(self, job_id):
-                            self.id = job_id
-                            self.job_id = job_id
-
-                    return JobResult(job_id)
-
-                max_wait = self.config.timeout
-                poll_interval = 2
-                elapsed = 0
-
-                while elapsed < max_wait:
-                    time.sleep(poll_interval)
-                    elapsed += poll_interval
-
-                    # Check job status
-                    status_response = requests.get(
-                        f"{self.config.base_url}/v1/data-designer/jobs/{job_id}",
+                        },
                         headers={"Authorization": f"Bearer {self.config.api_key}"},
                     )
-                    status_response.raise_for_status()
-                    job_status = status_response.json()
+                    response.raise_for_status()
+                    try:
+                        job_data = response.json()
+                    except Exception:
+                        # Fallback for JSONL responses
+                        import json
 
-                    state = job_status.get("status", "unknown")
+                        job_data = [
+                            json.loads(line)
+                            for line in response.text.split("\n")
+                            if line.strip()
+                        ]
 
-                    if state in ["completed", "succeeded", "success"]:
-                        # Job completed, use SDK to fetch results
-                        job_results = self.client.get_job_results(job_id=job_id)
-                        dataset = job_results.load_dataset()
+                    if "data" in job_data:
+                        all_data.extend(job_data["data"])
+                    elif "preview" in job_data:
+                        all_data.extend(job_data["preview"])
+                    elif isinstance(job_data, list):
+                        all_data.extend(job_data)
+                    else:
+                        # Sometimes pydantic responses nest inside other objects
+                        all_data.extend(job_data.get("rows", []))
 
-                        # Convert DataFrame to list of dicts
-                        try:
-                            import pandas as pd
+                    remaining -= chunk_size
 
-                            if isinstance(dataset, pd.DataFrame):
-                                data = dataset.to_dict("records")
-                            else:
-                                data = dataset
-                        except ImportError:
-                            data = dataset
+                class JobResult:
+                    def __init__(self, data):
+                        self.data = data
+                        self.dataset = data
+                        self.id = "synchronous-preview"
 
-                        # Return result wrapped in object with data attribute
-                        class JobResult:
-                            def __init__(self, data):
-                                self.data = data
-                                self.dataset = data
+                    def load_dataset(self):
+                        return self.data
 
-                        return JobResult(data)
+                    def wait_until_done(self):
+                        pass
 
-                    if state in ["failed", "error"]:
-                        raise RuntimeError(f"Job {job_id} failed with status: {state}")
-
-                    # Log progress every 30s
-                    if elapsed % 30 == 0:
-                        logger.info(
-                            f"⏳ Job {job_id} status: {state} ({elapsed}s elapsed)"
-                        )
-
-                raise TimeoutError(
-                    f"Job {job_id} did not complete within {max_wait} seconds"
-                )
+                return JobResult(all_data)
 
             # No config_builder, delegate to original
             return original_create(

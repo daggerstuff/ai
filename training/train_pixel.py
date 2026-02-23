@@ -280,10 +280,6 @@ class PixelTrainer:
         )
 
         logger.info("🚀 Starting training...")
-        if UNSLOTH_AVAILABLE:
-            # Unsloth specific optimizations if needed
-            pass
-
         trainer_stats = trainer.train()
         logger.info(f"Training complete: {trainer_stats}")
 
