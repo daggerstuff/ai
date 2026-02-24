@@ -92,7 +92,7 @@ def load_defense_model(
         num_labels=config.get("num_labels", 9),
         r_drop_enabled=False,
     )
-    model.load_state_dict(checkpoint["model_state_dict"])
+    model.load_state_dict(checkpoint["model_state_dict"], strict=False)
     model.to(device)
     model.eval()
 
