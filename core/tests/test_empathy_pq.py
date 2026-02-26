@@ -1,6 +1,7 @@
 import pytest
+
 from ai.core.empathy_pq import EmpathyPQCalculator
-from ai.core.gestalt_engine import GestaltState, CrisisLevel
+from ai.core.gestalt_engine import CrisisLevel, GestaltState
 
 
 @pytest.fixture
