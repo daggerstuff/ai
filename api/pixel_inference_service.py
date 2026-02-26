@@ -25,8 +25,12 @@ from pydantic import BaseModel, Field
 # Add parent directories to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-
+# Import service routers
 from pixel.models.pixel_base_model import PixelBaseModel
+
+from api.defense_service import router as defense_router
+from api.gestalt_service import load_gestalt_model
+from api.gestalt_service import router as gestalt_router
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -366,16 +370,36 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# Include sub-service routers
+app.include_router(defense_router)
+app.include_router(gestalt_router)
+
 # Global inference engine
 inference_engine = PixelInferenceEngine()
 
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize model on startup"""
+    """Initialize models on startup"""
     logger.info("Starting Pixel Inference API")
+
+    # Load Pixel base model
     if not inference_engine.load_model():
-        logger.error("Failed to load model on startup")
+        logger.error("Failed to load Pixel base model on startup")
+
+    # Load Gestalt/Defense model
+    defense_checkpoint = os.getenv(
+        "DEFENSE_MODEL_PATH",
+        "/home/vivi/pixelated/ai/models/defense_mechanisms/fold_0/best_model.pt",
+    )
+    if os.path.exists(defense_checkpoint):
+        try:
+            load_gestalt_model(defense_checkpoint, device=str(inference_engine.device))
+            logger.info(f"Gestalt model loaded from {defense_checkpoint}")
+        except Exception as e:
+            logger.error(f"Failed to load Gestalt model: {e}")
+    else:
+        logger.warning(f"Defense model checkpoint not found at {defense_checkpoint}")
 
 
 @app.get("/health")
