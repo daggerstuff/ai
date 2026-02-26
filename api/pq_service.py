@@ -12,7 +12,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from ai.core.empathy_pq import EmpathyPQCalculator, PQScore
-from ai.core.gestalt_engine import GestaltState, CrisisLevel
+from ai.core.gestalt_engine import CrisisLevel, GestaltState
 
 logger = logging.getLogger(__name__)
 
