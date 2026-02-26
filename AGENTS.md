@@ -61,6 +61,10 @@ inference services.
 
 This repo is large; when in doubt, prefer these entry points and domains:
 
+- **`.agent/steering/`**: **MANDATORY START POINT.** High-signal
+  operational and architectural intent. Read ALL files here first.
+- **`docs/internal/runbooks/`**: Technical procedures for service
+  restoration and operations (located in the parent root).
 - **`sourcing/`**: raw data ingestion
 - **`pipelines/`**: dataset transformation and orchestration
 - **`training/`**: training scripts/configs and packaging

@@ -17,182 +17,211 @@
 
 ---
 # Training Job - All Stages (Full Training Run)
-apiVersion: v1
+apiVersion: batch/v1
 kind: Job
 metadata:
   name: wayfarer-sft-full
   labels:
+    project: pixelated-empathy
+    pipeline: wayfarer-sft
     stage: all
     model: wayfarer-2-12b
 spec:
-  image: ${OVH_TRAINING_IMAGE:-pixelated-training:latest}
-  
-  # GPU Flavor Options:
-  # - gpu_nvidia_l40s_1    : L40S (48GB VRAM) - Good balance of cost/performance
-  # - gpu_nvidia_h100_1    : H100 (80GB VRAM) - Best performance, higher cost
-  # - gpu_nvidia_a100-80gb_1: A100 (80GB VRAM) - High performance
-  flavor: gpu_nvidia_l40s_1
-  
-  # Data volumes from OVH Object Storage
-  volumes:
-    - dataStore:
-        alias: training-data
-        container: pixel-data
-        prefix: ""
-      mountPath: /data
-      permission: RO
-      cache: true
-    
-    - dataStore:
-        alias: checkpoints
-        container: pixelated-checkpoints
-        prefix: ""
-      mountPath: /checkpoints
-      permission: RW
-
-  # Command to run
-  command: |
-    cd /workspace && \
-    python ai/ovh/train_ovh.py \
-      --stage all \
-      --data-dir /data \
-      --checkpoint-dir /checkpoints
-  
-  # Environment variables
-  env:
-    - name: WANDB_API_KEY
-      valueFrom:
-        secretKeyRef:
-          name: training-secrets
-          key: wandb-api-key
-    - name: HF_TOKEN
-      valueFrom:
-        secretKeyRef:
-          name: training-secrets
-          key: hf-token
-    - name: PYTHONUNBUFFERED
-      value: "1"
-    - name: TRANSFORMERS_CACHE
-      value: "/data/.cache/transformers"
-    - name: HF_HOME
-      value: "/data/.cache/huggingface"
-  
-  # Resources
-  resources:
-    requests:
-      memory: "64Gi"
-      storage: "200Gi"
-  
-  # Labels for organization
-  labels:
-    project: pixelated-empathy
-    pipeline: wayfarer-sft
-    stage: full
+  template:
+    metadata:
+      labels:
+        stage: all
+        model: wayfarer-2-12b
+    spec:
+      restartPolicy: Never
+      # GPU Flavor Options mapped to node selector/tags:
+      # - gpu_nvidia_l40s_1    : L40S (48GB VRAM) - Good balance of cost/performance
+      # - gpu_nvidia_h100_1    : H100 (80GB VRAM) - Best performance, higher cost
+      # - gpu_nvidia_a100-80gb_1: A100 (80GB VRAM) - High performance
+      nodeSelector:
+        node.kubernetes.io/instance-type: gpu_nvidia_l40s_1
+      containers:
+        - name: training
+          image: ${OVH_TRAINING_IMAGE:-pixelated-training:latest}
+          command:
+            - bash
+            - "-c"
+            - |
+              cd /workspace && \
+              python ai/ovh/train_ovh.py \
+                --stage all \
+                --data-dir /data \
+                --checkpoint-dir /checkpoints
+          env:
+            - name: WANDB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: training-secrets
+                  key: wandb-api-key
+            - name: HF_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: training-secrets
+                  key: hf-token
+            - name: PYTHONUNBUFFERED
+              value: "1"
+            - name: TRANSFORMERS_CACHE
+              value: "/data/.cache/transformers"
+            - name: HF_HOME
+              value: "/data/.cache/huggingface"
+          resources:
+            requests:
+              memory: "64Gi"
+              ephemeral-storage: "200Gi"
+            limits:
+              nvidia.com/gpu: "1"
+          volumeMounts:
+            - name: training-data
+              mountPath: /data
+              readOnly: true
+            - name: checkpoints
+              mountPath: /checkpoints
+      volumes:
+        - name: training-data
+          persistentVolumeClaim:
+            claimName: pixel-data-pvc
+        - name: checkpoints
+          persistentVolumeClaim:
+            claimName: pixelated-checkpoints-pvc
 
 ---
 # Training Job - Foundation Stage Only
-apiVersion: v1
+apiVersion: batch/v1
 kind: Job
 metadata:
   name: wayfarer-sft-foundation
   labels:
     stage: foundation
 spec:
-  image: ${OVH_TRAINING_IMAGE:-pixelated-training:latest}
-  flavor: gpu_nvidia_l40s_1
-  
-  volumes:
-    - dataStore:
-        alias: training-data
-        container: pixel-data
-        prefix: ""
-      mountPath: /data
-      permission: RO
-      cache: true
-    - dataStore:
-        alias: checkpoints
-        container: pixelated-checkpoints
-        prefix: ""
-      mountPath: /checkpoints
-      permission: RW
-  
-  command: |
-    python ai/ovh/train_ovh.py \
-      --stage foundation \
-      --data-dir /data \
-      --checkpoint-dir /checkpoints
-  
-  env:
-    - name: WANDB_API_KEY
-      valueFrom:
-        secretKeyRef:
-          name: training-secrets
-          key: wandb-api-key
+  template:
+    metadata:
+      labels:
+        stage: foundation
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        node.kubernetes.io/instance-type: gpu_nvidia_l40s_4
+      containers:
+        - name: training
+          image: ${OVH_TRAINING_IMAGE:-pixelated-training:latest}
+          command:
+            - bash
+            - "-c"
+            - |
+              python ai/ovh/train_ovh.py \
+                --stage foundation \
+                --data-dir /data \
+                --checkpoint-dir /checkpoints
+          env:
+            - name: WANDB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: training-secrets
+                  key: wandb-api-key
+          resources:
+            limits:
+              nvidia.com/gpu: "4"
+          volumeMounts:
+            - name: training-data
+              mountPath: /data
+              readOnly: true
+            - name: checkpoints
+              mountPath: /checkpoints
+      volumes:
+        - name: training-data
+          persistentVolumeClaim:
+            claimName: pixel-data-pvc
+        - name: checkpoints
+          persistentVolumeClaim:
+            claimName: pixelated-checkpoints-pvc
 
 ---
 # Training Job - Reasoning Stage (requires foundation checkpoint)
-apiVersion: v1
+apiVersion: batch/v1
 kind: Job
 metadata:
   name: wayfarer-sft-reasoning
   labels:
     stage: reasoning
 spec:
-  image: ${OVH_TRAINING_IMAGE:-pixelated-training:latest}
-  flavor: gpu_nvidia_l40s_1
-  
-  volumes:
-    - dataStore:
-        alias: training-data
-        container: pixel-data
-        prefix: ""
-      mountPath: /data
-      permission: RO
-      cache: true
-    - dataStore:
-        alias: checkpoints
-        container: pixelated-checkpoints
-        prefix: ""
-      mountPath: /checkpoints
-      permission: RW
-  
-  command: |
-    python ai/ovh/train_ovh.py \
-      --stage reasoning \
-      --data-dir /data \
-      --checkpoint-dir /checkpoints \
-      --resume-from /checkpoints/foundation/final
+  template:
+    metadata:
+      labels:
+        stage: reasoning
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        node.kubernetes.io/instance-type: gpu_nvidia_l40s_1
+      containers:
+        - name: training
+          image: ${OVH_TRAINING_IMAGE:-pixelated-training:latest}
+          command:
+            - bash
+            - "-c"
+            - |
+              python ai/ovh/train_ovh.py \
+                --stage reasoning \
+                --data-dir /data \
+                --checkpoint-dir /checkpoints \
+                --resume-from /checkpoints/foundation/final
+          volumeMounts:
+            - name: training-data
+              mountPath: /data
+              readOnly: true
+            - name: checkpoints
+              mountPath: /checkpoints
+      volumes:
+        - name: training-data
+          persistentVolumeClaim:
+            claimName: pixel-data-pvc
+        - name: checkpoints
+          persistentVolumeClaim:
+            claimName: pixelated-checkpoints-pvc
 
 ---
 # Training Job - Voice Stage (requires reasoning checkpoint)
-apiVersion: v1
+apiVersion: batch/v1
 kind: Job
 metadata:
   name: wayfarer-sft-voice
   labels:
     stage: voice
 spec:
-  image: ${OVH_TRAINING_IMAGE:-pixelated-training:latest}
-  flavor: gpu_nvidia_l40s_1
-  
-  volumes:
-    - dataStore:
-        alias: training-data
-        container: pixel-data
-        prefix: ""
-      mountPath: /data
-      permission: RO
-      cache: true
-    - dataStore:
-        alias: checkpoints
-        container: pixelated-checkpoints
-        prefix: ""
-      mountPath: /checkpoints
-      permission: RW
-  
-  command: |
-    python ai/ovh/train_ovh.py \
-      --stage voice \
-      --data-dir /data \
-      --checkpoint-dir /checkpoints \
-      --resume-from /checkpoints/reasoning/final
+  template:
+    metadata:
+      labels:
+        stage: voice
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        node.kubernetes.io/instance-type: gpu_nvidia_l40s_1
+      containers:
+        - name: training
+          image: ${OVH_TRAINING_IMAGE:-pixelated-training:latest}
+          command:
+            - bash
+            - "-c"
+            - |
+              python ai/ovh/train_ovh.py \
+                --stage voice \
+                --data-dir /data \
+                --checkpoint-dir /checkpoints \
+                --resume-from /checkpoints/reasoning/final
+          volumeMounts:
+            - name: training-data
+              mountPath: /data
+              readOnly: true
+            - name: checkpoints
+              mountPath: /checkpoints
+      volumes:
+        - name: training-data
+          persistentVolumeClaim:
+            claimName: pixel-data-pvc
+        - name: checkpoints
+          persistentVolumeClaim:
+            claimName: pixelated-checkpoints-pvc
