@@ -29,8 +29,14 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from pixel.models.pixel_base_model import PixelBaseModel
 
 from api.defense_service import router as defense_router
-from api.gestalt_service import load_gestalt_model
-from api.gestalt_service import router as gestalt_router
+from api.gestalt_service import (
+    _gestalt_engine,
+    load_gestalt_model,
+)
+from api.gestalt_service import (
+    router as gestalt_router,
+)
+from api.pq_service import router as pq_router
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -70,6 +76,12 @@ class PixelInferenceRequest(BaseModel):
         True, description="Include quality metrics in response"
     )
     max_tokens: int = Field(200, description="Max tokens to generate")
+    plutchik_scores: Optional[dict[str, float]] = Field(
+        None, description="Plutchik emotion scores (8 keys)"
+    )
+    ocean_scores: Optional[dict[str, float]] = Field(
+        None, description="OCEAN personality traits (5 keys)"
+    )
 
 
 class EQScores(BaseModel):
@@ -105,6 +117,12 @@ class PixelInferenceResponse(BaseModel):
         "therapy", description="Detected persona: therapy or assistant"
     )
     confidence: float = Field(0.9, description="Confidence in response")
+    gestalt_directive: Optional[str] = Field(
+        None, description="Dynamic adversarial persona directive injected"
+    )
+    breakthrough_score: Optional[float] = Field(
+        None, description="Maturity breakthrough delta"
+    )
     warning: Optional[str] = None
 
 
@@ -193,40 +211,71 @@ class PixelInferenceEngine:
         start_time = datetime.now()
 
         try:
-            # Preprocess input
+            # 1. Detect Persona Mode
+            persona_mode = self._detect_persona_mode(request.context_type)
+
+            # 2. Run Gestalt Fusion for Adversarial Simulation (PIX-148)
+            # This implements the closed-loop control system:
+            # Defense -> Directive -> Text
+            gestalt_directive = None
+            breakthrough_delta = 0.0
+
+            if (
+                persona_mode == "therapy"
+                and request.plutchik_scores
+                and request.ocean_scores
+            ):
+                # Format dialogue for Gestalt Engine
+                dialogue_history = [
+                    {"speaker": m.role.capitalize(), "text": m.content}
+                    for m in request.conversation_history
+                ]
+
+                try:
+                    # Capture the "Defense State" dynamically
+                    gestalt_state = _gestalt_engine.analyze_gestalt(
+                        dialogue=dialogue_history,
+                        target_utterance=request.user_query,
+                        plutchik_scores=request.plutchik_scores,
+                        ocean_scores=request.ocean_scores,
+                    )
+                    gestalt_directive = gestalt_state.persona_directive
+                    breakthrough_delta = gestalt_state.breakthrough_score
+
+                    if gestalt_directive:
+                        logger.info(
+                            f"Adv Persona Injection: {gestalt_directive[:60]}..."
+                        )
+                except Exception as ge:
+                    logger.error(f"Gestalt analysis failed in loop: {ge}")
+
+            # 3. Model Preprocessing & Forward Pass
             input_tensor = self.preprocess_input(
                 request.user_query, request.conversation_history
             )
 
-            # Forward pass through model
             with torch.no_grad():
                 model_output = self.model(
                     input_tensor, history=request.conversation_history
                 )
 
-            # Extract outputs
-            persona_mode = self._detect_persona_mode(request.context_type)
+            # 4. Extract Metrics
             eq_scores = self._extract_eq_scores(model_output)
             metadata = self._build_metadata(model_output, request)
 
-            # Generate response text (in production, use language head)
+            # 5. Generate Response with Injected Directive
             response_text = self._generate_response_text(
-                request.user_query, persona_mode, eq_scores
+                request.user_query, persona_mode, eq_scores, gestalt_directive
             )
 
-            # Calculate inference time
+            # 6. Performance Benchmarking
             inference_time = (datetime.now() - start_time).total_seconds() * 1000
-
-            # Update stats
             self.inference_count += 1
             self.total_inference_time += inference_time
 
-            # Check latency requirement
             warning = None
             if inference_time > 200:
-                warning = (
-                    f"Inference latency exceeded target: {inference_time:.2f}ms > 200ms"
-                )
+                warning = f"Inference latency target exceeded: {inference_time:.2f}ms"
                 logger.warning(warning)
 
             return PixelInferenceResponse(
@@ -236,6 +285,8 @@ class PixelInferenceEngine:
                 conversation_metadata=metadata if request.include_metrics else None,
                 persona_mode=persona_mode,
                 confidence=0.92,
+                gestalt_directive=gestalt_directive,
+                breakthrough_score=breakthrough_delta,
                 warning=warning,
             )
 
@@ -305,9 +356,13 @@ class PixelInferenceEngine:
         )
 
     def _generate_response_text(
-        self, query: str, persona_mode: str, eq_scores: EQScores
+        self,
+        query: str,
+        persona_mode: str,
+        eq_scores: EQScores,
+        gestalt_directive: Optional[str] = None,
     ) -> str:
-        """Generate response text based on query and persona"""
+        """Generate response text based on query, persona, and directives"""
         # Simple template-based response (in production, use language head)
         empathy_level = (
             "understanding" if eq_scores.empathy_recognition > 0.7 else "supportive"
@@ -315,7 +370,7 @@ class PixelInferenceEngine:
 
         responses = {
             "therapy": (
-                f"I appreciate you sharing that with me. I'm here to help. "
+                f"I appreciate you sharing that. I'm here to help. "
                 f"That sounds {empathy_level}. Can you tell me more about "
                 f"what you're experiencing?"
             ),
@@ -325,7 +380,31 @@ class PixelInferenceEngine:
             ),
         }
 
-        return responses.get(persona_mode, responses["therapy"])
+        response = responses.get(persona_mode, responses["therapy"])
+
+        # Adversarial Persona Injection Logic (PIX-148)
+        # We simulate the AI following the dynamic behavioral directive
+        # from Gestalt Engine
+        if gestalt_directive and persona_mode == "therapy":
+            if "Action" in gestalt_directive:
+                response = (
+                    "[Resistance: Action] I don't feel like talking about this. "
+                    "It's pointless."
+                )
+            elif "Disavowal" in gestalt_directive:
+                response = (
+                    "[Resistance: Disavowal] Everything is fine, really. "
+                    "I don't know why we're here."
+                )
+            elif "Distorting" in gestalt_directive:
+                response = (
+                    "[Resistance: Splitting] You're just like everyone else. "
+                    "You don't actually care."
+                )
+            else:
+                response = f"[Defensive: {gestalt_directive[:40]}...] {response}"
+
+        return response
 
     def get_status(self) -> ModelStatusResponse:
         """Get current model status"""
@@ -345,6 +424,9 @@ class PixelInferenceEngine:
                 "clinical_prediction",
                 "empathy_tracking",
                 "bias_detection",
+                "gestalt_fusion",
+                "adversarial_persona_injection",
+                "empathy_pq_scoring",
             ],
             performance_metrics={
                 "inference_count": self.inference_count,
@@ -373,6 +455,7 @@ app = FastAPI(
 # Include sub-service routers
 app.include_router(defense_router)
 app.include_router(gestalt_router)
+app.include_router(pq_router)
 
 # Global inference engine
 inference_engine = PixelInferenceEngine()
