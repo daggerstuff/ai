@@ -16,18 +16,37 @@ import sys
 import tempfile
 from pathlib import Path
 
-# Ensure project root is on path
-REPO_ROOT = Path(__file__).resolve().parents[4]
-AI_ROOT = Path(__file__).resolve().parents[3]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.append(str(REPO_ROOT))
-if str(AI_ROOT) not in sys.path:
-    sys.path.append(str(AI_ROOT))
-
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 )
 logger = logging.getLogger("BatchRegenerate")
+
+# Robust project root detection
+_script_path = Path(__file__).resolve()
+# We expect to be at ai/training/ready_packages/scripts/batch_regenerate.py
+# If inside Docker /workspace/, project root is /workspace/
+# If in local repo, project root is 5 levels up.
+
+potential_roots = [
+    _script_path.parents[4],  # Local development: repo root
+    Path("/workspace"),  # Docker standard
+    Path.cwd(),  # Fallback to CWD
+]
+
+for root in potential_roots:
+    if (root / "ai").is_dir():
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
+        logger.info("Found project root: %s", root)
+        break
+else:
+    logger.warning(
+        "Could not definitively find project root. Current sys.path: %s", sys.path
+    )
+
+# Ensure 'ai' itself is discoverable if root detection was fuzzy
+if str(Path.cwd()) not in sys.path:
+    sys.path.append(str(Path.cwd()))
 
 try:
     from ai.core.gestalt_simulator import GestaltSimulator
