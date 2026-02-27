@@ -27,50 +27,48 @@ _script_path = Path(__file__).resolve()
 # If inside Docker /workspace/, project root is /workspace/
 # If in local repo, project root is 5 levels up.
 
+# Standard project root discovery
+# We expect the structure: /app/ai/training/ready_packages/scripts/this_file.py
+# Or local: REPO_ROOT/ai/training/ready_packages/scripts/this_file.py
 potential_roots = [
-    _script_path.parents[4],  # Local development: repo root
-    Path("/workspace"),  # Docker standard
-    Path.cwd(),  # Fallback to CWD
+    Path("/app"),  # Top-level in production
+    Path(__file__).resolve().parents[3],  # Standard repository hierarchy
+    Path.cwd(),
 ]
 
+root_found = False
 for root in potential_roots:
-    # 1. Flattened: root IS the 'ai' directory package content (contains 'core' and 'training')
-    # We check this first to avoid being misled by an empty/incomplete 'ai/' subdirectory
-    if (root / "core").is_dir() and (root / "training").is_dir():
-        logger.info("Detected flattened AI directory at: %s", root)
-        # Create a dynamic symlink so 'import ai.core' finds 'root/core'
-        try:
-            tmp_pkg_root = Path(tempfile.gettempdir()) / "pixelated_ai_pkg"
-            tmp_pkg_root.mkdir(parents=True, exist_ok=True)
-            ai_link = tmp_pkg_root / "ai"
-            if ai_link.exists() and not ai_link.is_symlink():
-                import shutil
-
-                shutil.rmtree(ai_link)
-            if not ai_link.exists():
-                ai_link.symlink_to(root, target_is_directory=True)
-            if str(tmp_pkg_root) not in sys.path:
-                sys.path.insert(0, str(tmp_pkg_root))
-            logger.info("Created package shim at: %s", ai_link)
-            break
-        except Exception as e:
-            logger.warning("Failed to create package shim: %s", e)
-
-    # 2. Standard: root contains 'ai' directory which actually contains 'core'
-    elif (root / "ai" / "core").is_dir():
+    # We look for the folder that CONTAINS the 'ai' package
+    if (root / "ai" / "core").is_dir():
         if str(root) not in sys.path:
             sys.path.insert(0, str(root))
-        logger.info("Found project root (standard): %s", root)
+        logger.info("Using project root: %s", root)
+        root_found = True
         break
-else:
-    logger.warning(
-        "Could not definitively find project root. Current sys.path: %s", sys.path
-    )
+    # Fallback for truly flattened where 'core' is at the root
+    elif (root / "core").is_dir() and (root / "training").is_dir():
+        if str(root) not in sys.path:
+            sys.path.insert(0, str(root))
+        # Direct injection of root as the 'ai' package
+        import types
+
+        if "ai" not in sys.modules:
+            ai_pkg = types.ModuleType("ai")
+            ai_pkg.__path__ = [str(root)]
+            sys.modules["ai"] = ai_pkg
+            logger.info("Aliased flattened root %s as 'ai' package", root)
+        root_found = True
+        break
+
+if not root_found:
+    logger.warning("Standard structure not found; imports may fail.")
 
 try:
     from ai.core.gestalt_simulator import GestaltSimulator
     from ai.utils.s3_dataset_loader import S3DatasetLoader
 except ImportError as exc:
+    logger.error("Import failed (sys.path: %s): %s", sys.path, exc)
+    sys.exit(1)
     logger.error(
         "Failed to import core modules. Ensure PYTHONPATH includes ai/. Error: %s",
         exc,
@@ -190,11 +188,14 @@ def _setup_simulator(args, loader, device):
     """Ensure defense model is present and initialize the GestaltSimulator."""
     model_path = Path(args.defense_model_path)
     if not model_path.exists():
+        download_uri = args.defense_model_s3_key
+        if not download_uri.startswith("s3://"):
+            download_uri = f"s3://{args.s3_bucket}/{download_uri}"
+
         logger.info(
-            "Defense model not found at %s. Attempting to download from s3://%s/%s",
+            "Defense model not found at %s. Attempting to download from %s",
             args.defense_model_path,
-            args.s3_bucket,
-            args.defense_model_s3_key,
+            download_uri,
         )
         model_path.parent.mkdir(parents=True, exist_ok=True)
         try:
@@ -295,7 +296,7 @@ def main() -> None:
     parser.add_argument(
         "--defense-model-path",
         type=str,
-        default="/workspace/checkpoints/model.ckpt",
+        default="/tmp/model.ckpt",
         help="Local path where the defense model is (or will be) located.",
     )
     parser.add_argument(
