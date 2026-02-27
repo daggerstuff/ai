@@ -34,19 +34,38 @@ potential_roots = [
 ]
 
 for root in potential_roots:
-    if (root / "ai").is_dir():
+    # 1. Flattened: root IS the 'ai' directory package content (contains 'core' and 'training')
+    # We check this first to avoid being misled by an empty/incomplete 'ai/' subdirectory
+    if (root / "core").is_dir() and (root / "training").is_dir():
+        logger.info("Detected flattened AI directory at: %s", root)
+        # Create a dynamic symlink so 'import ai.core' finds 'root/core'
+        try:
+            tmp_pkg_root = Path(tempfile.gettempdir()) / "pixelated_ai_pkg"
+            tmp_pkg_root.mkdir(parents=True, exist_ok=True)
+            ai_link = tmp_pkg_root / "ai"
+            if ai_link.exists() and not ai_link.is_symlink():
+                import shutil
+
+                shutil.rmtree(ai_link)
+            if not ai_link.exists():
+                ai_link.symlink_to(root, target_is_directory=True)
+            if str(tmp_pkg_root) not in sys.path:
+                sys.path.insert(0, str(tmp_pkg_root))
+            logger.info("Created package shim at: %s", ai_link)
+            break
+        except Exception as e:
+            logger.warning("Failed to create package shim: %s", e)
+
+    # 2. Standard: root contains 'ai' directory which actually contains 'core'
+    elif (root / "ai" / "core").is_dir():
         if str(root) not in sys.path:
             sys.path.insert(0, str(root))
-        logger.info("Found project root: %s", root)
+        logger.info("Found project root (standard): %s", root)
         break
 else:
     logger.warning(
         "Could not definitively find project root. Current sys.path: %s", sys.path
     )
-
-# Ensure 'ai' itself is discoverable if root detection was fuzzy
-if str(Path.cwd()) not in sys.path:
-    sys.path.append(str(Path.cwd()))
 
 try:
     from ai.core.gestalt_simulator import GestaltSimulator
