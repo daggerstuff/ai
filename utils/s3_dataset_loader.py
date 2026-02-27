@@ -41,14 +41,23 @@ with contextlib.suppress(ImportError):
     # So parents[0] = ai/training_ready/utils/, parents[1] = ai/training_ready/,
     #    parents[2] = ai/, parents[3] = project root
     module_path = Path(__file__).resolve()
-    env_paths = [
-        module_path.parents[2] / ".env",  # ai/.env (actual location)
-        module_path.parents[3] / ".env",  # project root/.env (fallback)
-    ]
+    env_paths = []
+    try:
+        env_paths.append(module_path.parents[2] / ".env")  # ai/.env
+        env_paths.append(module_path.parents[3] / ".env")  # project root/.env
+    except IndexError:
+        # Fallback for shallow/flattened structures
+        env_paths.append(module_path.parent / ".env")
+        if module_path.parent.name != "ai":
+            env_paths.append(module_path.parent.parent / ".env")
+
     for env_path in env_paths:
-        if env_path.exists() and env_path.is_file():  # Check it's a file, not a pipe
-            load_dotenv(env_path, override=False)  # Don't override existing env vars
-            break
+        try:
+            if env_path.exists() and env_path.is_file():
+                load_dotenv(env_path, override=False)
+                break
+        except Exception:
+            continue
 
 logger = logging.getLogger(__name__)
 
