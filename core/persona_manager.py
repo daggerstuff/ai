@@ -77,16 +77,21 @@ class PersonaManager:
         with self._config_path.open("r", encoding="utf-8") as fh:
             raw: Dict = json.load(fh)
 
-        personas: Dict[str, Persona] = {}
+        # First, validate all archetypes
         for archetype_id, data in raw.items():
             self._validate_archetype_schema(archetype_id, data)
-            personas[archetype_id] = Persona(
+
+        # Then, create personas using a dictionary comprehension
+        personas: Dict[str, Persona] = {
+            archetype_id: Persona(
                 archetype_id=archetype_id,
                 name=data["name"],
                 description=data["description"],
                 traits=data["traits"],
                 default_defense=data["default_defense"],
             )
+            for archetype_id, data in raw.items()
+        }
 
         if not personas:
             raise ValueError(
