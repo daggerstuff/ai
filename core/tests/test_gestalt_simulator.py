@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from core.gestalt_simulator import GestaltSimulator
+from ai.core.gestalt_simulator import GestaltSimulator
 
 
 @pytest.fixture

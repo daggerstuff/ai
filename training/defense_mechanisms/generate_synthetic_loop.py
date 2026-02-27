@@ -1,3 +1,4 @@
+from ai.utils.llm_capabilities import get_best_available_gemini_model, ensure_valid_key
 import json
 import logging
 import time
@@ -45,7 +46,7 @@ def generate_with_retry(client, prompt, system_instruction, max_retries=5):
     for attempt in range(max_retries):
         try:
             return client.models.generate_content(
-                model="gemini-2.5-flash",
+                model=get_best_available_gemini_model(client),
                 contents=prompt,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
@@ -84,7 +85,7 @@ def main():
         handbook_content = f.read()
 
     # Automatically uses GEMINI_API_KEY from environment
-    client = genai.Client()
+    client = genai.Client(api_key=ensure_valid_key())
 
     # We will generate 100 samples per class, in batches of 10
     targets = [

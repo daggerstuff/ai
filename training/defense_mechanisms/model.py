@@ -7,7 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from transformers import AutoModelForSequenceClassification
 
-from training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY, NUM_LABELS
+from ai.training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY, NUM_LABELS
 
 
 @dataclass

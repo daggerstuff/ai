@@ -25,13 +25,13 @@ from transformers import (
     get_linear_schedule_with_warmup,
 )
 
-from training.defense_mechanisms import DEFENSE_LABELS
-from training.defense_mechanisms.dataset import (
+from ai.training.defense_mechanisms import DEFENSE_LABELS
+from ai.training.defense_mechanisms.dataset import (
     compute_class_weights,
     create_fold_datasets,
     load_psydefconv,
 )
-from training.defense_mechanisms.model import DefenseClassifier
+from ai.training.defense_mechanisms.model import DefenseClassifier
 
 logger = logging.getLogger(__name__)
 

@@ -17,12 +17,12 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from transformers import AutoTokenizer
 
-from training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
-from training.defense_mechanisms.dataset import (
+from ai.training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
+from ai.training.defense_mechanisms.dataset import (
     DefenseDataset,
     load_psydefconv,
 )
-from training.defense_mechanisms.model import DefenseClassifier
+from ai.training.defense_mechanisms.model import DefenseClassifier
 
 logger = logging.getLogger(__name__)
 

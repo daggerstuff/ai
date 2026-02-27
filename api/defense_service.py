@@ -11,7 +11,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
+from ai.training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ def load_defense_model(
     import torch
     from transformers import AutoTokenizer
 
-    from training.defense_mechanisms.model import DefenseClassifier
+    from ai.training.defense_mechanisms.model import DefenseClassifier
 
     checkpoint = torch.load(
         checkpoint_path,
@@ -130,7 +130,7 @@ async def analyze_defense(
         )
 
 
-    from training.defense_mechanisms.dataset import format_dialogue
+    from ai.training.defense_mechanisms.dataset import format_dialogue
 
     turns = [{"speaker": t.speaker, "text": t.text} for t in request.dialogue]
 
