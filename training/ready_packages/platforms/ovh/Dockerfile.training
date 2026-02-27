@@ -26,7 +26,7 @@ ENV PYTHONUNBUFFERED=1 \
     WANDB_DIR=/checkpoints/wandb
 
 # Create non-root user (ubuntu) explicitly to match OVH standard
-RUN useradd -m -s /bin/bash ubuntu || true
+RUN useradd -m -s /bin/bash -u 42420 ubuntu || true
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -63,12 +63,16 @@ RUN pip install --upgrade pip && \
     pyyaml>=6.0 \
     rich>=13.0.0 \
     tqdm>=4.65.0 \
-    safetensors>=0.4.0
+    safetensors>=0.4.0 \
+    google-genai
 
 # Copy training code
 # Copy training code (Using updated paths)
 # NOTE: These paths must exist in the build context!
 # If copying from ai/training/..., context must be project root.
+COPY ai/core /app/ai/core/
+COPY ai/utils /app/ai/utils/
+COPY ai/training/ready_packages/scripts/batch_regenerate.py /app/ai/training/ready_packages/scripts/
 COPY ai/training/ready_packages/models/moe_architecture.py /app/
 COPY ai/training/ready_packages/tools/training_optimizer.py /app/
 COPY ai/training/train_moe_h100.py /app/
@@ -79,7 +83,11 @@ COPY ai/training/ready_packages/configs/hyperparameters/moe_training_config.json
 RUN mkdir -p /data /checkpoints /tmp/transformers_cache /tmp/huggingface
 
 # Set permissions
-RUN chmod +x /app/train_ovh.py
+RUN chmod +x /app/train_ovh.py && \
+    chown -R ubuntu:ubuntu /app /data /checkpoints /tmp/transformers_cache /tmp/huggingface
+
+# Use the non-root user
+USER ubuntu
 
 # Default environment variables
 ENV DATA_DIR=/data \
