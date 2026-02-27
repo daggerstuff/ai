@@ -8,9 +8,10 @@ an LLM (e.g. Gemini 2.5 Flash / Pro).
 
 import json
 import logging
-import os
 import time
 from typing import Any, Dict, List
+
+from ai.utils.llm_capabilities import ensure_valid_key, get_best_available_gemini_model
 
 try:
     from google import genai
@@ -18,8 +19,8 @@ try:
 except ImportError:
     genai = None
 
-from core.gestalt_engine import OCEAN_TRAITS, PLUTCHIK_EMOTIONS, GestaltEngine
-from core.persona_manager import PersonaManager
+from ai.core.gestalt_engine import OCEAN_TRAITS, PLUTCHIK_EMOTIONS, GestaltEngine
+from ai.core.persona_manager import PersonaManager
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +45,7 @@ class GestaltSimulator:
 
         self.persona_manager = PersonaManager()
 
-        self.api_key = api_key or os.environ.get("GEMINI_API_KEY")
+        self.api_key = api_key or ensure_valid_key()
         if self.api_key and genai:
             self.client = genai.Client(api_key=self.api_key)
         else:
@@ -80,7 +81,7 @@ class GestaltSimulator:
         for attempt in range(max_retries):
             try:
                 response = self.client.models.generate_content(
-                    model="gemini-2.5-flash",
+                    model=get_best_available_gemini_model(self.client),
                     contents=contents,
                     config=config,
                 )
@@ -176,9 +177,9 @@ class GestaltSimulator:
 
         processed_count = 0
         with (
-                open(input_file, "r", encoding="utf-8") as infile,
-                open(output_file, "w", encoding="utf-8") as outfile,
-            ):
+            open(input_file, "r", encoding="utf-8") as infile,
+            open(output_file, "w", encoding="utf-8") as outfile,
+        ):
             for line in infile:
                 if processed_count >= max_records:
                     break

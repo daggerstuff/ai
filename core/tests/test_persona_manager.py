@@ -1,6 +1,6 @@
 import pytest
 
-from core.persona_manager import PersonaManager
+from ai.core.persona_manager import PersonaManager
 
 
 @pytest.fixture

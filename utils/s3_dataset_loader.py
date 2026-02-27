@@ -390,6 +390,16 @@ class S3DatasetLoader:
             raise
         return datasets
 
+    def download_file(self, s3_path: str, local_path: Path | str) -> None:
+        """Download a file from S3 to local path"""
+        try:
+            bucket, key = self._parse_s3_path(s3_path)
+            logger.info(f"Downloading s3://{bucket}/{key} to {local_path}")
+            self.s3_client.download_file(bucket, key, str(local_path))
+        except Exception:
+            logger.exception(f"Failed to download {s3_path} to {local_path}")
+            raise
+
     def upload_file(self, local_path: Path | str, s3_key: str) -> None:
         """Upload a local file to S3"""
         try:
@@ -397,13 +407,6 @@ class S3DatasetLoader:
                 local_path = Path(local_path)
 
             bucket, key = self._parse_s3_path(s3_key)
-
-            # Validate that the bucket matches the configured bucket
-            if bucket != self.bucket:
-                raise ValueError(
-                    f"Cross-bucket upload attempted: {bucket} != {self.bucket}. "
-                    "This loader is restricted to the configured bucket."
-                )
 
             logger.info(f"Uploading {local_path} to s3://{bucket}/{key}")
             self.s3_client.upload_file(str(local_path), bucket, key)

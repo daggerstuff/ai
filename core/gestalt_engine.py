@@ -24,9 +24,9 @@ from typing import Optional
 import torch
 from transformers import AutoTokenizer
 
-from training.defense_mechanisms.constants import DEFENSE_LABELS
-from training.defense_mechanisms.dataset import format_dialogue
-from training.defense_mechanisms.model import DefenseClassifier
+from ai.training.defense_mechanisms.constants import DEFENSE_LABELS
+from ai.training.defense_mechanisms.dataset import format_dialogue
+from ai.training.defense_mechanisms.model import DefenseClassifier
 
 logger = logging.getLogger(__name__)
 

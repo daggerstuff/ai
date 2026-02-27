@@ -19,7 +19,7 @@ from sklearn.model_selection import GroupKFold
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizer
 
-from training.defense_mechanisms.constants import NUM_LABELS
+from ai.training.defense_mechanisms.constants import NUM_LABELS
 
 logger = logging.getLogger(__name__)
 

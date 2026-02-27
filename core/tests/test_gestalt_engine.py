@@ -30,7 +30,7 @@ from ai.core.gestalt_engine import (
     _persona_directive,
     _validate_scores,
 )
-from training.defense_mechanisms.model import DefensePrediction
+from ai.training.defense_mechanisms.model import DefensePrediction
 
 # ---------------------------------------------------------------------------
 # Fixtures & helpers
@@ -52,7 +52,7 @@ def make_defense_prediction(
     maturity_score: Optional[float] = None,
 ) -> DefensePrediction:
     """Build a minimal DefensePrediction for injection into mocks."""
-    from training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
+    from ai.training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
 
     probs = [0.0] * 9
     probs[label] = confidence
@@ -472,7 +472,7 @@ class TestGestaltEngineAnalyze:
             plutchik_scores=MINIMAL_PLUTCHIK,
             ocean_scores=MINIMAL_OCEAN,
         )
-        from training.defense_mechanisms.constants import DEFENSE_LABELS
+        from ai.training.defense_mechanisms.constants import DEFENSE_LABELS
 
         # Ensure all defense labels are present in the probabilities map
         assert set(DEFENSE_LABELS.values()).issubset(state.defense_probabilities.keys())
