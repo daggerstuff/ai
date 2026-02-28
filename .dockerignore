@@ -197,6 +197,6 @@ archive/
 # Exclude large data/models if they weren't already
 data/
 models/
-lightning/
+# lightning/ (removed to allow stage configs)
 voice_data/
 youtube_transcriptions/

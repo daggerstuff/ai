@@ -67,6 +67,5 @@ mcp_server/
 evaluation/
 training_ready/scripts/
 training_ready/data/
-training/ready_packages/platforms/
 /api/data/transcripts/ingested/
 training/v1/

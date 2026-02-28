@@ -74,12 +74,10 @@ def load_defense_model(
     """
     global _defense_model, _defense_tokenizer
 
-    from ai.training.defense_mechanisms.model import NIMDefenseClassifier
+    from ai.training.defense_mechanisms.model import NIMEmbeddingClassifier
 
     try:
-        model = NIMDefenseClassifier(
-            model_name="meta/llama-3.1-8b-instruct", temperature=0.0
-        )
+        model = NIMEmbeddingClassifier()
 
         _defense_model = model
         _defense_tokenizer = "NIM_REMOTE"  # Stub to pass `is not None` checks

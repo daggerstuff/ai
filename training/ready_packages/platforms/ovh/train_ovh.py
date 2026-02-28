@@ -145,19 +145,26 @@ signal.signal(signal.SIGINT, signal_handler)
 
 
 def find_dataset_files(base_dir: str, patterns: List[str]) -> List[str]:
-    """Find dataset files matching patterns."""
+    """Find dataset files matching patterns, handling both relative and absolute paths."""
     files = []
     for pattern in patterns:
-        full_pattern = os.path.join(base_dir, pattern)
+        # Check absolute path
+        if os.path.isabs(pattern):
+            full_pattern = pattern
+        else:
+            full_pattern = os.path.join(base_dir, pattern)
+
         matches = glob.glob(full_pattern, recursive=True)
         files.extend(matches)
 
-        # Also check without pattern if it's a direct path
-        direct_path = os.path.join(base_dir, pattern)
-        if os.path.isfile(direct_path) and direct_path not in files:
-            files.append(direct_path)
+        # Also check direct file path
+        if os.path.isfile(full_pattern) and full_pattern not in files:
+            files.append(full_pattern)
 
-    return files
+    # Filter out empty strings and duplicates
+    unique_files = sorted(list(set([f for f in files if f])))
+    logger.info(f"Resolved patterns {patterns} (base={base_dir}) to: {unique_files}")
+    return unique_files
 
 
 def load_dataset_file(file_path: str) -> List[Dict[str, Any]]:
@@ -582,7 +589,21 @@ def main():
     # Load config
     if args.config and os.path.exists(args.config):
         with open(args.config) as f:
-            config = json.load(f)
+            loaded_config = json.load(f)
+            # Merge loaded_config into DEFAULT_CONFIG so we have all required fields
+            config = DEFAULT_CONFIG.copy()
+            # Deep merge for training_stages if present
+            if "training_stages" in loaded_config:
+                for stage, s_cfg in loaded_config["training_stages"].items():
+                    if stage in config["training_stages"]:
+                        config["training_stages"][stage].update(s_cfg)
+                    else:
+                        config["training_stages"][stage] = s_cfg
+
+            # Simple merge for other keys
+            for k, v in loaded_config.items():
+                if k != "training_stages":
+                    config[k] = v
     else:
         config = DEFAULT_CONFIG.copy()
 
@@ -597,6 +618,10 @@ def main():
 
     logger.info(f"CUDA available: {torch.cuda.device_count()} device(s)")
     logger.info(f"Device: {torch.cuda.get_device_name(0)}")
+
+    logger.info(
+        f"Final config datasets for foundation: {config.get('training_stages', {}).get('foundation', {}).get('datasets')}"
+    )
 
     # Initialize WandB
     wandb_run = setup_wandb(config, args.stage)

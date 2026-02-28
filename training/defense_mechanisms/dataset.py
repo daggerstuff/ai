@@ -1,9 +1,9 @@
 """
-PSYDEFCONV Dataset Loader
+PSYDEFCONV Dataset Loader (PARTIALLY DEPRECATED)
 
-Loads the PsyDefDetect dataset, formats multi-turn dialogues for
-sequence classification, and provides GroupKFold splitting to
-prevent dialogue leakage across train/val splits.
+NOTE: The DefenseDataset class is used for local DeBERTa training.
+The inference pipeline now uses format_dialogue directly with
+NIMEmbeddingClassifier for remote vector-based classification.
 """
 
 import json

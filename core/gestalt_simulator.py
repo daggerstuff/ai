@@ -9,7 +9,7 @@ an LLM (e.g. Gemini 2.5 Flash / Pro).
 import json
 import logging
 import time
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from ai.utils.llm_capabilities import ensure_valid_key, get_best_available_gemini_model
 
@@ -30,18 +30,28 @@ class GestaltSimulator:
 
     def __init__(
         self,
-        defense_model_path: str,
+        defense_model_path: Optional[str] = None,
         device: str = "cpu",
         api_key: str = None,
     ):
         self.gestalt_engine = GestaltEngine()
-        logger.info("Loading defense model from %s", defense_model_path)
-        try:
-            self.gestalt_engine.load_defense_model(defense_model_path, device=device)
-        except Exception as exc:
-            logger.warning(
-                "Could not load defense model, running in dry-run/mock mode: %s", exc
+        if defense_model_path:
+            logger.info("Loading defense model from %s", defense_model_path)
+            try:
+                self.gestalt_engine.load_defense_model(
+                    defense_model_path, device=device
+                )
+            except Exception as exc:
+                logger.warning(
+                    "Could not load defense model, running in dry-run/mock mode: %s",
+                    exc,
+                )
+        else:
+            logger.info(
+                "No defense model path provided, initializing GestaltEngine with "
+                "NIM defaults."
             )
+            self.gestalt_engine.load_defense_model()
 
         self.persona_manager = PersonaManager()
 
