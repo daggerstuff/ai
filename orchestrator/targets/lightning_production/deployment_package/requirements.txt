@@ -1,0 +1,1 @@
+torch>=2.0.0\nlightning>=2.1.0\ntransformers>=4.35.0\npeft>=0.6.0\ndatasets>=2.14.0\naccelerate>=0.24.0\nbitsandbytes>=0.41.0\nwandb>=0.16.0\nnumpy>=1.24.0\nscikit-learn>=1.3.0\nmatplotlib>=3.7.0\nseaborn>=0.12.0

@@ -1,0 +1,15 @@
+{
+  "project_name": "pixelated-empathy-training",
+  "base_model": "LatitudeGames/Wayfarer-2-12B",
+  "resume_from_checkpoint": "/checkpoints/resume_v6/model.ckpt",
+  "training_stages": {
+    "foundation": {
+      "num_train_epochs": 1,
+      "learning_rate": 2.0e-5,
+      "datasets": [
+        "acquired/mental_health_counseling.json",
+        "lightning/train.json"
+      ]
+    }
+  }
+}

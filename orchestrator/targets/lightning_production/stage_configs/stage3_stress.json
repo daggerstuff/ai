@@ -1,0 +1,22 @@
+{
+  "project_name": "pixelated-empathy-training",
+  "run_name": "stage3_stress",
+  "model_type": "therapeutic_ai_stress",
+  "base_model": "LatitudeGames/Wayfarer-12B",
+  "resume_from_checkpoint": "./therapeutic_ai_final_stage2",
+  "architecture": "moe_lora",
+  "experts": 4,
+  "training_method": "lora",
+  "context_length": 1024,
+  "batch_size": 2,
+  "learning_rate": 0.00005,
+  "epochs": 4,
+  "warmup_steps": 100,
+  "save_steps": 500,
+  "eval_steps": 100,
+  "gradient_accumulation_steps": 8,
+  "precision": "bf16",
+  "dataloader_num_workers": 4,
+  "train_data_path": "s3://pixel-data/final_dataset/shards/curriculum/stage3/",
+  "target_modules": ["q_proj", "v_proj", "k_proj"]
+}
