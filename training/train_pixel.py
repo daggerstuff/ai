@@ -5,7 +5,7 @@ Supports Unsloth (optimized) and HuggingFace (standard) training pipelines.
 
 Usage:
     uv run python ai/training/train_pixel.py --config \\
-    ai/training/ready_packages/configs/hyperparameters/enhanced_training_config.json
+    ai/training/configs/hyperparameters/enhanced_training_config.json
 """
 
 import argparse
