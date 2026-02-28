@@ -1,0 +1,68 @@
+[
+  {
+    "validation_id": "validation_clinical_001_20250824",
+    "reviewer_id": "clinical_001",
+    "model_version": "pixelated_empathy_v1.0",
+    "validation_date": "2025-08-24 14:21:24.255265+00:00",
+    "accuracy_assessment": 0.958365607907473,
+    "clinical_appropriateness": 0.90150064531336,
+    "safety_assessment": 0.9537514659184559,
+    "bias_assessment": 0.8956247516704176,
+    "recommendations": [
+      "Implement additional bias testing for underrepresented populations",
+      "Enhance crisis intervention response time to under 3 minutes",
+      "Add cultural competency training data for diverse populations",
+      "Strengthen integration with emergency services protocols",
+      "Improve documentation of clinical decision-making process"
+    ],
+    "concerns": [
+      "Potential bias in risk assessment across demographic groups"
+    ],
+    "approval_status": "CertificationStatus.REQUIRES_REVISION",
+    "clinical_notes": "Clinical validation conducted by Dr. Sarah Johnson, Ph.D.. Overall assessment: requires_revision. System demonstrates strong clinical safety measures with recommendations for continuous improvement."
+  },
+  {
+    "validation_id": "validation_clinical_002_20250824",
+    "reviewer_id": "clinical_002",
+    "model_version": "pixelated_empathy_v1.0",
+    "validation_date": "2025-08-24 14:21:24.255441+00:00",
+    "accuracy_assessment": 0.958365607907473,
+    "clinical_appropriateness": 0.90150064531336,
+    "safety_assessment": 0.9537514659184559,
+    "bias_assessment": 0.8956247516704176,
+    "recommendations": [
+      "Implement additional bias testing for underrepresented populations",
+      "Enhance crisis intervention response time to under 3 minutes",
+      "Add cultural competency training data for diverse populations",
+      "Strengthen integration with emergency services protocols",
+      "Improve documentation of clinical decision-making process"
+    ],
+    "concerns": [
+      "Potential bias in risk assessment across demographic groups"
+    ],
+    "approval_status": "CertificationStatus.REQUIRES_REVISION",
+    "clinical_notes": "Clinical validation conducted by Dr. Michael Chen, M.D.. Overall assessment: requires_revision. System demonstrates strong clinical safety measures with recommendations for continuous improvement."
+  },
+  {
+    "validation_id": "validation_clinical_003_20250824",
+    "reviewer_id": "clinical_003",
+    "model_version": "pixelated_empathy_v1.0",
+    "validation_date": "2025-08-24 14:21:24.255529+00:00",
+    "accuracy_assessment": 0.958365607907473,
+    "clinical_appropriateness": 0.90150064531336,
+    "safety_assessment": 0.9537514659184559,
+    "bias_assessment": 0.8956247516704176,
+    "recommendations": [
+      "Implement additional bias testing for underrepresented populations",
+      "Enhance crisis intervention response time to under 3 minutes",
+      "Add cultural competency training data for diverse populations",
+      "Strengthen integration with emergency services protocols",
+      "Improve documentation of clinical decision-making process"
+    ],
+    "concerns": [
+      "Potential bias in risk assessment across demographic groups"
+    ],
+    "approval_status": "CertificationStatus.REQUIRES_REVISION",
+    "clinical_notes": "Clinical validation conducted by Dr. Lisa Rodriguez, LCSW. Overall assessment: requires_revision. System demonstrates strong clinical safety measures with recommendations for continuous improvement."
+  }
+]

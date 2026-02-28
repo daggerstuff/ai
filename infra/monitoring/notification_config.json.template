@@ -1,0 +1,22 @@
+{
+  "smtp_server": "smtp.gmail.com",
+  "smtp_port": 587,
+  "email_user": "your-email@example.com",
+  "email_password": "your-app-password",
+  "default_recipients": [
+    "admin@pixelated-ai.com",
+    "ops-team@pixelated-ai.com"
+  ],
+  
+  "slack_webhook_url": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
+  "slack_token": "xoxb-your-slack-bot-token",
+  "slack_channel": "#pixelated-ai-alerts",
+  
+  "pagerduty_integration_key": "your-pagerduty-integration-key",
+  "pagerduty_api_token": "your-pagerduty-api-token",
+  
+  "webhook_urls": [
+    "https://your-webhook-endpoint.com/alerts",
+    "https://monitoring-system.com/webhooks/pixelated-ai"
+  ]
+}

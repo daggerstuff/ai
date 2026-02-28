@@ -1,0 +1,1090 @@
+{
+  "analysis_timestamp": "2025-08-06T22:04:19.206439",
+  "total_conversations": 137855,
+  "diversity_analysis": {
+    "vocabulary_diversity": {
+      "global_vocabulary": {
+        "total_unique_words": 87290,
+        "total_word_instances": 44296483,
+        "vocabulary_richness": 0.0019705853396984135,
+        "most_common_words": [
+          [
+            "and",
+            1661510
+          ],
+          [
+            "the",
+            1450744
+          ],
+          [
+            "to",
+            1231741
+          ],
+          [
+            "of",
+            947218
+          ],
+          [
+            "a",
+            816587
+          ],
+          [
+            "in",
+            585127
+          ],
+          [
+            "can",
+            545480
+          ],
+          [
+            "for",
+            497079
+          ],
+          [
+            "or",
+            437590
+          ],
+          [
+            "with",
+            434904
+          ],
+          [
+            "is",
+            432829
+          ],
+          [
+            "role",
+            406058
+          ],
+          [
+            "i",
+            402560
+          ],
+          [
+            "that",
+            396560
+          ],
+          [
+            "content",
+            392140
+          ],
+          [
+            "this",
+            384277
+          ],
+          [
+            "are",
+            329082
+          ],
+          [
+            "s",
+            311863
+          ],
+          [
+            "on",
+            298198
+          ],
+          [
+            "be",
+            294970
+          ]
+        ],
+        "rare_words_count": 20892,
+        "rare_words_percentage": 23.934013059915223
+      },
+      "dataset_vocabulary": {
+        "test_dataset": {
+          "unique_words": 13,
+          "vocabulary_overlap_with_global": 0.01489288578302211,
+          "unique_to_dataset": 13,
+          "conversation_count": 1
+        },
+        "test_search": {
+          "unique_words": 43,
+          "vocabulary_overlap_with_global": 0.04926108374384236,
+          "unique_to_dataset": 43,
+          "conversation_count": 2
+        },
+        "priority_1": {
+          "unique_words": 9743,
+          "vocabulary_overlap_with_global": 11.161645091075725,
+          "unique_to_dataset": 9743,
+          "conversation_count": 1225
+        },
+        "priority_2": {
+          "unique_words": 7993,
+          "vocabulary_overlap_with_global": 9.15683354336121,
+          "unique_to_dataset": 7993,
+          "conversation_count": 320
+        },
+        "priority_3": {
+          "unique_words": 7558,
+          "vocabulary_overlap_with_global": 8.658494672929317,
+          "unique_to_dataset": 7558,
+          "conversation_count": 258
+        },
+        "professional_psychology": {
+          "unique_words": 3413,
+          "vocabulary_overlap_with_global": 3.909955321342651,
+          "unique_to_dataset": 3413,
+          "conversation_count": 9846
+        },
+        "professional_soulchat": {
+          "unique_words": 51,
+          "vocabulary_overlap_with_global": 0.05842593653339444,
+          "unique_to_dataset": 51,
+          "conversation_count": 5000
+        },
+        "professional_neuro": {
+          "unique_words": 5983,
+          "vocabulary_overlap_with_global": 6.854164279986252,
+          "unique_to_dataset": 5983,
+          "conversation_count": 3398
+        },
+        "cot_reasoning": {
+          "unique_words": 77164,
+          "vocabulary_overlap_with_global": 88.39958758162447,
+          "unique_to_dataset": 77164,
+          "conversation_count": 64559
+        },
+        "additional_specialized": {
+          "unique_words": 26756,
+          "vocabulary_overlap_with_global": 30.65185015465689,
+          "unique_to_dataset": 26756,
+          "conversation_count": 53246
+        }
+      },
+      "tier_vocabulary": {
+        "priority_1": {
+          "unique_words": 9743,
+          "vocabulary_overlap_with_global": 11.161645091075725,
+          "conversation_count": 1227
+        },
+        "professional": {
+          "unique_words": 7510,
+          "vocabulary_overlap_with_global": 8.603505556192005,
+          "conversation_count": 18245
+        },
+        "priority_2": {
+          "unique_words": 7993,
+          "vocabulary_overlap_with_global": 9.15683354336121,
+          "conversation_count": 320
+        },
+        "priority_3": {
+          "unique_words": 7558,
+          "vocabulary_overlap_with_global": 8.658494672929317,
+          "conversation_count": 258
+        },
+        "cot_reasoning": {
+          "unique_words": 77164,
+          "vocabulary_overlap_with_global": 88.39958758162447,
+          "conversation_count": 64559
+        },
+        "research": {
+          "unique_words": 26756,
+          "vocabulary_overlap_with_global": 30.65185015465689,
+          "conversation_count": 53246
+        }
+      },
+      "diversity_indices": {
+        "simpson_diversity": 0.9940289550022912,
+        "shannon_entropy": 10.446954596908615
+      }
+    },
+    "topic_diversity": {
+      "cluster_count": 10,
+      "cluster_analysis": {
+        "cluster_0": {
+          "document_count": 38671,
+          "percentage": 28.05193863117043,
+          "top_terms": [
+            "adhd",
+            "strategies",
+            "turn_id",
+            "wanted share",
+            "woman adhd",
+            "adhd wanted",
+            "discuss adhd",
+            "important adhd",
+            "valid let",
+            "adhd affects"
+          ],
+          "datasets_in_cluster": [
+            "additional_specialized"
+          ]
+        },
+        "cluster_1": {
+          "document_count": 9847,
+          "percentage": 7.143012585687861,
+          "top_terms": [
+            "human licensed",
+            "response concern",
+            "patient helpful",
+            "licensed psychologist",
+            "psychologist provide",
+            "helpful response",
+            "provide patient",
+            "licensed",
+            "psychologist",
+            "assistant"
+          ],
+          "datasets_in_cluster": [
+            "professional_psychology",
+            "test_dataset"
+          ]
+        },
+        "cluster_2": {
+          "document_count": 12795,
+          "percentage": 9.281491422146457,
+          "top_terms": [
+            "social",
+            "anxiety",
+            "individuals",
+            "sensory",
+            "men",
+            "mental",
+            "support",
+            "symptoms",
+            "emotional",
+            "communication"
+          ],
+          "datasets_in_cluster": [
+            "cot_reasoning",
+            "priority_2",
+            "priority_1",
+            "priority_3",
+            "professional_neuro"
+          ]
+        },
+        "cluster_3": {
+          "document_count": 9526,
+          "percentage": 6.910159225272931,
+          "top_terms": [
+            "eating",
+            "food",
+            "relationship food",
+            "eating disorders",
+            "important eating",
+            "eating disorder",
+            "mental health",
+            "disorders",
+            "disorder",
+            "mental"
+          ],
+          "datasets_in_cluster": [
+            "additional_specialized",
+            "cot_reasoning"
+          ]
+        },
+        "cluster_4": {
+          "document_count": 31520,
+          "percentage": 22.8646041130173,
+          "top_terms": [
+            "data",
+            "role",
+            "content",
+            "understanding",
+            "using",
+            "turn_id",
+            "legal",
+            "potential",
+            "time",
+            "cognitive"
+          ],
+          "datasets_in_cluster": [
+            "cot_reasoning",
+            "professional_neuro",
+            "priority_1",
+            "priority_3",
+            "priority_2"
+          ]
+        },
+        "cluster_5": {
+          "document_count": 5042,
+          "percentage": 3.6574661782307496,
+          "top_terms": [
+            "recovery",
+            "recovery eating",
+            "eating",
+            "eating disorder",
+            "disorder",
+            "building resilience",
+            "ups",
+            "continued",
+            "reflecting",
+            "ongoing"
+          ],
+          "datasets_in_cluster": [
+            "additional_specialized",
+            "cot_reasoning"
+          ]
+        },
+        "cluster_6": {
+          "document_count": 5002,
+          "percentage": 3.628450183163469,
+          "top_terms": [
+            "content",
+            "role",
+            "role therapist",
+            "role client",
+            "client content",
+            "therapist content",
+            "client",
+            "therapist",
+            "feel",
+            "turn_id"
+          ],
+          "datasets_in_cluster": [
+            "professional_soulchat",
+            "cot_reasoning"
+          ]
+        },
+        "cluster_7": {
+          "document_count": 5325,
+          "percentage": 3.862754343331762,
+          "top_terms": [
+            "cultures",
+            "cultural",
+            "communication",
+            "culture",
+            "social",
+            "western",
+            "context",
+            "differences",
+            "norms",
+            "nuances"
+          ],
+          "datasets_in_cluster": [
+            "cot_reasoning",
+            "priority_3"
+          ]
+        },
+        "cluster_8": {
+          "document_count": 10056,
+          "percentage": 7.294621159914402,
+          "top_terms": [
+            "rare",
+            "genetic",
+            "diagnostic",
+            "symptoms",
+            "disease",
+            "treatment",
+            "diagnosis",
+            "clinical",
+            "mutations",
+            "diseases"
+          ],
+          "datasets_in_cluster": [
+            "cot_reasoning",
+            "priority_2",
+            "professional_neuro",
+            "additional_specialized"
+          ]
+        },
+        "cluster_9": {
+          "document_count": 10071,
+          "percentage": 7.305502158064633,
+          "top_terms": [
+            "self",
+            "trauma",
+            "emotional",
+            "healing",
+            "emotions",
+            "heartbreak",
+            "support",
+            "relationship",
+            "feelings",
+            "boundaries"
+          ],
+          "datasets_in_cluster": [
+            "cot_reasoning",
+            "priority_1",
+            "priority_2",
+            "priority_3"
+          ]
+        }
+      },
+      "topic_distribution_entropy": 2.9386250482480936,
+      "average_cluster_size": 13785.5
+    },
+    "style_diversity": {
+      "question_density_range": {
+        "min": 0.0,
+        "max": 44.13619167717528,
+        "std": 1.400957648540756
+      },
+      "formality_distribution": {
+        "formal_conversations": 17224,
+        "informal_conversations": 4277,
+        "neutral_conversations": 116354
+      },
+      "personal_style_distribution": {
+        "personal_style": 61069,
+        "impersonal_style": 65839,
+        "neutral_style": 10947
+      },
+      "style_by_dataset": {
+        "additional_specialized": {
+          "question_density": 2.4639240640344964,
+          "formality_score": -0.03418097134057018,
+          "personal_style_score": 1.8722157532960222
+        },
+        "cot_reasoning": {
+          "question_density": 0.47994498927715423,
+          "formality_score": 0.33106150962685293,
+          "personal_style_score": -6.420932790160938
+        },
+        "priority_1": {
+          "question_density": 1.1628665719307918,
+          "formality_score": 0.022857142857142857,
+          "personal_style_score": 4.604897959183673
+        },
+        "priority_2": {
+          "question_density": 1.040155133565572,
+          "formality_score": 0.4125,
+          "personal_style_score": -9.61875
+        },
+        "priority_3": {
+          "question_density": 0.31274827521534804,
+          "formality_score": 0.6434108527131783,
+          "personal_style_score": -6.042635658914729
+        },
+        "professional_neuro": {
+          "question_density": 0.732826543158179,
+          "formality_score": 0.028251912889935255,
+          "personal_style_score": -2.4991171277221893
+        },
+        "professional_psychology": {
+          "question_density": 1.0530900973288257,
+          "formality_score": -0.01817997156205566,
+          "personal_style_score": 1.3564899451553931
+        },
+        "professional_soulchat": {
+          "question_density": 0.0,
+          "formality_score": 0.0,
+          "personal_style_score": 0.002
+        },
+        "test_dataset": {
+          "question_density": 13.333333333333334,
+          "formality_score": 0.0,
+          "personal_style_score": 2.0
+        },
+        "test_search": {
+          "question_density": 0.0,
+          "formality_score": 0.0,
+          "personal_style_score": 0.0
+        }
+      },
+      "style_diversity_index": 91.99645048053216
+    },
+    "response_pattern_diversity": {
+      "response_length_patterns": {
+        "distribution": {
+          "short": 8,
+          "medium": 7602,
+          "long": 58937,
+          "very_long": 71308
+        },
+        "diversity_score": 100.0
+      },
+      "dialogue_turn_patterns": {
+        "distribution": {
+          "2": 132994,
+          "36": 411,
+          "34": 410,
+          "32": 368,
+          "38": 355,
+          "30": 342,
+          "28": 276,
+          "40": 270,
+          "26": 221,
+          "42": 204
+        },
+        "average_turns": 2.9382902324906603,
+        "turn_diversity": 32
+      },
+      "response_structure_patterns": {
+        "distribution": {
+          "QD": 64735,
+          "QLD": 56580,
+          "D": 10638,
+          "QLND": 4865,
+          "LD": 630,
+          "QND": 330,
+          "LND": 49,
+          "ND": 28
+        },
+        "pattern_diversity": 8
+      },
+      "interaction_patterns": {}
+    },
+    "dataset_coverage": {
+      "dataset_distribution": {
+        "counts": {
+          "cot_reasoning": 64559,
+          "additional_specialized": 53246,
+          "professional_psychology": 9846,
+          "professional_soulchat": 5000,
+          "professional_neuro": 3398,
+          "priority_1": 1225,
+          "priority_2": 320,
+          "priority_3": 258,
+          "test_search": 2,
+          "test_dataset": 1
+        },
+        "percentages": {
+          "cot_reasoning": 46.83109063871459,
+          "additional_specialized": 38.62464183381089,
+          "professional_psychology": 7.1422871858111785,
+          "professional_soulchat": 3.6269993834101046,
+          "professional_neuro": 2.4649087809655073,
+          "priority_1": 0.8886148489354756,
+          "priority_2": 0.23212796053824672,
+          "priority_3": 0.1871531681839614,
+          "test_search": 0.001450799753364042,
+          "test_dataset": 0.000725399876682021
+        },
+        "dataset_count": 10,
+        "largest_dataset": "cot_reasoning",
+        "smallest_dataset": "test_dataset",
+        "size_ratio": 64559.0
+      },
+      "tier_coverage": {
+        "counts": {
+          "cot_reasoning": 64559,
+          "research": 53246,
+          "professional": 18245,
+          "priority_1": 1227,
+          "priority_2": 320,
+          "priority_3": 258
+        },
+        "percentages": {
+          "cot_reasoning": 46.83109063871459,
+          "research": 38.62464183381089,
+          "professional": 13.234920750063473,
+          "priority_1": 0.8900656486888398,
+          "priority_2": 0.23212796053824672,
+          "priority_3": 0.1871531681839614
+        },
+        "tier_count": 6,
+        "most_represented_tier": "cot_reasoning",
+        "least_represented_tier": "priority_3"
+      },
+      "cross_coverage": {
+        "matrix": {
+          "cot_reasoning": {
+            "additional_specialized": 0,
+            "cot_reasoning": 64559,
+            "priority_1": 0,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional_neuro": 0,
+            "professional_psychology": 0,
+            "professional_soulchat": 0,
+            "test_dataset": 0,
+            "test_search": 0
+          },
+          "priority_1": {
+            "additional_specialized": 0,
+            "cot_reasoning": 0,
+            "priority_1": 1225,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional_neuro": 0,
+            "professional_psychology": 0,
+            "professional_soulchat": 0,
+            "test_dataset": 1,
+            "test_search": 1
+          },
+          "priority_2": {
+            "additional_specialized": 0,
+            "cot_reasoning": 0,
+            "priority_1": 0,
+            "priority_2": 320,
+            "priority_3": 0,
+            "professional_neuro": 0,
+            "professional_psychology": 0,
+            "professional_soulchat": 0,
+            "test_dataset": 0,
+            "test_search": 0
+          },
+          "priority_3": {
+            "additional_specialized": 0,
+            "cot_reasoning": 0,
+            "priority_1": 0,
+            "priority_2": 0,
+            "priority_3": 258,
+            "professional_neuro": 0,
+            "professional_psychology": 0,
+            "professional_soulchat": 0,
+            "test_dataset": 0,
+            "test_search": 0
+          },
+          "professional": {
+            "additional_specialized": 0,
+            "cot_reasoning": 0,
+            "priority_1": 0,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional_neuro": 3398,
+            "professional_psychology": 9846,
+            "professional_soulchat": 5000,
+            "test_dataset": 0,
+            "test_search": 1
+          },
+          "research": {
+            "additional_specialized": 53246,
+            "cot_reasoning": 0,
+            "priority_1": 0,
+            "priority_2": 0,
+            "priority_3": 0,
+            "professional_neuro": 0,
+            "professional_psychology": 0,
+            "professional_soulchat": 0,
+            "test_dataset": 0,
+            "test_search": 0
+          }
+        },
+        "coverage_completeness": 18.333333333333332,
+        "empty_combinations": "49",
+        "well_covered_combinations": "8"
+      },
+      "length_coverage_by_dataset": {
+        "additional_specialized": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0,
+          "max": 0,
+          "count": 53246
+        },
+        "cot_reasoning": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0,
+          "max": 0,
+          "count": 64559
+        },
+        "priority_1": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0,
+          "max": 0,
+          "count": 1225
+        },
+        "priority_2": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0,
+          "max": 0,
+          "count": 320
+        },
+        "priority_3": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0,
+          "max": 0,
+          "count": 258
+        },
+        "professional_neuro": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0,
+          "max": 0,
+          "count": 3398
+        },
+        "professional_psychology": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0,
+          "max": 0,
+          "count": 9846
+        },
+        "professional_soulchat": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0,
+          "max": 0,
+          "count": 5000
+        },
+        "test_dataset": {
+          "mean": 0.0,
+          "std": NaN,
+          "min": 0,
+          "max": 0,
+          "count": 1
+        },
+        "test_search": {
+          "mean": 0.0,
+          "std": 0.0,
+          "min": 0,
+          "max": 0,
+          "count": 2
+        }
+      }
+    },
+    "content_gaps": {
+      "vocabulary_gaps": {
+        "emotional": {
+          "coverage_percentage": 100.0,
+          "missing_words": [],
+          "found_words": [
+            "feel",
+            "emotion",
+            "happy",
+            "sad",
+            "angry",
+            "joy",
+            "fear",
+            "love",
+            "hate"
+          ]
+        },
+        "technical": {
+          "coverage_percentage": 100.0,
+          "missing_words": [],
+          "found_words": [
+            "system",
+            "process",
+            "method",
+            "algorithm",
+            "data",
+            "analysis",
+            "implementation"
+          ]
+        },
+        "social": {
+          "coverage_percentage": 100.0,
+          "missing_words": [],
+          "found_words": [
+            "friend",
+            "family",
+            "relationship",
+            "community",
+            "social",
+            "group",
+            "team"
+          ]
+        },
+        "health": {
+          "coverage_percentage": 100.0,
+          "missing_words": [],
+          "found_words": [
+            "health",
+            "medical",
+            "doctor",
+            "treatment",
+            "therapy",
+            "wellness",
+            "mental"
+          ]
+        },
+        "educational": {
+          "coverage_percentage": 100.0,
+          "missing_words": [],
+          "found_words": [
+            "learn",
+            "study",
+            "education",
+            "school",
+            "knowledge",
+            "skill",
+            "training"
+          ]
+        }
+      },
+      "topic_gaps": {},
+      "style_gaps": {},
+      "coverage_gaps": {
+        "length_distribution": {
+          "very_short": {
+            "count": 137855,
+            "percentage": 100.0
+          },
+          "short": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "medium": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "long": {
+            "count": 0,
+            "percentage": 0.0
+          },
+          "very_long": {
+            "count": 0,
+            "percentage": 0.0
+          }
+        },
+        "empty_combinations": [
+          [
+            "additional_specialized",
+            "cot_reasoning"
+          ],
+          [
+            "additional_specialized",
+            "priority_1"
+          ],
+          [
+            "additional_specialized",
+            "priority_2"
+          ],
+          [
+            "additional_specialized",
+            "priority_3"
+          ],
+          [
+            "additional_specialized",
+            "professional"
+          ],
+          [
+            "cot_reasoning",
+            "priority_1"
+          ],
+          [
+            "cot_reasoning",
+            "priority_2"
+          ],
+          [
+            "cot_reasoning",
+            "priority_3"
+          ],
+          [
+            "cot_reasoning",
+            "professional"
+          ],
+          [
+            "cot_reasoning",
+            "research"
+          ],
+          [
+            "priority_1",
+            "cot_reasoning"
+          ],
+          [
+            "priority_1",
+            "priority_2"
+          ],
+          [
+            "priority_1",
+            "priority_3"
+          ],
+          [
+            "priority_1",
+            "professional"
+          ],
+          [
+            "priority_1",
+            "research"
+          ],
+          [
+            "priority_2",
+            "cot_reasoning"
+          ],
+          [
+            "priority_2",
+            "priority_1"
+          ],
+          [
+            "priority_2",
+            "priority_3"
+          ],
+          [
+            "priority_2",
+            "professional"
+          ],
+          [
+            "priority_2",
+            "research"
+          ],
+          [
+            "priority_3",
+            "cot_reasoning"
+          ],
+          [
+            "priority_3",
+            "priority_1"
+          ],
+          [
+            "priority_3",
+            "priority_2"
+          ],
+          [
+            "priority_3",
+            "professional"
+          ],
+          [
+            "priority_3",
+            "research"
+          ],
+          [
+            "professional_neuro",
+            "cot_reasoning"
+          ],
+          [
+            "professional_neuro",
+            "priority_1"
+          ],
+          [
+            "professional_neuro",
+            "priority_2"
+          ],
+          [
+            "professional_neuro",
+            "priority_3"
+          ],
+          [
+            "professional_neuro",
+            "research"
+          ],
+          [
+            "professional_psychology",
+            "cot_reasoning"
+          ],
+          [
+            "professional_psychology",
+            "priority_1"
+          ],
+          [
+            "professional_psychology",
+            "priority_2"
+          ],
+          [
+            "professional_psychology",
+            "priority_3"
+          ],
+          [
+            "professional_psychology",
+            "research"
+          ],
+          [
+            "professional_soulchat",
+            "cot_reasoning"
+          ],
+          [
+            "professional_soulchat",
+            "priority_1"
+          ],
+          [
+            "professional_soulchat",
+            "priority_2"
+          ],
+          [
+            "professional_soulchat",
+            "priority_3"
+          ],
+          [
+            "professional_soulchat",
+            "research"
+          ],
+          [
+            "test_dataset",
+            "cot_reasoning"
+          ],
+          [
+            "test_dataset",
+            "priority_2"
+          ],
+          [
+            "test_dataset",
+            "priority_3"
+          ],
+          [
+            "test_dataset",
+            "professional"
+          ],
+          [
+            "test_dataset",
+            "research"
+          ],
+          [
+            "test_search",
+            "cot_reasoning"
+          ],
+          [
+            "test_search",
+            "priority_2"
+          ],
+          [
+            "test_search",
+            "priority_3"
+          ],
+          [
+            "test_search",
+            "research"
+          ]
+        ],
+        "sparse_combinations": [
+          [
+            "test_dataset",
+            "priority_1",
+            "1"
+          ],
+          [
+            "test_search",
+            "priority_1",
+            "1"
+          ],
+          [
+            "test_search",
+            "professional",
+            "1"
+          ]
+        ]
+      }
+    },
+    "diversity_trends": {
+      "monthly_trends": {
+        "2025-08": {
+          "dataset_nunique": 10,
+          "tier_nunique": 6,
+          "text_length_mean": 0.0,
+          "text_length_std": 0.0,
+          "word_count_mean": 311.4130499437815,
+          "conversation_id_count": 137855
+        }
+      },
+      "diversity_trend": {
+        "monthly_diversity_scores": {
+          "2025-08": 60
+        },
+        "trend_direction": "stable"
+      }
+    },
+    "coverage_completeness": {
+      "combination_coverage": {
+        "total_possible": 60,
+        "actual_combinations": 11,
+        "coverage_percentage": 18.333333333333332
+      },
+      "size_distribution": {
+        "small": {
+          "count": 137855,
+          "percentage": 100.0,
+          "adequacy": "good"
+        },
+        "medium": {
+          "count": 0,
+          "percentage": 0.0,
+          "adequacy": "needs_improvement"
+        },
+        "large": {
+          "count": 0,
+          "percentage": 0.0,
+          "adequacy": "needs_improvement"
+        }
+      },
+      "overall_completeness_score": 9.666666666666666
+    }
+  },
+  "insights": [
+    "\u2696\ufe0f Significant dataset imbalance - largest dataset is 64559.0x larger than smallest",
+    "\ud83d\udcca Overall coverage completeness is 9.7% - needs improvement"
+  ],
+  "recommendations": [
+    "\ud83c\udfa8 Balance formal and informal conversation styles for better diversity",
+    "\ud83d\udccb Fill 49 empty dataset-tier combinations",
+    "\u2705 Improve dataset-tier combination coverage to reach 80%+ completeness"
+  ]
+}

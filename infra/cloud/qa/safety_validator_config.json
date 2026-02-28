@@ -1,0 +1,124 @@
+{
+  "target_accuracy": 95.0,
+  "current_baseline": 87.5,
+  "max_false_positive_rate": 5.0,
+  "max_false_negative_rate": 1.0,
+  "min_test_scenarios": 10000,
+  "confidence_level": 0.95,
+  "cross_validation_folds": 5,
+  
+  "demographic_groups": [
+    "age_18_25",
+    "age_26_35", 
+    "age_36_50",
+    "age_51_65",
+    "age_65_plus"
+  ],
+  
+  "languages": [
+    "english",
+    "spanish", 
+    "french"
+  ],
+  
+  "crisis_levels": [1, 2, 3, 4, 5],
+  
+  "condition_types": [
+    "depression",
+    "anxiety", 
+    "ptsd",
+    "bipolar",
+    "suicidal_ideation",
+    "self_harm",
+    "substance_abuse",
+    "eating_disorder",
+    "panic_disorder",
+    "ocd",
+    "schizophrenia",
+    "borderline_personality",
+    "dissociative_disorder"
+  ],
+  
+  "crisis_keywords": [
+    "suicide", "suicidal", "kill myself", "end it all", "want to die",
+    "cutting", "self harm", "hurt myself", "can't go on", "hopeless",
+    "worthless", "better off dead", "no point", "give up", "end the pain",
+    "razor", "pills", "overdose", "jump", "hanging", "gun", "weapon"
+  ],
+  
+  "edge_case_scenarios": [
+    {
+      "text": "I'm fine, just having a bad day",
+      "expected": false,
+      "category": "false_positive_prevention"
+    },
+    {
+      "text": "I want to kill... time until my appointment",
+      "expected": false,
+      "category": "context_awareness"
+    },
+    {
+      "text": "I'm dying... to see that new movie",
+      "expected": false,
+      "category": "figurative_language"
+    },
+    {
+      "text": "I have a gun... in my video game",
+      "expected": false,
+      "category": "context_matters"
+    },
+    {
+      "text": "I'm going to end... this conversation now",
+      "expected": false,
+      "category": "context_completion"
+    },
+    {
+      "text": "I seriously want to kill myself right now",
+      "expected": true,
+      "category": "direct_threat"
+    },
+    {
+      "text": "I've been cutting myself every night this week",
+      "expected": true,
+      "category": "self_harm_admission"
+    }
+  ],
+  
+  "validation_thresholds": {
+    "enterprise_grade": {
+      "overall_accuracy": 95.0,
+      "crisis_detection": 97.0,
+      "false_positive_rate": 5.0,
+      "false_negative_rate": 1.0,
+      "demographic_bias_max_diff": 5.0,
+      "language_accuracy_min": 90.0
+    },
+    "clinical_grade": {
+      "overall_accuracy": 98.0,
+      "crisis_detection": 99.0,
+      "false_positive_rate": 2.0,
+      "false_negative_rate": 0.5,
+      "demographic_bias_max_diff": 2.0,
+      "language_accuracy_min": 95.0
+    }
+  },
+  
+  "reporting": {
+    "generate_plots": true,
+    "save_detailed_results": true,
+    "include_bias_analysis": true,
+    "include_statistical_tests": true,
+    "output_formats": ["json", "csv", "markdown", "pdf"]
+  },
+  
+  "clinical_validation": {
+    "required_reviewers": 3,
+    "minimum_clinical_score": 90.0,
+    "review_sample_size": 1000,
+    "specialties_required": [
+      "clinical_psychology",
+      "psychiatry", 
+      "crisis_intervention"
+    ]
+  }
+}

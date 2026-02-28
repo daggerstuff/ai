@@ -1,0 +1,2080 @@
+{
+  "analysis_timestamp": "2025-08-06T21:55:21.566981",
+  "total_conversations": 137855,
+  "quality_analysis": {
+    "response_quality": {
+      "overall_stats": {
+        "mean_quality_score": 44.428185500095296,
+        "median_quality_score": 45.33271202071185,
+        "quality_std": 9.68587048049733,
+        "high_quality_conversations": 0,
+        "low_quality_conversations": 4236
+      },
+      "by_dataset": {
+        "test_dataset": {
+          "mean_quality": 64.44783653846154,
+          "mean_readability": 76.59134615384617,
+          "mean_empathy": 0.0,
+          "conversation_count": 1
+        },
+        "test_search": {
+          "mean_quality": 40.56808712121213,
+          "mean_readability": 40.83598484848487,
+          "mean_empathy": 2.272727272727273,
+          "conversation_count": 2
+        },
+        "priority_1": {
+          "mean_quality": 51.69710871514843,
+          "mean_readability": 65.89798169048501,
+          "mean_empathy": 0.8023011224793531,
+          "conversation_count": 1225
+        },
+        "priority_2": {
+          "mean_quality": 39.36877092974247,
+          "mean_readability": 17.81744969278069,
+          "mean_empathy": 0.2498500158754049,
+          "conversation_count": 320
+        },
+        "priority_3": {
+          "mean_quality": 38.17676741419196,
+          "mean_readability": 23.04314845146556,
+          "mean_empathy": 0.1358988018609817,
+          "conversation_count": 258
+        },
+        "professional_psychology": {
+          "mean_quality": 50.64022488407155,
+          "mean_readability": 51.4499854754358,
+          "mean_empathy": 2.31204376281926,
+          "conversation_count": 9846
+        },
+        "professional_soulchat": {
+          "mean_quality": 16.82080406788431,
+          "mean_readability": -37.923211700603574,
+          "mean_empathy": 0.0030266431880003265,
+          "conversation_count": 5000
+        },
+        "professional_neuro": {
+          "mean_quality": 37.23296223209638,
+          "mean_readability": 15.096825560407282,
+          "mean_empathy": 0.13005756184719275,
+          "conversation_count": 3398
+        },
+        "cot_reasoning": {
+          "mean_quality": 39.08267808800543,
+          "mean_readability": 22.332631856539724,
+          "mean_empathy": 0.3932134291752319,
+          "conversation_count": 64559
+        },
+        "additional_specialized": {
+          "mean_quality": 52.70558281076932,
+          "mean_readability": 56.900799477626016,
+          "mean_empathy": 0.1396032161316511,
+          "conversation_count": 53246
+        }
+      },
+      "quality_distribution": {
+        "count": 137855.0,
+        "mean": 44.428185500095296,
+        "std": 9.68587048049733,
+        "min": 12.5,
+        "25%": 37.689958079824095,
+        "50%": 45.33271202071185,
+        "75%": 51.18136749673772,
+        "max": 71.60699438202246
+      },
+      "detailed_scores": [
+        {
+          "conversation_id": "546e43f7-2ec0-4cba-bf7d-8f42785c459b",
+          "dataset": "test_dataset",
+          "tier": "priority_1",
+          "readability_score": 76.59134615384617,
+          "grade_level": 4.191153846153846,
+          "avg_sentence_length": 13.0,
+          "question_ratio": 0.5,
+          "positive_sentiment": 7.6923076923076925,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 64.44783653846154
+        },
+        {
+          "conversation_id": "44dc9062-4871-45fb-9d65-23ec82a93267",
+          "dataset": "test_search",
+          "tier": "priority_1",
+          "readability_score": 18.65530303030306,
+          "grade_level": 12.47909090909091,
+          "avg_sentence_length": 7.333333333333333,
+          "question_ratio": 0.0,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 4.545454545454546,
+          "overall_quality": 37.882007575757584
+        },
+        {
+          "conversation_id": "4b879964-e8e0-457a-ba53-9cf5925f88f3",
+          "dataset": "test_search",
+          "tier": "professional",
+          "readability_score": 63.01666666666668,
+          "grade_level": 6.540000000000003,
+          "avg_sentence_length": 8.333333333333334,
+          "question_ratio": 0.0,
+          "positive_sentiment": 4.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 43.25416666666667
+        },
+        {
+          "conversation_id": "d9029d1d-5536-4e85-b395-1ee53f84aa85",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 66.89184263233193,
+          "grade_level": 7.788171673819743,
+          "avg_sentence_length": 15.933333333333334,
+          "question_ratio": 0.06666666666666667,
+          "positive_sentiment": 1.7167381974248928,
+          "negative_sentiment": 1.7167381974248928,
+          "empathy_score": 1.2875536480686696,
+          "overall_quality": 52.21429113018599
+        },
+        {
+          "conversation_id": "52bd4abb-9c47-4f08-90fd-b6656242475b",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 75.11482758620693,
+          "grade_level": 6.50873563218391,
+          "avg_sentence_length": 15.642857142857142,
+          "question_ratio": 0.03333333333333333,
+          "positive_sentiment": 0.9153318077803204,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.4576659038901602,
+          "overall_quality": 53.85092003810126
+        },
+        {
+          "conversation_id": "1cf063ca-5a14-491c-94a3-a35025e62976",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 80.89235042735045,
+          "grade_level": 5.564871794871795,
+          "avg_sentence_length": 14.444444444444445,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.7692307692307693,
+          "overall_quality": 55.37693376068377
+        },
+        {
+          "conversation_id": "3c48308b-b014-4879-8cb2-5504fb78a7ec",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 54.90845849802372,
+          "grade_level": 10.275660957400092,
+          "avg_sentence_length": 18.818181818181817,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.4830917874396135,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.4830917874396135,
+          "overall_quality": 49.38811594202899
+        },
+        {
+          "conversation_id": "7be9b3bc-7653-4478-8921-2e5e1a90031b",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 73.55611372180454,
+          "grade_level": 7.129840225563914,
+          "avg_sentence_length": 16.625,
+          "question_ratio": 0.125,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 54.114028430451135
+        },
+        {
+          "conversation_id": "68a01868-8296-4382-8217-94f079849100",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 62.148400000000024,
+          "grade_level": 9.027085714285718,
+          "avg_sentence_length": 20.833333333333332,
+          "question_ratio": 0.16666666666666666,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.8,
+          "overall_quality": 52.23710000000001
+        },
+        {
+          "conversation_id": "647386d6-2cd8-4de0-abb2-c2adf1ca14e5",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 66.23203883495147,
+          "grade_level": 7.676726768377257,
+          "avg_sentence_length": 17.333333333333332,
+          "question_ratio": 0.16666666666666666,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 53.95800970873787
+        },
+        {
+          "conversation_id": "8f8d6e28-bc18-40c9-b663-c62a814565f6",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 70.50497651532098,
+          "grade_level": 7.268624468798929,
+          "avg_sentence_length": 16.5625,
+          "question_ratio": 0.0625,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.38022813688212925,
+          "overall_quality": 52.00908633415344
+        },
+        {
+          "conversation_id": "7204e46e-aaef-4688-9cd0-bd86626c5bd4",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 74.29706105169343,
+          "grade_level": 6.767713903743317,
+          "avg_sentence_length": 21.11111111111111,
+          "question_ratio": 0.4444444444444444,
+          "positive_sentiment": 0.5263157894736842,
+          "negative_sentiment": 0.0,
+          "empathy_score": 1.5789473684210527,
+          "overall_quality": 65.1093529822216
+        },
+        {
+          "conversation_id": "e6825c6f-4e07-447b-94e1-1e0c60f96d20",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 69.42915752741777,
+          "grade_level": 7.024117647058823,
+          "avg_sentence_length": 14.75,
+          "question_ratio": 0.0625,
+          "positive_sentiment": 0.847457627118644,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.423728813559322,
+          "overall_quality": 51.71788260219343
+        },
+        {
+          "conversation_id": "8d45a5be-6b4e-4f63-b8ef-ac94a2b7b407",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 80.29288102261556,
+          "grade_level": 5.179233038348084,
+          "avg_sentence_length": 12.555555555555555,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.8849557522123894,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.8849557522123894,
+          "overall_quality": 54.76732055063914
+        },
+        {
+          "conversation_id": "0053969c-330b-4d4f-a0ff-a82757b7b5cc",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 54.25872982158032,
+          "grade_level": 10.524375531011046,
+          "avg_sentence_length": 19.454545454545453,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.9345794392523363,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.9345794392523363,
+          "overall_quality": 50.02109706881904
+        },
+        {
+          "conversation_id": "1845441a-a444-47d9-aedf-783ea3c429f8",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 65.82972846441949,
+          "grade_level": 7.762415730337079,
+          "avg_sentence_length": 16.181818181818183,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.5617977528089888,
+          "negative_sentiment": 0.0,
+          "empathy_score": 1.1235955056179776,
+          "overall_quality": 53.079189010895476
+        },
+        {
+          "conversation_id": "00390109-4319-40e2-8e7b-28cb638b063e",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 72.36977777777778,
+          "grade_level": 7.1897283950617314,
+          "avg_sentence_length": 16.2,
+          "question_ratio": 0.06666666666666667,
+          "positive_sentiment": 0.823045267489712,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.823045267489712,
+          "overall_quality": 54.047012345679015
+        },
+        {
+          "conversation_id": "fcc93a1b-fd1d-4e33-893a-09e6ff974ba9",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 67.14103448275864,
+          "grade_level": 7.620919540229888,
+          "avg_sentence_length": 19.0,
+          "question_ratio": 0.2916666666666667,
+          "positive_sentiment": 0.45977011494252873,
+          "negative_sentiment": 0.22988505747126436,
+          "empathy_score": 0.45977011494252873,
+          "overall_quality": 58.324913793103455
+        },
+        {
+          "conversation_id": "18cd2150-a912-4ce1-ae9b-46faabfdcf3d",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 79.11204819277111,
+          "grade_level": 5.170430292598969,
+          "avg_sentence_length": 15.181818181818182,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 53.614375684556414
+        },
+        {
+          "conversation_id": "4c6f66a8-1416-44dd-921d-338875bf48f0",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 68.9970083765457,
+          "grade_level": 7.1676266453929,
+          "avg_sentence_length": 15.571428571428571,
+          "question_ratio": 0.14285714285714285,
+          "positive_sentiment": 0.6116207951070336,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.3058103975535168,
+          "overall_quality": 54.33653911903812
+        },
+        {
+          "conversation_id": "ac5ddfdd-4700-428b-8191-3cf6b72e4d5b",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 78.31621455137146,
+          "grade_level": 5.634358437935845,
+          "avg_sentence_length": 14.058823529411764,
+          "question_ratio": 0.047619047619047616,
+          "positive_sentiment": 0.8368200836820083,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 52.44291918406135
+        },
+        {
+          "conversation_id": "9197beea-4c0a-4337-ad56-5525f05d5bb3",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 61.3696348314607,
+          "grade_level": 9.437370251471378,
+          "avg_sentence_length": 19.071428571428573,
+          "question_ratio": 0.07142857142857142,
+          "positive_sentiment": 0.37453183520599254,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.37453183520599254,
+          "overall_quality": 50.10420646067416
+        },
+        {
+          "conversation_id": "85d34353-af89-4d7a-a5b4-9274695fcca9",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 67.8315466101695,
+          "grade_level": 7.462500000000002,
+          "avg_sentence_length": 16.857142857142858,
+          "question_ratio": 0.14285714285714285,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 53.35788665254237
+        },
+        {
+          "conversation_id": "4d25202b-3eb2-4308-b931-93a5621c7ecc",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 78.45659227000546,
+          "grade_level": 6.087795318454003,
+          "avg_sentence_length": 15.181818181818182,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.5988023952095809,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 53.950511703865
+        },
+        {
+          "conversation_id": "ab743c6e-1370-4d0b-b8dc-0bd24e224602",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 80.3475480769231,
+          "grade_level": 5.685715811965814,
+          "avg_sentence_length": 16.97142857142857,
+          "question_ratio": 0.17142857142857143,
+          "positive_sentiment": 1.015228426395939,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.5076142131979695,
+          "overall_quality": 61.17402262474201
+        },
+        {
+          "conversation_id": "5aca4c35-f350-43de-9658-ae0e83870731",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 70.0421377952756,
+          "grade_level": 6.644889763779528,
+          "avg_sentence_length": 12.7,
+          "question_ratio": 0.1,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.7874015748031495,
+          "overall_quality": 51.311636811023625
+        },
+        {
+          "conversation_id": "4206a9f8-3aee-4e0c-ac26-06f1e3568c7b",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 62.52364304812835,
+          "grade_level": 9.68245320855615,
+          "avg_sentence_length": 20.764705882352942,
+          "question_ratio": 0.058823529411764705,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.2840909090909091,
+          "overall_quality": 48.36292947860964
+        },
+        {
+          "conversation_id": "99b1e471-2a05-4364-bbfb-c91f61a8f9ca",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 61.60440068493152,
+          "grade_level": 9.200559360730594,
+          "avg_sentence_length": 19.90909090909091,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.45662100456621,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.91324200913242,
+          "overall_quality": 51.052781366749684
+        },
+        {
+          "conversation_id": "1ef7c2ba-5b23-4c9a-9e7f-f3a47548ba27",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 61.2437931034483,
+          "grade_level": 9.86305418719212,
+          "avg_sentence_length": 20.857142857142858,
+          "question_ratio": 0.07142857142857142,
+          "positive_sentiment": 0.3424657534246575,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 48.43951970443351
+        },
+        {
+          "conversation_id": "eaf2c9d1-556c-4c96-9100-1fd959b3310b",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 67.98428464977648,
+          "grade_level": 6.532175856929957,
+          "avg_sentence_length": 11.090909090909092,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 48.37788934426231
+        },
+        {
+          "conversation_id": "4d4f1a3f-ba6b-4ae8-8389-16729b963777",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 60.21946652150248,
+          "grade_level": 8.631507893304303,
+          "avg_sentence_length": 21.0,
+          "question_ratio": 0.125,
+          "positive_sentiment": 0.5952380952380952,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 49.70486663037562
+        },
+        {
+          "conversation_id": "016a7f5a-29fa-4753-9284-f660d9bc70bf",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 66.79765083440309,
+          "grade_level": 8.231046213093713,
+          "avg_sentence_length": 18.333333333333332,
+          "question_ratio": 0.05555555555555555,
+          "positive_sentiment": 0.3048780487804878,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.3048780487804878,
+          "overall_quality": 51.323396448438174
+        },
+        {
+          "conversation_id": "aab6391d-aa6f-43eb-926e-56d750db6599",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 63.890337209302345,
+          "grade_level": 7.552627906976749,
+          "avg_sentence_length": 16.125,
+          "question_ratio": 0.125,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 1.550387596899225,
+          "overall_quality": 53.72316569767442
+        },
+        {
+          "conversation_id": "b8047400-a374-4d62-b1fe-929b94dcd7eb",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 62.05489189189191,
+          "grade_level": 8.280648648648647,
+          "avg_sentence_length": 14.8,
+          "question_ratio": 0.1,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 49.39372297297298
+        },
+        {
+          "conversation_id": "86c9be4d-ccde-4806-bda4-e48f164799a7",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 70.25165492957748,
+          "grade_level": 7.2402850435949055,
+          "avg_sentence_length": 15.285714285714286,
+          "question_ratio": 0.0625,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 50.60934230382294
+        },
+        {
+          "conversation_id": "1fca260e-da41-47c3-ba58-e5cdc13fc671",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 66.18833333333333,
+          "grade_level": 7.008518518518521,
+          "avg_sentence_length": 13.5,
+          "question_ratio": 0.125,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 50.397083333333335
+        },
+        {
+          "conversation_id": "d3dd95b4-0169-4b27-830c-a892ea00cde6",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 64.38273948598132,
+          "grade_level": 7.601950934579438,
+          "avg_sentence_length": 13.375,
+          "question_ratio": 0.125,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 49.87068487149533
+        },
+        {
+          "conversation_id": "75d7fca5-d5b8-4486-bc88-3a1d3258e95d",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 65.45412106135988,
+          "grade_level": 7.828606965174135,
+          "avg_sentence_length": 14.88888888888889,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.7462686567164178,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 51.13019693200664
+        },
+        {
+          "conversation_id": "6496c752-c2e5-44cf-a5d7-3ecaf1d5011c",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 62.108750000000015,
+          "grade_level": 8.571250000000003,
+          "avg_sentence_length": 16.2,
+          "question_ratio": 0.07142857142857142,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 1.25,
+          "overall_quality": 51.26504464285715
+        },
+        {
+          "conversation_id": "7b07bc91-596f-49f7-bd65-48755305314e",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 63.21340476190477,
+          "grade_level": 9.137613756613757,
+          "avg_sentence_length": 21.0,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.5291005291005291,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 50.036684523809534
+        },
+        {
+          "conversation_id": "9a54443a-c791-48d4-a344-20050423fe50",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 59.67268750000002,
+          "grade_level": 8.116062500000002,
+          "avg_sentence_length": 12.9,
+          "question_ratio": 0.08333333333333333,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.78125,
+          "overall_quality": 48.33004687500001
+        },
+        {
+          "conversation_id": "d4112c0f-4045-41d6-976b-3cf366975beb",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 58.24319275319277,
+          "grade_level": 10.085019305019308,
+          "avg_sentence_length": 19.923076923076923,
+          "question_ratio": 0.07692307692307693,
+          "positive_sentiment": 0.7722007722007722,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.3861003861003861,
+          "overall_quality": 49.49379492129492
+        },
+        {
+          "conversation_id": "2b26478f-73da-4da6-b1a2-f077d39b58d8",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 69.12384381898455,
+          "grade_level": 6.7439900662251695,
+          "avg_sentence_length": 13.727272727272727,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 50.2445973183825
+        },
+        {
+          "conversation_id": "e23d04c2-1a5c-4c8a-91ca-a560602ccf5e",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 61.7121875,
+          "grade_level": 8.626562500000002,
+          "avg_sentence_length": 16.0,
+          "question_ratio": 0.125,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 50.778046875
+        },
+        {
+          "conversation_id": "0c9f7689-9263-48a3-92c8-4d34cf178fde",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 70.51100000000002,
+          "grade_level": 6.973428571428574,
+          "avg_sentence_length": 14.285714285714286,
+          "question_ratio": 0.07142857142857142,
+          "positive_sentiment": 0.5,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.5,
+          "overall_quality": 51.59203571428572
+        },
+        {
+          "conversation_id": "8cbe48ae-54fe-4c07-82ad-b61634d93a44",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 66.38037139561709,
+          "grade_level": 8.786975778546712,
+          "avg_sentence_length": 20.642857142857142,
+          "question_ratio": 0.14285714285714285,
+          "positive_sentiment": 0.34602076124567477,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 51.99509284890427
+        },
+        {
+          "conversation_id": "bb456faf-49ab-41bc-a51a-4a85e0872bb1",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 52.18515648286143,
+          "grade_level": 10.113482364629906,
+          "avg_sentence_length": 16.636363636363637,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 1.092896174863388,
+          "overall_quality": 49.39472429210135
+        },
+        {
+          "conversation_id": "c3a499f7-b527-4404-b787-1f33c25d3b3e",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 63.519409005628546,
+          "grade_level": 7.533658536585367,
+          "avg_sentence_length": 12.692307692307692,
+          "question_ratio": 0.07692307692307693,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.6097560975609756,
+          "overall_quality": 48.717563320825526
+        },
+        {
+          "conversation_id": "6a444297-f099-47c2-8b8a-45168a3b89e9",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 59.92106060606065,
+          "grade_level": 8.545151515151513,
+          "avg_sentence_length": 14.666666666666666,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 49.1135984848485
+        },
+        {
+          "conversation_id": "82feb69e-30a3-4d86-b08b-74887f4ae0a9",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 55.51438961038963,
+          "grade_level": 9.341974025974029,
+          "avg_sentence_length": 15.4,
+          "question_ratio": 0.1,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.6493506493506493,
+          "overall_quality": 49.092623376623386
+        },
+        {
+          "conversation_id": "4d0d9341-6bd9-4122-a288-a23dc10a6634",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 70.91303278688527,
+          "grade_level": 7.698126463700238,
+          "avg_sentence_length": 17.428571428571427,
+          "question_ratio": 0.07142857142857142,
+          "positive_sentiment": 0.4098360655737705,
+          "negative_sentiment": 0.0,
+          "empathy_score": 2.0491803278688523,
+          "overall_quality": 55.902028688524595
+        },
+        {
+          "conversation_id": "4451ea56-0ef4-4702-b78a-5ecb82579bfe",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 61.723033490768586,
+          "grade_level": 8.654276513525119,
+          "avg_sentence_length": 14.631578947368421,
+          "question_ratio": 0.05263157894736842,
+          "positive_sentiment": 0.36496350364963503,
+          "negative_sentiment": 0.0,
+          "empathy_score": 1.094890510948905,
+          "overall_quality": 49.93098887595761
+        },
+        {
+          "conversation_id": "53a1d846-72b3-4ad0-a954-483e65e0d674",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 70.2028793456033,
+          "grade_level": 6.167018404907978,
+          "avg_sentence_length": 10.3125,
+          "question_ratio": 0.0625,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 47.61321983640082
+        },
+        {
+          "conversation_id": "a56a955c-a96f-41ef-9954-24075d34ac7a",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 56.98267942583735,
+          "grade_level": 9.173312068048912,
+          "avg_sentence_length": 15.545454545454545,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.5847953216374269,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 48.80021531100479
+        },
+        {
+          "conversation_id": "1fcdf847-6cef-4699-90a9-dad38749b915",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 64.92570846075435,
+          "grade_level": 7.21223241590214,
+          "avg_sentence_length": 12.11111111111111,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 48.83142711518859
+        },
+        {
+          "conversation_id": "e1009484-23b4-48e0-a07f-13aca26a5bc6",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 54.594445876288674,
+          "grade_level": 11.668874570446736,
+          "avg_sentence_length": 26.727272727272727,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.3436426116838488,
+          "negative_sentiment": 0.0,
+          "empathy_score": 1.0309278350515463,
+          "overall_quality": 45.38591231255858
+        },
+        {
+          "conversation_id": "6934782d-6249-48aa-b95e-0f59be123183",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 52.27532811559303,
+          "grade_level": 9.378205900060205,
+          "avg_sentence_length": 13.727272727272727,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.6622516556291391,
+          "overall_quality": 47.025845875978334
+        },
+        {
+          "conversation_id": "7f12ac68-ae3a-4617-a5a2-9b724a2960fc",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 65.94646258503404,
+          "grade_level": 8.118775510204085,
+          "avg_sentence_length": 16.333333333333332,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.6802721088435374,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 52.11994897959185
+        },
+        {
+          "conversation_id": "aa2c7d44-3972-4ff3-9b44-0622d1796d29",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 65.56871428571432,
+          "grade_level": 8.287396825396826,
+          "avg_sentence_length": 18.071428571428573,
+          "question_ratio": 0.07142857142857142,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 50.692178571428585
+        },
+        {
+          "conversation_id": "aac887e2-173a-47b6-a394-6c9e827c8d88",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 48.367454545454535,
+          "grade_level": 11.02990909090909,
+          "avg_sentence_length": 20.0,
+          "question_ratio": 0.1,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 46.091863636363634
+        },
+        {
+          "conversation_id": "bd8cc456-1fab-431a-9165-475824ba1ee9",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 63.13333333333334,
+          "grade_level": 8.34553191489362,
+          "avg_sentence_length": 15.666666666666666,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.7092198581560284,
+          "overall_quality": 51.580496453900714
+        },
+        {
+          "conversation_id": "fb08fa2d-2457-44f6-825b-bad98272c947",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 64.72350000000002,
+          "grade_level": 7.734531914893619,
+          "avg_sentence_length": 14.1,
+          "question_ratio": 0.1,
+          "positive_sentiment": 0.7092198581560284,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 50.14087500000001
+        },
+        {
+          "conversation_id": "2d0fd72f-f12a-4827-9199-6b6ade5ff093",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 68.85095791001456,
+          "grade_level": 6.69446540880503,
+          "avg_sentence_length": 14.454545454545455,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.628930817610063,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.628930817610063,
+          "overall_quality": 52.056135703918734
+        },
+        {
+          "conversation_id": "5e5b2f35-e51a-441f-b4af-8f60c8645e74",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 55.903478260869605,
+          "grade_level": 9.543229813664599,
+          "avg_sentence_length": 16.428571428571427,
+          "question_ratio": 0.07142857142857142,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 47.9758695652174
+        },
+        {
+          "conversation_id": "1d10482b-3c08-4682-b712-ed5f68b2ec1a",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 67.03580419580422,
+          "grade_level": 7.138741258741259,
+          "avg_sentence_length": 13.0,
+          "question_ratio": 0.09090909090909091,
+          "positive_sentiment": 0.6993006993006993,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 49.786223776223785
+        },
+        {
+          "conversation_id": "55c78dc9-7d63-426d-b64f-7394ebce30f9",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 64.61996774193551,
+          "grade_level": 7.326645161290326,
+          "avg_sentence_length": 14.307692307692308,
+          "question_ratio": 0.07692307692307693,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 49.047299627791574
+        },
+        {
+          "conversation_id": "f547a9c6-15f9-4bd8-a922-609a98bbb658",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 60.30484615384617,
+          "grade_level": 8.72348717948718,
+          "avg_sentence_length": 15.6,
+          "question_ratio": 0.1,
+          "positive_sentiment": 0.641025641025641,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.641025641025641,
+          "overall_quality": 50.89775
+        },
+        {
+          "conversation_id": "89e43f80-0a4f-4adc-b712-f8fa82342a5a",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 67.4979411764706,
+          "grade_level": 8.959411764705884,
+          "avg_sentence_length": 20.647058823529413,
+          "question_ratio": 0.058823529411764705,
+          "positive_sentiment": 0.2849002849002849,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.2849002849002849,
+          "overall_quality": 50.17830630970337
+        },
+        {
+          "conversation_id": "c673e4fe-035b-446d-be14-2cc7f91db6ef",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 70.03492647058826,
+          "grade_level": 6.658316993464052,
+          "avg_sentence_length": 12.75,
+          "question_ratio": 0.08333333333333333,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 49.658731617647064
+        },
+        {
+          "conversation_id": "40fb4b7d-cbc6-4189-9baa-33239199aa9c",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 63.11821340104039,
+          "grade_level": 8.599832796631162,
+          "avg_sentence_length": 18.4,
+          "question_ratio": 0.05,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.2724795640326975,
+          "overall_quality": 49.64827269630915
+        },
+        {
+          "conversation_id": "b6660462-defb-4225-96f2-dbf2bbe0eaef",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 63.666074074074075,
+          "grade_level": 8.403720164609052,
+          "avg_sentence_length": 16.2,
+          "question_ratio": 0.06666666666666667,
+          "positive_sentiment": 0.823045267489712,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.411522633744856,
+          "overall_quality": 51.2538024691358
+        },
+        {
+          "conversation_id": "b0ba2b97-50ae-47ad-ae66-d0f9777a36e6",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 59.26702702702704,
+          "grade_level": 8.932123552123553,
+          "avg_sentence_length": 17.23076923076923,
+          "question_ratio": 0.07692307692307693,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 49.46291060291061
+        },
+        {
+          "conversation_id": "a01ae209-f8af-4a14-802a-965ff000951a",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 60.37442307692311,
+          "grade_level": 8.298553113553115,
+          "avg_sentence_length": 15.23076923076923,
+          "question_ratio": 0.07692307692307693,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.5128205128205128,
+          "overall_quality": 49.30899038461539
+        },
+        {
+          "conversation_id": "b533ca57-d1af-48ef-8b0f-ed4a4d7e5bf3",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 62.18552249637156,
+          "grade_level": 8.636981132075473,
+          "avg_sentence_length": 16.615384615384617,
+          "question_ratio": 0.0,
+          "positive_sentiment": 0.4716981132075472,
+          "negative_sentiment": 0.4716981132075472,
+          "empathy_score": 0.9433962264150944,
+          "overall_quality": 48.93070573294631
+        },
+        {
+          "conversation_id": "02a72656-1abf-4cc3-9b3f-ac9187f4fa3b",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 46.405757575757576,
+          "grade_level": 13.494208754208756,
+          "avg_sentence_length": 24.916666666666668,
+          "question_ratio": 0.0,
+          "positive_sentiment": 0.33557046979865773,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 40.1514393939394
+        },
+        {
+          "conversation_id": "310d65c6-c4c7-4aa5-815b-a1e89c106402",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 67.97794392523367,
+          "grade_level": 7.575166889185585,
+          "avg_sentence_length": 17.833333333333332,
+          "question_ratio": 0.3333333333333333,
+          "positive_sentiment": 0.9345794392523363,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.9345794392523363,
+          "overall_quality": 61.196355140186924
+        },
+        {
+          "conversation_id": "aefc0972-489d-4d03-9d51-57ef856fe612",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 69.92236486486487,
+          "grade_level": 8.102477477477478,
+          "avg_sentence_length": 18.5,
+          "question_ratio": 0.16666666666666666,
+          "positive_sentiment": 0.9009009009009009,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.9009009009009009,
+          "overall_quality": 56.23194256756757
+        },
+        {
+          "conversation_id": "473a4399-59c2-421d-acc3-c335b73e7512",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 56.34881318681323,
+          "grade_level": 9.921186813186814,
+          "avg_sentence_length": 23.25,
+          "question_ratio": 0.25,
+          "positive_sentiment": 1.0869565217391304,
+          "negative_sentiment": 0.0,
+          "empathy_score": 1.0869565217391304,
+          "overall_quality": 52.767638079312
+        },
+        {
+          "conversation_id": "93e956be-fe24-4832-92f3-fbd08293bfed",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 27.465923076923076,
+          "grade_level": 15.161333333333335,
+          "avg_sentence_length": 25.416666666666668,
+          "question_ratio": 0.08333333333333333,
+          "positive_sentiment": 0.33112582781456956,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.33112582781456956,
+          "overall_quality": 38.11316951095262
+        },
+        {
+          "conversation_id": "67d3667f-8f18-41f0-ad92-5e1f775e1cb8",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 65.45216346153849,
+          "grade_level": 7.76332264957265,
+          "avg_sentence_length": 14.625,
+          "question_ratio": 0.125,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.8547008547008548,
+          "overall_quality": 52.17009214743591
+        },
+        {
+          "conversation_id": "de96c834-8e00-408f-b163-dd87b66ee828",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 61.09308270676692,
+          "grade_level": 8.856741854636592,
+          "avg_sentence_length": 17.5,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 1.5873015873015872,
+          "overall_quality": 53.487556390977446
+        },
+        {
+          "conversation_id": "fc06c10f-c06f-4d7d-b6cf-58d5c63f7176",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 65.64000000000001,
+          "grade_level": 7.085000000000001,
+          "avg_sentence_length": 12.1,
+          "question_ratio": 0.1,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.8333333333333334,
+          "overall_quality": 49.92
+        },
+        {
+          "conversation_id": "3302e38b-8d8f-40d7-91c4-5ed24868fc6f",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 48.64553672316384,
+          "grade_level": 11.360000000000003,
+          "avg_sentence_length": 20.333333333333332,
+          "question_ratio": 0.06666666666666667,
+          "positive_sentiment": 0.9900990099009901,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.33003300330033003,
+          "overall_quality": 46.95643368574145
+        },
+        {
+          "conversation_id": "87d9559b-0996-4ccb-89e0-a65ba4226cb2",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 62.20461538461541,
+          "grade_level": 8.405000000000001,
+          "avg_sentence_length": 15.923076923076923,
+          "question_ratio": 0.07692307692307693,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 1.5,
+          "overall_quality": 51.66269230769231
+        },
+        {
+          "conversation_id": "1690f37b-d9b0-43dc-b1d0-f330ab1bfef1",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 57.22500000000002,
+          "grade_level": 9.110476190476192,
+          "avg_sentence_length": 18.666666666666668,
+          "question_ratio": 0.16666666666666666,
+          "positive_sentiment": 0.9259259259259258,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 51.60625
+        },
+        {
+          "conversation_id": "2642d331-778f-4d74-9f2b-346190e06f12",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 72.77190476190478,
+          "grade_level": 7.746428571428574,
+          "avg_sentence_length": 28.3,
+          "question_ratio": 0.6,
+          "positive_sentiment": 0.35714285714285715,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.35714285714285715,
+          "overall_quality": 60.24869047619048
+        },
+        {
+          "conversation_id": "4a1b0a33-59bf-40c0-b194-e72dd570e932",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 75.23730769230772,
+          "grade_level": 9.224358974358974,
+          "avg_sentence_length": 26.0,
+          "question_ratio": 0.3333333333333333,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 56.20932692307693
+        },
+        {
+          "conversation_id": "6af71c33-685b-4907-b1c3-6e7fc3dac99a",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 47.887736842105284,
+          "grade_level": 12.244105263157902,
+          "avg_sentence_length": 23.0,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 44.50526754385965
+        },
+        {
+          "conversation_id": "faebd0d7-a616-4ec0-ac2d-ada3e77f1f5e",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 62.23333333333335,
+          "grade_level": 8.471063829787234,
+          "avg_sentence_length": 16.0,
+          "question_ratio": 0.16666666666666666,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 52.15833333333334
+        },
+        {
+          "conversation_id": "943c9f04-2e7b-40d0-81c7-0d6914220c1e",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 52.395229508196735,
+          "grade_level": 12.01288524590164,
+          "avg_sentence_length": 30.75,
+          "question_ratio": 0.25,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 45.14880737704918
+        },
+        {
+          "conversation_id": "7031e26c-be2f-4584-8087-d5e0681f575e",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 62.60436041083102,
+          "grade_level": 7.812044817927173,
+          "avg_sentence_length": 15.0,
+          "question_ratio": 0.25,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 54.151090102707755
+        },
+        {
+          "conversation_id": "b078e675-4bce-4e4b-ac36-9083254f489f",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 44.50195876288663,
+          "grade_level": 10.494698085419738,
+          "avg_sentence_length": 12.375,
+          "question_ratio": 0.125,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 44.30048969072166
+        },
+        {
+          "conversation_id": "86ce884f-ddb3-4170-bef7-51336b0d182f",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 65.86689592760182,
+          "grade_level": 8.821574660633487,
+          "avg_sentence_length": 19.647058823529413,
+          "question_ratio": 0.058823529411764705,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.6153846153846154,
+          "overall_quality": 50.36627149321267
+        },
+        {
+          "conversation_id": "cd2a41c4-b056-4b79-bc5c-0d75ef7cf7bf",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 55.184084084084105,
+          "grade_level": 10.668828828828833,
+          "avg_sentence_length": 20.555555555555557,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 47.796021021021026
+        },
+        {
+          "conversation_id": "163692bf-5018-4efe-8b64-30bc71b8f08b",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 64.19354916763456,
+          "grade_level": 8.266660859465738,
+          "avg_sentence_length": 19.133333333333333,
+          "question_ratio": 0.2,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 53.568387291908635
+        },
+        {
+          "conversation_id": "a030cd59-ebbb-4758-b9cc-4717ab71aef2",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 49.513269230769254,
+          "grade_level": 11.197564102564105,
+          "avg_sentence_length": 22.0,
+          "question_ratio": 0.1111111111111111,
+          "positive_sentiment": 0.0,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 45.511650641025646
+        },
+        {
+          "conversation_id": "2f32d173-811f-448c-be7f-d87cb023a544",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 68.63685672514622,
+          "grade_level": 7.8815350877193,
+          "avg_sentence_length": 19.125,
+          "question_ratio": 0.1875,
+          "positive_sentiment": 0.6578947368421052,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.0,
+          "overall_quality": 55.309214181286556
+        },
+        {
+          "conversation_id": "c3881ea1-598c-473d-9d18-910edf90dec9",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 51.10830344502128,
+          "grade_level": 12.360552147239265,
+          "avg_sentence_length": 25.307692307692307,
+          "question_ratio": 0.07692307692307693,
+          "positive_sentiment": 0.303951367781155,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.303951367781155,
+          "overall_quality": 43.85607983600397
+        },
+        {
+          "conversation_id": "73e39bfd-5438-4aac-87cf-5a0038a220c7",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 57.13515314569537,
+          "grade_level": 9.979197019867552,
+          "avg_sentence_length": 25.5,
+          "question_ratio": 0.25,
+          "positive_sentiment": 0.6622516556291391,
+          "negative_sentiment": 0.0,
+          "empathy_score": 0.6622516556291391,
+          "overall_quality": 50.977165769867554
+        },
+        {
+          "conversation_id": "d1bf2d10-9231-4b9f-a7c3-3b912e34de7d",
+          "dataset": "priority_1",
+          "tier": "priority_1",
+          "readability_score": 67.15345410628022,
+          "grade_level": 8.971739130434784,
+          "avg_sentence_length": 29.42105263157895,
+          "question_ratio": 0.3684210526315789,
+          "positive_sentiment": 0.8992805755395683,
+          "negative_sentiment": 0.0,
+          "empathy_score": 1.4388489208633095,
+          "overall_quality": 57.84663690786502
+        }
+      ]
+    },
+    "engagement_quality": {
+      "overall_engagement": {
+        "mean_engagement_score": 19.55722533951215,
+        "median_engagement_score": 15.60215053763441,
+        "high_engagement_conversations": 2213,
+        "low_engagement_conversations": 116227
+      },
+      "engagement_by_dataset": {
+        "additional_specialized": {
+          "mean": 20.768973877193233,
+          "median": 18.458333333333332,
+          "std": 9.98198772453982,
+          "count": 53246
+        },
+        "cot_reasoning": {
+          "mean": 22.375305018573176,
+          "median": 16.890585241730278,
+          "std": 18.218132857056645,
+          "count": 64559
+        },
+        "priority_1": {
+          "mean": 19.401067562093225,
+          "median": 16.225352112676056,
+          "std": 12.084460770138438,
+          "count": 1225
+        },
+        "priority_2": {
+          "mean": 33.20955594932316,
+          "median": 13.650471064576532,
+          "std": 33.300263546416645,
+          "count": 320
+        },
+        "priority_3": {
+          "mean": 7.723802992853888,
+          "median": 5.575771788010043,
+          "std": 6.003852511563928,
+          "count": 258
+        },
+        "professional_neuro": {
+          "mean": 5.620588571767603,
+          "median": 5.0,
+          "std": 2.7795998517252993,
+          "count": 3398
+        },
+        "professional_psychology": {
+          "mean": 9.15502299275859,
+          "median": 8.89655172413793,
+          "std": 3.6083468008034716,
+          "count": 9846
+        },
+        "professional_soulchat": {
+          "mean": 0.0018092312699735423,
+          "median": 0.0,
+          "std": 0.0645640958887637,
+          "count": 5000
+        },
+        "test_dataset": {
+          "mean": 22.384615384615387,
+          "median": 22.384615384615387,
+          "std": NaN,
+          "count": 1
+        },
+        "test_search": {
+          "mean": 6.272727272727273,
+          "median": 6.272727272727273,
+          "std": 2.4427325168262546,
+          "count": 2
+        }
+      },
+      "engagement_by_tier": {
+        "cot_reasoning": {
+          "mean": 22.375305018573176,
+          "median": 16.890585241730278,
+          "std": 18.218132857056645,
+          "count": 64559
+        },
+        "priority_1": {
+          "mean": 19.391391877338442,
+          "median": 16.225352112676056,
+          "std": 12.082348194665428,
+          "count": 1227
+        },
+        "priority_2": {
+          "mean": 33.20955594932316,
+          "median": 13.650471064576532,
+          "std": 33.300263546416645,
+          "count": 320
+        },
+        "priority_3": {
+          "mean": 7.723802992853888,
+          "median": 5.575771788010043,
+          "std": 6.003852511563928,
+          "count": 258
+        },
+        "professional": {
+          "mean": 5.988279666205386,
+          "median": 5.47945205479452,
+          "std": 4.870843726481541,
+          "count": 18245
+        },
+        "research": {
+          "mean": 20.768973877193233,
+          "median": 18.458333333333332,
+          "std": 9.98198772453982,
+          "count": 53246
+        }
+      },
+      "engagement_patterns": {
+        "avg_dialogue_turns": 0.5779623517464002,
+        "avg_questions_per_conversation": 1.519262993725291,
+        "avg_conversational_markers": 1.2533096369373617
+      }
+    },
+    "flow_quality": {
+      "overall_flow": {
+        "mean_flow_score": 56.465242018589585,
+        "median_flow_score": 88.33333333333334,
+        "good_flow_conversations": 76450,
+        "poor_flow_conversations": 55446
+      },
+      "flow_by_dataset": {
+        "additional_specialized": {
+          "mean": 97.93796414541738,
+          "median": 100.0,
+          "std": 10.064555719185824,
+          "count": 53246
+        },
+        "cot_reasoning": {
+          "mean": 18.22776238000178,
+          "median": 0.0,
+          "std": 32.97166816455904,
+          "count": 64559
+        },
+        "priority_1": {
+          "mean": 90.69142857142857,
+          "median": 100.0,
+          "std": 21.030583083609493,
+          "count": 1225
+        },
+        "priority_2": {
+          "mean": 2.7343749999999996,
+          "median": 0.0,
+          "std": 11.713282623582046,
+          "count": 320
+        },
+        "priority_3": {
+          "mean": 31.775193798449614,
+          "median": 23.0,
+          "std": 33.8299110877274,
+          "count": 258
+        },
+        "professional_neuro": {
+          "mean": 69.23189761484348,
+          "median": 78.33333333333334,
+          "std": 33.36954283029812,
+          "count": 3398
+        },
+        "professional_psychology": {
+          "mean": 100.0,
+          "median": 100.0,
+          "std": 0.0,
+          "count": 9846
+        },
+        "professional_soulchat": {
+          "mean": 10.425,
+          "median": 0.0,
+          "std": 26.478946389922385,
+          "count": 5000
+        },
+        "test_dataset": {
+          "mean": 100.0,
+          "median": 100.0,
+          "std": NaN,
+          "count": 1
+        },
+        "test_search": {
+          "mean": 100.0,
+          "median": 100.0,
+          "std": 0.0,
+          "count": 2
+        }
+      },
+      "flow_patterns": {
+        "avg_transition_words": 0.2615719415327699,
+        "avg_topic_shifts": 14.318972833774618,
+        "avg_response_relevance": 59.32147206375042
+      }
+    },
+    "content_quality": {
+      "overall_content": {
+        "mean_content_score": 42.28610042637734,
+        "median_content_score": 43.189189189189186,
+        "high_content_quality": 2298,
+        "low_content_quality": 7000
+      },
+      "content_by_dataset": {
+        "additional_specialized": {
+          "mean": 44.35820889216752,
+          "median": 44.44943820224719,
+          "std": 3.251839406538263,
+          "count": 53246
+        },
+        "cot_reasoning": {
+          "mean": 43.133386832844394,
+          "median": 40.11671087533156,
+          "std": 11.271228846764611,
+          "count": 64559
+        },
+        "priority_1": {
+          "mean": 39.662298597985625,
+          "median": 39.117318435754186,
+          "std": 4.951972649977124,
+          "count": 1225
+        },
+        "priority_2": {
+          "mean": 53.445369852264164,
+          "median": 51.85264926992028,
+          "std": 12.498863673507332,
+          "count": 320
+        },
+        "priority_3": {
+          "mean": 36.53576893323159,
+          "median": 35.89661152573191,
+          "std": 5.088524004652447,
+          "count": 258
+        },
+        "professional_neuro": {
+          "mean": 34.85171015503333,
+          "median": 34.52679963884101,
+          "std": 4.895843437792611,
+          "count": 3398
+        },
+        "professional_psychology": {
+          "mean": 41.733130859915185,
+          "median": 41.66666666666667,
+          "std": 2.9699519424006264,
+          "count": 9846
+        },
+        "professional_soulchat": {
+          "mean": 15.64225659814727,
+          "median": 14.166666666666666,
+          "std": 4.342515093313448,
+          "count": 5000
+        },
+        "test_dataset": {
+          "mean": 50.0,
+          "median": 50.0,
+          "std": NaN,
+          "count": 1
+        },
+        "test_search": {
+          "mean": 49.0,
+          "median": 49.0,
+          "std": 1.4142135623730951,
+          "count": 2
+        }
+      },
+      "vocabulary_patterns": {
+        "avg_vocabulary_richness": 0.6501391093520241,
+        "avg_specific_terms": 2.9228464691161005,
+        "avg_explanatory_phrases": 1.1080265496354866
+      }
+    },
+    "coherence_quality": {
+      "overall_coherence": {
+        "mean_coherence_score": 46.93130161289884,
+        "median_coherence_score": 47.07413907762053,
+        "high_coherence_conversations": 1746,
+        "low_coherence_conversations": 170
+      },
+      "coherence_by_dataset": {
+        "additional_specialized": {
+          "mean": 48.55830248458,
+          "median": 48.11967829468263,
+          "std": 4.724281643174335,
+          "count": 53246
+        },
+        "cot_reasoning": {
+          "mean": 47.68612274187826,
+          "median": 46.031720158139954,
+          "std": 8.661909593687932,
+          "count": 64559
+        },
+        "priority_1": {
+          "mean": 44.414343815077196,
+          "median": 43.631252937812484,
+          "std": 7.649083796904402,
+          "count": 1225
+        },
+        "priority_2": {
+          "mean": 55.86567648226745,
+          "median": 55.10953813869873,
+          "std": 9.321067271865848,
+          "count": 320
+        },
+        "priority_3": {
+          "mean": 45.920357405642,
+          "median": 45.19587483620762,
+          "std": 6.1196143154117095,
+          "count": 258
+        },
+        "professional_neuro": {
+          "mean": 43.342391700637634,
+          "median": 44.26459213221617,
+          "std": 4.2109672496992685,
+          "count": 3398
+        },
+        "professional_psychology": {
+          "mean": 42.73630213512387,
+          "median": 42.801558659390544,
+          "std": 3.024223495203563,
+          "count": 9846
+        },
+        "professional_soulchat": {
+          "mean": 30.66050374540842,
+          "median": 30.0,
+          "std": 2.515135158932628,
+          "count": 5000
+        },
+        "test_dataset": {
+          "mean": 40.0,
+          "median": 40.0,
+          "std": NaN,
+          "count": 1
+        },
+        "test_search": {
+          "mean": 38.58762630779732,
+          "median": 38.58762630779732,
+          "std": 7.228076762900796,
+          "count": 2
+        }
+      },
+      "coherence_patterns": {
+        "avg_logical_connectors": 0.33913169634761164,
+        "avg_sentence_variety": 0.5509145558950272,
+        "avg_temporal_consistency": 0.8993094285883366
+      }
+    },
+    "quality_patterns": {
+      "high_quality_characteristics": [],
+      "low_quality_characteristics": [],
+      "dataset_specific_patterns": {
+        "test_dataset": {
+          "avg_conversation_length": 75.0,
+          "avg_word_count": 13.0,
+          "avg_line_count": 2.0,
+          "conversation_count": 1,
+          "quality_indicators": {
+            "avg_text_length": 75.0,
+            "avg_word_count": 13.0,
+            "length_std": NaN,
+            "word_count_std": NaN,
+            "conversation_count": 1
+          }
+        },
+        "test_search": {
+          "avg_conversation_length": 164.0,
+          "avg_word_count": 23.5,
+          "avg_line_count": 2.0,
+          "conversation_count": 2,
+          "quality_indicators": {
+            "avg_text_length": 164.0,
+            "avg_word_count": 23.5,
+            "length_std": 8.48528137423857,
+            "word_count_std": 2.1213203435596424,
+            "conversation_count": 2
+          }
+        },
+        "priority_1": {
+          "avg_conversation_length": 1348.5273469387755,
+          "avg_word_count": 240.47591836734694,
+          "avg_line_count": 6.0,
+          "conversation_count": 1225,
+          "quality_indicators": {
+            "avg_text_length": 1348.5273469387755,
+            "avg_word_count": 240.47591836734694,
+            "length_std": 721.7791648797263,
+            "word_count_std": 129.61176171233976,
+            "conversation_count": 1225
+          }
+        },
+        "priority_2": {
+          "avg_conversation_length": 6481.23125,
+          "avg_word_count": 908.78125,
+          "avg_line_count": 8.0,
+          "conversation_count": 320,
+          "quality_indicators": {
+            "avg_text_length": 6481.23125,
+            "avg_word_count": 908.78125,
+            "length_std": 1392.0730092097251,
+            "word_count_std": 186.0475441266253,
+            "conversation_count": 320
+          }
+        },
+        "priority_3": {
+          "avg_conversation_length": 4080.1046511627906,
+          "avg_word_count": 584.6124031007752,
+          "avg_line_count": 6.0,
+          "conversation_count": 258,
+          "quality_indicators": {
+            "avg_text_length": 4080.1046511627906,
+            "avg_word_count": 584.6124031007752,
+            "length_std": 856.162322727215,
+            "word_count_std": 117.692655872585,
+            "conversation_count": 258
+          }
+        },
+        "professional_psychology": {
+          "avg_conversation_length": 466.9777574649604,
+          "avg_word_count": 74.43804590696729,
+          "avg_line_count": 2.0,
+          "conversation_count": 9846,
+          "quality_indicators": {
+            "avg_text_length": 466.9777574649604,
+            "avg_word_count": 74.43804590696729,
+            "length_std": 95.00055551888302,
+            "word_count_std": 15.790488705884641,
+            "conversation_count": 9846
+          }
+        },
+        "professional_soulchat": {
+          "avg_conversation_length": 1927.635,
+          "avg_word_count": 111.5054,
+          "avg_line_count": 55.7392,
+          "conversation_count": 5000,
+          "quality_indicators": {
+            "avg_text_length": 1927.635,
+            "avg_word_count": 111.5054,
+            "length_std": 848.0807921306767,
+            "word_count_std": 49.54574176400419,
+            "conversation_count": 5000
+          }
+        },
+        "professional_neuro": {
+          "avg_conversation_length": 1454.8893466745144,
+          "avg_word_count": 200.3905238375515,
+          "avg_line_count": 4.16656856974691,
+          "conversation_count": 3398,
+          "quality_indicators": {
+            "avg_text_length": 1454.8893466745144,
+            "avg_word_count": 200.3905238375515,
+            "length_std": 352.52936016387855,
+            "word_count_std": 48.322019787769754,
+            "conversation_count": 3398
+          }
+        },
+        "cot_reasoning": {
+          "avg_conversation_length": 4114.309391409409,
+          "avg_word_count": 564.3759351910655,
+          "avg_line_count": 39.20339534379405,
+          "conversation_count": 64559,
+          "quality_indicators": {
+            "avg_text_length": 4114.309391409409,
+            "avg_word_count": 564.3759351910655,
+            "length_std": 1637.685784629369,
+            "word_count_std": 215.00198040052382,
+            "conversation_count": 64559
+          }
+        },
+        "additional_specialized": {
+          "avg_conversation_length": 715.0479097021373,
+          "avg_word_count": 123.74048754836043,
+          "avg_line_count": 6.907185516282913,
+          "conversation_count": 53246,
+          "quality_indicators": {
+            "avg_text_length": 715.0479097021373,
+            "avg_word_count": 123.74048754836043,
+            "length_std": 415.30741923341924,
+            "word_count_std": 79.85780677774316,
+            "conversation_count": 53246
+          }
+        }
+      },
+      "tier_specific_patterns": {
+        "priority_1": {
+          "avg_conversation_length": 1346.5289323553382,
+          "avg_word_count": 240.1124694376528,
+          "conversation_count": 1227,
+          "quality_characteristics": {
+            "avg_text_length": 1346.5289323553382,
+            "avg_word_count": 240.1124694376528,
+            "avg_words_per_line": 40.02825319206737,
+            "conversation_count": 1227
+          }
+        },
+        "professional": {
+          "avg_conversation_length": 1051.2419841052342,
+          "avg_word_count": 108.05130172650041,
+          "conversation_count": 18245,
+          "quality_characteristics": {
+            "avg_text_length": 1051.2419841052342,
+            "avg_word_count": 108.05130172650041,
+            "avg_words_per_line": 29.752399008438374,
+            "conversation_count": 18245
+          }
+        },
+        "priority_2": {
+          "avg_conversation_length": 6481.23125,
+          "avg_word_count": 908.78125,
+          "conversation_count": 320,
+          "quality_characteristics": {
+            "avg_text_length": 6481.23125,
+            "avg_word_count": 908.78125,
+            "avg_words_per_line": 113.59765625,
+            "conversation_count": 320
+          }
+        },
+        "priority_3": {
+          "avg_conversation_length": 4080.1046511627906,
+          "avg_word_count": 584.6124031007752,
+          "conversation_count": 258,
+          "quality_characteristics": {
+            "avg_text_length": 4080.1046511627906,
+            "avg_word_count": 584.6124031007752,
+            "avg_words_per_line": 97.43540051679585,
+            "conversation_count": 258
+          }
+        },
+        "cot_reasoning": {
+          "avg_conversation_length": 4114.309391409409,
+          "avg_word_count": 564.3759351910655,
+          "conversation_count": 64559,
+          "quality_characteristics": {
+            "avg_text_length": 4114.309391409409,
+            "avg_word_count": 564.3759351910655,
+            "avg_words_per_line": 17.086261926045005,
+            "conversation_count": 64559
+          }
+        },
+        "research": {
+          "avg_conversation_length": 715.0479097021373,
+          "avg_word_count": 123.74048754836043,
+          "conversation_count": 53246,
+          "quality_characteristics": {
+            "avg_text_length": 715.0479097021373,
+            "avg_word_count": 123.74048754836043,
+            "avg_words_per_line": 17.663750645206072,
+            "conversation_count": 53246
+          }
+        }
+      }
+    },
+    "quality_trends": {
+      "monthly_trends": {
+        "2025-08": {
+          "text_length": 2376.7574843132275,
+          "word_count": 331.73904464836244,
+          "line_count": 23.37762141380436
+        }
+      },
+      "dataset_size_ranking": {
+        "cot_reasoning": 64559,
+        "additional_specialized": 53246,
+        "professional_psychology": 9846,
+        "professional_soulchat": 5000,
+        "professional_neuro": 3398,
+        "priority_1": 1225,
+        "priority_2": 320,
+        "priority_3": 258,
+        "test_search": 2,
+        "test_dataset": 1
+      },
+      "quality_correlation_with_size": {
+        "additional_specialized": {
+          "text_length_mean": 715.05,
+          "text_length_count": 53246,
+          "word_count_mean": 123.74
+        },
+        "cot_reasoning": {
+          "text_length_mean": 4114.31,
+          "text_length_count": 64559,
+          "word_count_mean": 564.38
+        },
+        "priority_1": {
+          "text_length_mean": 1348.53,
+          "text_length_count": 1225,
+          "word_count_mean": 240.48
+        },
+        "priority_2": {
+          "text_length_mean": 6481.23,
+          "text_length_count": 320,
+          "word_count_mean": 908.78
+        },
+        "priority_3": {
+          "text_length_mean": 4080.1,
+          "text_length_count": 258,
+          "word_count_mean": 584.61
+        },
+        "professional_neuro": {
+          "text_length_mean": 1454.89,
+          "text_length_count": 3398,
+          "word_count_mean": 200.39
+        },
+        "professional_psychology": {
+          "text_length_mean": 466.98,
+          "text_length_count": 9846,
+          "word_count_mean": 74.44
+        },
+        "professional_soulchat": {
+          "text_length_mean": 1927.64,
+          "text_length_count": 5000,
+          "word_count_mean": 111.51
+        },
+        "test_dataset": {
+          "text_length_mean": 75.0,
+          "text_length_count": 1,
+          "word_count_mean": 13.0
+        },
+        "test_search": {
+          "text_length_mean": 164.0,
+          "text_length_count": 2,
+          "word_count_mean": 23.5
+        }
+      }
+    },
+    "quality_correlations": {
+      "correlation_matrix": {
+        "text_length": {
+          "text_length": 1.0,
+          "word_count": 0.9859470799854261,
+          "line_count": 0.8428394030349684,
+          "avg_words_per_line": -0.06163913795256026,
+          "chars_per_word": 0.21841464453558912
+        },
+        "word_count": {
+          "text_length": 0.9859470799854261,
+          "word_count": 1.0,
+          "line_count": 0.7805398252118364,
+          "avg_words_per_line": -0.0033583493509867376,
+          "chars_per_word": 0.088262582569996
+        },
+        "line_count": {
+          "text_length": 0.8428394030349684,
+          "word_count": 0.7805398252118364,
+          "line_count": 1.0,
+          "avg_words_per_line": -0.39430343034138915,
+          "chars_per_word": 0.4683488887939892
+        },
+        "avg_words_per_line": {
+          "text_length": -0.06163913795256026,
+          "word_count": -0.0033583493509867376,
+          "line_count": -0.39430343034138915,
+          "avg_words_per_line": 1.0,
+          "chars_per_word": -0.2746163004379574
+        },
+        "chars_per_word": {
+          "text_length": 0.21841464453558912,
+          "word_count": 0.088262582569996,
+          "line_count": 0.4683488887939892,
+          "avg_words_per_line": -0.2746163004379574,
+          "chars_per_word": 1.0
+        }
+      },
+      "strong_correlations": [
+        {
+          "metric1": "text_length",
+          "metric2": "word_count",
+          "correlation": 0.9859470799854261
+        },
+        {
+          "metric1": "text_length",
+          "metric2": "line_count",
+          "correlation": 0.8428394030349684
+        },
+        {
+          "metric1": "word_count",
+          "metric2": "line_count",
+          "correlation": 0.7805398252118364
+        }
+      ],
+      "quality_insights": [
+        "Strong positive correlation between text_length and word_count",
+        "Strong positive correlation between text_length and line_count"
+      ]
+    }
+  },
+  "insights": [
+    "\u26a0\ufe0f Overall response quality is below average - focus on improving readability and empathy",
+    "\ud83d\udcc9 Low engagement detected - increase interactive elements and personal pronouns",
+    "\ud83c\udfc6 Best performing dataset: test_dataset (Quality: 64.4)",
+    "\u26a1 Needs improvement: professional_soulchat (Quality: 16.8)"
+  ],
+  "recommendations": [
+    "\ud83c\udfaf Prioritize improving low-quality conversations through better empathy training",
+    "\ud83d\udcd6 Implement readability guidelines to improve comprehension",
+    "\ud83d\udcac Increase dialogue turns and interactive elements in conversations",
+    "\u2753 Train models to ask more engaging questions",
+    "\ud83d\udd17 Improve conversation coherence with better transition phrases",
+    "\ud83c\udfad Reduce repetitive patterns and topic inconsistencies",
+    "\ud83d\udcdd Enhance vocabulary diversity and technical depth",
+    "\ud83d\udd0d Include more specific examples and explanatory content"
+  ]
+}

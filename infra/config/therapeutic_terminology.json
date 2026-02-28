@@ -1,0 +1,50 @@
+{
+  "cptsd_terms": [
+    "emotional flashback",
+    "fawn response",
+    "inner critic",
+    "toxic shame",
+    "hypervigilance",
+    "dissociation",
+    "trauma bonding",
+    "emotional regulation",
+    "grounding techniques",
+    "somatic experiencing",
+    "developmental trauma",
+    "attachment style",
+    "window of tolerance",
+    "fight-flight-freeze-fawn",
+    "codependency",
+    "gaslighting",
+    "narcissistic abuse",
+    "parentification",
+    "re-parenting",
+    "safety plan"
+  ],
+  "medical_terms": [
+    "amygdala",
+    "hippocampus",
+    "prefrontal cortex",
+    "nervous system",
+    "autonomic nervous system",
+    "sympathetic nervous system",
+    "parasympathetic nervous system",
+    "cortisol",
+    "adrenaline",
+    "neuroplasticity",
+    "SSRIs",
+    "benzodiazepines",
+    "EMDR",
+    "CBT",
+    "DBT",
+    "IFS"
+  ],
+  "common_misinterpretations": {
+    "EMD R": "EMDR",
+    "C B T": "CBT",
+    "D B T": "DBT",
+    "I F S": "IFS",
+    "fight flight": "fight-flight",
+    "complex ptsd": "C-PTSD"
+  }
+}
