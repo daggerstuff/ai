@@ -1,1 +1,0 @@
-{"timestamp": "2025-08-11T06:18:04.016591", "level": "WARNING", "category": "application", "message": "Failed login attempt", "logger": "pixelated.security", "module": "logging_system", "function": "log_security_event", "line": 430, "thread_id": 129292809226048, "process_id": 486948, "user_id": "user123"}
