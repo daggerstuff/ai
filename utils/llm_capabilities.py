@@ -1,8 +1,10 @@
 import os
+import threading
 
 from google import genai
 
 _WORKING_MODEL_CACHE = None
+_MODEL_LOCK = threading.Lock()
 
 
 def get_best_available_gemini_model(client: genai.Client) -> str:
@@ -15,14 +17,18 @@ def get_best_available_gemini_model(client: genai.Client) -> str:
     if _WORKING_MODEL_CACHE:
         return _WORKING_MODEL_CACHE
 
-    target_models = [
-        "models/gemini-2.0-flash-001",
-        "models/gemini-2.0-flash-lite-001",
-        "models/gemini-flash-latest",
-        "models/gemini-pro-latest",
-        "models/gemini-2.5-flash",
-        "models/gemini-2.5-pro",
-    ]
+    with _MODEL_LOCK:
+        if _WORKING_MODEL_CACHE:
+            return _WORKING_MODEL_CACHE
+
+        target_models = [
+            "models/gemini-2.0-flash-001",
+            "models/gemini-2.0-flash-lite-001",
+            "models/gemini-flash-latest",
+            "models/gemini-pro-latest",
+            "models/gemini-2.5-flash",
+            "models/gemini-2.5-pro",
+        ]
 
     try:
         available_models = [m.name for m in client.models.list()]

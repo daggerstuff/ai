@@ -1,10 +1,12 @@
-import json
 import logging
 import os
 from dataclasses import dataclass, field
-from typing import Dict, List, Any
+from typing import List
 
+import numpy as np
 import requests
+import torch
+import torch.nn as nn
 from dotenv import load_dotenv
 
 from ai.training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
@@ -20,23 +22,19 @@ class DefensePrediction:
     label: int
     label_name: str
     confidence: float
-    probabilities: list[float]
+    probabilities: List[float]
     maturity_score: float | None
-    raw_logits: list[float] = field(repr=False, default_factory=list)
+    raw_logits: List[float] = field(repr=False, default_factory=list)
 
 
-class NIMDefenseClassifier:
+class NIMEmbeddingClassifier:
     """
-    NVIDIA NIM-based classifier for defense mechanism detection.
-    Replaces local PyTorch/Transformers inference with remote API calls.
+    NVIDIA NIM Embedding-based classifier for defense mechanism detection.
+    Uses 'nvidia/nv-embedqa-e5-v5' for high-precision vector similarity classification.
     """
 
-    def __init__(
-        self, model_name: str = "meta/llama-3.1-8b-instruct", temperature: float = 0.0
-    ):
+    def __init__(self, model_name: str = "nvidia/nv-embedqa-e5-v5"):
         self.model_name = model_name
-        self.temperature = temperature
-
         self.api_key = (
             os.getenv("NIM_API_KEY")
             or os.getenv("NVIDIA_API_KEY")
@@ -47,9 +45,7 @@ class NIMDefenseClassifier:
         )
 
         if not self.api_key:
-            raise ValueError(
-                "No NVIDIA NIM API key found. Set NIM_API_KEY or NVIDIA_API_KEY."
-            )
+            raise ValueError("No NVIDIA NIM API key found. Set NVIDIA_API_KEY.")
 
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -57,76 +53,121 @@ class NIMDefenseClassifier:
             "Accept": "application/json",
         }
 
-    def _build_classification_prompt(self, text: str) -> str:
-        """Constructs a strict classification prompt for the NIM LLM."""
-        labels_str = "\n".join([f"{k}: {v}" for k, v in DEFENSE_LABELS.items()])
-        return f"""You are a clinical psychologist expert in identifying psychological defense mechanisms according to the DMRS (Defense Mechanisms Rating Scales).
+        self._prototypes = None
+        self.session = requests.Session()
+        self.session.headers.update(self.headers)
 
-Analyze the following clinical utterance and classify it into EXACTLY ONE of the provided defense mechanism categories.
+        self.proto_descriptions = {
+            0: "A neutral, objective communication without defensive posturing.",
+            1: "Denial: Refusal to acknowledge a painful reality or obvious fact.",
+            2: "Projection: Attributing one's own unacceptable feelings to others.",
+            3: "Passive-Aggression: Indirect expression of hostility.",
+            4: "Acting Out: Expressing internal conflicts through physical actions.",
+            5: "Splitting: Viewing situations as good or bad without nuance.",
+            6: "Displacement: Redirection of an impulse onto a substitute target.",
+            7: "Rationalization: Creating logical explanations for deeper motives.",
+            8: "Intellectualization: Excessive abstract thinking to avoid feelings.",
+        }
 
-CATEGORIES:
-{labels_str}
+    def _post_request(self, endpoint: str, payload: dict, max_retries: int = 7) -> dict:
+        """Execute a POST request to the NIM API with exponential backoff."""
+        import random
+        import time
 
-UTTERANCE:
-"{text}"
+        url = f"{self.base_url}/{endpoint}"
 
-Output strictly a JSON object with the following structure:
-{{
-  "label_id": <int>,
-  "confidence": <float between 0.0 and 1.0>
-}}
-Do not output any additional text or markdown formatting. ONLY JSON.
-"""
-
-    def predict(self, texts: list[str]) -> list[DefensePrediction]:
-        """
-        Inference method returning structured prediction objects using NIM.
-        """
-        predictions = []
-
-        for text in texts:
-            prompt = self._build_classification_prompt(text)
-
-            payload = {
-                "model": self.model_name,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are a clinical psychology API that outputs strict JSON.",
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                "temperature": self.temperature,
-                "max_tokens": 128,
-            }
-
+        for attempt in range(max_retries):
             try:
-                # Some embedding models in NIM might need /embeddings, but instruction models like nv-embedqa or nemotron-mini use /chat/completions
-                response = requests.post(
-                    f"{self.base_url}/chat/completions",
-                    headers=self.headers,
+                response = self.session.post(
+                    url,
                     json=payload,
-                    timeout=10,
+                    timeout=30,
                 )
+                if response.status_code == 429:
+                    sleep_time = (2**attempt) + random.uniform(0.1, 1.0)
+                    logger.warning(
+                        f"NIM API 429 Too Many Requests. Sleeping {sleep_time:.2f}s"
+                    )
+                    time.sleep(sleep_time)
+                    continue
+
+                if not response.ok:
+                    logger.error(f"NIM {endpoint} API payload: {payload}")
+                    logger.error(f"NIM {endpoint} API response: {response.text}")
                 response.raise_for_status()
-                result = response.json()
+                return response.json()
+            except requests.exceptions.RequestException as e:
+                if attempt == max_retries - 1:
+                    logger.error(f"NIM {endpoint} API call failed permanently: {e}")
+                    raise
+                sleep_time = (2**attempt) + random.uniform(0.1, 1.0)
+                time.sleep(sleep_time)
 
-                content = result["choices"][0]["message"]["content"].strip()
+    def _embed(self, texts: List[str], input_type: str = "query") -> np.ndarray:
+        """Fetch embeddings from NVIDIA NIM."""
+        payload = {
+            "model": self.model_name,
+            "input": texts,
+            "input_type": input_type,
+            "encoding_format": "float",
+        }
 
-                # Clean up potential markdown formatting
-                if content.startswith("```json"):
-                    content = content[7:-3]
-                elif content.startswith("```"):
-                    content = content[3:-3]
+        data = self._post_request("embeddings", payload)
+        embeddings = [
+            item["embedding"] for item in sorted(data["data"], key=lambda x: x["index"])
+        ]
+        return np.array(embeddings)
 
-                parsed = json.loads(content)
-                pred_label = int(parsed.get("label_id", 0))
-                confidence = float(parsed.get("confidence", 0.5))
+    def _get_prototypes(self) -> np.ndarray:
+        """Lazy load and cache the embedding prototypes for labels."""
+        if self._prototypes is None:
+            logger.info(f"Generating label prototypes using {self.model_name}...")
+            texts = [self.proto_descriptions[i] for i in range(len(DEFENSE_LABELS))]
+            self._prototypes = self._embed(texts, input_type="query")
+        return self._prototypes
 
-                # Mock probabilities since LLM doesn't natively output softmax over classes
-                probs = [0.0] * len(DEFENSE_LABELS)
-                if 0 <= pred_label < len(probs):
-                    probs[pred_label] = confidence
+    def predict(self, texts: List[str]) -> List[DefensePrediction]:
+        """Classify texts via cosine similarity in embedding space."""
+        if not texts:
+            return []
+
+        # Filter out empty strings to avoid 400 Bad Request
+        valid_texts = [t for t in texts if t and t.strip()]
+
+        # If all texts were empty, return default predictions
+        if not valid_texts:
+            return [
+                DefensePrediction(
+                    label=0,
+                    label_name=DEFENSE_LABELS.get(0, "Neutral"),
+                    confidence=0.0,
+                    probabilities=[1.0] + [0.0] * (len(DEFENSE_LABELS) - 1),
+                    maturity_score=DEFENSE_MATURITY.get(0),
+                )
+                for _ in texts
+            ]
+
+        try:
+            prototypes = self._get_prototypes()
+            embeddings = self._embed(valid_texts, input_type="query")
+
+            # Vectorized Cosine Similarity
+            prototypes_norm = prototypes / np.linalg.norm(
+                prototypes, axis=1, keepdims=True
+            )
+            embeddings_norm = embeddings / np.linalg.norm(
+                embeddings, axis=1, keepdims=True
+            )
+            similarities = np.dot(embeddings_norm, prototypes_norm.T)
+
+            predictions = []
+            for sim in similarities:
+                # Softmax temperature scaling for confidence
+                exp_sim = np.exp(sim * 20.0)
+                probs = (exp_sim / np.sum(exp_sim)).tolist()
+
+                pred_label = int(np.argmax(sim))
+                confidence = float(np.max(probs))
 
                 predictions.append(
                     DefensePrediction(
@@ -135,32 +176,32 @@ Do not output any additional text or markdown formatting. ONLY JSON.
                         confidence=confidence,
                         probabilities=probs,
                         maturity_score=DEFENSE_MATURITY.get(pred_label),
-                        raw_logits=[],
+                        raw_logits=sim.tolist(),
                     )
                 )
+            return predictions
 
-            except Exception as e:
-                logger.error(
-                    f"NIM classification failed for text: '{text[:50]}...'. Error: {e}"
+        except Exception as e:
+            logger.error(f"Classification pipeline failed: {e}")
+            return [
+                DefensePrediction(
+                    label=0,
+                    label_name=DEFENSE_LABELS.get(0, "Neutral"),
+                    confidence=0.0,
+                    probabilities=[1.0] + [0.0] * (len(DEFENSE_LABELS) - 1),
+                    maturity_score=DEFENSE_MATURITY.get(0),
                 )
-                # Fallback to Neutral (0)
-                predictions.append(
-                    DefensePrediction(
-                        label=0,
-                        label_name=DEFENSE_LABELS.get(0, "Neutral"),
-                        confidence=0.0,
-                        probabilities=[1.0] + [0.0] * (len(DEFENSE_LABELS) - 1),
-                        maturity_score=DEFENSE_MATURITY.get(0),
-                        raw_logits=[],
-                    )
-                )
-
-        return predictions
+                for _ in texts
+            ]
 
 
-# Keep torch dependencies stubbed for compatibility with scripts importing FocalLoss/DefenseClassifier
-import torch
-import torch.nn as nn
+class DefenseClassifier(nn.Module):
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+        self.nim = NIMEmbeddingClassifier()
+
+    def predict(self, texts: List[str]) -> List[DefensePrediction]:
+        return self.nim.predict(texts)
 
 
 class FocalLoss(nn.Module):
@@ -169,13 +210,3 @@ class FocalLoss(nn.Module):
 
     def forward(self, *args, **kwargs):
         return torch.tensor(0.0)
-
-
-class DefenseClassifier(nn.Module):
-    """Stubbed legacy class to prevent import errors in older scripts."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-        logger.warning(
-            "Local PyTorch DefenseClassifier instantiated. Traffic should route to NIMDefenseClassifier."
-        )
