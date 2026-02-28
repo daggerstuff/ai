@@ -1,0 +1,65 @@
+
+services:
+  pixel-voice-api:
+    build: .
+    command: api
+    ports:
+      - "8000:8000"
+    environment:
+      - PIXEL_VOICE_ENV=production
+      - PIXEL_VOICE_DEBUG=false
+      - PIXEL_VOICE_API_HOST=0.0.0.0
+      - PIXEL_VOICE_API_PORT=8000
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  pixel-voice-mcp:
+    build: .
+    command: mcp
+    ports:
+      - "8001:8001"
+    environment:
+      - PIXEL_VOICE_ENV=production
+      - PIXEL_VOICE_DEBUG=false
+      - PIXEL_VOICE_MCP_HOST=0.0.0.0
+      - PIXEL_VOICE_MCP_PORT=8001
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./reports:/app/reports
+    restart: unless-stopped
+    depends_on:
+      - pixel-voice-api
+
+  # Optional: Redis for job queuing and caching
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+
+  # Optional: PostgreSQL for job persistence
+  # postgres:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: pixel_voice
+  #     POSTGRES_USER: pixel_voice
+  #     POSTGRES_PASSWORD: pixel_voice_password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+
+volumes:
+  # postgres_data:
+  pixel_voice_data:
+    driver: local

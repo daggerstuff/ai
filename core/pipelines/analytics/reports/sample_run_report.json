@@ -1,0 +1,27 @@
+{
+  "total_conversations": 600,
+  "max_samples_per_tier": 100,
+  "tier_counts": {
+    "1": 100,
+    "2": 100,
+    "3": 100,
+    "4": 100,
+    "5": 100,
+    "6": 100
+  },
+  "complexity_distribution": {
+    "beginner": 431,
+    "intermediate": 154,
+    "advanced": 15,
+    "expert": 0
+  },
+  "average_scores": {
+    "emotional_depth": 0.3138249999999976,
+    "clinical_reasoning": 0.2589499999999969,
+    "therapeutic_technique": 0.20314583333333486,
+    "crisis_level": 0.16699999999999707,
+    "cultural_sensitivity": 0.2269999999999971,
+    "overall_complexity": 0.24292291666666557
+  },
+  "samples_processed": true
+}
