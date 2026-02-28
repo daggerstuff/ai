@@ -126,7 +126,7 @@ pdftotext -layout DSM_Manual.pdf DSM_Manual.txt
 
 ### Step 4: Integrate with RAG System
 
-**Target**: `ai/pipelines/orchestrator/youtube_rag_system.py`
+**Target**: `ai/pipelines/youtube_rag_system.py`
 
 **Modifications Needed**:
 

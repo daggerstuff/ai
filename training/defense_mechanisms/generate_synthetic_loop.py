@@ -1,4 +1,4 @@
-from ai.utils.llm_capabilities import get_best_available_gemini_model, ensure_valid_key
+from ai.core.utils.llm_capabilities import get_best_available_gemini_model, ensure_valid_key
 import json
 import logging
 import time

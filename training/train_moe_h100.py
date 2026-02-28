@@ -234,7 +234,7 @@ def load_training_data(
     """
     # Prefer S3 if provided
     if s3_path:
-        from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader
+        from ai.training.utils.s3_dataset_loader import S3DatasetLoader
 
         loader = S3DatasetLoader()
         print(f"📊 Loading dataset from S3: {s3_path}...")
@@ -246,7 +246,7 @@ def load_training_data(
             data = json.load(f)
     else:
         # Try to find dataset in S3
-        from ai.training.ready_packages.utils.s3_dataset_loader import (
+        from ai.training.utils.s3_dataset_loader import (
             S3DatasetLoader,
             get_s3_dataset_path,
             load_dataset_from_s3,
