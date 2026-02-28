@@ -2,12 +2,12 @@
 # Optimized for MoE + LoRA training on L40S/H100 GPUs
 
 # Build arguments
-ARG PYTORCH_VERSION=2.2.0
-ARG CUDA_VERSION=12.1
+ARG PYTORCH_VERSION=2.5.1
+ARG CUDA_VERSION=12.4
 ARG PYTHON_VERSION=3.11
 
 # Base image with CUDA support
-FROM pytorch/pytorch:${PYTORCH_VERSION}-cuda${CUDA_VERSION}-cudnn8-runtime
+FROM pytorch/pytorch:${PYTORCH_VERSION}-cuda${CUDA_VERSION}-cudnn9-runtime
 
 # Metadata
 LABEL maintainer="Pixelated Empathy Team"
@@ -46,7 +46,6 @@ WORKDIR /app
 # Install Python dependencies
 RUN pip install --upgrade pip && \
     pip install \
-    torch>=2.2.0 \
     transformers>=4.42.0 \
     datasets>=2.19.0 \
     accelerate>=0.33.0 \
@@ -69,11 +68,9 @@ RUN pip install --upgrade pip && \
     python-dotenv>=1.0.0
 
 # Copy training code
-# Copy training code (Using updated paths)
-# NOTE: These paths must exist in the build context!
-# If copying from ai/training/..., context must be project root.
 COPY ai/core /app/ai/core/
 COPY ai/utils /app/ai/utils/
+COPY ai/lightning /app/ai/lightning/
 COPY ai/training/defense_mechanisms /app/ai/training/defense_mechanisms/
 COPY ai/training/ready_packages/scripts/batch_regenerate.py /app/ai/training/ready_packages/scripts/
 COPY ai/training/ready_packages/models/moe_architecture.py /app/
@@ -81,6 +78,13 @@ COPY ai/training/ready_packages/tools/training_optimizer.py /app/
 COPY ai/training/train_moe_h100.py /app/
 COPY ai/training/ready_packages/platforms/ovh/train_ovh.py /app/
 COPY ai/training/ready_packages/configs/hyperparameters/moe_training_config.json /app/config/
+
+# Embed mission-critical datasets directly into the image (Golden Image strategy)
+# This eliminates dependency on brittle OVH object storage volume mounts for input data.
+COPY ai/data/acquired_datasets/mental_health_counseling.json /data/acquired/
+COPY ai/data/acquired_datasets/cot_reasoning.json /data/acquired/
+COPY ai/data/unified_training/train.json /data/lightning/
+
 
 # Create necessary directories
 RUN mkdir -p /app /data /checkpoints /tmp/transformers_cache /tmp/huggingface

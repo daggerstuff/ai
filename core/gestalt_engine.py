@@ -26,7 +26,7 @@ from transformers import AutoTokenizer
 
 from ai.training.defense_mechanisms.constants import DEFENSE_LABELS
 from ai.training.defense_mechanisms.dataset import format_dialogue
-from ai.training.defense_mechanisms.model import DefenseClassifier
+from ai.training.defense_mechanisms.model import DefenseClassifier, DefensePrediction
 
 logger = logging.getLogger(__name__)
 
@@ -266,11 +266,26 @@ class GestaltEngine:
 
     def load_defense_model(
         self,
-        checkpoint_path: str,
+        checkpoint_path: Optional[str] = None,
         device: str = "cpu",
     ) -> None:
-        """Load the PsyDefDetect DeBERTa checkpoint."""
+        """Load the PsyDefDetect model (optional if using NIM)."""
+        if not checkpoint_path:
+            logger.info("GestaltEngine: No checkpoint provided, using NIM by default.")
+            self._defense_model = DefenseClassifier()
+            return
 
+        try:
+            self._initialize_local_model(checkpoint_path, device)
+        except Exception as exc:
+            logger.error(
+                f"GestaltEngine: Failed to load checkpoint {checkpoint_path}: {exc}"
+            )
+            logger.info("GestaltEngine: Falling back to NIM-based DefenseClassifier.")
+            self._defense_model = DefenseClassifier()
+
+    def _initialize_local_model(self, checkpoint_path: str, device: str) -> None:
+        """Initialize the legacy DeBERTa model from a local checkpoint."""
         checkpoint = torch.load(
             checkpoint_path, map_location=device, weights_only=False
         )
@@ -282,9 +297,11 @@ class GestaltEngine:
             num_labels=config.get("num_labels", 9),
             r_drop_enabled=False,
         )
-        model.load_state_dict(checkpoint["model_state_dict"], strict=False)
-        model.to(device)
-        model.eval()
+        # Handle PyTorch-based DefenseClassifier if checkpoint is provided
+        if hasattr(model, "load_state_dict"):
+            model.load_state_dict(checkpoint["model_state_dict"], strict=False)
+            model.to(device)
+            model.eval()
 
         self._defense_tokenizer = AutoTokenizer.from_pretrained(model_name)
         self._defense_model = model
@@ -304,29 +321,30 @@ class GestaltEngine:
         max_turns: int = 40,
     ) -> tuple[int, str, float, Optional[float], dict[str, float]]:
         """Run PsyDefDetect inference."""
-        if self._defense_model is None or self._defense_tokenizer is None:
+        if self._defense_model is None:
             raise RuntimeError(
-                "GestaltEngine.load_defense_model() must be called before "
-                "analyze_gestalt(). The PsyDefDetect model is not loaded."
+                "GestaltEngine: Defense model not initialized. "
+                "Call load_defense_model() first."
             )
 
         turns = [
             {"speaker": t.get("speaker", "Unknown"), "text": t.get("text", "")}
             for t in dialogue[-max_turns:]
         ]
-        formatted = format_dialogue(turns, target_utterance, max_turns)
-        encoding = self._defense_tokenizer(
-            formatted,
-            max_length=512,
-            padding="max_length",
-            truncation=True,
-            return_tensors="pt",
-        )
-        device = next(self._defense_model.parameters()).device
-        input_ids = encoding["input_ids"].to(device)
-        attention_mask = encoding["attention_mask"].to(device)
 
-        pred = self._defense_model.predict(input_ids, attention_mask)[0]
+        # Ensure the target utterance is in the sequence for format_dialogue to mark it
+        target_normalized = target_utterance.strip().lower()
+        if all(t.get("text", "").strip().lower() != target_normalized for t in turns):
+            turns.append({"speaker": "User", "text": target_utterance})
+
+        formatted = format_dialogue(turns, target_utterance, max_turns)
+
+        # Handle the new text-based NIM classifier
+        if hasattr(self._defense_model, "nim"):
+            pred = self._defense_model.predict([formatted])[0]
+        else:
+            pred = self._legacy_inference(formatted)
+
         prob_dict = {
             DEFENSE_LABELS.get(i, str(i)): round(p, 4)
             for i, p in enumerate(pred.probabilities)
@@ -338,6 +356,23 @@ class GestaltEngine:
             pred.maturity_score,
             prob_dict,
         )
+
+    def _legacy_inference(self, formatted_text: str) -> DefensePrediction:
+        """Run inference using the local PyTorch DeBERTa model."""
+        if self._defense_tokenizer is None:
+            raise RuntimeError("GestaltEngine: No tokenizer for PyTorch model.")
+
+        encoding = self._defense_tokenizer(
+            formatted_text,
+            max_length=512,
+            padding="max_length",
+            truncation=True,
+            return_tensors="pt",
+        )
+        device = next(self._defense_model.parameters()).device
+        input_ids = encoding["input_ids"].to(device)
+        attention_mask = encoding["attention_mask"].to(device)
+        return self._defense_model.predict(input_ids, attention_mask)[0]
 
     def analyze_gestalt(
         self,

@@ -1,0 +1,74 @@
+# OVH AI Job Configuration
+# Phase 3 Persona Re-Generation GPU Batch Job
+#
+# Linearly Processes:
+#   - S3 Input Dataset
+#   - Gestalt Simulator Core Loop
+#   - New LLM Outputs
+#   - S3 Generated Outputs
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: systemic-defense-phase3-batch
+  labels:
+    project: pixelated-empathy
+    pipeline: persona-regeneration
+    stage: batch
+spec:
+  template:
+    metadata:
+      labels:
+        stage: batch
+    spec:
+      restartPolicy: Never
+      nodeSelector:
+        node.kubernetes.io/instance-type: gpu_nvidia_l40s_1
+      containers:
+        - name: persona-batch
+          image: ${OVH_TRAINING_IMAGE:-pixelated-training:latest}
+          command:
+            - bash
+            - "-c"
+            - |
+              cd /workspace && \
+              poetry run python ai/training/ready_packages/scripts/batch_regenerate.py \
+                --defense-model-path /checkpoints/foundation/final/model.ckpt \
+                --input-s3-prefix final_dataset/shards/curriculum/stage2/ \
+                --output-s3-key final_dataset/shards/curriculum/stage2/synthetic_persona_batch_5k.jsonl
+          env:
+            - name: WANDB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: training-secrets
+                  key: wandb-api-key
+            - name: GEMINI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: training-secrets
+                  key: gemini-api-key
+            - name: OVH_S3_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: training-secrets
+                  key: ovh-s3-access-key
+            - name: OVH_S3_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: training-secrets
+                  key: ovh-s3-secret-key
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          resources:
+            requests:
+              memory: "64Gi"
+              ephemeral-storage: "200Gi"
+            limits:
+              nvidia.com/gpu: "1"
+          volumeMounts:
+            - name: checkpoints
+              mountPath: /checkpoints
+      volumes:
+        - name: checkpoints
+          persistentVolumeClaim:
+            claimName: pixelated-checkpoints-pvc

@@ -1,9 +1,9 @@
 """
-Defense Mechanism Training Orchestrator
+Defense Mechanism Training Orchestrator (DEPRECATED)
 
-Config-driven training pipeline with GroupKFold cross-validation,
-per-fold checkpointing, and comprehensive metrics logging.
-Follows the pattern of PixelTrainer in train_pixel.py.
+NOTE: This script is for training local DeBERTa-v3 models.
+The project has transitioned to using NVIDIA NIM (Remote Inference)
+as implemented in NIMEmbeddingClassifier.
 """
 
 import argparse
