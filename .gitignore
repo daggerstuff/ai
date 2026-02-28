@@ -25,7 +25,9 @@
 **/pixelated_ai.egg-info/
 pipelines/youtube-transcription-pipeline/
 pipelines/data/
-lightning/
+# lightning/ renamed to orchestrator/ - keep data out of git
+orchestrator/targets/*/deployment_package/data/*.json
+orchestrator/targets/*/deployment_package/data/*.jsonl
 data/conversation_system.db
 config/security/
 /models/
@@ -56,16 +58,27 @@ data/tim_fletcher_voice/conversation_generation_prompt.txt
 
 # Certificates
 utils/certs/*.pem
-# Large Unified Training Data
+# Large training data files (use S3 for storage, not git)
 data/unified_training/train.json
 data/unified_training/validation.json
 data/unified_training/expert_*.json
+data/TRAINING_MANIFEST.json
+data/generated/**/*.json
+data/datasets/
+data/raw/
 coverage/
 training_data_consolidated/
 data/books/
 mcp_server/
 evaluation/
+# Stale paths (kept for safety in case of partial checkouts)
 training_ready/scripts/
 training_ready/data/
-/api/data/transcripts/ingested/
+# New domain paths - large runtime artifacts
+core/scripts/output/
+data/db/*.db
+data/db/*.sqlite
+infra/cloud/distributed/logs/
+# Legacy API data path
+core/api/data/transcripts/ingested/
 training/v1/
