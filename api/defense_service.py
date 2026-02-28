@@ -59,51 +59,39 @@ class DefenseAnalysisResponse(BaseModel):
 
 
 def load_defense_model(
-    checkpoint_path: str,
+    checkpoint_path: str = None,
     device: str = "cpu",
 ):
     """
-    Load the defense mechanism classifier for API serving.
+    Initialize the NVIDIA NIM remote defense mechanism classifier for API serving.
 
     Call this once at application startup. The model is stored
     as a module-level singleton.
 
     Args:
-        checkpoint_path: Path to a fold's best_model.pt
-        device: Device to load model on
+        checkpoint_path: Legacy argument, preserved for compatibility.
+        device: Legacy argument, preserved for compatibility.
     """
     global _defense_model, _defense_tokenizer
 
-    import torch
-    from transformers import AutoTokenizer
+    from ai.training.defense_mechanisms.model import NIMDefenseClassifier
 
-    from ai.training.defense_mechanisms.model import DefenseClassifier
+    try:
+        model = NIMDefenseClassifier(
+            model_name="meta/llama-3.1-8b-instruct", temperature=0.0
+        )
 
-    checkpoint = torch.load(
-        checkpoint_path,
-        map_location=device,
-        weights_only=False,
-    )
-    config = checkpoint.get("config", {})
-    model_name = config.get("base_model", "microsoft/deberta-v3-base")
+        _defense_model = model
+        _defense_tokenizer = "NIM_REMOTE"  # Stub to pass `is not None` checks
 
-    model = DefenseClassifier(
-        model_name=model_name,
-        num_labels=config.get("num_labels", 9),
-        r_drop_enabled=False,
-    )
-    model.load_state_dict(checkpoint["model_state_dict"], strict=False)
-    model.to(device)
-    model.eval()
-
-    _defense_tokenizer = AutoTokenizer.from_pretrained(model_name)
-    _defense_model = model
-
-    logger.info(
-        "Defense model loaded from %s (macro-F1=%.4f)",
-        checkpoint_path,
-        checkpoint.get("macro_f1", 0.0),
-    )
+        logger.info(
+            "Defense model initialized using %s (Remote NVIDIA NIM API)",
+            model.model_name,
+        )
+    except Exception as e:
+        logger.error(f"Failed to initialize NIMDefenseClassifier: {e}")
+        _defense_model = None
+        _defense_tokenizer = None
 
 
 @router.post(
@@ -129,7 +117,6 @@ async def analyze_defense(
             ),
         )
 
-
     from ai.training.defense_mechanisms.dataset import format_dialogue
 
     turns = [{"speaker": t.speaker, "text": t.text} for t in request.dialogue]
@@ -140,19 +127,7 @@ async def analyze_defense(
         max_turns=request.max_turns,
     )
 
-    encoding = _defense_tokenizer(
-        formatted,
-        max_length=512,
-        padding="max_length",
-        truncation=True,
-        return_tensors="pt",
-    )
-
-    device = next(_defense_model.parameters()).device
-    input_ids = encoding["input_ids"].to(device)
-    attention_mask = encoding["attention_mask"].to(device)
-
-    predictions = _defense_model.predict(input_ids, attention_mask)
+    predictions = _defense_model.predict([formatted])
     pred = predictions[0]
 
     prob_dict = {
