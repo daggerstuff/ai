@@ -13,11 +13,20 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Your existing Azure configuration
-RESOURCE_GROUP="pixelated-rg"
-CONTAINER_ENV="pixel-env-production"
-CONTAINER_REGISTRY="pixelatedcr"
-LOG_WORKSPACE="pixel-log-production"
-LOCATION="eastus"
+RESOURCE_GROUP="${AZURE_RESOURCE_GROUP:-pixelated-rg}"
+CONTAINER_ENV="${AZURE_CONTAINER_ENV:-pixel-env-production}"
+CONTAINER_REGISTRY="${AZURE_CONTAINER_REGISTRY:-pixelatedcr}"
+LOG_WORKSPACE="${AZURE_LOG_WORKSPACE:-pixel-log-production}"
+LOCATION="${AZURE_LOCATION:-eastus}"
+
+# Sensitive credentials (DO NOT HARDCODE)
+POSTGRES_PASSWORD="${POSTGRES_PASSWORD}"
+GF_ADMIN_PASSWORD="${GF_ADMIN_PASSWORD}"
+
+if [ -z "$POSTGRES_PASSWORD" ] || [ -z "$GF_ADMIN_PASSWORD" ]; then
+    print_error "POSTGRES_PASSWORD and GF_ADMIN_PASSWORD must be set as environment variables."
+    exit 1
+fi
 
 echo -e "${BLUE}🚀 DEPLOYING TO EXISTING AZURE INFRASTRUCTURE${NC}"
 echo -e "${BLUE}Resource Group: ${RESOURCE_GROUP}${NC}"
@@ -54,7 +63,7 @@ az containerapp create \
   --env-vars \
     POSTGRES_DB=pixelated_empathy \
     POSTGRES_USER=postgres \
-    POSTGRES_PASSWORD=[REDACTED_PASSWORD] \
+    POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
     PGDATA=/var/lib/postgresql/data/pgdata
 
 print_status "PostgreSQL Container App created"
@@ -127,8 +136,7 @@ az containerapp create \
   --max-replicas 1 \
   --cpu 0.5 \
   --memory 1.0Gi \
-  --env-vars \
-    GF_SECURITY_ADMIN_PASSWORD=[REDACTED_PASSWORD] \
+    GF_SECURITY_ADMIN_PASSWORD=$GF_ADMIN_PASSWORD \
     GF_USERS_ALLOW_SIGN_UP=false
 
 print_status "Grafana Container App created"
@@ -152,7 +160,7 @@ az containerapp job create \
     POSTGRES_HOST=pixelated-postgres \
     POSTGRES_PORT=5432 \
     POSTGRES_USER=postgres \
-    POSTGRES_PASSWORD=[REDACTED_PASSWORD] \
+    POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
     POSTGRES_DB=pixelated_empathy
 
 print_status "Data migration job created"
@@ -172,7 +180,7 @@ echo -e "${GREEN}Redis (internal): ${REDIS_FQDN}:6379${NC}"
 echo -e "${GREEN}Prometheus: https://${PROMETHEUS_FQDN}${NC}"
 echo -e "${GREEN}Grafana: https://${GRAFANA_FQDN}${NC}"
 echo -e "${GREEN}  - Username: admin${NC}"
-echo -e "${GREEN}  - Password: [REDACTED_PASSWORD]${NC}"
+echo -e "${GREEN}  - Password: [REDACTED]${NC}"
 
 # Step 7: Update existing pixelated-web app with database connection
 echo -e "\n${BLUE}🔗 UPDATING EXISTING WEB APP WITH DATABASE CONNECTION${NC}"
@@ -181,7 +189,7 @@ az containerapp update \
   --name pixelated-web \
   --resource-group $RESOURCE_GROUP \
   --set-env-vars \
-    DATABASE_URL="postgresql://postgres:[REDACTED_PASSWORD]@${POSTGRES_FQDN}:5432/pixelated_empathy" \
+    DATABASE_URL="postgresql://postgres:${POSTGRES_PASSWORD}@${POSTGRES_FQDN}:5432/pixelated_empathy" \
     REDIS_URL="redis://${REDIS_FQDN}:6379/0"
 
 print_status "Web app updated with database connections"
