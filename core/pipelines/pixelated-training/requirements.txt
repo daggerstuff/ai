@@ -302,7 +302,7 @@ uvicorn==0.40.0
     # via -r ai/pipelines/orchestrator/pixelated-training/requirements.txt
 wandb==0.24.0
     # via -r ai/pipelines/orchestrator/pixelated-training/requirements.txt
-werkzeug==3.1.5
+werkzeug==3.1.6
     # via tensorboard
 xxhash==3.6.0
     # via datasets
