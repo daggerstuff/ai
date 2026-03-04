@@ -11,7 +11,6 @@ from datetime import datetime
 from typing import List, Optional
 
 import requests
-
 from ai.core.sourcing.journal.models.dataset_models import DatasetSource
 
 logger = logging.getLogger(__name__)
@@ -58,8 +57,13 @@ class DryadClient:
         all_sources = []
         page = 1
 
+        # Sanitize keywords to prevent search syntax injection
+        clean_keywords = [
+            kw.replace("\\", "\\\\").replace('"', '\\"') for kw in keywords
+        ]
+
         # Build search query
-        query = " OR ".join([f'"{kw}"' for kw in keywords])
+        query = " OR ".join([f'"{kw}"' for kw in clean_keywords])
         # Add therapeutic terms
         therapeutic_terms = ["therapy", "counseling", "psychotherapy", "mental health"]
         query += " OR " + " OR ".join([f'"{term}"' for term in therapeutic_terms])
@@ -228,8 +232,13 @@ class ZenodoClient:
         all_sources = []
         page = 1
 
+        # Sanitize keywords to prevent search syntax injection
+        clean_keywords = [
+            kw.replace("\\", "\\\\").replace('"', '\\"') for kw in keywords
+        ]
+
         # Build search query
-        query = " OR ".join([f'"{kw}"' for kw in keywords])
+        query = " OR ".join([f'"{kw}"' for kw in clean_keywords])
         # Add therapeutic terms
         therapeutic_terms = ["therapy", "counseling", "psychotherapy", "mental health"]
         query += " OR " + " OR ".join([f'"{term}"' for term in therapeutic_terms])
@@ -309,7 +318,11 @@ class ZenodoClient:
             doi = None
             doi_list = metadata.get("doi", "")
             if doi_list:
-                doi = doi_list if isinstance(doi_list, str) else doi_list[0] if isinstance(doi_list, list) else None
+                doi = (
+                    doi_list
+                    if isinstance(doi_list, str)
+                    else doi_list[0] if isinstance(doi_list, list) else None
+                )
 
             # Extract abstract/description
             abstract = metadata.get("description", "")
@@ -325,7 +338,9 @@ class ZenodoClient:
 
             # Extract URL
             links = record.get("links", {})
-            url = links.get("html") or links.get("self", f"https://zenodo.org/record/{id}")
+            url = links.get("html") or links.get(
+                "self", f"https://zenodo.org/record/{id}"
+            )
 
             # Generate source ID
             source_id = f"zenodo_{id}"
@@ -407,22 +422,20 @@ class ClinicalTrialsClient:
         all_sources = []
         page = 1
 
+        # Sanitize keywords to prevent search syntax injection
+        clean_keywords = [
+            kw.replace("\\", "\\\\").replace('"', '\\"') for kw in keywords
+        ]
+
         # Build search query
         query_parts = []
-        for keyword in keywords:
+        for keyword in clean_keywords:
             query_parts.append(f'"{keyword}"')
-
-        if condition:
-            query_parts.append(f'CONDITION:"{condition}"')
-
-        query_parts.append(f'STATUS:{status}')
 
         # Add therapeutic terms
         therapeutic_terms = ["therapy", "counseling", "psychotherapy", "mental health"]
         for term in therapeutic_terms:
             query_parts.append(f'"{term}"')
-
-        query = " AND ".join(query_parts)
 
         try:
             while len(all_sources) < max_results:
@@ -430,7 +443,7 @@ class ClinicalTrialsClient:
 
                 params = {
                     "query.cond": condition or "",
-                    "query.term": " OR ".join(keywords),
+                    "query.term": " OR ".join(query_parts),
                     "filter.overallStatus": status,
                     "pageSize": min(self.page_size, max_results - len(all_sources)),
                     "page": page,
@@ -506,7 +519,9 @@ class ClinicalTrialsClient:
             url = f"https://clinicaltrials.gov/study/{nct_id}"
 
             # Check data availability
-            data_availability = "upon_request"  # Clinical trials typically require request
+            data_availability = (
+                "upon_request"  # Clinical trials typically require request
+            )
 
             # Generate source ID
             source_id = f"clinical_trial_{nct_id}"
@@ -545,4 +560,3 @@ class ClinicalTrialsClient:
             pass
 
         return datetime.now()
-
