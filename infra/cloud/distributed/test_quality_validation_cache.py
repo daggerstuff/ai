@@ -10,6 +10,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest.mock import MagicMock
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))
@@ -252,6 +253,34 @@ class TestCachedQualityValidator(unittest.TestCase):
             str(self.cache_file), validation_type, metadata
         )
         self.assertEqual(cached_result, test_result)
+
+    def test_cache_validation_result_failure(self):
+        """Test caching validation result failure"""
+        test_result = b"validation result to cache"
+        metadata = {"version": "1.0"}
+        validation_type = "conversation"
+
+        # Mock cache_result to return False
+        self.validator.cache.cache_result = unittest.mock.MagicMock(return_value=False)
+
+        success = self.validator.cache_validation_result(
+            str(self.cache_file), validation_type, metadata, test_result
+        )
+        self.assertFalse(success)
+        self.validator.cache.cache_result.assert_called_once_with(
+            str(self.cache_file), validation_type, metadata, test_result
+        )
+
+    def test_cache_validation_result_with_none_metadata(self):
+        """Test caching validation result with None metadata"""
+        test_result = b"validation result to cache"
+        metadata = None
+        validation_type = "conversation"
+
+        success = self.validator.cache_validation_result(
+            str(self.cache_file), validation_type, metadata, test_result
+        )
+        self.assertTrue(success)
 
 
 if __name__ == "__main__":
