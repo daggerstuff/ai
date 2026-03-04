@@ -13,6 +13,7 @@ import time
 from datetime import datetime
 
 from checkpoint_system import (
+    CheckpointStatus,
     CheckpointType,
 )
 from checkpoint_utils import (
@@ -75,6 +76,7 @@ class CheckpointTestSuite:
 
         test_methods = [
             self.test_basic_checkpoint_operations,
+            self.test_list_checkpoints,
             self.test_process_registration_and_progress,
             self.test_checkpoint_recovery,
             self.test_storage_optimization,
@@ -145,6 +147,123 @@ class CheckpointTestSuite:
             }
         )
 
+    async def test_list_checkpoints(self):
+        """Test listing checkpoints with various filters"""
+
+        # Register process 1
+        process_id_1 = "p_list_1"
+        task_id_1 = "t_list_1"
+        self.manager.register_process(process_id_1, task_id_1, 10)
+
+        # Create Checkpoint A
+        cp_a = self.manager.create_checkpoint(
+            process_id=process_id_1,
+            task_id=task_id_1,
+            checkpoint_type=CheckpointType.CUSTOM,
+            data={"test": 1},
+        )
+
+        # Create Checkpoint B
+        task_id_2 = "t_list_2"
+        cp_b = self.manager.create_checkpoint(
+            process_id=process_id_1,
+            task_id=task_id_2,
+            checkpoint_type=CheckpointType.BATCH_PROGRESS,
+            data={"test": 2},
+        )
+
+        # Mark all checkpoints for process 1 as completed
+        self.manager._mark_process_checkpoints_completed(process_id_1)
+
+        # Register process 2
+        process_id_2 = "p_list_2"
+        self.manager.register_process(process_id_2, task_id_1, 10)
+
+        # Create Checkpoint C
+        cp_c = self.manager.create_checkpoint(
+            process_id=process_id_2,
+            task_id=task_id_1,
+            checkpoint_type=CheckpointType.CUSTOM,
+            data={"test": 3},
+        )
+
+        # Create Checkpoint D
+        process_id_3 = "p_list_3"
+        task_id_3 = "t_list_3"
+        cp_d = self.manager.create_checkpoint(
+            process_id=process_id_3,
+            task_id=task_id_3,
+            checkpoint_type=CheckpointType.SYSTEM_STATE,
+            data={"test": 4},
+        )
+
+        # Filter by process_id
+        p1_checkpoints = self.manager.storage.list_checkpoints(process_id=process_id_1)
+        assert (
+            len(p1_checkpoints) == 3
+        ), f"Expected 3 checkpoints for {process_id_1}, got {len(p1_checkpoints)}"
+
+        # Filter by task_id
+        t1_checkpoints = self.manager.storage.list_checkpoints(task_id=task_id_1)
+        assert (
+            len(t1_checkpoints) == 4
+        ), f"Expected 4 checkpoints for {task_id_1}, got {len(t1_checkpoints)}"
+
+        # Filter by checkpoint_type
+        batch_checkpoints = self.manager.storage.list_checkpoints(
+            checkpoint_type=CheckpointType.BATCH_PROGRESS
+        )
+        assert (
+            len(batch_checkpoints) == 1
+        ), f"Expected 1 batch progress checkpoint, got {len(batch_checkpoints)}"
+        assert (
+            batch_checkpoints[0].checkpoint_id == cp_b
+        ), "Mismatch in batch progress checkpoint ID"
+
+        # Filter by status COMPLETED
+        completed_checkpoints = self.manager.storage.list_checkpoints(
+            status=CheckpointStatus.COMPLETED
+        )
+        assert (
+            len(completed_checkpoints) == 3
+        ), f"Expected 3 completed checkpoints, got {len(completed_checkpoints)}"
+        for cp in completed_checkpoints:
+            assert (
+                cp.process_id == process_id_1
+            ), "Only process 1 checkpoints should be completed"
+
+        # Filter by status ACTIVE
+        active_checkpoints = self.manager.storage.list_checkpoints(
+            status=CheckpointStatus.ACTIVE
+        )
+        assert (
+            len(active_checkpoints) == 3
+        ), f"Expected 3 active checkpoints, got {len(active_checkpoints)}"
+
+        # Multiple filters
+        multi_filter = self.manager.storage.list_checkpoints(
+            process_id=process_id_1, task_id=task_id_2
+        )
+        assert len(multi_filter) == 1, "Expected 1 checkpoint with multiple filters"
+        assert (
+            multi_filter[0].checkpoint_id == cp_b
+        ), "Mismatch in multi-filter checkpoint ID"
+
+        # Verify ordering (created_at DESC)
+        all_checkpoints = self.manager.storage.list_checkpoints()
+        for i in range(len(all_checkpoints) - 1):
+            assert (
+                all_checkpoints[i].created_at >= all_checkpoints[i + 1].created_at
+            ), "Checkpoints not ordered by created_at DESC"
+
+        self.test_results.append(
+            {
+                "test": "list_checkpoints",
+                "status": "passed",
+                "details": "Successfully listed checkpoints with various filters and ordering",
+            }
+        )
+
     async def test_process_registration_and_progress(self):
         """Test process registration and progress tracking"""
 
@@ -174,9 +293,9 @@ class CheckpointTestSuite:
             )
 
             expected_progress = (step / total_steps) * 100
-            assert abs(updated_state.progress_percentage - expected_progress) < 0.1, (
-                f"Progress mismatch: expected {expected_progress}, got {updated_state.progress_percentage}"
-            )
+            assert (
+                abs(updated_state.progress_percentage - expected_progress) < 0.1
+            ), f"Progress mismatch: expected {expected_progress}, got {updated_state.progress_percentage}"
 
         # Complete process
         final_checkpoint = self.manager.complete_process(
@@ -185,9 +304,9 @@ class CheckpointTestSuite:
         )
 
         assert final_checkpoint is not None, "Final checkpoint should be created"
-        assert process_id not in self.manager.active_processes, (
-            "Process should be removed from active list"
-        )
+        assert (
+            process_id not in self.manager.active_processes
+        ), "Process should be removed from active list"
 
         self.test_results.append(
             {
@@ -229,9 +348,9 @@ class CheckpointTestSuite:
         assert recovered_state is not None, "Process recovery should succeed"
         assert recovered_state.process_id == process_id, "Recovered process ID mismatch"
         assert recovered_state.completed_steps == 10, "Recovered progress mismatch"
-        assert recovered_state.current_step == "Halfway point", (
-            "Recovered step mismatch"
-        )
+        assert (
+            recovered_state.current_step == "Halfway point"
+        ), "Recovered step mismatch"
 
         # Continue from recovered state
         self.manager.update_process_progress(
@@ -241,9 +360,9 @@ class CheckpointTestSuite:
         )
 
         final_state = self.manager.active_processes[process_id]
-        assert final_state.progress_percentage == 100.0, (
-            "Should reach 100% after recovery"
-        )
+        assert (
+            final_state.progress_percentage == 100.0
+        ), "Should reach 100% after recovery"
 
         self.test_results.append(
             {
@@ -288,9 +407,9 @@ class CheckpointTestSuite:
         # Should have archived some completed checkpoints
         if optimization_results.get("checkpoints_archived", 0) > 0:
             final_completed = final_stats["status_counts"].get("completed", 0)
-            assert final_completed < initial_completed, (
-                "Should have fewer completed checkpoints after archiving"
-            )
+            assert (
+                final_completed < initial_completed
+            ), "Should have fewer completed checkpoints after archiving"
 
         self.test_results.append(
             {
@@ -315,9 +434,9 @@ class CheckpointTestSuite:
 
         # Health score should be reasonable
         health_score = health_report["health_score"]
-        assert 0 <= health_score <= 100, (
-            f"Health score should be 0-100, got {health_score}"
-        )
+        assert (
+            0 <= health_score <= 100
+        ), f"Health score should be 0-100, got {health_score}"
 
         # Should have system metrics
         metrics = health_report["metrics"]
@@ -463,12 +582,12 @@ class CheckpointTestSuite:
         avg_loading_time = loading_time / 10
 
         # Performance assertions
-        assert avg_creation_time < 0.1, (
-            f"Checkpoint creation too slow: {avg_creation_time:.3f}s"
-        )
-        assert avg_loading_time < 0.05, (
-            f"Checkpoint loading too slow: {avg_loading_time:.3f}s"
-        )
+        assert (
+            avg_creation_time < 0.1
+        ), f"Checkpoint creation too slow: {avg_creation_time:.3f}s"
+        assert (
+            avg_loading_time < 0.05
+        ), f"Checkpoint loading too slow: {avg_loading_time:.3f}s"
 
         # Cleanup
         for checkpoint_id in checkpoint_ids:
@@ -555,16 +674,16 @@ class CheckpointTestSuite:
         final_stats = self.manager.storage.get_storage_stats()
 
         # Should have some optimization actions
-        assert len(optimization_results["actions_taken"]) >= 0, (
-            "Should have taken some optimization actions"
-        )
+        assert (
+            len(optimization_results["actions_taken"]) >= 0
+        ), "Should have taken some optimization actions"
 
         # Test compression specifically
         if self.monitor.config.compression_enabled:
             # Verify compressed checkpoints exist
-            with self.manager.storage.storage.connect(
-                self.manager.storage.db_path
-            ) as conn:
+            import sqlite3
+
+            with sqlite3.connect(self.manager.storage.db_path) as conn:
                 compressed_count = conn.execute(
                     "SELECT COUNT(*) FROM checkpoints WHERE compression = 1"
                 ).fetchone()[0]
