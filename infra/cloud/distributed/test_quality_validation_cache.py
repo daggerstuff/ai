@@ -97,6 +97,101 @@ class TestQualityValidationCache(unittest.TestCase):
         )
         self.assertIsNone(cached_result)
 
+
+
+
+
+    def test_cache_result_redis_exception(self):
+        """Test redis cache exception is handled gracefully"""
+        from unittest.mock import MagicMock
+
+        test_result = b"success data"
+        metadata = {"version": "1.0"}
+        validation_type = "conversation"
+
+        # Setup mock redis client to throw an exception
+        self.cache.redis_client = MagicMock()
+        self.cache.redis_client.setex.side_effect = Exception("Redis Error")
+
+        # Call cache_result
+        success = self.cache.cache_result(
+            str(self.cache_file), validation_type, metadata, test_result
+        )
+
+        # Should still return True as it's cached in memory and file
+        self.assertTrue(success)
+
+    def test_cache_result_file_cache_exception(self):
+        """Test file cache exception is handled gracefully"""
+        from unittest.mock import patch
+
+        test_result = b"success data"
+        metadata = {"version": "1.0"}
+        validation_type = "conversation"
+
+        # Mock open to raise an exception
+        with patch('builtins.open', side_effect=Exception("File Error")):
+            # Note: _calculate_data_hash also uses open, so we need to bypass it or handle it
+            # We'll mock _calculate_data_hash to avoid the first open() failure
+            with patch.object(self.cache, '_calculate_data_hash', return_value="testhash"):
+                success = self.cache.cache_result(
+                    str(self.cache_file), validation_type, metadata, test_result
+                )
+
+                # Should still return True as it's cached in memory
+                self.assertTrue(success)
+
+    def test_cache_result_exception(self):
+        """Test cache result handling exception correctly"""
+        from unittest.mock import patch
+
+        test_result = b"success data"
+        metadata = {"version": "1.0"}
+        validation_type = "conversation"
+
+        # Mock _calculate_data_hash to raise an Exception
+        with patch.object(self.cache, '_calculate_data_hash', side_effect=Exception("Test Error")):
+            success = self.cache.cache_result(
+                str(self.cache_file), validation_type, metadata, test_result
+            )
+
+            self.assertFalse(success)
+
+    def test_cache_result_success(self):
+        """Test successful caching including memory, Redis, and file cache"""
+        from unittest.mock import MagicMock
+
+        test_result = b"success data"
+        metadata = {"version": "1.0"}
+        validation_type = "conversation"
+
+        # Setup mock redis client
+        self.cache.redis_client = MagicMock()
+
+        # Call cache_result
+        success = self.cache.cache_result(
+            str(self.cache_file), validation_type, metadata, test_result
+        )
+
+        self.assertTrue(success)
+
+        # Verify memory cache
+        data_hash = self.cache._calculate_data_hash(str(self.cache_file), metadata)
+        cache_key = self.cache._generate_cache_key(data_hash, validation_type)
+        self.assertIn(cache_key, self.cache.memory_cache)
+        self.assertEqual(self.cache.memory_cache[cache_key][0], test_result)
+
+        # Verify Redis cache
+        self.cache.redis_client.setex.assert_called_once_with(
+            cache_key, self.cache.cache_ttl, test_result
+        )
+
+        # Verify file cache
+        cache_file_path = self.cache.cache_dir / f"{cache_key}.pkl"
+        self.assertTrue(cache_file_path.exists())
+        with open(cache_file_path, "rb") as f:
+            self.assertEqual(f.read(), test_result)
+
     def test_invalidate_cache(self):
         """Test cache invalidation"""
         test_result = b"test validation result data"
