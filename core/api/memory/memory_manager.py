@@ -262,7 +262,7 @@ def get_memory_manager(mem0_client: Optional[Any] = None) -> MemoryManager:
             # 2. Fallback to NullMemoryManager
             if not mem0_client:
                 # Create a null Memory implementation for development/fallback
-                from ai.core.api.memory.null_memory import NullMemoryManager
+                from core.api.memory.null_memory import NullMemoryManager
 
                 mem0_client = NullMemoryManager()
                 logger.info("Using null Memory implementation for MemoryManager")

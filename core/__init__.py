@@ -7,7 +7,7 @@ Primary exports:
 - CrisisLevel: Risk classification enum
 """
 
-from ai.core.gestalt_engine import (
+from core.gestalt_engine import (
     CrisisLevel,
     GestaltEngine,
     GestaltState,

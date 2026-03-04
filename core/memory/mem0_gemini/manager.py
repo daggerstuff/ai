@@ -38,7 +38,7 @@ except ImportError:
 if not MemoryClient and not Memory:
     raise ImportError("Please install mem0ai: uv add mem0ai")
 
-from ai.core.api.memory.null_memory import NullMemoryManager
+from core.api.memory.null_memory import NullMemoryManager
 from google import genai
 from pydantic import BaseModel, Field
 
