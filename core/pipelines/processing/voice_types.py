@@ -19,6 +19,16 @@ class PersonalityTrait(Enum):
     NEUROTICISM = "neuroticism"
 
 
+class PersonalityDimension(Enum):
+    """Alias for PersonalityTrait for backward compatibility."""
+
+    OPENNESS = "openness"
+    CONSCIENTIOUSNESS = "conscientiousness"
+    EXTRAVERSION = "extraversion"
+    AGREEABLENESS = "agreeableness"
+    NEUROTICISM = "neuroticism"
+
+
 @dataclass
 class PersonalityProfile:
     """Personality profile for voice optimization."""
@@ -27,6 +37,13 @@ class PersonalityProfile:
     confidence_scores: dict[PersonalityTrait, float] = field(default_factory=dict)
     dominant_traits: list[PersonalityTrait] = field(default_factory=list)
     analysis_timestamp: datetime = field(default_factory=datetime.now)
+
+    @property
+    def confidence_score(self) -> float:
+        """Alias for average confidence for backward compatibility."""
+        if not self.confidence_scores:
+            return 0.0
+        return sum(self.confidence_scores.values()) / len(self.confidence_scores)
 
     def get_trait_score(self, trait: PersonalityTrait) -> float:
         """Get score for a specific trait."""

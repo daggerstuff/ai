@@ -11,13 +11,13 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
-from .audio_processor import AudioProcessor
+from .processing.audio_processor import AudioProcessor
 
 from .logger import setup_logger
-from .personality_extractor import PersonalityExtractor
-from .voice_conversation_converter import ConversionResult, VoiceConversationConverter
-from .voice_transcriber import VoiceTranscriber
-from .youtube_processor import (
+from .processing.personality_extractor import PersonalityExtractor
+from .processing.voice_conversation_converter import ConversionResult, VoiceConversationConverter
+from .processing.voice_transcriber import VoiceTranscriber
+from .ingestion.youtube_processor import (
     AntiDetectionConfig,
     ProxyConfig,
     RateLimitConfig,
