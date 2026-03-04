@@ -74,6 +74,7 @@ class CheckpointTestSuite:
         print("=" * 60)
 
         test_methods = [
+            self.test_setup_database,
             self.test_basic_checkpoint_operations,
             self.test_process_registration_and_progress,
             self.test_checkpoint_recovery,
@@ -97,6 +98,41 @@ class CheckpointTestSuite:
 
         # Print summary
         self.print_test_summary()
+
+    async def test_setup_database(self):
+        """Test that the database is correctly set up with tables and indices"""
+        import sqlite3
+
+        # Check database exists
+        assert os.path.exists(
+            self.manager.storage.db_path
+        ), "Database file should exist"
+
+        with sqlite3.connect(self.manager.storage.db_path) as conn:
+            cursor = conn.cursor()
+
+            # Verify table
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='checkpoints'"
+            )
+            assert cursor.fetchone() is not None, "checkpoints table should exist"
+
+            # Verify indices
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='checkpoints'"
+            )
+            indices = {row[0] for row in cursor.fetchall()}
+
+            for idx in ["idx_process_task", "idx_created_at", "idx_status"]:
+                assert idx in indices, f"Index {idx} should exist"
+
+        self.test_results.append(
+            {
+                "test": "setup_database",
+                "status": "passed",
+                "details": "Database schema verified successfully",
+            }
+        )
 
     async def test_basic_checkpoint_operations(self):
         """Test basic checkpoint creation, storage, and retrieval"""
@@ -174,9 +210,9 @@ class CheckpointTestSuite:
             )
 
             expected_progress = (step / total_steps) * 100
-            assert abs(updated_state.progress_percentage - expected_progress) < 0.1, (
-                f"Progress mismatch: expected {expected_progress}, got {updated_state.progress_percentage}"
-            )
+            assert (
+                abs(updated_state.progress_percentage - expected_progress) < 0.1
+            ), f"Progress mismatch: expected {expected_progress}, got {updated_state.progress_percentage}"
 
         # Complete process
         final_checkpoint = self.manager.complete_process(
@@ -185,9 +221,9 @@ class CheckpointTestSuite:
         )
 
         assert final_checkpoint is not None, "Final checkpoint should be created"
-        assert process_id not in self.manager.active_processes, (
-            "Process should be removed from active list"
-        )
+        assert (
+            process_id not in self.manager.active_processes
+        ), "Process should be removed from active list"
 
         self.test_results.append(
             {
@@ -204,7 +240,7 @@ class CheckpointTestSuite:
         task_id = "recovery_test"
 
         # Register and progress a process
-        state = self.manager.register_process(
+        self.manager.register_process(
             process_id=process_id,
             task_id=task_id,
             total_steps=20,
@@ -220,7 +256,7 @@ class CheckpointTestSuite:
         )
 
         # Simulate process interruption (remove from active processes)
-        original_state = self.manager.active_processes[process_id]
+        self.manager.active_processes[process_id]
         del self.manager.active_processes[process_id]
 
         # Recover the process
@@ -229,9 +265,9 @@ class CheckpointTestSuite:
         assert recovered_state is not None, "Process recovery should succeed"
         assert recovered_state.process_id == process_id, "Recovered process ID mismatch"
         assert recovered_state.completed_steps == 10, "Recovered progress mismatch"
-        assert recovered_state.current_step == "Halfway point", (
-            "Recovered step mismatch"
-        )
+        assert (
+            recovered_state.current_step == "Halfway point"
+        ), "Recovered step mismatch"
 
         # Continue from recovered state
         self.manager.update_process_progress(
@@ -241,9 +277,9 @@ class CheckpointTestSuite:
         )
 
         final_state = self.manager.active_processes[process_id]
-        assert final_state.progress_percentage == 100.0, (
-            "Should reach 100% after recovery"
-        )
+        assert (
+            final_state.progress_percentage == 100.0
+        ), "Should reach 100% after recovery"
 
         self.test_results.append(
             {
@@ -263,7 +299,7 @@ class CheckpointTestSuite:
             process_id = f"test_optimize_{i}"
 
             # Create and complete process
-            state = self.manager.register_process(
+            self.manager.register_process(
                 process_id=process_id,
                 task_id="optimization_test",
                 total_steps=5,
@@ -288,9 +324,9 @@ class CheckpointTestSuite:
         # Should have archived some completed checkpoints
         if optimization_results.get("checkpoints_archived", 0) > 0:
             final_completed = final_stats["status_counts"].get("completed", 0)
-            assert final_completed < initial_completed, (
-                "Should have fewer completed checkpoints after archiving"
-            )
+            assert (
+                final_completed < initial_completed
+            ), "Should have fewer completed checkpoints after archiving"
 
         self.test_results.append(
             {
@@ -315,9 +351,9 @@ class CheckpointTestSuite:
 
         # Health score should be reasonable
         health_score = health_report["health_score"]
-        assert 0 <= health_score <= 100, (
-            f"Health score should be 0-100, got {health_score}"
-        )
+        assert (
+            0 <= health_score <= 100
+        ), f"Health score should be 0-100, got {health_score}"
 
         # Should have system metrics
         metrics = health_report["metrics"]
@@ -341,7 +377,7 @@ class CheckpointTestSuite:
             process_id = f"concurrent_test_{process_num}"
             task_id = f"concurrent_task_{process_num}"
 
-            state = self.manager.register_process(
+            self.manager.register_process(
                 process_id=process_id,
                 task_id=task_id,
                 total_steps=10,
@@ -463,12 +499,12 @@ class CheckpointTestSuite:
         avg_loading_time = loading_time / 10
 
         # Performance assertions
-        assert avg_creation_time < 0.1, (
-            f"Checkpoint creation too slow: {avg_creation_time:.3f}s"
-        )
-        assert avg_loading_time < 0.05, (
-            f"Checkpoint loading too slow: {avg_loading_time:.3f}s"
-        )
+        assert (
+            avg_creation_time < 0.1
+        ), f"Checkpoint creation too slow: {avg_creation_time:.3f}s"
+        assert (
+            avg_loading_time < 0.05
+        ), f"Checkpoint loading too slow: {avg_loading_time:.3f}s"
 
         # Cleanup
         for checkpoint_id in checkpoint_ids:
@@ -545,19 +581,19 @@ class CheckpointTestSuite:
             checkpoint_ids.append(checkpoint_id)
 
         # Get initial stats
-        initial_stats = self.manager.storage.get_storage_stats()
+        self.manager.storage.get_storage_stats()
 
         # Run optimization (which includes deduplication)
         optimizer = CheckpointOptimizer(self.monitor.config)
         optimization_results = optimizer.optimize_storage()
 
         # Verify optimization occurred
-        final_stats = self.manager.storage.get_storage_stats()
+        self.manager.storage.get_storage_stats()
 
         # Should have some optimization actions
-        assert len(optimization_results["actions_taken"]) >= 0, (
-            "Should have taken some optimization actions"
-        )
+        assert (
+            len(optimization_results["actions_taken"]) >= 0
+        ), "Should have taken some optimization actions"
 
         # Test compression specifically
         if self.monitor.config.compression_enabled:
