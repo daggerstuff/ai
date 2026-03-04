@@ -12,7 +12,7 @@ import pickle
 import sqlite3
 import time
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any, Union, Callable
 from dataclasses import dataclass, field, asdict
 from enum import Enum
@@ -91,12 +91,12 @@ class ProcessingState:
         if completed_steps is not None:
             self.completed_steps = completed_steps
             self.progress_percentage = (completed_steps / self.total_steps) * 100
-        
+
         if current_step is not None:
             self.current_step = current_step
-        
-        self.last_update = datetime.utcnow()
-        
+
+        self.last_update = datetime.now(timezone.utc)
+
         # Estimate completion time
         if self.progress_percentage > 0:
             elapsed = (self.last_update - self.start_time).total_seconds()
@@ -206,7 +206,10 @@ class CheckpointStorage:
                     metadata.status.value,
                     str(file_path),
                     checksum,
-                    json.dumps(asdict(metadata))
+                    json.dumps(
+                        asdict(metadata),
+                        default=lambda o: o.value if hasattr(o, "value") else str(o),
+                    ),
                 ))
             
             logger.info(f"Saved checkpoint {metadata.checkpoint_id} ({metadata.size_bytes} bytes)")
@@ -364,13 +367,13 @@ class CheckpointStorage:
     
     def cleanup_expired_checkpoints(self) -> int:
         """Clean up expired checkpoints"""
-        
+
         deleted_count = 0
-        
+
         with sqlite3.connect(self.db_path) as conn:
             # Find expired checkpoints
-            cutoff_time = datetime.utcnow()
-            
+            cutoff_time = datetime.now(timezone.utc)
+
             expired_checkpoints = conn.execute("""
                 SELECT checkpoint_id, file_path, created_at, ttl_hours
                 FROM checkpoints 
@@ -478,10 +481,11 @@ class CheckpointManager:
         
         logger.info("Stopped checkpoint background tasks")
     
-    def register_process(self, process_id: str, task_id: str, total_steps: int,
-                        description: str = "") -> ProcessingState:
+    def register_process(
+        self, process_id: str, task_id: str, total_steps: int, description: str = ""
+    ) -> ProcessingState:
         """Register a new processing operation"""
-        
+
         state = ProcessingState(
             process_id=process_id,
             task_id=task_id,
@@ -489,9 +493,9 @@ class CheckpointManager:
             total_steps=total_steps,
             completed_steps=0,
             progress_percentage=0.0,
-            start_time=datetime.utcnow(),
-            last_update=datetime.utcnow(),
-            metadata={"description": description}
+            start_time=datetime.now(timezone.utc),
+            last_update=datetime.now(timezone.utc),
+            metadata={"description": description},
         )
         
         self.active_processes[process_id] = state
@@ -508,23 +512,29 @@ class CheckpointManager:
         logger.info(f"Registered process {process_id} for task {task_id}")
         return state
     
-    def create_checkpoint(self, process_id: str, task_id: str, 
-                         checkpoint_type: CheckpointType, data: Any,
-                         description: str = "", tags: List[str] = None,
-                         ttl_hours: int = 24) -> str:
+    def create_checkpoint(
+        self,
+        process_id: str,
+        task_id: str,
+        checkpoint_type: CheckpointType,
+        data: Any,
+        description: str = "",
+        tags: List[str] = None,
+        ttl_hours: int = 24,
+    ) -> str:
         """Create a new checkpoint"""
-        
+
         checkpoint_id = f"{process_id}_{checkpoint_type.value}_{int(time.time())}_{uuid.uuid4().hex[:8]}"
-        
+
         metadata = CheckpointMetadata(
             checkpoint_id=checkpoint_id,
             checkpoint_type=checkpoint_type,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             process_id=process_id,
             task_id=task_id,
             description=description,
             tags=tags or [],
-            ttl_hours=ttl_hours
+            ttl_hours=ttl_hours,
         )
         
         try:
@@ -571,15 +581,15 @@ class CheckpointManager:
     
     def complete_process(self, process_id: str, final_data: Any = None) -> str:
         """Mark process as completed and create final checkpoint"""
-        
+
         if process_id not in self.active_processes:
             raise ValueError(f"Process {process_id} not registered")
-        
+
         state = self.active_processes[process_id]
         state.completed_steps = state.total_steps
         state.progress_percentage = 100.0
         state.current_step = "completed"
-        state.last_update = datetime.utcnow()
+        state.last_update = datetime.now(timezone.utc)
         
         # Create final checkpoint
         checkpoint_data = {

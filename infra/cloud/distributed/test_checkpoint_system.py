@@ -8,9 +8,10 @@ import asyncio
 import logging
 import os
 import shutil
+import sqlite3
 import tempfile
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 from checkpoint_system import (
     CheckpointType,
@@ -107,7 +108,7 @@ class CheckpointTestSuite:
 
         test_data = {
             "message": "Hello, checkpoint!",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "data": list(range(100)),
         }
 
@@ -562,9 +563,7 @@ class CheckpointTestSuite:
         # Test compression specifically
         if self.monitor.config.compression_enabled:
             # Verify compressed checkpoints exist
-            with self.manager.storage.storage.connect(
-                self.manager.storage.db_path
-            ) as conn:
+            with sqlite3.connect(self.manager.storage.db_path) as conn:
                 compressed_count = conn.execute(
                     "SELECT COUNT(*) FROM checkpoints WHERE compression = 1"
                 ).fetchone()[0]
