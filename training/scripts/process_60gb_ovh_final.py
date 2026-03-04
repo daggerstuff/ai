@@ -3,31 +3,55 @@
 OVH 60GB Final Processor - Using provided OVH S3 credentials
 """
 
-import subprocess
-import json
 import os
-from pathlib import Path
-from datetime import datetime
+import subprocess
 
 # OVH S3 Configuration
 OVH_S3_CONFIG = {
-    'bucket': 'pixel-data',
-    'endpoint': 'https://s3.us-east-va.io.cloud.ovh.us',
-    'region': 'us-east-va',
-    'access_key': 'a0ce13472d2d4ad18501899c066ef04a',
-    'secret_key': 'dd21a7515fd849e58f8547fde3882a3f'
+    "bucket": "pixel-data",
+    "endpoint": "https://s3.us-east-va.io.cloud.ovh.us",
+    "region": "us-east-va",
+    "access_key": os.environ.get("OVH_S3_ACCESS_KEY"),
+    "secret_key": os.environ.get("OVH_S3_SECRET_KEY"),
 }
+
+
+if not OVH_S3_CONFIG["access_key"] or not OVH_S3_CONFIG["secret_key"]:
+    import sys
+
+    print(
+        "Error: Missing S3 credentials. Set OVH_S3_ACCESS_KEY and OVH_S3_SECRET_KEY environment variables.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+
+def run_ovh_command(cmd):
+    """Run AWS CLI with OVH S3 credentials"""
+    env = {
+        "AWS_ACCESS_KEY_ID": OVH_S3_CONFIG["access_key"],
+        "AWS_SECRET_ACCESS_KEY": OVH_S3_CONFIG["secret_key"],
+        "AWS_DEFAULT_REGION": OVH_S3_CONFIG["region"],
+    }
+
+    try:
+        result = subprocess.run(
+            cmd, shell=True, capture_output=True, text=True, env=env
+        )
+        return result.stdout.strip(), result.stderr.strip(), result.returncode
+    except Exception as e:
+        return "", str(e), 1
 
 
 def create_60gb_processor_script():
     """Create 60GB processing script with correct OVH credentials"""
-    
-    processor = f'''#!/bin/bash
+
+    processor = rf"""#!/bin/bash
 # OVH 60GB S3 Processor - Correct Credentials
 
 set -e
 
-# OVH S3 Configuration - DO NOT COMMIT THIS FILE
+# OVH S3 Configuration
 S3_BUCKET="{OVH_S3_CONFIG['bucket']}"
 S3_ENDPOINT="{OVH_S3_CONFIG['endpoint']}"
 S3_REGION="{OVH_S3_CONFIG['region']}"
@@ -59,8 +83,13 @@ aws s3 ls s3://$S3_BUCKET --recursive --endpoint-url $S3_ENDPOINT | \
 # Phase 3: Generate processing commands
 echo "⚙️  Phase 3: Creating processing commands..."
 
-# Create processing commands
-commands = f'''#!/bin/bash
+# Count datasets
+files_count=$(wc -l < training_ready/data/ovh_60gb_processed/therapeutic_datasets.txt || echo "0")
+total_size=$(aws s3 ls s3://$S3_BUCKET --recursive --endpoint-url $S3_ENDPOINT --summarize 2>/dev/null | \
+    grep "Total Size" | awk '{{print $3}}' || echo "0")
+
+cat > training_ready/data/ovh_60gb_processed/commands.sh << 'EOF'
+#!/bin/bash
 # 60GB OVH S3 Processing Commands
 
 S3_ENDPOINT="{OVH_S3_CONFIG['endpoint']}"
@@ -89,10 +118,10 @@ for line in sys.stdin:
         
         # PII cleaning for therapeutic data
         text = str(data)
-        text = re.sub(r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b', '[EMAIL_REDACTED]', text)
-        text = re.sub(r'\\b\\d{3}-\\d{2}-\\d{4}\\b', '[SSN_REDACTED]', text)
-        text = re.sub(r'\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b', '[CARD_REDACTED]', text)
-        text = re.sub(r'\\b\\+?1?[-.\\s]?\\(?[0-9]{{3}}\\)?[-.\\s]?[0-9]{{3}}[-.\\s]?[0-9]{{4}}\\b', '[PHONE_REDACTED]', text)
+        text = re.sub(r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{{2,}}\\b', '[EMAIL_REDACTED]', text)
+        text = re.sub(r'\\b\\d{{3}}-\\d{{2}}-\\d{{4}}\\b', '[SSN_REDACTED]', text)
+        text = re.sub(r'\\b\\d{{4}}[\\s-]?\\d{{4}}[\\s-]?\\d{{4}}[\\s-]?\\d{{4}}\\b', '[CARD_REDACTED]', text)
+        text = re.sub(r'\\b\\+?1?[-.\\s]?\\(?[0-9]{{{{3}}}}\\)?[-.\\s]?[0-9]{{{{3}}}}[-.\\s]?[0-9]{{{{4}}}}\\b', '[PHONE_REDACTED]', text)
         
         # Preserve therapeutic context
         if 'conversation' in str(data).lower() or 'therapy' in str(data).lower():
@@ -167,7 +196,44 @@ case "$1" in
 esac
 EOF
 
-    return commands
+chmod +x training_ready/data/ovh_60gb_processed/commands.sh
+
+# Create final summary
+cat > training_ready/data/ovh_60gb_processed/README.md << 'README_EOF'
+# 60GB OVH S3 Therapeutic Corpus Processor
+
+## Configuration
+- **Bucket**: pixel-data
+- **Endpoint**: https://s3.us-east-va.io.cloud.ovh.us
+- **Region**: us-east-va
+- **Access Key**: [Redacted - Loaded from Environment]
+- **Secret Key**: [Redacted - Loaded from Environment]
+
+## Usage Commands
+```bash
+# Process 60GB without download
+./training_ready/data/ovh_60gb_processed/commands.sh stream
+
+# Download top 10GB
+./training_ready/data/ovh_60gb_processed/commands.sh download
+
+# Validate corpus
+./training_ready/data/ovh_60gb_processed/commands.sh validate
+
+# Test stream
+./training_ready/data/ovh_60gb_processed/commands.sh test
+```
+
+## Features
+- ✅ Memory-efficient streaming
+- ✅ PII cleaning & deduplication
+- ✅ Parallel processing
+- ✅ Therapeutic context preservation
+- ✅ No local storage required
+```
+"""
+
+    return processor
 
 
 def main():
@@ -177,17 +243,17 @@ def main():
     print(f"📍 Target: 60GB {OVH_S3_CONFIG['bucket']} S3 bucket")
     print(f"🔗 Endpoint: {OVH_S3_CONFIG['endpoint']}")
     print(f"🔑 Region: {OVH_S3_CONFIG['region']}")
-    print(f"🔑 Access Key: {OVH_S3_CONFIG['access_key'][:8]}...")
+    print(f"🔑 Access Key: {str(OVH_S3_CONFIG['access_key'])[:8]}...")
     print("")
-    
+
     # Create processor
-    commands = create_60gb_processor_script()
-    
-    with open('training_ready/scripts/process_60gb_ovh_final.sh', 'w') as f:
-        f.write(commands)
-    
-    subprocess.run(['chmod', '+x', 'training_ready/scripts/process_60gb_ovh_final.sh'])
-    
+    processor_script = create_60gb_processor_script()
+
+    with open("training_ready/scripts/process_60gb_ovh_final.sh", "w") as f:
+        f.write(processor_script)
+
+    subprocess.run(["chmod", "+x", "training_ready/scripts/process_60gb_ovh_final.sh"])
+
     print("✅ 60GB OVH S3 processor ready with correct credentials")
     print("🎯 Run: ./training_ready/scripts/process_60gb_ovh_final.sh")
     print("🎯 Commands: ./training_ready/data/ovh_60gb_processed/commands.sh")
