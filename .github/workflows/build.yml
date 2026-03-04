@@ -9,6 +9,7 @@ jobs:
   sonarqube:
     name: SonarQube
     runs-on: ubuntu-latest
+    if: ${{ env.SONAR_TOKEN != '' || secrets.SONAR_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
         with:
