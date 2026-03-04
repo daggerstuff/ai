@@ -115,7 +115,7 @@ class MultiAgentMemory:
     - Conversation summary for agent context
 
     Usage:
-        memory = MultiAgentMemory(api_key="m0-xxx")
+        memory = MultiAgentMemory(api_key=os.environ.get('MEM0_API_KEY'))
         context = CollaborationContext(
             user_id="user123",
             session_id="session456",
@@ -229,7 +229,8 @@ class MultiAgentMemory:
                 m
                 for m in memories
                 if m.get("metadata", {}).get("session_id") == context.session_id
-                and m.get("metadata", {}).get("scope") in [MemoryScope.SHARED.value, None]
+                and m.get("metadata", {}).get("scope")
+                in [MemoryScope.SHARED.value, None]
             ]
 
             return shared[:limit]
@@ -273,7 +274,8 @@ class MultiAgentMemory:
                 filtered = [
                     m
                     for m in memories
-                    if m.get("metadata", {}).get("agent_id") == context.current_agent.agent_id
+                    if m.get("metadata", {}).get("agent_id")
+                    == context.current_agent.agent_id
                 ]
             elif scope == MemoryScope.SHARED:
                 filtered = [
@@ -318,7 +320,8 @@ class MultiAgentMemory:
             # Store handoff summary as shared memory
             handoff_memory = await self.store_agent_memory(
                 context,
-                f"Handoff from {source_agent.name if source_agent else 'Unknown'}: {summary}",
+                f"Handoff from {source_agent.name if source_agent else 'Unknown'}: "
+                f"{summary}",
                 scope=MemoryScope.SHARED,
                 metadata={
                     "type": "handoff",
@@ -400,7 +403,9 @@ class MultiAgentMemory:
 
             # Filter by session
             session_memories = [
-                m for m in memories if m.get("metadata", {}).get("session_id") == context.session_id
+                m
+                for m in memories
+                if m.get("metadata", {}).get("session_id") == context.session_id
             ]
 
             # Optionally filter by agent
