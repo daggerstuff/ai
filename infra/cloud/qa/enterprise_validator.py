@@ -30,8 +30,8 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import httpx
 import numpy as np
-import requests
 
 # Configure logging
 logging.basicConfig(
@@ -208,22 +208,25 @@ class SecurityValidator:
         start_time = time.time()
 
         try:
-            # Test unauthenticated request
-            response = requests.get(
-                "http://localhost:8000/api/v1/protected", timeout=10
-            )
-            if response.status_code != 401:
-                raise Exception(f"Expected 401, got {response.status_code}")
-
-            # Test with invalid token
-            headers = {"Authorization": "Bearer invalid_token"}
-            response = requests.get(
-                "http://localhost:8000/api/v1/protected", headers=headers, timeout=10
-            )
-            if response.status_code != 401:
-                raise Exception(
-                    f"Expected 401 for invalid token, got {response.status_code}"
+            async with httpx.AsyncClient() as client:
+                # Test unauthenticated request
+                response = await client.get(
+                    "http://localhost:8000/api/v1/protected", timeout=10
                 )
+                if response.status_code != 401:
+                    raise Exception(f"Expected 401, got {response.status_code}")
+
+                # Test with invalid token
+                headers = {"Authorization": "Bearer invalid_token"}
+                response = await client.get(
+                    "http://localhost:8000/api/v1/protected",
+                    headers=headers,
+                    timeout=10,
+                )
+                if response.status_code != 401:
+                    raise Exception(
+                        f"Expected 401 for invalid token, got {response.status_code}"
+                    )
 
             # Test with valid token (simulated)
             valid_token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.test"
@@ -267,17 +270,21 @@ class SecurityValidator:
             request_count = 0
             blocked_count = 0
 
-            for i in range(20):  # Send 20 rapid requests
+            async def make_request(client):
+                nonlocal request_count, blocked_count
                 try:
-                    response = requests.get(
+                    response = await client.get(
                         "http://localhost:8000/api/v1/test", timeout=5
                     )
                     request_count += 1
-                    if response.status_code == 429:  # Too Many Requests
+                    if response.status_code == 429:
                         blocked_count += 1
-                except requests.exceptions.RequestException:
-                    # Connection refused or timeout indicates rate limiting
+                except httpx.RequestError:
                     blocked_count += 1
+
+            async with httpx.AsyncClient() as client:
+                tasks = [make_request(client) for _ in range(20)]
+                await asyncio.gather(*tasks)
 
             execution_time = (time.time() - start_time) * 1000
 
@@ -288,9 +295,11 @@ class SecurityValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="security_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if rate_limiting_active
-                else ValidationStatus.WARNING,
+                status=(
+                    ValidationStatus.PASSED
+                    if rate_limiting_active
+                    else ValidationStatus.WARNING
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "total_requests": request_count + blocked_count,
@@ -336,9 +345,11 @@ class SecurityValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="security_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if critical_issues == 0
-                else ValidationStatus.FAILED,
+                status=(
+                    ValidationStatus.PASSED
+                    if critical_issues == 0
+                    else ValidationStatus.FAILED
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "vulnerabilities": vulnerabilities,
@@ -441,9 +452,11 @@ class ComplianceValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="compliance_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if compliance_score >= 95
-                else ValidationStatus.WARNING,
+                status=(
+                    ValidationStatus.PASSED
+                    if compliance_score >= 95
+                    else ValidationStatus.WARNING
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "compliance_checks": compliance_checks,
@@ -522,19 +535,22 @@ class PerformanceValidator:
         try:
             response_times = []
 
-            # Make multiple requests to measure response times
-            for i in range(50):
+            async def make_request(client):
                 request_start = time.time()
                 try:
-                    response = requests.get(
+                    response = await client.get(
                         "http://localhost:8000/api/v1/health", timeout=10
                     )
                     request_time = (time.time() - request_start) * 1000
                     if response.status_code == 200:
                         response_times.append(request_time)
-                except requests.exceptions.RequestException:
-                    # Skip failed requests for response time calculation
+                except httpx.RequestError:
                     pass
+
+            # Make multiple concurrent requests to measure response times
+            async with httpx.AsyncClient() as client:
+                tasks = [make_request(client) for _ in range(50)]
+                await asyncio.gather(*tasks)
 
             if not response_times:
                 raise Exception("No successful requests completed")
@@ -554,9 +570,11 @@ class PerformanceValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="performance_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if sla_compliant
-                else ValidationStatus.WARNING,
+                status=(
+                    ValidationStatus.PASSED
+                    if sla_compliant
+                    else ValidationStatus.WARNING
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "response_times": {
@@ -632,7 +650,8 @@ class EnterpriseValidator:
         await self._save_validation_results(report)
 
         logger.info(
-            f"Enterprise validation completed. Overall score: {report.overall_score:.1f}/100"
+            f"Enterprise validation completed. Overall score: "
+            f"{report.overall_score:.1f}/100"
         )
         return report
 
@@ -724,15 +743,21 @@ class EnterpriseValidator:
 
         # Compliance status
         compliance_status = {
-            "HIPAA": "COMPLIANT"
-            if category_scores.get("compliance", 0) >= 95
-            else "NON_COMPLIANT",
-            "SOC2": "COMPLIANT"
-            if category_scores.get("security", 0) >= 95
-            else "NON_COMPLIANT",
-            "GDPR": "COMPLIANT"
-            if category_scores.get("compliance", 0) >= 95
-            else "NON_COMPLIANT",
+            "HIPAA": (
+                "COMPLIANT"
+                if category_scores.get("compliance", 0) >= 95
+                else "NON_COMPLIANT"
+            ),
+            "SOC2": (
+                "COMPLIANT"
+                if category_scores.get("security", 0) >= 95
+                else "NON_COMPLIANT"
+            ),
+            "GDPR": (
+                "COMPLIANT"
+                if category_scores.get("compliance", 0) >= 95
+                else "NON_COMPLIANT"
+            ),
         }
 
         # Generate recommendations
@@ -823,15 +848,26 @@ async def main():
         f"✅ Compliance Status: {'COMPLIANT' if compliance_ready else 'NON_COMPLIANT'}"
     )
     print(
-        f"✅ Security Validation: {'PASSED' if report.category_scores.get('security', 0) >= 90 else 'NEEDS IMPROVEMENT'}"
+        "✅ Security Validation: "
+        + (
+            "PASSED"
+            if report.category_scores.get("security", 0) >= 90
+            else "NEEDS IMPROVEMENT"
+        )
     )
     print(
-        f"✅ Performance Validation: {'PASSED' if report.category_scores.get('performance', 0) >= 90 else 'NEEDS IMPROVEMENT'}"
+        "✅ Performance Validation: "
+        + (
+            "PASSED"
+            if report.category_scores.get("performance", 0) >= 90
+            else "NEEDS IMPROVEMENT"
+        )
     )
 
     overall_pass = enterprise_ready and compliance_ready
     print(
-        f"\n🎯 ENTERPRISE VALIDATION: {'✅ PASSED' if overall_pass else '⚠️ NEEDS IMPROVEMENT'}"
+        "\n🎯 ENTERPRISE VALIDATION: "
+        + ("✅ PASSED" if overall_pass else "⚠️ NEEDS IMPROVEMENT")
     )
 
     if overall_pass:
