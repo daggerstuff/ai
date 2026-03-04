@@ -3,18 +3,17 @@ Test script for YouTube RAG system integration
 This demonstrates how the YouTube RAG system integrates with the preprocessing pipeline
 """
 
-import sys
 import os
-import json
-from pathlib import Path
+import sys
 
 # Add the project root to the path
 project_root = os.path.join(os.path.dirname(__file__), '..', '..')
 sys.path.insert(0, project_root)
 
 # Import the modules
-from ai.core.pipelines.youtube_rag_system import YouTubeRAGSystem
 from ai.core.pipelines.unified_preprocessing_pipeline import create_default_pipeline
+from ai.core.pipelines.youtube_rag_system import YouTubeRAGSystem
+
 
 def test_youtube_rag_integration():
     """Test YouTube RAG system integration"""

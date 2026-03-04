@@ -7,14 +7,13 @@ Enterprise-grade test suite for the Pixelated Empathy AI API.
 Separates real integration tests from mock data tests.
 """
 
-import pytest
 import asyncio
-import httpx
-import json
 import os
-from datetime import datetime, timedelta
-from typing import Dict, List, Any, Optional
 import time
+from datetime import datetime, timedelta
+
+import httpx
+import pytest
 
 # Test configuration
 API_BASE_URL = os.getenv("PIXELATED_API_BASE_URL", "http://localhost:8000")

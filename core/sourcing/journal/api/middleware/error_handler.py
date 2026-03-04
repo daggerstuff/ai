@@ -8,13 +8,11 @@ import logging
 import traceback
 from typing import Callable
 
+from ai.core.sourcing.journal.api.config import get_settings
 from fastapi import Request, Response, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response as StarletteResponse
-
-from ai.core.sourcing.journal.api.config import get_settings
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

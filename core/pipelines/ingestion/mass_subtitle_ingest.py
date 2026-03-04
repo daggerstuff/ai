@@ -1,18 +1,14 @@
 import asyncio
-import json
-import logging
-import os
-from pathlib import Path
-from datetime import datetime
 import sys
-import re
+from datetime import datetime
+from pathlib import Path
 
 # Add repo root to sys.path
 repo_root = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(repo_root))
 
-from ai.core.utils.subtitle_processor import SubtitleProcessor
 from ai.core.pipelines.logger import setup_logger
+from ai.core.utils.subtitle_processor import SubtitleProcessor
 
 
 class MassSubtitleIngestor:

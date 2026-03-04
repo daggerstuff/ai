@@ -11,21 +11,15 @@ This module provides comprehensive security testing including:
 """
 
 import asyncio
-import aiohttp
-import hashlib
-import secrets
-import time
 import json
 import logging
-from typing import Dict, List, Optional, Any, Tuple
+import time
 from dataclasses import dataclass, field
-from enum import Enum
 from datetime import datetime
-import subprocess
-import socket
-import ssl
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
 import requests
-from urllib.parse import urljoin, urlparse
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -638,6 +632,6 @@ if __name__ == "__main__":
         with open("security_scan_report.json", "w") as f:
             json.dump(report, f, indent=2)
         
-        print(f"\nDetailed report saved to: security_scan_report.json")
+        print("\nDetailed report saved to: security_scan_report.json")
     
     asyncio.run(main())

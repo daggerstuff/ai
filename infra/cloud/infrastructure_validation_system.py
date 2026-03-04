@@ -7,14 +7,14 @@ This module completes the remaining infrastructure validation tasks:
 - Task 108: Production Monitoring Validation
 """
 
+import asyncio
 import json
 import logging
 import time
-import asyncio
-from datetime import datetime
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -354,11 +354,11 @@ if __name__ == "__main__":
         print(f"Infrastructure Status: {report['infrastructure_validation_summary']['infrastructure_status']}")
         print(f"Production Ready: {'YES' if report['infrastructure_validation_summary']['production_ready'] else 'NO'}")
         
-        print(f"\nTask Validation Results:")
+        print("\nTask Validation Results:")
         for task_id, result in report["task_validation_results"].items():
             print(f"  Task {task_id}: {result['score']:.1f}% - {result['status'].upper()}")
         
-        print(f"\nInfrastructure Metrics:")
+        print("\nInfrastructure Metrics:")
         metrics = report["infrastructure_metrics"]
         print(f"  Deployment Validation: {metrics['deployment_validation_score']:.1f}%")
         print(f"  Monitoring Validation: {metrics['monitoring_validation_score']:.1f}%")

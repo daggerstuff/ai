@@ -4,7 +4,8 @@ Precise cleaner - removes only the specific contextual opening
 """
 
 import re
-from typing import Dict, Tuple, Optional
+from typing import Dict
+
 
 class PreciseCleaner:
     def __init__(self):

@@ -7,20 +7,15 @@ import json
 import smtplib
 import threading
 from collections.abc import Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Union
-from dataclasses import dataclass, field
-from enum import Enum
-from pathlib import Path
-import numpy as np
-from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-import threading
-import time
+from email.mime.text import MIMEText
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
+
 import psutil
 import torch
-
 
 logger = logging.getLogger(__name__)
 

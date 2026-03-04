@@ -5,15 +5,10 @@ Tests complete research workflow with sample datasets, report generation,
 dataset acquisition and storage, and integration with training pipeline.
 """
 
-import json
-import tempfile
 from datetime import datetime
 from pathlib import Path
-from unittest.mock import Mock, patch
 
-import pandas as pd
 import pytest
-
 from ai.core.sourcing.journal.acquisition.acquisition_manager import (
     AccessAcquisitionManager,
     AcquisitionConfig,
@@ -34,7 +29,6 @@ from ai.core.sourcing.journal.models.dataset_models import (
     AcquiredDataset,
     DatasetSource,
     ResearchProgress,
-    ResearchSession,
 )
 from ai.core.sourcing.journal.orchestrator.research_orchestrator import (
     ResearchOrchestrator,

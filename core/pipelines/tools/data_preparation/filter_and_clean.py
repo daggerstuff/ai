@@ -6,22 +6,28 @@ Filters datasets by quality thresholds per stage, removes PII, duplicates,
 and malformed conversations while preserving edge case intensity.
 """
 
+import hashlib
 import json
+import logging
 import re
 import sys
-import hashlib
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Set
 from datetime import datetime
-import logging
+from pathlib import Path
+from typing import Any, Dict, Optional, Set
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
+    from ai.core.pipelines.configs.stages import (
+        STAGE1_ID,
+        STAGE2_ID,
+        STAGE3_ID,
+        STAGE4_ID,
+        get_stage_config,
+    )
     from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
-    from ai.core.pipelines.configs.stages import STAGE1_ID, STAGE2_ID, STAGE3_ID, STAGE4_ID, get_stage_config
 except ImportError as e:
     logging.error(f"Failed to import pipeline modules: {e}")
     logging.error(f"Project root: {project_root}")
@@ -286,7 +292,7 @@ def main():
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
 
-    logger.info(f"\n📊 Filtering Summary:")
+    logger.info("\n📊 Filtering Summary:")
     logger.info(f"  Total processed: {report['stats']['total_processed']:,}")
     logger.info(f"  PII removed: {report['stats']['pii_removed']:,}")
     logger.info(f"  Duplicates removed: {report['stats']['duplicates_removed']:,}")

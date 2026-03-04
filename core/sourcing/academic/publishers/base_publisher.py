@@ -8,8 +8,9 @@ providing common functionality for searching, retrieving, and processing academi
 import abc
 import logging
 from dataclasses import dataclass
-from typing import Optional, List, Dict, Any, Tuple
 from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
 import requests
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry

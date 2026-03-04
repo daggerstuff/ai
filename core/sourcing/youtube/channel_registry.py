@@ -6,16 +6,15 @@ Provides persistent storage for discovered channels with CRUD operations.
 Uses SQLite for lightweight, embedded database storage.
 """
 
+import json
 import logging
 import sqlite3
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from ai.core.sourcing.youtube.models import (
     Channel,
-    ChannelRegistry,
     ChannelStatus,
     ContentCategory,
 )

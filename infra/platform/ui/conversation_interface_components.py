@@ -7,11 +7,8 @@ Creates immersive, realistic conversation interface with AI client visualization
 real-time emotional feedback, and therapeutic guidance.
 """
 
-import json
 import logging
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
-from datetime import datetime
+from typing import Dict
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

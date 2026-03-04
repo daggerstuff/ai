@@ -6,22 +6,20 @@ Handles dataset access requests, downloads, and secure storage for acquired data
 
 import hashlib
 import logging
-import os
 import shutil
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, List, Optional, Callable
+from typing import Callable, Dict, List, Optional
 
 import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
-
 from ai.core.sourcing.journal.models.dataset_models import (
     AccessRequest,
     AcquiredDataset,
     DatasetSource,
 )
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 logger = logging.getLogger(__name__)
 

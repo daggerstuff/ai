@@ -5,13 +5,8 @@ Tests component communication, workflow state transitions, error handling,
 and progress tracking across multiple components.
 """
 
-import tempfile
-from datetime import datetime
-from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
-
 from ai.core.sourcing.journal.acquisition.acquisition_manager import (
     AccessAcquisitionManager,
     AcquisitionConfig,
@@ -24,10 +19,6 @@ from ai.core.sourcing.journal.integration.integration_planning_engine import (
 )
 from ai.core.sourcing.journal.models.dataset_models import (
     AcquiredDataset,
-    DatasetEvaluation,
-    DatasetSource,
-    ResearchProgress,
-    ResearchSession,
 )
 from ai.core.sourcing.journal.orchestrator.research_orchestrator import (
     ResearchOrchestrator,

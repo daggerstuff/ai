@@ -9,13 +9,13 @@ Tests cover:
 - Cache management endpoints
 """
 
-import pytest
-from fastapi.testclient import TestClient
 from pathlib import Path
 
-from ..app import create_app, get_embedding_service
+import pytest
+from fastapi.testclient import TestClient
+
+from ..app import create_app
 from ..models import EmbeddingAgentConfig, EmbeddingModel
-from ..service import EmbeddingAgentService
 
 
 @pytest.fixture

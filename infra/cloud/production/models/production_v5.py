@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """Enhanced V5 Production Wrapper"""
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(__file__))
 
-from crisis_detector_v5 import EnhancedCrisisDetectorV5
 from datetime import datetime
-import logging
+
+from crisis_detector_v5 import EnhancedCrisisDetectorV5
 
 
 class ProductionV5:

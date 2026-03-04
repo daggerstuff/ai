@@ -7,17 +7,19 @@ configuration management, execution control, progress tracking, and monitoring.
 
 import logging
 import uuid
-import json
 from datetime import datetime
-from typing import Dict, Any, Optional, List, Tuple
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from ..utils.validation import validate_pipeline_config, sanitize_input
-from ..utils.logger import get_request_logger
 from ..error_handling.custom_errors import (
-    ValidationError, ResourceNotFoundError, PipelineExecutionError, ConfigurationError
+    ConfigurationError,
+    PipelineExecutionError,
+    ResourceNotFoundError,
+    ValidationError,
 )
 from ..integration.redis_client import RedisClient
+from ..utils.logger import get_request_logger
+from ..utils.validation import sanitize_input, validate_pipeline_config
 from ..websocket.progress_tracker import ProgressTracker, track_pipeline_execution
 
 
@@ -537,7 +539,7 @@ class PipelineService:
                 raise ValidationError("Offset must be non-negative")
             
             # Get execution IDs from Redis (using pattern matching)
-            pattern = f"pipeline_execution:*"
+            pattern = "pipeline_execution:*"
             keys = self.redis_client.keys(pattern)
             
             user_executions = []

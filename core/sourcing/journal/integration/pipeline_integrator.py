@@ -20,11 +20,9 @@ import re
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
-
 from ai.core.sourcing.journal.models.dataset_models import (
     AcquiredDataset,
     IntegrationPlan,
@@ -32,12 +30,12 @@ from ai.core.sourcing.journal.models.dataset_models import (
 
 # Import training pipeline schemas
 try:
-    from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
     from ai.core.pipelines.quality.validation import (
         ConversationRecord,
         SpeakerTurn,
         ValidationError,
     )
+    from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 except ImportError:
     # Fallback if schemas aren't available
     Conversation = None

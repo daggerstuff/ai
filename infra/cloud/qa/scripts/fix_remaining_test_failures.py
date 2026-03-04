@@ -4,9 +4,8 @@ Fix Remaining Test Failures
 Quick fixes for the last failing tests to achieve 100% test pass rate.
 """
 
-import os
-import re
 from pathlib import Path
+
 
 def fix_safety_ethics_validator():
     """Fix safety ethics validator test failures."""

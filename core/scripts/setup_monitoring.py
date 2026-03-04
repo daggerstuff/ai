@@ -4,13 +4,12 @@ Production Monitoring Setup
 Deploys Prometheus, Grafana, and AlertManager for system monitoring.
 """
 
-import os
-import yaml
 import json
+import logging
 import subprocess
 from pathlib import Path
-import logging
-from typing import Dict, Any
+
+import yaml
 
 # Configure logging
 logging.basicConfig(

@@ -7,7 +7,6 @@ events including tool executions, resource access, and authentication/authorizat
 
 import json
 import logging
-import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from enum import Enum

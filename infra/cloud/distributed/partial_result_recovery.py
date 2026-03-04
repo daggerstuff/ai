@@ -5,17 +5,17 @@ Recovers and continues processing from partial results after interruptions
 """
 
 import asyncio
+import hashlib
 import json
 import logging
 import pickle
 import sqlite3
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Union
+import uuid
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-import hashlib
-import uuid
+from typing import Any, Callable, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

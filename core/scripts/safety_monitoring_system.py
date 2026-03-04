@@ -11,14 +11,13 @@ This module provides real-time safety monitoring and incident response capabilit
 """
 
 import asyncio
-import json
 import logging
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable
-from dataclasses import dataclass, field
-from enum import Enum
 import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -556,13 +555,13 @@ if __name__ == "__main__":
                 print(f"Incident Created: {response['incident_id']} (Severity: {response['severity']})")
         
         # Print metrics
-        print(f"\nSafety Metrics:")
+        print("\nSafety Metrics:")
         metrics = monitor.get_safety_metrics()
         for key, value in metrics.items():
             print(f"  {key}: {value}")
         
         # Print recent incidents
-        print(f"\nRecent Incidents:")
+        print("\nRecent Incidents:")
         incidents = monitor.get_recent_incidents()
         for incident in incidents:
             print(f"  {incident['incident_id']}: {incident['severity']} - {incident['crisis_level']}")

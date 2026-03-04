@@ -5,17 +5,16 @@ Implements intelligent alert grouping, deduplication, and fatigue prevention
 """
 
 import asyncio
+import hashlib
 import json
 import logging
+import re
 import sqlite3
 import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Set, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
-import hashlib
-import re
-from collections import defaultdict, Counter
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

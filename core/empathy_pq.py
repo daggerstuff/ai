@@ -8,9 +8,8 @@ defense maturity levels (PIX-150).
 import logging
 from typing import List, Optional
 
-from pydantic import BaseModel
-
 from ai.core.gestalt_engine import GestaltState
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 

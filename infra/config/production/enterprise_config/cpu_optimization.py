@@ -10,15 +10,17 @@ Provides CPU usage optimization with:
 - Background process management
 """
 
-import os
-import psutil
-import time
-import threading
 import logging
-from typing import Dict, List, Optional, Callable
+import os
+import subprocess
+import threading
+import time
 from dataclasses import dataclass
 from pathlib import Path
-import subprocess
+from typing import Dict, List, Optional
+
+import psutil
+
 
 @dataclass
 class ProcessInfo:

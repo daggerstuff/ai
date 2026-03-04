@@ -3,10 +3,9 @@
 Contextual Prompt Generator - Creates questions that the segment actually answers
 """
 
-import json
 import re
 from typing import Dict, List
-from pathlib import Path
+
 
 class ContextualPromptGenerator:
     def __init__(self):

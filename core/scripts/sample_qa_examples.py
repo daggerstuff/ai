@@ -7,6 +7,7 @@ import json
 import random
 from pathlib import Path
 
+
 def sample_random_examples(dataset_file: Path, num_samples: int = 5):
     """Sample random Q/A examples from dataset"""
     with open(dataset_file, 'r', encoding='utf-8') as f:

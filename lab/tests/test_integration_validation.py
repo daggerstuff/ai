@@ -4,9 +4,10 @@ Integration Validation Tests
 Tests for integration between validation components
 """
 
-import unittest
 import json
+import unittest
 from pathlib import Path
+
 
 class TestIntegrationValidation(unittest.TestCase):
     """Test integration validation components"""

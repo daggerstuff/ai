@@ -5,8 +5,8 @@ The REAL final step - adds our enhanced components to the existing massive datas
 """
 
 import json
-import sys
 from pathlib import Path
+
 
 def integrate_with_final_dataset():
     """Integrate the unified 6-component dataset with the 2.5GB final dataset"""
@@ -41,7 +41,7 @@ def integrate_with_final_dataset():
     print(f"✅ Loaded {len(component_conversations)} component-enhanced conversations")
     
     # Process final dataset and add component data
-    print(f"\n🔄 Processing 2.5GB final dataset and adding component enhancements...")
+    print("\n🔄 Processing 2.5GB final dataset and adding component enhancements...")
     
     total_original = 0
     total_enhanced = 0
@@ -110,14 +110,14 @@ def integrate_with_final_dataset():
     original_size = Path(final_dataset_path).stat().st_size / (1024**3)  # GB
     new_size = Path(output_path).stat().st_size / (1024**3)  # GB
     
-    print(f"\n🎉 ULTIMATE FINAL DATASET CREATED!")
+    print("\n🎉 ULTIMATE FINAL DATASET CREATED!")
     print(f"📁 Original dataset: {final_dataset_path} ({original_size:.2f}GB)")
     print(f"📁 NEW FINAL DATASET: {output_path} ({new_size:.2f}GB)")
     print(f"📁 Integration summary: {summary_path}")
     print(f"📊 Original conversations: {total_original:,}")
     print(f"📊 Component-enhanced conversations: {total_enhanced:,}")
     print(f"📊 TOTAL conversations: {total_original + total_enhanced:,}")
-    print(f"🎯 KAN-28 OBJECTIVE COMPLETE: Final dataset now includes ALL components!")
+    print("🎯 KAN-28 OBJECTIVE COMPLETE: Final dataset now includes ALL components!")
     
     return output_path, integration_summary
 

@@ -3,7 +3,6 @@ Unit tests for ai.pipelines.local_loader
 """
 
 import pandas as pd
-
 from ai.core.pipelines.orchestrator import local_loader
 
 

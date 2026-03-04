@@ -5,7 +5,6 @@ Provides dynamic workspace root detection to avoid hardcoded paths.
 """
 
 from pathlib import Path
-import os
 
 
 def get_workspace_root() -> Path:

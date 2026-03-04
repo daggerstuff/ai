@@ -4,14 +4,15 @@ Enhanced V5 Crisis Detector - Production Wrapper
 Production-ready interface for crisis detection system
 """
 
-import sys
 import os
+import sys
 
 sys.path.append(os.path.dirname(__file__))
 
-from crisis_detector_v5_production import EnhancedCrisisDetectorV5
 import logging
 from datetime import datetime
+
+from crisis_detector_v5_production import EnhancedCrisisDetectorV5
 
 
 class ProductionCrisisDetector:

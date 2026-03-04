@@ -10,7 +10,6 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, Optional
 
 import requests
-
 from cli.config import CLIConfig
 from cli.utils import validate_jwt_token
 

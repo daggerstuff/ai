@@ -7,7 +7,6 @@ with the pipeline orchestrator.
 """
 
 import asyncio
-from pathlib import Path
 
 from ai.core.pipelines.orchestration.pipeline_orchestrator import (
     PipelineConfig,

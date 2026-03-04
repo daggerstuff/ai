@@ -1,14 +1,13 @@
-import pytest
 import jwt as pyjwt
-
+import pytest
 from ai.core.sourcing.journal.mcp.auth.authentication import (
     APIKeyAuth,
-    JWTAuth,
     CompositeAuth,
+    JWTAuth,
 )
 from ai.core.sourcing.journal.mcp.auth.authorization import RBAC
 from ai.core.sourcing.journal.mcp.config import AuthConfig
-from ai.core.sourcing.journal.mcp.protocol import MCPRequest, MCPError, MCPErrorCode
+from ai.core.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode, MCPRequest
 
 
 def _build_request(auth_header: str) -> MCPRequest:

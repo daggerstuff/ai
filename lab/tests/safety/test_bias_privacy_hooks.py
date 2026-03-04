@@ -11,12 +11,12 @@ Covers:
 London School TDD: All dependencies are mocked/stubbed.
 """
 
-import pytest
 from unittest import mock
-from typing import Any
 
 # TDD Anchor: Import the module under test (will fail if not implemented)
 import ai.infra.safety.bias_privacy_hooks as hooks
+import pytest
+
 
 @pytest.fixture
 def dummy_text():

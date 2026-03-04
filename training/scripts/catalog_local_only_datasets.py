@@ -11,9 +11,9 @@ Identifies which datasets are:
 
 import json
 import sys
-from pathlib import Path
-from typing import Dict, List, Any
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent.parent
@@ -142,7 +142,7 @@ def main():
     with open(output_path, "w") as f:
         json.dump(result, f, indent=2)
 
-    log(f"\n📊 Dataset Accessibility Summary:")
+    log("\n📊 Dataset Accessibility Summary:")
     log(f"  Total datasets: {result['summary']['total']}")
     log(f"  Local-only (need upload): {result['summary']['local_only']}")
     log(f"  HuggingFace (direct to S3): {result['summary']['huggingface']}")

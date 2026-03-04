@@ -11,7 +11,10 @@ import logging
 import time
 from typing import Any, Dict, List, Optional
 
-from ai.core.utils.llm_capabilities import ensure_valid_key, get_best_available_gemini_model
+from ai.core.utils.llm_capabilities import (
+    ensure_valid_key,
+    get_best_available_gemini_model,
+)
 
 try:
     from google import genai

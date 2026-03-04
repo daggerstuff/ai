@@ -1,4 +1,3 @@
-import pytest
 #!/usr/bin/env python3
 """
 Performance Tests for Large Dataset Processing
@@ -12,19 +11,20 @@ Tests system performance with large datasets:
 - Performance regression detection
 """
 
-import unittest
-import sqlite3
-import pandas as pd
-import numpy as np
-import json
-import tempfile
-import os
-import time
-import psutil
 import gc
-from datetime import datetime
+import json
+import os
+import sqlite3
 import sys
+import tempfile
+import time
+import unittest
 import warnings
+
+import numpy as np
+import pandas as pd
+import psutil
+
 warnings.filterwarnings('ignore')
 
 # Add paths for imports
@@ -386,8 +386,8 @@ class TestAnalyticsPerformance(PerformanceTestBase):
         
         def train_and_evaluate_model():
             from sklearn.ensemble import RandomForestRegressor
-            from sklearn.model_selection import train_test_split
             from sklearn.metrics import mean_squared_error, r2_score
+            from sklearn.model_selection import train_test_split
             
             # Split data
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -480,8 +480,8 @@ class TestScalabilityLimits(PerformanceTestBase):
         """Test concurrent processing simulation"""
         print("📊 Testing concurrent processing simulation...")
         
-        import threading
         import queue
+        import threading
         
         def worker_function(work_queue, result_queue):
             """Worker function for concurrent processing"""

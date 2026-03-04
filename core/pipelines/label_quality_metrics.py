@@ -3,14 +3,14 @@ Label quality metrics and expected minimum thresholds for the Pixelated Empathy 
 Defines standard metrics for evaluating the quality of therapeutic conversation labels.
 """
 
-from dataclasses import dataclass
-from typing import List, Dict, Any, Optional
-import statistics
-from datetime import datetime
 import logging
+import statistics
+from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
-from .label_taxonomy import LabelBundle, LabelProvenanceType
-from .quality_control import QualityController
+from typing import Any, Dict, List, Optional
+
+from .label_taxonomy import LabelBundle
 
 logger = logging.getLogger(__name__)
 
@@ -360,11 +360,14 @@ def create_label_quality_metrics() -> LabelQualityMetrics:
 # Example usage and testing
 def test_label_quality_metrics():
     """Test the label quality metrics system"""
+    from .conversation_schema import Conversation
     from .label_taxonomy import (
-        TherapeuticResponseLabel, CrisisLabel, LabelMetadata, LabelProvenanceType,
-        TherapeuticResponseType, CrisisLevelType
+        CrisisLabel,
+        CrisisLevelType,
+        LabelMetadata,
+        TherapeuticResponseLabel,
+        TherapeuticResponseType,
     )
-    from .conversation_schema import Conversation, Message
     
     # Create test data
     conversations = []
@@ -415,7 +418,7 @@ def test_label_quality_metrics():
     
     # Generate comprehensive report
     comprehensive_report = quality_metrics.get_comprehensive_quality_report(conversations, label_bundles)
-    print(f"\nComprehensive Quality Report:")
+    print("\nComprehensive Quality Report:")
     print(f"  Overall Compliance Rate: {comprehensive_report['overall_compliance_rate']:.3f}")
     print(f"  Passing Metrics: {comprehensive_report['passing_metrics']}/{comprehensive_report['total_metrics']}")
     print(f"  Critical Failures: {comprehensive_report['critical_failures']}")

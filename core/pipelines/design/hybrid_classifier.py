@@ -13,20 +13,20 @@ Strategy:
 
 import json
 import logging
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, Optional
 
+from ai.core.pipelines.design.context_detector import ContextDetector
+from ai.core.pipelines.design.llm_classifier import (
+    LLMClassificationConfig,
+    LLMTaxonomyClassifier,
+)
 from ai.core.pipelines.design.taxonomy_classifier import (
+    CategoryClassification,
     TaxonomyClassifier,
     TherapeuticCategory,
-    CategoryClassification,
 )
-from ai.core.pipelines.design.llm_classifier import (
-    LLMTaxonomyClassifier,
-    LLMClassificationConfig,
-)
-from ai.core.pipelines.design.context_detector import ContextDetector
 
 logger = logging.getLogger(__name__)
 
@@ -354,11 +354,11 @@ class HybridTaxonomyClassifier:
         logger.info(f"Low confidence: {stats.low_confidence:,}")
         logger.info(f"LLM API calls: {stats.llm_api_calls:,}")
         logger.info(f"Estimated cost: ${stats.estimated_cost:.4f} USD")
-        logger.info(f"\nConfidence Averages:")
+        logger.info("\nConfidence Averages:")
         logger.info(f"  Keyword: {stats.avg_keyword_confidence:.2%}")
         logger.info(f"  LLM: {stats.avg_llm_confidence:.2%}")
         logger.info(f"  Overall: {stats.avg_overall_confidence:.2%}")
-        logger.info(f"\nCategories:")
+        logger.info("\nCategories:")
         for cat, count in sorted(stats.categories.items(), key=lambda x: -x[1]):
             if count > 0:
                 pct = (

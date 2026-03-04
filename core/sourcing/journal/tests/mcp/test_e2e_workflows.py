@@ -3,7 +3,6 @@ import json
 from typing import Dict, Tuple
 
 import pytest
-
 from ai.core.sourcing.journal.mcp.config import MCPConfig
 from ai.core.sourcing.journal.mcp.server import MCPServer
 from ai.core.sourcing.journal.tests.mcp._stubs import (

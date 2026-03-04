@@ -3,9 +3,9 @@
 Console script wrapper for Priority 5 processor.
 """
 
-import sys
 import importlib.util
 import os
+
 
 def main():
     """Main entry point for priority 5 processing."""

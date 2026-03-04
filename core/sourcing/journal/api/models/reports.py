@@ -5,11 +5,10 @@ This module provides request and response models for report generation.
 """
 
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-
-from pydantic import BaseModel, Field, field_serializer
+from typing import Any, Dict, Optional
 
 from ai.core.sourcing.journal.api.models.common import PaginatedResponse
+from pydantic import BaseModel, Field, field_serializer
 
 
 class ReportGenerateRequest(BaseModel):

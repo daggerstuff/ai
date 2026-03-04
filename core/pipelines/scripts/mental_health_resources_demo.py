@@ -34,8 +34,8 @@ def demo_huggingface_loader():
 
     try:
         from ai.core.pipelines.ingestion.tier_loaders import (
-            HuggingFaceMentalHealthLoader,
             HUGGINGFACE_MENTAL_HEALTH_DATASETS,
+            HuggingFaceMentalHealthLoader,
         )
 
         print("\nAvailable datasets:")
@@ -47,7 +47,7 @@ def demo_huggingface_loader():
         loader = HuggingFaceMentalHealthLoader(
             datasets_to_load=["mental_health_preprocessed"]  # Smallest dataset
         )
-        print(f"\n✓ Loader initialized successfully")
+        print("\n✓ Loader initialized successfully")
         print(f"  Datasets to load: {loader.datasets_to_load}")
 
         # Uncomment to actually load data:
@@ -71,10 +71,8 @@ def demo_synthetic_distillation():
 
     try:
         from ai.core.pipelines.generation.synthetic_data_distillation import (
-            SyntheticDataDistillationPipeline,
-            SyntheticGenerationConfig,
             DistillationStrategy,
-            create_distillation_pipeline,
+            SyntheticGenerationConfig,
         )
 
         print("\nAvailable strategies:")
@@ -88,7 +86,7 @@ def demo_synthetic_distillation():
             teacher_model="llama3.2",
         )
 
-        print(f"\n✓ Pipeline configured successfully")
+        print("\n✓ Pipeline configured successfully")
         print(f"  Strategy: {config.strategy.value}")
         print(f"  Provider: {config.model_provider}")
         print(f"  Model: {config.teacher_model}")
@@ -114,7 +112,6 @@ def demo_empathy_validator():
     try:
         from ai.core.pipelines.quality.empathy_mental_health_validator import (
             EmpathyMentalHealthValidator,
-            EmpathyLevel,
         )
         from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 
@@ -151,16 +148,16 @@ def demo_empathy_validator():
         print(f"  Validation: {assessment.average_validation}")
 
         if assessment.strengths:
-            print(f"\n  Strengths:")
+            print("\n  Strengths:")
             for s in assessment.strengths:
                 print(f"    ✓ {s}")
 
         if assessment.recommendations:
-            print(f"\n  Recommendations:")
+            print("\n  Recommendations:")
             for r in assessment.recommendations:
                 print(f"    → {r}")
 
-        print(f"\n✓ Empathy validator working correctly")
+        print("\n✓ Empathy validator working correctly")
         return True
 
     except Exception as e:
@@ -178,9 +175,9 @@ def demo_dpo_loader():
 
     try:
         from ai.core.pipelines.ingestion.tier_loaders import (
+            DPO_DATASETS,
             DPODatasetLoader,
             DPODatasetType,
-            DPO_DATASETS,
         )
 
         print("\nAvailable DPO datasets:")
@@ -192,7 +189,7 @@ def demo_dpo_loader():
         # Initialize loader
         loader = DPODatasetLoader()
 
-        print(f"\n✓ DPO loader initialized")
+        print("\n✓ DPO loader initialized")
         print(f"  Quality threshold: {loader.quality_threshold}")
 
         # Show dataset types
@@ -215,12 +212,13 @@ def demo_dpo_training_style():
     print("=" * 60)
 
     try:
-        from ai.core.pipelines.training_styles import (
-            TrainingStyleManager,
-            TrainingStyle,
-            DPOConfig,
-        )
         from typing import cast
+
+        from ai.core.pipelines.training_styles import (
+            DPOConfig,
+            TrainingStyle,
+            TrainingStyleManager,
+        )
 
         manager = TrainingStyleManager()
 
@@ -237,7 +235,7 @@ def demo_dpo_training_style():
             loss_type="sigmoid",
         ))
 
-        print(f"\n✓ DPO config created")
+        print("\n✓ DPO config created")
         print(f"  Name: {config.name}")
         print(f"  Beta: {config.beta}")
         print(f"  Loss type: {config.loss_type}")
@@ -259,8 +257,8 @@ def demo_memo_summarizer():
 
     try:
         from ai.core.pipelines.ingestion.memo_counseling_dataset import (
-            MEMODatasetLoader,
             CounselingSummarizer,
+            MEMODatasetLoader,
         )
         from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 
@@ -268,13 +266,13 @@ def demo_memo_summarizer():
         loader = MEMODatasetLoader()
         access = loader.check_access()
 
-        print(f"\nMEMO Dataset Status:")
+        print("\nMEMO Dataset Status:")
         print(f"  Has Access: {access['has_access']}")
         print(f"  Path: {access['dataset_path']}")
 
         if not access['has_access']:
-            print(f"\n  ⚠ MEMO dataset requires academic access request")
-            print(f"    Visit: https://github.com/LCS2-IIITD/MEMO")
+            print("\n  ⚠ MEMO dataset requires academic access request")
+            print("    Visit: https://github.com/LCS2-IIITD/MEMO")
 
         # Demo summarizer (works without MEMO data)
         summarizer = CounselingSummarizer()
@@ -292,7 +290,7 @@ def demo_memo_summarizer():
 
         summary = summarizer.summarize_conversation(test_conv)
 
-        print(f"\n✓ Summarizer working (rule-based fallback)")
+        print("\n✓ Summarizer working (rule-based fallback)")
         print(f"  Summary type: {summary['summary_type']}")
         print(f"  Summary: {summary['summary'][:200]}...")
 
@@ -312,7 +310,6 @@ def demo_safety_validator():
     try:
         from ai.core.pipelines.quality.safety_alignment_validator import (
             SafetyAlignmentValidator,
-            SafetySeverity,
         )
         from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 
@@ -339,7 +336,7 @@ def demo_safety_validator():
         )
 
         safe_assessment = validator.validate_conversation(safe_conv)
-        print(f"\nSafe conversation test:")
+        print("\nSafe conversation test:")
         print(f"  Is Safe: {safe_assessment.is_safe}")
         print(f"  Score: {safe_assessment.safety_score}")
         print(f"  Violations: {len(safe_assessment.violations)}")
@@ -357,18 +354,18 @@ def demo_safety_validator():
         )
 
         crisis_assessment = validator.validate_conversation(crisis_conv)
-        print(f"\nCrisis content test:")
+        print("\nCrisis content test:")
         print(f"  Is Safe: {crisis_assessment.is_safe}")
         print(f"  Score: {crisis_assessment.safety_score}")
         print(f"  Severity: {crisis_assessment.overall_severity.name}")
         print(f"  Requires Review: {crisis_assessment.requires_human_review}")
 
         if crisis_assessment.violations:
-            print(f"  Violations detected:")
+            print("  Violations detected:")
             for v in crisis_assessment.violations[:2]:
                 print(f"    - {v.rule_id}: {v.violation_type.value}")
 
-        print(f"\n✓ Safety validator working correctly")
+        print("\n✓ Safety validator working correctly")
         return True
 
     except Exception as e:

@@ -8,10 +8,9 @@ of utterances within conversational context.
 import logging
 from typing import Optional
 
+from ai.training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-
-from ai.training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
 
 logger = logging.getLogger(__name__)
 

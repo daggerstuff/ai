@@ -6,13 +6,11 @@ Creates comprehensive manual review and validation systems for human oversight o
 
 import json
 import logging
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass, asdict
+import uuid
+from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from pathlib import Path
-import uuid
-import hashlib
+from typing import Any, Dict, List
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -658,7 +656,7 @@ def main():
     
     if pending:
         assignment = pending[0]
-        print(f"Assignment details:")
+        print("Assignment details:")
         print(f"  - Reviewer: {assignment.reviewer_id}")
         print(f"  - Priority: {assignment.priority.value}")
         print(f"  - Estimated time: {assignment.estimated_time_minutes} minutes")
@@ -688,7 +686,7 @@ def main():
         
         # Generate report
         report = review_system.generate_review_report()
-        print(f"\n📊 Review Report:")
+        print("\n📊 Review Report:")
         print(f"Total reviews: {report['summary_metrics']['total_reviews']}")
         print(f"Average score: {report['summary_metrics']['average_score']}")
         print(f"Score distribution: {report['summary_metrics']['score_distribution']}")

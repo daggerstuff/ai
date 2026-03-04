@@ -1,4 +1,3 @@
-from ai.core.utils.llm_capabilities import get_best_available_gemini_model, ensure_valid_key
 import json
 import logging
 import time
@@ -6,6 +5,10 @@ import uuid
 from pathlib import Path
 from typing import List
 
+from ai.core.utils.llm_capabilities import (
+    ensure_valid_key,
+    get_best_available_gemini_model,
+)
 from google import genai
 from google.genai import types
 from pydantic import BaseModel, Field

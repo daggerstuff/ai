@@ -1,7 +1,6 @@
-import subprocess
-import sys
 import unittest
 from pathlib import Path
+
 
 class TestEndToEndPipeline(unittest.TestCase):
     def setUp(self):

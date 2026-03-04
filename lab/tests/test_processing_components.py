@@ -1,4 +1,3 @@
-import pytest
 #!/usr/bin/env python3
 """
 Comprehensive Unit Tests for Processing Components
@@ -12,17 +11,19 @@ Tests all core processing components including:
 - Error handling
 """
 
-import unittest
-import sqlite3
-import pandas as pd
-import numpy as np
 import json
-import tempfile
 import os
-from unittest.mock import Mock, patch, MagicMock
-from datetime import datetime
+import sqlite3
 import sys
+import tempfile
+import unittest
 import warnings
+from datetime import datetime
+from unittest.mock import Mock, patch
+
+import numpy as np
+import pandas as pd
+
 warnings.filterwarnings('ignore')
 
 # Add the monitoring directory to the path for imports

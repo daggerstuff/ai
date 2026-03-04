@@ -4,9 +4,7 @@ Integration API routes.
 This module provides endpoints for integration planning operations.
 """
 
-from typing import List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
 
 from ai.core.sourcing.journal.api.dependencies import (
     get_command_handler_service,
@@ -22,6 +20,7 @@ from ai.core.sourcing.journal.api.models.integration import (
 from ai.core.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
+from fastapi import APIRouter, Depends, HTTPException, status
 
 router = APIRouter(prefix="/sessions/{session_id}/integration", tags=["integration"])
 

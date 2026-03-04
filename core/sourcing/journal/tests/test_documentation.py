@@ -6,12 +6,9 @@ and progress visualization components.
 """
 
 import json
-import tempfile
 from datetime import datetime, timedelta
-from pathlib import Path
 
 import pytest
-
 from ai.core.sourcing.journal.documentation.dataset_catalog import DatasetCatalog
 from ai.core.sourcing.journal.documentation.progress_visualization import (
     ProgressVisualization,
@@ -22,12 +19,7 @@ from ai.core.sourcing.journal.documentation.tracking_updater import (
     TrackingDocumentUpdater,
 )
 from ai.core.sourcing.journal.models.dataset_models import (
-    AcquiredDataset,
-    DatasetEvaluation,
-    DatasetSource,
-    IntegrationPlan,
     ResearchProgress,
-    ResearchSession,
     WeeklyReport,
 )
 

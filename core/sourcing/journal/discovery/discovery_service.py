@@ -16,7 +16,10 @@ from ai.core.sourcing.journal.discovery.repository_clients import (
     DryadClient,
     ZenodoClient,
 )
-from ai.core.sourcing.journal.models.dataset_models import DatasetSource, ResearchSession
+from ai.core.sourcing.journal.models.dataset_models import (
+    DatasetSource,
+    ResearchSession,
+)
 from ai.core.sourcing.journal.orchestrator.types import DiscoveryServiceProtocol
 
 logger = logging.getLogger(__name__)

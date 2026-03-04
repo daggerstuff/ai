@@ -4,8 +4,7 @@ Script to update all domain references from pixelated-empathy.ai to pixelatedemp
 """
 
 import os
-import re
-from pathlib import Path
+
 
 def update_domains_in_file(file_path):
     """Update domain references in a single file."""
@@ -75,16 +74,16 @@ def main():
                         if update_domains_in_file(file_path):
                             updated_files.append(file_path)
     
-    print(f"\n📊 Summary:")
+    print("\n📊 Summary:")
     print(f"   Total files processed: {total_files}")
     print(f"   Files updated: {len(updated_files)}")
     
     if updated_files:
-        print(f"\n📝 Updated files:")
+        print("\n📝 Updated files:")
         for file_path in updated_files:
             print(f"   - {file_path}")
     
-    print(f"\n✅ Domain update completed!")
+    print("\n✅ Domain update completed!")
 
 if __name__ == "__main__":
     main()

@@ -5,11 +5,11 @@ Implements bias and cultural competency checks with 200+ pattern support
 and explicit minority mental health focus as described in the expanded brief.
 """
 
-from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Set
-from enum import Enum
 import re
 from collections import defaultdict
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from ..utils.logger import get_logger
 

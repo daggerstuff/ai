@@ -22,11 +22,11 @@ Date: August 2025
 import asyncio
 import json
 import logging
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
-from pathlib import Path
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, asdict
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(
@@ -629,20 +629,20 @@ async def main():
     print(f"Approved Reviews: {report['certification_summary']['approved_reviews']}")
     print(f"Approval Rate: {report['certification_summary']['approval_rate']:.1%}")
     
-    print(f"\nClinical Validation Metrics:")
+    print("\nClinical Validation Metrics:")
     print(f"  Accuracy Assessment: {report['clinical_validation_metrics']['average_accuracy_assessment']:.3f}")
     print(f"  Clinical Appropriateness: {report['clinical_validation_metrics']['average_clinical_appropriateness']:.3f}")
     print(f"  Safety Assessment: {report['clinical_validation_metrics']['average_safety_assessment']:.3f}")
     print(f"  Bias Assessment: {report['clinical_validation_metrics']['average_bias_assessment']:.3f}")
     
-    print(f"\nMedical Advisory Board:")
+    print("\nMedical Advisory Board:")
     board_info = report['medical_advisory_board']
     print(f"  Review Completed: {board_info['review_completed']}")
     print(f"  Approval Votes: {board_info['approval_votes']}/{board_info['total_votes']}")
     print(f"  Unanimous Approval: {board_info['unanimous_approval']}")
     
     print(f"\nSafety Protocols: {len(report['safety_protocols'])} protocols established")
-    print(f"Compliance Status: All requirements COMPLIANT")
+    print("Compliance Status: All requirements COMPLIANT")
     
     # Certification status
     meets_requirements = report['certification_summary']['meets_clinical_requirements']
@@ -653,8 +653,8 @@ async def main():
     print("="*70)
     print(f"✅ Clinical Score Target Met: {meets_requirements}")
     print(f"✅ Medical Advisory Board Review: {board_info['review_completed']}")
-    print(f"✅ Safety Protocols Established: True")
-    print(f"✅ Compliance Requirements: True")
+    print("✅ Safety Protocols Established: True")
+    print("✅ Compliance Requirements: True")
     
     print(f"\n🎯 CLINICAL CERTIFICATION: {'✅ APPROVED' if certification_approved else '⚠️ REQUIRES REVISION'}")
     

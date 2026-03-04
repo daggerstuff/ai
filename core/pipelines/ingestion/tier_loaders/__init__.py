@@ -5,6 +5,21 @@ Loaders for Tier 1-6 datasets with tier-specific quality validation.
 Includes HuggingFace mental health dataset loaders.
 """
 
+from ai.core.pipelines.ingestion.tier_loaders.dpo_dataset_loader import (
+    DPO_DATASETS,
+    DPODatasetConfig,
+    DPODatasetLoader,
+    DPODatasetType,
+    DPOSample,
+    register_dpo_dataset,
+)
+from ai.core.pipelines.ingestion.tier_loaders.huggingface_mental_health_loader import (
+    HUGGINGFACE_MENTAL_HEALTH_DATASETS,
+    HuggingFaceDatasetConfig,
+    HuggingFaceDatasetType,
+    HuggingFaceMentalHealthLoader,
+    register_huggingface_dataset,
+)
 from ai.core.pipelines.ingestion.tier_loaders.tier1_priority_loader import (
     Tier1PriorityLoader,
 )
@@ -22,21 +37,6 @@ from ai.core.pipelines.ingestion.tier_loaders.tier5_research_loader import (
 )
 from ai.core.pipelines.ingestion.tier_loaders.tier6_knowledge_loader import (
     Tier6KnowledgeLoader,
-)
-from ai.core.pipelines.ingestion.tier_loaders.huggingface_mental_health_loader import (
-    HuggingFaceMentalHealthLoader,
-    HuggingFaceDatasetConfig,
-    HuggingFaceDatasetType,
-    HUGGINGFACE_MENTAL_HEALTH_DATASETS,
-    register_huggingface_dataset,
-)
-from ai.core.pipelines.ingestion.tier_loaders.dpo_dataset_loader import (
-    DPODatasetLoader,
-    DPODatasetConfig,
-    DPODatasetType,
-    DPOSample,
-    DPO_DATASETS,
-    register_dpo_dataset,
 )
 
 __all__ = [

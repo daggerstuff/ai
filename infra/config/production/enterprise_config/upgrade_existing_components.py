@@ -10,11 +10,9 @@ Upgrades all existing dataset processing components to enterprise baseline:
 - Adds performance tracking
 """
 
-import os
 import re
-import sys
 from pathlib import Path
-from typing import List, Dict, Any
+
 
 class EnterpriseComponentUpgrader:
     """Upgrades existing components to enterprise standards."""
@@ -308,7 +306,7 @@ if __name__ == "__main__":
         self.create_integration_guide()
         
         print("=" * 60)
-        print(f"🎯 ENTERPRISE UPGRADE COMPLETE")
+        print("🎯 ENTERPRISE UPGRADE COMPLETE")
         print(f"✅ {upgraded_count}/{len(self.components_to_upgrade)} components upgraded")
         print("✅ Enterprise wrapper template created")
         print("✅ Integration guide created")

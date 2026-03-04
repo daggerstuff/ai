@@ -1,6 +1,7 @@
-import os
-import json
 import glob
+import json
+import os
+
 import numpy as np
 
 # Configuration

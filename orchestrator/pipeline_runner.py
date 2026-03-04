@@ -1,8 +1,6 @@
 import logging
 import time
-from typing import Callable, Any
-from pathlib import Path
-import sys
+from typing import Callable
 
 # Configure basic logging if not already done
 logging.basicConfig(

@@ -3,11 +3,12 @@
 Clean, deduplicate, and format final training dataset
 """
 
-import json
 import hashlib
+import json
 import re
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, Set
+
 
 class DatasetCleaner:
     def __init__(self):
@@ -166,13 +167,13 @@ def main():
     train_clean.rename(train_file)
     val_clean.rename(val_file)
     
-    print(f"\n=== DATASET CLEANING COMPLETE ===")
+    print("\n=== DATASET CLEANING COMPLETE ===")
     print(f"Original total: {train_stats['original_count'] + val_stats['original_count']:,}")
     print(f"Duplicates removed: {train_stats['duplicates_removed'] + val_stats['duplicates_removed']:,}")
     print(f"Invalid removed: {train_stats['invalid_removed'] + val_stats['invalid_removed']:,}")
     print(f"Final total: {train_stats['final_count'] + val_stats['final_count']:,}")
     print(f"Retention rate: {round((train_stats['final_count'] + val_stats['final_count']) / (train_stats['original_count'] + val_stats['original_count']) * 100, 2)}%")
-    print(f"\nCleaned dataset ready for Lightning.ai H100 training!")
+    print("\nCleaned dataset ready for Lightning.ai H100 training!")
 
 if __name__ == "__main__":
     main()

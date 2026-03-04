@@ -7,9 +7,9 @@ to the existing psychology knowledge base, enriching it with library collection 
 
 import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Any
 import sys
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Add the project root to the path
 project_root = Path(__file__).parent.parent.parent
@@ -224,7 +224,7 @@ def main():
         )
         enhancer.enhance(output_path=args.output_path)
 
-        print(f"Successfully enhanced psychology knowledge base")
+        print("Successfully enhanced psychology knowledge base")
         print(f"Output saved to: {args.output_path}")
 
     except Exception as e:

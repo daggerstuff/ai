@@ -4,7 +4,8 @@ Enhanced Smart Agent - Properly cleans and separates Q/A pairs
 """
 
 import re
-from typing import Dict, Tuple, Optional
+from typing import Dict, Optional, Tuple
+
 
 class EnhancedSmartAgent:
     def __init__(self):
@@ -150,7 +151,7 @@ def test_enhanced_agent():
     print("=== ENHANCED SMART AGENT TEST ===\n")
     print(f"**Extraction Method**: {result['extraction_method']}")
     print(f"**Question**: {result['input']}")
-    print(f"\n**Answer**:")
+    print("\n**Answer**:")
     print(result['output'])
 
 if __name__ == "__main__":

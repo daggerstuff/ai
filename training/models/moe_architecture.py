@@ -4,13 +4,14 @@ Multi-expert Mixture of Experts (MoE) Architecture for Therapeutic AI
 Implements domain-specific expert routing for psychology, mental health, and bias detection
 """
 
+from dataclasses import dataclass
+from typing import Dict, List, Optional, Tuple
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
+from peft import LoraConfig, TaskType, get_peft_model
 from transformers import PreTrainedModel
-from peft import LoraConfig, get_peft_model, TaskType
 
 
 @dataclass
@@ -424,7 +425,7 @@ if __name__ == "__main__":
         max_position_embeddings=8192
     )
 
-    print(f"✅ Configuration:")
+    print("✅ Configuration:")
     print(f"   - Experts: {config.num_experts}")
     print(f"   - Domains: {', '.join(config.expert_domains)}")
     print(f"   - LoRA rank: {config.lora_r}")

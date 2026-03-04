@@ -4,10 +4,11 @@ Example usage of the Edge Case Generator
 This script demonstrates how to generate edge case scenarios for therapeutic training.
 """
 
-import logging
 import json
-from ai.core.pipelines.design.edge_case_generator import EdgeCaseGenerator, EdgeCaseType
+import logging
+
 from ai.core.pipelines.design.edge_case_api import EdgeCaseAPI
+from ai.core.pipelines.design.edge_case_generator import EdgeCaseGenerator, EdgeCaseType
 
 logging.basicConfig(
     level=logging.INFO,

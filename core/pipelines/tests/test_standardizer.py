@@ -1,5 +1,8 @@
 from ai.core.pipelines.conversation_schema import Conversation
-from ai.core.pipelines.standardizer import from_input_output_pair, from_simple_message_list
+from ai.core.pipelines.standardizer import (
+    from_input_output_pair,
+    from_simple_message_list,
+)
 
 
 def test_from_simple_message_list():

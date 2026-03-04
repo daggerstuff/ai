@@ -7,7 +7,7 @@ as described in the expanded project brief.
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Optional, Dict, Any, List, Union
+from typing import Any, Dict, List, Optional
 
 from ..style.less_chipper import Tone
 

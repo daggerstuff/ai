@@ -7,22 +7,23 @@ Enterprise-grade HIPAA compliance validation for healthcare data protection.
 Implements PHI protection, audit logging, and access controls per HIPAA requirements.
 """
 
-import os
-import json
+import base64
 import hashlib
+import json
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Any, Optional, Tuple, Set
-from enum import Enum
-from dataclasses import dataclass, asdict
-from pathlib import Path
-import sqlite3
+import os
 import re
+import sqlite3
 import uuid
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import List, Optional, Tuple
+
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import base64
 
 logger = logging.getLogger(__name__)
 
@@ -715,14 +716,14 @@ if __name__ == "__main__":
     test_data = "Patient John Doe, SSN: 123-45-6789, Phone: (555) 123-4567"
     is_compliant, violations = validator.validate_data_access("test_user", test_data)
     
-    print(f"HIPAA Compliance Test:")
+    print("HIPAA Compliance Test:")
     print(f"Data: {test_data}")
     print(f"Compliant: {is_compliant}")
     print(f"Violations: {len(violations)}")
     
     # Generate compliance report
     report = validator.generate_compliance_report()
-    print(f"\nCompliance Report:")
+    print("\nCompliance Report:")
     print(f"Assessment ID: {report.assessment_id}")
     print(f"Compliance Level: {report.compliance_level}")
     print(f"Score: {report.score}")

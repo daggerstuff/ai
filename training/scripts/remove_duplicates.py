@@ -6,18 +6,19 @@ Removes duplicate entries while preserving one canonical copy
 
 import json
 import sys
-from pathlib import Path
-from typing import Dict, List, Any, Tuple, TypedDict, Set, DefaultDict, Optional
 from collections import defaultdict
 from datetime import datetime
+from pathlib import Path
+from typing import Any, DefaultDict, Dict, List, Tuple, TypedDict
 
 # Add project root to path
 script_path = Path(__file__).resolve()
 project_root = script_path.parents[3]
 sys.path.insert(0, str(project_root))
 
-from ai.training.utils.s3_dataset_loader import S3DatasetLoader
 import logging
+
+from ai.training.utils.s3_dataset_loader import S3DatasetLoader
 
 # Suppress verbose warnings
 logging.getLogger('ai.training.utils.s3_dataset_loader').setLevel(logging.ERROR)
@@ -305,7 +306,7 @@ def print_deduplication_summary(plans_by_category: Dict[str, List[DeduplicationP
             filename = Path(plan['file_path']).name
             print(f"     - {filename}: {plan['duplicates_removed']} duplicates")
 
-    print(f"\n📊 Total:")
+    print("\n📊 Total:")
     print(f"   Files: {total_files}")
     print(f"   Duplicates to remove: {total_duplicates:,}")
 
@@ -348,7 +349,7 @@ def main() -> None:
         print("⚠️  LIVE MODE - Files will be modified in S3!")
 
     # Load deduplication report
-    print(f"\n📋 Loading deduplication report...")
+    print("\n📋 Loading deduplication report...")
     report = load_deduplication_report(DEDUP_REPORT_PATH)
 
     duplicate_groups = report.get('duplicate_groups', {})
@@ -411,7 +412,7 @@ def main() -> None:
     print(f"📊 Total entries kept: {total_kept:,}")
 
     if failed:
-        print(f"\n❌ Failed files:")
+        print("\n❌ Failed files:")
         for result in failed:
             print(f"   - {result.get('file')}: {result.get('error', 'Unknown error')}")
 

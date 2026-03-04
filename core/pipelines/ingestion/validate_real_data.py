@@ -3,7 +3,7 @@ import json
 import logging
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 # Configure logging
 logging.basicConfig(
@@ -39,7 +39,7 @@ def validate_record(record: Dict, line_num: int) -> List[str]:
             # PII Check on Content
             content = msg.get("content", "")
             # Simple heuristic for potential email leak
-            if "@" in content and "." in content and not "@pixelated" in content:
+            if "@" in content and "." in content and "@pixelated" not in content:
                 # Very naive placeholder
                 pass
 

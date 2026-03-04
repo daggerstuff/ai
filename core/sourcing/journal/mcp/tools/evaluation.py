@@ -5,7 +5,7 @@ This module provides tools for evaluating dataset sources through the MCP protoc
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ai.core.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,

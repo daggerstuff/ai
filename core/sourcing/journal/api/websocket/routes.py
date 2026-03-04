@@ -9,16 +9,11 @@ import json
 import logging
 from datetime import datetime
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
-
-from ai.core.sourcing.journal.api.dependencies import (
-    get_command_handler_service,
-    get_current_user,
-)
-from ai.core.sourcing.journal.api.websocket.manager import manager
 from ai.core.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
+from ai.core.sourcing.journal.api.websocket.manager import manager
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, status
 
 logger = logging.getLogger(__name__)
 

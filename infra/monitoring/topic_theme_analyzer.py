@@ -6,15 +6,15 @@ Analyzes conversation topics, themes, and provides insights about content patter
 
 import json
 import sqlite3
+import warnings
+from collections import defaultdict
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
-import pandas as pd
+from typing import Any, Dict, List, Optional
+
 import numpy as np
-from dataclasses import dataclass
-import re
-from collections import Counter, defaultdict
-import warnings
+
 warnings.filterwarnings('ignore')
 
 @dataclass
@@ -517,7 +517,7 @@ def main():
     themes = analysis_results.get('themes', {})
     insights = analysis_results.get('insights', [])
     
-    print(f"\n✅ Topic and Theme Analysis Complete")
+    print("\n✅ Topic and Theme Analysis Complete")
     print(f"   - Topics identified: {len(topics)}")
     print(f"   - Themes identified: {len(themes)}")
     print(f"   - Conversations analyzed: {analysis_results.get('total_conversations_analyzed', 0)}")
@@ -526,20 +526,20 @@ def main():
     
     # Show top topics
     if topics:
-        print(f"\n📊 Top Topics by Frequency:")
+        print("\n📊 Top Topics by Frequency:")
         sorted_topics = sorted(topics.items(), key=lambda x: x[1].frequency, reverse=True)
         for name, analysis in sorted_topics[:5]:
             print(f"   • {name.replace('_', ' ').title()}: {analysis.frequency} conversations ({analysis.percentage:.1f}%)")
     
     # Show themes
     if themes:
-        print(f"\n🎭 Therapeutic Themes:")
+        print("\n🎭 Therapeutic Themes:")
         for name, analysis in themes.items():
             print(f"   • {name.replace('_', ' ').title()}: {analysis.conversation_count} conversations")
     
     # Show key insights
     if insights:
-        print(f"\n🔍 Key Insights:")
+        print("\n🔍 Key Insights:")
         for insight in insights[:3]:
             print(f"   • {insight}")
 

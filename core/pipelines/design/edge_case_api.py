@@ -7,10 +7,8 @@ to generate edge case scenarios using NeMo Data Designer.
 
 import logging
 from typing import Any, Optional
-import json
 
 from ai.core.pipelines.design.edge_case_generator import EdgeCaseGenerator, EdgeCaseType
-from ai.core.pipelines.design.service import NeMoDataDesignerService
 
 logger = logging.getLogger(__name__)
 

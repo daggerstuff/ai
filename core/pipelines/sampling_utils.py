@@ -3,15 +3,16 @@ Sampling utilities for creating balanced train/validation/test splits.
 Implements stratified sampling and various balancing techniques for mental health datasets.
 """
 
-from dataclasses import dataclass
-from typing import List, Dict, Any, Optional, Tuple, Callable
-from enum import Enum
-import random
-import math
-from collections import Counter
 import logging
+import math
+import random
+from collections import Counter
+from dataclasses import dataclass
+from enum import Enum
+from typing import Any, Dict, List, Optional, Tuple
+
 from .conversation_schema import Conversation
-from .label_taxonomy import LabelBundle, TherapeuticResponseType, CrisisLevelType
+from .label_taxonomy import CrisisLevelType, LabelBundle, TherapeuticResponseType
 
 logger = logging.getLogger(__name__)
 
@@ -404,7 +405,7 @@ class Sampler:
 
     def _smote_like_oversample(self, paired_data: List[Tuple[Conversation, LabelBundle]]) -> List[Tuple[Conversation, LabelBundle]]:
         """Simplified SMOTE-like oversampling using data augmentation"""
-        from .data_augmentation import create_default_augmenter, DataAugmenter
+        from .data_augmentation import create_default_augmenter
         
         # For now, we'll use a simple approach: augment minority class samples
         strata = self._group_by_crisis_level(paired_data)
@@ -605,10 +606,11 @@ def create_sampler(config: Optional[SplitConfig] = None) -> Sampler:
 # Example usage
 def test_sampling_utilities():
     """Test the sampling utilities"""
-    from .conversation_schema import Conversation, Message
+    from .conversation_schema import Conversation
     from .label_taxonomy import (
-        TherapeuticResponseLabel, CrisisLabel, LabelMetadata, LabelProvenanceType,
-        TherapeuticResponseType, CrisisLevelType
+        CrisisLabel,
+        LabelMetadata,
+        TherapeuticResponseLabel,
     )
     
     # Create some test conversations and labels
@@ -649,7 +651,7 @@ def test_sampling_utilities():
     sampler = create_sampler()
     split_result = sampler.split_dataset(conversations, label_bundles)
     
-    print(f"Split results:")
+    print("Split results:")
     print(f"  Train: {len(split_result.train)} samples")
     print(f"  Validation: {len(split_result.validation)} samples") 
     print(f"  Test: {len(split_result.test)} samples")
@@ -667,7 +669,7 @@ def test_sampling_utilities():
     stratified_sampler = Sampler(stratified_config)
     stratified_split = stratified_sampler.split_dataset(conversations, label_bundles)
     
-    print(f"\nStratified split results:")
+    print("\nStratified split results:")
     print(f"  Train: {len(stratified_split.train)} samples")
     print(f"  Validation: {len(stratified_split.validation)} samples")
     print(f"  Test: {len(stratified_split.test)} samples")
@@ -676,18 +678,18 @@ def test_sampling_utilities():
     print(f"  Crisis distribution in test: {stratified_split.split_stats['label_distributions']['test']['crisis_distribution']}")
     
     # Test balancing
-    print(f"\nTesting dataset balancing...")
+    print("\nTesting dataset balancing...")
     balanced_convs, balanced_labels = sampler.balance_dataset(conversations, label_bundles, "oversample")
     print(f"  Original size: {len(conversations)}, Balanced size: {len(balanced_convs)}")
     
     # Test cluster-aware split
-    print(f"\nTesting cluster-aware split...")
+    print("\nTesting cluster-aware split...")
     cluster_labels = [f"cluster_{i % 5}" for i in range(len(conversations))]  # 5 clusters
     advanced_sampler = AdvancedSampler()
     
     try:
         cluster_split = advanced_sampler.cluster_aware_split(conversations, label_bundles, cluster_labels)
-        print(f"  Cluster-aware split results:")
+        print("  Cluster-aware split results:")
         print(f"    Train: {len(cluster_split.train)} samples")
         print(f"    Validation: {len(cluster_split.validation)} samples")
         print(f"    Test: {len(cluster_split.test)} samples")

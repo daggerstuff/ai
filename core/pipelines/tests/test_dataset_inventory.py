@@ -2,7 +2,6 @@ import os
 import tempfile
 
 import pandas as pd
-
 from ai.core.pipelines.dataset_inventory import get_dataset_metadata, scan_datasets
 
 EXPECTED_DATASET_COUNT = 2

@@ -7,7 +7,7 @@ by identifying key situational markers that distinguish between categories.
 
 import re
 from dataclasses import dataclass
-from typing import List, Dict, Optional
+from typing import List
 
 from ai.core.pipelines.design.temporal_analyzer import TemporalContextAnalyzer
 

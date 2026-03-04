@@ -9,11 +9,9 @@ import logging
 import time
 from datetime import datetime
 from typing import List, Optional
-from urllib.parse import urlencode
-
-import requests
 from xml.etree import ElementTree as ET
 
+import requests
 from ai.core.sourcing.journal.models.dataset_models import DatasetSource
 
 logger = logging.getLogger(__name__)

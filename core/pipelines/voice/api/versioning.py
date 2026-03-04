@@ -3,11 +3,13 @@ API Versioning Implementation for Pixelated Empathy AI
 Provides backward compatibility and smooth API evolution.
 """
 
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.routing import APIRoute
-from typing import Callable, Dict, Any
 import re
 from enum import Enum
+from typing import Any, Callable, Dict
+
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.routing import APIRoute
+
 
 class APIVersion(str, Enum):
     """Supported API versions."""

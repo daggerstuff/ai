@@ -1,5 +1,6 @@
 from typing import Any, Dict, List, Optional
 
+
 def detect_bias(text: str, bias_engine: Any) -> Dict[str, float]:
     """Detect bias using the provided bias_engine."""
     if bias_engine is None:

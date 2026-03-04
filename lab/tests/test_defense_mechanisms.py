@@ -10,7 +10,6 @@ from unittest.mock import MagicMock
 
 import pytest
 import torch
-
 from ai.training.defense_mechanisms import (
     DEFENSE_LABELS,
     DEFENSE_MATURITY,

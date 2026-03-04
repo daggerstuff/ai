@@ -4,20 +4,15 @@ Quality Validation Result Aggregation System for Pixelated Empathy AI
 Aggregates and analyzes results from distributed quality validation workers
 """
 
-import os
-import sys
 import json
 import logging
-from typing import Dict, List, Any, Optional, Tuple
-from pathlib import Path
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
-import statistics
-import numpy as np
-from collections import defaultdict, Counter
 import sqlite3
+import statistics
 import threading
-import time
+from collections import Counter, defaultdict
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(

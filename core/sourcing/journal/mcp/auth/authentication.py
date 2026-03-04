@@ -9,10 +9,9 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, Optional
 
 import jwt as pyjwt
-from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidTokenError
-
 from ai.core.sourcing.journal.mcp.config import AuthConfig
 from ai.core.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode, MCPRequest
+from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidTokenError
 
 logger = logging.getLogger(__name__)
 

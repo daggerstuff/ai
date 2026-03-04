@@ -7,12 +7,7 @@ Creates comprehensive dashboard for supervising therapeutic training sessions
 with live assessment tools, intervention capabilities, and analytics.
 """
 
-import json
 import logging
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass
-from datetime import datetime
-from pathlib import Path
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

@@ -4,7 +4,6 @@ Session resources for MCP Server.
 This module provides resources for accessing research session state.
 """
 
-import json
 import logging
 from dataclasses import asdict
 from typing import Any, Dict, Optional

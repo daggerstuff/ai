@@ -21,19 +21,19 @@ Date: August 2025
 """
 
 import asyncio
+import concurrent.futures
 import json
 import logging
-import time
 import statistics
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, asdict
+import time
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from enum import Enum
-import concurrent.futures
-import threading
-import requests
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
 import numpy as np
+import requests
 
 # Configure logging
 logging.basicConfig(
@@ -580,7 +580,7 @@ async def main():
     print(f"SLA Compliance Score: {report.sla_compliance_score:.1f}/100")
     print(f"Scalability Score: {report.scalability_score:.1f}/100")
     
-    print(f"\nPerformance Summary:")
+    print("\nPerformance Summary:")
     summary = report.performance_summary
     print(f"  Total Tests: {summary['total_tests']}")
     print(f"  SLA Compliant Tests: {summary['sla_compliant_tests']}")
@@ -589,7 +589,7 @@ async def main():
     print(f"  Max Concurrent Users: {summary['max_concurrent_users_tested']}")
     print(f"  Overall Error Rate: {summary['overall_error_rate']:.1f}%")
     
-    print(f"\nTest Results:")
+    print("\nTest Results:")
     for result in report.test_results:
         status = "✅ PASSED" if result.sla_compliance else "❌ FAILED"
         print(f"  {result.test_name}: {status}")
@@ -598,7 +598,7 @@ async def main():
         print(f"    Error Rate: {result.error_rate_percent:.1f}%")
         
     if report.recommendations:
-        print(f"\nRecommendations:")
+        print("\nRecommendations:")
         for rec in report.recommendations:
             print(f"  • {rec}")
             

@@ -4,10 +4,9 @@ Progress resources for MCP Server.
 This module provides resources for accessing research progress data.
 """
 
-import json
 import logging
 from dataclasses import asdict
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from ai.core.sourcing.journal.api.services.command_handler_service import (
   CommandHandlerService,

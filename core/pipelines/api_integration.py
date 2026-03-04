@@ -3,21 +3,15 @@ API Integration Layer for Dataset Training Pipeline
 Provides REST API endpoints for web frontend and external integrations
 """
 
-import asyncio
-import json
 import logging
-from typing import Dict, List, Optional, Any, Union
-from dataclasses import dataclass, field
 from datetime import datetime
-import uuid
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
-from fastapi.responses import JSONResponse
+from typing import Any, Dict, List, Optional
+
+from fastapi import BackgroundTasks, FastAPI, HTTPException
 from pydantic import BaseModel, Field
 
-from .dataset_taxonomy import DatasetTaxonomy, DatasetMetadata, DatasetCategory
-from .training_styles import TrainingStyleManager, TrainingStyle, BaseTrainingConfig
-from .training_orchestrator import TrainingPipelineOrchestrator
 from .mcp_integration import DatasetTrainingMCPInterface, MCPTask
+from .training_orchestrator import TrainingPipelineOrchestrator
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -553,7 +547,6 @@ def test_api_integration():
     api = DatasetTrainingAPI(orchestrator)
     
     # Test health check
-    import httpx
     from fastapi.testclient import TestClient
     
     client = TestClient(api.app)

@@ -12,10 +12,8 @@ This test suite validates the therapeutic response generator's ability to:
 """
 
 import unittest
-import pytest
-import json
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List
+
 
 # Mock the therapeutic response generator for testing
 class MockTherapeuticResponseGenerator:

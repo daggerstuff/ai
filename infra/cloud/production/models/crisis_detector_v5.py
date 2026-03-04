@@ -12,14 +12,13 @@ Key V5 Breakthrough Improvements:
 - Real-time pattern discovery from text semantics
 """
 
-import re
-import json
 import logging
-import math
-from typing import Dict, List, Tuple, Optional, Set
+import re
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
-from collections import Counter, defaultdict
+from typing import Dict, List, Tuple
+
 import numpy as np
 
 

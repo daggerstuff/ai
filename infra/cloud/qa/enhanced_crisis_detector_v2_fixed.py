@@ -4,11 +4,10 @@ Enhanced Crisis Detector V2 - Fixed
 Target: Close 33.8% accuracy gap and reduce false negative rate from 73.33% to <1%
 """
 
-import re
 import asyncio
 import logging
-from typing import Dict, List, Tuple, Optional
 from dataclasses import dataclass
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 

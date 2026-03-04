@@ -1,9 +1,9 @@
 import json
 import logging
+import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, Dict, Any
-import sys
+from typing import Any, Dict, List
 
 # Adjust import for project structure
 try:
@@ -124,7 +124,7 @@ class SessionSimulator:
         modalities = ["CBT", "ACT", "DBT"] # Kept for simulate_session calls
 
         for i in range(count):
-            import random # Moved inside loop to match original behavior, or could be moved to top of method
+            import random  # Moved inside loop to match original behavior, or could be moved to top of method
             current_topic = topics[i % len(topics)]
             # Mix standard sessions and journaling
             if i % 3 == 0:

@@ -8,11 +8,11 @@ The expansion follows the Phase 5: Crisis & Edge Case Development plan from the 
 adding 25 new crisis categories to reach the target of 50+ categories.
 """
 
-from enum import Enum
-from typing import List, Dict, Any
+import logging
 from dataclasses import dataclass
 from datetime import datetime
-import logging
+from enum import Enum
+from typing import Any, Dict, List
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -778,7 +778,7 @@ else:
     logger.warning(f"⚠️  Crisis types count: {crisis_manager.get_crisis_type_count()} (expected 50)")
 
 # Print summary
-print(f"\nCrisis Type Expansion Summary:")
+print("\nCrisis Type Expansion Summary:")
 print(f"Total crisis types: {crisis_manager.get_crisis_type_count()}")
 print(f"Emergency severity: {len(crisis_manager.get_categories_by_severity('emergency'))}")
 print(f"High severity: {len(crisis_manager.get_categories_by_severity('high'))}")

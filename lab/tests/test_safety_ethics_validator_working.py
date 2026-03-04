@@ -12,10 +12,8 @@ This test suite validates the safety ethics validator's ability to:
 """
 
 import unittest
-import pytest
-import json
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Optional, Union, Any
+from typing import Any, Dict, List
+
 
 # Mock the safety ethics validator for testing
 class MockSafetyEthicsValidator:

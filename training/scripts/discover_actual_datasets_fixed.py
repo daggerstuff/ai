@@ -3,7 +3,6 @@
 Discover actual datasets in S3 bucket and create a mapping for Tier 1 Priority datasets
 """
 
-import os
 import sys
 from pathlib import Path
 
@@ -12,6 +11,7 @@ project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
 from ai.core.utils.s3_dataset_loader import S3DatasetLoader
+
 
 def discover_datasets():
     """Discover actual datasets in S3 and map them to Tier 1 categories"""
@@ -108,17 +108,17 @@ def discover_datasets():
     medium_files.sort(key=lambda x: x[1], reverse=True)
     tier1_candidates.sort(key=lambda x: x[1], reverse=True)
     
-    print(f"\n📈 Dataset Analysis:")
+    print("\n📈 Dataset Analysis:")
     print(f"   Large files (>10MB): {len(large_files)}")
     print(f"   Medium files (1-10MB): {len(medium_files)}")
     print(f"   Small files (<1MB): {len(small_files)}")
     print(f"   Tier 1 candidates: {len(tier1_candidates)}")
     
-    print(f"\n🎯 Top Tier 1 Priority Candidates:")
+    print("\n🎯 Top Tier 1 Priority Candidates:")
     for i, (path, size) in enumerate(tier1_candidates[:15]):
         print(f"   {i+1}. {path} ({size:.1f} MB)")
     
-    print(f"\n💾 Largest Files:")
+    print("\n💾 Largest Files:")
     for i, (path, size) in enumerate(large_files[:5]):
         print(f"   {i+1}. {path} ({size:.1f} MB)")
     
@@ -158,8 +158,8 @@ def main():
         tier1_mapping = discover_datasets()
         
         if tier1_mapping:
-            print(f"\n✅ Dataset discovery complete!")
-            print(f"🎯 Tier 1 categories found:")
+            print("\n✅ Dataset discovery complete!")
+            print("🎯 Tier 1 categories found:")
             for category, files in tier1_mapping.items():
                 print(f"   📁 {category}: {len(files)} files")
             
@@ -168,10 +168,10 @@ def main():
             with open('tier1_dataset_mapping.json', 'w') as f:
                 json.dump(tier1_mapping, f, indent=2)
             
-            print(f"\n💾 Mapping saved to 'tier1_dataset_mapping.json'")
+            print("\n💾 Mapping saved to 'tier1_dataset_mapping.json'")
             return True
         else:
-            print(f"\n❌ No datasets discovered")
+            print("\n❌ No datasets discovered")
             return False
             
     except Exception as e:

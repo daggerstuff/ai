@@ -7,12 +7,11 @@ This module provides JWT token validation and authentication middleware.
 import logging
 from typing import Callable
 
-from fastapi import Request, HTTPException, status
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.responses import Response
-
 from ai.core.sourcing.journal.api.auth.jwt import get_user_from_token
 from ai.core.sourcing.journal.api.config import get_settings
+from fastapi import HTTPException, Request, status
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import Response
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

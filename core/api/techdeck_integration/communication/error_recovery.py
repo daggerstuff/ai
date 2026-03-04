@@ -7,22 +7,19 @@ degradation for the six-stage pipeline with HIPAA++ compliant error handling.
 
 import asyncio
 import json
-import logging
 import time
+from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Dict, Any, Optional, List, Callable, Union
-from dataclasses import dataclass, asdict
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
-from .event_bus import EventBus, EventMessage, EventType
-from .state_manager import StateManager
-from ..integration.redis_client import RedisClient
 from ..error_handling.custom_errors import (
-    PipelineExecutionError, ValidationError, TimeoutError, 
-    ResourceNotFoundError, BiasDetectionError, RetryExhaustedError
+    PipelineExecutionError,
+    RetryExhaustedError,
 )
 from ..utils.logger import get_request_logger
 from ..utils.validation import sanitize_input
+from .event_bus import EventMessage, EventType
 
 
 class RecoveryStrategy(Enum):
@@ -459,7 +456,7 @@ class ErrorRecoveryManager:
         
         else:
             # Simulate fallback failure
-            raise PipelineExecutionError(f"Fallback strategy failed")
+            raise PipelineExecutionError("Fallback strategy failed")
     
     async def _execute_skip_strategy(self, context: 'PipelineContext',
                                    stage_name: str, error: Exception,

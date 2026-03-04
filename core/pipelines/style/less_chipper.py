@@ -5,10 +5,10 @@ Implements tone labeling for crisis and complex cases to prevent overly optimist
 Based on the "Less Chipper" response style training from the expanded project brief.
 """
 
-from enum import Enum
-from typing import List, Dict, Optional, Any, Union
-from dataclasses import dataclass, field
 import re
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, Optional, Union
 
 from ..utils.logger import get_logger
 

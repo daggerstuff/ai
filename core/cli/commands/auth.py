@@ -5,15 +5,13 @@ This module provides commands for user authentication, including login, logout,
 token management, and user profile operations.
 """
 
+from typing import Optional
+
 import click
-import json
-import time
-from typing import Optional, Dict, Any
 
-from ..utils import setup_logging, get_logger, validate_environment
-from ..config import get_config
 from ..auth import AuthManager
-
+from ..config import get_config
+from ..utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
@@ -258,19 +256,19 @@ def profile(ctx, profile: Optional[str]):
         
         # Permissions and capabilities
         if user_info.get('permissions'):
-            click.echo(f"\n🔐 Permissions:")
+            click.echo("\n🔐 Permissions:")
             for permission in user_info['permissions']:
                 click.echo(f"  • {permission}")
         
         if user_info.get('capabilities'):
-            click.echo(f"\n🎯 Capabilities:")
+            click.echo("\n🎯 Capabilities:")
             for capability in user_info['capabilities']:
                 click.echo(f"  • {capability}")
         
         # API usage information
         if user_info.get('api_usage'):
             usage = user_info['api_usage']
-            click.echo(f"\n📊 API Usage:")
+            click.echo("\n📊 API Usage:")
             click.echo(f"  Requests today: {usage.get('requests_today', 0)}")
             click.echo(f"  Requests this month: {usage.get('requests_this_month', 0)}")
             click.echo(f"  Rate limit: {usage.get('rate_limit', 'Unknown')}")
@@ -278,7 +276,7 @@ def profile(ctx, profile: Optional[str]):
         # Subscription information
         if user_info.get('subscription'):
             sub = user_info['subscription']
-            click.echo(f"\n💳 Subscription:")
+            click.echo("\n💳 Subscription:")
             click.echo(f"  Plan: {sub.get('plan', 'Unknown')}")
             click.echo(f"  Status: {sub.get('status', 'Unknown')}")
             
@@ -378,7 +376,7 @@ def history(ctx, profile: Optional[str], days: int):
         successful_events = sum(1 for event in events if event.get('success', False))
         failed_events = total_events - successful_events
         
-        click.echo(f"📊 Summary:")
+        click.echo("📊 Summary:")
         click.echo(f"  Total events: {total_events}")
         click.echo(f"  Successful: {successful_events}")
         click.echo(f"  Failed: {failed_events}")

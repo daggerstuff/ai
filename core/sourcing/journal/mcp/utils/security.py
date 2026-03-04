@@ -8,7 +8,7 @@ and other security-related utilities.
 import html
 import json
 import re
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 # Dangerous patterns that should be sanitized
 DANGEROUS_PATTERNS = [

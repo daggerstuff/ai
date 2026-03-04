@@ -16,7 +16,6 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 import pyarrow.parquet as pq
-
 from ai.core.sourcing.journal.models.dataset_models import (
     AcquiredDataset,
     IntegrationPlan,

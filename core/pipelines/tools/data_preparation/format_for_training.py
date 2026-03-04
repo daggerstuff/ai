@@ -7,19 +7,24 @@ conversation structure and required metadata. Validates format compliance.
 """
 
 import json
-import sys
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from datetime import datetime
 import logging
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
+    from ai.core.pipelines.configs.stages import (
+        STAGE1_ID,
+        STAGE2_ID,
+        STAGE3_ID,
+        STAGE4_ID,
+    )
     from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
-    from ai.core.pipelines.configs.stages import STAGE1_ID, STAGE2_ID, STAGE3_ID, STAGE4_ID
 except ImportError as e:
     logging.error(f"Failed to import pipeline modules: {e}")
     logging.error(f"Project root: {project_root}")
@@ -247,7 +252,7 @@ def main():
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
 
-    logger.info(f"\n📊 Format Conversion Summary:")
+    logger.info("\n📊 Format Conversion Summary:")
     logger.info(f"  Total converted: {report['stats']['total_converted']:,}")
     logger.info(f"  Validation errors: {report['stats']['validation_errors']:,}")
     logger.info(f"\n💾 Report saved to: {report_path}")

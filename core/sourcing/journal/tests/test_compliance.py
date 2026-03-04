@@ -5,13 +5,11 @@ Tests license checking, privacy verification, HIPAA validation, audit logging,
 and encryption functionality.
 """
 
-import os
 import tempfile
 from datetime import datetime
 from pathlib import Path
 
 import pytest
-
 from ai.core.sourcing.journal.compliance.audit_logger import (
     AuditEventType,
     AuditLogger,

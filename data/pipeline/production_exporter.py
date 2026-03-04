@@ -1,12 +1,13 @@
+import csv
 import io
 import json
-import csv
 import logging
-from typing import Dict, List, Any, Optional, Iterator, Generator
+import os
+from enum import Enum
+from typing import Any, Dict, Iterator, List, Optional
+
 import boto3
 from botocore.exceptions import ClientError
-from enum import Enum
-import os
 
 logger = logging.getLogger(__name__)
 

@@ -12,13 +12,9 @@ This test suite validates the production exporter's ability to:
 """
 
 import unittest
-import pytest
-import json
-import tempfile
-import os
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Optional, Union, Any
 from pathlib import Path
+from typing import Any, Dict, List
+
 
 # Mock the production exporter for testing
 class MockProductionExporter:

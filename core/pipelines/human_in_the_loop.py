@@ -3,21 +3,29 @@ Human-in-the-loop labeling interface for edge cases and low-confidence items.
 Provides tools for human annotators to review, validate, and correct automated labels.
 """
 
+import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Dict, Any, Callable
-import uuid
-import json
 from enum import Enum
-import logging
-from .label_taxonomy import (
-    LabelBundle, TherapeuticResponseLabel, CrisisLabel, TherapyModalityLabel,
-    MentalHealthConditionLabel, DemographicLabel, LabelProvenanceType,
-    TherapeuticResponseType, CrisisLevelType, TherapyModalityType, 
-    MentalHealthConditionType, DemographicType
-)
+from typing import Any, Dict, List, Optional
+
+from .automated_labeler import AutomatedLabeler
 from .conversation_schema import Conversation
-from .automated_labeler import AutomatedLabeler, ConfidenceScore
+from .label_taxonomy import (
+    CrisisLabel,
+    CrisisLevelType,
+    DemographicLabel,
+    DemographicType,
+    LabelBundle,
+    LabelProvenanceType,
+    MentalHealthConditionLabel,
+    MentalHealthConditionType,
+    TherapeuticResponseLabel,
+    TherapeuticResponseType,
+    TherapyModalityLabel,
+    TherapyModalityType,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -554,7 +562,7 @@ def create_human_in_loop_system() -> HumanInLoopLabeler:
 # Example usage
 def test_human_in_loop():
     """Test the human-in-the-loop system"""
-    from .conversation_schema import Conversation, Message
+    from .conversation_schema import Conversation
     
     # Create a test conversation
     conversation = Conversation()
@@ -583,7 +591,6 @@ def test_human_in_loop():
             print(f"Notes: {task.notes}")
             
             # Create a mock annotation result
-            from .label_taxonomy import LabelMetadata
             updated_bundle = human_loop.automated_labeler.label_conversation(conversation)
             
             result = AnnotationResult(

@@ -3,19 +3,19 @@ Dataset Quality Validation Script
 Validates the final integrated dataset quality
 """
 
-import sys
-import os
 import json
-from pathlib import Path
-from typing import Dict, List, Any
-import hashlib
+import os
+import sys
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict
 
 # Ensure the outer workspace root is on sys.path so `ai.*` imports work reliably
 workspace_root = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(workspace_root))
 
 from ai.core.pipelines.storage_config import get_dataset_pipeline_output_root
+
 
 def validate_dataset_quality(dataset_path: str) -> Dict[str, Any]:
     """
@@ -218,37 +218,37 @@ def main():
     results = validate_dataset_quality(dataset_path)
 
     # Display results
-    print(f"\nValidation Results:")
+    print("\nValidation Results:")
     print(f"  Status: {results['overall_status']}")
     print(f"  Records: {results['record_count']:,}")
     print(f"  File readable: {results['file_readable']}")
 
     if results['quality_metrics']:
-        print(f"\nQuality Metrics:")
+        print("\nQuality Metrics:")
         metrics = results['quality_metrics']
         if 'field_coverage' in metrics:
-            print(f"  Field Coverage:")
+            print("  Field Coverage:")
             for field, coverage in metrics['field_coverage'].items():
                 print(f"    {field}: {coverage}")
 
         if 'source_type_distribution' in metrics:
-            print(f"  Source Types:")
+            print("  Source Types:")
             for source_type, count in metrics['source_type_distribution'].items():
                 print(f"    {source_type}: {count:,}")
 
         avg_length = metrics.get('average_content_length', 0)
-        print(f"  Content Length Stats:")
+        print("  Content Length Stats:")
         print(f"    Average: {avg_length:.1f} characters")
         print(f"    Min: {metrics.get('min_content_length', 0):.1f} characters")
         print(f"    Max: {metrics.get('max_content_length', 0):.1f} characters")
 
     if results['recommendations']:
-        print(f"\nRecommendations:")
+        print("\nRecommendations:")
         for rec in results['recommendations']:
             print(f"  ⚠️  {rec}")
 
     if results['validation_errors']:
-        print(f"\nValidation Errors (showing first 10):")
+        print("\nValidation Errors (showing first 10):")
         for error in results['validation_errors'][:10]:
             print(f"  ❌ {error}")
         if len(results['validation_errors']) > 10:

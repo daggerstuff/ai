@@ -7,12 +7,12 @@ This script specifically targets the safety-critical and core business logic
 test files that are essential for production readiness.
 """
 
-import os
-import sys
 import re
 import subprocess
+import sys
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
+
 
 class CriticalTestFixer:
     """Fixes critical test files for core AI modules."""
@@ -252,7 +252,7 @@ if __name__ == '__main__':
                 # Run coverage on specific module
                 result = subprocess.run(
                     [sys.executable, "-m", "pytest", f"--cov={module_file.parent}", 
-                     f"--cov-report=term", "-k", module],
+                     "--cov-report=term", "-k", module],
                     cwd=self.project_root,
                     capture_output=True,
                     text=True,

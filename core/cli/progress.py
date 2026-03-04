@@ -6,24 +6,27 @@ tracking for long-running operations like pipeline execution, file processing,
 and data transformations.
 """
 
-import time
 import threading
-import sys
-from typing import Optional, Dict, Any, Callable
+import time
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
+from typing import Any, Callable, Dict, Optional
 
 from rich.console import Console
+from rich.layout import Layout
+from rich.live import Live
+from rich.panel import Panel
 from rich.progress import (
-    Progress, SpinnerColumn, BarColumn, TextColumn, 
-    TimeElapsedColumn, TimeRemainingColumn, MofNCompleteColumn
+    BarColumn,
+    MofNCompleteColumn,
+    Progress,
+    SpinnerColumn,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
 )
 from rich.table import Table
-from rich.panel import Panel
-from rich.live import Live
-from rich.layout import Layout
-from rich.text import Text
 
 
 class ProgressStatus(Enum):

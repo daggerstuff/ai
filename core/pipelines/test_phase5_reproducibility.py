@@ -3,16 +3,16 @@ Test for labeler reproducibility and augmentation determinism.
 Following the existing test patterns in the codebase.
 """
 
-import pytest
 import random
-from typing import List
-from .label_taxonomy import (
-    TherapeuticResponseLabel, CrisisLabel, LabelMetadata, LabelProvenanceType,
-    TherapeuticResponseType, CrisisLevelType
-)
-from .conversation_schema import Conversation, Message
+
+import pytest
+
 from .automated_labeler import AutomatedLabeler
-from .data_augmentation import DataAugmenter, AugmentationConfig
+from .conversation_schema import Conversation
+from .data_augmentation import AugmentationConfig, DataAugmenter
+from .label_taxonomy import (
+    TherapeuticResponseType,
+)
 
 
 def test_automated_labeler_reproducibility():

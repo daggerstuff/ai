@@ -4,17 +4,18 @@ Configuration Validation System for Pixelated Empathy AI
 Validates all configuration files and environment variables
 """
 
-import os
-import sys
 import json
-import yaml
 import logging
-from typing import Dict, List, Any, Optional, Union
-from pathlib import Path
+import os
+import re
+import sys
 from dataclasses import dataclass, field
 from enum import Enum
-import re
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
+
+import yaml
 
 # Configure logging
 logging.basicConfig(
@@ -168,7 +169,7 @@ class ConfigValidator:
             parsed = urlparse(value)
             if not parsed.scheme:
                 self.report.add_error(
-                    f"Database URL missing scheme",
+                    "Database URL missing scheme",
                     field=field,
                     suggestion="Use format: postgresql://user:pass@host:port/db"
                 )
@@ -181,13 +182,13 @@ class ConfigValidator:
             
             if not parsed.hostname:
                 self.report.add_error(
-                    f"Database URL missing hostname",
+                    "Database URL missing hostname",
                     field=field
                 )
             
             if not parsed.path or parsed.path == '/':
                 self.report.add_error(
-                    f"Database URL missing database name",
+                    "Database URL missing database name",
                     field=field
                 )
                 
@@ -203,7 +204,7 @@ class ConfigValidator:
             parsed = urlparse(value)
             if not parsed.scheme:
                 self.report.add_error(
-                    f"Redis URL missing scheme",
+                    "Redis URL missing scheme",
                     field=field,
                     suggestion="Use format: redis://[:password@]host:port[/db]"
                 )
@@ -216,7 +217,7 @@ class ConfigValidator:
             
             if not parsed.hostname:
                 self.report.add_error(
-                    f"Redis URL missing hostname",
+                    "Redis URL missing hostname",
                     field=field
                 )
                 
@@ -230,14 +231,14 @@ class ConfigValidator:
         """Validate JWT secret strength"""
         if len(value) < 32:
             self.report.add_error(
-                f"JWT secret too short (minimum 32 characters)",
+                "JWT secret too short (minimum 32 characters)",
                 field=field,
                 value=f"Length: {len(value)}",
                 suggestion="Generate a longer, more secure secret"
             )
         elif len(value) < 64:
             self.report.add_warning(
-                f"JWT secret could be longer for better security",
+                "JWT secret could be longer for better security",
                 field=field,
                 value=f"Length: {len(value)}",
                 suggestion="Consider using 64+ character secret"
@@ -246,7 +247,7 @@ class ConfigValidator:
         # Check for common weak patterns
         if value.lower() in ['secret', 'password', 'changeme', 'default']:
             self.report.add_error(
-                f"JWT secret uses common weak value",
+                "JWT secret uses common weak value",
                 field=field,
                 suggestion="Generate a cryptographically secure random secret"
             )
@@ -255,7 +256,7 @@ class ConfigValidator:
         """Validate encryption key"""
         if len(value) < 32:
             self.report.add_error(
-                f"Encryption key too short (minimum 32 characters)",
+                "Encryption key too short (minimum 32 characters)",
                 field=field,
                 value=f"Length: {len(value)}"
             )
@@ -266,7 +267,7 @@ class ConfigValidator:
             base64.b64decode(value)
             if len(base64.b64decode(value)) < 32:
                 self.report.add_warning(
-                    f"Decoded encryption key may be too short",
+                    "Decoded encryption key may be too short",
                     field=field
                 )
         except Exception:
@@ -286,7 +287,7 @@ class ConfigValidator:
             env = os.getenv('ENVIRONMENT', '').lower()
             if env in ['production', 'prod']:
                 self.report.add_warning(
-                    f"DEBUG log level in production environment",
+                    "DEBUG log level in production environment",
                     field=field,
                     suggestion="Use INFO or WARNING for production"
                 )
@@ -307,20 +308,20 @@ class ConfigValidator:
             workers = int(value)
             if workers < 1:
                 self.report.add_error(
-                    f"Max workers must be positive",
+                    "Max workers must be positive",
                     field=field,
                     value=workers
                 )
             elif workers > 32:
                 self.report.add_warning(
-                    f"Very high worker count may cause resource issues",
+                    "Very high worker count may cause resource issues",
                     field=field,
                     value=workers,
                     suggestion="Consider CPU core count when setting workers"
                 )
         except ValueError:
             self.report.add_error(
-                f"Max workers must be an integer",
+                "Max workers must be an integer",
                 field=field,
                 value=value
             )
@@ -331,20 +332,20 @@ class ConfigValidator:
             batch_size = int(value)
             if batch_size < 1:
                 self.report.add_error(
-                    f"Batch size must be positive",
+                    "Batch size must be positive",
                     field=field,
                     value=batch_size
                 )
             elif batch_size > 1000:
                 self.report.add_warning(
-                    f"Large batch size may cause memory issues",
+                    "Large batch size may cause memory issues",
                     field=field,
                     value=batch_size,
                     suggestion="Consider memory constraints when setting batch size"
                 )
         except ValueError:
             self.report.add_error(
-                f"Batch size must be an integer",
+                "Batch size must be an integer",
                 field=field,
                 value=value
             )
@@ -353,7 +354,7 @@ class ConfigValidator:
         """Validate debug flag"""
         if value.lower() not in ['true', 'false', '1', '0', 'yes', 'no']:
             self.report.add_warning(
-                f"Debug flag should be boolean-like",
+                "Debug flag should be boolean-like",
                 field=field,
                 value=value,
                 suggestion="Use 'true', 'false', '1', or '0'"
@@ -363,7 +364,7 @@ class ConfigValidator:
             env = os.getenv('ENVIRONMENT', '').lower()
             if env in ['production', 'prod']:
                 self.report.add_warning(
-                    f"Debug enabled in production environment",
+                    "Debug enabled in production environment",
                     field=field,
                     suggestion="Disable debug in production"
                 )
@@ -374,7 +375,7 @@ class ConfigValidator:
             parsed = urlparse(value)
             if not parsed.scheme or not parsed.hostname:
                 self.report.add_error(
-                    f"Invalid Sentry DSN format",
+                    "Invalid Sentry DSN format",
                     field=field,
                     suggestion="Check Sentry project settings for correct DSN"
                 )
@@ -614,13 +615,13 @@ class ConfigValidator:
         print("="*80)
         
         summary = report.get_summary()
-        print(f"\nSUMMARY:")
+        print("\nSUMMARY:")
         print(f"  Errors:   {summary['error']}")
         print(f"  Warnings: {summary['warning']}")
         print(f"  Info:     {summary['info']}")
         
         if report.results:
-            print(f"\nDETAILS:")
+            print("\nDETAILS:")
             for result in report.results:
                 icon = {"error": "❌", "warning": "⚠️", "info": "ℹ️"}[result.level.value]
                 print(f"\n{icon} {result.level.value.upper()}: {result.message}")

@@ -4,10 +4,9 @@ AI-Powered Content Router
 Intelligently analyzes segments and determines optimal Q/A generation strategy
 """
 
-import json
 import re
-from typing import Dict, List, Tuple
-from pathlib import Path
+from typing import Dict
+
 
 class AIContentRouter:
     def __init__(self):

@@ -7,9 +7,6 @@ import logging
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from rich.console import Console
-from rich.table import Table
-
 from ai.core.sourcing.journal.cli.config import load_config
 from ai.core.sourcing.journal.cli.interactive import (
     display_progress,
@@ -27,6 +24,8 @@ from ai.core.sourcing.journal.orchestrator.research_orchestrator import (
     ResearchOrchestrator,
 )
 from ai.core.sourcing.journal.orchestrator.types import OrchestratorConfig
+from rich.console import Console
+from rich.table import Table
 
 console = Console()
 logger = logging.getLogger(__name__)

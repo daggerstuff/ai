@@ -5,27 +5,23 @@ This module provides pytest fixtures and configuration for testing the
 six-stage pipeline communication system with HIPAA++ compliance.
 """
 
-import pytest
 import asyncio
-import json
 import time
-from datetime import datetime, timedelta
-from unittest.mock import Mock, AsyncMock, MagicMock
-from typing import Dict, Any, List, Optional
+from datetime import datetime
+from typing import Any, Dict, List
+from unittest.mock import AsyncMock, Mock
 
-from ..event_bus import EventBus, EventMessage, EventType
-from ..pipeline_coordinator import PipelineCoordinator, PipelineContext
-from ..state_manager import StateManager, PipelineState, StageState
-from ..progress_tracker import ProgressTracker, ProgressUpdate
-from ..error_recovery import ErrorRecoveryManager, RecoveryStrategy, RecoveryResult
-from ..bias_integration import BiasDetectionIntegration, BiasMetrics
-from ..performance_monitor import PerformanceMonitor, PerformanceMetric
-from ..graceful_degradation import GracefulDegradationManager, DegradationLevel
+import pytest
+
 from ...integration.redis_client import RedisClient
-from ...error_handling.custom_errors import (
-    PipelineExecutionError, ValidationError, TimeoutError,
-    BiasDetectionError, ServiceUnavailableError
-)
+from ..bias_integration import BiasDetectionIntegration, BiasMetrics
+from ..error_recovery import ErrorRecoveryManager
+from ..event_bus import EventBus, EventMessage, EventType
+from ..graceful_degradation import GracefulDegradationManager
+from ..performance_monitor import PerformanceMetric, PerformanceMonitor
+from ..pipeline_coordinator import PipelineContext, PipelineCoordinator
+from ..progress_tracker import ProgressTracker
+from ..state_manager import StateManager
 
 
 @pytest.fixture(scope='session')

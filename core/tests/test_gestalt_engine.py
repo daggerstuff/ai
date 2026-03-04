@@ -16,7 +16,6 @@ from typing import Optional
 from unittest.mock import MagicMock
 
 import pytest
-
 from ai.core.gestalt_engine import (
     OCEAN_TRAITS,
     PLUTCHIK_EMOTIONS,
@@ -52,7 +51,10 @@ def make_defense_prediction(
     maturity_score: Optional[float] = None,
 ) -> DefensePrediction:
     """Build a minimal DefensePrediction for injection into mocks."""
-    from ai.training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
+    from ai.training.defense_mechanisms.constants import (
+        DEFENSE_LABELS,
+        DEFENSE_MATURITY,
+    )
 
     probs = [0.0] * 9
     probs[label] = confidence

@@ -7,9 +7,8 @@ This module provides request and response models for integration planning.
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field, field_serializer
-
 from ai.core.sourcing.journal.api.models.common import PaginatedResponse
+from pydantic import BaseModel, Field, field_serializer
 
 
 class IntegrationInitiateRequest(BaseModel):

@@ -16,14 +16,14 @@ Implements all 10 subtasks:
 - 5.7.2.10: Quality validation integration testing
 """
 
-import sqlite3
-import pandas as pd
-import numpy as np
 import json
 import re
-from datetime import datetime, timedelta
-from typing import Dict, List, Tuple, Any, Optional
 import warnings
+from datetime import datetime
+from typing import Any, Dict, List
+
+import numpy as np
+
 warnings.filterwarnings('ignore')
 
 class ClinicalStandardsValidator:
@@ -634,7 +634,7 @@ def run_comprehensive_validation_qa_system():
     print(f"  Total conversations checked: {quality_results['total_conversations']}")
     print(f"  Checks performed: {len(quality_results['checks_performed'])}")
     print(f"  Results: {quality_results['overall_results']['passed_all_checks']} passed all, {quality_results['overall_results']['failed_some_checks']} failed some")
-    print(f"  ✅ Automated quality checks complete")
+    print("  ✅ Automated quality checks complete")
     print()
     
     # Tasks 5.7.2.3, 5.7.2.5-5.7.2.10: Additional Components
@@ -660,22 +660,22 @@ def run_comprehensive_validation_qa_system():
     print("=" * 80)
     print("🎉 VALIDATION & QUALITY ASSURANCE SYSTEM SUMMARY")
     print("=" * 80)
-    print(f"📊 Clinical Validation Results:")
+    print("📊 Clinical Validation Results:")
     print(f"  • Conversations validated: {results_summary['clinical_validation']['total_validated']}")
     print(f"  • Clinical compliance rate: {(results_summary['clinical_validation']['compliant_conversations'] / results_summary['clinical_validation']['total_validated'] * 100):.1f}%")
     print(f"  • Average clinical score: {results_summary['clinical_validation']['average_score']:.1f}")
     
-    print(f"\n⚙️ QA Workflow Results:")
+    print("\n⚙️ QA Workflow Results:")
     print(f"  • Conversations processed: {sum(results_summary['qa_workflow'].values())}")
     print(f"  • Success rate: {(results_summary['qa_workflow']['passed'] / sum(results_summary['qa_workflow'].values()) * 100):.1f}%")
     print(f"  • Manual review required: {results_summary['qa_workflow']['needs_review']}")
     
-    print(f"\n🤖 Automated Quality Check Results:")
+    print("\n🤖 Automated Quality Check Results:")
     print(f"  • Perfect quality rate: {(results_summary['automated_quality_checks']['passed_all_checks'] / sum(results_summary['automated_quality_checks'].values()) * 100):.1f}%")
     print(f"  • Partial quality issues: {results_summary['automated_quality_checks']['failed_some_checks']}")
     
-    print(f"\n✅ All 10 Task 5.7.2 subtasks implemented and operational!")
-    print(f"🏆 Validation & Quality Assurance System: COMPLETE")
+    print("\n✅ All 10 Task 5.7.2 subtasks implemented and operational!")
+    print("🏆 Validation & Quality Assurance System: COMPLETE")
     
     return results_summary
 

@@ -11,12 +11,10 @@ This test suite validates the crisis intervention detector's ability to:
 5. Ensure safety and compliance
 """
 
-import unittest
-import pytest
 import time
-import json
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Optional, Union, Any
+import unittest
+from typing import Any, Dict
+
 
 # Mock the crisis intervention detector for testing
 class MockCrisisInterventionDetector:

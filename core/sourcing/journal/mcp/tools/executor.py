@@ -10,14 +10,11 @@ import logging
 from typing import Any, Callable, Dict, List, Optional
 
 from ai.core.sourcing.journal.mcp.protocol import (
-    JSONRPCErrorCode,
     MCPError,
     MCPErrorCode,
 )
-from ai.core.sourcing.journal.mcp.tools.base import MCPTool
 from ai.core.sourcing.journal.mcp.tools.registry import ToolRegistry
 from ai.core.sourcing.journal.mcp.utils.async_execution import AsyncToolExecutor
-from ai.core.sourcing.journal.mcp.utils.error_handling import MCPErrorHandler
 from ai.core.sourcing.journal.mcp.utils.progress_streaming import (
     ProgressStreamer,
     ProgressUpdate,

@@ -4,16 +4,15 @@ Prepare unified dataset for Lightning.ai H100 deployment
 """
 
 import json
-import shutil
-from pathlib import Path
 import logging
+import shutil
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 def prepare_lightning_data():
     """Prepare data for Lightning.ai deployment"""
-    from path_utils import get_unified_training_dir, get_lightning_dir
+    from path_utils import get_lightning_dir, get_unified_training_dir
     source_dir = get_unified_training_dir()
     target_dir = get_lightning_dir() / "production/data"
     

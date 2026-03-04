@@ -8,6 +8,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Dict, List, Optional
+
 from datasets import load_dataset
 from tqdm import tqdm
 
@@ -161,7 +162,7 @@ class TherapeuticDatasetAcquisition:
         with open(summary_file, 'w', encoding='utf-8') as f:
             json.dump(summary, f, indent=2)
 
-        logger.info(f"\n📊 Acquisition Summary:")
+        logger.info("\n📊 Acquisition Summary:")
         logger.info(f"   Total datasets: {summary['total_datasets']}")
         logger.info(f"   Total conversations: {summary['total_conversations']}")
         for name, info in summary['datasets'].items():

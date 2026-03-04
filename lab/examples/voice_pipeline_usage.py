@@ -14,9 +14,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ai.core.pipelines.voice_pipeline_integration import (
-    VoiceTrainingPipeline,
     VoicePipelineConfig,
-    process_youtube_voice_data
+    VoiceTrainingPipeline,
+    process_youtube_voice_data,
 )
 
 
@@ -39,11 +39,11 @@ async def example_simple_processing():
         )
         
         if result.success:
-            print(f"✅ Processing successful!")
+            print("✅ Processing successful!")
             print(f"Generated {result.total_conversations} conversations")
             print(f"Processing time: {result.processing_time:.2f} seconds")
         else:
-            print(f"❌ Processing failed")
+            print("❌ Processing failed")
             for error in result.errors[:3]:
                 print(f"  Error: {error}")
                 

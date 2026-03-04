@@ -29,7 +29,6 @@ from acquisition_monitor import AcquisitionMonitor
 from conversation_schema import Conversation
 from logger import get_logger
 from pixel_dataset_loader import PixelDatasetLoader
-
 from utils import read_json, write_json
 
 # Journal research integration

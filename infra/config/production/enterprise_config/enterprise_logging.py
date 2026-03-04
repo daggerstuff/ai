@@ -10,17 +10,16 @@ Provides centralized, structured logging with:
 - Distributed tracing support
 """
 
+import json
 import logging
 import logging.handlers
-import json
 import sys
-import traceback
-from pathlib import Path
-from typing import Dict, Any, Optional
-from datetime import datetime
-import threading
-import queue
 import time
+import traceback
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional
+
 
 class JSONFormatter(logging.Formatter):
     """JSON formatter for structured logging."""

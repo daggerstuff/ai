@@ -4,16 +4,14 @@ Emergency Backup System for Processed Conversations
 Creates immediate backup of all processed conversation data to prevent data loss.
 """
 
-import os
+import hashlib
 import json
+import logging
 import shutil
 import tarfile
-import gzip
-import hashlib
 from datetime import datetime
 from pathlib import Path
-import logging
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
 # Configure logging
 logging.basicConfig(
@@ -159,7 +157,7 @@ class EmergencyBackupSystem:
             # Clean up uncompressed backup
             shutil.rmtree(backup_path)
             
-            logger.info(f"Emergency backup completed successfully!")
+            logger.info("Emergency backup completed successfully!")
             logger.info(f"Archive: {archive_path}")
             logger.info(f"Size: {archive_path.stat().st_size / (1024*1024*1024):.2f} GB")
             logger.info(f"Files backed up: {len(backed_up_files)}")

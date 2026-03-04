@@ -6,13 +6,13 @@ Task 51: Complete API Documentation
 Official Python client for the Pixelated Empathy AI API.
 """
 
-import requests
 import json
-import time
-from typing import Dict, List, Any, Optional, Union, Iterator
-from dataclasses import dataclass
-from datetime import datetime
 import logging
+import time
+from dataclasses import dataclass
+from typing import Any, Dict, Iterator, List, Optional
+
+import requests
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -444,7 +444,7 @@ if __name__ == "__main__":
     
     # Get quality metrics
     metrics = api.get_quality_metrics()
-    print(f"\nOverall quality metrics:")
+    print("\nOverall quality metrics:")
     print(f"  Average quality: {metrics['overall_statistics']['average_quality']}")
     print(f"  Total conversations: {metrics['overall_statistics']['total_conversations']}")
     
@@ -460,6 +460,6 @@ if __name__ == "__main__":
     }
     
     validation_result = api.validate_conversation_quality(sample_conversation)
-    print(f"\nConversation quality validation:")
+    print("\nConversation quality validation:")
     print(f"  Overall quality: {validation_result['validation_results']['overall_quality']}")
     print(f"  Tier classification: {validation_result['tier_classification']}")

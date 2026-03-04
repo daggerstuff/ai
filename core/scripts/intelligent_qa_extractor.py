@@ -3,9 +3,9 @@
 Intelligent Q/A Extractor - Finds embedded questions or creates contextually appropriate ones
 """
 
-import json
 import re
-from typing import Dict, Tuple, Optional
+from typing import Dict, Optional, Tuple
+
 
 class IntelligentQAExtractor:
     def __init__(self):

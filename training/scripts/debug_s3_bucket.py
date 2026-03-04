@@ -12,6 +12,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from ai.core.utils.s3_dataset_loader import S3DatasetLoader
 
+
 def main():
     print("🔍 Debugging S3 bucket configuration...")
     print("=" * 60)
@@ -27,7 +28,7 @@ def main():
     try:
         # Initialize S3 loader
         loader = S3DatasetLoader()
-        print(f"✅ S3DatasetLoader initialized successfully!")
+        print("✅ S3DatasetLoader initialized successfully!")
         print(f"   Bucket being used: {loader.bucket}")
         print(f"   Endpoint being used: {loader.endpoint_url}")
         print()

@@ -6,17 +6,16 @@ Enterprise-grade launcher for the quality analytics dashboard with
 comprehensive validation, dependency checking, and production deployment.
 """
 
-import sys
-import os
-import subprocess
-import logging
-import sqlite3
-from pathlib import Path
-from datetime import datetime
-import json
 import argparse
+import json
+import logging
 import signal
+import sqlite3
+import subprocess
+import sys
 import time
+from datetime import datetime
+from pathlib import Path
 
 # Configure logging
 logging.basicConfig(
@@ -298,7 +297,7 @@ class QualityAnalyticsDashboardLauncher:
                 logger.info("✅ Pre-launch tests passed")
                 return True
             else:
-                logger.error(f"❌ Pre-launch tests failed:")
+                logger.error("❌ Pre-launch tests failed:")
                 logger.error(f"STDOUT: {result.stdout}")
                 logger.error(f"STDERR: {result.stderr}")
                 return False
@@ -392,7 +391,7 @@ class QualityAnalyticsDashboardLauncher:
                 return True
             else:
                 stdout, stderr = self.dashboard_process.communicate()
-                logger.error(f"❌ Dashboard failed to start:")
+                logger.error("❌ Dashboard failed to start:")
                 logger.error(f"STDOUT: {stdout}")
                 logger.error(f"STDERR: {stderr}")
                 return False

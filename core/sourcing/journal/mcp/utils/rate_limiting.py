@@ -7,7 +7,6 @@ to prevent abuse and ensure fair resource usage.
 
 import asyncio
 import time
-from collections import defaultdict
 from typing import Dict, Optional
 
 from ai.core.sourcing.journal.mcp.config import RateLimitConfig

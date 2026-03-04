@@ -13,14 +13,14 @@ Strategy:
 4. Construct structured CategoryClassification result
 """
 
-import re
 import logging
-from typing import Optional, List, Tuple
+import re
 from dataclasses import dataclass
+from typing import List, Optional, Tuple
 
 from ai.core.pipelines.design.taxonomy_classifier import (
-    TherapeuticCategory,
     CategoryClassification,
+    TherapeuticCategory,
 )
 
 logger = logging.getLogger(__name__)

@@ -4,10 +4,8 @@ EMERGENCY PRODUCTION HOTFIX
 Critical fixes for live production system with security vulnerabilities
 """
 
-import os
-import sys
 import logging
-import subprocess
+import os
 from datetime import datetime
 
 # Setup logging

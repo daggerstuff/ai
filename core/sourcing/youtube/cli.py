@@ -12,11 +12,9 @@ import argparse
 import json
 import logging
 from pathlib import Path
-from typing import Optional
 
-from ai.core.sourcing.youtube.api import ChannelHunterConfig, ChannelQualityThresholds
 from ai.core.sourcing.youtube.models import Channel, ChannelRegistry, ChannelStatus
-from ai.core.sourcing.youtube.monitoring import ChannelMonitor, health_check_channel
+from ai.core.sourcing.youtube.monitoring import health_check_channel
 from ai.core.sourcing.youtube.processor import run_pipeline
 
 logger = logging.getLogger(__name__)
@@ -39,7 +37,7 @@ def cmd_discover(args):
         print("Error: YouTube API key required. Use --api-key or set YOUTUBE_API_KEY environment variable.")
         return 1
 
-    print(f"Starting channel discovery...")
+    print("Starting channel discovery...")
     print(f"  Target channels: {args.channels}")
     print(f"  Min subscribers: {args.min_subscribers:,}")
     print(f"  Min videos: {args.min_videos}")
@@ -63,15 +61,15 @@ def cmd_discover(args):
         )
 
         print(f"\n{'-'*60}")
-        print(f"Discovery Complete!")
+        print("Discovery Complete!")
         print(f"{'-'*60}")
-        print(f"\nResults:")
+        print("\nResults:")
         print(f"  Qualified: {len(results.qualified_channels)} / {args.channels} target")
         print(f"  Rejected: {len(results.rejected_channels)}")
         print(f"  Total evaluated: {len(results.found_channels)}")
         print(f"  Languages: {len(results.languages)}")
         print(f"  Categories: {len(results.categories)}")
-        print(f"\n  Statistics:")
+        print("\n  Statistics:")
         print(f"    Total subscribers: {results.total_subscribers:,}")
         print(f"    Total videos: {results.total_videos:,}")
         print(f"    Professional sources: {results.professional_count}")
@@ -129,12 +127,12 @@ def cmd_check(args):
     print(f"Activity Status: {result['activity_status']}")
     print(f"Health Score: {result['health_score']:.2f}")
     print(f"Quality Score: {result['quality_score']:.2f}")
-    print(f"\nNotes:")
+    print("\nNotes:")
     for note in result['notes']:
         print(f"  • {note}")
 
     if result['alerts']:
-        print(f"\nAlerts:")
+        print("\nAlerts:")
         for alert in result['alerts']:
             print(f"  [{alert['severity'].upper()}] {alert['name']}: {alert['description']}")
 
@@ -179,7 +177,7 @@ def cmd_import(args):
         registry.add_channel(channel)
 
     print(f"{'-'*60}")
-    print(f"Import Complete!")
+    print("Import Complete!")
     print(f"{'-'*60}")
     print(registry.summary())
 

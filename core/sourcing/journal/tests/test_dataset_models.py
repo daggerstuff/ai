@@ -4,7 +4,6 @@ Unit tests for data models.
 Tests validation methods and data integrity for all data model classes.
 """
 
-import pytest
 from datetime import datetime
 
 from ai.core.sourcing.journal.models.dataset_models import (

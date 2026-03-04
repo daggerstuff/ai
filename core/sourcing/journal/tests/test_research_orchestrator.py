@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from typing import Callable, List, Optional
 
 import pytest
-
 from ai.core.sourcing.journal.acquisition.acquisition_manager import DownloadProgress
 from ai.core.sourcing.journal.models.dataset_models import (
     AccessRequest,

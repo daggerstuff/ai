@@ -6,21 +6,17 @@ Enterprise-grade quality comparison system providing comprehensive
 cross-tier analysis, dataset benchmarking, and comparative reporting.
 """
 
-import pandas as pd
-import numpy as np
-import sqlite3
-import json
-from datetime import datetime, timedelta
-from pathlib import Path
 import logging
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+import sqlite3
 import warnings
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
 from scipy import stats
-from scipy.stats import mannwhitneyu, kruskal, chi2_contingency, f_oneway
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
-import plotly.express as px
+from scipy.stats import mannwhitneyu
 
 # Suppress warnings for cleaner output
 warnings.filterwarnings("ignore")
@@ -597,7 +593,7 @@ def main():
     # Perform tier comparisons
     tier_comparisons = comparator.compare_tiers(df)
     
-    print(f"📊 Quality Comparison Results:")
+    print("📊 Quality Comparison Results:")
     print(f"Tier Comparisons: {len(tier_comparisons)}")
     
     if tier_comparisons:
@@ -606,7 +602,7 @@ def main():
         print(f"Effect Size: {comparison.effect_size:.3f}")
         print(f"Practical Significance: {comparison.practical_significance}")
         
-        print(f"\n💡 Recommendations:")
+        print("\n💡 Recommendations:")
         for i, rec in enumerate(comparison.recommendations, 1):
             print(f"{i}. {rec}")
 

@@ -5,31 +5,23 @@ Automatically selects best configuration to fit 12-hour window
 """
 
 import json
-import torch
-import wandb
-import os
 import signal
-import sys
 import time
 from datetime import datetime
-from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional
 
-from transformers import AutoTokenizer, Trainer
+import torch
+import wandb
 from datasets import Dataset
-from tqdm import tqdm
-
 from models.moe_architecture import MoEConfig, create_therapeutic_moe_model
-from training_optimizer import (
-    TrainingTimeOptimizer,
-    optimize_for_dataset
-)
 from train_moe_h100 import (
-    TimeConstraintCallback,
     MoETrainingCallback,
+    TimeConstraintCallback,
     setup_wandb,
-    signal_handler
+    signal_handler,
 )
+from training_optimizer import optimize_for_dataset
+from transformers import AutoTokenizer, Trainer
 
 # Global state
 shutdown_requested = False
@@ -62,7 +54,10 @@ def analyze_dataset(dataset_path: Optional[str] = None, s3_path: Optional[str] =
         print(f"   Loaded from local: {dataset_path}")
     else:
         # Try to find dataset in S3
-        from ai.training.utils.s3_dataset_loader import get_s3_dataset_path, load_dataset_from_s3
+        from ai.training.utils.s3_dataset_loader import (
+            get_s3_dataset_path,
+            load_dataset_from_s3,
+        )
         try:
             s3_path = get_s3_dataset_path('training_dataset.json', category='professional_therapeutic')
             data = load_dataset_from_s3('training_dataset.json', category='professional_therapeutic')
@@ -275,7 +270,7 @@ def main():
             # Calculate actual duration
             actual_duration = (time.time() - start_time) / 3600
 
-            print(f"\n💾 Saving model...")
+            print("\n💾 Saving model...")
             trainer.save_model()
             tokenizer.save_pretrained(training_args.output_dir)
             model.save_pretrained(training_args.output_dir)
@@ -287,7 +282,7 @@ def main():
                 'training/time_accuracy': (estimate.estimated_hours / actual_duration) * 100
             })
 
-            print(f"\n✅ Training completed!")
+            print("\n✅ Training completed!")
             print(f"   Estimated: {estimate.estimated_hours:.2f} hours")
             print(f"   Actual: {actual_duration:.2f} hours")
             print(f"   Accuracy: {(estimate.estimated_hours / actual_duration) * 100:.1f}%")

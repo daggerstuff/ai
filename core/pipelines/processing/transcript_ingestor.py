@@ -1,9 +1,9 @@
-import logging
 import json
+import logging
 import os
-from pathlib import Path
-from typing import List, Dict, Optional
 import sys
+from pathlib import Path
+from typing import List
 
 # Adjust import for project structure
 try:

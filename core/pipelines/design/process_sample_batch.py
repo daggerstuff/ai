@@ -10,13 +10,12 @@ Usage:
 """
 
 import argparse
-import json
-import logging
-from pathlib import Path
-from typing import List, Dict, Any
 
 # Direct imports to avoid NeMo dependency in __init__.py
 import importlib.util
+import json
+import logging
+from pathlib import Path
 
 script_dir = Path(__file__).parent
 
@@ -186,14 +185,14 @@ def analyze_results(stats, output_path: Path) -> None:
         f"({stats.llm_classified / stats.total_records * 100:.1f}%)"
     )
     print(f"Low confidence: {stats.low_confidence:,}")
-    print(f"\nAPI Calls:")
+    print("\nAPI Calls:")
     print(f"  LLM API calls: {stats.llm_api_calls:,}")
     print(f"  Estimated cost: ${stats.estimated_cost:.4f} USD")
-    print(f"\nConfidence Averages:")
+    print("\nConfidence Averages:")
     print(f"  Keyword: {stats.avg_keyword_confidence:.2%}")
     print(f"  LLM: {stats.avg_llm_confidence:.2%}")
     print(f"  Overall: {stats.avg_overall_confidence:.2%}")
-    print(f"\nCategory Distribution:")
+    print("\nCategory Distribution:")
     for cat, count in sorted(stats.categories.items(), key=lambda x: -x[1]):
         if count > 0:
             pct = (count / stats.total_records * 100) if stats.total_records > 0 else 0
@@ -290,7 +289,7 @@ def main():
     )
 
     # Process the batch
-    logger.info(f"\n🚀 Starting hybrid classification with NVIDIA NIM GLM4.7...")
+    logger.info("\n🚀 Starting hybrid classification with NVIDIA NIM GLM4.7...")
     logger.info(f"Sample size: {args.sample_size}")
     logger.info(f"Keyword threshold: {args.keyword_threshold}")
     logger.info(f"LLM model: {args.model}")
@@ -313,7 +312,7 @@ def main():
     print(f"✓ Results saved to: {args.output}")
     print(f"✓ LLM API calls made: {stats.llm_api_calls}")
     print(
-        f"✓ Hybrid approach working: YES"
+        "✓ Hybrid approach working: YES"
         if stats.llm_classified > 0
         else "⚠️  WARNING: No LLM classifications"
     )

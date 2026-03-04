@@ -4,7 +4,6 @@ from datetime import datetime
 from typing import Any, Dict, Tuple
 
 import pytest
-
 from ai.core.sourcing.journal.mcp.config import MCPConfig
 from ai.core.sourcing.journal.mcp.server import MCPServer
 from ai.core.sourcing.journal.mcp.utils.progress_streaming import (

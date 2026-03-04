@@ -14,16 +14,16 @@ from ai.core.sourcing.journal.compliance.encryption_manager import (
     EncryptionManager,
 )
 from ai.core.sourcing.journal.compliance.hipaa_validator import (
-    HIPAAValidator,
     HIPAAComplianceResult,
+    HIPAAValidator,
 )
 from ai.core.sourcing.journal.compliance.license_checker import (
     LicenseChecker,
     LicenseCompatibility,
 )
 from ai.core.sourcing.journal.compliance.privacy_verifier import (
-    PrivacyVerifier,
     PrivacyAssessment,
+    PrivacyVerifier,
 )
 
 __all__ = [

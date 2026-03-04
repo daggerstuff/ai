@@ -11,9 +11,8 @@ import os
 from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
-
 from ai.training.utils.s3_dataset_loader import S3DatasetLoader
+from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv("ai/.env")

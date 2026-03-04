@@ -6,12 +6,11 @@ Long-term, journal-style tracking of client therapeutic progress
 
 import json
 import sqlite3
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
-from dataclasses import dataclass, field, asdict
-from enum import Enum
-from pathlib import Path
 import statistics
+from dataclasses import asdict, dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 
 class EmotionalState(Enum):
@@ -665,7 +664,7 @@ if __name__ == "__main__":
 
     # Example: Generate progress report
     report = tracker.generate_progress_report("client_123", timeframe_days=30)
-    print(f"\n📊 Progress Report:")
+    print("\n📊 Progress Report:")
     print(f"   Sessions: {report.sessions_count}")
     print(f"   Trajectory: {report.overall_trajectory.value}")
     print(f"   Summary: {report.summary}")

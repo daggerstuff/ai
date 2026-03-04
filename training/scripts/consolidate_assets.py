@@ -8,10 +8,9 @@ Uses symlinks for large files to avoid duplication.
 
 import json
 import shutil
-import os
-from pathlib import Path
-from typing import Dict, List, Any, Optional
 import sys
+from pathlib import Path
+from typing import Any, Dict
 
 # Size threshold for using symlinks (100 MB)
 SYMLINK_THRESHOLD = 100 * 1024 * 1024

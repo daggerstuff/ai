@@ -3,17 +3,18 @@ Tests for labeler reproducibility and augmentation determinism.
 Ensures consistent results across multiple runs with fixed seeds.
 """
 
-import unittest
 import random
-from typing import List
-from .label_taxonomy import (
-    TherapeuticResponseLabel, CrisisLabel, LabelMetadata, LabelProvenanceType,
-    TherapeuticResponseType, CrisisLevelType
-)
-from .conversation_schema import Conversation, Message
+import unittest
+
 from .automated_labeler import AutomatedLabeler
-from .data_augmentation import DataAugmenter, AugmentationConfig
+from .conversation_schema import Conversation
+from .data_augmentation import AugmentationConfig, DataAugmenter
 from .human_in_the_loop import HumanInLoopLabeler
+from .label_taxonomy import (
+    LabelMetadata,
+    TherapeuticResponseLabel,
+    TherapeuticResponseType,
+)
 from .label_versioning import LabelVersionManager
 
 

@@ -5,11 +5,10 @@ Integrates long-term therapy progress tracking into training datasets
 """
 
 import json
-import sqlite3
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +107,7 @@ class JournalingIntegrator:
                 "therapeutic_alliance": 0.6 + (session * 0.05),
                 "conversation": {
                     "client": f"I tried the {pattern.skill_development[session % len(pattern.skill_development)]} technique you taught me, but it was hard.",
-                    "therapist": f"That's actually progress - noticing the difficulty is awareness. Let's explore what made it challenging and how we can adapt the technique to work better for you.",
+                    "therapist": "That's actually progress - noticing the difficulty is awareness. Let's explore what made it challenging and how we can adapt the technique to work better for you.",
                     "therapy_context": {
                         "stage": "skill_building",
                         "skills_introduced": pattern.skill_development[:session],

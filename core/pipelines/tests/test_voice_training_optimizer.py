@@ -5,7 +5,6 @@ Tests for VoiceTrainingOptimizer.
 from unittest.mock import Mock
 
 import pytest
-
 from ai.core.pipelines.conversation_schema import Conversation, Message
 from ai.core.pipelines.voice_training_optimizer import (
     OptimizationResult,

@@ -4,17 +4,14 @@ Quality Validation Caching System for Pixelated Empathy AI
 Implements caching to avoid reprocessing quality validations
 """
 
-import os
-import sys
+import hashlib
 import json
 import logging
-import hashlib
-import pickle
-import time
-from typing import Dict, Any, Optional, Tuple
+import os
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta
 from pathlib import Path
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone, timedelta
+from typing import Any, Dict, Optional, Tuple
 
 # Redis for distributed caching
 try:
@@ -240,7 +237,6 @@ class QualityValidationCache:
                         logger.warning(f"Redis cache clear failed: {e}")
                 
                 # Clear file cache
-                import shutil
                 if self.cache_dir.exists():
                     for cache_file in self.cache_dir.glob("*.pkl"):
                         try:

@@ -4,13 +4,10 @@ Tests for Integration Planning Engine
 
 import json
 import os
-import tempfile
 from datetime import datetime
-from pathlib import Path
 
 import pandas as pd
 import pytest
-
 from ai.core.sourcing.journal.integration.integration_planning_engine import (
     DatasetStructure,
     IntegrationPlanningEngine,

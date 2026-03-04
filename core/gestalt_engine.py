@@ -22,11 +22,10 @@ from enum import Enum
 from typing import Optional
 
 import torch
-from transformers import AutoTokenizer
-
 from ai.training.defense_mechanisms.constants import DEFENSE_LABELS
 from ai.training.defense_mechanisms.dataset import format_dialogue
 from ai.training.defense_mechanisms.model import DefenseClassifier, DefensePrediction
+from transformers import AutoTokenizer
 
 logger = logging.getLogger(__name__)
 

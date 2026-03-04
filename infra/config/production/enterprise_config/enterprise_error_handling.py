@@ -10,16 +10,17 @@ Provides comprehensive error handling with:
 - Error reporting and analytics
 """
 
-import time
-import logging
-import traceback
 import functools
-from typing import Dict, Any, Optional, Callable, Type, List
+import logging
+import threading
+import time
+import traceback
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import Enum
-import threading
-from collections import defaultdict, deque
+from typing import Any, Callable, Dict, List, Optional
+
 
 class ErrorSeverity(Enum):
     """Error severity levels."""

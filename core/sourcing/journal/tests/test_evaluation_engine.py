@@ -2,14 +2,17 @@
 Unit tests for the Dataset Evaluation Engine.
 """
 
-import pytest
 from datetime import datetime
 
+import pytest
 from ai.core.sourcing.journal.evaluation.evaluation_engine import (
     DatasetEvaluationEngine,
     EvaluationConfig,
 )
-from ai.core.sourcing.journal.models.dataset_models import DatasetSource, DatasetEvaluation
+from ai.core.sourcing.journal.models.dataset_models import (
+    DatasetEvaluation,
+    DatasetSource,
+)
 
 
 class TestEvaluationConfig:

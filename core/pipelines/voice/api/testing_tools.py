@@ -3,16 +3,16 @@ API Testing Tools for Pixelated Empathy AI
 Comprehensive testing utilities and tools for API validation.
 """
 
-import requests
-import asyncio
-import aiohttp
+import concurrent.futures
 import json
+import statistics
 import time
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from datetime import datetime
-import concurrent.futures
-import statistics
+from typing import Any, Dict, List, Optional
+
+import requests
+
 
 @dataclass
 class TestResult:

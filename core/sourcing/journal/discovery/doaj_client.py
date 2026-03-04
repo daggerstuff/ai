@@ -11,7 +11,6 @@ from datetime import datetime
 from typing import List, Optional
 
 import requests
-
 from ai.core.sourcing.journal.models.dataset_models import DatasetSource
 
 logger = logging.getLogger(__name__)

@@ -7,11 +7,9 @@ Stores datasets in ai/datasets/ with proper tier organization.
 """
 
 import argparse
-import hashlib
 import json
-import os
 import sys
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -20,7 +18,7 @@ from typing import Any
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 try:
-    from datasets import load_dataset, Dataset
+    from datasets import Dataset, load_dataset
     from huggingface_hub import HfApi
 except ImportError:
     print("Error: Required packages not installed.")
@@ -294,7 +292,7 @@ class DatasetDownloader:
             if config.split:
                 load_kwargs["split"] = config.split
 
-            print(f"  Loading from HuggingFace...")
+            print("  Loading from HuggingFace...")
             dataset = load_dataset(config.hf_id, **load_kwargs)
 
             # Handle different return types
@@ -423,7 +421,7 @@ class DatasetDownloader:
         lines = [
             "# Dataset Download Verification Report",
             f"\nGenerated: {verification['timestamp']}",
-            f"\n## Summary",
+            "\n## Summary",
             f"- Total datasets: {verification['summary']['total']}",
             f"- Valid: {verification['summary']['valid']}",
             f"- Missing: {verification['summary']['missing']}",

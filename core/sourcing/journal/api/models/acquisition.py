@@ -7,9 +7,8 @@ This module provides request and response models for dataset acquisition.
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, field_serializer
-
 from ai.core.sourcing.journal.api.models.common import PaginatedResponse
+from pydantic import BaseModel, Field, field_serializer
 
 
 class AcquisitionInitiateRequest(BaseModel):

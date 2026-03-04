@@ -7,19 +7,24 @@ across 4 stages (40/25/20/15 target distribution).
 """
 
 import json
-import sys
-import random
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from datetime import datetime
 import logging
+import random
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from ai.core.pipelines.configs.stages import STAGE1_ID, STAGE2_ID, STAGE3_ID, STAGE4_ID
+    from ai.core.pipelines.configs.stages import (
+        STAGE1_ID,
+        STAGE2_ID,
+        STAGE3_ID,
+        STAGE4_ID,
+    )
 except ImportError as e:
     logging.error(f"Failed to import pipeline modules: {e}")
     logging.error(f"Project root: {project_root}")
@@ -118,7 +123,7 @@ class DatasetAssembler:
         # Collect all conversations
         conversations_by_stage = self.collect_all_conversations()
 
-        logger.info(f"\n📊 Available conversations:")
+        logger.info("\n📊 Available conversations:")
         for stage, count in self.stats["by_stage_available"].items():
             logger.info(f"  {stage}: {count:,}")
 
@@ -212,10 +217,10 @@ def main():
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
 
-    logger.info(f"\n📊 Assembly Summary:")
+    logger.info("\n📊 Assembly Summary:")
     logger.info(f"  Target total: {report['target_total']:,}")
     logger.info(f"  Actual total: {report['actual_total']:,}")
-    logger.info(f"\n📈 Distribution:")
+    logger.info("\n📈 Distribution:")
     for stage in [STAGE1_ID, STAGE2_ID, STAGE3_ID, STAGE4_ID]:
         target_pct = report['target_distribution'][stage]
         actual_pct = report['actual_distribution'][stage]

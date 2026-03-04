@@ -6,14 +6,13 @@ This script provides a comprehensive test runner for the six-stage pipeline
 communication system with HIPAA++ compliance and sub-50ms performance requirements.
 """
 
-import asyncio
-import sys
-import os
-import time
 import argparse
+import asyncio
 import logging
+import sys
+import time
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import Any, Dict, List
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
@@ -89,7 +88,6 @@ class TestRunner:
         logger.info("Running test file: %s", test_file.name)
         
         import subprocess
-        import tempfile
         
         start_time = time.time()
         
@@ -286,7 +284,7 @@ class TestRunner:
         # Performance metrics
         perf = summary.get('performance_metrics', {})
         if perf.get('status') == 'analyzed':
-            print(f"\nPerformance Metrics:")
+            print("\nPerformance Metrics:")
             print(f"  Average Execution Time: {perf['avg_execution_time']:.3f}s")
             print(f"  Min Execution Time: {perf['min_execution_time']:.3f}s")
             print(f"  Max Execution Time: {perf['max_execution_time']:.3f}s")
@@ -295,7 +293,7 @@ class TestRunner:
         
         # Security compliance
         security = summary.get('security_compliance', {})
-        print(f"\nSecurity Compliance:")
+        print("\nSecurity Compliance:")
         print(f"  Security Tests: {security.get('security_tests_run', 0)}")
         print(f"  HIPAA Tests: {security.get('hipaa_tests_run', 0)}")
         print(f"  Security Failures: {security.get('security_failures', 0)}")
@@ -306,7 +304,7 @@ class TestRunner:
         # Failed tests details
         failed_results = [r for r in summary['results'] if not r['success']]
         if failed_results:
-            print(f"\nFailed Test Files:")
+            print("\nFailed Test Files:")
             for result in failed_results:
                 print(f"  ❌ {result['name']} (Return Code: {result['return_code']})")
                 if result.get('error_output'):

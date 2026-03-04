@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 from ..models import DatasetSource
-from .base_client import BaseAPIClient, APIError
+from .base_client import APIError, BaseAPIClient
 
 logger = logging.getLogger(__name__)
 

@@ -5,27 +5,26 @@ This module provides comprehensive pipeline coordination with Redis event bus
 integration, state management, bias detection, and HIPAA++ compliant data handling.
 """
 
-import asyncio
-import json
-import logging
 import time
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Any, Optional, List, Callable
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional
 
-from .event_bus import EventBus, EventMessage, EventType, EventHandler
-from .state_manager import StateManager, PipelineState
-from .progress_tracker import ProgressTracker
-from .error_recovery import ErrorRecoveryManager
-from .bias_integration import BiasDetectionIntegration
-from .performance_monitor import PerformanceMonitor
-from ..integration.redis_client import RedisClient
 from ..error_handling.custom_errors import (
-    PipelineExecutionError, ValidationError, ResourceNotFoundError,
-    BiasDetectionError, TimeoutError
+    BiasDetectionError,
+    PipelineExecutionError,
+    ResourceNotFoundError,
+    ValidationError,
 )
-from ..utils.logger import get_request_logger, log_performance_metric
-from ..utils.validation import validate_pipeline_input, sanitize_input
+from ..integration.redis_client import RedisClient
+from ..utils.logger import get_request_logger
+from ..utils.validation import sanitize_input, validate_pipeline_input
+from .bias_integration import BiasDetectionIntegration
+from .error_recovery import ErrorRecoveryManager
+from .event_bus import EventBus, EventHandler, EventMessage, EventType
+from .performance_monitor import PerformanceMonitor
+from .progress_tracker import ProgressTracker
+from .state_manager import StateManager
 
 
 @dataclass

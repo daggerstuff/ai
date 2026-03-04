@@ -7,10 +7,8 @@ Advanced privacy protection with context-aware redaction for mental health data
 import json
 import logging
 import re
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
-import hashlib
 from datetime import datetime
+from typing import Any, Dict, List, Tuple
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -224,7 +222,7 @@ class EnhancedTherapeuticPIIScrubber:
         for pii_type, count in self.stats["pii_types_found"].items():
             scrubbing_report["pii_types_summary"][pii_type] = count
 
-        logger.info(f"PII scrubbing complete:")
+        logger.info("PII scrubbing complete:")
         logger.info(f"  Total conversations: {len(dataset)}")
         logger.info(
             f"  Conversations with PII: {scrubbing_report['conversations_scrubbed']}"
@@ -297,7 +295,7 @@ def main():
         with open(args.report, "w", encoding="utf-8") as f:
             json.dump(result["scrubbing_report"], f, indent=2, ensure_ascii=False)
 
-    print(f"✅ PII scrubbing complete!")
+    print("✅ PII scrubbing complete!")
     print(f"   Input: {len(dataset)} conversations")
     print(
         f"   Scrubbed: {result['scrubbing_report']['conversations_scrubbed']} conversations"

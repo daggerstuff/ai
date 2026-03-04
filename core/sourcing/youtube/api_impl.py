@@ -6,19 +6,10 @@ replacing the TODO stubs in api.py.
 """
 
 import logging
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Dict, List, Optional
-from urllib.parse import urlencode, urlparse, parse_qs
 
 import requests
-
-from ai.core.sourcing.youtube.models import (
-    Channel,
-    ChannelStatus,
-    ContentCategory,
-    QualityMetrics,
-    LicensingInfo,
-)
 
 logger = logging.getLogger(__name__)
 
@@ -72,6 +63,7 @@ class YouTubeAPI:
             return api_key
 
         import os
+
         from dotenv import load_dotenv
 
         load_dotenv('.env.youtube.example', override=True)
@@ -416,7 +408,7 @@ def test_api_connection(api_key: str) -> bool:
         if not has_quota:
             print(f"⚠️  Low quota: { used}/{limit} units used")
         else:
-            print(f"✅ API connection successful")
+            print("✅ API connection successful")
             print(f"   Quota: {used}/{limit} units used")
 
         # Try a simple search to verify
@@ -448,6 +440,7 @@ def get_api_quota_status() -> tuple[bool, int, int]:
     """
     try:
         import os
+
         from dotenv import load_dotenv
 
         load_dotenv('.env.youtube.example', override=True)
@@ -469,7 +462,7 @@ if __name__ == "__main__":
     # Run quota status check
     has_quota, used, limit = get_api_quota_status()
 
-    print(f"YouTube API Quota Status:")
+    print("YouTube API Quota Status:")
     print(f"  Available: {'Yes' if has_quota else 'No'}")
     print(f"  Used today: {used}/{limit} units")
     print()

@@ -7,11 +7,11 @@ Target: Reduce false negative rate from 84.4% to <1%
 Focus: Comprehensive crisis pattern recognition with context awareness
 """
 
-import re
 import asyncio
 import logging
-from typing import Dict, List, Tuple, Optional
+import re
 from dataclasses import dataclass
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 

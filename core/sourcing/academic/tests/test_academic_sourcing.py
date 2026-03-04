@@ -7,7 +7,6 @@ Run with: uv run python -m pytest ai/sourcing/academic/tests/test_academic_sourc
 from unittest.mock import MagicMock, patch
 
 import pytest
-
 from ai.core.sourcing.academic import (
     AcademicSourcingEngine,
     BookMetadata,

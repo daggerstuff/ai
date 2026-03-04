@@ -7,16 +7,13 @@ for comprehensive therapist training and supervisor evaluation.
 This is the grand-daddy OG platform - the whole point of Pixelated Empathy.
 """
 
-import json
 import logging
-import asyncio
-from typing import Dict, List, Optional, Tuple, Any
-from dataclasses import dataclass, field
-from enum import Enum
-from pathlib import Path
-from datetime import datetime, timedelta
-import uuid
 import random
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

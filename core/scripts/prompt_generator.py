@@ -5,10 +5,11 @@ Converts therapeutic segments into authentic question-answer training pairs
 """
 
 import json
-import re
 import random
-from typing import Dict, List, Tuple
+import re
 from pathlib import Path
+from typing import Dict, List
+
 
 class TherapeuticPromptGenerator:
     def __init__(self):
@@ -184,7 +185,7 @@ def main():
         for key in total_stats:
             total_stats[key] += stats[key]
     
-    print(f"\nTotal conversion complete:")
+    print("\nTotal conversion complete:")
     print(f"  Processed: {total_stats['processed']}/{total_stats['total']} segments")
     print(f"  Success rate: {total_stats['processed']/total_stats['total']*100:.1f}%")
     print(f"  Output directory: {output_dir}")

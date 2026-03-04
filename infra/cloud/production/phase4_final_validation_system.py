@@ -10,14 +10,14 @@ This module completes all final Phase 4 tasks:
 - Task 125: Final Enterprise Production Audit
 """
 
+import asyncio
 import json
 import logging
 import time
-import asyncio
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
+from typing import Any, Dict, List
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -688,11 +688,11 @@ if __name__ == "__main__":
         print(f"Deployment Approved: {'YES' if report['phase4_final_summary']['deployment_approved'] else 'NO'}")
         print(f"Final Status: {report['phase4_final_summary']['final_status']}")
         
-        print(f"\nTask Validation Results:")
+        print("\nTask Validation Results:")
         for task_id, result in report["task_validation_results"].items():
             print(f"  Task {task_id}: {result['score']:.1f}% - {result['status'].upper()}")
         
-        print(f"\nFinal Production Metrics:")
+        print("\nFinal Production Metrics:")
         metrics = report["final_production_metrics"]
         print(f"  Safety Systems: {metrics['safety_systems_score']:.1f}%")
         print(f"  Test Coverage: {metrics['test_coverage_score']:.1f}%")
@@ -703,7 +703,7 @@ if __name__ == "__main__":
         
         if report['phase4_final_summary']['deployment_approved']:
             approval = report["deployment_approval"]
-            print(f"\n🎉 DEPLOYMENT APPROVAL:")
+            print("\n🎉 DEPLOYMENT APPROVAL:")
             print(f"  Approved: {approval['approved']}")
             print(f"  Approval Date: {approval['approval_date']}")
             print(f"  Valid For: {approval['valid_for']}")

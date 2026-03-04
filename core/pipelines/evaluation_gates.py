@@ -4,15 +4,11 @@ Implements threshold-based decision making for model promotion.
 """
 
 import json
-import os
-from typing import Dict, List, Optional, Any, Tuple
+import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-import logging
 from enum import Enum
-import yaml
-from pathlib import Path
-
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +56,7 @@ class EvaluationGate:
                 reason = f"Value {metric_value} {'is in' if passed else 'is out of'} range [{self.threshold_value}, {self.secondary_threshold}]"
             else:
                 passed = False
-                reason = f"Range threshold requires secondary threshold value, got None"
+                reason = "Range threshold requires secondary threshold value, got None"
         elif self.gate_type == GateType.COMPARISON_THRESHOLD:
             # For comparison, threshold_value is typically 0 for "no worse than baseline"
             # Positive values mean it can be that much worse

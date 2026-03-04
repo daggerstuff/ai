@@ -8,8 +8,8 @@ from typing import Dict, List, Union, cast
 import pytest
 from ai.core.pipelines.edge.edge_builder import (
     EdgeDatasetBuilder,
-    RawEdgeExample,
     EdgeExample,
+    RawEdgeExample,
 )
 from ai.core.pipelines.types.edge_categories import (
     EdgeCategory,

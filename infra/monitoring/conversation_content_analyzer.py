@@ -5,16 +5,17 @@ Analyzes conversation content patterns, themes, and provides actionable insights
 """
 
 import json
+import re
 import sqlite3
+import warnings
+from collections import Counter
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
-import pandas as pd
+from typing import Any, Dict, List, Optional
+
 import numpy as np
-from dataclasses import dataclass
-import re
-from collections import Counter
-import warnings
+
 warnings.filterwarnings('ignore')
 
 @dataclass
@@ -549,7 +550,7 @@ def main():
     # Display summary
     total_analyzed = sum(insights.total_conversations_analyzed for insights in content_insights.values())
     
-    print(f"\n✅ Content Analysis Complete")
+    print("\n✅ Content Analysis Complete")
     print(f"   - Datasets analyzed: {len(content_insights)}")
     print(f"   - Total conversations analyzed: {total_analyzed}")
     print(f"   - Report saved: {report_file}")
@@ -568,7 +569,7 @@ def main():
             print(f"   - Top themes: {', '.join(sample_insights.common_themes[:5])}")
         
         if sample_insights.recommendations:
-            print(f"\n💡 Sample Recommendations:")
+            print("\n💡 Sample Recommendations:")
             for rec in sample_insights.recommendations[:3]:
                 print(f"   • {rec}")
 

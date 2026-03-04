@@ -5,15 +5,15 @@ This module provides commands for managing CLI configuration, including profiles
 environment variables, and settings.
 """
 
-import click
 import json
 import os
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
-from ..utils import setup_logging, get_logger, validate_environment
-from ..config import get_config, CLIConfig, save_config
+import click
 
+from ..config import CLIConfig, get_config, save_config
+from ..utils import get_logger, setup_logging
 
 logger = get_logger(__name__)
 
@@ -222,7 +222,7 @@ def validate(ctx, profile: Optional[str], strict: bool):
                     click.echo(f"  • {error}")
         
         # Display validation summary
-        click.echo(f"\n📊 Validation Summary:")
+        click.echo("\n📊 Validation Summary:")
         click.echo(f"  Errors: {len(validation_result.get('errors', []))}")
         click.echo(f"  Warnings: {len(validation_result.get('warnings', []))}")
         
@@ -263,7 +263,7 @@ def export(ctx, profile: Optional[str], output: str, format: str, include_secret
             with open(output_path, 'w') as f:
                 yaml.dump(export_data, f, default_flow_style=False)
         
-        click.echo(f"✅ Configuration exported successfully!")
+        click.echo("✅ Configuration exported successfully!")
         
     except Exception as e:
         logger.error(f"Configuration export failed: {e}")
@@ -320,7 +320,7 @@ def import_config(ctx, file: str, profile: Optional[str], overwrite: bool):
         # Save configuration
         save_config(new_config)
         
-        click.echo(f"✅ Configuration imported successfully!")
+        click.echo("✅ Configuration imported successfully!")
         click.echo(f"🆔 Profile: {target_profile}")
         
     except Exception as e:
@@ -388,7 +388,7 @@ def env_info(ctx):
                 click.echo(f"    • {config_file.name}")
         
         # System information
-        click.echo(f"\n💻 System Information:")
+        click.echo("\n💻 System Information:")
         click.echo(f"  Platform: {sys.platform}")
         click.echo(f"  Architecture: {sys.machine}")
         

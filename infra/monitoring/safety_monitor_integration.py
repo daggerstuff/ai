@@ -22,11 +22,12 @@ import asyncio
 import json
 import logging
 import time
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from typing import Dict, List, Optional, Any, Callable
-from dataclasses import dataclass, asdict
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
 from enum import Enum
+from pathlib import Path
+from typing import Any, Callable, Dict, List
+
 import numpy as np
 
 # Configure logging
@@ -568,7 +569,7 @@ async def main():
     # Get dashboard data
     dashboard_data = await monitor.get_safety_dashboard_data()
     
-    print(f"\n" + "="*60)
+    print("\n" + "="*60)
     print("SAFETY MONITORING DASHBOARD")
     print("="*60)
     print(f"Monitoring Status: {dashboard_data['monitoring_status']}")
@@ -578,16 +579,16 @@ async def main():
     print(f"Average Risk Score: {dashboard_data['average_risk_score']:.3f}")
     
     if dashboard_data['high_risk_users']:
-        print(f"\nHigh Risk Users:")
+        print("\nHigh Risk Users:")
         for user in dashboard_data['high_risk_users']:
             print(f"  {user['user_id']}: {user['safety_level']} (Risk: {user['risk_score']:.3f})")
             
     if dashboard_data['recent_alerts']:
-        print(f"\nRecent Alerts:")
+        print("\nRecent Alerts:")
         for alert in dashboard_data['recent_alerts']:
             print(f"  {alert['alert_id']}: {alert['safety_level']} - User {alert['user_id']}")
     
-    print(f"\n🎯 SAFETY MONITORING: ✅ OPERATIONAL")
+    print("\n🎯 SAFETY MONITORING: ✅ OPERATIONAL")
     print("Real-time safety monitoring system is active and functional!")
     
     return True

@@ -1,5 +1,4 @@
 import pytest
-
 from ai.core.sourcing.journal.mcp.prompts.discovery import DiscoverSourcesPrompt
 from ai.core.sourcing.journal.mcp.prompts.evaluation import EvaluateSourcesPrompt
 from ai.core.sourcing.journal.mcp.utils.validation import ValidationError

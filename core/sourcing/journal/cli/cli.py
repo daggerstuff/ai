@@ -8,8 +8,6 @@ from pathlib import Path
 from typing import List, Optional
 
 import click
-from rich.console import Console
-
 from ai.core.sourcing.journal.cli.commands import CommandHandler
 from ai.core.sourcing.journal.cli.config import (
     get_config_value,
@@ -17,6 +15,7 @@ from ai.core.sourcing.journal.cli.config import (
     save_config,
 )
 from ai.core.sourcing.journal.cli.interactive import prompt_for_session_config
+from rich.console import Console
 
 console = Console()
 
@@ -123,7 +122,7 @@ def evaluate(
         interactive=interactive,
     )
 
-    console.print(f"\n[green]Evaluation completed[/green]")
+    console.print("\n[green]Evaluation completed[/green]")
     console.print(f"Evaluated {len(result['evaluations'])} datasets")
 
 
@@ -149,7 +148,7 @@ def acquire(
         interactive=interactive,
     )
 
-    console.print(f"\n[green]Acquisition completed[/green]")
+    console.print("\n[green]Acquisition completed[/green]")
     console.print(f"Acquired {len(result['acquired'])} datasets")
 
 
@@ -178,7 +177,7 @@ def integrate(
         interactive=interactive,
     )
 
-    console.print(f"\n[green]Integration planning completed[/green]")
+    console.print("\n[green]Integration planning completed[/green]")
     console.print(f"Created {len(result['plans'])} integration plans")
 
 

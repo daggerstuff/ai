@@ -6,13 +6,14 @@ Analyzes quality performance and provides optimization recommendations
 
 import json
 import sqlite3
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
-import pandas as pd
-import numpy as np
-from dataclasses import dataclass
 import warnings
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
+
+import numpy as np
+
 warnings.filterwarnings('ignore')
 
 @dataclass
@@ -520,7 +521,7 @@ def main():
     report_file = optimizer.export_optimization_plan(plan)
     
     # Display summary
-    print(f"\n✅ Performance Optimization Analysis Complete")
+    print("\n✅ Performance Optimization Analysis Complete")
     print(f"   - Metrics analyzed: {len(plan.performance_metrics)}")
     print(f"   - Optimization priorities: {len(plan.optimization_priorities)}")
     print(f"   - Expected timeline: {plan.implementation_timeline.get('total_duration_weeks', 0)} weeks")
@@ -532,7 +533,7 @@ def main():
         print(f"   • {priority}")
     
     # Show expected improvements
-    print(f"\n📈 Expected Improvements:")
+    print("\n📈 Expected Improvements:")
     for metric, improvement in list(plan.expected_improvements.items())[:5]:  # Top 5
         if improvement > 1:  # Only show significant improvements
             print(f"   • {metric.replace('_', ' ').title()}: {improvement:.1f}% improvement")

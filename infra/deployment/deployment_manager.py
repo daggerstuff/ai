@@ -3,18 +3,15 @@ Deployment management system for A/B testing and canary deployments.
 Enables safe rollout of new model versions with traffic splitting and metrics collection.
 """
 
-import json
-import time
-import random
 import hashlib
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Union
-from dataclasses import dataclass, field
-from enum import Enum
+import json
 import logging
+import random
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
 from pathlib import Path
-import numpy as np
-
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 

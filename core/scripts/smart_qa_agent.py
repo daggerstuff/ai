@@ -4,9 +4,9 @@ Smart Q/A Agent - Intelligent content analysis without external dependencies
 Uses sophisticated NLP techniques to understand content structure
 """
 
-import json
 import re
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List
+
 
 class SmartQAAgent:
     def __init__(self):

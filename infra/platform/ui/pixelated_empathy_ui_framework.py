@@ -12,10 +12,9 @@ This creates the web-based interface for:
 
 import json
 import logging
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, asdict
-from datetime import datetime
+from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import Any, Dict, List
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

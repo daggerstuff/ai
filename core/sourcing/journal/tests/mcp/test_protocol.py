@@ -1,13 +1,12 @@
 import json
 
 import pytest
-
 from ai.core.sourcing.journal.mcp.protocol import (
+    JSONRPCErrorCode,
+    MCPError,
     MCPProtocolHandler,
     MCPRequest,
     MCPResponse,
-    MCPError,
-    JSONRPCErrorCode,
 )
 
 

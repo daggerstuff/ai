@@ -7,8 +7,6 @@ Provides endpoints for integrating journal research datasets into the training p
 import logging
 from typing import Any, Dict
 
-from fastapi import APIRouter, Depends, HTTPException, status
-
 from ai.core.sourcing.journal.api.dependencies import (
     get_command_handler_service,
     get_training_pipeline_service,
@@ -21,6 +19,7 @@ from ai.core.sourcing.journal.api.services.command_handler_service import (
 from ai.core.sourcing.journal.api.services.training_pipeline_service import (
     TrainingPipelineService,
 )
+from fastapi import APIRouter, Depends, HTTPException, status
 
 logger = logging.getLogger(__name__)
 

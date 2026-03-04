@@ -4,10 +4,9 @@ PRODUCTION DEPLOYMENT SCRIPT
 Deploy validated system to production environment
 """
 
-import os
-import sys
 import json
 import logging
+import os
 import subprocess
 import time
 from datetime import datetime
@@ -234,10 +233,10 @@ class ProductionDeployment:
             # Success
             logger.critical("🚨 DEPLOYMENT SUMMARY:")
             logger.critical(f"🎯 Deployment ID: {self.deployment_id}")
-            logger.critical(f"✅ Status: SUCCESS")
-            logger.critical(f"🏥 System Health: PRODUCTION READY")
-            logger.critical(f"🔒 Security: ENABLED")
-            logger.critical(f"📊 Monitoring: ENABLED")
+            logger.critical("✅ Status: SUCCESS")
+            logger.critical("🏥 System Health: PRODUCTION READY")
+            logger.critical("🔒 Security: ENABLED")
+            logger.critical("📊 Monitoring: ENABLED")
             logger.critical("✅ PRODUCTION DEPLOYMENT COMPLETE")
             
             return deployment_report

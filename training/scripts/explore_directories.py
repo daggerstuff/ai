@@ -13,11 +13,9 @@ Systematically explores all AI directories and catalogs training assets:
 
 import json
 import os
-from pathlib import Path
-from typing import Dict, List, Any, Optional
 from datetime import datetime
-import hashlib
-
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Directories to explore
 AI_DIRECTORIES = [

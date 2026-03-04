@@ -4,10 +4,7 @@ Session management API routes.
 This module provides endpoints for managing research sessions.
 """
 
-from datetime import datetime
-from typing import List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from typing import Optional
 
 from ai.core.sourcing.journal.api.dependencies import (
     get_command_handler_service,
@@ -24,6 +21,7 @@ from ai.core.sourcing.journal.api.models.sessions import (
 from ai.core.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
+from fastapi import APIRouter, Depends, HTTPException, status
 
 router = APIRouter(prefix="/sessions")
 

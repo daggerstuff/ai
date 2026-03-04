@@ -3,15 +3,14 @@ Training manifest system for the Pixelated Empathy AI project.
 Defines structured manifests for reproducible training runs with all required metadata.
 """
 
-from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Any, Union
-from datetime import datetime
-import json
-import uuid
-from enum import Enum
-import os
 import hashlib
-from pathlib import Path
+import json
+import os
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from typing import Any, Dict, List, Optional
 
 from ai.core.pipelines.storage_config import get_dataset_pipeline_output_root
 

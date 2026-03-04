@@ -7,7 +7,7 @@ Maps local/Google Drive paths to S3 canonical paths
 import json
 import sys
 from pathlib import Path
-from typing import Dict, Any
+from typing import Any, Dict
 
 # Add project root to path
 # Script is at: ai/training_ready/scripts/update_manifest_s3_paths.py
@@ -16,7 +16,7 @@ script_path = Path(__file__).resolve()
 project_root = script_path.parents[3]  # Go up 3 levels: scripts -> training_ready -> ai -> project_root
 sys.path.insert(0, str(project_root))
 
-from ai.training.utils.s3_dataset_loader import get_s3_dataset_path, S3DatasetLoader
+from ai.training.utils.s3_dataset_loader import S3DatasetLoader, get_s3_dataset_path
 
 
 def update_dataset_registry_with_s3_paths(registry_path: Path) -> Dict[str, Any]:
@@ -86,7 +86,7 @@ def update_dataset_registry_with_s3_paths(registry_path: Path) -> Dict[str, Any]
 
     # Update edge case sources
     if 'edge_case_sources' in registry:
-        print(f"\nUpdating edge_case_sources -> edge_cases:")
+        print("\nUpdating edge_case_sources -> edge_cases:")
         update_paths_in_section(registry['edge_case_sources'], 'edge_cases')
 
     # Add S3 metadata

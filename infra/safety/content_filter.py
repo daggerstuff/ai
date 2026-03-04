@@ -3,14 +3,13 @@ Safety content filter for Pixelated Empathy AI project.
 Implements safety checking for inputs and outputs in model inference.
 """
 
-import re
 import logging
-from typing import Dict, List, Any, Optional, Union
+import re
 from dataclasses import dataclass
 from enum import Enum
-import torch
-from transformers import pipeline, AutoTokenizer, AutoModelForSequenceClassification
+from typing import Any, Dict, List, Optional, Union
 
+from transformers import pipeline
 
 logger = logging.getLogger(__name__)
 

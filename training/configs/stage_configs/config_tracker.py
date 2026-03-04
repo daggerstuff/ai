@@ -4,20 +4,17 @@ Configuration Change Tracking and Rollback System for Pixelated Empathy AI
 Tracks configuration changes and provides rollback capabilities
 """
 
-import os
-import sys
-import json
-import yaml
 import hashlib
-import shutil
+import json
 import logging
-from typing import Dict, List, Any, Optional, Tuple
-from pathlib import Path
-from dataclasses import dataclass, asdict
-from datetime import datetime, timezone
-import subprocess
-import tempfile
+import os
+import shutil
+import sys
 from contextlib import contextmanager
+from dataclasses import asdict, dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 # Configure logging
 logging.basicConfig(
@@ -215,7 +212,7 @@ class ConfigTracker:
                         f.write(target_change.old_content)
                     logger.info(f"Restored deleted file: {target_change.file_path}")
                 else:
-                    logger.error(f"Cannot restore deleted file - no backup content")
+                    logger.error("Cannot restore deleted file - no backup content")
                     return False
             
             elif target_change.change_type in ['create', 'update']:

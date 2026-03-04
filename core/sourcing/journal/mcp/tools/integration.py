@@ -5,7 +5,7 @@ This module provides tools for creating and managing integration plans through t
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ai.core.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
@@ -454,7 +454,6 @@ class GeneratePreprocessingScriptTool(MCPTool):
 
             # Generate default output path if not provided
             if not output_path:
-                import os
                 from pathlib import Path
 
                 scripts_dir = Path("data/integration_scripts")

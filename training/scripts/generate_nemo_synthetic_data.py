@@ -4,7 +4,6 @@ Synthetic Generation Wrapper for NeMo Data Designer.
 Generates complex edge case synthetic dialog using Phase 2 infrastructure.
 """
 
-import os
 import json
 import logging
 from pathlib import Path

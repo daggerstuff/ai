@@ -9,7 +9,7 @@ import csv
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from ai.core.sourcing.journal.models.dataset_models import (
     AcquiredDataset,

@@ -7,12 +7,6 @@ Service layer for connecting journal research system to training pipeline orches
 import logging
 from typing import Any, Dict, Optional
 
-from ai.core.sourcing.journal.models.dataset_models import (
-    AcquiredDataset,
-    DatasetEvaluation,
-    IntegrationPlan,
-)
-
 logger = logging.getLogger(__name__)
 
 # Optional import for PipelineOrchestrator
@@ -22,7 +16,11 @@ try:
     )
     from ai.core.sourcing.journal.models.dataset_models import (
         AcquiredDataset as AcquiredDatasetModel,
+    )
+    from ai.core.sourcing.journal.models.dataset_models import (
         DatasetEvaluation as DatasetEvaluationModel,
+    )
+    from ai.core.sourcing.journal.models.dataset_models import (
         IntegrationPlan as IntegrationPlanModel,
     )
     PIPELINE_ORCHESTRATOR_AVAILABLE = True
@@ -52,10 +50,11 @@ class TrainingPipelineService:
             return
 
         try:
+            from pathlib import Path
+
             from ai.core.pipelines.orchestration.pipeline_orchestrator import (
                 PipelineConfig,
             )
-            from pathlib import Path
 
             config = PipelineConfig(
                 output_directory=Path("data/processed"),

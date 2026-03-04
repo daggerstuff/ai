@@ -6,8 +6,9 @@ Converts training pairs to Lightning.ai compatible format with expert routing
 
 import json
 import random
-from typing import Dict, List
 from pathlib import Path
+from typing import Dict, List
+
 
 class LoRAFormatConverter:
     def __init__(self):
@@ -209,18 +210,18 @@ def main():
     # Create configuration file
     config = converter.create_config_file(output_dir, stats)
     
-    print(f"\nConversion complete!")
+    print("\nConversion complete!")
     print(f"Total conversations: {stats['total_pairs']}")
     print(f"Training set: {stats['train_size']} conversations")
     print(f"Validation set: {stats['val_size']} conversations")
-    print(f"\nExpert distribution:")
+    print("\nExpert distribution:")
     for style, count in stats['by_style'].items():
         print(f"  {style}: {count} conversations")
-    print(f"\nQuality distribution:")
+    print("\nQuality distribution:")
     for quality, count in stats['by_quality'].items():
         print(f"  {quality}: {count} conversations")
     print(f"\nOutput directory: {output_dir}")
-    print(f"Ready for Lightning.ai H100 training!")
+    print("Ready for Lightning.ai H100 training!")
 
 if __name__ == "__main__":
     main()

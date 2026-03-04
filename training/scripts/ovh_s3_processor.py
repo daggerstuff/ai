@@ -5,9 +5,8 @@ OVH S3 Processor - Processes actual 52.20GB from pixelated-training-data contain
 
 import json
 import subprocess
-import os
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 
 def run_ovhai_command(cmd):

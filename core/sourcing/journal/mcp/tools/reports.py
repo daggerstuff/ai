@@ -6,7 +6,7 @@ This module provides tools for generating and managing reports through the MCP p
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from ai.core.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,

@@ -5,12 +5,20 @@ This module provides the main MCP server class that handles protocol requests,
 tool execution, resource access, and prompt rendering.
 """
 
-import asyncio
 import json
-import logging
 from typing import Any, Dict, Optional
 
+from ai.core.sourcing.journal.api.services.command_handler_service import (
+    CommandHandlerService,
+)
 from ai.core.sourcing.journal.mcp.config import MCPConfig, load_mcp_config
+from ai.core.sourcing.journal.mcp.prompts import PromptRegistry
+from ai.core.sourcing.journal.mcp.prompts.acquisition import AcquireDatasetsPrompt
+from ai.core.sourcing.journal.mcp.prompts.discovery import DiscoverSourcesPrompt
+from ai.core.sourcing.journal.mcp.prompts.evaluation import EvaluateSourcesPrompt
+from ai.core.sourcing.journal.mcp.prompts.integration import (
+    CreateIntegrationPlansPrompt,
+)
 from ai.core.sourcing.journal.mcp.protocol import (
     JSONRPCErrorCode,
     MCPError,
@@ -19,30 +27,22 @@ from ai.core.sourcing.journal.mcp.protocol import (
     MCPRequest,
     MCPResponse,
 )
-from ai.core.sourcing.journal.api.services.command_handler_service import (
-    CommandHandlerService,
-)
 from ai.core.sourcing.journal.mcp.resources import (
-  ProgressHistoryResource,
-  ProgressMetricsResource,
-  ResourceRegistry,
-  SessionMetricsResource,
-  SessionStateResource,
+    ProgressHistoryResource,
+    ProgressMetricsResource,
+    ResourceRegistry,
+    SessionMetricsResource,
+    SessionStateResource,
 )
-from ai.core.sourcing.journal.mcp.prompts import PromptRegistry
-from ai.core.sourcing.journal.mcp.prompts.discovery import DiscoverSourcesPrompt
-from ai.core.sourcing.journal.mcp.prompts.evaluation import EvaluateSourcesPrompt
-from ai.core.sourcing.journal.mcp.prompts.acquisition import AcquireDatasetsPrompt
-from ai.core.sourcing.journal.mcp.prompts.integration import CreateIntegrationPlansPrompt
+from ai.core.sourcing.journal.mcp.tools.acquisition import (
+    AcquireDatasetsTool,
+    GetAcquisitionsTool,
+    GetAcquisitionTool,
+    UpdateAcquisitionTool,
+)
 from ai.core.sourcing.journal.mcp.tools.executor import ToolExecutor
 from ai.core.sourcing.journal.mcp.tools.registry import ToolRegistry
 from ai.core.sourcing.journal.mcp.utils.progress_streaming import ProgressStreamer
-from ai.core.sourcing.journal.mcp.tools.acquisition import (
-    AcquireDatasetsTool,
-    GetAcquisitionTool,
-    GetAcquisitionsTool,
-    UpdateAcquisitionTool,
-)
 
 # Optional pipeline bridge integration
 try:
@@ -53,23 +53,27 @@ try:
 except ImportError:
     PIPELINE_BRIDGE_AVAILABLE = False
     MCPPipelineBridge = None  # type: ignore
+from ai.core.sourcing.journal.mcp.auth import (
+    create_auth_handler,
+    create_authorization_handler,
+)
 from ai.core.sourcing.journal.mcp.tools.discovery import (
     DiscoverSourcesTool,
     FilterSourcesTool,
-    GetSourceTool,
     GetSourcesTool,
+    GetSourceTool,
 )
 from ai.core.sourcing.journal.mcp.tools.evaluation import (
     EvaluateSourcesTool,
-    GetEvaluationTool,
     GetEvaluationsTool,
+    GetEvaluationTool,
     UpdateEvaluationTool,
 )
 from ai.core.sourcing.journal.mcp.tools.integration import (
     CreateIntegrationPlansTool,
     GeneratePreprocessingScriptTool,
-    GetIntegrationPlanTool,
     GetIntegrationPlansTool,
+    GetIntegrationPlanTool,
 )
 from ai.core.sourcing.journal.mcp.tools.reports import (
     GenerateReportTool,
@@ -83,25 +87,21 @@ from ai.core.sourcing.journal.mcp.tools.sessions import (
     ListSessionsTool,
     UpdateSessionTool,
 )
+from ai.core.sourcing.journal.mcp.utils.audit_logging import (
+    create_audit_logger,
+)
 from ai.core.sourcing.journal.mcp.utils.error_handling import MCPErrorHandler
 from ai.core.sourcing.journal.mcp.utils.logging import get_logger, setup_logging
 from ai.core.sourcing.journal.mcp.utils.rate_limiting import (
     RateLimitManager,
+)
+from ai.core.sourcing.journal.mcp.utils.rate_limiting import (
     check_rate_limit as check_rate_limit_request,
 )
 from ai.core.sourcing.journal.mcp.utils.security import (
-    sanitize_input,
+    SecurityError,
     sanitize_json_output,
     validate_and_sanitize_input,
-    SecurityError,
-)
-from ai.core.sourcing.journal.mcp.utils.audit_logging import (
-    AuditLogger,
-    create_audit_logger,
-)
-from ai.core.sourcing.journal.mcp.auth import (
-    create_auth_handler,
-    create_authorization_handler,
 )
 
 logger = get_logger(__name__)

@@ -16,7 +16,6 @@ from typing import Any, Dict, Optional
 
 import click
 import requests
-
 from cli.config import CLIConfig
 
 

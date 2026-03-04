@@ -4,9 +4,8 @@ Security Configuration Validator
 Validates security configurations for production readiness
 """
 
-import json
-import os
 from pathlib import Path
+
 
 def validate_security_configurations():
     """Validate all security configurations"""

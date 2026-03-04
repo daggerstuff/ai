@@ -32,7 +32,11 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from datasets import Dataset, IterableDataset, load_dataset  # type: ignore[import-untyped]
+from datasets import (  # type: ignore[import-untyped]
+    Dataset,
+    IterableDataset,
+    load_dataset,
+)
 
 # Add project root to path
 # Script is at: ai/training_ready/scripts/ingest_nemotron_datasets.py

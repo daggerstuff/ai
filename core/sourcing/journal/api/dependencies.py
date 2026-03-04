@@ -4,21 +4,18 @@ FastAPI dependencies for authentication and authorization.
 This module provides dependency injection for authentication and authorization.
 """
 
-from typing import Annotated, Optional
-
-from fastapi import Depends, HTTPException, Request, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from typing import Optional
 
 from ai.core.sourcing.journal.api.auth.jwt import get_user_from_token
 from ai.core.sourcing.journal.api.auth.rbac import (
-    check_permission,
-    get_user_role,
     require_permission,
     require_role,
 )
 from ai.core.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
+from fastapi import Depends, HTTPException, Request, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 # Security scheme for OpenAPI docs
 security = HTTPBearer(auto_error=False)

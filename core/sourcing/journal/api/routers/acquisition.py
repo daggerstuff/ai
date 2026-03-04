@@ -4,9 +4,7 @@ Acquisition API routes.
 This module provides endpoints for dataset acquisition operations.
 """
 
-from typing import List, Optional
-
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import Optional
 
 from ai.core.sourcing.journal.api.dependencies import (
     get_command_handler_service,
@@ -23,6 +21,7 @@ from ai.core.sourcing.journal.api.models.common import PaginationParams
 from ai.core.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
+from fastapi import APIRouter, Depends, HTTPException, status
 
 router = APIRouter(prefix="/sessions/{session_id}/acquisition", tags=["acquisition"])
 

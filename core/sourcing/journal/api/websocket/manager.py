@@ -5,11 +5,10 @@ This module manages WebSocket connections and broadcasts progress updates.
 """
 
 import asyncio
-import json
 import logging
 from typing import Dict, Set
 
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 

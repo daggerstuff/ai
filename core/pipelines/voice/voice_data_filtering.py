@@ -1,8 +1,6 @@
-import os
 import json
 import logging
-import glob
-import numpy as np
+import os
 
 # Configuration
 CONSISTENCY_FILE = "data/voice_consistency/voice_quality_consistency.json"

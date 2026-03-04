@@ -6,9 +6,9 @@ Integrates therapist/client dynamics with realistic therapeutic relationships
 
 import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 

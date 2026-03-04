@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from ai.core.pipelines.ingestion.youtube_processor import (
-    YouTubePlaylistProcessor,
     AntiDetectionConfig,
+    YouTubePlaylistProcessor,
 )
 from ai.core.pipelines.processing.transcript_quality_pipeline import (
     TranscriptQualityPipeline,

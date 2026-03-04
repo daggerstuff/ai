@@ -9,16 +9,15 @@ from __future__ import annotations
 import asyncio
 import json
 import time
-from dataclasses import dataclass, asdict
-from typing import Any, Dict, Optional, AsyncIterator
+from dataclasses import asdict, dataclass
 from enum import Enum
+from typing import Any, Dict, Optional
 
 try:
     import redis.asyncio as redis
     HAS_REDIS = True
 except ImportError:
     HAS_REDIS = False
-    import queue as sync_queue
 
 
 class QueueType(Enum):

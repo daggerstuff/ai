@@ -7,19 +7,19 @@ Enterprise-grade SOC2 compliance validation for security controls, availability 
 and processing integrity per SOC2 Type II requirements.
 """
 
-import os
 import json
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Any, Optional, Tuple, Set
-from enum import Enum
-from dataclasses import dataclass, asdict
-from pathlib import Path
 import sqlite3
-import uuid
-import psutil
-import time
 import threading
+import time
+import uuid
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import psutil
 
 logger = logging.getLogger(__name__)
 
@@ -667,7 +667,7 @@ if __name__ == "__main__":
     
     # Generate assessment
     assessment = validator.generate_soc2_assessment()
-    print(f"\nSOC2 Assessment:")
+    print("\nSOC2 Assessment:")
     print(f"Assessment ID: {assessment.assessment_id}")
     print(f"Overall Status: {assessment.overall_status}")
     print(f"Exceptions: {assessment.exceptions_count}")

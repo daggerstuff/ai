@@ -7,18 +7,16 @@ Enterprise-grade GDPR compliance validation for data protection, right to erasur
 and consent management per GDPR requirements.
 """
 
-import os
 import json
-import hashlib
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Any, Optional, Tuple, Set
-from enum import Enum
-from dataclasses import dataclass, asdict
-from pathlib import Path
-import sqlite3
 import re
+import sqlite3
 import uuid
+from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -804,7 +802,7 @@ if __name__ == "__main__":
     
     # Generate compliance report
     report = validator.generate_gdpr_compliance_report()
-    print(f"\nGDPR Compliance Report:")
+    print("\nGDPR Compliance Report:")
     print(f"Assessment ID: {report.assessment_id}")
     print(f"Overall Score: {report.compliance_score:.1f}%")
     print(f"Consent Compliance: {report.consent_compliance:.1f}%")

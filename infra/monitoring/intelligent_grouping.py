@@ -5,18 +5,17 @@ Advanced pattern matching and machine learning-based alert grouping
 """
 
 import asyncio
-import json
 import logging
-import numpy as np
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple, Set
-from dataclasses import dataclass
-from collections import defaultdict, Counter
 import re
-from sklearn.feature_extraction.text import TfidfVectorizer
+from collections import defaultdict
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+from typing import Any, Dict, List
+
+import numpy as np
 from sklearn.cluster import DBSCAN
+from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import hashlib
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

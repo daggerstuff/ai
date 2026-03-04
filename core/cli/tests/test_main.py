@@ -5,10 +5,9 @@ Tests for main CLI functionality and integration.
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from click.testing import CliRunner
-
 from cli import __author__, __description__, __version__
 from cli.main import cli
+from click.testing import CliRunner
 
 
 class TestMainCLI:

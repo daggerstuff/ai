@@ -8,10 +8,10 @@ This covers the complete pipeline from trained H100 model to production therapeu
 
 import json
 import logging
-from pathlib import Path
-from typing import Dict, List, Optional
 from dataclasses import dataclass
 from enum import Enum
+from pathlib import Path
+from typing import Dict, List
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

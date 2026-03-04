@@ -1,11 +1,10 @@
 import logging
 import os
-import json
 import time
-from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
+from typing import Any, Dict, Optional
+
 import boto3
-from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
 

@@ -11,7 +11,6 @@ import threading
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
-from uuid import uuid4
 
 from ai.core.sourcing.journal.models.dataset_models import ResearchLog
 

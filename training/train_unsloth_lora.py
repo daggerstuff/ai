@@ -4,22 +4,21 @@ Unsloth LoRA/QLoRA Training Script
 Train Pixelated Empathy AI model using Unsloth with LoRA/QLoRA fine-tuning
 """
 
-import os
-import logging
 import json
-from typing import Optional
+import logging
+import os
 from pathlib import Path
 
 import torch
-from datasets import load_dataset, Dataset
+from datasets import Dataset, load_dataset
+from peft import LoraConfig, get_peft_model
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
-    TrainingArguments,
-    Trainer,
     BitsAndBytesConfig,
+    Trainer,
+    TrainingArguments,
 )
-from peft import LoraConfig, get_peft_model
 
 # Configure logging
 logging.basicConfig(

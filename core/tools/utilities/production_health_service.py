@@ -6,10 +6,10 @@ Comprehensive health monitoring for production deployment
 
 import json
 import time
-import psutil
-import requests
 from datetime import datetime
-from pathlib import Path
+
+import psutil
+
 
 class ProductionHealthService:
     """Production health check service."""

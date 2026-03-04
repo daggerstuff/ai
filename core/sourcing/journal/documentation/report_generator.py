@@ -197,6 +197,7 @@ class ReportGenerator:
         if weekly_report is None:
             # Create WeeklyReport from parameters
             from datetime import timedelta
+
             from ai.core.sourcing.journal.models.dataset_models import ResearchProgress
 
             end_date = datetime.now()

@@ -6,7 +6,7 @@ This module provides the base MCPTool class that all MCP tools must inherit from
 
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from ai.core.sourcing.journal.mcp.utils.validation import (
     ValidationError,

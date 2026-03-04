@@ -8,13 +8,13 @@ source → process → filter → format → assemble
 Provides CLI interface with options for each stage and checkpoint support.
 """
 
-import json
-import sys
 import argparse
-from pathlib import Path
-from typing import Dict, Any, Optional
-from datetime import datetime
+import json
 import logging
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Optional
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(

@@ -4,11 +4,11 @@ Enhanced V5 Production Monitoring
 Real-time monitoring and alerting system
 """
 
-import time
 import json
-import logging
-from datetime import datetime, timedelta
+import time
+from datetime import datetime
 from pathlib import Path
+
 
 class ProductionMonitor:
     """Production monitoring system"""

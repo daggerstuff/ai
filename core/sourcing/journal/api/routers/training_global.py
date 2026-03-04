@@ -7,8 +7,6 @@ Provides global endpoints for training pipeline status (not session-scoped).
 import logging
 from typing import Any, Dict
 
-from fastapi import APIRouter, Depends, HTTPException, status
-
 from ai.core.sourcing.journal.api.dependencies import (
     get_training_pipeline_service,
     require_permission_dependency,
@@ -16,6 +14,7 @@ from ai.core.sourcing.journal.api.dependencies import (
 from ai.core.sourcing.journal.api.services.training_pipeline_service import (
     TrainingPipelineService,
 )
+from fastapi import APIRouter, Depends, HTTPException, status
 
 logger = logging.getLogger(__name__)
 

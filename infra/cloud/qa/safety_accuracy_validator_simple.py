@@ -12,10 +12,10 @@ import asyncio
 import json
 import logging
 import random
+from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass, asdict
+from typing import Any, Dict, List, Optional, Tuple
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -421,7 +421,7 @@ class EnterpriseSafetyAccuracyValidator:
         self.validation_results.append(result)
         
         # Log results
-        logger.info(f"Validation Complete:")
+        logger.info("Validation Complete:")
         logger.info(f"  Overall Accuracy: {overall_accuracy:.2f}%")
         logger.info(f"  Crisis Detection: {crisis_detection_accuracy:.2f}%")
         logger.info(f"  False Positive Rate: {false_positive_rate:.2f}%")

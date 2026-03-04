@@ -5,7 +5,7 @@ This module provides prompt templates for dataset evaluation workflows.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from ai.core.sourcing.journal.mcp.prompts.base import MCPPrompt
 

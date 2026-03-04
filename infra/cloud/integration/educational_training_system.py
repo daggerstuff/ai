@@ -10,15 +10,12 @@ This system provides:
 - Real-time feedback and coaching
 """
 
-import json
 import logging
-import asyncio
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
-from enum import Enum
-from pathlib import Path
-from datetime import datetime, timedelta
 import random
+from dataclasses import dataclass
+from datetime import datetime
+from enum import Enum
+from typing import Dict, List
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)

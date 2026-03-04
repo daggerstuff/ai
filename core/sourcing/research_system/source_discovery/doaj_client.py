@@ -10,10 +10,10 @@ import logging
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from datetime import datetime
-from typing import Any, Optional, TypedDict, NotRequired
+from typing import Any, NotRequired, Optional, TypedDict
 
 from ..models import DatasetSource
-from .base_client import BaseAPIClient, APIError
+from .base_client import APIError, BaseAPIClient
 
 logger = logging.getLogger(__name__)
 

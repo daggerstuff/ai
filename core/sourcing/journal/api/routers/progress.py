@@ -9,9 +9,6 @@ import json
 import logging
 from typing import AsyncGenerator, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
-from fastapi.responses import StreamingResponse
-
 from ai.core.sourcing.journal.api.dependencies import (
     get_command_handler_service,
     get_current_user,
@@ -24,7 +21,8 @@ from ai.core.sourcing.journal.api.models.progress import (
 from ai.core.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,
 )
-from ai.core.sourcing.journal.api.websocket.manager import manager
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import StreamingResponse
 
 logger = logging.getLogger(__name__)
 
@@ -145,7 +143,7 @@ async def generate_progress_events(
                     last_progress = progress_data
 
                 # Send heartbeat to keep connection alive
-                yield f": heartbeat\n\n"
+                yield ": heartbeat\n\n"
 
             except ValueError as e:
                 # Session not found

@@ -6,14 +6,13 @@ import asyncio
 import json
 import logging
 import os
-import subprocess
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 from .config import config
-from .models import JobInfo, JobStatus, LogEntry, PipelineStage, StageResult
+from .models import JobInfo, JobStatus, PipelineStage, StageResult
 
 
 class PipelineExecutor:

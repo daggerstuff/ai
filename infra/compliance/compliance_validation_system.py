@@ -10,16 +10,14 @@ This module provides comprehensive compliance validation including:
 - Compliance monitoring and reporting
 """
 
+import asyncio
 import json
 import logging
 import time
-import asyncio
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
-import hashlib
-import uuid
+from typing import Any, Dict, List, Optional, Tuple
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -708,11 +706,11 @@ if __name__ == "__main__":
         print(f"Certification Status: {report['compliance_assessment_summary']['certification_status']}")
         print(f"Production Ready: {'YES' if report['compliance_assessment_summary']['production_ready'] else 'NO'}")
         
-        print(f"\nStandard Compliance Scores:")
+        print("\nStandard Compliance Scores:")
         for standard, score in report["standard_compliance"].items():
             print(f"  {standard.upper()}: {score}%")
         
-        print(f"\nCompliance Distribution:")
+        print("\nCompliance Distribution:")
         distribution = report["compliance_distribution"]
         print(f"  Compliant: {distribution['compliant']}")
         print(f"  Partially Compliant: {distribution['partially_compliant']}")

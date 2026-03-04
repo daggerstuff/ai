@@ -5,6 +5,7 @@ Test question extraction with fixed patterns
 
 import re
 
+
 def test_question_extraction():
     """Test question extraction directly"""
     

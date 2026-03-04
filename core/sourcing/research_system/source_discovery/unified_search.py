@@ -9,7 +9,9 @@ from typing import Any
 
 from ai.core.sourcing.research_system.config import get_config
 from ai.core.sourcing.research_system.models import DatasetSource
-from ai.core.sourcing.research_system.source_discovery.deduplication import DatasetDeduplicator
+from ai.core.sourcing.research_system.source_discovery.deduplication import (
+    DatasetDeduplicator,
+)
 from ai.core.sourcing.research_system.source_discovery.doaj_client import DOAJClient
 from ai.core.sourcing.research_system.source_discovery.pubmed_client import PubMedClient
 from ai.core.sourcing.research_system.source_discovery.repository_clients import (

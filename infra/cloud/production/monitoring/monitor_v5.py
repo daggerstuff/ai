@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Enhanced V5 Production Monitor"""
 
-import time
 import json
+import time
 from datetime import datetime
 from pathlib import Path
+
 
 def monitor_v5():
     """Monitor V5 production system"""

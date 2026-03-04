@@ -6,12 +6,12 @@ Generates comprehensive TRAINING_MANIFEST.json from directory catalogs.
 Maps datasets to 4-stage architecture and documents all training assets.
 """
 
+import importlib.util
 import json
 import sys
-from pathlib import Path
-from typing import Dict, List, Any, Optional
 from datetime import datetime
-import importlib.util
+from pathlib import Path
+from typing import Optional
 
 # Stage mapping patterns
 STAGE1_PATTERNS = ["foundation", "rapport", "tier1", "priority_1", "therapist_sft", "soulchat", "counsel_chat", "psych8k", "mental_health_counseling"]

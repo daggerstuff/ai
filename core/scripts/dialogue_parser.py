@@ -4,9 +4,9 @@ Proper Dialogue Parser and Q/A Extractor
 Correctly parses interview/dialogue structure and creates coherent Q/A pairs
 """
 
-import json
 import re
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, List, Optional, Tuple
+
 
 class DialogueParser:
     def __init__(self):

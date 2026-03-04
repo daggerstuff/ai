@@ -9,14 +9,14 @@ This module provides final resolution of all critical safety issues:
 - Final safety validation
 """
 
+import asyncio
 import json
 import logging
 import time
-import asyncio
+from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -351,7 +351,7 @@ if __name__ == "__main__":
         print(f"Production Safety Clearance: {'GRANTED' if report['task_105_summary']['production_safety_clearance'] else 'DENIED'}")
         print(f"Clearance Status: {report['task_105_summary']['clearance_status']}")
         
-        print(f"\nSafety Metrics:")
+        print("\nSafety Metrics:")
         metrics = report["safety_metrics"]
         print(f"  Total Critical Issues: {metrics['total_critical_issues']}")
         print(f"  Resolved Issues: {metrics['resolved_issues']}")

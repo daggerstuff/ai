@@ -16,8 +16,8 @@ from ai.core.sourcing.journal.models.dataset_models import (
     DatasetEvaluation,
     DatasetSource,
     IntegrationPlan,
-    ResearchSession,
     ResearchProgress,
+    ResearchSession,
 )
 
 

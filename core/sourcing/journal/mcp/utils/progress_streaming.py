@@ -7,12 +7,10 @@ and progress subscription mechanism for async operations.
 
 import asyncio
 import logging
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
-
-from ai.core.sourcing.journal.mcp.protocol import MCPError, MCPErrorCode
 
 logger = logging.getLogger(__name__)
 

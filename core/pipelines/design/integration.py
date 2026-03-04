@@ -9,7 +9,6 @@ import logging
 from typing import Any, Optional
 
 from ai.core.pipelines.design.service import NeMoDataDesignerService
-from ai.core.pipelines.design.config import DataDesignerConfig
 
 logger = logging.getLogger(__name__)
 

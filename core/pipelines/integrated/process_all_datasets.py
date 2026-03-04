@@ -7,20 +7,34 @@ Converts to standard training format (JSONL) with proper conversation structure.
 """
 
 import json
-import sys
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-from datetime import datetime
 import logging
+import sys
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Add project root to path for imports
 project_root = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 try:
-    from ai.core.pipelines.unified_preprocessing_pipeline import UnifiedPreprocessingPipeline, ProcessingConfig, DataSource, StagePolicy
-    from ai.core.pipelines.orchestration.integrated_training_pipeline import IntegratedTrainingPipeline, IntegratedPipelineConfig
-    from ai.core.pipelines.configs.stages import get_all_stages, STAGE1_ID, STAGE2_ID, STAGE3_ID, STAGE4_ID
+    from ai.core.pipelines.configs.stages import (
+        STAGE1_ID,
+        STAGE2_ID,
+        STAGE3_ID,
+        STAGE4_ID,
+        get_all_stages,
+    )
+    from ai.core.pipelines.orchestration.integrated_training_pipeline import (
+        IntegratedPipelineConfig,
+        IntegratedTrainingPipeline,
+    )
+    from ai.core.pipelines.unified_preprocessing_pipeline import (
+        DataSource,
+        ProcessingConfig,
+        StagePolicy,
+        UnifiedPreprocessingPipeline,
+    )
 except ImportError as e:
     logging.error(f"Failed to import pipeline modules: {e}")
     logging.error(f"Project root: {project_root}")
@@ -181,7 +195,7 @@ def main():
     with open(report_path, "w") as f:
         json.dump(report, f, indent=2)
 
-    logger.info(f"\n📊 Processing Summary:")
+    logger.info("\n📊 Processing Summary:")
     logger.info(f"  Processed: {report['processed_datasets']} datasets")
     logger.info(f"  Stage 1: {report['by_stage'][STAGE1_ID]}")
     logger.info(f"  Stage 2: {report['by_stage'][STAGE2_ID]}")

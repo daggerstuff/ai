@@ -47,10 +47,10 @@ from typing import (
 )
 
 import ray
+from ray.exceptions import RayActorError, RayTaskError, WorkerCrashedError
 
 # Import local checkpoint system
 from .checkpoint_system import CheckpointManager
-from ray.exceptions import RayActorError, RayTaskError, WorkerCrashedError
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

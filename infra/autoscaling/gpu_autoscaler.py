@@ -3,17 +3,15 @@ GPU autoscaling and cost management system for Pixelated Empathy AI project.
 Implements dynamic scaling based on demand and provides cost optimization.
 """
 
-import json
-import time
 import logging
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Tuple
 from dataclasses import dataclass, field
+from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Dict, List, Optional
+
 import numpy as np
 import psutil
 import torch
-
 
 logger = logging.getLogger(__name__)
 
@@ -271,7 +269,7 @@ class Autoscaler:
                     self.scaling_policy.max_instances
                 )
                 decision.target_instances = target_instances
-                decision.reason += f" | Predictive adjustment for expected load increase"
+                decision.reason += " | Predictive adjustment for expected load increase"
                 decision.confidence *= 0.9  # Slightly lower confidence for predictions
         
         # Record the decision

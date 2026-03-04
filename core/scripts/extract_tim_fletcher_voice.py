@@ -12,11 +12,11 @@ Analyzes 913 YouTube transcripts to extract Tim Fletcher's:
 """
 
 import json
-import re
-from pathlib import Path
-from typing import Dict, List, Tuple
-from collections import Counter, defaultdict
 import logging
+import re
+from collections import Counter
+from pathlib import Path
+from typing import Dict, List
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -137,7 +137,7 @@ class TimFletcherVoiceExtractor:
         """Generate a comprehensive voice profile report"""
         report = []
         report.append("# Tim Fletcher Voice Profile\n")
-        report.append(f"**Analyzed**: 913 YouTube transcripts on complex trauma, PTSD, recovery\n\n")
+        report.append("**Analyzed**: 913 YouTube transcripts on complex trauma, PTSD, recovery\n\n")
 
         # Top sentence starters
         report.append("## Top Sentence Starters\n")

@@ -6,11 +6,9 @@ Identifies all source files across 52.20GB dataset
 
 import json
 import logging
-import os
-from pathlib import Path
-from typing import Dict, List, Any, Optional
-import glob
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(
@@ -294,7 +292,7 @@ class DatasetAuditor:
         with open(output_path, "w") as f:
             json.dump(manifest, f, indent=2, sort_keys=True)
 
-        print(f"🎯 Audit complete!")
+        print("🎯 Audit complete!")
         print(f"📊 Found {manifest['total_real_files']} real files")
         print(f"📈 Total size: {manifest['total_real_size_gb']} GB")
         print(

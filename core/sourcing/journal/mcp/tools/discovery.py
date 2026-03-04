@@ -6,7 +6,7 @@ This module provides tools for discovering and managing dataset sources through 
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from ai.core.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,

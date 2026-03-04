@@ -1,6 +1,6 @@
-import os
-import json
 import glob
+import json
+import os
 
 # Configuration
 TRANSCRIPT_DIR = "data/voice_transcripts_filtered"

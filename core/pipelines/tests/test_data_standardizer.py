@@ -8,7 +8,6 @@ from pathlib import Path
 from unittest.mock import Mock
 
 import pytest
-
 from ai.core.pipelines.conversation_schema import Conversation
 from ai.core.pipelines.data_standardizer import (
     DataStandardizer,

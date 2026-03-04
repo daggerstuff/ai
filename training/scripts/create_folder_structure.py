@@ -6,7 +6,6 @@ Creates the complete ai/training_ready/ directory structure with all subdirector
 """
 
 from pathlib import Path
-from typing import List
 
 
 def create_folder_structure(base_path: Path) -> None:
@@ -104,7 +103,7 @@ def main():
 
     created, existing = create_folder_structure(base_path)
 
-    print(f"\n✅ Folder structure created successfully!")
+    print("\n✅ Folder structure created successfully!")
     print(f"   Base path: {base_path}")
 
     return 0

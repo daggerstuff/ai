@@ -5,8 +5,7 @@ This module provides tools for managing research sessions through the MCP protoc
 """
 
 import logging
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 from ai.core.sourcing.journal.api.services.command_handler_service import (
     CommandHandlerService,

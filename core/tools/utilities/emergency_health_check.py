@@ -3,6 +3,7 @@ import json
 import time
 from datetime import datetime
 
+
 def emergency_health_check():
     """Emergency health check endpoint."""
     return {

@@ -3,20 +3,26 @@ Label versioning and provenance tracking system.
 Implements comprehensive tracking of label changes, history, and sources.
 """
 
+import hashlib
+import json
+import logging
+import uuid
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List, Optional, Dict, Any, Union
-import uuid
-import json
-import hashlib
 from enum import Enum
-import logging
-from .label_taxonomy import (
-    LabelBundle, LabelMetadata, LabelProvenanceType,
-    TherapeuticResponseLabel, CrisisLabel, TherapyModalityLabel,
-    MentalHealthConditionLabel, DemographicLabel
-)
+from typing import Any, Dict, List, Optional
+
 from .conversation_schema import Conversation
+from .label_taxonomy import (
+    CrisisLabel,
+    DemographicLabel,
+    LabelBundle,
+    LabelMetadata,
+    LabelProvenanceType,
+    MentalHealthConditionLabel,
+    TherapeuticResponseLabel,
+    TherapyModalityLabel,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -298,8 +304,11 @@ class LabelVersionManager:
     def _deserialize_label_bundle(self, data: Dict[str, Any]) -> LabelBundle:
         """Deserialize dictionary data back to a label bundle"""
         from .label_taxonomy import (
-            TherapeuticResponseType, CrisisLevelType, TherapyModalityType,
-            MentalHealthConditionType, DemographicType
+            CrisisLevelType,
+            DemographicType,
+            MentalHealthConditionType,
+            TherapeuticResponseType,
+            TherapyModalityType,
         )
         
         # Deserialize therapeutic response labels
@@ -632,10 +641,13 @@ def create_version_manager() -> LabelVersionManager:
 def test_label_versioning():
     """Test the label versioning system"""
     from .label_taxonomy import (
-        TherapeuticResponseLabel, CrisisLabel, LabelMetadata, LabelProvenanceType,
-        TherapeuticResponseType, CrisisLevelType
+        CrisisLabel,
+        CrisisLevelType,
+        LabelMetadata,
+        LabelProvenanceType,
+        TherapeuticResponseLabel,
+        TherapeuticResponseType,
     )
-    from .conversation_schema import Conversation
     
     # Create a test label bundle
     conversation = Conversation()

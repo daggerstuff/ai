@@ -9,9 +9,8 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, Optional
 
 import jwt as pyjwt
-from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidTokenError
-
 from ai.core.sourcing.journal.api.config import get_settings
+from jwt.exceptions import DecodeError, ExpiredSignatureError, InvalidTokenError
 
 logger = logging.getLogger(__name__)
 settings = get_settings()

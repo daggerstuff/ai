@@ -4,9 +4,8 @@ Example client for the Pixel Voice API server.
 Demonstrates how to interact with the API endpoints.
 """
 import asyncio
-import json
 import time
-from typing import Dict, Any
+from typing import Any, Dict
 
 import httpx
 

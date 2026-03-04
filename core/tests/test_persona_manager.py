@@ -1,5 +1,4 @@
 import pytest
-
 from ai.core.persona_manager import PersonaManager
 
 

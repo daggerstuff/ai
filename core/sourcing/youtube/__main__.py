@@ -12,8 +12,6 @@ import logging
 import sys
 from pathlib import Path
 
-from dotenv import load_dotenv
-
 from ai.core.sourcing.youtube.api_impl import (
     get_api_quota_status,
     test_api_connection,
@@ -26,6 +24,7 @@ from ai.core.sourcing.youtube.models import (
     LicensingInfo,
     QualityMetrics,
 )
+from dotenv import load_dotenv
 
 
 def setup_logging(level: str = "INFO"):

@@ -5,22 +5,20 @@ Implements checkpoint creation, storage, and recovery for fault tolerance
 """
 
 import asyncio
+import gzip
+import hashlib
 import json
 import logging
-import os
 import pickle
 import sqlite3
+import threading
 import time
 import uuid
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Union, Callable
-from dataclasses import dataclass, field, asdict
 from enum import Enum
-import hashlib
-import threading
 from pathlib import Path
-import gzip
-import shutil
+from typing import Any, Callable, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

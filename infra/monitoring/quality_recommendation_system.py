@@ -5,14 +5,15 @@ Provides intelligent recommendations for quality improvements based on analysis
 """
 
 import json
-import sqlite3
-from datetime import datetime, timedelta
-from pathlib import Path
-from typing import Dict, List, Tuple, Optional, Any
-import pandas as pd
-import numpy as np
-from dataclasses import dataclass
 import warnings
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional
+
+import numpy as np
+import pandas as pd
+
 warnings.filterwarnings('ignore')
 
 @dataclass
@@ -335,8 +336,8 @@ class QualityRecommendationSystem:
             # Generate success criteria
             success_criteria = [
                 f"Achieve {metric.replace('_', ' ')} pass rate > 85%",
-                f"Maintain improvement for 30+ days",
-                f"No regression in related metrics"
+                "Maintain improvement for 30+ days",
+                "No regression in related metrics"
             ]
             
             # Calculate confidence score
@@ -616,7 +617,7 @@ def main():
     report_file = system.export_recommendation_plan(plan)
     
     # Display summary
-    print(f"\n✅ Recommendation Plan Complete")
+    print("\n✅ Recommendation Plan Complete")
     print(f"   - Total recommendations: {len(plan.recommendations)}")
     print(f"   - Critical priority: {len([r for r in plan.recommendations if r.priority == 'critical'])}")
     print(f"   - High priority: {len([r for r in plan.recommendations if r.priority == 'high'])}")
@@ -630,7 +631,7 @@ def main():
         print(f"      {rec.description[:80]}...")
     
     # Show implementation roadmap
-    print(f"\n📅 Implementation Roadmap:")
+    print("\n📅 Implementation Roadmap:")
     for category, items in plan.implementation_roadmap.items():
         if items:
             print(f"   {category.replace('_', ' ').title()}: {len(items)} recommendations")

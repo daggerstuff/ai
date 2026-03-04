@@ -10,11 +10,11 @@ Key Improvements:
 - Reduced detection thresholds for better sensitivity
 """
 
-import re
 import asyncio
 import logging
-from typing import Dict, List, Tuple, Optional
+import re
 from dataclasses import dataclass
+from typing import Dict, List
 
 logger = logging.getLogger(__name__)
 

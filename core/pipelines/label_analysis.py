@@ -3,19 +3,20 @@ Tooling for reviewing label distributions and performing edge-case analyses.
 Provides visualization and analytical tools for understanding the labeled dataset.
 """
 
-from dataclasses import dataclass
-from typing import List, Dict, Any, Optional, Tuple, Set
-import json
 import logging
-from collections import Counter, defaultdict
 import statistics
+from collections import Counter, defaultdict
+from dataclasses import dataclass
 from datetime import datetime
-import math
+from typing import Any, Dict, List, Tuple
+
+from .conversation_schema import Conversation
 from .label_taxonomy import (
-    LabelBundle, TherapeuticResponseType, CrisisLevelType, TherapyModalityType,
-    MentalHealthConditionType, DemographicType, LabelProvenanceType
+    CrisisLevelType,
+    LabelBundle,
+    LabelProvenanceType,
+    TherapeuticResponseType,
 )
-from .conversation_schema import Conversation, Message
 
 logger = logging.getLogger(__name__)
 
@@ -507,56 +508,56 @@ class DistributionVisualizer:
     
     def print_distribution_summary(self, report: LabelDistributionReport):
         """Print a text-based summary of the distribution report"""
-        print(f"\n=== Label Distribution Summary ===")
+        print("\n=== Label Distribution Summary ===")
         print(f"Total conversations: {report.total_conversations}")
         print(f"Generated at: {report.timestamp}")
         
-        print(f"\n--- Therapeutic Response Distribution ---")
+        print("\n--- Therapeutic Response Distribution ---")
         for response_type, count in sorted(report.therapeutic_response_distribution.items(), key=lambda x: x[1], reverse=True):
             percentage = (count / report.total_conversations * 100) if report.total_conversations > 0 else 0
             print(f"  {response_type}: {count} ({percentage:.1f}%)")
         
-        print(f"\n--- Crisis Level Distribution ---")
+        print("\n--- Crisis Level Distribution ---")
         for crisis_level, count in sorted(report.crisis_level_distribution.items(), key=lambda x: x[1], reverse=True):
             percentage = (count / report.total_conversations * 100) if report.total_conversations > 0 else 0
             print(f"  {crisis_level}: {count} ({percentage:.1f}%)")
         
-        print(f"\n--- Therapy Modality Distribution ---")
+        print("\n--- Therapy Modality Distribution ---")
         for modality, count in sorted(report.therapy_modality_distribution.items(), key=lambda x: x[1], reverse=True):
             percentage = (count / report.total_conversations * 100) if report.total_conversations > 0 else 0
             print(f"  {modality}: {count} ({percentage:.1f}%)")
         
-        print(f"\n--- Provenance Distribution ---")
+        print("\n--- Provenance Distribution ---")
         for provenance, count in sorted(report.provenance_distribution.items(), key=lambda x: x[1], reverse=True):
             percentage = (count / report.total_conversations * 100) if report.total_conversations > 0 else 0
             print(f"  {provenance}: {count} ({percentage:.1f}%)")
         
-        print(f"\n--- Confidence Statistics ---")
+        print("\n--- Confidence Statistics ---")
         for label_type, stats in report.confidence_statistics.items():
             if stats['count'] > 0:
                 print(f"  {label_type}: Mean={stats['mean']:.3f}, StdDev={stats['std_dev']:.3f}, Min={stats['min']:.3f}, Max={stats['max']:.3f}")
     
     def print_edge_case_summary(self, report: EdgeCaseReport):
         """Print a text-based summary of the edge case report"""
-        print(f"\n=== Edge Case Summary ===")
+        print("\n=== Edge Case Summary ===")
         print(f"Report generated at: {report.timestamp}")
         
-        print(f"\n--- Low Confidence Items ---")
+        print("\n--- Low Confidence Items ---")
         print(f"Total conversations with low confidence labels: {len(report.low_confidence_items)}")
         for item in report.low_confidence_items[:5]:  # Show first 5
             print(f"  Conversation {item['conversation_id'][:8]}...: {len(item['issues'])} low-confidence issues")
         
-        print(f"\n--- Conflicting Labels ---")
+        print("\n--- Conflicting Labels ---")
         print(f"Total conversations with conflicting labels: {len(report.conflicting_labels)}")
         for item in report.conflicting_labels[:5]:  # Show first 5
             print(f"  Conversation {item['conversation_id'][:8]}...: {item['conflict_type']}")
         
-        print(f"\n--- High Risk Items ---")
+        print("\n--- High Risk Items ---")
         print(f"Total high-risk conversations: {len(report.high_risk_items)}")
         for item in report.high_risk_items[:5]:  # Show first 5
             print(f"  Conversation {item['conversation_id'][:8]}...: {len(item['risk_factors'])} risk factors")
         
-        print(f"\n--- Inconsistent Patterns ---")
+        print("\n--- Inconsistent Patterns ---")
         print(f"Total conversations with inconsistencies: {len(report.inconsistent_patterns)}")
         for item in report.inconsistent_patterns[:5]:  # Show first 5
             print(f"  Conversation {item['conversation_id'][:8]}...: {len(item['inconsistencies'])} inconsistencies")
@@ -575,11 +576,14 @@ def create_edge_case_detector(low_confidence_threshold: float = 0.6) -> EdgeCase
 # Example usage
 def test_label_analysis():
     """Test the label distribution and edge case analysis tools"""
+    from .conversation_schema import Conversation
     from .label_taxonomy import (
-        TherapeuticResponseLabel, CrisisLabel, LabelMetadata, LabelProvenanceType,
-        TherapeuticResponseType, CrisisLevelType, TherapyModalityType
+        CrisisLabel,
+        CrisisLevelType,
+        LabelMetadata,
+        TherapeuticResponseLabel,
+        TherapeuticResponseType,
     )
-    from .conversation_schema import Conversation, Message
     
     # Create test data
     conversations = []
@@ -628,7 +632,7 @@ def test_label_analysis():
     analyzer = create_analyzer()
     dist_report = analyzer.generate_distribution_report(label_bundles)
     
-    print(f"Distribution Report Generated:")
+    print("Distribution Report Generated:")
     print(f"Total conversations: {dist_report.total_conversations}")
     print(f"Therapeutic response distribution: {dist_report.therapeutic_response_distribution}")
     print(f"Crisis level distribution: {dist_report.crisis_level_distribution}")
@@ -643,7 +647,7 @@ def test_label_analysis():
     detector = create_edge_case_detector(low_confidence_threshold=0.7)
     edge_report = detector.detect_edge_cases(conversations, label_bundles)
     
-    print(f"\nEdge Case Report Generated:")
+    print("\nEdge Case Report Generated:")
     print(f"Low confidence items: {len(edge_report.low_confidence_items)}")
     print(f"Conflicting labels: {len(edge_report.conflicting_labels)}")
     print(f"High risk items: {len(edge_report.high_risk_items)}")

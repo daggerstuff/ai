@@ -3,20 +3,20 @@
 Real End-to-End Pipeline Test for PIX-5 Validation.
 This completely runs down the unified processing pipeline locally on dummy data.
 """
+import json
+import shutil
 import sys
 from pathlib import Path
-import json
-import os
-import shutil
 
 workspace_root = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(workspace_root))
 
 from ai.core.pipelines.unified_preprocessing_pipeline import (
-    UnifiedPreprocessingPipeline,
+    DataSource,
     ProcessingConfig,
-    DataSource
+    UnifiedPreprocessingPipeline,
 )
+
 
 def build_dummy_jsonl() -> Path:
     """Builds a temporary JSONL target with deliberately bad data to test filtering, along with good data."""
@@ -102,7 +102,7 @@ def run_e2e_pipeline():
             
     # 5. Validation Assertions
     print(f"\n📊 Results: {len(record_ids)} / 4 records passed.")
-    print(f"Expected IDs dropped: test_fail_quality, test_fail_crisis")
+    print("Expected IDs dropped: test_fail_quality, test_fail_crisis")
     print(f"Actually kept: {record_ids}")
     
     # Clean up output artifacts to avoid polluting git state

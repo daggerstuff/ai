@@ -6,18 +6,16 @@ Enterprise Production Readiness Framework - Task 6.3
 24/7 monitoring with comprehensive dashboards and operational handover.
 """
 
-import os
-import sys
 import json
-import time
 import logging
 import sqlite3
 import threading
-from datetime import datetime, timezone, timedelta
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-from dataclasses import dataclass, asdict
+import time
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
 from enum import Enum
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(
@@ -748,14 +746,14 @@ def main():
         
         # Generate initial dashboard data
         dashboard_data = monitor.generate_dashboard_data()
-        print(f"\nSYSTEM STATUS")
+        print("\nSYSTEM STATUS")
         print(f"Health: {dashboard_data['system_health'].upper()}")
         print(f"Active Alerts: {len(dashboard_data['active_alerts'])}")
         print(f"Monitoring: {dashboard_data['monitoring_status'].upper()}")
         
         # Generate operational report
         operational_report = monitor.generate_operational_report()
-        print(f"\nOPERATIONAL REPORT")
+        print("\nOPERATIONAL REPORT")
         print(f"Uptime: {operational_report['system_status']['uptime_percentage']:.2f}%")
         print(f"Response Time: {operational_report['system_status']['response_time_p95']:.1f}ms")
         print(f"Error Rate: {operational_report['system_status']['error_rate']:.2f}%")

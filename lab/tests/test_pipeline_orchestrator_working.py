@@ -11,12 +11,11 @@ This test suite validates the pipeline orchestrator's ability to:
 5. Scale processing based on load
 """
 
-import unittest
-import pytest
-import json
 import time
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Optional, Union, Any
+import unittest
+from typing import Any, Dict
+from unittest.mock import Mock
+
 
 # Mock the pipeline orchestrator for testing
 class MockPipelineOrchestrator:

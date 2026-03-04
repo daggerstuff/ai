@@ -7,13 +7,13 @@ Implements circuit breaker patterns for external dependencies and fault isolatio
 import asyncio
 import json
 import logging
-import time
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Any, Callable, Union
-from dataclasses import dataclass, field
-from enum import Enum
-import threading
 import statistics
+import threading
+import time
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from enum import Enum
+from typing import Any, Callable, Dict, List, Optional
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -521,7 +521,7 @@ async def example_circuit_breaker():
     
     # Get metrics
     metrics = cb_manager.get_all_metrics()
-    print(f"\nCircuit Breaker Metrics:")
+    print("\nCircuit Breaker Metrics:")
     print(json.dumps(metrics, indent=2))
 
 if __name__ == "__main__":

@@ -13,13 +13,13 @@ os.environ["USE_NVIDIA_EVALUATOR"] = "true"
 os.environ["NVIDIA_API_KEY"] = "test_key"
 
 # Import the components
+from ai.core.pipelines.evaluation_system import ComprehensiveEvaluator
+from ai.core.pipelines.processing.clean import clean_and_deduplicate
+from ai.core.pipelines.youtube_rag_system import YouTubeRAGSystem
 from ai.models.components.therapeutic_finetuning import (
     TherapeuticFinetunConfig,
     TherapeuticModelTrainer,
 )
-from ai.core.pipelines.evaluation_system import ComprehensiveEvaluator
-from ai.core.pipelines.processing.clean import clean_and_deduplicate
-from ai.core.pipelines.youtube_rag_system import YouTubeRAGSystem
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)

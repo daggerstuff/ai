@@ -1,4 +1,3 @@
-from unittest.mock import Mock, patch, MagicMock
 #!/usr/bin/env python3
 """
 Comprehensive API Test Suite
@@ -7,13 +6,12 @@ Task 51: Complete API Documentation
 Tests for the Pixelated Empathy AI API implementation.
 """
 
+import sys
+import time
+from pathlib import Path
+
 import pytest
 import requests
-import json
-import time
-from typing import Dict, Any
-import sys
-from pathlib import Path
 
 # Add project root to path
 project_root = Path(__file__).parent.parent.parent
@@ -381,8 +379,8 @@ class TestAPIPerformance:
     
     def test_concurrent_requests(self):
         """Test handling of concurrent requests."""
-        import threading
         import queue
+        import threading
         
         results = queue.Queue()
         

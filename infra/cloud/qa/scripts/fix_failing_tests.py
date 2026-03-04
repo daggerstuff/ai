@@ -7,10 +7,8 @@ This script addresses the specific issues causing test failures and ensures
 all tests pass while maintaining test integrity.
 """
 
-import os
-import re
 from pathlib import Path
-from typing import Dict, List
+
 
 class TestFixer:
     """Fixes failing tests systematically."""
@@ -85,7 +83,7 @@ class TestFixer:
             f.write(content)
         
         self.fixes_applied += 1
-        print(f"Fixed safety ethics validator tests")
+        print("Fixed safety ethics validator tests")
     
     def fix_clinical_accuracy_validator_tests(self):
         """Fix clinical accuracy validator test failures."""
@@ -191,7 +189,7 @@ class TestFixer:
             f.write(content)
         
         self.fixes_applied += 1
-        print(f"Fixed clinical accuracy validator tests")
+        print("Fixed clinical accuracy validator tests")
     
     def fix_crisis_intervention_detector_tests(self):
         """Fix crisis intervention detector test failures."""
@@ -272,7 +270,7 @@ class TestFixer:
             f.write(content)
         
         self.fixes_applied += 1
-        print(f"Fixed crisis intervention detector tests")
+        print("Fixed crisis intervention detector tests")
     
     def fix_production_exporter_tests(self):
         """Fix production exporter test failures."""
@@ -304,7 +302,7 @@ class TestFixer:
             f.write(content)
         
         self.fixes_applied += 1
-        print(f"Fixed production exporter tests")
+        print("Fixed production exporter tests")
     
     def fix_pipeline_orchestrator_tests(self):
         """Fix pipeline orchestrator test failures."""
@@ -326,7 +324,7 @@ class TestFixer:
             f.write(content)
         
         self.fixes_applied += 1
-        print(f"Fixed pipeline orchestrator tests")
+        print("Fixed pipeline orchestrator tests")
     
     def fix_therapeutic_response_generator_tests(self):
         """Fix therapeutic response generator test failures."""
@@ -381,7 +379,7 @@ class TestFixer:
             f.write(content)
         
         self.fixes_applied += 1
-        print(f"Fixed therapeutic response generator tests")
+        print("Fixed therapeutic response generator tests")
     
     def run_all_fixes(self):
         """Run all test fixes."""
