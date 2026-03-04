@@ -3,19 +3,16 @@
 OVH 60GB Final Processor - Using provided OVH S3 credentials
 """
 
-import subprocess
-import json
 import os
-from pathlib import Path
-from datetime import datetime
+import subprocess
 
 # OVH S3 Configuration
 OVH_S3_CONFIG = {
-    'bucket': 'pixel-data',
-    'endpoint': 'https://s3.us-east-va.io.cloud.ovh.us',
-    'region': 'us-east-va',
-    'access_key': 'a0ce13472d2d4ad18501899c066ef04a',
-    'secret_key': 'dd21a7515fd849e58f8547fde3882a3f'
+    'bucket': os.environ.get('OVH_S3_BUCKET', 'pixel-data'),
+    'endpoint': os.environ.get('OVH_S3_ENDPOINT', 'https://s3.us-east-va.io.cloud.ovh.us'),
+    'region': os.environ.get('OVH_S3_REGION', 'us-east-va'),
+    'access_key': os.environ.get('OVH_S3_ACCESS_KEY', ''),
+    'secret_key': os.environ.get('OVH_S3_SECRET_KEY', '')
 }
 
 
@@ -109,10 +106,10 @@ for line in sys.stdin:
         
         # PII cleaning for therapeutic data
         text = str(data)
-        text = re.sub(r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b', '[EMAIL_REDACTED]', text)
-        text = re.sub(r'\\b\\d{3}-\\d{2}-\\d{4}\\b', '[SSN_REDACTED]', text)
-        text = re.sub(r'\\b\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}[\\s-]?\\d{4}\\b', '[CARD_REDACTED]', text)
-        text = re.sub(r'\\b\\+?1?[-.\\s]?\\(?[0-9]{{3}}\\)?[-.\\s]?[0-9]{{3}}[-.\\s]?[0-9]{{4}}\\b', '[PHONE_REDACTED]', text)
+        text = re.sub(r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{{2,}}\\b', '[EMAIL_REDACTED]', text)
+        text = re.sub(r'\\b\\d{{3}}-\\d{{2}}-\\d{{4}}\\b', '[SSN_REDACTED]', text)
+        text = re.sub(r'\\b\\d{{4}}[\\s-]?\\d{{4}}[\\s-]?\\d{{4}}[\\s-]?\\d{{4}}\\b', '[CARD_REDACTED]', text)
+        text = re.sub(r'\\b\\+?1?[-.\\s]?\\(?[0-9]{{{3}}}\\)?[-.\\s]?[0-9]{{{3}}}[-.\\s]?[0-9]{{{4}}}\\b', '[PHONE_REDACTED]', text)
         
         # Preserve therapeutic context
         if 'conversation' in str(data).lower() or 'therapy' in str(data).lower():
@@ -223,6 +220,7 @@ cat > training_ready/data/ovh_60gb_processed/README.md << 'README_EOF'
 - ✅ No local storage required
 ```
 
+'''
     return processor
 
 
