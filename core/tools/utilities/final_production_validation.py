@@ -6,6 +6,7 @@ Complete system validation and deployment readiness check
 
 import json
 import logging
+import secrets
 import subprocess
 import sys
 from datetime import datetime
@@ -37,7 +38,7 @@ class FinalProductionValidation:
 
             import bcrypt
 
-            test_password = "test_password_123"
+            test_password = secrets.token_urlsafe(16)
             hashed = bcrypt.hashpw(test_password.encode("utf-8"), bcrypt.gensalt())
             verified = bcrypt.checkpw(test_password.encode("utf-8"), hashed)
 
