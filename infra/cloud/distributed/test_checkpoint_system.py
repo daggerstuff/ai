@@ -1,3 +1,4 @@
+import sqlite3
 #!/usr/bin/env python3
 """
 Comprehensive Test Suite for Checkpoint System
@@ -10,7 +11,7 @@ import os
 import shutil
 import tempfile
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 from checkpoint_system import (
     CheckpointType,
@@ -75,6 +76,7 @@ class CheckpointTestSuite:
 
         test_methods = [
             self.test_basic_checkpoint_operations,
+            self.test_processing_state_update_progress,
             self.test_process_registration_and_progress,
             self.test_checkpoint_recovery,
             self.test_storage_optimization,
@@ -107,7 +109,7 @@ class CheckpointTestSuite:
 
         test_data = {
             "message": "Hello, checkpoint!",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "data": list(range(100)),
         }
 
@@ -142,6 +144,55 @@ class CheckpointTestSuite:
                 "test": "basic_checkpoint_operations",
                 "status": "passed",
                 "details": f"Created, retrieved, and deleted checkpoint {checkpoint_id}",
+            }
+        )
+
+    async def test_processing_state_update_progress(self):
+        """Test direct updates to ProcessingState"""
+        from infra.cloud.distributed.checkpoint_system import ProcessingState
+        from datetime import datetime, timezone, timedelta
+
+        now = datetime.now(timezone.utc)
+        state = ProcessingState(
+            process_id="p1",
+            task_id="t1",
+            current_step="init",
+            total_steps=100,
+            completed_steps=0,
+            progress_percentage=0.0,
+            start_time=now,
+            last_update=now,
+        )
+
+        # Test updating completed_steps only
+        state.update_progress(completed_steps=10)
+        assert state.completed_steps == 10, "completed_steps should be updated"
+        assert state.progress_percentage == 10.0, "progress_percentage should be 10.0"
+        assert state.current_step == "init", "current_step should be unchanged"
+
+        # Test updating current_step only
+        state.update_progress(current_step="step2")
+        assert state.completed_steps == 10, "completed_steps should be unchanged"
+        assert state.progress_percentage == 10.0, "progress_percentage should be unchanged"
+        assert state.current_step == "step2", "current_step should be updated"
+
+        # Test estimating completion
+        # Set start_time artificially back by 10 seconds to test the estimation logic
+        state.start_time = state.last_update - timedelta(seconds=10)
+        state.update_progress(completed_steps=20) # 20% complete
+
+        assert state.estimated_completion is not None, "estimated_completion should be calculated"
+
+        # Estimation calculation:
+        # elapsed = 10s (approx, last_update is updated in update_progress)
+        # 20% took 10 seconds, so total = 50s.
+        # remaining = 50 - 10 = 40s.
+
+        self.test_results.append(
+            {
+                "test": "processing_state_update_progress",
+                "status": "passed",
+                "details": "Successfully updated ProcessingState directly",
             }
         )
 
@@ -562,7 +613,7 @@ class CheckpointTestSuite:
         # Test compression specifically
         if self.monitor.config.compression_enabled:
             # Verify compressed checkpoints exist
-            with self.manager.storage.storage.connect(
+            with sqlite3.connect(
                 self.manager.storage.db_path
             ) as conn:
                 compressed_count = conn.execute(
