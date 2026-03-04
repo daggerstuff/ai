@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 import psycopg2
+from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # Add dataset_pipeline to path
@@ -73,7 +74,11 @@ class ProductionDatabaseSetup:
 
             if not exists:
                 logger.info(f"Creating database: {self.db_config['database']}")
-                cursor.execute(f'CREATE DATABASE "{self.db_config["database"]}"')
+                cursor.execute(
+                    sql.SQL("CREATE DATABASE {}").format(
+                        sql.Identifier(self.db_config["database"])
+                    )
+                )
                 logger.info("✅ Database created successfully")
             else:
                 logger.info("✅ Database already exists")
@@ -98,7 +103,11 @@ class ProductionDatabaseSetup:
 
             for ext in extensions:
                 try:
-                    cursor.execute(f'CREATE EXTENSION IF NOT EXISTS "{ext}"')
+                    cursor.execute(
+                        sql.SQL("CREATE EXTENSION IF NOT EXISTS {}").format(
+                            sql.Identifier(ext)
+                        )
+                    )
                     logger.info(f"✅ Extension enabled: {ext}")
                 except Exception as e:
                     logger.warning(f"⚠️ Could not enable extension {ext}: {e}")
@@ -196,7 +205,10 @@ class ProductionDatabaseSetup:
                 COUNT(DISTINCT source) as unique_sources,
                 MIN(started_at) as earliest_conversation,
                 MAX(started_at) as latest_conversation,
-                AVG((SELECT COUNT(*) FROM messages WHERE conversation_id = conversations.id)) as avg_messages_per_conversation
+                AVG(
+                    (SELECT COUNT(*) FROM messages
+                     WHERE conversation_id = conversations.id)
+                ) as avg_messages_per_conversation
             FROM conversations;
             
             -- Create monitoring view for data quality
@@ -204,7 +216,8 @@ class ProductionDatabaseSetup:
             SELECT 
                 source,
                 COUNT(*) as conversation_count,
-                AVG(CASE WHEN tier = 'TIER_1' THEN 1.0 ELSE 0.0 END) as tier_1_percentage,
+                AVG(CASE WHEN tier = 'TIER_1' THEN 1.0 ELSE 0.0 END)
+                as tier_1_percentage,
                 COUNT(DISTINCT category) as unique_categories
             FROM conversations 
             GROUP BY source;
