@@ -1,3 +1,5 @@
+import unittest.mock
+
 #!/usr/bin/env python3
 """
 Unit tests for Quality Validation Caching System
@@ -33,6 +35,10 @@ class TestQualityValidationCache(unittest.TestCase):
 
         # Create cache instance
         self.cache = QualityValidationCache()
+        self.cache.cache_dir = Path(self.temp_dir) / "quality_cache"
+        self.cache.cache_dir.mkdir(parents=True, exist_ok=True)
+        self.cache.cache_dir = Path(self.temp_dir) / "quality_cache"
+        self.cache.cache_dir.mkdir(parents=True, exist_ok=True)
 
     def tearDown(self):
         """Clean up test fixtures"""
@@ -114,13 +120,73 @@ class TestQualityValidationCache(unittest.TestCase):
         )
         self.assertEqual(cached_result, test_result)
 
-        # For this test, we'll just test that the invalidate method doesn't crash
-        # The exact cache key calculation is complex and not critical for this test
-        success = self.cache.invalidate_cache(str(self.cache_file), validation_type)
+        success = self.cache.invalidate_cache(
+            str(self.cache_file), validation_type, metadata
+        )
         self.assertTrue(success)
 
-        # Instead of testing if cache is invalidated, we'll just verify the method works
-        # The invalidate_all_cache test covers the broader invalidation functionality
+        # Verify it's invalidated
+        cached_result_after = self.cache.get_cached_result(
+            str(self.cache_file), validation_type, metadata
+        )
+        self.assertIsNone(cached_result_after)
+
+    def test_invalidate_cache_wrong_metadata(self):
+        """Test that invalidating with wrong metadata does not invalidate the original cache"""
+        test_result = b"test validation result data"
+        metadata = {"version": "1.0"}
+        wrong_metadata = {"version": "2.0"}
+        validation_type = "conversation"
+
+        # Cache the result
+        self.cache.cache_result(
+            str(self.cache_file), validation_type, metadata, test_result
+        )
+
+        success = self.cache.invalidate_cache(
+            str(self.cache_file), validation_type, wrong_metadata
+        )
+        self.assertTrue(success)
+
+        # Verify it's STILL cached under the correct metadata
+        cached_result_after = self.cache.get_cached_result(
+            str(self.cache_file), validation_type, metadata
+        )
+        self.assertEqual(cached_result_after, test_result)
+
+    def test_invalidate_cache_missing_entry(self):
+        """Test cache invalidation when the entry does not exist"""
+        metadata = {"version": "1.0"}
+        validation_type = "conversation"
+
+        success = self.cache.invalidate_cache(
+            "nonexistent_file.json", validation_type, metadata
+        )
+        self.assertTrue(success)
+
+    @unittest.mock.patch("infra.cloud.distributed.quality_validation_cache.redis")
+    def test_invalidate_cache_redis(self, mock_redis):
+        """Test cache invalidation when Redis is available"""
+        test_result = b"test validation result data"
+        metadata = {"version": "1.0"}
+        validation_type = "conversation"
+
+        # Setup mock redis client
+        mock_redis_client = unittest.mock.MagicMock()
+
+        # Create a new cache instance with the mocked redis
+        cache = QualityValidationCache()
+        cache.redis_client = mock_redis_client
+
+        cache.cache_result(str(self.cache_file), validation_type, metadata, test_result)
+
+        success = cache.invalidate_cache(
+            str(self.cache_file), validation_type, metadata
+        )
+        self.assertTrue(success)
+
+        # Verify redis delete was called
+        self.assertTrue(mock_redis_client.delete.called)
 
     def test_invalidate_all_cache(self):
         """Test invalidation of all cache entries"""
