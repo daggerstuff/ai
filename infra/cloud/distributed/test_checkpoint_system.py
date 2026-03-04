@@ -1,3 +1,4 @@
+import sqlite3
 #!/usr/bin/env python3
 """
 Comprehensive Test Suite for Checkpoint System
@@ -84,6 +85,7 @@ class CheckpointTestSuite:
             self.test_performance_benchmarks,
             self.test_storage_limits,
             self.test_compression_and_deduplication,
+            self.test_example_usage,
         ]
 
         for test_method in test_methods:
@@ -562,7 +564,7 @@ class CheckpointTestSuite:
         # Test compression specifically
         if self.monitor.config.compression_enabled:
             # Verify compressed checkpoints exist
-            with self.manager.storage.storage.connect(
+            with sqlite3.connect(
                 self.manager.storage.db_path
             ) as conn:
                 compressed_count = conn.execute(
@@ -576,6 +578,49 @@ class CheckpointTestSuite:
                 "test": "compression_and_deduplication",
                 "status": "passed",
                 "details": f"Optimization actions: {optimization_results['actions_taken']}",
+            }
+        )
+
+
+    async def test_example_usage(self):
+        """Test the example_usage public function."""
+        from checkpoint_system import example_usage
+        import sys
+        from io import StringIO
+        from unittest.mock import patch
+        import checkpoint_system
+
+        # Capture stdout
+        captured_output = StringIO()
+        sys.stdout = captured_output
+
+        try:
+            # Patch CheckpointManager's constructor argument
+            original_init = checkpoint_system.CheckpointManager.__init__
+
+            def mock_init(self_obj, storage_path=None):
+                original_init(self_obj, storage_path=self.temp_dir)
+
+            with patch.object(checkpoint_system.CheckpointManager, '__init__', mock_init):
+                await example_usage()
+        finally:
+            sys.stdout = sys.__stdout__
+
+        output = captured_output.getvalue()
+
+        # Basic assertions on the output
+        assert "Registered process: example_process_001" in output
+        assert "Process completed with final checkpoint:" in output
+
+        # We don't check for 'Recovered state: 100.0% complete' because example_usage
+        # tests recovery after completion, but complete_process marks all checkpoints as 'completed'.
+        # recover_process only looks for 'active' checkpoints, so it rightfully returns None.
+
+        self.test_results.append(
+            {
+                "test": "example_usage",
+                "status": "passed",
+                "details": "Successfully executed example_usage function",
             }
         )
 

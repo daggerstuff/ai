@@ -12,7 +12,7 @@ import pickle
 import sqlite3
 import time
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Dict, List, Optional, Any, Union, Callable
 from dataclasses import dataclass, field, asdict
 from enum import Enum
@@ -95,7 +95,7 @@ class ProcessingState:
         if current_step is not None:
             self.current_step = current_step
         
-        self.last_update = datetime.utcnow()
+        self.last_update = datetime.now(timezone.utc)
         
         # Estimate completion time
         if self.progress_percentage > 0:
@@ -206,7 +206,7 @@ class CheckpointStorage:
                     metadata.status.value,
                     str(file_path),
                     checksum,
-                    json.dumps(asdict(metadata))
+                    json.dumps(asdict(metadata), default=lambda o: o.value if hasattr(o, 'value') else (o.isoformat() if hasattr(o, 'isoformat') else str(o)))
                 ))
             
             logger.info(f"Saved checkpoint {metadata.checkpoint_id} ({metadata.size_bytes} bytes)")
@@ -369,7 +369,7 @@ class CheckpointStorage:
         
         with sqlite3.connect(self.db_path) as conn:
             # Find expired checkpoints
-            cutoff_time = datetime.utcnow()
+            cutoff_time = datetime.now(timezone.utc)
             
             expired_checkpoints = conn.execute("""
                 SELECT checkpoint_id, file_path, created_at, ttl_hours
@@ -489,8 +489,8 @@ class CheckpointManager:
             total_steps=total_steps,
             completed_steps=0,
             progress_percentage=0.0,
-            start_time=datetime.utcnow(),
-            last_update=datetime.utcnow(),
+            start_time=datetime.now(timezone.utc),
+            last_update=datetime.now(timezone.utc),
             metadata={"description": description}
         )
         
@@ -519,7 +519,7 @@ class CheckpointManager:
         metadata = CheckpointMetadata(
             checkpoint_id=checkpoint_id,
             checkpoint_type=checkpoint_type,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
             process_id=process_id,
             task_id=task_id,
             description=description,
@@ -579,7 +579,7 @@ class CheckpointManager:
         state.completed_steps = state.total_steps
         state.progress_percentage = 100.0
         state.current_step = "completed"
-        state.last_update = datetime.utcnow()
+        state.last_update = datetime.now(timezone.utc)
         
         # Create final checkpoint
         checkpoint_data = {
@@ -713,7 +713,7 @@ async def example_usage():
     """Example of how to use the checkpoint system"""
     
     # Initialize checkpoint manager
-    manager = CheckpointManager()
+    manager = CheckpointManager(storage_path="/tmp/pixelated_checkpoints")
     manager.start_background_tasks()
     
     try:
