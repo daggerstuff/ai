@@ -30,6 +30,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+import httpx
 import numpy as np
 import requests
 
@@ -38,7 +39,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     handlers=[
-        logging.FileHandler("/home/vivi/pixelated/ai/logs/enterprise_validation.log"),
+        logging.FileHandler("enterprise_validation.log"),
         logging.StreamHandler(),
     ],
 )
@@ -288,9 +289,11 @@ class SecurityValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="security_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if rate_limiting_active
-                else ValidationStatus.WARNING,
+                status=(
+                    ValidationStatus.PASSED
+                    if rate_limiting_active
+                    else ValidationStatus.WARNING
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "total_requests": request_count + blocked_count,
@@ -336,9 +339,11 @@ class SecurityValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="security_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if critical_issues == 0
-                else ValidationStatus.FAILED,
+                status=(
+                    ValidationStatus.PASSED
+                    if critical_issues == 0
+                    else ValidationStatus.FAILED
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "vulnerabilities": vulnerabilities,
@@ -441,9 +446,11 @@ class ComplianceValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="compliance_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if compliance_score >= 95
-                else ValidationStatus.WARNING,
+                status=(
+                    ValidationStatus.PASSED
+                    if compliance_score >= 95
+                    else ValidationStatus.WARNING
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "compliance_checks": compliance_checks,
@@ -522,19 +529,23 @@ class PerformanceValidator:
         try:
             response_times = []
 
-            # Make multiple requests to measure response times
-            for i in range(50):
-                request_start = time.time()
-                try:
-                    response = requests.get(
-                        "http://localhost:8000/api/v1/health", timeout=10
-                    )
-                    request_time = (time.time() - request_start) * 1000
-                    if response.status_code == 200:
-                        response_times.append(request_time)
-                except requests.exceptions.RequestException:
-                    # Skip failed requests for response time calculation
-                    pass
+            # Make multiple requests to measure response times concurrently
+            async with httpx.AsyncClient(timeout=10.0) as client:
+
+                async def fetch():
+                    req_start = time.time()
+                    try:
+                        resp = await client.get("http://localhost:8000/api/v1/health")
+                        req_time = (time.time() - req_start) * 1000
+                        if resp.status_code == 200:
+                            return req_time
+                    except httpx.RequestError:
+                        return None
+                    return None
+
+                tasks = [fetch() for _ in range(50)]
+                results = await asyncio.gather(*tasks)
+                response_times = [r for r in results if r is not None]
 
             if not response_times:
                 raise Exception("No successful requests completed")
@@ -554,9 +565,11 @@ class PerformanceValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="performance_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if sla_compliant
-                else ValidationStatus.WARNING,
+                status=(
+                    ValidationStatus.PASSED
+                    if sla_compliant
+                    else ValidationStatus.WARNING
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "response_times": {
@@ -589,9 +602,7 @@ class EnterpriseValidator:
     """Main enterprise validation system"""
 
     def __init__(self):
-        self.validation_path = Path(
-            "/home/vivi/pixelated/ai/infrastructure/qa/validation_results"
-        )
+        self.validation_path = Path("validation_results")
         self.validation_path.mkdir(parents=True, exist_ok=True)
 
         # Initialize validators
@@ -724,15 +735,21 @@ class EnterpriseValidator:
 
         # Compliance status
         compliance_status = {
-            "HIPAA": "COMPLIANT"
-            if category_scores.get("compliance", 0) >= 95
-            else "NON_COMPLIANT",
-            "SOC2": "COMPLIANT"
-            if category_scores.get("security", 0) >= 95
-            else "NON_COMPLIANT",
-            "GDPR": "COMPLIANT"
-            if category_scores.get("compliance", 0) >= 95
-            else "NON_COMPLIANT",
+            "HIPAA": (
+                "COMPLIANT"
+                if category_scores.get("compliance", 0) >= 95
+                else "NON_COMPLIANT"
+            ),
+            "SOC2": (
+                "COMPLIANT"
+                if category_scores.get("security", 0) >= 95
+                else "NON_COMPLIANT"
+            ),
+            "GDPR": (
+                "COMPLIANT"
+                if category_scores.get("compliance", 0) >= 95
+                else "NON_COMPLIANT"
+            ),
         }
 
         # Generate recommendations
