@@ -10,7 +10,7 @@ import os
 import shutil
 import tempfile
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 
 from checkpoint_system import (
     CheckpointType,
@@ -84,6 +84,7 @@ class CheckpointTestSuite:
             self.test_performance_benchmarks,
             self.test_storage_limits,
             self.test_compression_and_deduplication,
+            self.test_save_checkpoint,
         ]
 
         for test_method in test_methods:
@@ -107,7 +108,7 @@ class CheckpointTestSuite:
 
         test_data = {
             "message": "Hello, checkpoint!",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "data": list(range(100)),
         }
 
@@ -562,9 +563,9 @@ class CheckpointTestSuite:
         # Test compression specifically
         if self.monitor.config.compression_enabled:
             # Verify compressed checkpoints exist
-            with self.manager.storage.storage.connect(
-                self.manager.storage.db_path
-            ) as conn:
+            import sqlite3
+
+            with sqlite3.connect(self.manager.storage.db_path) as conn:
                 compressed_count = conn.execute(
                     "SELECT COUNT(*) FROM checkpoints WHERE compression = 1"
                 ).fetchone()[0]
@@ -576,6 +577,84 @@ class CheckpointTestSuite:
                 "test": "compression_and_deduplication",
                 "status": "passed",
                 "details": f"Optimization actions: {optimization_results['actions_taken']}",
+            }
+        )
+
+    async def test_save_checkpoint(self):
+        """Explicitly test the save_checkpoint function including edge cases"""
+        process_id = "test_save_chkpt_001"
+        task_id = "save_test"
+
+        test_data = {"key1": "value1", "key2": 42, "key3": [1, 2, 3]}
+
+        # Create checkpoint metadata directly
+        import uuid
+        from datetime import datetime, timezone
+
+        from checkpoint_system import (
+            CheckpointMetadata,
+            CheckpointStatus,
+            CheckpointType,
+        )
+
+        metadata = CheckpointMetadata(
+            checkpoint_id=f"{process_id}_{task_id}_{int(time.time())}_{uuid.uuid4().hex[:8]}",
+            checkpoint_type=CheckpointType.CUSTOM,
+            created_at=datetime.now(timezone.utc),
+            process_id=process_id,
+            task_id=task_id,
+            description="Explicit save_checkpoint test",
+            status=CheckpointStatus.ACTIVE,
+            compression=False,
+        )
+
+        # Test normal save_checkpoint
+        file_path = self.manager.storage.save_checkpoint(metadata, test_data)
+
+        # Verify file exists
+        assert os.path.exists(file_path), "Checkpoint file was not created"
+
+        # Verify data using load_checkpoint
+        loaded_metadata, loaded_data = self.manager.storage.load_checkpoint(
+            metadata.checkpoint_id
+        )
+        assert loaded_data == test_data, "Loaded data does not match saved data"
+        assert loaded_metadata.checkpoint_id == metadata.checkpoint_id
+
+        # Test error handling (e.g., trying to save unpickleable object)
+        class Unpickleable:
+            def __init__(self):
+                self.lambda_func = lambda x: x
+
+        unpickleable_data = Unpickleable()
+        metadata_unpick = CheckpointMetadata(
+            checkpoint_id=f"{process_id}_{task_id}_{int(time.time())}_{uuid.uuid4().hex[:8]}",
+            checkpoint_type=CheckpointType.CUSTOM,
+            created_at=datetime.now(timezone.utc),
+            process_id=process_id,
+            task_id=task_id,
+        )
+
+        try:
+            self.manager.storage.save_checkpoint(metadata_unpick, unpickleable_data)
+            assert False, "Should have raised an exception for unpickleable data"
+        except Exception:
+            # Check if file was cleaned up on failure
+            file_name = f"{metadata_unpick.checkpoint_id}.pkl"
+            if metadata_unpick.compression:
+                file_name += ".gz"
+            failed_file_path = self.manager.storage.data_path / file_name
+            assert not os.path.exists(failed_file_path), (
+                "Failed checkpoint file was not cleaned up"
+            )
+
+        self.test_results.append(
+            {
+                "test": "test_save_checkpoint",
+                "status": "passed",
+                "details": (
+                    "Successfully tested explicit save_checkpoint and error cleanup"
+                ),
             }
         )
 
