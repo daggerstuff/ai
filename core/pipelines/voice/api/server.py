@@ -48,6 +48,9 @@ from .utils import data_manager, pipeline_executor
 # Configure structured logging
 logger = structlog.get_logger(__name__)
 
+# Track server start time for uptime metric
+START_TIME = time.time()
+
 # Initialize rate limiter
 limiter = Limiter(key_func=get_remote_address)
 
@@ -62,9 +65,7 @@ app = FastAPI(
 )
 
 # Add security middleware
-app.add_middleware(
-    TrustedHostMiddleware, allowed_hosts=["*"]
-)  # Configure for production
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=["*"])  # Configure for production
 
 # Add CORS middleware
 app.add_middleware(
@@ -179,9 +180,7 @@ async def run_pipeline(youtube_url: str, language: str, whisper_model: str) -> s
             raise RuntimeError("Transcription failed")
 
         # Find latest transcript
-        transcript_path = data_manager.get_latest_file(
-            config.directories.voice_transcripts
-        )
+        transcript_path = data_manager.get_latest_file(config.directories.voice_transcripts)
         if not transcript_path:
             raise RuntimeError("Transcript not found after processing.")
 
@@ -201,7 +200,7 @@ async def root():
     return HealthCheckResponse(
         status="healthy",
         version="1.0.0",
-        uptime=0.0,  # TODO: Implement actual uptime tracking
+        uptime=time.time() - START_TIME,
         dependencies={"whisperx": "available", "yt-dlp": "available"},
         system_info={"environment": config.environment, "debug": config.debug},
     )
@@ -258,17 +257,13 @@ async def transcribe(
         raise
     except Exception as e:
         metrics.record_error("transcription_error", "api")
-        logger.error(
-            "Transcription request failed", error=str(e), user_id=current_user.id
-        )
+        logger.error("Transcription request failed", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/pipeline/jobs", response_model=str)
 @limiter.limit("5/minute")
-async def create_pipeline_job(
-    request: PipelineJobRequest, current_user: User = RequireCreateJobs
-):
+async def create_pipeline_job(request: PipelineJobRequest, current_user: User = RequireCreateJobs):
     """Create and start a new pipeline job."""
     try:
         # Check concurrent job quota
@@ -281,7 +276,7 @@ async def create_pipeline_job(
                 raise HTTPException(status_code=429, detail=error_msg)
 
         # Record metrics
-        start_time = time.time()
+        time.time()
 
         job_id = await pipeline_executor.execute_pipeline_job(
             job_name=request.job_name,
@@ -314,9 +309,7 @@ async def create_pipeline_job(
         raise
     except Exception as e:
         metrics.record_error("job_creation_error", "api")
-        logger.error(
-            "Pipeline job creation failed", error=str(e), user_id=current_user.id
-        )
+        logger.error("Pipeline job creation failed", error=str(e), user_id=current_user.id)
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -406,9 +399,7 @@ async def get_latest_data(data_type: str):
         }
 
         if data_type not in data_type_mapping:
-            raise HTTPException(
-                status_code=400, detail=f"Unknown data type: {data_type}"
-            )
+            raise HTTPException(status_code=400, detail=f"Unknown data type: {data_type}")
 
         directory = data_type_mapping[data_type]
         latest_file = data_manager.get_latest_file(directory)
@@ -439,9 +430,7 @@ async def list_data_files(data_type: str):
         }
 
         if data_type not in data_type_mapping:
-            raise HTTPException(
-                status_code=400, detail=f"Unknown data type: {data_type}"
-            )
+            raise HTTPException(status_code=400, detail=f"Unknown data type: {data_type}")
 
         directory = data_type_mapping[data_type]
         files = data_manager.list_files(directory, "*.json")
