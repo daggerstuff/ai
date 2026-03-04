@@ -27,6 +27,9 @@ from ai.core.sourcing.youtube.models import (
     QualityMetrics,
 )
 
+# Removed unused imports: ChannelRegistry, LicensingInfo, ChannelMonitor
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -312,23 +315,19 @@ class ChannelProcessor:
                 "is_professional": channel.is_professional,
                 "credentials": channel.credentials,
                 "organization": channel.organization,
-                "licensing": (
-                    {
-                        "cc_license": (
-                            channel.licensing.cc_license if channel.licensing else False
-                        ),
-                        "cc_type": (
-                            channel.licensing.cc_type if channel.licensing else None
-                        ),
-                        "commercial_use": (
-                            channel.licensing.commercial_use
-                            if channel.licensing
-                            else False
-                        ),
-                    }
+                "licensing": {
+                    "cc_license": channel.licensing.cc_license
                     if channel.licensing
-                    else None
-                ),
+                    else False,
+                    "cc_type": channel.licensing.cc_type
+                    if channel.licensing
+                    else None,
+                    "commercial_use": channel.licensing.commercial_use
+                    if channel.licensing
+                    else False,
+                }
+                if channel.licensing
+                else None,
                 "status": channel.status.value,
             }
             for channel in results.qualified_channels
