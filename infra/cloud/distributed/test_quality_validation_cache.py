@@ -46,6 +46,39 @@ class TestQualityValidationCache(unittest.TestCase):
             self.cache.close()
             self.cache.invalidate_cache()  # Clear all cache entries
 
+
+    def test_close_no_redis(self):
+        """Test closing cache when redis client is None"""
+        self.cache.redis_client = None
+        # Should not raise any exceptions
+        self.cache.close()
+
+    def test_close_with_redis(self):
+        """Test closing cache when redis client exists"""
+        from unittest.mock import MagicMock
+
+        self.cache.redis_client = MagicMock()
+        self.cache.close()
+
+        # Verify close was called
+        self.cache.redis_client.close.assert_called_once()
+
+    def test_close_exception(self):
+        """Test closing cache handles exceptions gracefully"""
+        from unittest.mock import MagicMock, patch
+
+        self.cache.redis_client = MagicMock()
+        self.cache.redis_client.close.side_effect = Exception("Test connection error")
+
+        # Should not raise any exceptions
+        with patch('quality_validation_cache.logger.warning') as mock_warning:
+            self.cache.close()
+            mock_warning.assert_called_once()
+            self.assertIn("Failed to close Redis connection", mock_warning.call_args[0][0])
+
+        # Clean up mock to prevent tearDown from logging the exception again
+        self.cache.redis_client = None
+
     def test_calculate_data_hash(self):
         """Test data hash calculation"""
         metadata = {"version": "1.0", "config": {"threshold": 0.8}}
