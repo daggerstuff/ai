@@ -21,4 +21,3 @@ __all__ = [
     "list_profiles",
     "validate_profile_config",
 ]
-

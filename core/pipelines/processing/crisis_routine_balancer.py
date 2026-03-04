@@ -474,12 +474,12 @@ class CrisisRoutineBalancer:
                 "target_total": target_total,
                 "actual_total": total_balanced,
                 "crisis_levels": len(results),
-                "crisis_ratio": crisis_count / total_balanced
-                if total_balanced > 0
-                else 0,
-                "routine_ratio": routine_count / total_balanced
-                if total_balanced > 0
-                else 0,
+                "crisis_ratio": (
+                    crisis_count / total_balanced if total_balanced > 0 else 0
+                ),
+                "routine_ratio": (
+                    routine_count / total_balanced if total_balanced > 0 else 0
+                ),
                 "level_results": {r.level: r.metadata for r in results},
             }
         )

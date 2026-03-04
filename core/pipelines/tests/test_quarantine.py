@@ -100,9 +100,7 @@ def test_quarantine_store_reprocess_success(mock_client, mocker):
 
     mocker.patch("ai.pipelines.quarantine.IngestRecord")
     mocker.patch("ai.pipelines.quarantine.datetime.utcnow")
-    mocker.patch(
-        "ai.pipelines.quarantine.validate_record", return_value=MagicMock()
-    )
+    mocker.patch("ai.pipelines.quarantine.validate_record", return_value=MagicMock())
 
     store = QuarantineStore("mock_uri")
     rec = store.reprocess_record("test_qid")

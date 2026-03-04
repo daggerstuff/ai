@@ -12,26 +12,33 @@ from typing import Any, Dict, List, Optional
 
 # Dangerous patterns that should be sanitized
 DANGEROUS_PATTERNS = [
-    re.compile(r'<script[^>]*>.*?</script>', re.IGNORECASE | re.DOTALL),
-    re.compile(r'javascript:', re.IGNORECASE),
-    re.compile(r'on\w+\s*=', re.IGNORECASE),  # Event handlers like onclick=
-    re.compile(r'data:text/html', re.IGNORECASE),
-    re.compile(r'vbscript:', re.IGNORECASE),
-    re.compile(r'<iframe[^>]*>', re.IGNORECASE),
-    re.compile(r'<object[^>]*>', re.IGNORECASE),
-    re.compile(r'<embed[^>]*>', re.IGNORECASE),
+    re.compile(r"<script[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL),
+    re.compile(r"javascript:", re.IGNORECASE),
+    re.compile(r"on\w+\s*=", re.IGNORECASE),  # Event handlers like onclick=
+    re.compile(r"data:text/html", re.IGNORECASE),
+    re.compile(r"vbscript:", re.IGNORECASE),
+    re.compile(r"<iframe[^>]*>", re.IGNORECASE),
+    re.compile(r"<object[^>]*>", re.IGNORECASE),
+    re.compile(r"<embed[^>]*>", re.IGNORECASE),
 ]
 
 # SQL injection patterns (for detection, not execution)
 SQL_INJECTION_PATTERNS = [
-    re.compile(r"('|(\\')|(;)|(\\;)|(--)|(\\--)|(/\*)|(\\/\*)|(\*/)|(\\\*/))", re.IGNORECASE),
-    re.compile(r'\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b', re.IGNORECASE),
+    re.compile(
+        r"('|(\\')|(;)|(\\;)|(--)|(\\--)|(/\*)|(\\/\*)|(\*/)|(\\\*/))", re.IGNORECASE
+    ),
+    re.compile(
+        r"\b(union|select|insert|update|delete|drop|create|alter|exec|execute)\b",
+        re.IGNORECASE,
+    ),
 ]
 
 # Command injection patterns
 COMMAND_INJECTION_PATTERNS = [
-    re.compile(r'[;&|`$()]', re.IGNORECASE),
-    re.compile(r'\b(cat|ls|rm|mv|cp|chmod|chown|sudo|su|wget|curl|nc|netcat)\b', re.IGNORECASE),
+    re.compile(r"[;&|`$()]", re.IGNORECASE),
+    re.compile(
+        r"\b(cat|ls|rm|mv|cp|chmod|chown|sudo|su|wget|curl|nc|netcat)\b", re.IGNORECASE
+    ),
 ]
 
 
@@ -62,7 +69,7 @@ def sanitize_string(value: str, max_length: Optional[int] = None) -> str:
 
     # Remove dangerous patterns
     for pattern in DANGEROUS_PATTERNS:
-        value = pattern.sub('', value)
+        value = pattern.sub("", value)
 
     # Escape HTML entities
     value = html.escape(value, quote=True)
@@ -70,7 +77,9 @@ def sanitize_string(value: str, max_length: Optional[int] = None) -> str:
     return value
 
 
-def sanitize_dict(data: Dict[str, Any], max_string_length: Optional[int] = None) -> Dict[str, Any]:
+def sanitize_dict(
+    data: Dict[str, Any], max_string_length: Optional[int] = None
+) -> Dict[str, Any]:
     """
     Recursively sanitize dictionary values.
 
@@ -101,7 +110,9 @@ def sanitize_dict(data: Dict[str, Any], max_string_length: Optional[int] = None)
     return sanitized
 
 
-def sanitize_list(data: List[Any], max_string_length: Optional[int] = None) -> List[Any]:
+def sanitize_list(
+    data: List[Any], max_string_length: Optional[int] = None
+) -> List[Any]:
     """
     Recursively sanitize list values.
 
@@ -264,11 +275,7 @@ def get_security_headers() -> Dict[str, str]:
         ),
         "Referrer-Policy": "strict-origin-when-cross-origin",
         "Permissions-Policy": (
-            "geolocation=(), "
-            "microphone=(), "
-            "camera=(), "
-            "payment=(), "
-            "usb=()"
+            "geolocation=(), " "microphone=(), " "camera=(), " "payment=(), " "usb=()"
         ),
     }
 
@@ -314,4 +321,3 @@ def sanitize_json_output(data: Any) -> Any:
             return str(sanitized)
 
     return sanitized
-

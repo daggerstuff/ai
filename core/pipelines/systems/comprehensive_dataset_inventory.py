@@ -116,8 +116,7 @@ class DatasetInventoryDB:
             conn = sqlite3.connect(self.db_path)
             try:
                 # Main datasets table
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE TABLE IF NOT EXISTS datasets (
                         id TEXT PRIMARY KEY,
                         name TEXT NOT NULL,
@@ -134,12 +133,10 @@ class DatasetInventoryDB:
                         tags TEXT,
                         metadata TEXT
                     )
-                """
-                )
+                """)
 
                 # Versions table
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE TABLE IF NOT EXISTS dataset_versions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         dataset_id TEXT,
@@ -152,12 +149,10 @@ class DatasetInventoryDB:
                         is_current BOOLEAN,
                         FOREIGN KEY (dataset_id) REFERENCES datasets (id)
                     )
-                """
-                )
+                """)
 
                 # Dependencies table
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE TABLE IF NOT EXISTS dataset_dependencies (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         dataset_id TEXT,
@@ -167,12 +162,10 @@ class DatasetInventoryDB:
                         description TEXT,
                         FOREIGN KEY (dataset_id) REFERENCES datasets (id)
                     )
-                """
-                )
+                """)
 
                 # Metrics table
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE TABLE IF NOT EXISTS dataset_metrics (
                         dataset_id TEXT PRIMARY KEY,
                         quality_score REAL,
@@ -184,8 +177,7 @@ class DatasetInventoryDB:
                         error_count INTEGER,
                         FOREIGN KEY (dataset_id) REFERENCES datasets (id)
                     )
-                """
-                )
+                """)
 
                 # Create indexes
                 conn.execute(

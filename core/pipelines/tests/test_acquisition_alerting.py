@@ -119,9 +119,9 @@ class TestAcquisitionAlerting(unittest.TestCase):
         signature_found = any(
             sig.lower() in alert_text for sig in network_pattern.error_signatures
         )
-        assert signature_found, (
-            f"Alert message '{alert_text}' should match network signatures {network_pattern.error_signatures}"
-        )
+        assert (
+            signature_found
+        ), f"Alert message '{alert_text}' should match network signatures {network_pattern.error_signatures}"
 
         # Test rate limiting pattern
         rate_limit_alert = Alert(
@@ -260,9 +260,7 @@ class TestAcquisitionAlerting(unittest.TestCase):
         """Test different notification channels."""
 
         # Test log notification
-        with patch(
-            "ai.pipelines.acquisition_alerting.logger"
-        ) as mock_logger:
+        with patch("ai.pipelines.acquisition_alerting.logger") as mock_logger:
             self.alerting._send_log_notification(self.test_alert)
             mock_logger.error.assert_called_once()
 

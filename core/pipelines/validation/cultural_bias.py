@@ -18,6 +18,7 @@ logger = get_logger("dataset_pipeline.validation.cultural_bias")
 
 class BiasType(Enum):
     """Types of bias that can be detected"""
+
     STEREOTYPING = "stereotyping"
     UNDERREPRESENTATION = "underrepresentation"
     OVERREPRESENTATION = "overrepresentation"
@@ -31,6 +32,7 @@ class BiasType(Enum):
 @dataclass
 class CulturalPattern:
     """A detected cultural pattern"""
+
     pattern_id: str
     category: str
     description: str
@@ -42,6 +44,7 @@ class CulturalPattern:
 @dataclass
 class BiasDetection:
     """A single bias detection result"""
+
     bias_type: BiasType
     severity: str
     description: str
@@ -54,6 +57,7 @@ class BiasDetection:
 @dataclass
 class CulturalCompetencyReport:
     """Comprehensive cultural competency and bias report"""
+
     total_examples: int
     by_demographic: Dict[str, int] = field(default_factory=dict)
     by_cultural_group: Dict[str, int] = field(default_factory=dict)
@@ -123,18 +127,45 @@ class CulturalPatternDetector:
 
         # Cultural groups to monitor (expanded list for 200+ patterns)
         cultural_groups = [
-            "african_american", "latinx", "asian_american", "native_american",
-            "middle_eastern", "south_asian", "east_asian", "pacific_islander",
-            "indigenous", "immigrant", "refugee", "lgbtq", "transgender",
-            "non_binary", "disabled", "neurodivergent", "elderly", "youth",
-            "rural", "urban", "low_income", "religious_minority",
+            "african_american",
+            "latinx",
+            "asian_american",
+            "native_american",
+            "middle_eastern",
+            "south_asian",
+            "east_asian",
+            "pacific_islander",
+            "indigenous",
+            "immigrant",
+            "refugee",
+            "lgbtq",
+            "transgender",
+            "non_binary",
+            "disabled",
+            "neurodivergent",
+            "elderly",
+            "youth",
+            "rural",
+            "urban",
+            "low_income",
+            "religious_minority",
         ]
 
         # Pattern categories
         categories = [
-            "stereotyping", "representation", "language", "diagnostic",
-            "treatment", "crisis", "resilience", "community", "family",
-            "spirituality", "trauma", "identity", "intersectionality",
+            "stereotyping",
+            "representation",
+            "language",
+            "diagnostic",
+            "treatment",
+            "crisis",
+            "resilience",
+            "community",
+            "family",
+            "spirituality",
+            "trauma",
+            "identity",
+            "intersectionality",
         ]
 
         # Generate patterns (simplified for implementation - would be expanded to 200+)
@@ -164,7 +195,9 @@ class CulturalPatternDetector:
 
         return patterns
 
-    def detect_patterns(self, text: str, context: Optional[Dict[str, Any]] = None) -> List[CulturalPattern]:
+    def detect_patterns(
+        self, text: str, context: Optional[Dict[str, Any]] = None
+    ) -> List[CulturalPattern]:
         """
         Detect cultural patterns in text.
 
@@ -181,7 +214,10 @@ class CulturalPatternDetector:
         # Simple pattern matching (would be enhanced with NLP in production)
         for pattern in self.patterns:
             # Check if pattern category or description matches text
-            if pattern.category in text_lower or pattern.description.lower() in text_lower:
+            if (
+                pattern.category in text_lower
+                or pattern.description.lower() in text_lower
+            ):
                 detected.append(pattern)
 
         return detected
@@ -219,11 +255,28 @@ class BiasDetector:
     def __init__(self):
         """Initialize bias detector"""
         self.cultural_groups = [
-            "african_american", "black", "latinx", "latino", "latina",
-            "hispanic", "asian", "native_american", "indigenous",
-            "lgbtq", "gay", "lesbian", "transgender", "trans",
-            "disabled", "neurodivergent", "autistic", "adhd",
-            "immigrant", "refugee", "muslim", "jewish",
+            "african_american",
+            "black",
+            "latinx",
+            "latino",
+            "latina",
+            "hispanic",
+            "asian",
+            "native_american",
+            "indigenous",
+            "lgbtq",
+            "gay",
+            "lesbian",
+            "transgender",
+            "trans",
+            "disabled",
+            "neurodivergent",
+            "autistic",
+            "adhd",
+            "immigrant",
+            "refugee",
+            "muslim",
+            "jewish",
         ]
 
     def detect_bias(
@@ -249,39 +302,45 @@ class BiasDetector:
             for pattern, bias_type in self.STEREOTYPING_PATTERNS:
                 pattern_filled = pattern.format(group=group)
                 if re.search(pattern_filled, text_lower, re.IGNORECASE):
-                    detections.append(BiasDetection(
-                        bias_type=BiasType.STEREOTYPING,
-                        severity="high",
-                        description=f"Stereotyping pattern detected for {group}",
-                        affected_groups=[group],
-                        evidence=[f"Pattern: {pattern_filled}"],
-                        confidence=0.7,
-                    ))
+                    detections.append(
+                        BiasDetection(
+                            bias_type=BiasType.STEREOTYPING,
+                            severity="high",
+                            description=f"Stereotyping pattern detected for {group}",
+                            affected_groups=[group],
+                            evidence=[f"Pattern: {pattern_filled}"],
+                            confidence=0.7,
+                        )
+                    )
 
             # Check for pathologizing
             for pattern, _ in self.PATHOLOGIZING_PATTERNS:
                 pattern_filled = pattern.format(group=group)
                 if re.search(pattern_filled, text_lower, re.IGNORECASE):
-                    detections.append(BiasDetection(
-                        bias_type=BiasType.PATHOLOGIZING,
-                        severity="high",
-                        description=f"Pathologizing pattern detected for {group}",
-                        affected_groups=[group],
-                        evidence=[f"Pattern: {pattern_filled}"],
-                        confidence=0.7,
-                    ))
+                    detections.append(
+                        BiasDetection(
+                            bias_type=BiasType.PATHOLOGIZING,
+                            severity="high",
+                            description=f"Pathologizing pattern detected for {group}",
+                            affected_groups=[group],
+                            evidence=[f"Pattern: {pattern_filled}"],
+                            confidence=0.7,
+                        )
+                    )
 
         # Check for general insensitivity
         for pattern, _ in self.INSENSITIVITY_PATTERNS:
             if re.search(pattern, text_lower, re.IGNORECASE):
-                detections.append(BiasDetection(
-                    bias_type=BiasType.CULTURAL_INSENSITIVITY,
-                    severity="moderate",
-                    description="Cultural insensitivity pattern detected",
-                    affected_groups=[],
-                    evidence=[f"Pattern: {pattern}"],
-                    confidence=0.6,
-                ))
+                detections.append(
+                    BiasDetection(
+                        bias_type=BiasType.CULTURAL_INSENSITIVITY,
+                        severity="moderate",
+                        description="Cultural insensitivity pattern detected",
+                        affected_groups=[],
+                        evidence=[f"Pattern: {pattern}"],
+                        confidence=0.6,
+                    )
+                )
 
         return detections
 
@@ -339,9 +398,7 @@ class CulturalCompetencyAnalyzer:
 
             # Extract text for analysis
             conversation = example.get("conversation", [])
-            text = " ".join([
-                msg.get("content", "") for msg in conversation
-            ])
+            text = " ".join([msg.get("content", "") for msg in conversation])
 
             # Detect bias
             bias_detections = self.bias_detector.detect_bias(
@@ -399,9 +456,16 @@ class CulturalCompetencyAnalyzer:
     def _is_strength_based(self, text: str) -> bool:
         """Check if text contains strength-based narratives"""
         strength_indicators = [
-            "resilience", "strength", "coping", "adaptation",
-            "community support", "cultural resources", "healing",
-            "recovery", "growth", "empowerment",
+            "resilience",
+            "strength",
+            "coping",
+            "adaptation",
+            "community support",
+            "cultural resources",
+            "healing",
+            "recovery",
+            "growth",
+            "empowerment",
         ]
         text_lower = text.lower()
         return any(indicator in text_lower for indicator in strength_indicators)
@@ -409,11 +473,20 @@ class CulturalCompetencyAnalyzer:
     def _is_crisis_only(self, text: str) -> bool:
         """Check if text only contains crisis narratives"""
         crisis_indicators = [
-            "crisis", "emergency", "suicide", "self-harm",
-            "breakdown", "collapse", "severe", "extreme",
+            "crisis",
+            "emergency",
+            "suicide",
+            "self-harm",
+            "breakdown",
+            "collapse",
+            "severe",
+            "extreme",
         ]
         strength_indicators = [
-            "recovery", "healing", "support", "resilience",
+            "recovery",
+            "healing",
+            "support",
+            "resilience",
         ]
         text_lower = text.lower()
         has_crisis = any(indicator in text_lower for indicator in crisis_indicators)
@@ -475,7 +548,8 @@ class CulturalCompetencyAnalyzer:
         # Check representation balance
         if minority_representation:
             underrepresented = [
-                group for group, pct in minority_representation.items()
+                group
+                for group, pct in minority_representation.items()
                 if pct < 0.05  # Less than 5% representation
             ]
             if underrepresented:
@@ -485,7 +559,9 @@ class CulturalCompetencyAnalyzer:
 
         # Check for bias
         if bias_detections:
-            high_severity = [d for d in bias_detections if d.severity in ["high", "critical"]]
+            high_severity = [
+                d for d in bias_detections if d.severity in ["high", "critical"]
+            ]
             if high_severity:
                 recommendations.append(
                     f"Address {len(high_severity)} high-severity bias detections"
@@ -512,4 +588,3 @@ def analyze_cultural_competency(
     """Convenience function to analyze cultural competency"""
     analyzer = CulturalCompetencyAnalyzer()
     return analyzer.analyze_dataset_slice(examples, focus_minority_mental_health)
-

@@ -268,7 +268,13 @@ class TestAccessRequest:
 
     def test_valid_access_methods(self):
         """Test that all valid access methods pass validation."""
-        valid_methods = ["direct", "api", "request_form", "collaboration", "registration"]
+        valid_methods = [
+            "direct",
+            "api",
+            "request_form",
+            "collaboration",
+            "registration",
+        ]
         for method in valid_methods:
             request = AccessRequest(
                 source_id="test-001",
@@ -501,4 +507,3 @@ class TestResearchLog:
             )
             errors = log.validate()
             assert len(errors) == 0, f"Activity type {activity_type} should be valid"
-

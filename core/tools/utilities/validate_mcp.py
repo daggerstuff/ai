@@ -367,9 +367,7 @@ class MCPValidator:
                 status_icon = (
                     "✅"
                     if status["status"] == "available"
-                    else "❌"
-                    if status["status"] == "error"
-                    else "❓"
+                    else "❌" if status["status"] == "error" else "❓"
                 )
                 print(f"  {status_icon} {server_name}: {status['status'].upper()}")
                 if status["error"]:

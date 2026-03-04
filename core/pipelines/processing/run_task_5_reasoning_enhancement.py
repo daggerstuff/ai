@@ -568,9 +568,9 @@ class ReasoningEnhancementProcessor:
                 * 100,
                 "processing_time_seconds": processing_time,
                 "datasets_processed": self.stats["datasets_processed"],
-                "average_processing_rate": len(conversations) / processing_time
-                if processing_time > 0
-                else 0,
+                "average_processing_rate": (
+                    len(conversations) / processing_time if processing_time > 0 else 0
+                ),
             },
             "quality_metrics": {
                 "total_processed": self.stats["total_processed"],

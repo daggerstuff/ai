@@ -163,7 +163,9 @@ class AssessmentToolsGenerator:
         self.assessment_protocols = self._initialize_assessment_protocols()
         self.question_banks = self._initialize_question_banks()
 
-    def _initialize_assessment_tools(self) -> dict[AssessmentType, list[AssessmentTool]]:
+    def _initialize_assessment_tools(
+        self,
+    ) -> dict[AssessmentType, list[AssessmentTool]]:
         """Initialize comprehensive assessment tools."""
         tools = {
             AssessmentType.MENTAL_STATUS_EXAM: [
@@ -281,7 +283,10 @@ class AssessmentToolsGenerator:
                 id="depression_assessment_protocol",
                 name="Major Depression Assessment Protocol",
                 assessment_type=AssessmentType.DIAGNOSTIC_INTERVIEW,
-                target_conditions=["Major Depressive Disorder", "Persistent Depressive Disorder"],
+                target_conditions=[
+                    "Major Depressive Disorder",
+                    "Persistent Depressive Disorder",
+                ],
                 protocol_steps=[
                     "Establish rapport and explain assessment",
                     "Assess current depressive symptoms",
@@ -330,7 +335,9 @@ class AssessmentToolsGenerator:
             )
         ]
 
-    def _initialize_question_banks(self) -> dict[AssessmentDomain, list[AssessmentQuestion]]:
+    def _initialize_question_banks(
+        self,
+    ) -> dict[AssessmentDomain, list[AssessmentQuestion]]:
         """Initialize comprehensive question banks for assessments."""
         questions = {}
 
@@ -347,8 +354,16 @@ class AssessmentToolsGenerator:
                     "How has this been affecting your daily life?",
                 ],
                 clinical_rationale="Establishes primary concerns and client's perspective",
-                expected_responses=["symptom description", "life stressors", "relationship issues"],
-                red_flag_indicators=["suicidal ideation", "psychosis", "severe impairment"],
+                expected_responses=[
+                    "symptom description",
+                    "life stressors",
+                    "relationship issues",
+                ],
+                red_flag_indicators=[
+                    "suicidal ideation",
+                    "psychosis",
+                    "severe impairment",
+                ],
                 scoring_criteria=None,
             ),
             AssessmentQuestion(
@@ -362,7 +377,11 @@ class AssessmentToolsGenerator:
                     "Have they gotten better or worse since then?",
                 ],
                 clinical_rationale="Establishes timeline for diagnostic criteria",
-                expected_responses=["specific dates", "triggering events", "symptom progression"],
+                expected_responses=[
+                    "specific dates",
+                    "triggering events",
+                    "symptom progression",
+                ],
                 red_flag_indicators=["sudden onset", "rapid deterioration"],
                 scoring_criteria={"duration": "weeks/months/years"},
             ),
@@ -381,7 +400,11 @@ class AssessmentToolsGenerator:
                     "Do you notice your mood changing throughout the day?",
                 ],
                 clinical_rationale="Assesses current mood state and patterns",
-                expected_responses=["mood descriptors", "mood stability", "diurnal variation"],
+                expected_responses=[
+                    "mood descriptors",
+                    "mood stability",
+                    "diurnal variation",
+                ],
                 red_flag_indicators=["severe depression", "mania", "mood lability"],
                 scoring_criteria={"mood_rating": "1-10 scale"},
             ),
@@ -397,7 +420,11 @@ class AssessmentToolsGenerator:
                 ],
                 clinical_rationale="Assesses orientation to time, place, and person",
                 expected_responses=["correct orientation", "partial disorientation"],
-                red_flag_indicators=["disorientation", "confusion", "memory impairment"],
+                red_flag_indicators=[
+                    "disorientation",
+                    "confusion",
+                    "memory impairment",
+                ],
                 scoring_criteria={"orientation_score": "0-4 points"},
             ),
         ]
@@ -420,7 +447,11 @@ class AssessmentToolsGenerator:
                     "passive ideation",
                     "active ideation with/without plan",
                 ],
-                red_flag_indicators=["active plan", "means available", "previous attempts"],
+                red_flag_indicators=[
+                    "active plan",
+                    "means available",
+                    "previous attempts",
+                ],
                 scoring_criteria={"risk_level": "low/moderate/high"},
             ),
             AssessmentQuestion(
@@ -435,7 +466,12 @@ class AssessmentToolsGenerator:
                 ],
                 clinical_rationale="Screens for substance use disorders and complications",
                 expected_responses=["denial", "social use", "problematic use"],
-                red_flag_indicators=["daily use", "tolerance", "withdrawal", "life problems"],
+                red_flag_indicators=[
+                    "daily use",
+                    "tolerance",
+                    "withdrawal",
+                    "life problems",
+                ],
                 scoring_criteria={"audit_score": "0-40 points"},
             ),
         ]
@@ -463,7 +499,9 @@ class AssessmentToolsGenerator:
         protocol = self._select_assessment_protocol(client_scenario, assessment_type)
 
         # Generate conversation exchanges
-        exchanges = self._generate_assessment_exchanges(client_scenario, protocol, num_exchanges)
+        exchanges = self._generate_assessment_exchanges(
+            client_scenario, protocol, num_exchanges
+        )
 
         # Assess domains covered
         domains_assessed = self._identify_domains_assessed(exchanges)
@@ -472,7 +510,9 @@ class AssessmentToolsGenerator:
         techniques_used = self._identify_techniques_used(exchanges)
 
         # Generate clinical observations
-        clinical_observations = self._generate_clinical_observations(exchanges, client_scenario)
+        clinical_observations = self._generate_clinical_observations(
+            exchanges, client_scenario
+        )
 
         # Generate assessment findings
         assessment_findings = self._generate_assessment_findings(
@@ -485,17 +525,19 @@ class AssessmentToolsGenerator:
         )
 
         # Generate recommendations
-        recommendations = self._generate_recommendations(assessment_findings, client_scenario)
+        recommendations = self._generate_recommendations(
+            assessment_findings, client_scenario
+        )
 
         # Assess risk level
         risk_level = self._assess_risk_level(assessment_findings, client_scenario)
 
         # Generate follow-up plan
-        follow_up_plan = self._generate_follow_up_plan(assessment_findings, recommendations)
-
-        conversation_id = (
-            f"assessment_{assessment_type.value}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        follow_up_plan = self._generate_follow_up_plan(
+            assessment_findings, recommendations
         )
+
+        conversation_id = f"assessment_{assessment_type.value}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
         return DiagnosticConversation(
             id=conversation_id,
@@ -525,7 +567,9 @@ class AssessmentToolsGenerator:
 
         if available_protocols:
             # Select based on client scenario DSM-5 considerations
-            dsm5_considerations = client_scenario.clinical_formulation.dsm5_considerations
+            dsm5_considerations = (
+                client_scenario.clinical_formulation.dsm5_considerations
+            )
 
             for protocol in available_protocols:
                 if any(
@@ -540,7 +584,9 @@ class AssessmentToolsGenerator:
         # Create fallback protocol
         return self._create_fallback_protocol(assessment_type)
 
-    def _create_fallback_protocol(self, assessment_type: AssessmentType) -> AssessmentProtocol:
+    def _create_fallback_protocol(
+        self, assessment_type: AssessmentType
+    ) -> AssessmentProtocol:
         """Create fallback assessment protocol."""
         return AssessmentProtocol(
             id=f"fallback_{assessment_type.value}",
@@ -564,7 +610,10 @@ class AssessmentToolsGenerator:
         )
 
     def _generate_assessment_exchanges(
-        self, client_scenario: ClientScenario, protocol: AssessmentProtocol, num_exchanges: int
+        self,
+        client_scenario: ClientScenario,
+        protocol: AssessmentProtocol,
+        num_exchanges: int,
     ) -> list[dict[str, Any]]:
         """Generate assessment conversation exchanges."""
         exchanges = []
@@ -586,7 +635,9 @@ class AssessmentToolsGenerator:
 
         return exchanges
 
-    def _get_relevant_questions(self, protocol: AssessmentProtocol) -> list[AssessmentQuestion]:
+    def _get_relevant_questions(
+        self, protocol: AssessmentProtocol
+    ) -> list[AssessmentQuestion]:
         """Get relevant questions for the assessment protocol."""
         relevant_questions = []
 
@@ -627,12 +678,17 @@ class AssessmentToolsGenerator:
         }
 
     def _generate_client_assessment_response(
-        self, client_scenario: ClientScenario, protocol: AssessmentProtocol, exchange_index: int
+        self,
+        client_scenario: ClientScenario,
+        protocol: AssessmentProtocol,
+        exchange_index: int,
     ) -> dict[str, Any]:
         """Generate client response to assessment question."""
 
         # Generate response based on client scenario
-        content = self._generate_client_response_content(client_scenario, exchange_index)
+        content = self._generate_client_response_content(
+            client_scenario, exchange_index
+        )
 
         return {
             "speaker": "client",
@@ -666,23 +722,26 @@ class AssessmentToolsGenerator:
         # Base responses on DSM-5 considerations and severity
         dsm5_considerations = client_scenario.clinical_formulation.dsm5_considerations
 
-        if any("depression" in consideration.lower() for consideration in dsm5_considerations):
+        if any(
+            "depression" in consideration.lower()
+            for consideration in dsm5_considerations
+        ):
             if exchange_index == 0:
-                return (
-                    "I've been feeling really down lately. Nothing seems to bring me joy anymore."
-                )
+                return "I've been feeling really down lately. Nothing seems to bring me joy anymore."
             if exchange_index == 1:
                 return "It started about three months ago, after I lost my job. It's been getting worse."
-            return (
-                "I can barely get out of bed some days. Work and relationships are suffering."
-            )
+            return "I can barely get out of bed some days. Work and relationships are suffering."
 
-        if any("anxiety" in consideration.lower() for consideration in dsm5_considerations):
+        if any(
+            "anxiety" in consideration.lower() for consideration in dsm5_considerations
+        ):
             if exchange_index == 0:
                 return "I've been having a lot of anxiety and worry. My heart races and I can't calm down."
             if exchange_index == 1:
                 return "The anxiety started about six months ago. It happens almost every day now."
-            return "I avoid social situations because I'm afraid of having a panic attack."
+            return (
+                "I avoid social situations because I'm afraid of having a panic attack."
+            )
 
         # Generic responses
         responses = [
@@ -702,9 +761,14 @@ class AssessmentToolsGenerator:
 
         if severity == SeverityLevel.SEVERE:
             return random.choice(["distressed", "overwhelmed", "tearful", "agitated"])
-        if any("depression" in consideration.lower() for consideration in dsm5_considerations):
+        if any(
+            "depression" in consideration.lower()
+            for consideration in dsm5_considerations
+        ):
             return random.choice(["sad", "flat", "hopeless", "withdrawn"])
-        if any("anxiety" in consideration.lower() for consideration in dsm5_considerations):
+        if any(
+            "anxiety" in consideration.lower() for consideration in dsm5_considerations
+        ):
             return random.choice(["anxious", "nervous", "restless", "worried"])
         return random.choice(["cooperative", "engaged", "thoughtful", "concerned"])
 
@@ -732,12 +796,17 @@ class AssessmentToolsGenerator:
             return "developing"
         return "detailed"
 
-    def _identify_domains_assessed(self, exchanges: list[dict[str, Any]]) -> list[AssessmentDomain]:
+    def _identify_domains_assessed(
+        self, exchanges: list[dict[str, Any]]
+    ) -> list[AssessmentDomain]:
         """Identify assessment domains covered in conversation."""
         domains = set()
 
         for exchange in exchanges:
-            if exchange.get("speaker") == "therapist" and "assessment_domain" in exchange:
+            if (
+                exchange.get("speaker") == "therapist"
+                and "assessment_domain" in exchange
+            ):
                 domain_value = exchange["assessment_domain"]
                 for domain in AssessmentDomain:
                     if domain.value == domain_value:
@@ -752,7 +821,10 @@ class AssessmentToolsGenerator:
         techniques = set()
 
         for exchange in exchanges:
-            if exchange.get("speaker") == "therapist" and "interview_technique" in exchange:
+            if (
+                exchange.get("speaker") == "therapist"
+                and "interview_technique" in exchange
+            ):
                 technique_value = exchange["interview_technique"]
                 for technique in InterviewTechnique:
                     if technique.value == technique_value:
@@ -772,21 +844,29 @@ class AssessmentToolsGenerator:
         if client_exchanges:
             # Emotional state observations
             emotional_states = [
-                e.get("emotional_state") for e in client_exchanges if e.get("emotional_state")
+                e.get("emotional_state")
+                for e in client_exchanges
+                if e.get("emotional_state")
             ]
             if emotional_states:
-                predominant_emotion = max(set(emotional_states), key=emotional_states.count)
+                predominant_emotion = max(
+                    set(emotional_states), key=emotional_states.count
+                )
                 observations.append(
                     f"Client presented with predominantly {predominant_emotion} affect"
                 )
 
             # Cooperation observations
             cooperation_levels = [
-                e.get("cooperation_level") for e in client_exchanges if e.get("cooperation_level")
+                e.get("cooperation_level")
+                for e in client_exchanges
+                if e.get("cooperation_level")
             ]
             if cooperation_levels:
                 cooperation = cooperation_levels[0]  # Usually consistent
-                observations.append(f"Client demonstrated {cooperation} level of cooperation")
+                observations.append(
+                    f"Client demonstrated {cooperation} level of cooperation"
+                )
 
             # Information quality observations
             info_qualities = [
@@ -819,11 +899,17 @@ class AssessmentToolsGenerator:
 
         findings["presenting_symptoms"] = dsm5_considerations
         findings["symptom_duration"] = (
-            "3+ months" if client_scenario.severity_level != SeverityLevel.MILD else "2-6 weeks"
+            "3+ months"
+            if client_scenario.severity_level != SeverityLevel.MILD
+            else "2-6 weeks"
         )
-        findings["functional_impairment"] = self._assess_functional_impairment(client_scenario)
+        findings["functional_impairment"] = self._assess_functional_impairment(
+            client_scenario
+        )
         findings["risk_factors"] = self._identify_risk_factors(client_scenario)
-        findings["protective_factors"] = self._identify_protective_factors(client_scenario)
+        findings["protective_factors"] = self._identify_protective_factors(
+            client_scenario
+        )
 
         return findings
 
@@ -852,7 +938,8 @@ class AssessmentToolsGenerator:
             risk_factors.append("Potential suicide risk")
 
         if any(
-            "depression" in consideration.lower() or "depressive" in consideration.lower()
+            "depression" in consideration.lower()
+            or "depressive" in consideration.lower()
             for consideration in dsm5_considerations
         ):
             risk_factors.append("Depressive symptoms")
@@ -860,12 +947,17 @@ class AssessmentToolsGenerator:
             if client_scenario.severity_level == SeverityLevel.SEVERE:
                 risk_factors.append("Potential suicide risk")
 
-        if any("substance" in consideration.lower() for consideration in dsm5_considerations):
+        if any(
+            "substance" in consideration.lower()
+            for consideration in dsm5_considerations
+        ):
             risk_factors.append("Substance use concerns")
 
         return risk_factors
 
-    def _identify_protective_factors(self, client_scenario: ClientScenario) -> list[str]:
+    def _identify_protective_factors(
+        self, client_scenario: ClientScenario
+    ) -> list[str]:
         """Identify protective factors from client scenario."""
         protective_factors = []
 
@@ -928,7 +1020,8 @@ class AssessmentToolsGenerator:
         dsm5_considerations = client_scenario.clinical_formulation.dsm5_considerations
 
         if any(
-            "depression" in consideration.lower() or "depressive" in consideration.lower()
+            "depression" in consideration.lower()
+            or "depressive" in consideration.lower()
             for consideration in dsm5_considerations
         ):
             recommendations.extend(
@@ -939,7 +1032,9 @@ class AssessmentToolsGenerator:
                 ]
             )
 
-        if any("anxiety" in consideration.lower() for consideration in dsm5_considerations):
+        if any(
+            "anxiety" in consideration.lower() for consideration in dsm5_considerations
+        ):
             recommendations.extend(
                 [
                     "Anxiety management techniques",
@@ -984,7 +1079,9 @@ class AssessmentToolsGenerator:
 
         # Immediate follow-up
         if "Safety planning" in " ".join(recommendations):
-            plan_components.append("Schedule follow-up within 1 week for safety monitoring")
+            plan_components.append(
+                "Schedule follow-up within 1 week for safety monitoring"
+            )
         else:
             plan_components.append("Schedule treatment planning session within 2 weeks")
 
@@ -994,7 +1091,9 @@ class AssessmentToolsGenerator:
 
         # Additional services
         if "medication evaluation" in " ".join(recommendations).lower():
-            plan_components.append("Coordinate with psychiatrist for medication evaluation")
+            plan_components.append(
+                "Coordinate with psychiatrist for medication evaluation"
+            )
 
         return "; ".join(plan_components)
 
@@ -1015,15 +1114,24 @@ class AssessmentToolsGenerator:
                 "total_conversations": len(conversations),
                 "export_timestamp": datetime.now().isoformat(),
                 "assessment_types": list(
-                    {conv.assessment_protocol.assessment_type.value for conv in conversations}
+                    {
+                        conv.assessment_protocol.assessment_type.value
+                        for conv in conversations
+                    }
                 ),
                 "domains_covered": list(
-                    {domain.value for conv in conversations for domain in conv.domains_assessed}
+                    {
+                        domain.value
+                        for conv in conversations
+                        for domain in conv.domains_assessed
+                    }
                 ),
-                "average_exchanges": sum(len(conv.conversation_exchanges) for conv in conversations)
-                / len(conversations)
-                if conversations
-                else 0,
+                "average_exchanges": (
+                    sum(len(conv.conversation_exchanges) for conv in conversations)
+                    / len(conversations)
+                    if conversations
+                    else 0
+                ),
             },
             "conversations": serializable_conversations,
         }
@@ -1034,7 +1142,9 @@ class AssessmentToolsGenerator:
         return {
             "exported_conversations": len(conversations),
             "output_file": output_file,
-            "assessment_types_covered": len(export_data["metadata"]["assessment_types"]),
+            "assessment_types_covered": len(
+                export_data["metadata"]["assessment_types"]
+            ),
             "domains_covered": len(export_data["metadata"]["domains_covered"]),
         }
 

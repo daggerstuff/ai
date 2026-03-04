@@ -181,7 +181,6 @@ class SpecializedDatasetIntegrator:
             "individual_results": results,
         }
 
-
     def integrate_tfidf_dataset(self) -> dict[str, Any]:
         """Integrate TF-IDF feature vectors dataset."""
         config = self.dataset_configs["tfidf"]
@@ -859,7 +858,11 @@ if __name__ == "__main__":
     for _dataset_key, result in results["individual_results"].items():
         status = "✅ Success" if result["success"] else "❌ Failed"
         if result["success"]:
-            if "documents_processed" in result or "entries_processed" in result or "posts_processed" in result:
+            if (
+                "documents_processed" in result
+                or "entries_processed" in result
+                or "posts_processed" in result
+            ):
                 pass
         else:
             pass

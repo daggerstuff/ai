@@ -15,20 +15,26 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
+
 @dataclass
 class TherapistSFTExample:
     """Therapist SFT training example."""
+
     example_id: str
     instruction: str
     input_context: str
     output_response: str
     therapeutic_metadata: dict[str, Any] = field(default_factory=dict)
 
+
 class TherapistSFTFormat:
     """Processes therapist-sft-format structured training data."""
 
-    def __init__(self, dataset_path: str = "./therapist-sft-format",
-                 output_dir: str = "./processed_sft"):
+    def __init__(
+        self,
+        dataset_path: str = "./therapist-sft-format",
+        output_dir: str = "./processed_sft",
+    ):
         self.dataset_path = Path(dataset_path)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
@@ -44,7 +50,7 @@ class TherapistSFTFormat:
             "success": True,
             "examples_processed": 100,
             "output_path": str(self.output_dir / "therapist_sft_format_processed.json"),
-            "processing_time": (datetime.now() - start_time).total_seconds()
+            "processing_time": (datetime.now() - start_time).total_seconds(),
         }
 
         # Create mock output
@@ -53,9 +59,17 @@ class TherapistSFTFormat:
                 "name": "Therapist SFT Format",
                 "description": "Structured therapist training data for supervised fine-tuning",
                 "total_examples": 100,
-                "processed_at": datetime.now().isoformat()
+                "processed_at": datetime.now().isoformat(),
             },
-            "examples": [{"example_id": f"sft_{i}", "instruction": "Provide therapeutic response", "input": f"Client concern {i}", "output": f"Therapeutic response {i}"} for i in range(100)]
+            "examples": [
+                {
+                    "example_id": f"sft_{i}",
+                    "instruction": "Provide therapeutic response",
+                    "input": f"Client concern {i}",
+                    "output": f"Therapeutic response {i}",
+                }
+                for i in range(100)
+            ],
         }
 
         with open(result["output_path"], "w") as f:

@@ -78,7 +78,9 @@ async def main():
         print(f"\nTier-Balanced Dataset: {len(balanced_convos)} conversations")
 
         if orchestrator.tier_balancer:
-            distribution = orchestrator.tier_balancer.get_tier_distribution(balanced_convos)
+            distribution = orchestrator.tier_balancer.get_tier_distribution(
+                balanced_convos
+            )
             print("Tier Distribution:")
             for tier, count in sorted(distribution.items()):
                 pct = (count / len(balanced_convos)) * 100 if balanced_convos else 0
@@ -92,4 +94,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

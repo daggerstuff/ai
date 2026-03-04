@@ -64,7 +64,10 @@ class TrackingDocumentUpdater:
         self._write_document(updated_content)
 
     def mark_task_completed(
-        self, task_id: str, task_description: str, completion_date: Optional[datetime] = None
+        self,
+        task_id: str,
+        task_description: str,
+        completion_date: Optional[datetime] = None,
     ) -> None:
         """
         Mark a task as completed in the tracking document.
@@ -80,7 +83,9 @@ class TrackingDocumentUpdater:
         content = self._read_document()
 
         task_entry = f"- [x] {task_id}: {task_description} (Completed: {completion_date.strftime('%Y-%m-%d %H:%M:%S')})\n"
-        updated_content = self._append_to_section(content, "completed_tasks", task_entry)
+        updated_content = self._append_to_section(
+            content, "completed_tasks", task_entry
+        )
 
         self._write_document(updated_content)
 
@@ -245,7 +250,9 @@ Add research notes and findings here.
             # or add it to a suitable location
             return content + f"\n\n{replacement}\n"
 
-    def _append_to_section(self, content: str, section_name: str, new_content: str) -> str:
+    def _append_to_section(
+        self, content: str, section_name: str, new_content: str
+    ) -> str:
         """Append content to a marked section."""
         pattern = MARKER_PATTERNS.get(section_name)
         if not pattern:
@@ -346,7 +353,9 @@ Add research notes and findings here.
         # Weekly report summary
         if weekly_report:
             lines.extend(["", "### Weekly Summary", ""])
-            lines.append(f"**Week {weekly_report.week_number}** ({weekly_report.start_date.strftime('%Y-%m-%d')} to {weekly_report.end_date.strftime('%Y-%m-%d')})")
+            lines.append(
+                f"**Week {weekly_report.week_number}** ({weekly_report.start_date.strftime('%Y-%m-%d')} to {weekly_report.end_date.strftime('%Y-%m-%d')})"
+            )
             lines.append("")
 
             if weekly_report.key_findings:
@@ -403,4 +412,3 @@ Add research notes and findings here.
         )
 
         return "\n".join(lines)
-

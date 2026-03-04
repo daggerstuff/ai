@@ -262,9 +262,11 @@ class MemoryAuditor:
                     severity="MEDIUM",
                     description=f"Function '{func_node.name}' has large list comprehensions",
                     suggestion="Consider using generator expressions for memory efficiency",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     estimated_memory_impact="MEDIUM",
                     optimization_category="GENERATOR_OPPORTUNITY",
                 )
@@ -284,9 +286,11 @@ class MemoryAuditor:
                     severity="MEDIUM",
                     description=f"Function '{func_node.name}' uses inefficient data structures",
                     suggestion="Consider using more memory-efficient data structures",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     estimated_memory_impact="MEDIUM",
                     optimization_category="DATA_STRUCTURE",
                 )
@@ -306,9 +310,11 @@ class MemoryAuditor:
                     severity="HIGH",
                     description=f"Function '{func_node.name}' has potential memory leak risks",
                     suggestion="Ensure proper cleanup of resources and avoid circular references",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     estimated_memory_impact="HIGH",
                     optimization_category="MEMORY_LEAK",
                 )
@@ -328,9 +334,11 @@ class MemoryAuditor:
                     severity="HIGH",
                     description=f"Function '{func_node.name}' performs large memory allocations",
                     suggestion="Consider streaming or chunking large data operations",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     estimated_memory_impact="HIGH",
                     optimization_category="LARGE_ALLOCATION",
                 )
@@ -379,9 +387,11 @@ class MemoryAuditor:
                     severity="MEDIUM",
                     description=f"Class '{class_node.name}' could benefit from __slots__",
                     suggestion="Add __slots__ to reduce memory overhead for instances",
-                    code_snippet=class_content[:200] + "..."
-                    if len(class_content) > 200
-                    else class_content,
+                    code_snippet=(
+                        class_content[:200] + "..."
+                        if len(class_content) > 200
+                        else class_content
+                    ),
                     estimated_memory_impact="MEDIUM",
                     optimization_category="DATA_STRUCTURE",
                 )
@@ -401,9 +411,11 @@ class MemoryAuditor:
                     severity="HIGH",
                     description=f"Class '{class_node.name}' has circular reference risks",
                     suggestion="Use weak references or careful cleanup to avoid memory leaks",
-                    code_snippet=class_content[:200] + "..."
-                    if len(class_content) > 200
-                    else class_content,
+                    code_snippet=(
+                        class_content[:200] + "..."
+                        if len(class_content) > 200
+                        else class_content
+                    ),
                     estimated_memory_impact="HIGH",
                     optimization_category="CIRCULAR_REFERENCE",
                 )

@@ -302,9 +302,11 @@ class ResourceMonitor:
             memory_used_gb=memory_used_gb,
             memory_total_gb=self.resource_history[0].memory_total_gb,
             gpu_memory_used_gb=gpu_memory_used_gb,
-            gpu_memory_total_gb=self.resource_history[0].gpu_memory_total_gb
-            if self.resource_history
-            else None,
+            gpu_memory_total_gb=(
+                self.resource_history[0].gpu_memory_total_gb
+                if self.resource_history
+                else None
+            ),
             gpu_utilization_percent=gpu_utilization_percent,
         )
 
@@ -520,18 +522,18 @@ class ResourceManager:
             "start_time": report.start_time,
             "end_time": report.end_time,
             "total_runtime_hours": report.total_runtime_hours,
-            "peak_resources": asdict(report.peak_resources)
-            if report.peak_resources
-            else {},
-            "average_resources": asdict(report.average_resources)
-            if report.average_resources
-            else {},
-            "cost_estimation": asdict(report.cost_estimation)
-            if report.cost_estimation
-            else {},
-            "budget_limits": asdict(report.budget_limits)
-            if report.budget_limits
-            else {},
+            "peak_resources": (
+                asdict(report.peak_resources) if report.peak_resources else {}
+            ),
+            "average_resources": (
+                asdict(report.average_resources) if report.average_resources else {}
+            ),
+            "cost_estimation": (
+                asdict(report.cost_estimation) if report.cost_estimation else {}
+            ),
+            "budget_limits": (
+                asdict(report.budget_limits) if report.budget_limits else {}
+            ),
             "exceeded_limits": report.exceeded_limits,
             "resource_usage_history": [
                 asdict(usage) for usage in report.resource_usage_history
@@ -563,15 +565,21 @@ class ResourceManager:
             f"  GPU Cost: ${cost_est.gpu_cost_usd or 0:.2f}",
             f"  CPU Cost: ${cost_est.cpu_cost_usd or 0:.2f}",
             "",
-            f"Peak Memory Usage: {report.peak_resources.memory_used_gb:.2f}GB"
-            if report.peak_resources
-            else "",
-            f"Average CPU Usage: {report.average_resources.cpu_percent:.1f}%"
-            if report.average_resources
-            else "",
-            f"Peak GPU Memory Usage: {report.peak_resources.gpu_memory_used_gb:.2f}GB"
-            if report.peak_resources and report.peak_resources.gpu_memory_used_gb
-            else "",
+            (
+                f"Peak Memory Usage: {report.peak_resources.memory_used_gb:.2f}GB"
+                if report.peak_resources
+                else ""
+            ),
+            (
+                f"Average CPU Usage: {report.average_resources.cpu_percent:.1f}%"
+                if report.average_resources
+                else ""
+            ),
+            (
+                f"Peak GPU Memory Usage: {report.peak_resources.gpu_memory_used_gb:.2f}GB"
+                if report.peak_resources and report.peak_resources.gpu_memory_used_gb
+                else ""
+            ),
         ]
 
         if report.exceeded_limits:

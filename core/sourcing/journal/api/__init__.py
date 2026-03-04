@@ -8,4 +8,3 @@ functionality for use by web frontends and other clients.
 from ai.core.sourcing.journal.api.main import app
 
 __all__ = ["app"]
-

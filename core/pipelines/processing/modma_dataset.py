@@ -13,11 +13,15 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class MODMADataset:
     """Processes MODMA multi-modal mental disorder analysis dataset."""
 
-    def __init__(self, dataset_path: str = "./MODMA-Dataset",
-                 output_dir: str = "./processed_multimodal"):
+    def __init__(
+        self,
+        dataset_path: str = "./MODMA-Dataset",
+        output_dir: str = "./processed_multimodal",
+    ):
         self.dataset_path = Path(dataset_path)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
@@ -30,7 +34,7 @@ class MODMADataset:
             "success": True,
             "entries_processed": 500,
             "modalities": ["text", "audio", "visual"],
-            "output_path": str(self.output_dir / "modma_dataset_processed.json")
+            "output_path": str(self.output_dir / "modma_dataset_processed.json"),
         }
 
         output_data = {
@@ -39,7 +43,7 @@ class MODMADataset:
                 "description": "Multi-modal mental disorder analysis dataset",
                 "total_entries": 500,
                 "modalities": ["text", "audio", "visual"],
-                "processed_at": datetime.now().isoformat()
+                "processed_at": datetime.now().isoformat(),
             }
         }
 
@@ -48,6 +52,7 @@ class MODMADataset:
 
         logger.info("MODMADataset processing completed")
         return result
+
 
 if __name__ == "__main__":
     processor = MODMADataset()

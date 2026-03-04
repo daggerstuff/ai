@@ -242,7 +242,9 @@ class DatasetCatalog:
             "total_sources": len(self.sources),
             "total_evaluations": len(self.evaluations),
             "total_acquired": len(self.acquired_datasets),
-            "total_acquired_datasets": len(self.acquired_datasets),  # Alias for backward compatibility
+            "total_acquired_datasets": len(
+                self.acquired_datasets
+            ),  # Alias for backward compatibility
             "total_integration_plans": len(self.integration_plans),
         }
 
@@ -286,7 +288,9 @@ class DatasetCatalog:
         # Add average_score and high_priority_count for backward compatibility
         if self.evaluations:
             stats["average_score"] = stats["evaluation_score_stats"]["average"]
-            stats["high_priority_count"] = len([e for e in self.evaluations if e.priority_tier == "high"])
+            stats["high_priority_count"] = len(
+                [e for e in self.evaluations if e.priority_tier == "high"]
+            )
         else:
             stats["average_score"] = 0.0
             stats["high_priority_count"] = 0
@@ -369,7 +373,9 @@ class DatasetCatalog:
         ]
 
         if evaluation.competitive_advantages:
-            lines.append(f"- **Competitive Advantages**: {', '.join(evaluation.competitive_advantages)}")
+            lines.append(
+                f"- **Competitive Advantages**: {', '.join(evaluation.competitive_advantages)}"
+            )
 
         return lines
 
@@ -387,7 +393,9 @@ class DatasetCatalog:
         ]
 
         if dataset.usage_restrictions:
-            lines.append(f"- **Usage Restrictions**: {', '.join(dataset.usage_restrictions)}")
+            lines.append(
+                f"- **Usage Restrictions**: {', '.join(dataset.usage_restrictions)}"
+            )
 
         return lines
 
@@ -476,4 +484,3 @@ class DatasetCatalog:
             "integration_priority": plan.integration_priority,
             "created_date": plan.created_date.isoformat(),
         }
-

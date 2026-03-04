@@ -10,8 +10,9 @@ def emergency_health_check():
         "status": "emergency_mode",
         "timestamp": datetime.now().isoformat(),
         "uptime": time.time(),
-        "emergency_hotfix_active": True
+        "emergency_hotfix_active": True,
     }
+
 
 if __name__ == "__main__":
     print(json.dumps(emergency_health_check(), indent=2))

@@ -232,9 +232,9 @@ class CrisisDetectionMonitor:
                 details={
                     "response_time_ms": response_time_ms,
                     "threshold_ms": self.thresholds["max_response_time_ms"],
-                    "avg_response_time": statistics.mean(self.request_times)
-                    if self.request_times
-                    else 0,
+                    "avg_response_time": (
+                        statistics.mean(self.request_times) if self.request_times else 0
+                    ),
                 },
                 timestamp=datetime.now(),
             )
@@ -309,9 +309,9 @@ class CrisisDetectionMonitor:
                 message="Potential crisis keywords detected but no crisis classification",
                 details={
                     "conversation_id": conversation.get("id", "unknown"),
-                    "content_preview": content[:100] + "..."
-                    if len(content) > 100
-                    else content,
+                    "content_preview": (
+                        content[:100] + "..." if len(content) > 100 else content
+                    ),
                     "crisis_keywords_found": [
                         kw for kw in crisis_keywords if kw in content.lower()
                     ],
@@ -511,9 +511,9 @@ class CrisisDetectionMonitor:
                 ]
             ),  # 24 hours in seconds
             "monitoring_thresholds": self.thresholds,
-            "system_uptime": "monitoring_active"
-            if self.monitoring_active
-            else "monitoring_stopped",
+            "system_uptime": (
+                "monitoring_active" if self.monitoring_active else "monitoring_stopped"
+            ),
         }
 
 

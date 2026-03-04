@@ -35,9 +35,11 @@ class TestModule(unittest.TestCase):
             test = {"id": f"test_{name.replace(' ', '_')}", "content": content}
             try:
                 result = detector.detect_crisis(test)
-                ", ".join(
-                    [ct.value for ct in result.crisis_types]
-                ) if result.crisis_types else "none"
+                (
+                    ", ".join([ct.value for ct in result.crisis_types])
+                    if result.crisis_types
+                    else "none"
+                )
                 results.append(
                     (
                         name,

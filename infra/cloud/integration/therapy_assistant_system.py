@@ -377,9 +377,11 @@ class SessionAnalyzer:
                 {
                     "intervention": InterventionType.GROUNDING,
                     "description": "Grounding technique to manage anxiety",
-                    "timing": "immediate"
-                    if emotions.get("fear", 0) > 0.6
-                    else "later_in_session",
+                    "timing": (
+                        "immediate"
+                        if emotions.get("fear", 0) > 0.6
+                        else "later_in_session"
+                    ),
                 }
             )
 
@@ -601,12 +603,16 @@ class TherapyAssistantEngine:
             ],
             "next_session_focus": self._suggest_next_session_focus(analysis),
             "risk_assessment": {
-                "suicide_risk": "low"
-                if not any("CRISIS" in c for c in analysis.concerns)
-                else "elevated",
-                "substance_use": "assess"
-                if any("substance" in c.lower() for c in analysis.concerns)
-                else "none_reported",
+                "suicide_risk": (
+                    "low"
+                    if not any("CRISIS" in c for c in analysis.concerns)
+                    else "elevated"
+                ),
+                "substance_use": (
+                    "assess"
+                    if any("substance" in c.lower() for c in analysis.concerns)
+                    else "none_reported"
+                ),
                 "safety_concerns": analysis.concerns,
             },
         }

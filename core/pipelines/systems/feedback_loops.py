@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 
 class OutcomeType(Enum):
     """Types of therapeutic outcomes."""
+
     SYMPTOM_IMPROVEMENT = "symptom_improvement"
     ENGAGEMENT_INCREASE = "engagement_increase"
     CRISIS_RESOLUTION = "crisis_resolution"
@@ -29,6 +30,7 @@ class OutcomeType(Enum):
 @dataclass
 class EffectivenessFeedback:
     """Real-world effectiveness feedback."""
+
     feedback_id: str
     conversation_id: str
     outcome_type: OutcomeType
@@ -43,6 +45,7 @@ class EffectivenessFeedback:
 @dataclass
 class ImprovementAction:
     """Dataset improvement action based on feedback."""
+
     action_id: str
     conversation_id: str
     improvement_type: str
@@ -70,12 +73,14 @@ class FeedbackLoops:
             "min_feedback_threshold": 5,
             "effectiveness_threshold": 0.7,
             "improvement_target": 0.1,
-            "feedback_window_days": 30
+            "feedback_window_days": 30,
         }
 
     def submit_effectiveness_feedback(self, feedback: EffectivenessFeedback):
         """Submit real-world effectiveness feedback."""
-        logger.info(f"Received effectiveness feedback for conversation {feedback.conversation_id}")
+        logger.info(
+            f"Received effectiveness feedback for conversation {feedback.conversation_id}"
+        )
 
         # Store feedback
         self.feedback_history.append(feedback)
@@ -94,7 +99,9 @@ class FeedbackLoops:
             if improvement_action:
                 self.improvement_actions.append(improvement_action)
 
-    def _create_improvement_action(self, feedback: EffectivenessFeedback) -> ImprovementAction | None:
+    def _create_improvement_action(
+        self, feedback: EffectivenessFeedback
+    ) -> ImprovementAction | None:
         """Create improvement action based on feedback."""
         conversation_id = feedback.conversation_id
         current_score = feedback.effectiveness_score
@@ -116,7 +123,7 @@ class FeedbackLoops:
             original_score=current_score,
             target_score=target_score,
             modifications=modifications,
-            rationale=f"Low effectiveness score ({current_score:.3f}) for {feedback.outcome_type.value}"
+            rationale=f"Low effectiveness score ({current_score:.3f}) for {feedback.outcome_type.value}",
         )
 
     def _determine_improvement_type(self, feedback: EffectivenessFeedback) -> str:
@@ -124,59 +131,80 @@ class FeedbackLoops:
         outcome_type = feedback.outcome_type
         effectiveness_score = feedback.effectiveness_score
 
-        if outcome_type == OutcomeType.SYMPTOM_IMPROVEMENT and effectiveness_score < 0.6:
+        if (
+            outcome_type == OutcomeType.SYMPTOM_IMPROVEMENT
+            and effectiveness_score < 0.6
+        ):
             return "therapeutic_technique_enhancement"
-        if outcome_type == OutcomeType.ENGAGEMENT_INCREASE and effectiveness_score < 0.7:
+        if (
+            outcome_type == OutcomeType.ENGAGEMENT_INCREASE
+            and effectiveness_score < 0.7
+        ):
             return "engagement_optimization"
         if outcome_type == OutcomeType.CRISIS_RESOLUTION and effectiveness_score < 0.8:
             return "crisis_response_improvement"
-        if outcome_type == OutcomeType.THERAPEUTIC_ALLIANCE and effectiveness_score < 0.7:
+        if (
+            outcome_type == OutcomeType.THERAPEUTIC_ALLIANCE
+            and effectiveness_score < 0.7
+        ):
             return "alliance_building_enhancement"
         return "general_quality_improvement"
 
-    def _generate_modifications(self, feedback: EffectivenessFeedback, improvement_type: str) -> list[str]:
+    def _generate_modifications(
+        self, feedback: EffectivenessFeedback, improvement_type: str
+    ) -> list[str]:
         """Generate specific modifications for improvement."""
         modifications = []
 
         if improvement_type == "therapeutic_technique_enhancement":
-            modifications.extend([
-                "Add more specific therapeutic techniques",
-                "Include evidence-based interventions",
-                "Enhance clinical accuracy",
-                "Improve intervention sequencing"
-            ])
+            modifications.extend(
+                [
+                    "Add more specific therapeutic techniques",
+                    "Include evidence-based interventions",
+                    "Enhance clinical accuracy",
+                    "Improve intervention sequencing",
+                ]
+            )
 
         elif improvement_type == "engagement_optimization":
-            modifications.extend([
-                "Increase empathetic responses",
-                "Add more validation statements",
-                "Improve motivational interviewing techniques",
-                "Enhance collaborative language"
-            ])
+            modifications.extend(
+                [
+                    "Increase empathetic responses",
+                    "Add more validation statements",
+                    "Improve motivational interviewing techniques",
+                    "Enhance collaborative language",
+                ]
+            )
 
         elif improvement_type == "crisis_response_improvement":
-            modifications.extend([
-                "Strengthen safety assessment",
-                "Add crisis intervention protocols",
-                "Include emergency resource information",
-                "Improve risk management strategies"
-            ])
+            modifications.extend(
+                [
+                    "Strengthen safety assessment",
+                    "Add crisis intervention protocols",
+                    "Include emergency resource information",
+                    "Improve risk management strategies",
+                ]
+            )
 
         elif improvement_type == "alliance_building_enhancement":
-            modifications.extend([
-                "Increase warmth and genuineness",
-                "Add more collaborative planning",
-                "Improve cultural sensitivity",
-                "Enhance trust-building elements"
-            ])
+            modifications.extend(
+                [
+                    "Increase warmth and genuineness",
+                    "Add more collaborative planning",
+                    "Improve cultural sensitivity",
+                    "Enhance trust-building elements",
+                ]
+            )
 
         else:  # general_quality_improvement
-            modifications.extend([
-                "Improve overall conversation flow",
-                "Enhance therapeutic coherence",
-                "Add more personalized responses",
-                "Strengthen professional boundaries"
-            ])
+            modifications.extend(
+                [
+                    "Improve overall conversation flow",
+                    "Enhance therapeutic coherence",
+                    "Add more personalized responses",
+                    "Strengthen professional boundaries",
+                ]
+            )
 
         # Filter based on specific feedback details
         if feedback.outcome_details:
@@ -201,7 +229,7 @@ class FeedbackLoops:
                 "average_effectiveness": 0.0,
                 "effectiveness_trend": [],
                 "common_issues": {},
-                "success_factors": {}
+                "success_factors": {},
             }
 
         pattern = self.effectiveness_patterns[outcome_type]
@@ -215,18 +243,24 @@ class FeedbackLoops:
             pattern["effectiveness_trend"] = pattern["effectiveness_trend"][-50:]
 
         # Update average
-        pattern["average_effectiveness"] = sum(pattern["effectiveness_trend"]) / len(pattern["effectiveness_trend"])
+        pattern["average_effectiveness"] = sum(pattern["effectiveness_trend"]) / len(
+            pattern["effectiveness_trend"]
+        )
 
         # Track issues and success factors
         if feedback.outcome_details:
             issues = feedback.outcome_details.get("issues", [])
             for issue in issues:
-                pattern["common_issues"][issue] = pattern["common_issues"].get(issue, 0) + 1
+                pattern["common_issues"][issue] = (
+                    pattern["common_issues"].get(issue, 0) + 1
+                )
 
             if feedback.effectiveness_score > 0.8:
                 success_factors = feedback.outcome_details.get("success_factors", [])
                 for factor in success_factors:
-                    pattern["success_factors"][factor] = pattern["success_factors"].get(factor, 0) + 1
+                    pattern["success_factors"][factor] = (
+                        pattern["success_factors"].get(factor, 0) + 1
+                    )
 
     def get_improvement_recommendations(self) -> list[dict[str, Any]]:
         """Get data-driven improvement recommendations."""
@@ -242,33 +276,43 @@ class FeedbackLoops:
                     common_issues = sorted(
                         pattern["common_issues"].items(),
                         key=lambda x: x[1],
-                        reverse=True
+                        reverse=True,
                     )[:3]
 
                     # Get top success factors
                     success_factors = sorted(
                         pattern["success_factors"].items(),
                         key=lambda x: x[1],
-                        reverse=True
+                        reverse=True,
                     )[:3]
 
-                    recommendations.append({
-                        "outcome_type": outcome_type,
-                        "current_effectiveness": avg_effectiveness,
-                        "improvement_needed": self.config["effectiveness_threshold"] - avg_effectiveness,
-                        "common_issues": [issue for issue, count in common_issues],
-                        "success_factors": [factor for factor, count in success_factors],
-                        "priority": "high" if avg_effectiveness < 0.6 else "medium"
-                    })
+                    recommendations.append(
+                        {
+                            "outcome_type": outcome_type,
+                            "current_effectiveness": avg_effectiveness,
+                            "improvement_needed": self.config["effectiveness_threshold"]
+                            - avg_effectiveness,
+                            "common_issues": [issue for issue, count in common_issues],
+                            "success_factors": [
+                                factor for factor, count in success_factors
+                            ],
+                            "priority": "high" if avg_effectiveness < 0.6 else "medium",
+                        }
+                    )
 
         # Sort by priority and improvement needed
-        recommendations.sort(key=lambda x: (x["priority"] == "high", x["improvement_needed"]), reverse=True)
+        recommendations.sort(
+            key=lambda x: (x["priority"] == "high", x["improvement_needed"]),
+            reverse=True,
+        )
 
         return recommendations
 
     def implement_improvement_action(self, action_id: str) -> bool:
         """Implement a specific improvement action."""
-        action = next((a for a in self.improvement_actions if a.action_id == action_id), None)
+        action = next(
+            (a for a in self.improvement_actions if a.action_id == action_id), None
+        )
 
         if not action:
             logger.warning(f"Improvement action {action_id} not found")
@@ -288,7 +332,7 @@ class FeedbackLoops:
             action.results = {
                 "implementation_date": datetime.now().isoformat(),
                 "modifications_applied": len(action.modifications),
-                "expected_improvement": action.target_score - action.original_score
+                "expected_improvement": action.target_score - action.original_score,
             }
 
             logger.info(f"Successfully implemented improvement action {action_id}")
@@ -306,25 +350,35 @@ class FeedbackLoops:
         total_feedback = len(self.feedback_history)
 
         # Calculate overall effectiveness
-        overall_effectiveness = sum(f.effectiveness_score for f in self.feedback_history) / total_feedback
+        overall_effectiveness = (
+            sum(f.effectiveness_score for f in self.feedback_history) / total_feedback
+        )
 
         # Outcome type distribution
         outcome_distribution = {}
         for feedback in self.feedback_history:
             outcome_type = feedback.outcome_type.value
-            outcome_distribution[outcome_type] = outcome_distribution.get(outcome_type, 0) + 1
+            outcome_distribution[outcome_type] = (
+                outcome_distribution.get(outcome_type, 0) + 1
+            )
 
         # Recent trends (last 30 days)
         recent_cutoff = datetime.now() - timedelta(days=30)
-        recent_feedback = [f for f in self.feedback_history if f.timestamp >= recent_cutoff]
+        recent_feedback = [
+            f for f in self.feedback_history if f.timestamp >= recent_cutoff
+        ]
 
         recent_effectiveness = 0.0
         if recent_feedback:
-            recent_effectiveness = sum(f.effectiveness_score for f in recent_feedback) / len(recent_feedback)
+            recent_effectiveness = sum(
+                f.effectiveness_score for f in recent_feedback
+            ) / len(recent_feedback)
 
         # Improvement actions summary
         total_actions = len(self.improvement_actions)
-        implemented_actions = len([a for a in self.improvement_actions if a.implemented])
+        implemented_actions = len(
+            [a for a in self.improvement_actions if a.implemented]
+        )
 
         return {
             "total_feedback_received": total_feedback,
@@ -334,16 +388,18 @@ class FeedbackLoops:
             "effectiveness_patterns": {
                 outcome: {
                     "average": round(pattern["average_effectiveness"], 3),
-                    "total_samples": pattern["total_feedback"]
+                    "total_samples": pattern["total_feedback"],
                 }
                 for outcome, pattern in self.effectiveness_patterns.items()
             },
             "improvement_actions": {
                 "total_created": total_actions,
                 "implemented": implemented_actions,
-                "implementation_rate": round(implemented_actions / max(total_actions, 1), 3)
+                "implementation_rate": round(
+                    implemented_actions / max(total_actions, 1), 3
+                ),
             },
-            "recommendations_available": len(self.get_improvement_recommendations())
+            "recommendations_available": len(self.get_improvement_recommendations()),
         }
 
     def export_feedback_data(self, filepath: str):
@@ -359,7 +415,7 @@ class FeedbackLoops:
                     "user_rating": f.user_rating,
                     "therapist_rating": f.therapist_rating,
                     "outcome_details": f.outcome_details,
-                    "timestamp": f.timestamp.isoformat()
+                    "timestamp": f.timestamp.isoformat(),
                 }
                 for f in self.feedback_history
             ],
@@ -372,12 +428,12 @@ class FeedbackLoops:
                     "target_score": a.target_score,
                     "modifications": a.modifications,
                     "implemented": a.implemented,
-                    "results": a.results
+                    "results": a.results,
                 }
                 for a in self.improvement_actions
             ],
             "effectiveness_patterns": self.effectiveness_patterns,
-            "summary": self.get_feedback_summary()
+            "summary": self.get_feedback_summary(),
         }
 
         with open(filepath, "w") as f:
@@ -401,8 +457,8 @@ def main():
             therapist_rating=4,
             outcome_details={
                 "issues": ["unclear instructions", "rushed pace"],
-                "success_factors": ["empathetic responses"]
-            }
+                "success_factors": ["empathetic responses"],
+            },
         ),
         EffectivenessFeedback(
             feedback_id="fb_002",
@@ -412,8 +468,12 @@ def main():
             user_rating=5,
             therapist_rating=5,
             outcome_details={
-                "success_factors": ["good rapport", "collaborative approach", "cultural sensitivity"]
-            }
+                "success_factors": [
+                    "good rapport",
+                    "collaborative approach",
+                    "cultural sensitivity",
+                ]
+            },
         ),
         EffectivenessFeedback(
             feedback_id="fb_003",
@@ -424,8 +484,8 @@ def main():
             therapist_rating=3,
             outcome_details={
                 "issues": ["inadequate safety assessment", "missing crisis resources"]
-            }
-        )
+            },
+        ),
     ]
 
     # Submit feedback

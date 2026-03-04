@@ -18,7 +18,8 @@ def test_load_hf_dataset_success():
     assert ds is not None
     assert any("Starting download" in msg for msg in progress_messages)
     assert any(
-        "Loaded dataset" in msg or "Loaded iterable dataset" in msg for msg in progress_messages
+        "Loaded dataset" in msg or "Loaded iterable dataset" in msg
+        for msg in progress_messages
     )
 
     # Select the first EXPECTED_DATASET_SIZE records for testing

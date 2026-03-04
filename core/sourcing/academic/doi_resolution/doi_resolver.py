@@ -135,9 +135,11 @@ class DOIResolver:
                 pages=message.get("page"),
                 abstract=message.get("abstract"),
                 url=f"https://doi.org/{doi}",
-                license=message.get("license", [{}])[0].get("URL")
-                if message.get("license")
-                else None,
+                license=(
+                    message.get("license", [{}])[0].get("URL")
+                    if message.get("license")
+                    else None
+                ),
                 references_count=message.get("references-count", 0),
                 citations_count=message.get("is-referenced-by-count", 0),
                 raw_metadata=message,
@@ -183,9 +185,11 @@ class DOIResolver:
                 publication_type=attributes.get("types", {}).get(
                     "resourceTypeGeneral", "unknown"
                 ),
-                abstract=attributes.get("descriptions", [{}])[0].get("description")
-                if attributes.get("descriptions")
-                else None,
+                abstract=(
+                    attributes.get("descriptions", [{}])[0].get("description")
+                    if attributes.get("descriptions")
+                    else None
+                ),
                 url=attributes.get("url", f"https://doi.org/{doi}"),
                 raw_metadata=attributes,
             )

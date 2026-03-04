@@ -224,7 +224,11 @@ class EvidenceBasedPracticeValidator:
                 sample_size=12847,
                 population="Adults with Major Depressive Disorder",
                 intervention="Individual CBT (12-20 sessions)",
-                outcomes=["Depression severity", "Functional improvement", "Relapse prevention"],
+                outcomes=[
+                    "Depression severity",
+                    "Functional improvement",
+                    "Relapse prevention",
+                ],
                 effect_sizes={
                     "depression_reduction": 0.85,
                     "functional_improvement": 0.72,
@@ -330,7 +334,10 @@ class EvidenceBasedPracticeValidator:
                 version="2023.1",
                 publication_date="2023-03-15",
                 target_population="Adults with Major Depressive Disorder",
-                target_conditions=["Major Depressive Disorder", "Persistent Depressive Disorder"],
+                target_conditions=[
+                    "Major Depressive Disorder",
+                    "Persistent Depressive Disorder",
+                ],
                 recommended_interventions=[
                     "Cognitive Behavioral Therapy",
                     "Interpersonal Therapy",
@@ -410,7 +417,9 @@ class EvidenceBasedPracticeValidator:
 
         return guidelines
 
-    def _initialize_outcome_measures(self) -> dict[OutcomeMeasureType, list[OutcomeMeasure]]:
+    def _initialize_outcome_measures(
+        self,
+    ) -> dict[OutcomeMeasureType, list[OutcomeMeasure]]:
         """Initialize standardized outcome measures."""
         measures = {}
 
@@ -469,7 +478,12 @@ class EvidenceBasedPracticeValidator:
                     "clinical_population_mean": 12.4,
                     "standard_deviation": 4.1,
                 },
-                clinical_cutoffs={"minimal": 4, "mild": 9, "moderate": 14, "severe": 21},
+                clinical_cutoffs={
+                    "minimal": 4,
+                    "mild": 9,
+                    "moderate": 14,
+                    "severe": 21,
+                },
                 change_indicators={
                     "reliable_change": 4.0,
                     "clinically_significant_change": 4.0,
@@ -550,13 +564,19 @@ class EvidenceBasedPracticeValidator:
                     "response_threshold": 30.0,
                 },
                 frequency_of_use="Monthly during treatment",
-                population_appropriateness=["Adults", "Cross-cultural", "Diverse conditions"],
+                population_appropriateness=[
+                    "Adults",
+                    "Cross-cultural",
+                    "Diverse conditions",
+                ],
             )
         ]
 
         return measures
 
-    def _initialize_fidelity_protocols(self) -> dict[TreatmentFidelityDomain, dict[str, Any]]:
+    def _initialize_fidelity_protocols(
+        self,
+    ) -> dict[TreatmentFidelityDomain, dict[str, Any]]:
         """Initialize treatment fidelity assessment protocols."""
         return {
             TreatmentFidelityDomain.PROTOCOL_ADHERENCE: {
@@ -580,7 +600,12 @@ class EvidenceBasedPracticeValidator:
                     "Professional boundaries maintained",
                 ],
                 "scoring_method": "1-10 Likert scale rating",
-                "benchmarks": {"excellent": 8.5, "good": 7.0, "adequate": 5.5, "poor": 4.0},
+                "benchmarks": {
+                    "excellent": 8.5,
+                    "good": 7.0,
+                    "adequate": 5.5,
+                    "poor": 4.0,
+                },
                 "monitoring_frequency": "Weekly supervision review",
             },
             TreatmentFidelityDomain.INTERVENTION_INTEGRITY: {
@@ -618,7 +643,9 @@ class EvidenceBasedPracticeValidator:
         exchanges = conversation_data.get("conversation_exchanges", [])
 
         # Find relevant research evidence
-        evidence_citations = self._find_relevant_evidence(therapeutic_approach, client_scenario)
+        evidence_citations = self._find_relevant_evidence(
+            therapeutic_approach, client_scenario
+        )
 
         # Check guideline adherence
         guideline_adherence = self._assess_guideline_adherence(
@@ -626,10 +653,14 @@ class EvidenceBasedPracticeValidator:
         )
 
         # Predict outcomes based on evidence
-        outcome_predictions = self._predict_outcomes(evidence_citations, exchanges, client_scenario)
+        outcome_predictions = self._predict_outcomes(
+            evidence_citations, exchanges, client_scenario
+        )
 
         # Identify fidelity markers
-        fidelity_markers = self._identify_fidelity_markers(exchanges, therapeutic_approach)
+        fidelity_markers = self._identify_fidelity_markers(
+            exchanges, therapeutic_approach
+        )
 
         # Conduct comprehensive validation
         validation_result = self._conduct_validation_assessment(
@@ -684,13 +715,18 @@ class EvidenceBasedPracticeValidator:
             "alliance_building": "therapeutic_alliance",
         }
 
-        db_key = approach_mapping.get(therapeutic_approach.lower(), therapeutic_approach.lower())
+        db_key = approach_mapping.get(
+            therapeutic_approach.lower(), therapeutic_approach.lower()
+        )
 
         if db_key in self.research_database:
             relevant_evidence.extend(self.research_database[db_key])
 
         # Add general therapeutic alliance evidence for all approaches
-        if "therapeutic_alliance" in self.research_database and db_key != "therapeutic_alliance":
+        if (
+            "therapeutic_alliance" in self.research_database
+            and db_key != "therapeutic_alliance"
+        ):
             relevant_evidence.extend(self.research_database["therapeutic_alliance"])
 
         return relevant_evidence
@@ -731,7 +767,10 @@ class EvidenceBasedPracticeValidator:
         # Check if client conditions match target conditions
         client_conditions = client_scenario.clinical_formulation.dsm5_considerations
         condition_match = any(
-            any(condition.lower() in target.lower() for target in guideline.target_conditions)
+            any(
+                condition.lower() in target.lower()
+                for target in guideline.target_conditions
+            )
             for condition in client_conditions
         )
 
@@ -750,7 +789,8 @@ class EvidenceBasedPracticeValidator:
 
         # Check for outcome monitoring (simplified)
         has_monitoring = any(
-            "assess" in e.get("content", "").lower() or "progress" in e.get("content", "").lower()
+            "assess" in e.get("content", "").lower()
+            or "progress" in e.get("content", "").lower()
             for e in therapist_exchanges
         )
 
@@ -770,7 +810,8 @@ class EvidenceBasedPracticeValidator:
 
         # Base predictions on strongest evidence
         strongest_evidence = max(
-            evidence_citations, key=lambda e: self._get_evidence_strength_score(e.evidence_level)
+            evidence_citations,
+            key=lambda e: self._get_evidence_strength_score(e.evidence_level),
         )
 
         # Adjust predictions based on conversation quality
@@ -783,7 +824,9 @@ class EvidenceBasedPracticeValidator:
             # Adjust for conversation quality
             quality_adjustment = (conversation_quality - 0.5) * 0.2
 
-            predictions[outcome] = max(0.1, min(0.9, base_probability + quality_adjustment))
+            predictions[outcome] = max(
+                0.1, min(0.9, base_probability + quality_adjustment)
+            )
 
         return predictions
 
@@ -817,7 +860,9 @@ class EvidenceBasedPracticeValidator:
         total_possible += 1
 
         # Check for client engagement progression
-        if len(client_exchanges) >= 2 and self._shows_engagement_progression(client_exchanges):
+        if len(client_exchanges) >= 2 and self._shows_engagement_progression(
+            client_exchanges
+        ):
             quality_indicators += 1
         total_possible += 1
 
@@ -833,7 +878,9 @@ class EvidenceBasedPracticeValidator:
 
         return quality_indicators / total_possible if total_possible > 0 else 0.0
 
-    def _shows_engagement_progression(self, client_exchanges: list[dict[str, Any]]) -> bool:
+    def _shows_engagement_progression(
+        self, client_exchanges: list[dict[str, Any]]
+    ) -> bool:
         """Check if client shows engagement progression."""
         if len(client_exchanges) < 2:
             return False
@@ -842,7 +889,13 @@ class EvidenceBasedPracticeValidator:
         first_engagement = client_exchanges[0].get("engagement_level", "")
         last_engagement = client_exchanges[-1].get("engagement_level", "")
 
-        engagement_levels = ["guarded", "cautious", "warming_up", "engaged", "highly_engaged"]
+        engagement_levels = [
+            "guarded",
+            "cautious",
+            "warming_up",
+            "engaged",
+            "highly_engaged",
+        ]
 
         try:
             first_index = engagement_levels.index(first_engagement)
@@ -969,14 +1022,18 @@ class EvidenceBasedPracticeValidator:
             return "insufficient_evidence"
 
         highest_level = max(
-            evidence_citations, key=lambda e: self._get_evidence_strength_score(e.evidence_level)
+            evidence_citations,
+            key=lambda e: self._get_evidence_strength_score(e.evidence_level),
         )
 
         if highest_level.evidence_level == EvidenceLevel.LEVEL_I:
             return "strong_evidence"
         if highest_level.evidence_level == EvidenceLevel.LEVEL_II:
             return "moderate_to_strong_evidence"
-        if highest_level.evidence_level in [EvidenceLevel.LEVEL_III, EvidenceLevel.LEVEL_IV]:
+        if highest_level.evidence_level in [
+            EvidenceLevel.LEVEL_III,
+            EvidenceLevel.LEVEL_IV,
+        ]:
             return "moderate_evidence"
         return "limited_evidence"
 
@@ -996,7 +1053,9 @@ class EvidenceBasedPracticeValidator:
             recommendations.append("Incorporate research-supported techniques")
 
         if not guideline_adherence:
-            recommendations.append("Align treatment with established practice guidelines")
+            recommendations.append(
+                "Align treatment with established practice guidelines"
+            )
 
         if validation_score >= 80:
             recommendations.append("Maintain current evidence-based approach")
@@ -1027,7 +1086,9 @@ class EvidenceBasedPracticeValidator:
 
         return areas
 
-    def _identify_research_gaps(self, evidence_citations: list[ResearchEvidence]) -> list[str]:
+    def _identify_research_gaps(
+        self, evidence_citations: list[ResearchEvidence]
+    ) -> list[str]:
         """Identify research gaps in evidence base."""
         gaps = []
 
@@ -1059,13 +1120,16 @@ class EvidenceBasedPracticeValidator:
 
         # Calculate scores based on markers
         protocol_score = 75.0 if "adequate_session_length" in fidelity_markers else 50.0
-        competence_score = 7.5 if "therapeutic_techniques_used" in fidelity_markers else 5.0
+        competence_score = (
+            7.5 if "therapeutic_techniques_used" in fidelity_markers else 5.0
+        )
 
         # Create integrity checklist
         integrity_checklist = {
             "session_structure_followed": "adequate_session_length" in fidelity_markers,
             "techniques_implemented": "therapeutic_techniques_used" in fidelity_markers,
-            "alliance_building_present": "alliance_building_present" in fidelity_markers,
+            "alliance_building_present": "alliance_building_present"
+            in fidelity_markers,
             "monitoring_conducted": "outcome_monitoring_present" in fidelity_markers,
         }
 
@@ -1124,13 +1188,17 @@ class EvidenceBasedPracticeValidator:
             indicators.append("guideline_adherent")
 
         # Check outcome predictions
-        high_probability_outcomes = [k for k, v in outcome_predictions.items() if v >= 0.7]
+        high_probability_outcomes = [
+            k for k, v in outcome_predictions.items() if v >= 0.7
+        ]
         if high_probability_outcomes:
             indicators.append("positive_outcome_likelihood")
 
         return indicators
 
-    def _create_research_support_summary(self, evidence_citations: list[ResearchEvidence]) -> str:
+    def _create_research_support_summary(
+        self, evidence_citations: list[ResearchEvidence]
+    ) -> str:
         """Create research support summary."""
         if not evidence_citations:
             return "No specific research evidence identified for this therapeutic approach."
@@ -1143,17 +1211,22 @@ class EvidenceBasedPracticeValidator:
             level = evidence.evidence_level.value
             level_counts[level] = level_counts.get(level, 0) + 1
 
-        summary_parts.append(f"Research support includes {len(evidence_citations)} studies:")
+        summary_parts.append(
+            f"Research support includes {len(evidence_citations)} studies:"
+        )
 
         for level, count in level_counts.items():
             summary_parts.append(f"- {count} {level.replace('_', ' ')}")
 
         # Highlight strongest evidence
         strongest = max(
-            evidence_citations, key=lambda e: self._get_evidence_strength_score(e.evidence_level)
+            evidence_citations,
+            key=lambda e: self._get_evidence_strength_score(e.evidence_level),
         )
 
-        summary_parts.append(f"\nStrongest evidence: {strongest.title} ({strongest.year})")
+        summary_parts.append(
+            f"\nStrongest evidence: {strongest.title} ({strongest.year})"
+        )
         summary_parts.append(
             f"Effect sizes: {', '.join([f'{k}: {v}' for k, v in strongest.effect_sizes.items()])}"
         )
@@ -1161,7 +1234,9 @@ class EvidenceBasedPracticeValidator:
         return " ".join(summary_parts)
 
     def _generate_clinical_recommendations(
-        self, validation_result: ValidationResult, guideline_adherence: list[PracticeGuideline]
+        self,
+        validation_result: ValidationResult,
+        guideline_adherence: list[PracticeGuideline],
     ) -> list[str]:
         """Generate clinical recommendations."""
         recommendations = []
@@ -1170,14 +1245,20 @@ class EvidenceBasedPracticeValidator:
             recommendations.append("Continue current evidence-based approach")
 
         if guideline_adherence:
-            recommendations.append("Maintain adherence to established practice guidelines")
+            recommendations.append(
+                "Maintain adherence to established practice guidelines"
+            )
 
         if validation_result.validation_score < 70:
             recommendations.append("Strengthen evidence-based practice implementation")
-            recommendations.append("Consider additional training in evidence-based techniques")
+            recommendations.append(
+                "Consider additional training in evidence-based techniques"
+            )
 
         # Add outcome monitoring recommendations
-        recommendations.append("Implement regular outcome monitoring using validated measures")
+        recommendations.append(
+            "Implement regular outcome monitoring using validated measures"
+        )
         recommendations.append("Document treatment progress and adjust as needed")
 
         return recommendations
@@ -1201,21 +1282,24 @@ class EvidenceBasedPracticeValidator:
                 "therapeutic_approaches": list(
                     {conv.therapeutic_approach for conv in conversations}
                 ),
-                "average_validation_score": sum(
-                    conv.validation_result.validation_score for conv in conversations
-                )
-                / len(conversations)
-                if conversations
-                else 0,
+                "average_validation_score": (
+                    sum(
+                        conv.validation_result.validation_score
+                        for conv in conversations
+                    )
+                    / len(conversations)
+                    if conversations
+                    else 0
+                ),
                 "evidence_strength_distribution": self._calculate_evidence_distribution(
                     conversations
                 ),
-                "guideline_compliance_rate": sum(
-                    1 for conv in conversations if conv.guideline_adherence
-                )
-                / len(conversations)
-                if conversations
-                else 0,
+                "guideline_compliance_rate": (
+                    sum(1 for conv in conversations if conv.guideline_adherence)
+                    / len(conversations)
+                    if conversations
+                    else 0
+                ),
             },
             "conversations": serializable_conversations,
         }
@@ -1229,7 +1313,9 @@ class EvidenceBasedPracticeValidator:
             "average_validation_score": round(
                 export_data["metadata"]["average_validation_score"], 2
             ),
-            "therapeutic_approaches": len(export_data["metadata"]["therapeutic_approaches"]),
+            "therapeutic_approaches": len(
+                export_data["metadata"]["therapeutic_approaches"]
+            ),
             "guideline_compliance_rate": round(
                 export_data["metadata"]["guideline_compliance_rate"], 2
             ),

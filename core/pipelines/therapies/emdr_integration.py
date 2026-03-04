@@ -16,10 +16,14 @@ class EMDRIntegration:
 
     def __init__(self, output_base_path: str = "ai/training_ready/data/datasets"):
         self.output_base_path = Path(output_base_path)
-        self.emdr_content_path = self.output_base_path / "stage2_reasoning" / "emdr_content"
+        self.emdr_content_path = (
+            self.output_base_path / "stage2_reasoning" / "emdr_content"
+        )
         self._ensure_directories()
 
-        logger.info(f"Initialized EMDRIntegration. Output path: {self.emdr_content_path}")
+        logger.info(
+            f"Initialized EMDRIntegration. Output path: {self.emdr_content_path}"
+        )
 
     def _ensure_directories(self):
         """Ensure output directories exist."""
@@ -172,8 +176,16 @@ class EMDRIntegration:
                 "target": "Index Trauma A",
                 "starting_suds": 8,
                 "sets": [
-                    {"set_num": 1, "duration": "30 sec", "client_report": "Image became sharper"},
-                    {"set_num": 2, "duration": "45 sec", "client_report": "Felt sadness in chest"},
+                    {
+                        "set_num": 1,
+                        "duration": "30 sec",
+                        "client_report": "Image became sharper",
+                    },
+                    {
+                        "set_num": 2,
+                        "duration": "45 sec",
+                        "client_report": "Felt sadness in chest",
+                    },
                     {
                         "set_num": 3,
                         "duration": "45 sec",
@@ -199,9 +211,13 @@ class EMDRIntegration:
             if item_type == 0:
                 item = self.generate_phase_protocol(phase_number=random.randint(1, 8))
             elif item_type == 1:
-                item = self.generate_treatment_plan("Car Accident", "I am unsafe", "I am safe now")
+                item = self.generate_treatment_plan(
+                    "Car Accident", "I am unsafe", "I am safe now"
+                )
             elif item_type == 2:
-                item = self.generate_resourcing_script(random.choice(["Safe Place", "Container"]))
+                item = self.generate_resourcing_script(
+                    random.choice(["Safe Place", "Container"])
+                )
             else:
                 item = self.generate_bilateral_stimulation_log()
 

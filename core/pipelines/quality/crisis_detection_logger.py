@@ -198,9 +198,12 @@ class CrisisDetectionLogger:
 
         log_entry = self._create_log_entry(
             event_type=EventType.CRISIS_DETECTION,
-            log_level=LogLevel.CRITICAL
-            if detection.crisis_level in [CrisisLevel.EMERGENCY, CrisisLevel.CRITICAL]
-            else LogLevel.WARNING,
+            log_level=(
+                LogLevel.CRITICAL
+                if detection.crisis_level
+                in [CrisisLevel.EMERGENCY, CrisisLevel.CRITICAL]
+                else LogLevel.WARNING
+            ),
             conversation_id=detection.conversation_id,
             message="Crisis detection performed",
             user_id=user_id,
@@ -497,9 +500,9 @@ class CrisisDetectionLogger:
             query_parameters={
                 "start_date": start_date.isoformat() if start_date else None,
                 "end_date": end_date.isoformat() if end_date else None,
-                "event_types": [et.value for et in event_types]
-                if event_types
-                else None,
+                "event_types": (
+                    [et.value for et in event_types] if event_types else None
+                ),
                 "crisis_levels": crisis_levels,
                 "conversation_id": conversation_id,
             },

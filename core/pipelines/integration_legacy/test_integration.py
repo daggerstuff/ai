@@ -174,9 +174,9 @@ def test_full_integration():
         ],
         "datasets": {
             "journaling_enhanced": len(journaling_datasets),
-            "voice_enhanced": len(voice_enhanced)
-            if "voice_enhanced" in locals()
-            else 0,
+            "voice_enhanced": (
+                len(voice_enhanced) if "voice_enhanced" in locals() else 0
+            ),
             "edge_cases": len(edge_case_datasets),
             "dual_persona": len(dual_persona_datasets),
             "bias_validated": len(bias_validated_datasets),

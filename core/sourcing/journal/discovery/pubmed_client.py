@@ -95,7 +95,9 @@ class PubMedClient:
             "conversation transcript",
             "therapy transcript",
         ]
-        dataset_query = " OR ".join([f'"{term}"[Title/Abstract]' for term in dataset_terms])
+        dataset_query = " OR ".join(
+            [f'"{term}"[Title/Abstract]' for term in dataset_terms]
+        )
         query_parts.append(f"({dataset_query})")
 
         # Combine with AND
@@ -384,4 +386,3 @@ class PubMedClient:
             return "restricted"
 
         return "unknown"
-

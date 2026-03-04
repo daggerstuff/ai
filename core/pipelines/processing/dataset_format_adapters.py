@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 class DatasetFormatAdapter(ABC):
     """
     Abstract base class for dataset format adapters.
-    
+
     Each adapter knows how to convert a specific dataset format
     into the standardized Conversation schema.
     """
@@ -26,10 +26,10 @@ class DatasetFormatAdapter(ABC):
     def adapt(self, raw_data: Dict[str, Any]) -> Optional[Conversation]:
         """
         Convert raw dataset entry to Conversation.
-        
+
         Args:
             raw_data: Raw data dict from dataset
-            
+
         Returns:
             Conversation object or None if conversion fails
         """
@@ -57,7 +57,7 @@ class DatasetFormatAdapter(ABC):
 class Psych8kAdapter(DatasetFormatAdapter):
     """
     Adapter for Psych8k dataset format.
-    
+
     Psych8k contains professional therapy conversations with
     'Context' and 'Response' fields.
     """
@@ -68,7 +68,7 @@ class Psych8kAdapter(DatasetFormatAdapter):
     def adapt(self, raw_data: Dict[str, Any]) -> Optional[Conversation]:
         """
         Convert Psych8k format to Conversation.
-        
+
         Expected format:
         {
             "Context": "patient message",
@@ -79,15 +79,15 @@ class Psych8kAdapter(DatasetFormatAdapter):
         try:
             context = raw_data.get("Context", "")
             response = raw_data.get("Response", "")
-            
+
             if not context or not response:
                 return None
-            
+
             messages = [
                 self._create_message("user", context),
                 self._create_message("assistant", response),
             ]
-            
+
             conversation = Conversation(
                 messages=messages,
                 metadata={
@@ -96,9 +96,9 @@ class Psych8kAdapter(DatasetFormatAdapter):
                     **raw_data.get("metadata", {}),
                 },
             )
-            
+
             return conversation
-            
+
         except Exception as e:
             logger.warning(f"Failed to adapt Psych8k entry: {e}")
             return None
@@ -107,7 +107,7 @@ class Psych8kAdapter(DatasetFormatAdapter):
 class MentalHealthCounselingAdapter(DatasetFormatAdapter):
     """
     Adapter for mental_health_counseling_conversations format.
-    
+
     Contains 'questionTitle', 'questionText', and 'answerText'.
     """
 
@@ -117,7 +117,7 @@ class MentalHealthCounselingAdapter(DatasetFormatAdapter):
     def adapt(self, raw_data: Dict[str, Any]) -> Optional[Conversation]:
         """
         Convert mental health counseling format to Conversation.
-        
+
         Expected format:
         {
             "questionTitle": "title",
@@ -129,18 +129,22 @@ class MentalHealthCounselingAdapter(DatasetFormatAdapter):
             question_title = raw_data.get("questionTitle", "")
             question_text = raw_data.get("questionText", "")
             answer_text = raw_data.get("answerText", "")
-            
+
             # Combine title and question if both present
-            question = f"{question_title}\n\n{question_text}".strip() if question_title else question_text
-            
+            question = (
+                f"{question_title}\n\n{question_text}".strip()
+                if question_title
+                else question_text
+            )
+
             if not question or not answer_text:
                 return None
-            
+
             messages = [
                 self._create_message("user", question),
                 self._create_message("assistant", answer_text),
             ]
-            
+
             conversation = Conversation(
                 messages=messages,
                 metadata={
@@ -149,9 +153,9 @@ class MentalHealthCounselingAdapter(DatasetFormatAdapter):
                     "question_title": question_title,
                 },
             )
-            
+
             return conversation
-            
+
         except Exception as e:
             logger.warning(f"Failed to adapt mental health counseling entry: {e}")
             return None
@@ -160,7 +164,7 @@ class MentalHealthCounselingAdapter(DatasetFormatAdapter):
 class SoulChatAdapter(DatasetFormatAdapter):
     """
     Adapter for SoulChat2.0 format.
-    
+
     Advanced psychological counselor conversations.
     """
 
@@ -170,7 +174,7 @@ class SoulChatAdapter(DatasetFormatAdapter):
     def adapt(self, raw_data: Dict[str, Any]) -> Optional[Conversation]:
         """
         Convert SoulChat format to Conversation.
-        
+
         Expected format:
         {
             "instruction": "user message",
@@ -182,18 +186,22 @@ class SoulChatAdapter(DatasetFormatAdapter):
             instruction = raw_data.get("instruction", "")
             output = raw_data.get("output", "")
             input_context = raw_data.get("input", "")
-            
+
             # Combine instruction with input if present
-            user_message = f"{instruction}\n{input_context}".strip() if input_context else instruction
-            
+            user_message = (
+                f"{instruction}\n{input_context}".strip()
+                if input_context
+                else instruction
+            )
+
             if not user_message or not output:
                 return None
-            
+
             messages = [
                 self._create_message("user", user_message),
                 self._create_message("assistant", output),
             ]
-            
+
             conversation = Conversation(
                 messages=messages,
                 metadata={
@@ -201,9 +209,9 @@ class SoulChatAdapter(DatasetFormatAdapter):
                     "format": "psychological_counselor",
                 },
             )
-            
+
             return conversation
-            
+
         except Exception as e:
             logger.warning(f"Failed to adapt SoulChat entry: {e}")
             return None
@@ -212,7 +220,7 @@ class SoulChatAdapter(DatasetFormatAdapter):
 class CounselChatAdapter(DatasetFormatAdapter):
     """
     Adapter for counsel-chat format.
-    
+
     Professional counseling Q&A archive.
     """
 
@@ -222,7 +230,7 @@ class CounselChatAdapter(DatasetFormatAdapter):
     def adapt(self, raw_data: Dict[str, Any]) -> Optional[Conversation]:
         """
         Convert counsel-chat format to Conversation.
-        
+
         Expected format:
         {
             "questionText": "client question",
@@ -234,15 +242,15 @@ class CounselChatAdapter(DatasetFormatAdapter):
             question = raw_data.get("questionText", "")
             answer = raw_data.get("answerText", "")
             topic = raw_data.get("topic", "")
-            
+
             if not question or not answer:
                 return None
-            
+
             messages = [
                 self._create_message("user", question),
                 self._create_message("assistant", answer),
             ]
-            
+
             conversation = Conversation(
                 messages=messages,
                 metadata={
@@ -251,9 +259,9 @@ class CounselChatAdapter(DatasetFormatAdapter):
                     "topic": topic,
                 },
             )
-            
+
             return conversation
-            
+
         except Exception as e:
             logger.warning(f"Failed to adapt counsel-chat entry: {e}")
             return None
@@ -270,7 +278,7 @@ class LLAMA3MentalAdapter(DatasetFormatAdapter):
     def adapt(self, raw_data: Dict[str, Any]) -> Optional[Conversation]:
         """
         Convert LLAMA3 mental counseling format to Conversation.
-        
+
         Expected format:
         {
             "conversations": [
@@ -281,25 +289,25 @@ class LLAMA3MentalAdapter(DatasetFormatAdapter):
         """
         try:
             conversations = raw_data.get("conversations", [])
-            
+
             if not conversations:
                 return None
-            
+
             messages = []
             for conv in conversations:
                 from_role = conv.get("from", "")
                 value = conv.get("value", "")
-                
+
                 if not value:
                     continue
-                
+
                 # Map roles
                 role = "user" if from_role == "human" else "assistant"
                 messages.append(self._create_message(role, value))
-            
+
             if len(messages) < 2:
                 return None
-            
+
             conversation = Conversation(
                 messages=messages,
                 metadata={
@@ -307,9 +315,9 @@ class LLAMA3MentalAdapter(DatasetFormatAdapter):
                     "format": "ai_counseling",
                 },
             )
-            
+
             return conversation
-            
+
         except Exception as e:
             logger.warning(f"Failed to adapt LLAMA3 mental entry: {e}")
             return None
@@ -326,7 +334,7 @@ class TherapistSFTAdapter(DatasetFormatAdapter):
     def adapt(self, raw_data: Dict[str, Any]) -> Optional[Conversation]:
         """
         Convert therapist SFT format to Conversation.
-        
+
         Expected format:
         {
             "input": "client input",
@@ -336,15 +344,15 @@ class TherapistSFTAdapter(DatasetFormatAdapter):
         try:
             input_text = raw_data.get("input", "")
             output_text = raw_data.get("output", "")
-            
+
             if not input_text or not output_text:
                 return None
-            
+
             messages = [
                 self._create_message("user", input_text),
                 self._create_message("assistant", output_text),
             ]
-            
+
             conversation = Conversation(
                 messages=messages,
                 metadata={
@@ -352,9 +360,9 @@ class TherapistSFTAdapter(DatasetFormatAdapter):
                     "format": "supervised_fine_tuning",
                 },
             )
-            
+
             return conversation
-            
+
         except Exception as e:
             logger.warning(f"Failed to adapt therapist SFT entry: {e}")
             return None
@@ -363,7 +371,7 @@ class TherapistSFTAdapter(DatasetFormatAdapter):
 class NeuroQAAdapter(DatasetFormatAdapter):
     """
     Adapter for neuro_qa_SFT_Trainer format.
-    
+
     Neurology/psychology Q&A with 35K+ entries.
     """
 
@@ -373,7 +381,7 @@ class NeuroQAAdapter(DatasetFormatAdapter):
     def adapt(self, raw_data: Dict[str, Any]) -> Optional[Conversation]:
         """
         Convert neuro QA format to Conversation.
-        
+
         Expected format:
         {
             "question": "...",
@@ -383,15 +391,15 @@ class NeuroQAAdapter(DatasetFormatAdapter):
         try:
             question = raw_data.get("question", "")
             answer = raw_data.get("answer", "")
-            
+
             if not question or not answer:
                 return None
-            
+
             messages = [
                 self._create_message("user", question),
                 self._create_message("assistant", answer),
             ]
-            
+
             conversation = Conversation(
                 messages=messages,
                 metadata={
@@ -399,9 +407,9 @@ class NeuroQAAdapter(DatasetFormatAdapter):
                     "format": "neurology_psychology_qa",
                 },
             )
-            
+
             return conversation
-            
+
         except Exception as e:
             logger.warning(f"Failed to adapt neuro QA entry: {e}")
             return None
@@ -410,7 +418,7 @@ class NeuroQAAdapter(DatasetFormatAdapter):
 class GenericChatMLAdapter(DatasetFormatAdapter):
     """
     Generic adapter for ChatML-style formats.
-    
+
     Handles standard conversation formats with role/content structure.
     """
 
@@ -420,7 +428,7 @@ class GenericChatMLAdapter(DatasetFormatAdapter):
     def adapt(self, raw_data: Dict[str, Any]) -> Optional[Conversation]:
         """
         Convert generic ChatML format to Conversation.
-        
+
         Expected format:
         {
             "messages": [
@@ -431,23 +439,23 @@ class GenericChatMLAdapter(DatasetFormatAdapter):
         """
         try:
             messages_data = raw_data.get("messages", [])
-            
+
             if not messages_data:
                 return None
-            
+
             messages = []
             for msg in messages_data:
                 role = msg.get("role", "")
                 content = msg.get("content", "")
-                
+
                 if not content or role not in ["user", "assistant", "system"]:
                     continue
-                
+
                 messages.append(self._create_message(role, content))
-            
+
             if len(messages) < 2:
                 return None
-            
+
             conversation = Conversation(
                 messages=messages,
                 metadata={
@@ -455,9 +463,9 @@ class GenericChatMLAdapter(DatasetFormatAdapter):
                     "format": "generic_chatml",
                 },
             )
-            
+
             return conversation
-            
+
         except Exception as e:
             logger.warning(f"Failed to adapt generic ChatML entry: {e}")
             return None
@@ -466,7 +474,7 @@ class GenericChatMLAdapter(DatasetFormatAdapter):
 class AdapterRegistry:
     """
     Registry for dataset format adapters.
-    
+
     Manages adapter selection and fallback strategies.
     """
 
@@ -486,7 +494,7 @@ class AdapterRegistry:
             NeuroQAAdapter(),
             GenericChatMLAdapter(),
         ]
-        
+
         for adapter in adapters:
             self.register_adapter(adapter)
 
@@ -508,12 +516,12 @@ class AdapterRegistry:
     ) -> Optional[Conversation]:
         """
         Adapt data using primary format, with generic fallback.
-        
+
         Args:
             raw_data: Raw data to adapt
             primary_format: Primary format name to try
             source_name: Source dataset name for metadata
-            
+
         Returns:
             Conversation object or None
         """
@@ -523,7 +531,7 @@ class AdapterRegistry:
             result = adapter.adapt(raw_data)
             if result:
                 return result
-        
+
         # Try generic ChatML adapter as fallback
         generic_adapter = self.get_adapter("generic_chatml")
         if generic_adapter:
@@ -535,7 +543,7 @@ class AdapterRegistry:
                     f"Used generic fallback for {source_name} (primary: {primary_format})"
                 )
                 return result
-        
+
         logger.warning(
             f"Failed to adapt data from {source_name} with format {primary_format}"
         )

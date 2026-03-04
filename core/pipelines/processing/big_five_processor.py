@@ -648,8 +648,7 @@ class BigFiveProcessor:
         return BigFiveAssessment(
             name="Ten-Item Personality Inventory (TIPI)",
             type=AssessmentType.TIPI,
-            description="Brief 10-item measure of Big Five personality "
-            "dimensions",
+            description="Brief 10-item measure of Big Five personality " "dimensions",
             items=items,
             administration_time="1-2 minutes",
             target_population=["adults"],

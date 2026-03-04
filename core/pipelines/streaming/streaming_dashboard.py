@@ -254,9 +254,9 @@ class StreamingDashboard:
             alert = {
                 "id": f"error_rate_{int(time.time())}",
                 "type": "error_rate",
-                "severity": "warning"
-                if self.dashboard_metrics.error_rate < 10
-                else "critical",
+                "severity": (
+                    "warning" if self.dashboard_metrics.error_rate < 10 else "critical"
+                ),
                 "message": f"High error rate: {self.dashboard_metrics.error_rate:.2f}%",
                 "timestamp": current_time.isoformat(),
                 "data": {"error_rate": self.dashboard_metrics.error_rate},

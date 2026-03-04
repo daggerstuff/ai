@@ -219,9 +219,11 @@ class EnhancedConversionPipeline:
             "file": input_path.name,
             "total": file_stats.total_segments,
             "processed": file_stats.processed,
-            "success_rate": file_stats.processed / file_stats.total_segments
-            if file_stats.total_segments > 0
-            else 0,
+            "success_rate": (
+                file_stats.processed / file_stats.total_segments
+                if file_stats.total_segments > 0
+                else 0
+            ),
             "quality_distribution": {
                 "high": file_stats.high_quality,
                 "medium": file_stats.medium_quality,

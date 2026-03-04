@@ -40,12 +40,16 @@ class RateLimiter:
         # Per-minute bucket
         self.minute_tokens: float = float(config.burst_size)
         self.minute_last_refill: float = time.time()
-        self.minute_refill_rate: float = config.requests_per_minute / 60.0  # tokens per second
+        self.minute_refill_rate: float = (
+            config.requests_per_minute / 60.0
+        )  # tokens per second
 
         # Per-hour bucket
         self.hour_tokens: float = float(config.burst_size)
         self.hour_last_refill: float = time.time()
-        self.hour_refill_rate: float = config.requests_per_hour / 3600.0  # tokens per second
+        self.hour_refill_rate: float = (
+            config.requests_per_hour / 3600.0
+        )  # tokens per second
 
         # Request counters for statistics
         self.total_requests: int = 0
@@ -63,8 +67,7 @@ class RateLimiter:
         if elapsed_minute > 0:
             tokens_to_add = elapsed_minute * self.minute_refill_rate
             self.minute_tokens = min(
-                self.config.burst_size,
-                self.minute_tokens + tokens_to_add
+                self.config.burst_size, self.minute_tokens + tokens_to_add
             )
             self.minute_last_refill = current_time
 
@@ -73,8 +76,7 @@ class RateLimiter:
         if elapsed_hour > 0:
             tokens_to_add = elapsed_hour * self.hour_refill_rate
             self.hour_tokens = min(
-                self.config.burst_size,
-                self.hour_tokens + tokens_to_add
+                self.config.burst_size, self.hour_tokens + tokens_to_add
             )
             self.hour_last_refill = current_time
 
@@ -212,8 +214,12 @@ class RateLimitManager:
             return limiter.get_stats()
 
         # Return aggregate stats
-        total_requests = sum(limiter.total_requests for limiter in self.limiters.values())
-        total_blocked = sum(limiter.blocked_requests for limiter in self.limiters.values())
+        total_requests = sum(
+            limiter.total_requests for limiter in self.limiters.values()
+        )
+        total_blocked = sum(
+            limiter.blocked_requests for limiter in self.limiters.values()
+        )
         return {
             "total_limiters": len(self.limiters),
             "total_requests": total_requests,
@@ -240,7 +246,9 @@ class RateLimitManager:
             del self.limiters[identifier]
 
 
-def get_rate_limit_identifier(request: any, user: Optional[Dict[str, any]] = None) -> str:
+def get_rate_limit_identifier(
+    request: any, user: Optional[Dict[str, any]] = None
+) -> str:
     """
     Get rate limit identifier from request and user.
 
@@ -299,4 +307,3 @@ async def check_rate_limit(
                 "identifier": identifier,
             },
         )
-

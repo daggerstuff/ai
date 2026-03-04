@@ -315,19 +315,23 @@ class ChannelProcessor:
                 "is_professional": channel.is_professional,
                 "credentials": channel.credentials,
                 "organization": channel.organization,
-                "licensing": {
-                    "cc_license": channel.licensing.cc_license
+                "licensing": (
+                    {
+                        "cc_license": (
+                            channel.licensing.cc_license if channel.licensing else False
+                        ),
+                        "cc_type": (
+                            channel.licensing.cc_type if channel.licensing else None
+                        ),
+                        "commercial_use": (
+                            channel.licensing.commercial_use
+                            if channel.licensing
+                            else False
+                        ),
+                    }
                     if channel.licensing
-                    else False,
-                    "cc_type": channel.licensing.cc_type
-                    if channel.licensing
-                    else None,
-                    "commercial_use": channel.licensing.commercial_use
-                    if channel.licensing
-                    else False,
-                }
-                if channel.licensing
-                else None,
+                    else None
+                ),
                 "status": channel.status.value,
             }
             for channel in results.qualified_channels

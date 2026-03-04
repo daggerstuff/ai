@@ -467,9 +467,11 @@ class TFIDFClusterer:
             # Update centroids
             new_centroids = np.array(
                 [
-                    feature_matrix[cluster_labels == i].mean(axis=0)
-                    if np.any(cluster_labels == i)
-                    else centroids[i]
+                    (
+                        feature_matrix[cluster_labels == i].mean(axis=0)
+                        if np.any(cluster_labels == i)
+                        else centroids[i]
+                    )
                     for i in range(num_clusters)
                 ]
             )

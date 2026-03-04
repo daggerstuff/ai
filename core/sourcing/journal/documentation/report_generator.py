@@ -336,28 +336,36 @@ class ReportGenerator:
         # High priority datasets
         high_priority = [e for e in evaluations if e.priority_tier == "high"]
         if high_priority:
-            lines.extend([
-                "## High Priority Datasets",
-                "",
-            ])
+            lines.extend(
+                [
+                    "## High Priority Datasets",
+                    "",
+                ]
+            )
             for evaluation in high_priority:
-                source = next((s for s in sources if s.source_id == evaluation.source_id), None)
+                source = next(
+                    (s for s in sources if s.source_id == evaluation.source_id), None
+                )
                 if source:
-                    lines.append(f"- **{source.title}** (Score: {evaluation.overall_score:.2f})")
+                    lines.append(
+                        f"- **{source.title}** (Score: {evaluation.overall_score:.2f})"
+                    )
             lines.append("")
 
         # Evaluation statistics
         if evaluations:
             avg_score = sum(e.overall_score for e in evaluations) / len(evaluations)
-            lines.extend([
-                "## Evaluation Statistics",
-                "",
-                f"- **Average Score**: {avg_score:.2f}/10",
-                f"- **High Priority**: {len([e for e in evaluations if e.priority_tier == 'high'])}",
-                f"- **Medium Priority**: {len([e for e in evaluations if e.priority_tier == 'medium'])}",
-                f"- **Low Priority**: {len([e for e in evaluations if e.priority_tier == 'low'])}",
-                "",
-            ])
+            lines.extend(
+                [
+                    "## Evaluation Statistics",
+                    "",
+                    f"- **Average Score**: {avg_score:.2f}/10",
+                    f"- **High Priority**: {len([e for e in evaluations if e.priority_tier == 'high'])}",
+                    f"- **Medium Priority**: {len([e for e in evaluations if e.priority_tier == 'medium'])}",
+                    f"- **Low Priority**: {len([e for e in evaluations if e.priority_tier == 'low'])}",
+                    "",
+                ]
+            )
 
         output_path.write_text("\n".join(lines), encoding="utf-8")
         return output_path
@@ -448,7 +456,9 @@ class ReportGenerator:
             lines.append("### Top Datasets by Score")
             lines.append("")
             for i, eval in enumerate(sorted_evaluations[:10], 1):
-                source = next((s for s in sources if s.source_id == eval.source_id), None)
+                source = next(
+                    (s for s in sources if s.source_id == eval.source_id), None
+                )
                 title = source.title if source else eval.source_id
                 lines.append(
                     f"{i}. {title} - Score: {eval.overall_score:.2f}/10 ({eval.priority_tier})"
@@ -585,4 +595,3 @@ class ReportGenerator:
 
         output_path.write_text("\n".join(lines), encoding="utf-8")
         return output_path
-

@@ -15,9 +15,11 @@ from typing import Any
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 @dataclass
 class ErrorHandlingIssue:
     """Represents an error handling issue found during audit."""
+
     file_path: str
     line_number: int
     issue_type: str
@@ -27,9 +29,11 @@ class ErrorHandlingIssue:
     function_name: str
     code_snippet: str
 
+
 @dataclass
 class ErrorHandlingAuditReport:
     """Comprehensive error handling audit report."""
+
     total_files: int
     total_functions: int
     functions_with_error_handling: int
@@ -39,6 +43,7 @@ class ErrorHandlingAuditReport:
     coverage_score: float
     quality_score: float
     recommendations: list[str]
+
 
 class ErrorHandlingAuditor:
     """
@@ -62,22 +67,39 @@ class ErrorHandlingAuditor:
         # Risky operations that should have error handling
         self.risky_operations = {
             "file_operations": ["open", "read", "write", "close", "remove", "rename"],
-            "network_operations": ["requests.get", "requests.post", "urllib.request", "socket"],
+            "network_operations": [
+                "requests.get",
+                "requests.post",
+                "urllib.request",
+                "socket",
+            ],
             "database_operations": ["execute", "commit", "connect", "cursor"],
             "json_operations": ["json.loads", "json.dumps", "json.load", "json.dump"],
             "external_processes": ["subprocess.run", "subprocess.call", "os.system"],
             "type_conversions": ["int(", "float(", "str(", "list(", "dict("],
             "indexing_operations": ["[", "get(", "pop(", "index("],
-            "import_operations": ["import", "__import__", "importlib"]
+            "import_operations": ["import", "__import__", "importlib"],
         }
 
         # Common exception types that should be caught
         self.common_exceptions = {
-            "FileNotFoundError", "IOError", "OSError", "PermissionError",
-            "ValueError", "TypeError", "KeyError", "IndexError", "AttributeError",
-            "ConnectionError", "TimeoutError", "HTTPError",
-            "JSONDecodeError", "UnicodeDecodeError", "UnicodeEncodeError",
-            "ImportError", "ModuleNotFoundError"
+            "FileNotFoundError",
+            "IOError",
+            "OSError",
+            "PermissionError",
+            "ValueError",
+            "TypeError",
+            "KeyError",
+            "IndexError",
+            "AttributeError",
+            "ConnectionError",
+            "TimeoutError",
+            "HTTPError",
+            "JSONDecodeError",
+            "UnicodeDecodeError",
+            "UnicodeEncodeError",
+            "ImportError",
+            "ModuleNotFoundError",
         }
 
         # Severity weights for scoring
@@ -85,7 +107,7 @@ class ErrorHandlingAuditor:
             "critical": 1.0,
             "high": 0.8,
             "medium": 0.5,
-            "low": 0.2
+            "low": 0.2,
         }
 
     def audit_directory(self, directory_path: str) -> ErrorHandlingAuditReport:
@@ -141,10 +163,12 @@ class ErrorHandlingAuditor:
             issues=self.issues.copy(),
             coverage_score=coverage_score,
             quality_score=quality_score,
-            recommendations=self.recommendations.copy()
+            recommendations=self.recommendations.copy(),
         )
 
-        logger.info(f"Error handling audit complete: {total_files} files, {len(self.issues)} issues found")
+        logger.info(
+            f"Error handling audit complete: {total_files} files, {len(self.issues)} issues found"
+        )
         return report
 
     def _audit_file(self, file_path: str) -> dict[str, int]:
@@ -203,10 +227,14 @@ class ErrorHandlingAuditor:
 
                     for op in unprotected_ops:
                         self._add_error_handling_issue(
-                            file_path, op["line"], "unprotected_operation",
-                            "high", f"Risky operation '{op['operation']}' not protected by try-catch",
+                            file_path,
+                            op["line"],
+                            "unprotected_operation",
+                            "high",
+                            f"Risky operation '{op['operation']}' not protected by try-catch",
                             f"Wrap '{op['operation']}' in try-catch block",
-                            node.name, op["code"]
+                            node.name,
+                            op["code"],
                         )
 
                     # Check for poor error handling practices
@@ -216,21 +244,25 @@ class ErrorHandlingAuditor:
                 "functions": functions,
                 "functions_with_error_handling": functions_with_error_handling,
                 "risky_operations": risky_operations,
-                "protected_operations": protected_operations
+                "protected_operations": protected_operations,
             }
 
         except Exception as e:
             logger.error(f"Error auditing file {file_path}: {e}")
             return {
-                "functions": 0, "functions_with_error_handling": 0,
-                "risky_operations": 0, "protected_operations": 0
+                "functions": 0,
+                "functions_with_error_handling": 0,
+                "risky_operations": 0,
+                "protected_operations": 0,
             }
 
     def _function_has_error_handling(self, node: ast.FunctionDef) -> bool:
         """Check if a function has any error handling."""
         return any(isinstance(child, ast.Try) for child in ast.walk(node))
 
-    def _find_risky_operations(self, node: ast.FunctionDef, lines: list[str]) -> list[dict[str, Any]]:
+    def _find_risky_operations(
+        self, node: ast.FunctionDef, lines: list[str]
+    ) -> list[dict[str, Any]]:
         """Find risky operations in a function."""
         risky_ops = []
 
@@ -240,11 +272,17 @@ class ErrorHandlingAuditor:
                 if isinstance(child.func, ast.Name):
                     func_name = child.func.id
                     if func_name in self.risky_operations["file_operations"]:
-                        risky_ops.append({
-                            "operation": func_name,
-                            "line": child.lineno,
-                            "code": lines[child.lineno - 1].strip() if child.lineno <= len(lines) else ""
-                        })
+                        risky_ops.append(
+                            {
+                                "operation": func_name,
+                                "line": child.lineno,
+                                "code": (
+                                    lines[child.lineno - 1].strip()
+                                    if child.lineno <= len(lines)
+                                    else ""
+                                ),
+                            }
+                        )
 
                 # Attribute calls (e.g., json.loads, requests.get)
                 elif isinstance(child.func, ast.Attribute):
@@ -260,23 +298,37 @@ class ErrorHandlingAuditor:
                             full_name = f"<expr>.{attr_name}"
                     for _category, ops in self.risky_operations.items():
                         if full_name in ops or attr_name in ops:
-                            risky_ops.append({
-                                "operation": full_name,
-                                "line": child.lineno,
-                                "code": lines[child.lineno - 1].strip() if child.lineno <= len(lines) else ""
-                            })
+                            risky_ops.append(
+                                {
+                                    "operation": full_name,
+                                    "line": child.lineno,
+                                    "code": (
+                                        lines[child.lineno - 1].strip()
+                                        if child.lineno <= len(lines)
+                                        else ""
+                                    ),
+                                }
+                            )
 
             # Subscript operations (indexing)
             elif isinstance(child, ast.Subscript):
-                risky_ops.append({
-                    "operation": "indexing",
-                    "line": child.lineno,
-                    "code": lines[child.lineno - 1].strip() if child.lineno <= len(lines) else ""
-                })
+                risky_ops.append(
+                    {
+                        "operation": "indexing",
+                        "line": child.lineno,
+                        "code": (
+                            lines[child.lineno - 1].strip()
+                            if child.lineno <= len(lines)
+                            else ""
+                        ),
+                    }
+                )
 
         return risky_ops
 
-    def _find_protected_operations(self, node: ast.FunctionDef, try_blocks: list[ast.Try]) -> list[dict[str, Any]]:
+    def _find_protected_operations(
+        self, node: ast.FunctionDef, try_blocks: list[ast.Try]
+    ) -> list[dict[str, Any]]:
         """Find operations that are protected by try-catch blocks."""
         protected_ops = []
 
@@ -288,15 +340,19 @@ class ErrorHandlingAuditor:
                     if isinstance(child, ast.Call):
                         if isinstance(child.func, ast.Name):
                             func_name = child.func.id
-                            if any(func_name in ops for ops in self.risky_operations.values()):
-                                protected_ops.append({
-                                    "operation": func_name,
-                                    "line": child.lineno
-                                })
+                            if any(
+                                func_name in ops
+                                for ops in self.risky_operations.values()
+                            ):
+                                protected_ops.append(
+                                    {"operation": func_name, "line": child.lineno}
+                                )
 
         return protected_ops
 
-    def _is_node_within_function(self, node: ast.AST, function: ast.FunctionDef) -> bool:
+    def _is_node_within_function(
+        self, node: ast.AST, function: ast.FunctionDef
+    ) -> bool:
         """Check if a node is within a specific function."""
         # Check if both node and function have lineno attribute
         if not hasattr(node, "lineno") or not hasattr(function, "lineno"):
@@ -323,7 +379,9 @@ class ErrorHandlingAuditor:
 
         return func_start <= node_line <= func_end
 
-    def _check_error_handling_quality(self, node: ast.FunctionDef, file_path: str, lines: list[str]) -> None:
+    def _check_error_handling_quality(
+        self, node: ast.FunctionDef, file_path: str, lines: list[str]
+    ) -> None:
         """Check the quality of existing error handling."""
         for child in ast.walk(node):
             if isinstance(child, ast.Try):
@@ -331,34 +389,69 @@ class ErrorHandlingAuditor:
                 for handler in child.handlers:
                     if handler.type is None:  # bare except:
                         self._add_error_handling_issue(
-                            file_path, handler.lineno, "bare_except",
-                            "medium", "Bare 'except:' clause catches all exceptions",
+                            file_path,
+                            handler.lineno,
+                            "bare_except",
+                            "medium",
+                            "Bare 'except:' clause catches all exceptions",
                             "Specify specific exception types to catch",
-                            node.name, lines[handler.lineno - 1].strip() if handler.lineno <= len(lines) else ""
+                            node.name,
+                            (
+                                lines[handler.lineno - 1].strip()
+                                if handler.lineno <= len(lines)
+                                else ""
+                            ),
                         )
 
                     # Check for overly broad exception handling
-                    elif isinstance(handler.type, ast.Name) and handler.type.id == "Exception":
+                    elif (
+                        isinstance(handler.type, ast.Name)
+                        and handler.type.id == "Exception"
+                    ):
                         self._add_error_handling_issue(
-                            file_path, handler.lineno, "broad_exception",
-                            "low", "Catching generic 'Exception' is too broad",
+                            file_path,
+                            handler.lineno,
+                            "broad_exception",
+                            "low",
+                            "Catching generic 'Exception' is too broad",
                             "Catch specific exception types instead",
-                            node.name, lines[handler.lineno - 1].strip() if handler.lineno <= len(lines) else ""
+                            node.name,
+                            (
+                                lines[handler.lineno - 1].strip()
+                                if handler.lineno <= len(lines)
+                                else ""
+                            ),
                         )
 
                 # Check for empty except blocks
                 for handler in child.handlers:
                     if len(handler.body) == 1 and isinstance(handler.body[0], ast.Pass):
                         self._add_error_handling_issue(
-                            file_path, handler.lineno, "empty_except",
-                            "medium", "Empty except block silently ignores errors",
+                            file_path,
+                            handler.lineno,
+                            "empty_except",
+                            "medium",
+                            "Empty except block silently ignores errors",
                             "Add proper error handling or logging",
-                            node.name, lines[handler.lineno - 1].strip() if handler.lineno <= len(lines) else ""
+                            node.name,
+                            (
+                                lines[handler.lineno - 1].strip()
+                                if handler.lineno <= len(lines)
+                                else ""
+                            ),
                         )
 
-    def _add_error_handling_issue(self, file_path: str, line_number: int, issue_type: str,
-                                 severity: str, description: str, suggestion: str,
-                                 function_name: str, code_snippet: str) -> None:
+    def _add_error_handling_issue(
+        self,
+        file_path: str,
+        line_number: int,
+        issue_type: str,
+        severity: str,
+        description: str,
+        suggestion: str,
+        function_name: str,
+        code_snippet: str,
+    ) -> None:
         """Add an error handling issue to the list."""
         issue = ErrorHandlingIssue(
             file_path=file_path,
@@ -368,11 +461,13 @@ class ErrorHandlingAuditor:
             description=description,
             suggestion=suggestion,
             function_name=function_name,
-            code_snippet=code_snippet
+            code_snippet=code_snippet,
         )
         self.issues.append(issue)
 
-    def _calculate_coverage_score(self, protected_operations: int, risky_operations: int) -> float:
+    def _calculate_coverage_score(
+        self, protected_operations: int, risky_operations: int
+    ) -> float:
         """Calculate error handling coverage score."""
         if risky_operations == 0:
             return 1.0
@@ -384,8 +479,9 @@ class ErrorHandlingAuditor:
             return 1.0
 
         # Weight issues by severity
-        total_weight = sum(self.severity_weights.get(issue.severity, 0.5)
-                          for issue in self.issues)
+        total_weight = sum(
+            self.severity_weights.get(issue.severity, 0.5) for issue in self.issues
+        )
 
         # Normalize by number of issues (lower is better)
         max_possible_weight = len(self.issues) * 1.0  # All critical
@@ -420,14 +516,18 @@ class ErrorHandlingAuditor:
             )
 
         # General recommendations
-        self.recommendations.extend([
-            "Add logging to error handlers for better debugging",
-            "Consider using context managers (with statements) for resource management",
-            "Implement proper cleanup in finally blocks where needed",
-            "Add input validation to prevent errors at the source"
-        ])
+        self.recommendations.extend(
+            [
+                "Add logging to error handlers for better debugging",
+                "Consider using context managers (with statements) for resource management",
+                "Implement proper cleanup in finally blocks where needed",
+                "Add input validation to prevent errors at the source",
+            ]
+        )
 
-    def generate_report(self, report: ErrorHandlingAuditReport, output_path: str) -> None:
+    def generate_report(
+        self, report: ErrorHandlingAuditReport, output_path: str
+    ) -> None:
         """
         Generate a detailed error handling audit report.
 
@@ -440,7 +540,9 @@ class ErrorHandlingAuditor:
             f.write("## Summary\n")
             f.write(f"- **Total Files**: {report.total_files}\n")
             f.write(f"- **Total Functions**: {report.total_functions}\n")
-            f.write(f"- **Functions with Error Handling**: {report.functions_with_error_handling}\n")
+            f.write(
+                f"- **Functions with Error Handling**: {report.functions_with_error_handling}\n"
+            )
             f.write(f"- **Risky Operations**: {report.risky_operations}\n")
             f.write(f"- **Protected Operations**: {report.protected_operations}\n")
             f.write(f"- **Coverage Score**: {report.coverage_score:.2%}\n")
@@ -464,9 +566,13 @@ class ErrorHandlingAuditor:
             f.write("## Issues by Severity\n\n")
             for severity in ["critical", "high", "medium", "low"]:
                 if severity in issues_by_severity:
-                    f.write(f"### {severity.title()} ({len(issues_by_severity[severity])} issues)\n\n")
+                    f.write(
+                        f"### {severity.title()} ({len(issues_by_severity[severity])} issues)\n\n"
+                    )
                     for issue in issues_by_severity[severity][:20]:  # Limit to first 20
-                        f.write(f"- **{issue.file_path}:{issue.line_number}** - {issue.description}\n")
+                        f.write(
+                            f"- **{issue.file_path}:{issue.line_number}** - {issue.description}\n"
+                        )
                         f.write(f"  - *Function*: `{issue.function_name}`\n")
                         f.write(f"  - *Code*: `{issue.code_snippet}`\n")
                         f.write(f"  - *Suggestion*: {issue.suggestion}\n\n")
@@ -531,7 +637,7 @@ except Exception as e:
     logger.error(f"Unexpected error: {e}")
     connection.rollback()
     raise
-"""
+""",
         }
 
         return templates.get(operation_type, templates["file"])

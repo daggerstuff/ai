@@ -615,13 +615,15 @@ class QualityValidationAnalyzer:
                 "moderate_performing_metrics": len(moderate_performing),
                 "low_performing_metrics": len(low_performing),
                 "critical_safety_issues": len(critical_metrics),
-                "overall_health": "excellent"
-                if overall_pass_rate >= 90
-                else "good"
-                if overall_pass_rate >= 80
-                else "fair"
-                if overall_pass_rate >= 70
-                else "poor",
+                "overall_health": (
+                    "excellent"
+                    if overall_pass_rate >= 90
+                    else (
+                        "good"
+                        if overall_pass_rate >= 80
+                        else "fair" if overall_pass_rate >= 70 else "poor"
+                    )
+                ),
             }
 
         except Exception as e:
@@ -719,9 +721,7 @@ def main():
         status_icon = (
             "✅"
             if analysis.pass_rate >= 85
-            else "⚠️"
-            if analysis.pass_rate >= 70
-            else "❌"
+            else "⚠️" if analysis.pass_rate >= 70 else "❌"
         )
         print(
             f"   {status_icon} {metric.replace('_', ' ').title()}: {analysis.pass_rate:.1f}% pass rate (avg score: {analysis.average_score:.3f})"

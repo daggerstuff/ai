@@ -174,9 +174,9 @@ class CheckpointTestSuite:
             )
 
             expected_progress = (step / total_steps) * 100
-            assert abs(updated_state.progress_percentage - expected_progress) < 0.1, (
-                f"Progress mismatch: expected {expected_progress}, got {updated_state.progress_percentage}"
-            )
+            assert (
+                abs(updated_state.progress_percentage - expected_progress) < 0.1
+            ), f"Progress mismatch: expected {expected_progress}, got {updated_state.progress_percentage}"
 
         # Complete process
         final_checkpoint = self.manager.complete_process(
@@ -185,9 +185,9 @@ class CheckpointTestSuite:
         )
 
         assert final_checkpoint is not None, "Final checkpoint should be created"
-        assert process_id not in self.manager.active_processes, (
-            "Process should be removed from active list"
-        )
+        assert (
+            process_id not in self.manager.active_processes
+        ), "Process should be removed from active list"
 
         self.test_results.append(
             {
@@ -229,9 +229,9 @@ class CheckpointTestSuite:
         assert recovered_state is not None, "Process recovery should succeed"
         assert recovered_state.process_id == process_id, "Recovered process ID mismatch"
         assert recovered_state.completed_steps == 10, "Recovered progress mismatch"
-        assert recovered_state.current_step == "Halfway point", (
-            "Recovered step mismatch"
-        )
+        assert (
+            recovered_state.current_step == "Halfway point"
+        ), "Recovered step mismatch"
 
         # Continue from recovered state
         self.manager.update_process_progress(
@@ -241,9 +241,9 @@ class CheckpointTestSuite:
         )
 
         final_state = self.manager.active_processes[process_id]
-        assert final_state.progress_percentage == 100.0, (
-            "Should reach 100% after recovery"
-        )
+        assert (
+            final_state.progress_percentage == 100.0
+        ), "Should reach 100% after recovery"
 
         self.test_results.append(
             {
@@ -288,9 +288,9 @@ class CheckpointTestSuite:
         # Should have archived some completed checkpoints
         if optimization_results.get("checkpoints_archived", 0) > 0:
             final_completed = final_stats["status_counts"].get("completed", 0)
-            assert final_completed < initial_completed, (
-                "Should have fewer completed checkpoints after archiving"
-            )
+            assert (
+                final_completed < initial_completed
+            ), "Should have fewer completed checkpoints after archiving"
 
         self.test_results.append(
             {
@@ -315,9 +315,9 @@ class CheckpointTestSuite:
 
         # Health score should be reasonable
         health_score = health_report["health_score"]
-        assert 0 <= health_score <= 100, (
-            f"Health score should be 0-100, got {health_score}"
-        )
+        assert (
+            0 <= health_score <= 100
+        ), f"Health score should be 0-100, got {health_score}"
 
         # Should have system metrics
         metrics = health_report["metrics"]
@@ -463,12 +463,12 @@ class CheckpointTestSuite:
         avg_loading_time = loading_time / 10
 
         # Performance assertions
-        assert avg_creation_time < 0.1, (
-            f"Checkpoint creation too slow: {avg_creation_time:.3f}s"
-        )
-        assert avg_loading_time < 0.05, (
-            f"Checkpoint loading too slow: {avg_loading_time:.3f}s"
-        )
+        assert (
+            avg_creation_time < 0.1
+        ), f"Checkpoint creation too slow: {avg_creation_time:.3f}s"
+        assert (
+            avg_loading_time < 0.05
+        ), f"Checkpoint loading too slow: {avg_loading_time:.3f}s"
 
         # Cleanup
         for checkpoint_id in checkpoint_ids:
@@ -555,9 +555,9 @@ class CheckpointTestSuite:
         final_stats = self.manager.storage.get_storage_stats()
 
         # Should have some optimization actions
-        assert len(optimization_results["actions_taken"]) >= 0, (
-            "Should have taken some optimization actions"
-        )
+        assert (
+            len(optimization_results["actions_taken"]) >= 0
+        ), "Should have taken some optimization actions"
 
         # Test compression specifically
         if self.monitor.config.compression_enabled:

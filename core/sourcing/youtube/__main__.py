@@ -242,9 +242,7 @@ def command_import_channels(args) -> int:
                 # Add additional fields
                 channel.primary_language = data.get("primary_language", "en")
                 channel.languages = set(data.get("languages", ["en"]))
-                channel.categories = [
-                    ChannelStatus.ACTIVE  # Will be parsed correctly
-                ]
+                channel.categories = [ChannelStatus.ACTIVE]  # Will be parsed correctly
                 if k := data.get("categories"):
                     channel.categories = [ContentCategory(c) for c in k]
 

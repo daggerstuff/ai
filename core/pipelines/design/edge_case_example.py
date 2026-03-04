@@ -12,7 +12,7 @@ from ai.core.pipelines.design.edge_case_generator import EdgeCaseGenerator, Edge
 
 logging.basicConfig(
     level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -36,9 +36,9 @@ def example_crisis_scenarios():
     print(f"Difficulty level: {result['difficulty_level']}")
 
     # Print first scenario
-    if result['data']:
+    if result["data"]:
         print("\nFirst scenario:")
-        print(json.dumps(result['data'][0], indent=2, default=str))
+        print(json.dumps(result["data"][0], indent=2, default=str))
 
 
 def example_multi_type_scenarios():
@@ -82,9 +82,9 @@ def example_api_format():
     print(f"Metadata: {json.dumps(result['metadata'], indent=2)}")
 
     # Print first scenario
-    if result['scenarios']:
+    if result["scenarios"]:
         print("\nFirst formatted scenario:")
-        print(json.dumps(result['scenarios'][0], indent=2, default=str))
+        print(json.dumps(result["scenarios"][0], indent=2, default=str))
 
 
 def example_trauma_scenarios():
@@ -105,9 +105,9 @@ def example_trauma_scenarios():
 
     # Count by trauma type
     trauma_types = {}
-    for record in result['data']:
+    for record in result["data"]:
         if isinstance(record, dict):
-            trauma_type = record.get('trauma_type', 'unknown')
+            trauma_type = record.get("trauma_type", "unknown")
             trauma_types[trauma_type] = trauma_types.get(trauma_type, 0) + 1
 
     print("\nTrauma type distribution:")
@@ -141,4 +141,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

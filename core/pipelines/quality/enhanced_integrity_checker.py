@@ -369,9 +369,7 @@ class EnhancedIntegrityChecker:
             if isinstance(data, dict):
                 if "conversations" in data or "messages" in data or "data" in data:
                     return True
-                issues.append(
-                    "JSON structure doesn't match expected dataset format"
-                )
+                issues.append("JSON structure doesn't match expected dataset format")
                 return False
             if isinstance(data, list):
                 if len(data) > 0:

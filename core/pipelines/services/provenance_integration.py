@@ -98,15 +98,19 @@ def create_provenance_from_pipeline_stage(
             stage = ProcessingStage(
                 stage_name=stage_data.get("stage_name", f"stage_{idx}"),
                 stage_order=stage_data.get("stage_order", idx),
-                started_at=datetime.fromisoformat(stage_data.get("started_at"))
-                if isinstance(stage_data.get("started_at"), str)
-                else datetime.now(timezone.utc),
+                started_at=(
+                    datetime.fromisoformat(stage_data.get("started_at"))
+                    if isinstance(stage_data.get("started_at"), str)
+                    else datetime.now(timezone.utc)
+                ),
                 transformation_type=TransformationType(
                     stage_data.get("transformation_type", "processing")
                 ),
-                completed_at=datetime.fromisoformat(stage_data.get("completed_at"))
-                if isinstance(stage_data.get("completed_at"), str)
-                else None,
+                completed_at=(
+                    datetime.fromisoformat(stage_data.get("completed_at"))
+                    if isinstance(stage_data.get("completed_at"), str)
+                    else None
+                ),
                 transformation_details=stage_data.get("transformation_details", {}),
                 input_record_count=stage_data.get("input_record_count"),
                 output_record_count=stage_data.get("output_record_count"),

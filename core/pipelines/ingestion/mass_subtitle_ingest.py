@@ -46,7 +46,9 @@ class MassSubtitleIngestor:
                 # Or just treat the entire block as cleaned_text. We'll join lines for formatting.
                 # SubtitleProcessor.format_as_markdown expects paragraphs!
                 # Let's ensure it's a continuous string without breaking sentences unnaturally.
-                cleaned_text = " ".join([line.strip() for line in content.split("\n") if line.strip()])
+                cleaned_text = " ".join(
+                    [line.strip() for line in content.split("\n") if line.strip()]
+                )
 
             markdown_content = SubtitleProcessor.format_as_markdown(
                 cleaned_text, metadata
@@ -54,9 +56,7 @@ class MassSubtitleIngestor:
 
             # Save to ingested directory
             safe_title = (
-                "".join(
-                    [c for c in video_title if c.isalnum() or c in (" ", "-", "_")]
-                )
+                "".join([c for c in video_title if c.isalnum() or c in (" ", "-", "_")])
                 .strip()
                 .replace(" ", "_")
             )
@@ -80,19 +80,24 @@ class MassSubtitleIngestor:
 
         if pilot_count > 0:
             channel_dirs = channel_dirs[:pilot_count]
-            self.logger.info(f"Pilot mode: processing first {pilot_count} channels out of {len(channel_dirs)}")
+            self.logger.info(
+                f"Pilot mode: processing first {pilot_count} channels out of {len(channel_dirs)}"
+            )
 
         for channel_dir in channel_dirs:
             channel_name = channel_dir.name
             self.logger.info(f"--- Processing Channel: {channel_name} ---")
 
             txt_files = list(channel_dir.glob("*.txt"))
-            self.logger.info(f"Found {len(txt_files)} transcript files for {channel_name}")
+            self.logger.info(
+                f"Found {len(txt_files)} transcript files for {channel_name}"
+            )
 
             for txt_file in txt_files:
                 await self.ingest_local_file(txt_file, channel_name)
                 # Brief yield for asyncio event loop
                 await asyncio.sleep(0.01)
+
 
 if __name__ == "__main__":
     # If a number is passed as an argument, use it as pilot_count
@@ -101,7 +106,9 @@ if __name__ == "__main__":
         try:
             pilot = int(sys.argv[1])
         except ValueError:
-            print("Warning: pilot count must be an integer, executing full run instead.")
+            print(
+                "Warning: pilot count must be an integer, executing full run instead."
+            )
 
     # Workspace root assuming script is in pixelated/ai/pipelines/orchestrator/ingestion/
     ws_root = Path(__file__).resolve().parents[4]

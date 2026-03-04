@@ -147,9 +147,9 @@ class ComprehensiveSecurityValidator:
             )
 
             # Wrong password should not verify
-            validation_tests[
-                "wrong_password_rejection"
-            ] = not auth_system.verify_password("WrongPassword", hash1)
+            validation_tests["wrong_password_rejection"] = (
+                not auth_system.verify_password("WrongPassword", hash1)
+            )
 
         except Exception as e:
             validation_tests["password_hashing_error"] = str(e)

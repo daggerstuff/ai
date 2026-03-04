@@ -286,12 +286,12 @@ class HybridTaxonomyClassifier:
 
                     if classification.confidence >= self.final_confidence_threshold:
                         record["metadata"]["category"] = classification.category.value
-                        record["metadata"]["category_confidence"] = (
-                            classification.confidence
-                        )
-                        record["metadata"]["category_reasoning"] = (
-                            classification.reasoning
-                        )
+                        record["metadata"][
+                            "category_confidence"
+                        ] = classification.confidence
+                        record["metadata"][
+                            "category_reasoning"
+                        ] = classification.reasoning
                         record["metadata"]["classification_method"] = (
                             "llm" if "LLM" in classification.reasoning else "keyword"
                         )
@@ -299,9 +299,9 @@ class HybridTaxonomyClassifier:
                     else:
                         stats.low_confidence += 1
                         record["metadata"]["category"] = "uncategorized"
-                        record["metadata"]["category_confidence"] = (
-                            classification.confidence
-                        )
+                        record["metadata"][
+                            "category_confidence"
+                        ] = classification.confidence
 
                     # Write updated record
                     outfile.write(json.dumps(record) + "\n")

@@ -441,9 +441,9 @@ class QualityController:
         details = {
             "coefficient_of_variation": stability_score,
             "mean_confidence": mean_conf,
-            "std_deviation": statistics.stdev(confidence_scores)
-            if len(confidence_scores) > 1
-            else 0,
+            "std_deviation": (
+                statistics.stdev(confidence_scores) if len(confidence_scores) > 1 else 0
+            ),
             "num_versions": len(confidence_scores),
         }
 
@@ -795,9 +795,9 @@ class QualityController:
                             "label_types": Counter(),
                         }
                     annotator_stats[annotator_id]["total_labels"] += 1
-                    annotator_stats[annotator_id]["total_confidence"] += (
-                        label.metadata.confidence
-                    )
+                    annotator_stats[annotator_id][
+                        "total_confidence"
+                    ] += label.metadata.confidence
                     annotator_stats[annotator_id]["label_types"][
                         label.response_type.value
                     ] += 1
@@ -812,9 +812,9 @@ class QualityController:
                         "label_types": Counter(),
                     }
                 annotator_stats[annotator_id]["total_labels"] += 1
-                annotator_stats[annotator_id]["total_confidence"] += (
-                    bundle.crisis_label.metadata.confidence
-                )
+                annotator_stats[annotator_id][
+                    "total_confidence"
+                ] += bundle.crisis_label.metadata.confidence
 
             # Check other label types similarly...
             if (
@@ -829,9 +829,9 @@ class QualityController:
                         "label_types": Counter(),
                     }
                 annotator_stats[annotator_id]["total_labels"] += 1
-                annotator_stats[annotator_id]["total_confidence"] += (
-                    bundle.therapy_modality_label.metadata.confidence
-                )
+                annotator_stats[annotator_id][
+                    "total_confidence"
+                ] += bundle.therapy_modality_label.metadata.confidence
 
         # Calculate averages and add annotations counts
         for annotator_id, stats in annotator_stats.items():
@@ -1022,12 +1022,14 @@ def test_quality_control():
             TherapeuticResponseLabel(
                 response_type=TherapeuticResponseType.EMPATHY,
                 metadata=LabelMetadata(
-                    confidence=0.8
-                    if i == 0
-                    else 0.85,  # Slightly different for second/third
-                    provenance=LabelProvenanceType.HUMAN_EXPERT
-                    if i < 2
-                    else LabelProvenanceType.AUTOMATED_MODEL,
+                    confidence=(
+                        0.8 if i == 0 else 0.85
+                    ),  # Slightly different for second/third
+                    provenance=(
+                        LabelProvenanceType.HUMAN_EXPERT
+                        if i < 2
+                        else LabelProvenanceType.AUTOMATED_MODEL
+                    ),
                 ),
             )
         )
@@ -1037,9 +1039,11 @@ def test_quality_control():
                 response_type=TherapeuticResponseType.REFLECTION,
                 metadata=LabelMetadata(
                     confidence=0.9,
-                    provenance=LabelProvenanceType.HUMAN_EXPERT
-                    if i < 2
-                    else LabelProvenanceType.AUTOMATED_MODEL,
+                    provenance=(
+                        LabelProvenanceType.HUMAN_EXPERT
+                        if i < 2
+                        else LabelProvenanceType.AUTOMATED_MODEL
+                    ),
                 ),
             )
         )
@@ -1048,9 +1052,11 @@ def test_quality_control():
             crisis_level=CrisisLevelType.LOW_RISK,
             metadata=LabelMetadata(
                 confidence=0.85,
-                provenance=LabelProvenanceType.HUMAN_EXPERT
-                if i < 2
-                else LabelProvenanceType.AUTOMATED_MODEL,
+                provenance=(
+                    LabelProvenanceType.HUMAN_EXPERT
+                    if i < 2
+                    else LabelProvenanceType.AUTOMATED_MODEL
+                ),
             ),
         )
 

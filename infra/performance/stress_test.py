@@ -60,7 +60,10 @@ class StressTest:
                         try:
                             async with session.post(
                                 f"{self.endpoint}/api/v1/inference",
-                                json={"conversation_context": [], "user_input": "Hello"},
+                                json={
+                                    "conversation_context": [],
+                                    "user_input": "Hello",
+                                },
                                 timeout=aiohttp.ClientTimeout(total=10),
                             ) as response:
                                 latency = time.time() - req_start
@@ -215,14 +218,19 @@ class StressTest:
                         "successful": interval_successful,
                         "failed": interval_failed,
                         "success_rate": (
-                            interval_successful / (interval_successful + interval_failed)
-                        )
-                        * 100
-                        if (interval_successful + interval_failed) > 0
-                        else 0,
-                        "mean_latency": sum(interval_latencies) / len(interval_latencies)
-                        if interval_latencies
-                        else 0,
+                            (
+                                interval_successful
+                                / (interval_successful + interval_failed)
+                            )
+                            * 100
+                            if (interval_successful + interval_failed) > 0
+                            else 0
+                        ),
+                        "mean_latency": (
+                            sum(interval_latencies) / len(interval_latencies)
+                            if interval_latencies
+                            else 0
+                        ),
                     }
 
                     interval_results.append(interval_result)

@@ -105,7 +105,9 @@ class DatasetAssembler:
 
         return conversations_by_stage
 
-    def sample_to_target(self, conversations: List[Dict[str, Any]], target: int) -> List[Dict[str, Any]]:
+    def sample_to_target(
+        self, conversations: List[Dict[str, Any]], target: int
+    ) -> List[Dict[str, Any]]:
         """Sample conversations to meet target count"""
         if len(conversations) <= target:
             return conversations
@@ -132,7 +134,9 @@ class DatasetAssembler:
         for stage, target in self.stage_targets.items():
             available = conversations_by_stage[stage]
             if len(available) < target:
-                logger.warning(f"  ⚠️  {stage}: Only {len(available):,} available, target is {target:,}")
+                logger.warning(
+                    f"  ⚠️  {stage}: Only {len(available):,} available, target is {target:,}"
+                )
                 sampled = available  # Use all available
             else:
                 sampled = self.sample_to_target(available, target)
@@ -152,7 +156,9 @@ class DatasetAssembler:
                     f.write(json.dumps(conv, ensure_ascii=False) + "\n")
 
             stage_outputs[stage] = str(stage_output_path)
-            logger.info(f"  ✅ {stage}: {len(conversations):,} conversations -> {stage_output_path}")
+            logger.info(
+                f"  ✅ {stage}: {len(conversations):,} conversations -> {stage_output_path}"
+            )
 
         # Write combined dataset
         all_conversations = []
@@ -167,7 +173,9 @@ class DatasetAssembler:
             for conv in all_conversations:
                 f.write(json.dumps(conv, ensure_ascii=False) + "\n")
 
-        logger.info(f"  ✅ Combined: {len(all_conversations):,} conversations -> {combined_output_path}")
+        logger.info(
+            f"  ✅ Combined: {len(all_conversations):,} conversations -> {combined_output_path}"
+        )
 
         # Calculate actual distribution
         actual_distribution = {
@@ -183,7 +191,9 @@ class DatasetAssembler:
             "stage_outputs": stage_outputs,
             "combined_output": str(combined_output_path),
             "actual_distribution": actual_distribution,
-            "target_distribution": {stage: p * 100 for stage, p in STAGE_TARGETS.items()},
+            "target_distribution": {
+                stage: p * 100 for stage, p in STAGE_TARGETS.items()
+            },
             "stats": self.stats,
         }
 
@@ -191,7 +201,14 @@ class DatasetAssembler:
 def main():
     """Main function"""
     base_path = Path.cwd()
-    formatting_report_path = base_path / "ai" / "training_ready" / "scripts" / "output" / "formatting_report.json"
+    formatting_report_path = (
+        base_path
+        / "ai"
+        / "training_ready"
+        / "scripts"
+        / "output"
+        / "formatting_report.json"
+    )
     output_dir = base_path / "ai" / "training_ready" / "datasets" / "final"
 
     if not formatting_report_path.exists():
@@ -201,8 +218,11 @@ def main():
 
     # Allow target total to be specified
     import argparse
+
     parser = argparse.ArgumentParser()
-    parser.add_argument("--target-total", type=int, default=100000, help="Target total conversations")
+    parser.add_argument(
+        "--target-total", type=int, default=100000, help="Target total conversations"
+    )
     args = parser.parse_args()
 
     logger.info("📦 Starting final dataset assembly...")
@@ -211,7 +231,14 @@ def main():
     report = assembler.assemble_final_dataset(output_dir)
 
     # Save report
-    report_path = base_path / "ai" / "training_ready" / "scripts" / "output" / "assembly_report.json"
+    report_path = (
+        base_path
+        / "ai"
+        / "training_ready"
+        / "scripts"
+        / "output"
+        / "assembly_report.json"
+    )
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(report_path, "w") as f:
@@ -222,8 +249,8 @@ def main():
     logger.info(f"  Actual total: {report['actual_total']:,}")
     logger.info("\n📈 Distribution:")
     for stage in [STAGE1_ID, STAGE2_ID, STAGE3_ID, STAGE4_ID]:
-        target_pct = report['target_distribution'][stage]
-        actual_pct = report['actual_distribution'][stage]
+        target_pct = report["target_distribution"][stage]
+        actual_pct = report["actual_distribution"][stage]
         logger.info(f"  {stage}: {actual_pct:.1f}% (target: {target_pct:.1f}%)")
     logger.info(f"\n💾 Report saved to: {report_path}")
 
@@ -232,4 +259,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

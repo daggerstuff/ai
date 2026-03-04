@@ -7,6 +7,7 @@ import logging
 import re
 import time
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -104,12 +105,12 @@ class EnhancedSafetyFilter:
             # Bias classifier (simplified - you'd use a proper bias detection model)
             self.bias_classifier = pipeline(
                 "text-classification",
-                model="d4data/bias-detection-model"
-                if torch.cuda.is_available()
-                else None,
-                tokenizer="d4data/bias-detection-model"
-                if torch.cuda.is_available()
-                else None,
+                model=(
+                    "d4data/bias-detection-model" if torch.cuda.is_available() else None
+                ),
+                tokenizer=(
+                    "d4data/bias-detection-model" if torch.cuda.is_available() else None
+                ),
             )
             self.logger.info("Bias classifier loaded successfully")
         except Exception as e:
@@ -273,7 +274,9 @@ class EnhancedSafetyFilter:
 
         # Check for privacy violations
         privacy_violations = self._check_privacy_content(content)
-        privacy_score = len(privacy_violations) * 0.3  # Weight privacy violations heavily
+        privacy_score = (
+            len(privacy_violations) * 0.3
+        )  # Weight privacy violations heavily
         category_scores[SafetyCategory.PRIVACY] = min(1.0, privacy_score)
         if privacy_violations:
             flagged_categories.append(SafetyCategory.PRIVACY)
@@ -388,7 +391,12 @@ class EnhancedSafetyFilter:
             "immediate": [r"\bnow\b", r"\bimmediately\b", r"\btonight\b", r"\btoday\b"],
             "high": [r"\bsoon\b", r"\blater\b", r"\btomorrow\b", r"\bthis week\b"],
             "medium": [r"\bweek\b", r"\bmonth\b", r"\bsoon\b", r"\bplanning\b"],
-            "low": [r"\bthinking\b", r"\bwondering\b", r"\bconsidering\b", r"\bmaybe\b"],
+            "low": [
+                r"\bthinking\b",
+                r"\bwondering\b",
+                r"\bconsidering\b",
+                r"\bmaybe\b",
+            ],
         }
 
         immediate_matches = sum(
@@ -462,7 +470,9 @@ class EnhancedSafetyFilter:
         # Check each harm pattern category
         for harm_type, patterns in self.harm_patterns.items():
             matches = sum(
-                1 for pattern in patterns if re.search(pattern, content_lower, re.IGNORECASE)
+                1
+                for pattern in patterns
+                if re.search(pattern, content_lower, re.IGNORECASE)
             )
             harm_score += matches * 0.2  # Weight each match
 
@@ -472,7 +482,9 @@ class EnhancedSafetyFilter:
         """Check for toxic content using classifier or keyword matching"""
         if self.toxicity_classifier:
             try:
-                result = self.toxicity_classifier(content[:512])  # Limit length for model
+                result = self.toxicity_classifier(
+                    content[:512]
+                )  # Limit length for model
                 if result and isinstance(result, list) and len(result) > 0:
                     toxicity_result = result[0]
                     if toxicity_result["label"] == "TOXIC":
@@ -532,7 +544,9 @@ class EnhancedSafetyFilter:
         """Check for biased content"""
         if self.bias_classifier:
             try:
-                result = self.bias_classifier(content[:256])  # Shorter text for bias detection
+                result = self.bias_classifier(
+                    content[:256]
+                )  # Shorter text for bias detection
                 if result and isinstance(result, list) and len(result) > 0:
                     bias_result = result[0]
                     if bias_result["label"] in ["BIASED", "STEREOTYPE"]:
@@ -589,7 +603,9 @@ class EnhancedSafetyFilter:
             start = redaction["start_position"]
             end = redaction["end_position"]
             replacement = redaction["replacement"]
-            redacted_content = redacted_content[:start] + replacement + redacted_content[end:]
+            redacted_content = (
+                redacted_content[:start] + replacement + redacted_content[end:]
+            )
 
         return redacted_content
 
@@ -668,7 +684,9 @@ class EnhancedSafetyFilter:
         request_metadata: Optional[Dict[str, Any]] = None,
     ) -> Tuple[bool, str, SafetyCheckResult]:
         """Filter a response to ensure safety, returning (is_safe, filtered_response, safety_result)"""
-        safety_result = self.check_output_safety(response, user_context, request_metadata)
+        safety_result = self.check_output_safety(
+            response, user_context, request_metadata
+        )
 
         if safety_result.is_safe:
             return True, response, safety_result
@@ -676,7 +694,9 @@ class EnhancedSafetyFilter:
             return False, safety_result.filtered_content, safety_result
         else:
             # If filtering failed, return a safe default response
-            safe_response = "[Response filtered for safety - content requires human review]"
+            safe_response = (
+                "[Response filtered for safety - content requires human review]"
+            )
             return False, safe_response, safety_result
 
     def batch_filter_responses(
@@ -749,9 +769,9 @@ class CrisisInterventionSystem:
             "urgency": crisis_result.urgency_level,
             "timestamp": datetime.utcnow().isoformat(),
             "user_context": user_context,
-            "content_preview": content[:100] + "..."
-            if content and len(content) > 100
-            else content,
+            "content_preview": (
+                content[:100] + "..." if content and len(content) > 100 else content
+            ),
             "confidence": crisis_result.confidence,
         }
 
@@ -794,9 +814,9 @@ class CrisisInterventionSystem:
             "urgency": crisis_result.urgency_level,
             "timestamp": datetime.utcnow().isoformat(),
             "user_context": user_context,
-            "content_preview": content[:100] + "..."
-            if content and len(content) > 100
-            else content,
+            "content_preview": (
+                content[:100] + "..." if content and len(content) > 100 else content
+            ),
             "confidence": crisis_result.confidence,
         }
 
@@ -835,9 +855,9 @@ class CrisisInterventionSystem:
             "urgency": crisis_result.urgency_level,
             "timestamp": datetime.utcnow().isoformat(),
             "user_context": user_context,
-            "content_preview": content[:100] + "..."
-            if content and len(content) > 100
-            else content,
+            "content_preview": (
+                content[:100] + "..." if content and len(content) > 100 else content
+            ),
             "confidence": crisis_result.confidence,
         }
 
@@ -874,9 +894,9 @@ class CrisisInterventionSystem:
             "urgency": crisis_result.urgency_level,
             "timestamp": datetime.utcnow().isoformat(),
             "user_context": user_context,
-            "content_preview": content[:100] + "..."
-            if content and len(content) > 100
-            else content,
+            "content_preview": (
+                content[:100] + "..." if content and len(content) > 100 else content
+            ),
             "confidence": crisis_result.confidence,
         }
 
@@ -908,7 +928,10 @@ class CrisisInterventionSystem:
         """Basic crisis response for unhandled crisis types"""
         basic_response = {
             "message": "I'm concerned about what you're experiencing. Professional help is available.",
-            "resources": ["Emergency Services: 911", "Crisis Text Line: Text HOME to 741741"],
+            "resources": [
+                "Emergency Services: 911",
+                "Crisis Text Line: Text HOME to 741741",
+            ],
             "recommended_action": "Seek immediate professional help",
             "urgency_level": "high",
         }
@@ -956,15 +979,19 @@ def safety_filtered_endpoint(func):
             )
 
             # Apply safety filtering
-            is_safe, filtered_content, safety_result = enhanced_safety_filter.filter_response(
-                content, user_context, request_metadata
+            is_safe, filtered_content, safety_result = (
+                enhanced_safety_filter.filter_response(
+                    content, user_context, request_metadata
+                )
             )
 
             # Update the response
             result["content"] = filtered_content
             result["safety_filtered"] = not is_safe
             result["safety_score"] = safety_result.overall_score
-            result["safety_categories"] = [cat.value for cat in safety_result.flagged_categories]
+            result["safety_categories"] = [
+                cat.value for cat in safety_result.flagged_categories
+            ]
 
             # Handle crisis situations
             if safety_result.category_scores.get(SafetyCategory.CRISIS, 0) > 0.5:
@@ -1007,13 +1034,17 @@ def integrate_safety_filtering_with_api():
                 isinstance(response, dict) and "content" in response
             ):
                 content = (
-                    response.content if hasattr(response, "content") else response["content"]
+                    response.content
+                    if hasattr(response, "content")
+                    else response["content"]
                 )
                 user_context = kwargs.get("user_context", {})
                 request_metadata = kwargs.get("request_metadata", {})
 
-                is_safe, filtered_content, safety_result = enhanced_safety_filter.filter_response(
-                    content, user_context, request_metadata
+                is_safe, filtered_content, safety_result = (
+                    enhanced_safety_filter.filter_response(
+                        content, user_context, request_metadata
+                    )
                 )
 
                 # Update response with safety information
@@ -1058,7 +1089,10 @@ def test_enhanced_safety_filter():
         # Harmful content
         ("I hate that person. I wish I could punch them in the face.", "physical_harm"),
         # Toxic content
-        ("This stupid idiot is completely worthless and should just disappear.", "toxic_content"),
+        (
+            "This stupid idiot is completely worthless and should just disappear.",
+            "toxic_content",
+        ),
         # Privacy violation
         (
             "My social security number is 123-45-6789. Please don't share this.",
@@ -1097,7 +1131,9 @@ def test_enhanced_safety_filter():
         print(f"Explanation: {safety_result.explanation}")
 
         if safety_result.flagged_categories:
-            print(f"Flagged Categories: {[cat.value for cat in safety_result.flagged_categories]}")
+            print(
+                f"Flagged Categories: {[cat.value for cat in safety_result.flagged_categories]}"
+            )
             for category, score in safety_result.category_scores.items():
                 if score > 0.1:
                     print(f"  {category.value}: {score:.3f}")
@@ -1108,7 +1144,9 @@ def test_enhanced_safety_filter():
             )
 
         # Test filtering
-        is_safe, filtered_content, filter_result = enhanced_safety_filter.filter_response(content)
+        is_safe, filtered_content, filter_result = (
+            enhanced_safety_filter.filter_response(content)
+        )
         print(f"Filter Result - Safe: {is_safe}")
         if not is_safe:
             print(
@@ -1120,8 +1158,12 @@ def test_enhanced_safety_filter():
             word in content.lower() for word in ["suicide", "kill", "hurt", "harm"]
         ):
             # Extract crisis-related content for testing
-            crisis_test_content = "I'm thinking about suicide" if "suicide" in test_type else content
-            crisis_result = enhanced_safety_filter._check_crisis_content(crisis_test_content)
+            crisis_test_content = (
+                "I'm thinking about suicide" if "suicide" in test_type else content
+            )
+            crisis_result = enhanced_safety_filter._check_crisis_content(
+                crisis_test_content
+            )
             if crisis_result.is_crisis:
                 print(f"Crisis Detected: {crisis_result.crisis_type}")
                 print(f"Urgency: {crisis_result.urgency_level}")
@@ -1148,7 +1190,9 @@ def test_enhanced_safety_filter():
     batch_results = enhanced_safety_filter.batch_filter_responses(batch_content)
 
     for i, (is_safe, filtered_content, safety_result) in enumerate(batch_results):
-        print(f"Batch Item {i+1}: Safe={is_safe}, Score={safety_result.overall_score:.3f}")
+        print(
+            f"Batch Item {i+1}: Safe={is_safe}, Score={safety_result.overall_score:.3f}"
+        )
 
     # Test different safety levels
     print("\n--- Testing Different Safety Levels ---")
@@ -1162,7 +1206,9 @@ def test_enhanced_safety_filter():
     ]:
         filter_instance = EnhancedSafetyFilter(safety_level)
         result = filter_instance.check_output_safety(test_content)
-        print(f"{safety_level.value}: Safe={result.is_safe}, Score={result.overall_score:.3f}")
+        print(
+            f"{safety_level.value}: Safe={result.is_safe}, Score={result.overall_score:.3f}"
+        )
 
     print("\nEnhanced safety filtering system tests completed!")
 

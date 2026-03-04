@@ -51,7 +51,9 @@ class TranscriptRequest(BaseModel):
     youtube_url: str = Field(..., description="YouTube URL to transcribe")
     language: str = Field(default="en", description="Language code for transcription")
     whisper_model: str = Field(default="large-v2", description="Whisper model to use")
-    enable_diarization: bool = Field(default=True, description="Enable speaker diarization")
+    enable_diarization: bool = Field(
+        default=True, description="Enable speaker diarization"
+    )
 
 
 class PipelineJobRequest(BaseModel):
@@ -72,7 +74,9 @@ class StageExecutionRequest(BaseModel):
 
     stage: PipelineStage = Field(..., description="Pipeline stage to execute")
     input_path: Optional[str] = Field(None, description="Input file or directory path")
-    output_path: Optional[str] = Field(None, description="Output file or directory path")
+    output_path: Optional[str] = Field(
+        None, description="Output file or directory path"
+    )
     config_overrides: Dict[str, Any] = Field(
         default_factory=dict, description="Configuration overrides"
     )
@@ -84,7 +88,9 @@ class TranscriptResponse(BaseModel):
 
     transcript_path: str = Field(..., description="Path to the generated transcript")
     status: JobStatus = Field(..., description="Status of the transcription job")
-    message: Optional[str] = Field(None, description="Additional message or error details")
+    message: Optional[str] = Field(
+        None, description="Additional message or error details"
+    )
     job_id: Optional[str] = Field(None, description="Job ID for tracking")
 
 
@@ -95,12 +101,18 @@ class JobInfo(BaseModel):
     job_name: str = Field(..., description="Human-readable job name")
     status: JobStatus = Field(..., description="Current job status")
     stages: List[PipelineStage] = Field(..., description="Pipeline stages in the job")
-    current_stage: Optional[PipelineStage] = Field(None, description="Currently executing stage")
+    current_stage: Optional[PipelineStage] = Field(
+        None, description="Currently executing stage"
+    )
     progress: float = Field(default=0.0, description="Job progress (0.0 to 1.0)")
     created_at: datetime = Field(..., description="Job creation timestamp")
     started_at: Optional[datetime] = Field(None, description="Job start timestamp")
-    completed_at: Optional[datetime] = Field(None, description="Job completion timestamp")
-    error_message: Optional[str] = Field(None, description="Error message if job failed")
+    completed_at: Optional[datetime] = Field(
+        None, description="Job completion timestamp"
+    )
+    error_message: Optional[str] = Field(
+        None, description="Error message if job failed"
+    )
     output_paths: Dict[str, str] = Field(
         default_factory=dict, description="Output file paths by stage"
     )
@@ -112,10 +124,16 @@ class StageResult(BaseModel):
     stage: PipelineStage = Field(..., description="Pipeline stage that was executed")
     status: JobStatus = Field(..., description="Stage execution status")
     input_path: Optional[str] = Field(None, description="Input file or directory path")
-    output_path: Optional[str] = Field(None, description="Output file or directory path")
+    output_path: Optional[str] = Field(
+        None, description="Output file or directory path"
+    )
     execution_time: float = Field(..., description="Execution time in seconds")
-    error_message: Optional[str] = Field(None, description="Error message if stage failed")
-    metrics: Dict[str, Any] = Field(default_factory=dict, description="Stage-specific metrics")
+    error_message: Optional[str] = Field(
+        None, description="Error message if stage failed"
+    )
+    metrics: Dict[str, Any] = Field(
+        default_factory=dict, description="Stage-specific metrics"
+    )
 
 
 class PipelineStatus(BaseModel):
@@ -136,17 +154,27 @@ class LogEntry(BaseModel):
     level: LogLevel = Field(..., description="Log level")
     message: str = Field(..., description="Log message")
     job_id: Optional[str] = Field(None, description="Associated job ID")
-    stage: Optional[PipelineStage] = Field(None, description="Associated pipeline stage")
-    metadata: Dict[str, Any] = Field(default_factory=dict, description="Additional metadata")
+    stage: Optional[PipelineStage] = Field(
+        None, description="Associated pipeline stage"
+    )
+    metadata: Dict[str, Any] = Field(
+        default_factory=dict, description="Additional metadata"
+    )
 
 
 class DataExportRequest(BaseModel):
     """Request model for data export."""
 
-    data_type: str = Field(..., description="Type of data to export (transcripts, features, etc.)")
+    data_type: str = Field(
+        ..., description="Type of data to export (transcripts, features, etc.)"
+    )
     format: str = Field(default="json", description="Export format (json, csv, jsonl)")
-    filter_criteria: Dict[str, Any] = Field(default_factory=dict, description="Filtering criteria")
-    include_metadata: bool = Field(default=True, description="Include metadata in export")
+    filter_criteria: Dict[str, Any] = Field(
+        default_factory=dict, description="Filtering criteria"
+    )
+    include_metadata: bool = Field(
+        default=True, description="Include metadata in export"
+    )
 
 
 class DataExportResponse(BaseModel):
@@ -165,7 +193,9 @@ class HealthCheckResponse(BaseModel):
     status: str = Field(..., description="Service health status")
     version: str = Field(..., description="Service version")
     uptime: float = Field(..., description="Service uptime in seconds")
-    dependencies: Dict[str, str] = Field(..., description="Status of external dependencies")
+    dependencies: Dict[str, str] = Field(
+        ..., description="Status of external dependencies"
+    )
     system_info: Dict[str, Any] = Field(..., description="System information")
 
 
@@ -174,7 +204,9 @@ class MCPToolRequest(BaseModel):
     """Base model for MCP tool requests."""
 
     tool_name: str = Field(..., description="Name of the MCP tool to execute")
-    parameters: Dict[str, Any] = Field(default_factory=dict, description="Tool parameters")
+    parameters: Dict[str, Any] = Field(
+        default_factory=dict, description="Tool parameters"
+    )
 
 
 class MCPToolResponse(BaseModel):
@@ -182,5 +214,7 @@ class MCPToolResponse(BaseModel):
 
     success: bool = Field(..., description="Whether the tool execution was successful")
     result: Any = Field(None, description="Tool execution result")
-    error_message: Optional[str] = Field(None, description="Error message if execution failed")
+    error_message: Optional[str] = Field(
+        None, description="Error message if execution failed"
+    )
     execution_time: float = Field(..., description="Tool execution time in seconds")

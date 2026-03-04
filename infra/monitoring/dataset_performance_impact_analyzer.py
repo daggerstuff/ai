@@ -663,9 +663,9 @@ class DatasetPerformanceImpactAnalyzer:
         ].sum()
         value_analysis["value_concentration"] = {
             "top_3_datasets_value_share": top_3_value,
-            "value_distribution_balance": "concentrated"
-            if top_3_value > 70
-            else "balanced",
+            "value_distribution_balance": (
+                "concentrated" if top_3_value > 70 else "balanced"
+            ),
         }
 
         return value_analysis

@@ -39,12 +39,13 @@ class LicenseCheckResult:
 
     def is_usable(self) -> bool:
         """Check if license is usable for AI training and commercial use."""
-        return (
-            self.ai_training_compatible
-            in [LicenseCompatibility.COMPATIBLE, LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS]
-            and self.commercial_use_compatible
-            in [LicenseCompatibility.COMPATIBLE, LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS]
-        )
+        return self.ai_training_compatible in [
+            LicenseCompatibility.COMPATIBLE,
+            LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS,
+        ] and self.commercial_use_compatible in [
+            LicenseCompatibility.COMPATIBLE,
+            LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS,
+        ]
 
 
 class LicenseChecker:
@@ -66,7 +67,10 @@ class LicenseChecker:
             "conditions": [],
         },
         "Apache-2.0": {
-            "patterns": [r"\bapache\s*[-]?\s*2\.?0\b", r"apache\s+license\s+version\s+2"],
+            "patterns": [
+                r"\bapache\s*[-]?\s*2\.?0\b",
+                r"apache\s+license\s+version\s+2",
+            ],
             "ai_training": LicenseCompatibility.COMPATIBLE,
             "commercial": LicenseCompatibility.COMPATIBLE,
             "attribution": True,
@@ -96,7 +100,10 @@ class LicenseChecker:
             "ai_training": LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS,
             "commercial": LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS,
             "attribution": True,
-            "conditions": ["Requires attribution", "Must indicate if changes were made"],
+            "conditions": [
+                "Requires attribution",
+                "Must indicate if changes were made",
+            ],
         },
         "CC-BY-SA": {
             "patterns": [
@@ -121,7 +128,10 @@ class LicenseChecker:
         },
         # GPL licenses - copyleft, may have restrictions
         "GPL-3.0": {
-            "patterns": [r"\bgpl[\s-]?v?3\b", r"gnu\s+general\s+public\s+license\s+v?3"],
+            "patterns": [
+                r"\bgpl[\s-]?v?3\b",
+                r"gnu\s+general\s+public\s+license\s+v?3",
+            ],
             "ai_training": LicenseCompatibility.REQUIRES_REVIEW,
             "commercial": LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS,
             "attribution": True,
@@ -132,7 +142,10 @@ class LicenseChecker:
             ],
         },
         "GPL-2.0": {
-            "patterns": [r"\bgpl[\s-]?v?2\b", r"gnu\s+general\s+public\s+license\s+v?2"],
+            "patterns": [
+                r"\bgpl[\s-]?v?2\b",
+                r"gnu\s+general\s+public\s+license\s+v?2",
+            ],
             "ai_training": LicenseCompatibility.REQUIRES_REVIEW,
             "commercial": LicenseCompatibility.COMPATIBLE_WITH_CONDITIONS,
             "attribution": True,
@@ -257,14 +270,17 @@ class LicenseChecker:
         self._compiled_patterns: Dict[str, List[re.Pattern]] = {}
         for license_name, license_info in self.LICENSE_PATTERNS.items():
             self._compiled_patterns[license_name] = [
-                re.compile(pattern, re.IGNORECASE) for pattern in license_info["patterns"]
+                re.compile(pattern, re.IGNORECASE)
+                for pattern in license_info["patterns"]
             ]
 
         self._ai_restriction_patterns = [
-            re.compile(pattern, re.IGNORECASE) for pattern in self.AI_TRAINING_RESTRICTIONS
+            re.compile(pattern, re.IGNORECASE)
+            for pattern in self.AI_TRAINING_RESTRICTIONS
         ]
         self._commercial_restriction_patterns = [
-            re.compile(pattern, re.IGNORECASE) for pattern in self.COMMERCIAL_RESTRICTIONS
+            re.compile(pattern, re.IGNORECASE)
+            for pattern in self.COMMERCIAL_RESTRICTIONS
         ]
 
     def check_license(
@@ -462,4 +478,3 @@ class LicenseChecker:
             or result.commercial_use_compatible == LicenseCompatibility.REQUIRES_REVIEW
             or result.confidence < 0.5
         )
-

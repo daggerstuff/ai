@@ -333,4 +333,3 @@ class DOAJClient:
             return "restricted"
 
         return "unknown"
-

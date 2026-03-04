@@ -151,11 +151,13 @@ class CheckpointManager:
                             {
                                 "path": str(checkpoint_dir),
                                 "step": metadata.get("global_step", 0),
-                                "timestamp": metadata.get("log_history", [{}])[-1].get(
-                                    "timestamp", 0
-                                )
-                                if metadata.get("log_history")
-                                else 0,
+                                "timestamp": (
+                                    metadata.get("log_history", [{}])[-1].get(
+                                        "timestamp", 0
+                                    )
+                                    if metadata.get("log_history")
+                                    else 0
+                                ),
                             }
                         )
                     except:
@@ -285,9 +287,11 @@ class TrainingRunner:
                     if isinstance(conv["conversation"], list):
                         text = " ".join(
                             [
-                                msg.get("content", "")
-                                if isinstance(msg, dict)
-                                else str(msg)
+                                (
+                                    msg.get("content", "")
+                                    if isinstance(msg, dict)
+                                    else str(msg)
+                                )
                                 for msg in conv["conversation"]
                             ]
                         )
@@ -297,9 +301,11 @@ class TrainingRunner:
                     if isinstance(conv["messages"], list):
                         text = " ".join(
                             [
-                                msg.get("content", "")
-                                if isinstance(msg, dict)
-                                else str(msg)
+                                (
+                                    msg.get("content", "")
+                                    if isinstance(msg, dict)
+                                    else str(msg)
+                                )
                                 for msg in conv["messages"]
                             ]
                         )
@@ -326,11 +332,11 @@ class TrainingRunner:
                             "dataset/max_text_length": max(
                                 [len(text.split()) for text in texts]
                             ),
-                            "dataset/min_text_length": min(
-                                [len(text.split()) for text in texts]
-                            )
-                            if texts
-                            else 0,
+                            "dataset/min_text_length": (
+                                min([len(text.split()) for text in texts])
+                                if texts
+                                else 0
+                            ),
                         }
                     )
             except:
@@ -352,9 +358,11 @@ class TrainingRunner:
             self.tokenizer = AutoTokenizer.from_pretrained(model_name)
             self.model = AutoModelForCausalLM.from_pretrained(
                 model_name,
-                torch_dtype=torch.bfloat16
-                if self.manifest.hyperparameters.bf16
-                else torch.float16,
+                torch_dtype=(
+                    torch.bfloat16
+                    if self.manifest.hyperparameters.bf16
+                    else torch.float16
+                ),
                 device_map="auto",
                 low_cpu_mem_usage=True,
                 load_in_8bit=False,  # Adjust based on availability
@@ -420,9 +428,9 @@ class TrainingRunner:
             evaluation_strategy="steps" if self.manifest.evaluation_enabled else "no",
             eval_steps=self.manifest.hyperparameters.eval_steps,
             load_best_model_at_end=self.manifest.evaluation_enabled,
-            metric_for_best_model="eval_loss"
-            if self.manifest.evaluation_enabled
-            else "train_loss",
+            metric_for_best_model=(
+                "eval_loss" if self.manifest.evaluation_enabled else "train_loss"
+            ),
             greater_is_better=False,
             save_total_limit=self.manifest.hyperparameters.save_total_limit,
             seed=self.manifest.seed,

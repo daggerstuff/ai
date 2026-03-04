@@ -6,6 +6,7 @@ Exports:
 
 This module is intentionally minimal and stable; connectors rely on its API.
 """
+
 from __future__ import annotations
 
 import secrets  # Added for secure random generation
@@ -56,7 +57,9 @@ def read_with_retry(
             attempts += 1
             if attempts >= int(opts["retries"]):
                 break
-            backoff = min(opts["max_backoff"], opts["backoff_factor"] * (2 ** (attempts - 1)))
+            backoff = min(
+                opts["max_backoff"], opts["backoff_factor"] * (2 ** (attempts - 1))
+            )
             # Use cryptographically secure random for jitter
             jitter = secrets.SystemRandom().random() * float(opts.get("jitter", 0.0))
             sleep_func(backoff + jitter)
@@ -70,7 +73,12 @@ class RateLimiter:
     Simple implementation sufficient for connectors running in a single thread.
     """
 
-    def __init__(self, capacity: int = 10, refill_rate: float = 1.0, time_func: Callable[[], float] = time.monotonic):
+    def __init__(
+        self,
+        capacity: int = 10,
+        refill_rate: float = 1.0,
+        time_func: Callable[[], float] = time.monotonic,
+    ):
         if capacity <= 0:
             raise ValueError("capacity must be > 0")
         if refill_rate <= 0:
@@ -89,7 +97,12 @@ class RateLimiter:
         self._tokens = min(self.capacity, self._tokens + delta * self.refill_rate)
         self._last = now
 
-    def acquire(self, blocking: bool = True, timeout: float | None = None, sleep_func: Callable[[float], None] = _default_sleep) -> bool:
+    def acquire(
+        self,
+        blocking: bool = True,
+        timeout: float | None = None,
+        sleep_func: Callable[[float], None] = _default_sleep,
+    ) -> bool:
         """Attempt to consume a token. If blocking=True, wait up to `timeout` seconds.
 
         Returns True if a token was acquired, False otherwise.

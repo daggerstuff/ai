@@ -18,7 +18,10 @@ def test_single_item_nvidia():
 
         sys.exit(1)
 
-    task = {"task_id": "test_nvidia_1", "data": {"text": "I feel really sad and hopeless."}}
+    task = {
+        "task_id": "test_nvidia_1",
+        "data": {"text": "I feel really sad and hopeless."},
+    }
 
     print("Running annotation on test item...")
     try:

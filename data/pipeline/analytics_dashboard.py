@@ -116,9 +116,11 @@ class AnalyticsDashboard:
             snapshot["data"][name] = {
                 "current": metric.value,
                 "unit": metric.unit,
-                "trend": (metric.value - metric.history[0])
-                if len(metric.history) > 1
-                else 0.0,
+                "trend": (
+                    (metric.value - metric.history[0])
+                    if len(metric.history) > 1
+                    else 0.0
+                ),
             }
 
         return snapshot

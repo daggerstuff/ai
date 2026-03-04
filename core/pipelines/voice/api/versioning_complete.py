@@ -174,9 +174,11 @@ async def version_middleware(request: Request, call_next):
                     "error": {
                         "code": "VERSION_SUNSET",
                         "message": f"API version {requested_version} has been sunset",
-                        "sunset_date": version_info.sunset_date.isoformat()
-                        if version_info.sunset_date
-                        else None,
+                        "sunset_date": (
+                            version_info.sunset_date.isoformat()
+                            if version_info.sunset_date
+                            else None
+                        ),
                         "migration_guide": version_info.migration_guide_url,
                         "supported_versions": version_manager.get_supported_versions(),
                     }

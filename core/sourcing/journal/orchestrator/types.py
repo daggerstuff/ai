@@ -109,4 +109,3 @@ class OrchestratorConfig:
     session_storage_path: Optional[Path] = None
     visualization_max_points: int = 100
     fallback_on_failure: bool = True
-

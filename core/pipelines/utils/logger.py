@@ -18,6 +18,7 @@ LOG_FILE = str(get_dataset_pipeline_output_root() / "logs" / "dataset_pipeline.l
 MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 BACKUP_COUNT = 5
 
+
 def get_logger(name: str, level: int = LOG_LEVEL) -> logging.Logger:
     """
     Initializes and returns a configured logger.
@@ -70,11 +71,14 @@ def _setup_file_handler(level: int, logger: logging.Logger) -> None:
     _configure_handler(file_handler, level, logger)
 
 
-def _configure_handler(handler: logging.Handler, level: int, logger: logging.Logger) -> None:
+def _configure_handler(
+    handler: logging.Handler, level: int, logger: logging.Logger
+) -> None:
     """Configure a logging handler with level, formatter, and attach to logger."""
     handler.setLevel(level)
     handler.setFormatter(logging.Formatter(LOG_FORMAT))
     logger.addHandler(handler)
+
 
 # Example usage:
 # from logger import get_logger

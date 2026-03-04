@@ -288,9 +288,11 @@ class SecurityValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="security_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if rate_limiting_active
-                else ValidationStatus.WARNING,
+                status=(
+                    ValidationStatus.PASSED
+                    if rate_limiting_active
+                    else ValidationStatus.WARNING
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "total_requests": request_count + blocked_count,
@@ -336,9 +338,11 @@ class SecurityValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="security_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if critical_issues == 0
-                else ValidationStatus.FAILED,
+                status=(
+                    ValidationStatus.PASSED
+                    if critical_issues == 0
+                    else ValidationStatus.FAILED
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "vulnerabilities": vulnerabilities,
@@ -441,9 +445,11 @@ class ComplianceValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="compliance_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if compliance_score >= 95
-                else ValidationStatus.WARNING,
+                status=(
+                    ValidationStatus.PASSED
+                    if compliance_score >= 95
+                    else ValidationStatus.WARNING
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "compliance_checks": compliance_checks,
@@ -554,9 +560,11 @@ class PerformanceValidator:
                 validation_id=f"val_{int(time.time())}",
                 suite_id="performance_suite",
                 test_id=test.test_id,
-                status=ValidationStatus.PASSED
-                if sla_compliant
-                else ValidationStatus.WARNING,
+                status=(
+                    ValidationStatus.PASSED
+                    if sla_compliant
+                    else ValidationStatus.WARNING
+                ),
                 execution_time_ms=execution_time,
                 result_data={
                     "response_times": {
@@ -724,15 +732,21 @@ class EnterpriseValidator:
 
         # Compliance status
         compliance_status = {
-            "HIPAA": "COMPLIANT"
-            if category_scores.get("compliance", 0) >= 95
-            else "NON_COMPLIANT",
-            "SOC2": "COMPLIANT"
-            if category_scores.get("security", 0) >= 95
-            else "NON_COMPLIANT",
-            "GDPR": "COMPLIANT"
-            if category_scores.get("compliance", 0) >= 95
-            else "NON_COMPLIANT",
+            "HIPAA": (
+                "COMPLIANT"
+                if category_scores.get("compliance", 0) >= 95
+                else "NON_COMPLIANT"
+            ),
+            "SOC2": (
+                "COMPLIANT"
+                if category_scores.get("security", 0) >= 95
+                else "NON_COMPLIANT"
+            ),
+            "GDPR": (
+                "COMPLIANT"
+                if category_scores.get("compliance", 0) >= 95
+                else "NON_COMPLIANT"
+            ),
         }
 
         # Generate recommendations

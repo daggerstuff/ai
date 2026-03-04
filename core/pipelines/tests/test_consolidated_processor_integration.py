@@ -52,7 +52,9 @@ def test_consolidated_processor_integration():
             assert isinstance(result["conversation_analysis"], dict)
 
             # Check output files
-            output_file = os.path.join(temp_dir, "consolidated_mental_health_conversations.jsonl")
+            output_file = os.path.join(
+                temp_dir, "consolidated_mental_health_conversations.jsonl"
+            )
             report_file = os.path.join(temp_dir, "consolidated_processing_report.json")
 
             if os.path.exists(output_file):

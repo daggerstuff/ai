@@ -200,9 +200,7 @@ def process(ctx, input: str, output: Optional[str], format: str, validate_only: 
             suffix = (
                 ".json"
                 if format == "json"
-                else ".csv"
-                if format == "csv"
-                else ".parquet"
+                else ".csv" if format == "csv" else ".parquet"
             )
             output_path = input_path.with_suffix(suffix)
 
@@ -503,9 +501,7 @@ def _display_pipelines_list(pipelines: List[Dict[str, Any]]) -> None:
         status_icon = (
             "🟢"
             if pipeline["status"] == "completed"
-            else "🟡"
-            if pipeline["status"] == "running"
-            else "🔴"
+            else "🟡" if pipeline["status"] == "running" else "🔴"
         )
         click.echo(
             f"  {status_icon} {pipeline['id']} - {pipeline['type']} - {pipeline['status']}"

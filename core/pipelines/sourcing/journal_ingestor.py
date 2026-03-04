@@ -68,7 +68,9 @@ class JournalResearchIngestor:
             logger.error(f"DOAJ Ingestion failed: {e}")
             return 0
 
-    def ingest_clinical_trials(self, condition: str = "Depression", limit: int = 10) -> int:
+    def ingest_clinical_trials(
+        self, condition: str = "Depression", limit: int = 10
+    ) -> int:
         """
         Fetch studies from ClinicalTrials.gov API v2.
         """
@@ -90,7 +92,9 @@ class JournalResearchIngestor:
                     protocol = study.get("protocolSection", {})
                     desc = protocol.get("descriptionModule", {})
                     summary = desc.get("briefSummary", "")
-                    title = protocol.get("identificationModule", {}).get("officialTitle")
+                    title = protocol.get("identificationModule", {}).get(
+                        "officialTitle"
+                    )
 
                     if summary:
                         record = {

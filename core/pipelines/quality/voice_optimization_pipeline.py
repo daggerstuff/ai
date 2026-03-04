@@ -499,14 +499,16 @@ class VoiceOptimizationPipeline:
             "conversations": processed_conversations,
             "input_count": len(conversations),
             "output_count": len(processed_conversations),
-            "quality_score": statistics.mean(
-                [
-                    conv.meta.get("personality_analysis", {}).get("confidence", 0.0)
-                    for conv in processed_conversations
-                ]
-            )
-            if processed_conversations
-            else 0.0,
+            "quality_score": (
+                statistics.mean(
+                    [
+                        conv.meta.get("personality_analysis", {}).get("confidence", 0.0)
+                        for conv in processed_conversations
+                    ]
+                )
+                if processed_conversations
+                else 0.0
+            ),
         }
 
     def _stage_consistency_filtering(
@@ -534,14 +536,16 @@ class VoiceOptimizationPipeline:
             "conversations": consistent_conversations,
             "input_count": len(conversations),
             "output_count": len(consistent_conversations),
-            "quality_score": statistics.mean(
-                [
-                    conv.meta.get("personality_consistency", 0.0)
-                    for conv in consistent_conversations
-                ]
-            )
-            if consistent_conversations
-            else 0.0,
+            "quality_score": (
+                statistics.mean(
+                    [
+                        conv.meta.get("personality_consistency", 0.0)
+                        for conv in consistent_conversations
+                    ]
+                )
+                if consistent_conversations
+                else 0.0
+            ),
             "optimization_result": optimization_result,
         }
 
@@ -576,14 +580,16 @@ class VoiceOptimizationPipeline:
             "conversations": optimized_conversations,
             "input_count": len(conversations),
             "output_count": len(optimized_conversations),
-            "quality_score": statistics.mean(
-                [
-                    conv.meta.get("combined_quality_score", 0.0)
-                    for conv in optimized_conversations
-                ]
-            )
-            if optimized_conversations
-            else 0.0,
+            "quality_score": (
+                statistics.mean(
+                    [
+                        conv.meta.get("combined_quality_score", 0.0)
+                        for conv in optimized_conversations
+                    ]
+                )
+                if optimized_conversations
+                else 0.0
+            ),
         }
 
     def _stage_final_validation(
@@ -628,9 +634,9 @@ class VoiceOptimizationPipeline:
             "conversations": validated_conversations,
             "input_count": len(conversations),
             "output_count": len(validated_conversations),
-            "quality_score": statistics.mean(validation_scores)
-            if validation_scores
-            else 0.0,
+            "quality_score": (
+                statistics.mean(validation_scores) if validation_scores else 0.0
+            ),
         }
 
     def _perform_systematic_validation(

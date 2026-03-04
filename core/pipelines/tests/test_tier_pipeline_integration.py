@@ -69,16 +69,16 @@ class TestTierPipelineIntegration:
         # Tier 3 should have discovered 27+ CoT datasets
         tier3_loader = tier_processor.tier_loaders[3]
         assert hasattr(tier3_loader, "dataset_paths")
-        assert len(tier3_loader.dataset_paths) >= 27, (
-            f"Tier 3 should have 27+ datasets, found {len(tier3_loader.dataset_paths)}"
-        )
+        assert (
+            len(tier3_loader.dataset_paths) >= 27
+        ), f"Tier 3 should have 27+ datasets, found {len(tier3_loader.dataset_paths)}"
 
         # Tier 2 should have discovered 11+ professional datasets
         tier2_loader = tier_processor.tier_loaders[2]
         assert hasattr(tier2_loader, "dataset_paths")
-        assert len(tier2_loader.dataset_paths) >= 11, (
-            f"Tier 2 should have 11+ datasets, found {len(tier2_loader.dataset_paths)}"
-        )
+        assert (
+            len(tier2_loader.dataset_paths) >= 11
+        ), f"Tier 2 should have 11+ datasets, found {len(tier2_loader.dataset_paths)}"
 
         logger.info("✓ Tier loaders successfully discovered datasets from registry")
 
@@ -144,9 +144,9 @@ class TestTierPipelineIntegration:
 
         # Verify ratios sum to 1.0
         total_ratio = sum(tier_processor.TRAINING_RATIO_WEIGHTS.values())
-        assert abs(total_ratio - 1.0) < 0.001, (
-            f"Training ratios should sum to 1.0, got {total_ratio}"
-        )
+        assert (
+            abs(total_ratio - 1.0) < 0.001
+        ), f"Training ratios should sum to 1.0, got {total_ratio}"
 
         logger.info("✓ Tier training ratios are correctly configured")
 

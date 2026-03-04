@@ -355,9 +355,7 @@ class TaxonomyClassifier:
                     "panic attack",
                     "can't function",
                 ]
-                if mh_hits := [
-                    p for p in high_signal_mh_phrases if p in text_lower
-                ]:
+                if mh_hits := [p for p in high_signal_mh_phrases if p in text_lower]:
                     score = max(score, 0.90)
                     matches = list(set(matches + mh_hits))
 
@@ -457,20 +455,20 @@ class TaxonomyClassifier:
 
                     if classification.confidence >= confidence_threshold:
                         record["metadata"]["category"] = classification.category.value
-                        record["metadata"]["category_confidence"] = (
-                            classification.confidence
-                        )
-                        record["metadata"]["category_reasoning"] = (
-                            classification.reasoning
-                        )
+                        record["metadata"][
+                            "category_confidence"
+                        ] = classification.confidence
+                        record["metadata"][
+                            "category_reasoning"
+                        ] = classification.reasoning
                         stats["classified"] += 1
                         stats["categories"][classification.category.value] += 1
                     else:
                         stats["low_confidence"] += 1
                         record["metadata"]["category"] = "uncategorized"
-                        record["metadata"]["category_confidence"] = (
-                            classification.confidence
-                        )
+                        record["metadata"][
+                            "category_confidence"
+                        ] = classification.confidence
 
                     # Write updated record
                     outfile.write(json.dumps(record) + "\n")

@@ -44,7 +44,9 @@ class PipelineIntegrationService:
         self.schema_validator = PipelineSchemaValidator(pipeline_schema=pipeline_schema)
         self.dataset_merger = DatasetMerger(similarity_threshold=similarity_threshold)
         self.quality_checker = QualityChecker()
-        self.integration_planner = IntegrationPlanningEngine(pipeline_schema=pipeline_schema)
+        self.integration_planner = IntegrationPlanningEngine(
+            pipeline_schema=pipeline_schema
+        )
         logger.info("Initialized Pipeline Integration Service")
 
     def integrate_dataset(
@@ -182,7 +184,11 @@ class PipelineIntegrationService:
                 conversion_result.success
                 and conversion_result.records_converted > 0
                 and (not validate or results["validation"]["valid"])
-                and (not merge or not existing_dataset_path or results.get("merge", {}).get("success", True))
+                and (
+                    not merge
+                    or not existing_dataset_path
+                    or results.get("merge", {}).get("success", True)
+                )
                 # Quality check failures are warnings, not blockers if conversion succeeded
                 # (not quality_check or results["quality_check"]["passed"])
             )
@@ -217,4 +223,3 @@ class PipelineIntegrationService:
         return self.integration_planner.create_integration_plan(
             dataset=dataset, target_format=target_format
         )
-

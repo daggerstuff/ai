@@ -79,4 +79,3 @@ class ConnectionManager:
 
 # Global connection manager instance
 manager = ConnectionManager()
-

@@ -243,7 +243,9 @@ class ParameterValidator:
         if item_type:
             for i, item in enumerate(value):
                 try:
-                    ParameterValidator.validate_type(item, item_type, f"{field_name}[{i}]")
+                    ParameterValidator.validate_type(
+                        item, item_type, f"{field_name}[{i}]"
+                    )
                 except ValidationError as e:
                     raise ValidationError(
                         f"{field_name} item at index {i} is invalid: {e.message}",
@@ -440,9 +442,11 @@ class ParameterValidator:
                 value,
                 field_name,
                 required_fields=prop_schema.get("required"),
-                allowed_fields=prop_schema.get("properties", {}).keys()
-                if not prop_schema.get("additionalProperties", True)
-                else None,
+                allowed_fields=(
+                    prop_schema.get("properties", {}).keys()
+                    if not prop_schema.get("additionalProperties", True)
+                    else None
+                ),
             )
         elif prop_type:
             # Unknown type - just check it's not None
@@ -455,14 +459,10 @@ class ParameterValidator:
 
         # Validate enum if specified
         if "enum" in prop_schema:
-            ParameterValidator.validate_enum(
-                value, prop_schema["enum"], field_name
-            )
+            ParameterValidator.validate_enum(value, prop_schema["enum"], field_name)
 
 
-def validate_tool_parameters(
-    params: Dict[str, Any], schema: Dict[str, Any]
-) -> None:
+def validate_tool_parameters(params: Dict[str, Any], schema: Dict[str, Any]) -> None:
     """
     Validate tool parameters against schema.
 
@@ -499,9 +499,7 @@ def validate_resource_parameters(
         )
 
 
-def validate_prompt_arguments(
-    args: Dict[str, Any], schema: Dict[str, Any]
-) -> None:
+def validate_prompt_arguments(args: Dict[str, Any], schema: Dict[str, Any]) -> None:
     """
     Validate prompt arguments against schema.
 
@@ -513,4 +511,3 @@ def validate_prompt_arguments(
         ValidationError: If validation fails
     """
     ParameterValidator.validate_json_schema(args, schema, "prompt argument")
-

@@ -244,7 +244,13 @@ class AccessAcquisitionManager:
 
     def _is_repository_api_url(self, url: str) -> bool:
         """Check if URL points to a repository API."""
-        api_indicators = ["/api/", "api.", "datadryad.org", "zenodo.org", "figshare.com"]
+        api_indicators = [
+            "/api/",
+            "api.",
+            "datadryad.org",
+            "zenodo.org",
+            "figshare.com",
+        ]
         url_lower = url.lower()
         return any(indicator in url_lower for indicator in api_indicators)
 
@@ -496,7 +502,9 @@ class AccessAcquisitionManager:
             f"API download not fully implemented for {source.source_id}, "
             "falling back to direct download"
         )
-        return self._download_direct(source, access_request, progress, progress_callback)
+        return self._download_direct(
+            source, access_request, progress, progress_callback
+        )
 
     def _calculate_checksum(self, file_path: Path) -> str:
         """Calculate SHA256 checksum of a file."""
@@ -532,9 +540,7 @@ class AccessAcquisitionManager:
         logger.info(f"Integrity verified for {dataset.source_id}")
         return True
 
-    def organize_storage(
-        self, dataset: AcquiredDataset, source: DatasetSource
-    ) -> Path:
+    def organize_storage(self, dataset: AcquiredDataset, source: DatasetSource) -> Path:
         """
         Organize storage for an acquired dataset.
 
@@ -565,9 +571,7 @@ class AccessAcquisitionManager:
             if organized_path.exists():
                 organized_path.unlink()
             shutil.move(current_path, organized_path)
-            logger.info(
-                f"Organized storage: {current_path} -> {organized_path}"
-            )
+            logger.info(f"Organized storage: {current_path} -> {organized_path}")
 
         return organized_path
 
@@ -601,9 +605,7 @@ class AccessAcquisitionManager:
             },
         }
 
-        metadata_path = (
-            self.storage_path / "metadata" / f"{dataset.source_id}.json"
-        )
+        metadata_path = self.storage_path / "metadata" / f"{dataset.source_id}.json"
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2)
 
@@ -636,9 +638,7 @@ class AccessAcquisitionManager:
         """Get download progress for a source ID."""
         return self.download_progress.get(source_id)
 
-    def list_access_requests(
-        self, status: Optional[str] = None
-    ) -> List[AccessRequest]:
+    def list_access_requests(self, status: Optional[str] = None) -> List[AccessRequest]:
         """
         List access requests, optionally filtered by status.
 
@@ -661,7 +661,9 @@ class AccessAcquisitionManager:
             List of access requests needing follow-up
         """
         pending_requests = []
-        cutoff_date = datetime.now() - timedelta(days=self.config.follow_up_reminder_days)
+        cutoff_date = datetime.now() - timedelta(
+            days=self.config.follow_up_reminder_days
+        )
 
         for request in self.access_requests.values():
             if request.status == "pending":
@@ -727,4 +729,3 @@ class AccessAcquisitionManager:
                     report_lines.append("")
 
         return "\n".join(report_lines)
-

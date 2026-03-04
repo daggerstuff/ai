@@ -345,9 +345,11 @@ class GeminiMem0Manager:
                 self.memory.add(
                     filtered_response,
                     user_id=user_id,
-                    metadata={"role": "assistant", "session_id": session_id}
-                    if session_id
-                    else {"role": "assistant"},
+                    metadata=(
+                        {"role": "assistant", "session_id": session_id}
+                        if session_id
+                        else {"role": "assistant"}
+                    ),
                 )
         except Exception:
             logger.exception("Error storing interaction")

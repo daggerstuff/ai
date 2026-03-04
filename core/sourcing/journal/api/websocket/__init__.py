@@ -8,4 +8,3 @@ from ai.core.sourcing.journal.api.websocket.manager import ConnectionManager
 from ai.core.sourcing.journal.api.websocket.routes import router as websocket_router
 
 __all__ = ["ConnectionManager", "websocket_router"]
-

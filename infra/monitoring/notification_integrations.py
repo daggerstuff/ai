@@ -474,17 +474,21 @@ class NotificationManager:
             smtp_port=int(os.getenv("SMTP_PORT", "587")),
             email_user=os.getenv("EMAIL_USER", ""),
             email_password=os.getenv("EMAIL_PASSWORD", ""),
-            default_recipients=os.getenv("EMAIL_RECIPIENTS", "").split(",")
-            if os.getenv("EMAIL_RECIPIENTS")
-            else [],
+            default_recipients=(
+                os.getenv("EMAIL_RECIPIENTS", "").split(",")
+                if os.getenv("EMAIL_RECIPIENTS")
+                else []
+            ),
             slack_webhook_url=os.getenv("SLACK_WEBHOOK_URL", ""),
             slack_token=os.getenv("SLACK_TOKEN", ""),
             slack_channel=os.getenv("SLACK_CHANNEL", "#alerts"),
             pagerduty_integration_key=os.getenv("PAGERDUTY_INTEGRATION_KEY", ""),
             pagerduty_api_token=os.getenv("PAGERDUTY_API_TOKEN", ""),
-            webhook_urls=os.getenv("WEBHOOK_URLS", "").split(",")
-            if os.getenv("WEBHOOK_URLS")
-            else [],
+            webhook_urls=(
+                os.getenv("WEBHOOK_URLS", "").split(",")
+                if os.getenv("WEBHOOK_URLS")
+                else []
+            ),
         )
 
     def _initialize_notifiers(self) -> Dict[NotificationChannel, Any]:

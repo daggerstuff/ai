@@ -315,9 +315,9 @@ class OxfordPublisher(BasePublisher):
                 format=format,
                 content=None,
                 metadata=metadata.raw_metadata,
-                download_url=metadata.raw_metadata.get("url")
-                if metadata.raw_metadata
-                else None,
+                download_url=(
+                    metadata.raw_metadata.get("url") if metadata.raw_metadata else None
+                ),
                 file_size=None,
                 checksum=None,
             )

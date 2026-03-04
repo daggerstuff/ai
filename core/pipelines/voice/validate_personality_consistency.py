@@ -27,7 +27,9 @@ def process_file(input_path, output_path):
     # Emotional word presence consistency
     emotion_presence = [m.get("has_emotion_word", False) for m in markers]
     consistency["has_emotion_word"] = {
-        "fraction": sum(emotion_presence) / len(emotion_presence) if emotion_presence else 0
+        "fraction": (
+            sum(emotion_presence) / len(emotion_presence) if emotion_presence else 0
+        )
     }
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(consistency, f, indent=2)

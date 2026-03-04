@@ -191,9 +191,9 @@ def run_comprehensive_test():
             for col in required_columns:
                 assert col in df.columns, f"Missing required column: {col}"
             # Verify no null values in critical columns
-            assert df["overall_quality"].notna().all(), (
-                "Found null values in overall_quality"
-            )
+            assert (
+                df["overall_quality"].notna().all()
+            ), "Found null values in overall_quality"
             test_results["passed_tests"] += 1
             test_results["test_details"].append(
                 f"✅ Data Loading: PASSED ({len(df)} records loaded)"
@@ -342,38 +342,42 @@ def run_comprehensive_test():
             "success_rate": success_rate,
             "status": "PASSED" if success_rate >= 80 else "FAILED",
             "comparison_analysis_sample": {
-                "tier_comparisons": len(tier_comparisons)
-                if "tier_comparisons" in locals()
-                else 0,
-                "dataset_comparisons": len(dataset_comparisons)
-                if "dataset_comparisons" in locals()
-                else 0,
-                "component_comparisons": len(component_comparisons)
-                if "component_comparisons" in locals()
-                else 0,
-                "benchmark_analyses": len(benchmark_analyses)
-                if "benchmark_analyses" in locals()
-                else 0,
-                "performance_rankings_dimensions": len(performance_rankings)
-                if "performance_rankings" in locals()
-                else 0,
+                "tier_comparisons": (
+                    len(tier_comparisons) if "tier_comparisons" in locals() else 0
+                ),
+                "dataset_comparisons": (
+                    len(dataset_comparisons) if "dataset_comparisons" in locals() else 0
+                ),
+                "component_comparisons": (
+                    len(component_comparisons)
+                    if "component_comparisons" in locals()
+                    else 0
+                ),
+                "benchmark_analyses": (
+                    len(benchmark_analyses) if "benchmark_analyses" in locals() else 0
+                ),
+                "performance_rankings_dimensions": (
+                    len(performance_rankings)
+                    if "performance_rankings" in locals()
+                    else 0
+                ),
             },
             "report_sample": {
-                "tier_comparisons": len(report.tier_comparisons)
-                if "report" in locals()
-                else 0,
-                "dataset_comparisons": len(report.dataset_comparisons)
-                if "report" in locals()
-                else 0,
-                "component_comparisons": len(report.component_comparisons)
-                if "report" in locals()
-                else 0,
-                "benchmark_analyses": len(report.benchmark_analyses)
-                if "report" in locals()
-                else 0,
-                "executive_summary_items": len(report.executive_summary)
-                if "report" in locals()
-                else 0,
+                "tier_comparisons": (
+                    len(report.tier_comparisons) if "report" in locals() else 0
+                ),
+                "dataset_comparisons": (
+                    len(report.dataset_comparisons) if "report" in locals() else 0
+                ),
+                "component_comparisons": (
+                    len(report.component_comparisons) if "report" in locals() else 0
+                ),
+                "benchmark_analyses": (
+                    len(report.benchmark_analyses) if "report" in locals() else 0
+                ),
+                "executive_summary_items": (
+                    len(report.executive_summary) if "report" in locals() else 0
+                ),
                 "action_items": len(report.action_items) if "report" in locals() else 0,
             },
         }

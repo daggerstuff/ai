@@ -411,9 +411,9 @@ class ProgressVisualization:
                 datasets_evaluated=progress.datasets_evaluated,
                 datasets_acquired=progress.datasets_acquired,
                 integration_plans=progress.integration_plans_created,
-                progress_chart=progress_chart_path.name
-                if progress_chart_path
-                else None,
+                progress_chart=(
+                    progress_chart_path.name if progress_chart_path else None
+                ),
                 score_chart=score_chart_path.name if score_chart_path else None,
             )
         else:
@@ -461,9 +461,11 @@ class ProgressVisualization:
             Dictionary with chart data (labels, datasets)
         """
         labels = [
-            progress.last_updated.strftime("%Y-%m-%d")
-            if progress.last_updated
-            else datetime.now().strftime("%Y-%m-%d")
+            (
+                progress.last_updated.strftime("%Y-%m-%d")
+                if progress.last_updated
+                else datetime.now().strftime("%Y-%m-%d")
+            )
             for progress in progress_history
         ]
 

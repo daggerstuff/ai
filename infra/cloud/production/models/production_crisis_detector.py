@@ -24,11 +24,11 @@ class ProductionCrisisDetector:
 
     def _setup_logging(self):
         """Setup production logging"""
-        logger = logging.getLogger('crisis_detector_production')
+        logger = logging.getLogger("crisis_detector_production")
         logger.setLevel(logging.INFO)
 
-        handler = logging.FileHandler('../logs/crisis_detection.log')
-        formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+        handler = logging.FileHandler("../logs/crisis_detection.log")
+        formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
@@ -41,23 +41,26 @@ class ProductionCrisisDetector:
 
             # Log detection
             self.logger.info(
-                f"Crisis detection - User: {user_id}, Crisis: {result['is_crisis']}, Confidence: {result['confidence']:.3f}")
+                f"Crisis detection - User: {user_id}, Crisis: {result['is_crisis']}, Confidence: {result['confidence']:.3f}"
+            )
 
             # Add production metadata
-            result['production_timestamp'] = datetime.now().isoformat()
-            result['production_version'] = 'V5_Production'
-            result['user_id'] = user_id
+            result["production_timestamp"] = datetime.now().isoformat()
+            result["production_version"] = "V5_Production"
+            result["user_id"] = user_id
 
             return result
 
         except Exception as e:
-            self.logger.error(f"Crisis detection error - User: {user_id}, Error: {str(e)}")
+            self.logger.error(
+                f"Crisis detection error - User: {user_id}, Error: {str(e)}"
+            )
             return {
-                'is_crisis': False,
-                'confidence': 0.0,
-                'error': str(e),
-                'production_timestamp': datetime.now().isoformat(),
-                'production_version': 'V5_Production_Error'
+                "is_crisis": False,
+                "confidence": 0.0,
+                "error": str(e),
+                "production_timestamp": datetime.now().isoformat(),
+                "production_version": "V5_Production_Error",
             }
 
 
@@ -75,7 +78,7 @@ if __name__ == "__main__":
     test_cases = [
         "I want to kill myself tonight",
         "I'm feeling sad but I'll be okay",
-        "Life is meaningless and hopeless"
+        "Life is meaningless and hopeless",
     ]
 
     print("Enhanced V5 Production System Test")

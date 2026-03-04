@@ -27,7 +27,12 @@ logger = logging.getLogger(__name__)
 # Training pipeline schema definition
 TRAINING_PIPELINE_SCHEMA = {
     "required_fields": ["messages", "id", "source"],
-    "optional_fields": ["timestamp", "quality_score", "tags", "mental_health_condition"],
+    "optional_fields": [
+        "timestamp",
+        "quality_score",
+        "tags",
+        "mental_health_condition",
+    ],
     "message_structure": {
         "role": ["user", "assistant", "system"],
         "content": "string",
@@ -86,7 +91,12 @@ class SchemaMapping:
             errors.append("dataset_field is required")
         if not self.pipeline_field:
             errors.append("pipeline_field is required")
-        if self.transformation_type not in ["direct", "transform", "combine", "extract"]:
+        if self.transformation_type not in [
+            "direct",
+            "transform",
+            "combine",
+            "extract",
+        ]:
             errors.append(
                 "transformation_type must be one of: direct, transform, combine, extract"
             )
@@ -101,9 +111,7 @@ class IntegrationPlanningEngine:
         self.pipeline_schema = pipeline_schema or TRAINING_PIPELINE_SCHEMA
         logger.info("Initialized Integration Planning Engine")
 
-    def analyze_dataset_structure(
-        self, dataset: AcquiredDataset
-    ) -> DatasetStructure:
+    def analyze_dataset_structure(self, dataset: AcquiredDataset) -> DatasetStructure:
         """
         Analyze the structure of an acquired dataset.
 
@@ -391,7 +399,9 @@ class IntegrationPlanningEngine:
                 fields.append(field_name)
                 if isinstance(value, (dict, list)):
                     nested_structures.append(field_name)
-                    fields.extend(self._extract_fields(value, nested_structures, field_name))
+                    fields.extend(
+                        self._extract_fields(value, nested_structures, field_name)
+                    )
         elif isinstance(obj, list) and obj:
             # Analyze first item in list
             fields.extend(
@@ -443,15 +453,27 @@ class IntegrationPlanningEngine:
 
             # Try to identify conversation fields
             conversation_field_candidates = [
-                f for f in dataset_fields if any(
+                f
+                for f in dataset_fields
+                if any(
                     keyword in f.lower()
-                    for keyword in ["message", "text", "content", "dialogue", "conversation"]
+                    for keyword in [
+                        "message",
+                        "text",
+                        "content",
+                        "dialogue",
+                        "conversation",
+                    ]
                 )
             ]
 
             role_field_candidates = [
-                f for f in dataset_fields
-                if any(keyword in f.lower() for keyword in ["role", "speaker", "author", "sender"])
+                f
+                for f in dataset_fields
+                if any(
+                    keyword in f.lower()
+                    for keyword in ["role", "speaker", "author", "sender"]
+                )
             ]
 
             # Map messages field
@@ -512,12 +534,18 @@ class IntegrationPlanningEngine:
 
         elif target_format == "conversation_record":
             # Map to ConversationRecord format
-            required_fields = self.pipeline_schema["alternate_format"]["required_fields"]
+            required_fields = self.pipeline_schema["alternate_format"][
+                "required_fields"
+            ]
 
             # Map turns field
             turns_candidates = [
-                f for f in dataset_fields
-                if any(keyword in f.lower() for keyword in ["turn", "utterance", "exchange"])
+                f
+                for f in dataset_fields
+                if any(
+                    keyword in f.lower()
+                    for keyword in ["turn", "utterance", "exchange"]
+                )
             ]
             if turns_candidates:
                 mappings.append(
@@ -531,8 +559,11 @@ class IntegrationPlanningEngine:
 
             # Map speaker_id
             speaker_candidates = [
-                f for f in dataset_fields
-                if any(keyword in f.lower() for keyword in ["speaker", "role", "author"])
+                f
+                for f in dataset_fields
+                if any(
+                    keyword in f.lower() for keyword in ["speaker", "role", "author"]
+                )
             ]
             if speaker_candidates:
                 mappings.append(
@@ -700,14 +731,18 @@ class IntegrationPlanningEngine:
             complexity_score += 5
 
         # Schema complexity
-        missing_required = len([m for m in mappings if m.required and not m.dataset_field])
+        missing_required = len(
+            [m for m in mappings if m.required and not m.dataset_field]
+        )
         complexity_score += missing_required * 2
 
         # Nested structures
         complexity_score += len(structure.nested_structures) * 2
 
         # Transformation complexity
-        transform_count = len([s for s in transformation_specs if s.transformation_type != "validation"])
+        transform_count = len(
+            [s for s in transformation_specs if s.transformation_type != "validation"]
+        )
         complexity_score += transform_count
 
         # Quality issues
@@ -769,7 +804,9 @@ class IntegrationPlanningEngine:
                 schema=fallback_schema,
                 field_types={},
                 field_distributions={},
-                quality_issues=["Dataset file not available during integration planning"],
+                quality_issues=[
+                    "Dataset file not available during integration planning"
+                ],
                 sample_size=0,
             )
 
@@ -824,7 +861,9 @@ class IntegrationPlanningEngine:
             created_date=datetime.now(),
         )
 
-        logger.info(f"Integration plan created: {complexity} complexity, {estimated_hours}h effort")
+        logger.info(
+            f"Integration plan created: {complexity} complexity, {estimated_hours}h effort"
+        )
         return plan
 
     def generate_preprocessing_script(
@@ -965,7 +1004,9 @@ if __name__ == "__main__":
         Returns:
             True if feasible, False otherwise
         """
-        logger.info(f"Validating integration feasibility for source_id: {plan.source_id}")
+        logger.info(
+            f"Validating integration feasibility for source_id: {plan.source_id}"
+        )
 
         # Check if all required fields can be mapped
         required_fields = self.pipeline_schema["required_fields"]
@@ -995,4 +1036,3 @@ if __name__ == "__main__":
 
         logger.info("Integration plan is feasible")
         return True
-

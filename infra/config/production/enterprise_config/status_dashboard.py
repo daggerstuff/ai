@@ -39,9 +39,7 @@ def show_status():
             status_icon = (
                 "✅"
                 if check["status"] == "healthy"
-                else "⚠️"
-                if check["status"] == "degraded"
-                else "❌"
+                else "⚠️" if check["status"] == "degraded" else "❌"
             )
             print(f"   {status_icon} {name}: {check['message']}")
 

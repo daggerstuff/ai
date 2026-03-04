@@ -20,13 +20,12 @@ from ai.core.pipelines.design.integration import (
 from ai.core.pipelines.design.service import NeMoDataDesignerService
 
 __all__ = [
-    'NeMoDataDesignerService',
-    'DataDesignerConfig',
-    'BiasDetectionIntegration',
-    'DatasetPipelineIntegration',
-    'TherapeuticDatasetIntegration',
-    'EdgeCaseGenerator',
-    'EdgeCaseType',
-    'EdgeCaseAPI',
+    "NeMoDataDesignerService",
+    "DataDesignerConfig",
+    "BiasDetectionIntegration",
+    "DatasetPipelineIntegration",
+    "TherapeuticDatasetIntegration",
+    "EdgeCaseGenerator",
+    "EdgeCaseType",
+    "EdgeCaseAPI",
 ]
-

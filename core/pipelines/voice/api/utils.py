@@ -120,7 +120,9 @@ class PipelineExecutor:
         self.running_jobs[job_id] = job_info
 
         # Start job execution in background
-        asyncio.create_task(self._execute_job_stages(job_id, stages, input_data, config_overrides))
+        asyncio.create_task(
+            self._execute_job_stages(job_id, stages, input_data, config_overrides)
+        )
 
         return job_id
 
@@ -142,7 +144,9 @@ class PipelineExecutor:
                 job_info.progress = i / len(stages)
 
                 # Execute stage
-                result = await self.execute_stage(stage, config_overrides=config_overrides)
+                result = await self.execute_stage(
+                    stage, config_overrides=config_overrides
+                )
 
                 if result.status == JobStatus.FAILED:
                     job_info.status = JobStatus.FAILED

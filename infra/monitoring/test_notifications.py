@@ -240,9 +240,11 @@ def print_configuration_status():
         ("Slack Channel", os.getenv("SLACK_CHANNEL", "#alerts")),
         (
             "PagerDuty Key",
-            "Configured"
-            if os.getenv("PAGERDUTY_INTEGRATION_KEY")
-            else "Not configured",
+            (
+                "Configured"
+                if os.getenv("PAGERDUTY_INTEGRATION_KEY")
+                else "Not configured"
+            ),
         ),
         (
             "Webhook URLs",

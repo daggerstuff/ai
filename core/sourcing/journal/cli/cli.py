@@ -46,7 +46,13 @@ def setup_logging(level: str = "INFO", log_file: Optional[Path] = None) -> None:
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging")
 @click.option("--log-file", type=click.Path(path_type=Path), help="Log file path")
 @click.pass_context
-def cli(ctx: click.Context, config: Optional[Path], dry_run: bool, verbose: bool, log_file: Optional[Path]) -> None:
+def cli(
+    ctx: click.Context,
+    config: Optional[Path],
+    dry_run: bool,
+    verbose: bool,
+    log_file: Optional[Path],
+) -> None:
     """Journal Dataset Research System CLI."""
     ctx.ensure_object(dict)
 
@@ -65,7 +71,9 @@ def cli(ctx: click.Context, config: Optional[Path], dry_run: bool, verbose: bool
 
 @cli.command()
 @click.option("--keywords", "-k", multiple=True, help="Search keywords")
-@click.option("--sources", "-s", multiple=True, help="Target sources (pubmed, doaj, etc.)")
+@click.option(
+    "--sources", "-s", multiple=True, help="Target sources (pubmed, doaj, etc.)"
+)
 @click.option("--session-id", help="Session ID (optional)")
 @click.option("--interactive", "-i", is_flag=True, help="Interactive mode")
 @click.pass_context
@@ -96,7 +104,9 @@ def search(
         interactive=interactive,
     )
 
-    console.print(f"\n[green]Search completed. Session ID: {result['session_id']}[/green]")
+    console.print(
+        f"\n[green]Search completed. Session ID: {result['session_id']}[/green]"
+    )
     console.print(f"Found {len(result['sources'])} sources")
 
 
@@ -192,8 +202,12 @@ def status(ctx: click.Context, session_id: Optional[str]) -> None:
 
 @cli.command()
 @click.option("--session-id", required=True, help="Session ID")
-@click.option("--output", "-o", type=click.Path(path_type=Path), help="Output file path")
-@click.option("--format", "report_format", default="json", help="Report format (json, markdown)")
+@click.option(
+    "--output", "-o", type=click.Path(path_type=Path), help="Output file path"
+)
+@click.option(
+    "--format", "report_format", default="json", help="Report format (json, markdown)"
+)
 @click.pass_context
 def report(
     ctx: click.Context,
@@ -234,6 +248,7 @@ def config_show(ctx: click.Context, key: Optional[str]) -> None:
         console.print(f"{key}: {value}")
     else:
         import json
+
         console.print(json.dumps(config_data, indent=2, default=str))
 
 
@@ -282,4 +297,3 @@ def config_get(ctx: click.Context, key: str) -> None:
 
 if __name__ == "__main__":
     cli()
-

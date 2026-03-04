@@ -143,7 +143,9 @@ class TestPriorityWeightedSampler:
         assert tier_1_weight == 0.40
 
         # Check quality thresholds are decreasing
-        thresholds = [config.quality_threshold for config in sampler.tier_configs.values()]
+        thresholds = [
+            config.quality_threshold for config in sampler.tier_configs.values()
+        ]
         assert thresholds == sorted(thresholds, reverse=True)
 
     def test_custom_config_loading(self):
@@ -269,10 +271,14 @@ class TestPriorityWeightedSampler:
         }
 
         # Low therapeutic accuracy
-        non_therapeutic_conv = {"messages": [{"content": "What did you have for lunch today?"}]}
+        non_therapeutic_conv = {
+            "messages": [{"content": "What did you have for lunch today?"}]
+        }
 
         therapeutic_score = self.sampler._assess_therapeutic_accuracy(therapeutic_conv)
-        non_therapeutic_score = self.sampler._assess_therapeutic_accuracy(non_therapeutic_conv)
+        non_therapeutic_score = self.sampler._assess_therapeutic_accuracy(
+            non_therapeutic_conv
+        )
 
         assert therapeutic_score > non_therapeutic_score
         assert therapeutic_score > 0.8
@@ -291,11 +297,15 @@ class TestPriorityWeightedSampler:
 
         # Low emotional authenticity
         non_emotional_conv = {
-            "messages": [{"content": "The process involves several steps and procedures."}]
+            "messages": [
+                {"content": "The process involves several steps and procedures."}
+            ]
         }
 
         emotional_score = self.sampler._assess_emotional_authenticity(emotional_conv)
-        non_emotional_score = self.sampler._assess_emotional_authenticity(non_emotional_conv)
+        non_emotional_score = self.sampler._assess_emotional_authenticity(
+            non_emotional_conv
+        )
 
         assert emotional_score > non_emotional_score
         assert emotional_score > 0.7
@@ -340,7 +350,9 @@ class TestPriorityWeightedSampler:
         }
 
         # Low language quality
-        low_quality_conv = {"messages": [{"content": "bad grammar no punctuation very short"}]}
+        low_quality_conv = {
+            "messages": [{"content": "bad grammar no punctuation very short"}]
+        }
 
         high_score = self.sampler._assess_language_quality(high_quality_conv)
         low_score = self.sampler._assess_language_quality(low_quality_conv)
@@ -380,7 +392,9 @@ class TestPriorityWeightedSampler:
         target_count = 50
         quality_threshold = 0.7
 
-        sampled = self.sampler.stratified_sample(conversations, target_count, quality_threshold)
+        sampled = self.sampler.stratified_sample(
+            conversations, target_count, quality_threshold
+        )
 
         # Check sample size
         assert len(sampled) <= target_count
@@ -398,7 +412,9 @@ class TestPriorityWeightedSampler:
         assert len(sampled) == 0
 
         # Zero target count
-        sampled = self.sampler.stratified_sample(self.test_conversations["tier_1_priority"], 0, 0.5)
+        sampled = self.sampler.stratified_sample(
+            self.test_conversations["tier_1_priority"], 0, 0.5
+        )
         assert len(sampled) == 0
 
         # Very high quality threshold
@@ -410,7 +426,9 @@ class TestPriorityWeightedSampler:
 
     def test_main_sampling_process(self):
         """Test the main sampling process"""
-        results = self.sampler.sample_from_tiers(self.test_conversations, target_total=100)
+        results = self.sampler.sample_from_tiers(
+            self.test_conversations, target_total=100
+        )
 
         # Check that results are returned
         assert len(results) > 0
@@ -525,8 +543,12 @@ class TestPriorityWeightedSampler:
     def test_configurable_sampling_ratios(self):
         """Test configurable sampling ratios"""
         # Test with different target totals
-        small_results = self.sampler.sample_from_tiers(self.test_conversations, target_total=50)
-        large_results = self.sampler.sample_from_tiers(self.test_conversations, target_total=200)
+        small_results = self.sampler.sample_from_tiers(
+            self.test_conversations, target_total=50
+        )
+        large_results = self.sampler.sample_from_tiers(
+            self.test_conversations, target_total=200
+        )
 
         # Should scale proportionally
         small_total = sum(len(r.samples) for r in small_results)
@@ -615,7 +637,9 @@ def test_integration():
 
     # Verify tier distribution roughly follows expected weights
     tier_1_samples = next((len(r.samples) for r in results if "Priority" in r.tier), 0)
-    tier_2_samples = next((len(r.samples) for r in results if "Professional" in r.tier), 0)
+    tier_2_samples = next(
+        (len(r.samples) for r in results if "Professional" in r.tier), 0
+    )
 
     if total_sampled > 0:
         tier_1_ratio = tier_1_samples / total_sampled

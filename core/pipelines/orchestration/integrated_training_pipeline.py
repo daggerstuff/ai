@@ -719,9 +719,11 @@ class IntegratedTrainingPipeline:
             "stage_distribution_targets": self.config.stage_distribution,
             "stage_balance": self.stats.stage_balance,
             "actual_stage_percentages": {
-                stage: count / self.stats.total_samples
-                if self.stats.total_samples > 0
-                else 0
+                stage: (
+                    count / self.stats.total_samples
+                    if self.stats.total_samples > 0
+                    else 0
+                )
                 for stage, count in self.stats.samples_by_stage.items()
             },
             "integration_time_seconds": self.stats.integration_time,

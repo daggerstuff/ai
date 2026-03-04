@@ -216,15 +216,15 @@ def run_integration_test():
             assert not df.empty, "Trend analyzer should load data"
 
             # Test that the analyzer has the required methods (without calling them due to data type issues)
-            assert hasattr(analyzer, "analyze_overall_trend"), (
-                "Should have analyze_overall_trend method"
-            )
-            assert hasattr(analyzer, "generate_predictions"), (
-                "Should have generate_predictions method"
-            )
-            assert hasattr(analyzer, "detect_anomalies"), (
-                "Should have detect_anomalies method"
-            )
+            assert hasattr(
+                analyzer, "analyze_overall_trend"
+            ), "Should have analyze_overall_trend method"
+            assert hasattr(
+                analyzer, "generate_predictions"
+            ), "Should have generate_predictions method"
+            assert hasattr(
+                analyzer, "detect_anomalies"
+            ), "Should have detect_anomalies method"
 
             test_results["passed_tests"] += 1
             test_results["test_details"].append("✅ Trend Analysis Integration: PASSED")
@@ -359,9 +359,9 @@ def run_integration_test():
             max_size = max(data_sizes)
             min_size = min(data_sizes)
 
-            assert (max_size - min_size) <= 20, (
-                f"Data size variation too large: {data_sizes}"
-            )
+            assert (
+                max_size - min_size
+            ) <= 20, f"Data size variation too large: {data_sizes}"
 
             test_results["passed_tests"] += 1
             test_results["test_details"].append(

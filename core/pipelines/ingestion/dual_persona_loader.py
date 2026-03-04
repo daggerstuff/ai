@@ -69,7 +69,9 @@ class DualPersonaConfig:
 class DualPersonaLoader:
     """Loader for dual persona training data"""
 
-    def __init__(self, config: DualPersonaConfig | None = None, file_path: Path | None = None):
+    def __init__(
+        self, config: DualPersonaConfig | None = None, file_path: Path | None = None
+    ):
         self.config = config or DualPersonaConfig()
 
         if file_path:
@@ -87,7 +89,9 @@ class DualPersonaLoader:
             else:
                 self.training_file = path
         else:
-            self.training_file = Path(self.config.output_path) / "dual_persona_training_data.jsonl"
+            self.training_file = (
+                Path(self.config.output_path) / "dual_persona_training_data.jsonl"
+            )
 
         # The original line `self.config_file = self.pipeline_dir / "training_config.json"`
         # is removed as per the user's implied change, and the problematic line
@@ -97,7 +101,9 @@ class DualPersonaLoader:
     def load_dialogues(self) -> list[DualPersonaDialogue]:
         """Load dual persona dialogues"""
         if not self.training_file.exists():
-            logger.warning(f"Dual persona training file not found: {self.training_file}")
+            logger.warning(
+                f"Dual persona training file not found: {self.training_file}"
+            )
             logger.info("Generating synthetic dual persona data...")
             return self._generate_synthetic_data()
 
@@ -252,7 +258,9 @@ class DualPersonaLoader:
             dialogues = self.load_dialogues()
 
         training_data = [dialogue.to_training_format() for dialogue in dialogues]
-        logger.info(f"Converted {len(training_data)} dual persona dialogues to training format")
+        logger.info(
+            f"Converted {len(training_data)} dual persona dialogues to training format"
+        )
         return training_data
 
     def check_data_exists(self) -> bool:

@@ -372,7 +372,6 @@ class EnterpriseCrossDatasetLinker:
             "metadata": conv.get("metadata", {}),
         }
 
-
     def _extract_text_content(self, conv: dict[str, Any]) -> str:
         """Extract text content from conversation."""
         texts = []

@@ -63,9 +63,11 @@ def make_defense_prediction(
         label_name=DEFENSE_LABELS.get(label, "Unknown"),
         confidence=confidence,
         probabilities=probs,
-        maturity_score=maturity_score
-        if maturity_score is not None
-        else DEFENSE_MATURITY.get(label),
+        maturity_score=(
+            maturity_score
+            if maturity_score is not None
+            else DEFENSE_MATURITY.get(label)
+        ),
         raw_logits=[0.0] * 9,
     )
 

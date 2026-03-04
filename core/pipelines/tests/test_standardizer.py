@@ -21,7 +21,10 @@ def test_from_simple_message_list():
 
 def test_from_input_output_pair():
     conv = from_input_output_pair(
-        "What is CBT?", "Cognitive Behavioral Therapy", conversation_id="c2", source="testset"
+        "What is CBT?",
+        "Cognitive Behavioral Therapy",
+        conversation_id="c2",
+        source="testset",
     )
     assert isinstance(conv, Conversation)
     assert conv.id == "c2"

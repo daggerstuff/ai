@@ -174,8 +174,7 @@ class ProvenanceService:
         """Create tables directly if schema file not found."""
         async with self.pg_pool.acquire() as conn:
             # Create dataset_provenance table
-            await conn.execute(
-                """
+            await conn.execute("""
                 CREATE TABLE IF NOT EXISTS dataset_provenance (
                     provenance_id VARCHAR(36) PRIMARY KEY,
                     dataset_id VARCHAR(100) NOT NULL UNIQUE,
@@ -194,12 +193,10 @@ class ProvenanceService:
                     metadata JSONB DEFAULT '{}'::jsonb,
                     provenance_document JSONB NOT NULL
                 )
-                """
-            )
+                """)
 
             # Create provenance_audit_log table
-            await conn.execute(
-                """
+            await conn.execute("""
                 CREATE TABLE IF NOT EXISTS provenance_audit_log (
                     audit_id VARCHAR(36) PRIMARY KEY,
                     provenance_id VARCHAR(36) NOT NULL,
@@ -211,8 +208,7 @@ class ProvenanceService:
                     new_value JSONB,
                     change_reason TEXT
                 )
-                """
-            )
+                """)
 
             # Create basic indexes
             await conn.execute(

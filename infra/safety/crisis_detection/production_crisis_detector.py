@@ -47,6 +47,7 @@ logger = logging.getLogger(__name__)
 
 class CrisisCategory(Enum):
     """Categories of crisis signals."""
+
     SUICIDE_IDEATION = "suicide_ideation"
     SUICIDE_PLAN = "suicide_plan"
     SUICIDE_ATTEMPT = "suicide_attempt"
@@ -63,6 +64,7 @@ class CrisisCategory(Enum):
 
 class CrisisSeverity(Enum):
     """Severity levels for crisis signals."""
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -72,6 +74,7 @@ class CrisisSeverity(Enum):
 
 class UrgencyLevel(Enum):
     """Urgency levels for crisis response."""
+
     LOW = 0
     MEDIUM = 1
     HIGH = 2
@@ -103,7 +106,7 @@ class CrisisDetectionResult:
             "urgency": self.urgency.value,
             "detected_phrases": self.detected_phrases,
             "context": self.context,
-            "timestamp": self.timestamp
+            "timestamp": self.timestamp,
         }
 
 
@@ -124,141 +127,247 @@ class CrisisDetector:
     # Suicide-related (highest urgency)
     SUICIDE_KEYWORDS = {
         # Immediate intent - IMMEDIATE urgency
-        "kill myself": 10.0, "end my life": 10.0, "end it all": 10.0,
-        "want to die": 10.0, "wish i was dead": 9.5, "suicide": 9.0,
-
+        "kill myself": 10.0,
+        "end my life": 10.0,
+        "end it all": 10.0,
+        "want to die": 10.0,
+        "wish i was dead": 9.5,
+        "suicide": 9.0,
         # Planning - HIGH urgency
-        "suicide plan": 9.5, "how to kill": 9.0, "method to": 8.0,
-        "going to end": 8.5, "planning to": 8.0,
-
+        "suicide plan": 9.5,
+        "how to kill": 9.0,
+        "method to": 8.0,
+        "going to end": 8.5,
+        "planning to": 8.0,
         # Ideation with intent - MEDIUM-HIGH urgency
-        "thinking about suicide": 7.5, "considering suicide": 7.5,
-        "want to commit suicide": 8.0, "suicidal thoughts": 7.0,
-
+        "thinking about suicide": 7.5,
+        "considering suicide": 7.5,
+        "want to commit suicide": 8.0,
+        "suicidal thoughts": 7.0,
         # Passive ideation - MEDIUM urgency
-        "don't want to live": 7.5, "dont want to live": 7.5,  # Handle missing apostrophe
-        "would be better off dead": 6.5, "better off dead": 6.5,
-        "no reason to live": 6.0, "better off without me": 6.0,
-        "want to be dead": 6.5, "wish i were dead": 7.0,
-        "cant take this": 6.0, "can't take this": 6.0,
-        "ending it": 7.5, "last night": 6.0, "final message": 6.5,
-        "goodbye letter": 7.0, "saying goodbye": 6.5,
-        "life isn't worth": 6.5, "life isnt worth": 6.5,
-        "no point in": 6.0, "no point in continuing": 6.5, "no way out": 6.5, "way out except death": 8.0,
-        "only way out": 7.0, "death is the only way": 8.0,
-        "stockpiling medication": 7.5, "stockpiling pills": 7.5,
-        "bought a gun": 8.5, "have a gun": 7.5, "got a gun": 7.5,
-        "have the pills": 7.5, "pills ready": 7.0,
-        "ending my life": 8.5, "end my suffering": 7.0,
-        "i'm going to do it": 7.5, "going to do it": 7.5,
-        "ready to go": 6.0, "ready to die": 8.0,
-        "dying inside": 6.0, "want it to be real": 5.5,
-        "killing me": 6.0, "finish the job": 7.0,
-        "can't escape": 5.5, "cant escape": 5.5,
+        "don't want to live": 7.5,
+        "dont want to live": 7.5,  # Handle missing apostrophe
+        "would be better off dead": 6.5,
+        "better off dead": 6.5,
+        "no reason to live": 6.0,
+        "better off without me": 6.0,
+        "want to be dead": 6.5,
+        "wish i were dead": 7.0,
+        "cant take this": 6.0,
+        "can't take this": 6.0,
+        "ending it": 7.5,
+        "last night": 6.0,
+        "final message": 6.5,
+        "goodbye letter": 7.0,
+        "saying goodbye": 6.5,
+        "life isn't worth": 6.5,
+        "life isnt worth": 6.5,
+        "no point in": 6.0,
+        "no point in continuing": 6.5,
+        "no way out": 6.5,
+        "way out except death": 8.0,
+        "only way out": 7.0,
+        "death is the only way": 8.0,
+        "stockpiling medication": 7.5,
+        "stockpiling pills": 7.5,
+        "bought a gun": 8.5,
+        "have a gun": 7.5,
+        "got a gun": 7.5,
+        "have the pills": 7.5,
+        "pills ready": 7.0,
+        "ending my life": 8.5,
+        "end my suffering": 7.0,
+        "i'm going to do it": 7.5,
+        "going to do it": 7.5,
+        "ready to go": 6.0,
+        "ready to die": 8.0,
+        "dying inside": 6.0,
+        "want it to be real": 5.5,
+        "killing me": 6.0,
+        "finish the job": 7.0,
+        "can't escape": 5.5,
+        "cant escape": 5.5,
     }
 
     # Self-harm
     SELF_HARM_KEYWORDS = {
-        "cut myself": 7.0, "self harm": 6.5, "self-harm": 6.5,
-        "cutting": 5.5, "burn myself": 6.0, "hurt myself": 5.5,
-        "self injury": 5.5, "self-injury": 5.5,
-        "hurt myself badly": 6.5, "need to feel pain": 6.0,
+        "cut myself": 7.0,
+        "self harm": 6.5,
+        "self-harm": 6.5,
+        "cutting": 5.5,
+        "burn myself": 6.0,
+        "hurt myself": 5.5,
+        "self injury": 5.5,
+        "self-injury": 5.5,
+        "hurt myself badly": 6.5,
+        "need to feel pain": 6.0,
     }
 
     # Violence (hurting others)
     VIOLENCE_KEYWORDS = {
-        "kill someone": 8.5, "kill someone else": 8.5,
-        "hurt someone": 7.0, "hurt others": 6.5,
-        "end someone": 8.0, "want to kill": 7.5,
-        "murder": 8.0, "violence": 5.0, "attack": 4.5,
+        "kill someone": 8.5,
+        "kill someone else": 8.5,
+        "hurt someone": 7.0,
+        "hurt others": 6.5,
+        "end someone": 8.0,
+        "want to kill": 7.5,
+        "murder": 8.0,
+        "violence": 5.0,
+        "attack": 4.5,
     }
 
     # Abuse
     ABUSE_KEYWORDS = {
-        "abusive": 5.0, "being abused": 6.0, "getting abused": 6.0,
-        "abuse me": 6.0, "rape": 8.0, "raped": 8.0,
-        "sexual assault": 8.5, "assaulted": 7.5,
-        "physical abuse": 6.5, "domestic violence": 7.0,
+        "abusive": 5.0,
+        "being abused": 6.0,
+        "getting abused": 6.0,
+        "abuse me": 6.0,
+        "rape": 8.0,
+        "raped": 8.0,
+        "sexual assault": 8.5,
+        "assaulted": 7.5,
+        "physical abuse": 6.5,
+        "domestic violence": 7.0,
     }
 
     # Addiction
     ADDICTION_KEYWORDS = {
-        "addicted": 4.0, "addiction": 4.5, "substance abuse": 5.0,
-        "drug abuse": 5.0, "alcoholism": 5.0, "alcoholic": 4.5,
-        "overdose": 7.0, " od ": 6.5, " od.": 6.5, "heroin": 5.0, "meth": 5.0,  # Add spaces to prevent "today" match
-        "can't stop": 4.5, "withdrawal": 5.0,
+        "addicted": 4.0,
+        "addiction": 4.5,
+        "substance abuse": 5.0,
+        "drug abuse": 5.0,
+        "alcoholism": 5.0,
+        "alcoholic": 4.5,
+        "overdose": 7.0,
+        " od ": 6.5,
+        " od.": 6.5,
+        "heroin": 5.0,
+        "meth": 5.0,  # Add spaces to prevent "today" match
+        "can't stop": 4.5,
+        "withdrawal": 5.0,
     }
 
     # Psychosis indicators
     PSYCHOSIS_KEYWORDS = {
-        "voices": 5.0, "hearing voices": 6.0, "hearing things": 5.5,
-        "hallucinating": 6.0, "hallucination": 5.5,
-        "delusions": 5.5, "delusional": 5.0,
-        "paranoid": 5.0, "paranoia": 5.0,
-        "reading my mind": 5.5, "controlling me": 5.0,
+        "voices": 5.0,
+        "hearing voices": 6.0,
+        "hearing things": 5.5,
+        "hallucinating": 6.0,
+        "hallucination": 5.5,
+        "delusions": 5.5,
+        "delusional": 5.0,
+        "paranoid": 5.0,
+        "paranoia": 5.0,
+        "reading my mind": 5.5,
+        "controlling me": 5.0,
     }
 
     # Severe depression indicators
     DEPRESSION_SEVERE_KEYWORDS = {
-        "hopeless": 4.5, "hopelessness": 5.5,
-        "completely hopeless": 6.5, "everything is hopeless": 6.5,
-        "can't go on": 6.0, "can't continue": 6.0, "cant continue": 6.0,
-        "no hope": 5.5, "give up": 4.5, "lost all hope": 6.5,
-        "endless suffering": 6.5, "unbearable": 6.0, "pain is unbearable": 7.0,
-        "worthless": 4.0, "useless": 3.0, "nothing matters": 3.0,
-        "burden": 4.5, "i'm a burden": 6.0,
+        "hopeless": 4.5,
+        "hopelessness": 5.5,
+        "completely hopeless": 6.5,
+        "everything is hopeless": 6.5,
+        "can't go on": 6.0,
+        "can't continue": 6.0,
+        "cant continue": 6.0,
+        "no hope": 5.5,
+        "give up": 4.5,
+        "lost all hope": 6.5,
+        "endless suffering": 6.5,
+        "unbearable": 6.0,
+        "pain is unbearable": 7.0,
+        "worthless": 4.0,
+        "useless": 3.0,
+        "nothing matters": 3.0,
+        "burden": 4.5,
+        "i'm a burden": 6.0,
         "finding a job": -2.0,  # Negative weight to reduce false positives
         "feeling sad": -1.5,  # Reduce false positives for normal sadness
     }
 
     # Severe anxiety/panic
     ANXIETY_SEVERE_KEYWORDS = {
-        "panic attack": 5.0, "having a panic": 5.0,
-        "can't breathe": 6.0, "can't stop shaking": 4.5,
-        "out of control": 5.0, "losing control": 5.0,
-        "going crazy": 5.0, "going insane": 5.0,
+        "panic attack": 5.0,
+        "having a panic": 5.0,
+        "can't breathe": 6.0,
+        "can't stop shaking": 4.5,
+        "out of control": 5.0,
+        "losing control": 5.0,
+        "going crazy": 5.0,
+        "going insane": 5.0,
         "having a heart attack": 5.0,
     }
 
     # Eating disorder
     EATING_DISORDER_KEYWORDS = {
-        "anorexic": 5.0, "bulimic": 5.0, "anorexia": 5.0,
-        "bulimia": 5.0, "starving myself": 6.0,
-        "binge eating": 4.5, "purging": 5.0,
-        "throwing up": 4.0, "vomiting food": 4.5,
+        "anorexic": 5.0,
+        "bulimic": 5.0,
+        "anorexia": 5.0,
+        "bulimia": 5.0,
+        "starving myself": 6.0,
+        "binge eating": 4.5,
+        "purging": 5.0,
+        "throwing up": 4.0,
+        "vomiting food": 4.5,
     }
 
     # === Intensity Modifiers ===
     INTENSITY_INCREASE = {
-        "definitely": 1.3, "certainly": 1.3, "seriously": 1.4,
-        "really": 1.2, "very": 1.3, "extremely": 1.5,
-        "completely": 1.4, "totally": 1.4, "absolutely": 1.5,
-        "actually": 1.2, "honestly": 1.1, "truly": 1.2,
-        "planning to": 1.6, "ready to": 1.7, "about to": 1.7,
-        "going to": 1.5, "will": 1.3,
+        "definitely": 1.3,
+        "certainly": 1.3,
+        "seriously": 1.4,
+        "really": 1.2,
+        "very": 1.3,
+        "extremely": 1.5,
+        "completely": 1.4,
+        "totally": 1.4,
+        "absolutely": 1.5,
+        "actually": 1.2,
+        "honestly": 1.1,
+        "truly": 1.2,
+        "planning to": 1.6,
+        "ready to": 1.7,
+        "about to": 1.7,
+        "going to": 1.5,
+        "will": 1.3,
     }
 
     INTENSITY_DECREASE = {
-        "maybe": 0.6, "might": 0.6, "possibly": 0.6,
-        "could be": 0.6, "sometimes": 0.7,
-        "think about": 0.7, "considering": 0.7,
-        "kind of": 0.6, "sort of": 0.6,
-        "a little": 0.5, "somewhat": 0.6,
+        "maybe": 0.6,
+        "might": 0.6,
+        "possibly": 0.6,
+        "could be": 0.6,
+        "sometimes": 0.7,
+        "think about": 0.7,
+        "considering": 0.7,
+        "kind of": 0.6,
+        "sort of": 0.6,
+        "a little": 0.5,
+        "somewhat": 0.6,
     }
 
     # === Negation Patterns (reduce confidence) ===
     NEGATIONS = {
-        "not": 1.0, "never": 1.0, "don't": 1.0, "doesn't": 1.0,
-        "didn't": 1.0, "won't": 1.0, "wouldn't": 1.0,
-        "couldn't": 1.0, "shouldn't": 1.0,
-        "no": 1.0, "neither": 1.0, "nor": 1.0,
+        "not": 1.0,
+        "never": 1.0,
+        "don't": 1.0,
+        "doesn't": 1.0,
+        "didn't": 1.0,
+        "won't": 1.0,
+        "wouldn't": 1.0,
+        "couldn't": 1.0,
+        "shouldn't": 1.0,
+        "no": 1.0,
+        "neither": 1.0,
+        "nor": 1.0,
     }
 
     def __init__(
         self,
         sensitivity_threshold: float = 0.45,  # Minimum confidence to trigger (lowered for 95% sensitivity)
         enable_logging: bool = True,
-        enable_confidence_details: bool = False
+        enable_confidence_details: bool = False,
     ):
         """
         Initialize production crisis detector.
@@ -289,42 +398,60 @@ class CrisisDetector:
         # Combine all categories with their weights
         self.keyword_patterns = {}
 
-        self.keyword_patterns.update({
-            (kw, CrisisCategory.SUICIDE_IDEATION): weight
-            for kw, weight in self.SUICIDE_KEYWORDS.items()
-        })
-        self.keyword_patterns.update({
-            (kw, CrisisCategory.SELF_HARM): weight
-            for kw, weight in self.SELF_HARM_KEYWORDS.items()
-        })
-        self.keyword_patterns.update({
-            (kw, CrisisCategory.VIOLENCE): weight
-            for kw, weight in self.VIOLENCE_KEYWORDS.items()
-        })
-        self.keyword_patterns.update({
-            (kw, CrisisCategory.ABUSE): weight
-            for kw, weight in self.ABUSE_KEYWORDS.items()
-        })
-        self.keyword_patterns.update({
-            (kw, CrisisCategory.ADDICTION): weight
-            for kw, weight in self.ADDICTION_KEYWORDS.items()
-        })
-        self.keyword_patterns.update({
-            (kw, CrisisCategory.PSYCHOSIS): weight
-            for kw, weight in self.PSYCHOSIS_KEYWORDS.items()
-        })
-        self.keyword_patterns.update({
-            (kw, CrisisCategory.DEPRESSION_SEVERE): weight
-            for kw, weight in self.DEPRESSION_SEVERE_KEYWORDS.items()
-        })
-        self.keyword_patterns.update({
-            (kw, CrisisCategory.ANXIETY_SEVERE): weight
-            for kw, weight in self.ANXIETY_SEVERE_KEYWORDS.items()
-        })
-        self.keyword_patterns.update({
-            (kw, CrisisCategory.EATING_DISORDER): weight
-            for kw, weight in self.EATING_DISORDER_KEYWORDS.items()
-        })
+        self.keyword_patterns.update(
+            {
+                (kw, CrisisCategory.SUICIDE_IDEATION): weight
+                for kw, weight in self.SUICIDE_KEYWORDS.items()
+            }
+        )
+        self.keyword_patterns.update(
+            {
+                (kw, CrisisCategory.SELF_HARM): weight
+                for kw, weight in self.SELF_HARM_KEYWORDS.items()
+            }
+        )
+        self.keyword_patterns.update(
+            {
+                (kw, CrisisCategory.VIOLENCE): weight
+                for kw, weight in self.VIOLENCE_KEYWORDS.items()
+            }
+        )
+        self.keyword_patterns.update(
+            {
+                (kw, CrisisCategory.ABUSE): weight
+                for kw, weight in self.ABUSE_KEYWORDS.items()
+            }
+        )
+        self.keyword_patterns.update(
+            {
+                (kw, CrisisCategory.ADDICTION): weight
+                for kw, weight in self.ADDICTION_KEYWORDS.items()
+            }
+        )
+        self.keyword_patterns.update(
+            {
+                (kw, CrisisCategory.PSYCHOSIS): weight
+                for kw, weight in self.PSYCHOSIS_KEYWORDS.items()
+            }
+        )
+        self.keyword_patterns.update(
+            {
+                (kw, CrisisCategory.DEPRESSION_SEVERE): weight
+                for kw, weight in self.DEPRESSION_SEVERE_KEYWORDS.items()
+            }
+        )
+        self.keyword_patterns.update(
+            {
+                (kw, CrisisCategory.ANXIETY_SEVERE): weight
+                for kw, weight in self.ANXIETY_SEVERE_KEYWORDS.items()
+            }
+        )
+        self.keyword_patterns.update(
+            {
+                (kw, CrisisCategory.EATING_DISORDER): weight
+                for kw, weight in self.EATING_DISORDER_KEYWORDS.items()
+            }
+        )
 
         # Compile regex patterns for case-insensitive matching
         self.compiled_patterns = {}
@@ -370,7 +497,7 @@ class CrisisDetector:
                 urgency=UrgencyLevel.LOW,
                 detected_phrases=[],
                 context={"reason": "insufficient_text"},
-                timestamp=datetime.now(timezone.utc).isoformat()
+                timestamp=datetime.now(timezone.utc).isoformat(),
             )
 
         # Analyze for crisis signals
@@ -388,7 +515,7 @@ class CrisisDetector:
                 "analysis_details": analysis.get("details", {}),
                 "text_length": len(text),
             },
-            timestamp=datetime.now(timezone.utc).isoformat()
+            timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
     def _extract_text(self, input_data: Any) -> str:
@@ -410,8 +537,12 @@ class CrisisDetector:
                     # Handle messages array
                     if isinstance(value, list):
                         return " ".join(
-                            msg.get("content", msg) if isinstance(msg, dict)
-                            else str(msg) for msg in value
+                            (
+                                msg.get("content", msg)
+                                if isinstance(msg, dict)
+                                else str(msg)
+                            )
+                            for msg in value
                         )
 
                     return str(value).strip()
@@ -479,7 +610,7 @@ class CrisisDetector:
                 "keyword_matches": [],
                 "intensity_score": 1.0,
                 "negation_score": 1.0,
-            }
+            },
         }
 
         text_lower = text.lower()
@@ -500,16 +631,16 @@ class CrisisDetector:
 
                 # Record matches
                 for match in matches:
-                    keyword_matches.append({
-                        "phrase": match,
-                        "category": category.value,
-                        "weight": weight,
-                    })
+                    keyword_matches.append(
+                        {
+                            "phrase": match,
+                            "category": category.value,
+                            "weight": weight,
+                        }
+                    )
                     results["detected_phrases"].append(match)
 
-        results["details"]["keyword_matches"] = (
-            keyword_matches
-        )
+        results["details"]["keyword_matches"] = keyword_matches
 
         # 2. Intensity analysis
         intensity_modifier = 1.0
@@ -610,11 +741,13 @@ class CrisisDetector:
         for pattern, severity in suicide_plan_patterns:
             if re.search(pattern, text_lower):
                 # Elevate to suicide_plan category
-                results["details"].setdefault("patterns", []).append({
-                    "type": "suicide_plan",
-                    "match": pattern,
-                    "severity": severity.value
-                })
+                results["details"].setdefault("patterns", []).append(
+                    {
+                        "type": "suicide_plan",
+                        "match": pattern,
+                        "severity": severity.value,
+                    }
+                )
 
                 # Increase confidence significantly
                 results["details"].setdefault("pattern_boost", {})
@@ -629,11 +762,13 @@ class CrisisDetector:
 
         for pattern, severity in self_harm_methods:
             if re.search(pattern, text_lower):
-                results["details"].setdefault("patterns", []).append({
-                    "type": "self_harm_method",
-                    "match": pattern,
-                    "severity": severity.value
-                })
+                results["details"].setdefault("patterns", []).append(
+                    {
+                        "type": "self_harm_method",
+                        "match": pattern,
+                        "severity": severity.value,
+                    }
+                )
                 results["details"].setdefault("pattern_boost", {})
                 results["details"]["pattern_boost"]["self_harm_method"] = 2.0
 
@@ -656,9 +791,7 @@ class CrisisDetector:
                 results["urgency"] = UrgencyLevel.HIGH
 
     def _determine_severity(
-        self,
-        score: float,
-        category: CrisisCategory
+        self, score: float, category: CrisisCategory
     ) -> CrisisSeverity:
         """
         Determine severity level based on score and category.
@@ -683,9 +816,7 @@ class CrisisDetector:
             return CrisisSeverity.LOW
 
     def _determine_urgency(
-        self,
-        category: CrisisCategory,
-        severity: CrisisSeverity
+        self, category: CrisisCategory, severity: CrisisSeverity
     ) -> UrgencyLevel:
         """
         Determine urgency level based on category and severity.
@@ -736,6 +867,7 @@ class CrisisDetector:
 
 
 # Convenience functions for backward compatibility and easier use
+
 
 def detect_crisis(input_data: Any) -> bool:
     """

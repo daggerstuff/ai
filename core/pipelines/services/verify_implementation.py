@@ -90,9 +90,7 @@ def main():
         print("\nNext steps:")
         print("1. Run database migration: db/provenance_schema.sql")
         print("2. Set environment variables: DATABASE_URL, S3_BUCKET")
-        print(
-            "3. Test CLI: python -m ai.pipelines.cli.provenance_cli init-schema"
-        )
+        print("3. Test CLI: python -m ai.pipelines.cli.provenance_cli init-schema")
         return 0
     else:
         print("❌ Some verifications failed")

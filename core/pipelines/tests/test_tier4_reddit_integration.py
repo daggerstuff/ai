@@ -64,9 +64,9 @@ class TestTier4RedditLoader:
         ]
 
         for condition in expected_conditions:
-            assert condition in loader.condition_datasets, (
-                f"Expected condition '{condition}' not found in Tier 4 datasets"
-            )
+            assert (
+                condition in loader.condition_datasets
+            ), f"Expected condition '{condition}' not found in Tier 4 datasets"
 
         logger.info(
             f"✓ Tier 4 configured with {len(loader.condition_datasets)} conditions"
@@ -186,9 +186,9 @@ class TestTier4RedditLoader:
         # Should cover major mental health conditions
         major_conditions = ["depression", "anxiety", "PTSD", "bipolar"]
         for condition in major_conditions:
-            assert condition in conditions, (
-                f"Major condition '{condition}' should be in Tier 4"
-            )
+            assert (
+                condition in conditions
+            ), f"Major condition '{condition}' should be in Tier 4"
 
         # Should cover specialized populations
         specialized = ["autism", "ADHD", "eating_disorders"]

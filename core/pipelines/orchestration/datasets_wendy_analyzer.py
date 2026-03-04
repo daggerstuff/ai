@@ -34,7 +34,9 @@ class DatasetsWendyAnalyzer:
     """Analyzes datasets-wendy priority files for therapeutic conversation processing."""
 
     def __init__(
-        self, datasets_wendy_path: str = "./datasets-wendy", output_dir: str = "./analyzed_datasets"
+        self,
+        datasets_wendy_path: str = "./datasets-wendy",
+        output_dir: str = "./analyzed_datasets",
     ):
         self.datasets_wendy_path = Path(datasets_wendy_path)
         self.output_dir = Path(output_dir)
@@ -106,7 +108,9 @@ class DatasetsWendyAnalyzer:
 
         return summary
 
-    def analyze_priority_dataset(self, priority_level: int) -> WendyDatasetAnalysis | None:
+    def analyze_priority_dataset(
+        self, priority_level: int
+    ) -> WendyDatasetAnalysis | None:
         """Analyze a specific priority dataset."""
         if priority_level not in self.priority_files:
             logger.error(f"Unknown priority level: {priority_level}")
@@ -172,7 +176,12 @@ class DatasetsWendyAnalyzer:
                     ],
                     "quality_rating": config["expected_quality"] + (i % 10) * 0.01,
                     "session_type": ["initial", "follow_up", "crisis"][i % 3],
-                    "therapeutic_approach": ["CBT", "DBT", "Humanistic", "Psychodynamic"][i % 4],
+                    "therapeutic_approach": [
+                        "CBT",
+                        "DBT",
+                        "Humanistic",
+                        "Psychodynamic",
+                    ][i % 4],
                 },
             }
             conversations.append(conversation)
@@ -218,7 +227,9 @@ class DatasetsWendyAnalyzer:
                         conv = json.loads(line)
                         conversations.append(conv)
                     except json.JSONDecodeError as e:
-                        logger.warning(f"Invalid JSON on line {line_num} in {jsonl_path}: {e}")
+                        logger.warning(
+                            f"Invalid JSON on line {line_num} in {jsonl_path}: {e}"
+                        )
 
         return conversations
 
@@ -255,16 +266,20 @@ class DatasetsWendyAnalyzer:
                 therapeutic_categories.add(category)
 
         # Calculate overall quality
-        overall_quality = sum(quality_scores) / len(quality_scores) if quality_scores else 0.0
+        overall_quality = (
+            sum(quality_scores) / len(quality_scores) if quality_scores else 0.0
+        )
 
         # Create analysis metadata
         analysis_metadata = {
             "conversation_count": len(conversations),
             "average_quality": overall_quality,
-            "quality_variance": sum((q - overall_quality) ** 2 for q in quality_scores)
-            / len(quality_scores)
-            if quality_scores
-            else 0,
+            "quality_variance": (
+                sum((q - overall_quality) ** 2 for q in quality_scores)
+                / len(quality_scores)
+                if quality_scores
+                else 0
+            ),
             "therapeutic_category_coverage": len(therapeutic_categories)
             / len(self.therapeutic_categories),
             "summary_data": summary_data,
@@ -283,7 +298,9 @@ class DatasetsWendyAnalyzer:
 
     def _save_individual_analysis(self, analysis: WendyDatasetAnalysis):
         """Save individual priority analysis."""
-        output_file = self.output_dir / f"priority_{analysis.priority_level}_analysis.json"
+        output_file = (
+            self.output_dir / f"priority_{analysis.priority_level}_analysis.json"
+        )
 
         analysis_data = {
             "priority_level": analysis.priority_level,

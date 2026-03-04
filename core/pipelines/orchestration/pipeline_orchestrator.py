@@ -606,9 +606,11 @@ class PipelineOrchestrator:
                         metadata={
                             "source_id": dataset.source_id,
                             "evaluation_score": evaluation_score,
-                            "integration_plan": integration_plan.__dict__
-                            if hasattr(integration_plan, "__dict__")
-                            else {},
+                            "integration_plan": (
+                                integration_plan.__dict__
+                                if hasattr(integration_plan, "__dict__")
+                                else {}
+                            ),
                         },
                     )
 

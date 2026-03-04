@@ -107,9 +107,7 @@ class CrisisGenerator:
         stage = (
             "initial"
             if exchange_num <= 2
-            else "middle"
-            if exchange_num <= 5
-            else "resolution"
+            else "middle" if exchange_num <= 5 else "resolution"
         )
 
         prompt = f"""Generate a realistic message from someone in a {scenario["name"]} crisis.

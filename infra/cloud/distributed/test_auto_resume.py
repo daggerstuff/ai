@@ -185,9 +185,9 @@ class AutoResumeTestSuite:
 
         assert success, "Resume should succeed"
         assert resume_called, "Resume handler should be called"
-        assert resume_data["process_id"] == process_id, (
-            "Resume data should contain correct process ID"
-        )
+        assert (
+            resume_data["process_id"] == process_id
+        ), "Resume data should contain correct process ID"
 
         self.test_results.append(
             {
@@ -278,17 +278,17 @@ class AutoResumeTestSuite:
             resume_step = resume_point["resume_step"]
 
             if strategy == ResumeStrategy.EXACT_CONTINUATION:
-                assert resume_step == original_state.completed_steps, (
-                    "Exact continuation should resume from current step"
-                )
+                assert (
+                    resume_step == original_state.completed_steps
+                ), "Exact continuation should resume from current step"
             elif strategy == ResumeStrategy.ROLLBACK_AND_RETRY:
-                assert resume_step < original_state.completed_steps, (
-                    "Rollback should resume from earlier step"
-                )
+                assert (
+                    resume_step < original_state.completed_steps
+                ), "Rollback should resume from earlier step"
             elif strategy == ResumeStrategy.PARTIAL_RESTART:
-                assert resume_step <= original_state.completed_steps * 0.9, (
-                    "Partial restart should go back significantly"
-                )
+                assert (
+                    resume_step <= original_state.completed_steps * 0.9
+                ), "Partial restart should go back significantly"
             elif strategy == ResumeStrategy.FULL_RESTART:
                 assert resume_step == 0, "Full restart should start from beginning"
 
@@ -341,9 +341,9 @@ class AutoResumeTestSuite:
             assert success, f"Resume should succeed for {interruption_type.value}"
 
         # Verify all strategies were tested
-        assert len(strategies_tested) == len(test_cases), (
-            "All strategies should be tested"
-        )
+        assert len(strategies_tested) == len(
+            test_cases
+        ), "All strategies should be tested"
 
         self.test_results.append(
             {
@@ -406,9 +406,9 @@ class AutoResumeTestSuite:
         # Verify priority ordering (critical should be first)
         if len(resume_calls) > 1:
             first_call = resume_calls[0]
-            assert "critical" in first_call["process_id"], (
-                "Critical process should resume first"
-            )
+            assert (
+                "critical" in first_call["process_id"]
+            ), "Critical process should resume first"
 
         # Get orchestrator status
         status = self.orchestrator.get_orchestrator_status()
@@ -494,9 +494,9 @@ class AutoResumeTestSuite:
         if len(completion_order) >= 2:
             fast_index = completion_order.index("dependency_fast")
             slow_index = completion_order.index("dependent_slow")
-            assert fast_index < slow_index, (
-                "Dependency should complete before dependent"
-            )
+            assert (
+                fast_index < slow_index
+            ), "Dependency should complete before dependent"
 
         self.test_results.append(
             {
@@ -551,9 +551,9 @@ class AutoResumeTestSuite:
 
         # Critical should be first if multiple processed
         if len(resume_order) > 1:
-            assert "critical" in resume_order[0], (
-                "Critical priority should be processed first"
-            )
+            assert (
+                "critical" in resume_order[0]
+            ), "Critical priority should be processed first"
 
         self.test_results.append(
             {
@@ -617,9 +617,9 @@ class AutoResumeTestSuite:
         # Check that resource limits were respected
         for log_entry in resource_usage_log:
             cpu_utilization = log_entry["resource_utilization"]["cpu_intensive"]
-            assert cpu_utilization["used"] <= cpu_utilization["total"], (
-                "Should not exceed resource limits"
-            )
+            assert (
+                cpu_utilization["used"] <= cpu_utilization["total"]
+            ), "Should not exceed resource limits"
 
         self.test_results.append(
             {
@@ -676,9 +676,9 @@ class AutoResumeTestSuite:
 
         # Verify concurrency was managed
         assert max_concurrent > 1, "Should have concurrent resumes"
-        assert max_concurrent <= self.orchestrator.max_concurrent_resumes, (
-            "Should respect concurrency limits"
-        )
+        assert (
+            max_concurrent <= self.orchestrator.max_concurrent_resumes
+        ), "Should respect concurrency limits"
 
         self.test_results.append(
             {
@@ -808,12 +808,12 @@ class AutoResumeTestSuite:
             avg_resume_time = max_resume_time = min_resume_time = 0
 
         # Performance assertions
-        assert avg_resume_time < 1.0, (
-            f"Average resume time too slow: {avg_resume_time:.3f}s"
-        )
-        assert total_time < 10.0, (
-            f"Total orchestration time too slow: {total_time:.3f}s"
-        )
+        assert (
+            avg_resume_time < 1.0
+        ), f"Average resume time too slow: {avg_resume_time:.3f}s"
+        assert (
+            total_time < 10.0
+        ), f"Total orchestration time too slow: {total_time:.3f}s"
 
         self.test_results.append(
             {

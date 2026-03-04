@@ -284,9 +284,11 @@ class PerformanceAuditor:
                     severity="HIGH",
                     description=f"Function '{func_node.name}' has {nested_loops} levels of nested loops",
                     suggestion="Consider optimizing algorithm complexity or using vectorized operations",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     estimated_impact="HIGH",
                     optimization_category="ALGORITHMIC_COMPLEXITY",
                 )
@@ -306,9 +308,11 @@ class PerformanceAuditor:
                     severity="MEDIUM",
                     description=f"Function '{func_node.name}' uses inefficient string concatenation",
                     suggestion="Use join() method or f-strings for better performance",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     estimated_impact="MEDIUM",
                     optimization_category="CPU_INTENSIVE",
                 )
@@ -328,9 +332,11 @@ class PerformanceAuditor:
                     severity="HIGH",
                     description=f"Function '{func_node.name}' performs I/O operations inside loops",
                     suggestion="Move I/O operations outside loops or use batch operations",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     estimated_impact="HIGH",
                     optimization_category="IO_BOTTLENECK",
                 )
@@ -350,9 +356,11 @@ class PerformanceAuditor:
                     severity="HIGH",
                     description=f"Function '{func_node.name}' executes database queries inside loops",
                     suggestion="Use bulk operations or optimize query structure",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     estimated_impact="HIGH",
                     optimization_category="DATABASE_BOTTLENECK",
                 )
@@ -373,9 +381,11 @@ class PerformanceAuditor:
                     severity="MEDIUM",
                     description=f"Function '{func_node.name}' uses inefficient list operations",
                     suggestion="Use list comprehensions or generator expressions",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     estimated_impact="MEDIUM",
                     optimization_category="MEMORY_INEFFICIENCY",
                 )
@@ -395,9 +405,11 @@ class PerformanceAuditor:
                     severity="MEDIUM",
                     description=f"Function '{func_node.name}' has expensive operations that could be cached",
                     suggestion="Implement caching using @lru_cache or similar mechanisms",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     estimated_impact="MEDIUM",
                     optimization_category="CACHING",
                 )

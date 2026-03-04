@@ -49,7 +49,12 @@ logger = logging.getLogger(__name__)
 # Training pipeline schema definition
 TRAINING_PIPELINE_SCHEMA = {
     "required_fields": ["messages", "id", "source"],
-    "optional_fields": ["timestamp", "quality_score", "tags", "mental_health_condition"],
+    "optional_fields": [
+        "timestamp",
+        "quality_score",
+        "tags",
+        "mental_health_condition",
+    ],
     "message_structure": {
         "role": ["user", "assistant", "system"],
         "content": "string",
@@ -160,9 +165,7 @@ class PipelineFormatConverter:
         Returns:
             ConversionResult with conversion statistics
         """
-        logger.info(
-            f"Converting dataset {dataset.source_id} to {target_format} format"
-        )
+        logger.info(f"Converting dataset {dataset.source_id} to {target_format} format")
         start_time = datetime.now(timezone.utc)
 
         errors = []
@@ -172,7 +175,9 @@ class PipelineFormatConverter:
 
         try:
             # Load dataset based on format
-            raw_data = self._load_dataset(dataset.storage_path, integration_plan.dataset_format)
+            raw_data = self._load_dataset(
+                dataset.storage_path, integration_plan.dataset_format
+            )
 
             # Convert records
             converted_records = []
@@ -186,7 +191,9 @@ class PipelineFormatConverter:
                         records_converted += 1
                     else:
                         records_failed += 1
-                        warnings.append(f"Record {idx} skipped: conversion returned None")
+                        warnings.append(
+                            f"Record {idx} skipped: conversion returned None"
+                        )
                 except Exception as e:
                     records_failed += 1
                     errors.append(f"Record {idx} conversion failed: {str(e)}")
@@ -376,7 +383,9 @@ class PipelineFormatConverter:
                 if content:
                     # Try to find role in record
                     role = record.get("role", "user")
-                    messages.append({"role": self._normalize_role(role), "content": str(content)})
+                    messages.append(
+                        {"role": self._normalize_role(role), "content": str(content)}
+                    )
         else:
             # Try to extract from conversation structure
             # Look for role/content fields in schema mapping
@@ -386,7 +395,11 @@ class PipelineFormatConverter:
             for dataset_field, pipeline_field in schema_mapping.items():
                 if "role" in pipeline_field.lower() or "role" in dataset_field.lower():
                     role_field = dataset_field
-                if "content" in pipeline_field.lower() or "text" in dataset_field.lower() or "message" in dataset_field.lower():
+                if (
+                    "content" in pipeline_field.lower()
+                    or "text" in dataset_field.lower()
+                    or "message" in dataset_field.lower()
+                ):
                     content_field = dataset_field
 
             # If not found in mapping, try direct field names
@@ -407,7 +420,9 @@ class PipelineFormatConverter:
                 role = record.get(role_field, "user")
                 content = record.get(content_field, "")
                 if content:
-                    messages.append({"role": self._normalize_role(role), "content": str(content)})
+                    messages.append(
+                        {"role": self._normalize_role(role), "content": str(content)}
+                    )
             elif content_field:
                 # Only content found - assume user role
                 content = record.get(content_field, "")
@@ -445,26 +460,32 @@ class PipelineFormatConverter:
             if isinstance(raw_turns, list):
                 for turn in raw_turns:
                     if isinstance(turn, dict):
-                        speaker_id = turn.get("speaker_id") or turn.get("speaker", "unknown")
+                        speaker_id = turn.get("speaker_id") or turn.get(
+                            "speaker", "unknown"
+                        )
                         content = turn.get("content") or turn.get("text", "")
                         if content:
-                            turns.append({
-                                "speaker_id": self._normalize_speaker(speaker_id),
-                                "content": content,
-                                "timestamp": turn.get("timestamp"),
-                                "metadata": turn.get("metadata", {}),
-                            })
+                            turns.append(
+                                {
+                                    "speaker_id": self._normalize_speaker(speaker_id),
+                                    "content": content,
+                                    "timestamp": turn.get("timestamp"),
+                                    "metadata": turn.get("metadata", {}),
+                                }
+                            )
         else:
             # Try to extract from message structure
             messages = self._extract_messages(record, schema_mapping)
             for msg in messages:
                 speaker_id = "therapist" if msg["role"] == "assistant" else "client"
-                turns.append({
-                    "speaker_id": speaker_id,
-                    "content": msg["content"],
-                    "timestamp": None,
-                    "metadata": {},
-                })
+                turns.append(
+                    {
+                        "speaker_id": speaker_id,
+                        "content": msg["content"],
+                        "timestamp": None,
+                        "metadata": {},
+                    }
+                )
 
         return turns
 
@@ -531,7 +552,10 @@ class PipelineSchemaValidator:
         logger.info("Initialized Pipeline Schema Validator")
 
     def validate_dataset(
-        self, dataset_path: str, target_format: str = "chatml", format: Optional[str] = None
+        self,
+        dataset_path: str,
+        target_format: str = "chatml",
+        format: Optional[str] = None,
     ) -> ValidationResult:
         """
         Validate dataset against training pipeline schema.
@@ -575,22 +599,24 @@ class PipelineSchemaValidator:
                         records_passed += 1
                     else:
                         records_failed += 1
-                        errors.append({
-                            "record_index": idx,
-                            "record_id": record.get("id", "unknown"),
-                            "error": "Record failed validation",
-                        })
+                        errors.append(
+                            {
+                                "record_index": idx,
+                                "record_id": record.get("id", "unknown"),
+                                "error": "Record failed validation",
+                            }
+                        )
                 except Exception as e:
                     records_failed += 1
-                    errors.append({
-                        "record_index": idx,
-                        "record_id": record.get("id", "unknown"),
-                        "error": str(e),
-                    })
+                    errors.append(
+                        {
+                            "record_index": idx,
+                            "record_id": record.get("id", "unknown"),
+                            "error": str(e),
+                        }
+                    )
 
-            validation_time = (
-                datetime.now(timezone.utc) - start_time
-            ).total_seconds()
+            validation_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
             result = ValidationResult(
                 valid=records_failed == 0,
@@ -609,12 +635,12 @@ class PipelineSchemaValidator:
             return result
 
         except Exception as e:
-            validation_time = (
-                datetime.now(timezone.utc) - start_time
-            ).total_seconds()
-            errors.append({
-                "error": f"Validation failed: {str(e)}",
-            })
+            validation_time = (datetime.now(timezone.utc) - start_time).total_seconds()
+            errors.append(
+                {
+                    "error": f"Validation failed: {str(e)}",
+                }
+            )
             logger.error(f"Dataset validation failed: {e}", exc_info=True)
 
             return ValidationResult(
@@ -647,7 +673,9 @@ class PipelineSchemaValidator:
 
         # Source is recommended but not strictly required
         if "source" not in record:
-            logger.warning("Record missing 'source' field (recommended but not required)")
+            logger.warning(
+                "Record missing 'source' field (recommended but not required)"
+            )
 
         # Validate messages structure
         messages = record.get("messages", [])
@@ -661,7 +689,9 @@ class PipelineSchemaValidator:
             if "role" not in msg:
                 raise ValueError("Message missing 'role' field")
             if msg["role"] not in valid_roles:
-                raise ValueError(f"Invalid role: {msg['role']}. Must be one of {valid_roles}")
+                raise ValueError(
+                    f"Invalid role: {msg['role']}. Must be one of {valid_roles}"
+                )
             if "content" not in msg:
                 raise ValueError("Message missing 'content' field")
             if not isinstance(msg["content"], str):
@@ -749,7 +779,9 @@ class DatasetMerger:
             existing_dataset_path = dataset2_path
 
         if not new_dataset_path or not existing_dataset_path:
-            raise ValueError("Both new_dataset_path and existing_dataset_path (or dataset1_path and dataset2_path) must be provided")
+            raise ValueError(
+                "Both new_dataset_path and existing_dataset_path (or dataset1_path and dataset2_path) must be provided"
+            )
 
         logger.info(
             f"Merging datasets: {new_dataset_path} + {existing_dataset_path} -> {output_path}"
@@ -771,7 +803,9 @@ class DatasetMerger:
             )
 
             # Create content hashes for deduplication
-            existing_hashes = self._create_content_hashes(existing_records, target_format)
+            existing_hashes = self._create_content_hashes(
+                existing_records, target_format
+            )
             new_hashes = self._create_content_hashes(new_records, target_format)
 
             # Find duplicates (compare hash keys, not values)
@@ -1004,7 +1038,9 @@ class DatasetMerger:
                 else:
                     duplicates_removed += 1
 
-            logger.info(f"Removed {duplicates_removed} duplicates, {len(unique_records)} unique records")
+            logger.info(
+                f"Removed {duplicates_removed} duplicates, {len(unique_records)} unique records"
+            )
 
             # Save deduplicated dataset
             self._save_merged_dataset(unique_records, output_path, target_format)
@@ -1098,11 +1134,13 @@ class QualityChecker:
 
                 if record_errors:
                     records_failed += 1
-                    errors.append({
-                        "record_index": idx,
-                        "record_id": record.get("id", "unknown"),
-                        "errors": record_errors,
-                    })
+                    errors.append(
+                        {
+                            "record_index": idx,
+                            "record_id": record.get("id", "unknown"),
+                            "errors": record_errors,
+                        }
+                    )
                 else:
                     records_passed += 1
 
@@ -1135,9 +1173,11 @@ class QualityChecker:
 
         except Exception as e:
             check_time = (datetime.now(timezone.utc) - start_time).total_seconds()
-            errors.append({
-                "error": f"Quality check failed: {str(e)}",
-            })
+            errors.append(
+                {
+                    "error": f"Quality check failed: {str(e)}",
+                }
+            )
             logger.error(f"Quality check failed: {e}", exc_info=True)
 
             return QualityCheckResult(
@@ -1220,7 +1260,10 @@ class QualityChecker:
                 for msg in messages:
                     if "role" not in msg or "content" not in msg:
                         return False
-                    if not isinstance(msg["content"], str) or not msg["content"].strip():
+                    if (
+                        not isinstance(msg["content"], str)
+                        or not msg["content"].strip()
+                    ):
                         return False
 
             elif target_format == "conversation_record":
@@ -1236,7 +1279,10 @@ class QualityChecker:
                 for turn in turns:
                     if "speaker_id" not in turn or "content" not in turn:
                         return False
-                    if not isinstance(turn["content"], str) or not turn["content"].strip():
+                    if (
+                        not isinstance(turn["content"], str)
+                        or not turn["content"].strip()
+                    ):
                         return False
 
             return True
@@ -1248,7 +1294,13 @@ class QualityChecker:
         """Check therapeutic content in dataset (convenience method)."""
         result = self.check_quality(dataset_path, target_format="chatml")
         # Add therapeutic content score based on keywords
-        therapeutic_keywords = ["therapy", "counseling", "depression", "anxiety", "mental health"]
+        therapeutic_keywords = [
+            "therapy",
+            "counseling",
+            "depression",
+            "anxiety",
+            "mental health",
+        ]
         records = self._load_dataset(dataset_path)
         therapeutic_count = 0
         for record in records:
@@ -1295,7 +1347,9 @@ class QualityChecker:
                 # Check that messages have meaningful content (relaxed for test compatibility)
                 for msg in messages:
                     content = msg.get("content", "")
-                    if len(content.strip()) < 1:  # Minimum content length (just non-empty)
+                    if (
+                        len(content.strip()) < 1
+                    ):  # Minimum content length (just non-empty)
                         return False
 
             elif target_format == "conversation_record":
@@ -1314,4 +1368,3 @@ class QualityChecker:
 
         except Exception:
             return False
-

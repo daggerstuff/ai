@@ -215,9 +215,11 @@ class LoggingAuditor:
                             suggestion=self._generate_logging_suggestion(
                                 func.name, "critical"
                             ),
-                            code_snippet=func_content[:200] + "..."
-                            if len(func_content) > 200
-                            else func_content,
+                            code_snippet=(
+                                func_content[:200] + "..."
+                                if len(func_content) > 200
+                                else func_content
+                            ),
                         )
                     )
                 else:
@@ -232,9 +234,11 @@ class LoggingAuditor:
                             suggestion=self._generate_logging_suggestion(
                                 func.name, "standard"
                             ),
-                            code_snippet=func_content[:200] + "..."
-                            if len(func_content) > 200
-                            else func_content,
+                            code_snippet=(
+                                func_content[:200] + "..."
+                                if len(func_content) > 200
+                                else func_content
+                            ),
                         )
                     )
 
@@ -272,9 +276,9 @@ class LoggingAuditor:
                         severity="MEDIUM",
                         description="Using print() instead of proper logging",
                         suggestion="Replace print() with appropriate logging level (info, debug, warning, error)",
-                        code_snippet=lines[line_num - 1]
-                        if line_num <= len(lines)
-                        else "",
+                        code_snippet=(
+                            lines[line_num - 1] if line_num <= len(lines) else ""
+                        ),
                     )
                 )
 
@@ -384,9 +388,11 @@ logger.debug(f"Executing {func_name}")
             "logging_coverage": f"{self.stats.logging_coverage_percent:.1f}%",
             "files_with_logging": f"{self.stats.files_with_logging}/{self.stats.total_files}",
             "critical_functions_missing_logging": self.stats.critical_functions_without_logging,
-            "error_handlers_coverage": f"{self.stats.error_handling_with_logging}/{self.stats.total_error_handlers}"
-            if self.stats.total_error_handlers > 0
-            else "0/0",
+            "error_handlers_coverage": (
+                f"{self.stats.error_handling_with_logging}/{self.stats.total_error_handlers}"
+                if self.stats.total_error_handlers > 0
+                else "0/0"
+            ),
         }
 
     def generate_report(self, output_file: str | None = None) -> str:

@@ -748,12 +748,12 @@ class ResearchInstrumentAcquisition:
             "types": {},
             "languages": {},
             "licenses": {},
-            "average_confidence": sum(
-                instrument.confidence_score for instrument in instruments
-            )
-            / len(instruments)
-            if instruments
-            else 0,
+            "average_confidence": (
+                sum(instrument.confidence_score for instrument in instruments)
+                / len(instruments)
+                if instruments
+                else 0
+            ),
         }
 
         for instrument in instruments:

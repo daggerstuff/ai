@@ -19,15 +19,15 @@ class ProductionV5:
         """Production crisis detection"""
         try:
             result = self.detector.detect_crisis(text)
-            result['production_timestamp'] = datetime.now().isoformat()
-            result['user_id'] = user_id
+            result["production_timestamp"] = datetime.now().isoformat()
+            result["user_id"] = user_id
             return result
         except Exception as e:
             return {
-                'is_crisis': False,
-                'confidence': 0.0,
-                'error': str(e),
-                'production_timestamp': datetime.now().isoformat()
+                "is_crisis": False,
+                "confidence": 0.0,
+                "error": str(e),
+                "production_timestamp": datetime.now().isoformat(),
             }
 
 

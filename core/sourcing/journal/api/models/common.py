@@ -53,11 +53,11 @@ class PaginatedResponse(BaseModel, Generic[T]):
 
     @classmethod
     def create(
-            cls,
-            items: List[T],
-            total: int,
-            page: int,
-            page_size: int,
+        cls,
+        items: List[T],
+        total: int,
+        page: int,
+        page_size: int,
     ) -> "PaginatedResponse[T]":
         """Create a paginated response."""
         total_pages = (total + page_size - 1) // page_size if total > 0 else 0

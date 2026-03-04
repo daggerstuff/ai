@@ -178,4 +178,3 @@ acquire_datasets(
 """
 
         return template
-

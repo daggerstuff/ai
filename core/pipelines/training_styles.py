@@ -13,6 +13,7 @@ from ai.core.pipelines.storage_config import get_dataset_pipeline_output_root
 
 class TrainingStyle(Enum):
     """Available training styles"""
+
     FEW_SHOT = "few_shot"
     SELF_SUPERVISED = "self_supervised"
     SUPERVISED = "supervised"
@@ -26,6 +27,7 @@ class TrainingStyle(Enum):
 
 class OptimizationStrategy(Enum):
     """Optimization strategies for training"""
+
     ADAM = "adam"
     ADAMW = "adamw"
     SGD = "sgd"
@@ -36,6 +38,7 @@ class OptimizationStrategy(Enum):
 
 class SchedulerType(Enum):
     """Learning rate scheduler types"""
+
     LINEAR = "linear"
     COSINE = "cosine"
     COSINE_WITH_RESTARTS = "cosine_with_restarts"
@@ -48,6 +51,7 @@ class SchedulerType(Enum):
 
 class LossFunction(Enum):
     """Loss function types"""
+
     CROSS_ENTROPY = "cross_entropy"
     MEAN_SQUARED_ERROR = "mean_squared_error"
     HUBER = "huber"
@@ -60,6 +64,7 @@ class LossFunction(Enum):
 
 class EvaluationMetric(Enum):
     """Evaluation metrics"""
+
     ACCURACY = "accuracy"
     PRECISION = "precision"
     RECALL = "recall"
@@ -74,6 +79,7 @@ class EvaluationMetric(Enum):
 
 class SafetyThreshold(Enum):
     """Safety thresholds for different training styles"""
+
     STRICT = "strict"  # Conservative, high safety
     MODERATE = "moderate"  # Balanced safety and performance
     PERMISSIVE = "permissive"  # Performance-focused, lower safety
@@ -82,6 +88,7 @@ class SafetyThreshold(Enum):
 @dataclass
 class BaseTrainingConfig:
     """Base configuration for all training styles"""
+
     config_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     style: TrainingStyle = TrainingStyle.SUPERVISED
     name: str = "default_training"
@@ -111,9 +118,13 @@ class BaseTrainingConfig:
     # Evaluation
     evaluation_strategy: str = "steps"
     eval_steps: int = 500
-    evaluation_metrics: List[EvaluationMetric] = field(default_factory=lambda: [
-        EvaluationMetric.ACCURACY, EvaluationMetric.F1_SCORE, EvaluationMetric.EMPATHY_SCORE
-    ])
+    evaluation_metrics: List[EvaluationMetric] = field(
+        default_factory=lambda: [
+            EvaluationMetric.ACCURACY,
+            EvaluationMetric.F1_SCORE,
+            EvaluationMetric.EMPATHY_SCORE,
+        ]
+    )
 
     # Checkpointing
     save_strategy: str = "steps"
@@ -123,7 +134,9 @@ class BaseTrainingConfig:
 
     # Logging
     logging_steps: int = 10
-    logging_dir: str = field(default_factory=lambda: str(get_dataset_pipeline_output_root() / "logs"))
+    logging_dir: str = field(
+        default_factory=lambda: str(get_dataset_pipeline_output_root() / "logs")
+    )
     report_to: List[str] = field(default_factory=lambda: ["wandb", "tensorboard"])
 
     # Hardware
@@ -146,6 +159,7 @@ class BaseTrainingConfig:
 @dataclass
 class FewShotConfig(BaseTrainingConfig):
     """Configuration for few-shot learning"""
+
     style: TrainingStyle = TrainingStyle.FEW_SHOT
 
     # Few-shot specific parameters
@@ -161,9 +175,13 @@ class FewShotConfig(BaseTrainingConfig):
     inner_loop_lr: float = 1e-3
 
     # Evaluation
-    evaluation_metrics: List[EvaluationMetric] = field(default_factory=lambda: [
-        EvaluationMetric.ACCURACY, EvaluationMetric.F1_SCORE, EvaluationMetric.EMPATHY_SCORE
-    ])
+    evaluation_metrics: List[EvaluationMetric] = field(
+        default_factory=lambda: [
+            EvaluationMetric.ACCURACY,
+            EvaluationMetric.F1_SCORE,
+            EvaluationMetric.EMPATHY_SCORE,
+        ]
+    )
 
     # Safety for few-shot
     safety_threshold: SafetyThreshold = SafetyThreshold.STRICT
@@ -174,6 +192,7 @@ class FewShotConfig(BaseTrainingConfig):
 @dataclass
 class SelfSupervisedConfig(BaseTrainingConfig):
     """Configuration for self-supervised learning"""
+
     style: TrainingStyle = TrainingStyle.SELF_SUPERVISED
 
     # Self-supervised specific parameters
@@ -194,12 +213,17 @@ class SelfSupervisedConfig(BaseTrainingConfig):
 
     # Data augmentation
     augmentation_enabled: bool = True
-    augmentation_strategies: List[str] = field(default_factory=lambda: ["synonym_replacement", "random_deletion"])
+    augmentation_strategies: List[str] = field(
+        default_factory=lambda: ["synonym_replacement", "random_deletion"]
+    )
 
     # Evaluation
-    evaluation_metrics: List[EvaluationMetric] = field(default_factory=lambda: [
-        EvaluationMetric.PERPLEXITY, EvaluationMetric.EMPATHY_SCORE
-    ])
+    evaluation_metrics: List[EvaluationMetric] = field(
+        default_factory=lambda: [
+            EvaluationMetric.PERPLEXITY,
+            EvaluationMetric.EMPATHY_SCORE,
+        ]
+    )
 
     # Safety for self-supervised
     safety_threshold: SafetyThreshold = SafetyThreshold.MODERATE
@@ -209,6 +233,7 @@ class SelfSupervisedConfig(BaseTrainingConfig):
 @dataclass
 class SupervisedConfig(BaseTrainingConfig):
     """Configuration for supervised learning"""
+
     style: TrainingStyle = TrainingStyle.SUPERVISED
 
     # Supervised specific parameters
@@ -225,10 +250,16 @@ class SupervisedConfig(BaseTrainingConfig):
     early_stopping_threshold: float = 0.0
 
     # Evaluation
-    evaluation_metrics: List[EvaluationMetric] = field(default_factory=lambda: [
-        EvaluationMetric.ACCURACY, EvaluationMetric.PRECISION, EvaluationMetric.RECALL,
-        EvaluationMetric.F1_SCORE, EvaluationMetric.EMPATHY_SCORE, EvaluationMetric.THERAPEUTIC_APPROPRIATENESS
-    ])
+    evaluation_metrics: List[EvaluationMetric] = field(
+        default_factory=lambda: [
+            EvaluationMetric.ACCURACY,
+            EvaluationMetric.PRECISION,
+            EvaluationMetric.RECALL,
+            EvaluationMetric.F1_SCORE,
+            EvaluationMetric.EMPATHY_SCORE,
+            EvaluationMetric.THERAPEUTIC_APPROPRIATENESS,
+        ]
+    )
 
     # Safety for supervised
     safety_threshold: SafetyThreshold = SafetyThreshold.STRICT
@@ -238,6 +269,7 @@ class SupervisedConfig(BaseTrainingConfig):
 @dataclass
 class UnsupervisedConfig(BaseTrainingConfig):
     """Configuration for unsupervised learning"""
+
     style: TrainingStyle = TrainingStyle.UNSUPERVISED
 
     # Unsupervised specific parameters
@@ -253,12 +285,14 @@ class UnsupervisedConfig(BaseTrainingConfig):
 
     # Pattern discovery
     pattern_discovery_enabled: bool = True
-    pattern_types: List[str] = field(default_factory=lambda: ["sequential", "associative"])
+    pattern_types: List[str] = field(
+        default_factory=lambda: ["sequential", "associative"]
+    )
 
     # Evaluation
-    evaluation_metrics: List[EvaluationMetric] = field(default_factory=lambda: [
-        EvaluationMetric.PERPLEXITY
-    ])
+    evaluation_metrics: List[EvaluationMetric] = field(
+        default_factory=lambda: [EvaluationMetric.PERPLEXITY]
+    )
 
     # Safety for unsupervised
     safety_threshold: SafetyThreshold = SafetyThreshold.MODERATE
@@ -268,10 +302,13 @@ class UnsupervisedConfig(BaseTrainingConfig):
 @dataclass
 class ReinforcementConfig(BaseTrainingConfig):
     """Configuration for reinforcement learning"""
+
     style: TrainingStyle = TrainingStyle.REINFORCEMENT
 
     # Reinforcement specific parameters
-    reward_function: str = "therapeutic_outcome"  # therapeutic_outcome, conversation_quality, empathy_score
+    reward_function: str = (
+        "therapeutic_outcome"  # therapeutic_outcome, conversation_quality, empathy_score
+    )
     exploration_rate: float = 0.1
     exploration_decay: float = 0.995
     min_exploration_rate: float = 0.01
@@ -292,9 +329,13 @@ class ReinforcementConfig(BaseTrainingConfig):
     environment_type: str = "therapeutic_conversation"
 
     # Evaluation
-    evaluation_metrics: List[EvaluationMetric] = field(default_factory=lambda: [
-        EvaluationMetric.ACCURACY, EvaluationMetric.EMPATHY_SCORE, EvaluationMetric.THERAPEUTIC_APPROPRIATENESS
-    ])
+    evaluation_metrics: List[EvaluationMetric] = field(
+        default_factory=lambda: [
+            EvaluationMetric.ACCURACY,
+            EvaluationMetric.EMPATHY_SCORE,
+            EvaluationMetric.THERAPEUTIC_APPROPRIATENESS,
+        ]
+    )
 
     # Safety for reinforcement
     safety_threshold: SafetyThreshold = SafetyThreshold.STRICT
@@ -304,12 +345,15 @@ class ReinforcementConfig(BaseTrainingConfig):
 @dataclass
 class TransferLearningConfig(BaseTrainingConfig):
     """Configuration for transfer learning"""
+
     style: TrainingStyle = TrainingStyle.TRANSFER_LEARNING
 
     # Transfer learning specific parameters
     source_model: str = "microsoft/DialoGPT-medium"
     target_domain: str = "therapeutic_conversations"
-    transfer_method: str = "fine_tuning"  # fine_tuning, feature_extraction, adapter_tuning
+    transfer_method: str = (
+        "fine_tuning"  # fine_tuning, feature_extraction, adapter_tuning
+    )
 
     # Fine-tuning parameters
     layers_to_freeze: int = 0
@@ -327,9 +371,13 @@ class TransferLearningConfig(BaseTrainingConfig):
     alpha: float = 0.5
 
     # Evaluation
-    evaluation_metrics: List[EvaluationMetric] = field(default_factory=lambda: [
-        EvaluationMetric.ACCURACY, EvaluationMetric.F1_SCORE, EvaluationMetric.EMPATHY_SCORE
-    ])
+    evaluation_metrics: List[EvaluationMetric] = field(
+        default_factory=lambda: [
+            EvaluationMetric.ACCURACY,
+            EvaluationMetric.F1_SCORE,
+            EvaluationMetric.EMPATHY_SCORE,
+        ]
+    )
 
     # Safety for transfer learning
     safety_threshold: SafetyThreshold = SafetyThreshold.MODERATE
@@ -339,6 +387,7 @@ class TransferLearningConfig(BaseTrainingConfig):
 @dataclass
 class MetaLearningConfig(BaseTrainingConfig):
     """Configuration for meta learning"""
+
     style: TrainingStyle = TrainingStyle.META_LEARNING
 
     # Meta learning specific parameters
@@ -363,9 +412,9 @@ class MetaLearningConfig(BaseTrainingConfig):
     distance_metric: str = "euclidean"  # euclidean, cosine, manhattan
 
     # Evaluation
-    evaluation_metrics: List[EvaluationMetric] = field(default_factory=lambda: [
-        EvaluationMetric.ACCURACY, EvaluationMetric.F1_SCORE
-    ])
+    evaluation_metrics: List[EvaluationMetric] = field(
+        default_factory=lambda: [EvaluationMetric.ACCURACY, EvaluationMetric.F1_SCORE]
+    )
 
     # Safety for meta learning
     safety_threshold: SafetyThreshold = SafetyThreshold.MODERATE
@@ -375,6 +424,7 @@ class MetaLearningConfig(BaseTrainingConfig):
 @dataclass
 class ContinualLearningConfig(BaseTrainingConfig):
     """Configuration for continual learning"""
+
     style: TrainingStyle = TrainingStyle.CONTINUAL_LEARNING
 
     # Continual learning specific parameters
@@ -398,9 +448,9 @@ class ContinualLearningConfig(BaseTrainingConfig):
     task_similarity_threshold: float = 0.8
 
     # Evaluation
-    evaluation_metrics: List[EvaluationMetric] = field(default_factory=lambda: [
-        EvaluationMetric.ACCURACY, EvaluationMetric.F1_SCORE
-    ])
+    evaluation_metrics: List[EvaluationMetric] = field(
+        default_factory=lambda: [EvaluationMetric.ACCURACY, EvaluationMetric.F1_SCORE]
+    )
 
     # Safety for continual learning
     safety_threshold: SafetyThreshold = SafetyThreshold.STRICT
@@ -417,6 +467,7 @@ class DPOConfig(BaseTrainingConfig):
     Based on the paper: "Direct Preference Optimization: Your Language Model is
     Secretly a Reward Model" (Rafailov et al., 2023)
     """
+
     style: TrainingStyle = TrainingStyle.DPO
     loss_function: LossFunction = LossFunction.DPO
 
@@ -432,7 +483,9 @@ class DPOConfig(BaseTrainingConfig):
     prompt_column: str = "prompt"  # Column name for prompt/context
 
     # Reference model
-    reference_model: Optional[str] = None  # Path to reference model (if different from base)
+    reference_model: Optional[str] = (
+        None  # Path to reference model (if different from base)
+    )
     ref_model_mixins: bool = False  # Use mixin for reference model
     sync_ref_model: bool = False  # Sync reference model with policy
 
@@ -464,17 +517,27 @@ class DPOConfig(BaseTrainingConfig):
     toxicity_threshold: float = 0.02  # Stricter toxicity threshold for alignment
 
     # Evaluation
-    evaluation_metrics: List[EvaluationMetric] = field(default_factory=lambda: [
-        EvaluationMetric.ACCURACY, EvaluationMetric.F1_SCORE,
-        EvaluationMetric.EMPATHY_SCORE, EvaluationMetric.THERAPEUTIC_APPROPRIATENESS
-    ])
+    evaluation_metrics: List[EvaluationMetric] = field(
+        default_factory=lambda: [
+            EvaluationMetric.ACCURACY,
+            EvaluationMetric.F1_SCORE,
+            EvaluationMetric.EMPATHY_SCORE,
+            EvaluationMetric.THERAPEUTIC_APPROPRIATENESS,
+        ]
+    )
 
     # DPO-specific metadata
-    metadata: Dict[str, Any] = field(default_factory=lambda: {
-        "training_type": "preference_learning",
-        "alignment_method": "direct_preference_optimization",
-        "suitable_for": ["response_quality", "safety_alignment", "therapeutic_style"]
-    })
+    metadata: Dict[str, Any] = field(
+        default_factory=lambda: {
+            "training_type": "preference_learning",
+            "alignment_method": "direct_preference_optimization",
+            "suitable_for": [
+                "response_quality",
+                "safety_alignment",
+                "therapeutic_style",
+            ],
+        }
+    )
 
 
 class TrainingStyleManager:
@@ -509,7 +572,7 @@ class TrainingStyleManager:
                 "requires_high_quality": True,
                 "suitable_domains": ["therapeutic", "clinical", "conversational"],
                 "computational_requirements": "medium",
-                "memory_requirements": "medium"
+                "memory_requirements": "medium",
             },
             TrainingStyle.SELF_SUPERVISED: {
                 "min_dataset_size": 1000,
@@ -518,7 +581,7 @@ class TrainingStyleManager:
                 "requires_high_quality": False,
                 "suitable_domains": ["conversational", "synthetic", "multimodal"],
                 "computational_requirements": "high",
-                "memory_requirements": "high"
+                "memory_requirements": "high",
             },
             TrainingStyle.SUPERVISED: {
                 "min_dataset_size": 100,
@@ -527,7 +590,7 @@ class TrainingStyleManager:
                 "requires_high_quality": True,
                 "suitable_domains": ["therapeutic", "clinical", "conversational"],
                 "computational_requirements": "medium",
-                "memory_requirements": "medium"
+                "memory_requirements": "medium",
             },
             TrainingStyle.UNSUPERVISED: {
                 "min_dataset_size": 500,
@@ -536,7 +599,7 @@ class TrainingStyleManager:
                 "requires_high_quality": False,
                 "suitable_domains": ["conversational", "synthetic"],
                 "computational_requirements": "medium",
-                "memory_requirements": "medium"
+                "memory_requirements": "medium",
             },
             TrainingStyle.REINFORCEMENT: {
                 "min_dataset_size": 200,
@@ -545,7 +608,7 @@ class TrainingStyleManager:
                 "requires_high_quality": True,
                 "suitable_domains": ["therapeutic", "clinical"],
                 "computational_requirements": "very_high",
-                "memory_requirements": "high"
+                "memory_requirements": "high",
             },
             TrainingStyle.TRANSFER_LEARNING: {
                 "min_dataset_size": 100,
@@ -554,7 +617,7 @@ class TrainingStyleManager:
                 "requires_high_quality": True,
                 "suitable_domains": ["therapeutic", "clinical", "conversational"],
                 "computational_requirements": "medium",
-                "memory_requirements": "medium"
+                "memory_requirements": "medium",
             },
             TrainingStyle.META_LEARNING: {
                 "min_dataset_size": 1000,
@@ -563,7 +626,7 @@ class TrainingStyleManager:
                 "requires_high_quality": True,
                 "suitable_domains": ["therapeutic", "conversational"],
                 "computational_requirements": "very_high",
-                "memory_requirements": "very_high"
+                "memory_requirements": "very_high",
             },
             TrainingStyle.CONTINUAL_LEARNING: {
                 "min_dataset_size": 500,
@@ -572,7 +635,7 @@ class TrainingStyleManager:
                 "requires_high_quality": True,
                 "suitable_domains": ["therapeutic", "clinical", "conversational"],
                 "computational_requirements": "high",
-                "memory_requirements": "very_high"
+                "memory_requirements": "very_high",
             },
             TrainingStyle.DPO: {
                 "min_dataset_size": 500,
@@ -580,11 +643,16 @@ class TrainingStyleManager:
                 "requires_labels": True,  # Requires preference pairs (chosen/rejected)
                 "requires_high_quality": True,
                 "requires_preference_pairs": True,
-                "suitable_domains": ["therapeutic", "clinical", "conversational", "safety_alignment"],
+                "suitable_domains": [
+                    "therapeutic",
+                    "clinical",
+                    "conversational",
+                    "safety_alignment",
+                ],
                 "computational_requirements": "high",
                 "memory_requirements": "high",
-                "description": "Direct Preference Optimization for aligning model responses with human preferences"
-            }
+                "description": "Direct Preference Optimization for aligning model responses with human preferences",
+            },
         }
 
     def _build_optimization_strategies(self) -> Dict[str, Dict[str, Any]]:
@@ -595,29 +663,29 @@ class TrainingStyleManager:
                 "batch_size": 16,
                 "learning_rate": 5e-5,
                 "logging_steps": 50,
-                "evaluation_strategy": "no"
+                "evaluation_strategy": "no",
             },
             "balanced": {
                 "num_epochs": 3,
                 "batch_size": 8,
                 "learning_rate": 2e-5,
                 "logging_steps": 10,
-                "evaluation_strategy": "steps"
+                "evaluation_strategy": "steps",
             },
             "high_quality": {
                 "num_epochs": 5,
                 "batch_size": 4,
                 "learning_rate": 1e-5,
                 "logging_steps": 5,
-                "evaluation_strategy": "steps"
+                "evaluation_strategy": "steps",
             },
             "resource_efficient": {
                 "num_epochs": 2,
                 "batch_size": 32,
                 "learning_rate": 3e-5,
                 "gradient_accumulation_steps": 4,
-                "fp16": True
-            }
+                "fp16": True,
+            },
         }
 
     def create_config(self, style: TrainingStyle, **kwargs) -> BaseTrainingConfig:
@@ -628,23 +696,29 @@ class TrainingStyleManager:
 
         return config_class(**kwargs)
 
-    def select_optimal_style(self, dataset_metadata: Dict[str, Any],
-                           training_goals: Dict[str, Any]) -> TrainingStyle:
+    def select_optimal_style(
+        self, dataset_metadata: Dict[str, Any], training_goals: Dict[str, Any]
+    ) -> TrainingStyle:
         """Select the optimal training style based on dataset and goals"""
         # Score each style
         style_scores = {}
 
         for style in TrainingStyle:
-            score = self._score_style_suitability(style, dataset_metadata, training_goals)
+            score = self._score_style_suitability(
+                style, dataset_metadata, training_goals
+            )
             style_scores[style] = score
 
         # Return the best style
         best_style = max(style_scores, key=style_scores.get)
         return best_style
 
-    def _score_style_suitability(self, style: TrainingStyle,
-                               dataset_metadata: Dict[str, Any],
-                               training_goals: Dict[str, Any]) -> float:
+    def _score_style_suitability(
+        self,
+        style: TrainingStyle,
+        dataset_metadata: Dict[str, Any],
+        training_goals: Dict[str, Any],
+    ) -> float:
         """Score how suitable a training style is for given dataset and goals"""
         requirements = self.style_requirements.get(style, {})
         score = 0.0
@@ -652,7 +726,7 @@ class TrainingStyleManager:
         # Check dataset size
         dataset_size = dataset_metadata.get("record_count", 0)
         min_size = requirements.get("min_dataset_size", 0)
-        max_size = requirements.get("max_dataset_size", float('inf'))
+        max_size = requirements.get("max_dataset_size", float("inf"))
 
         if dataset_size >= min_size and dataset_size <= max_size:
             score += 0.3
@@ -703,8 +777,9 @@ class TrainingStyleManager:
 
         return max(score, 0.0)
 
-    def optimize_config(self, config: BaseTrainingConfig,
-                       optimization_strategy: str = "balanced") -> BaseTrainingConfig:
+    def optimize_config(
+        self, config: BaseTrainingConfig, optimization_strategy: str = "balanced"
+    ) -> BaseTrainingConfig:
         """Optimize configuration based on strategy"""
         strategy_params = self.optimization_strategies.get(optimization_strategy, {})
 
@@ -775,9 +850,13 @@ class TrainingStyleManager:
         # Safety validation
         if config.safety_threshold == SafetyThreshold.STRICT:
             if config.max_crisis_content_ratio > 0.15:
-                errors.append("Strict safety threshold requires crisis content ratio <= 0.15")
+                errors.append(
+                    "Strict safety threshold requires crisis content ratio <= 0.15"
+                )
             if config.toxicity_threshold > 0.05:
-                errors.append("Strict safety threshold requires toxicity threshold <= 0.05")
+                errors.append(
+                    "Strict safety threshold requires toxicity threshold <= 0.05"
+                )
 
         return errors
 
@@ -806,50 +885,50 @@ class TrainingStyleManager:
                 "description": "Few-shot learning for limited data scenarios",
                 "best_for": "Small, high-quality datasets with clear patterns",
                 "requirements": "High-quality labeled data, clear task definition",
-                "pitfalls": "Overfitting on small datasets, poor generalization"
+                "pitfalls": "Overfitting on small datasets, poor generalization",
             },
             TrainingStyle.SELF_SUPERVISED: {
                 "description": "Self-supervised learning from unlabeled data",
                 "best_for": "Large datasets without labels, representation learning",
                 "requirements": "Large amounts of text data, computational resources",
-                "pitfalls": "Requires significant compute, may not capture specific patterns"
+                "pitfalls": "Requires significant compute, may not capture specific patterns",
             },
             TrainingStyle.SUPERVISED: {
                 "description": "Standard supervised learning with labeled data",
                 "best_for": "Well-labeled datasets with clear objectives",
                 "requirements": "High-quality labeled data, balanced classes",
-                "pitfalls": "Requires labeled data, may overfit on small datasets"
+                "pitfalls": "Requires labeled data, may overfit on small datasets",
             },
             TrainingStyle.UNSUPERVISED: {
                 "description": "Unsupervised learning for pattern discovery",
                 "best_for": "Exploratory analysis, pattern discovery, clustering",
                 "requirements": "Sufficient data for meaningful patterns",
-                "pitfalls": "Results may be hard to interpret, requires domain expertise"
+                "pitfalls": "Results may be hard to interpret, requires domain expertise",
             },
             TrainingStyle.REINFORCEMENT: {
                 "description": "Reinforcement learning for strategy optimization",
                 "best_for": "Optimizing conversation strategies, policy learning",
                 "requirements": "Clear reward signals, environment simulation",
-                "pitfalls": "Complex setup, requires careful reward design"
+                "pitfalls": "Complex setup, requires careful reward design",
             },
             TrainingStyle.TRANSFER_LEARNING: {
                 "description": "Transfer learning from pre-trained models",
                 "best_for": "Adapting general models to therapeutic domains",
                 "requirements": "Pre-trained model, domain-specific data",
-                "pitfalls": "Domain mismatch, catastrophic forgetting"
+                "pitfalls": "Domain mismatch, catastrophic forgetting",
             },
             TrainingStyle.META_LEARNING: {
                 "description": "Meta learning for fast adaptation",
                 "best_for": "Learning to learn, few-shot adaptation",
                 "requirements": "Diverse tasks, sufficient meta-training data",
-                "pitfalls": "Complex implementation, requires careful task design"
+                "pitfalls": "Complex implementation, requires careful task design",
             },
             TrainingStyle.CONTINUAL_LEARNING: {
                 "description": "Continual learning for evolving data",
                 "best_for": "Streaming data, evolving conversation patterns",
                 "requirements": "Memory management, regularization strategies",
-                "pitfalls": "Forgetting previous knowledge, memory constraints"
-            }
+                "pitfalls": "Forgetting previous knowledge, memory constraints",
+            },
         }
 
         return guidance.get(style, {})
@@ -872,13 +951,13 @@ def test_training_styles():
         "has_labels": True,
         "quality_score": 0.9,
         "category": "therapeutic",
-        "available_compute": "high"
+        "available_compute": "high",
     }
 
     training_goals = {
         "objective": "high_accuracy",
         "available_compute": "high",
-        "time_constraints": "moderate"
+        "time_constraints": "moderate",
     }
 
     optimal_style = manager.select_optimal_style(dataset_metadata, training_goals)

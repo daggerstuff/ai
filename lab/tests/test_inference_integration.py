@@ -373,9 +373,9 @@ class TestPerformanceBenchmarks(unittest.TestCase):
 
             batch_results[batch_size] = {
                 "total_time_ms": processing_time,
-                "time_per_item_ms": processing_time / batch_size
-                if batch_size > 0
-                else 0,
+                "time_per_item_ms": (
+                    processing_time / batch_size if batch_size > 0 else 0
+                ),
             }
 
         self.benchmark_results["batch_processing"] = batch_results
@@ -430,9 +430,9 @@ class TestPerformanceBenchmarks(unittest.TestCase):
             "concurrent_requests": concurrent_requests,
             "successful_responses": len(successful_responses),
             "total_time_ms": total_time,
-            "requests_per_second": concurrent_requests / (total_time / 1000)
-            if total_time > 0
-            else 0,
+            "requests_per_second": (
+                concurrent_requests / (total_time / 1000) if total_time > 0 else 0
+            ),
         }
 
         # Should handle most requests successfully
@@ -633,9 +633,9 @@ def test_model_adapter_interfaces():
         "get_model_info",
     ]
     for method in methods:
-        assert hasattr(BaseModelAdapter, method), (
-            f"BaseModelAdapter missing method: {method}"
-        )
+        assert hasattr(
+            BaseModelAdapter, method
+        ), f"BaseModelAdapter missing method: {method}"
 
 
 def test_safety_filter_interfaces():
@@ -696,12 +696,12 @@ def benchmark_api_latency():
         print(f"  99th percentile: {p99_latency:.2f}ms")
 
         # Assert reasonable performance
-        assert avg_latency < 200, (
-            f"Average latency {avg_latency:.2f}ms exceeds threshold"
-        )
-        assert p99_latency < 500, (
-            f"99th percentile latency {p99_latency:.2f}ms exceeds threshold"
-        )
+        assert (
+            avg_latency < 200
+        ), f"Average latency {avg_latency:.2f}ms exceeds threshold"
+        assert (
+            p99_latency < 500
+        ), f"99th percentile latency {p99_latency:.2f}ms exceeds threshold"
 
 
 def benchmark_throughput():

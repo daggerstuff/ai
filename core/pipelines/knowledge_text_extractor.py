@@ -62,7 +62,8 @@ class KnowledgeTextExtractor:
     ):
         self.registry_path = Path(registry_path)
         self.cache_dir = Path(
-            cache_dir or os.getenv("KNOWLEDGE_SOURCES_LOCAL_CACHE", "/tmp/knowledge_sources")
+            cache_dir
+            or os.getenv("KNOWLEDGE_SOURCES_LOCAL_CACHE", "/tmp/knowledge_sources")
         )
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         self.text_cache_dir = self.cache_dir / "extracted_text"
@@ -121,7 +122,9 @@ class KnowledgeTextExtractor:
             )
 
         # Parse already integrated sources
-        for source_id, info in knowledge_sources.get("existing_integrated_pdfs", {}).items():
+        for source_id, info in knowledge_sources.get(
+            "existing_integrated_pdfs", {}
+        ).items():
             self.sources[source_id] = KnowledgeSourceMetadata(
                 source_id=source_id,
                 title=info.get("title", "Unknown Title"),
@@ -230,7 +233,12 @@ class KnowledgeTextExtractor:
             # Convert using calibre
             try:
                 subprocess.run(
-                    ["ebook-convert", str(local_epub), str(local_txt), "--enable-heuristics"],
+                    [
+                        "ebook-convert",
+                        str(local_epub),
+                        str(local_txt),
+                        "--enable-heuristics",
+                    ],
                     check=True,
                     capture_output=True,
                     text=True,
@@ -302,7 +310,12 @@ class KnowledgeTextExtractor:
             # Convert using calibre
             try:
                 subprocess.run(
-                    ["ebook-convert", str(local_azw3), str(local_txt), "--enable-heuristics"],
+                    [
+                        "ebook-convert",
+                        str(local_azw3),
+                        str(local_txt),
+                        "--enable-heuristics",
+                    ],
                     check=True,
                     capture_output=True,
                     text=True,
@@ -365,7 +378,10 @@ class KnowledgeTextExtractor:
                     sentences = paragraph.replace(". ", ".\n").split("\n")
                     current_chunk = ""
                     for sentence in sentences:
-                        if len((current_chunk + " " + sentence).split()) <= self.chunk_size:
+                        if (
+                            len((current_chunk + " " + sentence).split())
+                            <= self.chunk_size
+                        ):
                             current_chunk = (current_chunk + " " + sentence).strip()
                         else:
                             if current_chunk:
@@ -430,7 +446,9 @@ class KnowledgeTextExtractor:
                 logger.warning(f"Failed to extract text from {source_id}")
 
         total_chunks = sum(len(chunks) for chunks in all_chunks.values())
-        logger.info(f"Extracted {total_chunks} total chunks from {len(all_chunks)} sources")
+        logger.info(
+            f"Extracted {total_chunks} total chunks from {len(all_chunks)} sources"
+        )
 
         return all_chunks
 
@@ -446,10 +464,14 @@ class KnowledgeTextExtractor:
 
         for source_id, source in self.sources.items():
             # Count by type
-            stats["by_type"][source.source_type] = stats["by_type"].get(source.source_type, 0) + 1
+            stats["by_type"][source.source_type] = (
+                stats["by_type"].get(source.source_type, 0) + 1
+            )
 
             # Count by priority
-            stats["by_priority"][source.priority] = stats["by_priority"].get(source.priority, 0) + 1
+            stats["by_priority"][source.priority] = (
+                stats["by_priority"].get(source.priority, 0) + 1
+            )
 
             # Check if cached
             if self.is_text_cached(source_id):
@@ -480,7 +502,9 @@ def main():
     logger.info("\nKnowledge Sources:")
     for source_id, source in extractor.sources.items():
         cached = "✓" if extractor.is_text_cached(source_id) else "○"
-        logger.info(f"  [{cached}] {source.title} ({source.author}) - {source.priority}")
+        logger.info(
+            f"  [{cached}] {source.title} ({source.author}) - {source.priority}"
+        )
 
 
 if __name__ == "__main__":

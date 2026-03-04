@@ -89,15 +89,16 @@ def list_pipeline_configs() -> Dict[str, Any]:
             },
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": result,
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": result,
+                    "meta": {"timestamp": datetime.utcnow().isoformat()},
+                }
+            ),
+            200,
+        )
 
     except ValueError as e:
         logger.warning(f"Invalid pagination parameters: {e}")
@@ -157,15 +158,16 @@ def get_pipeline_config(config_id: str) -> Dict[str, Any]:
             extra={"user_id": current_user["id"], "config_id": config_id},
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {"config": config},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {"config": config},
+                    "meta": {"timestamp": datetime.utcnow().isoformat()},
+                }
+            ),
+            200,
+        )
 
     except PipelineNotFoundError:
         raise
@@ -252,15 +254,16 @@ def create_pipeline_config() -> Dict[str, Any]:
             extra={"user_id": current_user["id"], "config_id": config["id"]},
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {"config": config},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
-            }
-        ), 201
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {"config": config},
+                    "meta": {"timestamp": datetime.utcnow().isoformat()},
+                }
+            ),
+            201,
+        )
 
     except ValidationError:
         raise
@@ -337,15 +340,16 @@ def update_pipeline_config(config_id: str) -> Dict[str, Any]:
             extra={"user_id": current_user["id"], "config_id": config_id},
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {"config": config},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {"config": config},
+                    "meta": {"timestamp": datetime.utcnow().isoformat()},
+                }
+            ),
+            200,
+        )
 
     except ValidationError:
         raise
@@ -400,15 +404,16 @@ def delete_pipeline_config(config_id: str) -> Dict[str, Any]:
             extra={"user_id": current_user["id"], "config_id": config_id},
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {"message": "Pipeline config deleted successfully"},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {"message": "Pipeline config deleted successfully"},
+                    "meta": {"timestamp": datetime.utcnow().isoformat()},
+                }
+            ),
+            200,
+        )
 
     except PipelineNotFoundError:
         raise
@@ -495,15 +500,16 @@ def execute_pipeline() -> Dict[str, Any]:
             },
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {"execution": execution},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
-            }
-        ), 201
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {"execution": execution},
+                    "meta": {"timestamp": datetime.utcnow().isoformat()},
+                }
+            ),
+            201,
+        )
 
     except ValidationError:
         raise
@@ -572,15 +578,16 @@ def get_pipeline_execution(execution_id: str) -> Dict[str, Any]:
             },
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {"execution": execution},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {"execution": execution},
+                    "meta": {"timestamp": datetime.utcnow().isoformat()},
+                }
+            ),
+            200,
+        )
 
     except PipelineNotFoundError:
         raise
@@ -640,15 +647,16 @@ def cancel_pipeline_execution(execution_id: str) -> Dict[str, Any]:
             },
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {"execution": execution},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {"execution": execution},
+                    "meta": {"timestamp": datetime.utcnow().isoformat()},
+                }
+            ),
+            200,
+        )
 
     except PipelineNotFoundError:
         raise
@@ -727,15 +735,16 @@ def list_pipeline_executions() -> Dict[str, Any]:
             },
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": result,
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": result,
+                    "meta": {"timestamp": datetime.utcnow().isoformat()},
+                }
+            ),
+            200,
+        )
 
     except ValueError as e:
         logger.warning(f"Invalid pagination parameters: {e}")
@@ -786,15 +795,16 @@ def get_pipeline_stages() -> Dict[str, Any]:
             extra={"user_id": current_user["id"]},
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {"stages": stages},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {"stages": stages},
+                    "meta": {"timestamp": datetime.utcnow().isoformat()},
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.error(f"Error retrieving pipeline stages: {e}")
@@ -835,15 +845,16 @@ def get_pipeline_health() -> Dict[str, Any]:
             extra={"status": health["status"]},
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {"health": health},
-                "meta": {
-                    "timestamp": datetime.utcnow().isoformat()
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {"health": health},
+                    "meta": {"timestamp": datetime.utcnow().isoformat()},
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         logger.error(f"Error retrieving pipeline health: {e}")

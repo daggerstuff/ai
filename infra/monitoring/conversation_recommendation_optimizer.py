@@ -230,15 +230,21 @@ class ConversationRecommendationOptimizer:
             content_metrics.append(
                 {
                     "flesch_score": flesch_score,
-                    "questions_per_100_words": questions / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
-                    "empathy_density": empathy_words / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
-                    "positive_sentiment": positive_words / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
+                    "questions_per_100_words": (
+                        questions / conv["word_count"] * 100
+                        if conv["word_count"] > 0
+                        else 0
+                    ),
+                    "empathy_density": (
+                        empathy_words / conv["word_count"] * 100
+                        if conv["word_count"] > 0
+                        else 0
+                    ),
+                    "positive_sentiment": (
+                        positive_words / conv["word_count"] * 100
+                        if conv["word_count"] > 0
+                        else 0
+                    ),
                 }
             )
 
@@ -350,15 +356,21 @@ class ConversationRecommendationOptimizer:
             content_scores.append(
                 {
                     "flesch_score": flesch_score,
-                    "questions_per_100_words": questions / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
-                    "empathy_density": empathy_words / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
-                    "positive_sentiment": positive_words / conv["word_count"] * 100
-                    if conv["word_count"] > 0
-                    else 0,
+                    "questions_per_100_words": (
+                        questions / conv["word_count"] * 100
+                        if conv["word_count"] > 0
+                        else 0
+                    ),
+                    "empathy_density": (
+                        empathy_words / conv["word_count"] * 100
+                        if conv["word_count"] > 0
+                        else 0
+                    ),
+                    "positive_sentiment": (
+                        positive_words / conv["word_count"] * 100
+                        if conv["word_count"] > 0
+                        else 0
+                    ),
                 }
             )
 

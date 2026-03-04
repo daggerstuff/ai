@@ -27,7 +27,7 @@ class ClinicalReasoningProcessor:
         self.reasoning_patterns = {
             "diagnostic": ["assessment", "symptoms", "criteria", "differential"],
             "treatment_planning": ["goals", "interventions", "timeline", "outcomes"],
-            "case_formulation": ["history", "patterns", "formulation", "hypothesis"]
+            "case_formulation": ["history", "patterns", "formulation", "hypothesis"],
         }
 
         self.logger.info("ClinicalReasoningProcessor initialized")
@@ -41,23 +41,27 @@ class ClinicalReasoningProcessor:
             if conversation:
                 conversations.append(conversation)
 
-        self.logger.info(f"Processed {len(conversations)} clinical reasoning conversations")
+        self.logger.info(
+            f"Processed {len(conversations)} clinical reasoning conversations"
+        )
         return conversations
 
-    def _create_reasoning_conversation(self, item: dict[str, Any]) -> Conversation | None:
+    def _create_reasoning_conversation(
+        self, item: dict[str, Any]
+    ) -> Conversation | None:
         """Create a clinical reasoning conversation."""
         try:
             messages = [
                 Message(
                     role="user",
                     content="Can you help me understand the clinical reasoning behind this case?",
-                    timestamp=datetime.now()
+                    timestamp=datetime.now(),
                 ),
                 Message(
                     role="assistant",
                     content="Let's work through the clinical reasoning step by step, considering the assessment data and diagnostic criteria.",
-                    timestamp=datetime.now()
-                )
+                    timestamp=datetime.now(),
+                ),
             ]
 
             return Conversation(
@@ -65,7 +69,7 @@ class ClinicalReasoningProcessor:
                 messages=messages,
                 title="Clinical Reasoning",
                 metadata={"clinical_reasoning": True, "diagnostic_focus": True},
-                tags=["clinical", "reasoning", "diagnostic"]
+                tags=["clinical", "reasoning", "diagnostic"],
             )
 
         except Exception as e:

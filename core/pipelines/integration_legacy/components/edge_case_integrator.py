@@ -286,34 +286,28 @@ class EdgeCaseIntegrator:
         scenario_type = case.get("scenario_type", "")
 
         if scenario_type == "suicidal_ideation":
-            return _dedent_and_flatten(
-                """
+            return _dedent_and_flatten("""
                 Your pain is real and you matter. Let's create a safety plan together.
                 What would the next 24 hours look like if we designed them for
                 your wellbeing? You're being incredibly brave by sharing this,
                 and your life has value. We're going to take this one small
                 step at a time.
-                """
-            )
+                """)
 
         if scenario_type == "trauma_flashback":
-            return _dedent_and_flatten(
-                """
+            return _dedent_and_flatten("""
                 Your nervous system is doing its job, trying to protect you.
                 Let's help your body remember you're safe here with me now. What
                 would grounding feel like if it were gentle and easy? You're
                 showing incredible courage by staying present.
-                """
-            )
+                """)
 
-        return _dedent_and_flatten(
-            """
+        return _dedent_and_flatten("""
             What you're experiencing makes complete sense given your story.
             Let's approach this with both compassion and practical steps. You
             are worthy of support, and we're going to figure this out together,
             one small step at a time.
-            """
-        )
+            """)
 
     def _create_safety_protocol(self, case: Dict) -> Dict[str, Any]:
         """Create safety protocol for the edge case"""
@@ -814,18 +808,14 @@ class EdgeCaseIntegrator:
                         "I've been having thoughts about ending my life. "
                         "I feel scared by how intense they are."
                     ),
-                    "therapist": self._crisis_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._crisis_response(_dedent_and_flatten("""
                             Thank you for telling me. I'm really glad you shared
                             this with me. Are you having thoughts of harming yourself
                             right now, and are you alone? If you are in immediate
                             danger, call 911 (or your local emergency number).
                             In the U.S., you can also call or text 988 for the
                             Suicide & Crisis Lifeline.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["risk_assessment", "988", "911"],
                 },
                 {
@@ -833,18 +823,14 @@ class EdgeCaseIntegrator:
                         "The thoughts keep coming back, and I'm worried I might "
                         "act on them."
                     ),
-                    "therapist": self._crisis_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._crisis_response(_dedent_and_flatten("""
                             I'm hearing how serious and exhausting this is. Let's slow
                             this down together. Do you have a plan or access to anything
                             you could use to hurt yourself? If the urge feels immediate,
                             call 911 (or your local emergency number) right now.
                             In the U.S., you can call or text 988, and we can also
                             identify someone you trust to stay with you.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["means_check", "988", "911"],
                 },
                 {
@@ -852,9 +838,7 @@ class EdgeCaseIntegrator:
                         "I don't want to die, but I don't know how to keep myself "
                         "safe tonight."
                     ),
-                    "therapist": self._crisis_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._crisis_response(_dedent_and_flatten("""
                             We can make a short-term safety plan for tonight. First:
                             if you feel at risk of acting on these thoughts, call 911
                             (or your local emergency number) or go to the nearest
@@ -862,9 +846,7 @@ class EdgeCaseIntegrator:
                             Next, let's identify one person you can contact, and one
                             way to reduce access to anything you could use to hurt
                             yourself.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["safety_plan", "988", "911"],
                 },
             ]
@@ -882,49 +864,37 @@ class EdgeCaseIntegrator:
                         "I'm having a panic attack. My chest is tight and I feel like "
                         "I can't breathe."
                     ),
-                    "therapist": self._crisis_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._crisis_response(_dedent_and_flatten("""
                             I'm here with you. Panic can feel terrifying, but it can
                             pass. If you think you may be having a medical emergency,
                             call 911 (or your local emergency number). If you're safe
                             medically, let's try a grounding step: name five things
                             you can see, four you can feel, and three you can hear.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["medical_screen", "grounding", "911"],
                 },
                 {
                     "client": "I feel like I'm going to die and I can't calm down.",
-                    "therapist": self._crisis_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._crisis_response(_dedent_and_flatten("""
                             That fear makes sense. Let's work with your nervous
                             system. Breathe in for four, hold for two, out for six,
                             and repeat a few times. If the symptoms worsen or you
                             feel unsafe, call 911 (or your local emergency number).
                             In the U.S., 988 is also available if this panic is tied
                             to feeling at risk of harming yourself.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["paced_breathing", "988", "911"],
                 },
                 {
                     "client": "I'm scared I'll hurt myself just to make it stop.",
-                    "therapist": self._crisis_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._crisis_response(_dedent_and_flatten("""
                             I'm really glad you said that out loud. Your safety
                             comes first. Are you having urges to harm yourself right
                             now? If there is any immediate risk, call 911 (or your
                             local emergency number). In the U.S., call or text 988.
                             Let's also identify one person who can be with you while
                             this wave passes.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["risk_assessment", "988", "911"],
                 },
             ]
@@ -942,40 +912,30 @@ class EdgeCaseIntegrator:
                         "I've been deeply depressed and can't get out of bed most "
                         "days. Everything feels pointless."
                     ),
-                    "therapist": self._crisis_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._crisis_response(_dedent_and_flatten("""
                             I'm really sorry you're carrying that. Depression can
                             make everything feel heavy and slow. Before we go further,
                             I want to check on safety: have you had thoughts about
                             ending your life? If you are in immediate danger, call 911
                             (or your local emergency number). In the U.S., you can
                             also call or text 988.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["risk_assessment", "988", "911"],
                 },
                 {
                     "client": "I keep thinking people would be better off without me.",
-                    "therapist": self._crisis_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._crisis_response(_dedent_and_flatten("""
                             That thought is a common depression distortion, and it's
                             also a sign we should take this seriously. Do you have a
                             plan, or access to anything you could use to hurt
                             yourself? If the risk feels immediate, call 911 (or your
                             local emergency number). In the U.S., call or text 988.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["means_check", "988", "911"],
                 },
                 {
                     "client": "I want help, but I don't have energy to do anything.",
-                    "therapist": self._crisis_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._crisis_response(_dedent_and_flatten("""
                             We can keep this very small. One evidence-based
                             approach is behavioral activation: a tiny action can
                             sometimes create a small shift in mood. For today, what's
@@ -983,9 +943,7 @@ class EdgeCaseIntegrator:
                             let them know you're struggling? If you feel at risk of
                             harming yourself, call 911 (or your local emergency
                             number). In the U.S., call or text 988.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["behavioral_activation", "988", "911"],
                 },
             ]
@@ -1021,47 +979,35 @@ class EdgeCaseIntegrator:
                         "I'm gay, and I'm afraid my family will reject me if they "
                         "find out."
                     ),
-                    "therapist": self._cultural_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._cultural_response(_dedent_and_flatten("""
                             That fear makes a lot of sense, and your safety matters.
                             Do you want to explore what coming out would mean for
                             you right now, or focus on coping with the stress? We can
                             talk through support options, boundaries, and what would
                             help you feel safer.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["affirmation", "safety_planning"],
                 },
                 {
                     "client": "I feel ashamed, like I'm doing something wrong.",
-                    "therapist": self._cultural_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._cultural_response(_dedent_and_flatten("""
                             I'm hearing shame, and I want to name that shame often
                             grows when we feel judged or unsafe. Your identity isn't
                             wrong. What messages did you learn about being gay, and
                             how do they show up in your body today?
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["shame_resilience", "values_exploration"],
                 },
                 {
                     "client": "I want to tell my family, but I'm not sure it's safe.",
-                    "therapist": self._cultural_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._cultural_response(_dedent_and_flatten("""
                             We can make this decision based on your safety and your
                             values. Let's consider: what are the best-case and
                             worst-case outcomes, what supports you can have in place,
                             and what boundaries you might need. If you ever feel at
                             risk of harm or feel unsafe at home, it's okay to seek
                             immediate help and support.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["risk_assessment", "support_network"],
                 },
             ]
@@ -1080,18 +1026,14 @@ class EdgeCaseIntegrator:
                         "My faith is important to me, but I feel guilty all the time "
                         "and I'm not sure if therapy fits."
                     ),
-                    "therapist": self._cultural_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._cultural_response(_dedent_and_flatten("""
                             Thank you for sharing that. Many people want care that
                             respects their faith. Would you like your spiritual
                             beliefs to be part of our work together? We can also
                             explore how guilt shows up for you and whether it's
                             aligned with your values or more about fear and
                             self-judgment.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["cultural_humility", "values_alignment"],
                 },
                 {
@@ -1099,35 +1041,27 @@ class EdgeCaseIntegrator:
                         "My community says mental health struggles mean I'm not "
                         "praying hard enough."
                     ),
-                    "therapist": self._cultural_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._cultural_response(_dedent_and_flatten("""
                             That message can feel heavy and isolating. Struggling
                             doesn't mean you're failing spiritually. We can hold
                             both: your faith as a source of strength, and
                             evidence-based mental health care as support. What would
                             compassionate support look like within your belief
                             system?
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["psychoeducation", "self_compassion"],
                 },
                 {
                     "client": (
                         "I want to keep my faith, but I also want to feel better."
                     ),
-                    "therapist": self._cultural_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._cultural_response(_dedent_and_flatten("""
                             Those goals can fit together. We can explore coping
                             practices that honor your faith if you want, alongside
                             skills like grounding, cognitive reframing, and building
                             social support. What parts of your faith feel supportive,
                             and what parts feel painful or pressured?
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["integrative_care", "cultural_humility"],
                 },
             ]
@@ -1146,47 +1080,35 @@ class EdgeCaseIntegrator:
                         "I'm facing discrimination at work, and it's affecting my "
                         "sleep and mood."
                     ),
-                    "therapist": self._cultural_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._cultural_response(_dedent_and_flatten("""
                             I'm sorry you're dealing with that. Discrimination can
                             have real mental and physical impacts. When this happens,
                             what do you notice in your body, and what supports are
                             available to you at work or outside of work?
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["systemic_validation", "somatic_awareness"],
                 },
                 {
                     "client": (
                         "Sometimes I wonder if I'm overreacting, but it feels constant."
                     ),
-                    "therapist": self._cultural_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._cultural_response(_dedent_and_flatten("""
                             Questioning yourself is a common response when you're
                             repeatedly invalidated. We can explore what happened, how
                             it affected you, and what boundaries or resources might
                             help. You don't have to carry this alone.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["validation", "support_network"],
                 },
                 {
                     "client": "I want to speak up, but I'm afraid of retaliation.",
-                    "therapist": self._cultural_response(
-                        _dedent_and_flatten(
-                            """
+                    "therapist": self._cultural_response(_dedent_and_flatten("""
                             That fear makes sense. We can plan in a way that
                             protects you: clarify your goals, assess risk, and
                             identify supports. We can also focus on coping skills
                             for stress responses while you decide what, if anything,
                             to do next.
-                            """
-                        )
-                    ),
+                            """)),
                     "safety_triggers": ["risk_assessment", "problem_solving"],
                 },
             ]

@@ -210,4 +210,3 @@ generate_preprocessing_script(
 """
 
         return template
-

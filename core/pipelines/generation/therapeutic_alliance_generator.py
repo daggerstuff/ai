@@ -28,6 +28,7 @@ from .client_scenario_generator import ClientScenario
 
 class AllianceComponent(Enum):
     """Core components of therapeutic alliance (Bordin's model)."""
+
     TASK_ALLIANCE = "task_alliance"  # Agreement on therapeutic tasks and activities
     BOND_ALLIANCE = "bond_alliance"  # Emotional connection and trust
     GOAL_ALLIANCE = "goal_alliance"  # Shared understanding of therapy goals
@@ -35,6 +36,7 @@ class AllianceComponent(Enum):
 
 class AllianceStage(Enum):
     """Stages of therapeutic alliance development."""
+
     INITIAL_ENGAGEMENT = "initial_engagement"  # First sessions, trust building
     WORKING_ALLIANCE = "working_alliance"  # Established therapeutic relationship
     ALLIANCE_MAINTENANCE = "alliance_maintenance"  # Ongoing relationship work
@@ -44,6 +46,7 @@ class AllianceStage(Enum):
 
 class RapportTechnique(Enum):
     """Specific rapport-building techniques."""
+
     EMPATHIC_REFLECTION = "empathic_reflection"
     ACTIVE_LISTENING = "active_listening"
     GENUINENESS = "genuineness"
@@ -58,16 +61,22 @@ class RapportTechnique(Enum):
 
 class AllianceRuptureType(Enum):
     """Types of therapeutic alliance ruptures."""
+
     WITHDRAWAL_RUPTURE = "withdrawal_rupture"  # Client becomes distant or disengaged
     CONFRONTATION_RUPTURE = "confrontation_rupture"  # Direct conflict or disagreement
     TASK_DISAGREEMENT = "task_disagreement"  # Disagreement about therapeutic activities
     GOAL_MISALIGNMENT = "goal_misalignment"  # Different views on therapy goals
-    CULTURAL_MISUNDERSTANDING = "cultural_misunderstanding"  # Cultural factors affecting alliance
-    TRANSFERENCE_RUPTURE = "transference_rupture"  # Past relationship patterns affecting alliance
+    CULTURAL_MISUNDERSTANDING = (
+        "cultural_misunderstanding"  # Cultural factors affecting alliance
+    )
+    TRANSFERENCE_RUPTURE = (
+        "transference_rupture"  # Past relationship patterns affecting alliance
+    )
 
 
 class AllianceStrength(Enum):
     """Levels of therapeutic alliance strength."""
+
     WEAK = "weak"  # Poor alliance, significant challenges
     DEVELOPING = "developing"  # Alliance forming but fragile
     MODERATE = "moderate"  # Solid working alliance
@@ -78,6 +87,7 @@ class AllianceStrength(Enum):
 @dataclass
 class AllianceAssessment:
     """Assessment of therapeutic alliance strength and components."""
+
     id: str
     overall_strength: AllianceStrength
     task_alliance_score: float  # 0-10 scale
@@ -94,6 +104,7 @@ class AllianceAssessment:
 @dataclass
 class AllianceStrategy:
     """Strategy for building or repairing therapeutic alliance."""
+
     id: str
     alliance_component: AllianceComponent
     target_stage: AllianceStage
@@ -109,6 +120,7 @@ class AllianceStrategy:
 @dataclass
 class AllianceConversation:
     """Therapeutic alliance-focused conversation with rapport-building elements."""
+
     id: str
     alliance_strategy: AllianceStrategy
     client_scenario: ClientScenario
@@ -138,9 +150,13 @@ class TherapeuticAllianceGenerator:
         self.alliance_strategies = self._initialize_alliance_strategies()
         self.rapport_frameworks = self._initialize_rapport_frameworks()
         self.rupture_repair_protocols = self._initialize_rupture_repair_protocols()
-        self.cultural_alliance_considerations = self._initialize_cultural_considerations()
+        self.cultural_alliance_considerations = (
+            self._initialize_cultural_considerations()
+        )
 
-    def _initialize_alliance_strategies(self) -> dict[AllianceComponent, list[AllianceStrategy]]:
+    def _initialize_alliance_strategies(
+        self,
+    ) -> dict[AllianceComponent, list[AllianceStrategy]]:
         """Initialize alliance-building strategies for each component."""
         strategies = {}
 
@@ -153,43 +169,43 @@ class TherapeuticAllianceGenerator:
                 rapport_techniques=[
                     RapportTechnique.COLLABORATIVE_APPROACH,
                     RapportTechnique.TRANSPARENCY,
-                    RapportTechnique.VALIDATION
+                    RapportTechnique.VALIDATION,
                 ],
                 cultural_adaptations=[
                     "Respect for cultural decision-making processes",
                     "Family involvement when culturally appropriate",
-                    "Adaptation to communication styles"
+                    "Adaptation to communication styles",
                 ],
                 specific_interventions=[
                     "Explain therapy process clearly",
                     "Invite client input on therapeutic activities",
                     "Negotiate homework and between-session tasks",
-                    "Check for understanding and agreement"
+                    "Check for understanding and agreement",
                 ],
                 expected_outcomes=[
                     "Clear understanding of therapy process",
                     "Mutual agreement on therapeutic activities",
                     "Increased client engagement in tasks",
-                    "Reduced resistance to interventions"
+                    "Reduced resistance to interventions",
                 ],
                 success_indicators=[
                     "Client asks clarifying questions",
                     "Client suggests modifications to tasks",
                     "Completion of between-session activities",
-                    "Positive feedback about therapy process"
+                    "Positive feedback about therapy process",
                 ],
                 potential_challenges=[
                     "Cultural differences in authority relationships",
                     "Previous negative therapy experiences",
                     "Ambivalence about change",
-                    "Cognitive or emotional barriers"
+                    "Cognitive or emotional barriers",
                 ],
                 monitoring_plan=[
                     "Regular check-ins about task relevance",
                     "Feedback on task difficulty and usefulness",
                     "Adjustment of tasks based on client response",
-                    "Documentation of task completion patterns"
-                ]
+                    "Documentation of task completion patterns",
+                ],
             )
         ]
 
@@ -203,44 +219,44 @@ class TherapeuticAllianceGenerator:
                     RapportTechnique.EMPATHIC_REFLECTION,
                     RapportTechnique.ACTIVE_LISTENING,
                     RapportTechnique.GENUINENESS,
-                    RapportTechnique.UNCONDITIONAL_POSITIVE_REGARD
+                    RapportTechnique.UNCONDITIONAL_POSITIVE_REGARD,
                 ],
                 cultural_adaptations=[
                     "Culturally appropriate expressions of empathy",
                     "Respect for emotional expression norms",
                     "Adaptation to relationship building styles",
-                    "Awareness of power dynamics"
+                    "Awareness of power dynamics",
                 ],
                 specific_interventions=[
                     "Reflect client emotions accurately",
                     "Share appropriate self-disclosure",
                     "Demonstrate genuine care and concern",
-                    "Maintain consistent warmth and acceptance"
+                    "Maintain consistent warmth and acceptance",
                 ],
                 expected_outcomes=[
                     "Client feels understood and accepted",
                     "Increased emotional openness",
                     "Development of trust and safety",
-                    "Positive therapeutic relationship"
+                    "Positive therapeutic relationship",
                 ],
                 success_indicators=[
                     "Client shares personal information",
                     "Emotional expression increases",
                     "Client seeks therapist's opinion",
-                    "Positive comments about therapist"
+                    "Positive comments about therapist",
                 ],
                 potential_challenges=[
                     "Cultural barriers to emotional expression",
                     "Trust issues from past trauma",
                     "Therapist-client demographic differences",
-                    "Attachment style influences"
+                    "Attachment style influences",
                 ],
                 monitoring_plan=[
                     "Observe client comfort level",
                     "Monitor emotional expression patterns",
                     "Check for signs of trust development",
-                    "Assess client feedback about relationship"
-                ]
+                    "Assess client feedback about relationship",
+                ],
             )
         ]
 
@@ -253,44 +269,44 @@ class TherapeuticAllianceGenerator:
                 rapport_techniques=[
                     RapportTechnique.COLLABORATIVE_APPROACH,
                     RapportTechnique.VALIDATION,
-                    RapportTechnique.ACTIVE_LISTENING
+                    RapportTechnique.ACTIVE_LISTENING,
                 ],
                 cultural_adaptations=[
                     "Respect for cultural values in goal setting",
                     "Family and community considerations",
                     "Culturally relevant outcome measures",
-                    "Adaptation to time orientation"
+                    "Adaptation to time orientation",
                 ],
                 specific_interventions=[
                     "Explore client's hopes and expectations",
                     "Identify meaningful and achievable goals",
                     "Negotiate timeline and milestones",
-                    "Regularly review and adjust goals"
+                    "Regularly review and adjust goals",
                 ],
                 expected_outcomes=[
                     "Clear, mutually agreed-upon goals",
                     "Client ownership of therapeutic objectives",
                     "Realistic expectations about outcomes",
-                    "Motivation for therapeutic work"
+                    "Motivation for therapeutic work",
                 ],
                 success_indicators=[
                     "Client articulates personal goals",
                     "Goals are specific and measurable",
                     "Client expresses commitment to goals",
-                    "Regular progress toward objectives"
+                    "Regular progress toward objectives",
                 ],
                 potential_challenges=[
                     "Unrealistic expectations",
                     "Conflicting goals (client vs. others)",
                     "Ambivalence about change",
-                    "Cultural differences in goal orientation"
+                    "Cultural differences in goal orientation",
                 ],
                 monitoring_plan=[
                     "Regular goal review sessions",
                     "Progress tracking and measurement",
                     "Goal modification as needed",
-                    "Celebration of achievements"
-                ]
+                    "Celebration of achievements",
+                ],
             )
         ]
 
@@ -305,26 +321,26 @@ class TherapeuticAllianceGenerator:
                     "Emotional labeling",
                     "Feeling validation",
                     "Perspective taking",
-                    "Emotional attunement"
+                    "Emotional attunement",
                 ],
                 "verbal_techniques": [
                     "It sounds like you're feeling...",
                     "I can hear the [emotion] in your voice",
                     "That must have been [emotion] for you",
-                    "I'm sensing that you feel..."
+                    "I'm sensing that you feel...",
                 ],
                 "nonverbal_elements": [
                     "Facial expression matching",
                     "Appropriate eye contact",
                     "Open body posture",
-                    "Vocal tone matching"
+                    "Vocal tone matching",
                 ],
                 "cultural_considerations": [
                     "Cultural norms for emotional expression",
                     "Eye contact appropriateness",
                     "Physical space preferences",
-                    "Emotional vocabulary differences"
-                ]
+                    "Emotional vocabulary differences",
+                ],
             },
             RapportTechnique.ACTIVE_LISTENING: {
                 "description": "Fully attending to and engaging with client communication",
@@ -332,26 +348,28 @@ class TherapeuticAllianceGenerator:
                     "Full attention",
                     "Minimal encouragers",
                     "Paraphrasing",
-                    "Summarizing"
+                    "Summarizing",
                 ],
                 "verbal_techniques": [
-                    "Mm-hmm", "I see", "Go on",
+                    "Mm-hmm",
+                    "I see",
+                    "Go on",
                     "What I'm hearing is...",
                     "Let me make sure I understand...",
-                    "So you're saying..."
+                    "So you're saying...",
                 ],
                 "nonverbal_elements": [
                     "Leaning forward",
                     "Nodding appropriately",
                     "Maintaining eye contact",
-                    "Eliminating distractions"
+                    "Eliminating distractions",
                 ],
                 "cultural_considerations": [
                     "Silence comfort levels",
                     "Turn-taking patterns",
                     "Storytelling traditions",
-                    "Indirect communication styles"
-                ]
+                    "Indirect communication styles",
+                ],
             },
             RapportTechnique.GENUINENESS: {
                 "description": "Being authentic and real in the therapeutic relationship",
@@ -359,26 +377,26 @@ class TherapeuticAllianceGenerator:
                     "Authenticity",
                     "Congruence",
                     "Appropriate self-disclosure",
-                    "Honest communication"
+                    "Honest communication",
                 ],
                 "verbal_techniques": [
                     "I notice I'm feeling...",
                     "I want to be honest with you...",
                     "My sense is...",
-                    "I'm wondering if..."
+                    "I'm wondering if...",
                 ],
                 "nonverbal_elements": [
                     "Natural expressions",
                     "Relaxed posture",
                     "Consistent verbal/nonverbal",
-                    "Spontaneous responses"
+                    "Spontaneous responses",
                 ],
                 "cultural_considerations": [
                     "Professional boundary expectations",
                     "Authority relationship norms",
                     "Self-disclosure appropriateness",
-                    "Formality preferences"
-                ]
+                    "Formality preferences",
+                ],
             },
             RapportTechnique.CULTURAL_RESPONSIVENESS: {
                 "description": "Adapting therapeutic approach to client's cultural background",
@@ -386,30 +404,32 @@ class TherapeuticAllianceGenerator:
                     "Cultural awareness",
                     "Adaptation flexibility",
                     "Respectful inquiry",
-                    "Cultural humility"
+                    "Cultural humility",
                 ],
                 "verbal_techniques": [
                     "Help me understand your cultural perspective...",
                     "In your culture, how is this typically handled?",
                     "I want to be respectful of your background...",
-                    "Please correct me if I misunderstand..."
+                    "Please correct me if I misunderstand...",
                 ],
                 "nonverbal_elements": [
                     "Culturally appropriate distance",
                     "Respectful gestures",
                     "Appropriate formality level",
-                    "Cultural greeting styles"
+                    "Cultural greeting styles",
                 ],
                 "cultural_considerations": [
                     "Power distance preferences",
                     "Collectivist vs individualist values",
                     "Religious/spiritual considerations",
-                    "Language and communication styles"
-                ]
-            }
+                    "Language and communication styles",
+                ],
+            },
         }
 
-    def _initialize_rupture_repair_protocols(self) -> dict[AllianceRuptureType, dict[str, Any]]:
+    def _initialize_rupture_repair_protocols(
+        self,
+    ) -> dict[AllianceRuptureType, dict[str, Any]]:
         """Initialize alliance rupture repair protocols."""
         return {
             AllianceRuptureType.WITHDRAWAL_RUPTURE: {
@@ -419,26 +439,26 @@ class TherapeuticAllianceGenerator:
                     "Minimal eye contact",
                     "Short responses",
                     "Missed appointments",
-                    "Emotional flatness"
+                    "Emotional flatness",
                 ],
                 "repair_strategies": [
                     "Gentle exploration of distance",
                     "Validation of client experience",
                     "Therapist self-reflection",
-                    "Process focus on relationship"
+                    "Process focus on relationship",
                 ],
                 "repair_interventions": [
                     "I notice you seem quieter today...",
                     "I'm wondering if something has shifted between us...",
                     "It feels like you might be pulling back...",
-                    "Help me understand what's happening for you..."
+                    "Help me understand what's happening for you...",
                 ],
                 "prevention_strategies": [
                     "Regular alliance check-ins",
                     "Attention to nonverbal cues",
                     "Cultural sensitivity",
-                    "Pacing awareness"
-                ]
+                    "Pacing awareness",
+                ],
             },
             AllianceRuptureType.CONFRONTATION_RUPTURE: {
                 "description": "Direct conflict or disagreement between therapist and client",
@@ -447,26 +467,26 @@ class TherapeuticAllianceGenerator:
                     "Challenging therapeutic approach",
                     "Angry or hostile tone",
                     "Questioning therapist competence",
-                    "Threatening to quit therapy"
+                    "Threatening to quit therapy",
                 ],
                 "repair_strategies": [
                     "Non-defensive listening",
                     "Validation of client concerns",
                     "Collaborative problem-solving",
-                    "Therapist accountability"
+                    "Therapist accountability",
                 ],
                 "repair_interventions": [
                     "I can hear your frustration...",
                     "You're right to bring this up...",
                     "Help me understand your concerns...",
-                    "What would be more helpful for you?"
+                    "What would be more helpful for you?",
                 ],
                 "prevention_strategies": [
                     "Regular feedback solicitation",
                     "Collaborative approach",
                     "Cultural sensitivity",
-                    "Flexibility in approach"
-                ]
+                    "Flexibility in approach",
+                ],
             },
             AllianceRuptureType.CULTURAL_MISUNDERSTANDING: {
                 "description": "Cultural factors creating alliance strain or misunderstanding",
@@ -475,27 +495,27 @@ class TherapeuticAllianceGenerator:
                     "Inappropriate interventions",
                     "Value conflicts",
                     "Communication style mismatches",
-                    "Family/community concerns"
+                    "Family/community concerns",
                 ],
                 "repair_strategies": [
                     "Cultural humility and learning",
                     "Acknowledgment of mistakes",
                     "Cultural consultation",
-                    "Approach modification"
+                    "Approach modification",
                 ],
                 "repair_interventions": [
                     "I realize I may have misunderstood...",
                     "Help me learn about your cultural perspective...",
                     "I want to be more culturally responsive...",
-                    "How can I better honor your background?"
+                    "How can I better honor your background?",
                 ],
                 "prevention_strategies": [
                     "Cultural assessment",
                     "Ongoing cultural learning",
                     "Cultural consultation",
-                    "Flexible approaches"
-                ]
-            }
+                    "Flexible approaches",
+                ],
+            },
         }
 
     def _initialize_cultural_considerations(self) -> dict[str, Any]:
@@ -506,43 +526,43 @@ class TherapeuticAllianceGenerator:
                     "Adapt questioning style",
                     "Respect indirect communication",
                     "Allow for storytelling",
-                    "Read between the lines"
+                    "Read between the lines",
                 ],
                 "high_context_vs_low_context": [
                     "Attend to nonverbal cues",
                     "Understand implicit messages",
                     "Respect silence and pauses",
-                    "Consider relationship context"
-                ]
+                    "Consider relationship context",
+                ],
             },
             "relationship_patterns": {
                 "hierarchical_vs_egalitarian": [
                     "Respect authority expectations",
                     "Adapt formality level",
                     "Consider power dynamics",
-                    "Honor cultural roles"
+                    "Honor cultural roles",
                 ],
                 "individual_vs_collective": [
                     "Include family considerations",
                     "Respect group decision-making",
                     "Consider community impact",
-                    "Balance individual and group needs"
-                ]
+                    "Balance individual and group needs",
+                ],
             },
             "trust_building": {
                 "time_orientation": [
                     "Respect different pacing",
                     "Allow for relationship building",
                     "Consider cultural time concepts",
-                    "Adapt session structure"
+                    "Adapt session structure",
                 ],
                 "disclosure_patterns": [
                     "Respect privacy norms",
                     "Understand shame/honor concepts",
                     "Adapt self-disclosure",
-                    "Honor family loyalty"
-                ]
-            }
+                    "Honor family loyalty",
+                ],
+            },
         }
 
     def generate_alliance_conversation(
@@ -550,7 +570,7 @@ class TherapeuticAllianceGenerator:
         client_scenario: ClientScenario,
         alliance_focus: AllianceComponent,
         stage: AllianceStage = AllianceStage.INITIAL_ENGAGEMENT,
-        num_exchanges: int = 10
+        num_exchanges: int = 10,
     ) -> AllianceConversation:
         """
         Generate therapeutic alliance-focused conversation.
@@ -566,7 +586,11 @@ class TherapeuticAllianceGenerator:
         """
         # Select appropriate strategy
         strategies = self.alliance_strategies.get(alliance_focus, [])
-        strategy = strategies[0] if strategies else self._create_generic_strategy(alliance_focus, stage)
+        strategy = (
+            strategies[0]
+            if strategies
+            else self._create_generic_strategy(alliance_focus, stage)
+        )
 
         # Generate conversation exchanges
         exchanges = self._generate_alliance_exchanges(
@@ -577,7 +601,9 @@ class TherapeuticAllianceGenerator:
         rapport_techniques = self._identify_rapport_techniques_used(exchanges)
 
         # Identify cultural adaptations applied
-        cultural_adaptations = self._identify_cultural_adaptations_applied(exchanges, client_scenario)
+        cultural_adaptations = self._identify_cultural_adaptations_applied(
+            exchanges, client_scenario
+        )
 
         # Identify alliance-building moments
         alliance_moments = self._identify_alliance_building_moments(exchanges)
@@ -589,13 +615,19 @@ class TherapeuticAllianceGenerator:
         nonverbal_considerations = self._generate_nonverbal_considerations(exchanges)
 
         # Assess alliance strength
-        alliance_assessment = self._assess_alliance_strength(exchanges, strategy, client_scenario)
+        alliance_assessment = self._assess_alliance_strength(
+            exchanges, strategy, client_scenario
+        )
 
         # Identify therapeutic gains
-        therapeutic_gains = self._identify_therapeutic_gains(exchanges, alliance_assessment)
+        therapeutic_gains = self._identify_therapeutic_gains(
+            exchanges, alliance_assessment
+        )
 
         # Plan next session focus
-        next_session_focus = self._plan_next_session_focus(alliance_assessment, strategy)
+        next_session_focus = self._plan_next_session_focus(
+            alliance_assessment, strategy
+        )
 
         conversation_id = f"alliance_{alliance_focus.value}_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
@@ -613,10 +645,12 @@ class TherapeuticAllianceGenerator:
             nonverbal_considerations=nonverbal_considerations,
             alliance_assessment=alliance_assessment,
             therapeutic_gains=therapeutic_gains,
-            next_session_focus=next_session_focus
+            next_session_focus=next_session_focus,
         )
 
-    def _create_generic_strategy(self, alliance_focus: AllianceComponent, stage: AllianceStage) -> AllianceStrategy:
+    def _create_generic_strategy(
+        self, alliance_focus: AllianceComponent, stage: AllianceStage
+    ) -> AllianceStrategy:
         """Create generic alliance strategy for unspecified focus areas."""
         return AllianceStrategy(
             id=f"generic_{alliance_focus.value}_{stage.value}",
@@ -625,21 +659,21 @@ class TherapeuticAllianceGenerator:
             rapport_techniques=[
                 RapportTechnique.EMPATHIC_REFLECTION,
                 RapportTechnique.ACTIVE_LISTENING,
-                RapportTechnique.VALIDATION
+                RapportTechnique.VALIDATION,
             ],
             cultural_adaptations=["Cultural responsiveness", "Respectful approach"],
             specific_interventions=["Build rapport", "Establish trust", "Collaborate"],
             expected_outcomes=["Improved alliance", "Better engagement"],
             success_indicators=["Client participation", "Positive feedback"],
             potential_challenges=["Resistance", "Cultural barriers"],
-            monitoring_plan=["Regular assessment", "Feedback collection"]
+            monitoring_plan=["Regular assessment", "Feedback collection"],
         )
 
     def _generate_alliance_exchanges(
         self,
         client_scenario: ClientScenario,
         strategy: AllianceStrategy,
-        num_exchanges: int
+        num_exchanges: int,
     ) -> list[dict[str, Any]]:
         """Generate alliance-focused conversation exchanges."""
         exchanges = []
@@ -662,7 +696,7 @@ class TherapeuticAllianceGenerator:
         self,
         client_scenario: ClientScenario,
         strategy: AllianceStrategy,
-        exchange_index: int
+        exchange_index: int,
     ) -> dict[str, Any]:
         """Generate therapist response focused on alliance building."""
 
@@ -682,17 +716,21 @@ class TherapeuticAllianceGenerator:
             "content": content,
             "rapport_technique": technique.value,
             "alliance_component": strategy.alliance_component.value,
-            "alliance_building_element": self._determine_alliance_building_element(technique),
-            "cultural_adaptation": self._determine_cultural_adaptation_used(client_scenario, technique),
+            "alliance_building_element": self._determine_alliance_building_element(
+                technique
+            ),
+            "cultural_adaptation": self._determine_cultural_adaptation_used(
+                client_scenario, technique
+            ),
             "nonverbal_focus": self._determine_nonverbal_focus(technique),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     def _generate_client_alliance_response(
         self,
         client_scenario: ClientScenario,
         strategy: AllianceStrategy,
-        exchange_index: int
+        exchange_index: int,
     ) -> dict[str, Any]:
         """Generate client response in alliance-building context."""
 
@@ -706,16 +744,20 @@ class TherapeuticAllianceGenerator:
             "content": content,
             "engagement_level": self._assess_client_engagement(exchange_index),
             "trust_indicators": self._identify_trust_indicators(content),
-            "alliance_response": self._assess_alliance_response(content, strategy.alliance_component),
-            "emotional_openness": self._assess_emotional_openness(content, exchange_index),
-            "timestamp": datetime.now().isoformat()
+            "alliance_response": self._assess_alliance_response(
+                content, strategy.alliance_component
+            ),
+            "emotional_openness": self._assess_emotional_openness(
+                content, exchange_index
+            ),
+            "timestamp": datetime.now().isoformat(),
         }
 
     def _generate_alliance_content(
         self,
         alliance_component: AllianceComponent,
         technique: RapportTechnique,
-        exchange_index: int
+        exchange_index: int,
     ) -> str:
         """Generate alliance-building content based on component and technique."""
 
@@ -748,7 +790,7 @@ class TherapeuticAllianceGenerator:
         self,
         client_scenario: ClientScenario,
         strategy: AllianceStrategy,
-        exchange_index: int
+        exchange_index: int,
     ) -> str:
         """Generate client response content for alliance building."""
 
@@ -759,7 +801,7 @@ class TherapeuticAllianceGenerator:
                 "I'm not really sure what to expect from this.",
                 "I've never done therapy before, so this is all new to me.",
                 "I hope this can help, but I'm a little nervous about opening up.",
-                "I'm willing to try, but I don't know if I'm doing this right."
+                "I'm willing to try, but I don't know if I'm doing this right.",
             ]
         elif exchange_index == 1:
             # Slightly more open
@@ -767,7 +809,7 @@ class TherapeuticAllianceGenerator:
                 "That actually makes me feel a bit more comfortable.",
                 "I appreciate you explaining that. It helps to know what to expect.",
                 "I'm starting to feel like maybe I can trust you with this.",
-                "It's nice to feel like we're working together on this."
+                "It's nice to feel like we're working together on this.",
             ]
         elif exchange_index == 2:
             # Increasing trust and engagement
@@ -775,7 +817,7 @@ class TherapeuticAllianceGenerator:
                 "I feel like you really understand what I'm going through.",
                 "This feels different from what I expected. In a good way.",
                 "I'm surprised by how comfortable I'm starting to feel here.",
-                "You make it feel safe to talk about these things."
+                "You make it feel safe to talk about these things.",
             ]
         else:
             # Strong alliance development
@@ -783,7 +825,7 @@ class TherapeuticAllianceGenerator:
                 "I really value our work together. It's making a difference.",
                 "I feel like I can be completely honest with you.",
                 "This relationship feels really important to me.",
-                "I trust your guidance and feel supported by you."
+                "I trust your guidance and feel supported by you.",
             ]
 
         return random.choice(responses)
@@ -799,15 +841,13 @@ class TherapeuticAllianceGenerator:
             RapportTechnique.CULTURAL_RESPONSIVENESS: "cultural_attunement",
             RapportTechnique.COLLABORATIVE_APPROACH: "partnership_building",
             RapportTechnique.VALIDATION: "experience_validation",
-            RapportTechnique.TRANSPARENCY: "process_clarity"
+            RapportTechnique.TRANSPARENCY: "process_clarity",
         }
 
         return elements.get(technique, "rapport_building")
 
     def _determine_cultural_adaptation_used(
-        self,
-        client_scenario: ClientScenario,
-        technique: RapportTechnique
+        self, client_scenario: ClientScenario, technique: RapportTechnique
     ) -> str:
         """Determine cultural adaptation being used."""
 
@@ -828,7 +868,7 @@ class TherapeuticAllianceGenerator:
             RapportTechnique.ACTIVE_LISTENING: "attentive_body_language",
             RapportTechnique.GENUINENESS: "natural_expressions",
             RapportTechnique.UNCONDITIONAL_POSITIVE_REGARD: "warm_presence",
-            RapportTechnique.CULTURAL_RESPONSIVENESS: "culturally_appropriate_distance"
+            RapportTechnique.CULTURAL_RESPONSIVENESS: "culturally_appropriate_distance",
         }
 
         return nonverbal_focus.get(technique, "open_and_welcoming")
@@ -860,16 +900,22 @@ class TherapeuticAllianceGenerator:
 
         return indicators
 
-    def _assess_alliance_response(self, content: str, alliance_component: AllianceComponent) -> str:
+    def _assess_alliance_response(
+        self, content: str, alliance_component: AllianceComponent
+    ) -> str:
         """Assess client response to alliance-building efforts."""
         content_lower = content.lower()
 
         if alliance_component == AllianceComponent.TASK_ALLIANCE:
-            if any(word in content_lower for word in ["makes sense", "helpful", "willing"]):
+            if any(
+                word in content_lower for word in ["makes sense", "helpful", "willing"]
+            ):
                 return "positive_task_response"
             return "neutral_task_response"
         if alliance_component == AllianceComponent.BOND_ALLIANCE:
-            if any(word in content_lower for word in ["comfortable", "safe", "understand"]):
+            if any(
+                word in content_lower for word in ["comfortable", "safe", "understand"]
+            ):
                 return "positive_bond_response"
             return "developing_bond_response"
         if alliance_component == AllianceComponent.GOAL_ALLIANCE:
@@ -885,7 +931,16 @@ class TherapeuticAllianceGenerator:
         content_lower = content.lower()
 
         # Emotional words indicate openness
-        emotional_words = ["feel", "emotion", "scared", "happy", "sad", "angry", "worried", "hopeful"]
+        emotional_words = [
+            "feel",
+            "emotion",
+            "scared",
+            "happy",
+            "sad",
+            "angry",
+            "worried",
+            "hopeful",
+        ]
         emotional_count = sum(1 for word in emotional_words if word in content_lower)
 
         if emotional_count >= 2 or exchange_index >= 3:
@@ -894,12 +949,17 @@ class TherapeuticAllianceGenerator:
             return "moderate_openness"
         return "guarded"
 
-    def _identify_rapport_techniques_used(self, exchanges: list[dict[str, Any]]) -> list[RapportTechnique]:
+    def _identify_rapport_techniques_used(
+        self, exchanges: list[dict[str, Any]]
+    ) -> list[RapportTechnique]:
         """Identify rapport techniques used in conversation."""
         techniques = set()
 
         for exchange in exchanges:
-            if exchange.get("speaker") == "therapist" and "rapport_technique" in exchange:
+            if (
+                exchange.get("speaker") == "therapist"
+                and "rapport_technique" in exchange
+            ):
                 technique_value = exchange["rapport_technique"]
                 for technique in RapportTechnique:
                     if technique.value == technique_value:
@@ -908,20 +968,23 @@ class TherapeuticAllianceGenerator:
         return list(techniques)
 
     def _identify_cultural_adaptations_applied(
-        self,
-        exchanges: list[dict[str, Any]],
-        client_scenario: ClientScenario
+        self, exchanges: list[dict[str, Any]], client_scenario: ClientScenario
     ) -> list[str]:
         """Identify cultural adaptations applied in conversation."""
         adaptations = set()
 
         for exchange in exchanges:
-            if exchange.get("speaker") == "therapist" and "cultural_adaptation" in exchange:
+            if (
+                exchange.get("speaker") == "therapist"
+                and "cultural_adaptation" in exchange
+            ):
                 adaptations.add(exchange["cultural_adaptation"])
 
         return list(adaptations)
 
-    def _identify_alliance_building_moments(self, exchanges: list[dict[str, Any]]) -> list[str]:
+    def _identify_alliance_building_moments(
+        self, exchanges: list[dict[str, Any]]
+    ) -> list[str]:
         """Identify specific alliance-building moments in conversation."""
         moments = []
 
@@ -933,13 +996,17 @@ class TherapeuticAllianceGenerator:
 
         return moments
 
-    def _identify_rupture_repair_elements(self, exchanges: list[dict[str, Any]]) -> list[str]:
+    def _identify_rupture_repair_elements(
+        self, exchanges: list[dict[str, Any]]
+    ) -> list[str]:
         """Identify rupture repair elements (if any) in conversation."""
         # For this basic implementation, assume no ruptures in alliance-building conversations
         # In practice, this would analyze for signs of rupture and repair
         return []
 
-    def _generate_nonverbal_considerations(self, exchanges: list[dict[str, Any]]) -> list[str]:
+    def _generate_nonverbal_considerations(
+        self, exchanges: list[dict[str, Any]]
+    ) -> list[str]:
         """Generate nonverbal considerations for conversation."""
         considerations = set()
 
@@ -953,7 +1020,7 @@ class TherapeuticAllianceGenerator:
         self,
         exchanges: list[dict[str, Any]],
         strategy: AllianceStrategy,
-        client_scenario: ClientScenario
+        client_scenario: ClientScenario,
     ) -> AllianceAssessment:
         """Assess alliance strength based on conversation."""
 
@@ -982,10 +1049,16 @@ class TherapeuticAllianceGenerator:
         cultural_factors = self._extract_cultural_factors(client_scenario)
 
         # Determine improvement areas and strengths
-        improvement_areas = self._determine_improvement_areas(task_score, bond_score, goal_score)
-        strengths = self._determine_alliance_strengths(task_score, bond_score, goal_score)
+        improvement_areas = self._determine_improvement_areas(
+            task_score, bond_score, goal_score
+        )
+        strengths = self._determine_alliance_strengths(
+            task_score, bond_score, goal_score
+        )
 
-        assessment_id = f"alliance_assessment_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        assessment_id = (
+            f"alliance_assessment_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+        )
 
         return AllianceAssessment(
             id=assessment_id,
@@ -998,10 +1071,12 @@ class TherapeuticAllianceGenerator:
             cultural_factors=cultural_factors,
             improvement_areas=improvement_areas,
             strengths=strengths,
-            assessment_date=datetime.now().isoformat()
+            assessment_date=datetime.now().isoformat(),
         )
 
-    def _calculate_task_alliance_score(self, client_exchanges: list[dict[str, Any]]) -> float:
+    def _calculate_task_alliance_score(
+        self, client_exchanges: list[dict[str, Any]]
+    ) -> float:
         """Calculate task alliance score from client responses."""
         score = 5.0  # Base score
 
@@ -1014,7 +1089,9 @@ class TherapeuticAllianceGenerator:
 
         return min(10.0, score)
 
-    def _calculate_bond_alliance_score(self, client_exchanges: list[dict[str, Any]]) -> float:
+    def _calculate_bond_alliance_score(
+        self, client_exchanges: list[dict[str, Any]]
+    ) -> float:
         """Calculate bond alliance score from client responses."""
         score = 5.0  # Base score
 
@@ -1030,7 +1107,9 @@ class TherapeuticAllianceGenerator:
 
         return min(10.0, score)
 
-    def _calculate_goal_alliance_score(self, client_exchanges: list[dict[str, Any]]) -> float:
+    def _calculate_goal_alliance_score(
+        self, client_exchanges: list[dict[str, Any]]
+    ) -> float:
         """Calculate goal alliance score from client responses."""
         score = 5.0  # Base score
 
@@ -1043,7 +1122,9 @@ class TherapeuticAllianceGenerator:
 
         return min(10.0, score)
 
-    def _extract_rapport_indicators(self, client_exchanges: list[dict[str, Any]]) -> list[str]:
+    def _extract_rapport_indicators(
+        self, client_exchanges: list[dict[str, Any]]
+    ) -> list[str]:
         """Extract rapport indicators from client responses."""
         indicators = set()
 
@@ -1053,7 +1134,9 @@ class TherapeuticAllianceGenerator:
 
         return list(indicators)
 
-    def _extract_rupture_indicators(self, client_exchanges: list[dict[str, Any]]) -> list[str]:
+    def _extract_rupture_indicators(
+        self, client_exchanges: list[dict[str, Any]]
+    ) -> list[str]:
         """Extract rupture indicators from client responses."""
         # For alliance-building conversations, assume minimal ruptures
         return []
@@ -1074,7 +1157,9 @@ class TherapeuticAllianceGenerator:
 
         return factors
 
-    def _determine_improvement_areas(self, task_score: float, bond_score: float, goal_score: float) -> list[str]:
+    def _determine_improvement_areas(
+        self, task_score: float, bond_score: float, goal_score: float
+    ) -> list[str]:
         """Determine areas for alliance improvement."""
         areas = []
 
@@ -1087,7 +1172,9 @@ class TherapeuticAllianceGenerator:
 
         return areas
 
-    def _determine_alliance_strengths(self, task_score: float, bond_score: float, goal_score: float) -> list[str]:
+    def _determine_alliance_strengths(
+        self, task_score: float, bond_score: float, goal_score: float
+    ) -> list[str]:
         """Determine alliance strengths."""
         strengths = []
 
@@ -1101,14 +1188,15 @@ class TherapeuticAllianceGenerator:
         return strengths
 
     def _identify_therapeutic_gains(
-        self,
-        exchanges: list[dict[str, Any]],
-        alliance_assessment: AllianceAssessment
+        self, exchanges: list[dict[str, Any]], alliance_assessment: AllianceAssessment
     ) -> list[str]:
         """Identify therapeutic gains from alliance building."""
         gains = []
 
-        if alliance_assessment.overall_strength in [AllianceStrength.MODERATE, AllianceStrength.STRONG]:
+        if alliance_assessment.overall_strength in [
+            AllianceStrength.MODERATE,
+            AllianceStrength.STRONG,
+        ]:
             gains.append("improved_therapeutic_relationship")
 
         if "explicit_trust_expression" in alliance_assessment.rapport_indicators:
@@ -1120,9 +1208,7 @@ class TherapeuticAllianceGenerator:
         return gains
 
     def _plan_next_session_focus(
-        self,
-        alliance_assessment: AllianceAssessment,
-        strategy: AllianceStrategy
+        self, alliance_assessment: AllianceAssessment, strategy: AllianceStrategy
     ) -> str:
         """Plan focus for next session based on alliance assessment."""
 
@@ -1133,9 +1219,7 @@ class TherapeuticAllianceGenerator:
         return "Continue alliance development and rapport building"
 
     def export_alliance_conversations(
-        self,
-        conversations: list[AllianceConversation],
-        output_file: str
+        self, conversations: list[AllianceConversation], output_file: str
     ) -> dict[str, Any]:
         """Export alliance conversations to JSON file."""
 
@@ -1150,16 +1234,21 @@ class TherapeuticAllianceGenerator:
             "metadata": {
                 "total_conversations": len(conversations),
                 "export_timestamp": datetime.now().isoformat(),
-                "alliance_components_covered": list({
-                    conv.alliance_focus.value for conv in conversations
-                }),
-                "rapport_techniques_used": list({
-                    technique.value for conv in conversations
-                    for technique in conv.rapport_techniques_used
-                }),
-                "average_alliance_strength": self._calculate_average_alliance_strength(conversations)
+                "alliance_components_covered": list(
+                    {conv.alliance_focus.value for conv in conversations}
+                ),
+                "rapport_techniques_used": list(
+                    {
+                        technique.value
+                        for conv in conversations
+                        for technique in conv.rapport_techniques_used
+                    }
+                ),
+                "average_alliance_strength": self._calculate_average_alliance_strength(
+                    conversations
+                ),
             },
-            "conversations": serializable_conversations
+            "conversations": serializable_conversations,
         }
 
         with open(output_file, "w", encoding="utf-8") as f:
@@ -1168,12 +1257,18 @@ class TherapeuticAllianceGenerator:
         return {
             "exported_conversations": len(conversations),
             "output_file": output_file,
-            "alliance_components": len(export_data["metadata"]["alliance_components_covered"]),
-            "rapport_techniques": len(export_data["metadata"]["rapport_techniques_used"]),
-            "average_strength": export_data["metadata"]["average_alliance_strength"]
+            "alliance_components": len(
+                export_data["metadata"]["alliance_components_covered"]
+            ),
+            "rapport_techniques": len(
+                export_data["metadata"]["rapport_techniques_used"]
+            ),
+            "average_strength": export_data["metadata"]["average_alliance_strength"],
         }
 
-    def _calculate_average_alliance_strength(self, conversations: list[AllianceConversation]) -> float:
+    def _calculate_average_alliance_strength(
+        self, conversations: list[AllianceConversation]
+    ) -> float:
         """Calculate average alliance strength across conversations."""
         if not conversations:
             return 0.0
@@ -1183,7 +1278,7 @@ class TherapeuticAllianceGenerator:
             AllianceStrength.DEVELOPING: 2,
             AllianceStrength.MODERATE: 3,
             AllianceStrength.STRONG: 4,
-            AllianceStrength.EXCEPTIONAL: 5
+            AllianceStrength.EXCEPTIONAL: 5,
         }
 
         total_strength = sum(

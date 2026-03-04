@@ -695,9 +695,9 @@ class TherapeuticResponseGenerator:
                 "client_scenario_id": client_scenario.id,
                 "scenario_type": client_scenario.scenario_type.value,
                 "severity_level": client_scenario.severity_level.value,
-                "therapeutic_modality": target_modality.value
-                if target_modality
-                else "mixed",
+                "therapeutic_modality": (
+                    target_modality.value if target_modality else "mixed"
+                ),
                 "num_exchanges": num_exchanges,
             },
             source="therapeutic_response_generator",

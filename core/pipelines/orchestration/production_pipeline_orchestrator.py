@@ -317,10 +317,12 @@ class ProductionPipelineOrchestrator:
         return {
             "total_conversations": len(conversations),
             "total_messages": sum(len(conv.messages) for conv in conversations),
-            "average_quality": sum(conv.quality_score or 0 for conv in conversations)
-            / len(conversations)
-            if conversations
-            else 0,
+            "average_quality": (
+                sum(conv.quality_score or 0 for conv in conversations)
+                / len(conversations)
+                if conversations
+                else 0
+            ),
             "generated_at": datetime.now().isoformat(),
         }
 

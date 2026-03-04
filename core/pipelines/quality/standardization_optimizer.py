@@ -82,9 +82,9 @@ class StandardizationOptimizer:
 
         # Optimization state
         self.optimal_batch_size = self.config.batch_size
-        self.performance_history: list[
-            tuple[int, float]
-        ] = []  # (batch_size, throughput)
+        self.performance_history: list[tuple[int, float]] = (
+            []
+        )  # (batch_size, throughput)
 
         self.logger.info(
             f"StandardizationOptimizer initialized with {self.config.max_workers} workers"

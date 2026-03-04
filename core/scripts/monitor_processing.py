@@ -45,9 +45,11 @@ def check_output_progress():
             continue
 
     return {
-        "status": "completed"
-        if any(f.name == "unified_lightning_config.json" for f in files)
-        else "processing",
+        "status": (
+            "completed"
+            if any(f.name == "unified_lightning_config.json" for f in files)
+            else "processing"
+        ),
         "files": [f.name for f in files],
         "total_conversations": total_conversations,
     }

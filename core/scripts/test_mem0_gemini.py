@@ -23,7 +23,9 @@ async def run_cookook_demo():
         return
 
     # Initialize Manager
-    config = GeminiMem0Config(gemini_api_key=gemini_api_key, user_id="empathy_gym_sarah")
+    config = GeminiMem0Config(
+        gemini_api_key=gemini_api_key, user_id="empathy_gym_sarah"
+    )
     manager = GeminiMem0Manager(config)
 
     # Step 1: Initial conversation
@@ -39,7 +41,9 @@ async def run_cookook_demo():
     print(f"SARAH: {q2}")
     r2 = await manager.get_response(q2)
     print(f"PIXEL: {r2['response']}")
-    print(f"[Stats: Latency {r2['latency_ms']:.2f}ms, Memories retrieved: {r2['memories_used']}]")
+    print(
+        f"[Stats: Latency {r2['latency_ms']:.2f}ms, Memories retrieved: {r2['memories_used']}]"
+    )
 
     # Step 3: View stored memories
     print("\n--- STAGE 3: Inspection of Stored Memories ---")

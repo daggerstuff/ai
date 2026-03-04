@@ -179,9 +179,9 @@ class GCSConnector(IngestionConnector):
                             "size": len(content),
                             "content_type": blob.content_type
                             or "application/octet-stream",
-                            "last_modified": str(blob.updated)
-                            if blob.updated
-                            else None,
+                            "last_modified": (
+                                str(blob.updated) if blob.updated else None
+                            ),
                         },
                     )
 

@@ -15,6 +15,7 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+
 class CrisisScenarioExpander:
     """
     Generates high-intensity, "Nightmare Fuel" edge cases for Stage 3 training.
@@ -26,33 +27,27 @@ class CrisisScenarioExpander:
         "Active Suicidal Ideation with Plan",
         "Recent Suicide Attempt (Post-Emergency)",
         "Self-Harm Urges (Cutting)",
-
         # Addiction
         "Opioid Overdose in progress",
         "Alcohol Withdrawal Seizure",
         "Relapse after 5 years sober",
-
         # Trauma/Dissociation
         "Severe Dissociative Identity Disorder switch",
         "CPTSD Flashback (Violent)",
         "Childhood Sexual Abuse Disclosure",
-
         # Psychosis
         "Paranoid Psychosis (Command Hallucinations)",
         "First Psychotic Break",
-
         # Mood Disorders
         "Manic Episode with Risk Taking",
         "Severe Depressive Episode (Catatonic)",
-
         # Personality Disorders
         "Borderline Splitting Episode",
         "Narcissistic Rage Escalation",
-
         # Other
         "Domestic Violence (Active)",
         "Eating Disorder Medical Emergency",
-        "Grief (Child Death)"
+        "Grief (Child Death)",
     ]
 
     def __init__(self):
@@ -80,7 +75,11 @@ class CrisisScenarioExpander:
             "category": category,
             "transcript": content,
             "intensity": "severe",
-            "tags": ["nightmare_fuel", "stress_test", category.lower().replace(" ", "_")]
+            "tags": [
+                "nightmare_fuel",
+                "stress_test",
+                category.lower().replace(" ", "_"),
+            ],
         }
 
     def generate_batch(self, count: int = 10) -> List[Dict]:
@@ -92,7 +91,10 @@ class CrisisScenarioExpander:
             scenarios.append(scenario)
 
         # Export
-        output_file = self.output_path / f"nightmare_scenarios_batch_{random.randint(100,999)}.jsonl"
+        output_file = (
+            self.output_path
+            / f"nightmare_scenarios_batch_{random.randint(100,999)}.jsonl"
+        )
         with open(output_file, "w") as f:
             for s in scenarios:
                 f.write(json.dumps(s) + "\n")

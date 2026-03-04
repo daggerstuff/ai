@@ -17,6 +17,7 @@ from transformers import PreTrainedModel
 @dataclass
 class MoEConfig:
     """Configuration for MoE architecture"""
+
     num_experts: int = 4
     expert_domains: List[str] = None
     hidden_size: int = 4096
@@ -39,7 +40,7 @@ class MoEConfig:
                 "psychology",
                 "mental_health",
                 "bias_detection",
-                "general_therapeutic"
+                "general_therapeutic",
             ]
         if self.lora_target_modules is None:
             self.lora_target_modules = ["q_proj", "v_proj", "k_proj", "o_proj"]
@@ -61,23 +62,23 @@ class ExpertRouter(nn.Module):
         self.router = nn.Linear(config.hidden_size, config.num_experts)
 
         # Domain classifiers for interpretability
-        self.domain_classifiers = nn.ModuleDict({
-            domain: nn.Linear(config.hidden_size, 1)
-            for domain in config.expert_domains
-        })
+        self.domain_classifiers = nn.ModuleDict(
+            {
+                domain: nn.Linear(config.hidden_size, 1)
+                for domain in config.expert_domains
+            }
+        )
 
     def forward(
-            self,
-            hidden_states: torch.Tensor,
-            return_routing_weights: bool = False
+        self, hidden_states: torch.Tensor, return_routing_weights: bool = False
     ) -> Tuple[torch.Tensor, torch.Tensor, Optional[Dict]]:
         """
         Route tokens to experts
-        
+
         Args:
             hidden_states: [batch_size, seq_len, hidden_size]
             return_routing_weights: Whether to return routing weights for analysis
-            
+
         Returns:
             expert_indices: [batch_size, seq_len, expert_capacity]
             routing_weights: [batch_size, seq_len, expert_capacity]
@@ -93,9 +94,7 @@ class ExpertRouter(nn.Module):
 
         # Select top-k experts per token
         routing_weights, expert_indices = torch.topk(
-            routing_probs,
-            k=self.expert_capacity,
-            dim=-1
+            routing_probs, k=self.expert_capacity, dim=-1
         )
 
         # Normalize routing weights
@@ -115,9 +114,11 @@ class ExpertRouter(nn.Module):
                 expert_usage[i] = (expert_indices == i).float().sum()
 
             routing_info = {
-                'domain_scores': domain_scores,
-                'expert_usage': expert_usage,
-                'routing_entropy': -(routing_probs * torch.log(routing_probs + 1e-10)).sum(dim=-1).mean()
+                "domain_scores": domain_scores,
+                "expert_usage": expert_usage,
+                "routing_entropy": -(routing_probs * torch.log(routing_probs + 1e-10))
+                .sum(dim=-1)
+                .mean(),
             }
 
         return expert_indices, routing_weights, routing_info
@@ -136,9 +137,7 @@ class ExpertRouter(nn.Module):
 
         # KL divergence from uniform distribution
         load_balancing_loss = F.kl_div(
-            expert_probs.log(),
-            uniform_probs,
-            reduction='batchmean'
+            expert_probs.log(), uniform_probs, reduction="batchmean"
         )
 
         return load_balancing_loss
@@ -160,7 +159,7 @@ class DomainExpert(nn.Module):
             nn.GELU(),
             nn.Dropout(0.1),
             nn.Linear(config.hidden_size * 4, config.hidden_size),
-            nn.Dropout(0.1)
+            nn.Dropout(0.1),
         )
 
         # Layer normalization
@@ -169,10 +168,10 @@ class DomainExpert(nn.Module):
     def forward(self, hidden_states: torch.Tensor) -> torch.Tensor:
         """
         Process hidden states through expert network
-        
+
         Args:
             hidden_states: [batch_size, seq_len, hidden_size]
-            
+
         Returns:
             expert_output: [batch_size, seq_len, hidden_size]
         """
@@ -196,23 +195,20 @@ class MoELayer(nn.Module):
         self.router = ExpertRouter(config)
 
         # Domain experts
-        self.experts = nn.ModuleList([
-            DomainExpert(config, domain)
-            for domain in config.expert_domains
-        ])
+        self.experts = nn.ModuleList(
+            [DomainExpert(config, domain) for domain in config.expert_domains]
+        )
 
     def forward(
-            self,
-            hidden_states: torch.Tensor,
-            return_routing_info: bool = False
+        self, hidden_states: torch.Tensor, return_routing_info: bool = False
     ) -> Tuple[torch.Tensor, Optional[Dict]]:
         """
         Forward pass through MoE layer
-        
+
         Args:
             hidden_states: [batch_size, seq_len, hidden_size]
             return_routing_info: Whether to return routing information
-            
+
         Returns:
             output: [batch_size, seq_len, hidden_size]
             routing_info: Optional routing information
@@ -221,8 +217,7 @@ class MoELayer(nn.Module):
 
         # Route to experts
         expert_indices, routing_weights, routing_info = self.router(
-            hidden_states,
-            return_routing_weights=return_routing_info
+            hidden_states, return_routing_weights=return_routing_info
         )
 
         # Process through experts
@@ -257,20 +252,15 @@ class TherapeuticMoEModel(nn.Module):
     Complete therapeutic AI model with MoE architecture and LoRA fine-tuning
     """
 
-    def __init__(
-            self,
-            base_model: PreTrainedModel,
-            config: MoEConfig
-    ):
+    def __init__(self, base_model: PreTrainedModel, config: MoEConfig):
         super().__init__()
         self.config = config
         self.base_model = base_model
 
         # Add MoE layers
-        self.moe_layers = nn.ModuleList([
-            MoELayer(config)
-            for _ in range(4)  # Add MoE to 4 transformer layers
-        ])
+        self.moe_layers = nn.ModuleList(
+            [MoELayer(config) for _ in range(4)]  # Add MoE to 4 transformer layers
+        )
 
         # Configure LoRA
         lora_config = LoraConfig(
@@ -279,23 +269,23 @@ class TherapeuticMoEModel(nn.Module):
             lora_alpha=config.lora_alpha,
             lora_dropout=config.lora_dropout,
             target_modules=config.lora_target_modules,
-            bias="none"
+            bias="none",
         )
 
         # Apply LoRA to base model
         self.model = get_peft_model(base_model, lora_config)
 
         # Extend context length if needed
-        if hasattr(self.model.config, 'max_position_embeddings'):
+        if hasattr(self.model.config, "max_position_embeddings"):
             self.model.config.max_position_embeddings = config.max_position_embeddings
 
     def forward(
-            self,
-            input_ids: torch.Tensor,
-            attention_mask: Optional[torch.Tensor] = None,
-            labels: Optional[torch.Tensor] = None,
-            return_routing_info: bool = False,
-            **kwargs
+        self,
+        input_ids: torch.Tensor,
+        attention_mask: Optional[torch.Tensor] = None,
+        labels: Optional[torch.Tensor] = None,
+        return_routing_info: bool = False,
+        **kwargs,
     ):
         """
         Forward pass through therapeutic MoE model
@@ -306,7 +296,7 @@ class TherapeuticMoEModel(nn.Module):
             attention_mask=attention_mask,
             labels=labels,
             output_hidden_states=True,
-            **kwargs
+            **kwargs,
         )
 
         # Apply MoE layers to hidden states
@@ -315,8 +305,7 @@ class TherapeuticMoEModel(nn.Module):
 
         for moe_layer in self.moe_layers:
             hidden_states, routing_info = moe_layer(
-                hidden_states,
-                return_routing_info=return_routing_info
+                hidden_states, return_routing_info=return_routing_info
             )
             if routing_info:
                 routing_infos.append(routing_info)
@@ -331,22 +320,20 @@ class TherapeuticMoEModel(nn.Module):
             shift_labels = labels[..., 1:].contiguous()
             loss_fct = nn.CrossEntropyLoss()
             loss = loss_fct(
-                shift_logits.view(-1, shift_logits.size(-1)),
-                shift_labels.view(-1)
+                shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1)
             )
 
             # Add load balancing loss
             if routing_infos:
                 load_balancing_loss = sum(
-                    info.get('load_balancing_loss', 0)
-                    for info in routing_infos
+                    info.get("load_balancing_loss", 0) for info in routing_infos
                 ) / len(routing_infos)
                 loss = loss + self.config.load_balancing_weight * load_balancing_loss
 
         return {
-            'loss': loss,
-            'logits': logits,
-            'routing_info': routing_infos if return_routing_info else None
+            "loss": loss,
+            "logits": logits,
+            "routing_info": routing_infos if return_routing_info else None,
         }
 
     def save_pretrained(self, save_directory: str):
@@ -355,8 +342,8 @@ class TherapeuticMoEModel(nn.Module):
 
         # Save MoE layers separately
         moe_state = {
-            'config': self.config,
-            'moe_layers': [layer.state_dict() for layer in self.moe_layers]
+            "config": self.config,
+            "moe_layers": [layer.state_dict() for layer in self.moe_layers],
         }
         torch.save(moe_state, f"{save_directory}/moe_layers.pt")
 
@@ -365,31 +352,29 @@ class TherapeuticMoEModel(nn.Module):
         """Load model from directory"""
         # Load MoE state
         moe_state = torch.load(f"{load_directory}/moe_layers.pt")
-        config = moe_state['config']
+        config = moe_state["config"]
 
         # Create model
         model = cls(base_model, config)
 
         # Load MoE layer weights
-        for layer, state_dict in zip(model.moe_layers, moe_state['moe_layers']):
+        for layer, state_dict in zip(model.moe_layers, moe_state["moe_layers"]):
             layer.load_state_dict(state_dict)
 
         return model
 
 
 def create_therapeutic_moe_model(
-        base_model_name: str,
-        moe_config: Optional[MoEConfig] = None,
-        device: str = "auto"
+    base_model_name: str, moe_config: Optional[MoEConfig] = None, device: str = "auto"
 ) -> TherapeuticMoEModel:
     """
     Create a therapeutic MoE model from a base model
-    
+
     Args:
         base_model_name: HuggingFace model name
         moe_config: MoE configuration (uses defaults if None)
         device: Device to load model on
-        
+
     Returns:
         TherapeuticMoEModel instance
     """
@@ -397,9 +382,7 @@ def create_therapeutic_moe_model(
 
     # Load base model
     base_model = AutoModelForCausalLM.from_pretrained(
-        base_model_name,
-        torch_dtype=torch.bfloat16,
-        device_map=device
+        base_model_name, torch_dtype=torch.bfloat16, device_map=device
     )
 
     # Create MoE config if not provided
@@ -419,10 +402,15 @@ if __name__ == "__main__":
 
     config = MoEConfig(
         num_experts=4,
-        expert_domains=["psychology", "mental_health", "bias_detection", "general_therapeutic"],
+        expert_domains=[
+            "psychology",
+            "mental_health",
+            "bias_detection",
+            "general_therapeutic",
+        ],
         lora_r=16,
         lora_alpha=32,
-        max_position_embeddings=8192
+        max_position_embeddings=8192,
     )
 
     print("✅ Configuration:")

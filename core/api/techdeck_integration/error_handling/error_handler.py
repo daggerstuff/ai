@@ -2,6 +2,7 @@
 
 Provides ErrorHandler with register and handle_exception used during imports.
 """
+
 from typing import Any
 
 from .custom_errors import TechDeckBaseError
@@ -20,9 +21,6 @@ class ErrorHandler:
         if isinstance(exc, TechDeckBaseError):
             return exc.to_dict()
         return {
-            'success': False,
-            'error': {
-                'code': 'INTERNAL_ERROR',
-                'message': str(exc)
-            }
+            "success": False,
+            "error": {"code": "INTERNAL_ERROR", "message": str(exc)},
         }

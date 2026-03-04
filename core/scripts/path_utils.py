@@ -10,17 +10,17 @@ from pathlib import Path
 def get_workspace_root() -> Path:
     """
     Dynamically find the workspace root directory.
-    
+
     Searches upward from the current file location until finding
     the workspace root. Handles git submodules by continuing to search
     for the parent repository.
-    
+
     Returns:
         Path: Absolute path to workspace root
     """
     # Start from current file's directory
     current = Path(__file__).resolve().parent
-    
+
     # Search upward for .git directory
     git_roots = []
     search_path = current
@@ -28,12 +28,12 @@ def get_workspace_root() -> Path:
         if (search_path / ".git").exists():
             git_roots.append(search_path)
         search_path = search_path.parent
-    
+
     # If we found multiple .git directories, use the topmost one (parent repo)
     # This handles the case where ai/ is a git submodule
     if git_roots:
         return git_roots[-1]
-    
+
     # Fallback: assume we're in ai/scripts and go up two levels
     return Path(__file__).resolve().parent.parent.parent
 

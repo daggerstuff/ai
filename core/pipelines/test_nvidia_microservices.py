@@ -56,8 +56,12 @@ class TestNvidiaMicroservicesIntegration(unittest.TestCase):
         logger.info("✅ NeMo Retriever personalized integration verified.")
 
     @patch("ai.models.components.therapeutic_finetuning.NemoCustomizerClient")
-    @patch("ai.models.components.therapeutic_finetuning.TherapeuticModelTrainer._load_tokenizer")
-    @patch("ai.models.components.therapeutic_finetuning.TherapeuticModelTrainer._load_model")
+    @patch(
+        "ai.models.components.therapeutic_finetuning.TherapeuticModelTrainer._load_tokenizer"
+    )
+    @patch(
+        "ai.models.components.therapeutic_finetuning.TherapeuticModelTrainer._load_model"
+    )
     def test_customizer_integration(self, mock_model, mock_tok, mock_client):
         """Verify that TherapeuticModelTrainer attempts to use NeMo Customizer."""
         mock_instance = mock_client.return_value

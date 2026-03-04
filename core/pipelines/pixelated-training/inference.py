@@ -17,12 +17,11 @@ class WayfarerInference:
             model_path,
             torch_dtype=torch.bfloat16,
             device_map="auto",
-            trust_remote_code=True
+            trust_remote_code=True,
         )
 
         if self.tokenizer.pad_token is None:
             self.tokenizer.pad_token = self.tokenizer.eos_token
-
 
     def generate_response(self, user_message, max_length=512, temperature=0.7):
         """Generate response to user message"""
@@ -42,21 +41,20 @@ class WayfarerInference:
                 temperature=temperature,
                 do_sample=True,
                 pad_token_id=self.tokenizer.eos_token_id,
-                eos_token_id=self.tokenizer.eos_token_id
+                eos_token_id=self.tokenizer.eos_token_id,
             )
 
         generation_time = time.time() - start_time
 
         # Decode response
         response = self.tokenizer.decode(
-            outputs[0][inputs.input_ids.shape[1]:],
-            skip_special_tokens=True
+            outputs[0][inputs.input_ids.shape[1] :], skip_special_tokens=True
         ).strip()
 
         return {
             "response": response,
             "generation_time": generation_time,
-            "tokens_generated": len(outputs[0]) - len(inputs.input_ids[0])
+            "tokens_generated": len(outputs[0]) - len(inputs.input_ids[0]),
         }
 
     def chat_loop(self):
@@ -72,6 +70,7 @@ class WayfarerInference:
                 continue
 
             self.generate_response(user_input)
+
 
 def main():
     import sys

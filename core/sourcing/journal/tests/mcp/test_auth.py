@@ -19,7 +19,9 @@ def _build_request(auth_header: str) -> MCPRequest:
 
 @pytest.mark.asyncio
 async def test_api_key_auth_accepts_valid_key() -> None:
-    config = AuthConfig(enabled=True, api_key_required=True, allowed_api_keys=["secret"])
+    config = AuthConfig(
+        enabled=True, api_key_required=True, allowed_api_keys=["secret"]
+    )
     auth = APIKeyAuth(config)
 
     user = await auth.authenticate(_build_request("Bearer secret"))
@@ -30,7 +32,9 @@ async def test_api_key_auth_accepts_valid_key() -> None:
 
 @pytest.mark.asyncio
 async def test_api_key_auth_rejects_invalid_key() -> None:
-    config = AuthConfig(enabled=True, api_key_required=True, allowed_api_keys=["secret"])
+    config = AuthConfig(
+        enabled=True, api_key_required=True, allowed_api_keys=["secret"]
+    )
     auth = APIKeyAuth(config)
 
     with pytest.raises(MCPError) as exc:
@@ -42,7 +46,9 @@ async def test_api_key_auth_rejects_invalid_key() -> None:
 @pytest.mark.asyncio
 async def test_jwt_auth_valid_token() -> None:
     secret = "top-secret"
-    token = pyjwt.encode({"sub": "user-1", "email": "user@example.com"}, secret, algorithm="HS256")
+    token = pyjwt.encode(
+        {"sub": "user-1", "email": "user@example.com"}, secret, algorithm="HS256"
+    )
 
     config = AuthConfig(
         enabled=True,
@@ -109,4 +115,3 @@ async def test_rbac_require_authorization_raises_for_missing_permission() -> Non
         await rbac.require_authorization(user, "create_session", "execute")
 
     assert exc.value.code == MCPErrorCode.AUTHORIZATION_ERROR
-

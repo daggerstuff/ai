@@ -137,9 +137,9 @@ class JournalResearchAdapter:
             # Update progress tracking
             self.integration_progress[dataset.source_id].update(
                 {
-                    "status": "completed"
-                    if integration_result.get("success")
-                    else "failed",
+                    "status": (
+                        "completed" if integration_result.get("success") else "failed"
+                    ),
                     "conversion": integration_result.get("conversion"),
                     "validation": integration_result.get("validation"),
                     "merge": integration_result.get("merge"),
@@ -168,9 +168,9 @@ class JournalResearchAdapter:
 
             return {
                 **integration_result,
-                "conversations": conversations
-                if integration_result.get("success")
-                else [],
+                "conversations": (
+                    conversations if integration_result.get("success") else []
+                ),
                 "output_path": str(output_path),
             }
 

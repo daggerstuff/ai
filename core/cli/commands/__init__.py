@@ -18,10 +18,10 @@ from .pipeline import pipeline_group
 from .web_frontend import web_frontend_group
 
 __all__ = [
-    'web_frontend_group',
-    'cli_interface_group',
-    'mcp_connect_group',
-    'pipeline_group',
-    'config_group',
-    'auth_group',
+    "web_frontend_group",
+    "cli_interface_group",
+    "mcp_connect_group",
+    "pipeline_group",
+    "config_group",
+    "auth_group",
 ]

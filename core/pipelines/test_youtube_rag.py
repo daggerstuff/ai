@@ -7,7 +7,7 @@ import os
 import sys
 
 # Add the project root to the path
-project_root = os.path.join(os.path.dirname(__file__), '..', '..')
+project_root = os.path.join(os.path.dirname(__file__), "..", "..")
 sys.path.insert(0, project_root)
 
 # Import the modules
@@ -27,7 +27,9 @@ def test_youtube_rag_integration():
 
         if rag_system.transcripts:
             print("  Sample transcript metadata:")
-            for i, (filename, metadata) in enumerate(list(rag_system.transcripts.items())[:3]):
+            for i, (filename, metadata) in enumerate(
+                list(rag_system.transcripts.items())[:3]
+            ):
                 print(f"    {i+1}. {filename}: {metadata.get('title', 'No title')}")
 
         # Test search functionality (simulated since we can't load the model)
@@ -43,8 +45,10 @@ def test_youtube_rag_integration():
     except Exception as e:
         print(f"✗ YouTube RAG test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 def test_pipeline_integration():
     """Test integration between RAG system and preprocessing pipeline"""
@@ -58,11 +62,17 @@ def test_pipeline_integration():
         print(f"✓ Pipeline discovered {len(pipeline.data_sources)} data sources")
 
         # Check if YouTube transcripts are among the data sources
-        youtube_sources = [source for source in pipeline.data_sources if source.source_type == "youtube_transcripts"]
+        youtube_sources = [
+            source
+            for source in pipeline.data_sources
+            if source.source_type == "youtube_transcripts"
+        ]
         if youtube_sources:
             print(f"✓ Found {len(youtube_sources)} YouTube transcript data sources")
             for source in youtube_sources:
-                print(f"  - {source.name}: {source.record_count} transcripts, {source.size_bytes} bytes")
+                print(
+                    f"  - {source.name}: {source.record_count} transcripts, {source.size_bytes} bytes"
+                )
         else:
             print("⚠ No YouTube transcript data sources found")
 
@@ -78,8 +88,10 @@ def test_pipeline_integration():
     except Exception as e:
         print(f"✗ Pipeline integration test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
+
 
 def main():
     """Main test function"""
@@ -101,6 +113,7 @@ def main():
     else:
         print("\n❌ Some integration tests failed")
         return False
+
 
 if __name__ == "__main__":
     success = main()

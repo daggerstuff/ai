@@ -290,9 +290,11 @@ class CodeReviewAuditor:
                     severity=self.code_smells["long_function"]["severity"],
                     description=f"Function '{func_node.name}' is too long ({func_length} lines)",
                     suggestion="Break this function into smaller, focused functions using Extract Method refactoring",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     complexity_score=complexity,
                 )
             )
@@ -311,9 +313,11 @@ class CodeReviewAuditor:
                     severity=self.code_smells["too_many_parameters"]["severity"],
                     description=f"Function '{func_node.name}' has too many parameters ({param_count})",
                     suggestion="Consider using a parameter object or breaking the function into smaller parts",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     complexity_score=complexity,
                 )
             )
@@ -331,9 +335,11 @@ class CodeReviewAuditor:
                     severity="HIGH",
                     description=f"Function '{func_node.name}' has high cyclomatic complexity ({complexity})",
                     suggestion="Simplify the function by reducing conditional statements and loops",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     complexity_score=complexity,
                 )
             )
@@ -352,9 +358,11 @@ class CodeReviewAuditor:
                     severity=self.code_smells["deep_nesting"]["severity"],
                     description=f"Function '{func_node.name}' has deep nesting ({max_nesting} levels)",
                     suggestion="Use early returns and guard clauses to reduce nesting levels",
-                    code_snippet=func_content[:200] + "..."
-                    if len(func_content) > 200
-                    else func_content,
+                    code_snippet=(
+                        func_content[:200] + "..."
+                        if len(func_content) > 200
+                        else func_content
+                    ),
                     complexity_score=complexity,
                 )
             )
@@ -400,9 +408,11 @@ class CodeReviewAuditor:
                     severity=self.code_smells["long_class"]["severity"],
                     description=f"Class '{class_node.name}' is too long ({class_lines} lines)",
                     suggestion="Break this class into smaller, focused classes using Extract Class refactoring",
-                    code_snippet=class_content[:200] + "..."
-                    if len(class_content) > 200
-                    else class_content,
+                    code_snippet=(
+                        class_content[:200] + "..."
+                        if len(class_content) > 200
+                        else class_content
+                    ),
                     complexity_score=0,
                 )
             )
@@ -420,9 +430,11 @@ class CodeReviewAuditor:
                     severity=self.code_smells["god_class"]["severity"],
                     description=f"Class '{class_node.name}' has too many methods ({method_count})",
                     suggestion="Split this class into multiple classes with single responsibilities",
-                    code_snippet=class_content[:200] + "..."
-                    if len(class_content) > 200
-                    else class_content,
+                    code_snippet=(
+                        class_content[:200] + "..."
+                        if len(class_content) > 200
+                        else class_content
+                    ),
                     complexity_score=0,
                 )
             )
@@ -623,9 +635,11 @@ class CodeReviewAuditor:
                             severity=self.code_smells["duplicate_code"]["severity"],
                             description=f"Duplicate code detected in function '{func_name}'",
                             suggestion="Extract common code into a shared function or method",
-                            code_snippet=normalized_code[:200] + "..."
-                            if len(normalized_code) > 200
-                            else normalized_code,
+                            code_snippet=(
+                                normalized_code[:200] + "..."
+                                if len(normalized_code) > 200
+                                else normalized_code
+                            ),
                             complexity_score=0,
                         )
                     )

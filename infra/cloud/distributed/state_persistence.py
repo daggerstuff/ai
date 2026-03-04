@@ -727,12 +727,16 @@ class StatePersistenceManager:
             "metrics": self.persistence_metrics.copy(),
             "storage_info": {
                 "storage_path": str(self.storage_path),
-                "db_size_mb": self.db_path.stat().st_size / (1024 * 1024)
-                if self.db_path.exists()
-                else 0,
-                "backup_count": len(list(self.backup_path.glob("*")))
-                if self.backup_path.exists()
-                else 0,
+                "db_size_mb": (
+                    self.db_path.stat().st_size / (1024 * 1024)
+                    if self.db_path.exists()
+                    else 0
+                ),
+                "backup_count": (
+                    len(list(self.backup_path.glob("*")))
+                    if self.backup_path.exists()
+                    else 0
+                ),
             },
         }
 

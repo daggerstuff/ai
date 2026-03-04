@@ -92,9 +92,7 @@ class TestVoiceTranscriber(unittest.TestCase):
             "ai.pipelines.voice_transcriber.FASTER_WHISPER_AVAILABLE",
             False,
         ):
-            with patch(
-                "ai.pipelines.voice_transcriber.WHISPER_AVAILABLE", False
-            ):
+            with patch("ai.pipelines.voice_transcriber.WHISPER_AVAILABLE", False):
                 self.transcriber = VoiceTranscriber()
                 self.transcriber.model = Mock()
                 self.transcriber.model_type = "mock"
@@ -292,14 +290,10 @@ class TestVoicePipelineIntegration(unittest.TestCase):
             conversation_output_dir="test_conversations",
         )
 
-    @patch(
-        "ai.pipelines.voice_pipeline_integration.YouTubePlaylistProcessor"
-    )
+    @patch("ai.pipelines.voice_pipeline_integration.YouTubePlaylistProcessor")
     @patch("ai.pipelines.voice_pipeline_integration.AudioProcessor")
     @patch("ai.pipelines.voice_pipeline_integration.VoiceTranscriber")
-    @patch(
-        "ai.pipelines.voice_pipeline_integration.VoiceConversationConverter"
-    )
+    @patch("ai.pipelines.voice_pipeline_integration.VoiceConversationConverter")
     def test_pipeline_initialization(
         self, mock_converter, mock_transcriber, mock_audio, mock_youtube
     ):

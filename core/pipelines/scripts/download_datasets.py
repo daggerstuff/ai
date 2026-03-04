@@ -29,6 +29,7 @@ except ImportError:
 @dataclass
 class DatasetConfig:
     """Configuration for a dataset to download."""
+
     name: str
     hf_id: str
     tier: int
@@ -317,7 +318,9 @@ class DatasetDownloader:
                 total_size += file_size
                 total_rows += len(split_data)
 
-                print(f"    Saved: {output_file.name} ({file_size / 1024 / 1024:.2f} MB)")
+                print(
+                    f"    Saved: {output_file.name} ({file_size / 1024 / 1024:.2f} MB)"
+                )
 
             # Also save dataset info
             info_file = dataset_path / "dataset_info.json"
@@ -368,7 +371,7 @@ class DatasetDownloader:
                 "valid": 0,
                 "missing": 0,
                 "corrupted": 0,
-            }
+            },
         }
 
         all_datasets = TIER2_DATASETS + TIER4_DATASETS + TIER5_DATASETS + TIER6_DATASETS
@@ -439,7 +442,9 @@ class DatasetDownloader:
                     lines.append(f"  - Path: `{ds['path']}`")
                     lines.append(f"  - Size: {ds['total_size_mb']:.2f} MB")
                     if ds["files"]:
-                        lines.append(f"  - Files: {', '.join(f['name'] for f in ds['files'])}")
+                        lines.append(
+                            f"  - Files: {', '.join(f['name'] for f in ds['files'])}"
+                        )
 
         return "\n".join(lines)
 
@@ -447,10 +452,14 @@ class DatasetDownloader:
         """Save download log to file."""
         log_file = self.base_path / "download_log.json"
         with open(log_file, "w") as f:
-            json.dump({
-                "timestamp": datetime.now().isoformat(),
-                "downloads": self.download_log,
-            }, f, indent=2)
+            json.dump(
+                {
+                    "timestamp": datetime.now().isoformat(),
+                    "downloads": self.download_log,
+                },
+                f,
+                indent=2,
+            )
         print(f"\nDownload log saved to: {log_file}")
 
 
@@ -531,7 +540,9 @@ def main():
             datasets_to_download = TIER6_DATASETS
     else:
         # Download all
-        datasets_to_download = TIER2_DATASETS + TIER4_DATASETS + TIER5_DATASETS + TIER6_DATASETS
+        datasets_to_download = (
+            TIER2_DATASETS + TIER4_DATASETS + TIER5_DATASETS + TIER6_DATASETS
+        )
 
     if args.dry_run:
         print("Dry run - would download:")
@@ -565,4 +576,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

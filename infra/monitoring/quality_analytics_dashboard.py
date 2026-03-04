@@ -515,9 +515,11 @@ class QualityAnalyticsDashboard:
             st.metric(
                 "Average Quality",
                 f"{analytics.average_quality:.3f}",
-                delta=f"{analytics.average_quality - 0.6:.3f}"
-                if analytics.average_quality > 0.6
-                else None,
+                delta=(
+                    f"{analytics.average_quality - 0.6:.3f}"
+                    if analytics.average_quality > 0.6
+                    else None
+                ),
             )
 
         with col3:
@@ -578,9 +580,11 @@ class QualityAnalyticsDashboard:
                     "generated_at": datetime.now().isoformat(),
                     "filters_applied": {
                         "tiers": selected_tiers,
-                        "date_range": [str(d) for d in date_range]
-                        if len(date_range) == 2
-                        else None,
+                        "date_range": (
+                            [str(d) for d in date_range]
+                            if len(date_range) == 2
+                            else None
+                        ),
                         "quality_threshold": quality_threshold,
                     },
                 }

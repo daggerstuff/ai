@@ -14,15 +14,60 @@ from pathlib import Path
 from typing import Optional
 
 # Stage mapping patterns
-STAGE1_PATTERNS = ["foundation", "rapport", "tier1", "priority_1", "therapist_sft", "soulchat", "counsel_chat", "psych8k", "mental_health_counseling"]
-STAGE2_PATTERNS = ["reasoning", "cot", "chain_of_thought", "therapeutic_expertise", "tier3", "professional", "psychology_knowledge"]
-STAGE3_PATTERNS = ["edge", "crisis", "nightmare", "stress_test", "suicidality", "psychosis", "trauma", "abuse", "violence"]
-STAGE4_PATTERNS = ["voice", "persona", "delivery", "tim_fletcher", "wayfarer", "personality", "tone", "style"]
+STAGE1_PATTERNS = [
+    "foundation",
+    "rapport",
+    "tier1",
+    "priority_1",
+    "therapist_sft",
+    "soulchat",
+    "counsel_chat",
+    "psych8k",
+    "mental_health_counseling",
+]
+STAGE2_PATTERNS = [
+    "reasoning",
+    "cot",
+    "chain_of_thought",
+    "therapeutic_expertise",
+    "tier3",
+    "professional",
+    "psychology_knowledge",
+]
+STAGE3_PATTERNS = [
+    "edge",
+    "crisis",
+    "nightmare",
+    "stress_test",
+    "suicidality",
+    "psychosis",
+    "trauma",
+    "abuse",
+    "violence",
+]
+STAGE4_PATTERNS = [
+    "voice",
+    "persona",
+    "delivery",
+    "tim_fletcher",
+    "wayfarer",
+    "personality",
+    "tone",
+    "style",
+]
 
 # Model architecture patterns
 MOE_PATTERNS = ["moe", "mixture_of_experts"]
 BASE_MODEL_PATTERNS = ["base", "foundation", "pretrained", "harbringer", "mistral"]
-EXPERIMENTAL_MODEL_PATTERNS = ["cnn", "resnet", "quantum", "neuroplasticity", "causal", "emotional", "research"]
+EXPERIMENTAL_MODEL_PATTERNS = [
+    "cnn",
+    "resnet",
+    "quantum",
+    "neuroplasticity",
+    "causal",
+    "emotional",
+    "research",
+]
 
 
 def map_dataset_to_stage(file_path: str, file_name: str) -> Optional[str]:
@@ -31,19 +76,27 @@ def map_dataset_to_stage(file_path: str, file_name: str) -> Optional[str]:
     name_lower = file_name.lower()
 
     # Check Stage 3 (edge cases) first as it's most specific
-    if any(pattern in path_lower or pattern in name_lower for pattern in STAGE3_PATTERNS):
+    if any(
+        pattern in path_lower or pattern in name_lower for pattern in STAGE3_PATTERNS
+    ):
         return "stage3_edge"
 
     # Check Stage 2 (reasoning)
-    if any(pattern in path_lower or pattern in name_lower for pattern in STAGE2_PATTERNS):
+    if any(
+        pattern in path_lower or pattern in name_lower for pattern in STAGE2_PATTERNS
+    ):
         return "stage2_reasoning"
 
     # Check Stage 4 (voice/persona)
-    if any(pattern in path_lower or pattern in name_lower for pattern in STAGE4_PATTERNS):
+    if any(
+        pattern in path_lower or pattern in name_lower for pattern in STAGE4_PATTERNS
+    ):
         return "stage4_voice"
 
     # Default to Stage 1 (foundation)
-    if any(pattern in path_lower or pattern in name_lower for pattern in STAGE1_PATTERNS):
+    if any(
+        pattern in path_lower or pattern in name_lower for pattern in STAGE1_PATTERNS
+    ):
         return "stage1_foundation"
 
     # If no pattern matches, return None (will be assigned later)
@@ -58,10 +111,16 @@ def classify_model_architecture(file_path: str, file_name: str) -> str:
     if any(pattern in path_lower or pattern in name_lower for pattern in MOE_PATTERNS):
         return "moe"
 
-    if any(pattern in path_lower or pattern in name_lower for pattern in EXPERIMENTAL_MODEL_PATTERNS):
+    if any(
+        pattern in path_lower or pattern in name_lower
+        for pattern in EXPERIMENTAL_MODEL_PATTERNS
+    ):
         return "experimental"
 
-    if any(pattern in path_lower or pattern in name_lower for pattern in BASE_MODEL_PATTERNS):
+    if any(
+        pattern in path_lower or pattern in name_lower
+        for pattern in BASE_MODEL_PATTERNS
+    ):
         return "base"
 
     return "other"
@@ -76,9 +135,15 @@ def get_config_type(file_path: str, file_name: str) -> str:
         return "stage"
     if "model" in path_lower or "model" in name_lower:
         return "model"
-    if "hyperparameter" in path_lower or "hyperparameter" in name_lower or "train" in name_lower:
+    if (
+        "hyperparameter" in path_lower
+        or "hyperparameter" in name_lower
+        or "train" in name_lower
+    ):
         return "hyperparameter"
-    if any(x in path_lower for x in ["kubernetes", "k8s", "helm", "docker", "deployment"]):
+    if any(
+        x in path_lower for x in ["kubernetes", "k8s", "helm", "docker", "deployment"]
+    ):
         return "infrastructure"
 
     return "other"
@@ -90,7 +155,11 @@ def determine_stage_for_config(file_path: str) -> Optional[str]:
 
     if "stage1" in path_lower or "foundation" in path_lower:
         return "stage1"
-    if "stage2" in path_lower or "reasoning" in path_lower or "therapeutic_expertise" in path_lower:
+    if (
+        "stage2" in path_lower
+        or "reasoning" in path_lower
+        or "therapeutic_expertise" in path_lower
+    ):
         return "stage2"
     if "stage3" in path_lower or "edge" in path_lower:
         return "stage3"
@@ -105,8 +174,7 @@ def load_stage_configs():
     try:
         sys.path.insert(0, str(Path.cwd()))
         spec = importlib.util.spec_from_file_location(
-            "stages",
-            Path.cwd() / "ai" / "dataset_pipeline" / "configs" / "stages.py"
+            "stages", Path.cwd() / "ai" / "dataset_pipeline" / "configs" / "stages.py"
         )
         stages_module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(stages_module)
@@ -116,7 +184,9 @@ def load_stage_configs():
         return None
 
 
-def generate_manifest(catalogs_file: str, experimental_features_file: str, output_file: str):
+def generate_manifest(
+    catalogs_file: str, experimental_features_file: str, output_file: str
+):
     """Generate comprehensive training manifest from directory catalogs."""
 
     # Load catalogs
@@ -193,7 +263,11 @@ def generate_manifest(catalogs_file: str, experimental_features_file: str, outpu
                     "stage": stage,
                     "category": "unknown",  # Could be enhanced with more analysis
                     "size": file_size,
-                    "format": Path(file_path).suffix[1:] if Path(file_path).suffix else "unknown",
+                    "format": (
+                        Path(file_path).suffix[1:]
+                        if Path(file_path).suffix
+                        else "unknown"
+                    ),
                     "source": directory,
                     "description": f"Dataset from {directory}",
                     "modified": file_info.get("modified", ""),
@@ -331,7 +405,9 @@ def generate_manifest(catalogs_file: str, experimental_features_file: str, outpu
 
     print(f"✅ Generated training manifest: {output_file}")
     print(f"   Total assets: {manifest['summary']['total_assets']}")
-    print(f"   Total size: {manifest['summary']['total_size_bytes'] / (1024**3):.2f} GB")
+    print(
+        f"   Total size: {manifest['summary']['total_size_bytes'] / (1024**3):.2f} GB"
+    )
     print(f"   Datasets: {len(manifest['datasets'])}")
     print(f"   Models: {len(manifest['model_architectures'])}")
     print(f"   Configs: {len(manifest['training_configurations'])}")
@@ -363,7 +439,9 @@ def main():
         return 1
 
     print("📋 Generating training manifest...")
-    manifest = generate_manifest(str(catalogs_file), str(experimental_file), str(manifest_file))
+    manifest = generate_manifest(
+        str(catalogs_file), str(experimental_file), str(manifest_file)
+    )
 
     print("\n📊 Stage Distribution:")
     for stage, count in manifest["summary"]["by_stage"].items():
@@ -374,4 +452,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

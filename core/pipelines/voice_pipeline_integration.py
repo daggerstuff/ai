@@ -197,9 +197,11 @@ class VoiceTrainingPipeline:
             self.logger.info("Step 3: Transcribing audio segments...")
             transcription_result = self.voice_transcriber.transcribe_batch(
                 processed_segments,
-                self.config.transcription_output_dir
-                if self.config.save_intermediate_results
-                else None,
+                (
+                    self.config.transcription_output_dir
+                    if self.config.save_intermediate_results
+                    else None
+                ),
             )
 
             successful_transcriptions = [

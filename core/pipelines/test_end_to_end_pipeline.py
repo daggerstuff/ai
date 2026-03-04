@@ -136,6 +136,7 @@ def test_progress_tracker_integration():
     except Exception as e:
         print(f"\n❌ Progress tracker test failed: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -149,7 +150,7 @@ def main():
     results = {
         "individual_loaders": False,
         "integrated_pipeline": False,
-        "progress_tracker": False
+        "progress_tracker": False,
     }
 
     # Test individual loaders

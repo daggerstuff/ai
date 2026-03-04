@@ -346,9 +346,7 @@ class EnterpriseConversationDeduplicator:
                 return result
 
             except Exception as e:
-                logger.error(
-                    f"Deduplication failed: {e!s}\n{traceback.format_exc()}"
-                )
+                logger.error(f"Deduplication failed: {e!s}\n{traceback.format_exc()}")
                 raise RuntimeError(f"Conversation deduplication failed: {e!s}")
 
     def _process_batch(
@@ -458,7 +456,6 @@ class EnterpriseConversationDeduplicator:
 
         # Confidence decreases with higher standard deviation
         return max(0.0, min(1.0, mean_sim * (1.0 - std_dev)))
-
 
     def _is_duplicate(self, similarity: EnterpriseSimilarityMetrics) -> bool:
         """Determine if conversations are duplicates based on similarity metrics."""
@@ -586,7 +583,6 @@ class ContentSimilarityCalculator:
             # Use difflib for similarity calculation
             return difflib.SequenceMatcher(None, text1, text2).ratio()
 
-
         except Exception as e:
             logger.warning(f"Content similarity calculation failed: {e!s}")
             return 0.0
@@ -612,7 +608,6 @@ class ContentSimilarityCalculator:
 
         # Remove punctuation (optional)
         return re.sub(r"[^\w\s]", "", text)
-
 
 
 class SemanticSimilarityCalculator:
@@ -707,7 +702,6 @@ class StructuralSimilarityCalculator:
             ]
 
             return difflib.SequenceMatcher(None, roles1, roles2).ratio()
-
 
         except Exception as e:
             logger.warning(f"Message pattern comparison failed: {e!s}")

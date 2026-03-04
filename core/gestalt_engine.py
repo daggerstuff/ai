@@ -390,7 +390,7 @@ class GestaltEngine:
         full_plutchik = {e: plutchik.get(e, 0.0) for e in PLUTCHIK_EMOTIONS}
         full_ocean = {t: ocean.get(t, 0.5) for t in OCEAN_TRAITS}
 
-        (def_l, def_n, def_c, def_m, def_p) = self._classify_defense(
+        def_l, def_n, def_c, def_m, def_p = self._classify_defense(
             dialogue, target_utterance, max_turns
         )
 

@@ -89,17 +89,14 @@ class DatasetSynthesizer:
             "CBT_Thought_Record": self._transform_cbt_thought_record,
             "CBT_Behavioral_Activation": self._transform_cbt_behavioral_activation,
             "CBT_Cognitive_Restructuring": self._transform_cbt_cognitive_restructuring,
-
             # DBT
             "DBT_Skill_Exercise": self._transform_dbt_skill_exercise,
             "DBT_Diary_Card": self._transform_dbt_diary_card,
             "DBT_Chain_Analysis": self._transform_dbt_chain_analysis,
-
             # EMDR
             "EMDR_Treatment_Plan": self._transform_emdr_treatment_plan,
             "EMDR_Phase_Protocol": self._transform_emdr_phase_protocol,
             "EMDR_Resource_Script": self._transform_emdr_resource_script,
-
             # ACT
             "ACT_Hexaflex_Exercise": self._transform_act_hexaflex_exercise,
             "ACT_Values_Clarification": self._transform_act_values_clarification,
@@ -123,7 +120,7 @@ class DatasetSynthesizer:
             return to_sharegpt(
                 self.DEFAULT_SYSTEM_PROMPT,
                 f"{instruction}\n\n{input_text}",
-                output_text
+                output_text,
             )
         return None
 
@@ -198,8 +195,7 @@ class DatasetSynthesizer:
             f"Anxiety={emotions.get('anxiety')}"
         )
         output_text = (
-            f"Skills Used: {data.get('skills_used')}\n"
-            f"Notes: {data.get('notes')}"
+            f"Skills Used: {data.get('skills_used')}\n" f"Notes: {data.get('notes')}"
         )
         return instruction, input_text, output_text
 
@@ -300,7 +296,9 @@ class DatasetSynthesizer:
                 return to_alpaca(instruction, input_text, output_text)
             if format_type == "sharegpt":
                 return to_sharegpt(
-                    self.DEFAULT_SYSTEM_PROMPT, f"{instruction}\n\n{input_text}", output_text
+                    self.DEFAULT_SYSTEM_PROMPT,
+                    f"{instruction}\n\n{input_text}",
+                    output_text,
                 )
 
         return None
@@ -317,5 +315,5 @@ class DatasetSynthesizer:
         return {
             "train": data[:train_end],
             "val": data[train_end:val_end],
-            "test": data[val_end:]
+            "test": data[val_end:],
         }

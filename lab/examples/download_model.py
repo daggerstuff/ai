@@ -4,6 +4,7 @@ This is intentionally tiny and dependency-free; it demonstrates best
 practices for reading an API token from the environment and calling the
 client in a script.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -16,8 +17,12 @@ logger = logging.getLogger("ai.examples.download_model")
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Download a file from the Hugging Face Hub")
-    parser.add_argument("repo_id", help="Repo id, for example 'owner/model' or 'owner/dataset'")
+    parser = argparse.ArgumentParser(
+        description="Download a file from the Hugging Face Hub"
+    )
+    parser.add_argument(
+        "repo_id", help="Repo id, for example 'owner/model' or 'owner/dataset'"
+    )
     parser.add_argument("--filename", help="Filename to download (optional)")
     parser.add_argument("--out", help="Output directory", default=".")
     args = parser.parse_args()
@@ -28,7 +33,9 @@ def main() -> int:
 
     try:
         if args.filename:
-            path = client.download_file(args.repo_id, filename=args.filename, cache_dir=str(out_dir))
+            path = client.download_file(
+                args.repo_id, filename=args.filename, cache_dir=str(out_dir)
+            )
             print(f"Downloaded file to: {path}")
         else:
             path = client.snapshot_download(args.repo_id, cache_dir=str(out_dir))

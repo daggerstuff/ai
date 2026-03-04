@@ -13,11 +13,15 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class CoTReasoningMensMentalHealth:
     """Processes CoT reasoning for men's mental health."""
 
-    def __init__(self, dataset_path: str = "./CoT_Reasoning_Mens_Mental_Health",
-                 output_dir: str = "./processed_cot"):
+    def __init__(
+        self,
+        dataset_path: str = "./CoT_Reasoning_Mens_Mental_Health",
+        output_dir: str = "./processed_cot",
+    ):
         self.dataset_path = Path(dataset_path)
         self.output_dir = Path(output_dir)
         self.output_dir.mkdir(exist_ok=True)
@@ -29,7 +33,9 @@ class CoTReasoningMensMentalHealth:
         result = {
             "success": True,
             "examples_processed": 150,
-            "output_path": str(self.output_dir / "cot_reasoning_mens_mental_health_processed.json")
+            "output_path": str(
+                self.output_dir / "cot_reasoning_mens_mental_health_processed.json"
+            ),
         }
 
         output_data = {
@@ -37,7 +43,7 @@ class CoTReasoningMensMentalHealth:
                 "name": "CoT Reasoning Mens Mental Health",
                 "description": "Gender-specific therapeutic reasoning for men's mental health",
                 "total_examples": 150,
-                "processed_at": datetime.now().isoformat()
+                "processed_at": datetime.now().isoformat(),
             }
         }
 
@@ -46,6 +52,7 @@ class CoTReasoningMensMentalHealth:
 
         logger.info("CoTReasoningMensMentalHealth processing completed")
         return result
+
 
 if __name__ == "__main__":
     processor = CoTReasoningMensMentalHealth()

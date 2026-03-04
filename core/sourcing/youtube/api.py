@@ -26,52 +26,100 @@ logger = logging.getLogger(__name__)
 # Therapeutic search keywords by content category
 CATEGORY_KEYWORDS = {
     ContentCategory.CPTSD_EDUCATION: [
-        "cptsd", "complex ptsd", "trauma symptoms", "c-ptsd recovery",
-        "developmental trauma", "childhood trauma", "narcissistic abuse",
+        "cptsd",
+        "complex ptsd",
+        "trauma symptoms",
+        "c-ptsd recovery",
+        "developmental trauma",
+        "childhood trauma",
+        "narcissistic abuse",
     ],
     ContentCategory.TRAUMA_INFORMED: [
-        "trauma informed", "trauma-informed care", "safety techniques",
-        "window of tolerance", "nervous system regulation", "polyvagal",
+        "trauma informed",
+        "trauma-informed care",
+        "safety techniques",
+        "window of tolerance",
+        "nervous system regulation",
+        "polyvagal",
     ],
     ContentCategory.DBT_SKILLS: [
-        "dbt", "dialectical behavior therapy", "distress tolerance",
-        "emotion regulation", "mindfulness dbt", "wise mind",
-        "opposite action", "radical acceptance",
+        "dbt",
+        "dialectical behavior therapy",
+        "distress tolerance",
+        "emotion regulation",
+        "mindfulness dbt",
+        "wise mind",
+        "opposite action",
+        "radical acceptance",
     ],
     ContentCategory.CBT_TECHNIQUES: [
-        "cbt", "cognitive behavioral therapy", "cognitive restructuring",
-        "behavioral activation", "exposure therapy", "automatic thoughts",
+        "cbt",
+        "cognitive behavioral therapy",
+        "cognitive restructuring",
+        "behavioral activation",
+        "exposure therapy",
+        "automatic thoughts",
     ],
     ContentCategory.SOMATIC_THERAPY: [
-        "somatic experiencing", "somatic therapy", "body-based therapy",
-        "polyvagal theory", "nervous system", "trauma release",
-        "breathwork", "somatic exercises",
+        "somatic experiencing",
+        "somatic therapy",
+        "body-based therapy",
+        "polyvagal theory",
+        "nervous system",
+        "trauma release",
+        "breathwork",
+        "somatic exercises",
     ],
     ContentCategory.EMDR_THERAPY: [
-        "emdr", "eye movement desensitization", "emdr therapy",
-        "trauma processing", "bilateral stimulation", "emdr preparation",
+        "emdr",
+        "eye movement desensitization",
+        "emdr therapy",
+        "trauma processing",
+        "bilateral stimulation",
+        "emdr preparation",
     ],
     ContentCategory.MINDFULNESS: [
-        "mindfulness", "guided meditation", "meditation for trauma",
-        "grounding techniques", "5-4-3-2-1", "body scan",
+        "mindfulness",
+        "guided meditation",
+        "meditation for trauma",
+        "grounding techniques",
+        "5-4-3-2-1",
+        "body scan",
     ],
     ContentCategory.CR_SUPPORT: [
-        "crisis support", "suicide prevention", "help resources",
-        "crisis hotline", "safety plan", "emergency mental health",
+        "crisis support",
+        "suicide prevention",
+        "help resources",
+        "crisis hotline",
+        "safety plan",
+        "emergency mental health",
         "crisis intervention",
     ],
     ContentCategory.PROFESSIONAL_TRAINING: [
-        "therapist training", "clinical supervision", "trauma therapy training",
-        "ce credits", "professional development", "licensing exam",
+        "therapist training",
+        "clinical supervision",
+        "trauma therapy training",
+        "ce credits",
+        "professional development",
+        "licensing exam",
         "ethical guidelines",
     ],
     ContentCategory.PATIENT_STORIES: [
-        "recovery story", "trauma recovery", "healing journey",
-        "ptsd recovery", "cptsd survivor", "trauma survivor", "my story",
+        "recovery story",
+        "trauma recovery",
+        "healing journey",
+        "ptsd recovery",
+        "cptsd survivor",
+        "trauma survivor",
+        "my story",
     ],
     ContentCategory.RECOVERY_JOURNEY: [
-        "progress update", "therapy progress", "healing timeline",
-        "recovery milestones", "mental health journey", "wellness journey",
+        "progress update",
+        "therapy progress",
+        "healing timeline",
+        "recovery milestones",
+        "mental health journey",
+        "wellness journey",
     ],
 }
 
@@ -134,9 +182,7 @@ class YouTubeChannelHunter:
     - Language detection
     """
 
-    def __init__(
-        self, config: Optional[ChannelHunterConfig] = None
-    ):
+    def __init__(self, config: Optional[ChannelHunterConfig] = None):
         self.config = config or ChannelHunterConfig()
         self.discovered_channels: List[Channel] = []
         self.registry_stats = {
@@ -156,7 +202,9 @@ class YouTubeChannelHunter:
         Returns:
             List of discovered and qualified channels
         """
-        logger.info(f"Starting channel discovery - target: {self.config.target_channels}")
+        logger.info(
+            f"Starting channel discovery - target: {self.config.target_channels}"
+        )
 
         qualified_channels = []
         search_terms = self._generate_search_terms()
@@ -165,7 +213,7 @@ class YouTubeChannelHunter:
             if progress_callback:
                 progress_callback(
                     i / len(search_terms),
-                    f'Searching for "{term}" ({i+1}/{len(search_terms)})'
+                    f'Searching for "{term}" ({i+1}/{len(search_terms)})',
                 )
 
             self.registry_stats["searched"] += 1
@@ -205,18 +253,22 @@ class YouTubeChannelHunter:
                 terms.append(keyword)
 
         # Cross-category therapeutic terms
-        terms.extend([
-            "trauma therapy explained",
-            "mental health education",
-            "cptsd recovery guide",
-        ])
+        terms.extend(
+            [
+                "trauma therapy explained",
+                "mental health education",
+                "cptsd recovery guide",
+            ]
+        )
 
         # Professional-specific terms
-        terms.extend([
-            "clinical psychologist trauma",
-            "licensed therapist cbt",
-            "trauma specialist emdr",
-        ])
+        terms.extend(
+            [
+                "clinical psychologist trauma",
+                "licensed therapist cbt",
+                "trauma specialist emdr",
+            ]
+        )
 
         return terms
 
@@ -258,10 +310,7 @@ class YouTubeChannelHunter:
             return False
 
         # Check language support
-        if not any(
-            lang in self.config.target_languages
-            for lang in channel.languages
-        ):
+        if not any(lang in self.config.target_languages for lang in channel.languages):
             return False
 
         # Check professional requirement (if configured)
@@ -292,9 +341,7 @@ class YouTubeAPI:
         self.api_key = api_key
         # TODO: Initialize YouTube client with api_key
 
-    def search_channels(
-        self, query: str, max_results: int = 25
-    ) -> List[Dict]:
+    def search_channels(self, query: str, max_results: int = 25) -> List[Dict]:
         """
         Search for channels by query.
 
@@ -321,9 +368,7 @@ class YouTubeAPI:
         # TODO: Implement channels.list
         pass
 
-    def get_channel_videos(
-        self, channel_id: str, max_results: int = 50
-    ) -> List[Dict]:
+    def get_channel_videos(self, channel_id: str, max_results: int = 50) -> List[Dict]:
         """
         Get videos from a channel.
 
@@ -453,7 +498,10 @@ SAMPLE_CHANNELS = [
         "channel_id": "UC...",
         "name": "Therapist for Trauma Recovery",
         "url": "https://www.youtube.com/@traumatherapist",
-        "categories": [ContentCategory.TRAUMA_INFORMED, ContentCategory.CPTSD_EDUCATION],
+        "categories": [
+            ContentCategory.TRAUMA_INFORMED,
+            ContentCategory.CPTSD_EDUCATION,
+        ],
         "language": "en",
     },
     {

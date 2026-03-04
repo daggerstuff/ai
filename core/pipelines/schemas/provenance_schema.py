@@ -464,9 +464,11 @@ class ProvenanceRecord:
             source_url=source_data.get("source_url"),
             doi=source_data.get("doi"),
             authors=source_data.get("authors", []),
-            publication_date=datetime.fromisoformat(source_data["publication_date"])
-            if source_data.get("publication_date")
-            else None,
+            publication_date=(
+                datetime.fromisoformat(source_data["publication_date"])
+                if source_data.get("publication_date")
+                else None
+            ),
             acquisition_metadata=source_data.get("acquisition_metadata", {}),
         )
 
@@ -483,32 +485,42 @@ class ProvenanceRecord:
             attribution_required=license_data.get("attribution_required", False),
             attribution_text=license_data.get("attribution_text"),
             license_verified_by=license_data.get("license_verified_by"),
-            license_verified_date=datetime.fromisoformat(
-                license_data["license_verified_date"]
-            )
-            if license_data.get("license_verified_date")
-            else None,
+            license_verified_date=(
+                datetime.fromisoformat(license_data["license_verified_date"])
+                if license_data.get("license_verified_date")
+                else None
+            ),
         )
 
         # Parse timestamps
         ts_data = data["timestamps"]
         timestamps = Timestamps(
             created_at=datetime.fromisoformat(ts_data["created_at"]),
-            acquired_at=datetime.fromisoformat(ts_data["acquired_at"])
-            if ts_data.get("acquired_at")
-            else None,
-            processed_at=datetime.fromisoformat(ts_data["processed_at"])
-            if ts_data.get("processed_at")
-            else None,
-            validated_at=datetime.fromisoformat(ts_data["validated_at"])
-            if ts_data.get("validated_at")
-            else None,
-            published_at=datetime.fromisoformat(ts_data["published_at"])
-            if ts_data.get("published_at")
-            else None,
-            updated_at=datetime.fromisoformat(ts_data["updated_at"])
-            if ts_data.get("updated_at")
-            else None,
+            acquired_at=(
+                datetime.fromisoformat(ts_data["acquired_at"])
+                if ts_data.get("acquired_at")
+                else None
+            ),
+            processed_at=(
+                datetime.fromisoformat(ts_data["processed_at"])
+                if ts_data.get("processed_at")
+                else None
+            ),
+            validated_at=(
+                datetime.fromisoformat(ts_data["validated_at"])
+                if ts_data.get("validated_at")
+                else None
+            ),
+            published_at=(
+                datetime.fromisoformat(ts_data["published_at"])
+                if ts_data.get("published_at")
+                else None
+            ),
+            updated_at=(
+                datetime.fromisoformat(ts_data["updated_at"])
+                if ts_data.get("updated_at")
+                else None
+            ),
         )
 
         # Parse processing lineage
@@ -523,9 +535,11 @@ class ProvenanceRecord:
                     transformation_type=TransformationType(
                         stage_data["transformation_type"]
                     ),
-                    completed_at=datetime.fromisoformat(stage_data["completed_at"])
-                    if stage_data.get("completed_at")
-                    else None,
+                    completed_at=(
+                        datetime.fromisoformat(stage_data["completed_at"])
+                        if stage_data.get("completed_at")
+                        else None
+                    ),
                     transformation_details=stage_data.get("transformation_details", {}),
                     input_record_count=stage_data.get("input_record_count"),
                     output_record_count=stage_data.get("output_record_count"),

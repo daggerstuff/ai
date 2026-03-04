@@ -54,7 +54,9 @@ class FormatConverter:
         with open(self.filtering_report_path, "r") as f:
             return json.load(f)
 
-    def validate_conversation_schema(self, conversation: Dict[str, Any]) -> tuple[bool, Optional[str]]:
+    def validate_conversation_schema(
+        self, conversation: Dict[str, Any]
+    ) -> tuple[bool, Optional[str]]:
         """Validate conversation against schema"""
         # Required top-level fields
         if "messages" not in conversation:
@@ -85,7 +87,9 @@ class FormatConverter:
 
         return True, None
 
-    def ensure_required_metadata(self, conversation: Dict[str, Any], stage: str) -> Dict[str, Any]:
+    def ensure_required_metadata(
+        self, conversation: Dict[str, Any], stage: str
+    ) -> Dict[str, Any]:
         """Ensure conversation has required metadata"""
         if "metadata" not in conversation:
             conversation["metadata"] = {}
@@ -118,7 +122,9 @@ class FormatConverter:
 
         return conversation
 
-    def convert_to_standard_format(self, conversation: Dict[str, Any], stage: str) -> Optional[Dict[str, Any]]:
+    def convert_to_standard_format(
+        self, conversation: Dict[str, Any], stage: str
+    ) -> Optional[Dict[str, Any]]:
         """Convert conversation to standard training format"""
         # Validate schema
         is_valid, error = self.validate_conversation_schema(conversation)
@@ -133,6 +139,7 @@ class FormatConverter:
         # Ensure conversation_id
         if "conversation_id" not in conversation:
             import uuid
+
             conversation["conversation_id"] = str(uuid.uuid4())
 
         # Ensure timestamps
@@ -144,9 +151,13 @@ class FormatConverter:
         self.stats["total_converted"] += 1
         return conversation
 
-    def convert_dataset(self, input_path: Path, output_path: Path, stage: str) -> Dict[str, Any]:
+    def convert_dataset(
+        self, input_path: Path, output_path: Path, stage: str
+    ) -> Dict[str, Any]:
         """Convert a single dataset file"""
-        logger.info(f"Converting {input_path.name} to standard format (stage: {stage})...")
+        logger.info(
+            f"Converting {input_path.name} to standard format (stage: {stage})..."
+        )
 
         converted_conversations = []
         errors = []
@@ -210,7 +221,9 @@ class FormatConverter:
             if "error" in result:
                 continue
 
-            input_path = Path(result["output_path"])  # Output from filtering is input here
+            input_path = Path(
+                result["output_path"]
+            )  # Output from filtering is input here
             if not input_path.exists():
                 logger.warning(f"Input file not found: {input_path}")
                 continue
@@ -232,7 +245,14 @@ class FormatConverter:
 def main():
     """Main function"""
     base_path = Path.cwd()
-    filtering_report_path = base_path / "ai" / "training_ready" / "scripts" / "output" / "filtering_report.json"
+    filtering_report_path = (
+        base_path
+        / "ai"
+        / "training_ready"
+        / "scripts"
+        / "output"
+        / "filtering_report.json"
+    )
     output_dir = base_path / "ai" / "training_ready" / "datasets" / "formatted"
 
     if not filtering_report_path.exists():
@@ -246,7 +266,14 @@ def main():
     report = converter.convert_all_datasets(output_dir)
 
     # Save report
-    report_path = base_path / "ai" / "training_ready" / "scripts" / "output" / "formatting_report.json"
+    report_path = (
+        base_path
+        / "ai"
+        / "training_ready"
+        / "scripts"
+        / "output"
+        / "formatting_report.json"
+    )
     report_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(report_path, "w") as f:
@@ -262,4 +289,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

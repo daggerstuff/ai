@@ -581,12 +581,10 @@ class VoiceConversationConverter:
                 successful_results
             )
             avg_messages = sum(
-                len(r.conversation.messages)
-                for r in successful_results
+                len(r.conversation.messages) for r in successful_results
             ) / len(successful_results)
             avg_speakers = sum(
-                r.metadata.speaker_count
-                for r in successful_results
+                r.metadata.speaker_count for r in successful_results
             ) / len(successful_results)
 
             report.append(f"Average Quality Score: {avg_quality:.2f}")

@@ -382,9 +382,11 @@ tokenizer.push_to_hub('your-username/therapeutic-ai-breakthrough')
         """Create final deployment summary"""
         summary = {
             "deployment_timestamp": datetime.now().isoformat(),
-            "status": "ready"
-            if results.get("readiness_validation", {}).get("overall_ready", False)
-            else "requires_attention",
+            "status": (
+                "ready"
+                if results.get("readiness_validation", {}).get("overall_ready", False)
+                else "requires_attention"
+            ),
             "components": {
                 "unified_dataset": results.get("readiness_validation", {})
                 .get("validations", {})

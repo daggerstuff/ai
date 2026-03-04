@@ -16,9 +16,7 @@ logger = logging.getLogger("h100_manifest")
 
 
 class H100ManifestGenerator:
-    def __init__(
-        self, output_path: str = "ai/training/h100_manifest.json"
-    ):
+    def __init__(self, output_path: str = "ai/training/h100_manifest.json"):
         self.output_path = Path(output_path)
         self.output_path.parent.mkdir(parents=True, exist_ok=True)
 

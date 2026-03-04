@@ -49,4 +49,3 @@ def test_format_error_generates_expected_structure() -> None:
     assert data["error"]["code"] == JSONRPCErrorCode.METHOD_NOT_FOUND
     assert data["error"]["data"]["method"] == "unknown"
     assert data["id"] == "abc"
-

@@ -32,6 +32,7 @@ from ai.core.sourcing.journal.orchestrator.types import OrchestratorConfig
 # Dataset Source Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def sample_dataset_source() -> DatasetSource:
     """Create a sample dataset source."""
@@ -64,7 +65,12 @@ def high_quality_source() -> DatasetSource:
         url="https://example.com/high-quality",
         doi="10.1000/high-quality",
         abstract="A large dataset of Cognitive Behavioral Therapy session transcripts with comprehensive metadata and anonymized patient data. Includes outcome measures and treatment protocols.",
-        keywords=["cbt", "cognitive behavioral therapy", "transcripts", "evidence-based"],
+        keywords=[
+            "cbt",
+            "cognitive behavioral therapy",
+            "transcripts",
+            "evidence-based",
+        ],
         open_access=True,
         data_availability="available",
         discovery_date=datetime.now(),
@@ -93,7 +99,9 @@ def low_quality_source() -> DatasetSource:
 
 
 @pytest.fixture
-def multiple_sources(sample_dataset_source, high_quality_source, low_quality_source) -> List[DatasetSource]:
+def multiple_sources(
+    sample_dataset_source, high_quality_source, low_quality_source
+) -> List[DatasetSource]:
     """Create multiple dataset sources."""
     return [sample_dataset_source, high_quality_source, low_quality_source]
 
@@ -101,6 +109,7 @@ def multiple_sources(sample_dataset_source, high_quality_source, low_quality_sou
 # ============================================================================
 # Evaluation Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def sample_evaluation(sample_dataset_source) -> DatasetEvaluation:
@@ -165,6 +174,7 @@ def low_score_evaluation(low_quality_source) -> DatasetEvaluation:
 # Access Request Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def sample_access_request(sample_dataset_source) -> AccessRequest:
     """Create a sample access request."""
@@ -197,6 +207,7 @@ def approved_access_request(sample_dataset_source) -> AccessRequest:
 # Acquired Dataset Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def sample_acquired_dataset(sample_dataset_source, tmp_path) -> AcquiredDataset:
     """Create a sample acquired dataset."""
@@ -225,6 +236,7 @@ def sample_acquired_dataset(sample_dataset_source, tmp_path) -> AcquiredDataset:
 # ============================================================================
 # Integration Plan Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def sample_integration_plan(sample_dataset_source) -> IntegrationPlan:
@@ -256,6 +268,7 @@ def sample_integration_plan(sample_dataset_source) -> IntegrationPlan:
 # Research Session Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def sample_research_session() -> ResearchSession:
     """Create a sample research session."""
@@ -281,16 +294,19 @@ def sample_research_session() -> ResearchSession:
 # Test Dataset Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def sample_csv_dataset(tmp_path) -> Path:
     """Create a sample CSV dataset file."""
     csv_path = tmp_path / "test_dataset.csv"
-    df = pd.DataFrame({
-        "id": [f"id_{i}" for i in range(10)],
-        "message": [f"Message {i}" for i in range(10)],
-        "role": ["user", "assistant"] * 5,
-        "timestamp": [datetime.now().isoformat()] * 10,
-    })
+    df = pd.DataFrame(
+        {
+            "id": [f"id_{i}" for i in range(10)],
+            "message": [f"Message {i}" for i in range(10)],
+            "role": ["user", "assistant"] * 5,
+            "timestamp": [datetime.now().isoformat()] * 10,
+        }
+    )
     df.to_csv(csv_path, index=False)
     return csv_path
 
@@ -343,6 +359,7 @@ def sample_json_dataset(tmp_path) -> Path:
 # ============================================================================
 # Mock API Responses
 # ============================================================================
+
 
 @pytest.fixture
 def mock_pubmed_response():
@@ -435,6 +452,7 @@ def mock_clinical_trials_response():
 # Mock Services
 # ============================================================================
 
+
 @pytest.fixture
 def mock_discovery_service():
     """Create a mock discovery service."""
@@ -447,15 +465,17 @@ def mock_discovery_service():
 def mock_evaluation_engine():
     """Create a mock evaluation engine."""
     engine = Mock()
-    engine.evaluate_dataset = Mock(return_value=DatasetEvaluation(
-        source_id="test",
-        therapeutic_relevance=8,
-        data_structure_quality=7,
-        training_integration=8,
-        ethical_accessibility=9,
-        overall_score=8.0,
-        priority_tier="high",
-    ))
+    engine.evaluate_dataset = Mock(
+        return_value=DatasetEvaluation(
+            source_id="test",
+            therapeutic_relevance=8,
+            data_structure_quality=7,
+            training_integration=8,
+            ethical_accessibility=9,
+            overall_score=8.0,
+            priority_tier="high",
+        )
+    )
     return engine
 
 
@@ -463,15 +483,19 @@ def mock_evaluation_engine():
 def mock_acquisition_manager():
     """Create a mock acquisition manager."""
     manager = Mock()
-    manager.submit_access_request = Mock(return_value=AccessRequest(
-        source_id="test",
-        access_method="direct",
-        status="pending",
-    ))
-    manager.download_dataset = Mock(return_value=AcquiredDataset(
-        source_id="test",
-        storage_path="/tmp/test.zip",
-    ))
+    manager.submit_access_request = Mock(
+        return_value=AccessRequest(
+            source_id="test",
+            access_method="direct",
+            status="pending",
+        )
+    )
+    manager.download_dataset = Mock(
+        return_value=AcquiredDataset(
+            source_id="test",
+            storage_path="/tmp/test.zip",
+        )
+    )
     return manager
 
 
@@ -479,11 +503,13 @@ def mock_acquisition_manager():
 def mock_integration_engine():
     """Create a mock integration engine."""
     engine = Mock()
-    engine.create_integration_plan = Mock(return_value=IntegrationPlan(
-        source_id="test",
-        dataset_format="csv",
-        complexity="medium",
-    ))
+    engine.create_integration_plan = Mock(
+        return_value=IntegrationPlan(
+            source_id="test",
+            dataset_format="csv",
+            complexity="medium",
+        )
+    )
     return engine
 
 
@@ -515,6 +541,7 @@ def orchestrator(
 # ============================================================================
 # Temporary Directory Fixtures
 # ============================================================================
+
 
 @pytest.fixture
 def temp_dir():
@@ -551,6 +578,7 @@ def temp_storage_dir(temp_dir):
 # Configuration Fixtures
 # ============================================================================
 
+
 @pytest.fixture
 def test_config(temp_dir):
     """Create a test configuration dictionary."""
@@ -562,4 +590,3 @@ def test_config(temp_dir):
         "max_retries": 3,
         "retry_delay_seconds": 1.0,
     }
-

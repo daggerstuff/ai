@@ -291,4 +291,3 @@ class TherapeuticDatasetIntegration:
         )
 
         return conversation_data
-

@@ -3,6 +3,7 @@
 Example client for the Pixel Voice API server.
 Demonstrates how to interact with the API endpoints.
 """
+
 import asyncio
 import time
 from typing import Any, Dict
@@ -93,7 +94,9 @@ class PixelVoiceAPIClient:
         response = await self.client.post("/pipeline/stages/execute", json=data)
         return response.json()
 
-    async def wait_for_job_completion(self, job_id: str, timeout: int = 3600) -> Dict[str, Any]:
+    async def wait_for_job_completion(
+        self, job_id: str, timeout: int = 3600
+    ) -> Dict[str, Any]:
         """Wait for a job to complete."""
         start_time = time.time()
 
@@ -226,7 +229,9 @@ async def example_monitoring_workflow():
         print("\nListing running jobs...")
         running_jobs = await client.list_jobs(status_filter="running")
         for job in running_jobs:
-            print(f"- {job['job_id']}: {job['job_name']} - {job.get('progress', 0):.1%}")
+            print(
+                f"- {job['job_id']}: {job['job_name']} - {job.get('progress', 0):.1%}"
+            )
 
     except Exception as e:
         print(f"Error: {e}")

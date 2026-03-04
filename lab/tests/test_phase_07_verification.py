@@ -332,9 +332,11 @@ def create_verification_report(results: Dict[str, bool]) -> str:
             f"  Total Tests: {total_tests}",
             f"  Passed: {passed_tests}",
             f"  Failed: {failed_tests}",
-            f"  Success Rate: {(passed_tests / total_tests) * 100:.1f}%"
-            if total_tests > 0
-            else "  Success Rate: 0%",
+            (
+                f"  Success Rate: {(passed_tests / total_tests) * 100:.1f}%"
+                if total_tests > 0
+                else "  Success Rate: 0%"
+            ),
             "",
             "Overall Status:",
         ]

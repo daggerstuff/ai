@@ -424,9 +424,9 @@ class DPODatasetLoader(BaseTierLoader):
                     metadata={
                         "row_index": idx,
                         "format": "sharegpt",
-                        "original_conversations": len(conversations)
-                        if isinstance(conversations, list)
-                        else 0,
+                        "original_conversations": (
+                            len(conversations) if isinstance(conversations, list) else 0
+                        ),
                         "use_case": config.use_case,
                     },
                 )

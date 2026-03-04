@@ -435,9 +435,9 @@ class DemographicBalancer:
                         subcategory=subcategory,
                         target_samples=target_count,
                         actual_samples=len(selected),
-                        proportion=len(selected) / category_total
-                        if category_total > 0
-                        else 0,
+                        proportion=(
+                            len(selected) / category_total if category_total > 0 else 0
+                        ),
                         conversations=selected,
                         bias_score=avg_bias_score,
                         metadata={

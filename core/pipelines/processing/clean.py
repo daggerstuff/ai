@@ -18,8 +18,17 @@ logger = logging.getLogger("dataset_cleaning")
 
 # Default PII column patterns (can be overridden via config)
 DEFAULT_PII_PATTERNS = [
-    "email", "phone", "ssn", "name", "address", "dob", "birth", "contact", "pii"
+    "email",
+    "phone",
+    "ssn",
+    "name",
+    "address",
+    "dob",
+    "birth",
+    "contact",
+    "pii",
 ]
+
 
 def setup_logger(log_level: int = logging.INFO) -> logging.Logger:
     """
@@ -28,18 +37,17 @@ def setup_logger(log_level: int = logging.INFO) -> logging.Logger:
     logger = logging.getLogger("dataset_cleaning")
     if not logger.handlers:
         handler = logging.StreamHandler()
-        formatter = logging.Formatter(
-            "[%(asctime)s] %(levelname)s - %(message)s"
-        )
+        formatter = logging.Formatter("[%(asctime)s] %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
     logger.setLevel(log_level)
     return logger
 
+
 def find_pii_columns(
     columns: list[str],
     pii_patterns: list[str] | None = None,
-    explicit_pii: set[str] | None = None
+    explicit_pii: set[str] | None = None,
 ) -> set[str]:
     """
     Identifies columns containing PII based on patterns and explicit config.
@@ -54,7 +62,10 @@ def find_pii_columns(
         pii_cols.update(explicit_pii)
     return pii_cols
 
-def normalize_text_columns(df: pd.DataFrame, text_columns: list[str] | None = None) -> pd.DataFrame:
+
+def normalize_text_columns(
+    df: pd.DataFrame, text_columns: list[str] | None = None
+) -> pd.DataFrame:
     """
     Strips whitespace and lowercases text columns.
     """
@@ -71,13 +82,14 @@ def normalize_text_columns(df: pd.DataFrame, text_columns: list[str] | None = No
         )
     return df
 
+
 import re
 
 
 def redact_pii_in_text_fields(
     df: pd.DataFrame,
     text_columns: list | None = None,
-    logger: logging.Logger | None = None
+    logger: logging.Logger | None = None,
 ) -> pd.DataFrame:
     """
     Redacts SSN-like patterns in text columns for privacy compliance.
@@ -88,18 +100,19 @@ def redact_pii_in_text_fields(
     ssn_pattern = re.compile(r"\b\d{3}-\d{2}-\d{4}\b")
     logger = logger or globals().get("logger") or logging.getLogger("dataset_cleaning")
     for col in text_columns:
+
         def redact_and_log(x):
             redacted = ssn_pattern.sub("[REDACTED-SSN]", str(x))
             if redacted != str(x):
                 logger.info(f"privacy audit: redacted PII in field '{col}'")
             return redacted
+
         df[col] = df[col].astype(str).apply(redact_and_log)
     return df
 
+
 def remove_pii(
-    df: pd.DataFrame,
-    pii_columns: set[str],
-    logger: logging.Logger
+    df: pd.DataFrame, pii_columns: set[str], logger: logging.Logger
 ) -> pd.DataFrame:
     """
     Removes PII columns from the DataFrame.
@@ -110,11 +123,12 @@ def remove_pii(
         df = df.drop(columns=existing_pii)
     return df
 
+
 def clean_and_deduplicate(
     datasets,
     config: dict[str, Any] | None = None,
     logger: logging.Logger | None = None,
-    audit_log: list | None = None
+    audit_log: list | None = None,
 ) -> pd.DataFrame:
     """
     Cleans, normalizes, deduplicates, and privacy-sanitizes all records across datasets.
@@ -167,11 +181,13 @@ def clean_and_deduplicate(
 
     # Optionally append audit log
     if audit_log is not None:
-        audit_log.append({
-            "event": "cleaned",
-            "rows": len(df),
-            "columns": list(df.columns),
-        })
+        audit_log.append(
+            {
+                "event": "cleaned",
+                "rows": len(df),
+                "columns": list(df.columns),
+            }
+        )
 
     return df
 
@@ -194,7 +210,9 @@ def clean_and_deduplicate(
     try:
         df = pd.concat(datasets, ignore_index=True)
         stats["rows_after_concat"] = len(df)
-        logger.info(f"Concatenated {stats['input_datasets']} datasets: {stats['rows_after_concat']} rows.")
+        logger.info(
+            f"Concatenated {stats['input_datasets']} datasets: {stats['rows_after_concat']} rows."
+        )
     except Exception as e:
         logger.error(f"Failed to concatenate datasets: {e}")
         raise
@@ -223,7 +241,9 @@ def clean_and_deduplicate(
     before_dedup = len(df)
     if dedup_columns:
         df = df.drop_duplicates(subset=dedup_columns, keep="first", ignore_index=True)
-        logger.info(f"Deduplicated on columns {dedup_columns}: {before_dedup} -> {len(df)} rows.")
+        logger.info(
+            f"Deduplicated on columns {dedup_columns}: {before_dedup} -> {len(df)} rows."
+        )
     else:
         df = df.drop_duplicates(keep="first", ignore_index=True)
         logger.info(f"Deduplicated on all columns: {before_dedup} -> {len(df)} rows.")

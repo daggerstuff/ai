@@ -272,9 +272,9 @@ class TestLanguageQualityAssessor:
 
         for word, expected in test_cases:
             result = self.assessor._count_syllables(word)
-            assert result == expected, (
-                f"Expected {expected} syllables for '{word}', got {result}"
-            )
+            assert (
+                result == expected
+            ), f"Expected {expected} syllables for '{word}', got {result}"
 
     def test_complexity_level_determination(self):
         """Test complexity level determination."""

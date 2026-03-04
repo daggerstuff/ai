@@ -18,7 +18,9 @@ from collections import Counter
 from pathlib import Path
 from typing import Dict, List
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
+)
 logger = logging.getLogger(__name__)
 
 
@@ -52,7 +54,7 @@ class TimFletcherVoiceExtractor:
                 logger.info(f"   Processing transcript {i}/{len(transcript_files)}")
 
             try:
-                with open(transcript_file, 'r', encoding='utf-8') as f:
+                with open(transcript_file, "r", encoding="utf-8") as f:
                     text = f.read()
                     all_text.append(text)
                     self._analyze_transcript(text)
@@ -69,21 +71,31 @@ class TimFletcherVoiceExtractor:
     def _analyze_transcript(self, text: str):
         """Analyze a single transcript for voice patterns"""
         # Extract sentences
-        sentences = re.split(r'[.!?]+', text)
+        sentences = re.split(r"[.!?]+", text)
         sentences = [s.strip() for s in sentences if s.strip()]
 
         for sentence in sentences:
             # Sentence starters (first 2-3 words)
             words = sentence.split()
             if len(words) >= 2:
-                starter = ' '.join(words[:2])
+                starter = " ".join(words[:2])
                 self.voice_profile["sentence_starters"][starter] += 1
 
             # Transition phrases
             transitions = [
-                "And so", "Now", "So", "But", "And then", "What happens",
-                "Let me", "Think about", "Imagine", "What I find",
-                "One of the things", "The reality is", "What we see"
+                "And so",
+                "Now",
+                "So",
+                "But",
+                "And then",
+                "What happens",
+                "Let me",
+                "Think about",
+                "Imagine",
+                "What I find",
+                "One of the things",
+                "The reality is",
+                "What we see",
             ]
             for transition in transitions:
                 if sentence.lower().startswith(transition.lower()):
@@ -91,21 +103,34 @@ class TimFletcherVoiceExtractor:
 
             # Empathy markers
             empathy_patterns = [
-                "I understand", "I know", "I get it", "That's painful",
-                "That's hard", "You might feel", "Many people",
-                "Some of you", "For many", "What you're going through"
+                "I understand",
+                "I know",
+                "I get it",
+                "That's painful",
+                "That's hard",
+                "You might feel",
+                "Many people",
+                "Some of you",
+                "For many",
+                "What you're going through",
             ]
             for pattern in empathy_patterns:
                 if pattern.lower() in sentence.lower():
                     self.voice_profile["empathy_markers"][pattern] += 1
 
             # Analogies (look for "like", "as if", "imagine")
-            if any(marker in sentence.lower() for marker in ["like a", "as if", "imagine", "think of"]):
+            if any(
+                marker in sentence.lower()
+                for marker in ["like a", "as if", "imagine", "think of"]
+            ):
                 if len(sentence) < 200:  # Keep reasonable length
                     self.voice_profile["analogies"].append(sentence)
 
             # Examples (look for "let's say", "for example")
-            if any(marker in sentence.lower() for marker in ["let's say", "for example", "think back to"]):
+            if any(
+                marker in sentence.lower()
+                for marker in ["let's say", "for example", "think back to"]
+            ):
                 if len(sentence) < 200:
                     self.voice_profile["examples"].append(sentence)
 
@@ -114,48 +139,57 @@ class TimFletcherVoiceExtractor:
         # Common multi-word phrases
         words = text.lower().split()
         for i in range(len(words) - 2):
-            phrase = ' '.join(words[i:i + 3])
+            phrase = " ".join(words[i : i + 3])
             self.voice_profile["common_phrases"][phrase] += 1
 
         # Teaching patterns (how he structures explanations)
         patterns = [
-            "First", "Second", "Third",  # Numbered points
-            "What happens is", "The reality is", "What we find",
-            "One of the key", "It's important to understand",
-            "Let me give you an example", "Think about this",
+            "First",
+            "Second",
+            "Third",  # Numbered points
+            "What happens is",
+            "The reality is",
+            "What we find",
+            "One of the key",
+            "It's important to understand",
+            "Let me give you an example",
+            "Think about this",
         ]
 
         for pattern in patterns:
             count = text.lower().count(pattern.lower())
             if count > 0:
-                self.voice_profile["teaching_patterns"].append({
-                    "pattern": pattern,
-                    "frequency": count
-                })
+                self.voice_profile["teaching_patterns"].append(
+                    {"pattern": pattern, "frequency": count}
+                )
 
     def generate_voice_profile_report(self) -> str:
         """Generate a comprehensive voice profile report"""
         report = []
         report.append("# Tim Fletcher Voice Profile\n")
-        report.append("**Analyzed**: 913 YouTube transcripts on complex trauma, PTSD, recovery\n\n")
+        report.append(
+            "**Analyzed**: 913 YouTube transcripts on complex trauma, PTSD, recovery\n\n"
+        )
 
         # Top sentence starters
         report.append("## Top Sentence Starters\n")
         report.append("How Tim Fletcher typically begins his sentences:\n\n")
         for starter, count in self.voice_profile["sentence_starters"].most_common(20):
-            report.append(f"- **\"{starter}...\"** ({count} times)\n")
+            report.append(f'- **"{starter}..."** ({count} times)\n')
 
         # Top transitions
         report.append("\n## Transition Phrases\n")
         report.append("How Tim connects ideas and moves between topics:\n\n")
-        for transition, count in self.voice_profile["transition_phrases"].most_common(15):
-            report.append(f"- **\"{transition}\"** ({count} times)\n")
+        for transition, count in self.voice_profile["transition_phrases"].most_common(
+            15
+        ):
+            report.append(f'- **"{transition}"** ({count} times)\n')
 
         # Empathy markers
         report.append("\n## Empathy & Connection Markers\n")
         report.append("How Tim shows understanding and connects with audience:\n\n")
         for marker, count in self.voice_profile["empathy_markers"].most_common(15):
-            report.append(f"- **\"{marker}\"** ({count} times)\n")
+            report.append(f'- **"{marker}"** ({count} times)\n')
 
         # Sample analogies
         report.append("\n## Sample Analogies & Metaphors\n")
@@ -173,36 +207,46 @@ class TimFletcherVoiceExtractor:
         report.append("\n## Most Common 3-Word Phrases\n")
         for phrase, count in self.voice_profile["common_phrases"].most_common(30):
             if count > 50:  # Only very common phrases
-                report.append(f"- \"{phrase}\" ({count} times)\n")
+                report.append(f'- "{phrase}" ({count} times)\n')
 
-        return ''.join(report)
+        return "".join(report)
 
     def save_voice_profile(self):
         """Save voice profile data to files"""
         # Save JSON data
         profile_data = {
-            "sentence_starters": dict(self.voice_profile["sentence_starters"].most_common(50)),
-            "transition_phrases": dict(self.voice_profile["transition_phrases"].most_common(30)),
-            "empathy_markers": dict(self.voice_profile["empathy_markers"].most_common(30)),
-            "common_phrases": dict(self.voice_profile["common_phrases"].most_common(100)),
+            "sentence_starters": dict(
+                self.voice_profile["sentence_starters"].most_common(50)
+            ),
+            "transition_phrases": dict(
+                self.voice_profile["transition_phrases"].most_common(30)
+            ),
+            "empathy_markers": dict(
+                self.voice_profile["empathy_markers"].most_common(30)
+            ),
+            "common_phrases": dict(
+                self.voice_profile["common_phrases"].most_common(100)
+            ),
             "analogies": self.voice_profile["analogies"][:50],
             "examples": self.voice_profile["examples"][:50],
             "teaching_patterns": self.voice_profile["teaching_patterns"],
         }
 
         profile_file = self.output_dir / "tim_fletcher_voice_profile.json"
-        with open(profile_file, 'w', encoding='utf-8') as f:
+        with open(profile_file, "w", encoding="utf-8") as f:
             json.dump(profile_data, f, indent=2, ensure_ascii=False)
         logger.info(f"💾 Saved voice profile to {profile_file}")
 
         # Save markdown report
         report = self.generate_voice_profile_report()
         report_file = self.output_dir / "tim_fletcher_voice_analysis.md"
-        with open(report_file, 'w', encoding='utf-8') as f:
+        with open(report_file, "w", encoding="utf-8") as f:
             f.write(report)
         logger.info(f"📝 Saved voice analysis report to {report_file}")
 
-    def generate_synthetic_conversations(self, num_conversations: int = 1000) -> List[Dict]:
+    def generate_synthetic_conversations(
+        self, num_conversations: int = 1000
+    ) -> List[Dict]:
         """Generate synthetic therapeutic conversations in Tim Fletcher's voice"""
         logger.info(f"🎨 Generating {num_conversations} synthetic conversations...")
 
@@ -216,14 +260,14 @@ class TimFletcherVoiceExtractor:
             logger.warning("Voice profile not found. Run extraction first.")
             return []
 
-        with open(profile_file, 'r') as f:
+        with open(profile_file, "r") as f:
             profile = json.load(f)
 
         # Create conversation generation instructions
         generation_prompt = self._create_generation_prompt(profile)
 
         prompt_file = self.output_dir / "conversation_generation_prompt.txt"
-        with open(prompt_file, 'w', encoding='utf-8') as f:
+        with open(prompt_file, "w", encoding="utf-8") as f:
             f.write(generation_prompt)
         logger.info(f"📋 Saved generation prompt to {prompt_file}")
 
@@ -240,19 +284,21 @@ class TimFletcherVoiceExtractor:
 ### Sentence Starters (use these frequently):
 """
         for starter, count in list(profile["sentence_starters"].items())[:15]:
-            prompt += f"- \"{starter}...\"\n"
+            prompt += f'- "{starter}..."\n'
 
         prompt += "\n### Transition Phrases:\n"
         for phrase, count in list(profile["transition_phrases"].items())[:10]:
-            prompt += f"- \"{phrase}\"\n"
+            prompt += f'- "{phrase}"\n'
 
         prompt += "\n### Empathy Markers:\n"
         for marker, count in list(profile["empathy_markers"].items())[:10]:
-            prompt += f"- \"{marker}\"\n"
+            prompt += f'- "{marker}"\n'
 
         prompt += "\n### Teaching Style:\n"
         prompt += "- Use numbered points (First, Second, Third)\n"
-        prompt += "- Give concrete examples starting with 'Let's say' or 'Think about'\n"
+        prompt += (
+            "- Give concrete examples starting with 'Let's say' or 'Think about'\n"
+        )
         prompt += "- Use analogies with 'It's like' or 'Imagine'\n"
         prompt += "- Break down complex concepts into simple steps\n"
         prompt += "- Connect to real-life scenarios\n"
@@ -315,7 +361,9 @@ def main():
     logger.info("\nNext steps:")
     logger.info("1. Review voice profile: tim_fletcher_voice_profile.json")
     logger.info("2. Review analysis report: tim_fletcher_voice_analysis.md")
-    logger.info("3. Use conversation_generation_prompt.txt with LLM API to generate synthetic conversations")
+    logger.info(
+        "3. Use conversation_generation_prompt.txt with LLM API to generate synthetic conversations"
+    )
 
 
 if __name__ == "__main__":

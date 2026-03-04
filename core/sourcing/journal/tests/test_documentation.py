@@ -148,7 +148,9 @@ class TestResearchLogger:
 class TestReportGenerator:
     """Tests for ReportGenerator."""
 
-    def test_generate_evaluation_report(self, temp_report_dir, sample_dataset_source, sample_evaluation):
+    def test_generate_evaluation_report(
+        self, temp_report_dir, sample_dataset_source, sample_evaluation
+    ):
         """Test generating an evaluation report."""
         generator = ReportGenerator(output_directory=str(temp_report_dir))
         report_path = generator.generate_evaluation_report(
@@ -166,7 +168,7 @@ class TestReportGenerator:
     def test_generate_weekly_report(self, temp_report_dir, sample_research_session):
         """Test generating a weekly report."""
         generator = ReportGenerator(output_directory=str(temp_report_dir))
-        
+
         progress = ResearchProgress(
             sources_identified=10,
             datasets_evaluated=5,
@@ -190,7 +192,7 @@ class TestReportGenerator:
     ):
         """Test generating a research summary report."""
         generator = ReportGenerator(output_directory=str(temp_report_dir))
-        
+
         evaluations = [sample_evaluation]
 
         report_path = generator.generate_research_summary_report(
@@ -231,7 +233,9 @@ class TestDatasetCatalog:
         catalog.add_acquired_dataset(sample_acquired_dataset)
 
         assert len(catalog.acquired_datasets) == 1
-        assert catalog.acquired_datasets[0].source_id == sample_acquired_dataset.source_id
+        assert (
+            catalog.acquired_datasets[0].source_id == sample_acquired_dataset.source_id
+        )
 
     def test_add_integration_plan(self, sample_integration_plan):
         """Test adding an integration plan to the catalog."""
@@ -239,7 +243,9 @@ class TestDatasetCatalog:
         catalog.add_integration_plan(sample_integration_plan)
 
         assert len(catalog.integration_plans) == 1
-        assert catalog.integration_plans[0].source_id == sample_integration_plan.source_id
+        assert (
+            catalog.integration_plans[0].source_id == sample_integration_plan.source_id
+        )
 
     def test_export_markdown(self, temp_dir, sample_dataset_source, sample_evaluation):
         """Test exporting catalog to markdown."""
@@ -266,6 +272,7 @@ class TestDatasetCatalog:
         assert output_path.exists()
         # Verify CSV content
         import pandas as pd
+
         df = pd.read_csv(output_path)
         assert len(df) >= 1
         assert "source_id" in df.columns
@@ -284,7 +291,9 @@ class TestDatasetCatalog:
         assert "sources" in data
         assert len(data["sources"]) == 1
 
-    def test_get_statistics(self, sample_dataset_source, sample_evaluation, sample_acquired_dataset):
+    def test_get_statistics(
+        self, sample_dataset_source, sample_evaluation, sample_acquired_dataset
+    ):
         """Test getting catalog statistics."""
         catalog = DatasetCatalog()
         catalog.add_source(sample_dataset_source)
@@ -306,10 +315,14 @@ class TestProgressVisualization:
     def test_generate_progress_chart_data(self, sample_research_session):
         """Test generating progress chart data."""
         viz = ProgressVisualization()
-        
+
         progress_history = [
-            ResearchProgress(sources_identified=5, last_updated=datetime.now() - timedelta(days=2)),
-            ResearchProgress(sources_identified=10, last_updated=datetime.now() - timedelta(days=1)),
+            ResearchProgress(
+                sources_identified=5, last_updated=datetime.now() - timedelta(days=2)
+            ),
+            ResearchProgress(
+                sources_identified=10, last_updated=datetime.now() - timedelta(days=1)
+            ),
             ResearchProgress(sources_identified=15, last_updated=datetime.now()),
         ]
 
@@ -325,9 +338,12 @@ class TestProgressVisualization:
     def test_generate_timeline_visualization(self, sample_research_session):
         """Test generating timeline visualization."""
         viz = ProgressVisualization()
-        
+
         progress_history = [
-            ResearchProgress(sources_identified=i, last_updated=datetime.now() - timedelta(days=10-i))
+            ResearchProgress(
+                sources_identified=i,
+                last_updated=datetime.now() - timedelta(days=10 - i),
+            )
             for i in range(10)
         ]
 
@@ -339,10 +355,12 @@ class TestProgressVisualization:
         assert "timeline" in timeline_data
         assert len(timeline_data["timeline"]) == 10
 
-    def test_generate_quality_score_distribution(self, sample_evaluation, high_score_evaluation, low_score_evaluation):
+    def test_generate_quality_score_distribution(
+        self, sample_evaluation, high_score_evaluation, low_score_evaluation
+    ):
         """Test generating quality score distribution."""
         viz = ProgressVisualization()
-        
+
         evaluations = [sample_evaluation, high_score_evaluation, low_score_evaluation]
 
         distribution = viz.generate_quality_score_distribution(evaluations)
@@ -354,7 +372,7 @@ class TestProgressVisualization:
     def test_export_visualization_html(self, temp_dir, sample_research_session):
         """Test exporting visualization to HTML."""
         viz = ProgressVisualization()
-        
+
         progress_history = [
             ResearchProgress(sources_identified=10, last_updated=datetime.now()),
         ]
@@ -386,14 +404,16 @@ Old progress
 """)
 
         updater = TrackingDocumentUpdater(tracking_document_path=str(tracking_file))
-        
+
         progress = ResearchProgress(
             sources_identified=10,
             datasets_evaluated=5,
             datasets_acquired=2,
         )
 
-        updater.update_progress_section(progress=progress, session=sample_research_session)
+        updater.update_progress_section(
+            progress=progress, session=sample_research_session
+        )
 
         content = tracking_file.read_text()
         assert "10" in content  # sources_identified
@@ -411,7 +431,7 @@ Old progress
 """)
 
         updater = TrackingDocumentUpdater(tracking_document_path=str(tracking_file))
-        
+
         updater.mark_task_completed(
             task_id="task-001",
             task_description="Test task",
@@ -433,13 +453,15 @@ Old status
 """)
 
         updater = TrackingDocumentUpdater(tracking_document_path=str(tracking_file))
-        
+
         progress = ResearchProgress(
             sources_identified=10,
             datasets_evaluated=5,
         )
 
-        updater.update_status_summary(progress=progress, session=sample_research_session)
+        updater.update_status_summary(
+            progress=progress, session=sample_research_session
+        )
 
         content = tracking_file.read_text()
         assert "10" in content or "5" in content
@@ -454,9 +476,9 @@ Old status
 """)
 
         updater = TrackingDocumentUpdater(tracking_document_path=str(tracking_file))
-        
+
         progress = ResearchProgress(sources_identified=10)
-        
+
         weekly_report = WeeklyReport(
             week_number=1,
             start_date=datetime.now(),
@@ -473,4 +495,3 @@ Old status
 
         content = tracking_file.read_text()
         assert "Week 1" in content or "10" in content
-

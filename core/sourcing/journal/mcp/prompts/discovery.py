@@ -153,4 +153,3 @@ discover_sources(
 """
 
         return template
-

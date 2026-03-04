@@ -593,7 +593,9 @@ class ConfigValidator:
         if report.results:
             print("\nDETAILS:")
             for result in report.results:
-                icon = {"error": "❌", "warning": "⚠️", "info": "ℹ️"}[result.level.value]
+                icon = {"error": "❌", "warning": "⚠️", "info": "ℹ️"}[
+                    result.level.value
+                ]
                 print(f"\n{icon} {result.level.value.upper()}: {result.message}")
 
                 if result.field:
@@ -609,7 +611,9 @@ class ConfigValidator:
             print("❌ VALIDATION FAILED - Please fix errors before proceeding")
             return False
         elif report.has_warnings:
-            print("⚠️  VALIDATION PASSED WITH WARNINGS - Review warnings for production")
+            print(
+                "⚠️  VALIDATION PASSED WITH WARNINGS - Review warnings for production"
+            )
             return True
         else:
             print("✅ VALIDATION PASSED - Configuration is valid")

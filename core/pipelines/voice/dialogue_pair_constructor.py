@@ -10,7 +10,9 @@ os.makedirs(PAIR_DIR, exist_ok=True)
 os.makedirs(os.path.dirname(LOG_FILE), exist_ok=True)
 
 logging.basicConfig(
-    filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
+    filename=LOG_FILE,
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
 )
 
 
@@ -35,7 +37,9 @@ def construct_pairs(segments):
                     "end": prev["end"],
                     "text": prev["text"],
                     "cluster": prev.get("cluster"),
-                    "emotion": {k: v for k, v in prev.items() if k.startswith("emotion_")},
+                    "emotion": {
+                        k: v for k, v in prev.items() if k.startswith("emotion_")
+                    },
                     "sentiment_label": prev.get("sentiment_label"),
                     "sentiment_score": prev.get("sentiment_score"),
                     "outlier": prev.get("outlier"),
@@ -45,7 +49,9 @@ def construct_pairs(segments):
                     "end": seg["end"],
                     "text": seg["text"],
                     "cluster": seg.get("cluster"),
-                    "emotion": {k: v for k, v in seg.items() if k.startswith("emotion_")},
+                    "emotion": {
+                        k: v for k, v in seg.items() if k.startswith("emotion_")
+                    },
                     "sentiment_label": seg.get("sentiment_label"),
                     "sentiment_score": seg.get("sentiment_score"),
                     "outlier": seg.get("outlier"),

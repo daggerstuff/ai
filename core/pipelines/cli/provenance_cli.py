@@ -149,16 +149,22 @@ async def _list_provenance(
         for record in records:
             table.add_row(
                 record.dataset_id,
-                record.dataset_name[:40] + "..."
-                if len(record.dataset_name) > 40
-                else record.dataset_name,
-                record.source.source_name[:30] + "..."
-                if len(record.source.source_name) > 30
-                else record.source.source_name,
+                (
+                    record.dataset_name[:40] + "..."
+                    if len(record.dataset_name) > 40
+                    else record.dataset_name
+                ),
+                (
+                    record.source.source_name[:30] + "..."
+                    if len(record.source.source_name) > 30
+                    else record.source.source_name
+                ),
                 record.license.license_type.value,
-                record.metadata.quality_tier.value
-                if record.metadata.quality_tier
-                else "N/A",
+                (
+                    record.metadata.quality_tier.value
+                    if record.metadata.quality_tier
+                    else "N/A"
+                ),
                 record.timestamps.created_at.strftime("%Y-%m-%d %H:%M"),
             )
 

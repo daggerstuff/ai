@@ -155,7 +155,9 @@ async def test_progress_streaming_broadcast(integration_server):
 
     operation_id = "op-test"
     session_id = fake_service.session.session_id
-    await server.progress_streamer.subscribe(operation_id, listener, session_id=session_id)
+    await server.progress_streamer.subscribe(
+        operation_id, listener, session_id=session_id
+    )
 
     await server.progress_streamer.broadcast_update(
         ProgressUpdate(
@@ -191,4 +193,3 @@ async def test_tool_call_missing_name_returns_error(integration_server):
     payload = _decode_response(response)
 
     assert payload["error"]["code"] == -32602  # INVALID_PARAMS
-

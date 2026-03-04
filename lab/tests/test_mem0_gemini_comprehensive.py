@@ -40,7 +40,9 @@ def test_pii_filter():
 
 def test_speculation_filter():
     assert SpeculationFilter.is_speculative("I guess it might be okay") is True
-    assert SpeculationFilter.is_speculative("The patient is diagnosed with ADHD") is False
+    assert (
+        SpeculationFilter.is_speculative("The patient is diagnosed with ADHD") is False
+    )
     assert SpeculationFilter.get_confidence_adjustment("I think maybe") <= 0.5
     assert SpeculationFilter.get_confidence_adjustment("I definitely see") > 0.8
 
@@ -49,8 +51,12 @@ def test_crisis_detector():
     detector = CrisisDetector()
     assert detector.get_crisis_severity("I want to kill myself") == "medium"
     assert detector.get_crisis_severity("I feel a bit sad today") == "none"
-    assert detector.get_crisis_severity("I have a plan to hurt myself tonight") == "high"
-    assert detector.get_crisis_severity("This is my final goodbye forever") == "critical"
+    assert (
+        detector.get_crisis_severity("I have a plan to hurt myself tonight") == "high"
+    )
+    assert (
+        detector.get_crisis_severity("This is my final goodbye forever") == "critical"
+    )
 
 
 def test_gemini_manager_initialization(mock_genai):
@@ -84,7 +90,9 @@ async def test_multi_agent_memory_handoff():
     target = AgentIdentity(agent_id="agent2", role=AgentRole.PRACTICE)
 
     # Test handoff
-    result = await memory.handoff_to_agent(ctx, target_agent=target, summary="Handoff notes")
+    result = await memory.handoff_to_agent(
+        ctx, target_agent=target, summary="Handoff notes"
+    )
     assert result["success"] is True
     assert result["handoff_memory_id"] is not None
     assert mock_client.add.called

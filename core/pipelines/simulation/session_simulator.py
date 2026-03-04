@@ -27,7 +27,9 @@ class SessionSimulator:
     def __init__(self, output_base_path: str = "ai/training_ready/data/datasets"):
         self.client = LLMClient(driver="mock")  # Default to mock for safety
         self.output_base_path = Path(output_base_path)
-        self.simulation_path = self.output_base_path / "stage2_reasoning" / "simulated_sessions"
+        self.simulation_path = (
+            self.output_base_path / "stage2_reasoning" / "simulated_sessions"
+        )
         self._ensure_directories()
 
     def _ensure_directories(self):
@@ -46,7 +48,9 @@ class SessionSimulator:
         transcript = []
 
         # Initial context
-        transcript.append({"role": "system", "content": f"Session Context: {modality} for {topic}"})
+        transcript.append(
+            {"role": "system", "content": f"Session Context: {modality} for {topic}"}
+        )
 
         # Mock Loop
         for i in range(turns):
@@ -55,7 +59,9 @@ class SessionSimulator:
             transcript.append({"role": "Therapist", "content": therapist_msg})
 
             # 2. Patient responds
-            patient_msg = self.client.generate(f"Patient turn {i + 1} response to {therapist_msg}")
+            patient_msg = self.client.generate(
+                f"Patient turn {i + 1} response to {therapist_msg}"
+            )
             transcript.append({"role": "Patient", "content": patient_msg})
 
         return {
@@ -65,7 +71,9 @@ class SessionSimulator:
             "transcript": transcript,
         }
 
-    def export_conversation(self, session_data: dict, format_type: str = "sharegpt") -> dict:
+    def export_conversation(
+        self, session_data: dict, format_type: str = "sharegpt"
+    ) -> dict:
         """
         Formats the session for training.
         """
@@ -89,7 +97,10 @@ class SessionSimulator:
                     continue
 
                 conversations.append(
-                    {"from": "gpt" if role == "Therapist" else "human", "value": content}
+                    {
+                        "from": "gpt" if role == "Therapist" else "human",
+                        "value": content,
+                    }
                 )
 
             return {"conversations": conversations}
@@ -113,30 +124,41 @@ class SessionSimulator:
             "type": "journaling_exercise",
             "transcript": [
                 {"role": "Patient_Journal", "content": journal_entry},
-                {"role": "Therapist_Reflection", "content": therapist_reflection}
-            ]
+                {"role": "Therapist_Reflection", "content": therapist_reflection},
+            ],
         }
 
     def generate_batch(self, count: int = 5) -> List[Dict[str, Any]]:
         """Generates a batch of simulated sessions (mixed types)."""
         data = []
-        topics = ["Anxiety", "Depression", "Work Stress", "Relationship Issues", "Trauma Triggers", "Addiction Cravings"]
-        modalities = ["CBT", "ACT", "DBT"] # Kept for simulate_session calls
+        topics = [
+            "Anxiety",
+            "Depression",
+            "Work Stress",
+            "Relationship Issues",
+            "Trauma Triggers",
+            "Addiction Cravings",
+        ]
+        modalities = ["CBT", "ACT", "DBT"]  # Kept for simulate_session calls
 
         for i in range(count):
             import random  # Moved inside loop to match original behavior, or could be moved to top of method
+
             current_topic = topics[i % len(topics)]
             # Mix standard sessions and journaling
             if i % 3 == 0:
-                 session = self.generate_journaling_session(current_topic)
+                session = self.generate_journaling_session(current_topic)
             else:
-                 session = self.simulate_session(modality=random.choice(modalities), topic=current_topic, turns=5)
+                session = self.simulate_session(
+                    modality=random.choice(modalities), topic=current_topic, turns=5
+                )
             data.append(session)
         logger.info(f"Generated {len(data)} simulations.")
 
         # Export
         output_file = (
-            self.simulation_path / f"sim_batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+            self.simulation_path
+            / f"sim_batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
         )
         with open(output_file, "w") as f:
             json.dump(data, f, indent=2)

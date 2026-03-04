@@ -9,4 +9,3 @@ from ai.core.sourcing.journal.orchestrator.research_orchestrator import (
 )
 
 __all__ = ["OrchestratorConfig", "ResearchOrchestrator", "SessionState"]
-

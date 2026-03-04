@@ -19,8 +19,10 @@ from urllib3.util.retry import Retry
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 class BookFormat(Enum):
     """Supported book formats for academic sourcing"""
+
     PDF = "pdf"
     EPUB = "epub"
     HTML = "html"
@@ -28,9 +30,11 @@ class BookFormat(Enum):
     PLAIN_TEXT = "txt"
     JSON = "json"
 
+
 @dataclass
 class BookMetadata:
     """Metadata for an academic book"""
+
     title: str
     authors: List[str]
     publisher: str
@@ -45,22 +49,29 @@ class BookMetadata:
     license: Optional[str] = None
     copyright_status: Optional[str] = None
     therapeutic_relevance_score: Optional[float] = None
-    stage_assignment: Optional[str] = None  # stage1_foundation, stage2_therapeutic_expertise, etc.
+    stage_assignment: Optional[str] = (
+        None  # stage1_foundation, stage2_therapeutic_expertise, etc.
+    )
     quality_score: Optional[float] = None
     safety_score: Optional[float] = None
     bias_score: Optional[float] = None
     source_publisher: Optional[str] = None
     raw_metadata: Optional[Dict[str, Any]] = None
 
+
 @dataclass
 class BookContent:
     """Content of an academic book with metadata"""
+
     metadata: BookMetadata
     content: str
     format: BookFormat
-    chapter_contents: Optional[List[Tuple[str, str]]] = None  # List of (chapter_title, chapter_content)
+    chapter_contents: Optional[List[Tuple[str, str]]] = (
+        None  # List of (chapter_title, chapter_content)
+    )
     therapeutic_concepts: Optional[List[str]] = None
     anonymized_content: Optional[str] = None
+
 
 class BasePublisher(abc.ABC):
     """Abstract base class for academic publisher integrations"""
@@ -91,7 +102,7 @@ class BasePublisher(abc.ABC):
             total=3,
             backoff_factor=1,
             status_forcelist=[429, 500, 502, 503, 504],
-            allowed_methods=["HEAD", "GET", "OPTIONS", "POST"]
+            allowed_methods=["HEAD", "GET", "OPTIONS", "POST"],
         )
 
         adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -105,7 +116,7 @@ class BasePublisher(abc.ABC):
         headers = {
             "User-Agent": f"PixelatedEmpathyAcademicSourcing/1.0 ({self.name} Integration)",
             "Accept": "application/json",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
         if self._auth_token:
@@ -151,7 +162,7 @@ class BasePublisher(abc.ABC):
         year_range: Optional[Tuple[int, int]] = None,
         therapeutic_topics: Optional[List[str]] = None,
         limit: int = 20,
-        offset: int = 0
+        offset: int = 0,
     ) -> List[BookMetadata]:
         """
         Search for books in the publisher's catalog
@@ -182,7 +193,9 @@ class BasePublisher(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def get_book_content(self, identifier: str, format: BookFormat = BookFormat.PLAIN_TEXT) -> Optional[BookContent]:
+    def get_book_content(
+        self, identifier: str, format: BookFormat = BookFormat.PLAIN_TEXT
+    ) -> Optional[BookContent]:
         """
         Get content for a specific book
 
@@ -223,15 +236,45 @@ class BasePublisher(abc.ABC):
 
         # Check for therapeutic keywords in title, abstract, and keywords
         therapeutic_keywords = [
-            "psychology", "psychotherapy", "therapy", "therapeutic", "mental health",
-            "counseling", "clinical psychology", "psychiatry", "trauma", "anxiety",
-            "depression", "cognitive behavioral therapy", "cbt", "dialectical behavior therapy",
-            "dbt", "mindfulness", "emotional regulation", "personality disorders",
-            "crisis intervention", "suicide prevention", "addiction", "substance abuse",
-            "eating disorders", "ptsd", "post-traumatic stress", "neuropsychology",
-            "child psychology", "adolescent psychology", "family therapy", "group therapy",
-            "evidence-based practice", "clinical techniques", "diagnostic", "dsm-5",
-            "assessment", "intervention", "treatment planning", "ethics", "cultural competence"
+            "psychology",
+            "psychotherapy",
+            "therapy",
+            "therapeutic",
+            "mental health",
+            "counseling",
+            "clinical psychology",
+            "psychiatry",
+            "trauma",
+            "anxiety",
+            "depression",
+            "cognitive behavioral therapy",
+            "cbt",
+            "dialectical behavior therapy",
+            "dbt",
+            "mindfulness",
+            "emotional regulation",
+            "personality disorders",
+            "crisis intervention",
+            "suicide prevention",
+            "addiction",
+            "substance abuse",
+            "eating disorders",
+            "ptsd",
+            "post-traumatic stress",
+            "neuropsychology",
+            "child psychology",
+            "adolescent psychology",
+            "family therapy",
+            "group therapy",
+            "evidence-based practice",
+            "clinical techniques",
+            "diagnostic",
+            "dsm-5",
+            "assessment",
+            "intervention",
+            "treatment planning",
+            "ethics",
+            "cultural competence",
         ]
 
         # Check title
@@ -243,13 +286,19 @@ class BasePublisher(abc.ABC):
         # Check abstract
         if metadata.abstract:
             abstract = metadata.abstract.lower()
-            abstract_matches = sum(1 for keyword in therapeutic_keywords if keyword in abstract)
+            abstract_matches = sum(
+                1 for keyword in therapeutic_keywords if keyword in abstract
+            )
             if abstract_matches > 0:
                 score += 0.4
 
         # Check keywords
         if metadata.keywords:
-            keyword_matches = sum(1 for keyword in metadata.keywords if keyword.lower() in therapeutic_keywords)
+            keyword_matches = sum(
+                1
+                for keyword in metadata.keywords
+                if keyword.lower() in therapeutic_keywords
+            )
             if keyword_matches > 0:
                 score += 0.3
 
@@ -274,7 +323,7 @@ class BasePublisher(abc.ABC):
         params: Optional[Dict[str, Any]] = None,
         data: Optional[Dict[str, Any]] = None,
         json: Optional[Dict[str, Any]] = None,
-        timeout: int = 30
+        timeout: int = 30,
     ) -> Optional[Dict[str, Any]]:
         """
         Make an API request to the publisher's API
@@ -300,7 +349,7 @@ class BasePublisher(abc.ABC):
                 params=params,
                 data=data,
                 json=json,
-                timeout=timeout
+                timeout=timeout,
             )
 
             response.raise_for_status()
@@ -312,7 +361,7 @@ class BasePublisher(abc.ABC):
 
         except requests.exceptions.RequestException as e:
             logger.error(f"Request to {self.name} API failed: {e}")
-            if hasattr(e, 'response') and e.response is not None:
+            if hasattr(e, "response") and e.response is not None:
                 logger.error(f"Response status: {e.response.status_code}")
                 logger.error(f"Response content: {e.response.text}")
             return None

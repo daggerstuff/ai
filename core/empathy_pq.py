@@ -102,10 +102,10 @@ class EmpathyPQCalculator:
             "performance_category": (
                 "Elite"
                 if self._total_pq > 85
-                else "Clinical"
-                if self._total_pq > 70
-                else "Intermediate"
-                if self._total_pq > 50
-                else "Novice"
+                else (
+                    "Clinical"
+                    if self._total_pq > 70
+                    else "Intermediate" if self._total_pq > 50 else "Novice"
+                )
             ),
         }

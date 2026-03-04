@@ -59,4 +59,3 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content=error_detail,
             )
-

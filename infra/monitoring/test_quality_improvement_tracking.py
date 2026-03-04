@@ -329,39 +329,43 @@ def run_comprehensive_test():
             "status": "PASSED" if success_rate >= 80 else "FAILED",
             "improvement_tracking_sample": {
                 "intervention_id": intervention_id,
-                "intervention_name": getattr(analysis, "intervention_name", "N/A")
-                if analysis
-                else "N/A",
-                "improvement_achieved": getattr(
-                    analysis, "improvement_metrics", {}
-                ).get("absolute_improvement", 0)
-                if analysis
-                else 0,
-                "target_achievement": getattr(analysis, "improvement_metrics", {}).get(
-                    "target_achievement", 0
-                )
-                if analysis
-                else 0,
-                "statistical_tests": len(getattr(analysis, "statistical_tests", []))
-                if analysis
-                else 0,
-                "recommendations_count": len(getattr(analysis, "recommendations", []))
-                if analysis
-                else 0,
+                "intervention_name": (
+                    getattr(analysis, "intervention_name", "N/A") if analysis else "N/A"
+                ),
+                "improvement_achieved": (
+                    getattr(analysis, "improvement_metrics", {}).get(
+                        "absolute_improvement", 0
+                    )
+                    if analysis
+                    else 0
+                ),
+                "target_achievement": (
+                    getattr(analysis, "improvement_metrics", {}).get(
+                        "target_achievement", 0
+                    )
+                    if analysis
+                    else 0
+                ),
+                "statistical_tests": (
+                    len(getattr(analysis, "statistical_tests", [])) if analysis else 0
+                ),
+                "recommendations_count": (
+                    len(getattr(analysis, "recommendations", [])) if analysis else 0
+                ),
             },
             "report_sample": {
-                "active_interventions": len(report.active_interventions)
-                if "report" in locals()
-                else 0,
-                "completed_interventions": len(report.completed_interventions)
-                if "report" in locals()
-                else 0,
-                "improvement_analyses": len(report.improvement_analyses)
-                if "report" in locals()
-                else 0,
-                "executive_summary_items": len(report.executive_summary)
-                if "report" in locals()
-                else 0,
+                "active_interventions": (
+                    len(report.active_interventions) if "report" in locals() else 0
+                ),
+                "completed_interventions": (
+                    len(report.completed_interventions) if "report" in locals() else 0
+                ),
+                "improvement_analyses": (
+                    len(report.improvement_analyses) if "report" in locals() else 0
+                ),
+                "executive_summary_items": (
+                    len(report.executive_summary) if "report" in locals() else 0
+                ),
                 "action_items": len(report.action_items) if "report" in locals() else 0,
             },
         }

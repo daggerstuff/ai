@@ -607,9 +607,9 @@ class TraceabilityManager:
             "torch_version": torch.__version__,
             "cuda_available": torch.cuda.is_available(),
             "cuda_version": torch.version.cuda if torch.cuda.is_available() else None,
-            "device_count": torch.cuda.device_count()
-            if torch.cuda.is_available()
-            else 0,
+            "device_count": (
+                torch.cuda.device_count() if torch.cuda.is_available() else 0
+            ),
         }
 
         # Add GPU information if available
@@ -642,19 +642,27 @@ class TraceabilityManager:
             f"  ID: {lineage.dataset_version.dataset_id}",
             f"  Name: {lineage.dataset_version.name}",
             f"  Version: {lineage.dataset_version.version}",
-            f"  Size: {lineage.dataset_version.size_bytes} bytes"
-            if lineage.dataset_version.size_bytes
-            else "  Size: Unknown",
-            f"  Records: {lineage.dataset_version.record_count}"
-            if lineage.dataset_version.record_count
-            else "  Records: Unknown",
+            (
+                f"  Size: {lineage.dataset_version.size_bytes} bytes"
+                if lineage.dataset_version.size_bytes
+                else "  Size: Unknown"
+            ),
+            (
+                f"  Records: {lineage.dataset_version.record_count}"
+                if lineage.dataset_version.record_count
+                else "  Records: Unknown"
+            ),
             f"  Created: {lineage.dataset_version.created_at}",
-            f"  Checksum: {lineage.dataset_version.checksum}"
-            if lineage.dataset_version.checksum
-            else "  Checksum: Unknown",
-            f"  Git Commit: {lineage.dataset_version.commit_hash}"
-            if lineage.dataset_version.commit_hash
-            else "  Git Commit: Unknown",
+            (
+                f"  Checksum: {lineage.dataset_version.checksum}"
+                if lineage.dataset_version.checksum
+                else "  Checksum: Unknown"
+            ),
+            (
+                f"  Git Commit: {lineage.dataset_version.commit_hash}"
+                if lineage.dataset_version.commit_hash
+                else "  Git Commit: Unknown"
+            ),
             "",
             "Training Run Information:",
             f"  Run ID: {lineage.training_run.run_id}",
@@ -662,13 +670,17 @@ class TraceabilityManager:
             f"  Model Version: {lineage.training_run.model_version}",
             f"  Manifest ID: {lineage.training_run.manifest_id}",
             f"  Start Time: {lineage.training_run.start_time}",
-            f"  End Time: {lineage.training_run.end_time}"
-            if lineage.training_run.end_time
-            else "  End Time: In Progress",
+            (
+                f"  End Time: {lineage.training_run.end_time}"
+                if lineage.training_run.end_time
+                else "  End Time: In Progress"
+            ),
             f"  Status: {lineage.training_run.status}",
-            f"  Git Commit: {lineage.training_run.git_commit}"
-            if lineage.training_run.git_commit
-            else "  Git Commit: Unknown",
+            (
+                f"  Git Commit: {lineage.training_run.git_commit}"
+                if lineage.training_run.git_commit
+                else "  Git Commit: Unknown"
+            ),
             "",
             "Hyperparameters Used:",
         ]
@@ -690,17 +702,23 @@ class TraceabilityManager:
                 "Model Artifact Information:",
                 f"  Artifact ID: {lineage.model_artifact.artifact_id}",
                 f"  Path: {lineage.model_artifact.path}",
-                f"  Size: {lineage.model_artifact.size_bytes} bytes"
-                if lineage.model_artifact.size_bytes
-                else "  Size: Unknown",
+                (
+                    f"  Size: {lineage.model_artifact.size_bytes} bytes"
+                    if lineage.model_artifact.size_bytes
+                    else "  Size: Unknown"
+                ),
                 f"  Framework: {lineage.model_artifact.framework}",
                 f"  Format: {lineage.model_artifact.format}",
-                f"  Eval Score: {lineage.model_artifact.evaluation_score}"
-                if lineage.model_artifact.evaluation_score
-                else "  Eval Score: Not available",
-                f"  Promotion Status: {lineage.model_artifact.promotion_status}"
-                if lineage.model_artifact.promotion_status
-                else "  Promotion Status: Not promoted",
+                (
+                    f"  Eval Score: {lineage.model_artifact.evaluation_score}"
+                    if lineage.model_artifact.evaluation_score
+                    else "  Eval Score: Not available"
+                ),
+                (
+                    f"  Promotion Status: {lineage.model_artifact.promotion_status}"
+                    if lineage.model_artifact.promotion_status
+                    else "  Promotion Status: Not promoted"
+                ),
             ]
         )
 
