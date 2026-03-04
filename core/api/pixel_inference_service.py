@@ -26,8 +26,6 @@ from pydantic import BaseModel, Field
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Import service routers
-from pixel.models.pixel_base_model import PixelBaseModel
-
 from api.defense_service import router as defense_router
 from api.gestalt_service import (
     _gestalt_engine,
@@ -37,6 +35,7 @@ from api.gestalt_service import (
     router as gestalt_router,
 )
 from api.pq_service import router as pq_router
+from pixel.models.pixel_base_model import PixelBaseModel
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
