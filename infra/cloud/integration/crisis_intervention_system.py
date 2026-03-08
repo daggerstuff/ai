@@ -794,9 +794,11 @@ class CrisisInterventionSystem:
             },
             "escalation_info": {
                 "escalation_triggered": response.escalation_triggered,
-                "follow_up_scheduled": response.follow_up_scheduled.isoformat()
-                if response.follow_up_scheduled
-                else None,
+                "follow_up_scheduled": (
+                    response.follow_up_scheduled.isoformat()
+                    if response.follow_up_scheduled
+                    else None
+                ),
             },
             "system_metadata": {
                 "assessment_confidence": assessment.confidence,

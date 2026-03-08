@@ -317,9 +317,11 @@ class ResumeOrchestrator:
                     "success": success,
                     "resume_time_seconds": resume_time,
                     "timestamp": datetime.utcnow().isoformat(),
-                    "interruption_type": interruption_context.interruption_type.value
-                    if interruption_context
-                    else None,
+                    "interruption_type": (
+                        interruption_context.interruption_type.value
+                        if interruption_context
+                        else None
+                    ),
                 }
             )
 
@@ -587,9 +589,9 @@ class ResumeOrchestrator:
             "registered_at": process_info["registered_at"].isoformat(),
             "is_active": process_id in self.active_resumes,
             "is_queued": process_id in [req["process_id"] for req in self.resume_queue],
-            "current_progress": current_state.progress_percentage
-            if current_state
-            else None,
+            "current_progress": (
+                current_state.progress_percentage if current_state else None
+            ),
             "metrics": asdict(metrics) if metrics else None,
             "dependencies": [asdict(dep) for dep in dependencies],
             "resource_requirements": process_info.get("resource_requirements", {}),

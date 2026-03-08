@@ -13,11 +13,9 @@ Systematically explores all AI directories and catalogs training assets:
 
 import json
 import os
-from pathlib import Path
-from typing import Dict, List, Any, Optional
 from datetime import datetime
-import hashlib
-
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 # Directories to explore
 AI_DIRECTORIES = [
@@ -47,11 +45,35 @@ AI_DIRECTORIES = [
 # File type patterns
 CONFIG_PATTERNS = [".json", ".yaml", ".yml", ".toml", "config", "requirements.txt"]
 DATASET_PATTERNS = [".jsonl", ".json", ".parquet", ".csv", ".txt", "dataset", "data"]
-MODEL_PATTERNS = ["model", "architecture", "moe", "cnn", "resnet", "quantum", "neuroplasticity"]
+MODEL_PATTERNS = [
+    "model",
+    "architecture",
+    "moe",
+    "cnn",
+    "resnet",
+    "quantum",
+    "neuroplasticity",
+]
 PIPELINE_PATTERNS = ["pipeline", "orchestrator", "train", "integration"]
-INFRASTRUCTURE_PATTERNS = [".yaml", ".yml", "kubernetes", "k8s", "helm", "docker", "deployment"]
+INFRASTRUCTURE_PATTERNS = [
+    ".yaml",
+    ".yml",
+    "kubernetes",
+    "k8s",
+    "helm",
+    "docker",
+    "deployment",
+]
 TOOL_PATTERNS = ["tool", "utility", "script", "generator", "validator"]
-EXPERIMENTAL_KEYWORDS = ["experimental", "research", "novel", "future", "prototype", "test", "demo"]
+EXPERIMENTAL_KEYWORDS = [
+    "experimental",
+    "research",
+    "novel",
+    "future",
+    "prototype",
+    "test",
+    "demo",
+]
 
 # Experimental model architectures to identify
 EXPERIMENTAL_MODELS = [
@@ -70,21 +92,36 @@ def get_file_type(file_path: Path, file_name: str) -> str:
     path_str_lower = str(file_path).lower()
 
     # Check patterns
-    if any(pattern in path_str_lower or pattern in file_name_lower for pattern in CONFIG_PATTERNS):
+    if any(
+        pattern in path_str_lower or pattern in file_name_lower
+        for pattern in CONFIG_PATTERNS
+    ):
         if any(pattern in path_str_lower for pattern in INFRASTRUCTURE_PATTERNS):
             return "infrastructure"
         return "config"
 
-    if any(pattern in path_str_lower or pattern in file_name_lower for pattern in DATASET_PATTERNS):
+    if any(
+        pattern in path_str_lower or pattern in file_name_lower
+        for pattern in DATASET_PATTERNS
+    ):
         return "dataset"
 
-    if any(pattern in path_str_lower or pattern in file_name_lower for pattern in MODEL_PATTERNS):
+    if any(
+        pattern in path_str_lower or pattern in file_name_lower
+        for pattern in MODEL_PATTERNS
+    ):
         return "model"
 
-    if any(pattern in path_str_lower or pattern in file_name_lower for pattern in PIPELINE_PATTERNS):
+    if any(
+        pattern in path_str_lower or pattern in file_name_lower
+        for pattern in PIPELINE_PATTERNS
+    ):
         return "pipeline"
 
-    if any(pattern in path_str_lower or pattern in file_name_lower for pattern in TOOL_PATTERNS):
+    if any(
+        pattern in path_str_lower or pattern in file_name_lower
+        for pattern in TOOL_PATTERNS
+    ):
         return "tool"
 
     if file_path.suffix in [".py", ".ts", ".tsx", ".js", ".jsx"]:
@@ -102,11 +139,17 @@ def is_experimental(file_path: Path, file_name: str) -> bool:
     file_name_lower = file_name.lower()
 
     # Check for experimental keywords
-    if any(keyword in path_str_lower or keyword in file_name_lower for keyword in EXPERIMENTAL_KEYWORDS):
+    if any(
+        keyword in path_str_lower or keyword in file_name_lower
+        for keyword in EXPERIMENTAL_KEYWORDS
+    ):
         return True
 
     # Check for experimental model names
-    if any(model in path_str_lower or model in file_name_lower for model in EXPERIMENTAL_MODELS):
+    if any(
+        model in path_str_lower or model in file_name_lower
+        for model in EXPERIMENTAL_MODELS
+    ):
         return True
 
     # Check if in research directories
@@ -127,7 +170,11 @@ def get_file_info(file_path: Path) -> Dict[str, Any]:
         return {
             "name": file_name,
             "path": str(file_path),
-            "relative_path": str(file_path.relative_to(Path.cwd())) if file_path.is_relative_to(Path.cwd()) else str(file_path),
+            "relative_path": (
+                str(file_path.relative_to(Path.cwd()))
+                if file_path.is_relative_to(Path.cwd())
+                else str(file_path)
+            ),
             "type": file_type,
             "size": stat.st_size,
             "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
@@ -143,7 +190,9 @@ def get_file_info(file_path: Path) -> Dict[str, Any]:
         }
 
 
-def explore_directory(directory_path: str, base_path: Optional[Path] = None) -> Dict[str, Any]:
+def explore_directory(
+    directory_path: str, base_path: Optional[Path] = None
+) -> Dict[str, Any]:
     """Explore a directory and catalog all files."""
     if base_path is None:
         base_path = Path.cwd()
@@ -193,17 +242,24 @@ def explore_directory(directory_path: str, base_path: Optional[Path] = None) -> 
             root_path = Path(root)
 
             # Skip hidden directories and common ignore patterns
-            dirs[:] = [d for d in dirs if not d.startswith('.') and d not in ['__pycache__', 'node_modules', '.git']]
+            dirs[:] = [
+                d
+                for d in dirs
+                if not d.startswith(".")
+                and d not in ["__pycache__", "node_modules", ".git"]
+            ]
 
             # Catalog subdirectories
             for dir_name in dirs:
                 dir_path = root_path / dir_name
                 if dir_path.is_dir():
-                    catalog["subdirectories"].append(str(dir_path.relative_to(full_path)))
+                    catalog["subdirectories"].append(
+                        str(dir_path.relative_to(full_path))
+                    )
 
             # Catalog files
             for file_name in files:
-                if file_name.startswith('.'):
+                if file_name.startswith("."):
                     continue
 
                 file_path = root_path / file_name
@@ -232,7 +288,9 @@ def explore_directory(directory_path: str, base_path: Optional[Path] = None) -> 
     return catalog
 
 
-def identify_experimental_features(catalogs: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def identify_experimental_features(
+    catalogs: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
     """Identify experimental/unused features from directory catalogs."""
     experimental_features = []
 
@@ -275,10 +333,14 @@ def main():
         all_catalogs.append(catalog)
 
         if catalog.get("status") == "success":
-            print(f"  ✅ Found {catalog['summary']['total_files']} files, "
-                  f"{catalog['summary']['experimental_count']} experimental")
+            print(
+                f"  ✅ Found {catalog['summary']['total_files']} files, "
+                f"{catalog['summary']['experimental_count']} experimental"
+            )
         else:
-            print(f"  ⚠️  {catalog.get('status', 'unknown')}: {catalog.get('error', '')}")
+            print(
+                f"  ⚠️  {catalog.get('status', 'unknown')}: {catalog.get('error', '')}"
+            )
 
     # Identify experimental features
     print("\n🔬 Identifying experimental features...")
@@ -313,4 +375,3 @@ def main():
 
 if __name__ == "__main__":
     catalogs, features = main()
-

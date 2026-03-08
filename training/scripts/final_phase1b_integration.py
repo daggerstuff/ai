@@ -46,16 +46,12 @@ def _build_arg_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--input-dir",
-        default=str(
-            Path(__file__).parents[1] / "data" / "generated"
-        ),
+        default=str(Path(__file__).parents[1] / "data" / "generated"),
         help="Input directory for Phase 1b outputs",
     )
     parser.add_argument(
         "--output-dir",
-        default=str(
-            Path(__file__).parents[1] / "data" / "final_dataset"
-        ),
+        default=str(Path(__file__).parents[1] / "data" / "final_dataset"),
         help="Output directory for final dataset",
     )
     parser.add_argument(
@@ -97,10 +93,17 @@ def _collect_phase1b_outputs(
 
     for source in PHASE1B_SOURCES:
         source_dir = input_dir / source
-        source_file = source_dir / "transcripts.jsonl" if source == "youtube_transcripts" else (
-            source_dir / "findings.jsonl" if source == "academic_research" else (
-                source_dir / "book_content.jsonl" if source == "therapeutic_books" else
-                source_dir / "dialogues.jsonl"
+        source_file = (
+            source_dir / "transcripts.jsonl"
+            if source == "youtube_transcripts"
+            else (
+                source_dir / "findings.jsonl"
+                if source == "academic_research"
+                else (
+                    source_dir / "book_content.jsonl"
+                    if source == "therapeutic_books"
+                    else source_dir / "dialogues.jsonl"
+                )
             )
         )
 
@@ -305,7 +308,8 @@ def main() -> int:
         # Save validation report
         report_file = output_dir / "phase1b_verification_report.json"
         report_file.write_text(
-            json.dumps(validation_report, indent=2, ensure_ascii=False), encoding="utf-8"
+            json.dumps(validation_report, indent=2, ensure_ascii=False),
+            encoding="utf-8",
         )
 
         logger.info(f"✓ Validation report saved to {report_file}")
@@ -316,9 +320,7 @@ def main() -> int:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "phase": "Phase 1b",
         "total_conversations": len(merged),
-        "source_families": {
-            source: len(convs) for source, convs in outputs.items()
-        },
+        "source_families": {source: len(convs) for source, convs in outputs.items()},
         "validation": validation_report if validation_report else None,
     }
 

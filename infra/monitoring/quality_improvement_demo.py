@@ -427,11 +427,11 @@ class QualityImprovementDemo:
                     "total_metrics_tracked": len(improvements),
                 },
                 "executive_summary": {
-                    "overall_trend": "improving"
-                    if avg_improvement > 2
-                    else "declining"
-                    if avg_improvement < -2
-                    else "stable",
+                    "overall_trend": (
+                        "improving"
+                        if avg_improvement > 2
+                        else "declining" if avg_improvement < -2 else "stable"
+                    ),
                     "average_improvement_percentage": float(avg_improvement),
                     "average_confidence_level": float(avg_confidence),
                     "metrics_improving": improving_count,
@@ -497,9 +497,7 @@ def main():
         direction_icon = (
             "📈"
             if improvement.improvement_direction == "improving"
-            else "📉"
-            if improvement.improvement_direction == "declining"
-            else "➡️"
+            else "📉" if improvement.improvement_direction == "declining" else "➡️"
         )
         print(
             f"   {direction_icon} {metric.replace('_', ' ').title()}: {improvement.improvement_percentage:+.1f}% (confidence: {improvement.confidence_level:.2f})"

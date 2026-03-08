@@ -296,20 +296,26 @@ class InferenceSafetyFilter:
             "safe_content_count": self.total_requests
             - self.blocked_content_count
             - self.filtered_content_count,
-            "block_rate": self.blocked_content_count / self.total_requests
-            if self.total_requests > 0
-            else 0,
-            "filter_rate": self.filtered_content_count / self.total_requests
-            if self.total_requests > 0
-            else 0,
+            "block_rate": (
+                self.blocked_content_count / self.total_requests
+                if self.total_requests > 0
+                else 0
+            ),
+            "filter_rate": (
+                self.filtered_content_count / self.total_requests
+                if self.total_requests > 0
+                else 0
+            ),
             "safe_rate": (
-                self.total_requests
-                - self.blocked_content_count
-                - self.filtered_content_count
-            )
-            / self.total_requests
-            if self.total_requests > 0
-            else 0,
+                (
+                    self.total_requests
+                    - self.blocked_content_count
+                    - self.filtered_content_count
+                )
+                / self.total_requests
+                if self.total_requests > 0
+                else 0
+            ),
             "last_filtered_content": self.last_filtered_content,
             "current_safety_level": self.safety_filter.safety_level.value,
             "current_filter_mode": self.filter_mode.value,
@@ -369,9 +375,11 @@ class SafetyAwareInferenceAPI:
             # Update the inference result with filtered content if needed
             updated_result = self._update_inference_result(
                 inference_result,
-                safety_result.filtered_content
-                if safety_result.content_filtered
-                else content_to_filter,
+                (
+                    safety_result.filtered_content
+                    if safety_result.content_filtered
+                    else content_to_filter
+                ),
             )
 
             # Log the complete inference with safety check

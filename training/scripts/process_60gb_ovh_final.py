@@ -4,25 +4,21 @@ OVH 60GB Final Processor - Using provided OVH S3 credentials
 """
 
 import subprocess
-import json
-import os
-from pathlib import Path
-from datetime import datetime
 
 # OVH S3 Configuration
 OVH_S3_CONFIG = {
-    'bucket': 'pixel-data',
-    'endpoint': 'https://s3.us-east-va.io.cloud.ovh.us',
-    'region': 'us-east-va',
-    'access_key': 'a0ce13472d2d4ad18501899c066ef04a',
-    'secret_key': 'dd21a7515fd849e58f8547fde3882a3f'
+    "bucket": "pixel-data",
+    "endpoint": "https://s3.us-east-va.io.cloud.ovh.us",
+    "region": "us-east-va",
+    "access_key": "a0ce13472d2d4ad18501899c066ef04a",
+    "secret_key": "dd21a7515fd849e58f8547fde3882a3f",
 }
 
 
 def create_60gb_processor_script():
     """Create 60GB processing script with correct OVH credentials"""
-    
-    processor = f'''#!/bin/bash
+
+    processor = f"""#!/bin/bash
 # OVH 60GB S3 Processor - Correct Credentials
 
 set -e
@@ -58,9 +54,10 @@ aws s3 ls s3://$S3_BUCKET --recursive --endpoint-url $S3_ENDPOINT | \
 
 # Phase 3: Generate processing commands
 echo "⚙️  Phase 3: Creating processing commands..."
+"""
 
-# Create processing commands
-commands = f'''#!/bin/bash
+    # Create processing commands
+    commands = f"""#!/bin/bash
 # 60GB OVH S3 Processing Commands
 
 S3_ENDPOINT="{OVH_S3_CONFIG['endpoint']}"
@@ -166,6 +163,7 @@ case "$1" in
         ;;
 esac
 EOF
+"""
 
     return commands
 
@@ -179,15 +177,15 @@ def main():
     print(f"🔑 Region: {OVH_S3_CONFIG['region']}")
     print(f"🔑 Access Key: {OVH_S3_CONFIG['access_key'][:8]}...")
     print("")
-    
+
     # Create processor
     commands = create_60gb_processor_script()
-    
-    with open('training_ready/scripts/process_60gb_ovh_final.sh', 'w') as f:
+
+    with open("training_ready/scripts/process_60gb_ovh_final.sh", "w") as f:
         f.write(commands)
-    
-    subprocess.run(['chmod', '+x', 'training_ready/scripts/process_60gb_ovh_final.sh'])
-    
+
+    subprocess.run(["chmod", "+x", "training_ready/scripts/process_60gb_ovh_final.sh"])
+
     print("✅ 60GB OVH S3 processor ready with correct credentials")
     print("🎯 Run: ./training_ready/scripts/process_60gb_ovh_final.sh")
     print("🎯 Commands: ./training_ready/data/ovh_60gb_processed/commands.sh")

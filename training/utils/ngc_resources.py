@@ -6,8 +6,8 @@ Migrate imports to:
 
     from ai.core.utils.ngc_resources import NGCResourceDownloader, download_nemo_quickstart
 """
-from ai.core.utils.ngc_resources import *  # noqa: F401,F403
 
+from ai.core.utils.ngc_resources import *  # noqa: F401,F403
 from ai.core.utils.ngc_resources import (
     NGCResourceDownloader,
     download_nemo_quickstart,

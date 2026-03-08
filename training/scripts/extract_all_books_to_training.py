@@ -4,11 +4,10 @@ Book Processing Integration Script for Phase 2.
 Extracts therapeutic content from PDF/EPUB books into the training pipeline.
 """
 
-import os
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"

@@ -261,7 +261,10 @@ def _iter_payload_records(payload: Any) -> Any:
         return iter(payload)
     if isinstance(payload, dict):
         return iter(
-            payload.get("data") or payload.get("records") or payload.get("conversations") or []
+            payload.get("data")
+            or payload.get("records")
+            or payload.get("conversations")
+            or []
         )
     return iter([])
 
@@ -338,7 +341,9 @@ def _iter_source_records(
     return iter([])
 
 
-def _list_s3_jsonl_files(loader: S3DatasetLoader, bucket: str, prefix: str) -> list[str]:
+def _list_s3_jsonl_files(
+    loader: S3DatasetLoader, bucket: str, prefix: str
+) -> list[str]:
     """List JSONL files from S3 bucket with given prefix."""
     files: list[str] = []
     try:
@@ -477,7 +482,9 @@ def _determine_source_keys(
 ) -> list[str] | None:
     """Determine which source keys to process."""
     if args.input_dir:
-        source_keys = _list_jsonl_files_in_dir(loader, bucket=bucket, input_dir=args.input_dir)
+        source_keys = _list_jsonl_files_in_dir(
+            loader, bucket=bucket, input_dir=args.input_dir
+        )
         if not source_keys:
             logger.error(f"No JSONL files found in {args.input_dir}")
             return None
@@ -497,7 +504,9 @@ def _process_single_source(
 ) -> int:
     """Process a single data source and return count of kept records."""
     display_path = (
-        key if (key.startswith("s3://") or _is_local_path(key)) else f"s3://{bucket}/{key}"
+        key
+        if (key.startswith("s3://") or _is_local_path(key))
+        else f"s3://{bucket}/{key}"
     )
 
     logger.info(f"[{key_idx}/{total_keys}] Processing: {display_path}")
@@ -548,7 +557,9 @@ def _process_single_source(
             break
 
     stats.sources_kept[key] = source_kept
-    logger.info(f"  ✓ Extracted {source_kept:,} long-running conversations from this source")
+    logger.info(
+        f"  ✓ Extracted {source_kept:,} long-running conversations from this source"
+    )
     return source_kept
 
 
@@ -575,7 +586,9 @@ def _generate_stats(
         "parse_failures": stats.failures,
         "sources_used": dict(stats.sources_used),
         "sources_kept": dict(stats.sources_kept),
-        "turn_histogram_capped_200": dict(sorted(stats.turn_hist.items(), key=lambda x: int(x[0]))),
+        "turn_histogram_capped_200": dict(
+            sorted(stats.turn_hist.items(), key=lambda x: int(x[0]))
+        ),
     }
 
 
@@ -620,10 +633,14 @@ def _handle_s3_upload(
     logger.info("Uploading to S3...")
 
     output_s3_key = f"{args.s3_output_prefix}/long_running_therapy.jsonl"
-    success1 = _upload_to_s3(loader, local_path=out_path, s3_key=output_s3_key, bucket=bucket)
+    success1 = _upload_to_s3(
+        loader, local_path=out_path, s3_key=output_s3_key, bucket=bucket
+    )
 
     stats_s3_key = f"{args.s3_output_prefix}/long_running_therapy_stats.json"
-    success2 = _upload_to_s3(loader, local_path=stats_path, s3_key=stats_s3_key, bucket=bucket)
+    success2 = _upload_to_s3(
+        loader, local_path=stats_path, s3_key=stats_s3_key, bucket=bucket
+    )
 
     if success1 and success2:
         logger.info(f"✓ Uploaded to s3://{bucket}/{args.s3_output_prefix}/")
@@ -641,7 +658,11 @@ def main() -> int:
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)s - %(levelname)s - %(message)s" if args.verbose else "%(message)s",
+        format=(
+            "%(asctime)s - %(levelname)s - %(message)s"
+            if args.verbose
+            else "%(message)s"
+        ),
     )
 
     # Setup environment
@@ -652,7 +673,9 @@ def main() -> int:
     if source_keys is None:
         return 1
 
-    logger.info(f"Processing {len(source_keys)} source(s) with min_turns={args.min_turns}")
+    logger.info(
+        f"Processing {len(source_keys)} source(s) with min_turns={args.min_turns}"
+    )
 
     # Prepare output
     out_path = Path(args.output)
@@ -664,7 +687,9 @@ def main() -> int:
     # Process all sources
     with out_path.open("w", encoding="utf-8") as f:
         for key_idx, key in enumerate(source_keys, 1):
-            _process_single_source(loader, bucket, key, key_idx, len(source_keys), args, stats, f)
+            _process_single_source(
+                loader, bucket, key, key_idx, len(source_keys), args, stats, f
+            )
 
             if _limit_reached(kept=stats.kept, limit=args.limit):
                 logger.info(f"Limit of {args.limit} reached, stopping")

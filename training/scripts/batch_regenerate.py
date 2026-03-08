@@ -139,9 +139,7 @@ def _extract_turn_target_and_history(record):
 
 def process_single_record(record, source_file, simulator):
     """Extract context, simulate a turn, and reformat a single JSON dataset record."""
-    target, original_response, history = _extract_turn_target_and_history(
-        record
-    )
+    target, original_response, history = _extract_turn_target_and_history(record)
 
     if not target or not original_response:
         return None
@@ -190,9 +188,7 @@ def process_single_record(record, source_file, simulator):
 
 def _setup_simulator(args, loader, device):
     """Ensure defense model is present (optional if NIM-based) and init simulator."""
-    model_path = (
-        Path(args.defense_model_path) if args.defense_model_path else None
-    )
+    model_path = Path(args.defense_model_path) if args.defense_model_path else None
 
     if model_path and not model_path.exists():
         download_uri = args.defense_model_s3_key
@@ -242,9 +238,7 @@ def _process_records(args, loader, simulator, input_files):
                 logger.warning("Skipping non-JSONL file: %s", s3_file)
                 continue
 
-            with tempfile.NamedTemporaryFile(
-                suffix=".jsonl", delete=False
-            ) as tmp_in:
+            with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as tmp_in:
                 tmp_in_path = tmp_in.name
                 loader.download_file(s3_file, tmp_in_path)
 
@@ -252,9 +246,7 @@ def _process_records(args, loader, simulator, input_files):
                 with open(tmp_in_path, "r", encoding="utf-8") as infile:
                     lines = infile.readlines()
 
-                records_to_process = lines[
-                    : args.max_records - records_processed
-                ]
+                records_to_process = lines[: args.max_records - records_processed]
                 logger.info(
                     "Pulled %d records for thread pool processing.",
                     len(records_to_process),
@@ -265,15 +257,11 @@ def _process_records(args, loader, simulator, input_files):
                         rec = json.loads(line_str)
                         return process_single_record(rec, s3_file, simulator)
                     except Exception as exc:
-                        logger.error(
-                            "Error parsing/processing record: %s", exc
-                        )
+                        logger.error("Error parsing/processing record: %s", exc)
                         return None
 
                 max_workers = int(os.environ.get("MAX_WORKERS", 25))
-                logger.info(
-                    "Starting thread pool with %d workers...", max_workers
-                )
+                logger.info("Starting thread pool with %d workers...", max_workers)
 
                 with concurrent.futures.ThreadPoolExecutor(
                     max_workers=max_workers
@@ -290,8 +278,7 @@ def _process_records(args, loader, simulator, input_files):
                         out_record = future.result()
                         if out_record:
                             temp_out.write(
-                                json.dumps(out_record, ensure_ascii=False)
-                                + "\n"
+                                json.dumps(out_record, ensure_ascii=False) + "\n"
                             )
                             records_processed += 1
 
@@ -370,9 +357,7 @@ def main() -> None:
     try:
         input_files = loader.list_datasets(prefix=args.input_s3_prefix)
     except Exception as exc:
-        logger.error(
-            "Failed to list S3 datasets at %s: %s", args.input_s3_prefix, exc
-        )
+        logger.error("Failed to list S3 datasets at %s: %s", args.input_s3_prefix, exc)
         sys.exit(1)
 
     if not input_files:
@@ -391,8 +376,7 @@ def main() -> None:
 
     device = (
         "cuda"
-        if os.environ.get("CUDA_VISIBLE_DEVICES")
-        or os.path.exists("/dev/nvidia0")
+        if os.environ.get("CUDA_VISIBLE_DEVICES") or os.path.exists("/dev/nvidia0")
         else "cpu"
     )
 
@@ -412,9 +396,7 @@ def main() -> None:
         logger.info("Upload complete!")
     except Exception as exc:
         logger.error("Failed to upload to S3: %s", exc)
-        logger.warning(
-            "Generated dataset preserved locally at: %s", temp_out_path
-        )
+        logger.warning("Generated dataset preserved locally at: %s", temp_out_path)
         sys.exit(1)
 
     os.remove(temp_out_path)

@@ -12,10 +12,9 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 
 
+from enterprise_config import get_config
 from enterprise_error_handling import get_error_handler
 from enterprise_monitoring import get_monitor
-
-from enterprise_config import get_config
 
 
 def show_status():
@@ -40,9 +39,7 @@ def show_status():
             status_icon = (
                 "✅"
                 if check["status"] == "healthy"
-                else "⚠️"
-                if check["status"] == "degraded"
-                else "❌"
+                else "⚠️" if check["status"] == "degraded" else "❌"
             )
             print(f"   {status_icon} {name}: {check['message']}")
 

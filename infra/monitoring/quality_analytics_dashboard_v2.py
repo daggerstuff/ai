@@ -468,9 +468,11 @@ class QualityAnalyticsDashboard:
                         "dataset_source": str(row["dataset_source"]),
                         "quality_score": float(row["overall_quality"]),
                         "date": str(row["created_at"].date()),
-                        "anomaly_type": "low"
-                        if row["overall_quality"] < df["overall_quality"].mean()
-                        else "high",
+                        "anomaly_type": (
+                            "low"
+                            if row["overall_quality"] < df["overall_quality"].mean()
+                            else "high"
+                        ),
                     }
                 )
 

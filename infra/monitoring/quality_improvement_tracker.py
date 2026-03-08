@@ -624,11 +624,11 @@ class QualityImprovementTracker:
             )
 
             return {
-                "overall_trend": "improving"
-                if avg_improvement > 2
-                else "declining"
-                if avg_improvement < -2
-                else "stable",
+                "overall_trend": (
+                    "improving"
+                    if avg_improvement > 2
+                    else "declining" if avg_improvement < -2 else "stable"
+                ),
                 "average_improvement_percentage": float(avg_improvement),
                 "average_confidence_level": float(avg_confidence),
                 "metrics_improving": len(improving_metrics),
@@ -636,15 +636,21 @@ class QualityImprovementTracker:
                 "metrics_stable": len(stable_metrics),
                 "improvement_plans_needed": len(plans),
                 "key_recommendations": [
-                    f"Focus on {len(declining_metrics)} declining metrics"
-                    if declining_metrics
-                    else "Maintain current performance",
-                    f"Scale successful practices from {len(improving_metrics)} improving metrics"
-                    if improving_metrics
-                    else "Implement improvement initiatives",
-                    f"Monitor {len(stable_metrics)} stable metrics for optimization opportunities"
-                    if stable_metrics
-                    else "Continue monitoring",
+                    (
+                        f"Focus on {len(declining_metrics)} declining metrics"
+                        if declining_metrics
+                        else "Maintain current performance"
+                    ),
+                    (
+                        f"Scale successful practices from {len(improving_metrics)} improving metrics"
+                        if improving_metrics
+                        else "Implement improvement initiatives"
+                    ),
+                    (
+                        f"Monitor {len(stable_metrics)} stable metrics for optimization opportunities"
+                        if stable_metrics
+                        else "Continue monitoring"
+                    ),
                 ],
             }
 
@@ -690,9 +696,7 @@ def main():
         direction_icon = (
             "📈"
             if improvement.improvement_direction == "improving"
-            else "📉"
-            if improvement.improvement_direction == "declining"
-            else "➡️"
+            else "📉" if improvement.improvement_direction == "declining" else "➡️"
         )
         print(
             f"   {direction_icon} {metric.replace('_', ' ').title()}: {improvement.improvement_percentage:+.1f}% (confidence: {improvement.confidence_level:.2f})"

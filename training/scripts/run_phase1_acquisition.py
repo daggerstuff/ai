@@ -13,7 +13,6 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parents[3]
 sys.path.append(str(project_root))
 
-from ai.core.sourcing.academic import AcademicSourcingEngine  # noqa: E402
 from ai.core.pipelines.sourcing.crisis_expansion import (  # noqa: E402
     CrisisScenarioExpander,
 )
@@ -26,6 +25,7 @@ from ai.core.pipelines.sourcing.instruments_collector import (  # noqa: E402
 from ai.core.pipelines.sourcing.therapeutic_conversations import (  # noqa: E402
     TherapeuticConversationAcquisition,
 )
+from ai.core.sourcing.academic import AcademicSourcingEngine  # noqa: E402
 
 # Configure Logging
 logging.basicConfig(

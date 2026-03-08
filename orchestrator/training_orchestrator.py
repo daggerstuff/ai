@@ -178,9 +178,11 @@ class TrainingPipelineOrchestrator:
                 source_url=config.get("source_url"),
                 formats=[config.get("format", "json")],
                 record_count=len(dataset_content),
-                size_bytes=Path(dataset_path).stat().st_size
-                if Path(dataset_path).exists()
-                else 0,
+                size_bytes=(
+                    Path(dataset_path).stat().st_size
+                    if Path(dataset_path).exists()
+                    else 0
+                ),
             )
 
             # Categorize dataset
@@ -925,9 +927,9 @@ class TrainingPipelineOrchestrator:
                 "pipeline_id": execution.pipeline_id,
                 "status": execution.status,
                 "start_time": execution.start_time,
-                "current_stage": execution.stages[-1].name
-                if execution.stages
-                else None,
+                "current_stage": (
+                    execution.stages[-1].name if execution.stages else None
+                ),
                 "progress": self._calculate_overall_progress(execution),
             }
             for execution in self.active_executions.values()

@@ -666,11 +666,7 @@ def main():
         icon = (
             "🔴"
             if severity == "critical"
-            else "🟠"
-            if severity == "high"
-            else "🟡"
-            if severity == "medium"
-            else "🔵"
+            else "🟠" if severity == "high" else "🟡" if severity == "medium" else "🔵"
         )
         print(f"   {icon} {severity.title()}: {count}")
 

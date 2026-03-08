@@ -68,9 +68,11 @@ def nim_predict(
                         "label": p.label,
                         "label_name": p.label_name,
                         "confidence": round(p.confidence, 4),
-                        "maturity_score": float(p.maturity_score)
-                        if p.maturity_score is not None
-                        else None,
+                        "maturity_score": (
+                            float(p.maturity_score)
+                            if p.maturity_score is not None
+                            else None
+                        ),
                         "probabilities": [
                             round(float(pr), 4) for pr in p.probabilities
                         ],

@@ -15,10 +15,9 @@ from typing import Any, Callable
 sys.path.append(str(Path(__file__).parent.parent / "enterprise_config"))
 
 
+from enterprise_config import get_config
 from enterprise_error_handling import handle_error, with_retry
 from enterprise_logging import LogPerformance, get_logger
-
-from enterprise_config import get_config
 
 
 def enterprise_wrapper(

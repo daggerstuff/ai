@@ -323,9 +323,11 @@ class PixelatedEmpathyPlatform:
             if ratings:
                 skill_summary[skill] = {
                     "current_average": statistics.mean(ratings),
-                    "trend": "improving"
-                    if len(ratings) > 1 and ratings[-1] > ratings[0]
-                    else "stable",
+                    "trend": (
+                        "improving"
+                        if len(ratings) > 1 and ratings[-1] > ratings[0]
+                        else "stable"
+                    ),
                     "total_observations": len(ratings),
                     "target_level": evaluation_session["thresholds"][
                         "target_level"
@@ -344,9 +346,11 @@ class PixelatedEmpathyPlatform:
                     "therapist_action": log_entry["therapist_input"][:100] + "...",
                     "client_emotional_state": log_entry["client_emotional_state"],
                     "therapeutic_progress": log_entry["therapeutic_progress"],
-                    "key_feedback": log_entry["supervisor_feedback"][:2]
-                    if log_entry["supervisor_feedback"]
-                    else [],
+                    "key_feedback": (
+                        log_entry["supervisor_feedback"][:2]
+                        if log_entry["supervisor_feedback"]
+                        else []
+                    ),
                 }
             )
 
@@ -507,9 +511,11 @@ class PixelatedEmpathyPlatform:
             if obs.intervention_needed in ["immediate", "session_break"]:
                 alerts.append(
                     {
-                        "severity": "high"
-                        if obs.intervention_needed == "immediate"
-                        else "medium",
+                        "severity": (
+                            "high"
+                            if obs.intervention_needed == "immediate"
+                            else "medium"
+                        ),
                         "skill_area": obs.skill_area,
                         "description": obs.description,
                         "recommended_action": f"Intervention needed: {obs.intervention_needed.value}",
@@ -529,9 +535,11 @@ class PixelatedEmpathyPlatform:
         for skill, ratings in evaluation_session["skill_ratings"].items():
             if ratings:
                 final_skills[skill] = {
-                    "final_rating": statistics.mean(ratings[-3:])
-                    if len(ratings) >= 3
-                    else statistics.mean(ratings),
+                    "final_rating": (
+                        statistics.mean(ratings[-3:])
+                        if len(ratings) >= 3
+                        else statistics.mean(ratings)
+                    ),
                     "improvement": ratings[-1] - ratings[0] if len(ratings) > 1 else 0,
                     "consistency": 1.0
                     - (statistics.stdev(ratings) if len(ratings) > 1 else 0),

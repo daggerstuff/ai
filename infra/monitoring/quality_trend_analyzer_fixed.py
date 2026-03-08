@@ -491,10 +491,10 @@ class QualityTrendAnalyzer:
                 "max_value": max(trend.values) if trend.values else 0,
                 "mean_value": np.mean(trend.values) if trend.values else 0,
                 "coefficient_of_variation": (
-                    np.std(trend.values) / np.mean(trend.values)
-                )
-                if trend.values and np.mean(trend.values) > 0
-                else 0,
+                    (np.std(trend.values) / np.mean(trend.values))
+                    if trend.values and np.mean(trend.values) > 0
+                    else 0
+                ),
             }
 
         return summary

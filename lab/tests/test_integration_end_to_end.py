@@ -1,4 +1,3 @@
-import pytest
 #!/usr/bin/env python3
 """
 Integration Tests for End-to-End Processing
@@ -12,18 +11,16 @@ Tests complete workflows including:
 - Report creation
 """
 
-import unittest
-import sqlite3
-import pandas as pd
-import numpy as np
 import json
-import tempfile
 import os
-import subprocess
+import sqlite3
 import sys
-from pathlib import Path
-from datetime import datetime
+import tempfile
+import unittest
 import warnings
+from datetime import datetime
+
+import pandas as pd
 
 warnings.filterwarnings("ignore")
 
@@ -164,7 +161,9 @@ class TestEndToEndDataFlow(unittest.TestCase):
         self.assertTrue(all(len(text) > 0 for text in df["conversation_text"]))
 
         # Step 3: Calculate analytics metrics
-        df["quality_score"] = df.apply(lambda row: self._calculate_test_quality_score(row), axis=1)
+        df["quality_score"] = df.apply(
+            lambda row: self._calculate_test_quality_score(row), axis=1
+        )
         df["complexity_score"] = df["word_count"] * 2  # Simple complexity metric
 
         # Verify analytics calculations
@@ -211,7 +210,9 @@ class TestEndToEndDataFlow(unittest.TestCase):
         self.assertEqual(dataset_stats["total_conversations"], len(df))
         self.assertAlmostEqual(
             quality_analysis["average_quality"],
-            df.apply(lambda row: self._calculate_test_quality_score(row), axis=1).mean(),
+            df.apply(
+                lambda row: self._calculate_test_quality_score(row), axis=1
+            ).mean(),
             places=1,
         )
 
@@ -223,13 +224,19 @@ class TestEndToEndDataFlow(unittest.TestCase):
         df["conversation_text"] = df["conversations_json"].apply(
             lambda x: json.loads(x)[0]["human"] + " " + json.loads(x)[1]["assistant"]
         )
-        df["quality_score"] = df.apply(lambda row: self._calculate_test_quality_score(row), axis=1)
+        df["quality_score"] = df.apply(
+            lambda row: self._calculate_test_quality_score(row), axis=1
+        )
 
         # Step 2: Generate dashboard data
         dashboard_data = self._generate_dashboard_data(df)
 
         # Verify dashboard data structure
-        required_sections = ["executive_metrics", "operational_metrics", "quality_distribution"]
+        required_sections = [
+            "executive_metrics",
+            "operational_metrics",
+            "quality_distribution",
+        ]
         for section in required_sections:
             self.assertIn(section, dashboard_data)
 
@@ -263,7 +270,11 @@ class TestEndToEndDataFlow(unittest.TestCase):
         report_data = self._compile_report_data(analytics_results)
 
         # Verify report structure
-        required_sections = ["executive_summary", "detailed_analysis", "recommendations"]
+        required_sections = [
+            "executive_summary",
+            "detailed_analysis",
+            "recommendations",
+        ]
         for section in required_sections:
             self.assertIn(section, report_data)
 
@@ -323,7 +334,9 @@ class TestEndToEndDataFlow(unittest.TestCase):
 
     def _run_quality_analysis(self, df):
         """Run quality analysis"""
-        quality_scores = df.apply(lambda row: self._calculate_test_quality_score(row), axis=1)
+        quality_scores = df.apply(
+            lambda row: self._calculate_test_quality_score(row), axis=1
+        )
         return {
             "average_quality": quality_scores.mean(),
             "quality_std": quality_scores.std(),
@@ -396,9 +409,16 @@ class TestEndToEndDataFlow(unittest.TestCase):
         """Compile report data"""
         return {
             "executive_summary": {
-                "total_conversations": analytics_results["dataset_analysis"]["total_conversations"],
-                "average_quality": analytics_results["quality_analysis"]["average_quality"],
-                "key_insights": ["Quality is within acceptable range", "Processing is efficient"],
+                "total_conversations": analytics_results["dataset_analysis"][
+                    "total_conversations"
+                ],
+                "average_quality": analytics_results["quality_analysis"][
+                    "average_quality"
+                ],
+                "key_insights": [
+                    "Quality is within acceptable range",
+                    "Processing is efficient",
+                ],
             },
             "detailed_analysis": analytics_results,
             "recommendations": [
@@ -454,7 +474,11 @@ class TestSystemWorkflows(unittest.TestCase):
     def test_monitoring_system_workflow(self):
         """Test monitoring system workflow"""
         # Simulate monitoring workflow
-        system_status = {"database": "healthy", "analytics": "healthy", "dashboards": "healthy"}
+        system_status = {
+            "database": "healthy",
+            "analytics": "healthy",
+            "dashboards": "healthy",
+        }
 
         # Test workflow steps
         self.assertTrue(self._check_system_health(system_status))
@@ -533,7 +557,11 @@ class TestSystemWorkflows(unittest.TestCase):
 
     def _generate_pipeline_outputs(self, analytics_results):
         """Generate pipeline outputs"""
-        return ["quality_report.json", "performance_dashboard.png", "insights_summary.txt"]
+        return [
+            "quality_report.json",
+            "performance_dashboard.png",
+            "insights_summary.txt",
+        ]
 
 
 def run_integration_tests():

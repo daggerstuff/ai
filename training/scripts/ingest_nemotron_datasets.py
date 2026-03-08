@@ -32,7 +32,11 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from datasets import Dataset, IterableDataset, load_dataset  # type: ignore[import-untyped]
+from datasets import (  # type: ignore[import-untyped]
+    Dataset,
+    IterableDataset,
+    load_dataset,
+)
 
 # Add project root to path
 # Script is at: ai/training_ready/scripts/ingest_nemotron_datasets.py
@@ -111,7 +115,9 @@ def ingest_nemotron_dataset(
             print(f"   ... processed {idx} samples", flush=True)
 
     if not lines:
-        raise RuntimeError("No samples were ingested; check dataset name/split/max-samples.")
+        raise RuntimeError(
+            "No samples were ingested; check dataset name/split/max-samples."
+        )
 
     body = ("\n".join(lines) + "\n").encode("utf-8")
     loader.s3_client.put_object(Bucket=loader.bucket, Key=key, Body=body)

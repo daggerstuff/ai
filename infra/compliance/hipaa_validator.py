@@ -7,27 +7,30 @@ Enterprise-grade HIPAA compliance validation for healthcare data protection.
 Implements PHI protection, audit logging, and access controls per HIPAA requirements.
 """
 
-import os
-import json
+import base64
 import hashlib
+import json
 import logging
-from datetime import datetime, timedelta, timezone
-from typing import Dict, List, Any, Optional, Tuple, Set
-from enum import Enum
-from dataclasses import dataclass, asdict
-from pathlib import Path
-import sqlite3
+import os
 import re
+import sqlite3
 import uuid
+from dataclasses import asdict, dataclass
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from pathlib import Path
+from typing import List, Optional, Tuple
+
 from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
-import base64
 
 logger = logging.getLogger(__name__)
 
+
 class PHIType(str, Enum):
     """Protected Health Information types per HIPAA"""
+
     NAME = "name"
     ADDRESS = "address"
     BIRTH_DATE = "birth_date"
@@ -47,8 +50,10 @@ class PHIType(str, Enum):
     HEALTH_PLAN_ID = "health_plan_id"
     PROVIDER_ID = "provider_id"
 
+
 class HIPAAViolationType(str, Enum):
     """HIPAA violation types"""
+
     UNAUTHORIZED_ACCESS = "unauthorized_access"
     IMPROPER_DISCLOSURE = "improper_disclosure"
     INSUFFICIENT_SAFEGUARDS = "insufficient_safeguards"
@@ -58,25 +63,31 @@ class HIPAAViolationType(str, Enum):
     BREACH_NOTIFICATION_FAILURE = "breach_notification_failure"
     MINIMUM_NECESSARY_VIOLATION = "minimum_necessary_violation"
 
+
 class ComplianceLevel(str, Enum):
     """HIPAA compliance levels"""
+
     COMPLIANT = "compliant"
     NON_COMPLIANT = "non_compliant"
     REQUIRES_REVIEW = "requires_review"
     BREACH_DETECTED = "breach_detected"
 
+
 @dataclass
 class PHIDetection:
     """PHI detection result"""
+
     phi_type: PHIType
     value: str
     confidence: float
     location: str
     masked_value: str
 
+
 @dataclass
 class HIPAAViolation:
     """HIPAA violation record"""
+
     violation_id: str
     violation_type: HIPAAViolationType
     severity: str
@@ -87,9 +98,11 @@ class HIPAAViolation:
     ip_address: Optional[str]
     remediation_required: bool
 
+
 @dataclass
 class HIPAAComplianceReport:
     """HIPAA compliance assessment report"""
+
     assessment_id: str
     timestamp: datetime
     compliance_level: ComplianceLevel
@@ -101,70 +114,69 @@ class HIPAAComplianceReport:
     encryption_compliant: bool
     access_controls_adequate: bool
 
+
 class PHIDetector:
     """Protected Health Information detector"""
-    
+
     def __init__(self):
         """Initialize PHI detection patterns"""
         self.patterns = {
             PHIType.SSN: [
-                r'\b\d{3}-\d{2}-\d{4}\b',
-                r'\b\d{3}\s\d{2}\s\d{4}\b',
-                r'\b\d{9}\b'
+                r"\b\d{3}-\d{2}-\d{4}\b",
+                r"\b\d{3}\s\d{2}\s\d{4}\b",
+                r"\b\d{9}\b",
             ],
             PHIType.PHONE: [
-                r'\b\d{3}-\d{3}-\d{4}\b',
-                r'\(\d{3}\)\s?\d{3}-\d{4}',
-                r'\b\d{10}\b'
+                r"\b\d{3}-\d{3}-\d{4}\b",
+                r"\(\d{3}\)\s?\d{3}-\d{4}",
+                r"\b\d{10}\b",
             ],
-            PHIType.EMAIL: [
-                r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
-            ],
+            PHIType.EMAIL: [r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b"],
             PHIType.BIRTH_DATE: [
-                r'\b\d{1,2}/\d{1,2}/\d{4}\b',
-                r'\b\d{4}-\d{2}-\d{2}\b',
-                r'\b\d{1,2}-\d{1,2}-\d{4}\b'
+                r"\b\d{1,2}/\d{1,2}/\d{4}\b",
+                r"\b\d{4}-\d{2}-\d{2}\b",
+                r"\b\d{1,2}-\d{1,2}-\d{4}\b",
             ],
             PHIType.MEDICAL_RECORD: [
-                r'\bMRN\s*:?\s*\d+\b',
-                r'\bMedical\s+Record\s*:?\s*\d+\b',
-                r'\bPatient\s+ID\s*:?\s*\d+\b'
+                r"\bMRN\s*:?\s*\d+\b",
+                r"\bMedical\s+Record\s*:?\s*\d+\b",
+                r"\bPatient\s+ID\s*:?\s*\d+\b",
             ],
-            PHIType.IP_ADDRESS: [
-                r'\b(?:\d{1,3}\.){3}\d{1,3}\b'
-            ],
+            PHIType.IP_ADDRESS: [r"\b(?:\d{1,3}\.){3}\d{1,3}\b"],
             PHIType.ADDRESS: [
-                r'\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Place|Pl)\b'
-            ]
+                r"\b\d+\s+[A-Za-z\s]+(?:Street|St|Avenue|Ave|Road|Rd|Boulevard|Blvd|Lane|Ln|Drive|Dr|Court|Ct|Place|Pl)\b"
+            ],
         }
-        
+
         # Compile patterns for performance
         self.compiled_patterns = {}
         for phi_type, patterns in self.patterns.items():
-            self.compiled_patterns[phi_type] = [re.compile(pattern, re.IGNORECASE) for pattern in patterns]
-    
+            self.compiled_patterns[phi_type] = [
+                re.compile(pattern, re.IGNORECASE) for pattern in patterns
+            ]
+
     def detect_phi(self, text: str, context: str = "") -> List[PHIDetection]:
         """Detect PHI in text"""
         detections = []
-        
+
         for phi_type, patterns in self.compiled_patterns.items():
             for pattern in patterns:
                 matches = pattern.finditer(text)
                 for match in matches:
                     value = match.group()
                     masked_value = self._mask_phi(value, phi_type)
-                    
+
                     detection = PHIDetection(
                         phi_type=phi_type,
                         value=value,
                         confidence=self._calculate_confidence(value, phi_type),
                         location=context,
-                        masked_value=masked_value
+                        masked_value=masked_value,
                     )
                     detections.append(detection)
-        
+
         return detections
-    
+
     def _mask_phi(self, value: str, phi_type: PHIType) -> str:
         """Mask PHI value for logging"""
         if phi_type == PHIType.SSN:
@@ -172,40 +184,55 @@ class PHIDetector:
         elif phi_type == PHIType.PHONE:
             return f"***-***-{value[-4:]}" if len(value) >= 4 else "***"
         elif phi_type == PHIType.EMAIL:
-            parts = value.split('@')
+            parts = value.split("@")
             if len(parts) == 2:
                 return f"{parts[0][:2]}***@{parts[1]}"
             return "***@***.***"
         else:
             return f"{value[:2]}***" if len(value) > 2 else "***"
-    
+
     def _calculate_confidence(self, value: str, phi_type: PHIType) -> float:
         """Calculate confidence score for PHI detection"""
         # Basic confidence calculation - can be enhanced with ML models
         base_confidence = 0.8
-        
+
         # Adjust based on PHI type and value characteristics
-        if phi_type == PHIType.SSN and len(value.replace('-', '').replace(' ', '')) == 9:
+        if (
+            phi_type == PHIType.SSN
+            and len(value.replace("-", "").replace(" ", "")) == 9
+        ):
             return 0.95
-        elif phi_type == PHIType.EMAIL and '@' in value and '.' in value:
+        elif phi_type == PHIType.EMAIL and "@" in value and "." in value:
             return 0.9
-        elif phi_type == PHIType.PHONE and len(value.replace('-', '').replace('(', '').replace(')', '').replace(' ', '')) == 10:
+        elif (
+            phi_type == PHIType.PHONE
+            and len(
+                value.replace("-", "")
+                .replace("(", "")
+                .replace(")", "")
+                .replace(" ", "")
+            )
+            == 10
+        ):
             return 0.9
-        
+
         return base_confidence
+
 
 class HIPAAEncryption:
     """HIPAA-compliant encryption for PHI"""
-    
+
     def __init__(self, password: Optional[str] = None):
         """Initialize encryption with HIPAA-compliant parameters"""
-        self.password = password or os.getenv("HIPAA_ENCRYPTION_KEY", "default_hipaa_key_change_in_production")
+        self.password = password or os.getenv(
+            "HIPAA_ENCRYPTION_KEY", "default_hipaa_key_change_in_production"
+        )
         self.key = self._derive_key(self.password)
         self.cipher = Fernet(self.key)
-    
+
     def _derive_key(self, password: str) -> bytes:
         """Derive encryption key using PBKDF2"""
-        salt = b'hipaa_salt_change_in_production'  # Should be random in production
+        salt = b"hipaa_salt_change_in_production"  # Should be random in production
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
@@ -214,7 +241,7 @@ class HIPAAEncryption:
         )
         key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
         return key
-    
+
     def encrypt_phi(self, data: str) -> str:
         """Encrypt PHI data"""
         try:
@@ -223,7 +250,7 @@ class HIPAAEncryption:
         except Exception as e:
             logger.error(f"PHI encryption failed: {e}")
             raise
-    
+
     def decrypt_phi(self, encrypted_data: str) -> str:
         """Decrypt PHI data"""
         try:
@@ -234,21 +261,22 @@ class HIPAAEncryption:
             logger.error(f"PHI decryption failed: {e}")
             raise
 
+
 class HIPAAStorage:
     """HIPAA-compliant storage for audit logs and compliance data"""
-    
+
     def __init__(self, db_path: Optional[str] = None):
         """Initialize HIPAA storage"""
         self.db_path = db_path or str(Path(__file__).parent / "hipaa_compliance.db")
         self.encryption = HIPAAEncryption()
         self._init_database()
-    
+
     def _init_database(self):
         """Initialize HIPAA compliance database"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            
+
             # PHI access log
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS phi_access_log (
@@ -266,7 +294,7 @@ class HIPAAStorage:
                     phi_hash TEXT
                 )
             """)
-            
+
             # HIPAA violations
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS hipaa_violations (
@@ -284,7 +312,7 @@ class HIPAAStorage:
                     remediation_date TIMESTAMP
                 )
             """)
-            
+
             # Compliance assessments
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS compliance_assessments (
@@ -301,7 +329,7 @@ class HIPAAStorage:
                     report_data TEXT NOT NULL
                 )
             """)
-            
+
             # Data retention tracking
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS data_retention (
@@ -315,135 +343,171 @@ class HIPAAStorage:
                     deletion_confirmed_date TIMESTAMP
                 )
             """)
-            
+
             # Create indexes
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_phi_access_user ON phi_access_log(user_id)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_phi_access_timestamp ON phi_access_log(timestamp)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_violations_timestamp ON hipaa_violations(timestamp)")
-            cursor.execute("CREATE INDEX IF NOT EXISTS idx_assessments_timestamp ON compliance_assessments(timestamp)")
-            
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_phi_access_user ON phi_access_log(user_id)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_phi_access_timestamp ON phi_access_log(timestamp)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_violations_timestamp ON hipaa_violations(timestamp)"
+            )
+            cursor.execute(
+                "CREATE INDEX IF NOT EXISTS idx_assessments_timestamp ON compliance_assessments(timestamp)"
+            )
+
             conn.commit()
             conn.close()
             logger.info("HIPAA compliance database initialized successfully")
-            
+
         except Exception as e:
             logger.error(f"Failed to initialize HIPAA database: {e}")
             raise
-    
-    def log_phi_access(self, user_id: str, phi_type: PHIType, action: str,
-                      resource_id: Optional[str] = None, ip_address: Optional[str] = None,
-                      user_agent: Optional[str] = None, success: bool = True,
-                      failure_reason: Optional[str] = None, phi_data: Optional[str] = None):
+
+    def log_phi_access(
+        self,
+        user_id: str,
+        phi_type: PHIType,
+        action: str,
+        resource_id: Optional[str] = None,
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+        success: bool = True,
+        failure_reason: Optional[str] = None,
+        phi_data: Optional[str] = None,
+    ):
         """Log PHI access for audit trail"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            
+
             access_id = str(uuid.uuid4())
             phi_hash = None
-            
+
             if phi_data:
                 # Create hash of PHI for audit purposes (not storing actual PHI)
                 phi_hash = hashlib.sha256(phi_data.encode()).hexdigest()
-            
-            cursor.execute("""
+
+            cursor.execute(
+                """
                 INSERT INTO phi_access_log 
                 (access_id, user_id, phi_type, action, resource_id, ip_address, 
                  user_agent, success, failure_reason, phi_hash)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                access_id, user_id, phi_type.value, action, resource_id,
-                ip_address, user_agent, success, failure_reason, phi_hash
-            ))
-            
+            """,
+                (
+                    access_id,
+                    user_id,
+                    phi_type.value,
+                    action,
+                    resource_id,
+                    ip_address,
+                    user_agent,
+                    success,
+                    failure_reason,
+                    phi_hash,
+                ),
+            )
+
             conn.commit()
             conn.close()
-            
+
             logger.info(f"PHI access logged: {user_id} - {action} - {phi_type.value}")
-            
+
         except Exception as e:
             logger.error(f"Failed to log PHI access: {e}")
             raise
-    
+
     def store_violation(self, violation: HIPAAViolation):
         """Store HIPAA violation"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            
-            phi_involved_json = json.dumps([asdict(phi) for phi in violation.phi_involved])
-            
-            cursor.execute("""
+
+            phi_involved_json = json.dumps(
+                [asdict(phi) for phi in violation.phi_involved]
+            )
+
+            cursor.execute(
+                """
                 INSERT INTO hipaa_violations 
                 (violation_id, violation_type, severity, description, phi_involved,
                  timestamp, user_id, ip_address, remediation_required)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                violation.violation_id,
-                violation.violation_type.value,
-                violation.severity,
-                violation.description,
-                phi_involved_json,
-                violation.timestamp,
-                violation.user_id,
-                violation.ip_address,
-                violation.remediation_required
-            ))
-            
+            """,
+                (
+                    violation.violation_id,
+                    violation.violation_type.value,
+                    violation.severity,
+                    violation.description,
+                    phi_involved_json,
+                    violation.timestamp,
+                    violation.user_id,
+                    violation.ip_address,
+                    violation.remediation_required,
+                ),
+            )
+
             conn.commit()
             conn.close()
-            
+
             logger.warning(f"HIPAA violation stored: {violation.violation_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to store HIPAA violation: {e}")
             raise
-    
+
     def store_assessment(self, report: HIPAAComplianceReport):
         """Store compliance assessment"""
         try:
             conn = sqlite3.connect(self.db_path)
             cursor = conn.cursor()
-            
+
             report_json = json.dumps(asdict(report), default=str)
-            
-            cursor.execute("""
+
+            cursor.execute(
+                """
                 INSERT INTO compliance_assessments 
                 (assessment_id, timestamp, compliance_level, score, violations_count,
                  phi_detected_count, audit_trail_complete, encryption_compliant,
                  access_controls_adequate, report_data)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                report.assessment_id,
-                report.timestamp,
-                report.compliance_level.value,
-                report.score,
-                len(report.violations),
-                len(report.phi_detected),
-                report.audit_trail_complete,
-                report.encryption_compliant,
-                report.access_controls_adequate,
-                report_json
-            ))
-            
+            """,
+                (
+                    report.assessment_id,
+                    report.timestamp,
+                    report.compliance_level.value,
+                    report.score,
+                    len(report.violations),
+                    len(report.phi_detected),
+                    report.audit_trail_complete,
+                    report.encryption_compliant,
+                    report.access_controls_adequate,
+                    report_json,
+                ),
+            )
+
             conn.commit()
             conn.close()
-            
+
             logger.info(f"HIPAA assessment stored: {report.assessment_id}")
-            
+
         except Exception as e:
             logger.error(f"Failed to store HIPAA assessment: {e}")
             raise
 
+
 class HIPAAValidator:
     """HIPAA compliance validator"""
-    
+
     def __init__(self, storage: Optional[HIPAAStorage] = None):
         """Initialize HIPAA validator"""
         self.storage = storage or HIPAAStorage()
         self.phi_detector = PHIDetector()
         self.encryption = HIPAAEncryption()
-        
+
         # HIPAA compliance requirements
         self.requirements = {
             "minimum_encryption": True,
@@ -452,20 +516,25 @@ class HIPAAValidator:
             "phi_detection_required": True,
             "breach_notification_required": True,
             "minimum_necessary_standard": True,
-            "data_retention_limits": True
+            "data_retention_limits": True,
         }
-        
+
         logger.info("HIPAA validator initialized successfully")
-    
-    def validate_data_access(self, user_id: str, data: str, context: str = "",
-                           ip_address: Optional[str] = None,
-                           user_agent: Optional[str] = None) -> Tuple[bool, List[HIPAAViolation]]:
+
+    def validate_data_access(
+        self,
+        user_id: str,
+        data: str,
+        context: str = "",
+        ip_address: Optional[str] = None,
+        user_agent: Optional[str] = None,
+    ) -> Tuple[bool, List[HIPAAViolation]]:
         """Validate data access for HIPAA compliance"""
         violations = []
-        
+
         # Detect PHI in data
         phi_detections = self.phi_detector.detect_phi(data, context)
-        
+
         # Log PHI access
         for detection in phi_detections:
             self.storage.log_phi_access(
@@ -475,9 +544,9 @@ class HIPAAValidator:
                 ip_address=ip_address,
                 user_agent=user_agent,
                 success=True,
-                phi_data=detection.value
+                phi_data=detection.value,
             )
-        
+
         # Check for violations
         if phi_detections:
             # Check if user has proper authorization (simplified check)
@@ -491,21 +560,23 @@ class HIPAAValidator:
                     timestamp=datetime.now(timezone.utc),
                     user_id=user_id,
                     ip_address=ip_address,
-                    remediation_required=True
+                    remediation_required=True,
                 )
                 violations.append(violation)
                 self.storage.store_violation(violation)
-        
+
         is_compliant = len(violations) == 0
         return is_compliant, violations
-    
-    def validate_data_storage(self, data: str, encrypted: bool = False) -> Tuple[bool, List[HIPAAViolation]]:
+
+    def validate_data_storage(
+        self, data: str, encrypted: bool = False
+    ) -> Tuple[bool, List[HIPAAViolation]]:
         """Validate data storage for HIPAA compliance"""
         violations = []
-        
+
         # Detect PHI in data
         phi_detections = self.phi_detector.detect_phi(data, "storage")
-        
+
         # Check encryption requirement
         if phi_detections and not encrypted:
             violation = HIPAAViolation(
@@ -517,72 +588,82 @@ class HIPAAValidator:
                 timestamp=datetime.now(timezone.utc),
                 user_id=None,
                 ip_address=None,
-                remediation_required=True
+                remediation_required=True,
             )
             violations.append(violation)
             self.storage.store_violation(violation)
-        
+
         is_compliant = len(violations) == 0
         return is_compliant, violations
-    
-    def validate_audit_trail(self, start_date: datetime, end_date: datetime) -> Tuple[bool, List[str]]:
+
+    def validate_audit_trail(
+        self, start_date: datetime, end_date: datetime
+    ) -> Tuple[bool, List[str]]:
         """Validate audit trail completeness"""
         issues = []
-        
+
         try:
             conn = sqlite3.connect(self.storage.db_path)
             cursor = conn.cursor()
-            
+
             # Check for gaps in audit trail
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT COUNT(*) FROM phi_access_log 
                 WHERE timestamp BETWEEN ? AND ?
-            """, (start_date, end_date))
-            
+            """,
+                (start_date, end_date),
+            )
+
             access_count = cursor.fetchone()[0]
-            
+
             # Check for failed access attempts
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT COUNT(*) FROM phi_access_log 
                 WHERE timestamp BETWEEN ? AND ? AND success = FALSE
-            """, (start_date, end_date))
-            
+            """,
+                (start_date, end_date),
+            )
+
             failed_count = cursor.fetchone()[0]
-            
+
             conn.close()
-            
+
             if access_count == 0:
                 issues.append("No PHI access logged in specified period")
-            
+
             if failed_count > 0:
                 issues.append(f"{failed_count} failed PHI access attempts detected")
-            
+
         except Exception as e:
             issues.append(f"Audit trail validation failed: {e}")
-        
+
         is_complete = len(issues) == 0
         return is_complete, issues
-    
-    def _check_user_authorization(self, user_id: str, phi_detections: List[PHIDetection]) -> bool:
+
+    def _check_user_authorization(
+        self, user_id: str, phi_detections: List[PHIDetection]
+    ) -> bool:
         """Check if user is authorized to access PHI (simplified implementation)"""
         # In a real implementation, this would check against user roles,
         # permissions, and the minimum necessary standard
-        
+
         # For now, assume all users with valid IDs are authorized
         # This should be replaced with proper authorization logic
         return user_id is not None and len(user_id) > 0
-    
+
     def generate_compliance_report(self) -> HIPAAComplianceReport:
         """Generate comprehensive HIPAA compliance report"""
         assessment_id = str(uuid.uuid4())
         timestamp = datetime.now(timezone.utc)
-        
+
         # Get recent violations
         violations = self._get_recent_violations(days=30)
-        
+
         # Calculate compliance score
         score = self._calculate_compliance_score(violations)
-        
+
         # Determine compliance level
         if score >= 95:
             compliance_level = ComplianceLevel.COMPLIANT
@@ -590,15 +671,15 @@ class HIPAAValidator:
             compliance_level = ComplianceLevel.REQUIRES_REVIEW
         else:
             compliance_level = ComplianceLevel.NON_COMPLIANT
-        
+
         # Check audit trail
         audit_trail_complete, audit_issues = self.validate_audit_trail(
             timestamp - timedelta(days=30), timestamp
         )
-        
+
         # Generate recommendations
         recommendations = self._generate_recommendations(violations, audit_issues)
-        
+
         report = HIPAAComplianceReport(
             assessment_id=assessment_id,
             timestamp=timestamp,
@@ -609,60 +690,63 @@ class HIPAAValidator:
             recommendations=recommendations,
             audit_trail_complete=audit_trail_complete,
             encryption_compliant=True,  # Assuming encryption is properly configured
-            access_controls_adequate=True  # Assuming access controls are in place
+            access_controls_adequate=True,  # Assuming access controls are in place
         )
-        
+
         # Store assessment
         self.storage.store_assessment(report)
-        
+
         return report
-    
+
     def _get_recent_violations(self, days: int = 30) -> List[HIPAAViolation]:
         """Get recent HIPAA violations"""
         violations = []
-        
+
         try:
             conn = sqlite3.connect(self.storage.db_path)
             cursor = conn.cursor()
-            
+
             since_date = datetime.now(timezone.utc) - timedelta(days=days)
-            
-            cursor.execute("""
+
+            cursor.execute(
+                """
                 SELECT violation_id, violation_type, severity, description, 
                        phi_involved, timestamp, user_id, ip_address, remediation_required
                 FROM hipaa_violations 
                 WHERE timestamp > ?
                 ORDER BY timestamp DESC
-            """, (since_date,))
-            
+            """,
+                (since_date,),
+            )
+
             for row in cursor.fetchall():
                 phi_involved = json.loads(row[4]) if row[4] else []
                 phi_detections = [PHIDetection(**phi) for phi in phi_involved]
-                
+
                 violation = HIPAAViolation(
                     violation_id=row[0],
                     violation_type=HIPAAViolationType(row[1]),
                     severity=row[2],
                     description=row[3],
                     phi_involved=phi_detections,
-                    timestamp=datetime.fromisoformat(row[5].replace('Z', '+00:00')),
+                    timestamp=datetime.fromisoformat(row[5].replace("Z", "+00:00")),
                     user_id=row[6],
                     ip_address=row[7],
-                    remediation_required=row[8]
+                    remediation_required=row[8],
                 )
                 violations.append(violation)
-            
+
             conn.close()
-            
+
         except Exception as e:
             logger.error(f"Failed to get recent violations: {e}")
-        
+
         return violations
-    
+
     def _calculate_compliance_score(self, violations: List[HIPAAViolation]) -> float:
         """Calculate HIPAA compliance score"""
         base_score = 100.0
-        
+
         # Deduct points based on violations
         for violation in violations:
             if violation.severity == "CRITICAL":
@@ -673,36 +757,44 @@ class HIPAAValidator:
                 base_score -= 5
             else:
                 base_score -= 2
-        
+
         return max(0.0, base_score)
-    
-    def _generate_recommendations(self, violations: List[HIPAAViolation], 
-                                audit_issues: List[str]) -> List[str]:
+
+    def _generate_recommendations(
+        self, violations: List[HIPAAViolation], audit_issues: List[str]
+    ) -> List[str]:
         """Generate compliance recommendations"""
         recommendations = []
-        
+
         # Violation-based recommendations
         violation_types = set(v.violation_type for v in violations)
-        
+
         if HIPAAViolationType.UNAUTHORIZED_ACCESS in violation_types:
-            recommendations.append("Implement stronger access controls and user authentication")
-        
+            recommendations.append(
+                "Implement stronger access controls and user authentication"
+            )
+
         if HIPAAViolationType.LACK_OF_ENCRYPTION in violation_types:
             recommendations.append("Ensure all PHI is encrypted at rest and in transit")
-        
+
         if HIPAAViolationType.MISSING_AUDIT_TRAIL in violation_types:
             recommendations.append("Enhance audit logging for all PHI access")
-        
+
         # Audit trail recommendations
         if audit_issues:
-            recommendations.append("Address audit trail gaps and failed access attempts")
-        
+            recommendations.append(
+                "Address audit trail gaps and failed access attempts"
+            )
+
         # General recommendations
         if len(violations) > 0:
-            recommendations.append("Conduct regular HIPAA compliance training for all staff")
+            recommendations.append(
+                "Conduct regular HIPAA compliance training for all staff"
+            )
             recommendations.append("Implement automated PHI detection and protection")
-        
+
         return recommendations
+
 
 # Global HIPAA validator instance
 hipaa_validator = HIPAAValidator()
@@ -710,19 +802,19 @@ hipaa_validator = HIPAAValidator()
 if __name__ == "__main__":
     # Test HIPAA validator
     validator = HIPAAValidator()
-    
+
     # Test PHI detection
     test_data = "Patient John Doe, SSN: 123-45-6789, Phone: (555) 123-4567"
     is_compliant, violations = validator.validate_data_access("test_user", test_data)
-    
-    print(f"HIPAA Compliance Test:")
+
+    print("HIPAA Compliance Test:")
     print(f"Data: {test_data}")
     print(f"Compliant: {is_compliant}")
     print(f"Violations: {len(violations)}")
-    
+
     # Generate compliance report
     report = validator.generate_compliance_report()
-    print(f"\nCompliance Report:")
+    print("\nCompliance Report:")
     print(f"Assessment ID: {report.assessment_id}")
     print(f"Compliance Level: {report.compliance_level}")
     print(f"Score: {report.score}")

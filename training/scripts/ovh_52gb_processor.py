@@ -4,11 +4,10 @@ OVH 52GB Dataset Processor - Uses actual OVH CLI to process the distributed data
 """
 
 import json
-import subprocess
-import os
-from pathlib import Path
-from datetime import datetime
 import re
+import subprocess
+from datetime import datetime
+from pathlib import Path
 
 
 def run_ovhai_command(cmd):
@@ -201,7 +200,7 @@ def main():
 
     result = download_and_process()
 
-    print(f"\n✅ Discovery complete!")
+    print("\n✅ Discovery complete!")
     print(f"   Total files: {result['discovery']['total_files']}")
     print(f"   Total size: {result['discovery']['total_size_gb']:.2f}GB")
 

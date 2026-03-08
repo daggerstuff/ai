@@ -5,8 +5,6 @@ Remote S3 Processor - Template for 60GB pixel-data processing on remote system
 
 import json
 import subprocess
-from pathlib import Path
-from datetime import datetime
 
 
 def create_remote_processor_script():
@@ -216,7 +214,7 @@ def main():
     for name, cmd in commands.items():
         print(f"   {name}: {cmd[:100]}...")
 
-    print(f"\n✅ Ready for remote deployment")
+    print("\n✅ Ready for remote deployment")
     print("🎯 Upload to remote system and run:")
     print("   ./training_ready/scripts/remote_s3_processor.sh")
 

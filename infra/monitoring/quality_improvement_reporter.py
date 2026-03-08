@@ -301,9 +301,9 @@ class QualityImprovementReporter:
             "target_achievement_rate": float(target_achievement_rate),
             "statistical_significance_rate": float(statistical_significance_rate),
             "practical_significance_rate": float(practical_significance_rate),
-            "average_effect_size": float(average_effect_size)
-            if not np.isnan(average_effect_size)
-            else 0.0,
+            "average_effect_size": (
+                float(average_effect_size) if not np.isnan(average_effect_size) else 0.0
+            ),
         }
 
     def _generate_executive_summary(

@@ -1,15 +1,13 @@
 import logging
 import time
-from typing import Callable, Any
-from pathlib import Path
-import sys
+from typing import Callable
 
 # Configure basic logging if not already done
 logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger("PipelineOrchestrator")
+
 
 class PipelineRunner:
     """
@@ -34,7 +32,7 @@ class PipelineRunner:
             self.results[stage_name] = {
                 "status": "SUCCESS",
                 "duration": f"{duration:.2f}s",
-                "output": result
+                "output": result,
             }
             logger.info(f"=== Finished Stage: {stage_name} (Time: {duration:.2f}s) ===")
             return True
@@ -44,15 +42,15 @@ class PipelineRunner:
             self.results[stage_name] = {
                 "status": "FAILED",
                 "duration": f"{duration:.2f}s",
-                "error": str(e)
+                "error": str(e),
             }
             return False
 
     def report(self):
         """Prints a summary report of the pipeline execution."""
-        print("\n" + "="*40)
+        print("\n" + "=" * 40)
         print("PIPELINE EXECUTION REPORT")
-        print("="*40)
+        print("=" * 40)
 
         success_count = 0
         for stage, data in self.results.items():
@@ -67,7 +65,7 @@ class PipelineRunner:
         print(f"Total Stages: {len(self.results)}")
         print(f"Successful:   {success_count}")
         print(f"Failed:       {len(self.results) - success_count}")
-        print("="*40 + "\n")
+        print("=" * 40 + "\n")
 
     def run_full_pipeline(self):
         """

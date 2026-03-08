@@ -30,9 +30,7 @@ from ai.training.utils.s3_dataset_loader import (
     S3DatasetLoader,  # noqa: E402
 )
 
-logging.getLogger("ai.training.utils.s3_dataset_loader").setLevel(
-    logging.ERROR
-)
+logging.getLogger("ai.training.utils.s3_dataset_loader").setLevel(logging.ERROR)
 
 DEFAULT_S3_BUCKET = "pixel-data"
 MAX_RETRIES = 3

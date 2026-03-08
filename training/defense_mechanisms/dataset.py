@@ -15,11 +15,10 @@ from typing import Optional
 
 import numpy as np
 import torch
+from ai.training.defense_mechanisms.constants import NUM_LABELS
 from sklearn.model_selection import GroupKFold
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizer
-
-from ai.training.defense_mechanisms.constants import NUM_LABELS
 
 logger = logging.getLogger(__name__)
 

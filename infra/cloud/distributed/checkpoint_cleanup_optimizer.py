@@ -449,9 +449,11 @@ class CheckpointCleanupOptimizer:
                     "size_bytes": metadata.size_bytes,
                     "description": metadata.description,
                 },
-                "data": data
-                if isinstance(data, (dict, list, str, int, float))
-                else str(data),
+                "data": (
+                    data
+                    if isinstance(data, (dict, list, str, int, float))
+                    else str(data)
+                ),
                 "archived_at": datetime.utcnow().isoformat(),
             }
 
@@ -697,9 +699,11 @@ class CheckpointCleanupOptimizer:
                 "archived_checkpoints": self.metrics.archived_checkpoints,
                 "deleted_checkpoints": self.metrics.deleted_checkpoints,
                 "space_saved_mb": self.metrics.space_saved_mb,
-                "last_optimization": self.metrics.last_optimization.isoformat()
-                if self.metrics.last_optimization
-                else None,
+                "last_optimization": (
+                    self.metrics.last_optimization.isoformat()
+                    if self.metrics.last_optimization
+                    else None
+                ),
             },
             "configuration": {
                 "cleanup_interval_hours": self.cleanup_interval_hours,

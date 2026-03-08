@@ -258,9 +258,7 @@ class PixelTrainer:
             optim=(
                 "adamw_8bit"
                 if UNSLOTH_AVAILABLE and torch.cuda.is_available()
-                else "paged_adamw_8bit"
-                if torch.cuda.is_available()
-                else "adamw_torch"
+                else "paged_adamw_8bit" if torch.cuda.is_available() else "adamw_torch"
             ),
             weight_decay=params.get("weight_decay", 0.01),
             lr_scheduler_type="linear",

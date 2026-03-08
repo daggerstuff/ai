@@ -13,13 +13,12 @@ import warnings
 from pathlib import Path
 from typing import Dict
 
+import lightning as L
 import torch
 from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
 from lightning.pytorch.loggers import WandbLogger
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-
-import lightning as L
 
 # Suppress standard PEFT warning regarding modules in eval mode
 warnings.filterwarnings("ignore", ".*Found \d+ module\(s\) in eval mode.*")
@@ -247,9 +246,11 @@ class TherapeuticTrainer(L.LightningModule):
         if config.get("quantization") == "4bit":
             quant_config = BitsAndBytesConfig(
                 load_in_4bit=True,
-                bnb_4bit_compute_dtype=torch.bfloat16
-                if config.get("precision") == "bf16"
-                else torch.float16,
+                bnb_4bit_compute_dtype=(
+                    torch.bfloat16
+                    if config.get("precision") == "bf16"
+                    else torch.float16
+                ),
                 bnb_4bit_quant_type="nf4",
                 bnb_4bit_use_double_quant=True,
             )
@@ -257,13 +258,13 @@ class TherapeuticTrainer(L.LightningModule):
         # Load base model
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
-            torch_dtype=torch.bfloat16
-            if config.get("precision") == "bf16"
-            else torch.float16,
+            torch_dtype=(
+                torch.bfloat16 if config.get("precision") == "bf16" else torch.float16
+            ),
             quantization_config=quant_config,
-            device_map={"": int(os.environ.get("LOCAL_RANK", 0))}
-            if quant_config
-            else None,
+            device_map=(
+                {"": int(os.environ.get("LOCAL_RANK", 0))} if quant_config else None
+            ),
         )
         self.model.resize_token_embeddings(len(self.tokenizer))
 
@@ -474,9 +475,11 @@ def main():
         max_epochs=config.get("epochs", 3),
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
         devices="auto",
-        strategy="ddp_find_unused_parameters_false"
-        if torch.cuda.device_count() > 1
-        else "auto",
+        strategy=(
+            "ddp_find_unused_parameters_false"
+            if torch.cuda.device_count() > 1
+            else "auto"
+        ),
         precision=precision_mapping.get(config.get("precision", "fp16"), "16-mixed"),
         gradient_clip_val=1.0,
         accumulate_grad_batches=config.get("gradient_accumulation_steps", 4),

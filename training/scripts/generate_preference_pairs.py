@@ -28,7 +28,9 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
 
-def extract_prompt_and_responses(messages: list[dict[str, str]]) -> tuple[str, str, str] | None:
+def extract_prompt_and_responses(
+    messages: list[dict[str, str]],
+) -> tuple[str, str, str] | None:
     """
     Extract prompt (user message) and assistant response from ChatML messages.
 
@@ -113,9 +115,12 @@ def generate_preference_pair_from_conversation(
         "rejected": rejected,
         "context": context if context else None,
         "source_family": source_family,
-        "pair_type": "roleplay_simulator"
-        if "roleplay" in source_family.lower() or "simulator" in source_family.lower()
-        else "therapeutic",
+        "pair_type": (
+            "roleplay_simulator"
+            if "roleplay" in source_family.lower()
+            or "simulator" in source_family.lower()
+            else "therapeutic"
+        ),
     }
 
 
@@ -134,7 +139,10 @@ def generate_adversarial_preference_pair(
 
 
 def load_conversations_from_s3(
-    loader: S3DatasetLoader, s3_paths: list[str], source_family: str, limit: int | None = None
+    loader: S3DatasetLoader,
+    s3_paths: list[str],
+    source_family: str,
+    limit: int | None = None,
 ) -> list[dict[str, Any]]:
     """Load conversations from S3 paths"""
     all_conversations = []
@@ -184,7 +192,9 @@ def generate_roleplay_simulator_preferences(
 
     # If no conversations loaded, create synthetic examples
     if not conversations:
-        logger.warning("No roleplay/simulator conversations found, creating synthetic examples")
+        logger.warning(
+            "No roleplay/simulator conversations found, creating synthetic examples"
+        )
         conversations = [
             {
                 "messages": [
@@ -204,7 +214,9 @@ def generate_roleplay_simulator_preferences(
     pairs = []
     for conv in conversations[:limit]:
         messages = conv.get("messages", [])
-        source_family = conv.get("metadata", {}).get("source_family", "roleplay_simulator")
+        source_family = conv.get("metadata", {}).get(
+            "source_family", "roleplay_simulator"
+        )
         pair = generate_preference_pair_from_conversation(messages, source_family)
         if pair:
             pairs.append(pair)
@@ -316,11 +328,17 @@ def generate_dpo_preference_pairs(
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Generate preference pairs for DPO training")
+    parser = argparse.ArgumentParser(
+        description="Generate preference pairs for DPO training"
+    )
     parser.add_argument(
         "--output-dir",
         type=Path,
-        default=Path(__file__).parents[3] / "ai" / "training_ready" / "data" / "generated",
+        default=Path(__file__).parents[3]
+        / "ai"
+        / "training_ready"
+        / "data"
+        / "generated",
         help="Output directory for generated preference pairs",
     )
     parser.add_argument(
@@ -366,7 +384,9 @@ def main() -> int:
 
     # Generate general DPO preferences
     dpo_path = output_dir / "dpo_preference_pairs.jsonl"
-    dpo_count = generate_dpo_preference_pairs(loader, dpo_path, limit=args.limit or 2000)
+    dpo_count = generate_dpo_preference_pairs(
+        loader, dpo_path, limit=args.limit or 2000
+    )
     total_pairs += dpo_count
     logger.info("")
 

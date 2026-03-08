@@ -359,14 +359,16 @@ class EnterpriseMonitor:
                 }
                 for name, result in health_results.items()
             },
-            "system_metrics": {
-                "cpu_percent": metrics.cpu_percent if metrics else 0,
-                "memory_percent": metrics.memory_percent if metrics else 0,
-                "disk_percent": metrics.disk_percent if metrics else 0,
-                "process_count": metrics.process_count if metrics else 0,
-            }
-            if metrics
-            else {},
+            "system_metrics": (
+                {
+                    "cpu_percent": metrics.cpu_percent if metrics else 0,
+                    "memory_percent": metrics.memory_percent if metrics else 0,
+                    "disk_percent": metrics.disk_percent if metrics else 0,
+                    "process_count": metrics.process_count if metrics else 0,
+                }
+                if metrics
+                else {}
+            ),
             "uptime_seconds": time.time() - psutil.boot_time(),
         }
 
@@ -465,13 +467,15 @@ class EnterpriseMonitor:
                 "memory_percent": round(avg_memory, 2),
                 "disk_percent": round(avg_disk, 2),
             },
-            "current": {
-                "cpu_percent": recent_metrics[-1].cpu_percent,
-                "memory_percent": recent_metrics[-1].memory_percent,
-                "disk_percent": recent_metrics[-1].disk_percent,
-            }
-            if recent_metrics
-            else {},
+            "current": (
+                {
+                    "cpu_percent": recent_metrics[-1].cpu_percent,
+                    "memory_percent": recent_metrics[-1].memory_percent,
+                    "disk_percent": recent_metrics[-1].disk_percent,
+                }
+                if recent_metrics
+                else {}
+            ),
         }
 
 

@@ -176,12 +176,12 @@ class StressTestFramework:
                 "duration": duration,
                 "conversations_inserted": conversations_inserted,
                 "messages_inserted": messages_inserted,
-                "conversations_per_second": conversations_inserted / duration
-                if duration > 0
-                else 0,
-                "messages_per_second": messages_inserted / duration
-                if duration > 0
-                else 0,
+                "conversations_per_second": (
+                    conversations_inserted / duration if duration > 0 else 0
+                ),
+                "messages_per_second": (
+                    messages_inserted / duration if duration > 0 else 0
+                ),
             }
 
         except Exception as e:
@@ -245,13 +245,14 @@ class StressTestFramework:
             "total_duration": total_duration,
             "total_conversations_inserted": total_conversations_inserted,
             "total_messages_inserted": total_messages_inserted,
-            "overall_conversations_per_second": total_conversations_inserted
-            / total_duration
-            if total_duration > 0
-            else 0,
-            "overall_messages_per_second": total_messages_inserted / total_duration
-            if total_duration > 0
-            else 0,
+            "overall_conversations_per_second": (
+                total_conversations_inserted / total_duration
+                if total_duration > 0
+                else 0
+            ),
+            "overall_messages_per_second": (
+                total_messages_inserted / total_duration if total_duration > 0 else 0
+            ),
             "successful_batches": len(successful_results),
             "failed_batches": len(failed_results),
             "batch_results": results,
@@ -315,16 +316,18 @@ class StressTestFramework:
             return {
                 "total_duration": total_duration,
                 "total_queries": len(all_results),
-                "queries_per_second": len(all_results) / total_duration
-                if total_duration > 0
-                else 0,
+                "queries_per_second": (
+                    len(all_results) / total_duration if total_duration > 0 else 0
+                ),
                 "avg_query_time": statistics.mean(all_results),
                 "median_query_time": statistics.median(all_results),
                 "min_query_time": min(all_results),
                 "max_query_time": max(all_results),
-                "p95_query_time": statistics.quantiles(all_results, n=20)[18]
-                if len(all_results) > 20
-                else max(all_results),
+                "p95_query_time": (
+                    statistics.quantiles(all_results, n=20)[18]
+                    if len(all_results) > 20
+                    else max(all_results)
+                ),
             }
         else:
             return {"error": "No successful queries"}
@@ -367,11 +370,11 @@ class StressTestFramework:
             "baseline_memory_mb": baseline_memory,
             "peak_memory_mb": peak_memory,
             "memory_increase_mb": peak_memory - baseline_memory,
-            "memory_per_conversation_kb": (peak_memory - baseline_memory)
-            * 1024
-            / dataset_size
-            if dataset_size > 0
-            else 0,
+            "memory_per_conversation_kb": (
+                (peak_memory - baseline_memory) * 1024 / dataset_size
+                if dataset_size > 0
+                else 0
+            ),
         }
 
     def run_comprehensive_stress_test(self) -> Dict[str, Any]:

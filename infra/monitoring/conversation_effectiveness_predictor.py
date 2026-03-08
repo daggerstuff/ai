@@ -258,17 +258,17 @@ class ConversationEffectivenessPredictor:
                 "professional_terms": professional_terms,
                 "dataset_encoded": dataset_encoded,
                 "tier_encoded": tier_encoded,
-                "question_density": question_count / word_count * 100
-                if word_count > 0
-                else 0,
-                "empathy_density": empathy_words / word_count * 100
-                if word_count > 0
-                else 0,
-                "sentiment_balance": (positive_words - negative_words)
-                / word_count
-                * 100
-                if word_count > 0
-                else 0,
+                "question_density": (
+                    question_count / word_count * 100 if word_count > 0 else 0
+                ),
+                "empathy_density": (
+                    empathy_words / word_count * 100 if word_count > 0 else 0
+                ),
+                "sentiment_balance": (
+                    (positive_words - negative_words) / word_count * 100
+                    if word_count > 0
+                    else 0
+                ),
             }
 
             features.append(feature_vector)

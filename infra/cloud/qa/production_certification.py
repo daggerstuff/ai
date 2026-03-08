@@ -628,21 +628,31 @@ class ProductionCertifier:
         # Risk assessment
         risk_assessment = {
             "overall_risk_level": "LOW" if certification_score >= 95 else "MEDIUM",
-            "technical_risk": "LOW"
-            if categories.get("Technical Readiness", {}).get("score", 0) >= 95
-            else "MEDIUM",
-            "security_risk": "LOW"
-            if categories.get("Security Certification", {}).get("score", 0) >= 95
-            else "HIGH",
-            "compliance_risk": "LOW"
-            if categories.get("Compliance Certification", {}).get("score", 0) >= 95
-            else "HIGH",
-            "operational_risk": "LOW"
-            if categories.get("Operational Readiness", {}).get("score", 0) >= 95
-            else "MEDIUM",
-            "business_continuity_risk": "LOW"
-            if categories.get("Business Continuity", {}).get("score", 0) >= 95
-            else "MEDIUM",
+            "technical_risk": (
+                "LOW"
+                if categories.get("Technical Readiness", {}).get("score", 0) >= 95
+                else "MEDIUM"
+            ),
+            "security_risk": (
+                "LOW"
+                if categories.get("Security Certification", {}).get("score", 0) >= 95
+                else "HIGH"
+            ),
+            "compliance_risk": (
+                "LOW"
+                if categories.get("Compliance Certification", {}).get("score", 0) >= 95
+                else "HIGH"
+            ),
+            "operational_risk": (
+                "LOW"
+                if categories.get("Operational Readiness", {}).get("score", 0) >= 95
+                else "MEDIUM"
+            ),
+            "business_continuity_risk": (
+                "LOW"
+                if categories.get("Business Continuity", {}).get("score", 0) >= 95
+                else "MEDIUM"
+            ),
         }
 
         # Post-launch monitoring plan

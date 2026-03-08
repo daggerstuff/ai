@@ -8,10 +8,9 @@ import json
 import logging
 import re
 import sys
-from pathlib import Path
-from typing import Dict, Any, Generator, Tuple
-import hashlib
 from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Tuple
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(

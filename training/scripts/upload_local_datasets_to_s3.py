@@ -11,9 +11,8 @@ import os
 from pathlib import Path
 from typing import Any
 
-from dotenv import load_dotenv
-
 from ai.training.utils.s3_dataset_loader import S3DatasetLoader
+from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv("ai/.env")
@@ -77,11 +76,15 @@ def get_datasets_to_upload() -> list[tuple[Path, str]]:
     return datasets
 
 
-def upload_and_remove(local_path: Path, s3_key: str, s3_client: Any, bucket: str) -> bool:
+def upload_and_remove(
+    local_path: Path, s3_key: str, s3_client: Any, bucket: str
+) -> bool:
     """Upload file to S3 and remove local copy if successful"""
     try:
         file_size_mb = local_path.stat().st_size / (1024 * 1024)
-        logger.info(f"Uploading {local_path.name} ({file_size_mb:.1f}MB) to s3://{bucket}/{s3_key}")
+        logger.info(
+            f"Uploading {local_path.name} ({file_size_mb:.1f}MB) to s3://{bucket}/{s3_key}"
+        )
 
         s3_client.upload_file(str(local_path), bucket, s3_key)
         logger.info("  ✓ Uploaded successfully")
@@ -114,7 +117,9 @@ def main() -> int:
         s3_client = s3_loader.s3_client
     except Exception as e:
         logger.error(f"Failed to initialize S3 client: {e}")
-        logger.error("Make sure OVH_S3_ACCESS_KEY, OVH_S3_SECRET_KEY, and OVH_S3_ENDPOINT are set")
+        logger.error(
+            "Make sure OVH_S3_ACCESS_KEY, OVH_S3_SECRET_KEY, and OVH_S3_ENDPOINT are set"
+        )
         return 1
 
     # Get datasets to upload

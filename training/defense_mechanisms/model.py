@@ -7,9 +7,8 @@ import numpy as np
 import requests
 import torch
 import torch.nn as nn
-from dotenv import load_dotenv
-
 from ai.training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY
+from dotenv import load_dotenv
 
 logger = logging.getLogger(__name__)
 load_dotenv()
