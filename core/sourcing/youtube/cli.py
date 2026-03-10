@@ -204,7 +204,7 @@ def cmd_list(args):
     with open(registry_path) as f:
         channels_data = json.load(f)
 
-    print(f"{" #":<4} {"Channel":<40} {"Quality":<8} {"Subs":<12} {"Videos":<8} {"License"}")
+    print(f"{' #':<4} {'Channel':<40} {'Quality':<8} {'Subs':<12} {'Videos':<8} {'License'}")
     print("-" * 100)
 
     for i, data in enumerate(channels_data):

@@ -176,7 +176,7 @@ class LocalFileConnector(IngestionConnector):
                     # Source-level validation (e.g., file type check)
                     if not self.validate(rec):
                         # Log and quarantine source-level failure
-                                            from ai.core.pipelines.orchestrator import quarantine
+                        from ai.core.pipelines.orchestrator import quarantine
 
                         store = quarantine.get_quarantine_store()
                         errors = [f"Source validation failed for {self.name} connector"]
@@ -191,7 +191,7 @@ class LocalFileConnector(IngestionConnector):
                         yield validated
                     except validation.ValidationError as ve:
                         # Quarantine schema validation failure and continue
-                                            from ai.core.pipelines.orchestrator import quarantine
+                        from ai.core.pipelines.orchestrator import quarantine
 
                         store = quarantine.get_quarantine_store()
                         errors = [
@@ -202,7 +202,7 @@ class LocalFileConnector(IngestionConnector):
                         continue  # Skip to next record
                     except Exception as e:
                         # Quarantine general ingestion errors
-                                            from ai.core.pipelines.orchestrator import quarantine
+                        from ai.core.pipelines.orchestrator import quarantine
 
                         store = quarantine.get_quarantine_store()
                         errors = [f"Unexpected ingestion error: {e}"]
@@ -212,7 +212,7 @@ class LocalFileConnector(IngestionConnector):
 
                 except Exception as e:
                     # Outer-level catch: quarantine and continue. Use best-effort because `rec` may not be defined.
-                                    from ai.core.pipelines.orchestrator import quarantine
+                    from ai.core.pipelines.orchestrator import quarantine
 
                     store = quarantine.get_quarantine_store()
                     errors = [f"Unexpected ingestion error: {e}"]

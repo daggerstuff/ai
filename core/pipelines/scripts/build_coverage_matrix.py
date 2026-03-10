@@ -812,7 +812,7 @@ class EnterpriseS3CoverageAnalyzer:
                 details={
                     "operation": "report_saved",
                     "output_path": str(output_path),
-                    "report_size_bytes": output_pa']['ret().st_size,
+                    "report_size_bytes": output_path.stat().st_size,
                     "enterprise_ready": report["enterprise_summary"]["enterprise_ready"]
                 },
                 change_reason="Enterprise coverage report generation completed"

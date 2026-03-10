@@ -340,7 +340,7 @@ class OperationalDashboardSystem:
         axes[1, 2].set_ylim(0, 100)
 
         # Add utilization labels
-    for bar, util in zip(bars, utilization, strict=True):
+        for bar, util in zip(bars, utilization, strict=True):
             height = bar.get_height()
             axes[1, 2].text(
                 bar.get_x() + bar.get_width() / 2.0,
@@ -415,10 +415,10 @@ class OperationalDashboardSystem:
         )
         axes[2, 2].set_title("Recent Activity Log", fontweight="bold")
 
-    plt.tight_layout()
+        plt.tight_layout()
 
         # Save operational dashboard
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         ops_dashboard_path = (
             f"{self.dashboard_dir}/operational/operational_dashboard_{timestamp}.png"
         )
@@ -479,7 +479,7 @@ class OperationalDashboardSystem:
         plt.tight_layout()
 
         # Save technical dashboard
-    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         tech_dashboard_path = f"{self.dashboard_dir}/technical/technical_dashboard_{timestamp}.png"
         plt.savefig(tech_dashboard_path, dpi=300, bbox_inches="tight")
         plt.close()
@@ -1076,30 +1076,30 @@ def main():
         with open(output_file, "w") as f:
             json.dump(deployment_results, f, indent=2, default=str)
 
-    logging.info("✅ Operational Dashboard System Deployed Successfully!")
-    logging.info("📊 Deployment results saved to: %s", output_file)
+        logging.info("✅ Operational Dashboard System Deployed Successfully!")
+        logging.info("📊 Deployment results saved to: %s", output_file)
 
         # Display deployment summary
         summary = deployment_results["deployment_summary"]
-    logging.info("📈 Deployment Summary:")
-    logging.info("  • Dashboards deployed: %s", summary['dashboards_deployed'])
-    logging.info("  • Systems integrated: %s", summary['systems_integrated'])
-    logging.info("  • Stakeholder views: %s", summary['stakeholder_views'])
-    logging.info("  • Automated reports: %s", summary['automated_reports'])
-    logging.info("  • Export formats: %s", summary['export_formats'])
-    logging.info("  • Monitoring alerts: %s", summary['monitoring_alerts'])
+        logging.info("📈 Deployment Summary:")
+        logging.info("  • Dashboards deployed: %s", summary['dashboards_deployed'])
+        logging.info("  • Systems integrated: %s", summary['systems_integrated'])
+        logging.info("  • Stakeholder views: %s", summary['stakeholder_views'])
+        logging.info("  • Automated reports: %s", summary['automated_reports'])
+        logging.info("  • Export formats: %s", summary['export_formats'])
+        logging.info("  • Monitoring alerts: %s", summary['monitoring_alerts'])
 
         # Display access information
         access_info = deployment_results["access_instructions"]
-    logging.info("🔑 Access Information:")
-    logging.info("  • Executive Dashboard: %s", access_info['dashboard_locations']['executive'])
-    logging.info("  • Operational Dashboard: %s", access_info['dashboard_locations']['operational'])
-    logging.info("  • Technical Dashboard: %s", access_info['dashboard_locations']['technical'])
+        logging.info("🔑 Access Information:")
+        logging.info("  • Executive Dashboard: %s", access_info['dashboard_locations']['executive'])
+        logging.info("  • Operational Dashboard: %s", access_info['dashboard_locations']['operational'])
+        logging.info("  • Technical Dashboard: %s", access_info['dashboard_locations']['technical'])
 
-    logging.info("📋 Operational Runbook: %s/operational_runbook.md", dashboard_system.dashboard_dir)
-    logging.info("📧 Support Contact: %s", access_info['support']['help_desk'])
+        logging.info("📋 Operational Runbook: %s/operational_runbook.md", dashboard_system.dashboard_dir)
+        logging.info("📧 Support Contact: %s", access_info['support']['help_desk'])
 
-    logging.info("🎉 OPERATIONAL DASHBOARDS ARE NOW LIVE AND READY FOR USE! 🎉")
+        logging.info("🎉 OPERATIONAL DASHBOARDS ARE NOW LIVE AND READY FOR USE! 🎉")
 
         return deployment_results
 

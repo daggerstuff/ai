@@ -439,7 +439,7 @@ def analyze_channel_professional(
     indicators.has_certifications = "certified" in text or "license" in text
 
     # Check social media presence (from URLs)
-    social_domains = [".join(["youtube", "instagram", "tiktok", "twitter"])]
+    social_domains = ["youtube", "instagram", "tiktok", "twitter"]
     # Very simplified check
     domains_in_url = [d for d in social_domains if d in channel_url]
     indicators.social_media_presence = len(domains_in_url) > 0

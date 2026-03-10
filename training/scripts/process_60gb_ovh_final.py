@@ -58,9 +58,9 @@ aws s3 ls s3://$S3_BUCKET --recursive --endpoint-url $S3_ENDPOINT | \
 
 # Phase 3: Generate processing commands
 echo "⚙️  Phase 3: Creating processing commands..."
+'''
 
-# Create processing commands
-commands = f'''#!/bin/bash
+    commands = f'''#!/bin/bash
 # 60GB OVH S3 Processing Commands
 
 S3_ENDPOINT="{OVH_S3_CONFIG['endpoint']}"
