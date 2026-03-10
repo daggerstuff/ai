@@ -14,7 +14,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from typing import Any
 
-from conversation_schema import Conversation
+from ai.core.pipelines.schemas.conversation_schema import Conversation
 
 # Set up logging
 logger = logging.getLogger(__name__)

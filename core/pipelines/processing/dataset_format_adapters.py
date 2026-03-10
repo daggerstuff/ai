@@ -9,7 +9,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional
 
-from conversation_schema import Conversation, Message
+from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 
 logger = logging.getLogger(__name__)
 

@@ -6,7 +6,7 @@ Algorithms for maintaining optimal training ratios across data categories.
 import random
 from dataclasses import dataclass
 
-from conversation_schema import Conversation
+from ai.core.pipelines.schemas.conversation_schema import Conversation
 from logger import get_logger
 
 logger = get_logger(__name__)

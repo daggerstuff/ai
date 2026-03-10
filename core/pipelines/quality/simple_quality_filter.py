@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from conversation_schema import Conversation, Message
+from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 from logger import get_logger
 
 logger = get_logger(__name__)

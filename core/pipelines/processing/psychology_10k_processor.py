@@ -20,7 +20,7 @@ conversation_schema_path = project_root / "ai" / "dataset_pipeline" / "schemas"
 sys.path.insert(0, str(conversation_schema_path))
 
 try:
-    from conversation_schema import Conversation, Message
+    from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 except ImportError:
     try:
         from schemas.conversation_schema import Conversation, Message

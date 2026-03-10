@@ -5,7 +5,7 @@ Categorizes datasets for appropriate training data allocation and organization.
 
 from enum import Enum
 
-from conversation_schema import Conversation
+from ai.core.pipelines.schemas.conversation_schema import Conversation
 from logger import get_logger
 
 logger = get_logger(__name__)

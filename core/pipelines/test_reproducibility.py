@@ -224,7 +224,7 @@ class TestVersioningReproducibility(unittest.TestCase):
             )
         )
         
-        bundle2 = LabelBundle(conversation_id="test_conv_1")  # Same conversation
+        bundle2 = LabelBundle(conversation_id="test_conv_1", label_id=bundle1.label_id)  # Same conversation
         bundle2.therapeutic_response_labels.append(
             TherapeuticResponseLabel(
                 response_type=TherapeuticResponseType.REFLECTION,

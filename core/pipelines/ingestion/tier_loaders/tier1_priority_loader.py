@@ -13,7 +13,7 @@ from typing import Any
 from ai.core.pipelines.ingestion.tier_loaders.base_tier_loader import (
     BaseTierLoader,
 )
-from conversation_schema import Conversation
+from ai.core.pipelines.schemas.conversation_schema import Conversation
 
 logger = logging.getLogger(__name__)
 

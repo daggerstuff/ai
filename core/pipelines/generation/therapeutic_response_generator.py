@@ -16,7 +16,7 @@ from typing import Any
 
 from big_five_processor import BigFiveProcessor
 from client_scenario_generator import ClientScenario, ScenarioType, SeverityLevel
-from conversation_schema import Conversation, Message
+from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 from dsm5_parser import DSM5Parser
 from logger import get_logger
 from pdm2_parser import PDM2Parser

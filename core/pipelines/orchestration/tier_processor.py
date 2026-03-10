@@ -17,7 +17,7 @@ from ai.core.pipelines.ingestion.tier_loaders import (
     Tier5ResearchLoader,
     Tier6KnowledgeLoader,
 )
-from conversation_schema import Conversation
+from ai.core.pipelines.schemas.conversation_schema import Conversation
 
 logger = logging.getLogger(__name__)
 

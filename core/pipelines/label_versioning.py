@@ -35,12 +35,12 @@ class VersionAction(Enum):
 @dataclass
 class LabelVersion:
     """Represents a single version of a label with metadata"""
-    version_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    parent_version_id: Optional[str] = None  # Previous version ID
     label_bundle_id: str  # ID of the label bundle this version belongs to
     conversation_id: str
     label_data: Dict[str, Any]  # Serialized label data
     version_number: int = 1
+    version_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    parent_version_id: Optional[str] = None
     action: VersionAction = VersionAction.CREATED
     actor: str = "system"  # Who performed the action (user ID, system, etc.)
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
@@ -52,9 +52,9 @@ class LabelVersion:
 @dataclass
 class ProvenanceRecord:
     """Record of how a label was created/modified"""
-    record_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     label_bundle_id: str
     source: LabelProvenanceType
+    record_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     version_id: Optional[str] = None  # Associated version ID
     model_name: Optional[str] = None
@@ -69,13 +69,13 @@ class ProvenanceRecord:
     validation_annotator: Optional[str] = None
     metadata: Dict[str, Any] = field(default_factory=dict)
 
-
 @dataclass
 class LabelHistory:
     """Complete history of all versions and provenance for a label bundle"""
     label_bundle_id: str
     conversation_id: str
     versions: List[LabelVersion] = field(default_factory=list)
+    history_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     provenance_records: List[ProvenanceRecord] = field(default_factory=list)
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     last_modified: str = field(default_factory=lambda: datetime.utcnow().isoformat())
@@ -151,10 +151,10 @@ class LabelVersionManager:
                            confidence_change: Optional[float] = None) -> LabelVersion:
         """Update a label bundle and create a new version"""
         new_version = LabelVersion(
-            parent_version_id=previous_version.version_id,
+            label_data=self._serialize_label_bundle(label_bundle),
             label_bundle_id=label_bundle.label_id,
             conversation_id=label_bundle.conversation_id,
-            label_data=self._serialize_label_bundle(label_bundle),
+            parent_version_id=previous_version.version_id,
             version_number=previous_version.version_number + 1,
             action=action,
             actor=actor,

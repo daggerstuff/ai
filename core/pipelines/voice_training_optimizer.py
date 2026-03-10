@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Any
 
-from conversation_schema import Conversation
+from ai.core.pipelines.schemas.conversation_schema import Conversation
 from logger import get_logger
 from personality_extractor import PersonalityExtractor
 from voice_types import OptimizationResult, PersonalityProfile

@@ -638,3 +638,13 @@ class ErrorContext:
                 )
             return False  # Don't suppress the exception
         return True
+
+class ProgressTrackingError(TechDeckBaseError):
+    """Raised when there is an issue with progress tracking."""
+
+    def __init__(
+        self, message: str, details: Optional[Dict[str, Any]] = None, **kwargs
+    ):
+        super().__init__(
+            message, "PROGRESS_TRACKING_ERROR", 500, details, **kwargs
+        )

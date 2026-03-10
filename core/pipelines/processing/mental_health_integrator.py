@@ -420,7 +420,7 @@ class MentalHealthIntegrator:
 
     def _dict_to_conversation(self, conversation_dict: dict[str, Any]):
         """Convert conversation dict to Conversation object for assessments."""
-        from conversation_schema import Conversation, Message
+        from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 
         messages = []
         for msg_dict in conversation_dict.get("conversation", []):

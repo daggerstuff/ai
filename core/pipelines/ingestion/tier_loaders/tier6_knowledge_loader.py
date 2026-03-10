@@ -13,7 +13,7 @@ from typing import Dict, List, Optional
 from ai.core.pipelines.ingestion.tier_loaders.base_tier_loader import (
     BaseTierLoader,
 )
-from conversation_schema import Conversation, Message
+from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 
 logger = logging.getLogger(__name__)
 

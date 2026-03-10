@@ -39,7 +39,7 @@ except ImportError:
             Message,
         )
     except ImportError:
-        from conversation_schema import Conversation, Message
+        from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 
 from ai.core.pipelines.ingestion.tier_loaders.base_tier_loader import (
     BaseTierLoader,

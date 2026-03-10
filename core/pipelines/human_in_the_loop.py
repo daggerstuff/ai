@@ -41,13 +41,13 @@ class ReviewPriority(Enum):
 @dataclass
 class AnnotationTask:
     """A single annotation task for a human annotator"""
-    task_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     conversation_id: str
     conversation: Conversation
     original_labels: LabelBundle
     suggested_labels: LabelBundle
     review_priority: ReviewPriority
     assigned_annotator: Optional[str] = None
+    task_id: str = field(default_factory=lambda: str(uuid.uuid4()))
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
     due_date: Optional[str] = None
     status: str = "pending"  # pending, in_progress, completed, rejected

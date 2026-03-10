@@ -28,7 +28,7 @@ except ImportError:
         from ai.core.pipelines.schemas.conversation_schema import Conversation
     except ImportError:
         # Last resort: try direct import
-        from conversation_schema import Conversation
+        from ai.core.pipelines.schemas.conversation_schema import Conversation
 
 logger = logging.getLogger(__name__)
 

@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from conversation_schema import Conversation
+from ai.core.pipelines.schemas.conversation_schema import Conversation
 from logger import get_logger
 
 logger = get_logger(__name__)
@@ -294,7 +294,7 @@ class DatasetVersioningSystem:
 
     def _dict_to_conversation(self, conv_dict: dict[str, Any]) -> Conversation:
         """Convert dictionary to conversation."""
-        from conversation_schema import Message
+        from ai.core.pipelines.schemas.conversation_schema import Message
 
         messages = []
         for msg_data in conv_dict.get("messages", []):

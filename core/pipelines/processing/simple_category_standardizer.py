@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
-from conversation_schema import Conversation, Message
+from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 from logger import get_logger
 from standardizer import from_input_output_pair, from_simple_message_list
 

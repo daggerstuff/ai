@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from tqdm import tqdm
 
-from conversation_schema import Conversation
+from ai.core.pipelines.schemas.conversation_schema import Conversation
 from ai.core.pipelines.processing.dataset_format_adapters import AdapterRegistry
 from ai.core.pipelines.ingestion.tier_loaders.tier2_professional_loader import (
     Tier2ProfessionalLoader,

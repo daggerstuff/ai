@@ -36,7 +36,7 @@ except ImportError:
             Message,
         )
     except ImportError:
-        from conversation_schema import Conversation, Message
+        from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 
 try:
     from logger import get_logger

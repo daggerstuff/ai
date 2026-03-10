@@ -12,13 +12,10 @@ from typing import Any
 # Configure logging
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger("production_validation")
-
-# Ensure path is set to where the module is located
-# The module is in ai/pipelines/orchestrator/quality/
 sys.path.append("/home/vivi/pixelated/ai/pipelines/orchestrator/quality")
 
 try:
-    from production_crisis_detector import ProductionCrisisDetector
+    from core.pipelines.quality.production_crisis_detector import ProductionCrisisDetector
 except ImportError:
     logger.error("Could not import ProductionCrisisDetector. Check python path.")
     sys.exit(1)

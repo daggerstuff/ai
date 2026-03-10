@@ -9,7 +9,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import pytest
-from conversation_schema import Conversation, Message
+from ai.core.pipelines.schemas.conversation_schema import Conversation, Message
 from enhanced_mental_health_integrator import (
     DatasetIntegrationConfig,
     EnhancedMentalHealthIntegrator,

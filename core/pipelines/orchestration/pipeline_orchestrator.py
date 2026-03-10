@@ -26,7 +26,7 @@ except Exception:  # pragma: no cover - supports running as a standalone script
 
 
 from acquisition_monitor import AcquisitionMonitor
-from conversation_schema import Conversation
+from ai.core.pipelines.schemas.conversation_schema import Conversation
 from logger import get_logger
 from pixel_dataset_loader import PixelDatasetLoader
 
