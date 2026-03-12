@@ -10,6 +10,7 @@ import os
 import sys
 import tempfile
 import unittest
+from unittest.mock import MagicMock
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent))
@@ -158,14 +159,55 @@ class TestQualityValidationCache(unittest.TestCase):
         self.assertIsNone(cached_result1)
         self.assertIsNone(cached_result2)
 
-    def test_get_cache_statistics(self):
-        """Test cache statistics"""
+    def test_get_cache_statistics_no_redis(self):
+        """Test cache statistics when Redis is not available"""
+        # Override cache directory to temp_dir to isolate test file entries
+        self.cache.cache_dir = Path(self.temp_dir)
+        self.cache.redis_client = None
+        self.cache.memory_cache = {"a": "b", "c": "d"}
+
+        # Create some fake cache files
+        (self.cache.cache_dir / "fake1.pkl").touch()
+        (self.cache.cache_dir / "fake2.pkl").touch()
+        (self.cache.cache_dir / "fake3.pkl").touch()
+
         stats = self.cache.get_cache_statistics()
-        self.assertIsInstance(stats, dict)
-        self.assertIn("memory_cache_size", stats)
-        self.assertIn("memory_cache_max_size", stats)
-        self.assertIn("file_cache_entries", stats)
-        self.assertIn("redis_available", stats)
+
+        self.assertEqual(stats["memory_cache_size"], 2)
+        self.assertEqual(stats["memory_cache_max_size"], self.cache.memory_cache_max_size)
+        self.assertEqual(stats["file_cache_entries"], 3)
+        self.assertEqual(stats["redis_available"], False)
+        self.assertNotIn("redis_cache_entries", stats)
+
+    def test_get_cache_statistics_with_redis(self):
+        """Test cache statistics when Redis is available"""
+        self.cache.cache_dir = Path(self.temp_dir)
+        self.cache.redis_client = MagicMock()
+        self.cache.redis_client.dbsize.return_value = 10
+        self.cache.memory_cache = {"a": "b"}
+
+        # Create some fake cache files
+        (self.cache.cache_dir / "fake1.pkl").touch()
+        (self.cache.cache_dir / "fake2.pkl").touch()
+
+        stats = self.cache.get_cache_statistics()
+
+        self.assertEqual(stats["memory_cache_size"], 1)
+        self.assertEqual(stats["file_cache_entries"], 2)
+        self.assertEqual(stats["redis_available"], True)
+        self.assertEqual(stats["redis_cache_entries"], 10)
+
+    def test_get_cache_statistics_redis_error(self):
+        """Test cache statistics handles Redis errors gracefully"""
+        self.cache.cache_dir = Path(self.temp_dir)
+        self.cache.redis_client = MagicMock()
+        self.cache.redis_client.dbsize.side_effect = Exception("Redis connection error")
+        self.cache.memory_cache = {}
+
+        stats = self.cache.get_cache_statistics()
+
+        self.assertEqual(stats["redis_available"], True)
+        self.assertEqual(stats["redis_cache_entries"], 0)
 
     def test_cleanup_expired_cache(self):
         """Test cleanup of expired cache entries"""
