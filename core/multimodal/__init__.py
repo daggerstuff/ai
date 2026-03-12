@@ -43,14 +43,41 @@ from .multimodal_fusion import (
     MultimodalResponseGenerator,
     TextToSpeechGenerator,
 )
-from .speech_recognition import (
-    AudioPreprocessor as SpeechAudioPreprocessor,
-)
-from .speech_recognition import (
-    SpeechRecognizer,
-    TranscriptionResult,
-    TranscriptionSegment,
-)
+
+try:
+    from .speech_recognition import (
+        AudioPreprocessor as SpeechAudioPreprocessor,
+    )
+    from .speech_recognition import (
+        SpeechRecognizer,
+        TranscriptionResult,
+        TranscriptionSegment,
+    )
+except Exception:  # pragma: no cover - optional dependency fallback
+    class SpeechAudioPreprocessor:
+        """Fallback audio preprocessor when speech dependencies are unavailable."""
+
+        def __init__(self, sample_rate: int = 16000):
+            self.sample_rate = sample_rate
+
+        def preprocess(self, audio_input):
+            return audio_input
+
+    class SpeechRecognizer:
+        """Fallback speech recognizer when runtime speech dependencies are unavailable."""
+
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class TranscriptionResult:
+        """Fallback transcription result placeholder."""
+
+        text: str = ""
+
+    class TranscriptionSegment:
+        """Fallback transcription segment placeholder."""
+
+        text: str = ""
 
 __all__ = [
     # Speech recognition

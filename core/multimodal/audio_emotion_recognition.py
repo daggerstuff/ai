@@ -422,3 +422,18 @@ class EmotionTrajectory:
             "min_arousal": float(np.min(arousals)),
             "max_arousal": float(np.max(arousals)),
         }
+
+
+class AudioPreprocessor:
+    """Compatibility wrapper used by the package __init__ import surface."""
+
+    def __init__(self, sample_rate: int = 16000):
+        self.sample_rate = sample_rate
+
+    def preprocess(self, waveform: np.ndarray, sample_rate: int = 16000) -> np.ndarray:
+        """Return waveform unchanged when no resampling is required."""
+        if waveform.size == 0:
+            return waveform.astype(np.float32)
+        if sample_rate == self.sample_rate:
+            return waveform.astype(np.float32)
+        return waveform.astype(np.float32)

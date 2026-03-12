@@ -82,3 +82,9 @@ infra/cloud/distributed/logs/
 # Legacy API data path
 core/api/data/transcripts/ingested/
 training/v1/
+.notes/
+.claude/
+.memory/
+.serena/
+.cursor/
+.vscode/

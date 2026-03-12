@@ -1,13 +1,16 @@
 """
-GestaltSimulator - Offline Batch Mode Simulator
+GestaltSimulator - Offline Batch Mode Simulator.
 
 Runs the GestaltEngine over existing dialogue pairs and uses the PersonaManager
 to rewrite the AI patient's responses to be more human and defense-aware via
-an LLM (e.g. Gemini 2.5 Flash / Pro).
+an OpenAI-compatible LLM backend (NVIDIA NIM by default).
 """
 
 import json
 import logging
+import os
+import re
+import requests
 import time
 from typing import Any, Dict, List, Optional
 
@@ -25,6 +28,18 @@ from ai.core.persona_manager import PersonaManager
 logger = logging.getLogger(__name__)
 
 
+_THINK_TAG_RE = re.compile(r"<think>.*?</think>\s*", re.IGNORECASE | re.DOTALL)
+
+
+def _sanitize_llm_text(text: str) -> str:
+    """Remove generation artifacts that should never be persisted."""
+    if not text:
+        return text
+    text = text.strip()
+    text = _THINK_TAG_RE.sub("", text)
+    return text.strip()
+
+
 class GestaltSimulator:
     """Offline batch simulator for regenerating dialogues with Gestalt behaviors."""
 
@@ -33,6 +48,7 @@ class GestaltSimulator:
         defense_model_path: Optional[str] = None,
         device: str = "cpu",
         api_key: str = None,
+        nim_only: bool = False,
     ):
         self.gestalt_engine = GestaltEngine()
         if defense_model_path:
@@ -55,15 +71,112 @@ class GestaltSimulator:
 
         self.persona_manager = PersonaManager()
 
-        self.api_key = api_key or ensure_valid_key()
-        if self.api_key and genai:
-            self.client = genai.Client(api_key=self.api_key)
-        else:
-            self.client = None
+        self.llm_mode = "nim" if (nim_only or self.nim_api_key) else "gemini"
+        self.gemini_client = None
+        self.nim_model = (
+            os.environ.get("NIM_MODEL")
+            or os.environ.get("NVIDIA_OPENAI_MODEL")
+            or os.environ.get("OPENAI_MODEL")
+            or "meta/llama-3.1-405b-instruct"
+        )
+        self.nim_base_url = (
+            os.environ.get("OPENAI_BASE_URL")
+            or os.environ.get("NVIDIA_OPENAI_BASE_URL")
+            or "https://integrate.api.nvidia.com/v1"
+        ).rstrip("/")
+        self.nim_api_key = api_key or os.getenv("NIM_API_KEY") or os.getenv("NVIDIA_API_KEY") or os.getenv("OPENAI_API_KEY")
+        self.nim_headers = {
+            "Content-Type": "application/json",
+        }
+        if self.nim_api_key:
+            self.nim_headers["Authorization"] = f"Bearer {self.nim_api_key}"
+
+        if not nim_only:
+            try:
+                gemini_key = os.environ.get("GOOGLE_CLOUD_API_KEY") or os.environ.get(
+                    "GEMINI_API_KEY"
+                )
+                if gemini_key:
+                    self.gemini_client = genai.Client(api_key=gemini_key) if genai else None
+                else:
+                    try:
+                        self.gemini_client = genai.Client(api_key=ensure_valid_key())
+                    except Exception:
+                        self.gemini_client = None
+            except Exception:
+                self.gemini_client = None
+        if not self.nim_api_key and not self.gemini_client:
+            self.llm_mode = "mock"
             logger.warning(
-                "Gemini API key not found or genai not installed. "
+                "No NVIDIA NIM or Gemini credentials found. "
                 "Generation will be mocked."
             )
+
+    def _call_nim(
+        self,
+        system_prompt: str,
+        conversation_history: List[Dict[str, str]],
+    ) -> str:
+        """Call NIM-compatible OpenAI endpoint."""
+        if not self.nim_api_key:
+            raise RuntimeError("No NIM API key available.")
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            *[
+                {
+                    "role": "user" if msg["role"] == "user" else "assistant",
+                    "content": msg["content"],
+                }
+                for msg in conversation_history
+            ],
+        ]
+        payload = {
+            "model": self.nim_model,
+            "messages": messages,
+            "temperature": 0.7,
+        }
+
+        response = requests.post(
+            f"{self.nim_base_url}/chat/completions",
+            headers=self.nim_headers,
+            json=payload,
+            timeout=30,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        choices = payload.get("choices", [])
+        if not choices:
+            return ""
+        message = choices[0].get("message", {})
+        return message.get("content", "") or ""
+
+    def _call_gemini(
+        self,
+        system_prompt: str,
+        conversation_history: List[Dict[str, str]],
+    ) -> str:
+        """Call Gemini API as a fallback mode."""
+        if not self.gemini_client:
+            raise RuntimeError("No Gemini client available.")
+
+        config = types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            temperature=0.7,
+        )
+        contents = [
+            types.Content(
+                role="user" if msg["role"] == "user" else "model",
+                parts=[types.Part.from_text(text=msg["content"])],
+            )
+            for msg in conversation_history
+        ]
+        response = self.gemini_client.models.generate_content(
+            model=get_best_available_gemini_model(self.gemini_client),
+            contents=contents,
+            config=config,
+        )
+        return response.text
 
     def _call_llm(
         self,
@@ -72,30 +185,24 @@ class GestaltSimulator:
         max_retries: int = 3,
     ) -> str:
         """Call the LLM to generate the next response."""
-        if not self.client:
-            return "I don't want to talk about it right now."
-
-        contents = [
-            types.Content(
-                role="user" if msg["role"] == "user" else "model",
-                parts=[types.Part.from_text(text=msg["content"])],
+        if self.llm_mode == "mock":
+            return (
+                "I hear you, and I can stay with that. "
+                "Tell me more about what that feels like."
             )
-            for msg in conversation_history
-        ]
-
-        config = types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            temperature=0.7,
-        )
 
         for attempt in range(max_retries):
             try:
-                response = self.client.models.generate_content(
-                    model=get_best_available_gemini_model(self.client),
-                    contents=contents,
-                    config=config,
-                )
-                text = response.text
+                if self.nim_api_key:
+                    text = _sanitize_llm_text(self._call_nim(system_prompt, conversation_history))
+                elif self.gemini_client:
+                    text = _sanitize_llm_text(self._call_gemini(system_prompt, conversation_history))
+                else:
+                    raise RuntimeError("No LLM backend available.")
+
+                if not text:
+                    logger.debug("Empty LLM response on attempt %d", attempt + 1)
+                    continue
                 if self.persona_manager.validate_human_likeness(text):
                     return text
                 logger.debug(
@@ -105,13 +212,17 @@ class GestaltSimulator:
                 logger.error("LLM API error on attempt %d: %s", attempt + 1, exc)
                 time.sleep(2**attempt)
 
-        return "I guess I just don't have much to say about that."
+        return (
+            "I need a moment to process this. "
+            "Let's keep going and I can share what feels most true for me."
+        )
 
     def simulate_turn(
         self,
         dialogue: List[Dict[str, str]],
         target_utterance: str,
         persona_id: str = None,
+        persona_id_hint: str = None,
     ) -> Dict[str, Any]:
         """
         Simulate a single turn.
@@ -120,11 +231,18 @@ class GestaltSimulator:
         2. Get the persona directive.
         3. Inject directive into the system prompt, then generate a response.
         """
+        selected_persona_id = persona_id_hint or persona_id
         persona = (
-            self.persona_manager.get_persona(persona_id)
-            if persona_id
+            self.persona_manager.get_persona(selected_persona_id)
+            if selected_persona_id
             else self.persona_manager.get_random_persona()
         )
+        if not persona:
+            logger.warning(
+                "Requested persona_id '%s' not found. Falling back to random.",
+                selected_persona_id,
+            )
+            persona = self.persona_manager.get_random_persona()
 
         # Mock middle-of-the-road emotion/trait scores for batch regen.
         mock_plutchik = {e: 0.2 for e in PLUTCHIK_EMOTIONS}
@@ -148,6 +266,12 @@ class GestaltSimulator:
                 "defense mechanism.]"
             )
             gestalt_state = None
+
+        if not (directive and directive.strip()):
+            directive = (
+                "[System: Maintain strong therapeutic boundaries and "
+                "stay grounded in the patient perspective.]"
+            )
 
         system_prompt = persona.generate_system_prompt()
         if directive:
