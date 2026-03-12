@@ -51,7 +51,7 @@ einops==0.8.2
     # via deepspeed
 fastapi==0.128.0
     # via -r ai/pipelines/orchestrator/pixelated-training/requirements.txt
-filelock==3.20.3
+filelock==3.25.2
     # via
     #   datasets
     #   huggingface-hub
@@ -187,7 +187,7 @@ packaging==26.0
     #   wandb
 pandas==3.0.0
     # via datasets
-pillow==12.1.0
+pillow==12.1.1
     # via tensorboard
 platformdirs==4.5.1
     # via wandb
@@ -195,7 +195,7 @@ propcache==0.4.1
     # via
     #   aiohttp
     #   yarl
-protobuf==6.33.4
+protobuf==6.33.5
     # via
     #   tensorboard
     #   wandb
@@ -302,7 +302,7 @@ uvicorn==0.40.0
     # via -r ai/pipelines/orchestrator/pixelated-training/requirements.txt
 wandb==0.24.0
     # via -r ai/pipelines/orchestrator/pixelated-training/requirements.txt
-werkzeug==3.1.5
+werkzeug==3.1.6
     # via tensorboard
 xxhash==3.6.0
     # via datasets
