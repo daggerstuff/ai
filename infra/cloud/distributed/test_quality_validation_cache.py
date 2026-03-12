@@ -658,6 +658,35 @@ class TestCachedQualityValidator(unittest.TestCase):
         self.assertFalse(cache_hit)
         self.assertIsNone(cached_result)
 
+    def test_validate_with_cache_no_metadata(self):
+        """Test validation with cache when no metadata is provided"""
+        test_result = b"cached validation result no metadata"
+        validation_type = "conversation"
+
+        # Cache the result first (with empty metadata, which is what validate_with_cache uses if None is provided)
+        self.cache.cache_result(
+            str(self.cache_file), validation_type, {}, test_result
+        )
+
+        # Validate with cache (cache hit, no metadata)
+        cache_hit, cached_result = self.validator.validate_with_cache(
+            str(self.cache_file), validation_type
+        )
+
+        self.assertTrue(cache_hit)
+        self.assertEqual(cached_result, test_result)
+
+        # Invalidate for next part of the test
+        self.cache.invalidate_cache()
+
+        # Validate with cache (cache miss, no metadata)
+        cache_hit, cached_result = self.validator.validate_with_cache(
+            str(self.cache_file), validation_type
+        )
+
+        self.assertFalse(cache_hit)
+        self.assertIsNone(cached_result)
+
     def test_cache_validation_result(self):
         """Test caching validation result"""
         test_result = b"validation result to cache"
