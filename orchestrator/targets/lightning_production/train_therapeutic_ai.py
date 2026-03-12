@@ -14,7 +14,12 @@ from pathlib import Path
 from typing import Dict
 
 import torch
-from lightning.pytorch.callbacks import LearningRateMonitor, ModelCheckpoint
+from lightning.pytorch.callbacks import (
+    DeviceStatsMonitor,
+    EarlyStopping,
+    LearningRateMonitor,
+    ModelCheckpoint,
+)
 from lightning.pytorch.loggers import WandbLogger
 from peft import LoraConfig, TaskType, get_peft_model
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
@@ -272,18 +277,20 @@ class TherapeuticTrainer(L.LightningModule):
             logger.info("🚀 Gradient checkpointing enabled")
 
         # Configure LoRA
-        lora_config = LoraConfig(
-            task_type=TaskType.CAUSAL_LM,
-            r=config.get("lora_r", 16),
-            lora_alpha=config.get("lora_alpha", 32),
-            lora_dropout=config.get("lora_dropout", 0.05),
-            target_modules=config.get("target_modules", ["q_proj", "v_proj"]),
-        )
+        if not self.config.get("skip_lora", False):
+            lora_config = LoraConfig(
+                task_type=TaskType.CAUSAL_LM,
+                r=config.get("lora_r", 16),
+                lora_alpha=config.get("lora_alpha", 32),
+                lora_dropout=config.get("lora_dropout", 0.05),
+                target_modules=config.get("target_modules", ["q_proj", "v_proj"]),
+            )
 
-        # Apply LoRA
-        self.model = get_peft_model(self.model, lora_config)
-
-        logger.info(f"✅ Model initialized: {model_name} with LoRA")
+            # Apply LoRA
+            self.model = get_peft_model(self.model, lora_config)
+            logger.info(f"✅ Model initialized: {model_name} with LoRA")
+        else:
+            logger.info(f"✅ Model initialized: {model_name} (full fine-tune path)")
         logger.info(f"   Trainable parameters: {self.model.num_parameters()}")
 
     def forward(self, batch):
@@ -296,12 +303,13 @@ class TherapeuticTrainer(L.LightningModule):
     def training_step(self, batch, batch_idx):
         outputs = self(batch)
         loss = outputs.loss
+        perplexity = torch.exp(torch.clamp(loss, max=20))
         self.log(
             "train/loss", loss, on_step=True, on_epoch=True, prog_bar=True, logger=True
         )
         self.log(
             "train/perplexity",
-            torch.exp(loss),
+            perplexity,
             on_step=True,
             on_epoch=True,
             logger=True,
@@ -311,11 +319,12 @@ class TherapeuticTrainer(L.LightningModule):
     def validation_step(self, batch, batch_idx):
         outputs = self(batch)
         loss = outputs.loss
+        perplexity = torch.exp(torch.clamp(loss, max=20))
         # Explicitly log validation loss on every step to see progress in WandB
         self.log(
             "val/loss",
             loss,
-            on_step=True,
+            on_step=False,
             on_epoch=True,
             prog_bar=True,
             sync_dist=True,
@@ -323,7 +332,7 @@ class TherapeuticTrainer(L.LightningModule):
         )
         self.log(
             "val/perplexity",
-            torch.exp(loss),
+            perplexity,
             on_step=False,
             on_epoch=True,
             sync_dist=True,
@@ -346,9 +355,85 @@ class TherapeuticTrainer(L.LightningModule):
         return [optimizer], [scheduler]
 
 
+def resolve_stage_runtime_config(config: Dict, args):
+    """Resolve training data and model configuration from config + CLI overrides."""
+    stage_key = {1: "foundation", 2: "reasoning", 3: "voice"}.get(args.stage)
+    training_stages = config.get("training_stages", {})
+    staged_config = (
+        training_stages.get(stage_key, {}) if isinstance(training_stages, dict) else {}
+    )
+
+    resolved_data_path = args.data_path or os.getenv("TRAIN_DATA_PATH")
+    if not resolved_data_path and "train_data_path" in config:
+        resolved_data_path = config.get("train_data_path")
+
+    if not resolved_data_path:
+        staged_datasets = staged_config.get("datasets", [])
+        if staged_datasets:
+            preferred_dataset = next(
+                (
+                    item
+                    for item in staged_datasets
+                    if item.endswith(".json") or item.endswith(".jsonl")
+                ),
+                staged_datasets[0],
+            )
+            bucket = os.getenv("OVH_S3_BUCKET", os.getenv("S3_BUCKET", "pixel-data"))
+            if preferred_dataset.startswith("s3://"):
+                resolved_data_path = preferred_dataset
+            else:
+                resolved_data_path = f"s3://{bucket}/{preferred_dataset}"
+
+    if not resolved_data_path:
+        raise ValueError(
+            "No training data path configured. Set --data-path or TRAIN_DATA_PATH (or update stage config with train_data_path)."
+        )
+
+    model_name = args.base_model or config.get(
+        "base_model", "meta-llama/Llama-3.2-3B-Instruct"
+    )
+    config["base_model"] = model_name
+
+    return {
+        "data_path": resolved_data_path,
+        "base_model": model_name,
+    }
+
+
 def main():
     """Main training function"""
     parser = argparse.ArgumentParser(description="Therapeutic AI Training")
+    parser.add_argument(
+        "--data-path",
+        default=None,
+        help="Override training dataset path (local or S3)",
+    )
+    parser.add_argument(
+        "--base-model",
+        default=None,
+        help="Override base model id (helps with quick smoke runs)",
+    )
+    parser.add_argument(
+        "--skip-lora",
+        action="store_true",
+        help="Run without PEFT/LoRA adapter injection",
+    )
+    parser.add_argument(
+        "--disable-wandb",
+        action="store_true",
+        help="Disable WandB logging and use local-only logs",
+    )
+    parser.add_argument(
+        "--allow-cpu",
+        action="store_true",
+        help="Allow CPU execution (debug or local smoke test only)",
+    )
+    parser.add_argument(
+        "--compute-backend",
+        choices=["auto", "gpu", "cpu"],
+        default="gpu",
+        help="Runtime compute target: gpu (default), auto, or cpu",
+    )
     parser.add_argument(
         "--stage",
         type=int,
@@ -374,7 +459,8 @@ def main():
     }
 
     config_file = config_map[args.stage]
-    config_path = Path(f"ai/lightning/production/stage_configs/{config_file}")
+    script_dir = Path(__file__).resolve().parent
+    config_path = script_dir / "stage_configs" / config_file
 
     logger.info(
         f"🚀 Starting Lightning.ai H100 Therapeutic AI Training - Stage {args.stage}"
@@ -387,11 +473,31 @@ def main():
     with open(config_path, "r") as f:
         config = json.load(f)
 
-    # Dataset path
-    data_path = config["train_data_path"]
+    resolved = resolve_stage_runtime_config(config, args)
+    data_path = resolved["data_path"]
+    model_name = resolved["base_model"]
+    config["skip_lora"] = args.skip_lora
 
-    # Determine base model id
-    model_name = config.get("base_model", "meta-llama/Llama-3.2-3B-Instruct")
+    if args.compute_backend == "gpu":
+        if not torch.cuda.is_available():
+            raise RuntimeError(
+                "GPU execution was requested via --compute-backend gpu, but CUDA is not available."
+            )
+        compute_accelerator = "gpu"
+    elif args.compute_backend == "cpu":
+        if not args.allow_cpu:
+            logger.warning(
+                "CPU execution is explicitly forced. Add --allow-cpu for consistency if this is intended."
+            )
+        compute_accelerator = "cpu"
+    else:
+        compute_accelerator = "gpu" if torch.cuda.is_available() else "cpu"
+        if compute_accelerator == "cpu":
+            if not args.allow_cpu:
+                raise RuntimeError(
+                    "No CUDA GPU detected. Stage 1 is configured for GPU. "
+                    "Use --allow-cpu or --compute-backend cpu to force CPU."
+                )
 
     # Load tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)
@@ -448,16 +554,33 @@ def main():
     model = TherapeuticTrainer(config)
 
     # Setup WandB logger
-    wandb_logger = WandbLogger(
-        project=config.get("project_name", "pixelated-empathy-training"),
-        name=config.get("run_name", f"stage{args.stage}_training"),
-        log_model="all",
-    )
+    enable_wandb = not args.disable_wandb and os.getenv("WANDB_DISABLED", "false").lower() not in {
+        "1",
+        "true",
+        "yes",
+    }
+    wandb_logger = None
+    if enable_wandb:
+        wandb_logger = WandbLogger(
+            project=config.get("project_name", "pixelated-empathy-training"),
+            name=config.get("run_name", f"stage{args.stage}_training"),
+            entity=os.getenv("WANDB_ENTITY") or None,
+            log_model="all",
+        )
+        logger.info("W&B logging enabled.")
+    else:
+        logger.info("W&B logging disabled; running with local-only logging.")
 
     precision_mapping = {"bf16": "bf16-mixed", "fp16": "16-mixed", "32": "32-true"}
 
     callbacks = [
         LearningRateMonitor(logging_interval="step"),
+        EarlyStopping(
+            monitor="val/loss",
+            mode="min",
+            patience=config.get("early_stopping_patience", 3),
+            min_delta=config.get("early_stopping_min_delta", 0.0),
+        ),
         ModelCheckpoint(
             dirpath=f"./lightning_logs/stage{args.stage}/checkpoints",
             filename="wayfarer-{epoch:02d}-{val/loss:.2f}",
@@ -465,14 +588,16 @@ def main():
             mode="min",
             save_top_k=3,
             save_last=True,
-            every_n_train_steps=None if args.dry_run else config.get("save_steps", 500),
+            every_n_train_steps=None,
+            every_n_epochs=1,
         ),
     ]
+    callbacks.append(DeviceStatsMonitor(cpu_stats=True))
 
     # Configure trainer
     trainer_kwargs = dict(
         max_epochs=config.get("epochs", 3),
-        accelerator="gpu" if torch.cuda.is_available() else "cpu",
+        accelerator=compute_accelerator,
         devices="auto",
         strategy="ddp_find_unused_parameters_false"
         if torch.cuda.device_count() > 1
@@ -485,16 +610,20 @@ def main():
         limit_val_batches=2 if args.dry_run else 50,  # Prevent massive S3 val hangs
         enable_checkpointing=True,
         default_root_dir=f"./lightning_logs/stage{args.stage}",
-        logger=wandb_logger,
+        logger=wandb_logger if wandb_logger is not None else False,
         callbacks=callbacks,
         num_sanity_val_steps=0,
         log_every_n_steps=1,
     )
 
+    if trainer_kwargs["accelerator"] == "cpu":
+        trainer_kwargs["precision"] = "32-true"
+
     if args.dry_run:
         trainer_kwargs["max_steps"] = args.max_steps if args.max_steps > 0 else 1
         trainer_kwargs["limit_train_batches"] = 2
         trainer_kwargs["limit_val_batches"] = 2
+        trainer_kwargs["val_check_interval"] = 1
         logger.info("🧪 Running in DRY RUN mode")
 
     trainer = L.Trainer(**trainer_kwargs)
