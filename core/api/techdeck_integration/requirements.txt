@@ -52,7 +52,7 @@ billiard==4.2.4
     # via
     #   -r ai/api/techdeck_integration/requirements.txt
     #   celery
-black==26.1.0
+black==26.3.1
     # via -r ai/api/techdeck_integration/requirements.txt
 blinker==1.9.0
     # via
