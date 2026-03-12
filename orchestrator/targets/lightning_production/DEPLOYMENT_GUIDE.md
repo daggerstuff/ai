@@ -47,6 +47,17 @@ pip install -r requirements.txt
 python train_therapeutic_ai.py
 ```
 
+#### Launch via Lightning CLI
+
+```bash
+# Submit Stage 1 through Lightning CLI from repo root:
+LIGHTNING_STUDIO=your-studio-name \
+LIGHTNING_MACHINE=H100 \
+LIGHTNING_STAGE=1 \
+LIGHTNING_MAX_STEPS=100000 \
+cd /path/to/pixelated && ./scripts/devops/start_lightning_stage1.sh
+```
+
 ### **Step 5: Monitor Training**
 
 - Check Lightning logs: `./lightning_logs/`
