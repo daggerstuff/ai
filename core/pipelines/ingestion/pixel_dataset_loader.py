@@ -16,6 +16,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
+import aiofiles
 from ai.core.pipelines.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -90,7 +91,9 @@ class ValidationResult:
     issues: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
-    validation_time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    validation_time: datetime = field(
+        default_factory=lambda: datetime.now(timezone.utc)
+    )
 
 
 class PixelDatasetLoader:
@@ -153,7 +156,6 @@ class PixelDatasetLoader:
 
         dataset_info = self.datasets[dataset_id]
 
-
         try:
             # Update status
             self._update_progress(
@@ -178,7 +180,11 @@ class PixelDatasetLoader:
                         dataset_id,
                         DatasetStatus.FAILED,
                         100.0,
-                        f"Validation failed: {validation_result.issues[0] if validation_result.issues else 'Unknown error'}",
+                        (
+                            f"Validation failed: {validation_result.issues[0]}"
+                            if validation_result.issues
+                            else "Validation failed: Unknown error"
+                        ),
                     )
                     return False
 
@@ -252,9 +258,7 @@ class PixelDatasetLoader:
 
             return results
 
-    async def _download_dataset(
-        self, dataset_info: DatasetInfo
-    ) -> bool:
+    async def _download_dataset(self, dataset_info: DatasetInfo) -> bool:
         """Download dataset (mock implementation)."""
         try:
             # Simulate download with progress updates
@@ -290,8 +294,9 @@ class PixelDatasetLoader:
                 ],
             }
 
-            with open(dataset_info.local_path, "w") as f:
-                json.dump(mock_data, f, indent=2)
+            json_str = json.dumps(mock_data, indent=2)
+            async with aiofiles.open(dataset_info.local_path, "w") as f:
+                await f.write(json_str)
 
             return True
 
@@ -299,9 +304,7 @@ class PixelDatasetLoader:
             logger.error(f"Download failed for {dataset_info.id}: {e}")
             return False
 
-    async def _validate_dataset(
-        self, dataset_info: DatasetInfo
-    ) -> ValidationResult:
+    async def _validate_dataset(self, dataset_info: DatasetInfo) -> ValidationResult:
         """Validate downloaded dataset."""
         validation_result = ValidationResult(
             dataset_id=dataset_info.id, is_valid=True, quality_score=0.8
@@ -317,8 +320,9 @@ class PixelDatasetLoader:
                 return validation_result
 
             # Load and validate data
-            with open(dataset_info.local_path) as f:
-                data = json.load(f)
+            async with aiofiles.open(dataset_info.local_path, "r") as f:
+                content = await f.read()
+                data = json.loads(content)
 
             # Basic validation checks
             if "records" not in data:
@@ -349,9 +353,7 @@ class PixelDatasetLoader:
             validation_result.issues.append(f"Validation error: {e!s}")
             return validation_result
 
-    async def _process_dataset(
-        self, dataset_info: DatasetInfo
-    ) -> bool:
+    async def _process_dataset(self, dataset_info: DatasetInfo) -> bool:
         """Process validated dataset."""
         try:
             # Simulate processing
@@ -360,7 +362,9 @@ class PixelDatasetLoader:
             # Update metadata
             dataset_info.updated_at = datetime.now(timezone.utc)
             dataset_info.metadata["processed"] = True
-            dataset_info.metadata["processing_time"] = datetime.now(timezone.utc).isoformat()
+            dataset_info.metadata["processing_time"] = datetime.now(
+                timezone.utc
+            ).isoformat()
 
             return True
 
@@ -549,7 +553,6 @@ if __name__ == "__main__":
         # Load datasets
         dataset_ids = [d.id for d in datasets]
         await loader.load_multiple_datasets(dataset_ids)
-
 
         # Show summary
         loader.get_summary_stats()
