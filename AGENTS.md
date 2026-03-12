@@ -30,7 +30,7 @@ inference services.
 - **API**: FastAPI + Uvicorn
 - **ML**: PyTorch, Transformers, Datasets, PEFT/TRL, sentence-transformers
 - **Audio**: openai-whisper / faster-whisper, librosa, pydub
-- **Memory**: Zep (`zep-cloud`)
+- **Memory**: Mem0 (with NVIDIA NIM-backed chat generation)
 - **Quality**: Ruff, Black, Pytest, Pytest-Cov, NBQA
 
 ---
@@ -221,12 +221,14 @@ Every decision in this repo should prioritize:
 Based on experience from pixelated repo where 60 massive PRs blocked each other.
 
 ### RULE 1: MAXIMUM 30 FILES PER PR
+
 - **Hard limit: 30 files maximum**
 - **Ideal size: 5-15 files**
 - If your change touches more than 30 files, SPLIT IT into multiple PRs
 - **Why**: We had 60 PRs all blocked because they touched the same files
 
 ### RULE 2: ONE TASK = ONE PR
+
 - Each PR should implement ONE specific feature or fix
 - Good examples:
   - "Add unit tests for CheckpointManager"
@@ -237,27 +239,34 @@ Based on experience from pixelated repo where 60 massive PRs blocked each other.
   - "Update configs and add tests and fix linting"
 
 ### RULE 3: CHECK BEFORE CREATING
+
 Before creating ANY PR:
+
 1. Check open PRs: `gh pr list --state open | wc -l`
 2. If >5 open PRs: STOP and wait
 3. Target branch: `master`
 
 ### RULE 4: DESCRIPTIVE BRANCH NAMES
+
 ```
 [scope]/[action]-[component]-[id]
 ```
+
 Examples:
+
 - `fix/checkpoint-manager-memory-leak-abc123`
 - `feat/add-s3-retry-logic-def456`
 - `test/coverage-for-voice-pipeline-ghi789`
 
 ### Forbidden Actions
+
 - ❌ PRs touching >30 files
 - ❌ Multiple unrelated changes in one PR
 - ❌ PRs when >5 are already open
 - ❌ Vague branch names like `fix/things`
 
 ### Auto-Abort Conditions
+>
 - >30 files changed
 - >5 open PRs exist
 - Cannot explain change in one sentence
@@ -267,6 +276,7 @@ Examples:
 ## Verification Checklist
 
 Before submitting:
+
 - [ ] PR touches ≤30 files
 - [ ] PR focuses on ONE change
 - [ ] Branch name is descriptive

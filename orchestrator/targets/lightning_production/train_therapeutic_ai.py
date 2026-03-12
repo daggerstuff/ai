@@ -44,6 +44,84 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+def _parse_bool_env(value: str | None, default: bool = False) -> bool:
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on", "y"}
+
+
+def _to_repository_id(api, stage: int) -> str:
+    explicit_repo_id = os.getenv("HF_REPO_ID", "").strip()
+    if explicit_repo_id:
+        return explicit_repo_id
+
+    repo_name = os.getenv("HF_REPO_NAME", "").strip() or f"pixelated-stage{stage}-therapeutic-ai"
+    owner = (
+        os.getenv("HF_REPO_OWNER", "").strip()
+        or os.getenv("HF_ENTITY", "").strip()
+    )
+    if owner:
+        return f"{owner}/{repo_name}"
+
+    user_info = api.whoami()
+    username = user_info.get("name") or user_info.get("fullname")
+    if not username:
+        raise RuntimeError("Unable to resolve Hugging Face username.")
+    return f"{username}/{repo_name}"
+
+
+def upload_checkpoint_to_huggingface(
+    output_dir: str, stage: int, is_dry_run: bool
+) -> None:
+    if _parse_bool_env(os.getenv("HF_PUSH"), default=True) is False:
+        logger.info("HF_PUSH is disabled; skipping Hugging Face upload.")
+        return
+
+    if is_dry_run and _parse_bool_env(
+        os.getenv("HF_PUSH_DURING_DRY_RUN"), default=False
+    ) is False:
+        logger.info("HF_PUSH_DURING_DRY_RUN is disabled; skipping Hugging Face upload for dry-run paths.")
+        return
+
+    if not os.path.isdir(output_dir):
+        logger.warning("No output directory found at %s; skipping Hugging Face upload.", output_dir)
+        return
+
+    hf_token = os.getenv("HF_TOKEN") or os.getenv("HUGGINGFACE_HUB_TOKEN")
+    if not hf_token:
+        logger.warning("HF upload is enabled but HF_TOKEN/HUGGINGFACE_HUB_TOKEN is not set.")
+        return
+
+    try:
+        from huggingface_hub import HfApi, create_repo, upload_folder
+    except ModuleNotFoundError as exc:
+        logger.exception("huggingface_hub is unavailable: %s", exc)
+        return
+
+    try:
+        api = HfApi(token=hf_token)
+        repo_id = _to_repository_id(api, stage=stage)
+        create_repo(
+            repo_id=repo_id,
+            token=hf_token,
+            exist_ok=True,
+            private=_parse_bool_env(os.getenv("HF_REPO_PRIVATE"), default=False),
+            repo_type="model",
+        )
+        logger.info("Uploading training artifact to Hugging Face repo: %s", repo_id)
+        upload_folder(
+            repo_id=repo_id,
+            folder_path=output_dir,
+            path_in_repo=".",
+            repo_type="model",
+            commit_message=f"Upload stage {stage} therapeutic AI artifact",
+            token=hf_token,
+        )
+        logger.info("✅ Uploaded Hugging Face artifact to %s", repo_id)
+    except Exception as exc:
+        logger.exception("Hugging Face upload failed: %s", exc)
+
+
 class TherapeuticConversationDataset(torch.utils.data.IterableDataset):
     """Iterable Dataset for therapeutic conversation training.
 
@@ -578,9 +656,14 @@ def main():
     }
     wandb_logger = None
     if enable_wandb:
+        wandb_run_name = (
+            os.getenv("WANDB_NAME")
+            or config.get("run_name")
+            or f"stage{args.stage}_training"
+        )
         wandb_logger = WandbLogger(
             project=config.get("project_name", "pixelated-empathy-training"),
-            name=config.get("run_name", f"stage{args.stage}_training"),
+            name=wandb_run_name,
             entity=os.getenv("WANDB_ENTITY") or None,
             log_model="all",
         )
@@ -661,6 +744,8 @@ def main():
     tokenizer.save_pretrained(output_dir)
 
     logger.info(f"🎉 Training complete! Model saved to {output_dir}")
+
+    upload_checkpoint_to_huggingface(output_dir, args.stage, args.dry_run)
 
 
 if __name__ == "__main__":
