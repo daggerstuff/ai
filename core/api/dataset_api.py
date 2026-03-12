@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, status
 from pydantic import BaseModel
+
 from security.api_authentication import (
     AuthenticationSystem,
     PermissionLevel,
@@ -157,12 +158,13 @@ async def list_datasets(
         # Get all columns in one query
         # SQLite 3.16.0+ supports table-valued functions like pragma_table_info
         placeholders = ", ".join("?" * len(safe_tables))
-        columns_query = f"""
-            SELECT m.name as table_name, p.name as col_name, p.type, p."notnull", p.pk
-            FROM sqlite_master m
-            JOIN pragma_table_info(m.name) p
-            WHERE m.type='table' AND m.name IN ({placeholders})
-        """
+        columns_query = (
+            "SELECT m.name as table_name, p.name as col_name, "
+            'p.type, p."notnull", p.pk '
+            "FROM sqlite_master m "
+            "JOIN pragma_table_info(m.name) p "
+            "WHERE m.type='table' AND m.name IN ({})"
+        ).format(placeholders)
         cursor.execute(columns_query, safe_tables)
 
         columns_by_table = {t: [] for t in safe_tables}
@@ -184,14 +186,16 @@ async def list_datasets(
         for i in range(0, len(safe_tables), batch_size):
             batch = safe_tables[i : i + batch_size]
             union_queries = []
+            params = []
             for t in batch:
                 union_queries.append(
-                    f"SELECT '{t}' as name, COUNT(*) as cnt FROM \"{t}\""
+                    'SELECT ? as name, COUNT(*) as cnt FROM "{}"'.format(t)
                 )
+                params.append(t)
 
             if union_queries:
                 batch_query = " UNION ALL ".join(union_queries)
-                cursor.execute(batch_query)
+                cursor.execute(batch_query, params)
                 for row in cursor.fetchall():
                     counts_by_table[row["name"]] = row["cnt"]
 
