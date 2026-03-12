@@ -20,7 +20,6 @@ from ..error_handling.custom_errors import (
 )
 from ..integration.redis_client import RedisClient
 from ..utils.logger import get_request_logger
-
 from ..utils.validation import sanitize_input
 
 # Initialize blueprint
@@ -75,17 +74,20 @@ def health_check():
         # Log health check results
         request_logger.info(f"Health check completed with status: {overall_status}")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "overall_status": overall_status,
-                    "services": health_status["services"],
-                    "system_info": health_status.get("system_info", {}),
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "overall_status": overall_status,
+                        "services": health_status["services"],
+                        "system_info": health_status.get("system_info", {}),
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except Exception as e:
         request_logger.error(f"Error performing health check: {e}")
@@ -121,29 +123,35 @@ def readiness_check():
 
         status_code = 200 if ready_status["ready"] else 503
 
-        return jsonify(
-            {
-                "success": ready_status["ready"],
-                "data": {
-                    "ready": ready_status["ready"],
-                    "checks": ready_status["checks"],
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), status_code
+        return (
+            jsonify(
+                {
+                    "success": ready_status["ready"],
+                    "data": {
+                        "ready": ready_status["ready"],
+                        "checks": ready_status["checks"],
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            status_code,
+        )
 
     except Exception as e:
         request_logger.error(f"Error performing readiness check: {e}")
-        return jsonify(
-            {
-                "success": False,
-                "data": {
-                    "ready": False,
-                    "error": str(e),
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 503
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "data": {
+                        "ready": False,
+                        "error": str(e),
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            503,
+        )
 
 
 @system_bp.route("/live", methods=["GET"])
@@ -174,16 +182,19 @@ def liveness_check():
 
     except Exception as e:
         request_logger.error(f"Error performing liveness check: {e}")
-        return jsonify(
-            {
-                "success": False,
-                "data": {
-                    "alive": False,
-                    "error": str(e),
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 500
+        return (
+            jsonify(
+                {
+                    "success": False,
+                    "data": {
+                        "alive": False,
+                        "error": str(e),
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            500,
+        )
 
 
 @system_bp.route("/config", methods=["GET"])
@@ -222,16 +233,19 @@ def get_system_config():
         # Log successful retrieval
         request_logger.info("System configuration retrieved successfully")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "config": config,
-                    "section": section,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "config": config,
+                        "section": section,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except ValidationError:
         raise
@@ -299,18 +313,21 @@ def update_system_config():
             updated_config = config
             request_logger.info("Configuration validation passed (no changes applied)")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "config": updated_config,
-                    "section": section,
-                    "validation_result": validation_result,
-                    "applied": not validate_only,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "config": updated_config,
+                        "section": section,
+                        "validation_result": validation_result,
+                        "applied": not validate_only,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except ValidationError:
         raise
@@ -361,13 +378,16 @@ def get_system_status():
         # Log successful retrieval
         request_logger.info("System status retrieved successfully")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": status_data,
-                "timestamp": datetime.utcnow().isoformat(),
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": status_data,
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+            ),
+            200,
+        )
 
     except ValidationError:
         raise
@@ -423,18 +443,21 @@ def get_system_metrics():
             f"Retrieved {len(metrics_data.get('metrics', []))} metric data points"
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "metrics": metrics_data.get("metrics", []),
-                    "summary": metrics_data.get("summary", {}),
-                    "metric_type": metric_type,
-                    "duration_minutes": duration,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "metrics": metrics_data.get("metrics", []),
+                        "summary": metrics_data.get("summary", {}),
+                        "metric_type": metric_type,
+                        "duration_minutes": duration,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except ValueError as e:
         raise ValidationError(f"Invalid parameter: {str(e)}")
@@ -502,18 +525,21 @@ def get_system_logs():
         # Log successful retrieval
         request_logger.info(f"Retrieved {len(logs_data.get('logs', []))} log entries")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "logs": logs_data.get("logs", []),
-                    "summary": logs_data.get("summary", {}),
-                    "total_count": logs_data.get("total_count", 0),
-                    "log_level": log_level,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "logs": logs_data.get("logs", []),
+                        "summary": logs_data.get("summary", {}),
+                        "total_count": logs_data.get("total_count", 0),
+                        "log_level": log_level,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except ValueError as e:
         raise ValidationError(f"Invalid parameter: {str(e)}")
@@ -574,20 +600,23 @@ def system_maintenance():
         # Log maintenance results
         request_logger.info(f"Maintenance operation completed: {operation}")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "operation": operation,
-                    "results": maintenance_result.get("results", {}),
-                    "status": maintenance_result.get("status", "completed"),
-                    "affected_components": maintenance_result.get(
-                        "affected_components", []
-                    ),
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "operation": operation,
+                        "results": maintenance_result.get("results", {}),
+                        "status": maintenance_result.get("status", "completed"),
+                        "affected_components": maintenance_result.get(
+                            "affected_components", []
+                        ),
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except ValidationError:
         raise
@@ -632,9 +661,9 @@ def _perform_health_checks(
 
             services_status["redis"] = {
                 "status": redis_status,
-                "connection_status": "connected"
-                if redis_status == "healthy"
-                else "disconnected",
+                "connection_status": (
+                    "connected" if redis_status == "healthy" else "disconnected"
+                ),
                 "last_check": datetime.utcnow().isoformat(),
             }
 
@@ -978,9 +1007,11 @@ def _get_system_logs(
                     "timestamp": log_time.isoformat(),
                     "level": level,
                     "message": f"Sample {level.lower()} log message {i + 1}",
-                    "component": "api"
-                    if i % 3 == 0
-                    else ("pipeline" if i % 3 == 1 else "database"),
+                    "component": (
+                        "api"
+                        if i % 3 == 0
+                        else ("pipeline" if i % 3 == 1 else "database")
+                    ),
                     "request_id": f"req_{i + 1:04d}",
                 }
             )

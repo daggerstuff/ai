@@ -1111,9 +1111,9 @@ class ProgressTracker:
                 if stage_state.status == "completed":
                     metrics["stages_completed"] += 1
                     if stage_state.duration_seconds:
-                        metrics["total_stage_duration_seconds"] += (
-                            stage_state.duration_seconds
-                        )
+                        metrics[
+                            "total_stage_duration_seconds"
+                        ] += stage_state.duration_seconds
                 elif stage_state.status == "failed":
                     metrics["stages_failed"] += 1
 

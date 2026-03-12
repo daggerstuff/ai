@@ -373,9 +373,9 @@ class TestPixelInferencePerformance:
         throughput = len(queries) / duration
 
         # Should handle at least 5 queries per second
-        assert throughput > 5, (
-            f"Throughput too low: {throughput} queries/sec (expected >5)"
-        )
+        assert (
+            throughput > 5
+        ), f"Throughput too low: {throughput} queries/sec (expected >5)"
 
 
 if __name__ == "__main__":

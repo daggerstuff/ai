@@ -421,9 +421,9 @@ def get_file_type_info(file_path: str) -> Dict[str, Any]:
             "filename": filename,
             "extension": file_extension,
             "mime_type": mime_type or "application/octet-stream",
-            "size_bytes": os.path.getsize(file_path)
-            if os.path.exists(file_path)
-            else 0,
+            "size_bytes": (
+                os.path.getsize(file_path) if os.path.exists(file_path) else 0
+            ),
         }
 
     except Exception as e:

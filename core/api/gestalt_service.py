@@ -9,10 +9,9 @@ import logging
 import os
 from typing import Dict, List, Optional
 
+from ai.core.gestalt_engine import CrisisLevel, GestaltEngine
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
-
-from ai.core.gestalt_engine import CrisisLevel, GestaltEngine
 
 logger = logging.getLogger(__name__)
 

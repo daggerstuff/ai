@@ -8,11 +8,10 @@ Each session gets its own isolated calculator instance.
 import logging
 from typing import Dict, Optional
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
-
 from ai.core.empathy_pq import EmpathyPQCalculator, PQScore
 from ai.core.gestalt_engine import CrisisLevel, GestaltState
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
