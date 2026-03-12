@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, status
 from pydantic import BaseModel
+
 from security.api_authentication import (
     AuthenticationSystem,
     PermissionLevel,
@@ -137,45 +138,75 @@ async def list_datasets(
     try:
         conn = get_db_connection()
         cursor = conn.cursor()
-        cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
-        tables = cursor.fetchall()
+        cursor.execute(
+            "SELECT name FROM sqlite_master WHERE type='table' "
+            "AND name != 'sqlite_sequence'"
+        )
+        all_tables = [row["name"] for row in cursor.fetchall()]
 
-        for table in tables:
-            table_name = table["name"]
-            if table_name == "sqlite_sequence":  # Skip internal SQLite table
-                continue
-
-            # Validate table name format
+        # Filter tables using validation
+        safe_tables = []
+        for table_name in all_tables:
             try:
-                safe_table_name = validate_identifier(table_name)
+                safe_tables.append(validate_identifier(table_name))
             except ValueError:
-                continue
+                pass
 
-            # Get row count
-            cursor.execute(f'SELECT COUNT(*) FROM "{safe_table_name}"')
-            row_count = cursor.fetchone()[0]
+        if not safe_tables:
+            return []
 
-            # Get columns
-            cursor.execute(f'PRAGMA table_info("{safe_table_name}");')
-            columns_info = cursor.fetchall()
-            columns = []
-            for col in columns_info:
-                columns.append(
+        # Get all columns in one query
+        # SQLite 3.16.0+ supports table-valued functions like pragma_table_info
+        placeholders = ", ".join("?" * len(safe_tables))
+        columns_query = (
+            "SELECT m.name as table_name, p.name as col_name, "
+            'p.type, p."notnull", p.pk '
+            "FROM sqlite_master m "
+            "JOIN pragma_table_info(m.name) p "
+            "WHERE m.type='table' AND m.name IN ({})"
+        ).format(placeholders)
+        cursor.execute(columns_query, safe_tables)
+
+        columns_by_table = {t: [] for t in safe_tables}
+        for row in cursor.fetchall():
+            table_name = row["table_name"]
+            if table_name in columns_by_table:
+                columns_by_table[table_name].append(
                     {
-                        "name": col["name"],
-                        "type": col["type"],
-                        "notnull": bool(col["notnull"]),
-                        "pk": bool(col["pk"]),
+                        "name": row["col_name"],
+                        "type": row["type"],
+                        "notnull": bool(row["notnull"]),
+                        "pk": bool(row["pk"]),
                     }
                 )
 
+        # Get row counts in batches to avoid expression depth limits
+        counts_by_table = {t: 0 for t in safe_tables}
+        batch_size = 100
+        for i in range(0, len(safe_tables), batch_size):
+            batch = safe_tables[i : i + batch_size]
+            union_queries = []
+            params = []
+            for t in batch:
+                union_queries.append(
+                    'SELECT ? as name, COUNT(*) as cnt FROM "{}"'.format(t)
+                )
+                params.append(t)
+
+            if union_queries:
+                batch_query = " UNION ALL ".join(union_queries)
+                cursor.execute(batch_query, params)
+                for row in cursor.fetchall():
+                    counts_by_table[row["name"]] = row["cnt"]
+
+        for table_name in safe_tables:
             datasets.append(
                 DatasetMetadata(
                     id=table_name,
                     name=table_name.replace("_", " ").title(),
                     description=f"Data from the {table_name} table.",
-                    row_count=row_count,
-                    columns=columns,
+                    row_count=counts_by_table.get(table_name, 0),
+                    columns=columns_by_table.get(table_name, []),
                 )
             )
     except sqlite3.Error as e:
