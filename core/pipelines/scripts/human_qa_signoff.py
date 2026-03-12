@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-""
+"""
 QA Signoff and Release Notes
 
 Implements Issue 7: Release 0: Clinician QA + bias/cultural review signoff

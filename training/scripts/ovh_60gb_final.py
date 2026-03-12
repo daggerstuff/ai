@@ -222,7 +222,8 @@ cat > training_ready/data/ovh_60gb_processed/README.md << 'README_EOF'
 - ✅ Therapeutic context preservation
 - ✅ No local storage required
 ```
-
+README_EOF
+'''
     return processor
 
 

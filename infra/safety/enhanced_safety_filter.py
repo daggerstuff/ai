@@ -126,11 +126,11 @@ class EnhancedSafetyFilter:
             ],
             'substance_abuse': [
                 r'\boverdose\b', r'\bdrugs\b', r'\balcohol\b', r'\bsubstance\b',
-                r'\baddiction\b', r '\babuse\b', r '\brehab\b', r '\bdetox\b'
+                r'\baddiction\b', r'\babuse\b', r'\brehab\b', r'\bdetox\b'
             ],
             'eating_disorders': [
-                r '\banorexia\b', r '\bbulimia\b', r '\beating disorder\b', r '\bpurge\b',
-                r '\bvomit\b', r '\bstomach pump\b', r '\bthin\b', r '\bskinny\b'
+                r'\banorexia\b', r'\bbulimia\b', r'\beating disorder\b', r'\bpurge\b',
+                r'\bvomit\b', r'\bstomach pump\b', r'\bthin\b', r'\bskinny\b'
             ]
         }
     
@@ -138,36 +138,36 @@ class EnhancedSafetyFilter:
         """Initialize harm detection patterns"""
         return {
             'physical_harm': [
-                r '\bhit\b', r '\bpunch\b', r '\bkick\b', r '\bstrike\b',
-                r '\bbeat\b', r '\binjure\b', r '\bhurt\b', r '\bdamage\b'
+                r'\bhit\b', r'\bpunch\b', r'\bkick\b', r'\bstrike\b',
+                r'\bbeat\b', r'\binjure\b', r'\bhurt\b', r'\bdamage\b'
             ],
             'emotional_harm': [
-                r '\bhurt feelings\b', r '\bemotional abuse\b', r '\bmanipulat\b',
-                r '\bgaslight\b', r '\bcontrol\b', r '\bdominat\b', r '\bintimidat\b'
+                r'\bhurt feelings\b', r'\bemotional abuse\b', r'\bmanipulat\b',
+                r'\bgaslight\b', r'\bcontrol\b', r'\bdominat\b', r'\bintimidat\b'
             ],
             'sexual_harm': [
-                r '\bsexual\b', r '\bharass\b', r '\bgrope\b', r '\btouch\b.*\binappropriate\b',
-                r '\binappropriate contact\b', r '\bnon-consensual\b'
+                r'\bsexual\b', r'\bharass\b', r'\bgrope\b', r'\btouch\b.*\binappropriate\b',
+                r'\binappropriate contact\b', r'\bnon-consensual\b'
             ]
         }
     
     def _initialize_privacy_patterns(self) -> Dict[str, str]:
         """Initialize privacy detection patterns"""
         return {
-            'ssn': r '\b\d{3}-\d{2}-\d{4}\b',
-            'email': r '\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
-            'phone': r '\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b',
-            'address': r '\b\d{1,4} [A-Za-z ]+ [A-Za-z. ]+\b',
-            'credit_card': r '\b(?:\d{4}[-\s]?){3}\d{4}\b|\b\d{16}\b',
-            'medical_record': r '\b[A-Z]{2,3}\d{2,}\b'  # Simplified medical record pattern
+            'ssn': r'\b\d{3}-\d{2}-\d{4}\b',
+            'email': r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b',
+            'phone': r'\b(?:\+?1[-.\s]?)?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}\b',
+            'address': r'\b\d{1,4} [A-Za-z ]+ [A-Za-z. ]+\b',
+            'credit_card': r'\b(?:\d{4}[-\s]?){3}\d{4}\b|\b\d{16}\b',
+            'medical_record': r'\b[A-Z]{2,3}\d{2,}\b'  # Simplified medical record pattern
         }
     
     def _initialize_inappropriate_patterns(self) -> List[str]:
         """Initialize inappropriate content patterns"""
         return [
-            r '\bexplicit\b', r '\bporn\b', r '\badult content\b', r '\bnudity\b',
-            r '\bsexual content\b', r '\berotic\b', r '\bxxx\b', r '\badult\b',
-            r '\bviolence\b.*\bdetail\b', r '\bgore\b', r '\bgraphic\b.*\bviolence\b'
+            r'\bexplicit\b', r'\bporn\b', r'\badult content\b', r'\bnudity\b',
+            r'\bsexual content\b', r'\berotic\b', r'\bxxx\b', r'\badult\b',
+            r'\bviolence\b.*\bdetail\b', r'\bgore\b', r'\bgraphic\b.*\bviolence\b'
         ]
     
     def check_output_safety(self, 
@@ -451,9 +451,9 @@ class EnhancedSafetyFilter:
         
         # Fallback to simple keyword matching for biased content
         bias_keywords = [
-            r'\bracist\b', r '\bsexist\b', r '\bageist\b', r '\bhomophobic\b',
-            r '\btransphobic\b', r '\bxenophobic\b', r '\bislamophobic\b',
-            r '\bantisemitic\b', r '\bcolorist\b'
+            r'\bracist\b', r'\bsexist\b', r'\bageist\b', r'\bhomophobic\b',
+            r'\btransphobic\b', r'\bxenophobic\b', r'\bislamophobic\b',
+            r'\bantisemitic\b', r'\bcolorist\b'
         ]
         
         bias_matches = sum(1 for pattern in bias_keywords if re.search(pattern, content.lower()))
@@ -462,9 +462,9 @@ class EnhancedSafetyFilter:
     def _check_legal_medical_advisory(self, content: str) -> float:
         """Check for legal or medical advisory content that should not be given by AI"""
         advisory_patterns = [
-            r '\byou should\b.*\blawyer\b', r '\blegal advice\b', r '\bmedical diagnosis\b',
-            r '\bprescribe\b', r '\bdiagnose\b', r '\btreatment plan\b',
-            r '\bmedication\b.*\bdosage\b', r '\bsurgery\b', r '\bprocedure\b.*\bmedical\b'
+            r'\byou should\b.*\blawyer\b', r'\blegal advice\b', r'\bmedical diagnosis\b',
+            r'\bprescribe\b', r'\bdiagnose\b', r'\btreatment plan\b',
+            r'\bmedication\b.*\bdosage\b', r'\bsurgery\b', r'\bprocedure\b.*\bmedical\b'
         ]
         
         advisory_matches = sum(1 for pattern in advisory_patterns if re.search(pattern, content.lower()))

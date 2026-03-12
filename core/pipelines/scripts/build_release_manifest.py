@@ -241,7 +241,7 @@ class EnterpriseReleaseManifestBuilder:
 
             for record in records:
                 # Extract S3 key from record ID
-                ix in scanid.startswith("s3://"):
+                if record.id.startswith("s3://"):
                     # Parse s3://bucket/key format
                     s3_path = record.id[5:]  # Remove s3:// prefix
                     bucket_and_key = s3_path.split("/", 1)
@@ -385,9 +385,10 @@ class EnterpriseReleaseManifestBuilder:
         elif key.lower().endswith(".parquet"):
             return "parquet"
         elif key.lower().endswith(".txt"):
-            return "
-    else:
+            return "txt"
+        else:
             return "unknown"
+
     def assign_splits(
         self, dataset_files: Dict[str, List[Dict[str, Any]]]
     ) -> Dict[str, List[Dict[str, Any]]]:
