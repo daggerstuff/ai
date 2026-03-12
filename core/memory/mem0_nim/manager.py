@@ -1,7 +1,7 @@
 """
-Gemini + Mem0 Integration Manager.
+NVIDIA NIM + Mem0 Integration Manager.
 
-Production-ready integration of Google Gemini with Mem0 long-term memory,
+Production-ready integration of NVIDIA NIM with Mem0 long-term memory,
 implementing Mem0 cookbook best practices for:
 - Custom instruction-based memory ingestion
 - Confidence thresholds for high-stakes data
@@ -13,10 +13,16 @@ Based on:
 - https://docs.mem0.ai/platform/overview
 """
 
+import asyncio
 import logging
 import os
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
+from uuid import uuid4
+
+import requests
+from pydantic import BaseModel, Field
 
 # Third-party imports
 try:
@@ -39,8 +45,6 @@ if not MemoryClient and not Memory:
     raise ImportError("Please install mem0ai: uv add mem0ai")
 
 from ai.core.api.memory.null_memory import NullMemoryManager
-from google import genai
-from pydantic import BaseModel, Field
 
 from .memory_ingestion_config import (
     CrisisDetector,
@@ -52,15 +56,45 @@ from .memory_ingestion_config import (
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("mem0_gemini")
+logger = logging.getLogger("mem0_nim")
 
 
-class GeminiMem0Config(BaseModel):
-    """Configuration for Gemini and Mem0 integration."""
+@dataclass(frozen=True)
+class _QueryContext:
+    request_id: str
+    user_id: str
+    session_id: Optional[str]
+    crisis_severity: str
+    memory_context: str
+    prompt: str
 
-    gemini_api_key: str = Field(..., description="Google Gemini API key")
+
+@dataclass(frozen=True)
+class _InteractionResult:
+    response_text: str
+    latency_ms: float
+    memories_used: int
+
+
+@dataclass(frozen=True)
+class _StoreReport:
+    user_memory_stored: bool
+    assistant_memory_stored: bool
+    crisis_flagged: bool
+
+
+class NIMMem0Config(BaseModel):
+    """Configuration for NVIDIA NIM and Mem0 integration."""
+
+    nim_api_key: Optional[str] = Field(None, description="NVIDIA NIM API key")
+    nim_base_url: str = Field(
+        "https://integrate.api.nvidia.com/v1",
+        description="NVIDIA NIM API base URL",
+    )
     mem0_api_key: Optional[str] = Field(None, description="Mem0 API key (for cloud)")
-    model_name: str = Field("gemini-2.0-flash", description="Gemini model to use")
+    model_name: str = Field(
+        "meta/llama-3.1-405b-instruct", description="NIM model to use"
+    )
     user_id: str = Field("default_user", description="Default user ID for memory")
     memory_config: Dict[str, Any] = Field(
         default_factory=lambda: {
@@ -76,9 +110,9 @@ class GeminiMem0Config(BaseModel):
     )
 
 
-class GeminiMem0Manager:
+class NIMMem0Manager:
     """
-    Manager for Google Gemini with Mem0 long-term memory.
+    Manager for NVIDIA NIM with Mem0 long-term memory.
 
     Implements a production-ready interface for empathetic AI with memory,
     including Mem0 cookbook best practices:
@@ -89,16 +123,27 @@ class GeminiMem0Manager:
     - Memory update/correction capabilities
     """
 
-    def __init__(self, config: GeminiMem0Config, memory_provider: Any = None):
+    def __init__(self, config: NIMMem0Config, memory_provider: Any = None):
         self.config = config
         self.therapeutic_config = config.therapeutic_config or TherapeuticMemoryConfig()
+        self.nim_api_key = (
+            config.nim_api_key
+            or os.getenv("NIM_API_KEY")
+            or os.getenv("NVIDIA_API_KEY")
+            or os.getenv("LLM_API_KEY")
+        )
+        if not self.nim_api_key:
+            logger.warning(
+                "No NVIDIA NIM API key configured. Set NIM_API_KEY, NVIDIA_API_KEY, or "
+                "LLM_API_KEY, or pass nim_api_key."
+            )
 
         # Initialize filters
         self.pii_filter = PIIFilter(self.therapeutic_config.pii_patterns)
         self.crisis_detector = CrisisDetector()
 
-        # Initialize Gemini using the new SDK
-        self.client = genai.Client(api_key=self.config.gemini_api_key)
+        # Initialize NIM endpoint
+        self.client_endpoint = self.config.nim_base_url.rstrip("/")
 
         # Initialize Memory
         if memory_provider:
@@ -111,9 +156,38 @@ class GeminiMem0Manager:
         # Apply custom instructions to project if using Platform API
         self._apply_custom_instructions()
 
-        logger.info(
-            f"Initialized GeminiMem0Manager with model {self.config.model_name}"
-        )
+        logger.info(f"Initialized NIMMem0Manager with model {self.config.model_name}")
+
+    def _log_stage(
+        self, request_id: str, stage: str, details: Optional[Dict[str, Any]] = None
+    ):
+        """Structured stage logging for better workflow visibility."""
+        payload = {"request_id": request_id, "stage": stage}
+        if details:
+            payload.update(details)
+        logger.info("memory-stack-stage=%s details=%s", payload["stage"], payload)
+
+    def _extract_memory_results(self, raw_result: Any) -> List[Dict[str, Any]]:
+        """Normalize memory client responses to a list of memory records."""
+        if raw_result is None:
+            return []
+        if isinstance(raw_result, list):
+            return raw_result
+        if isinstance(raw_result, dict):
+            return raw_result.get("results", []) or []
+        return []
+
+    def _extract_memory_id(self, result: Any) -> Optional[str]:
+        """Extract a memory ID from normalized memory add/update responses."""
+        results = self._extract_memory_results(result)
+        if not results:
+            return None
+        return results[0].get("id", "stored")
+
+    def _call_memory(self, operation: str, *args, **kwargs) -> Any:
+        """Call raw memory client operation with consistent error handling."""
+        method = getattr(self.memory, operation)
+        return method(*args, **kwargs)
 
     def _initialize_mem0(self):
         """Initialize Mem0 client with fallback chain."""
@@ -157,6 +231,52 @@ class GeminiMem0Manager:
         except Exception as e:
             logger.debug(f"Could not apply custom instructions (non-Platform API): {e}")
 
+    async def _call_nim(self, system_instructions: str, query: str) -> str:
+        """Call NVIDIA NIM chat completions and return response text."""
+        if not self.nim_api_key:
+            raise RuntimeError(
+                "No NVIDIA NIM API key is configured. "
+                "Provide NIM_API_KEY or pass nim_api_key."
+            )
+
+        payload = {
+            "model": self.config.model_name,
+            "messages": [
+                {"role": "system", "content": system_instructions},
+                {"role": "user", "content": query},
+            ],
+            "temperature": 0.6,
+        }
+        headers = {
+            "Authorization": f"Bearer {self.nim_api_key}",
+            "Content-Type": "application/json",
+        }
+
+        try:
+            response = await asyncio.to_thread(
+                requests.post,
+                f"{self.client_endpoint}/chat/completions",
+                json=payload,
+                headers=headers,
+                timeout=60,
+            )
+            response.raise_for_status()
+        except requests.RequestException as exc:
+            raise RuntimeError(f"NVIDIA NIM request failed: {exc}") from exc
+
+        body = response.json()
+        try:
+            choices = body.get("choices", [])
+            if not choices:
+                raise RuntimeError("NVIDIA NIM returned no choices.")
+            message = choices[0].get("message", {})
+            content = message.get("content")
+            if not content:
+                raise RuntimeError("NVIDIA NIM returned empty message content.")
+            return str(content)
+        except Exception as exc:
+            raise RuntimeError(f"Unexpected NVIDIA NIM response: {body}") from exc
+
     def _filter_for_storage(self, content: str) -> Optional[str]:
         """
         Filter content before memory storage.
@@ -196,7 +316,7 @@ class GeminiMem0Manager:
         context: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
-        Get a response from Gemini using Mem0 for context.
+        Get a response from NVIDIA NIM using Mem0 for context.
 
         Args:
             query: User's input message
@@ -209,6 +329,17 @@ class GeminiMem0Manager:
         """
         uid = user_id or self.config.user_id
 
+        request_id = uuid4().hex
+        self._log_stage(
+            request_id,
+            "start",
+            {
+                "user_id": uid,
+                "has_session": bool(session_id),
+                "platform_memory": self._is_platform_client,
+            },
+        )
+
         # 1. Check for crisis signals
         crisis_severity = self.crisis_detector.get_crisis_severity(query)
         if crisis_severity != "none":
@@ -217,37 +348,83 @@ class GeminiMem0Manager:
         # 2. Retrieve relevant memories
         memories = self._search_memories(query, uid)
         memory_context = self._format_memories(memories)
+        self._log_stage(
+            request_id,
+            "memory_retrieved",
+            {
+                "memories_found": len(memories),
+                "memory_context_empty": memory_context
+                == "No previous relevant memories.",
+            },
+        )
 
         # 3. Build the system prompt with memory
         system_instructions = self._build_system_prompt(
             memory_context, context, crisis_severity
         )
+        query_context = _QueryContext(
+            request_id=request_id,
+            user_id=uid,
+            session_id=session_id,
+            crisis_severity=crisis_severity,
+            memory_context=memory_context,
+            prompt=system_instructions,
+        )
+        self._log_stage(
+            request_id,
+            "prompt_built",
+            {"prompt_length": len(query_context.prompt)},
+        )
 
-        # 4. Generate response using Gemini
+        # 4. Generate response using NVIDIA NIM
         start_time = datetime.now()
-        response = self.client.models.generate_content(
-            model=self.config.model_name,
-            contents=f"{system_instructions}\nUSER: {query}",
+        response_text = await self._call_nim(
+            system_instructions=system_instructions, query=query
         )
         end_time = datetime.now()
-
-        response_text = response.text
+        self._log_stage(
+            request_id,
+            "llm_response",
+            {"latency_ms": (end_time - start_time).total_seconds() * 1000},
+        )
 
         # 5. Store the new interaction in Mem0 (with filtering)
-        self._store_interaction(query, response_text, uid, session_id, crisis_severity)
+        store_report = self._store_interaction(
+            query, response_text, uid, session_id, crisis_severity
+        )
 
         latency = (end_time - start_time).total_seconds() * 1000
+        interaction_result = _InteractionResult(
+            response_text=response_text,
+            latency_ms=latency,
+            memories_used=len(memories),
+        )
+        self._log_stage(
+            request_id,
+            "complete",
+            {
+                "latency_ms": interaction_result.latency_ms,
+                "memories_used": interaction_result.memories_used,
+            },
+        )
 
         return {
-            "response": response_text,
-            "latency_ms": latency,
-            "memories_used": len(memories),
+            "response": interaction_result.response_text,
+            "latency_ms": interaction_result.latency_ms,
+            "memories_used": interaction_result.memories_used,
             # "memories_content": [
             #     m.get("memory") or m.get("content", "") for m in memories
             # ],  # Removed for privacy
             "user_id": uid,
             "crisis_detected": crisis_severity != "none",
             "crisis_severity": crisis_severity,
+            "request_id": request_id,
+            "store_report": {
+                "user_memory_stored": store_report.user_memory_stored,
+                "assistant_memory_stored": store_report.assistant_memory_stored,
+                "crisis_flagged": store_report.crisis_flagged,
+            },
+            "model": self.config.model_name,
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
@@ -258,12 +435,8 @@ class GeminiMem0Manager:
     def _search_memories(self, query: str, user_id: str) -> List[Dict[str, Any]]:
         """Search for relevant memories."""
         try:
-            if self._is_platform_client:
-                result = self.memory.search(query, user_id=user_id)
-                return result.get("results", []) if isinstance(result, dict) else result
-            else:
-                result = self.memory.search(query, user_id=user_id)
-                return result if isinstance(result, list) else result.get("results", [])
+            result = self._call_memory("search", query, user_id=user_id)
+            return self._extract_memory_results(result)
         except Exception:
             logger.exception("Error searching memories")
             return []
@@ -318,8 +491,11 @@ class GeminiMem0Manager:
         user_id: str,
         session_id: Optional[str],
         crisis_severity: str,
-    ):
+    ) -> _StoreReport:
         """Store interaction in memory with filtering."""
+        user_memory_stored = False
+        assistant_memory_stored = False
+        crisis_flagged = crisis_severity != "none"
         try:
             # Filter and store user query
             if filtered_query := self._filter_for_storage(f"User shared: {query}"):
@@ -331,26 +507,40 @@ class GeminiMem0Manager:
                     metadata["crisis_severity"] = crisis_severity
                     metadata["category"] = MemoryCategory.CRISIS_CONTEXT.value
 
-                self.memory.add(
+                self._call_memory(
+                    "add",
                     filtered_query,
                     user_id=user_id,
                     metadata=metadata,
                 )
+                user_memory_stored = True
 
             # Store key response insights (truncated)
             response_summary = response[:500] if len(response) > 500 else response
             if filtered_response := self._filter_for_storage(
                 f"Assistant provided: {response_summary}"
             ):
-                self.memory.add(
+                self._call_memory(
+                    "add",
                     filtered_response,
                     user_id=user_id,
                     metadata={"role": "assistant", "session_id": session_id}
                     if session_id
                     else {"role": "assistant"},
                 )
+                assistant_memory_stored = True
+            return _StoreReport(
+                user_memory_stored=user_memory_stored,
+                assistant_memory_stored=assistant_memory_stored,
+                crisis_flagged=crisis_flagged,
+            )
         except Exception:
             logger.exception("Error storing interaction")
+            return _StoreReport(
+                user_memory_stored=user_memory_stored,
+                assistant_memory_stored=assistant_memory_stored,
+                crisis_flagged=crisis_flagged,
+            )
 
     def update_memory(
         self,
@@ -381,7 +571,7 @@ class GeminiMem0Manager:
             if metadata:
                 update_args["metadata"] = metadata
 
-            self.memory.update(**update_args)
+            self._call_memory("update", **update_args)
             logger.info(f"Updated memory {memory_id}")
             return True
         except Exception:
@@ -399,7 +589,7 @@ class GeminiMem0Manager:
             True if deletion succeeded
         """
         try:
-            self.memory.delete(memory_id=memory_id)
+            self._call_memory("delete", memory_id=memory_id)
             logger.info(f"Deleted memory {memory_id}")
             return True
         except Exception:
@@ -410,7 +600,7 @@ class GeminiMem0Manager:
         """Clear all memories for a specific user."""
         try:
             if hasattr(self.memory, "delete_all"):
-                self.memory.delete_all(user_id=user_id)
+                self._call_memory("delete_all", user_id=user_id)
             else:
                 # Fallback: get all and delete individually
                 all_memories = self.get_all_memories(user_id)
@@ -424,10 +614,8 @@ class GeminiMem0Manager:
     def get_all_memories(self, user_id: str) -> List[Dict[str, Any]]:
         """Retrieve all memories for a user."""
         try:
-            result = self.memory.get_all(user_id=user_id)
-            if isinstance(result, dict):
-                return result.get("results", [])
-            return result if isinstance(result, list) else []
+            result = self._call_memory("get_all", user_id=user_id)
+            return self._extract_memory_results(result)
         except Exception:
             logger.exception(f"Error retrieving memories for user {user_id}")
             return []
@@ -435,7 +623,10 @@ class GeminiMem0Manager:
     def get_memory(self, memory_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve a specific memory by ID."""
         try:
-            return self.memory.get(memory_id=memory_id)
+            result = self._call_memory("get", memory_id=memory_id)
+            if isinstance(result, dict):
+                return result
+            return None
         except Exception:
             logger.exception(f"Error retrieving memory {memory_id}")
             return None
@@ -472,21 +663,14 @@ class GeminiMem0Manager:
             if "timestamp" not in full_metadata:
                 full_metadata["timestamp"] = datetime.now(timezone.utc).isoformat()
 
-            result = self.memory.add(
+            result = self._call_memory(
+                "add",
                 filtered_content,
                 user_id=user_id,
                 metadata=full_metadata,
             )
 
-            # Extract memory ID - Mem0 returns dict with 'results' list
-            if isinstance(result, dict):
-                results = result.get("results") or []
-                return results[0].get("id", "stored") if results else None
-            return (
-                result[0].get("id", "stored")
-                if isinstance(result, list) and result
-                else None
-            )
+            return self._extract_memory_id(result)
 
         except Exception as e:
             logger.exception(f"Error adding memory: {e}")
@@ -495,11 +679,15 @@ class GeminiMem0Manager:
 
 async def test_integration():
     """Simple test for the integration."""
-    gemini_key = os.environ.get("GEMINI_API_KEY")
+    nim_key = (
+        os.environ.get("NIM_API_KEY")
+        or os.environ.get("NVIDIA_API_KEY")
+        or os.getenv("LLM_API_KEY")
+    )
     mem0_key = os.environ.get("MEM0_API_KEY")
 
-    if not gemini_key:
-        logger.error("Error: GEMINI_API_KEY not found in environment.")
+    if not nim_key:
+        logger.error("Error: NIM API key not found in environment.")
         return
 
     # Create therapeutic config with high confidence threshold
@@ -508,14 +696,14 @@ async def test_integration():
         enable_crisis_detection=True,
     )
 
-    config = GeminiMem0Config(
-        gemini_api_key=gemini_key,
+    config = NIMMem0Config(
+        nim_api_key=nim_key,
         mem0_api_key=mem0_key,
         user_id="test_user_001",
         therapeutic_config=therapeutic_config,
     )
 
-    manager = GeminiMem0Manager(config)
+    manager = NIMMem0Manager(config)
 
     # Test queries including speculation filtering
     queries = [
