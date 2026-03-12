@@ -9,6 +9,7 @@ jobs:
   sonarqube:
     if: ${{ secrets.SONAR_TOKEN != '' }}
     name: SonarQube
+    if: ${{ secrets.SONAR_TOKEN != '' }}
     runs-on: ubuntu-latest
     if: ${{ secrets.SONAR_TOKEN != '' }}
     steps:
