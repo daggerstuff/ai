@@ -89,13 +89,31 @@ class PixelTrainer:
 
         if UNSLOTH_AVAILABLE and use_cuda:
             logger.info("⚡ Loading model via Unsloth (GPU)...")
-            model, tokenizer = FastLanguageModel.from_pretrained(
-                model_name=self.model_name,
-                max_seq_length=max_seq_length,
-                dtype=dtype,
-                load_in_4bit=load_in_4bit,
-                device_map=device_map,
-            )
+            try:
+                model, tokenizer = FastLanguageModel.from_pretrained(
+                    model_name=self.model_name,
+                    max_seq_length=max_seq_length,
+                    dtype=dtype,
+                    load_in_4bit=load_in_4bit,
+                    device_map=device_map,
+                    fix_tokenizer=True,
+                    fix_mistral_regex=True,
+                )
+            except TypeError as exc:
+                if "fix_mistral_regex" in str(exc):
+                    logger.info(
+                        "Falling back to Unsloth load without fix_mistral_regex."
+                    )
+                    model, tokenizer = FastLanguageModel.from_pretrained(
+                        model_name=self.model_name,
+                        max_seq_length=max_seq_length,
+                        dtype=dtype,
+                        load_in_4bit=load_in_4bit,
+                        device_map=device_map,
+                        fix_tokenizer=True,
+                    )
+                else:
+                    raise
 
             # Configure LoRA via Unsloth
             lora_conf = self.config.get("lora_config", {})
