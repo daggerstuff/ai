@@ -11,6 +11,7 @@ Coordinates the full workflow:
 """
 
 import logging
+import time
 from typing import List, Optional
 
 from ai.core.sourcing.youtube.api import (
@@ -109,6 +110,7 @@ class ChannelProcessor:
             ChannelDiscoveryResults with all findings
         """
         logger.info("Starting channel discovery pipeline")
+        start_time = time.time()
 
         results = ChannelDiscoveryResults()
 
@@ -129,7 +131,7 @@ class ChannelProcessor:
             qualified = self._evaluate_full_channel(channel)
             results.add_channel(channel, qualified)
 
-        results.time_elapsed_seconds = 0  # TODO: track time
+        results.time_elapsed_seconds = time.time() - start_time
 
         logger.info(
             f"Discovery complete: {len(results.qualified_channels)} qualified / "
@@ -315,19 +317,23 @@ class ChannelProcessor:
                 "is_professional": channel.is_professional,
                 "credentials": channel.credentials,
                 "organization": channel.organization,
-                "licensing": {
-                    "cc_license": channel.licensing.cc_license
+                "licensing": (
+                    {
+                        "cc_license": (
+                            channel.licensing.cc_license if channel.licensing else False
+                        ),
+                        "cc_type": (
+                            channel.licensing.cc_type if channel.licensing else None
+                        ),
+                        "commercial_use": (
+                            channel.licensing.commercial_use
+                            if channel.licensing
+                            else False
+                        ),
+                    }
                     if channel.licensing
-                    else False,
-                    "cc_type": channel.licensing.cc_type
-                    if channel.licensing
-                    else None,
-                    "commercial_use": channel.licensing.commercial_use
-                    if channel.licensing
-                    else False,
-                }
-                if channel.licensing
-                else None,
+                    else None
+                ),
                 "status": channel.status.value,
             }
             for channel in results.qualified_channels
