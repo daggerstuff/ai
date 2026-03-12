@@ -1,18 +1,16 @@
 import asyncio
-import json
-import logging
-import os
-from pathlib import Path
-from datetime import datetime
 import sys
-import re
+from datetime import datetime
+from pathlib import Path
+
+import aiofiles
 
 # Add repo root to sys.path
 repo_root = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(repo_root))
 
-from ai.core.utils.subtitle_processor import SubtitleProcessor
 from ai.core.pipelines.logger import setup_logger
+from ai.core.utils.subtitle_processor import SubtitleProcessor
 
 
 class MassSubtitleIngestor:
@@ -30,8 +28,8 @@ class MassSubtitleIngestor:
         self.logger.info(f"Ingesting local file: {txt_file.name}")
 
         try:
-            with open(txt_file, "r", encoding="utf-8") as f:
-                content = f.read()
+            async with aiofiles.open(txt_file, "r", encoding="utf-8") as f:
+                content = await f.read()
 
             video_title = txt_file.stem
 
@@ -50,7 +48,9 @@ class MassSubtitleIngestor:
                 # Or just treat the entire block as cleaned_text. We'll join lines for formatting.
                 # SubtitleProcessor.format_as_markdown expects paragraphs!
                 # Let's ensure it's a continuous string without breaking sentences unnaturally.
-                cleaned_text = " ".join([line.strip() for line in content.split("\n") if line.strip()])
+                cleaned_text = " ".join(
+                    [line.strip() for line in content.split("\n") if line.strip()]
+                )
 
             markdown_content = SubtitleProcessor.format_as_markdown(
                 cleaned_text, metadata
@@ -58,17 +58,15 @@ class MassSubtitleIngestor:
 
             # Save to ingested directory
             safe_title = (
-                "".join(
-                    [c for c in video_title if c.isalnum() or c in (" ", "-", "_")]
-                )
+                "".join([c for c in video_title if c.isalnum() or c in (" ", "-", "_")])
                 .strip()
                 .replace(" ", "_")
             )
             output_file_name = f"{channel_name.replace(' ', '')}_{safe_title}.md"
             output_file = self.output_dir / output_file_name
 
-            with open(output_file, "w", encoding="utf-8") as f:
-                f.write(markdown_content)
+            async with aiofiles.open(output_file, "w", encoding="utf-8") as f:
+                await f.write(markdown_content)
 
             self.logger.info(f"Successfully ingested {output_file.name}")
 
@@ -84,19 +82,24 @@ class MassSubtitleIngestor:
 
         if pilot_count > 0:
             channel_dirs = channel_dirs[:pilot_count]
-            self.logger.info(f"Pilot mode: processing first {pilot_count} channels out of {len(channel_dirs)}")
+            self.logger.info(
+                f"Pilot mode: processing first {pilot_count} channels out of {len(channel_dirs)}"
+            )
 
         for channel_dir in channel_dirs:
             channel_name = channel_dir.name
             self.logger.info(f"--- Processing Channel: {channel_name} ---")
 
             txt_files = list(channel_dir.glob("*.txt"))
-            self.logger.info(f"Found {len(txt_files)} transcript files for {channel_name}")
+            self.logger.info(
+                f"Found {len(txt_files)} transcript files for {channel_name}"
+            )
 
             for txt_file in txt_files:
                 await self.ingest_local_file(txt_file, channel_name)
                 # Brief yield for asyncio event loop
                 await asyncio.sleep(0.01)
+
 
 if __name__ == "__main__":
     # If a number is passed as an argument, use it as pilot_count
@@ -105,7 +108,9 @@ if __name__ == "__main__":
         try:
             pilot = int(sys.argv[1])
         except ValueError:
-            print("Warning: pilot count must be an integer, executing full run instead.")
+            print(
+                "Warning: pilot count must be an integer, executing full run instead."
+            )
 
     # Workspace root assuming script is in pixelated/ai/pipelines/orchestrator/ingestion/
     ws_root = Path(__file__).resolve().parents[4]
