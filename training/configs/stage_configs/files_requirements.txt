@@ -30,7 +30,7 @@ anyio==4.11.0
 trl==0.23.0
 nvidia-curand-cu12==10.3.9.90
 typing_extensions==4.15.0
-black==25.1.0
+black==26.3.1
 coloredlogs==15.0.1
 packaging==25.0
 pandas==3.0.0
