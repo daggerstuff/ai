@@ -19,7 +19,6 @@ from ..error_handling.custom_errors import (
 )
 from ..integration.redis_client import RedisClient
 from ..utils.logger import get_request_logger
-
 from ..utils.validation import sanitize_input, validate_standardization_request
 
 # Initialize blueprint
@@ -55,16 +54,19 @@ def list_schemas():
         # Log successful retrieval
         request_logger.info(f"Retrieved {len(schemas)} schemas")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "schemas": schemas,
-                    "count": len(schemas),
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "schemas": schemas,
+                        "count": len(schemas),
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except ResourceNotFoundError:
         raise
@@ -112,15 +114,18 @@ def get_schema(schema_id: str):
         # Log successful retrieval
         request_logger.info(f"Retrieved schema: {schema_id}")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "schema": schema,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "schema": schema,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except (ValidationError, ResourceNotFoundError):
         raise
@@ -191,18 +196,21 @@ def validate_data():
         else:
             request_logger.warning(f"Data validation failed for schema: {schema_id}")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "valid": validation_result["valid"],
-                    "errors": validation_result.get("errors", []),
-                    "warnings": validation_result.get("warnings", []),
-                    "schema_id": schema_id,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "valid": validation_result["valid"],
+                        "errors": validation_result.get("errors", []),
+                        "warnings": validation_result.get("warnings", []),
+                        "schema_id": schema_id,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except (ValidationError, ResourceNotFoundError):
         raise
@@ -271,20 +279,23 @@ def transform_data():
         # Log transformation results
         request_logger.info(f"Data transformation completed for schema: {schema_id}")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "transformed_data": transformation_result["data"],
-                    "transformations_applied": transformation_result.get(
-                        "transformations", []
-                    ),
-                    "metadata": transformation_result.get("metadata", {}),
-                    "schema_id": schema_id,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "transformed_data": transformation_result["data"],
+                        "transformations_applied": transformation_result.get(
+                            "transformations", []
+                        ),
+                        "metadata": transformation_result.get("metadata", {}),
+                        "schema_id": schema_id,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except (ValidationError, ResourceNotFoundError):
         raise
@@ -396,20 +407,23 @@ def batch_transform_data():
             f"Batch transformation completed: {successful}/{len(results)} successful"
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "results": results,
-                    "total_items": len(results),
-                    "successful_items": successful,
-                    "failed_items": len(results) - successful,
-                    "success_rate": success_rate,
-                    "schema_id": schema_id,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "results": results,
+                        "total_items": len(results),
+                        "successful_items": successful,
+                        "failed_items": len(results) - successful,
+                        "success_rate": success_rate,
+                        "schema_id": schema_id,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except (ValidationError, ResourceNotFoundError):
         raise
@@ -459,16 +473,19 @@ def get_schema_stats(schema_id: str):
         # Log successful retrieval
         request_logger.info(f"Retrieved statistics for schema: {schema_id}")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "schema_id": schema_id,
-                    "statistics": stats,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "schema_id": schema_id,
+                        "statistics": stats,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except (ValidationError, ResourceNotFoundError):
         raise

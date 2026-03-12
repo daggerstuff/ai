@@ -562,9 +562,11 @@ class PerformanceMonitor:
                 "sub_50ms_compliance": {
                     "current_rate": self.performance_stats["sub_50ms_compliance_rate"],
                     "target_rate": 0.95,  # 95% target
-                    "status": "meeting_target"
-                    if self.performance_stats["sub_50ms_compliance_rate"] >= 0.95
-                    else "below_target",
+                    "status": (
+                        "meeting_target"
+                        if self.performance_stats["sub_50ms_compliance_rate"] >= 0.95
+                        else "below_target"
+                    ),
                 },
                 "performance_trends": self._calculate_performance_trends(),
                 "alerts": [],
@@ -583,9 +585,11 @@ class PerformanceMonitor:
                 dashboard["current_performance"][execution_id][metric_name] = {
                     "current_value": perf_data["last_value"],
                     "average": perf_data["average"],
-                    "min_value": perf_data["min_value"]
-                    if perf_data["min_value"] != float("inf")
-                    else 0.0,
+                    "min_value": (
+                        perf_data["min_value"]
+                        if perf_data["min_value"] != float("inf")
+                        else 0.0
+                    ),
                     "max_value": perf_data["max_value"],
                     "count": perf_data["count"],
                     "threshold_exceeded": perf_data["threshold_exceeded"],
@@ -814,9 +818,9 @@ class PerformanceMonitor:
                         "average": sum(values) / len(values) if values else 0.0,
                         "min": min(values) if values else 0.0,
                         "max": max(values) if values else 0.0,
-                        "p95": self._calculate_percentile(values, 0.95)
-                        if values
-                        else 0.0,
+                        "p95": (
+                            self._calculate_percentile(values, 0.95) if values else 0.0
+                        ),
                     }
                     for metric_key, values in self.execution_metrics[
                         execution_id
