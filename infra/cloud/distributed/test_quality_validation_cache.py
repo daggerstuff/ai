@@ -18,7 +18,48 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).parent))
 
 
-from quality_validation_cache import CachedQualityValidator, QualityValidationCache
+from quality_validation_cache import CacheEntry, CachedQualityValidator, QualityValidationCache
+
+
+class TestCacheEntry(unittest.TestCase):
+    """Test cases for CacheEntry dataclass"""
+
+    def setUp(self):
+        """Set up test fixtures"""
+        self.entry_data = {
+            "task_id": "test_task_123",
+            "data_hash": "hash456",
+            "result_data": b"test result",
+            "created_at": "2023-01-01T00:00:00Z",
+            "expires_at": "2023-01-02T00:00:00Z",
+            "hit_count": 5
+        }
+        self.entry = CacheEntry(**self.entry_data)
+
+    def test_to_dict(self):
+        """Test conversion to dictionary"""
+        result = self.entry.to_dict()
+        self.assertIsInstance(result, dict)
+        self.assertEqual(result["task_id"], "test_task_123")
+        self.assertEqual(result["data_hash"], "hash456")
+        self.assertEqual(result["result_data"], b"test result")
+        self.assertEqual(result["created_at"], "2023-01-01T00:00:00Z")
+        self.assertEqual(result["expires_at"], "2023-01-02T00:00:00Z")
+        self.assertEqual(result["hit_count"], 5)
+
+    def test_from_dict(self):
+        """Test creation from dictionary"""
+        new_entry = CacheEntry.from_dict(self.entry_data)
+        self.assertIsInstance(new_entry, CacheEntry)
+        self.assertEqual(new_entry.task_id, "test_task_123")
+        self.assertEqual(new_entry.data_hash, "hash456")
+        self.assertEqual(new_entry.result_data, b"test result")
+        self.assertEqual(new_entry.created_at, "2023-01-01T00:00:00Z")
+        self.assertEqual(new_entry.expires_at, "2023-01-02T00:00:00Z")
+        self.assertEqual(new_entry.hit_count, 5)
+
+        # Test to_dict matches original data
+        self.assertEqual(new_entry.to_dict(), self.entry_data)
 
 
 class TestQualityValidationCache(unittest.TestCase):
