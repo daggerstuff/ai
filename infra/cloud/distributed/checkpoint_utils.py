@@ -39,7 +39,9 @@ class CheckpointConfig:
     compression_enabled: bool = True
     encryption_enabled: bool = False
     backup_enabled: bool = True
-    backup_path: str = "/home/vivi/pixelated/ai/infrastructure/distributed/checkpoint_backups"
+    backup_path: str = (
+        "/home/vivi/pixelated/ai/infrastructure/distributed/checkpoint_backups"
+    )
     monitoring_enabled: bool = True
     performance_tracking: bool = True
 
@@ -70,7 +72,9 @@ class CheckpointOptimizer:
 
         # Check if we need to free space
         if current_size_gb > self.config.max_storage_size_gb:
-            space_to_free = (current_size_gb - self.config.max_storage_size_gb) * (1024**3)
+            space_to_free = (current_size_gb - self.config.max_storage_size_gb) * (
+                1024**3
+            )
             freed_space = self._free_storage_space(space_to_free)
             optimization_results["space_freed_mb"] = freed_space / (1024**2)
             optimization_results["actions_taken"].append("freed_storage_space")
@@ -116,7 +120,9 @@ class CheckpointOptimizer:
 
             if self.storage.delete_checkpoint(checkpoint_id):
                 freed_bytes += size_bytes
-                logger.info(f"Deleted old checkpoint {checkpoint_id} ({size_bytes} bytes)")
+                logger.info(
+                    f"Deleted old checkpoint {checkpoint_id} ({size_bytes} bytes)"
+                )
 
         return freed_bytes
 
@@ -148,9 +154,11 @@ class CheckpointOptimizer:
                         json.dump(
                             {
                                 "metadata": asdict(metadata),
-                                "data": data
-                                if isinstance(data, (dict, list, str, int, float))
-                                else str(data),
+                                "data": (
+                                    data
+                                    if isinstance(data, (dict, list, str, int, float))
+                                    else str(data)
+                                ),
                             },
                             f,
                             indent=2,
@@ -168,7 +176,9 @@ class CheckpointOptimizer:
                     logger.info(f"Archived checkpoint {metadata.checkpoint_id}")
 
                 except Exception as e:
-                    logger.error(f"Failed to archive checkpoint {metadata.checkpoint_id}: {e}")
+                    logger.error(
+                        f"Failed to archive checkpoint {metadata.checkpoint_id}: {e}"
+                    )
 
         return archived_count
 
@@ -254,7 +264,9 @@ class CheckpointOptimizer:
 
         # Generate recommendations
         if analysis["storage_efficiency"]["compression_ratio"] < 0.5:
-            analysis["recommendations"].append("Enable compression for better storage efficiency")
+            analysis["recommendations"].append(
+                "Enable compression for better storage efficiency"
+            )
 
         if analysis["storage_efficiency"]["fragmentation_ratio"] > 0.3:
             analysis["recommendations"].append("Consider storage defragmentation")
@@ -271,19 +283,13 @@ class CheckpointOptimizer:
 
         # Calculate compression ratio
         with sqlite3.connect(self.storage.db_path) as conn:
-            compressed_size = (
-                conn.execute("""
+            compressed_size = conn.execute("""
                 SELECT SUM(size_bytes) FROM checkpoints WHERE compression = 1
-            """).fetchone()[0]
-                or 0
-            )
+            """).fetchone()[0] or 0
 
-            uncompressed_size = (
-                conn.execute("""
+            uncompressed_size = conn.execute("""
                 SELECT SUM(size_bytes) FROM checkpoints WHERE compression = 0
-            """).fetchone()[0]
-                or 0
-            )
+            """).fetchone()[0] or 0
 
         total_size = compressed_size + uncompressed_size
         compression_ratio = compressed_size / total_size if total_size > 0 else 0
@@ -297,7 +303,9 @@ class CheckpointOptimizer:
                 if (storage_path / "data").exists()
                 else 0
             )
-            fragmentation_ratio = (total_files - data_files) / total_files if total_files > 0 else 0
+            fragmentation_ratio = (
+                (total_files - data_files) / total_files if total_files > 0 else 0
+            )
         else:
             fragmentation_ratio = 0
 
@@ -354,7 +362,9 @@ class CheckpointMonitor:
             return
 
         self.monitoring_active = True
-        self.monitor_thread = threading.Thread(target=self._monitoring_loop, daemon=True)
+        self.monitor_thread = threading.Thread(
+            target=self._monitoring_loop, daemon=True
+        )
         self.monitor_thread.start()
 
         logger.info("Started checkpoint monitoring")
@@ -427,7 +437,9 @@ class CheckpointMonitor:
 
         # Check system resources
         if metrics["system_resources"]["cpu_percent"] > 90:
-            issues.append(f"High CPU usage: {metrics['system_resources']['cpu_percent']:.1f}%")
+            issues.append(
+                f"High CPU usage: {metrics['system_resources']['cpu_percent']:.1f}%"
+            )
 
         if metrics["system_resources"]["memory_percent"] > 90:
             issues.append(
@@ -435,7 +447,9 @@ class CheckpointMonitor:
             )
 
         if metrics["system_resources"]["disk_percent"] > 90:
-            issues.append(f"High disk usage: {metrics['system_resources']['disk_percent']:.1f}%")
+            issues.append(
+                f"High disk usage: {metrics['system_resources']['disk_percent']:.1f}%"
+            )
 
         # Log issues
         for issue in issues:
@@ -467,7 +481,9 @@ class CheckpointMonitor:
             storage_trend = (
                 latest_metrics["storage_stats"]["total_size_bytes"]
                 - prev_metrics["storage_stats"]["total_size_bytes"]
-            ) / (1024**2)  # MB change
+            ) / (
+                1024**2
+            )  # MB change
         else:
             storage_trend = 0
 
