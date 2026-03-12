@@ -211,8 +211,7 @@ class AuthenticationSystem:
                 # Check expiration
                 if (
                     api_key_obj.expires_at
-                    and
-                    datetime.utcnow() > api_key_obj.expires_at
+                    and datetime.utcnow() > api_key_obj.expires_at
                 ):
                     logger.warning(f"Expired API key used: {api_key_obj.name}")
                     return None
@@ -395,7 +394,7 @@ class AuthenticationTester:
 
     def test_password_hashing(self) -> bool:
         """Test password hashing security"""
-        password = "test_password_123"
+        password = secrets.token_urlsafe(16)
         hash1 = self.auth_system.hash_password(password)
         hash2 = self.auth_system.hash_password(password)
 
