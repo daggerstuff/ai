@@ -5,18 +5,18 @@ This module provides a FastAPI-based embedding service that wraps the
 ClinicalKnowledgeEmbedder for text-to-vector conversion and similarity search.
 """
 
-from .service import EmbeddingAgentService
+from .app import create_app, embedding_router
 from .models import (
-    EmbeddingRequest,
-    EmbeddingResponse,
     BatchEmbeddingRequest,
     BatchEmbeddingResponse,
-    SimilaritySearchRequest,
-    SimilaritySearchResponse,
     EmbeddingAgentConfig,
     EmbeddingAgentStatus,
+    EmbeddingRequest,
+    EmbeddingResponse,
+    SimilaritySearchRequest,
+    SimilaritySearchResponse,
 )
-from .app import create_app, embedding_router
+from .service import EmbeddingAgentService
 
 __all__ = [
     "EmbeddingAgentService",
@@ -31,4 +31,3 @@ __all__ = [
     "create_app",
     "embedding_router",
 ]
-

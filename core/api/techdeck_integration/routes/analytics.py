@@ -19,7 +19,6 @@ from ..error_handling.custom_errors import (
 )
 from ..integration.redis_client import RedisClient
 from ..utils.logger import get_request_logger
-
 from ..utils.validation import sanitize_input, validate_analytics_request
 
 # Initialize blueprint
@@ -91,21 +90,24 @@ def get_usage_analytics():
             f"Retrieved usage analytics with {len(analytics_data.get('metrics', []))} data points"
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "metrics": analytics_data.get("metrics", []),
-                    "summary": analytics_data.get("summary", {}),
-                    "trends": analytics_data.get("trends", {}),
-                    "period": {
-                        "start": start_date.isoformat(),
-                        "end": end_date.isoformat(),
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "metrics": analytics_data.get("metrics", []),
+                        "summary": analytics_data.get("summary", {}),
+                        "trends": analytics_data.get("trends", {}),
+                        "period": {
+                            "start": start_date.isoformat(),
+                            "end": end_date.isoformat(),
+                        },
+                        "timestamp": datetime.utcnow().isoformat(),
                     },
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+                }
+            ),
+            200,
+        )
 
     except ValueError as e:
         raise ValidationError(f"Invalid date format: {str(e)}")
@@ -178,19 +180,22 @@ def get_performance_analytics():
             f"Retrieved performance analytics with {len(performance_data.get('metrics', []))} data points"
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "metrics": performance_data.get("metrics", []),
-                    "benchmarks": performance_data.get("benchmarks", {}),
-                    "percentiles": performance_data.get("percentiles", {}),
-                    "service": service,
-                    "metric_type": metric_type,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "metrics": performance_data.get("metrics", []),
+                        "benchmarks": performance_data.get("benchmarks", {}),
+                        "percentiles": performance_data.get("percentiles", {}),
+                        "service": service,
+                        "metric_type": metric_type,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except ValueError as e:
         raise ValidationError(f"Invalid date format: {str(e)}")
@@ -265,19 +270,22 @@ def get_pipeline_analytics():
             f"Retrieved pipeline analytics with {len(pipeline_data.get('executions', []))} executions"
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "executions": pipeline_data.get("executions", []),
-                    "statistics": pipeline_data.get("statistics", {}),
-                    "success_rate": pipeline_data.get("success_rate", 0),
-                    "average_duration": pipeline_data.get("average_duration", 0),
-                    "pipeline_id": pipeline_id,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "executions": pipeline_data.get("executions", []),
+                        "statistics": pipeline_data.get("statistics", {}),
+                        "success_rate": pipeline_data.get("success_rate", 0),
+                        "average_duration": pipeline_data.get("average_duration", 0),
+                        "pipeline_id": pipeline_id,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except ValueError as e:
         raise ValidationError(f"Invalid date format: {str(e)}")
@@ -352,18 +360,21 @@ def get_dataset_analytics():
             f"Retrieved dataset analytics with {len(dataset_data.get('datasets', []))} datasets"
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "datasets": dataset_data.get("datasets", []),
-                    "summary": dataset_data.get("summary", {}),
-                    "trends": dataset_data.get("trends", {}),
-                    "metric_type": metric_type,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "datasets": dataset_data.get("datasets", []),
+                        "summary": dataset_data.get("summary", {}),
+                        "trends": dataset_data.get("trends", {}),
+                        "metric_type": metric_type,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except ValueError as e:
         raise ValidationError(f"Invalid date format: {str(e)}")
@@ -424,18 +435,21 @@ def get_real_time_analytics():
             f"Retrieved real-time analytics for {len(metric_types)} metric types"
         )
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "metrics": real_time_data.get("metrics", {}),
-                    "status": real_time_data.get("status", {}),
-                    "alerts": real_time_data.get("alerts", []),
-                    "refresh_rate": refresh_rate,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "metrics": real_time_data.get("metrics", {}),
+                        "status": real_time_data.get("status", {}),
+                        "alerts": real_time_data.get("alerts", []),
+                        "refresh_rate": refresh_rate,
+                        "timestamp": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            200,
+        )
 
     except ValueError as e:
         raise ValidationError(f"Invalid parameter: {str(e)}")
@@ -527,19 +541,22 @@ def export_analytics():
         # Log export creation
         request_logger.info(f"Created export task: {export_task.get('task_id')}")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": {
-                    "task_id": export_task.get("task_id"),
-                    "status": export_task.get("status"),
-                    "export_type": export_type,
-                    "estimated_size": export_task.get("estimated_size"),
-                    "download_url": export_task.get("download_url"),
-                    "created_at": datetime.utcnow().isoformat(),
-                },
-            }
-        ), 201
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": {
+                        "task_id": export_task.get("task_id"),
+                        "status": export_task.get("status"),
+                        "export_type": export_type,
+                        "estimated_size": export_task.get("estimated_size"),
+                        "download_url": export_task.get("download_url"),
+                        "created_at": datetime.utcnow().isoformat(),
+                    },
+                }
+            ),
+            201,
+        )
 
     except (ValidationError, ValueError) as e:
         raise ValidationError(f"Invalid request: {str(e)}")
@@ -589,13 +606,16 @@ def get_export_status(task_id: str):
         # Log successful retrieval
         request_logger.info(f"Retrieved export status for task: {task_id}")
 
-        return jsonify(
-            {
-                "success": True,
-                "data": task_status,
-                "timestamp": datetime.utcnow().isoformat(),
-            }
-        ), 200
+        return (
+            jsonify(
+                {
+                    "success": True,
+                    "data": task_status,
+                    "timestamp": datetime.utcnow().isoformat(),
+                }
+            ),
+            200,
+        )
 
     except (ValidationError, ResourceNotFoundError):
         raise
@@ -779,12 +799,12 @@ def _get_pipeline_metrics(
                     "stage_progress": {
                         "data_ingestion": "completed",
                         "preprocessing": "completed",
-                        "transformation": "completed"
-                        if execution_status == "completed"
-                        else "failed",
-                        "validation": "pending"
-                        if execution_status == "running"
-                        else "completed",
+                        "transformation": (
+                            "completed" if execution_status == "completed" else "failed"
+                        ),
+                        "validation": (
+                            "pending" if execution_status == "running" else "completed"
+                        ),
                     },
                 }
             )
@@ -1026,9 +1046,9 @@ def _get_real_time_metrics(
                         "component": component,
                         "status": component_status,
                         "message": f"{component.capitalize()} is experiencing {component_status} conditions",
-                        "severity": "warning"
-                        if component_status == "warning"
-                        else "critical",
+                        "severity": (
+                            "warning" if component_status == "warning" else "critical"
+                        ),
                     }
                 )
 

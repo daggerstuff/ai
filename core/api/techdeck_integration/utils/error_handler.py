@@ -5,6 +5,7 @@ app factory and tests can import the symbol without pulling in heavy
 dependencies. The real implementation lives elsewhere; this shim keeps
 test collection working.
 """
+
 from typing import Any, Dict, Optional
 
 from flask import Flask
