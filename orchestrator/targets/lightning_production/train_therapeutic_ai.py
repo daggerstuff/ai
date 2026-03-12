@@ -449,6 +449,12 @@ def main():
     parser.add_argument(
         "--max-steps", type=int, default=-1, help="Max steps (used for dry runs)"
     )
+    parser.add_argument(
+        "--num-workers",
+        type=int,
+        default=None,
+        help="Override DataLoader num_workers (CPU workers).",
+    )
 
     args = parser.parse_args()
 
@@ -533,7 +539,18 @@ def main():
 
     # Create data loaders
     # Optimize num_workers, pin_memory, and persistent_workers for GPU performance
-    num_workers = config.get("num_workers", 4)
+    num_workers = args.num_workers
+    if num_workers is None:
+        env_num_workers = os.getenv("DATALOADER_NUM_WORKERS", "").strip()
+        if env_num_workers:
+            try:
+                num_workers = int(env_num_workers)
+            except ValueError as exc:
+                raise ValueError(
+                    "DATALOADER_NUM_WORKERS must be an integer."
+                ) from exc
+    if num_workers is None:
+        num_workers = config.get("num_workers", 4)
     train_loader = torch.utils.data.DataLoader(
         train_dataset,
         batch_size=config.get("batch_size", 8),
