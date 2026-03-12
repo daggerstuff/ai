@@ -532,9 +532,69 @@ class TestQualityValidationCache(unittest.TestCase):
 
     def test_cleanup_expired_cache(self):
         """Test cleanup of expired cache entries"""
-        # This test would require mocking file timestamps, so we'll just verify it runs
+        import time
+        from datetime import timedelta
+
+        # Create a fresh cache dir for this test
+        self.cache.cache_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create an expired cache file
+        expired_file = self.cache.cache_dir / "expired.pkl"
+        with open(expired_file, "wb") as f:
+            f.write(b"expired")
+
+        # Set timestamp to 2 days ago (expired based on default 86400s ttl)
+        old_time = time.time() - (86400 * 2)
+        os.utime(expired_file, (old_time, old_time))
+
+        # Create a valid (not expired) cache file
+        valid_file = self.cache.cache_dir / "valid.pkl"
+        with open(valid_file, "wb") as f:
+            f.write(b"valid")
+
+        # Set timestamp to now
+        now = time.time()
+        os.utime(valid_file, (now, now))
+
+        # Also create a non-pkl file to ensure it's ignored
+        ignored_file = self.cache.cache_dir / "ignored.txt"
+        with open(ignored_file, "wb") as f:
+            f.write(b"ignored")
+        os.utime(ignored_file, (old_time, old_time))
+
+        # Run cleanup
         cleaned_count = self.cache.cleanup_expired_cache()
-        self.assertIsInstance(cleaned_count, int)
+
+        # Assertions
+        self.assertEqual(cleaned_count, 1)
+        self.assertFalse(expired_file.exists(), "Expired file should be deleted")
+        self.assertTrue(valid_file.exists(), "Valid file should not be deleted")
+        self.assertTrue(ignored_file.exists(), "Non-pkl file should not be deleted")
+
+    def test_cleanup_expired_cache_exception_handling(self):
+        """Test cleanup handles exceptions gracefully"""
+        import time
+        from unittest.mock import patch
+
+        self.cache.cache_dir.mkdir(parents=True, exist_ok=True)
+
+        expired_file = self.cache.cache_dir / "expired_error.pkl"
+        with open(expired_file, "wb") as f:
+            f.write(b"expired")
+
+        old_time = time.time() - (86400 * 2)
+        os.utime(expired_file, (old_time, old_time))
+
+        # Mock pathlib.Path.unlink to raise an exception
+        with patch('pathlib.Path.unlink', side_effect=PermissionError("Permission denied")):
+            cleaned_count = self.cache.cleanup_expired_cache()
+
+        # The exception should be caught and logged, returning 0 cleaned
+        self.assertEqual(cleaned_count, 0)
+
+        # Clean up manually since unlink was mocked
+        if expired_file.exists():
+            expired_file.unlink()
 
 
 class TestCachedQualityValidator(unittest.TestCase):
