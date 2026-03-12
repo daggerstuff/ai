@@ -15,7 +15,7 @@ class NullMemoryManager:
     """
     In-memory implementation of Memory Manager.
 
-    Implements the interface required by MemoryServer and GeminiMem0Manager
+    Implements the interface required by MemoryServer and NIMMem0Manager
     with actual in-memory storage using dictionaries.
     """
 
@@ -123,7 +123,7 @@ class NullMemoryManager:
                 return True
         return False
 
-    # --- High Level Interface matches GeminiMem0Manager ---
+    # --- High Level Interface matches NIMMem0Manager ---
 
     def add_memory(
         self,

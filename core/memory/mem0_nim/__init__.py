@@ -1,8 +1,8 @@
 """
-Mem0 + Gemini Integration Package.
+Mem0 + NVIDIA NIM Integration Package.
 
 Provides memory management for therapeutic AI with:
-- GeminiMem0Manager: Core Gemini + Mem0 integration
+- NIMMem0Manager: Core NVIDIA NIM + Mem0 integration
 - TherapeuticMemoryConfig: Memory ingestion controls
 - AgentMemoryTools: Async tools for agent frameworks
 - MultiAgentMemory: Shared memory for multi-agent workflows
@@ -13,7 +13,7 @@ from .agent_memory_tools import (
     AgentMemoryTools,
     create_memory_tool_handler,
 )
-from .manager import GeminiMem0Config, GeminiMem0Manager
+from .manager import NIMMem0Config, NIMMem0Manager
 from .memory_ingestion_config import (
     CrisisDetector,
     InferenceMode,
@@ -33,8 +33,8 @@ from .multi_agent_memory import (
 
 __all__ = [
     # Core Manager
-    "GeminiMem0Config",
-    "GeminiMem0Manager",
+    "NIMMem0Config",
+    "NIMMem0Manager",
     # Memory Ingestion Config
     "TherapeuticMemoryConfig",
     "InferenceMode",
