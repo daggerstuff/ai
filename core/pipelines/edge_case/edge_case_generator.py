@@ -11,9 +11,21 @@ import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
+import logging
+import sys
 
 import requests
 from tqdm import tqdm
+
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+
+try:
+    from ai.infra.safety.dataset_validation import DatasetValidator, ValidationResult
+except ImportError:
+    DatasetValidator = None
+    ValidationResult = None
+
+logger = logging.getLogger(__name__)
 
 try:
     import anthropic
@@ -57,9 +69,9 @@ class EdgeCaseGenerator:
         # Setup API client
         self._setup_api_client()
 
-    # Initialize validator if available
-    self.validator = DatasetValidator(strict_mode=False) if DatasetValidator else None
-    self.validation_failures = []
+        # Initialize validator if available
+        self.validator = DatasetValidator(strict_mode=False) if DatasetValidator else None
+        self.validation_failures = []
 
         # Define edge case categories and templates
         self.edge_case_categories = self._define_edge_case_categories()
@@ -516,25 +528,10 @@ Create a realistic dialogue between therapist and client that demonstrates these
             "# Edge Case Generation Summary Report\n"
             f"Generated on: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}\n\n"
             "## Overall Statistics\n"
-        import logging
-        import sys
-
-        from dataclasses import dataclass
-        from datetime import datetime, timezone
-        from pathlib import Path
             f"- Total Conversations Generated: {total_conversations}\n"
             f"- Total Q&A Pairs: {total_qa_pairs}\n"
             f"- Average Q&A Pairs per Conversation: {total_qa_pairs / max(total_conversations, 1):.1f}\n\n"
             "## Category Breakdown\n"
-        # Add parent directory to path for imports
-        sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-
-        try:
-            from ai.infra.safety.dataset_validation import DatasetValidator, ValidationResult
-        except ImportError:
-            DatasetValidator = None
-            ValidationResult = None
-
         )
         for category, count in sorted(category_counts.items()):
             report += f"- {category}: {count} conversations\n"
@@ -545,8 +542,6 @@ Create a realistic dialogue between therapist and client that demonstrates these
             "\n## Files Generated\n"
             "- Edge case prompts: edge_case_prompts.jsonl\n"
             "- Generated conversations: generated_conversations.jsonl  \n"
-        logger = logging.getLogger(__name__)
-
             "- Training format: edge_cases_training_format.jsonl\n"
             "- Summary report: summary_report.md\n\n"
             "## Next Steps\n"

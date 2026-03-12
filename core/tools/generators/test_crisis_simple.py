@@ -1,9 +1,3 @@
-from ai.inference
-from ai.models.pixel_core
-from ai.core.pipelines.orchestrator
-from .\1 import
-from typing import Dict, List, Optional, Union, Any, Tuple, Callable
-import pytest
 #!/usr/bin/env python3
 """
 Simple test of crisis conversation generation using the working OpenAI-compatible endpoint
@@ -12,7 +6,8 @@ Simple test of crisis conversation generation using the working OpenAI-compatibl
 import json
 import requests
 import time
-from .datetime import datetime
+import unittest
+from datetime import datetime
 
 
 class TestModule(unittest.TestCase):

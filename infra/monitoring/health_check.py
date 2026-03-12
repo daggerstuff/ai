@@ -201,9 +201,6 @@ class PromotionStage(Enum):
     REJECTED = "rejected"
 
 
-class HealthCheckManager:
-
-
 class ComponentStatus(Enum):
     """Individual component status"""
     OPERATIONAL = "operational"

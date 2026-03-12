@@ -222,11 +222,7 @@ class DataStandardizer:
                         success=False,
                         error=(
                             "Validation failed: "
-                            f"{
-                                validation_result.get(
-                                    'error', 'Unknown validation error'
-                                )
-                            }"
+                            f"{validation_result.get('error', 'Unknown validation error')}"
                         ),
                         processing_time=time.time() - start_time,
                         source_format=detected_format,
