@@ -287,4 +287,16 @@ async def main():
         if args.test in ["spike", "all"]:
             results["spike"] = await stress_test.spike_test()
         
-        if args.test in ["enduranc
+        if args.test in ["endurance", "all"]:
+            results["endurance"] = await stress_test.endurance_test()
+
+        stress_test.save_results(results, args.output)
+
+    except KeyboardInterrupt:
+        print("\n⚠️ Test interrupted by user")
+        # Save partial results
+        if results:
+            stress_test.save_results(results, args.output)
+
+if __name__ == "__main__":
+    asyncio.run(main())

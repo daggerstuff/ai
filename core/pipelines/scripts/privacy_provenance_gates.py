@@ -66,7 +66,7 @@ class EnterprisePIIDetector:
 
                 # Log PII detection event
                 if self.audit_trail and scrub_result.get("pii_detected", False):
-            "c      self.audit_trail.log_safety_issue(
+                    self.audit_trail.log_safety_issue(
                         conversation_id or "unknown",
                         {
                             "issue_type": "pii_detected",
