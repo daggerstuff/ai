@@ -2,6 +2,7 @@
 Tests for the centralized configuration system.
 """
 
+import pytest
 from ai.core.pipelines.config import (
     Config,
     DataLoaderConfig,
@@ -9,6 +10,8 @@ from ai.core.pipelines.config import (
     StandardizationConfig,
     get_config,
 )
+
+from training.configs.stage_configs.config import DataDesignerConfig
 
 
 class TestConfigClasses:
@@ -116,3 +119,55 @@ class TestRootConfig:
 
         assert config1 is config2
         assert isinstance(config1, Config)
+
+
+class TestDataDesignerConfig:
+    """Test cases for DataDesignerConfig validation."""
+
+    def test_validate_success(self):
+        """Test validation succeeds with valid configuration."""
+        config = DataDesignerConfig(
+            api_key="valid_key",
+            base_url="http://valid.url",
+            timeout=10,
+            max_retries=1,
+            batch_size=10,
+        )
+        # Should not raise any exception
+        config.validate()
+
+    def test_validate_missing_api_key(self):
+        """Test validation fails when api_key is missing."""
+        config = DataDesignerConfig(api_key=None, base_url="http://valid.url")
+        with pytest.raises(
+            ValueError, match="NVIDIA_API_KEY environment variable is required"
+        ):
+            config.validate()
+
+    def test_validate_empty_api_key(self):
+        """Test validation fails when api_key is empty string."""
+        config = DataDesignerConfig(api_key="", base_url="http://valid.url")
+        with pytest.raises(
+            ValueError, match="NVIDIA_API_KEY environment variable is required"
+        ):
+            config.validate()
+
+    def test_validate_empty_base_url(self):
+        """Test validation fails when base_url is empty."""
+        config = DataDesignerConfig(api_key="valid_key", base_url="")
+        with pytest.raises(ValueError, match="base_url cannot be empty"):
+            config.validate()
+
+    def test_validate_invalid_timeout(self):
+        """Test validation fails when timeout is zero or negative."""
+        config = DataDesignerConfig(
+            api_key="valid_key", base_url="http://valid.url", timeout=0
+        )
+        with pytest.raises(ValueError, match="timeout must be positive"):
+            config.validate()
+
+        config = DataDesignerConfig(
+            api_key="valid_key", base_url="http://valid.url", timeout=-1
+        )
+        with pytest.raises(ValueError, match="timeout must be positive"):
+            config.validate()
