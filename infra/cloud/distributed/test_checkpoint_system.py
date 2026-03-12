@@ -75,6 +75,7 @@ class CheckpointTestSuite:
         print("=" * 60)
 
         test_methods = [
+            self.test_setup_database,
             self.test_basic_checkpoint_operations,
             self.test_list_checkpoints,
             self.test_process_registration_and_progress,
@@ -99,6 +100,41 @@ class CheckpointTestSuite:
 
         # Print summary
         self.print_test_summary()
+
+    async def test_setup_database(self):
+        """Test that the database is correctly set up with tables and indices"""
+        import sqlite3
+
+        # Check database exists
+        assert os.path.exists(
+            self.manager.storage.db_path
+        ), "Database file should exist"
+
+        with sqlite3.connect(self.manager.storage.db_path) as conn:
+            cursor = conn.cursor()
+
+            # Verify table
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='checkpoints'"
+            )
+            assert cursor.fetchone() is not None, "checkpoints table should exist"
+
+            # Verify indices
+            cursor.execute(
+                "SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='checkpoints'"
+            )
+            indices = {row[0] for row in cursor.fetchall()}
+
+            for idx in ["idx_process_task", "idx_created_at", "idx_status"]:
+                assert idx in indices, f"Index {idx} should exist"
+
+        self.test_results.append(
+            {
+                "test": "setup_database",
+                "status": "passed",
+                "details": "Database schema verified successfully",
+            }
+        )
 
     async def test_basic_checkpoint_operations(self):
         """Test basic checkpoint creation, storage, and retrieval"""
@@ -323,7 +359,7 @@ class CheckpointTestSuite:
         task_id = "recovery_test"
 
         # Register and progress a process
-        state = self.manager.register_process(
+        self.manager.register_process(
             process_id=process_id,
             task_id=task_id,
             total_steps=20,
@@ -339,7 +375,7 @@ class CheckpointTestSuite:
         )
 
         # Simulate process interruption (remove from active processes)
-        original_state = self.manager.active_processes[process_id]
+        self.manager.active_processes[process_id]
         del self.manager.active_processes[process_id]
 
         # Recover the process
@@ -382,7 +418,7 @@ class CheckpointTestSuite:
             process_id = f"test_optimize_{i}"
 
             # Create and complete process
-            state = self.manager.register_process(
+            self.manager.register_process(
                 process_id=process_id,
                 task_id="optimization_test",
                 total_steps=5,
@@ -460,7 +496,7 @@ class CheckpointTestSuite:
             process_id = f"concurrent_test_{process_num}"
             task_id = f"concurrent_task_{process_num}"
 
-            state = self.manager.register_process(
+            self.manager.register_process(
                 process_id=process_id,
                 task_id=task_id,
                 total_steps=10,
@@ -664,14 +700,14 @@ class CheckpointTestSuite:
             checkpoint_ids.append(checkpoint_id)
 
         # Get initial stats
-        initial_stats = self.manager.storage.get_storage_stats()
+        self.manager.storage.get_storage_stats()
 
         # Run optimization (which includes deduplication)
         optimizer = CheckpointOptimizer(self.monitor.config)
         optimization_results = optimizer.optimize_storage()
 
         # Verify optimization occurred
-        final_stats = self.manager.storage.get_storage_stats()
+        self.manager.storage.get_storage_stats()
 
         # Should have some optimization actions
         assert (
