@@ -93,6 +93,125 @@ class TestQualityValidationCache(unittest.TestCase):
         )
         self.assertEqual(cached_result, test_result)
 
+
+    def test_get_cached_result_memory_hit(self):
+        """Test retrieving result from memory cache"""
+        test_result = b"memory cache test data"
+        metadata = {"version": "1.0"}
+        validation_type = "conversation"
+
+        # Cache the result (this populates memory cache)
+        self.cache.cache_result(
+            str(self.cache_file), validation_type, metadata, test_result
+        )
+
+        # Ensure it's in memory cache
+        data_hash = self.cache._calculate_data_hash(str(self.cache_file), metadata)
+        cache_key = self.cache._generate_cache_key(data_hash, validation_type)
+        self.assertIn(cache_key, self.cache.memory_cache)
+
+        # Retrieve and verify
+        cached_result = self.cache.get_cached_result(
+            str(self.cache_file), validation_type, metadata
+        )
+        self.assertEqual(cached_result, test_result)
+
+    def test_get_cached_result_memory_expired(self):
+        """Test behavior when memory cache is expired"""
+        from datetime import datetime, timedelta
+
+        test_result = b"expired memory test data"
+        metadata = {"version": "1.0"}
+        validation_type = "conversation"
+
+        # Cache the result
+        self.cache.cache_result(
+            str(self.cache_file), validation_type, metadata, test_result
+        )
+
+        data_hash = self.cache._calculate_data_hash(str(self.cache_file), metadata)
+        cache_key = self.cache._generate_cache_key(data_hash, validation_type)
+
+        # Artificially age the memory cache entry
+        cached_data, _ = self.cache.memory_cache[cache_key]
+        old_time = datetime.now() - timedelta(hours=2)
+        self.cache.memory_cache[cache_key] = (cached_data, old_time)
+
+        # Retrieve - should fall back to file cache
+        cached_result = self.cache.get_cached_result(
+            str(self.cache_file), validation_type, metadata
+        )
+        self.assertEqual(cached_result, test_result)
+        # Should be re-added to memory cache with new timestamp
+        _, new_time = self.cache.memory_cache[cache_key]
+        self.assertGreater(new_time, old_time)
+
+    def test_get_cached_result_file_hit(self):
+        """Test retrieving result from file cache when not in memory cache"""
+        test_result = b"file cache test data"
+        metadata = {"version": "1.0"}
+        validation_type = "conversation"
+
+        # Cache the result
+        self.cache.cache_result(
+            str(self.cache_file), validation_type, metadata, test_result
+        )
+
+        data_hash = self.cache._calculate_data_hash(str(self.cache_file), metadata)
+        cache_key = self.cache._generate_cache_key(data_hash, validation_type)
+
+        # Remove from memory cache to force file cache lookup
+        del self.cache.memory_cache[cache_key]
+        self.assertNotIn(cache_key, self.cache.memory_cache)
+
+        # Retrieve and verify
+        cached_result = self.cache.get_cached_result(
+            str(self.cache_file), validation_type, metadata
+        )
+        self.assertEqual(cached_result, test_result)
+        # Should be re-added to memory cache
+        self.assertIn(cache_key, self.cache.memory_cache)
+
+    def test_get_cached_result_file_expired(self):
+        """Test behavior when file cache is expired"""
+        import time
+        import os
+
+        test_result = b"expired file test data"
+        metadata = {"version": "1.0"}
+        validation_type = "conversation"
+
+        # Use a very short TTL for this test
+        original_ttl = self.cache.cache_ttl
+        self.cache.cache_ttl = 1  # 1 second TTL
+
+        try:
+            # Cache the result
+            self.cache.cache_result(
+                str(self.cache_file), validation_type, metadata, test_result
+            )
+
+            data_hash = self.cache._calculate_data_hash(str(self.cache_file), metadata)
+            cache_key = self.cache._generate_cache_key(data_hash, validation_type)
+            cache_file = self.cache.cache_dir / f"{cache_key}.pkl"
+
+            # Remove from memory cache to force file cache lookup
+            del self.cache.memory_cache[cache_key]
+
+            # Artificially age the file
+            old_time = time.time() - 5
+            os.utime(cache_file, (old_time, old_time))
+
+            # Retrieve - should miss because file is expired
+            cached_result = self.cache.get_cached_result(
+                str(self.cache_file), validation_type, metadata
+            )
+            self.assertIsNone(cached_result)
+            # File should have been deleted
+            self.assertFalse(cache_file.exists())
+        finally:
+            self.cache.cache_ttl = original_ttl
+
     def test_cache_miss(self):
         """Test cache miss behavior"""
         metadata = {"version": "1.0"}
