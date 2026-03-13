@@ -28,10 +28,7 @@ autoscaling:
 
 postgresql:
   enabled: true
-  image:
-    repository: bitnami/postgresql
-    tag: "17-debian-12"
-    pullPolicy: IfNotPresent
+  # Let Bitnami chart use default images (handles bitnamilegacy migration)
   primary:
     persistence:
       size: 50Gi
@@ -45,10 +42,7 @@ postgresql:
 
 redis:
   enabled: true
-  image:
-    repository: bitnami/redis
-    tag: "7.2-debian-12"
-    pullPolicy: IfNotPresent
+  # Let Bitnami chart use default images (handles bitnamilegacy migration)
   master:
     persistence:
       size: 10Gi
