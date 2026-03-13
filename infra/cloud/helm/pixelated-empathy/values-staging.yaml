@@ -27,6 +27,11 @@ autoscaling:
   maxReplicas: 5
 
 postgresql:
+  enabled: true
+  image:
+    repository: bitnami/postgresql
+    tag: "16-debian-12"
+    pullPolicy: IfNotPresent
   primary:
     persistence:
       size: 50Gi
@@ -39,6 +44,11 @@ postgresql:
         memory: 1.5Gi
 
 redis:
+  enabled: true
+  image:
+    repository: bitnami/redis
+    tag: "7.4-debian-12"
+    pullPolicy: IfNotPresent
   master:
     persistence:
       size: 10Gi
