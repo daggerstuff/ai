@@ -87,6 +87,10 @@ affinity:
 # Database Configuration
 postgresql:
   enabled: true
+  image:
+    repository: bitnami/postgresql
+    tag: "16-debian-12"
+    pullPolicy: IfNotPresent
   auth:
     postgresPassword: "changeme"
     database: "pixelated_empathy"
@@ -102,9 +106,12 @@ postgresql:
         cpu: 1000m
         memory: 2Gi
 
-# Redis Configuration
 redis:
   enabled: true
+  image:
+    repository: bitnami/redis
+    tag: "7.4-debian-12"
+    pullPolicy: IfNotPresent
   auth:
     enabled: true
     password: "changeme"
