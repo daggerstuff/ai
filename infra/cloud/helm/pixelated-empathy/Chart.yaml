@@ -17,11 +17,11 @@ maintainers:
     email: team@pixelated.ai
 dependencies:
   - name: postgresql
-    version: "16.0.0"
+    version: "18.5.6"
     repository: "https://charts.bitnami.com/bitnami"
     condition: postgresql.enabled
   - name: redis
-    version: "19.0.0"
+    version: "20.11.2"
     repository: "https://charts.bitnami.com/bitnami"
     condition: redis.enabled
   - name: prometheus
