@@ -6,6 +6,10 @@ replicaCount: 2
 image:
   tag: "staging-latest"
 
+# Disable training in staging (no GPU nodes available)
+training:
+  enabled: false
+
 app:
   config:
     logLevel: "INFO"
