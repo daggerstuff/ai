@@ -67,32 +67,37 @@ This document catalogs experimental model architectures and unused features that
 ## Unused Training Features
 
 ### 1. MERTools Integration
-- **Location**: `ai/models/MERTools/`
+- **Location**: `ai/core/multimodal/video_emotion_recognition.py`
 - **Type**: Emotion Recognition Suite
-- **Status**: Available but not fully integrated
-- **Description**: Multi-modal emotion recognition (MER2023-2025) with AffectGPT framework
+- **Status**: INTEGRATED (v0.2.0)
+- **Description**: Multi-modal emotion recognition with video/facial expression support added. Audio+Text+Video fusion now available with edge processing for privacy.
 - **Potential Value**: Very High - Core emotional intelligence foundation
-- **Integration Complexity**: Medium
-- **Dependencies**: MER2023-2025 toolkits, multi-modal processing
+- **Integration Complexity**: COMPLETED
+- **Dependencies**: OpenCV (optional), transformers, numpy
 - **Use Case**: Multi-modal emotion recognition for voice, text, and visual inputs
+- **Features Added**:
+  - VideoEmotionRecognizer class with edge processing
+  - Visual micro-leakage detection
+  - Triple-modality fusion (text+audio+video)
+  - Privacy-preserving local inference
 
 ### 2. Dual Persona Training System
-- **Location**: `ai/pipelines/dual_persona_training/`, `ai/orchestrator/targets/ghost/dual_persona_training/`
+- **Location**: `ai/core/pipelines/ingestion/dual_persona_loader.py`, `ai/core/pipelines/integration_legacy/components/dual_persona_integrator.py`
 - **Type**: Training Pipeline
-- **Status**: Available
+- **Status**: INTEGRATED
 - **Description**: Curriculum learning framework for dual persona (mentor + peer) training
 - **Potential Value**: High - Core dual-mode functionality (therapeutic training + empathetic assistant)
-- **Integration Complexity**: Medium
+- **Integration Complexity**: COMPLETED
 - **Dependencies**: Curriculum learning framework
 - **Use Case**: Train model for both therapeutic training mode and empathetic assistant mode
 
 ### 3. Voice Extraction Methods
-- **Location**: `ai/pixel_voice/`, research docs on LLM voice extraction
+- **Location**: `ai/core/scripts/extract_tim_fletcher_voice.py`, `ai/core/pipelines/quality/voice_derived_authenticity_scorer.py`
 - **Type**: Training Technique
-- **Status**: Available
+- **Status**: INTEGRATED
 - **Description**: Advanced methods for extracting speaking style and personality from voice transcripts
 - **Potential Value**: High - Authentic personality and voice training
-- **Integration Complexity**: Medium
+- **Integration Complexity**: COMPLETED
 - **Dependencies**: Voice processing pipelines, transcription tools
 - **Use Case**: Train model with Tim Fletcher's authentic speaking style
 

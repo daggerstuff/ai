@@ -22,18 +22,56 @@ logger = logging.getLogger(__name__)
 _ARCHETYPES_CONFIG = Path(__file__).parent / "config" / "clinical_archetypes.json"
 
 # Heuristics used to prevent typical AI safety/assistant behaviors that ruin immersion
+# These are hard blockers - text containing these phrases will be rejected
 ROBOTIC_PHRASING_PENALTIES = [
+    # AI self-identification
     "as an ai",
+    "as a language model",
+    "i'm an ai",
+    "i am an ai",
+    "as a therapeutic ai",
+    # Generic helper phrases
     "i'm here to help",
-    "i understand that",
+    "i'm here to support you",
+    "i understand that",  # Overused AI empathy marker
     "it sounds like you are saying",
     "let me know if you need anything else",
     "is there anything else i can help with",
+    # Lecture/pedantic markers
     "it is important to remember",
+    "it's important to note",
+    "keep in mind that",
+    # Formal transition words (common in AI, rare in casual speech)
     "firstly, ",
     "secondly, ",
     "in conclusion,",
+    "to summarize,",
+    "in summary,",
+    # Over-apologizing patterns
+    "i apologize if",
+    "i'm sorry if this",
+    "i apologize for any confusion",
+    # Hedge phrases
+    "it's worth noting that",
+    "it may be helpful to",
+    "please note that",
 ]
+
+# Softer patterns that trigger a score penalty but not immediate rejection
+SOFT_LLM_PATTERNS = [
+    # Excessive politeness
+    "i hope this helps",
+    "please let me know",
+    "feel free to",
+    # Generic therapeutic clichés (can be legitimate but often AI-generated)
+    "it takes courage",
+    "seeking help is a sign of strength",
+    "you are not alone",
+    "there is hope",
+]
+
+# Maximum soft penalty score before rejection
+MAX_SOFT_PENALTY_SCORE = 3
 
 
 @dataclass
@@ -156,24 +194,61 @@ class PersonaManager:
     def validate_human_likeness(self, text: str) -> bool:
         """
         Validate generated text against known LLM-isms.
-        Allows for tuning: rejects robotic phrasing and list-making (e.g. 1. 2. 3.)
-        to avoid rejecting genuinely structured human thought while blocking LLM-isms.
+
+        Uses a two-tier system:
+        1. Hard blockers: Immediate rejection for obvious AI phrases
+        2. Soft penalties: Accumulate points for suspicious patterns
 
         Returns True if the text passes validation (is human-like),
         False if it is rejected.
         """
         text_lower = text.lower()
+        soft_penalty_score = 0
 
-        # Immediate fail for typical AI disclaimers
+        # Tier 1: Hard blockers - immediate rejection
         for phrase in ROBOTIC_PHRASING_PENALTIES:
             if phrase in text_lower:
                 logger.debug("Validation failed due to robotic phrasing: '%s'", phrase)
                 return False
 
-        # Immediate fail for excessive bullet points or lists in a conversation
-        if "\n1." in text and "\n2." in text and "\n3." in text:
-            # Humans rarely speak in pristine 3-part bullet points off the cuff
-            logger.debug("Validation failed due to mechanical list-making.")
+        # Tier 2: Soft penalties - accumulate and check threshold
+        for pattern in SOFT_LLM_PATTERNS:
+            if pattern in text_lower:
+                soft_penalty_score += 1
+                logger.debug(
+                    "Soft penalty triggered: '%s' (score: %d)",
+                    pattern,
+                    soft_penalty_score,
+                )
+
+        if soft_penalty_score >= MAX_SOFT_PENALTY_SCORE:
+            logger.debug(
+                "Validation failed due to accumulated soft penalties: %d",
+                soft_penalty_score,
+            )
+            return False
+
+        # Check for mechanical list-making (3+ numbered items)
+        list_patterns = ["\n1.", "\n2.", "\n3."]
+        if all(p in text for p in list_patterns):
+            # Allow if it's a legitimate structured response (e.g., homework, exercises)
+            # by checking for therapeutic context keywords
+            therapeutic_context = any(
+                kw in text_lower
+                for kw in ["exercise", "practice", "step", "homework", "assignment"]
+            )
+            if not therapeutic_context:
+                logger.debug(
+                    "Validation failed due to mechanical list-making without therapeutic context."
+                )
+                return False
+
+        # Check for excessive bullet points (more than 4)
+        bullet_count = text.count("\n- ") + text.count("\n* ")
+        if bullet_count > 4:
+            logger.debug(
+                "Validation failed due to excessive bullet points: %d", bullet_count
+            )
             return False
 
         return True

@@ -87,6 +87,10 @@ affinity:
 # Database Configuration
 postgresql:
   enabled: true
+  image:
+    repository: bitnami/postgresql
+    tag: "latest"
+    pullPolicy: Always
   auth:
     postgresPassword: "changeme"
     database: "pixelated_empathy"
@@ -104,6 +108,10 @@ postgresql:
 
 redis:
   enabled: true
+  image:
+    repository: bitnami/redis
+    tag: "latest"
+    pullPolicy: Always
   auth:
     enabled: true
     password: "changeme"

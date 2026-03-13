@@ -14,7 +14,10 @@ import requests
 import time
 from typing import Any, Dict, List, Optional
 
-from ai.core.utils.llm_capabilities import ensure_valid_key, get_best_available_gemini_model
+from ai.core.utils.llm_capabilities import (
+    ensure_valid_key,
+    get_best_available_gemini_model,
+)
 
 try:
     from google import genai
@@ -71,8 +74,13 @@ class GestaltSimulator:
 
         self.persona_manager = PersonaManager()
 
-        self.llm_mode = "nim" if (nim_only or self.nim_api_key) else "gemini"
-        self.gemini_client = None
+        # Initialize NIM configuration first (needed for llm_mode determination)
+        self.nim_api_key = (
+            api_key
+            or os.getenv("NIM_API_KEY")
+            or os.getenv("NVIDIA_API_KEY")
+            or os.getenv("OPENAI_API_KEY")
+        )
         self.nim_model = (
             os.environ.get("NIM_MODEL")
             or os.environ.get("NVIDIA_OPENAI_MODEL")
@@ -84,7 +92,9 @@ class GestaltSimulator:
             or os.environ.get("NVIDIA_OPENAI_BASE_URL")
             or "https://integrate.api.nvidia.com/v1"
         ).rstrip("/")
-        self.nim_api_key = api_key or os.getenv("NIM_API_KEY") or os.getenv("NVIDIA_API_KEY") or os.getenv("OPENAI_API_KEY")
+
+        self.llm_mode = "nim" if (nim_only or self.nim_api_key) else "gemini"
+        self.gemini_client = None
         self.nim_headers = {
             "Content-Type": "application/json",
         }
@@ -97,7 +107,9 @@ class GestaltSimulator:
                     "GEMINI_API_KEY"
                 )
                 if gemini_key:
-                    self.gemini_client = genai.Client(api_key=gemini_key) if genai else None
+                    self.gemini_client = (
+                        genai.Client(api_key=gemini_key) if genai else None
+                    )
                 else:
                     try:
                         self.gemini_client = genai.Client(api_key=ensure_valid_key())
@@ -108,8 +120,7 @@ class GestaltSimulator:
         if not self.nim_api_key and not self.gemini_client:
             self.llm_mode = "mock"
             logger.warning(
-                "No NVIDIA NIM or Gemini credentials found. "
-                "Generation will be mocked."
+                "No NVIDIA NIM or Gemini credentials found. Generation will be mocked."
             )
 
     def _call_nim(
@@ -194,9 +205,13 @@ class GestaltSimulator:
         for attempt in range(max_retries):
             try:
                 if self.nim_api_key:
-                    text = _sanitize_llm_text(self._call_nim(system_prompt, conversation_history))
+                    text = _sanitize_llm_text(
+                        self._call_nim(system_prompt, conversation_history)
+                    )
                 elif self.gemini_client:
-                    text = _sanitize_llm_text(self._call_gemini(system_prompt, conversation_history))
+                    text = _sanitize_llm_text(
+                        self._call_gemini(system_prompt, conversation_history)
+                    )
                 else:
                     raise RuntimeError("No LLM backend available.")
 
