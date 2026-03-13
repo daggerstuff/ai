@@ -11,6 +11,7 @@ Coordinates the full workflow:
 """
 
 import logging
+import os
 import time
 from typing import List, Optional
 
@@ -221,21 +222,382 @@ class ChannelProcessor:
 
         return self.thresholds.passes(metrics)
 
-    def _analyze_video(self, audio_id: str, metrics: QualityMetrics):
+    def _analyze_video(self, video_id: str, metrics: QualityMetrics) -> None:
         """
         Analyze a single video for quality metrics.
 
+        Downloads audio, analyzes quality, speech clarity, and production values.
+
         Args:
-            audio_id: YouTube video/audio ID
+            video_id: YouTube video ID
             metrics: QualityMetrics object to update
         """
-        # TODO: Implement actual video analysis
-        # This would involve:
-        # - Downloading audio/video
-        # - Analyzing audio quality
-        # - Checking speech clarity
-        # - Evaluating production values
-        pass
+        import tempfile
+        import os
+        from pathlib import Path
+
+        try:
+            # Phase 1: Download audio for analysis
+            audio_path = self._download_audio(video_id)
+            if not audio_path:
+                logger.warning(f"Could not download audio for video {video_id}")
+                return
+
+            try:
+                # Phase 2: Analyze audio quality (sample rate, bitrate, noise)
+                audio_quality = self._analyze_audio_quality(audio_path)
+                metrics.production_quality = (
+                    metrics.production_quality * 0.5 + audio_quality * 0.5
+                )
+
+                # Phase 3: Analyze speech clarity using Whisper
+                speech_clarity = self._analyze_speech_clarity(audio_path)
+                metrics.content_quality = max(metrics.content_quality, speech_clarity)
+
+                # Phase 4: Evaluate production values
+                production_score = self._evaluate_production_values(audio_path)
+                metrics.production_quality = max(
+                    metrics.production_quality, production_score
+                )
+
+                logger.info(
+                    f"Video {video_id} analysis: audio={audio_quality:.2f}, "
+                    f"speech={speech_clarity:.2f}, production={production_score:.2f}"
+                )
+            finally:
+                # Cleanup downloaded file
+                if os.path.exists(audio_path):
+                    os.remove(audio_path)
+
+        except Exception as e:
+            logger.error(f"Error analyzing video {video_id}: {e}")
+
+    def _download_audio(self, video_id: str) -> Optional[str]:
+        """
+        Download audio from YouTube video using yt-dlp.
+
+        Args:
+            video_id: YouTube video ID
+
+        Returns:
+            Path to downloaded audio file, or None on failure
+        """
+        import subprocess
+        import tempfile
+
+        try:
+            # Create temp directory for audio
+            temp_dir = tempfile.mkdtemp(prefix="yt_audio_")
+            output_path = os.path.join(temp_dir, f"{video_id}.wav")
+
+            # Use yt-dlp to download audio
+            cmd = [
+                "yt-dlp",
+                "-x",  # Extract audio
+                "--audio-format",
+                "wav",
+                "--audio-quality",
+                "0",  # Best quality
+                "-o",
+                output_path,
+                "--no-playlist",
+                "--no-warnings",
+                "--quiet",
+                f"https://www.youtube.com/watch?v={video_id}",
+            ]
+
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                timeout=120,  # 2 minute timeout
+            )
+
+            if result.returncode != 0:
+                logger.warning(f"yt-dlp failed for {video_id}: {result.stderr}")
+                return None
+
+            # yt-dlp appends extension, find the actual file
+            actual_path = output_path.replace(".wav", ".wav")
+            if not os.path.exists(actual_path):
+                # Try common extensions
+                for ext in [".wav", ".m4a", ".webm"]:
+                    candidate = output_path.replace(".wav", ext)
+                    if os.path.exists(candidate):
+                        actual_path = candidate
+                        break
+
+            if not os.path.exists(actual_path):
+                logger.warning(f"Downloaded file not found for {video_id}")
+                return None
+
+            return actual_path
+
+        except subprocess.TimeoutExpired:
+            logger.warning(f"Download timeout for video {video_id}")
+            return None
+        except FileNotFoundError:
+            logger.error("yt-dlp not installed. Install with: pip install yt-dlp")
+            return None
+        except Exception as e:
+            logger.error(f"Error downloading audio for {video_id}: {e}")
+            return None
+
+    def _analyze_audio_quality(self, audio_path: str) -> float:
+        """
+        Analyze technical audio quality.
+
+        Measures sample rate, bit depth, noise floor, and dynamic range.
+
+        Args:
+            audio_path: Path to audio file
+
+        Returns:
+            Quality score 0.0-1.0
+        """
+        try:
+            import librosa
+            import numpy as np
+
+            # Load audio file
+            y, sr = librosa.load(audio_path, sr=None)
+
+            if len(y) == 0:
+                return 0.0
+
+            scores = []
+
+            # 1. Sample rate quality (higher is better)
+            sr_score = min(1.0, sr / 48000)  # 48kHz is excellent
+            scores.append(sr_score)
+
+            # 2. Signal-to-noise ratio estimation
+            # Use quiet segments to estimate noise floor
+            rms = librosa.feature.rms(y=y)[0]
+            signal_rms = np.percentile(rms, 90)  # High energy segments
+            noise_rms = np.percentile(rms, 10)  # Low energy segments
+
+            if noise_rms > 0:
+                snr = signal_rms / noise_rms
+                snr_score = min(1.0, snr / 10)  # SNR of 10 is good
+            else:
+                snr_score = 1.0
+            scores.append(snr_score)
+
+            # 3. Dynamic range (avoid over-compression)
+            dynamic_range = np.max(rms) - np.min(rms)
+            range_score = min(1.0, dynamic_range * 5)  # Reasonable dynamic range
+            scores.append(range_score)
+
+            # 4. Clipping detection (penalize clipped audio)
+            clipping_ratio = np.sum(np.abs(y) > 0.99) / len(y)
+            clipping_score = max(0, 1.0 - clipping_ratio * 10)
+            scores.append(clipping_score)
+
+            return float(np.mean(scores))
+
+        except ImportError:
+            logger.warning("librosa not installed, skipping audio quality analysis")
+            return 0.5
+        except Exception as e:
+            logger.error(f"Error analyzing audio quality: {e}")
+            return 0.5
+
+    def _analyze_speech_clarity(self, audio_path: str) -> float:
+        """
+        Analyze speech clarity using Whisper transcription.
+
+        Transcribes audio and measures confidence/word clarity.
+
+        Args:
+            audio_path: Path to audio file
+
+        Returns:
+            Speech clarity score 0.0-1.0
+        """
+        try:
+            from faster_whisper import WhisperModel
+
+            # Use small model for faster processing
+            model = WhisperModel("small", device="cpu", compute_type="int8")
+
+            # Transcribe with word-level timestamps
+            segments, info = model.transcribe(
+                audio_path,
+                word_timestamps=True,
+                language="en",
+            )
+
+            if info.language_probability < 0.5:
+                logger.warning(f"Low language confidence: {info.language_probability}")
+
+            # Collect word-level confidences
+            word_scores = []
+            total_duration = 0.0
+            speech_duration = 0.0
+
+            for segment in segments:
+                total_duration += segment.end - segment.start
+                speech_duration += segment.end - segment.start
+
+                if segment.words:
+                    for word in segment.words:
+                        # Whisper doesn't provide word confidence directly
+                        # Use probability of the segment
+                        word_scores.append(
+                            segment.avg_logprob
+                            if hasattr(segment, "avg_logprob")
+                            else 0.5
+                        )
+
+            if not word_scores:
+                return 0.5
+
+            # Calculate scores
+            avg_confidence = sum(word_scores) / len(word_scores)
+
+            # Map log probabilities to 0-1 range (typical range -1 to 0)
+            confidence_score = max(0, min(1, 1 + avg_confidence))
+
+            # Speech ratio (how much of the audio is speech)
+            if total_duration > 0:
+                speech_ratio = speech_duration / total_duration
+            else:
+                speech_ratio = 0.5
+
+            # Combine scores
+            return 0.7 * confidence_score + 0.3 * speech_ratio
+
+        except ImportError:
+            logger.warning("faster-whisper not installed, using fallback")
+            return self._fallback_speech_clarity(audio_path)
+        except Exception as e:
+            logger.error(f"Error analyzing speech clarity: {e}")
+            return 0.5
+
+    def _fallback_speech_clarity(self, audio_path: str) -> float:
+        """
+        Fallback speech clarity estimation without Whisper.
+
+        Uses energy in speech frequency bands.
+
+        Args:
+            audio_path: Path to audio file
+
+        Returns:
+            Estimated speech clarity score 0.0-1.0
+        """
+        try:
+            import librosa
+            import numpy as np
+
+            y, sr = librosa.load(audio_path, sr=None)
+
+            # Speech is typically in 300-3400 Hz range
+            # Use spectral centroid as a proxy for speech clarity
+            cent = librosa.feature.spectral_centroid(y=y, sr=sr)
+            mean_cent = np.mean(cent)
+
+            # Good speech typically has centroid around 1000-2000 Hz
+            if mean_cent < 500 or mean_cent > 5000:
+                cent_score = 0.3
+            elif 1000 <= mean_cent <= 3000:
+                cent_score = 1.0
+            else:
+                cent_score = 0.6
+
+            # Spectral rolloff (measure of high frequency content)
+            rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)
+            mean_rolloff = np.mean(rolloff)
+
+            # Good speech has rolloff around 3000-6000 Hz
+            if mean_rolloff < 2000:
+                rolloff_score = 0.4
+            elif 3000 <= mean_rolloff <= 6000:
+                rolloff_score = 1.0
+            else:
+                rolloff_score = 0.6
+
+            return (cent_score + rolloff_score) / 2
+
+        except Exception as e:
+            logger.error(f"Error in fallback speech analysis: {e}")
+            return 0.5
+
+    def _evaluate_production_values(self, audio_path: str) -> float:
+        """
+        Evaluate production quality of audio.
+
+        Considers consistency, editing quality, and professional markers.
+
+        Args:
+            audio_path: Path to audio file
+
+        Returns:
+            Production value score 0.0-1.0
+        """
+        try:
+            import librosa
+            import numpy as np
+
+            y, sr = librosa.load(audio_path, sr=None)
+
+            if len(y) == 0:
+                return 0.0
+
+            scores = []
+
+            # 1. Volume consistency (professional audio is well-mastered)
+            rms = librosa.feature.rms(y=y)[0]
+            volume_variance = np.var(rms)
+            consistency_score = max(0, 1.0 - volume_variance * 100)
+            scores.append(consistency_score)
+
+            # 2. Silence detection (too much silence = poor editing)
+            silence_threshold = 0.01
+            silence_ratio = np.sum(np.abs(y) < silence_threshold) / len(y)
+
+            if silence_ratio < 0.1:
+                silence_score = 1.0
+            elif silence_ratio < 0.3:
+                silence_score = 0.7
+            elif silence_ratio < 0.5:
+                silence_score = 0.4
+            else:
+                silence_score = 0.2
+            scores.append(silence_score)
+
+            # 3. Spectral flatness (measure of audio "richness")
+            flatness = librosa.feature.spectral_flatness(y=y)
+            mean_flatness = np.mean(flatness)
+
+            # Lower flatness = more tonal/rich audio (good for speech)
+            if mean_flatness < 0.1:
+                richness_score = 1.0
+            elif mean_flatness < 0.3:
+                richness_score = 0.7
+            else:
+                richness_score = 0.4
+            scores.append(richness_score)
+
+            # 4. Duration check (very short or very long may indicate issues)
+            duration = len(y) / sr
+            if 60 <= duration <= 1800:  # 1-30 minutes is typical
+                duration_score = 1.0
+            elif duration < 30 or duration > 3600:
+                duration_score = 0.5
+            else:
+                duration_score = 0.8
+            scores.append(duration_score)
+
+            return float(np.mean(scores))
+
+        except ImportError:
+            logger.warning("librosa not installed for production analysis")
+            return 0.5
+        except Exception as e:
+            logger.error(f"Error evaluating production values: {e}")
+            return 0.5
 
     def generate_report(self, results: ChannelDiscoveryResults) -> str:
         """
