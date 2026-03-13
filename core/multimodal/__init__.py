@@ -1,16 +1,17 @@
 """
 Multimodal Processing for Pixel Therapeutic Conversations.
 
-Enables real-time processing of audio and text modalities with emotion fusion.
+Enables real-time processing of audio, video, and text modalities with emotion fusion.
 
 Modules:
   - speech_recognition: Audio-to-text conversion (Whisper, Wav2Vec2)
   - audio_emotion_recognition: Emotion detection from speech (valence/arousal)
-  - multimodal_fusion: Combine text and audio signals for enhanced understanding
+  - video_emotion_recognition: Facial expression emotion detection (edge processing)
+  - multimodal_fusion: Combine text, audio, and video signals for enhanced understanding
   - text_to_speech: Generate speech with emotional prosody (future)
 
 Usage:
-    >>> from ai.multimodal import SpeechRecognizer, AudioEmotionRecognizer
+    >>> from ai.multimodal import SpeechRecognizer, AudioEmotionRecognizer, VideoEmotionRecognizer
     >>>
     >>> # Speech recognition
     >>> recognizer = SpeechRecognizer(model_name="base")
@@ -20,12 +21,17 @@ Usage:
     >>> emotion_recognizer = AudioEmotionRecognizer()
     >>> emotions = await emotion_recognizer.detect_emotions("session_001", "audio.wav")
     >>>
+    >>> # Video emotion (edge processing for privacy)
+    >>> video_recognizer = VideoEmotionRecognizer(edge_processing=True)
+    >>> video_emotions = await video_recognizer.detect_emotions("session_001", "video.mp4")
+    >>>
     >>> # Multimodal fusion
     >>> from ai.multimodal import MultimodalFusion
-    >>> fusion = MultimodalFusion(text_weight=0.6, audio_weight=0.4)
+    >>> fusion = MultimodalFusion(text_weight=0.5, audio_weight=0.3, video_weight=0.2)
     >>> fused = fusion.fuse_emotions(
     ...     text_emotion=pixel_output,
-    ...     audio_emotion=emotions.overall_emotion.__dict__
+    ...     audio_emotion=emotions.overall_emotion.__dict__,
+    ...     video_emotion=video_emotions.overall_emotion.__dict__
     ... )
 """
 
@@ -45,6 +51,38 @@ from .multimodal_fusion import (
 )
 
 try:
+    from .video_emotion_recognition import (
+        FaceDetection,
+        FacialLandmark,
+        FrameEmotion,
+        VideoEmotionRecognizer,
+        VideoEmotionResult,
+        VideoEmotionTrajectory,
+    )
+except Exception:  # pragma: no cover - optional dependency fallback
+
+    class VideoEmotionRecognizer:
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class VideoEmotionResult:
+        session_id: str = ""
+        error: str = "Video dependencies unavailable"
+
+    class FaceDetection:
+        pass
+
+    class FacialLandmark:
+        pass
+
+    class FrameEmotion:
+        pass
+
+    class VideoEmotionTrajectory:
+        pass
+
+
+try:
     from .speech_recognition import (
         AudioPreprocessor as SpeechAudioPreprocessor,
     )
@@ -54,9 +92,8 @@ try:
         TranscriptionSegment,
     )
 except Exception:  # pragma: no cover - optional dependency fallback
-    class SpeechAudioPreprocessor:
-        """Fallback audio preprocessor when speech dependencies are unavailable."""
 
+    class SpeechAudioPreprocessor:
         def __init__(self, sample_rate: int = 16000):
             self.sample_rate = sample_rate
 
@@ -64,40 +101,38 @@ except Exception:  # pragma: no cover - optional dependency fallback
             return audio_input
 
     class SpeechRecognizer:
-        """Fallback speech recognizer when runtime speech dependencies are unavailable."""
-
         def __init__(self, *args, **kwargs):
             pass
 
     class TranscriptionResult:
-        """Fallback transcription result placeholder."""
-
         text: str = ""
 
     class TranscriptionSegment:
-        """Fallback transcription segment placeholder."""
-
         text: str = ""
 
+
 __all__ = [
-    # Speech recognition
     "SpeechRecognizer",
     "TranscriptionResult",
     "TranscriptionSegment",
     "SpeechAudioPreprocessor",
-    # Audio emotion recognition
     "AudioEmotionRecognizer",
     "AudioPreprocessor",
     "EmotionTrajectory",
     "EmotionalState",
     "AudioEmotionResult",
-    # Multimodal fusion
     "MultimodalFusion",
     "ModalityWeights",
     "FusedEmotionalState",
     "TextToSpeechGenerator",
     "MultimodalResponseGenerator",
+    "VideoEmotionRecognizer",
+    "VideoEmotionResult",
+    "FaceDetection",
+    "FacialLandmark",
+    "FrameEmotion",
+    "VideoEmotionTrajectory",
 ]
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 __author__ = "Pixelated Empathy"

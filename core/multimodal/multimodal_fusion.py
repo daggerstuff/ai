@@ -1,22 +1,24 @@
 """
 Multimodal Fusion for Pixel Therapeutic Conversations.
 
-Combines text and audio signals for enhanced emotional understanding.
-Synchronizes responses across modalities (text, speech, emotion indicators).
+Combines text, audio, and video signals for enhanced emotional understanding.
+Synchronizes responses across modalities (text, speech, video, emotion indicators).
 
 Features:
-  - Text + audio emotion fusion with weighted combination
+  - Text + audio + video emotion fusion with weighted combination
   - Conflict detection between modalities
   - Cross-modal validation and confidence scoring
   - Synchronized multimodal response generation
-  - Real-time fusion with streaming audio
+  - Real-time fusion with streaming audio/video
   - Integration with Pixel EQ scores
+  - Support for "Visual micro-leakage" detection
 
 Example:
     >>> fusion = MultimodalFusion()
     >>> result = fusion.fuse_emotions(
     ...     text_emotion={'eq_scores': [0.8, 0.7, 0.6, 0.9, 0.75]},
-    ...     audio_emotion={'valence': 0.6, 'arousal': 0.7}
+    ...     audio_emotion={'valence': 0.6, 'arousal': 0.7},
+    ...     video_emotion={'valence': 0.5, 'arousal': 0.6}
     ... )
     >>> print(f"Fused EQ: {result['fused_eq_scores']}")
 """
@@ -34,8 +36,9 @@ logger = logging.getLogger(__name__)
 class ModalityWeights:
     """Weights for different modalities in fusion."""
 
-    text_weight: float = 0.6  # Text emotion importance
-    audio_weight: float = 0.4  # Audio emotion importance
+    text_weight: float = 0.5
+    audio_weight: float = 0.3
+    video_weight: float = 0.2
     fusion_confidence_threshold: float = 0.7
 
 
@@ -43,108 +46,99 @@ class ModalityWeights:
 class FusedEmotionalState:
     """Fused emotional representation."""
 
-    # Pixel EQ scores (5 dimensions)
     eq_scores: List[float]
     overall_eq: float
-
-    # VAD representation
     valence: float
     arousal: float
     dominance: float
-
-    # Metadata
-    text_contribution: float  # How much text influenced fusion
-    audio_contribution: float  # How much audio influenced fusion
-    conflict_score: float  # 0.0 (aligned) to 1.0 (conflicting)
-    confidence: float  # Overall confidence in fusion
-
-    # Detailed breakdown
+    text_contribution: float
+    audio_contribution: float
+    video_contribution: float = 0.0
+    conflict_score: float = 0.0
+    confidence: float = 0.0
+    visual_micro_leakage: Optional[bool] = None
     text_emotion: Optional[Dict[str, Any]] = None
     audio_emotion: Optional[Dict[str, Any]] = None
+    video_emotion: Optional[Dict[str, Any]] = None
 
 
 class MultimodalFusion:
-    """Fuse text and audio emotions for therapeutic context."""
+    """Fuse text, audio, and video emotions for therapeutic context."""
 
     def __init__(
         self,
-        text_weight: float = 0.6,
-        audio_weight: float = 0.4,
+        text_weight: float = 0.5,
+        audio_weight: float = 0.3,
+        video_weight: float = 0.2,
         conflict_threshold: float = 0.5,
     ):
-        """
-        Initialize multimodal fusion.
-
-        Args:
-            text_weight: Weight for text emotion (0.0-1.0)
-            audio_weight: Weight for audio emotion
-            conflict_threshold: Threshold for modality conflict
-        """
-        self.text_weight = text_weight / (text_weight + audio_weight)
-        self.audio_weight = audio_weight / (text_weight + audio_weight)
+        total = text_weight + audio_weight + video_weight
+        self.text_weight = text_weight / total
+        self.audio_weight = audio_weight / total
+        self.video_weight = video_weight / total
         self.conflict_threshold = conflict_threshold
 
     def fuse_emotions(
         self,
         text_emotion: Optional[Dict[str, Any]] = None,
         audio_emotion: Optional[Dict[str, Any]] = None,
+        video_emotion: Optional[Dict[str, Any]] = None,
         weights: Optional[ModalityWeights] = None,
     ) -> FusedEmotionalState:
-        """
-        Fuse text and audio emotions.
-
-        Args:
-            text_emotion: Text emotion from Pixel model
-            audio_emotion: Audio emotion from speech analysis
-            weights: Custom weighting configuration
-
-        Returns:
-            FusedEmotionalState with combined representation
-        """
         if weights:
-            self.text_weight = weights.text_weight / (
-                weights.text_weight + weights.audio_weight
-            )
-            self.audio_weight = weights.audio_weight / (
-                weights.text_weight + weights.audio_weight
-            )
+            total = weights.text_weight + weights.audio_weight + weights.video_weight
+            self.text_weight = weights.text_weight / total
+            self.audio_weight = weights.audio_weight / total
+            self.video_weight = weights.video_weight / total
 
-        # Default to neutral if missing
         if text_emotion is None:
             text_emotion = self._default_text_emotion()
         if audio_emotion is None:
             audio_emotion = self._default_audio_emotion()
+        if video_emotion is None:
+            video_emotion = self._default_video_emotion()
 
-        # Extract EQ scores from text
         text_eq = text_emotion.get("eq_scores", [0.5] * 5)
-        text_emotion.get("overall_eq", 0.5)
 
-        # Convert audio VAD to EQ scores
         audio_eq = self._vad_to_eq(
             valence=audio_emotion.get("valence", 0.0),
             arousal=audio_emotion.get("arousal", 0.0),
             dominance=audio_emotion.get("dominance", 0.0),
         )
-        np.mean(audio_eq)
 
-        # Fuse EQ scores
-        fused_eq = self._fuse_eq_scores(
-            text_eq,
-            audio_eq,
-            text_weight=self.text_weight,
-            audio_weight=self.audio_weight,
+        video_eq = self._vad_to_eq(
+            valence=video_emotion.get("valence", 0.0),
+            arousal=video_emotion.get("arousal", 0.0),
+            dominance=video_emotion.get("dominance", 0.0),
         )
 
-        # Calculate VAD from fusion
+        fused_eq = self._fuse_eq_scores_triple(
+            text_eq,
+            audio_eq,
+            video_eq,
+            self.text_weight,
+            self.audio_weight,
+            self.video_weight,
+        )
+
         valence, arousal, dominance = self._eq_to_vad(fused_eq)
 
-        # Calculate conflict
-        conflict = self._calculate_conflict(text_emotion, audio_emotion)
+        conflict = self._calculate_conflict_triple(
+            text_emotion, audio_emotion, video_emotion
+        )
 
-        # Calculate confidence
+        visual_micro_leakage = self._detect_visual_micro_leakage(
+            text_emotion, video_emotion
+        )
+
         text_conf = text_emotion.get("confidence", 0.8)
         audio_conf = audio_emotion.get("confidence", 0.8)
-        fused_confidence = text_conf * self.text_weight + audio_conf * self.audio_weight
+        video_conf = video_emotion.get("confidence", 0.8)
+        fused_confidence = (
+            text_conf * self.text_weight
+            + audio_conf * self.audio_weight
+            + video_conf * self.video_weight
+        )
 
         return FusedEmotionalState(
             eq_scores=fused_eq,
@@ -154,37 +148,30 @@ class MultimodalFusion:
             dominance=dominance,
             text_contribution=self.text_weight,
             audio_contribution=self.audio_weight,
+            video_contribution=self.video_weight,
             conflict_score=conflict,
             confidence=fused_confidence,
+            visual_micro_leakage=visual_micro_leakage,
             text_emotion=text_emotion,
             audio_emotion=audio_emotion,
+            video_emotion=video_emotion,
         )
 
-    def _fuse_eq_scores(
+    def _fuse_eq_scores_triple(
         self,
         text_eq: List[float],
         audio_eq: List[float],
-        text_weight: float = 0.6,
-        audio_weight: float = 0.4,
+        video_eq: List[float],
+        text_weight: float,
+        audio_weight: float,
+        video_weight: float,
     ) -> List[float]:
-        """
-        Fuse EQ scores from text and audio.
-
-        EQ Dimensions:
-        0: Self-awareness
-        1: Self-regulation
-        2: Motivation
-        3: Empathy
-        4: Social skills
-        """
-
-        text_eq = np.array(text_eq)
-
-        audio_eq = np.array(audio_eq)
-
-        # Weighted fusion
-        fused = text_eq * text_weight + audio_eq * audio_weight
-
+        text_arr = np.array(text_eq)
+        audio_arr = np.array(audio_eq)
+        video_arr = np.array(video_eq)
+        fused = (
+            text_arr * text_weight + audio_arr * audio_weight + video_arr * video_weight
+        )
         return fused.tolist()
 
     def _vad_to_eq(
@@ -317,13 +304,61 @@ class MultimodalFusion:
         }
 
     def _default_audio_emotion(self) -> Dict[str, Any]:
-        """Default neutral audio emotion."""
         return {
             "valence": 0.0,
             "arousal": 0.0,
             "dominance": 0.0,
             "confidence": 0.0,
         }
+
+    def _default_video_emotion(self) -> Dict[str, Any]:
+        return {
+            "valence": 0.0,
+            "arousal": 0.0,
+            "dominance": 0.0,
+            "confidence": 0.0,
+        }
+
+    def _calculate_conflict_triple(
+        self,
+        text_emotion: Dict[str, Any],
+        audio_emotion: Dict[str, Any],
+        video_emotion: Dict[str, Any],
+    ) -> float:
+        text_eq = np.array(text_emotion.get("eq_scores", [0.5] * 5))
+        audio_vad = {
+            "valence": audio_emotion.get("valence", 0.0),
+            "arousal": audio_emotion.get("arousal", 0.0),
+            "dominance": audio_emotion.get("dominance", 0.0),
+        }
+        audio_eq = np.array(self._vad_to_eq(**audio_vad))
+        video_vad = {
+            "valence": video_emotion.get("valence", 0.0),
+            "arousal": video_emotion.get("arousal", 0.0),
+            "dominance": video_emotion.get("dominance", 0.0),
+        }
+        video_eq = np.array(self._vad_to_eq(**video_vad))
+        pairwise_diff = (
+            np.abs(text_eq - audio_eq)
+            + np.abs(audio_eq - video_eq)
+            + np.abs(text_eq - video_eq)
+        )
+        return float(np.clip(np.mean(pairwise_diff) / 2, 0.0, 1.0))
+
+    def _detect_visual_micro_leakage(
+        self,
+        text_emotion: Dict[str, Any],
+        video_emotion: Dict[str, Any],
+    ) -> Optional[bool]:
+        if video_emotion.get("confidence", 0.0) < 0.3:
+            return None
+        text_valence = 0.5
+        if "eq_scores" in text_emotion:
+            eq = text_emotion["eq_scores"]
+            text_valence = (eq[3] + eq[4]) / 2 if len(eq) > 4 else 0.5
+        video_valence = (video_emotion.get("valence", 0.0) + 1) / 2
+        valence_diff = abs(text_valence - video_valence)
+        return valence_diff > 0.4
 
 
 class TextToSpeechGenerator:
