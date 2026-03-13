@@ -14,6 +14,11 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 try:
+    import ijson  # For streaming JSON arrays
+except ImportError:
+    ijson = None  # type: ignore[assignment]
+
+try:
     import boto3
     from botocore.exceptions import ClientError as _BotocoreClientError
 except ImportError:
@@ -361,6 +366,111 @@ class S3DatasetLoader:
                 else:
                     # Fallback to manual buffering
                     yield from self._stream_with_manual_buffering(body)
+
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                raise FileNotFoundError(
+                    f"Dataset not found in S3: s3://{bucket}/{key}"
+                ) from e
+            raise
+
+    def stream_json_array(self, s3_path: str) -> Iterator[dict[str, Any]]:
+        """
+        Stream JSON array from S3 (memory-efficient for large files).
+
+        This handles the case where training data is stored as a single JSON
+        array: [{"conversation": [...]}, {"conversation": [...]}]
+
+        Args:
+            s3_path: S3 path (s3://bucket/key or just key)
+
+        Yields:
+            Parsed JSON objects (one at a time from array)
+        """
+        if ijson is None:
+            raise ImportError(
+                "ijson is required for streaming JSON arrays. "
+                "Install with: uv pip install ijson"
+            )
+
+        bucket, key = self._parse_s3_path(s3_path)
+        logger.info(f"Streaming JSON array from S3: s3://{bucket}/{key}")
+
+        try:
+            response = self.s3_client.get_object(Bucket=bucket, Key=key)
+            body = response["Body"]
+
+            with contextlib.closing(body):
+                # Use ijson to stream array items one at a time
+                # This never loads the entire array into memory
+                for item in ijson.items(body, "item"):
+                    yield item
+
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "NoSuchKey":
+                raise FileNotFoundError(
+                    f"Dataset not found in S3: s3://{bucket}/{key}"
+                ) from e
+            raise
+
+    def stream_json(self, s3_path: str) -> Iterator[dict[str, Any]]:
+        """
+        Auto-detect and stream JSON from S3 (handles both JSONL and JSON array).
+
+        This method detects the file format and uses the appropriate streaming method:
+        - If the first non-whitespace character is '[', treat as JSON array
+        - Otherwise, treat as JSONL (one JSON object per line)
+
+        Args:
+            s3_path: S3 path (s3://bucket/key or just key)
+
+        Yields:
+            Parsed JSON objects
+        """
+        bucket, key = self._parse_s3_path(s3_path)
+        logger.info(f"Auto-detecting JSON format for: s3://{bucket}/{key}")
+
+        try:
+            # Read first byte to detect format
+            response = self.s3_client.get_object(Bucket=bucket, Key=key)
+            body = response["Body"]
+
+            # Peek at first byte
+            first_byte = body.read(1)
+            while first_byte and first_byte in b" \t\n\r":
+                first_byte = body.read(1)
+
+            if first_byte == b"[":
+                # JSON array format
+                logger.info(f"Detected JSON array format for: s3://{bucket}/{key}")
+
+                if ijson is None:
+                    raise ImportError(
+                        "ijson is required for streaming JSON arrays. "
+                        "Install with: uv pip install ijson"
+                    )
+
+                # Re-read from beginning for ijson parser
+                response2 = self.s3_client.get_object(Bucket=bucket, Key=key)
+                body2 = response2["Body"]
+
+                with contextlib.closing(body2):
+                    for item in ijson.items(body2, "item"):
+                        yield item
+            else:
+                # JSONL format (or unknown - try JSONL)
+                logger.info(f"Detected JSONL format for: s3://{bucket}/{key}")
+
+                # Re-read from beginning
+                response2 = self.s3_client.get_object(Bucket=bucket, Key=key)
+                body2 = response2["Body"]
+
+                with contextlib.closing(body2):
+                    iter_lines = getattr(body2, "iter_lines", None)
+                    if callable(iter_lines):
+                        yield from self._stream_with_iter_lines(body2)
+                    else:
+                        yield from self._stream_with_manual_buffering(body2)
 
         except ClientError as e:
             if e.response["Error"]["Code"] == "NoSuchKey":

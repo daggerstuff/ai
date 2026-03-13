@@ -28,7 +28,10 @@ autoscaling:
 
 postgresql:
   enabled: true
-  # Let Bitnami chart use default images (handles bitnamilegacy migration)
+  image:
+    repository: bitnami/postgresql
+    tag: "latest"
+    pullPolicy: Always
   primary:
     persistence:
       size: 50Gi
@@ -42,7 +45,10 @@ postgresql:
 
 redis:
   enabled: true
-  # Let Bitnami chart use default images (handles bitnamilegacy migration)
+  image:
+    repository: bitnami/redis
+    tag: "latest"
+    pullPolicy: Always
   master:
     persistence:
       size: 10Gi

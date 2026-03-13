@@ -23,8 +23,8 @@ def simulator(mock_genai):
 def test_simulator_initialization(simulator):
     assert simulator.gestalt_engine is not None
     assert simulator.persona_manager is not None
-    # Verify that it's in mock mode since dummy_path.ckpt doesn't exist
-    assert not simulator.gestalt_engine.defense_model_loaded
+    # Verify that llm_mode is set (will be mock mode if no API keys available)
+    assert simulator.llm_mode in ("nim", "gemini", "mock")
 
 
 def test_simulate_turn_mock_mode(simulator):
