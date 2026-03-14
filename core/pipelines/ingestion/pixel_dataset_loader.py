@@ -16,7 +16,6 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-import aiofiles
 from ai.core.pipelines.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -294,9 +293,13 @@ class PixelDatasetLoader:
                 ],
             }
 
-            json_str = json.dumps(mock_data, indent=2)
-            async with aiofiles.open(dataset_info.local_path, "w") as f:
-                await f.write(json_str)
+            loop = asyncio.get_running_loop()
+
+            def _save_json():
+                with open(dataset_info.local_path, "w") as f:
+                    json.dump(mock_data, f, indent=2)
+
+            await loop.run_in_executor(self.executor, _save_json)
 
             return True
 
@@ -320,9 +323,13 @@ class PixelDatasetLoader:
                 return validation_result
 
             # Load and validate data
-            async with aiofiles.open(dataset_info.local_path, "r") as f:
-                content = await f.read()
-                data = json.loads(content)
+            loop = asyncio.get_running_loop()
+
+            def _load_json():
+                with open(dataset_info.local_path, "r") as f:
+                    return json.load(f)
+
+            data = await loop.run_in_executor(self.executor, _load_json)
 
             # Basic validation checks
             if "records" not in data:
