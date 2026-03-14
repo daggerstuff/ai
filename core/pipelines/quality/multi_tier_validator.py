@@ -178,7 +178,7 @@ class MultiTierValidator:
     ) -> ValidationIssue:
         """Helper method to create ValidationIssue with proper serialization."""
         return ValidationIssue(
-            tier=tier.value,
+            tier=tier,
             category=category,
             severity=severity,
             description=description,
@@ -226,7 +226,7 @@ class MultiTierValidator:
 
         # Count passed checks
         passed_checks = sum(
-            1 for score in scores.values() if score >= thresholds["min_score"]
+            score >= thresholds["min_score"] for score in scores.values()
         )
         total_checks = len(scores)
 
@@ -247,11 +247,9 @@ class MultiTierValidator:
         if tiers is None:
             tiers = list(ValidationTier)
 
-        results = {}
-        for tier in tiers:
-            results[tier] = self.validate_conversation(conversation, tier)
-
-        return results
+        return {
+            tier: self.validate_conversation(conversation, tier) for tier in tiers
+        }
 
     def _validate_category(
         self, conversation: dict[str, Any], category: str, tier: ValidationTier
@@ -280,10 +278,10 @@ class MultiTierValidator:
         content = self._extract_conversation_content(conversation)
 
         # Check for therapeutic techniques
-        technique_matches = 0
-        for pattern in self.validation_patterns["therapeutic_techniques"]:
-            if re.search(pattern, content, re.IGNORECASE):
-                technique_matches += 1
+        technique_matches = sum(
+            bool(re.search(pattern, content, re.IGNORECASE))
+            for pattern in self.validation_patterns["therapeutic_techniques"]
+        )
 
         # Tier-specific requirements
         if tier in [ValidationTier.CLINICAL, ValidationTier.RESEARCH]:
@@ -337,23 +335,21 @@ class MultiTierValidator:
         safety_concerns = []
         for pattern in self.validation_patterns["safety_indicators"]:
             matches = re.finditer(pattern, content, re.IGNORECASE)
-            for match in matches:
-                safety_concerns.append(match.group())
+            safety_concerns.extend(match.group() for match in matches)
 
-        if safety_concerns:
-            # Check if safety concerns are properly addressed
-            if not self._check_safety_response(content, safety_concerns):
-                score -= 0.5
-                issues.append(
-                    ValidationIssue(
-                        tier=tier,
-                        category="safety_compliance",
-                        severity="CRITICAL",
-                        description=f"Safety concerns not properly addressed: {', '.join(safety_concerns)}",
-                        suggestion="Implement proper crisis intervention protocols and safety assessments",
-                        confidence_score=0.9,
-                    )
+        # Check if safety concerns are properly addressed
+        if safety_concerns and not self._check_safety_response(content, safety_concerns):
+            score -= 0.5
+            issues.append(
+                ValidationIssue(
+                    tier=tier,
+                    category="safety_compliance",
+                    severity="CRITICAL",
+                    description=f"Safety concerns not properly addressed: {', '.join(safety_concerns)}",
+                    suggestion="Implement proper crisis intervention protocols and safety assessments",
+                    confidence_score=0.9,
                 )
+            )
 
         # Check for mandatory safety elements (consistent across all tiers)
         if not self._has_safety_disclaimers(content):
@@ -421,40 +417,40 @@ class MultiTierValidator:
         content = self._extract_conversation_content(conversation)
 
         # Check for clinical terminology usage
-        clinical_terms = 0
-        for pattern in self.validation_patterns["clinical_terminology"]:
-            if re.search(pattern, content, re.IGNORECASE):
-                clinical_terms += 1
+        clinical_terms = sum(
+            bool(re.search(pattern, content, re.IGNORECASE))
+            for pattern in self.validation_patterns["clinical_terminology"]
+        )
 
         # Higher tiers require more clinical accuracy
-        if tier in [ValidationTier.CLINICAL, ValidationTier.RESEARCH]:
-            if clinical_terms == 0:
-                score -= 0.4
-                issues.append(
-                    ValidationIssue(
-                        tier=tier,
-                        category="clinical_accuracy",
-                        severity="HIGH",
-                        description="Insufficient clinical terminology for this tier",
-                        suggestion="Include appropriate clinical terminology and evidence-based practices",
-                        confidence_score=0.8,
-                    )
+        if tier in [ValidationTier.CLINICAL, ValidationTier.RESEARCH] and clinical_terms == 0:
+            score -= 0.4
+            issues.append(
+                ValidationIssue(
+                    tier=tier,
+                    category="clinical_accuracy",
+                    severity="HIGH",
+                    description="Insufficient clinical terminology for this tier",
+                    suggestion="Include appropriate clinical terminology and evidence-based practices",
+                    confidence_score=0.8,
                 )
+            )
 
         # Check for diagnostic accuracy (if applicable)
-        if self._contains_diagnostic_content(content):
-            if not self._validate_diagnostic_accuracy(content, tier):
-                score -= 0.3
-                issues.append(
-                    ValidationIssue(
-                        tier=tier,
-                        category="clinical_accuracy",
-                        severity="HIGH",
-                        description="Diagnostic accuracy concerns detected",
-                        suggestion="Ensure diagnostic content aligns with current clinical standards",
-                        confidence_score=0.7,
-                    )
+        if self._contains_diagnostic_content(
+            content
+        ) and not self._validate_diagnostic_accuracy(content, tier):
+            score -= 0.3
+            issues.append(
+                ValidationIssue(
+                    tier=tier,
+                    category="clinical_accuracy",
+                    severity="HIGH",
+                    description="Diagnostic accuracy concerns detected",
+                    suggestion="Ensure diagnostic content aligns with current clinical standards",
+                    confidence_score=0.7,
                 )
+            )
 
         return max(0.0, score), issues
 
@@ -543,11 +539,10 @@ class MultiTierValidator:
             r"\b(i\'m not qualified|i don\'t know)\b",
         ]
 
-        for pattern in inappropriate_patterns:
-            if re.search(pattern, content, re.IGNORECASE):
-                return False
-
-        return True
+        return not any(
+            re.search(pattern, content, re.IGNORECASE)
+            for pattern in inappropriate_patterns
+        )
 
     def _check_safety_response(self, content: str, safety_concerns: list[str]) -> bool:
         """Check if safety concerns are properly addressed."""
@@ -557,11 +552,10 @@ class MultiTierValidator:
             r"\b(not alone|support available|reach out)\b",
         ]
 
-        for pattern in safety_response_patterns:
-            if re.search(pattern, content, re.IGNORECASE):
-                return True
-
-        return False
+        return any(
+            re.search(pattern, content, re.IGNORECASE)
+            for pattern in safety_response_patterns
+        )
 
     def _has_safety_disclaimers(self, content: str) -> bool:
         """Check for required safety disclaimers."""
@@ -585,11 +579,10 @@ class MultiTierValidator:
             r"\b(outside of session|meet privately)\b",
         ]
 
-        for pattern in boundary_violations:
-            if re.search(pattern, content, re.IGNORECASE):
-                return False
-
-        return True
+        return not any(
+            re.search(pattern, content, re.IGNORECASE)
+            for pattern in boundary_violations
+        )
 
     def _contains_diagnostic_content(self, content: str) -> bool:
         """Check if content contains diagnostic information."""
@@ -640,11 +633,14 @@ class MultiTierValidator:
             r"\b(statistical significance|confidence interval)\b",
         ]
 
-        for pattern in methodology_patterns:
-            if re.search(pattern, content, re.IGNORECASE):
-                return True
-
-        return True  # Default to true for non-research content
+        return next(
+            (
+                True
+                for pattern in methodology_patterns
+                if re.search(pattern, content, re.IGNORECASE)
+            ),
+            True,
+        )  # Default to true for non-research content
 
     def generate_validation_report(
         self,
@@ -740,14 +736,12 @@ class MultiTierValidator:
             )
 
         # Tier-specific recommendations
-        failing_tiers = [
+        if failing_tiers := [
             tier
             for tier, result in results.items()
             if result.overall_result
             in [ValidationResult.FAIL, ValidationResult.CRITICAL_FAIL]
-        ]
-
-        if failing_tiers:
+        ]:
             recommendations.append(
                 f"Focus on improving validation for tiers: {', '.join([t.value for t in failing_tiers])}"
             )
