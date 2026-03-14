@@ -31,6 +31,8 @@ def test_initial_pq_is_50(calculator):
     state = make_mock_state(3.5)
     score = calculator.calculate_pq_increment(state, previous_maturity=3.5)
     assert score.overall_pq == 50.0
+    assert score.window_size == 7
+    assert score.trend_window == [3.5]
 
 
 def test_invalidation_penalty(calculator):
@@ -42,6 +44,7 @@ def test_invalidation_penalty(calculator):
     score = calculator.calculate_pq_increment(make_mock_state(1.5))
     assert score.overall_pq == 42.0
     assert score.invalidation_detected is True
+    assert score.rolling_window_delta == -2.0
 
 
 def test_recovery_multiplier(calculator):
@@ -51,6 +54,7 @@ def test_recovery_multiplier(calculator):
     # 50.0 + (2.0 * 2.5) = 55.0
     score = calculator.calculate_pq_increment(make_mock_state(5.0))
     assert score.overall_pq == 55.0
+    assert score.rolling_window_delta == 2.0
 
 
 def test_breakthrough_bonus(calculator):
@@ -68,3 +72,25 @@ def test_performance_category(calculator):
     calculator.calculate_pq_increment(make_mock_state(7.5))
     summary = calculator.get_session_summary()
     assert summary["performance_category"] in ["Elite", "Clinical"]
+
+
+def test_rolling_window_delta_uses_recent_history(calculator):
+    calculator.calculate_pq_increment(make_mock_state(2.0))
+    calculator.calculate_pq_increment(make_mock_state(2.5))
+    calculator.calculate_pq_increment(make_mock_state(3.0))
+    score = calculator.calculate_pq_increment(make_mock_state(4.8))
+
+    assert score.rolling_window_delta > 1.5
+    assert score.defensive_instability >= 0.0
+
+
+def test_summary_exposes_shift_metrics(calculator):
+    states = [2.0, 2.5, 3.0, 2.0, 4.0]
+    for maturity in states:
+        calculator.calculate_pq_increment(make_mock_state(maturity))
+
+    summary = calculator.get_session_summary()
+    assert summary["window_size"] == 7
+    assert summary["turn_count"] == len(states)
+    assert summary["best_maturity_gain"] >= summary["worst_maturity_drop"]
+    assert summary["defensive_instability"] >= 0.0
