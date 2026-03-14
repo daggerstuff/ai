@@ -483,3 +483,18 @@ class TestGestaltEngineAnalyze:
     def test_defense_model_not_loaded_property(self):
         engine = GestaltEngine()
         assert engine.defense_model_loaded is False
+
+    def test_orchestrates_all_models_without_scores(self, action_engine):
+        """
+        analyze_gestalt should still return a coherent GestaltState when callers omit
+        explicit Plutchik and OCEAN payloads.
+        """
+        state = action_engine.analyze_gestalt(
+            dialogue=SAMPLE_DIALOGUE,
+            target_utterance=SAMPLE_TARGET,
+        )
+
+        assert state.behavioral_pattern
+        assert 0.0 <= state.behavioral_pattern_confidence <= 1.0
+        assert set(state.plutchik_scores).issuperset(PLUTCHIK_EMOTIONS)
+        assert set(state.ocean_scores).issuperset(OCEAN_TRAITS)

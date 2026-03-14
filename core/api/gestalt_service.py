@@ -29,11 +29,11 @@ class DialogueTurn(BaseModel):
 class GestaltAnalysisRequest(BaseModel):
     dialogue: List[DialogueTurn] = Field(..., description="Conversation history")
     target_utterance: str = Field(..., description="The utterance to classify")
-    plutchik_scores: Dict[str, float] = Field(
-        ..., description="Plutchik emotion scores (8 keys)"
+    plutchik_scores: Optional[Dict[str, float]] = Field(
+        None, description="Plutchik emotion scores (8 keys)"
     )
-    ocean_scores: Dict[str, float] = Field(
-        ..., description="OCEAN personality traits (5 keys)"
+    ocean_scores: Optional[Dict[str, float]] = Field(
+        None, description="OCEAN personality traits (5 keys)"
     )
     max_turns: int = Field(40, description="Context window")
 
@@ -55,6 +55,9 @@ class GestaltAnalysisResponse(BaseModel):
     behavioral_prediction: str
     persona_directive: str
     breakthrough_score: float
+    behavioral_pattern: str
+    behavioral_pattern_confidence: float
+    raw_metadata: Dict[str, object]
 
 
 def load_gestalt_model(checkpoint_path: str, device: str = "cpu"):
@@ -108,6 +111,9 @@ async def analyze_gestalt(request: GestaltAnalysisRequest) -> GestaltAnalysisRes
             behavioral_prediction=state.behavioral_prediction,
             persona_directive=state.persona_directive,
             breakthrough_score=round(state.breakthrough_score, 4),
+            behavioral_pattern=state.behavioral_pattern,
+            behavioral_pattern_confidence=round(state.behavioral_pattern_confidence, 4),
+            raw_metadata=state.raw_metadata,
         )
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e)) from e

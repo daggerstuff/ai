@@ -16,6 +16,7 @@ The fused ``GestaltState`` dataclass powers:
 
 from __future__ import annotations
 
+from concurrent.futures import Future, ThreadPoolExecutor
 import logging
 from dataclasses import dataclass, field
 from enum import Enum
@@ -100,6 +101,8 @@ class GestaltState:
     behavioral_prediction: str
     persona_directive: str
     breakthrough_score: float
+    behavioral_pattern: str
+    behavioral_pattern_confidence: float
 
     raw_metadata: dict = field(default_factory=dict, repr=False)
 
@@ -116,6 +119,25 @@ _MAJOR_IMAGE_DISTORTING_LABEL = 2
 _CRISIS_AMPLIFYING_EMOTIONS = frozenset({"sadness", "fear", "anger", "disgust"})
 _INJECTION_MATURITY_THRESHOLD = 0.43
 _BREAKTHROUGH_MATURITY_THRESHOLD = 0.71
+
+_PLUTCHIK_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "anger": ("angry", "mad", "frustrated", "rage", "furious"),
+    "anticipation": ("hope", "expect", "anticipate", "plan", "goal"),
+    "disgust": ("disgust", "gross", "hate", "repulsed"),
+    "fear": ("afraid", "scared", "panic", "anxious", "worry", "threat"),
+    "joy": ("happy", "relieved", "content", "glad", "excited"),
+    "sadness": ("sad", "hurt", "grief", "depressed", "empty", "overwhelmed"),
+    "surprise": ("surprised", "unexpected", "shocked", "wow"),
+    "trust": ("understand", "trust", "safe", "heard", "believe"),
+}
+
+_OCEAN_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "openness": ("curious", "explore", "imagine", "creative", "different"),
+    "conscientiousness": ("organized", "plan", "structure", "follow", "through"),
+    "extraversion": ("talk", "share", "group", "connect", "social"),
+    "agreeableness": ("kind", "calm", "appreciate", "thank", "supportive"),
+    "neuroticism": ("worried", "anxious", "confused", "guilt", "shaky", "nervous"),
+}
 
 
 def _dominant_emotion(plutchik: dict[str, float]) -> tuple[str, float]:
@@ -249,6 +271,47 @@ def _validate_scores(
     return {k: float(v) for k, v in scores.items()}
 
 
+def _normalize_score(value: float) -> float:
+    """Clamp model outputs to [0, 1]."""
+    return max(0.0, min(1.0, float(value)))
+
+
+def _infer_plutchik_signature(text: str) -> dict[str, float]:
+    """Fallback Plutchik inference from lexical cues."""
+    lowered = text.lower()
+    raw = {emotion: 0.0 for emotion in PLUTCHIK_EMOTIONS}
+
+    for emotion, keywords in _PLUTCHIK_KEYWORDS.items():
+        hits = sum(1 for keyword in keywords if keyword in lowered)
+        raw[emotion] = 0.2 + 0.15 * min(hits, 4)
+
+    if max(raw.values()) <= 0.2:
+        raw["trust"] = 0.34
+        raw["anticipation"] = 0.3
+        raw["sadness"] = 0.2
+
+    return {k: _normalize_score(v) for k, v in raw.items()}
+
+
+def _infer_ocean_signature(text: str) -> dict[str, float]:
+    """Fallback OCEAN inference from lexical cues."""
+    lowered = text.lower()
+    scores = {trait: 0.5 for trait in OCEAN_TRAITS}
+
+    for trait, keywords in _OCEAN_KEYWORDS.items():
+        hits = sum(1 for keyword in keywords if keyword in lowered)
+        if hits:
+            scores[trait] = _normalize_score(0.5 + 0.08 * hits)
+
+    if "open" in lowered:
+        scores["openness"] = _normalize_score(scores["openness"] + 0.1)
+    if "avoid" in lowered:
+        scores["neuroticism"] = _normalize_score(scores["neuroticism"] + 0.1)
+        scores["conscientiousness"] = _normalize_score(max(0.1, scores["conscientiousness"] - 0.1))
+
+    return scores
+
+
 # ---------------------------------------------------------------------------
 # GestaltEngine
 # ---------------------------------------------------------------------------
@@ -263,6 +326,7 @@ class GestaltEngine:
         self._defense_model = None
         self._defense_tokenizer = None
         self._previous_maturity: Optional[float] = None
+        self._analysis_executor = ThreadPoolExecutor(max_workers=12)
 
     def load_defense_model(
         self,
@@ -357,6 +421,60 @@ class GestaltEngine:
             prob_dict,
         )
 
+    def _classify_plutchik(
+        self,
+        dialogue: list[dict[str, str]],
+        target_utterance: str,
+        max_turns: int = 40,
+    ) -> dict[str, float]:
+        """Fallback Plutchik inference path."""
+        _ = dialogue[-max_turns:]
+        source = f"{target_utterance} " + " ".join(
+            turn.get("text", "") for turn in dialogue[-max_turns:]
+        )
+        return _infer_plutchik_signature(source)
+
+    def _classify_ocean(
+        self,
+        dialogue: list[dict[str, str]],
+        target_utterance: str,
+        max_turns: int = 40,
+    ) -> dict[str, float]:
+        """Fallback OCEAN inference path."""
+        _ = dialogue[-max_turns:]
+        source = f"{target_utterance} " + " ".join(
+            turn.get("text", "") for turn in dialogue[-max_turns:]
+        )
+        return _infer_ocean_signature(source)
+
+    def _behavioral_pattern_label(
+        self,
+        defense_label_name: str,
+        defense_label: int,
+        dominant_emotion: str,
+        defense_maturity: Optional[float],
+        dominant_intensity: float,
+        crisis_level: CrisisLevel,
+    ) -> tuple[str, float]:
+        """Map fused signals into a lightweight behavioral pattern descriptor."""
+        if defense_label == _ACTION_DEFENSE_LABEL and dominant_emotion == "sadness":
+            return "high-risk behavior", 0.95
+        if defense_label == _HIGH_ADAPTIVE_LABEL and dominant_emotion == "sadness":
+            return "grieving but coping", 0.88
+        if defense_label == _MAJOR_IMAGE_DISTORTING_LABEL and dominant_intensity >= 0.6:
+            return "splitting / all-or-nothing processing", 0.8
+        if defense_label == _DISAVOWAL_LABEL and dominant_emotion in _CRISIS_AMPLIFYING_EMOTIONS:
+            return "defensive minimization", 0.76
+        if crisis_level == CrisisLevel.HIGH:
+            return "elevated defensive dysregulation", 0.7
+        if crisis_level == CrisisLevel.ELEVATED:
+            return "cautionary emotional reactivity", 0.64
+        if defense_maturity is not None and defense_maturity >= _BREAKTHROUGH_MATURITY_THRESHOLD:
+            return "adaptive integration", 0.72
+        if defense_label_name:
+            return f"{defense_label_name} with mixed affect", 0.6
+        return "neutral mixed processing", 0.5
+
     def _legacy_inference(self, formatted_text: str) -> DefensePrediction:
         """Run inference using the local PyTorch DeBERTa model."""
         if self._defense_tokenizer is None:
@@ -378,11 +496,33 @@ class GestaltEngine:
         self,
         dialogue: list[dict[str, str]],
         target_utterance: str,
-        plutchik_scores: dict[str, float],
-        ocean_scores: dict[str, float],
+        plutchik_scores: Optional[dict[str, float]] = None,
+        ocean_scores: Optional[dict[str, float]] = None,
         max_turns: int = 40,
     ) -> GestaltState:
         """Fuse signals into a GestaltState."""
+        plutchik_future: Optional[Future[dict[str, float]]] = None
+        ocean_future: Optional[Future[dict[str, float]]] = None
+        if plutchik_scores is None:
+            plutchik_future = self._analysis_executor.submit(
+                self._classify_plutchik, dialogue, target_utterance, max_turns
+            )
+        if ocean_scores is None:
+            ocean_future = self._analysis_executor.submit(
+                self._classify_ocean, dialogue, target_utterance, max_turns
+            )
+        defense_future = self._analysis_executor.submit(
+            self._classify_defense, dialogue, target_utterance, max_turns
+        )
+
+        if plutchik_scores is None:
+            assert plutchik_future is not None
+            plutchik_scores = plutchik_future.result()
+        if ocean_scores is None:
+            assert ocean_future is not None
+            ocean_scores = ocean_future.result()
+        def_l, def_n, def_c, def_m, def_p = defense_future.result()
+
         plutchik = _validate_scores(
             plutchik_scores, PLUTCHIK_EMOTIONS, "plutchik_scores"
         )
@@ -391,15 +531,19 @@ class GestaltEngine:
         full_plutchik = {e: plutchik.get(e, 0.0) for e in PLUTCHIK_EMOTIONS}
         full_ocean = {t: ocean.get(t, 0.5) for t in OCEAN_TRAITS}
 
-        (def_l, def_n, def_c, def_m, def_p) = self._classify_defense(
-            dialogue, target_utterance, max_turns
-        )
-
         dom_e, dom_i = _dominant_emotion(full_plutchik)
         neuro = full_ocean.get("neuroticism", 0.5)
 
         crisis = _compute_crisis_level(def_l, def_m, dom_e, dom_i, neuro)
         behavioral = _behavioral_prediction(def_n, dom_e, crisis, def_m)
+        pattern, pattern_confidence = self._behavioral_pattern_label(
+            def_n,
+            def_l,
+            dom_e,
+            def_m,
+            dom_i,
+            crisis,
+        )
         directive = _persona_directive(def_l, def_n, def_m)
         breakthrough = _breakthrough_score(def_m, self._previous_maturity)
 
@@ -420,4 +564,6 @@ class GestaltEngine:
             behavioral_prediction=behavioral,
             persona_directive=directive,
             breakthrough_score=breakthrough,
+            behavioral_pattern=pattern,
+            behavioral_pattern_confidence=pattern_confidence,
         )

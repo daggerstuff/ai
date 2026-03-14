@@ -40,6 +40,13 @@ class PQSummaryResponse(BaseModel):
     end_maturity: Optional[float]
     net_growth: float
     performance_category: str
+    maturity_window_delta: float
+    window_volatility: float
+    window_size: int
+    turn_count: int
+    best_maturity_gain: float
+    worst_maturity_drop: float
+    defensive_instability: float
 
 
 def _get_or_create_session(session_id: str) -> EmpathyPQCalculator:
@@ -105,6 +112,13 @@ async def get_session_summary(session_id: str) -> PQSummaryResponse:
         end_maturity=summary.get("end_maturity"),
         net_growth=summary.get("net_growth", 0.0),
         performance_category=summary["performance_category"],
+        maturity_window_delta=summary["maturity_window_delta"],
+        window_volatility=summary["window_volatility"],
+        window_size=summary["window_size"],
+        turn_count=summary["turn_count"],
+        best_maturity_gain=summary["best_maturity_gain"],
+        worst_maturity_drop=summary["worst_maturity_drop"],
+        defensive_instability=summary["defensive_instability"],
     )
 
 
