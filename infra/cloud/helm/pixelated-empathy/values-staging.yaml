@@ -65,15 +65,21 @@ redis:
         memory: 768Mi
 
 ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
   hosts:
-    - host: staging-api.pixelated-empathy.ai
-      paths:
-        - path: /
-          pathType: Prefix
+  - host: pixelatedempathy.com
+    paths:
+    - path: /
+      pathType: Prefix
   tls:
-    - secretName: pixelated-empathy-staging-tls
-      hosts:
-        - staging-api.pixelated-empathy.ai
+  - secretName: pixelated-empathy-tls
+    hosts:
+    - pixelatedempathy.com
 
 backup:
   enabled: true
