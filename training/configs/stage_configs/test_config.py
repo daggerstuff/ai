@@ -3,7 +3,7 @@ Tests for the centralized configuration system.
 """
 
 import pytest
-from ai.core.pipelines.config import (
+from ai.core.pipelines.configs.config import (
     Config,
     DataLoaderConfig,
     LoggingConfig,
