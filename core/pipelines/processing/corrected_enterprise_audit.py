@@ -120,6 +120,7 @@ sys.path.insert(0, './dataset_pipeline')
 try:
     # Test basic imports first
     import numpy as np
+    import importlib
     print(f"NumPy: {{np.__version__}}")
 
     # Import the module
@@ -127,11 +128,12 @@ try:
     if module_path.startswith('dataset_pipeline.'):
         module_path = module_path[len('dataset_pipeline.'):]
 
-    exec(f"from {{module_path}} import {class_name}")
+    module = importlib.import_module(module_path)
+    cls = getattr(module, "{class_name}")
     print("IMPORT_SUCCESS")
 
     # Try to instantiate
-    exec(f"instance = {class_name}()")
+    instance = cls()
     print("INSTANTIATION_SUCCESS")
 
 except ImportError as e:
