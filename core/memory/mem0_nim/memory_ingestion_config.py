@@ -33,6 +33,8 @@ class MemoryCategory(str, Enum):
     SESSION_SUMMARY = "session_summary"
     CRISIS_CONTEXT = "crisis_context"
     PREFERENCE = "preference"
+    SUBCONSCIOUS_RELATION = "subconscious_relation"
+    RELATIONAL_SANDBOX = "relational_sandbox"
     GENERAL = "general"
 
 
@@ -150,10 +152,7 @@ class PIIFilter:
         Returns:
             True if PII is detected, False otherwise
         """
-        for pattern in self._compiled_patterns:
-            if pattern.search(text):
-                return True
-        return False
+        return any(pattern.search(text) for pattern in self._compiled_patterns)
 
     def redact_pii(self, text: str, replacement: str = "[REDACTED]") -> str:
         """
@@ -254,16 +253,11 @@ class SpeculationFilter:
         text_lower = text.lower()
 
         # Check for confirmation indicators (overrides speculation)
-        for indicator in cls.CONFIRMATION_INDICATORS:
-            if indicator in text_lower:
-                return False
+        if any(indicator in text_lower for indicator in cls.CONFIRMATION_INDICATORS):
+            return False
 
         # Check for speculation indicators
-        for indicator in cls.SPECULATION_INDICATORS:
-            if indicator in text_lower:
-                return True
-
-        return False
+        return any(indicator in text_lower for indicator in cls.SPECULATION_INDICATORS)
 
     @classmethod
     def get_confidence_adjustment(cls, text: str) -> float:
@@ -284,7 +278,7 @@ class SpeculationFilter:
                 return 1.0
 
         # Low confidence for speculative statements
-        speculation_count = sum(1 for ind in cls.SPECULATION_INDICATORS if ind in text_lower)
+        speculation_count = sum(ind in text_lower for ind in cls.SPECULATION_INDICATORS)
 
         if speculation_count >= 2:
             return 0.5
@@ -328,6 +322,9 @@ class CrisisDetector:
         r"(?:gave|giving)\s+away\s+(?:my|all)\s+(?:things|possessions|stuff)",
     ]
 
+    HIGH_SEVERITY_KEYWORDS = ["plan to", "going to", "will", "tonight", "today", "now"]
+    CRITICAL_KEYWORDS = ["goodbye", "final", "last", "never see"]
+
     def __init__(self):
         """Initialize crisis detector with compiled patterns."""
         self._compiled_patterns = [re.compile(p, re.IGNORECASE) for p in self.CRISIS_PATTERNS]
@@ -344,17 +341,8 @@ class CrisisDetector:
         """
         text_lower = text.lower()
 
-        # Check keywords
-        for keyword in self.CRISIS_KEYWORDS:
-            if keyword in text_lower:
-                return True
-
-        # Check patterns
-        for pattern in self._compiled_patterns:
-            if pattern.search(text):
-                return True
-
-        return False
+        return any(keyword in text_lower for keyword in self.CRISIS_KEYWORDS) or \
+               any(pattern.search(text) for pattern in self._compiled_patterns)
 
     def get_crisis_severity(self, text: str) -> str:
         """
@@ -370,29 +358,12 @@ class CrisisDetector:
             return "none"
 
         text_lower = text.lower()
-        high_severity_keywords = [
-            "plan to",
-            "going to",
-            "will",
-            "tonight",
-            "today",
-            "now",
-        ]
-        critical_keywords = ["goodbye", "final", "last", "never see"]
+        if any(keyword in text_lower for keyword in self.CRITICAL_KEYWORDS):
+            return "critical"
 
-        # Check for critical indicators
-        for keyword in critical_keywords:
-            if keyword in text_lower:
-                return "critical"
-
-        # Check for high severity indicators
-        for keyword in high_severity_keywords:
-            if keyword in text_lower:
-                return "high"
-
-        # Check for action patterns
-        for pattern in self._compiled_patterns:
-            if pattern.search(text):
-                return "high"
-
-        return "medium"
+        return (
+            "high"
+            if any(keyword in text_lower for keyword in self.HIGH_SEVERITY_KEYWORDS)
+            or any(pattern.search(text) for pattern in self._compiled_patterns)
+            else "medium"
+        )
