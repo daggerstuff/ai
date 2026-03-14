@@ -96,6 +96,9 @@ class NIMMem0Config(BaseModel):
         "meta/llama-3.1-405b-instruct", description="NIM model to use"
     )
     user_id: str = Field("default_user", description="Default user ID for memory")
+    trainee_id: Optional[str] = Field(None, description="Current trainee identifier")
+    persona_id: Optional[str] = Field(None, description="Current persona identifier")
+    dampening_factor: float = Field(0.4, description="Intensity of relational dampening (0.0-1.0)")
     memory_config: Dict[str, Any] = Field(
         default_factory=lambda: {
             "vector_store": {
@@ -108,6 +111,60 @@ class NIMMem0Config(BaseModel):
     therapeutic_config: Optional[TherapeuticMemoryConfig] = Field(
         default=None, description="Therapeutic memory ingestion configuration"
     )
+
+
+class MemoryContextProcessor:
+    """Processor for therapeutic memory context formatting and enrichment."""
+
+    def __init__(self, dampening_factor: float = 0.4):
+        self.dampening_factor = dampening_factor
+        self.relational_markers = [
+            "trust", "distrust", "aggression", "resistance", 
+            "bond", "rapport", "trusting", "hostile"
+        ]
+
+    def is_relational_memory(self, memory_text: str) -> bool:
+        """Check if a memory entry contains relational/subconscious markers."""
+        return any(marker in memory_text.lower() for marker in self.relational_markers)
+
+    def format_memories(self, memories: List[Dict[str, Any]]) -> str:
+        """Format memories with Contextual Dampening for relational data."""
+        if not memories:
+            return "No previous relevant memories."
+
+        formatted = []
+        for m in memories:
+            content = m.get("memory") or m.get("content", "")
+            if not content:
+                continue
+            
+            if self.is_relational_memory(content):
+                dampened_content = (
+                    f" [Subconscious Marker (Dampened to "
+                    f"{int(self.dampening_factor * 100)}% intensity)]: {content}"
+                )
+                formatted.append(f"- {dampened_content}")
+            else:
+                formatted.append(f"- {content}")
+
+        return "\n".join(formatted) if formatted else "No previous relevant memories."
+
+    def enrich_system_prompt(self, memory_context: str) -> str:
+        """Add intensity notes to the system prompt."""
+        return (
+            "You are Pixelated Empathy, an empathetic AI assistant trained"
+            " in therapeutic dialogue. Use the following memories about the user"
+            " to personalize your response and demonstrate continuity. "
+            "If the memories contradict the current query, prioritize the current "
+            "query but acknowledge the change if appropriate.\n\n"
+            "⚠️ SUB-CONSCIOUS INTENSITY NOTE:\n"
+            "Some memories are flagged as [Subconscious Marker (Dampened)]. These represent "
+            "relational subconscious states (trust, resistance, rapport). You should weigh these "
+            "sensitively but at REDUCED INTENSITY compared to explicit user shared facts. "
+            "They inform your tone and persona receptibility, but should not lead to "
+            "extreme persona shifts or total breakdown in professional dialogue.\n\n"
+            f"USER MEMORIES:\n{memory_context}\n\n"
+        )
 
 
 class NIMMem0Manager:
@@ -145,6 +202,14 @@ class NIMMem0Manager:
         # Initialize NIM endpoint
         self.client_endpoint = self.config.nim_base_url.rstrip("/")
 
+        # Initialize Trainee/Persona Sandbox
+        self.trainee_id = self.config.trainee_id
+        self.persona_id = self.config.persona_id
+        self.dampening_factor = self.config.dampening_factor
+
+        # Initialize Context Processor
+        self.context_processor = MemoryContextProcessor(self.dampening_factor)
+
         # Initialize Memory
         if memory_provider:
             self.memory = memory_provider
@@ -162,9 +227,7 @@ class NIMMem0Manager:
         self, request_id: str, stage: str, details: Optional[Dict[str, Any]] = None
     ):
         """Structured stage logging for better workflow visibility."""
-        payload = {"request_id": request_id, "stage": stage}
-        if details:
-            payload.update(details)
+        payload = {"request_id": request_id, "stage": stage} | (details or {})
         logger.info("memory-stack-stage=%s details=%s", payload["stage"], payload)
 
     def _extract_memory_results(self, raw_result: Any) -> List[Dict[str, Any]]:
@@ -180,9 +243,7 @@ class NIMMem0Manager:
     def _extract_memory_id(self, result: Any) -> Optional[str]:
         """Extract a memory ID from normalized memory add/update responses."""
         results = self._extract_memory_results(result)
-        if not results:
-            return None
-        return results[0].get("id", "stored")
+        return results[0].get("id", "stored") if results else None
 
     def _call_memory(self, operation: str, *args, **kwargs) -> Any:
         """Call raw memory client operation with consistent error handling."""
@@ -270,8 +331,7 @@ class NIMMem0Manager:
             if not choices:
                 raise RuntimeError("NVIDIA NIM returned no choices.")
             message = choices[0].get("message", {})
-            content = message.get("content")
-            if not content:
+            if not (content := message.get("content")):
                 raise RuntimeError("NVIDIA NIM returned empty message content.")
             return str(content)
         except Exception as exc:
@@ -314,20 +374,24 @@ class NIMMem0Manager:
         user_id: Optional[str] = None,
         session_id: Optional[str] = None,
         context: Optional[str] = None,
+        trainee_id: Optional[str] = None,
+        persona_id: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Get a response from NVIDIA NIM using Mem0 for context.
 
         Args:
             query: User's input message
-            user_id: Unique identifier for the user
+            user_id: Unique identifier for the user (optional, fallback to sandbox)
             session_id: Optional session identifier
             context: Additional fixed context
+            trainee_id: Optional trainee ID for sandboxing
+            persona_id: Optional persona ID for sandboxing
 
         Returns:
             Dictionary with response text and metadata
         """
-        uid = user_id or self.config.user_id
+        uid = user_id or self._get_sandbox_id(trainee_id, persona_id)
 
         request_id = uuid4().hex
         self._log_stage(
@@ -347,7 +411,7 @@ class NIMMem0Manager:
 
         # 2. Retrieve relevant memories
         memories = self._search_memories(query, uid)
-        memory_context = self._format_memories(memories)
+        memory_context = self.context_processor.format_memories(memories)
         self._log_stage(
             request_id,
             "memory_retrieved",
@@ -359,9 +423,22 @@ class NIMMem0Manager:
         )
 
         # 3. Build the system prompt with memory
-        system_instructions = self._build_system_prompt(
-            memory_context, context, crisis_severity
-        )
+        system_instructions = self.context_processor.enrich_system_prompt(memory_context)
+        
+        # Add additional context and crisis info
+        if context:
+            system_instructions += f"ADDITIONAL CONTEXT:\n{context}\n\n"
+
+        if crisis_severity != "none":
+            system_instructions += (
+                f"⚠️ CRISIS ALERT (Severity: {crisis_severity.upper()}):\n"
+                "The user may be expressing thoughts of self-harm or crisis. "
+                "Respond with compassion, validate their feelings, and gently "
+                "encourage professional support. Provide crisis resources if "
+                "appropriate. Do NOT dismiss their concerns or offer toxic "
+                "positivity.\n\n"
+            )
+
         query_context = _QueryContext(
             request_id=request_id,
             user_id=uid,
@@ -428,9 +505,16 @@ class NIMMem0Manager:
             "timestamp": datetime.now(timezone.utc).isoformat(),
         }
 
-    def search_memories(self, query: str, user_id: str) -> List[Dict[str, Any]]:
-        """Public alias for memory search."""
-        return self._search_memories(query, user_id)
+    def _get_sandbox_id(self, trainee_id: Optional[str] = None, persona_id: Optional[str] = None) -> str:
+        """Compose a sandboxed ID for memory storage: trainee_id + persona_id."""
+        tid = trainee_id or self.trainee_id or "anonymous"
+        pid = persona_id or self.persona_id or "default"
+        return f"{tid}_{pid}"
+
+    def search_memories(self, query: str, user_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Public alias for memory search with sandbox support."""
+        uid = user_id or self._get_sandbox_id()
+        return self._search_memories(query, uid)
 
     def _search_memories(self, query: str, user_id: str) -> List[Dict[str, Any]]:
         """Search for relevant memories."""
@@ -441,49 +525,6 @@ class NIMMem0Manager:
             logger.exception("Error searching memories")
             return []
 
-    def _format_memories(self, memories: List[Dict[str, Any]]) -> str:
-        """Format memories for context."""
-        if not memories:
-            return "No previous relevant memories."
-
-        formatted = []
-        for m in memories:
-            if content := m.get("memory") or m.get("content", ""):
-                formatted.append(f"- {content}")
-
-        return "\n".join(formatted) if formatted else "No previous relevant memories."
-
-    def _build_system_prompt(
-        self,
-        memory_context: str,
-        additional_context: Optional[str],
-        crisis_severity: str,
-    ) -> str:
-        """Build the system prompt with memory and crisis handling."""
-        prompt = (
-            "You are Pixelated Empathy, an empathetic AI assistant trained"
-            " in therapeutic dialogue. Use the following memories about the user"
-            " to personalize your response and demonstrate continuity. "
-            "If the memories contradict the current query, prioritize the current "
-            "query but acknowledge the change if appropriate.\n\n"
-            f"USER MEMORIES:\n{memory_context}\n\n"
-        )
-
-        if additional_context:
-            prompt += f"ADDITIONAL CONTEXT:\n{additional_context}\n\n"
-
-        if crisis_severity != "none":
-            prompt += (
-                f"⚠️ CRISIS ALERT (Severity: {crisis_severity.upper()}):\n"
-                "The user may be expressing thoughts of self-harm or crisis. "
-                "Respond with compassion, validate their feelings, and gently "
-                "encourage professional support. Provide crisis resources if "
-                "appropriate. Do NOT dismiss their concerns or offer toxic "
-                "positivity.\n\n"
-            )
-
-        return prompt
-
     def _store_interaction(
         self,
         query: str,
@@ -492,7 +533,7 @@ class NIMMem0Manager:
         session_id: Optional[str],
         crisis_severity: str,
     ) -> _StoreReport:
-        """Store interaction in memory with filtering."""
+        """Store interaction in memory with sandbox support and subconscious tagging."""
         user_memory_stored = False
         assistant_memory_stored = False
         crisis_flagged = crisis_severity != "none"
@@ -507,6 +548,11 @@ class NIMMem0Manager:
                     metadata["crisis_severity"] = crisis_severity
                     metadata["category"] = MemoryCategory.CRISIS_CONTEXT.value
 
+                # Detect and tag subconscious markers
+                if self.context_processor.is_relational_memory(filtered_query):
+                    metadata["category"] = MemoryCategory.SUBCONSCIOUS_RELATION.value
+                    metadata["relational_marker"] = True
+
                 self._call_memory(
                     "add",
                     filtered_query,
@@ -520,13 +566,19 @@ class NIMMem0Manager:
             if filtered_response := self._filter_for_storage(
                 f"Assistant provided: {response_summary}"
             ):
+                metadata = {"role": "assistant"}
+                if session_id:
+                    metadata["session_id"] = session_id
+                
+                if self.context_processor.is_relational_memory(filtered_response):
+                    metadata["category"] = MemoryCategory.SUBCONSCIOUS_RELATION.value
+                    metadata["relational_marker"] = True
+
                 self._call_memory(
                     "add",
                     filtered_response,
                     user_id=user_id,
-                    metadata={"role": "assistant", "session_id": session_id}
-                    if session_id
-                    else {"role": "assistant"},
+                    metadata=metadata,
                 )
                 assistant_memory_stored = True
             return _StoreReport(
@@ -624,9 +676,7 @@ class NIMMem0Manager:
         """Retrieve a specific memory by ID."""
         try:
             result = self._call_memory("get", memory_id=memory_id)
-            if isinstance(result, dict):
-                return result
-            return None
+            return result if isinstance(result, dict) else None
         except Exception:
             logger.exception(f"Error retrieving memory {memory_id}")
             return None
@@ -699,23 +749,25 @@ async def test_integration():
     config = NIMMem0Config(
         nim_api_key=nim_key,
         mem0_api_key=mem0_key,
-        user_id="test_user_001",
+        trainee_id="trainee_007",
+        persona_id="patient_jones",
         therapeutic_config=therapeutic_config,
     )
 
     manager = NIMMem0Manager(config)
 
-    # Test queries including speculation filtering
+    # Test queries including speculation filtering and relational markers
     queries = [
         (
             "Hi, I'm Alex. I've been feeling a bit overwhelmed with "
             "my new job as a developer."
         ),
-        # Should be filtered (speculation)
-        "I think I might have anxiety, but I'm not sure.",
-        # Should be stored
-        "Dr. Smith diagnosed me with generalized anxiety disorder last month.",
-        "Do you remember my name and what's bothering me?",
+        # Relational marker: building trust
+        "I'm starting to feel like I can really trust you, Pixelated.",
+        # Relational marker: resistance
+        "Actually, I'm feeling a bit of resistance today, I don't want to talk about my childhood.",
+        # Testing sandboxing retrieval
+        "Do you remember my name and how I feel about our rapport?",
     ]
 
     for q in queries:
