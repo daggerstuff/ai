@@ -122,6 +122,12 @@ class PixelInferenceResponse(BaseModel):
     breakthrough_score: Optional[float] = Field(
         None, description="Maturity breakthrough delta"
     )
+    behavioral_pattern: Optional[str] = Field(
+        None, description="Gestalt behavioral pattern classification"
+    )
+    behavioral_pattern_confidence: Optional[float] = Field(
+        None, description="Confidence for gestalt behavioral pattern classification"
+    )
     warning: Optional[str] = None
 
 
@@ -218,12 +224,10 @@ class PixelInferenceEngine:
             # Defense -> Directive -> Text
             gestalt_directive = None
             breakthrough_delta = 0.0
+            behavioral_pattern = None
+            behavioral_pattern_confidence = None
 
-            if (
-                persona_mode == "therapy"
-                and request.plutchik_scores
-                and request.ocean_scores
-            ):
+            if persona_mode == "therapy":
                 # Format dialogue for Gestalt Engine
                 dialogue_history = [
                     {"speaker": m.role.capitalize(), "text": m.content}
@@ -240,6 +244,10 @@ class PixelInferenceEngine:
                     )
                     gestalt_directive = gestalt_state.persona_directive
                     breakthrough_delta = gestalt_state.breakthrough_score
+                    behavioral_pattern = gestalt_state.behavioral_pattern
+                    behavioral_pattern_confidence = round(
+                        gestalt_state.behavioral_pattern_confidence, 4
+                    )
 
                     if gestalt_directive:
                         logger.info(
@@ -286,6 +294,8 @@ class PixelInferenceEngine:
                 confidence=0.92,
                 gestalt_directive=gestalt_directive,
                 breakthrough_score=breakthrough_delta,
+                behavioral_pattern=behavioral_pattern,
+                behavioral_pattern_confidence=behavioral_pattern_confidence,
                 warning=warning,
             )
 
