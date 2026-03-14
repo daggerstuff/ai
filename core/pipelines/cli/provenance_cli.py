@@ -53,13 +53,17 @@ async def _create_provenance(dataset_id: str, file: Optional[str], changed_by: s
         await service.ensure_schema()
 
         if file:
-            # Load from file
-            with open(file, "r") as f:
-                data = json.load(f)
+            # Load from file without blocking the event loop
+            def _load_json():
+                with open(file, "r") as f:
+                    return json.load(f)
+
+            data = await asyncio.to_thread(_load_json)
             provenance = ProvenanceRecord.from_dict(data)
         else:
             console.print(
-                "[yellow]Creating minimal provenance record. Use --file for full record."
+                "[yellow]Creating minimal provenance record. "
+                "Use --file for full record."
             )
             # Create minimal record (would need more params in real CLI)
             console.print("[red]Error: Full provenance creation requires --file option")
@@ -149,16 +153,22 @@ async def _list_provenance(
         for record in records:
             table.add_row(
                 record.dataset_id,
-                record.dataset_name[:40] + "..."
-                if len(record.dataset_name) > 40
-                else record.dataset_name,
-                record.source.source_name[:30] + "..."
-                if len(record.source.source_name) > 30
-                else record.source.source_name,
+                (
+                    record.dataset_name[:40] + "..."
+                    if len(record.dataset_name) > 40
+                    else record.dataset_name
+                ),
+                (
+                    record.source.source_name[:30] + "..."
+                    if len(record.source.source_name) > 30
+                    else record.source.source_name
+                ),
                 record.license.license_type.value,
-                record.metadata.quality_tier.value
-                if record.metadata.quality_tier
-                else "N/A",
+                (
+                    record.metadata.quality_tier.value
+                    if record.metadata.quality_tier
+                    else "N/A"
+                ),
                 record.timestamps.created_at.strftime("%Y-%m-%d %H:%M"),
             )
 
