@@ -119,16 +119,14 @@ definitions:
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Test data loaders
           - |
-            if [ -d "ai/core/pipelines/ingestion" ]; then
-              (cd ai/core/pipelines/ingestion/ && uv run python dual_persona_loader.py) || echo "Dual persona loader test completed"
-            elif [ -d "core/pipelines/ingestion" ]; then
-              (cd core/pipelines/ingestion/ && uv run python dual_persona_loader.py) || echo "Dual persona loader test completed"
+            if [ -d "dataset_pipeline/ingestion" ]; then
+              cd dataset_pipeline/ingestion/
+              uv run python dual_persona_loader.py || echo "Dual persona loader test completed"
+              cd ../..
             fi
           # Validate data pipeline orchestration
           - |
-            if [ -f "ai/core/pipelines/orchestration/integrated_training_pipeline.py" ]; then
-              echo "Data pipeline validation would run here (skipped in CI)"
-            elif [ -f "core/pipelines/orchestration/integrated_training_pipeline.py" ]; then
+            if [ -f "dataset_pipeline/orchestration/integrated_training_pipeline.py" ]; then
               echo "Data pipeline validation would run here (skipped in CI)"
             fi
 
@@ -142,19 +140,14 @@ definitions:
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Validate model configurations
           - |
-            if [ -d "ai/src" ]; then
+            if [ -d "lightning" ]; then
               echo "Validating model configurations..."
-              CONFIG_FILE=$(find ai/data/config/ -name "config.json" | head -n 1)
-              if [ -n "$CONFIG_FILE" ]; then
-                uv run python -c "import json; json.load(open('$CONFIG_FILE'))"
-              else
-                echo "No config.json found"
-              fi
+              uv run python -c "import json; json.load(open('config/production_config.json'))" || echo "No production config found"
             fi
           # Test inference service imports
           - |
-            if [ -f "ai/src/inference_server.py" ]; then
-              uv run python -c "import sys; sys.path.insert(0, 'ai/src'); from inference_server import app" || echo "Inference service validation completed"
+            if [ -f "lightning/inference_service.py" ]; then
+              uv run python -c "import sys; sys.path.insert(0, 'lightning'); from inference_service import app" || echo "Inference service validation completed"
             fi
 
     - step: &build-docker-image
@@ -185,7 +178,7 @@ definitions:
                 -Dsonar.python.version=3.11
                 -Dsonar.sources=.
                 -Dsonar.exclusions=**/*.ipynb,**/__pycache__/**,**/tests/**,**/.venv/**,**/dist/**,**/build/**
-  
+
     - step: &quality-gate
         name: SonarCloud Quality Gate
         script:
@@ -228,14 +221,14 @@ definitions:
           - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           - |
-            if [ -f "scripts/data/validate_data_source_matrix.py" ]; then
-              uv run python scripts/data/validate_data_source_matrix.py
-            elif [ -f "../scripts/data/validate_data_source_matrix.py" ]; then
-              uv run python ../scripts/data/validate_data_source_matrix.py
+            if [ -f "scripts/governance/validate_data_source_matrix.py" ]; then
+              uv run python scripts/governance/validate_data_source_matrix.py
+            elif [ -f "../scripts/governance/validate_data_source_matrix.py" ]; then
+              uv run python ../scripts/governance/validate_data_source_matrix.py
             else
               echo "ERROR: Could not find validate_data_source_matrix.py"
               echo "Current directory: $(pwd)"
-              echo "Looking for: scripts/data/validate_data_source_matrix.py"
+              echo "Looking for: scripts/governance/validate_data_source_matrix.py"
               find . -name "validate_data_source_matrix.py" 2>/dev/null || echo "Script not found in repository"
               exit 1
             fi
