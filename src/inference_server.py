@@ -57,14 +57,16 @@ def chat_completion(request: ChatCompletionRequest):
     # Most GGUF models respond well to the chat-completion API style directly
     # but we can fine-tune the prompt construction here if needed.
 
-    formatted_prompt = ""
+    # ⚡ Bolt: Using a list and "".join() is O(N) and prevents unnecessary string reallocations compared to O(N^2) string concatenation (+=) in loops.
+    prompt_parts = []
     for msg in request.messages:
         if msg.role == "system":
-            formatted_prompt += f"<<SYS>>\n{msg.content}\n<</SYS>>\n\n"
+            prompt_parts.append(f"<<SYS>>\n{msg.content}\n<</SYS>>\n\n")
         elif msg.role == "user":
-            formatted_prompt += f"[INST] {msg.content} [/INST] "
+            prompt_parts.append(f"[INST] {msg.content} [/INST] ")
         elif msg.role == "assistant":
-            formatted_prompt += f"{msg.content} "
+            prompt_parts.append(f"{msg.content} ")
+    formatted_prompt = "".join(prompt_parts)
 
     try:
         response = model(
