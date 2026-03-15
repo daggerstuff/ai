@@ -32,3 +32,7 @@ dependencies:
     version: "6.50.7"
     repository: "https://grafana.github.io/helm-charts"
     condition: monitoring.grafana.enabled
+  - name: caddy-ingress-controller
+    version: '1.0.1'
+    repository: https://caddyserver.github.io/ingress/
+    condition: ingress.enabled
