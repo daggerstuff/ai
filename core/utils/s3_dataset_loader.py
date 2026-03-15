@@ -97,16 +97,12 @@ class S3DatasetLoader:
                 "Install with: uv pip install boto3"
             )
 
-        # Always allow env to override bucket for OVH S3
-        # This ensures OVH_S3_BUCKET is always used when set
-        self.bucket = os.getenv("OVH_S3_BUCKET", bucket)
-        print(
-            f"[DEBUG] S3Loader: env OVH_S3_BUCKET={os.getenv('OVH_S3_BUCKET')}, "
-            f"input bucket={bucket}, final={self.bucket}",
-            flush=True,
-        )
-        self.endpoint_url = endpoint_url or os.getenv(
-            "OVH_S3_ENDPOINT", "https://s3.us-east-va.io.cloud.ovh.us"
+        # Prioritize environment variables, then passed arguments, then hardcoded defaults
+        self.bucket = os.environ.get("OVH_S3_BUCKET") or bucket or "pixel-data"
+        self.endpoint_url = (
+            os.environ.get("OVH_S3_ENDPOINT")
+            or endpoint_url
+            or "https://s3.us-east-va.io.cloud.ovh.us"
         )
 
         # Get credentials from params or environment
