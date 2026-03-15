@@ -28,6 +28,10 @@ from .multi_agent_memory import (
     CollaborationContext,
     MemoryScope,
     MultiAgentMemory,
+    ProfessionalDampener,
+    ClinicalGuardrail,
+    SubconsciousGraph,
+    MultimodalTracker,
     create_empathy_gym_context,
 )
 
@@ -52,5 +56,9 @@ __all__ = [
     "CollaborationContext",
     "MemoryScope",
     "MultiAgentMemory",
+    "ProfessionalDampener",
+    "ClinicalGuardrail",
+    "SubconsciousGraph",
+    "MultimodalTracker",
     "create_empathy_gym_context",
 ]

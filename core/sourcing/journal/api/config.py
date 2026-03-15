@@ -37,11 +37,10 @@ class Settings(BaseSettings):
             "]"
         ):
             import json
+            import contextlib
 
-            try:
+            with contextlib.suppress(json.JSONDecodeError):
                 return json.loads(self._cors_origins_raw)
-            except json.JSONDecodeError:
-                pass
         # Fallback: comma-separated string
         return [
             origin.strip()
@@ -51,16 +50,17 @@ class Settings(BaseSettings):
 
     # Authentication configuration
     auth_enabled: bool = True
-    jwt_secret: str = os.getenv("JWT_SECRET", "change-me-in-production")
+    jwt_secret: str = os.getenv("JWT_SECRET", "")
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 60 * 24  # 24 hours
 
     @model_validator(mode="after")
-    def validate_production_settings(self) -> "Settings":
-        """Ensure critical settings are provided in production."""
-        if self.environment == "production":
-            if self.jwt_secret == "change-me-in-production":
-                 raise ValueError("JWT_SECRET must be set in production via environment variable")
+    def validate_auth_settings(self) -> "Settings":
+        """Ensure critical settings are provided when authentication is enabled."""
+        if self.auth_enabled and not self.jwt_secret:
+            raise ValueError(
+                "JWT_SECRET must be set via environment variable when authentication is enabled"
+            )
         return self
 
     # Rate limiting
