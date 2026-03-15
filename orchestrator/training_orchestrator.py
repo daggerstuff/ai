@@ -19,7 +19,8 @@ from .training_manifest import (
     create_safety_aware_manifest,
 )
 from .training_runner import ContainerizedTrainingRunner, TrainingRunner
-from .training_styles import TrainingStyleManager
+from .execution_registry import TrainingExecution, ExecutionStatus
+from src.lib.ai.memory.automated_memory_updates import AutomatedMemoryUpdater
 
 # Set up logging
 logging.basicConfig(
@@ -70,6 +71,9 @@ class TrainingPipelineOrchestrator:
 
         # Initialize integration points
         self._setup_integration_points()
+        
+        # Initialize Memory System
+        self.memory_updater = AutomatedMemoryUpdater()
 
     def _setup_integration_points(self):
         """Setup integration points for MCP and WebSocket"""
@@ -113,6 +117,9 @@ class TrainingPipelineOrchestrator:
         self.active_executions[execution_id] = execution
 
         try:
+            # Start memory updater
+            await self.memory_updater.start()
+            
             # Execute pipeline stages
             await self._execute_stage_1_ingestion(execution, pipeline_config)
             await self._execute_stage_2_preprocessing(execution, pipeline_config)
@@ -577,6 +584,24 @@ class TrainingPipelineOrchestrator:
             stage.metadata["training_manifest"] = training_manifest.to_dict()
             stage.metadata["training_result"] = training_result
             stage.metadata["evaluation_results"] = evaluation_results
+
+            # Update Automated Memory System
+            try:
+                logger.info(f"Updating Automated Memory System with outcome for {execution.execution_id}...")
+                outcome_data = {
+                    "training_result": training_result,
+                    "evaluation_results": evaluation_results,
+                    "config": config,
+                    "manifest": training_manifest.to_dict()
+                }
+                await self.memory_updater.push_training_outcome_async(
+                    execution.execution_id,
+                    outcome_data,
+                    source="training_orchestrator"
+                )
+            except Exception as mem_err:
+                logger.error(f"Failed to update Automated Memory System: {mem_err}")
+                # Don't fail the whole pipeline if memory update fails
 
             # Update stage progress
             stage.progress = 100.0
