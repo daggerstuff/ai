@@ -24,6 +24,8 @@ def make_mock_state(maturity: float) -> GestaltState:
         behavioral_prediction="mock",
         persona_directive="mock",
         breakthrough_score=0.0,
+        behavioral_pattern="mock",
+        behavioral_pattern_confidence=1.0,
     )
 
 

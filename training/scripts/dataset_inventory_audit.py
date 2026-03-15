@@ -349,14 +349,16 @@ class DatasetInventoryAuditor:
 def main():
     """Main entry point"""
     project_root = Path(__file__).parents[3]
-    manifest_path = project_root / "ai" / "training_ready" / "data" / "s3_manifest.json"
+    manifest_path = (
+        project_root / "ai" / "training" / "data" / "s3_manifest.json"
+    )
     registry_path = project_root / "ai" / "data" / "dataset_registry.json"
 
     auditor = DatasetInventoryAuditor(manifest_path, registry_path)
     report = auditor.run_audit()
 
     # Save report
-    output_path = project_root / "ai" / "training_ready" / "data" / "dataset_coverage_report.json"
+    output_path = project_root / "ai" / "training" / "data" / "dataset_coverage_report.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(output_path, "w", encoding="utf-8") as f:

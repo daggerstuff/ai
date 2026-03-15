@@ -8,11 +8,27 @@ import sys
 from pathlib import Path
 
 # Add project root to path
-# Script is at: ai/training_ready/scripts/verify_s3_access.py
+# Script is at: ai/training/scripts/verify_s3_access.py
 # Project root is: /home/vivi/pixelated/
 script_path = Path(__file__).resolve()
-project_root = script_path.parents[3]  # Go up 3 levels: scripts -> training_ready -> ai -> project_root
+project_root = script_path.parents[
+    3
+]  # Go up 3 levels: scripts -> training -> ai -> project_root
 sys.path.insert(0, str(project_root))
+
+
+def print_dataset_info(datasets: list, prefix: str) -> None:
+    """Print information about found datasets."""
+    print(f"   📊 Found {len(datasets)} datasets in {prefix}")
+    if datasets:
+        print("\n   Sample datasets:")
+        for dataset in datasets[:5]:
+            print(f"      - {dataset}")
+        if len(datasets) > 5:
+            print(f"      ... and {len(datasets) - 5} more")
+    else:
+        print(f"   ⚠️  No datasets found in {prefix}")
+
 
 def main():
     """Verify S3 access and list available datasets"""
@@ -20,10 +36,19 @@ def main():
     print("=" * 60)
 
     try:
+        # Initialize loader (will load from .env automatically)
+        import os
+
         from ai.training.utils.s3_dataset_loader import S3DatasetLoader
 
-        # Initialize loader (will load from .env automatically)
         print("\n1. Initializing S3DatasetLoader...")
+        access_key = os.environ.get('OVH_S3_ACCESS_KEY')
+        secret_key = os.environ.get('OVH_S3_SECRET_KEY')
+        print(f"   - OVH_S3_ACCESS_KEY: {'[SET]' if access_key else '[NOT SET]'}")
+        print(f"   - OVH_S3_SECRET_KEY: {'[SET]' if secret_key else '[NOT SET]'}")
+        print(f"   - OVH_S3_BUCKET: {os.environ.get('OVH_S3_BUCKET', 'Not set')}")
+        print(f"   - OVH_S3_ENDPOINT: {os.environ.get('OVH_S3_ENDPOINT', 'Not set')}")
+
         loader = S3DatasetLoader()
         print("   ✅ Loader initialized")
         print(f"   📦 Bucket: {loader.bucket}")
@@ -34,24 +59,11 @@ def main():
         try:
             datasets = loader.list_datasets(prefix="gdrive/processed/")
             print("   ✅ Connection successful!")
-            print(f"   📊 Found {len(datasets)} datasets in gdrive/processed/")
 
-            if datasets:
-                print("\n   Sample datasets:")
-                for dataset in datasets[:5]:  # Show first 5
-                    print(f"      - {dataset}")
-                if len(datasets) > 5:
-                    print(f"      ... and {len(datasets) - 5} more")
-            else:
-                print("   ⚠️  No datasets found in gdrive/processed/")
+            print_dataset_info(datasets, "gdrive/processed/")
+            if not datasets:
                 print("   💡 This is normal if raw sync is still in progress")
                 print("   💡 Check gdrive/raw/ for datasets being synced")
-
-                # Try raw structure
-                raw_datasets = loader.list_datasets(prefix="gdrive/raw/")
-                if raw_datasets:
-                    print(f"\n   📊 Found {len(raw_datasets)} datasets in gdrive/raw/")
-                    print("   💡 These will be organized into processed/ structure")
 
         except Exception as e:
             print(f"   ⚠️  Connection test failed: {e}")
@@ -64,8 +76,8 @@ def main():
         # Test raw structure
         print("\n3. Checking raw structure...")
         try:
-            raw_datasets = loader.list_datasets(prefix="gdrive/raw/")
-            print(f"   📊 Found {len(raw_datasets)} datasets in gdrive/raw/")
+            if raw_datasets := loader.list_datasets(prefix="gdrive/raw/"):
+                print_dataset_info(raw_datasets, "gdrive/raw/")
         except Exception as e:
             print(f"   ⚠️  Could not list raw datasets: {e}")
 
@@ -97,6 +109,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Unexpected Error: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 
