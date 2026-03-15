@@ -27,7 +27,8 @@ from ai.core.pipelines.ingestion.psychology_knowledge_loader import (
 from ai.core.pipelines.quality.evidence_based_practice_validator import validate_bias
 from ai.core.pipelines.storage_config import get_storage_config
 from ai.core.pipelines.storage_manager import StorageManager
-from ai.core.pipelines.utils.logger import get_logger
+from ai.core.training.models.training_session import TrainingSession
+from src.lib.ai.memory.automated_memory_updates import AutomatedMemoryUpdater
 
 logger = get_logger("dataset_pipeline.integrated_training_pipeline")
 
@@ -134,6 +135,9 @@ class IntegratedTrainingPipeline:
     def __init__(self, config: IntegratedPipelineConfig | None = None):
         self.config = config or IntegratedPipelineConfig()
         self.stats = IntegrationStats()
+        
+        # Initialize Memory System
+        self.memory_updater = AutomatedMemoryUpdater()
 
         # Initialize storage manager for cloud access
 
@@ -317,6 +321,30 @@ class IntegratedTrainingPipeline:
         ).total_seconds()
 
         report = self._generate_report()
+
+        # Update Automated Memory System
+        try:
+            logger.info("Updating Automated Memory System with dataset integration results...")
+            outcome_data = {
+                "training_data_summary": {
+                    "total_samples": self.stats.total_samples,
+                    "samples_by_source": self.stats.samples_by_source,
+                    "samples_by_stage": self.stats.samples_by_stage,
+                },
+                "report": report,
+                "output_path": output_path
+            }
+            
+            # Create a synthetic execution ID for data integration
+            integration_id = f"data-integration-{datetime.now().strftime('%Y%m%d-%H%M%S')}"
+            
+            self.memory_updater.push_training_outcome(
+                integration_id,
+                outcome_data,
+                source="integrated_training_pipeline"
+            )
+        except Exception as mem_err:
+            logger.error(f"Failed to update Automated Memory System: {mem_err}")
 
         logger.info("=" * 60)
         logger.info("✅ Integration Complete!")

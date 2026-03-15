@@ -30,6 +30,7 @@ class AgentRole(str, Enum):
     FEEDBACK = "feedback"
     SUPERVISOR = "supervisor"
     COORDINATOR = "coordinator"
+    DEVELOPER = "developer"  # Antigravity Omni-State
 
 
 class MemoryScope(str, Enum):
@@ -66,25 +67,36 @@ class CollaborationContext:
     session_id: str
     agents: List[AgentIdentity] = field(default_factory=list)
     current_agent: Optional[AgentIdentity] = None
+    trainee_id: Optional[str] = None
+    persona_id: Optional[str] = None
 
     def get_memory_key(self, scope: MemoryScope) -> Dict[str, str]:
         """Get memory keys for requested scope."""
+        base_keys = {}
+        if self.trainee_id and self.persona_id:
+            base_keys["sandbox_id"] = f"{self.trainee_id}_{self.persona_id}"
+
         if scope == MemoryScope.PRIVATE:
             if not self.current_agent:
                 raise ValueError("PRIVATE scope requires current_agent")
-            return {
+            base_keys.update({
                 "user_id": self.user_id,
                 "agent_id": self.current_agent.agent_id,
                 "session_id": self.session_id,
-            }
+            })
+            return base_keys
         if scope == MemoryScope.SHARED:
-            return {
+            base_keys.update({
                 "user_id": self.user_id,
                 "session_id": self.session_id,
-            }
+            })
+            return base_keys
         if scope == MemoryScope.USER:
-            return {"user_id": self.user_id}
-        return {}
+            base_keys.update({"user_id": self.user_id})
+            return base_keys
+        if scope == MemoryScope.GLOBAL:
+            return base_keys
+        return base_keys
 
 
 @dataclass(frozen=True)
@@ -117,7 +129,9 @@ def _extract_memory_id(raw_result: Any) -> str:
 def _scope_filter(
     memories: List[Dict[str, Any]], context: CollaborationContext, scope: MemoryScope
 ) -> List[Dict[str, Any]]:
-    """Filter records by the requested scope."""
+    """Filter records by the requested scope and sandbox."""
+    sandbox_id = f"{context.trainee_id}_{context.persona_id}" if context.trainee_id and context.persona_id else None
+    
     if scope == MemoryScope.PRIVATE:
         if not context.current_agent:
             return []
@@ -127,6 +141,7 @@ def _scope_filter(
             for item in memories
             if item.get("metadata", {}).get("session_id") == context.session_id
             and item.get("metadata", {}).get("scope") == MemoryScope.PRIVATE.value
+            and (not sandbox_id or item.get("metadata", {}).get("sandbox_id") == sandbox_id)
             and (
                 item.get("metadata", {}).get("agent_id") == agent_id
                 or item.get("metadata", {}).get("source_agent") == agent_id
@@ -137,6 +152,7 @@ def _scope_filter(
             item
             for item in memories
             if item.get("metadata", {}).get("session_id") == context.session_id
+            and (not sandbox_id or item.get("metadata", {}).get("sandbox_id") == sandbox_id)
             and item.get("metadata", {}).get("scope") in (
                 MemoryScope.SHARED.value,
                 None,
@@ -147,6 +163,40 @@ def _scope_filter(
             item for item in memories if item.get("metadata", {}).get("user_id") == context.user_id
         ]
     return memories
+
+
+class ProfessionalDampener:
+    """Implements Professional Meta-Awareness context dampening."""
+    
+    @staticmethod
+    def dampen_intensity(intensity: float, professional_context: bool = True) -> float:
+        """Dampen negative relationship persistence to ~40% if in professional context."""
+        if not professional_context:
+            return intensity
+        # Dampen negative peaks while maintaining baseline realism
+        return intensity * 0.4
+
+
+class SubconsciousGraph:
+    """Manages long-term relationship mapping (Trust, Triggers)."""
+    
+    def __init__(self, memory_layer: 'MultiAgentMemory'):
+        self.memory_layer = memory_layer
+
+    async def update_relationship(self, context: CollaborationContext, target_entity: str, trust: float, triggers: List[str]):
+        """Update relational metrics in memory."""
+        await self.memory_layer.store_agent_memory(
+            context,
+            f"Relationship update for {target_entity}: Trust={trust}, Triggers={', '.join(triggers)}",
+            scope=MemoryScope.USER,
+            metadata={
+                "type": "relational_graph",
+                "target": target_entity,
+                "trust_score": trust,
+                "triggers": triggers,
+                "timestamp_utc": datetime.now(timezone.utc).isoformat()
+            }
+        )
 
 
 def _log_stage(context: CollaborationContext, stage: str, details: Optional[Dict[str, Any]] = None):
@@ -162,6 +212,37 @@ def _log_stage(context: CollaborationContext, stage: str, details: Optional[Dict
     logger.info("multi-agent-memory-stage=%s details=%s", payload["stage"], payload)
 
 
+class ClinicalGuardrail:
+    """Clinical guardrail overrides for psychological safety."""
+    
+    @staticmethod
+    def inspect_content(content: str) -> Dict[str, Any]:
+        """Inspect content for high-distress signals or clinical risks."""
+        # Simplified risk detection - in production this would use a specialized model
+        risk_keywords = ["self-harm", "suicide", "crisis", "end my life"]
+        found_risks = [k for k in risk_keywords if k in content.lower()]
+        return {
+            "safe": len(found_risks) == 0,
+            "risks": found_risks,
+            "requires_escalation": len(found_risks) > 0
+        }
+
+
+class MultimodalTracker:
+    """Tracks real-time tone, pacing, and speech cadence."""
+    
+    @staticmethod
+    def process_multimodal_state(tone: str, pacing: float, cadence: str) -> Dict[str, Any]:
+        """Normalize multimodal metrics for memory storage."""
+        return {
+            "multimodal": True,
+            "tone": tone,
+            "pacing_score": pacing,
+            "cadence": cadence,
+            "tracked_at": datetime.now(timezone.utc).isoformat()
+        }
+
+
 class MultiAgentMemory:
     """Shared memory layer for multi-agent therapeutic workflows."""
 
@@ -170,6 +251,8 @@ class MultiAgentMemory:
         api_key: Optional[str] = None,
         memory_client: Optional[Any] = None,
     ):
+        self.guardrail = ClinicalGuardrail()
+        self.subconscious = SubconsciousGraph(self)
         if memory_client:
             self.memory = memory_client
         elif api_key and MemoryClient:
@@ -221,6 +304,14 @@ class MultiAgentMemory:
             _log_stage(context, "store-start", {"scope": scope.value})
             full_metadata = context.get_memory_key(scope)
             full_metadata["scope"] = scope.value
+            
+            # Apply Contextual Dampening if intensity is provided in metadata
+            if metadata and "intensity" in metadata:
+                is_prof = metadata.get("professional_context", True)
+                metadata["intensity"] = ProfessionalDampener.dampen_intensity(
+                    metadata["intensity"], is_prof
+                )
+
             if context.current_agent:
                 full_metadata["source_agent"] = context.current_agent.agent_id
                 full_metadata["source_role"] = context.current_agent.role.value
@@ -409,6 +500,40 @@ class MultiAgentMemory:
         except Exception as e:
             logger.error("Error getting agent history: %s", e)
             return []
+
+
+    async def purge_session(self, context: CollaborationContext):
+        """Automatic session erasure for HIPAA/GDPR compliance."""
+        try:
+            _log_stage(context, "compliance-purge-start")
+            session_memories = [
+                item
+                for item in self._collect_memories(context.user_id)
+                if item.get("metadata", {}).get("session_id") == context.session_id
+            ]
+            for mem in session_memories:
+                mem_id = mem.get("id")
+                if mem_id:
+                    self._call_memory("delete", mem_id)
+            _log_stage(context, "compliance-purge-complete", {"count": len(session_memories)})
+        except Exception as e:
+            logger.error("Error purging session: %s", e)
+
+    async def store_multimodal_state(
+        self,
+        context: CollaborationContext,
+        tone: str,
+        pacing: float,
+        cadence: str,
+    ) -> str:
+        """Store multimodal state (tone, pacing, cadence)."""
+        metrics = MultimodalTracker.process_multimodal_state(tone, pacing, cadence)
+        return await self.store_agent_memory(
+            context,
+            f"Multimodal state: Tone={tone}, Pacing={pacing}, Cadence={cadence}",
+            scope=MemoryScope.SHARED,
+            metadata=metrics
+        )
 
 
 def create_empathy_gym_context(
