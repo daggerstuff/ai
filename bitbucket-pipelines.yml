@@ -1,7 +1,8 @@
-image: python:3.11-bookworm # Python 3.11 with Debian Bookworm
+---
+image: python:3.11-bookworm  # Python 3.11 with Debian Bookworm
 
 clone:
-  depth: full # SonarQube Cloud scanner needs full history
+  depth: full  # SonarQube Cloud scanner needs full history
 
 definitions:
   caches:
@@ -85,7 +86,8 @@ definitions:
           - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Run pytest with coverage
-          - uv run pytest tests/ -v --cov=. --cov-report=xml --cov-report=html --cov-report=term
+          - uv run pytest tests/ -v \
+            --cov=. --cov-report=xml --cov-report=html --cov-report=term
           # Display coverage summary
           - uv run coverage report
         artifacts:
@@ -120,15 +122,21 @@ definitions:
           # Test data loaders
           - |
             if [ -d "ai/core/pipelines/ingestion" ]; then
-              (cd ai/core/pipelines/ingestion/ && uv run python dual_persona_loader.py) || echo "Dual persona loader test completed"
+              (cd ai/core/pipelines/ingestion/ && \
+                uv run python dual_persona_loader.py) || \
+                echo "Dual persona loader test completed"
             elif [ -d "core/pipelines/ingestion" ]; then
-              (cd core/pipelines/ingestion/ && uv run python dual_persona_loader.py) || echo "Dual persona loader test completed"
+              (cd core/pipelines/ingestion/ && \
+                uv run python dual_persona_loader.py) || \
+                echo "Dual persona loader test completed"
             fi
           # Validate data pipeline orchestration
           - |
-            if [ -f "ai/core/pipelines/orchestration/integrated_training_pipeline.py" ]; then
+            if [ -f "ai/core/pipelines/orchestration/integrated_training_pipeline.py" ]; \
+            then
               echo "Data pipeline validation would run here (skipped in CI)"
-            elif [ -f "core/pipelines/orchestration/integrated_training_pipeline.py" ]; then
+            elif [ -f "core/pipelines/orchestration/integrated_training_pipeline.py" ]; \
+            then
               echo "Data pipeline validation would run here (skipped in CI)"
             fi
 
@@ -144,7 +152,8 @@ definitions:
           - |
             if [ -d "ai/src" ]; then
               echo "Validating model configurations..."
-              CONFIG_FILE=$(find ai/data/config/ -name "config.json" | head -n 1)
+              CONFIG_FILE=$(find ai/data/config/ \
+                -name "config.json" | head -n 1)
               if [ -n "$CONFIG_FILE" ]; then
                 uv run python -c "import json; json.load(open('$CONFIG_FILE'))"
               else
@@ -154,7 +163,9 @@ definitions:
           # Test inference service imports
           - |
             if [ -f "ai/src/inference_server.py" ]; then
-              uv run python -c "import sys; sys.path.insert(0, 'ai/src'); from inference_server import app" || echo "Inference service validation completed"
+              uv run python -c "import sys; sys.path.insert(0, 'ai/src'); \
+                from inference_server import app" || \
+                echo "Inference service validation completed"
             fi
 
     - step: &build-docker-image
@@ -168,7 +179,8 @@ definitions:
           - docker build -t pixelated-ai:${BITBUCKET_COMMIT} .
           - docker tag pixelated-ai:${BITBUCKET_COMMIT} pixelated-ai:latest
           # Save image for deployment
-          - docker save pixelated-ai:${BITBUCKET_COMMIT} | gzip > pixelated-ai-image.tar.gz
+          - docker save pixelated-ai:${BITBUCKET_COMMIT} | \
+            gzip > pixelated-ai-image.tar.gz
         artifacts:
           - pixelated-ai-image.tar.gz
 
@@ -185,7 +197,7 @@ definitions:
                 -Dsonar.python.version=3.11
                 -Dsonar.sources=.
                 -Dsonar.exclusions=**/*.ipynb,**/__pycache__/**,**/tests/**,**/.venv/**,**/dist/**,**/build/**
-  
+
     - step: &quality-gate
         name: SonarCloud Quality Gate
         script:
@@ -236,7 +248,8 @@ definitions:
               echo "ERROR: Could not find validate_data_source_matrix.py"
               echo "Current directory: $(pwd)"
               echo "Looking for: scripts/data/validate_data_source_matrix.py"
-              find . -name "validate_data_source_matrix.py" 2>/dev/null || echo "Script not found in repository"
+              find . -name "validate_data_source_matrix.py" 2>/dev/null || \
+                echo "Script not found in repository"
               exit 1
             fi
 
