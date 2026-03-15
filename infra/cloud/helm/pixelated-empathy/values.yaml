@@ -32,22 +32,23 @@ securityContext:
 
 service:
   type: ClusterIP
-  port: 8000
-  targetPort: 8000
+  port: 80
+  targetPort: 4321
 
 ingress:
   enabled: true
+  className: caddy
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:
-    - host: api.pixelated-empathy.ai
+    - host: pixelatedempathy.com
       paths:
         - path: /
           pathType: Prefix
   tls:
     - secretName: pixelated-empathy-tls
       hosts:
-        - api.pixelated-empathy.ai
+        - pixelatedempathy.com
 
 resources:
   limits:
@@ -89,7 +90,7 @@ postgresql:
     tag: "latest"
     pullPolicy: Always
   auth:
-    postgresPassword: "changeme"
+    postgresPassword: ""
     database: "pixelated_empathy"
   primary:
     persistence:
@@ -111,7 +112,7 @@ redis:
     pullPolicy: Always
   auth:
     enabled: true
-    password: "changeme"
+    password: ""
   master:
     persistence:
       enabled: true
@@ -130,7 +131,7 @@ monitoring:
     enabled: true
   grafana:
     enabled: true
-    adminPassword: "changeme"
+    adminPassword: ""
 
 # Application Configuration
 app:
