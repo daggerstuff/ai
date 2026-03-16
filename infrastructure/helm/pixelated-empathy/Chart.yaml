@@ -1,0 +1,34 @@
+apiVersion: v2
+name: pixelated-empathy
+description: A Helm chart for Pixelated Empathy AI production deployment
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ai
+  - mental-health
+  - empathy
+  - conversation
+home: https://github.com/pixelated/empathy-ai
+sources:
+  - https://github.com/pixelated/empathy-ai
+maintainers:
+  - name: Pixelated Team
+    email: team@pixelated.ai
+dependencies:
+  - name: postgresql
+    version: "12.1.9"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: postgresql.enabled
+  - name: redis
+    version: "17.3.7"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+  - name: prometheus
+    version: "15.18.0"
+    repository: "https://prometheus-community.github.io/helm-charts"
+    condition: monitoring.prometheus.enabled
+  - name: grafana
+    version: "6.50.7"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: monitoring.grafana.enabled

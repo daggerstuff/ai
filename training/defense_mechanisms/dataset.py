@@ -1,9 +1,9 @@
 """
-PSYDEFCONV Dataset Loader (PARTIALLY DEPRECATED)
+PSYDEFCONV Dataset Loader
 
-NOTE: The DefenseDataset class is used for local DeBERTa training.
-The inference pipeline now uses format_dialogue directly with
-NIMEmbeddingClassifier for remote vector-based classification.
+Loads the PsyDefDetect dataset, formats multi-turn dialogues for
+sequence classification, and provides GroupKFold splitting to
+prevent dialogue leakage across train/val splits.
 """
 
 import json
@@ -19,7 +19,7 @@ from sklearn.model_selection import GroupKFold
 from torch.utils.data import Dataset
 from transformers import PreTrainedTokenizer
 
-from ai.training.defense_mechanisms.constants import NUM_LABELS
+from training.defense_mechanisms.constants import NUM_LABELS
 
 logger = logging.getLogger(__name__)
 

@@ -1,9 +1,9 @@
 """
-Defense Mechanism Training Orchestrator (DEPRECATED)
+Defense Mechanism Training Orchestrator
 
-NOTE: This script is for training local DeBERTa-v3 models.
-The project has transitioned to using NVIDIA NIM (Remote Inference)
-as implemented in NIMEmbeddingClassifier.
+Config-driven training pipeline with GroupKFold cross-validation,
+per-fold checkpointing, and comprehensive metrics logging.
+Follows the pattern of PixelTrainer in train_pixel.py.
 """
 
 import argparse
@@ -25,13 +25,13 @@ from transformers import (
     get_linear_schedule_with_warmup,
 )
 
-from ai.training.defense_mechanisms import DEFENSE_LABELS
-from ai.training.defense_mechanisms.dataset import (
+from training.defense_mechanisms import DEFENSE_LABELS
+from training.defense_mechanisms.dataset import (
     compute_class_weights,
     create_fold_datasets,
     load_psydefconv,
 )
-from ai.training.defense_mechanisms.model import DefenseClassifier
+from training.defense_mechanisms.model import DefenseClassifier
 
 logger = logging.getLogger(__name__)
 

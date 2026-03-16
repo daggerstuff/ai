@@ -15,6 +15,5 @@ jobs:
           fetch-depth: 1
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v6
-        continue-on-error: true
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

@@ -1,5 +1,7 @@
 # Model Upgrade Opportunities
 
+> **⚠️ LEGACY DOCUMENT**: This catalog contains references to old codebase locations and structures that may no longer exist. The paths listed (e.g., `ai/core/`, `ai/pixel/`, `ai/orchestrator/targets_training_package/`) reflect a pre-reorganization layout and may be outdated. Use this document for historical context only; verify current locations before attempting to use any referenced components.
+
 This document catalogs experimental model architectures and unused features that could upgrade the Pixelated Empathy model.
 
 ## Experimental Model Architectures
