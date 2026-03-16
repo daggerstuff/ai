@@ -1,3 +1,13 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "mcp>=1.26.0",
+#   "fastmcp>=2.3.3",
+#   "mem0ai>=1.0.3",
+#   "google-genai>=1.62.0",
+#   "pydantic>=2.11.7",
+# ]
+# ///
 """
 FastMCP Server for Pixelated Memory.
 
