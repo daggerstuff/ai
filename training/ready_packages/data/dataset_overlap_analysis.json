@@ -1,0 +1,111 @@
+{
+  "analysis_date": "2025-12-11T22:16:54.336339",
+  "summary": {
+    "total_unique_hashes": 871,
+    "total_duplicate_hashes": 5,
+    "datasets_analyzed": [
+      "filtered_datasets",
+      "natural_conversations",
+      "phase_1_priority_conversations",
+      "phase_2_professional_datasets",
+      "phase_3_cot_reasoning",
+      "phase_4_reddit_mental_health",
+      "priority_complete_fixed",
+      "professional_complete_integration",
+      "professional_datasets_final",
+      "soulchat_complete",
+      "synthetic_conversations",
+      "task_5_31_additional_specialized"
+    ],
+    "total_samples": 1021
+  },
+  "overlap_summary": {
+    "priority_complete_fixed": {
+      "count": 44,
+      "with_datasets": [
+        "phase_1_priority_conversations"
+      ]
+    },
+    "phase_1_priority_conversations": {
+      "count": 45,
+      "with_datasets": [
+        "phase_3_cot_reasoning",
+        "priority_complete_fixed"
+      ]
+    },
+    "phase_3_cot_reasoning": {
+      "count": 1,
+      "with_datasets": [
+        "phase_1_priority_conversations"
+      ]
+    },
+    "professional_datasets_final": {
+      "count": 58,
+      "with_datasets": [
+        "professional_complete_integration",
+        "phase_2_professional_datasets",
+        "soulchat_complete"
+      ]
+    },
+    "phase_2_professional_datasets": {
+      "count": 26,
+      "with_datasets": [
+        "professional_datasets_final"
+      ]
+    },
+    "professional_complete_integration": {
+      "count": 29,
+      "with_datasets": [
+        "professional_datasets_final"
+      ]
+    },
+    "soulchat_complete": {
+      "count": 3,
+      "with_datasets": [
+        "professional_datasets_final"
+      ]
+    }
+  },
+  "duplicate_groups": {
+    "('phase_1_priority_conversations', 'priority_complete_fixed')": {
+      "datasets": [
+        "phase_1_priority_conversations",
+        "priority_complete_fixed"
+      ],
+      "count": 94,
+      "sample_entry": "What are some common natural symbols used in traditional art and storytelling, and what meanings do they typically convey? ### Natural Symbols in Traditional Art and Storytelling Traditional art and s..."
+    },
+    "('phase_1_priority_conversations', 'phase_3_cot_reasoning')": {
+      "datasets": [
+        "phase_1_priority_conversations",
+        "phase_3_cot_reasoning"
+      ],
+      "count": 2,
+      "sample_entry": "How can a clinician differentiate between normal feelings of guilt and the excessive guilt indicative of a mood disorder, particularly major depressive disorder? What specific questions or observation..."
+    },
+    "('phase_2_professional_datasets', 'professional_datasets_final')": {
+      "datasets": [
+        "phase_2_professional_datasets",
+        "professional_datasets_final"
+      ],
+      "count": 55,
+      "sample_entry": "Bioengineered scaffolds in spinal cord repair aim to provide physical and biochemical support for neural tissue regeneration. These scaffolds offer a platform for axonal growth, cellular migration, an..."
+    },
+    "('professional_complete_integration', 'professional_datasets_final')": {
+      "datasets": [
+        "professional_complete_integration",
+        "professional_datasets_final"
+      ],
+      "count": 58,
+      "sample_entry": "{\"id\": \"psych10k_000044\", \"conversations\": [{\"human\": \"If you are a licensed psychologist, please provide this patient with a helpful response to their concern. I'm having trouble sleeping at night. W"
+    },
+    "('professional_datasets_final', 'soulchat_complete')": {
+      "datasets": [
+        "professional_datasets_final",
+        "soulchat_complete"
+      ],
+      "count": 6,
+      "sample_entry": "{\"id\": \"soulchat_0\", \"conversations\": [{\"human\": \"\\u665a\\u4e0a\\u597d\\uff0c\\u6211\\u6700\\u8fd1\\u5fc3\\u91cc\\u6709\\u4e9b\\u4e0d\\u592a\\u8212\\u670d\\uff0c\\u548c\\u7537\\u670b\\u53cb\\u7684\\u4e8b\\u60c5\\u8ba9\\u6211"
+    }
+  }
+}

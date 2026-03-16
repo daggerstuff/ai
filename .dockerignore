@@ -190,13 +190,7 @@ yarn.lock
 Pipfile.lock
 poetry.lock
 
-# Exclude virtual environment and archives
-.venv/
-archive/
-
-# Exclude large data/models if they weren't already
-data/
-models/
-# lightning/ (removed to allow stage configs)
-voice_data/
-youtube_transcriptions/
+# Exclude everything in voice_data except essential files
+voice_data/*.log
+voice_data/temp/
+voice_data/cache/

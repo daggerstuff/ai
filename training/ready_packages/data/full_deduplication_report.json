@@ -1,0 +1,2426 @@
+{
+  "scan_date": "2025-12-11T22:42:54.698265",
+  "summary": {
+    "total_entries_scanned": 30499,
+    "unique_conversations": 28049,
+    "duplicate_groups": 1557,
+    "total_duplicate_entries": 4007,
+    "potential_savings": 2450
+  },
+  "analysis": {
+    "total_duplicate_groups": 1557,
+    "total_duplicate_entries": 4007,
+    "dataset_total_counts": {
+      "phase_1_priority_conversations": 877,
+      "phase_2_professional_datasets": 3889,
+      "phase_3_cot_reasoning": 12
+    },
+    "top_duplicate_datasets": [
+      [
+        "phase_2_professional_datasets",
+        3889
+      ],
+      [
+        "phase_1_priority_conversations",
+        877
+      ],
+      [
+        "phase_3_cot_reasoning",
+        12
+      ]
+    ],
+    "dataset_pair_counts": {
+      "phase_1_priority_conversations \u2194 phase_2_professional_datasets": 759,
+      "phase_1_priority_conversations \u2194 phase_3_cot_reasoning": 12
+    },
+    "top_overlapping_pairs": [
+      [
+        "phase_1_priority_conversations \u2194 phase_2_professional_datasets",
+        759
+      ],
+      [
+        "phase_1_priority_conversations \u2194 phase_3_cot_reasoning",
+        12
+      ]
+    ]
+  },
+  "duplicate_groups": {
+    "764daf113b842679c247890652777b68": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 0,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 0,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "856168392c7662fe3830252169a49b00": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 1,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 1,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "fb0ac2be4e415d54f20b8671cb627c6c": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 2,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 2,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "f4f643f31b3e3a627a41db2c606befd8": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 3,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 3,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "596bd51851f51de36b39844bdf797ab3": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 4,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 4,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "9b3f011e9c958f1aa0049a939d4053a4": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 5,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 5,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "1278832dac2a999c92bff07d55c96bc9": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 6,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 6,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "b30f9f89a0f7dd049cb8627799dad5cc": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 7,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 7,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "35c5897b6fec284599b1341457e66d6a": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 8,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 8,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "d9b91df2b98270d86af87af31c58d400": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 9,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 9,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "49f67fc6493b56de4dba9383cc24d87a": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 10,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 10,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "358fb43db9d1550615e138adab9d45ec": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 11,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 11,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "6f40f6a9b4fff3e99e13ff880082dc39": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 13,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 13,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "4c9e9b12875bd55c854a81e69ce15727": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 14,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 14,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "d9087d280f43635ea77306f81fdffecd": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 15,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 16,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "9ccc9be7f336c94223aa3fd9e2053491": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 17,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 17,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "0ebfea862afc8ffd403a465a4bc03c02": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 18,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 18,
+          "entry_preview": "I'm going through some things with my feelings and myself. I barely sleep and I do nothing but think about how I'm worthless and how I shouldn't be he..."
+        }
+      ]
+    },
+    "c7a356cb3a58487d73895e5e4956780d": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 20,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 20,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "7630668ec466fbfc954fc9eb5fede4d0": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 21,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 21,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "43f0b7319909f427827f2a18badfb93c": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 22,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 22,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "8ba477fd4fa58eed4a84318a3db4b556": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 24,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 24,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "88e84bf9a5293c7e795290a52479b4fd": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 25,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 25,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "df2601982b5ac450f5ef0d0d0e564824": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 26,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 26,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "5528b20741aff7f1bad53cd76c9e93b4": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 27,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 27,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "1140001f83c9b68cfa0027aa067f220b": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 28,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 29,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "17f3128bb883f0470ac83be1a61ee22b": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 30,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 30,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "fc712dc0e2291ec9f538aa95ee6ff137": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 31,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 31,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "d7e8a4575333dd66e0c102d108270e3d": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 32,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 33,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "b6c074ef2f35d91e1f0a19374dfed9c1": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 33,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 34,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "90bb07176ef9578092e3087c8dff6b63": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 35,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 35,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "dac7c7524af01b534ee187119148d7af": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 36,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 36,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "33604e89703cd2d6ac68e2e82117d135": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 37,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 38,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "ebf5976c27934dadb11b893e8a407fcd": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 39,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 39,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "fe911712babba4d6a80879940c334d5e": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 40,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 40,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "74bd73972e8e1f022f33b9bf8475ef3c": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 41,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 42,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "9954f0c5e9ede5595aa684486d957ff6": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 42,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 43,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "1386ccdfacef5ba5c3157ca51a66e37f": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 44,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 44,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "514a6ded8fbec618914ebabd302b8bb0": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 45,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 46,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "17ed123f401e7a3c9b8d97e2670e9426": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 46,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 47,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "6d5d7b8c24ad70ab30b39d4a3b2a0a6e": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 47,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 48,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "a87e6590c61a6095dd427df55c2a45fd": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 49,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 49,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "b927a7175838d0dd41fa397a800f1794": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 50,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 51,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "f7f007607a95ad0f95070e041df33840": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 51,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 52,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "104b3809b82e512b168f723bf55a68da": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 53,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 53,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "a1567de0df681230f0296a7d49da65ae": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 54,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 55,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "eeaf5b29f2d50bbbf1dde64b8456007a": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 55,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 56,
+          "entry_preview": "I have so many issues to address. I have a history of sexual abuse, I\u2019m a breast cancer survivor and I am a lifetime insomniac. I have a long history ..."
+        }
+      ]
+    },
+    "715a34a5788f2f26776acb47aaeba544": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 57,
+          "entry_preview": "I have been feeling more and more down for over a month. I have started having trouble sleeping due to panic attacks, but they are almost never trigge..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 57,
+          "entry_preview": "I have been feeling more and more down for over a month. I have started having trouble sleeping due to panic attacks, but they are almost never trigge..."
+        }
+      ]
+    },
+    "b940f54334491c275bec2c958e76fd42": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 58,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 59,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        }
+      ]
+    },
+    "c8ee83612c48f85cdd3fe8019abdc57a": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 59,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 60,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        }
+      ]
+    },
+    "9ee1cd9498850fe1a2a068ff64905743": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 60,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 61,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        }
+      ]
+    },
+    "686389f3eadc7e3bc645ed1e76760a73": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 62,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 63,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        }
+      ]
+    },
+    "c7854c8e167fa678a274439289c6952c": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 63,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 64,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        }
+      ]
+    },
+    "94349b1d9856e480f46e30a902471184": {
+      "count": 2,
+      "datasets": [
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 64,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        },
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_1_priority_1/priority_1_conversations.jsonl",
+          "entry_index": 65,
+          "entry_preview": "I\u2019m facing severe depression and anxiety and I just feel like I\u2019m going through a lot. This really distracts me and I cant get my mind off the things ..."
+        }
+      ]
+    },
+    "5b78c6886adb78b2d09e2cee7004f04e": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 66,
+          "entry_preview": "How can I get to a place where I can be content from day to day? One thing that comes to mind is making a list of some things that happen each day. It..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1888,
+          "entry_preview": "How can I get to a place where I can be content from day to day? One thing that comes to mind is making a list of some things that happen each day. It..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 339,
+          "entry_preview": "How can I get to a place where I can be content from day to day? One thing that comes to mind is making a list of some things that happen each day. It..."
+        }
+      ]
+    },
+    "dbb49359231b920f97963b60bfb380d7": {
+      "count": 2,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 68,
+          "entry_preview": "I have a severe back problem. I've had 3 major and several minor operations, but I'm still in constant pain. How can I deal with the depression from t..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 341,
+          "entry_preview": "I have a severe back problem. I've had 3 major and several minor operations, but I'm still in constant pain. How can I deal with the depression from t..."
+        }
+      ]
+    },
+    "36ee70fc62ac855ca367a7899fe7c772": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 69,
+          "entry_preview": "I have a severe back problem. I've had 3 major and several minor operations, but I'm still in constant pain. How can I deal with the depression from t..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 2261,
+          "entry_preview": "I have a severe back problem. I've had 3 major and several minor operations, but I'm still in constant pain. How can I deal with the depression from t..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 342,
+          "entry_preview": "I have a severe back problem. I've had 3 major and several minor operations, but I'm still in constant pain. How can I deal with the depression from t..."
+        }
+      ]
+    },
+    "9ad27f273cd86a7a43ac0633cf02541a": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 70,
+          "entry_preview": "I suffer from adult ADHD, anxiety disorder, and depression. It has been difficult to find a doctor in my area and my primary physician won't help. I a..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1133,
+          "entry_preview": "I suffer from adult ADHD, anxiety disorder, and depression. It has been difficult to find a doctor in my area and my primary physician won't help. I a..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 343,
+          "entry_preview": "I suffer from adult ADHD, anxiety disorder, and depression. It has been difficult to find a doctor in my area and my primary physician won't help. I a..."
+        }
+      ]
+    },
+    "18786180c4ce9222ce20ea78f0354f1d": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 71,
+          "entry_preview": "I suffer from adult ADHD, anxiety disorder, and depression. It has been difficult to find a doctor in my area and my primary physician won't help. I a..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 888,
+          "entry_preview": "I suffer from adult ADHD, anxiety disorder, and depression. It has been difficult to find a doctor in my area and my primary physician won't help. I a..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 344,
+          "entry_preview": "I suffer from adult ADHD, anxiety disorder, and depression. It has been difficult to find a doctor in my area and my primary physician won't help. I a..."
+        }
+      ]
+    },
+    "9e55a200eb3e95d93516bfc94adc62a0": {
+      "count": 2,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 77,
+          "entry_preview": "I struggle with depression as well as pretty intense mood swings throughout the month. I experience highs where I feel amazing and energetic and then ..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 350,
+          "entry_preview": "I struggle with depression as well as pretty intense mood swings throughout the month. I experience highs where I feel amazing and energetic and then ..."
+        }
+      ]
+    },
+    "0f244a2b081542e7149792ff6efba25c": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 83,
+          "entry_preview": "I have been diagnosed with general anxiety and depression by my family doctor. They wrote a prescription for me to have an emotional support dog, I ha..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1349,
+          "entry_preview": "I have been diagnosed with general anxiety and depression by my family doctor. They wrote a prescription for me to have an emotional support dog, I ha..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 356,
+          "entry_preview": "I have been diagnosed with general anxiety and depression by my family doctor. They wrote a prescription for me to have an emotional support dog, I ha..."
+        }
+      ]
+    },
+    "389110a3d33c93e7b212e164384ea135": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 88,
+          "entry_preview": "It's not entirely true to say I enjoy being sad, but I always find a way to feel that way. I listen to sad music, read tragic stories, and, in a twist..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1038,
+          "entry_preview": "It's not entirely true to say I enjoy being sad, but I always find a way to feel that way. I listen to sad music, read tragic stories, and, in a twist..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 361,
+          "entry_preview": "It's not entirely true to say I enjoy being sad, but I always find a way to feel that way. I listen to sad music, read tragic stories, and, in a twist..."
+        }
+      ]
+    },
+    "c7234a9b7a1f6809a91e2c1e2515227d": {
+      "count": 2,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 90,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? I would suggest some holistic approaches, such as getting your Vi..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1902,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? I would suggest some holistic approaches, such as getting your Vi..."
+        }
+      ]
+    },
+    "78a02e5f65a45fdc353a1fe6bc8e67dc": {
+      "count": 2,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 92,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? Light therapy is very helpful. You are not alone. The name for th..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 365,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? Light therapy is very helpful. You are not alone. The name for th..."
+        }
+      ]
+    },
+    "539d76ee64723a79d86adb51335afd6f": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 93,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? This is actually pretty common. When winter hits, we tend to find..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 614,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? This is actually pretty common. When winter hits, we tend to find..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 367,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? This is actually pretty common. When winter hits, we tend to find..."
+        }
+      ]
+    },
+    "c53a07f5a6f0d6531a4408e291cb8faf": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 96,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? About 3 million people in the United States suffer from seasonal ..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 820,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? About 3 million people in the United States suffer from seasonal ..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 370,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? About 3 million people in the United States suffer from seasonal ..."
+        }
+      ]
+    },
+    "aec26058d06177b0c322b51f208406f3": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 98,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? Seasonal depression can be difficult due to the weather being a p..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 2299,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? Seasonal depression can be difficult due to the weather being a p..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 374,
+          "entry_preview": "Every winter I find myself getting sad because of the weather. How can I fight this? Seasonal depression can be difficult due to the weather being a p..."
+        }
+      ]
+    },
+    "ec1bfcd1f04737a9198966a47ebcfa3e": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 107,
+          "entry_preview": "My girlfriend just quit drinking and she became really depressed. She told me that she wants to move. What can I do to help her? I want her to stay. Y..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 709,
+          "entry_preview": "My girlfriend just quit drinking and she became really depressed. She told me that she wants to move. What can I do to help her? I want her to stay. Y..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 382,
+          "entry_preview": "My girlfriend just quit drinking and she became really depressed. She told me that she wants to move. What can I do to help her? I want her to stay. Y..."
+        }
+      ]
+    },
+    "bc9aa9cda55e6bf4f475fead8fc1229e": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 109,
+          "entry_preview": "My girlfriend just quit drinking and she became really depressed. She told me that she wants to move. What can I do to help her? I want her to stay. A..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1631,
+          "entry_preview": "My girlfriend just quit drinking and she became really depressed. She told me that she wants to move. What can I do to help her? I want her to stay. A..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 385,
+          "entry_preview": "My girlfriend just quit drinking and she became really depressed. She told me that she wants to move. What can I do to help her? I want her to stay. A..."
+        }
+      ]
+    },
+    "560d8beeee82984ce403cf5def62afa4": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 112,
+          "entry_preview": "I'm a teenager. My dad has been jail for the last five years. It's tough, but my mom really tries to give a normal life to my two sisters, my brother,..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 343,
+          "entry_preview": "I'm a teenager. My dad has been jail for the last five years. It's tough, but my mom really tries to give a normal life to my two sisters, my brother,..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 950,
+          "entry_preview": "I'm a teenager. My dad has been jail for the last five years. It's tough, but my mom really tries to give a normal life to my two sisters, my brother,..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 387,
+          "entry_preview": "I'm a teenager. My dad has been jail for the last five years. It's tough, but my mom really tries to give a normal life to my two sisters, my brother,..."
+        }
+      ]
+    },
+    "8303d260f6d24f91c16354a4b5022c78": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 119,
+          "entry_preview": "There are many people willing to lovingly provide me with a home. I have food, clothes, and a university education, but I never feel like I belong. Ev..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1503,
+          "entry_preview": "There are many people willing to lovingly provide me with a home. I have food, clothes, and a university education, but I never feel like I belong. Ev..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 395,
+          "entry_preview": "There are many people willing to lovingly provide me with a home. I have food, clothes, and a university education, but I never feel like I belong. Ev..."
+        }
+      ]
+    },
+    "06b17c00128c2593eda94672dcfe12e7": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 120,
+          "entry_preview": "I am really worried about one of my friends because I think he has major depression. He disagrees with me on that. He is shut off when it comes to tal..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 662,
+          "entry_preview": "I am really worried about one of my friends because I think he has major depression. He disagrees with me on that. He is shut off when it comes to tal..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1043,
+          "entry_preview": "I am really worried about one of my friends because I think he has major depression. He disagrees with me on that. He is shut off when it comes to tal..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 396,
+          "entry_preview": "I am really worried about one of my friends because I think he has major depression. He disagrees with me on that. He is shut off when it comes to tal..."
+        }
+      ]
+    },
+    "b112e775684566cb5ab11e15912d6d92": {
+      "count": 5,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 124,
+          "entry_preview": "I'm currently struggling with diagnosed depression, anxiety, and Misophonia. Also, I am 99% sure I have Borderline Personality Disorder and Avoidant P..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 168,
+          "entry_preview": "I'm currently struggling with diagnosed depression, anxiety, and Misophonia. Also, I am 99% sure I have Borderline Personality Disorder and Avoidant P..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1250,
+          "entry_preview": "I'm currently struggling with diagnosed depression, anxiety, and Misophonia. Also, I am 99% sure I have Borderline Personality Disorder and Avoidant P..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 401,
+          "entry_preview": "I'm currently struggling with diagnosed depression, anxiety, and Misophonia. Also, I am 99% sure I have Borderline Personality Disorder and Avoidant P..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 1772,
+          "entry_preview": "I'm currently struggling with diagnosed depression, anxiety, and Misophonia. Also, I am 99% sure I have Borderline Personality Disorder and Avoidant P..."
+        }
+      ]
+    },
+    "9e40d7133518a3c6f7c2d6f85cb360f0": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 126,
+          "entry_preview": "I'm depressed often, and my mind goes a million miles a minute. Every once in a while, things are okay for a few days. After a bit, I start noticing t..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 2406,
+          "entry_preview": "I'm depressed often, and my mind goes a million miles a minute. Every once in a while, things are okay for a few days. After a bit, I start noticing t..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 404,
+          "entry_preview": "I'm depressed often, and my mind goes a million miles a minute. Every once in a while, things are okay for a few days. After a bit, I start noticing t..."
+        }
+      ]
+    },
+    "50b1a4aa668c5865e098d3b688e86a40": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 128,
+          "entry_preview": "I'm very depressed. How do I find someone to talk to? The first step, which you've taken, is actually wanting to talk to someone. It's a great sign th..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 759,
+          "entry_preview": "I'm very depressed. How do I find someone to talk to? The first step, which you've taken, is actually wanting to talk to someone. It's a great sign th..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 406,
+          "entry_preview": "I'm very depressed. How do I find someone to talk to? The first step, which you've taken, is actually wanting to talk to someone. It's a great sign th..."
+        }
+      ]
+    },
+    "5d403034225aaafd497c696584acae5c": {
+      "count": 2,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 129,
+          "entry_preview": "I'm very depressed. How do I find someone to talk to? Hi,Reaching out here is a great start! I recommend looking for somebody in your area that works ..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 407,
+          "entry_preview": "I'm very depressed. How do I find someone to talk to? Hi,Reaching out here is a great start! I recommend looking for somebody in your area that works ..."
+        }
+      ]
+    },
+    "cf429cdffca373daee7d1493d2ae7574": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 132,
+          "entry_preview": "I'm very depressed. How do I find someone to talk to? If there is no one in your life with whom you feel comfortable, I would recommend identifying so..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 572,
+          "entry_preview": "I'm very depressed. How do I find someone to talk to? If there is no one in your life with whom you feel comfortable, I would recommend identifying so..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 410,
+          "entry_preview": "I'm very depressed. How do I find someone to talk to? If there is no one in your life with whom you feel comfortable, I would recommend identifying so..."
+        }
+      ]
+    },
+    "dce141dc9c8609718d19f8324f674747": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 144,
+          "entry_preview": "I just feel sad all the time and I don't like anyone in my family. I feel like they're trying to control me and won't let me grow. Hello,While one can..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 271,
+          "entry_preview": "I just feel sad all the time and I don't like anyone in my family. I feel like they're trying to control me and won't let me grow. Hello,While one can..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 422,
+          "entry_preview": "I just feel sad all the time and I don't like anyone in my family. I feel like they're trying to control me and won't let me grow. Hello,While one can..."
+        }
+      ]
+    },
+    "45b0e7f74226e49660cdb3f9aa77aa88": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 145,
+          "entry_preview": "I just feel sad all the time and I don't like anyone in my family. I feel like they're trying to control me and won't let me grow. Understandably the ..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 254,
+          "entry_preview": "I just feel sad all the time and I don't like anyone in my family. I feel like they're trying to control me and won't let me grow. Understandably the ..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 526,
+          "entry_preview": "I just feel sad all the time and I don't like anyone in my family. I feel like they're trying to control me and won't let me grow. Understandably the ..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 423,
+          "entry_preview": "I just feel sad all the time and I don't like anyone in my family. I feel like they're trying to control me and won't let me grow. Understandably the ..."
+        }
+      ]
+    },
+    "700f431ea96bcba569665b98db88bc92": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 152,
+          "entry_preview": "How do I make myself happy without the people who made me happy? Now that they\u2019re gone, I feel sad. It\u2019s been two months now but I seem to be unable t..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1460,
+          "entry_preview": "How do I make myself happy without the people who made me happy? Now that they\u2019re gone, I feel sad. It\u2019s been two months now but I seem to be unable t..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 430,
+          "entry_preview": "How do I make myself happy without the people who made me happy? Now that they\u2019re gone, I feel sad. It\u2019s been two months now but I seem to be unable t..."
+        }
+      ]
+    },
+    "bf16230d776da233e6c8e4c9d1da22c8": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 153,
+          "entry_preview": "How do I make myself happy without the people who made me happy? Now that they\u2019re gone, I feel sad. It\u2019s been two months now but I seem to be unable t..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 158,
+          "entry_preview": "How do I make myself happy without the people who made me happy? Now that they\u2019re gone, I feel sad. It\u2019s been two months now but I seem to be unable t..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 2175,
+          "entry_preview": "How do I make myself happy without the people who made me happy? Now that they\u2019re gone, I feel sad. It\u2019s been two months now but I seem to be unable t..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 431,
+          "entry_preview": "How do I make myself happy without the people who made me happy? Now that they\u2019re gone, I feel sad. It\u2019s been two months now but I seem to be unable t..."
+        }
+      ]
+    },
+    "efde9f5fa0c47d2818ff13b397393150": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 154,
+          "entry_preview": "I feel like I am internally screaming all the time. Externally, I am calm, but I have this intense, unidentifiable emotion constantly. I don't feel sa..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 539,
+          "entry_preview": "I feel like I am internally screaming all the time. Externally, I am calm, but I have this intense, unidentifiable emotion constantly. I don't feel sa..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 433,
+          "entry_preview": "I feel like I am internally screaming all the time. Externally, I am calm, but I have this intense, unidentifiable emotion constantly. I don't feel sa..."
+        }
+      ]
+    },
+    "e6e581c65fbe779515973d0c51fad55b": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 160,
+          "entry_preview": "I don't know how else to explain it. All I can say is that I feel empty, I feel nothing. How do I stop feeling this way? A feeling of emptiness can be..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 2219,
+          "entry_preview": "I don't know how else to explain it. All I can say is that I feel empty, I feel nothing. How do I stop feeling this way? A feeling of emptiness can be..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 439,
+          "entry_preview": "I don't know how else to explain it. All I can say is that I feel empty, I feel nothing. How do I stop feeling this way? A feeling of emptiness can be..."
+        }
+      ]
+    },
+    "8681fb6303187e461e7474bbcd599ef4": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 162,
+          "entry_preview": "People who are parental figures in my life have, in the past, hurt me, and some continue to do so. It makes me feel like I'm not good enough for my hu..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 45,
+          "entry_preview": "People who are parental figures in my life have, in the past, hurt me, and some continue to do so. It makes me feel like I'm not good enough for my hu..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 371,
+          "entry_preview": "People who are parental figures in my life have, in the past, hurt me, and some continue to do so. It makes me feel like I'm not good enough for my hu..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 441,
+          "entry_preview": "People who are parental figures in my life have, in the past, hurt me, and some continue to do so. It makes me feel like I'm not good enough for my hu..."
+        }
+      ]
+    },
+    "1a1989b2119056a7eaab5022a69dd960": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 171,
+          "entry_preview": "After he got home from the hospital he was angry, then for a time wonderful. Now he is depressed and hopeless again. The fact that you're reaching out..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 2166,
+          "entry_preview": "After he got home from the hospital he was angry, then for a time wonderful. Now he is depressed and hopeless again. The fact that you're reaching out..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 450,
+          "entry_preview": "After he got home from the hospital he was angry, then for a time wonderful. Now he is depressed and hopeless again. The fact that you're reaching out..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 1758,
+          "entry_preview": "After he got home from the hospital he was angry, then for a time wonderful. Now he is depressed and hopeless again. The fact that you're reaching out..."
+        }
+      ]
+    },
+    "707d676322ce555477693b7f8f39a9c5": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 174,
+          "entry_preview": "I no longer carry expressions on my face, and my emotions are decreasing the more I have fights with my fianc\u00e9e. Sometimes when we fight a lot with ou..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 430,
+          "entry_preview": "I no longer carry expressions on my face, and my emotions are decreasing the more I have fights with my fianc\u00e9e. Sometimes when we fight a lot with ou..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1908,
+          "entry_preview": "I no longer carry expressions on my face, and my emotions are decreasing the more I have fights with my fianc\u00e9e. Sometimes when we fight a lot with ou..."
+        }
+      ]
+    },
+    "16350f008e0c2fca81ca19bc4f6ac3fe": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 175,
+          "entry_preview": "I'm depressed. I have been for years. I hide it from everyone because I'm scared of the reactions I'll get. Last time I tried telling my parents, it w..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 849,
+          "entry_preview": "I'm depressed. I have been for years. I hide it from everyone because I'm scared of the reactions I'll get. Last time I tried telling my parents, it w..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 454,
+          "entry_preview": "I'm depressed. I have been for years. I hide it from everyone because I'm scared of the reactions I'll get. Last time I tried telling my parents, it w..."
+        }
+      ]
+    },
+    "a7d19e4064417898b3eec9c3bba86f00": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 178,
+          "entry_preview": "He said he would try and he never did. It's been nine months, and this is making me worse. Today, he said I have to respect whatever decision he makes..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 534,
+          "entry_preview": "He said he would try and he never did. It's been nine months, and this is making me worse. Today, he said I have to respect whatever decision he makes..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 458,
+          "entry_preview": "He said he would try and he never did. It's been nine months, and this is making me worse. Today, he said I have to respect whatever decision he makes..."
+        }
+      ]
+    },
+    "8a6cab3dafeb70aa5ce4c1b3adb68d3b": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 181,
+          "entry_preview": "He said he would try and he never did. It's been nine months, and this is making me worse. Today, he said I have to respect whatever decision he makes..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 359,
+          "entry_preview": "He said he would try and he never did. It's been nine months, and this is making me worse. Today, he said I have to respect whatever decision he makes..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 592,
+          "entry_preview": "He said he would try and he never did. It's been nine months, and this is making me worse. Today, he said I have to respect whatever decision he makes..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 462,
+          "entry_preview": "He said he would try and he never did. It's been nine months, and this is making me worse. Today, he said I have to respect whatever decision he makes..."
+        }
+      ]
+    },
+    "e79b4c51c434317057ef9d5e9f532d6b": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 187,
+          "entry_preview": "I am pretty sure I have depression and anxiety. I also have voices in my head. I have problems sleeping too. I've already been diagnosed with attentio..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1987,
+          "entry_preview": "I am pretty sure I have depression and anxiety. I also have voices in my head. I have problems sleeping too. I've already been diagnosed with attentio..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 468,
+          "entry_preview": "I am pretty sure I have depression and anxiety. I also have voices in my head. I have problems sleeping too. I've already been diagnosed with attentio..."
+        }
+      ]
+    },
+    "0475761accd4ba79b29f65bcb97cc69c": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 188,
+          "entry_preview": "I am pretty sure I have depression and anxiety. I also have voices in my head. I have problems sleeping too. I've already been diagnosed with attentio..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 240,
+          "entry_preview": "I am pretty sure I have depression and anxiety. I also have voices in my head. I have problems sleeping too. I've already been diagnosed with attentio..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 469,
+          "entry_preview": "I am pretty sure I have depression and anxiety. I also have voices in my head. I have problems sleeping too. I've already been diagnosed with attentio..."
+        }
+      ]
+    },
+    "34d842933ee6aed93e30f0c9261b6b90": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 189,
+          "entry_preview": "I'm depressed and recently went through a break up. It\u2019s like every guy I like only wants me for sex. I think I'm ugly, and sometimes I just want to d..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 4,
+          "entry_preview": "I'm depressed and recently went through a break up. It\u2019s like every guy I like only wants me for sex. I think I'm ugly, and sometimes I just want to d..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 419,
+          "entry_preview": "I'm depressed and recently went through a break up. It\u2019s like every guy I like only wants me for sex. I think I'm ugly, and sometimes I just want to d..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 470,
+          "entry_preview": "I'm depressed and recently went through a break up. It\u2019s like every guy I like only wants me for sex. I think I'm ugly, and sometimes I just want to d..."
+        }
+      ]
+    },
+    "c3d0d0ec308ce92ee7ac4f1bca13e82e": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 190,
+          "entry_preview": "I'm not the same anymore, I don't know how to get back to who I am. I'm sad and confused and angry and tired. I don't sleep well. Being tired can real..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 752,
+          "entry_preview": "I'm not the same anymore, I don't know how to get back to who I am. I'm sad and confused and angry and tired. I don't sleep well. Being tired can real..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 471,
+          "entry_preview": "I'm not the same anymore, I don't know how to get back to who I am. I'm sad and confused and angry and tired. I don't sleep well. Being tired can real..."
+        }
+      ]
+    },
+    "513ce3c91d19215ddf2c4b17f5b174fc": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 191,
+          "entry_preview": "Over the years, I have slowly lost everything: my jobs, my cars, my freedom, and my money. I am a stay-at-home mom who doesn't make any money, doesn't..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 356,
+          "entry_preview": "Over the years, I have slowly lost everything: my jobs, my cars, my freedom, and my money. I am a stay-at-home mom who doesn't make any money, doesn't..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 2407,
+          "entry_preview": "Over the years, I have slowly lost everything: my jobs, my cars, my freedom, and my money. I am a stay-at-home mom who doesn't make any money, doesn't..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 472,
+          "entry_preview": "Over the years, I have slowly lost everything: my jobs, my cars, my freedom, and my money. I am a stay-at-home mom who doesn't make any money, doesn't..."
+        }
+      ]
+    },
+    "f2ee6c4f891a3062831a558ee44f10e2": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 192,
+          "entry_preview": "Two years ago, I was separated from the military into my contract for medical issues. It has emotionally destroyed me. I now basically hate myself. It..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 145,
+          "entry_preview": "Two years ago, I was separated from the military into my contract for medical issues. It has emotionally destroyed me. I now basically hate myself. It..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 915,
+          "entry_preview": "Two years ago, I was separated from the military into my contract for medical issues. It has emotionally destroyed me. I now basically hate myself. It..."
+        }
+      ]
+    },
+    "bb2833c6ccb239919d79312e56eb5f43": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 193,
+          "entry_preview": "I feel depressed even though I act like a happy with my family. I act like I\u2019m happy so my son doesn\u2019t see me sad. I act like my life is a happy life,..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1967,
+          "entry_preview": "I feel depressed even though I act like a happy with my family. I act like I\u2019m happy so my son doesn\u2019t see me sad. I act like my life is a happy life,..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 474,
+          "entry_preview": "I feel depressed even though I act like a happy with my family. I act like I\u2019m happy so my son doesn\u2019t see me sad. I act like my life is a happy life,..."
+        }
+      ]
+    },
+    "de672c0dc44ff19776c5a5057f019882": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 194,
+          "entry_preview": "I think i may suffer from depression, and it is affecting my life and sleep. I am on my parent's insurance, and they won't let me see a therapist beca..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1614,
+          "entry_preview": "I think i may suffer from depression, and it is affecting my life and sleep. I am on my parent's insurance, and they won't let me see a therapist beca..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1909,
+          "entry_preview": "I think i may suffer from depression, and it is affecting my life and sleep. I am on my parent's insurance, and they won't let me see a therapist beca..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 475,
+          "entry_preview": "I think i may suffer from depression, and it is affecting my life and sleep. I am on my parent's insurance, and they won't let me see a therapist beca..."
+        }
+      ]
+    },
+    "cd9cf52f18666f4682f8a2ffdb8c86a6": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 195,
+          "entry_preview": "When I'm sad and alone, I want to cut myself. Try doing something physical. If you haven't exercised before, it is a good idea to get your doctor's ap..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 782,
+          "entry_preview": "When I'm sad and alone, I want to cut myself. Try doing something physical. If you haven't exercised before, it is a good idea to get your doctor's ap..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1326,
+          "entry_preview": "When I'm sad and alone, I want to cut myself. Try doing something physical. If you haven't exercised before, it is a good idea to get your doctor's ap..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 476,
+          "entry_preview": "When I'm sad and alone, I want to cut myself. Try doing something physical. If you haven't exercised before, it is a good idea to get your doctor's ap..."
+        }
+      ]
+    },
+    "de0ccde2e92daf810bcd52fa3ed5095a": {
+      "count": 3,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 196,
+          "entry_preview": "I stopped for a while, but I\u2019ve started doing it again. It\u2019s like an addiction. The more I try to stop, the more I want to do it. I\u2019ve tried doing som..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 2064,
+          "entry_preview": "I stopped for a while, but I\u2019ve started doing it again. It\u2019s like an addiction. The more I try to stop, the more I want to do it. I\u2019ve tried doing som..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 477,
+          "entry_preview": "I stopped for a while, but I\u2019ve started doing it again. It\u2019s like an addiction. The more I try to stop, the more I want to do it. I\u2019ve tried doing som..."
+        }
+      ]
+    },
+    "1592179233de1c474aee38bf46943105": {
+      "count": 2,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 197,
+          "entry_preview": "I used to be the funny guy of the group\u2014the class clown, if you will. I used to laugh uncontrollably all the time and be able to be social without it ..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1060,
+          "entry_preview": "I used to be the funny guy of the group\u2014the class clown, if you will. I used to laugh uncontrollably all the time and be able to be social without it ..."
+        }
+      ]
+    },
+    "4a1785c418f3cc7c8a33161b8007a410": {
+      "count": 4,
+      "datasets": [
+        "phase_2_professional_datasets",
+        "phase_1_priority_conversations"
+      ],
+      "entries": [
+        {
+          "dataset": "phase_1_priority_conversations",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "entry_index": 199,
+          "entry_preview": "In the last ten months, I've been kicked out, moved around three times, worked many jobs, stopped school to make money, had dad and mom get sick, was ..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 1094,
+          "entry_preview": "In the last ten months, I've been kicked out, moved around three times, worked many jobs, stopped school to make money, had dad and mom get sick, was ..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_11_llama3_mental_counseling/llama3_mental_counseling_conversations.jsonl",
+          "entry_index": 2432,
+          "entry_preview": "In the last ten months, I've been kicked out, moved around three times, worked many jobs, stopped school to make money, had dad and mom get sick, was ..."
+        },
+        {
+          "dataset": "phase_2_professional_datasets",
+          "source_path": "s3://pixel-data/datasets/gdrive/processed/phase_2_professional_datasets/task_5_10_counsel_chat/counsel_chat_conversations.jsonl",
+          "entry_index": 480,
+          "entry_preview": "In the last ten months, I've been kicked out, moved around three times, worked many jobs, stopped school to make money, had dad and mom get sick, was ..."
+        }
+      ]
+    }
+  }
+}

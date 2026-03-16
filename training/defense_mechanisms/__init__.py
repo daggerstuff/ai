@@ -9,17 +9,17 @@ Reference: PsyDefDetect@BioNLP 2026
 Framework: Defense Mechanism Rating Scales (Perry, 1990)
 """
 
-from ai.training.defense_mechanisms.constants import (
+from training.defense_mechanisms.constants import (
     DEFENSE_LABELS,
     DEFENSE_MATURITY,
     NUM_LABELS,
 )
-from ai.training.defense_mechanisms.dataset import (
+from training.defense_mechanisms.dataset import (
     DefenseDataset,
     compute_class_weights,
     format_dialogue,
 )
-from ai.training.defense_mechanisms.model import (
+from training.defense_mechanisms.model import (
     DefenseClassifier,
     DefensePrediction,
     FocalLoss,

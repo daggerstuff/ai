@@ -24,7 +24,7 @@ A comprehensive utility module that provides:
 
 ### 2. Training Ready Integration
 
-**Location**: `ai/training/utils/ngc_resources.py`
+**Location**: `ai/training/ready_packages/utils/ngc_resources.py`
 
 Provides:
 - `NGCResourceDownloader`: Downloads NeMo resources for training
@@ -40,7 +40,7 @@ quickstart_path = download_nemo_quickstart(version="25.10")
 
 ### 3. Dataset Pipeline Integration
 
-**Location**: `ai/pipelines/sourcing/ngc_ingestor.py`
+**Location**: `ai/pipelines/orchestrator/sourcing/ngc_ingestor.py`
 
 Provides:
 - `NGCIngestor`: Downloads datasets from NGC catalog
@@ -56,8 +56,8 @@ results = ingest_ngc_datasets()
 
 ### 4. Documentation
 
-- **`ai/training/docs/NGC_CLI_INTEGRATION.md`**: Complete guide for training_ready
-- **`ai/pipelines/docs/NGC_INTEGRATION.md`**: Complete guide for dataset_pipeline
+- **`ai/training/ready_packages/docs/NGC_CLI_INTEGRATION.md`**: Complete guide for training_ready
+- **`ai/pipelines/orchestrator/docs/NGC_INTEGRATION.md`**: Complete guide for dataset_pipeline
 
 ## Installation
 
@@ -80,13 +80,13 @@ ngc config set
 
 ### Training Ready
 
-- **Module**: `ai/training/utils/ngc_resources.py`
+- **Module**: `ai/training/ready_packages/utils/ngc_resources.py`
 - **Exported**: `NGCResourceDownloader`, `download_nemo_quickstart`
 - **Use Cases**: Download NeMo Microservices, training frameworks, custom resources
 
 ### Dataset Pipeline
 
-- **Module**: `ai/pipelines/sourcing/ngc_ingestor.py`
+- **Module**: `ai/pipelines/orchestrator/sourcing/ngc_ingestor.py`
 - **Integrated**: Automatically included in `multi_source_ingestor.py`
 - **Use Cases**: Download NGC catalog datasets for training
 
@@ -101,8 +101,8 @@ ngc config set
 ## Requirements
 
 Added to:
-- `ai/training/packages/velocity/configs/requirements_moe.txt`
-- `ai/pipelines/utils/requirements.txt`
+- `ai/training/ready_packages/packages/velocity/configs/requirements_moe.txt`
+- `ai/pipelines/orchestrator/utils/requirements.txt`
 
 Note: NGC CLI is optional - systems will work without it, but with limited NGC resource access.
 
@@ -151,9 +151,9 @@ Note: NGC CLI is optional - systems will work without it, but with limited NGC r
 ## Related Files
 
 - `ai/utils/ngc_cli.py` - Core NGC CLI utility
-- `ai/training/utils/ngc_resources.py` - Training resources downloader
-- `ai/pipelines/sourcing/ngc_ingestor.py` - Dataset ingestor
-- `ai/pipelines/sourcing/multi_source_ingestor.py` - Multi-source integration
+- `ai/training/ready_packages/utils/ngc_resources.py` - Training resources downloader
+- `ai/pipelines/orchestrator/sourcing/ngc_ingestor.py` - Dataset ingestor
+- `ai/pipelines/orchestrator/sourcing/multi_source_ingestor.py` - Multi-source integration
 - `scripts/infrastructure/deploy-nemo-data-designer-remote-server.sh` - Existing NGC usage
 
 ## Notes

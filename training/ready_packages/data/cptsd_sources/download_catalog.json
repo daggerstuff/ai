@@ -1,0 +1,189 @@
+{
+  "download_started_at": "2026-02-10T20:19:01.278604Z",
+  "output_directory": "ai/training/ready_packages/data/cptsd_sources",
+  "sources": {
+    "heidi_priebe": {
+      "source": "heidi_priebe",
+      "total_files": 2,
+      "downloaded_files": 0,
+      "failed_files": 2,
+      "total_size_bytes": 0,
+      "files": [
+        {
+          "source": "heidi_priebe",
+          "s3_key": "datasets/gdrive/tier4_voice_persona/Heidi Priebe/10 'Survival Lies' You May Tell If You Have CPTSD.txt",
+          "local_path": "ai/training/ready_packages/data/cptsd_sources/heidi_priebe/10 'Survival Lies' You May Tell If You Have CPTSD.txt",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
+          "topics": [
+            "survival lies",
+            "ptsd",
+            "cptsd"
+          ],
+          "downloaded": false,
+          "cataloged_at": "2026-02-10T20:19:01.293568Z"
+        },
+        {
+          "source": "heidi_priebe",
+          "s3_key": "datasets/gdrive/tier4_voice_persona/Heidi Priebe/CPTSD\uff1a Breaking The Toxic Shame\u29f8Procrastination Cycle With Self-Compassion.txt",
+          "local_path": "ai/training/ready_packages/data/cptsd_sources/heidi_priebe/CPTSD\uff1a Breaking The Toxic Shame\u29f8Procrastination Cycle With Self-Compassion.txt",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
+          "topics": [
+            "toxic shame",
+            "procrastination",
+            "self-compassion",
+            "shame",
+            "ptsd",
+            "cptsd"
+          ],
+          "downloaded": false,
+          "cataloged_at": "2026-02-10T20:19:01.302298Z"
+        }
+      ],
+      "total_size_formatted": "0.00 KB"
+    },
+    "patrick_teahan": {
+      "source": "patrick_teahan",
+      "total_files": 1,
+      "downloaded_files": 0,
+      "failed_files": 1,
+      "total_size_bytes": 0,
+      "files": [
+        {
+          "source": "patrick_teahan",
+          "s3_key": "datasets/gdrive/tier4_voice_persona/Patrick Teahan /9 Random Examples of Shame from PTSD & CPTSD.txt",
+          "local_path": "ai/training/ready_packages/data/cptsd_sources/patrick_teahan/9 Random Examples of Shame from PTSD & CPTSD.txt",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
+          "topics": [
+            "shame",
+            "ptsd",
+            "cptsd"
+          ],
+          "downloaded": false,
+          "cataloged_at": "2026-02-10T20:19:01.313549Z"
+        }
+      ],
+      "total_size_formatted": "0.00 KB"
+    },
+    "tim_fletcher": {
+      "source": "tim_fletcher",
+      "total_files": 8,
+      "downloaded_files": 0,
+      "failed_files": 8,
+      "total_size_bytes": 0,
+      "files": [
+        {
+          "source": "tim_fletcher",
+          "s3_key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/'Big T' vs 'Little t' Trauma | Understanding Trauma - Part 28 | #complextrauma.txt",
+          "local_path": "ai/training/ready_packages/data/cptsd_sources/tim_fletcher/'Big T' vs 'Little t' Trauma | Understanding Trauma - Part 28 | #complextrauma.txt",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
+          "topics": [],
+          "downloaded": false,
+          "cataloged_at": "2026-02-10T20:19:01.326680Z"
+        },
+        {
+          "source": "tim_fletcher",
+          "s3_key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Betrayal Trauma | Understanding Trauma - Part 13 | #complextrauma.txt",
+          "local_path": "ai/training/ready_packages/data/cptsd_sources/tim_fletcher/Betrayal Trauma | Understanding Trauma - Part 13 | #complextrauma.txt",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
+          "topics": [
+            "betrayal trauma"
+          ],
+          "downloaded": false,
+          "cataloged_at": "2026-02-10T20:19:01.342731Z"
+        },
+        {
+          "source": "tim_fletcher",
+          "s3_key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Depletion and Self-Care | Re-Parenting - Part 89 | #complextrauma.txt",
+          "local_path": "ai/training/ready_packages/data/cptsd_sources/tim_fletcher/Depletion and Self-Care | Re-Parenting - Part 89 | #complextrauma.txt",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
+          "topics": [
+            "depletion",
+            "self-care",
+            "re-parenting"
+          ],
+          "downloaded": false,
+          "cataloged_at": "2026-02-10T20:19:01.355796Z"
+        },
+        {
+          "source": "tim_fletcher",
+          "s3_key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Healing | Understanding Trauma - Part 10 | #complextrauma.txt",
+          "local_path": "ai/training/ready_packages/data/cptsd_sources/tim_fletcher/Healing | Understanding Trauma - Part 10 | #complextrauma.txt",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
+          "topics": [
+            "healing"
+          ],
+          "downloaded": false,
+          "cataloged_at": "2026-02-10T20:19:01.365790Z"
+        },
+        {
+          "source": "tim_fletcher",
+          "s3_key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Recovery and Letting Go | Re-Parenting - Part 93 | #complextrauma.txt",
+          "local_path": "ai/training/ready_packages/data/cptsd_sources/tim_fletcher/Recovery and Letting Go | Re-Parenting - Part 93 | #complextrauma.txt",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
+          "topics": [
+            "recovery",
+            "letting go",
+            "re-parenting"
+          ],
+          "downloaded": false,
+          "cataloged_at": "2026-02-10T20:19:01.377358Z"
+        },
+        {
+          "source": "tim_fletcher",
+          "s3_key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Sex | Re-Parenting - Part 25 | #complextrauma.txt",
+          "local_path": "ai/training/ready_packages/data/cptsd_sources/tim_fletcher/Sex | Re-Parenting - Part 25 | #complextrauma.txt",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
+          "topics": [
+            "sex",
+            "re-parenting"
+          ],
+          "downloaded": false,
+          "cataloged_at": "2026-02-10T20:19:01.388776Z"
+        },
+        {
+          "source": "tim_fletcher",
+          "s3_key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/These 12 Needs Are Non-Negotiable for a Healthy & Whole Life | #complextrauma #whatstuck.txt",
+          "local_path": "ai/training/ready_packages/data/cptsd_sources/tim_fletcher/These 12 Needs Are Non-Negotiable for a Healthy & Whole Life | #complextrauma #whatstuck.txt",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
+          "topics": [
+            "needs"
+          ],
+          "downloaded": false,
+          "cataloged_at": "2026-02-10T20:19:01.400716Z"
+        },
+        {
+          "source": "tim_fletcher",
+          "s3_key": "datasets/gdrive/tier4_voice_persona/Tim Fletcher/Trauma Bonding | Understanding Trauma - Part 31 | #complextrauma.txt",
+          "local_path": "ai/training/ready_packages/data/cptsd_sources/tim_fletcher/Trauma Bonding | Understanding Trauma - Part 31 | #complextrauma.txt",
+          "size_bytes": 0,
+          "size_formatted": "0.00 KB",
+          "topics": [
+            "trauma bonding"
+          ],
+          "downloaded": false,
+          "cataloged_at": "2026-02-10T20:19:01.411716Z"
+        }
+      ],
+      "total_size_formatted": "0.00 KB"
+    }
+  },
+  "summary": {
+    "total_sources": 3,
+    "total_files": 11,
+    "total_downloaded": 0,
+    "total_failed": 11,
+    "total_size_bytes": 0,
+    "total_size_formatted": "0.00 KB",
+    "download_completed_at": "2026-02-10T20:19:01.411960Z"
+  }
+}

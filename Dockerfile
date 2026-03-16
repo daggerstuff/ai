@@ -101,13 +101,8 @@ WORKDIR /app
 # Copy virtual environment from deps stage
 COPY --from=deps --chown=ubuntu:ubuntu /app/.venv /app/.venv
 
-# Copy application code into a named subdirectory to preserve package identity
-COPY --chown=ubuntu:ubuntu . ai/
-
-# Ensure we have a .env file locally for the loader
-RUN touch ai/.env
-
-WORKDIR /app/ai
+# Copy application code
+COPY --chown=ubuntu:ubuntu . .
 
 # Create necessary directories
 RUN mkdir -p /app/logs /app/data /app/tmp \

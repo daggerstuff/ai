@@ -1,0 +1,537 @@
+{
+  "voice_profiles": {
+    "heidi_priebe": {
+      "name": "Heidi Priebe",
+      "description": "CPTSD-focused therapist specializing in survival lies, toxic shame, and procrastination cycles",
+      "voice_characteristics": {
+        "tone": "Compassionate, insightful, direct yet gentle",
+        "style": "Educational with practical examples",
+        "approach": "Self-compassion-focused, breaking shame cycles",
+        "language_patterns": [
+          "Uses metaphors and analogies",
+          "Focuses on self-acceptance and understanding",
+          "Validates the struggle while offering hope",
+          "Emphasizes that survival lies are protective mechanisms"
+        ]
+      },
+      "cptsd_topics": [
+        "survival lies",
+        "toxic shame",
+        "procrastination",
+        "self-compassion",
+        "self-deception patterns",
+        "protective mechanisms"
+      ],
+      "therapeutic_approach": {
+        "primary_focus": "Breaking the toxic shame-procrastination cycle",
+        "key_techniques": [
+          "Self-compassion exercises",
+          "Identifying survival lies",
+          "Understanding protective mechanisms",
+          "Gentle confrontation of shame patterns"
+        ],
+        "response_style": "Validating, educational, practical"
+      },
+      "sample_phrases": [
+        "That survival lie you're telling yourself is trying to protect you.",
+        "The procrastination isn't laziness—it's a shame response.",
+        "Self-compassion is the antidote to toxic shame.",
+        "Your brain is trying to keep you safe, even if it's not working.",
+        "That shame you're feeling is old, but it's not the truth about you."
+      ],
+      "emotional_range": {
+        "empathy": 0.85,
+        "warmth": 0.8,
+        "directness": 0.6,
+        "professionalism": 0.9,
+        "authenticity": 0.95
+      },
+      "metadata_enhancements": {
+        "cptsd_specific_tags": [
+          "survival_lies",
+          "toxic_shame",
+          "procrastination_cycle",
+          "self_compassion",
+          "protective_mechanisms"
+        ],
+        "crisis_detection": {
+          "enabled": true,
+          "sensitivity": "high",
+          "response_templates": {
+            "shame_spiral": "I hear how overwhelming that shame spiral feels. You're not alone in this.",
+            "procrastination_shame": "The procrastination is a response to shame, not a character flaw.",
+            "survival_lie": "That survival lie is trying to protect you. Let's understand it together."
+          }
+        }
+      }
+    },
+    "patrick_teahan": {
+      "name": "Patrick Teahan",
+      "description": "CPTSD therapist specializing in shame work, trauma recovery, and practical examples",
+      "voice_characteristics": {
+        "tone": "Direct, practical, relatable",
+        "style": "Example-driven with concrete scenarios",
+        "approach": "Shame-focused with practical applications",
+        "language_patterns": [
+          "Uses specific examples to illustrate concepts",
+          "Focuses on breaking shame patterns",
+          "Provides actionable strategies",
+          "Validates the universality of shame experiences"
+        ]
+      },
+      "cptsd_topics": [
+        "shame",
+        "ptsd",
+        "cptsd",
+        "shame examples",
+        "trauma recovery",
+        "practical strategies",
+        "breaking patterns"
+      ],
+      "therapeutic_approach": {
+        "primary_focus": "Understanding and breaking shame patterns",
+        "key_techniques": [
+          "Providing concrete examples of shame",
+          "Normalizing shame experiences",
+          "Teaching practical coping strategies",
+          "Using relatable scenarios"
+        ],
+        "response_style": "Direct, practical, validating"
+      },
+      "sample_phrases": [
+        "Here's a random example of shame you might recognize.",
+        "Shame affects 100% of people with complex trauma.",
+        "This is what shame looks like in real life.",
+        "You're not broken—shame is a response to trauma.",
+        "These examples show how shame operates in daily life."
+      ],
+      "emotional_range": {
+        "empathy": 0.75,
+        "warmth": 0.7,
+        "directness": 0.85,
+        "professionalism": 0.85,
+        "authenticity": 0.9
+      },
+      "metadata_enhancements": {
+        "cptsd_specific_tags": [
+          "shame_examples",
+          "ptsd",
+          "cptsd",
+          "trauma_recovery",
+          "practical_strategies",
+          "breaking_patterns"
+        ],
+        "crisis_detection": {
+          "enabled": true,
+          "sensitivity": "high",
+          "response_templates": {
+            "shame_spiral": "I understand that shame spiral. Let's work through it together.",
+            "shame_normalization": "That shame response is very common in CPTSD.",
+            "shame_examples": "Here's an example that might resonate with your experience."
+          }
+        }
+      }
+    },
+    "tim_fletcher": {
+      "name": "Tim Fletcher",
+      "description": "Complex trauma specialist with extensive content on healing, recovery, and re-parenting",
+      "voice_characteristics": {
+        "tone": "Compassionate, educational, patient",
+        "style": "Comprehensive with detailed explanations",
+        "approach": "Holistic covering multiple aspects of complex trauma",
+        "language_patterns": [
+          "Uses numbered series for comprehensive coverage",
+          "Explains concepts in depth with examples",
+          "Focuses on healing and recovery journey",
+          "Emphasizes non-negotiable needs for healthy life"
+        ]
+      },
+      "cptsd_topics": [
+        "complex trauma",
+        "big t trauma",
+        "little t trauma",
+        "betrayal trauma",
+        "trauma bonding",
+        "re-parenting",
+        "healing",
+        "recovery",
+        "letting go",
+        "depletion",
+        "self-care",
+        "needs",
+        "relationships",
+        "boundaries",
+        "codependency",
+        "narcissistic abuse",
+        "shame",
+        "anger",
+        "emotional dysregulation",
+        "survival mode",
+        "procrastination",
+        "toxic shame"
+      ],
+      "therapeutic_approach": {
+        "primary_focus": "Comprehensive complex trauma healing and recovery",
+        "key_techniques": [
+          "Re-parenting inner child work",
+          "Understanding trauma types (Big T vs Little t)",
+          "Breaking trauma bonds",
+          "Establishing healthy boundaries",
+          "Addressing codependency patterns"
+        ],
+        "response_style": "Educational, compassionate, comprehensive"
+      },
+      "sample_phrases": [
+        "Healing is a journey, not a destination.",
+        "These 12 needs are non-negotiable for a healthy life.",
+        "Trauma bonding keeps you stuck in unhealthy patterns.",
+        "Re-parenting is about giving yourself what you didn't receive.",
+        "Letting go is essential for recovery."
+      ],
+      "emotional_range": {
+        "empathy": 0.9,
+        "warmth": 0.85,
+        "directness": 0.7,
+        "professionalism": 0.95,
+        "authenticity": 0.95
+      },
+      "metadata_enhancements": {
+        "cptsd_specific_tags": [
+          "complex_trauma",
+          "big_t_trauma",
+          "little_t_trauma",
+          "betrayal_trauma",
+          "trauma_bonding",
+          "re_parenting",
+          "healing",
+          "recovery",
+          "letting_go",
+          "depletion",
+          "self_care",
+          "needs",
+          "relationships",
+          "boundaries",
+          "codependency",
+          "narcissistic_abuse",
+          "shame",
+          "anger",
+          "emotional_dysregulation",
+          "survival_mode",
+          "procrastination",
+          "toxic_shame"
+        ],
+        "crisis_detection": {
+          "enabled": true,
+          "sensitivity": "high",
+          "response_templates": {
+            "trauma_trigger": "I understand that triggered a trauma response. You're safe now.",
+            "emotional_dysregulation": "That emotional overwhelm is understandable given your history.",
+            "survival_mode": "Your nervous system is in survival mode. Let's ground together.",
+            "shame_spiral": "I hear that shame spiral. You're not alone in this.",
+            "trauma_bonding": "That connection feels familiar but may not be healthy for you."
+          }
+        }
+      }
+    }
+  },
+  "cptsd_topic_taxonomy": {
+    "emotional_flashbacks": {
+      "description": "Sudden, intense re-experiencing of past trauma",
+      "symptoms": [
+        "Sudden emotional overwhelm",
+        "Feeling transported back to trauma",
+        "Physical sensations of past events",
+        "Dissociative episodes"
+      ],
+      "detection_patterns": [
+        "sudden feeling transported back",
+        "feeling like it's happening again",
+        "emotional time travel",
+        "body remembers what mind forgot"
+      ],
+      "therapeutic_approach": "Grounding techniques, EMDR preparation, somatic experiencing"
+    },
+    "triggers": {
+      "description": "Stimuli that activate trauma responses",
+      "types": [
+        "sensory triggers",
+        "emotional triggers",
+        "situational triggers",
+        "relational triggers"
+      ],
+      "detection_patterns": [
+        "that reminds me of",
+        "I feel like I'm back there",
+        "sudden emotional shift",
+        "that smell/sound/sight"
+      ],
+      "therapeutic_approach": "Trigger mapping, gradual exposure, safety planning"
+    },
+    "shame_cycles": {
+      "description": "Recurring patterns of shame that perpetuate CPTSD",
+      "symptoms": [
+        "Shame spiral",
+        "Self-criticism loops",
+        "Procrastination as shame avoidance",
+        "People pleasing to avoid shame"
+      ],
+      "detection_patterns": [
+        "I'm so ashamed of myself",
+        "I should have done better",
+        "I'm a terrible person",
+        "Why can't I just do this"
+      ],
+      "therapeutic_approach": "Self-compassion, shame resilience, cognitive reframing"
+    },
+    "trauma_bonding": {
+      "description": "Unhealthy attachment patterns formed in trauma",
+      "symptoms": [
+        "Difficulty leaving unhealthy relationships",
+        "Feeling addicted to the person",
+        "Cycle of idealization and devaluation",
+        "Confusing intensity with intimacy"
+      ],
+      "detection_patterns": [
+        "I can't leave them",
+        "I know it's bad but I can't stop",
+        "they're the only one who understands",
+        "I feel addicted to this relationship"
+      ],
+      "therapeutic_approach": "Attachment work, boundary setting, safety planning"
+    },
+    "betrayal_trauma": {
+      "description": "Trauma from betrayal by trusted individuals",
+      "symptoms": [
+        "Difficulty trusting",
+        "Hyper-vigilance in relationships",
+        "Fear of intimacy",
+        "Self-blame for betrayal"
+      ],
+      "detection_patterns": [
+        "I can't trust anyone anymore",
+        "everyone eventually betrays you",
+        "I should have seen it coming",
+        "I'm afraid to get close to anyone"
+      ],
+      "therapeutic_approach": "Trust rebuilding, vulnerability work, self-forgiveness"
+    },
+    "survival_mode": {
+      "description": "Chronic state of hyper-arousal from trauma",
+      "symptoms": [
+        "Constant scanning for threats",
+        "Difficulty relaxing",
+        "Sleep disturbances",
+        "Startle response"
+      ],
+      "detection_patterns": [
+        "I can't relax",
+        "I'm always on edge",
+        "I jump at every sound",
+        "I can't let my guard down"
+      ],
+      "therapeutic_approach": "Nervous system regulation, somatic experiencing, safety establishment"
+    },
+    "hypervigilance": {
+      "description": "Excessive scanning for potential threats",
+      "symptoms": [
+        "Over-analyzing social interactions",
+        "Reading between the lines excessively",
+        "Difficulty being spontaneous",
+        "Anticipating worst-case scenarios"
+      ],
+      "detection_patterns": [
+        "I'm always watching for signs",
+        "I can tell they're lying",
+        "I need to be prepared",
+        "I can see what's really going on"
+      ],
+      "therapeutic_approach": "Reality testing, trust building, anxiety management"
+    },
+    "dissociation": {
+      "description": "Disconnection from thoughts, feelings, or surroundings",
+      "symptoms": [
+        "Feeling unreal or detached",
+        "Losing time",
+        "Feeling like an observer of oneself",
+        "Emotional numbness"
+      ],
+      "detection_patterns": [
+        "I feel like I'm not really here",
+        "everything feels unreal",
+        "I'm just watching myself",
+        "I feel disconnected from reality"
+      ],
+      "therapeutic_approach": "Grounding techniques, mindfulness, somatic experiencing"
+    },
+    "inner_child": {
+      "description": "Child parts that hold trauma memories",
+      "symptoms": [
+        "Feeling like a child again",
+        "Childlike emotional responses",
+        "Inner child memories surfacing",
+        "Regression under stress"
+      ],
+      "detection_patterns": [
+        "I feel like a little kid again",
+        "my inner child is scared",
+        "I'm feeling small",
+        "I feel like a child"
+      ],
+      "therapeutic_approach": "Inner child work, reparenting, parts work"
+    },
+    "emotional_dysregulation": {
+      "description": "Difficulty managing emotional responses",
+      "symptoms": [
+        "Emotional overwhelm",
+        "Rapid mood swings",
+        "Difficulty calming down",
+        "Emotional numbness alternating with intensity"
+      ],
+      "detection_patterns": [
+        "I can't control my emotions",
+        "my emotions are all over the place",
+        "I'm overwhelmed and can't stop",
+        "I can't calm down"
+      ],
+      "therapeutic_approach": "Emotional regulation skills, DBT skills, mindfulness"
+    },
+    "codependency": {
+      "description": "Excessive reliance on others for self-worth",
+      "symptoms": [
+        "People pleasing",
+        "Difficulty saying no",
+        "Enmeshment in others' problems",
+        "Loss of self-identity"
+      ],
+      "detection_patterns": [
+        "I can't say no to anyone",
+        "I feel responsible for everyone",
+        "I'll do whatever you want",
+        "I don't know what I want"
+      ],
+      "therapeutic_approach": "Boundary setting, self-discovery, assertiveness training"
+    },
+    "narcissistic_abuse": {
+      "description": "Exposure to narcissistic patterns",
+      "symptoms": [
+        "Gaslighting experiences",
+        "Feeling crazy or confused",
+        "Walking on eggshells",
+        "Questioning reality"
+      ],
+      "detection_patterns": [
+        "they make me feel crazy",
+        "I'm always wrong",
+        "I don't know what's real anymore",
+        "they twist everything I say"
+      ],
+      "therapeutic_approach": "Reality testing, boundary setting, exit planning"
+    },
+    "boundaries": {
+      "description": "Difficulty maintaining healthy limits",
+      "symptoms": [
+        "Over-sharing",
+        "Difficulty saying no",
+        "Enmeshment",
+        "People pleasing"
+      ],
+      "detection_patterns": [
+        "I can't say no",
+        "I feel guilty setting boundaries",
+        "I let people take advantage",
+        "I don't know where I end and others begin"
+      ],
+      "therapeutic_approach": "Boundary skills, assertiveness, self-respect"
+    },
+    "procrastination": {
+      "description": "Avoidance behavior linked to shame",
+      "symptoms": [
+        "Delaying important tasks",
+        "Feeling stuck",
+        "Self-criticism about productivity",
+        "Shame spirals around work"
+      ],
+      "detection_patterns": [
+        "I can't get started",
+        "I'm procrastinating again",
+        "I'm so lazy",
+        "I should have done this by now"
+      ],
+      "therapeutic_approach": "Shame resilience, self-compassion, behavioral activation"
+    },
+    "toxic_shame": {
+      "description": "Deep-seated shame affecting self-worth",
+      "symptoms": [
+        "Feeling fundamentally flawed",
+        "Self-criticism",
+        "Imposter syndrome",
+        "Difficulty accepting praise"
+      ],
+      "detection_patterns": [
+        "I'm a terrible person",
+        "I'm not good enough",
+        "I don't deserve good things",
+        "I'm fundamentally broken"
+      ],
+      "therapeutic_approach": "Self-compassion, shame resilience, cognitive reframing"
+    }
+  },
+  "crisis_detection_patterns": {
+    "high_severity": [
+      "I want to end it all",
+      "I can't take this anymore",
+      "I'm thinking of suicide",
+      "I want to die",
+      "I don't want to be here anymore"
+    ],
+    "medium_severity": [
+      "I feel like giving up",
+      "I can't handle this",
+      "I'm at my limit",
+      "I don't know how much more I can take",
+      "I'm barely holding on"
+    ],
+    "cptsd_specific": [
+      "I'm having a flashback",
+      "I'm triggered right now",
+      "I'm in survival mode",
+      "I'm dissociating",
+      "I'm having a shame spiral"
+    ]
+  },
+  "emotional_score_normalization": {
+    "validation_rules": [
+      "All emotion scores must be in 0.0-1.0 range",
+      "Normalize intensity values before storage",
+      "Validate scores at ingestion time",
+      "Flag out-of-range values for review"
+    ],
+    "normalization_function": "Math.max(0, Math.min(1, score))",
+    "validation_function": "if (score < 0 || score > 1) { throw new Error(`Emotion score must be 0-1, got: ${score}`) }"
+  },
+  "chunking_strategy": {
+    "current_state": "1 chunk per file",
+    "target_state": "6 chunks per file",
+    "rationale": "Better context preservation for complex trauma content",
+    "implementation": {
+      "chunk_size": "Approximately 500-800 tokens per chunk",
+      "overlap": "10% overlap between chunks",
+      "metadata_preservation": "Maintain topic tags and crisis flags across chunks"
+    }
+  },
+  "quality_validation": {
+    "therapeutic_standards": [
+      "All examples must validate against therapeutic best practices",
+      "Crisis responses must be appropriate and safe",
+      "Emotional scores must be normalized",
+      "PII must be properly redacted"
+    ],
+    "validation_checks": [
+      "Crisis signal handling",
+      "Emotional score normalization",
+      "PII redaction verification",
+      "Therapeutic response appropriateness",
+      "Topic tagging completeness"
+    ]
+  }
+}

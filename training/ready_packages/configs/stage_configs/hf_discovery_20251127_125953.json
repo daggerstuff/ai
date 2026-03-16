@@ -1,0 +1,1146 @@
+{
+  "timestamp": "2025-11-27T12:59:53.770586",
+  "total_unique_datasets": 56,
+  "search_queries": [
+    "mental health counseling",
+    "therapeutic conversation",
+    "empathetic dialogue",
+    "chain of thought reasoning",
+    "emotional support",
+    "crisis intervention",
+    "cognitive behavioral therapy",
+    "motivational interviewing",
+    "psychotherapy dataset",
+    "counselor training",
+    "mental health chatbot",
+    "depression anxiety support",
+    "trauma informed care"
+  ],
+  "search_results_by_query": {
+    "mental health counseling": [
+      "Amod/mental_health_counseling_conversations",
+      "chillies/student-mental-health-counseling-vn",
+      "chansung/mental_health_counseling_conversations_merged",
+      "HoangHa/mental_health_counseling_conversations_inout",
+      "arafatanam/Student-Mental-Health-Counseling-100K",
+      "tcabanski/mental_health_counseling_responses",
+      "MaggiePai/mental_health_counseling_conversations",
+      "Sulav/mental_health_counseling_conversations_sharegpt",
+      "hizardev/MentalHealth-Counseling",
+      "arafatanam/Student-Mental-Health-Counseling-50K",
+      "arafatanam/Student-Mental-Health-Counseling-20K",
+      "tcabanski/mental_health_counseling_conversations_rated",
+      "Felladrin/pretrain-mental-health-counseling-conversations",
+      "arafatanam/Student-Mental-Health-Counseling-10K",
+      "Intuit-GenSRF/es_mental_health_counseling"
+    ],
+    "therapeutic conversation": [],
+    "empathetic dialogue": [
+      "facebook/empathetic_dialogues",
+      "Estwld/empathetic_dialogues_llm",
+      "bdotloh/empathetic-dialogues-contexts",
+      "grimjim/empatheticdialogues",
+      "Jithendra-k/EmpatheticDialogues",
+      "Adapting/empathetic_dialogues_v2",
+      "agentlans/Estwld-empathetic_dialogues_llm",
+      "anezatra/empathetic-dialogues",
+      "Smoked-Salmon-s/empathetic_dialogues_ko",
+      "ychen/Generated-Empathetic-Dialogues-v0.1-Smol",
+      "pixelsandpointers/empathetic_dialogues_for_lm",
+      "lighteval/empathetic_dialogues",
+      "ia-bentebib/empathetic_dialogues_fr",
+      "chill-bots/empathetic-dialogues-cleaned",
+      "BurgerTruck/empathetic_dialogues"
+    ],
+    "chain of thought reasoning": [],
+    "emotional support": [
+      "kshitij230/emotional-support",
+      "mrfakename/deepseek-synthetic-emotional-support",
+      "vnovaai19/VNOVA_AI_EMOTIONAL_SUPPORT_DATASET_V1",
+      "Faei/emotional-support"
+    ],
+    "crisis intervention": [],
+    "cognitive behavioral therapy": [],
+    "motivational interviewing": [
+      "to-be/annomi-motivational-interviewing-therapy-conversations"
+    ],
+    "psychotherapy dataset": [],
+    "counselor training": [],
+    "mental health chatbot": [
+      "heliosbrahma/mental_health_chatbot_dataset",
+      "umitmertcakmak/mental_health_chatbot_dataset",
+      "tergelb/mentalhealthchatbot",
+      "CYLoey98982/mental_health_chatbot",
+      "WinchoQi/mental_health_chatbot_dataset",
+      "dialbird/mental_health_chatbot_dataset",
+      "ego02/mental-health-chatbot-training",
+      "maggietao999/Mental_health_chatbot",
+      "GianlucaMondillo/Mental_Health_Chatbot_ITA",
+      "Sithuminikaushalya/mental-health-chatbot-pulse-mind-preprocess",
+      "celsowm/mental_health_chatbot_dataset",
+      "manoj2423/mentalhealthchatbot",
+      "manoj2423/Mental_Health_Chatbot_Dataset",
+      "shashank162004/mental_health_chatbot",
+      "ketanthakur603/mental-health-chatbot"
+    ],
+    "depression anxiety support": [],
+    "trauma informed care": []
+  },
+  "top_datasets": [
+    {
+      "hub_id": "thu-coai/esconv",
+      "name": "ESConv",
+      "description": "Emotional support conversation dataset",
+      "downloads": 895,
+      "likes": 14,
+      "relevance_score": 90.0,
+      "category": "emotional_support",
+      "status": "known_quality",
+      "tags": [
+        "language:en",
+        "license:cc-by-nc-4.0",
+        "size_categories:1K<n<10K",
+        "format:text",
+        "modality:text",
+        "library:datasets",
+        "library:mlcroissant",
+        "arxiv:2106.01144",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "declare-lab/MELD",
+      "name": "MELD",
+      "description": "Multimodal emotion lines dataset",
+      "downloads": 730,
+      "likes": 12,
+      "relevance_score": 90.0,
+      "category": "emotion_recognition",
+      "status": "known_quality",
+      "tags": [
+        "license:gpl-3.0",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "daily_dialog",
+      "name": "DailyDialog",
+      "description": "High-quality multi-turn dialogues",
+      "downloads": 4655,
+      "likes": 156,
+      "relevance_score": 90.0,
+      "category": "multi_turn_dialogue",
+      "status": "known_quality",
+      "tags": [
+        "task_categories:text-classification",
+        "task_ids:multi-label-classification",
+        "annotations_creators:expert-generated",
+        "language_creators:found",
+        "multilinguality:monolingual",
+        "source_datasets:original",
+        "language:en",
+        "license:cc-by-nc-sa-4.0",
+        "size_categories:10K<n<100K",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "bavard/personachat_truecased",
+      "name": "PersonaChat",
+      "description": "Persona-based conversations",
+      "downloads": 848,
+      "likes": 44,
+      "relevance_score": 90.0,
+      "category": "persona_dialogue",
+      "status": "known_quality",
+      "tags": [
+        "size_categories:100K<n<1M",
+        "modality:tabular",
+        "modality:text",
+        "library:datasets",
+        "library:mlcroissant",
+        "arxiv:1801.07243",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "EmoCareAI/Psych8k",
+      "name": "EmoCareAI_Psych8k",
+      "description": "Psychology conversations dataset",
+      "downloads": 85,
+      "likes": 45,
+      "relevance_score": 90.0,
+      "category": "therapeutic",
+      "status": "known_quality",
+      "tags": [
+        "task_categories:question-answering",
+        "language:en",
+        "license:cc-by-nc-sa-4.0",
+        "size_categories:1K<n<10K",
+        "format:json",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars"
+      ]
+    },
+    {
+      "hub_id": "nbertagnolli/counsel-chat",
+      "name": "counsel_chat",
+      "description": "Counseling chat dataset",
+      "downloads": 1114,
+      "likes": 50,
+      "relevance_score": 90.0,
+      "category": "therapeutic",
+      "status": "known_quality",
+      "tags": [
+        "size_categories:1K<n<10K",
+        "format:csv",
+        "modality:tabular",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "Amod/mental_health_counseling_conversations",
+      "name": "mental_health_counseling_conversations",
+      "description": "",
+      "downloads": 10923,
+      "likes": 444,
+      "relevance_score": 50.191908457338485,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-generation",
+        "task_categories:question-answering",
+        "language:en",
+        "license:other",
+        "size_categories:1K<n<10K",
+        "format:json",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant"
+      ]
+    },
+    {
+      "hub_id": "facebook/empathetic_dialogues",
+      "name": "empathetic_dialogues",
+      "description": "",
+      "downloads": 2441,
+      "likes": 122,
+      "relevance_score": 46.93872829804432,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:question-answering",
+        "task_ids:dialogue-generation",
+        "task_ids:open-domain-qa",
+        "annotations_creators:crowdsourced",
+        "language_creators:crowdsourced",
+        "multilinguality:monolingual",
+        "source_datasets:original",
+        "language:en",
+        "license:cc-by-nc-4.0",
+        "size_categories:10K<n<100K"
+      ]
+    },
+    {
+      "hub_id": "heliosbrahma/mental_health_chatbot_dataset",
+      "name": "mental_health_chatbot_dataset",
+      "description": "",
+      "downloads": 402,
+      "likes": 89,
+      "relevance_score": 35.82652523070555,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-generation",
+        "language:en",
+        "license:mit",
+        "size_categories:n<1K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars"
+      ]
+    },
+    {
+      "hub_id": "to-be/annomi-motivational-interviewing-therapy-conversations",
+      "name": "annomi-motivational-interviewing-therapy-conversations",
+      "description": "",
+      "downloads": 91,
+      "likes": 8,
+      "relevance_score": 31.41893913672778,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "language:en",
+        "license:openrail",
+        "size_categories:n<1K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "Estwld/empathetic_dialogues_llm",
+      "name": "empathetic_dialogues_llm",
+      "description": "",
+      "downloads": 274,
+      "likes": 32,
+      "relevance_score": 28.596663469151316,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-generation",
+        "language:en",
+        "license:apache-2.0",
+        "size_categories:10K<n<100K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars"
+      ]
+    },
+    {
+      "hub_id": "agentlans/Estwld-empathetic_dialogues_llm",
+      "name": "Estwld-empathetic_dialogues_llm",
+      "description": "",
+      "downloads": 61,
+      "likes": 0,
+      "relevance_score": 23.96195844749127,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-generation",
+        "task_categories:text2text-generation",
+        "language:en",
+        "license:apache-2.0",
+        "size_categories:10K<n<100K",
+        "format:json",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant"
+      ]
+    },
+    {
+      "hub_id": "ychen/Generated-Empathetic-Dialogues-v0.1-Smol",
+      "name": "Generated-Empathetic-Dialogues-v0.1-Smol",
+      "description": "",
+      "downloads": 45,
+      "likes": 3,
+      "relevance_score": 23.91378915840787,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-generation",
+        "language:en",
+        "size_categories:10K<n<100K",
+        "format:json",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "arafatanam/Student-Mental-Health-Counseling-100K",
+      "name": "Student-Mental-Health-Counseling-100K",
+      "description": "",
+      "downloads": 58,
+      "likes": 9,
+      "relevance_score": 20.65426005821072,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-classification",
+        "task_categories:translation",
+        "language:en",
+        "license:apache-2.0",
+        "size_categories:100K<n<1M",
+        "format:csv",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant"
+      ]
+    },
+    {
+      "hub_id": "vnovaai19/VNOVA_AI_EMOTIONAL_SUPPORT_DATASET_V1",
+      "name": "VNOVA_AI_EMOTIONAL_SUPPORT_DATASET_V1",
+      "description": "",
+      "downloads": 9,
+      "likes": 0,
+      "relevance_score": 20.0,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "license:cc-by-4.0",
+        "size_categories:n<1K",
+        "format:json",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us",
+        "synthetic-data"
+      ]
+    },
+    {
+      "hub_id": "tcabanski/mental_health_counseling_responses",
+      "name": "mental_health_counseling_responses",
+      "description": "",
+      "downloads": 57,
+      "likes": 5,
+      "relevance_score": 19.817139967814686,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:question-answering",
+        "task_categories:text-classification",
+        "task_categories:text-generation",
+        "language:en",
+        "license:mit",
+        "size_categories:10K<n<100K",
+        "format:json",
+        "modality:tabular",
+        "modality:text",
+        "library:datasets"
+      ]
+    },
+    {
+      "hub_id": "MaggiePai/mental_health_counseling_conversations",
+      "name": "mental_health_counseling_conversations",
+      "description": "",
+      "downloads": 52,
+      "likes": 2,
+      "relevance_score": 19.021379348003947,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-generation",
+        "task_categories:question-answering",
+        "language:en",
+        "license:openrail",
+        "size_categories:1K<n<10K",
+        "format:json",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant"
+      ]
+    },
+    {
+      "hub_id": "arafatanam/Student-Mental-Health-Counseling-50K",
+      "name": "Student-Mental-Health-Counseling-50K",
+      "description": "",
+      "downloads": 45,
+      "likes": 2,
+      "relevance_score": 18.71378915840787,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-classification",
+        "task_categories:translation",
+        "language:en",
+        "license:apache-2.0",
+        "size_categories:10K<n<100K",
+        "format:csv",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant"
+      ]
+    },
+    {
+      "hub_id": "arafatanam/Student-Mental-Health-Counseling-20K",
+      "name": "Student-Mental-Health-Counseling-20K",
+      "description": "",
+      "downloads": 43,
+      "likes": 1,
+      "relevance_score": 18.41726338243094,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-classification",
+        "task_categories:translation",
+        "language:en",
+        "license:apache-2.0",
+        "size_categories:10K<n<100K",
+        "format:csv",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant"
+      ]
+    },
+    {
+      "hub_id": "tcabanski/mental_health_counseling_conversations_rated",
+      "name": "mental_health_counseling_conversations_rated",
+      "description": "",
+      "downloads": 29,
+      "likes": 0,
+      "relevance_score": 17.385606273598313,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-classification",
+        "task_categories:text-generation",
+        "task_categories:question-answering",
+        "language:en",
+        "license:mit",
+        "size_categories:1K<n<10K",
+        "format:json",
+        "modality:tabular",
+        "modality:text",
+        "library:datasets"
+      ]
+    },
+    {
+      "hub_id": "arafatanam/Student-Mental-Health-Counseling-10K",
+      "name": "Student-Mental-Health-Counseling-10K",
+      "description": "",
+      "downloads": 23,
+      "likes": 1,
+      "relevance_score": 17.10105620855803,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-classification",
+        "task_categories:translation",
+        "language:en",
+        "license:apache-2.0",
+        "size_categories:10K<n<100K",
+        "format:csv",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant"
+      ]
+    },
+    {
+      "hub_id": "bdotloh/empathetic-dialogues-contexts",
+      "name": "empathetic-dialogues-contexts",
+      "description": "",
+      "downloads": 212,
+      "likes": 20,
+      "relevance_score": 15.64189801719369,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-classification",
+        "annotations_creators:crowdsourced",
+        "multilinguality:monolingual",
+        "language:en",
+        "size_categories:10K<n<100K",
+        "format:csv",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant"
+      ]
+    },
+    {
+      "hub_id": "Smoked-Salmon-s/empathetic_dialogues_ko",
+      "name": "empathetic_dialogues_ko",
+      "description": "",
+      "downloads": 47,
+      "likes": 8,
+      "relevance_score": 15.006206186877936,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-generation",
+        "language:ko",
+        "license:apache-2.0",
+        "size_categories:10K<n<100K",
+        "format:json",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars"
+      ]
+    },
+    {
+      "hub_id": "anezatra/empathetic-dialogues",
+      "name": "empathetic-dialogues",
+      "description": "",
+      "downloads": 61,
+      "likes": 0,
+      "relevance_score": 13.96195844749127,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "task_categories:text-generation",
+        "license:apache-2.0",
+        "size_categories:10K<n<100K",
+        "arxiv:1811.00207",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "Adapting/empathetic_dialogues_v2",
+      "name": "empathetic_dialogues_v2",
+      "description": "",
+      "downloads": 75,
+      "likes": 20,
+      "relevance_score": 13.404067961403957,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "license:afl-3.0",
+        "size_categories:10K<n<100K",
+        "format:csv",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "Felladrin/pretrain-mental-health-counseling-conversations",
+      "name": "pretrain-mental-health-counseling-conversations",
+      "description": "",
+      "downloads": 26,
+      "likes": 0,
+      "relevance_score": 12.156818820794935,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "source_datasets:Amod/mental_health_counseling_conversations",
+        "license:openrail",
+        "size_categories:1K<n<10K",
+        "format:csv",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "grimjim/empatheticdialogues",
+      "name": "empatheticdialogues",
+      "description": "",
+      "downloads": 181,
+      "likes": 0,
+      "relevance_score": 11.300356939925372,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "language:en",
+        "license:cc-by-nc-4.0",
+        "size_categories:10K<n<100K",
+        "arxiv:1811.00207",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "Sulav/mental_health_counseling_conversations_sharegpt",
+      "name": "mental_health_counseling_conversations_sharegpt",
+      "description": "",
+      "downloads": 50,
+      "likes": 6,
+      "relevance_score": 9.73785088048968,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:1K<n<10K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "chillies/student-mental-health-counseling-vn",
+      "name": "student-mental-health-counseling-vn",
+      "description": "",
+      "downloads": 77,
+      "likes": 1,
+      "relevance_score": 9.660473013452402,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:100K<n<1M",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:dask",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "chansung/mental_health_counseling_conversations_merged",
+      "name": "mental_health_counseling_conversations_merged",
+      "description": "",
+      "downloads": 66,
+      "likes": 2,
+      "relevance_score": 9.530374013504133,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:100K<n<1M",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "Jithendra-k/EmpatheticDialogues",
+      "name": "EmpatheticDialogues",
+      "description": "",
+      "downloads": 77,
+      "likes": 0,
+      "relevance_score": 9.460473013452402,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:10K<n<100K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "HoangHa/mental_health_counseling_conversations_inout",
+      "name": "mental_health_counseling_conversations_inout",
+      "description": "",
+      "downloads": 58,
+      "likes": 0,
+      "relevance_score": 8.854260058210722,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:1K<n<10K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "hizardev/MentalHealth-Counseling",
+      "name": "MentalHealth-Counseling",
+      "description": "",
+      "downloads": 47,
+      "likes": 2,
+      "relevance_score": 8.806206186877937,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "license:mit",
+        "size_categories:10K<n<100K",
+        "format:csv",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "pixelsandpointers/empathetic_dialogues_for_lm",
+      "name": "empathetic_dialogues_for_lm",
+      "description": "",
+      "downloads": 39,
+      "likes": 3,
+      "relevance_score": 8.610299956639812,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:10K<n<100K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "ia-bentebib/empathetic_dialogues_fr",
+      "name": "empathetic_dialogues_fr",
+      "description": "",
+      "downloads": 35,
+      "likes": 1,
+      "relevance_score": 7.981512503836437,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:10K<n<100K",
+        "format:parquet",
+        "modality:tabular",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "Intuit-GenSRF/es_mental_health_counseling",
+      "name": "es_mental_health_counseling",
+      "description": "",
+      "downloads": 21,
+      "likes": 6,
+      "relevance_score": 7.9121134041110315,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:1K<n<10K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "lighteval/empathetic_dialogues",
+      "name": "empathetic_dialogues",
+      "description": "",
+      "downloads": 36,
+      "likes": 0,
+      "relevance_score": 7.841008620334975,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:10K<n<100K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "chill-bots/empathetic-dialogues-cleaned",
+      "name": "empathetic-dialogues-cleaned",
+      "description": "",
+      "downloads": 31,
+      "likes": 0,
+      "relevance_score": 7.5257498915995305,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "license:cc-by-nc-4.0",
+        "size_categories:10K<n<100K",
+        "format:json",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "BurgerTruck/empathetic_dialogues",
+      "name": "empathetic_dialogues",
+      "description": "",
+      "downloads": 31,
+      "likes": 0,
+      "relevance_score": 7.5257498915995305,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "license:apache-2.0",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "kshitij230/emotional-support",
+      "name": "emotional-support",
+      "description": "",
+      "downloads": 30,
+      "likes": 0,
+      "relevance_score": 7.456808469171364,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "license:bigscience-openrail-m",
+        "size_categories:1M<n<10M",
+        "format:csv",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "umitmertcakmak/mental_health_chatbot_dataset",
+      "name": "mental_health_chatbot_dataset",
+      "description": "",
+      "downloads": 20,
+      "likes": 4,
+      "relevance_score": 7.411096473669597,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:n<1K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "mrfakename/deepseek-synthetic-emotional-support",
+      "name": "deepseek-synthetic-emotional-support",
+      "description": "",
+      "downloads": 20,
+      "likes": 1,
+      "relevance_score": 6.811096473669597,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:1K<n<10K",
+        "format:json",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "tergelb/mentalhealthchatbot",
+      "name": "mentalhealthchatbot",
+      "description": "",
+      "downloads": 19,
+      "likes": 0,
+      "relevance_score": 6.505149978319906,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "CYLoey98982/mental_health_chatbot",
+      "name": "mental_health_chatbot",
+      "description": "",
+      "downloads": 15,
+      "likes": 0,
+      "relevance_score": 6.020599913279623,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:1K<n<10K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "WinchoQi/mental_health_chatbot_dataset",
+      "name": "mental_health_chatbot_dataset",
+      "description": "",
+      "downloads": 11,
+      "likes": 1,
+      "relevance_score": 5.595906230238124,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:n<1K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "dialbird/mental_health_chatbot_dataset",
+      "name": "mental_health_chatbot_dataset",
+      "description": "",
+      "downloads": 10,
+      "likes": 0,
+      "relevance_score": 5.206963425791125,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:n<1K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "ego02/mental-health-chatbot-training",
+      "name": "mental-health-chatbot-training",
+      "description": "",
+      "downloads": 9,
+      "likes": 0,
+      "relevance_score": 5.0,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:10K<n<100K",
+        "format:csv",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "maggietao999/Mental_health_chatbot",
+      "name": "Mental_health_chatbot",
+      "description": "",
+      "downloads": 8,
+      "likes": 0,
+      "relevance_score": 4.771212547196624,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:10K<n<100K",
+        "format:json",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "GianlucaMondillo/Mental_Health_Chatbot_ITA",
+      "name": "Mental_Health_Chatbot_ITA",
+      "description": "",
+      "downloads": 7,
+      "likes": 0,
+      "relevance_score": 4.515449934959718,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "license:apache-2.0",
+        "size_categories:n<1K",
+        "format:csv",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    },
+    {
+      "hub_id": "Sithuminikaushalya/mental-health-chatbot-pulse-mind-preprocess",
+      "name": "mental-health-chatbot-pulse-mind-preprocess",
+      "description": "",
+      "downloads": 7,
+      "likes": 0,
+      "relevance_score": 4.515449934959718,
+      "category": "unknown",
+      "status": "discovered",
+      "tags": [
+        "size_categories:10K<n<100K",
+        "format:parquet",
+        "modality:text",
+        "library:datasets",
+        "library:pandas",
+        "library:mlcroissant",
+        "library:polars",
+        "region:us"
+      ]
+    }
+  ],
+  "recommendations": {
+    "high_priority": [
+      "thu-coai/esconv",
+      "declare-lab/MELD",
+      "daily_dialog",
+      "bavard/personachat_truecased",
+      "EmoCareAI/Psych8k",
+      "nbertagnolli/counsel-chat"
+    ],
+    "medium_priority": [
+      "Amod/mental_health_counseling_conversations",
+      "facebook/empathetic_dialogues"
+    ],
+    "for_review": [
+      "heliosbrahma/mental_health_chatbot_dataset",
+      "to-be/annomi-motivational-interviewing-therapy-conversations",
+      "Estwld/empathetic_dialogues_llm",
+      "agentlans/Estwld-empathetic_dialogues_llm",
+      "ychen/Generated-Empathetic-Dialogues-v0.1-Smol",
+      "arafatanam/Student-Mental-Health-Counseling-100K",
+      "vnovaai19/VNOVA_AI_EMOTIONAL_SUPPORT_DATASET_V1",
+      "tcabanski/mental_health_counseling_responses",
+      "MaggiePai/mental_health_counseling_conversations",
+      "arafatanam/Student-Mental-Health-Counseling-50K"
+    ]
+  },
+  "categories_found": [
+    "emotional_support",
+    "therapeutic",
+    "emotion_recognition",
+    "persona_dialogue",
+    "multi_turn_dialogue"
+  ]
+}
