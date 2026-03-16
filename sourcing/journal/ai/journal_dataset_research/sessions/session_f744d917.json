@@ -1,0 +1,73 @@
+{
+  "session": {
+    "session_id": "session_f744d917",
+    "start_date": "2025-11-11T01:40:20.289388",
+    "target_sources": [
+      "pubmed"
+    ],
+    "search_keywords": {
+      "therapeutic": [
+        "cbt"
+      ],
+      "dataset": [
+        "cbt"
+      ]
+    },
+    "weekly_targets": {},
+    "current_phase": "discovery",
+    "progress_metrics": {
+      "sources_identified": 0,
+      "datasets_evaluated": 0,
+      "access_established": 0,
+      "datasets_acquired": 0,
+      "integration_plans_created": 0
+    }
+  },
+  "state": {
+    "sources": [],
+    "evaluations": [],
+    "access_requests": [],
+    "acquired_datasets": [],
+    "integration_plans": [],
+    "integration_feasibility": {}
+  },
+  "progress": {
+    "sources_identified": 0,
+    "datasets_evaluated": 0,
+    "access_established": 0,
+    "datasets_acquired": 0,
+    "integration_plans_created": 0,
+    "last_updated": "2025-11-11T01:40:20.289472"
+  },
+  "progress_history": [
+    {
+      "timestamp": "2025-11-11T01:40:20.289472",
+      "progress": {
+        "sources_identified": 0,
+        "datasets_evaluated": 0,
+        "access_established": 0,
+        "datasets_acquired": 0,
+        "integration_plans_created": 0,
+        "last_updated": "2025-11-11T01:40:20.289472"
+      },
+      "metrics": {
+        "sources_identified": 0,
+        "datasets_evaluated": 0,
+        "access_established": 0,
+        "datasets_acquired": 0,
+        "integration_plans_created": 0
+      }
+    }
+  ],
+  "activity_logs": [
+    {
+      "timestamp": "2025-11-11T01:40:20.289412",
+      "activity_type": "session_start",
+      "source_id": null,
+      "description": "Research session initialized",
+      "outcome": "started",
+      "duration_minutes": 0
+    }
+  ],
+  "error_log": []
+}

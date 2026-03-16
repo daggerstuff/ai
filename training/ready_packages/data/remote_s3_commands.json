@@ -1,0 +1,5 @@
+{
+  "discovery": "training_ready/scripts/remote_s3_processor.sh",
+  "stream_process": "\n# Stream-process 60GB without full download\naws s3 ls s3://pixel-data --recursive --endpoint-url https://s3.us-east-va.io.cloud.ovh.us |     grep '\\.jsonl$' |     awk '{print $4}' |     xargs -I {} -P 4 -n 1 sh -c 'aws s3 cp s3://pixel-data/{} - --endpoint-url https://s3.us-east-va.io.cloud.ovh.us | python3 -c \"\nimport json, sys\nfor line in sys.stdin:\n    try:\n        data = json.loads(line)\n        # Process therapeutic data here\n        print(json.dumps(data))\n    except:\n        pass\n\"'\n        ",
+  "download_top": "\n# Download top 10GB of therapeutic data\naws s3 ls s3://pixel-data --recursive --endpoint-url https://s3.us-east-va.io.cloud.ovh.us |     grep '\\.json' |     sort -k3 -hr |     head -20 |     awk '{print $4}' |     xargs -I {} aws s3 cp s3://pixel-data/{} training_ready/data/remote_60gb_corpus/ --endpoint-url https://s3.us-east-va.io.cloud.ovh.us\n        "
+}

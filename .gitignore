@@ -1,90 +1,167 @@
-**/datasets/
-**/youtube_transcripts/
-**/logs/
+# === CRITICAL SECRETS & CREDENTIALS ===
+# Never commit these - they contain real credentials, tokens, or private keys
+**/secrets.yml
+**/secrets.yaml
+**/secrets.json
+**/credentials*.json
+**/credentials*.yml
+**/credentials*.yaml
+**/api_key*
+**/access_key*
+**/secret_key*
+**/private_key*
+**/.pem
+**/id_rsa*
+**/auth*.json
+**/token*.json
+**/service-account*.json
+**/.aws/credentials
+**/.aws/config
+**/.azure/credentials
+**/.gcloud/credentials.json
+**/.nova/credentials
+**/.s3cfg
+**/.netrc
+**/.pgpass
+
+# === DATABASE & STORAGE FILES ===
+*.db
+*.sqlite
+*.sqlite3
+*.duckdb
+*.mdb
+
+# === BACKUP & ARCHIVE FILES ===
+*.tar.gz
+*.tgz
+*.zip
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+**/archive/legacy-models/**/*
+**/archive/**/*.zip
+**/archive/**/*.tar.gz
+
+# === LOGS & MONITORING (keep in repo only if rotated/structured) ===
+**/*.log
+**/logs/**/*.log
+**/logs/**/*.jsonl
+**/wandb/
+**/tensorboard/
+**/monitoring/grafana/data/
+**/monitoring/prometheus/data/
+
+# === CACHE & TEMPORARY ===
+.cache/
+**/cache/
+.tmp/
+**/tmp/
+.temp/
+**/temp/
+**/.cache/
 **/__pycache__/
-**/*.csv
-**/*.jsonl
-**/*.env
-**/mandy
-**data/processed/**/*.json
-**data/processed/**/*.jsonl
-**data/processed/**/*.csv
-**/wendy/
+**/.ruff_cache/
+**/.mypy_cache/
+**/.pytest_cache/
+**/.venv/
+**/venv/
+**/.env
+**/.env.*
+**/.envrc
 **/node_modules/
 **/dist/
 **/build/
-**/.DS_Store
-**/.vscode/
-**/.idea/
-**/.aiassistant
-**/.amazonq
-**/.junie
-**/.lingma
-**/techdeck/
-**/.venv/
-**/pixelated_ai.egg-info/
-pipelines/youtube-transcription-pipeline/
-pipelines/data/
-# lightning/ renamed to orchestrator/ - keep data out of git
-orchestrator/targets/*/deployment_package/data/*.json
-orchestrator/targets/*/deployment_package/data/*.jsonl
-data/conversation_system.db
-config/security/
-/models/
 
-# Dataset pipeline runtime artifacts (keep outside package tree; defaults to ../tmp/dataset_pipeline)
-dataset_pipeline/config/
-dataset_pipeline/data/
-dataset_pipeline/final_output/
-dataset_pipeline/production_exports/
-dataset_pipeline/test_output/
-dataset_pipeline/rag_index/
-dataset_pipeline/logs/
-dataset_pipeline/monitoring/metrics/
+# === DATASETS & RAW DATA (large, sensitive, or external) ===
+**/data/raw/**
+**/data/acquired_datasets/**
+**/data/**/raw/**
+**/data/**/original/**
+**/data/**/source/**
+**/youtube_transcriptions/**/*
+**/tim_fletcher_voice/**
+**/compiled_dataset/**
+**/dataset_pipeline/data/**
+**/training_ready/data/**
+**/lightning/production/deployment_package/data/**
+**/models/defense_mechanisms/**
+**/psydefdetect/input_data/**
+**/psydefdetect/solution/**
 
-# Large training files and artifacts
-*.tar.gz
-*.zip
-*.log
-*.notes
-*.txt
-!*requirements*.txt
-**/checkpoint-*/optimizer.pt
-**/checkpoint-*/adapter_model.safetensors
+# === NOTEBOOKS (may contain PII/sensitive analysis) ===
+**/*.ipynb
+**/.ipynb_checkpoints/
 
-# Weights & Biases (wandb) offline run artifacts
-firebase-debug.log
-data/tim_fletcher_voice/conversation_generation_prompt.txt
-
-# Certificates
-utils/certs/*.pem
-# Large training data files (use S3 for storage, not git)
-data/unified_training/train.json
-data/unified_training/validation.json
-data/unified_training/expert_*.json
-data/TRAINING_MANIFEST.json
-data/generated/**/*.json
-data/datasets/
-data/raw/
-coverage/
-training_data_consolidated/
-data/books/
-mcp_server/
-evaluation/
-# Stale paths (kept for safety in case of partial checkouts)
-training_ready/scripts/
-training_ready/data/
-# New domain paths - large runtime artifacts
-core/scripts/output/
-data/db/*.db
-data/db/*.sqlite
-infra/cloud/distributed/logs/
-# Legacy API data path
-core/api/data/transcripts/ingested/
-training/v1/
-.notes/
-.claude/
-.memory/
-.serena/
-.cursor/
+# === IDE & EDITOR ===
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
+.~*
+
+# === PROJECT-SPECIFIC EXCLUDES ===
+# These are already covered by patterns above but explicit for clarity:
+bin/model/**.pkl.model
+bin/model/**.json
+infrastructure/qa/validation_results/**
+infrastructure/qa/reports/**
+infrastructure/production/monitoring/data/**
+infrastructure/production/models/*
+infrastructure/database/schema/*.sql
+config/production/enterprise_config/*.py
+config/production/enterprise_config/*.yaml
+config/production/production_config/*.json
+helm/pixelated-empathy/**/secrets.yaml
+helm/pixelated-empathy/**/credentials.yaml
+helm/pixelated-empathy/templates/*-secret.yaml
+
+# === COMPILED / BINARY ARTIFACTS ===
+**/*.pyc
+**/*.pyo
+**/*.pyd
+**/pixelated_ai.egg-info/
+**/*.egg-info/
+**/*.so
+**/*.dylib
+**/*.dll
+**/*.exe
+**/*.bin
+**/*.class
+
+# === DOCUMENTATION BUILD ===
+**/site/
+**/coverage/
+**/.coverage
+**/htmlcov/
+**/doc/_build/
+**/build/
+
+# === DOCKER & CONTAINER ===
+**/docker/.env
+**/docker/build/
+**/docker/.image/
+
+# === MCP & CLIENT ===
+**/mcp_server/sessions/
+**/mcp_server/tmp/
+
+# === TESTS THAT CONTAIN REAL DATA ===
+**/tests/fixtures/real_*
+**/tests/data/samples/
+
+# === PERFORMANCE & PROFILING ===
+**/perf.data
+**/profile*.prof
+**/trace.json
+
+# === USER-SPECIFIC ===
+# Personal dev environments
+.ash_history
+.bash_history
+.zsh_history
+.history
+.viminfo
+.ssh/
