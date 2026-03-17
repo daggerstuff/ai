@@ -21,7 +21,7 @@ sys.modules["emotion_classifier"].EmotionClassifierConfig = MagicMock()
 
 
 class TestRefactoredServices(unittest.TestCase):
-    @patch("ai.pipelines.orchestrator.processing.nvidia_clients.NemoRetrieverClient")
+    @patch("ai.pipelines.processing.nvidia_clients.NemoRetrieverClient")
     def test_clinical_embedder_uses_nemo(self, mock_client_cls):
         """Verify ClinicalKnowledgeEmbedder initializes NeMo Retriever."""
         from ai.models.pixel_core.data.clinical_knowledge_embedder import (
@@ -36,10 +36,10 @@ class TestRefactoredServices(unittest.TestCase):
         self.assertEqual(embedder.embedding_model, mock_instance)
         print("✅ ClinicalKnowledgeEmbedder uses NeMo Retriever")
 
-    @patch("ai.pipelines.orchestrator.processing.nvidia_clients.NemoCuratorClient")
+    @patch("ai.pipelines.processing.nvidia_clients.NemoCuratorClient")
     def test_dataset_processor_uses_curator(self, mock_client_cls):
         """Verify DatasetProcessor uses NeMo Curator when enabled."""
-        from ai.training.ready_packages.platforms.ovh.process_datasets_chatml import (
+        from ai.training.platforms.ovh.process_datasets_chatml import (
             DatasetProcessor,
         )
 
@@ -64,7 +64,7 @@ class TestRefactoredServices(unittest.TestCase):
             self.assertTrue(mock_client_cls.called)
             print("✅ DatasetProcessor uses NeMo Curator")
 
-    @patch("ai.pipelines.orchestrator.processing.nvidia_clients.NemoCustomizerClient")
+    @patch("ai.pipelines.processing.nvidia_clients.NemoCustomizerClient")
     def test_emotion_trainer_uses_customizer(self, mock_client_cls):
         """Verify EmotionClassifierTrainer offloads to NeMo Customizer."""
         from ai.models.components.training.emotion_classifier_train import (

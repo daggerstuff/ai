@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 # Import the module being tested
 try:
-    from ai.pipelines.orchestrator.therapeutic_response_generator import (
+    from ai.core.pipelines.therapeutic_response_generator import (
         TherapeuticResponseGenerator,
     )
 except ImportError:

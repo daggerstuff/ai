@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 # Import the module being tested
 try:
-    from ai.pipelines.orchestrator.production_exporter import ProductionExporter
+    from ai.core.pipelines.production_exporter import ProductionExporter
 except ImportError:
     try:
         from ai.models.pixel_core.validation.production_exporter import (

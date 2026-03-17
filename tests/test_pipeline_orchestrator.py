@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 # Import the module being tested
 try:
-    from ai.pipelines.orchestrator.pipeline_orchestrator import PipelineOrchestrator
+    from ai.core.pipelines.pipeline_orchestrator import PipelineOrchestrator
 except ImportError:
     try:
         from ai.models.pixel_core.validation.pipeline_orchestrator import (

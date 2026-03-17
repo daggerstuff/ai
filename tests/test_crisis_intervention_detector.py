@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 # Import the module being tested
 try:
-    from ai.pipelines.orchestrator.crisis_intervention_detector import (
+    from ai.core.pipelines.crisis_intervention_detector import (
         CrisisInterventionDetector,
     )
 except ImportError:
