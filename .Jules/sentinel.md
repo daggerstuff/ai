@@ -1,0 +1,1 @@
+## 2024-03-17 - Fix Arbitrary Code Execution (ACE) | Vulnerability: Use of `exec()` for dynamic module loading | Learning: Python code used unsafe `exec()` to import classes dynamically | Prevention: Use `importlib.import_module()` and `getattr()` to safely load and instantiate objects

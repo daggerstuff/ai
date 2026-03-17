@@ -123,15 +123,18 @@ try:
     print(f"NumPy: {{np.__version__}}")
 
     # Import the module
+    import importlib
+
     module_path = "{file_path}".replace('/', '.').replace('.py', '')
     if module_path.startswith('dataset_pipeline.'):
         module_path = module_path[len('dataset_pipeline.'):]
 
-    exec(f"from {{module_path}} import {class_name}")
+    module = importlib.import_module(module_path)
     print("IMPORT_SUCCESS")
 
     # Try to instantiate
-    exec(f"instance = {class_name}()")
+    cls = getattr(module, "{class_name}")
+    instance = cls()
     print("INSTANTIATION_SUCCESS")
 
 except ImportError as e:
