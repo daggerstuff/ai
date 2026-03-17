@@ -281,7 +281,7 @@ async def create_pipeline_job(
                 raise HTTPException(status_code=429, detail=error_msg)
 
         # Record metrics
-        start_time = time.time()
+        time.time()
 
         job_id = await pipeline_executor.execute_pipeline_job(
             job_name=request.job_name,
@@ -321,7 +321,9 @@ async def create_pipeline_job(
 
 
 @app.get("/pipeline/jobs", response_model=list[JobInfo])
-async def list_jobs(status: Optional[JobStatus] = None):
+async def list_jobs(
+    status: Optional[JobStatus] = None, current_user: User = Depends(get_current_user)
+):
     """List all pipeline jobs, optionally filtered by status."""
     try:
         jobs = pipeline_executor.list_jobs(status_filter=status)
@@ -332,7 +334,7 @@ async def list_jobs(status: Optional[JobStatus] = None):
 
 
 @app.get("/pipeline/jobs/{job_id}", response_model=JobInfo)
-async def get_job(job_id: str):
+async def get_job(job_id: str, current_user: User = Depends(get_current_user)):
     """Get information about a specific job."""
     job_info = pipeline_executor.get_job_info(job_id)
     if not job_info:
@@ -341,7 +343,7 @@ async def get_job(job_id: str):
 
 
 @app.delete("/pipeline/jobs/{job_id}")
-async def cancel_job(job_id: str):
+async def cancel_job(job_id: str, current_user: User = Depends(get_current_user)):
     """Cancel a running job."""
     success = pipeline_executor.cancel_job(job_id)
     if not success:
@@ -354,7 +356,9 @@ async def cancel_job(job_id: str):
 
 
 @app.post("/pipeline/stages/execute", response_model=StageResult)
-async def execute_stage(request: StageExecutionRequest):
+async def execute_stage(
+    request: StageExecutionRequest, current_user: User = Depends(get_current_user)
+):
     """Execute a single pipeline stage."""
     try:
         result = await pipeline_executor.execute_stage(
@@ -370,7 +374,7 @@ async def execute_stage(request: StageExecutionRequest):
 
 
 @app.get("/pipeline/status", response_model=PipelineStatus)
-async def get_pipeline_status():
+async def get_pipeline_status(current_user: User = Depends(get_current_user)):
     """Get overall pipeline status."""
     try:
         all_jobs = pipeline_executor.list_jobs()
@@ -392,7 +396,9 @@ async def get_pipeline_status():
 
 
 @app.get("/data/{data_type}/latest")
-async def get_latest_data(data_type: str):
+async def get_latest_data(
+    data_type: str, current_user: User = Depends(get_current_user)
+):
     """Get the latest data file of a specific type."""
     try:
         # Map data types to directories
@@ -426,7 +432,9 @@ async def get_latest_data(data_type: str):
 
 
 @app.get("/data/{data_type}/files")
-async def list_data_files(data_type: str):
+async def list_data_files(
+    data_type: str, current_user: User = Depends(get_current_user)
+):
     """List all data files of a specific type."""
     try:
         data_type_mapping = {
