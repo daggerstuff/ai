@@ -7,11 +7,14 @@ for development environments or when external services are unavailable.
 This is a REAL implementation using in-memory dictionaries, not a stub.
 """
 
+import threading
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+from ai.api.memory.base import BaseMemoryManager
 
-class NullMemoryManager:
+
+class NullMemoryManager(BaseMemoryManager):
     """
     In-memory implementation of Memory Manager.
 
@@ -20,8 +23,6 @@ class NullMemoryManager:
     """
 
     def __init__(self, *args, **kwargs):
-        import threading
-
         # In-memory storage: user_id -> list of memory dicts
         self._memories: Dict[str, List[Dict[str, Any]]] = {}
         self._memory_counter = 0
@@ -168,9 +169,9 @@ class NullMemoryManager:
         """Delete specific memory."""
         return self.delete(memory_id)
 
-    def clear_memory(self, user_id: str):
+    def clear_memory(self, user_id: str) -> bool:
         """Clear all memories for user."""
-        self.delete_all(user_id)
+        return self.delete_all(user_id)
 
     @property
     def project(self):
