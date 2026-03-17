@@ -2,9 +2,9 @@
 Training Ready Utilities
 """
 
-# Back-compat shim: re-export from consolidated ai.utils package
-from ai.core.utils.ngc_resources import NGCResourceDownloader, download_nemo_quickstart
-from ai.core.utils.s3_dataset_loader import (
+# Back-compat shim: re-export from consolidated utils package
+from utils.ngc_resources import NGCResourceDownloader, download_nemo_quickstart
+from utils.s3_dataset_loader import (
     S3DatasetLoader,
     get_s3_dataset_path,
     load_dataset_from_s3,

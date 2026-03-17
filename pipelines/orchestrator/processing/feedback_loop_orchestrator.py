@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from ai.pipelines.orchestrator.processing.nvidia_clients import (
     NemoCustomizerClient,
@@ -57,27 +57,72 @@ class FeedbackLoopOrchestrator:
             return {"status": "error", "message": str(e)}
 
     def detect_and_fix_drift(
-        self, model_id: str, session_history: List[str], persona: str
-    ):
+        self,
+        model_id: str,
+        session_history: List[str],
+        persona: str,
+        current_interactions: Optional[List[Dict[str, str]]] = None,
+    ) -> Dict[str, Any]:
         """
-        Detects therapeutic drift and triggers a 'therapeutic essence distillation'
-        if the drift is too high.
+        Detects therapeutic drift using both formal narrative analysis and
+        empathic resonance feedback (Resonance-Optimal Tuning).
         """
         try:
+            # 1. Check formal drift (narrative/framework consistency)
             drift_result = self.evaluator.detect_therapeutic_drift(
                 session_history, persona
             )
-            if drift_result.get("drift_detected", False):
+
+            # 2. Check resonance if current interactions are provided
+            resonance_drift = False
+            avg_resonance = 0.0
+            resonance_scores = []
+
+            if current_interactions:
+                for interaction in current_interactions:
+                    try:
+                        res = self.evaluator.measure_empathic_resonance(
+                            user_utterance=interaction.get("user", ""),
+                            bot_response=interaction.get("bot", ""),
+                        )
+                        score = res.get("score", 0.0)
+                        resonance_scores.append(score)
+                    except Exception as e:
+                        logger.error(f"Failed to measure resonance for segment: {e}")
+
+                if resonance_scores:
+                    avg_resonance = sum(resonance_scores) / len(resonance_scores)
+                    # Drift threshold: resonance < 0.6 indicates empathic disconnection
+                    if avg_resonance < 0.6:
+                        resonance_drift = True
+
+            if drift_result.get("drift_detected", False) or resonance_drift:
+                cause = []
+                if drift_result.get("drift_detected"):
+                    cause.append("Narrative Shift")
+                if resonance_drift:
+                    cause.append(f"Low Resonance ({avg_resonance:.2f})")
+
                 logger.warning(
                     f"🚨 THERAPEUTIC DRIFT DETECTED for {model_id}! "
-                    "Triggering essence distillation."
+                    f"Causes: {', '.join(cause)}"
                 )
-                return self.customizer.distill_therapeutic_essence(
-                    teacher_id="expert_therapeutic_teacher_v1"
-                )
-            return {"status": "stable"}
+
+                # Use Resonance-Optimal Tuning as the primary fix if we have scores
+                if resonance_scores:
+                    logger.info("Triggering Resonance-Optimal Tuning feedback loop.")
+                    return self.customizer.resonance_optimal_tuning(
+                        model_id=model_id, resonance_scores=resonance_scores
+                    )
+                else:
+                    logger.info("Falling back to expert therapeutic distillation.")
+                    return self.customizer.distill_therapeutic_essence(
+                        teacher_id="expert_therapeutic_teacher_v1"
+                    )
+
+            return {"status": "stable", "avg_resonance": avg_resonance}
         except Exception as e:
-            logger.error(f"Drift detection failed: {e}")
+            logger.error(f"Drift detection pipeline failed: {e}")
             return {"status": "error", "message": str(e)}
 
 
