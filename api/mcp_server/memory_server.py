@@ -14,6 +14,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from ai.api.memory.null_memory import NullMemoryManager
+from ai.memory.manager_factory import get_memory_manager
 
 logger = logging.getLogger(__name__)
 
@@ -52,85 +53,21 @@ def create_memory_server() -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         """Initialize memory services on startup."""
-        gemini_key = os.environ.get("GEMINI_API_KEY")
-        mem0_key = os.environ.get("MEM0_API_KEY")
 
         try:
-            # 1. Try GeminiMem0Manager (Preferred)
-            if gemini_key:
-                from ai.memory.mem0_gemini.manager import (
-                    GeminiMem0Config,
-                    GeminiMem0Manager,
-                )
-
-                config = GeminiMem0Config(
-                    gemini_api_key=gemini_key,
-                    mem0_api_key=mem0_key,
-                    user_id="mcp_http_user",
-                )
-                app.state.memory_manager = GeminiMem0Manager(config)
-                logger.info("Initialized GeminiMem0Manager (Enhanced Memory)")
-
-            # 2. Try simple Mem0 Client
-            elif mem0_key:
-                from mem0 import MemoryClient
-
-                # Wrap Mem0 client to match interface
-                class Mem0Wrapper:
-                    def __init__(self, client):
-                        self.client = client
-
-                    def add_memory(
-                        self, content, user_id, metadata=None, category=None, **kwargs
-                    ):
-                        final_metadata = metadata or {}
-                        if category:
-                            final_metadata["category"] = category
-                        res = self.client.add(
-                            content, user_id=user_id, metadata=final_metadata
-                        )
-                        # Normalize return ID
-                        if (
-                            isinstance(res, dict)
-                            and "results" in res
-                            and res["results"]
-                        ):
-                            return res["results"][0].get("id")
-                        elif isinstance(res, list) and res:
-                            return res[0].get("id")
-                        else:
-                            return "stored"
-
-                    def search_memories(self, query, user_id, **kwargs):
-                        return self.client.search(query, user_id=user_id, **kwargs)
-
-                    def get_all_memories(self, user_id):
-                        return self.client.get_all(user_id=user_id)
-
-                    def update_memory(self, memory_id, new_content, **kwargs):
-                        return self.client.update(memory_id, new_content)
-
-                    def delete_memory(self, memory_id):
-                        return self.client.delete(memory_id)
-
-                    def get_memory(self, memory_id):
-                        return self.client.get(memory_id)
-
-                app.state.memory_manager = Mem0Wrapper(MemoryClient(api_key=mem0_key))
-                logger.info("Initialized Mem0 Platform Client (Basic Memory)")
-
+            manager = get_memory_manager()
+            if manager:
+                app.state.memory_manager = manager
+                logger.info(f"Initialized Memory Manager: {type(manager).__name__}")
             else:
-                # 3. Fallback to NullMemory
-                logger.warning("No API keys found for Memory Server")
                 app.state.memory_manager = NullMemoryManager()
-
+                logger.warning(
+                    "No memory manager configuration found. Using NullMemoryManager."
+                )
         except Exception as e:
-            logger.warning(f"Using NullMemoryManager (fallback): {e}")
+            logger.error(f"Error initializing memory services: {e}")
             app.state.memory_manager = NullMemoryManager()
-
         yield
-
-        # Cleanup if needed
         app.state.memory_manager = None
 
     app = FastAPI(
@@ -334,11 +271,14 @@ def create_memory_server() -> FastAPI:
         try:
             manager = get_mcp_manager()
             status = "healthy" if manager else "degraded"
-            provider = (
-                "GeminiMem0"
-                if "GeminiMem0Manager" in str(type(manager))
-                else str(type(manager))
-            )
+            
+            manager_type = str(type(manager))
+            if "NvidiaMem0Manager" in manager_type:
+                provider = "NvidiaMem0"
+            elif "GeminiMem0Manager" in manager_type:
+                provider = "GeminiMem0"
+            else:
+                provider = manager_type
 
             return {
                 "status": status,
