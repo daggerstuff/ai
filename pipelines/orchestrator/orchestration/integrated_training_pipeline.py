@@ -10,6 +10,7 @@ import random
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import Any
 
 from ai.pipelines.orchestrator.configs.stages import get_all_stages
 from ai.pipelines.orchestrator.ingestion.dual_persona_loader import (
@@ -24,12 +25,16 @@ from ai.pipelines.orchestrator.ingestion.pixel_voice_loader import (
 from ai.pipelines.orchestrator.ingestion.psychology_knowledge_loader import (
     PsychologyKnowledgeLoader,
 )
-from ai.pipelines.orchestrator.quality.evidence_based_practice_validator import validate_bias
+from ai.pipelines.orchestrator.quality.evidence_based_practice_validator import (
+    validate_bias,
+)
 from ai.pipelines.orchestrator.storage_config import get_storage_config
 from ai.pipelines.orchestrator.storage_manager import StorageManager
 from ai.pipelines.orchestrator.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.integrated_training_pipeline")
+STAGE_MANIFEST_PATH = Path("ai/data/training_policy_manifest.json")
+STAGE_DRIFT_TOLERANCE = 0.02
 
 
 @dataclass
@@ -104,6 +109,7 @@ class IntegratedPipelineConfig:
     enable_bias_detection: bool = True
     enable_quality_validation: bool = True
     min_quality_score: float = 0.7
+    fail_on_stage_drift: bool = False
 
     # Progress tracking integration
     enable_progress_tracking: bool = True
@@ -118,9 +124,9 @@ class IntegrationStats:
     samples_by_source: dict[str, int] = field(default_factory=dict)
     samples_by_category: dict[str, int] = field(default_factory=dict)
     samples_by_stage: dict[str, int] = field(default_factory=dict)
-    stage_balance: dict[str, dict[str, int]] = field(default_factory=dict)
+    stage_balance: dict[str, dict[str, float | int]] = field(default_factory=dict)
     quality_scores: dict[str, float] = field(default_factory=dict)
-    bias_detection_results: dict[str, any] = field(default_factory=dict)
+    bias_detection_results: dict[str, Any] = field(default_factory=dict)
     integration_time: float = 0.0
     warnings: list[str] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
@@ -133,6 +139,7 @@ class IntegratedTrainingPipeline:
 
     def __init__(self, config: IntegratedPipelineConfig | None = None):
         self.config = config or IntegratedPipelineConfig()
+        self._apply_stage_distribution_from_manifest()
         self.stats = IntegrationStats()
 
         # Initialize storage manager for cloud access
@@ -160,6 +167,45 @@ class IntegratedTrainingPipeline:
                     "actual_samples": 0,
                 }
 
+    def _apply_stage_distribution_from_manifest(self) -> None:
+        """Load stage target percentages from policy manifest when available."""
+        if not STAGE_MANIFEST_PATH.exists():
+            return
+
+        try:
+            with open(STAGE_MANIFEST_PATH, encoding="utf-8") as handle:
+                manifest = json.load(handle)
+
+            manifest_stages = manifest.get("stages", {})
+            if not isinstance(manifest_stages, dict):
+                return
+
+            stage_distribution: dict[str, float] = {}
+            for stage_id, stage_config in manifest_stages.items():
+                if not isinstance(stage_config, dict):
+                    continue
+
+                target = stage_config.get("target_percentage")
+                if isinstance(target, (int, float)) and target > 0:
+                    stage_distribution[stage_id] = float(target)
+
+            total = sum(stage_distribution.values())
+            if stage_distribution and abs(total - 1.0) < 1e-6:
+                self.config.stage_distribution = stage_distribution
+                logger.info(
+                    "Loaded stage distribution from %s: %s",
+                    STAGE_MANIFEST_PATH,
+                    self.config.stage_distribution,
+                )
+            elif stage_distribution:
+                logger.warning(
+                    "Ignoring manifest stage distribution (sum %.4f != 1.0): %s",
+                    total,
+                    stage_distribution,
+                )
+        except Exception as exc:
+            logger.warning("Failed to load stage distribution from manifest: %s", exc)
+
     def _resolve_s3_path(self, manifest_path: str) -> str:
         """Resolve legacy local paths to S3 URIs."""
         if manifest_path.startswith("s3://"):
@@ -175,7 +221,7 @@ class IntegratedTrainingPipeline:
 
         return manifest_path
 
-    def _cache_data(self, source_path: str) -> Path | None:
+    def _cache_data(self, source_path: str | None) -> Path | None:
         """Download data from S3 to local cache if needed."""
         if not source_path:
             return None
@@ -305,6 +351,9 @@ class IntegratedTrainingPipeline:
         if self.config.enable_quality_validation:
             balanced_data = self._run_quality_validation(balanced_data)
 
+        # Recompute stage counts after all filters and record drift against policy targets.
+        self._validate_final_stage_balance(balanced_data)
+
         # 9. Save integrated dataset
         output_path = self._save_dataset(balanced_data)
         self._write_stage_outputs(stage_segments)
@@ -404,10 +453,10 @@ class IntegratedTrainingPipeline:
 
     def _load_standard_therapeutic(self) -> list[dict]:
         """Load standard therapeutic conversations with robust error handling"""
+        source_root = self.config.standard_therapeutic.source_path or ""
         # Try multiple file locations
         possible_files = [
-            Path(self.config.standard_therapeutic.source_path)
-            / "training_dataset.json",
+            Path(source_root) / "training_dataset.json",
             Path("ai/lightning/pixelated-training/training_dataset.json"),
             Path("ai/pipelines/orchestrator/pixelated-training/training_dataset.json"),
         ]
@@ -534,7 +583,7 @@ class IntegratedTrainingPipeline:
                     parts.append(f"{role.capitalize()}: {content}")
         return parts
 
-    def _balance_dataset(self, data: list[dict]) -> (list[dict], dict[str, list[dict]]):
+    def _balance_dataset(self, data: list[dict]) -> tuple[list[dict], dict[str, list[dict]]]:
         """Balance dataset according to stage distribution."""
         logger.info("⚖️  Balancing dataset by stage...")
 
@@ -582,6 +631,51 @@ class IntegratedTrainingPipeline:
 
         logger.info(f"   Stage-balanced to {len(balanced)} samples")
         return balanced, stage_segments
+
+    def _validate_final_stage_balance(self, data: list[dict]) -> None:
+        """Record final stage percentages and warn when drift exceeds tolerance."""
+        if not data:
+            return
+
+        counts: dict[str, int] = {}
+        for item in data:
+            stage = item.get("metadata", {}).get("stage", "stage1_foundation")
+            counts[stage] = counts.get(stage, 0) + 1
+
+        total = len(data)
+        self.stats.samples_by_stage = counts
+
+        for stage, target in self.config.stage_distribution.items():
+            actual_count = counts.get(stage, 0)
+            actual_share = actual_count / total if total else 0.0
+            drift = actual_share - target
+
+            balance = self.stats.stage_balance.get(stage, {})
+            balance.update(
+                {
+                    "final_actual": actual_count,
+                    "final_share": round(actual_share, 6),
+                    "drift_vs_target": round(drift, 6),
+                }
+            )
+            self.stats.stage_balance[stage] = balance
+
+            if abs(drift) > STAGE_DRIFT_TOLERANCE:
+                warning = (
+                    f"Stage '{stage}' drift {drift:+.3f} exceeds tolerance "
+                    f"{STAGE_DRIFT_TOLERANCE:.2f} (target={target:.2%}, actual={actual_share:.2%})"
+                )
+                logger.warning(warning)
+                self.stats.warnings.append(warning)
+
+        if self.config.fail_on_stage_drift:
+            drift_warnings = [
+                w for w in self.stats.warnings if "drift" in w and "Stage '" in w
+            ]
+            if drift_warnings:
+                raise RuntimeError(
+                    "Stage balance drift exceeds tolerance: " + " | ".join(drift_warnings)
+                )
 
     def _run_bias_detection(self, data: list[dict]) -> list[dict]:
         """Run bias detection on training data"""
