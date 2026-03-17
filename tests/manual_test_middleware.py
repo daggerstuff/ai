@@ -14,7 +14,7 @@ from flask import Flask, g
 
 # Mocking the dependencies if they aren't available in the test environment immediately
 with suppress(ImportError):
-    from ai.api.techdeck_integration.auth.middleware import JWTAuthMiddleware
+    from ai.core.api.techdeck_integration.auth.middleware import JWTAuthMiddleware
 
 
 class TestJWTAuthMiddleware(unittest.TestCase):

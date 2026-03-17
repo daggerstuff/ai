@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 # Import the module being tested
 try:
-    from ai.pipelines.orchestrator.analytics_dashboard import AnalyticsDashboard
+    from ai.core.pipelines.analytics_dashboard import AnalyticsDashboard
 except ImportError:
     try:
         from ai.models.pixel_core.validation.analytics_dashboard import (

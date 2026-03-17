@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 # Import the module being tested
 try:
-    from ai.pipelines.orchestrator.adaptive_learner import AdaptiveLearner
+    from ai.core.pipelines.adaptive_learner import AdaptiveLearner
 except ImportError:
     try:
         from ai.models.pixel_core.validation.adaptive_learner import AdaptiveLearner

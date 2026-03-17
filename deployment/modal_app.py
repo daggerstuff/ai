@@ -1,9 +1,8 @@
-import modal
-import os
 import json
-import argparse
-from datetime import datetime
+import os
 from pathlib import Path
+
+import modal
 
 # ============================================================================
 # Configuration
@@ -21,9 +20,14 @@ app = modal.App(APP_NAME)
 volume = modal.Volume.from_name(MODEL_VOLUME_NAME)
 
 # Build image with vLLM and dependencies
-image = modal.Image.debian_slim(python_version="3.11").pip_install(
-    "vllm>=0.7.0", "sentencepiece", "transformers", "peft", "accelerate"
-)
+dependencies = [
+    "vllm>=0.16.0",
+    "sentencepiece",
+    "transformers",
+    "peft",
+    "accelerate",
+]
+image = modal.Image.debian_slim(python_version="3.11").pip_install(*dependencies)
 
 
 @app.cls(
@@ -84,6 +88,7 @@ class EvaluationRunner:
             destroy_model_parallel()
             del self.llm
         import gc
+
         import torch
 
         gc.collect()
@@ -97,7 +102,16 @@ class EvaluationRunner:
             [
                 {
                     "role": "system",
-                    "content": "You are a helpful and empathetic therapist assistant. Provide thoughtful, validating, and constructive answers. Be thorough but concise—aim for 400-600 words unless the situation requires more depth. End naturally when you've addressed the core concern. IMPORTANT: Never repeat phrases or sentences. Each sentence should add new information or insight. If you find yourself about to repeat something, stop and conclude instead.",
+                    "content": (
+                        "You are a helpful and empathetic therapist assistant. "
+                        "Provide thoughtful, validating, and constructive answers. "
+                        "Be thorough but concise-aim for 400-600 words unless the "
+                        "situation requires more depth. End naturally when you've "
+                        "addressed the core concern. IMPORTANT: Never repeat phrases "
+                        "or sentences. Each sentence should add new information or "
+                        "insight. If you find yourself about to repeat something, "
+                        "stop and conclude instead."
+                    ),
                 },
                 {"role": "user", "content": prompt},
             ]
@@ -136,7 +150,8 @@ def main(
     Run evaluation on Modal GPU.
 
     Args:
-        prompts_file: Path to JSON file with prompts (list of strings or list of dicts with 'prompt' key)
+        prompts_file: Path to JSON file with prompts
+            (list of strings or list of dicts with 'prompt' key)
         output_file: Path to save results
         resume: If True, resume from last checkpoint
     """
@@ -145,7 +160,7 @@ def main(
     print("================================")
 
     # Determine project root for relative paths
-    script_dir = Path(__file__).parent.parent  # ai/ -> pixelated/
+    script_dir = Path(__file__).resolve().parent.parent.parent  # ai/ -> pixelated/
 
     prompts_path = Path(prompts_file)
     if not prompts_path.is_absolute():
@@ -187,8 +202,10 @@ def main(
             with open(output_path, "r") as f:
                 existing_results = json.load(f)
             start_idx = len(existing_results)
+            remaining = len(prompts) - start_idx
             print(
-                f"🔄 Resuming from checkpoint: {start_idx} prompts already done, {len(prompts) - start_idx} remaining"
+                "🔄 Resuming from checkpoint: "
+                f"{start_idx} prompts already done, {remaining} remaining"
             )
         except Exception as e:
             print(f"⚠️  Could not load checkpoint: {e}, starting fresh")
@@ -204,7 +221,7 @@ def main(
     remaining_ids = prompt_ids[start_idx:]
 
     print(f"⚙️  Batch size: {batch_size}")
-    print(f"🎯 GPU: A100")
+    print("🎯 GPU: A100")
     print(f"📊 Processing {len(remaining_prompts)} remaining prompts...")
 
     all_results = existing_results.copy()
@@ -218,8 +235,11 @@ def main(
         batch_ids = remaining_ids[i : i + batch_size]
         global_idx = start_idx + i
 
+        batch_start = global_idx + 1
+        batch_end = global_idx + len(batch)
         print(
-            f"\n[Batch {batch_num}/{total_batches}] Processing prompts {global_idx + 1}-{global_idx + len(batch)}..."
+            f"\n[Batch {batch_num}/{total_batches}] Processing prompts "
+            f"{batch_start}-{batch_end}..."
         )
 
         try:

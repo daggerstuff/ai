@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 # Import the module being tested
 try:
-    from ai.pipelines.orchestrator.clinical_accuracy_validator import (
+    from ai.core.pipelines.clinical_accuracy_validator import (
         ClinicalAccuracyValidator,
     )
 except ImportError:

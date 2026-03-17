@@ -15,7 +15,7 @@ class TestKnowledgeTextExtractor:
 
     def test_registry_loading(self):
         """Test that the registry loads correctly."""
-        from ai.pipelines.orchestrator.knowledge_text_extractor import (
+        from ai.core.pipelines.knowledge_text_extractor import (
             KnowledgeTextExtractor,
         )
 
@@ -30,7 +30,7 @@ class TestKnowledgeTextExtractor:
 
     def test_source_metadata_parsing(self):
         """Test that source metadata is correctly parsed."""
-        from ai.pipelines.orchestrator.knowledge_text_extractor import (
+        from ai.core.pipelines.knowledge_text_extractor import (
             KnowledgeTextExtractor,
         )
 
@@ -47,7 +47,7 @@ class TestKnowledgeTextExtractor:
 
     def test_cache_path_generation(self):
         """Test that cache paths are generated correctly."""
-        from ai.pipelines.orchestrator.knowledge_text_extractor import (
+        from ai.core.pipelines.knowledge_text_extractor import (
             KnowledgeTextExtractor,
         )
 
@@ -61,7 +61,7 @@ class TestKnowledgeTextExtractor:
 
     def test_source_stats(self):
         """Test the statistics generation."""
-        from ai.pipelines.orchestrator.knowledge_text_extractor import (
+        from ai.core.pipelines.knowledge_text_extractor import (
             KnowledgeTextExtractor,
         )
 
@@ -78,7 +78,7 @@ class TestKnowledgeTextExtractor:
 
     def test_chunk_text(self):
         """Test text chunking functionality."""
-        from ai.pipelines.orchestrator.knowledge_text_extractor import (
+        from ai.core.pipelines.knowledge_text_extractor import (
             KnowledgeSourceMetadata,
             KnowledgeTextExtractor,
         )
@@ -117,10 +117,10 @@ This is the third paragraph. It discusses recovery and healing.
 class TestYouTubeRAGSystemWithKnowledge:
     """Tests for YouTubeRAGSystem with knowledge sources enabled."""
 
-    @patch("ai.pipelines.orchestrator.youtube_rag_system.HAS_KNOWLEDGE_EXTRACTOR", True)
+    @patch("ai.pipelines.youtube_rag_system.HAS_KNOWLEDGE_EXTRACTOR", True)
     def test_rag_system_init_with_knowledge(self):
         """Test RAG system initialization with knowledge sources."""
-        from ai.pipelines.orchestrator.youtube_rag_system import YouTubeRAGSystem
+        from ai.core.pipelines.youtube_rag_system import YouTubeRAGSystem
 
         # Create with knowledge sources enabled
         with patch.dict("os.environ", {"KNOWLEDGE_SOURCES_ENABLED": "true"}):
@@ -130,7 +130,7 @@ class TestYouTubeRAGSystemWithKnowledge:
 
     def test_rag_system_init_without_knowledge(self):
         """Test RAG system initialization without knowledge sources."""
-        from ai.pipelines.orchestrator.youtube_rag_system import YouTubeRAGSystem
+        from ai.core.pipelines.youtube_rag_system import YouTubeRAGSystem
 
         # Create with knowledge sources disabled
         rag = YouTubeRAGSystem(include_knowledge_sources=False)
@@ -138,10 +138,10 @@ class TestYouTubeRAGSystemWithKnowledge:
         assert rag.include_knowledge_sources is False
         assert rag.knowledge_extractor is None
 
-    @patch("ai.pipelines.orchestrator.youtube_rag_system.HAS_KNOWLEDGE_EXTRACTOR", True)
+    @patch("ai.pipelines.youtube_rag_system.HAS_KNOWLEDGE_EXTRACTOR", True)
     def test_knowledge_metadata_in_search_results(self):
         """Test that knowledge sources include proper source attribution."""
-        from ai.pipelines.orchestrator.youtube_rag_system import (
+        from ai.core.pipelines.youtube_rag_system import (
             RAGIndexEntry,
             TranscriptMetadata,
         )

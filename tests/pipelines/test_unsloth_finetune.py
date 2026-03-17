@@ -17,7 +17,7 @@ import os
 import tempfile
 from unittest.mock import MagicMock, patch
 
-import ai.pipelines.unsloth_finetune as unsloth_mod
+import ai.core.pipelines.unsloth_finetune as unsloth_mod
 import pytest
 
 

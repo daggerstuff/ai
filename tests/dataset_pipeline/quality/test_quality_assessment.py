@@ -1,6 +1,6 @@
 import unittest
 
-from ai.pipelines.orchestrator.quality.quality_assessment_framework import (
+from ai.core.pipelines.quality.quality_assessment_framework import (
     QualityAssessmentFramework,
     QualityTier,
 )
