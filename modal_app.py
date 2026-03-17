@@ -11,7 +11,7 @@ from pathlib import Path
 APP_NAME = "pixel-eval"
 MODEL_VOLUME_NAME = "pixel-merged-models"
 MODEL_MOUNT_PATH = "/models"
-MAX_TOKENS = 4096
+MAX_TOKENS = 512  # Shorter responses to avoid degeneration
 CHECKPOINT_EVERY = 1  # Save checkpoint after every batch
 
 # Initialize Modal app
@@ -39,7 +39,7 @@ class EvaluationRunner:
         print("🚀 Loading model into vLLM...")
         from vllm import LLM, SamplingParams
 
-        model_path = os.path.join(MODEL_MOUNT_PATH, "merged-pixel-merged")
+        model_path = os.path.join(MODEL_MOUNT_PATH, "merged-v2")
 
         # Check if the path exists
         if not os.path.exists(model_path):
@@ -67,15 +67,11 @@ class EvaluationRunner:
             temperature=0.7,
             top_p=0.9,
             max_tokens=MAX_TOKENS,
+            repetition_penalty=1.15,  # Moderate penalty
             stop=[
                 "<|im_end|>",
                 "</s>",
                 "\n\n\n",
-                "Would you like",
-                "Feel free to",
-                "I'm here for you",
-                "Take care",
-                "Please don't hesitate",
             ],
         )
 
@@ -101,7 +97,7 @@ class EvaluationRunner:
             [
                 {
                     "role": "system",
-                    "content": "You are a helpful and empathetic therapist assistant. Provide thoughtful, validating, and constructive answers. Be thorough but concise—aim for 400-600 words unless the situation requires more depth. End naturally when you've addressed the core concern.",
+                    "content": "You are a helpful and empathetic therapist assistant. Provide thoughtful, validating, and constructive answers. Be thorough but concise—aim for 400-600 words unless the situation requires more depth. End naturally when you've addressed the core concern. IMPORTANT: Never repeat phrases or sentences. Each sentence should add new information or insight. If you find yourself about to repeat something, stop and conclude instead.",
                 },
                 {"role": "user", "content": prompt},
             ]
