@@ -10,7 +10,7 @@ import argparse
 import logging
 from pathlib import Path
 
-from ai.hf_client import HuggingFaceClient
+from ai.tools.hf_client import HuggingFaceClient
 
 
 logger = logging.getLogger("ai.examples.download_model")

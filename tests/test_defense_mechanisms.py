@@ -11,11 +11,11 @@ from unittest.mock import MagicMock
 import pytest
 import torch
 
-from training.defense_mechanisms import (
+from ai.training.defense_mechanisms import (
     DEFENSE_LABELS,
     DEFENSE_MATURITY,
 )
-from training.defense_mechanisms.dataset import (
+from ai.training.defense_mechanisms.dataset import (
     DefenseDataset,
     DialogueSample,
     _normalize_text,
@@ -25,7 +25,7 @@ from training.defense_mechanisms.dataset import (
     load_psydefconv,
     normalize_speaker,
 )
-from training.defense_mechanisms.model import (
+from ai.training.defense_mechanisms.model import (
     DefensePrediction,
     FocalLoss,
     compute_r_drop_loss,

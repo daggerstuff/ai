@@ -20,7 +20,7 @@ from unittest import mock
 import pandas as pd
 import pytest
 
-from ai.pipelines.orchestrator.ingestion import load
+from ai.core.pipelines.ingestion import load
 
 
 @pytest.fixture

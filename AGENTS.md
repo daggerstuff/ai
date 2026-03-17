@@ -30,8 +30,20 @@ inference services.
 - **API**: FastAPI + Uvicorn
 - **ML**: PyTorch, Transformers, Datasets, PEFT/TRL, sentence-transformers
 - **Audio**: openai-whisper / faster-whisper, librosa, pydub
-- **Memory**: Zep (`zep-cloud`)
+- **Agent memory / continuity**: MCP-backed `mem0` + `pixelated-memory`
 - **Quality**: Ruff, Black, Pytest, Pytest-Cov, NBQA
+
+---
+
+## Operating Context
+
+- Root governance starts in the repository `GEMINI.md` and root `AGENTS.md`.
+- Treat `.agent/` as the canonical source for active rules, workflows,
+  steering, and reusable skills.
+- Do not rely on deprecated `.cursor/`, `.memory/`, `supermemory`, or local
+  progress files as the source of truth for agent continuity.
+- When work in `ai/` is meaningfully stateful, query `mem0` and
+  `pixelated-memory` before making assumptions about prior decisions.
 
 ---
 
@@ -193,10 +205,10 @@ uv run nbqa black .
 
 ## Interaction Protocol (Hooks)
 
-- **Thread Start**: Check `supermemory` (project: `pixelated`) and
-  `.ralph/progress.txt` for context on the current/upcoming task.
-- **Thread End**: Log the completed task/milestone in `supermemory`
-  (project: `pixelated`) and update `.ralph/progress.txt`.
+- **Thread Start**: Query `mem0` for durable task context and, when relevant,
+  inspect `pixelated-memory` for recent narrative or project-state context.
+- **Thread End**: Record meaningful milestones, decisions, or handoff anchors
+  in the active MCP memory providers when they will help future sessions.
 
 ---
 

@@ -16,7 +16,7 @@ from unittest import mock
 from typing import Any
 
 # TDD Anchor: Import the module under test (will fail if not implemented)
-import ai.safety.bias_privacy_hooks as hooks
+import ai.infra.safety.bias_privacy_hooks as hooks
 
 @pytest.fixture
 def dummy_text():

@@ -13,32 +13,32 @@ from typing import Dict
 sys.path.insert(0, "/root/pixelated")
 
 # Import all the modules we've created
-from ai.pipelines.orchestrator.dataset_access_api import (
+from ai.core.pipelines.dataset_access_api import (
     AccessLevel,
     DatasetAccessManager,
     DatasetCategory,
     UserRole,
 )
-from ai.pipelines.orchestrator.evaluation_gates import (
+from ai.core.pipelines.evaluation_gates import (
     ModelPromotionManager,
     PromotionStage,
     create_default_gates_system,
 )
-from ai.pipelines.orchestrator.evaluation_system import (
+from ai.core.pipelines.evaluation_system import (
     ComprehensiveEvaluator,
     FairnessEvaluator,
     SafetyEvaluator,
     TherapeuticResponseEvaluator,
 )
-from ai.pipelines.orchestrator.training_manifest import (
+from ai.core.pipelines.training_manifest import (
     TrainingManifest,
     create_default_manifest,
 )
-from ai.pipelines.orchestrator.training_runner import (
+from ai.core.pipelines.training_runner import (
     HealthCheckManager,
     TrainingRunner,
 )
-from ai.safety.enhanced_safety_filter import EnhancedSafetyFilter, SafetyLevel
+from ai.infra.safety.enhanced_safety_filter import EnhancedSafetyFilter, SafetyLevel
 
 # Set up logging
 logging.basicConfig(

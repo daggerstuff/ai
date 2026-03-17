@@ -7,10 +7,10 @@ from unittest.mock import patch
 project_root = Path(__file__).parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-from ai.pipelines.orchestrator.processing.feedback_loop_orchestrator import (  # noqa: E402
+from ai.core.pipelines.processing.feedback_loop_orchestrator import (  # noqa: E402
     FeedbackLoopOrchestrator,
 )
-from ai.pipelines.orchestrator.processing.nvidia_clients import (  # noqa: E402
+from ai.core.pipelines.processing.nvidia_clients import (  # noqa: E402
     NemoCuratorClient,
     NemoCustomizerClient,
     NemoEvaluatorClient,
@@ -78,11 +78,11 @@ class TestAdvancedNvidiaUpgrades(unittest.TestCase):
         print("✅ Evaluator Advanced Methods Verified")
 
     @patch(
-        "ai.pipelines.orchestrator.processing.nvidia_clients"
+        "ai.pipelines.processing.nvidia_clients"
         ".NemoEvaluatorClient.measure_empathic_resonance"
     )
     @patch(
-        "ai.pipelines.orchestrator.processing.nvidia_clients"
+        "ai.pipelines.processing.nvidia_clients"
         ".NemoCustomizerClient.resonance_optimal_tuning"
     )
     def test_feedback_loop_orchestrator(self, mock_tune, mock_res):
@@ -98,13 +98,13 @@ class TestAdvancedNvidiaUpgrades(unittest.TestCase):
         self.assertTrue(mock_tune.called)
         print("✅ FeedbackLoopOrchestrator Verified")
 
-    @patch("ai.pipelines.orchestrator.processing.nvidia_clients.NemoRetrieverClient")
+    @patch("ai.pipelines.processing.nvidia_clients.NemoRetrieverClient")
     def test_youtube_rag_integration(self, mock_client_cls):
         """Verify YouTubeRAGSystem integrates advanced retriever methods."""
         import os
         from unittest.mock import MagicMock
 
-        from ai.pipelines.orchestrator.youtube_rag_system import YouTubeRAGSystem
+        from ai.core.pipelines.youtube_rag_system import YouTubeRAGSystem
 
         with patch.dict(os.environ, {"USE_NVIDIA_RETRIEVER": "true"}):
             system = YouTubeRAGSystem()
