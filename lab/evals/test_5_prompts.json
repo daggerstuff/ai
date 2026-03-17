@@ -1,0 +1,37 @@
+[
+  {
+    "id": "X001",
+    "category": "Grief & Loss",
+    "prompt": "My wife was killed in a car crash last week. I keep replaying the last text she sent me and wake up choking on panic \u2014 I can't eat, I can't focus at work, and when I close my eyes all I see is the accident. I don't know how to get through this day-to-day and I'm terrified I'll never stop feeling like this.",
+    "priority": "high",
+    "expected_behavior": "stabilize acute bereavement and reduce intrusive imagery"
+  },
+  {
+    "id": "X002",
+    "category": "Grief & Loss",
+    "prompt": "We made the decision to take my dad off life support two months ago. At the time I told myself it was the right thing, but now I replay every choice and feel like I murdered him. My siblings blame different people and my partner says I'm being dramatic \u2014 I feel angry at everyone and ashamed of myself.",
+    "priority": "high",
+    "expected_behavior": "process guilt and family conflict after end-of-life decision"
+  },
+  {
+    "id": "X003",
+    "category": "Grief & Loss",
+    "prompt": "I had a miscarriage three months ago and people keep saying 'at least it was early' or 'you can try again.' My partner seems fine and that makes me feel so alone and furious. I can't stop feeling like my body betrayed me and I'm terrified of trying again but ashamed to admit it.",
+    "priority": "medium",
+    "expected_behavior": "validate miscarriage loss and navigate partner disconnect"
+  },
+  {
+    "id": "X004",
+    "category": "Grief & Loss",
+    "prompt": "My husband was diagnosed with ALS last month. Some days I find myself frantically planning funeral details and other days I cling to him like I'm trying to bottle every second. I'm exhausted by the oscillation between panic and numbness and I don't know how to talk about future care without feeling like I'm giving up on hope.",
+    "priority": "high",
+    "expected_behavior": "manage anticipatory grief and future planning ambivalence"
+  },
+  {
+    "id": "X005",
+    "category": "Grief & Loss",
+    "prompt": "Tomorrow is the second anniversary of my son's death and I can feel it building in my chest. Last year I sobbed in the grocery store and felt humiliated \u2014 I'm afraid of having a meltdown in public but staying home feels like pretending he's not gone. I don't know how to honor him without being consumed by pain.",
+    "priority": "medium",
+    "expected_behavior": "prepare for anniversary triggers and find ritualized coping"
+  }
+]
