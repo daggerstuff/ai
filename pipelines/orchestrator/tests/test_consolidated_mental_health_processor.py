@@ -8,7 +8,7 @@ import tempfile
 from unittest.mock import mock_open, patch
 
 import pytest
-from ai.consolidated_mental_health_processor import (
+from ai.pipelines.consolidated_mental_health_processor import (
     ConsolidatedMentalHealthProcessor,
     ConsolidatedProcessingConfig,
 )
