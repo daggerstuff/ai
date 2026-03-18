@@ -1,0 +1,131 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2026-03-18T19:15:00Z",
+  "description": "Inventory of locally available training datasets for Master Training Gap Closure",
+  "total_samples": 156292,
+  "stages": {
+    "stage1_foundation": {
+      "target": 3200,
+      "available": 34640,
+      "drift": "+982%",
+      "datasets": [
+        {
+          "name": "Psychology-6K",
+          "path": "ai/training/v1/stage1_foundation/curated/Psychology-6K.json",
+          "samples": 29231,
+          "format": "json",
+          "status": "available"
+        },
+        {
+          "name": "additional_specialized_filtered",
+          "path": "ai/training/v1/stage1_foundation/curated/additional_specialized_filtered.json",
+          "samples": 5409,
+          "format": "json",
+          "status": "available"
+        }
+      ]
+    },
+    "stage2_therapeutic_expertise": {
+      "target": 2000,
+      "available": 106002,
+      "drift": "+5200%",
+      "datasets": [
+        {
+          "name": "cultural_nuances",
+          "path": "ai/training/v1/stage2_expertise/reasoning/cultural_nuances.json",
+          "samples": 76001,
+          "format": "json",
+          "status": "available"
+        },
+        {
+          "name": "clinical_diagnosis_mental_health",
+          "path": "ai/training/v1/stage2_expertise/reasoning/clinical_diagnosis_mental_health.json",
+          "samples": 30001,
+          "format": "json",
+          "status": "available"
+        }
+      ]
+    },
+    "stage3_edge_stress_test": {
+      "target": 1600,
+      "available": 15652,
+      "drift": "+878%",
+      "datasets": [
+        {
+          "name": "nightmare_fuel",
+          "path": "ai/training/ready_packages/datasets/synthetic/nightmare_fuel.jsonl",
+          "samples": "~10000",
+          "format": "jsonl",
+          "status": "available"
+        },
+        {
+          "name": "long_sessions",
+          "path": "ai/training/ready_packages/datasets/synthetic/long_sessions.jsonl",
+          "samples": "~5000",
+          "format": "jsonl",
+          "status": "available"
+        },
+        {
+          "name": "nemo_synthetic_conversations",
+          "path": "ai/training/ready_packages/datasets/synthetic/nemo_synthetic_conversations.jsonl",
+          "samples": "~650",
+          "format": "jsonl",
+          "status": "available"
+        }
+      ]
+    },
+    "stage4_voice_persona": {
+      "target": 1200,
+      "available": 0,
+      "drift": "-100%",
+      "datasets": [],
+      "notes": "Requires voice data collection via ai/pipelines/voice/"
+    }
+  },
+  "google_drive_datasets": {
+    "location": "drive:datasets/",
+    "total_size": "68GB",
+    "key_datasets": [
+      {
+        "name": "LLAMA3_Mental_Counseling_Data",
+        "path": "drive:datasets/LLAMA3_Mental_Counseling_Data/",
+        "format": "parquet",
+        "size": "~5MB",
+        "status": "available_for_download"
+      },
+      {
+        "name": "Empathy-Mental-Health",
+        "path": "drive:datasets/Empathy-Mental-Health/",
+        "size": "4.6MB",
+        "status": "available_for_download"
+      },
+      {
+        "name": "mental_health_counseling_conversations",
+        "path": "drive:datasets/mental_health_counseling_conversations/",
+        "size": "4.5MB",
+        "status": "available_for_download"
+      },
+      {
+        "name": "Psych-101",
+        "path": "drive:datasets/Psych-101/",
+        "status": "available_for_download"
+      },
+      {
+        "name": "Psych8k",
+        "path": "drive:datasets/Psych8k/",
+        "status": "available_for_download"
+      }
+    ]
+  },
+  "knowledge_base": {
+    "location": "ai/data/knowledge_sources_registry.json",
+    "books_count": 20,
+    "extracted_books": [
+      "Complex PTSD: From Surviving to Thriving (Pete Walker)",
+      "Internal Family Systems Therapy (Richard Schwartz)",
+      "Brain Energy (Christopher Palmer)",
+      "Loving Someone with PTSD (Aphrodite Matsakis)",
+      "The High Conflict Couple (Alan Fruzzetti)"
+    ]
+  }
+}
