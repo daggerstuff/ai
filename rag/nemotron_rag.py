@@ -95,19 +95,38 @@ THERAPEUTIC_KNOWLEDGE_BASE = {
     },
 }
 
-# NVIDIA NIM model identifiers
-NIM_EMBEDDING_MODEL = "nvidia/llama-nemotron-embed-vl-1b-v2"
-NIM_RERANK_MODEL = "nvidia/llama-nemotron-rerank-vl-1b-v2"
-NIM_GENERATION_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1.5"
-NIM_FAST_MODEL = "nvidia/nemotron-nano-12b-v2"
+# Import ModelTier from enhanced manager for unified model selection
+from ai.memory.mem0_nvidia.enhanced_manager import ModelTier
+
+# NVIDIA NIM model identifiers - using ModelTier enum from expanded catalog
+# This ensures consistency with the enhanced NVIDIA NIM manager
+NIM_EMBEDDING_MODEL = ModelTier.NEMOTRON_EMBED.value  # nvidia/llama-nemotron-embed-vl-1b-v2
+NIM_RERANK_MODEL = "nvidia/llama-nemotron-rerank-vl-1b-v2"  # Rerank not in ModelTier yet
+NIM_GENERATION_MODEL = ModelTier.NEMOTRON_SUPER.value  # nvidia/llama-3.3-nemotron-super-49b-v1.5
+NIM_FAST_MODEL = ModelTier.NEMOTRON_NANO_4B.value  # nvidia/llama-3.1-nemotron-nano-4b-v1.1
+
+# Alternative models for different use cases (from 187-model catalog)
+NIM_REASONING_MODEL = ModelTier.DEEPSEEK_V3.value  # Advanced reasoning
+NIM_BALANCED_MODEL = ModelTier.LLAMA_31_70B.value  # Balanced performance
+NIM_MULTILINGUAL_MODEL = ModelTier.QWEN_35_LARGE.value  # Multilingual support
+NIM_SAFETY_MODEL = ModelTier.NEMOTRON_SAFETY.value  # Crisis detection
 
 NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
-EMBEDDING_DIMENSION = 2048
+EMBEDDING_DIMENSION = 2048  # Nemotron-Embed-VL produces 2048-dim vectors
 
 
 # =============================================================================
 # Configuration Classes
 # =============================================================================
+
+class QueryComplexity(str, Enum):
+    """Query complexity levels for model selection in RAG."""
+
+    SIMPLE = "simple"  # Factual lookup, single document retrieval
+    MODERATE = "moderate"  # Multi-document synthesis, standard queries
+    COMPLEX = "complex"  # Nuanced therapeutic reasoning, crisis context
+    CRISIS = "crisis"  # Safety-critical queries requiring highest accuracy
+
 
 class NemotronRAGConfig(BaseModel):
     """Configuration for Nemotron RAG pipeline.
@@ -123,16 +142,33 @@ class NemotronRAGConfig(BaseModel):
         index_type: FAISS index type
         n_clusters: IVF clusters (if using IVF index)
         cache_ttl: Cache time-to-live in seconds
+        complexity_model_mapping: Mapping of query complexity to models
     """
 
     api_key: str = Field(default_factory=lambda: os.environ.get("NVIDIA_API_KEY", ""))
     base_url: str = NIM_BASE_URL
 
-    # Model selection
+    # Model selection - using ModelTier enum values from expanded catalog
     embedding_model: str = NIM_EMBEDDING_MODEL
     reranking_model: str = NIM_RERANK_MODEL
     generation_model: str = NIM_GENERATION_MODEL
     fast_model: str = NIM_FAST_MODEL
+
+    # Additional models from expanded NVIDIA NIM catalog
+    reasoning_model: str = NIM_REASONING_MODEL
+    balanced_model: str = NIM_BALANCED_MODEL
+    multilingual_model: str = NIM_MULTILINGUAL_MODEL
+    safety_model: str = NIM_SAFETY_MODEL
+
+    # Complexity-based model selection
+    complexity_model_mapping: dict[str, str] = Field(
+        default_factory=lambda: {
+            QueryComplexity.SIMPLE.value: NIM_FAST_MODEL,
+            QueryComplexity.MODERATE.value: NIM_BALANCED_MODEL,
+            QueryComplexity.COMPLEX.value: NIM_GENERATION_MODEL,
+            QueryComplexity.CRISIS.value: NIM_SAFETY_MODEL,
+        }
+    )
 
     # Retrieval settings
     embedding_dimension: int = EMBEDDING_DIMENSION
@@ -403,6 +439,71 @@ class TherapeuticRAGPipeline:
 
         return embedding
 
+    def _classify_query_complexity(self, query: str) -> QueryComplexity:
+        """Classify query complexity for model selection.
+
+        Uses simple heuristics to determine the appropriate model tier:
+        - SIMPLE: Direct factual queries, keyword lookups
+        - MODERATE: Multi-concept queries, synthesis needs
+        - COMPLEX: Therapeutic reasoning, emotional context
+        - CRISIS: Safety keywords, crisis indicators
+
+        Args:
+            query: User query text
+
+        Returns:
+            QueryComplexity level
+        """
+        query_lower = query.lower()
+
+        # Crisis indicators - safety-critical (check first)
+        crisis_keywords = [
+            "suicide", "kill myself", "end my life", "hurt myself",
+            "self-harm", "overdose", "crisis", "emergency", "danger",
+            "unsafe", "hopeless", "want to die", "can't go on",
+            "ending my life", "end it all", "take my life"
+        ]
+        if any(kw in query_lower for kw in crisis_keywords):
+            return QueryComplexity.CRISIS
+
+        # Complex therapeutic reasoning indicators
+        complex_keywords = [
+			"why do i feel", "understand my", "relationship between",
+			"pattern in my", "trauma", "underlying", "deeper issue",
+			"connection between", "emotional root", "psychological",
+			"therapy process", "treatment approach", "nuanced",
+			"subtle", "complex", " vs ", "versus"
+		]
+        if any(kw in query_lower for kw in complex_keywords):
+            return QueryComplexity.COMPLEX
+
+        # Moderate complexity - synthesis and multi-concept
+        moderate_keywords = [
+			"how does", "what are the differences",
+			"multiple", "various", "several", "both", "combination",
+			"together", "integrate", "compare", "comparison"
+		]
+        if any(kw in query_lower for kw in moderate_keywords):
+            return QueryComplexity.MODERATE
+
+        # Default to simple for direct queries
+        return QueryComplexity.SIMPLE
+
+    def _select_model_for_query(self, query: str) -> str:
+        """Select the appropriate model based on query complexity.
+
+        Args:
+            query: User query text
+
+        Returns:
+            Model identifier from ModelTier enum
+        """
+        complexity = self._classify_query_complexity(query)
+        return self.config.complexity_model_mapping.get(
+            complexity.value,
+            self.config.generation_model
+        )
+
     def _add_to_index(self, embedding: np.ndarray) -> None:
         """Add embedding to FAISS index."""
         if not FAISS_AVAILABLE or self.store.index is None:
@@ -524,6 +625,12 @@ class TherapeuticRAGPipeline:
         """
         Query the knowledge base and generate a response.
 
+        Uses intelligent model selection based on query complexity:
+        - SIMPLE queries → Fast model (Nemotron-Nano-4B)
+        - MODERATE queries → Balanced model (Llama-3.1-70B)
+        - COMPLEX queries → Generation model (Nemotron-Super-49B)
+        - CRISIS queries → Safety model (Nemotron-Safety-Guard)
+
         Args:
             query: User query
             category: Optional filter by category
@@ -535,18 +642,22 @@ class TherapeuticRAGPipeline:
         """
         start_time = datetime.utcnow()
 
+        # Select appropriate model based on query complexity
+        selected_model = self._select_model_for_query(query)
+        logger.debug(f"Selected model '{selected_model}' for query complexity")
+
         # Retrieve relevant documents
         context_docs = await self.retrieve(query, category)
 
         if not context_docs:
             # No relevant documents found
-            response_text = await self._generate_without_context(query)
+            response_text = await self._generate_without_context(query, selected_model)
             latency = (datetime.utcnow() - start_time).total_seconds() * 1000
 
             return RAGResponse(
                 response=response_text,
                 sources=[],
-                model=self.config.generation_model,
+                model=selected_model,
                 retrieved_count=0,
                 latency_ms=latency,
                 citations=[]
@@ -568,7 +679,7 @@ class TherapeuticRAGPipeline:
         return RAGResponse(
             response=response_text,
             sources=[doc.metadata.model_dump() for doc in context_docs],
-            model=self.config.generation_model,
+            model=selected_model,
             retrieved_count=len(context_docs),
             latency_ms=latency,
             citations=citations
@@ -592,11 +703,22 @@ class TherapeuticRAGPipeline:
     async def _generate_with_context(
         self,
         query: str,
-        context: str
+        context: str,
+        model: Optional[str] = None
     ) -> str:
-        """Generate response using retrieved context."""
+        """Generate response using retrieved context.
+
+        Args:
+            query: User query
+            context: Retrieved context documents
+            model: Model to use (defaults to config.generation_model)
+
+        Returns:
+            Generated response text
+        """
+        model = model or self.config.generation_model
         response = await self.client.chat.completions.create(
-            model=self.config.generation_model,
+            model=model,
             messages=[
                 {
                     "role": "system",
@@ -613,10 +735,23 @@ class TherapeuticRAGPipeline:
 
         return response.choices[0].message.content
 
-    async def _generate_without_context(self, query: str) -> str:
-        """Generate response when no relevant context is found."""
+    async def _generate_without_context(
+        self,
+        query: str,
+        model: Optional[str] = None
+    ) -> str:
+        """Generate response when no relevant context is found.
+
+        Args:
+            query: User query
+            model: Model to use (defaults to config.generation_model)
+
+        Returns:
+            Generated response text
+        """
+        model = model or self.config.generation_model
         response = await self.client.chat.completions.create(
-            model=self.config.generation_model,
+            model=model,
             messages=[
                 {
                     "role": "system",
