@@ -1,8 +1,8 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-18T19:30:00Z",
+  "generated_at": "2026-03-18T19:35:00Z",
   "description": "Inventory of locally available training datasets for Master Training Gap Closure",
-  "total_samples": 140460,
+  "total_samples": 150460,
   "stages": {
     "stage1_foundation": {
       "target": 3200,
@@ -46,10 +46,16 @@
     },
     "stage3_edge_stress_test": {
       "target": 1600,
-      "available": 170,
-      "drift": "-89%",
-      "status": "NEEDS_GENERATION",
+      "available": 10170,
+      "drift": "+535%",
+      "status": "EXCEEDS_TARGET",
       "datasets": [
+        {
+          "name": "edge_case_synthetic",
+          "path": "ai/training/ready_packages/data/generated/edge_case_synthetic.jsonl",
+          "samples": 10000,
+          "format": "jsonl"
+        },
         {
           "name": "nightmare_fuel",
           "path": "ai/training/ready_packages/datasets/synthetic/nightmare_fuel.jsonl",
@@ -69,8 +75,7 @@
           "format": "jsonl"
         }
       ],
-      "gap": 1430,
-      "notes": "Edge case generator pipeline has syntax errors. Need to fix ai/pipelines/edge_case/edge_case_generator.py or use alternative data sources."
+      "notes": "10K edge case samples already generated. Pipeline exists but has syntax errors that need fixing for additional generation."
     },
     "stage4_voice_persona": {
       "target": 1200,
@@ -90,7 +95,7 @@
       {"name": "Psych-101"},
       {"name": "Psych8k"}
     ],
-    "notes": "Available for download to supplement missing Stage 3/4 data"
+    "notes": "Available for download to supplement Stage 4 data"
   },
   "knowledge_base": {
     "location": "ai/data/knowledge_sources_registry.json",
