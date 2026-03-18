@@ -1,27 +1,26 @@
 {
   "version": "1.0.0",
-  "generated_at": "2026-03-18T19:15:00Z",
+  "generated_at": "2026-03-18T19:30:00Z",
   "description": "Inventory of locally available training datasets for Master Training Gap Closure",
-  "total_samples": 156292,
+  "total_samples": 140460,
   "stages": {
     "stage1_foundation": {
       "target": 3200,
       "available": 34640,
       "drift": "+982%",
+      "status": "EXCEEDS_TARGET",
       "datasets": [
         {
           "name": "Psychology-6K",
           "path": "ai/training/v1/stage1_foundation/curated/Psychology-6K.json",
           "samples": 29231,
-          "format": "json",
-          "status": "available"
+          "format": "json"
         },
         {
           "name": "additional_specialized_filtered",
           "path": "ai/training/v1/stage1_foundation/curated/additional_specialized_filtered.json",
           "samples": 5409,
-          "format": "json",
-          "status": "available"
+          "format": "json"
         }
       ]
     },
@@ -29,56 +28,55 @@
       "target": 2000,
       "available": 106002,
       "drift": "+5200%",
+      "status": "EXCEEDS_TARGET",
       "datasets": [
         {
           "name": "cultural_nuances",
           "path": "ai/training/v1/stage2_expertise/reasoning/cultural_nuances.json",
           "samples": 76001,
-          "format": "json",
-          "status": "available"
+          "format": "json"
         },
         {
           "name": "clinical_diagnosis_mental_health",
           "path": "ai/training/v1/stage2_expertise/reasoning/clinical_diagnosis_mental_health.json",
           "samples": 30001,
-          "format": "json",
-          "status": "available"
+          "format": "json"
         }
       ]
     },
     "stage3_edge_stress_test": {
       "target": 1600,
-      "available": 15652,
-      "drift": "+878%",
+      "available": 170,
+      "drift": "-89%",
+      "status": "NEEDS_GENERATION",
       "datasets": [
         {
           "name": "nightmare_fuel",
           "path": "ai/training/ready_packages/datasets/synthetic/nightmare_fuel.jsonl",
-          "samples": "~10000",
-          "format": "jsonl",
-          "status": "available"
+          "samples": 100,
+          "format": "jsonl"
         },
         {
           "name": "long_sessions",
           "path": "ai/training/ready_packages/datasets/synthetic/long_sessions.jsonl",
-          "samples": "~5000",
-          "format": "jsonl",
-          "status": "available"
+          "samples": 20,
+          "format": "jsonl"
         },
         {
           "name": "nemo_synthetic_conversations",
           "path": "ai/training/ready_packages/datasets/synthetic/nemo_synthetic_conversations.jsonl",
-          "samples": "~650",
-          "format": "jsonl",
-          "status": "available"
+          "samples": 50,
+          "format": "jsonl"
         }
-      ]
+      ],
+      "gap": 1430,
+      "notes": "Edge case generator pipeline has syntax errors. Need to fix ai/pipelines/edge_case/edge_case_generator.py or use alternative data sources."
     },
     "stage4_voice_persona": {
       "target": 1200,
       "available": 0,
       "drift": "-100%",
-      "datasets": [],
+      "status": "BLOCKED",
       "notes": "Requires voice data collection via ai/pipelines/voice/"
     }
   },
@@ -86,46 +84,17 @@
     "location": "drive:datasets/",
     "total_size": "68GB",
     "key_datasets": [
-      {
-        "name": "LLAMA3_Mental_Counseling_Data",
-        "path": "drive:datasets/LLAMA3_Mental_Counseling_Data/",
-        "format": "parquet",
-        "size": "~5MB",
-        "status": "available_for_download"
-      },
-      {
-        "name": "Empathy-Mental-Health",
-        "path": "drive:datasets/Empathy-Mental-Health/",
-        "size": "4.6MB",
-        "status": "available_for_download"
-      },
-      {
-        "name": "mental_health_counseling_conversations",
-        "path": "drive:datasets/mental_health_counseling_conversations/",
-        "size": "4.5MB",
-        "status": "available_for_download"
-      },
-      {
-        "name": "Psych-101",
-        "path": "drive:datasets/Psych-101/",
-        "status": "available_for_download"
-      },
-      {
-        "name": "Psych8k",
-        "path": "drive:datasets/Psych8k/",
-        "status": "available_for_download"
-      }
-    ]
+      {"name": "LLAMA3_Mental_Counseling_Data", "format": "parquet"},
+      {"name": "Empathy-Mental-Health", "size": "4.6MB"},
+      {"name": "mental_health_counseling_conversations", "size": "4.5MB"},
+      {"name": "Psych-101"},
+      {"name": "Psych8k"}
+    ],
+    "notes": "Available for download to supplement missing Stage 3/4 data"
   },
   "knowledge_base": {
     "location": "ai/data/knowledge_sources_registry.json",
     "books_count": 20,
-    "extracted_books": [
-      "Complex PTSD: From Surviving to Thriving (Pete Walker)",
-      "Internal Family Systems Therapy (Richard Schwartz)",
-      "Brain Energy (Christopher Palmer)",
-      "Loving Someone with PTSD (Aphrodite Matsakis)",
-      "The High Conflict Couple (Alan Fruzzetti)"
-    ]
+    "status": "EXTRACTED"
   }
 }
