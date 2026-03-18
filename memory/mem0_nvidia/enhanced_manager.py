@@ -74,7 +74,7 @@ class ModelTier(Enum):
     BGE_M3 = "baai/bge-m3"  # Multilingual embeddings
 
 
-class ModelSelectionStrategyclass ModelSelectionStrategy(Enum):
+class ModelSelectionStrategy(Enum):
     """Strategies for model selection."""
 
     LATENCY_OPTIMIZED = "latency_optimized"  # Prefer fast models
