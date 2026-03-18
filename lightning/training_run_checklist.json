@@ -1,0 +1,218 @@
+{
+  "generated_at": "2026-03-17T21:34:51.661739+00:00",
+  "total_samples": 0,
+  "stage_drift_within_tolerance": true,
+  "stage_drift_failures": [],
+  "split_counts": {
+    "aggregate": {
+      "train": 0,
+      "val": 0,
+      "test": 0
+    },
+    "stage1_foundation": {
+      "train": 0,
+      "val": 0,
+      "test": 0
+    },
+    "stage2_therapeutic_expertise": {
+      "train": 0,
+      "val": 0,
+      "test": 0
+    },
+    "stage3_edge_stress_test": {
+      "train": 0,
+      "val": 0,
+      "test": 0
+    },
+    "stage4_voice_persona": {
+      "train": 0,
+      "val": 0,
+      "test": 0
+    }
+  },
+  "ops_freshness": {
+    "checked_at": "2026-03-17T21:34:51.661796+00:00",
+    "threshold_hours": 24.0,
+    "all_fresh": false,
+    "checks": {
+      "inventory": {
+        "path": "ai/training_data_consolidated/final/MASTER_STAGE_MANIFEST.json",
+        "exists": true,
+        "fresh": true,
+        "modified_at": "2026-03-17T21:34:51.657845+00:00",
+        "age_hours": 0.0,
+        "threshold_hours": 24.0
+      },
+      "prompt_mirror": {
+        "path": "ai/pipelines/orchestrator/prompt_corpus",
+        "exists": false,
+        "fresh": false,
+        "reason": "missing"
+      },
+      "voice_export": {
+        "path": "ai/training_data_consolidated/transcripts",
+        "exists": false,
+        "fresh": false,
+        "reason": "missing"
+      }
+    }
+  },
+  "stage_health_report_path": "ai/lightning/integrated_stage_health_report.json",
+  "warnings": [
+    "Missing required artifacts for stage3_edge_stress_test: ai/pipelines/edge_case/output/edge_cases_training_format.jsonl, ai/pipelines/orchestrator/prompt_corpus",
+    "Missing required artifacts for stage4_voice_persona: ai/training_data_consolidated/transcripts",
+    "Edge case data not found. Run edge case pipeline first.",
+    "Pixel Voice data not found. Run Pixel Voice pipeline first.",
+    "Psychology knowledge base not found.",
+    "Stage 'stage1_foundation' has only 20 samples (target: 3200).",
+    "No data found for stage 'stage2_therapeutic_expertise' (target: 2000).",
+    "No data found for stage 'stage3_edge_stress_test' (target: 1600).",
+    "No data found for stage 'stage4_voice_persona' (target: 1200).",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550"
+  ],
+  "errors": [
+    "Standard therapeutic data not found in any of: ['ai/pipelines/orchestrator/pixelated-training/training_dataset.json', 'ai/lightning/pixelated-training/training_dataset.json', 'ai/pipelines/orchestrator/pixelated-training/training_dataset.json']"
+  ],
+  "report": {
+    "timestamp": "2026-03-17T21:34:51.661000+00:00",
+    "total_samples": 0,
+    "samples_by_source": {
+      "edge_cases": 0,
+      "pixel_voice": 0,
+      "psychology_knowledge": 0,
+      "dual_persona": 20,
+      "standard_therapeutic": 0
+    },
+    "stage_distribution_targets": {
+      "stage1_foundation": 0.4,
+      "stage2_therapeutic_expertise": 0.25,
+      "stage3_edge_stress_test": 0.2,
+      "stage4_voice_persona": 0.15
+    },
+    "fail_on_missing_stage_artifacts": false,
+    "stage_balance": {
+      "stage1_foundation": {
+        "target": 3200,
+        "available": 20,
+        "actual": 20
+      },
+      "stage2_therapeutic_expertise": {
+        "target": 2000,
+        "available": 0,
+        "actual": 0
+      },
+      "stage3_edge_stress_test": {
+        "target": 1600,
+        "available": 0,
+        "actual": 0
+      },
+      "stage4_voice_persona": {
+        "target": 1200,
+        "available": 0,
+        "actual": 0
+      }
+    },
+    "actual_stage_percentages": {
+      "stage1_foundation": 0
+    },
+    "split_counts": {
+      "aggregate": {
+        "train": 0,
+        "val": 0,
+        "test": 0
+      },
+      "stage1_foundation": {
+        "train": 0,
+        "val": 0,
+        "test": 0
+      },
+      "stage2_therapeutic_expertise": {
+        "train": 0,
+        "val": 0,
+        "test": 0
+      },
+      "stage3_edge_stress_test": {
+        "train": 0,
+        "val": 0,
+        "test": 0
+      },
+      "stage4_voice_persona": {
+        "train": 0,
+        "val": 0,
+        "test": 0
+      }
+    },
+    "integration_time_seconds": 0.010314,
+    "warnings": [
+      "Missing required artifacts for stage3_edge_stress_test: ai/pipelines/edge_case/output/edge_cases_training_format.jsonl, ai/pipelines/orchestrator/prompt_corpus",
+      "Missing required artifacts for stage4_voice_persona: ai/training_data_consolidated/transcripts",
+      "Edge case data not found. Run edge case pipeline first.",
+      "Pixel Voice data not found. Run Pixel Voice pipeline first.",
+      "Psychology knowledge base not found.",
+      "Stage 'stage1_foundation' has only 20 samples (target: 3200).",
+      "No data found for stage 'stage2_therapeutic_expertise' (target: 2000).",
+      "No data found for stage 'stage3_edge_stress_test' (target: 1600).",
+      "No data found for stage 'stage4_voice_persona' (target: 1200).",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+      "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550"
+    ],
+    "errors": [
+      "Standard therapeutic data not found in any of: ['ai/pipelines/orchestrator/pixelated-training/training_dataset.json', 'ai/lightning/pixelated-training/training_dataset.json', 'ai/pipelines/orchestrator/pixelated-training/training_dataset.json']"
+    ],
+    "bias_detection": {
+      "total_checked": 20,
+      "flagged": 0,
+      "passed": 20
+    },
+    "stage_policy_enforcement": {
+      "removed_total": 20,
+      "removed_by_stage": {
+        "stage1_foundation": 20
+      },
+      "crisis_overrides_by_stage": {},
+      "failure_reasons_by_stage": {
+        "stage1_foundation": {
+          "empathy 0.500 < min_empathy 0.550": 20
+        }
+      }
+    },
+    "stage_drift_waivers": {}
+  }
+}
