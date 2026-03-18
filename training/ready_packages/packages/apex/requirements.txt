@@ -38,7 +38,7 @@ dill==0.4.0
     # via
     #   datasets
     #   multiprocess
-filelock==3.20.3
+filelock==3.25.2
     # via
     #   datasets
     #   huggingface-hub
@@ -161,7 +161,7 @@ propcache==0.4.1
     # via
     #   aiohttp
     #   yarl
-protobuf==6.33.4
+protobuf==6.33.5
     # via wandb
 psutil==7.2.1
     # via
