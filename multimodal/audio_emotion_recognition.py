@@ -172,15 +172,15 @@ class AudioEmotionRecognizer:
                 emotion = await self._detect_segment_emotion(segment, sample_rate)
                 segment_emotions.append((start_sec, end_sec, emotion))
 
+            # Trajectory (extracted for performance to avoid double list comprehension)
+            trajectory = [e[2] for e in segment_emotions]
+
             # Calculate overall emotion
-            overall_emotion = self._aggregate_emotions([e[2] for e in segment_emotions])
+            overall_emotion = self._aggregate_emotions(trajectory)
 
             # Calculate speech metrics
             speech_rate = self._calculate_speech_rate(waveform, sample_rate)
             intensity = self._calculate_intensity(waveform)
-
-            # Trajectory
-            trajectory = [e[2] for e in segment_emotions]
 
             processing_time = (time.time() - start_time) * 1000
 
