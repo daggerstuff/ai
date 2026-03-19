@@ -200,8 +200,8 @@ config = ChannelHunterConfig(
 ## See Also
 
 - `/ai/YouTube_Transcription_Pipeline.ipynb` - Audio transcription pipeline
-- `docs/plans/phase-1-task-distribution.md` - Wave 1 task breakdown
-- `docs/plans/wave-detailed-review.md` - Detailed wave analysis
+- `.agent/internal/plans/phase-1-task-distribution.md` - Wave 1 task breakdown
+- `.agent/internal/plans/wave-detailed-review.md` - Detailed wave analysis
 
 ## Contact
 
