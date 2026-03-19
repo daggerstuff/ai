@@ -53,7 +53,7 @@ python -m ai.sourcing.youtube.cli list
 
 ## Architecture
 
-```
+```bash
 ai/sourcing/youtube/
 ├── __init__.py           # Module exports
 ├── models.py             # Data models (Channel, QualityMetrics, etc.)
@@ -66,7 +66,7 @@ ai/sourcing/youtube/
 ## Quality Scoring (0.0-1.0)
 
 | Metric | Weight | Description |
-|--------|--------|-------------|
+| ----- | ----- | ------------- |
 | Clinical Accuracy | 30% | Evidence-based therapeutic content |
 | Content Quality | 25% | Educational value and clarity |
 | Production Quality | 15% | Audio/video technical quality |
@@ -77,6 +77,7 @@ ai/sourcing/youtube/
 ## Acceptance Criteria
 
 Channel must meet ALL:
+
 - Quality score ≥ 0.8
 - Clinical accuracy ≥ 0.80 (highest weight)
 - Production quality ≥ 0.70
@@ -88,6 +89,7 @@ Channel must meet ALL:
 ## Categories
 
 10 therapeutic categories:
+
 1. CPTSD Education
 2. Trauma-Informed Care
 3. DBT Skills
@@ -104,18 +106,22 @@ Channel must meet ALL:
 Each category has specific search terms for discovery:
 
 **CPTSD:**
+
 - cptsd, complex ptsd, trauma symptoms, developmental trauma
 - childhood trauma, narcissistic abuse, c-ptsd recovery
 
 **DBT Skills:**
+
 - dbt, distress tolerance, emotion regulation, wise mind
 - opposite action, radical acceptance, dialectical behavior therapy
 
 **Mindfulness:**
+
 - mindfulness, guided meditation, grounding techniques, 5-4-3-2-1
 - body scan, breathwork, meditation for trauma
 
 **Crisis Support:**
+
 - crisis support, suicide prevention, safety plan, emergency mental health
 - crisis hotline, crisis intervention, help resources
 
@@ -126,7 +132,7 @@ And 6 more categories defined in `api.py`.
 Monitoring system has 4 alert levels:
 
 | Severity | Trigger | Action |
-|----------|--------|--------|
+| ----- | ----- | --------- |
 | CRITICAL | Channel removed | Immediate replacement |
 | ERROR | Subscribers drop >10% | Investigate cause |
 | WARNING | No new content 30+ days | Monitor 14 more days |
