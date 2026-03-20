@@ -1,0 +1,53 @@
+{
+  "last_updated": "2026-03-19T15:15:00Z",
+  "source_directory": "ai/docs/Books/",
+  "book_anchored_categories": {
+    "internal_family_systems": {
+      "book_title": "Internal Family Systems Therapy",
+      "author": "Richard C. Schwartz",
+      "source_path": "ai/docs/Books/Internal Family Systems Therapy by Richard C. Schwartz EPUB/",
+      "file_format": "EPUB",
+      "templates": ["t1", "t2", "t3"],
+      "key_concepts": ["parts_work", "self_leadership", "protectors", "unblending"]
+    },
+    "complex_ptsd_recovery": {
+      "book_title": "Complex PTSD: From Surviving to Thriving",
+      "author": "Pete Walker",
+      "source_path": "ai/docs/Books/Complex PTSD_ From Surviving to Thriving by Pete Walker EPUB/",
+      "file_format": "EPUB",
+      "templates": ["t1", "t2", "t3"],
+      "key_concepts": ["emotional_flashback", "4f_responses", "inner_critic", "self_reparenting"]
+    },
+    "brain_energy_metabolism": {
+      "book_title": "Brain Energy: A Revolutionary Breakthrough in Understanding Mental Health",
+      "author": "Christopher M. Palmer",
+      "source_path": "ai/docs/Books/Brain Energy_ A Revolutionary Breakthrough in Understanding Mental Health by Christopher M. Palmer EPUB/",
+      "file_format": "EPUB",
+      "templates": ["t1", "t2", "t3"],
+      "key_concepts": ["metabolic_mental_health", "lifestyle_psychiatry", "integrated_care"]
+    }
+  },
+  "available_books_not_yet_integrated": [
+    {
+      "title": "DSM-V",
+      "path": "ai/docs/Books/DSMV.pdf",
+      "potential_categories": ["diagnostic_formulation", "symptom_clusters"]
+    },
+    {
+      "title": "The Dialectical Behavior Therapy Primer",
+      "path": "ai/docs/Books/The Dialectical Behavior Therapy Primer_ How DBT Can Inform Clinical Practice by Beth S. Brodsky PDF/",
+      "potential_categories": ["dbt_skills", "emotional_regulation"]
+    },
+    {
+      "title": "Somatic Therapy Workbook",
+      "path": "ai/docs/Books/Somatic Therapy Workbook (5 in 1) - Toolbox + Exercises + Coping Skills + Yoga + Healing/",
+      "potential_categories": ["somatic_experiencing", "body_based_interventions"]
+    },
+    {
+      "title": "Treating PTSD in Military Personnel",
+      "path": "ai/docs/Books/Treating PTSD in Military Personnel A Clinical Handbook/",
+      "potential_categories": ["military_trauma", "combat_ptsd"]
+    }
+  ],
+  "integration_notes": "Templates created based on therapeutic frameworks, not verbatim text extraction. EPUB extraction tools (pandoc, ebook-convert) not available in environment. Templates designed for synthetic dialogue generation with placeholder variables."
+}

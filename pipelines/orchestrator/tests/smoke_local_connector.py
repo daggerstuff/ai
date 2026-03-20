@@ -33,7 +33,7 @@ def main():
         p.write_bytes(b"hello world")
 
         # Monkeypatch minimal functions used by connector
-            from ai.pipelines.orchestrator import quarantine, validation
+        from ai.pipelines.orchestrator import quarantine, validation
 
         validation.validate_record = lambda rec: rec
         quarantine.get_quarantine_store = lambda: DummyQuarantine()

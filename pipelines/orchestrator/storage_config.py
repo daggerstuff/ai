@@ -18,6 +18,7 @@ class StorageBackend(Enum):
     LOCAL = "local"
     S3 = "s3"
     GCS = "gcs"
+    RCLONE = "rclone"
 
 
 @dataclass
@@ -33,6 +34,10 @@ class StorageConfig:
     s3_access_key_id: Optional[str] = None
     s3_secret_access_key: Optional[str] = None
     s3_endpoint_url: Optional[str] = None  # For S3-compatible services
+
+    # Rclone Configuration (for Google Drive, S3 backups, etc.)
+    rclone_remote: Optional[str] = None  # e.g., "drive"
+    rclone_base_path: Optional[str] = None  # e.g., "backups/S3-Complete"
 
     # GCS Configuration
     gcs_bucket: Optional[str] = None
@@ -60,6 +65,8 @@ class StorageConfig:
             backend = StorageBackend.S3
         elif backend_str == "gcs":
             backend = StorageBackend.GCS
+        elif backend_str == "rclone":
+            backend = StorageBackend.RCLONE
         else:
             backend = StorageBackend.LOCAL
 
@@ -98,6 +105,9 @@ class StorageConfig:
             or os.getenv("GOOGLE_CLOUD_PROJECT"),
             gcs_credentials_path=os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
             or os.getenv("DATASET_GCS_CREDENTIALS_PATH"),
+            # Rclone
+            rclone_remote=os.getenv("RCLONE_REMOTE", "drive"),
+            rclone_base_path=os.getenv("RCLONE_BASE_PATH", "backups/S3-Complete"),
             # Prefixes
             raw_data_prefix=os.getenv("DATASET_RAW_PREFIX", "raw"),
             processed_data_prefix=os.getenv("DATASET_PROCESSED_PREFIX", "processed"),
@@ -112,7 +122,11 @@ class StorageConfig:
             export_dir = self.local_base_path / self.exports_prefix / version
             export_dir.mkdir(parents=True, exist_ok=True)
             return str(export_dir / filename)
-        elif self.backend in [StorageBackend.S3, StorageBackend.GCS]:
+        elif self.backend in [
+            StorageBackend.S3,
+            StorageBackend.GCS,
+            StorageBackend.RCLONE,
+        ]:
             return f"{self.exports_prefix}/{version}/{filename}"
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
@@ -123,7 +137,11 @@ class StorageConfig:
             checkpoint_dir = self.local_base_path / self.checkpoints_prefix / run_id
             checkpoint_dir.mkdir(parents=True, exist_ok=True)
             return str(checkpoint_dir / checkpoint_name)
-        elif self.backend in [StorageBackend.S3, StorageBackend.GCS]:
+        elif self.backend in [
+            StorageBackend.S3,
+            StorageBackend.GCS,
+            StorageBackend.RCLONE,
+        ]:
             return f"{self.checkpoints_prefix}/{run_id}/{checkpoint_name}"
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
@@ -134,7 +152,11 @@ class StorageConfig:
             log_dir = self.local_base_path / self.logs_prefix / run_id
             log_dir.mkdir(parents=True, exist_ok=True)
             return str(log_dir / log_filename)
-        elif self.backend in [StorageBackend.S3, StorageBackend.GCS]:
+        elif self.backend in [
+            StorageBackend.S3,
+            StorageBackend.GCS,
+            StorageBackend.RCLONE,
+        ]:
             return f"{self.logs_prefix}/{run_id}/{log_filename}"
         else:
             raise ValueError(f"Unknown backend: {self.backend}")
@@ -172,6 +194,9 @@ class StorageConfig:
                         "credentials_path)"
                     ),
                 )
+        elif self.backend == StorageBackend.RCLONE:
+            if not self.rclone_remote:
+                return False, "Rclone remote name is required (RCLONE_REMOTE)"
 
         return True, None
 
