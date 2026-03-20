@@ -7,6 +7,7 @@ organized by functional domain.
 
 from .datasets import datasets_bp
 from .pipeline import pipeline_bp
+
 # Additional route blueprints will be imported here as they are created
 # from .standardization import standardization_bp
 # from .validation import validation_bp
@@ -15,8 +16,8 @@ from .pipeline import pipeline_bp
 
 
 __all__ = [
-    'datasets_bp',
-    'pipeline_bp',
+    "datasets_bp",
+    "pipeline_bp",
     # 'standardization_bp',
     # 'validation_bp',
     # 'analytics_bp',

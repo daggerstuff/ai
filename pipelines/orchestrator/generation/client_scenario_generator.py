@@ -342,8 +342,8 @@ class ClientScenarioGenerator:
         # Set defaults if not specified
         scenario_type = scenario_type or random.choice(list(ScenarioType))
         severity_level = severity_level or random.choice(list(SeverityLevel))
-        demographic_category = (
-            demographic_category or random.choice(list(DemographicCategory))
+        demographic_category = demographic_category or random.choice(
+            list(DemographicCategory)
         )
 
         # Generate scenario ID
@@ -685,8 +685,7 @@ class ClientScenarioGenerator:
 
         # Presenting problem risk factors
         if (
-            "severe"
-            in presenting_problem.duration.lower()
+            "severe" in presenting_problem.duration.lower()
             or "chronic" in presenting_problem.duration.lower()
         ):
             risk_factors.append("Chronic nature of symptoms")
@@ -1018,9 +1017,9 @@ class ClientScenarioGenerator:
                 scenario_dict["scenario_type"] = scenario.scenario_type.value
                 scenario_dict["severity_level"] = scenario.severity_level.value
                 scenarios_list = export_data["scenarios"]
-                (
-                    scenarios_list if isinstance(scenarios_list, list) else []
-                ).append(scenario_dict)
+                (scenarios_list if isinstance(scenarios_list, list) else []).append(
+                    scenario_dict
+                )
 
             # Ensure output directory exists
             output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1211,9 +1210,7 @@ class ClientScenarioGenerator:
             age_group = (
                 "18-30"
                 if scenario.demographics.age <= AGE_GROUP_YOUNG
-                else "31-50"
-                if scenario.demographics.age <= AGE_GROUP_MIDDLE
-                else "51+"
+                else "31-50" if scenario.demographics.age <= AGE_GROUP_MIDDLE else "51+"
             )
             age_distribution_dict = stats["age_distribution"]
             if isinstance(age_distribution_dict, dict):
@@ -1386,9 +1383,7 @@ class ClientScenarioGenerator:
 
         validation_results["quality_score"] = quality_points / max_points
         # 60% threshold
-        validation_results["is_valid"] = (
-            quality_points >= QUALITY_THRESHOLD
-        )
+        validation_results["is_valid"] = quality_points >= QUALITY_THRESHOLD
 
         return validation_results
 

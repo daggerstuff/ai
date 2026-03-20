@@ -404,11 +404,11 @@ class QAIntegrationTestRunner:
                     "failures": len(result.failures),
                     "errors": len(result.errors),
                     "success_rate": (
-                        result.testsRun - len(result.failures) - len(result.errors)
-                    )
-                    / result.testsRun
-                    if result.testsRun > 0
-                    else 0,
+                        (result.testsRun - len(result.failures) - len(result.errors))
+                        / result.testsRun
+                        if result.testsRun > 0
+                        else 0
+                    ),
                     "failure_details": [
                         {"test": str(test), "error": error}
                         for test, error in result.failures + result.errors

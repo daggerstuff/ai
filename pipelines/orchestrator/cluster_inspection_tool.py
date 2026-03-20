@@ -52,9 +52,11 @@ class ClusterInspector:
             "cluster_id": cluster.cluster_id,
             "cluster_label": cluster.cluster_label,
             "size": cluster.cluster_size,
-            "centroid": cluster.centroid.tolist()
-            if isinstance(cluster.centroid, np.ndarray)
-            else cluster.centroid,
+            "centroid": (
+                cluster.centroid.tolist()
+                if isinstance(cluster.centroid, np.ndarray)
+                else cluster.centroid
+            ),
             "dominant_topics": cluster.dominant_topics,
             "mental_health_patterns": cluster.mental_health_patterns,
             "similarity_score": cluster.similarity_score,

@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     # Minimal shape we rely on in this module.
     class ClientError(Exception):
         response: dict[str, Any]
+
 else:
     ClientError = (
         _BotocoreClientError if _BotocoreClientError is not None else Exception

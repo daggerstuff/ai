@@ -22,9 +22,11 @@ class AuthConfig:
     jwt_secret: str = os.getenv("MCP_JWT_SECRET", "change-me-in-production")
     jwt_algorithm: str = "HS256"
     jwt_expiration_minutes: int = 60 * 24  # 24 hours
-    allowed_api_keys: List[str] = field(default_factory=lambda: [
-        key for key in os.getenv("MCP_API_KEYS", "").split(",") if key
-    ])
+    allowed_api_keys: List[str] = field(
+        default_factory=lambda: [
+            key for key in os.getenv("MCP_API_KEYS", "").split(",") if key
+        ]
+    )
 
 
 @dataclass
@@ -45,7 +47,9 @@ class LoggingConfig:
     format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     file: Optional[str] = os.getenv("MCP_LOG_FILE")
     enable_audit_logging: bool = True
-    audit_log_path: Optional[str] = os.getenv("MCP_AUDIT_LOG_PATH", "logs/mcp_audit.log")
+    audit_log_path: Optional[str] = os.getenv(
+        "MCP_AUDIT_LOG_PATH", "logs/mcp_audit.log"
+    )
 
 
 @dataclass
@@ -78,7 +82,9 @@ class MCPConfig:
 
     # Async operations
     async_timeout_seconds: int = int(os.getenv("MCP_ASYNC_TIMEOUT", "3600"))
-    progress_update_interval_seconds: int = int(os.getenv("MCP_PROGRESS_UPDATE_INTERVAL", "5"))
+    progress_update_interval_seconds: int = int(
+        os.getenv("MCP_PROGRESS_UPDATE_INTERVAL", "5")
+    )
 
     def __post_init__(self) -> None:
         """Post-initialization setup."""
@@ -127,4 +133,3 @@ def load_mcp_config(config_path: Optional[Path] = None) -> MCPConfig:
     # For now, load from environment variables only
     # Future: support loading from YAML/JSON config file
     return MCPConfig()
-

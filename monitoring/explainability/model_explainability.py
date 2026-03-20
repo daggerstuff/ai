@@ -394,9 +394,11 @@ class ExplainabilityEngine:
                 computation_time_ms=computation_time,
                 metadata={
                     "layers_analyzed": len(attention_weights.layer_weights),
-                    "heads_per_layer": len(attention_weights.head_weights)
-                    if attention_weights.head_weights
-                    else 0,
+                    "heads_per_layer": (
+                        len(attention_weights.head_weights)
+                        if attention_weights.head_weights
+                        else 0
+                    ),
                 },
             )
 
@@ -706,9 +708,9 @@ class ExplainabilityEngine:
             similarities.append(
                 {
                     "reference_index": i,
-                    "reference_text_preview": ref_text[:100] + "..."
-                    if len(ref_text) > 100
-                    else ref_text,
+                    "reference_text_preview": (
+                        ref_text[:100] + "..." if len(ref_text) > 100 else ref_text
+                    ),
                     "jaccard_similarity": jaccard_similarity,
                     "cosine_similarity": cosine_similarity,
                     "word_overlap": intersection,
@@ -800,9 +802,11 @@ class ExplainabilityEngine:
 
                         predictions.append(
                             {
-                                "text_preview": sample_text[:50] + "..."
-                                if len(sample_text) > 50
-                                else sample_text,
+                                "text_preview": (
+                                    sample_text[:50] + "..."
+                                    if len(sample_text) > 50
+                                    else sample_text
+                                ),
                                 "predicted_class": predicted_class,
                                 "confidence": confidence,
                             }

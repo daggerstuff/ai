@@ -28,6 +28,7 @@ from tqdm import tqdm
 
 class TaskType(str, Enum):
     """Therapeutic task types for benchmarking"""
+
     EMPATHY = "empathy"
     SAFETY = "safety"
     PSYCHOEDUCATION = "psychoeducation"
@@ -38,6 +39,7 @@ class TaskType(str, Enum):
 @dataclass
 class BenchmarkPrompt:
     """A benchmark prompt with expected characteristics"""
+
     task_type: TaskType
     prompt: str
     complexity: str  # "simple", "moderate", "complex"
@@ -47,6 +49,7 @@ class BenchmarkPrompt:
 @dataclass
 class ModelResult:
     """Results for a single model"""
+
     model_name: str
     task_type: TaskType
     avg_latency_ms: float
@@ -148,6 +151,7 @@ THERAPEUTIC_BENCHMARK_DATASET = {
 @dataclass
 class BenchmarkConfig:
     """Benchmark configuration"""
+
     api_key: str
     base_url: str = "https://integrate.api.nvidia.com/v1"
     timeout: float = 30.0
@@ -198,7 +202,9 @@ class NemotronBenchmark:
                         return {
                             "success": True,
                             "latency_ms": response_time * 1000,
-                            "response": data.get("choices", [{}])[0].get("message", {}).get("content", ""),
+                            "response": data.get("choices", [{}])[0]
+                            .get("message", {})
+                            .get("content", ""),
                             "error": None,
                         }
                     else:
@@ -326,9 +332,13 @@ class NemotronBenchmark:
 
             for task_type_value, result in task_results.items():
                 print(f"\n  {result.task_type.value.upper()}:")
-                print(f"    Requests: {result.successful_requests}/{result.total_requests} ({result.success_rate:.1f}%)")
+                print(
+                    f"    Requests: {result.successful_requests}/{result.total_requests} ({result.success_rate:.1f}%)"
+                )
                 print(f"    Latency:")
-                print(f"      Avg: {result.avg_latency_ms:.1f}ms | P50: {result.p50_latency_ms:.1f}ms | P95: {result.p95_latency_ms:.1f}ms")
+                print(
+                    f"      Avg: {result.avg_latency_ms:.1f}ms | P50: {result.p50_latency_ms:.1f}ms | P95: {result.p95_latency_ms:.1f}ms"
+                )
 
                 if result.errors:
                     print(f"    Errors:")
@@ -350,7 +360,9 @@ class NemotronBenchmark:
             )
 
             model_scores[model] = {
-                "success_rate": (total_success / total_requests) * 100 if total_requests > 0 else 0,
+                "success_rate": (
+                    (total_success / total_requests) * 100 if total_requests > 0 else 0
+                ),
                 "avg_latency": avg_latency,
             }
 
@@ -364,7 +376,9 @@ class NemotronBenchmark:
         print("\n  Rank | Model | Success Rate | Avg Latency")
         print("  " + "-" * 60)
         for i, (model, scores) in enumerate(sorted_models, 1):
-            print(f"  {i}.   {model[:40]:<40} {scores['success_rate']:.1f}% | {scores['avg_latency']:.1f}ms")
+            print(
+                f"  {i}.   {model[:40]:<40} {scores['success_rate']:.1f}% | {scores['avg_latency']:.1f}ms"
+            )
 
     def save_results(
         self,
@@ -406,7 +420,9 @@ class NemotronBenchmark:
 
 
 async def main():
-    parser = argparse.ArgumentParser(description="Nemotron Model Benchmark for Therapeutic Tasks")
+    parser = argparse.ArgumentParser(
+        description="Nemotron Model Benchmark for Therapeutic Tasks"
+    )
     parser.add_argument(
         "--models",
         nargs="+",
@@ -447,7 +463,9 @@ async def main():
     args = parser.parse_args()
 
     if not args.api_key:
-        print("❌ Error: NVIDIA_API_KEY not found. Set --api-key or NVIDIA_API_KEY env var.")
+        print(
+            "❌ Error: NVIDIA_API_KEY not found. Set --api-key or NVIDIA_API_KEY env var."
+        )
         exit(1)
 
     config = BenchmarkConfig(
@@ -472,4 +490,5 @@ async def main():
 
 if __name__ == "__main__":
     import numpy as np
+
     asyncio.run(main())

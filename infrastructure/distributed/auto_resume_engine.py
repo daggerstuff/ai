@@ -508,9 +508,11 @@ class AutoResumeEngine:
                 {
                     "resume_step": resume_step,
                     "current_step": f"Rolled back {rollback_steps} steps",
-                    "processed_items": state.processed_items[:-rollback_steps]
-                    if rollback_steps > 0
-                    else state.processed_items.copy(),
+                    "processed_items": (
+                        state.processed_items[:-rollback_steps]
+                        if rollback_steps > 0
+                        else state.processed_items.copy()
+                    ),
                     "failed_items": state.failed_items.copy(),
                 }
             )
@@ -523,9 +525,9 @@ class AutoResumeEngine:
                 {
                     "resume_step": safe_point,
                     "current_step": f"Partial restart from step {safe_point}",
-                    "processed_items": state.processed_items[:safe_point]
-                    if safe_point > 0
-                    else [],
+                    "processed_items": (
+                        state.processed_items[:safe_point] if safe_point > 0 else []
+                    ),
                     "failed_items": [],  # Clear failed items for fresh start
                 }
             )

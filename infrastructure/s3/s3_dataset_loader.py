@@ -222,9 +222,9 @@ class ProgressTracker:
             "total_bytes": self.total_bytes,
             "total_bytes_mb": self.total_bytes / (1024 * 1024),
             "elapsed_seconds": elapsed,
-            "avg_rate_bytes_per_second": self.total_bytes / elapsed
-            if elapsed > 0
-            else 0,
+            "avg_rate_bytes_per_second": (
+                self.total_bytes / elapsed if elapsed > 0 else 0
+            ),
         }
 
 
@@ -539,9 +539,7 @@ class S3DatasetLoader:
         local_checksum = self._calculate_checksum(local_path)
 
         if self.config.checksum_algorithm == "sha256":
-            remote_checksum = response.get("Metadata", {}).get(
-                "sha256-checksum", ""
-            )
+            remote_checksum = response.get("Metadata", {}).get("sha256-checksum", "")
         else:
             remote_checksum = response.get("ETag", "").strip('"')
 

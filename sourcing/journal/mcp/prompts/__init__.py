@@ -113,6 +113,7 @@ class PromptRegistry:
             List of matching prompts
         """
         import fnmatch
+
         return [
             prompt
             for name, prompt in self._prompts.items()

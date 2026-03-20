@@ -182,13 +182,13 @@ def run_comprehensive_test():
                 df["overall_quality"],
                 "overall_quality",
             )
-            assert distribution_analysis.sample_size >= 290, (
-                f"Expected at least 290 samples, got {distribution_analysis.sample_size}"
-            )
+            assert (
+                distribution_analysis.sample_size >= 290
+            ), f"Expected at least 290 samples, got {distribution_analysis.sample_size}"
             assert distribution_analysis.statistics.mean > 0, "Mean should be positive"
-            assert len(distribution_analysis.normality_tests) > 0, (
-                "Should have normality tests"
-            )
+            assert (
+                len(distribution_analysis.normality_tests) > 0
+            ), "Should have normality tests"
             test_results["passed_tests"] += 1
             test_results["test_details"].append("✅ Distribution Analysis: PASSED")
         except Exception as e:

@@ -60,12 +60,16 @@ def setup_colab_environment():
                 sys.stdout.write(
                     "   Skipping custom widget manager setup. If you use custom third-party ipywidgets,\n"
                 )
-                sys.stdout.write("   you may need to run the following in a separate Colab cell:\n")
+                sys.stdout.write(
+                    "   you may need to run the following in a separate Colab cell:\n"
+                )
                 sys.stdout.write(
                     "   from google.colab import output; output.enable_custom_widget_manager()\n"
                 )
         except Exception as e:
-            sys.stderr.write(f"⚠️ Could not enable custom widget manager due to an error: {e}\n")
+            sys.stderr.write(
+                f"⚠️ Could not enable custom widget manager due to an error: {e}\n"
+            )
             sys.stderr.write(
                 "   If you use custom third-party ipywidgets, you may need to run the following\n"
             )

@@ -663,10 +663,11 @@ class BiasDetectionIntegration:
                         "maximum_bias_score": max_bias,
                         "recent_violations": violations,
                         "total_measurements": len(stage_data),
-                        "compliance_rate": (len(stage_data) - violations)
-                        / len(stage_data)
-                        if stage_data
-                        else 0,
+                        "compliance_rate": (
+                            (len(stage_data) - violations) / len(stage_data)
+                            if stage_data
+                            else 0
+                        ),
                     }
 
                     # Track recent violations

@@ -22,6 +22,7 @@ from models.moe_architecture import TherapeuticMoEModel, MoEConfig
 @dataclass
 class InferenceConfig:
     """Configuration for optimized inference"""
+
     # Generation parameters
     max_new_tokens: int = 256
     temperature: float = 0.7
@@ -52,6 +53,7 @@ class InferenceConfig:
 @dataclass
 class InferenceMetrics:
     """Metrics for inference performance"""
+
     total_requests: int = 0
     total_time: float = 0.0
     cache_hits: int = 0
@@ -141,9 +143,9 @@ class ResponseCache:
         """Get cache statistics"""
         with self.lock:
             return {
-                'size': len(self.cache),
-                'max_size': self.max_size,
-                'utilization': len(self.cache) / self.max_size
+                "size": len(self.cache),
+                "max_size": self.max_size,
+                "utilization": len(self.cache) / self.max_size,
             }
 
 
@@ -157,7 +159,7 @@ class OptimizedInferenceEngine:
         self,
         model_path: str,
         config: Optional[InferenceConfig] = None,
-        device: str = "cuda"
+        device: str = "cuda",
     ):
         self.model_path = model_path
         self.config = config or InferenceConfig()
@@ -169,10 +171,14 @@ class OptimizedInferenceEngine:
         self.generation_config = None
 
         # Caching
-        self.response_cache = ResponseCache(
-            max_size=self.config.cache_size,
-            ttl_seconds=self.config.cache_ttl_seconds
-        ) if self.config.enable_response_cache else None
+        self.response_cache = (
+            ResponseCache(
+                max_size=self.config.cache_size,
+                ttl_seconds=self.config.cache_ttl_seconds,
+            )
+            if self.config.enable_response_cache
+            else None
+        )
 
         # Metrics
         self.metrics = InferenceMetrics()
@@ -195,10 +201,9 @@ class OptimizedInferenceEngine:
 
         # Load MoE model
         from transformers import AutoModelForCausalLM
+
         base_model = AutoModelForCausalLM.from_pretrained(
-            self.model_path,
-            torch_dtype=torch.bfloat16,
-            device_map=self.device
+            self.model_path, torch_dtype=torch.bfloat16, device_map=self.device
         )
 
         # Load MoE layers if they exist
@@ -206,8 +211,7 @@ class OptimizedInferenceEngine:
         if moe_path.exists():
             print("   Loading MoE layers...")
             self.model = TherapeuticMoEModel.from_pretrained(
-                self.model_path,
-                base_model=base_model
+                self.model_path, base_model=base_model
             )
         else:
             print("   Using base model (no MoE layers found)")
@@ -228,10 +232,10 @@ class OptimizedInferenceEngine:
         torch.set_grad_enabled(False)
 
         # Compile model (PyTorch 2.0+)
-        if self.config.compile_model and hasattr(torch, 'compile'):
+        if self.config.compile_model and hasattr(torch, "compile"):
             print("   Compiling model with torch.compile...")
             try:
-                self.model = torch.compile(self.model, mode='reduce-overhead')
+                self.model = torch.compile(self.model, mode="reduce-overhead")
             except Exception as e:
                 print(f"   Warning: Could not compile model: {e}")
 
@@ -252,7 +256,7 @@ class OptimizedInferenceEngine:
             do_sample=True,
             pad_token_id=self.tokenizer.pad_token_id,
             eos_token_id=self.tokenizer.eos_token_id,
-            use_cache=self.config.use_cache
+            use_cache=self.config.use_cache,
         )
 
         print("✅ Optimizations applied")
@@ -261,28 +265,22 @@ class OptimizedInferenceEngine:
         self,
         user_input: str,
         conversation_history: Optional[List[Dict[str, str]]] = None,
-        system_prompt: Optional[str] = None
+        system_prompt: Optional[str] = None,
     ) -> str:
         """Prepare prompt with context"""
         messages = []
 
         # Add system prompt
         if system_prompt:
-            messages.append({
-                "role": "system",
-                "content": system_prompt
-            })
+            messages.append({"role": "system", "content": system_prompt})
 
         # Add conversation history (limited by context window)
         if conversation_history:
-            history = conversation_history[-self.config.context_window:]
+            history = conversation_history[-self.config.context_window :]
             messages.extend(history)
 
         # Add current user input
-        messages.append({
-            "role": "user",
-            "content": user_input
-        })
+        messages.append({"role": "user", "content": user_input})
 
         # Format as conversation
         prompt = self._format_conversation(messages)
@@ -292,8 +290,8 @@ class OptimizedInferenceEngine:
         """Format messages as conversation string"""
         formatted = []
         for msg in messages:
-            role = msg['role'].capitalize()
-            content = msg['content']
+            role = msg["role"].capitalize()
+            content = msg["content"]
             formatted.append(f"{role}: {content}")
 
         formatted.append("Assistant:")
@@ -305,7 +303,7 @@ class OptimizedInferenceEngine:
         user_input: str,
         conversation_history: Optional[List[Dict[str, str]]] = None,
         system_prompt: Optional[str] = None,
-        use_cache: bool = True
+        use_cache: bool = True,
     ) -> Tuple[str, Dict[str, Any]]:
         """
         Generate response with optimizations
@@ -324,7 +322,7 @@ class OptimizedInferenceEngine:
         # Check cache
         cache_hit = False
         if use_cache and self.response_cache:
-            context = [msg['content'] for msg in (conversation_history or [])]
+            context = [msg["content"] for msg in (conversation_history or [])]
             cached_response = self.response_cache.get(user_input, context)
 
             if cached_response:
@@ -333,9 +331,9 @@ class OptimizedInferenceEngine:
                 self.metrics.update(latency, cache_hit=True)
 
                 return cached_response, {
-                    'latency': latency,
-                    'cache_hit': True,
-                    'tokens_generated': len(self.tokenizer.encode(cached_response))
+                    "latency": latency,
+                    "cache_hit": True,
+                    "tokens_generated": len(self.tokenizer.encode(cached_response)),
                 }
 
         # Prepare prompt
@@ -346,26 +344,24 @@ class OptimizedInferenceEngine:
             prompt,
             return_tensors="pt",
             truncation=True,
-            max_length=self.config.max_context_length
+            max_length=self.config.max_context_length,
         ).to(self.device)
 
         # Generate
         generation_start = time.time()
         outputs = self.model.generate(
-            **inputs,
-            generation_config=self.generation_config
+            **inputs, generation_config=self.generation_config
         )
         generation_time = time.time() - generation_start
 
         # Decode
         response = self.tokenizer.decode(
-            outputs[0][inputs['input_ids'].shape[1]:],
-            skip_special_tokens=True
+            outputs[0][inputs["input_ids"].shape[1] :], skip_special_tokens=True
         ).strip()
 
         # Cache response
         if use_cache and self.response_cache:
-            context = [msg['content'] for msg in (conversation_history or [])]
+            context = [msg["content"] for msg in (conversation_history or [])]
             self.response_cache.set(user_input, context, response)
 
         # Calculate metrics
@@ -373,11 +369,11 @@ class OptimizedInferenceEngine:
         self.metrics.update(total_latency, cache_hit=False)
 
         metadata = {
-            'latency': total_latency,
-            'generation_time': generation_time,
-            'cache_hit': False,
-            'tokens_generated': len(outputs[0]) - inputs['input_ids'].shape[1],
-            'input_tokens': inputs['input_ids'].shape[1]
+            "latency": total_latency,
+            "generation_time": generation_time,
+            "cache_hit": False,
+            "tokens_generated": len(outputs[0]) - inputs["input_ids"].shape[1],
+            "input_tokens": inputs["input_ids"].shape[1],
         }
 
         return response, metadata
@@ -387,7 +383,7 @@ class OptimizedInferenceEngine:
         user_input: str,
         conversation_history: Optional[List[Dict[str, str]]] = None,
         system_prompt: Optional[str] = None,
-        use_cache: bool = True
+        use_cache: bool = True,
     ) -> Tuple[str, Dict[str, Any]]:
         """Async version of generate"""
         loop = asyncio.get_event_loop()
@@ -397,7 +393,7 @@ class OptimizedInferenceEngine:
             user_input,
             conversation_history,
             system_prompt,
-            use_cache
+            use_cache,
         )
 
     def get_metrics(self) -> Dict[str, Any]:
@@ -405,14 +401,15 @@ class OptimizedInferenceEngine:
         cache_stats = self.response_cache.stats() if self.response_cache else {}
 
         return {
-            'total_requests': self.metrics.total_requests,
-            'avg_latency': self.metrics.avg_latency,
-            'p50_latency': self.metrics.p50_latency,
-            'p95_latency': self.metrics.p95_latency,
-            'p99_latency': self.metrics.p99_latency,
-            'cache_hit_rate': self.metrics.cache_hits / max(self.metrics.total_requests, 1),
-            'cache_stats': cache_stats,
-            'meets_sla': self.metrics.p95_latency < 2.0  # <2s target
+            "total_requests": self.metrics.total_requests,
+            "avg_latency": self.metrics.avg_latency,
+            "p50_latency": self.metrics.p50_latency,
+            "p95_latency": self.metrics.p95_latency,
+            "p99_latency": self.metrics.p99_latency,
+            "cache_hit_rate": self.metrics.cache_hits
+            / max(self.metrics.total_requests, 1),
+            "cache_stats": cache_stats,
+            "meets_sla": self.metrics.p95_latency < 2.0,  # <2s target
         }
 
     def warmup(self, num_requests: int = 10):
@@ -424,7 +421,7 @@ class OptimizedInferenceEngine:
             "Tell me about your anxiety.",
             "What brings you here?",
             "Can you describe your symptoms?",
-            "How has your week been?"
+            "How has your week been?",
         ]
 
         for i in range(num_requests):
@@ -440,7 +437,7 @@ def create_optimized_engine(
     model_path: str,
     device: str = "cuda",
     enable_cache: bool = True,
-    compile_model: bool = True
+    compile_model: bool = True,
 ) -> OptimizedInferenceEngine:
     """
     Create an optimized inference engine
@@ -458,13 +455,11 @@ def create_optimized_engine(
         enable_response_cache=enable_cache,
         compile_model=compile_model,
         use_flash_attention=True,
-        use_cache=True
+        use_cache=True,
     )
 
     engine = OptimizedInferenceEngine(
-        model_path=model_path,
-        config=config,
-        device=device
+        model_path=model_path, config=config, device=device
     )
 
     # Warmup
@@ -483,7 +478,7 @@ if __name__ == "__main__":
         model_path="./therapeutic_moe_model",
         device="cuda",
         enable_cache=True,
-        compile_model=True
+        compile_model=True,
     )
 
     # Test inference
@@ -492,7 +487,7 @@ if __name__ == "__main__":
     test_inputs = [
         "I've been feeling really anxious lately.",
         "Can you help me with my depression?",
-        "I'm having trouble sleeping."
+        "I'm having trouble sleeping.",
     ]
 
     for user_input in test_inputs:

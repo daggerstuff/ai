@@ -32,7 +32,10 @@ if env_file.exists():
 
 sys.path.insert(0, "/app/ai/training")
 sys.path.insert(
-    0, str(Path(__file__).resolve().parent.parent.parent.parent.parent / "ai" / "training")
+    0,
+    str(
+        Path(__file__).resolve().parent.parent.parent.parent.parent / "ai" / "training"
+    ),
 )
 
 # Load environment variables from .env for local development
@@ -247,16 +250,18 @@ def main():
     )
 
     args = parser.parse_args()
-    
+
     # For local development, try local config if default Docker path doesn't exist
     default_config_path = Path(args.base_config)
     if not default_config_path.exists():
         # Hardcoded for now - fix properly later
-        local_config = Path("/home/vivi/pixelated/ai/training/configs/dry_run_config.json")
+        local_config = Path(
+            "/home/vivi/pixelated/ai/training/configs/dry_run_config.json"
+        )
         if local_config.exists():
             args.base_config = str(local_config)
             logger.info(f"Using local config: {args.base_config}")
-    
+
     # For local development, try local config if default Docker path doesn't exist
     default_config_path = Path(args.base_config)
     if not default_config_path.exists():
@@ -266,35 +271,45 @@ def main():
         project_root = Path(__file__).resolve().parent
         for _ in range(4):
             project_root = project_root.parent
-        local_config = project_root / "ai" / "training" / "configs" / "dry_run_config.json"
+        local_config = (
+            project_root / "ai" / "training" / "configs" / "dry_run_config.json"
+        )
         if local_config.exists():
             args.base_config = str(local_config)
             logger.info(f"Using local config: {args.base_config}")
-    
+
     # For local development, try local config if default Docker path doesn't exist
     default_config_path = Path(args.base_config)
-    print(f"DEBUG: default_config_path = {default_config_path}, exists = {default_config_path.exists()}")
+    print(
+        f"DEBUG: default_config_path = {default_config_path}, exists = {default_config_path.exists()}"
+    )
     if not default_config_path.exists():
         project_root = Path(__file__).parent.parent.parent.parent
         print(f"DEBUG: project_root = {project_root}")
-        local_config = project_root / "ai" / "training" / "configs" / "dry_run_config.json"
+        local_config = (
+            project_root / "ai" / "training" / "configs" / "dry_run_config.json"
+        )
         print(f"DEBUG: local_config = {local_config}, exists = {local_config.exists()}")
         if local_config.exists():
             args.base_config = str(local_config)
             logger.info(f"Using local config: {args.base_config}")
-    
+
     # For local development, try local config if default Docker path doesn't exist
     default_config_path = Path(args.base_config)
     if not default_config_path.exists():
         project_root = Path(__file__).parent.parent.parent.parent
-        local_config = project_root / "ai" / "training" / "configs" / "dry_run_config.json"
+        local_config = (
+            project_root / "ai" / "training" / "configs" / "dry_run_config.json"
+        )
         if local_config.exists():
             args.base_config = str(local_config)
             logger.info(f"Using local config: {args.base_config}")
     default_config_path = Path(args.base_config)
     if not default_config_path.exists() or str(default_config_path).startswith("/app/"):
         project_root = Path(__file__).parent.parent.parent.parent.parent
-        local_config = project_root / "ai" / "training" / "configs" / "dry_run_config.json"
+        local_config = (
+            project_root / "ai" / "training" / "configs" / "dry_run_config.json"
+        )
         if local_config.exists():
             args.base_config = str(local_config)
             logger.info(f"Using local config: {args.base_config}")

@@ -119,9 +119,9 @@ class TestAcquisitionAlerting(unittest.TestCase):
         signature_found = any(
             sig.lower() in alert_text for sig in network_pattern.error_signatures
         )
-        assert signature_found, (
-            f"Alert message '{alert_text}' should match network signatures {network_pattern.error_signatures}"
-        )
+        assert (
+            signature_found
+        ), f"Alert message '{alert_text}' should match network signatures {network_pattern.error_signatures}"
 
         # Test rate limiting pattern
         rate_limit_alert = Alert(

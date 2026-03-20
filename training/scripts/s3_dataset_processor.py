@@ -96,9 +96,11 @@ class S3DatasetProcessor:
                             {
                                 "key": key,
                                 "size": size,
-                                "last_modified": obj.get("LastModified", "").isoformat()
-                                if obj.get("LastModified")
-                                else None,
+                                "last_modified": (
+                                    obj.get("LastModified", "").isoformat()
+                                    if obj.get("LastModified")
+                                    else None
+                                ),
                             }
                         )
 

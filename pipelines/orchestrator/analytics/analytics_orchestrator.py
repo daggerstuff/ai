@@ -338,16 +338,16 @@ class AdvancedAnalyticsEngine:
             "system_metrics": asdict(self.metrics),
             "recent_performance": {
                 "conversations_analyzed": len(recent_results),
-                "average_quality": statistics.mean(
-                    [r.quality_score for r in recent_results]
-                )
-                if recent_results
-                else 0,
-                "average_complexity": statistics.mean(
-                    [r.overall_complexity for r in recent_results]
-                )
-                if recent_results
-                else 0,
+                "average_quality": (
+                    statistics.mean([r.quality_score for r in recent_results])
+                    if recent_results
+                    else 0
+                ),
+                "average_complexity": (
+                    statistics.mean([r.overall_complexity for r in recent_results])
+                    if recent_results
+                    else 0
+                ),
                 "sophistication_trends": self._calculate_sophistication_trends(
                     recent_results
                 ),
@@ -355,9 +355,11 @@ class AdvancedAnalyticsEngine:
             "top_patterns": self._get_top_patterns(recent_results),
             "quality_distribution": self._get_quality_distribution(recent_results),
             "processing_performance": {
-                "average_processing_time": statistics.mean(self.processing_times)
-                if self.processing_times
-                else 0,
+                "average_processing_time": (
+                    statistics.mean(self.processing_times)
+                    if self.processing_times
+                    else 0
+                ),
                 "processing_rate": self.metrics.processing_rate,
                 "error_rate": self.metrics.error_rate,
             },

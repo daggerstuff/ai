@@ -23,7 +23,9 @@ def quick_test():
     model_name = "gpt-3.5-turbo"  # or "claude-3-haiku-20240307"
 
     if not api_key and api_provider != "ollama":
-        print("❌ Please set your API key environment variable:", file=sys.stderr)  # noqa: T201
+        print(
+            "❌ Please set your API key environment variable:", file=sys.stderr
+        )  # noqa: T201
         print(
             f"   export {api_provider.upper()}_API_KEY='your_key_here'", file=sys.stderr
         )  # noqa: T201
@@ -31,7 +33,9 @@ def quick_test():
 
     try:
         # Initialize generator
-        print(f"🔧 Initializing generator ({api_provider})...", file=sys.stderr)  # noqa: T201
+        print(
+            f"🔧 Initializing generator ({api_provider})...", file=sys.stderr
+        )  # noqa: T201
         generator = EdgeCaseGenerator(
             api_provider=api_provider,
             api_key=api_key,
@@ -40,7 +44,9 @@ def quick_test():
         )
 
         # Generate small batch of prompts
-        print("📝 Generating prompts (2 per category)...", file=sys.stderr)  # noqa: T201
+        print(
+            "📝 Generating prompts (2 per category)...", file=sys.stderr
+        )  # noqa: T201
         prompts = generator.generate_prompts(scenarios_per_category=2)
 
         # Generate a few conversations
@@ -59,22 +65,34 @@ def quick_test():
         print("\n" + "=" * 50, file=sys.stderr)  # noqa: T201
         print("✅ Quick Test Results:", file=sys.stderr)  # noqa: T201
         print(f"   Generated Prompts: {len(prompts)}", file=sys.stderr)  # noqa: T201
-        print(f"   Generated Conversations: {len(conversations)}", file=sys.stderr)  # noqa: T201
-        print(f"   Training Examples: {len(training_data)}", file=sys.stderr)  # noqa: T201
+        print(
+            f"   Generated Conversations: {len(conversations)}", file=sys.stderr
+        )  # noqa: T201
+        print(
+            f"   Training Examples: {len(training_data)}", file=sys.stderr
+        )  # noqa: T201
         print("   Output Directory: quick_test_output/", file=sys.stderr)  # noqa: T201
 
         if conversations:
             print("\n💬 Sample Conversation:", file=sys.stderr)  # noqa: T201
             sample = conversations[0]
             print(f"   Category: {sample['category']}", file=sys.stderr)  # noqa: T201
-            print(f"   Difficulty: {sample['difficulty_level']}", file=sys.stderr)  # noqa: T201
+            print(
+                f"   Difficulty: {sample['difficulty_level']}", file=sys.stderr
+            )  # noqa: T201
             if sample.get("qa_pairs"):
                 qa = sample["qa_pairs"][0]
-                print(f"   Therapist: {qa['prompt'][:60]}...", file=sys.stderr)  # noqa: T201
-                print(f"   Client: {qa['response'][:60]}...", file=sys.stderr)  # noqa: T201
+                print(
+                    f"   Therapist: {qa['prompt'][:60]}...", file=sys.stderr
+                )  # noqa: T201
+                print(
+                    f"   Client: {qa['response'][:60]}...", file=sys.stderr
+                )  # noqa: T201
 
         print("\n🎉 Quick test completed successfully!", file=sys.stderr)  # noqa: T201
-        print("📁 Check the 'quick_test_output' directory for results", file=sys.stderr)  # noqa: T201
+        print(
+            "📁 Check the 'quick_test_output' directory for results", file=sys.stderr
+        )  # noqa: T201
 
     except Exception as e:
         print(f"❌ Error during quick test: {e}", file=sys.stderr)  # noqa: T201
@@ -82,7 +100,9 @@ def quick_test():
         print("1. Check your API key is correct", file=sys.stderr)  # noqa: T201
         print("2. Verify internet connection", file=sys.stderr)  # noqa: T201
         print("3. Check API provider spelling", file=sys.stderr)  # noqa: T201
-        print("4. For Ollama, ensure it's running: ollama serve", file=sys.stderr)  # noqa: T201
+        print(
+            "4. For Ollama, ensure it's running: ollama serve", file=sys.stderr
+        )  # noqa: T201
 
 
 if __name__ == "__main__":

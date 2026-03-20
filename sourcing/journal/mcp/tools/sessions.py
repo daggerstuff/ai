@@ -297,7 +297,12 @@ class UpdateSessionTool(MCPTool):
                     "current_phase": {
                         "type": "string",
                         "description": "Current phase (discovery, evaluation, acquisition, integration)",
-                        "enum": ["discovery", "evaluation", "acquisition", "integration"],
+                        "enum": [
+                            "discovery",
+                            "evaluation",
+                            "acquisition",
+                            "integration",
+                        ],
                     },
                 },
                 "required": ["session_id"],
@@ -420,4 +425,3 @@ class DeleteSessionTool(MCPTool):
                 f"Failed to delete session: {str(e)}",
                 {"params": params, "error": str(e)},
             ) from e
-

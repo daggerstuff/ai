@@ -162,7 +162,9 @@ async def websocket_progress_poll(
                     "sources_identified": progress_data["sources_identified"],
                     "datasets_evaluated": progress_data["datasets_evaluated"],
                     "datasets_acquired": progress_data["datasets_acquired"],
-                    "integration_plans_created": progress_data["integration_plans_created"],
+                    "integration_plans_created": progress_data[
+                        "integration_plans_created"
+                    ],
                 }
 
                 if current_metrics != last_metrics:
@@ -210,4 +212,3 @@ async def websocket_progress_poll(
         logger.error(f"WebSocket error for session {session_id}: {e}")
     finally:
         await manager.disconnect(websocket, session_id)
-

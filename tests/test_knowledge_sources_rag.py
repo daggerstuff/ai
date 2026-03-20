@@ -26,7 +26,9 @@ class TestKnowledgeTextExtractor:
 
         # Check that we have the expected source types
         source_types = {s.source_type for s in extractor.sources.values()}
-        assert "therapeutic_book" in source_types or "clinical_reference" in source_types
+        assert (
+            "therapeutic_book" in source_types or "clinical_reference" in source_types
+        )
 
     def test_source_metadata_parsing(self):
         """Test that source metadata is correctly parsed."""
@@ -37,7 +39,9 @@ class TestKnowledgeTextExtractor:
         extractor = KnowledgeTextExtractor()
 
         # Check critical sources are present
-        critical_sources = [s for s in extractor.sources.values() if s.priority == "critical"]
+        critical_sources = [
+            s for s in extractor.sources.values() if s.priority == "critical"
+        ]
         assert len(critical_sources) >= 1, "Should have at least one critical source"
 
         # Verify metadata fields are populated
@@ -176,7 +180,9 @@ class TestYouTubeRAGSystemWithKnowledge:
 
         # Verify metadata structure
         assert entry.metadata.personality_markers.get("is_knowledge_source") is True
-        assert entry.metadata.personality_markers.get("source_type") == "therapeutic_book"
+        assert (
+            entry.metadata.personality_markers.get("source_type") == "therapeutic_book"
+        )
         assert "ptsd" in entry.metadata.topics
 
 

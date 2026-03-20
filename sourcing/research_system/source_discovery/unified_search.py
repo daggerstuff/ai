@@ -9,7 +9,9 @@ from typing import Any
 
 from ai.sourcing.research_system.config import get_config
 from ai.sourcing.research_system.models import DatasetSource
-from ai.sourcing.research_system.source_discovery.deduplication import DatasetDeduplicator
+from ai.sourcing.research_system.source_discovery.deduplication import (
+    DatasetDeduplicator,
+)
 from ai.sourcing.research_system.source_discovery.doaj_client import DOAJClient
 from ai.sourcing.research_system.source_discovery.pubmed_client import PubMedClient
 from ai.sourcing.research_system.source_discovery.repository_clients import (
@@ -41,7 +43,10 @@ class UnifiedSearchClient:
         logger.info("Initialized unified search client")
 
     def search_all_sources(
-        self, keywords: list[str], max_results_per_source: int = 50, deduplicate: bool = True
+        self,
+        keywords: list[str],
+        max_results_per_source: int = 50,
+        deduplicate: bool = True,
     ) -> list[DatasetSource]:
         """
         Search all sources with given keywords.
@@ -62,7 +67,9 @@ class UnifiedSearchClient:
         try:
             mesh_terms = self.config.get_mesh_terms()
             pubmed_sources = self.pubmed.search_and_fetch(
-                keywords=keywords, mesh_terms=mesh_terms, max_results=max_results_per_source
+                keywords=keywords,
+                mesh_terms=mesh_terms,
+                max_results=max_results_per_source,
             )
             all_sources.extend(pubmed_sources)
             logger.info(f"Found {len(pubmed_sources)} sources from PubMed")
@@ -119,7 +126,10 @@ class UnifiedSearchClient:
         return all_sources
 
     def search_by_dataset_type(
-        self, dataset_type: str, max_results_per_source: int = 50, deduplicate: bool = True
+        self,
+        dataset_type: str,
+        max_results_per_source: int = 50,
+        deduplicate: bool = True,
     ) -> list[DatasetSource]:
         """
         Search for specific dataset type using configured keywords.
@@ -160,7 +170,10 @@ class UnifiedSearchClient:
         )
 
     def search_repositories_only(
-        self, keywords: list[str], max_results_per_repo: int = 50, deduplicate: bool = True
+        self,
+        keywords: list[str],
+        max_results_per_repo: int = 50,
+        deduplicate: bool = True,
     ) -> list[DatasetSource]:
         """
         Search repositories only (Dryad, Zenodo, ClinicalTrials.gov).
@@ -227,14 +240,18 @@ class UnifiedSearchClient:
         for dataset_type, keywords in all_keywords.items():
             logger.info(f"Searching for {dataset_type}")
             sources = self.search_all_sources(
-                keywords=keywords, max_results_per_source=max_results_per_source, deduplicate=True
+                keywords=keywords,
+                max_results_per_source=max_results_per_source,
+                deduplicate=True,
             )
             results[dataset_type] = sources
             logger.info(f"Found {len(sources)} unique sources for {dataset_type}")
 
         return results
 
-    def get_search_statistics(self, results: dict[str, list[DatasetSource]]) -> dict[str, Any]:
+    def get_search_statistics(
+        self, results: dict[str, list[DatasetSource]]
+    ) -> dict[str, Any]:
         """
         Calculate statistics for search results.
 
@@ -264,15 +281,22 @@ class UnifiedSearchClient:
 
         # Count open access
         open_access_count = sum(
-            1 for sources in results.values() for source in sources if source.open_access
+            1
+            for sources in results.values()
+            for source in sources
+            if source.open_access
         )
 
         # Count with DOI
-        doi_count = sum(1 for sources in results.values() for source in sources if source.doi)
+        doi_count = sum(
+            1 for sources in results.values() for source in sources if source.doi
+        )
 
         return {
             "total_sources": total_sources,
-            "sources_by_dataset_type": {dtype: len(sources) for dtype, sources in results.items()},
+            "sources_by_dataset_type": {
+                dtype: len(sources) for dtype, sources in results.items()
+            },
             "sources_by_type": source_type_counts,
             "sources_by_discovery_method": discovery_method_counts,
             "open_access_count": open_access_count,

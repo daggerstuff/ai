@@ -340,10 +340,11 @@ class ConversationCoherenceAssessor:
 
         details.update(
             {
-                "average_word_overlap": sum(word_overlap_scores)
-                / len(word_overlap_scores)
-                if word_overlap_scores
-                else 0,
+                "average_word_overlap": (
+                    sum(word_overlap_scores) / len(word_overlap_scores)
+                    if word_overlap_scores
+                    else 0
+                ),
                 "contradiction_indicator_count": contradiction_count,
             }
         )
@@ -471,9 +472,11 @@ class ConversationCoherenceAssessor:
         details.update(
             {
                 "role_distribution": role_counts,
-                "average_response_length": sum(response_lengths) / len(response_lengths)
-                if response_lengths
-                else 0,
+                "average_response_length": (
+                    sum(response_lengths) / len(response_lengths)
+                    if response_lengths
+                    else 0
+                ),
                 "response_length_variance": length_variance if response_lengths else 0,
             }
         )
@@ -589,9 +592,11 @@ class ConversationCoherenceAssessor:
         details.update(
             {
                 "topic_shifts": topic_shifts,
-                "average_keyword_overlap": sum(keyword_overlaps) / len(keyword_overlaps)
-                if keyword_overlaps
-                else 0,
+                "average_keyword_overlap": (
+                    sum(keyword_overlaps) / len(keyword_overlaps)
+                    if keyword_overlaps
+                    else 0
+                ),
                 "keyword_overlap_scores": keyword_overlaps,
             }
         )

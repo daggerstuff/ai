@@ -31,25 +31,22 @@ class TestDataStandardizer:
         return {
             "simple_messages": [
                 {"role": "user", "content": "Hello"},
-                {"role": "assistant", "content": "Hi there!"}
+                {"role": "assistant", "content": "Hi there!"},
             ],
             "input_output": {
                 "input": "What is AI?",
-                "output": "AI is artificial intelligence."
+                "output": "AI is artificial intelligence.",
             },
             "huggingface_chat": {
-                "conversations": [[
-                    {"role": "user", "content": "Test"},
-                    {"role": "assistant", "content": "Response"}
-                ]]
+                "conversations": [
+                    [
+                        {"role": "user", "content": "Test"},
+                        {"role": "assistant", "content": "Response"},
+                    ]
+                ]
             },
-            "openai_format": {
-                "role": "user",
-                "content": "Single message"
-            },
-            "custom_json": {
-                "text": "Custom format text"
-            }
+            "openai_format": {"role": "user", "content": "Single message"},
+            "custom_json": {"text": "Custom format text"},
         }
 
     def test_initialization(self):
@@ -65,16 +62,25 @@ class TestDataStandardizer:
 
     def test_format_detection(self, standardizer, sample_data):
         """Test automatic format detection."""
-        assert standardizer.detect_format(sample_data["simple_messages"]) == "simple_messages"
+        assert (
+            standardizer.detect_format(sample_data["simple_messages"])
+            == "simple_messages"
+        )
         assert standardizer.detect_format(sample_data["input_output"]) == "input_output"
-        assert standardizer.detect_format(sample_data["huggingface_chat"]) == "huggingface_chat"
-        assert standardizer.detect_format(sample_data["openai_format"]) == "openai_format"
+        assert (
+            standardizer.detect_format(sample_data["huggingface_chat"])
+            == "huggingface_chat"
+        )
+        assert (
+            standardizer.detect_format(sample_data["openai_format"]) == "openai_format"
+        )
         assert standardizer.detect_format(sample_data["custom_json"]) == "custom_json"
         assert standardizer.detect_format({"unknown": "format"}) == "custom_json"
         assert standardizer.detect_format("string") == "unknown"
 
     def test_register_converter(self, standardizer):
         """Test registering custom converter."""
+
         def custom_converter(data, source=None, conversation_id=None):
             return Mock(spec=Conversation)
 
@@ -84,6 +90,7 @@ class TestDataStandardizer:
 
     def test_register_validator(self, standardizer):
         """Test registering validator."""
+
         def custom_validator(conversation):
             return {"valid": True}
 
@@ -94,8 +101,7 @@ class TestDataStandardizer:
     def test_standardize_single_success(self, standardizer, sample_data):
         """Test successful single item standardization."""
         result = standardizer.standardize_single(
-            sample_data["simple_messages"],
-            source="test_source"
+            sample_data["simple_messages"], source="test_source"
         )
 
         assert result.success is True
@@ -111,7 +117,7 @@ class TestDataStandardizer:
         result = standardizer.standardize_single(
             sample_data["input_output"],
             format_hint="input_output",
-            source="test_source"
+            source="test_source",
         )
 
         assert result.success is True
@@ -120,8 +126,7 @@ class TestDataStandardizer:
     def test_standardize_single_unknown_format(self, standardizer):
         """Test standardization with unknown format."""
         result = standardizer.standardize_single(
-            {"unknown": "format"},
-            format_hint="nonexistent_format"
+            {"unknown": "format"}, format_hint="nonexistent_format"
         )
 
         assert result.success is False
@@ -130,6 +135,7 @@ class TestDataStandardizer:
 
     def test_standardize_single_with_validator(self, standardizer, sample_data):
         """Test standardization with validator."""
+
         def failing_validator(conversation):
             return {"valid": False, "error": "Test validation error"}
 
@@ -143,6 +149,7 @@ class TestDataStandardizer:
 
     def test_standardize_single_exception(self, standardizer):
         """Test standardization with exception."""
+
         # Mock converter to raise exception
         def failing_converter(data, source=None, conversation_id=None):
             raise ValueError("Test exception")
@@ -150,8 +157,7 @@ class TestDataStandardizer:
         standardizer.register_converter("failing_format", failing_converter)
 
         result = standardizer.standardize_single(
-            {"test": "data"},
-            format_hint="failing_format"
+            {"test": "data"}, format_hint="failing_format"
         )
 
         assert result.success is False
@@ -162,7 +168,7 @@ class TestDataStandardizer:
         data_items = [
             sample_data["simple_messages"],
             sample_data["input_output"],
-            sample_data["openai_format"]
+            sample_data["openai_format"],
         ]
 
         results = standardizer.standardize_batch(data_items, source="batch_test")
@@ -181,7 +187,7 @@ class TestDataStandardizer:
         data_items = [
             sample_data["simple_messages"],  # Should succeed
             {"invalid": "data"},  # Should fail
-            sample_data["input_output"]  # Should succeed
+            sample_data["input_output"],  # Should succeed
         ]
 
         results = standardizer.standardize_batch(data_items)

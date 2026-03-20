@@ -379,8 +379,7 @@ if response.status_code == 200:
         }
 
         # JavaScript examples
-        examples["javascript"] = {
-            "validate_conversation": """
+        examples["javascript"] = {"validate_conversation": """
 const axios = require('axios');
 
 const API_KEY = 'your_api_key_here';
@@ -425,12 +424,10 @@ async function validateConversation() {
 }
 
 validateConversation();
-            """
-        }
+            """}
 
         # cURL examples
-        examples["curl"] = {
-            "validate_conversation": """
+        examples["curl"] = {"validate_conversation": """
 curl -X POST "https://api.pixelatedempathy.com/api/v1/validate/conversation" \\
   -H "Authorization: Bearer your_api_key_here" \\
   -H "Content-Type: application/json" \\
@@ -451,8 +448,7 @@ curl -X POST "https://api.pixelatedempathy.com/api/v1/validate/conversation" \\
     "validation_level": "comprehensive",
     "include_recommendations": true
   }'
-            """
-        }
+            """}
 
         return examples
 

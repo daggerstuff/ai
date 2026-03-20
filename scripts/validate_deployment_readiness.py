@@ -491,7 +491,9 @@ def main():
         summary = report["deployment_summary"]
         logger.info(f"📈 Total Conversations: {summary['total_conversations']:,}")
         logger.info(f"🧠 Expert Distribution: {summary['expert_distribution']}")
-        logger.info(f"⏱️  Estimated Training Time: {summary['estimated_training_time']}")
+        logger.info(
+            f"⏱️  Estimated Training Time: {summary['estimated_training_time']}"
+        )
 
     if report["critical_issues"]:
         logger.info("\n❌ Critical Issues:")

@@ -130,9 +130,9 @@ class MockResponse:
 
 def assert_command_success(result, expected_output: str = None):
     """Assert that a CLI command executed successfully"""
-    assert result.exit_code == 0, (
-        f"Command failed with exit code {result.exit_code}: {result.output}"
-    )
+    assert (
+        result.exit_code == 0
+    ), f"Command failed with exit code {result.exit_code}: {result.output}"
     if expected_output:
         assert expected_output in result.output
 

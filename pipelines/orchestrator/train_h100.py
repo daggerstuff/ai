@@ -103,9 +103,11 @@ class EmpathyAITrainer:
         # Load model
         self.model = AutoModelForCausalLM.from_pretrained(
             self.config["model"]["base_model"],
-            torch_dtype=torch.bfloat16
-            if self.config["training"]["precision"] == "bf16"
-            else torch.float16,
+            torch_dtype=(
+                torch.bfloat16
+                if self.config["training"]["precision"] == "bf16"
+                else torch.float16
+            ),
             trust_remote_code=True,
             device_map="auto",
             low_cpu_mem_usage=True,

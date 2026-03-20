@@ -9,13 +9,13 @@ The wrapper provides a tiny, well-documented surface that the rest of
 the codebase can use without coupling application code to the HF
 library API surface.
 """
+
 from __future__ import annotations
 
 import importlib
 import logging
 import os
 from typing import List, Optional
-
 
 __all__ = ["HuggingFaceClient"]
 
@@ -32,8 +32,8 @@ class HuggingFaceClient:
     """
 
     def __init__(self, token: Optional[str] = None) -> None:
-        self.token = token if token is not None else os.environ.get(
-            "HUGGINGFACE_HUB_TOKEN"
+        self.token = (
+            token if token is not None else os.environ.get("HUGGINGFACE_HUB_TOKEN")
         )
 
     def download_file(
@@ -92,7 +92,10 @@ class HuggingFaceClient:
         )
 
     def list_files(
-        self, repo_id: str, revision: Optional[str] = None, repo_type: Optional[str] = None
+        self,
+        repo_id: str,
+        revision: Optional[str] = None,
+        repo_type: Optional[str] = None,
     ) -> List[str]:
         """Return a list of files in the repository using HfApi.list_repo_files.
 

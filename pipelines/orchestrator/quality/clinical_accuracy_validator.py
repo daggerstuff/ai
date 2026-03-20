@@ -731,10 +731,11 @@ class ClinicalAccuracyValidator:
                     "clinically_acceptable": sum(
                         1 for r in results if r.is_clinically_acceptable
                     ),
-                    "average_score": sum(r.overall_score for r in results)
-                    / len(results)
-                    if results
-                    else 0,
+                    "average_score": (
+                        sum(r.overall_score for r in results) / len(results)
+                        if results
+                        else 0
+                    ),
                     "validation_date": datetime.now().isoformat(),
                 },
             }

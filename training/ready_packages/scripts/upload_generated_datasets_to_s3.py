@@ -18,7 +18,9 @@ script_path = Path(__file__).resolve()
 project_root = script_path.parents[3]
 sys.path.insert(0, str(project_root))
 
-from ai.training.ready_packages.utils.s3_dataset_loader import S3DatasetLoader  # noqa: E402
+from ai.training.ready_packages.utils.s3_dataset_loader import (
+    S3DatasetLoader,
+)  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
@@ -139,7 +141,9 @@ def main() -> int:
     if args.dry_run:
         logger.info(f"🔍 DRY RUN: Would upload {len(uploads)} files")
     else:
-        logger.info(f"✅ Upload complete: {success_count}/{len(uploads)} files uploaded")
+        logger.info(
+            f"✅ Upload complete: {success_count}/{len(uploads)} files uploaded"
+        )
     logger.info("=" * 80)
 
     return 0 if success_count == len(uploads) or args.dry_run else 1

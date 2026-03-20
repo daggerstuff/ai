@@ -275,9 +275,9 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
             "key_id": api_key_obj.key_id,
             "name": api_key_obj.name,
             "permissions": [p.value for p in api_key_obj.permissions],
-            "expires_at": api_key_obj.expires_at.isoformat()
-            if api_key_obj.expires_at
-            else None,
+            "expires_at": (
+                api_key_obj.expires_at.isoformat() if api_key_obj.expires_at else None
+            ),
         }
 
     @app.get("/auth/api-keys")
@@ -292,12 +292,12 @@ def create_auth_routes(app: FastAPI, auth_system: AuthenticationSystem):
                 "permissions": [p.value for p in api_key.permissions],
                 "is_active": api_key.is_active,
                 "created_at": api_key.created_at.isoformat(),
-                "expires_at": api_key.expires_at.isoformat()
-                if api_key.expires_at
-                else None,
-                "last_used": api_key.last_used.isoformat()
-                if api_key.last_used
-                else None,
+                "expires_at": (
+                    api_key.expires_at.isoformat() if api_key.expires_at else None
+                ),
+                "last_used": (
+                    api_key.last_used.isoformat() if api_key.last_used else None
+                ),
             }
             for api_key in auth_system.api_keys.values()
         ]

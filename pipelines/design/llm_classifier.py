@@ -394,9 +394,7 @@ def main():
     classifier = LLMTaxonomyClassifier(config=config)
 
     # Test classification
-    test_text = (
-        args.text
-        or """
+    test_text = args.text or """
     Patient: I've been having intrusive thoughts about the car accident.
     I keep seeing it happen over and over again.
     Therapist: Those sound like flashbacks. Can you tell me more
@@ -406,7 +404,6 @@ def main():
     Therapist: That's a common PTSD symptom. Let's work on some
         grounding techniques.
     """
-    )
 
     result = classifier.classify(test_text)
 

@@ -46,10 +46,16 @@ from ai.sourcing.journal.orchestrator.types import (
 
 logger = logging.getLogger(__name__)
 
+
 class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     """Coordinates the journal dataset research workflow."""
 
-    PHASE_ORDER: Sequence[str] = ("discovery", "evaluation", "acquisition", "integration")
+    PHASE_ORDER: Sequence[str] = (
+        "discovery",
+        "evaluation",
+        "acquisition",
+        "integration",
+    )
 
     def __init__(
         self,
@@ -167,7 +173,10 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
                 metrics=dict(session.progress_metrics),
             )
             self.progress_history[session_id].append(snapshot)
-            if len(self.progress_history[session_id]) > self.config.progress_history_limit:
+            if (
+                len(self.progress_history[session_id])
+                > self.config.progress_history_limit
+            ):
                 self.progress_history[session_id].pop(0)
 
     def run_session(
@@ -239,11 +248,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     def _run_evaluation_phase(
         self, session_id: str, state: SessionState, evaluator: str
     ) -> None:
-        if (
-            not self.evaluation_engine
-            or not state.sources
-            or state.evaluations
-        ):
+        if not self.evaluation_engine or not state.sources or state.evaluations:
             return
 
         self.log_activity(
@@ -442,9 +447,9 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             "series": series,
             "targets": targets,
             "current_metrics": dict(session.progress_metrics),
-            "last_updated": progress.last_updated.isoformat()
-            if progress.last_updated
-            else None,
+            "last_updated": (
+                progress.last_updated.isoformat() if progress.last_updated else None
+            ),
         }
 
     def log_activity(
@@ -560,7 +565,12 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
                 )
                 state.access_requests.append(access_request)
             except Exception as exc:
-                self._log_error(session_id, f"access_request:{source.source_id}", exc, self.config.max_retries)
+                self._log_error(
+                    session_id,
+                    f"access_request:{source.source_id}",
+                    exc,
+                    self.config.max_retries,
+                )
                 continue
 
             try:
@@ -573,7 +583,12 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
                 )
                 state.acquired_datasets.append(acquired_dataset)
             except Exception as exc:
-                self._log_error(session_id, f"download:{source.source_id}", exc, self.config.max_retries)
+                self._log_error(
+                    session_id,
+                    f"download:{source.source_id}",
+                    exc,
+                    self.config.max_retries,
+                )
                 self.log_activity(
                     session_id,
                     "acquisition",
@@ -591,7 +606,9 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
         datasets = state.acquired_datasets
         if self.config.parallel_integration_planning and len(datasets) > 1:
-            return self._create_plans_parallel(session_id, state, datasets, target_format)
+            return self._create_plans_parallel(
+                session_id, state, datasets, target_format
+            )
 
         plans: List[IntegrationPlan] = []
         for dataset in datasets:
@@ -686,7 +703,9 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         while attempts < self.config.max_retries:
             try:
                 return func(*args, **kwargs)
-            except Exception as exc:  # pragma: no cover - exception details tested separately
+            except (
+                Exception
+            ) as exc:  # pragma: no cover - exception details tested separately
                 attempts += 1
                 last_exception = exc
                 self._log_error(session_id, operation, exc, attempts)
@@ -722,7 +741,12 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             self.error_log.setdefault(session_id, []).append(entry)
         logger.warning(
             "Research orchestrator error",
-            extra={"session_id": session_id, "operation": operation, "attempt": attempt, "error": error},
+            extra={
+                "session_id": session_id,
+                "operation": operation,
+                "attempt": attempt,
+                "error": error,
+            },
         )
 
     def _build_visualization_series(
@@ -790,9 +814,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         }
         return bundle
 
-    def _restore_session_components(
-        self, bundle: Dict[str, Any]
-    ) -> Tuple[
+    def _restore_session_components(self, bundle: Dict[str, Any]) -> Tuple[
         ResearchSession,
         SessionState,
         ResearchProgress,
@@ -806,16 +828,12 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
         state_data = bundle.get("state", {})
         state = SessionState(
-            sources=[
-                DatasetSource(**item) for item in state_data.get("sources", [])
-            ],
+            sources=[DatasetSource(**item) for item in state_data.get("sources", [])],
             evaluations=[
-                DatasetEvaluation(**item)
-                for item in state_data.get("evaluations", [])
+                DatasetEvaluation(**item) for item in state_data.get("evaluations", [])
             ],
             access_requests=[
-                AccessRequest(**item)
-                for item in state_data.get("access_requests", [])
+                AccessRequest(**item) for item in state_data.get("access_requests", [])
             ],
             acquired_datasets=[
                 AcquiredDataset(**item)
@@ -858,9 +876,7 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         return session, state, progress, history, activity_logs, error_entries
 
     @staticmethod
-    def _resolve_session_storage_path(
-        path: Optional[Union[str, Path]]
-    ) -> Path:
+    def _resolve_session_storage_path(path: Optional[Union[str, Path]]) -> Path:
         if path is None:
             return Path.cwd() / "ai" / "journal_dataset_research" / "sessions"
         return Path(path).expanduser()
@@ -933,10 +949,14 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
         start_progress: ResearchProgress, end_progress: ResearchProgress
     ) -> Dict[str, int]:
         deltas = {
-            "sources_identified": end_progress.sources_identified - start_progress.sources_identified,
-            "datasets_evaluated": end_progress.datasets_evaluated - start_progress.datasets_evaluated,
-            "access_established": end_progress.access_established - start_progress.access_established,
-            "datasets_acquired": end_progress.datasets_acquired - start_progress.datasets_acquired,
+            "sources_identified": end_progress.sources_identified
+            - start_progress.sources_identified,
+            "datasets_evaluated": end_progress.datasets_evaluated
+            - start_progress.datasets_evaluated,
+            "access_established": end_progress.access_established
+            - start_progress.access_established,
+            "datasets_acquired": end_progress.datasets_acquired
+            - start_progress.datasets_acquired,
             "integration_plans_created": end_progress.integration_plans_created
             - start_progress.integration_plans_created,
         }
@@ -946,14 +966,22 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
     def _build_key_findings(deltas: Dict[str, int]) -> List[str]:
         findings: List[str] = []
         if deltas["sources_identified"]:
-            findings.append(f"Identified {deltas['sources_identified']} new dataset sources")
+            findings.append(
+                f"Identified {deltas['sources_identified']} new dataset sources"
+            )
         if deltas["datasets_evaluated"]:
-            findings.append(f"Completed evaluations for {deltas['datasets_evaluated']} datasets")
+            findings.append(
+                f"Completed evaluations for {deltas['datasets_evaluated']} datasets"
+            )
         if deltas["integration_plans_created"]:
-            findings.append(f"Produced {deltas['integration_plans_created']} integration plans")
+            findings.append(
+                f"Produced {deltas['integration_plans_created']} integration plans"
+            )
 
         if not findings:
-            findings.append("Maintained research infrastructure with no new datasets processed")
+            findings.append(
+                "Maintained research infrastructure with no new datasets processed"
+            )
         return findings
 
     def _build_challenges(
@@ -983,9 +1011,13 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
 
         if not priorities:
             if deltas["datasets_acquired"]:
-                priorities.append("Plan integration workflows for newly acquired datasets")
+                priorities.append(
+                    "Plan integration workflows for newly acquired datasets"
+                )
             else:
-                priorities.append("Review high-priority datasets and prepare next acquisition wave")
+                priorities.append(
+                    "Review high-priority datasets and prepare next acquisition wave"
+                )
 
         return priorities
 
@@ -1025,4 +1057,3 @@ class ResearchOrchestrator(WorkflowMixin, ProgressReportingMixin, RetryMixin):
             "datasets_acquired": 0,
             "integration_plans_created": 0,
         }
-

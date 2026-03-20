@@ -22,47 +22,155 @@ class CorrectedEnterpriseAuditor:
             "functional": [],
             "broken": [],
             "missing": [],
-            "detailed_results": {}
+            "detailed_results": {},
         }
 
         # Task 6.0 component mapping with correct file paths
         self.task_components = {
-            "6.1": {"file": "dataset_pipeline/distributed_architecture.py", "class": "DistributedArchitecture"},
-            "6.2": {"file": "dataset_pipeline/data_fusion_engine.py", "class": "DataFusionEngine"},
-            "6.3": {"file": "dataset_pipeline/quality_assessment_framework.py", "class": "QualityAssessmentFramework"},
-            "6.4": {"file": "dataset_pipeline/deduplication.py", "class": "Deduplicator"},
-            "6.5": {"file": "dataset_pipeline/cross_dataset_linker.py", "class": "CrossDatasetLinker"},
-            "6.6": {"file": "dataset_pipeline/metadata_schema.py", "class": "MetadataSchema"},
-            "6.7": {"file": "dataset_pipeline/therapeutic_intelligence.py", "class": "TherapeuticIntelligence"},
-            "6.8": {"file": "dataset_pipeline/ecosystem/condition_pattern_recognition.py", "class": "ConditionPatternRecognizer"},
-            "6.9": {"file": "dataset_pipeline/ecosystem/outcome_prediction.py", "class": "OutcomePredictor"},
-            "6.10": {"file": "dataset_pipeline/crisis_intervention_detector.py", "class": "CrisisInterventionDetector"},
-            "6.11": {"file": "dataset_pipeline/personality_adapter.py", "class": "PersonalityAdapter"},
-            "6.12": {"file": "dataset_pipeline/cultural_competency_generator.py", "class": "CulturalCompetencyGenerator"},
-            "6.13": {"file": "dataset_pipeline/audio_emotion_integration.py", "class": "AudioEmotionIntegration"},
-            "6.14": {"file": "dataset_pipeline/ecosystem/multimodal_disorder_analysis.py", "class": "MultimodalDisorderAnalyzer"},
-            "6.15": {"file": "dataset_pipeline/ecosystem/emotion_cause_extraction.py", "class": "EmotionCauseExtractor"},
-            "6.16": {"file": "dataset_pipeline/tfidf_clusterer.py", "class": "TFIDFClusterer"},
-            "6.17": {"file": "dataset_pipeline/temporal_reasoner.py", "class": "TemporalReasoner"},
-            "6.18": {"file": "dataset_pipeline/evidence_validator.py", "class": "EvidenceValidator"},
-            "6.19": {"file": "dataset_pipeline/priority_weighted_sampler.py", "class": "PriorityWeightedSampler"},
-            "6.20": {"file": "dataset_pipeline/condition_balancer.py", "class": "ConditionBalancer"},
-            "6.21": {"file": "dataset_pipeline/approach_diversity_optimizer.py", "class": "ApproachDiversityOptimizer"},
-            "6.22": {"file": "dataset_pipeline/demographic_balancer.py", "class": "DemographicBalancer"},
-            "6.23": {"file": "dataset_pipeline/complexity_stratifier.py", "class": "ComplexityStratifier"},
-            "6.24": {"file": "dataset_pipeline/crisis_routine_balancer.py", "class": "CrisisRoutineBalancer"},
-            "6.25": {"file": "dataset_pipeline/multi_tier_validator.py", "class": "MultiTierValidator"},
-            "6.26": {"file": "dataset_pipeline/dsm5_accuracy_validator.py", "class": "DSM5AccuracyValidator"},
-            "6.27": {"file": "dataset_pipeline/safety_ethics_validator.py", "class": "SafetyEthicsValidator"},
-            "6.28": {"file": "dataset_pipeline/effectiveness_predictor.py", "class": "EffectivenessPredictor"},
-            "6.29": {"file": "dataset_pipeline/coherence_validator.py", "class": "CoherenceValidator"},
-            "6.30": {"file": "dataset_pipeline/realtime_quality_monitor.py", "class": "RealtimeQualityMonitor"},
-            "6.31": {"file": "dataset_pipeline/production_exporter.py", "class": "ProductionExporter"},
-            "6.32": {"file": "dataset_pipeline/adaptive_learner.py", "class": "AdaptiveLearner"},
-            "6.33": {"file": "dataset_pipeline/analytics_dashboard.py", "class": "AnalyticsDashboard"},
-            "6.34": {"file": "dataset_pipeline/automated_maintenance.py", "class": "AutomatedMaintenance"},
-            "6.35": {"file": "dataset_pipeline/feedback_loops.py", "class": "FeedbackLoops"},
-            "6.36": {"file": "dataset_pipeline/comprehensive_api.py", "class": "ComprehensiveAPI"}
+            "6.1": {
+                "file": "dataset_pipeline/distributed_architecture.py",
+                "class": "DistributedArchitecture",
+            },
+            "6.2": {
+                "file": "dataset_pipeline/data_fusion_engine.py",
+                "class": "DataFusionEngine",
+            },
+            "6.3": {
+                "file": "dataset_pipeline/quality_assessment_framework.py",
+                "class": "QualityAssessmentFramework",
+            },
+            "6.4": {
+                "file": "dataset_pipeline/deduplication.py",
+                "class": "Deduplicator",
+            },
+            "6.5": {
+                "file": "dataset_pipeline/cross_dataset_linker.py",
+                "class": "CrossDatasetLinker",
+            },
+            "6.6": {
+                "file": "dataset_pipeline/metadata_schema.py",
+                "class": "MetadataSchema",
+            },
+            "6.7": {
+                "file": "dataset_pipeline/therapeutic_intelligence.py",
+                "class": "TherapeuticIntelligence",
+            },
+            "6.8": {
+                "file": "dataset_pipeline/ecosystem/condition_pattern_recognition.py",
+                "class": "ConditionPatternRecognizer",
+            },
+            "6.9": {
+                "file": "dataset_pipeline/ecosystem/outcome_prediction.py",
+                "class": "OutcomePredictor",
+            },
+            "6.10": {
+                "file": "dataset_pipeline/crisis_intervention_detector.py",
+                "class": "CrisisInterventionDetector",
+            },
+            "6.11": {
+                "file": "dataset_pipeline/personality_adapter.py",
+                "class": "PersonalityAdapter",
+            },
+            "6.12": {
+                "file": "dataset_pipeline/cultural_competency_generator.py",
+                "class": "CulturalCompetencyGenerator",
+            },
+            "6.13": {
+                "file": "dataset_pipeline/audio_emotion_integration.py",
+                "class": "AudioEmotionIntegration",
+            },
+            "6.14": {
+                "file": "dataset_pipeline/ecosystem/multimodal_disorder_analysis.py",
+                "class": "MultimodalDisorderAnalyzer",
+            },
+            "6.15": {
+                "file": "dataset_pipeline/ecosystem/emotion_cause_extraction.py",
+                "class": "EmotionCauseExtractor",
+            },
+            "6.16": {
+                "file": "dataset_pipeline/tfidf_clusterer.py",
+                "class": "TFIDFClusterer",
+            },
+            "6.17": {
+                "file": "dataset_pipeline/temporal_reasoner.py",
+                "class": "TemporalReasoner",
+            },
+            "6.18": {
+                "file": "dataset_pipeline/evidence_validator.py",
+                "class": "EvidenceValidator",
+            },
+            "6.19": {
+                "file": "dataset_pipeline/priority_weighted_sampler.py",
+                "class": "PriorityWeightedSampler",
+            },
+            "6.20": {
+                "file": "dataset_pipeline/condition_balancer.py",
+                "class": "ConditionBalancer",
+            },
+            "6.21": {
+                "file": "dataset_pipeline/approach_diversity_optimizer.py",
+                "class": "ApproachDiversityOptimizer",
+            },
+            "6.22": {
+                "file": "dataset_pipeline/demographic_balancer.py",
+                "class": "DemographicBalancer",
+            },
+            "6.23": {
+                "file": "dataset_pipeline/complexity_stratifier.py",
+                "class": "ComplexityStratifier",
+            },
+            "6.24": {
+                "file": "dataset_pipeline/crisis_routine_balancer.py",
+                "class": "CrisisRoutineBalancer",
+            },
+            "6.25": {
+                "file": "dataset_pipeline/multi_tier_validator.py",
+                "class": "MultiTierValidator",
+            },
+            "6.26": {
+                "file": "dataset_pipeline/dsm5_accuracy_validator.py",
+                "class": "DSM5AccuracyValidator",
+            },
+            "6.27": {
+                "file": "dataset_pipeline/safety_ethics_validator.py",
+                "class": "SafetyEthicsValidator",
+            },
+            "6.28": {
+                "file": "dataset_pipeline/effectiveness_predictor.py",
+                "class": "EffectivenessPredictor",
+            },
+            "6.29": {
+                "file": "dataset_pipeline/coherence_validator.py",
+                "class": "CoherenceValidator",
+            },
+            "6.30": {
+                "file": "dataset_pipeline/realtime_quality_monitor.py",
+                "class": "RealtimeQualityMonitor",
+            },
+            "6.31": {
+                "file": "dataset_pipeline/production_exporter.py",
+                "class": "ProductionExporter",
+            },
+            "6.32": {
+                "file": "dataset_pipeline/adaptive_learner.py",
+                "class": "AdaptiveLearner",
+            },
+            "6.33": {
+                "file": "dataset_pipeline/analytics_dashboard.py",
+                "class": "AnalyticsDashboard",
+            },
+            "6.34": {
+                "file": "dataset_pipeline/automated_maintenance.py",
+                "class": "AutomatedMaintenance",
+            },
+            "6.35": {
+                "file": "dataset_pipeline/feedback_loops.py",
+                "class": "FeedbackLoops",
+            },
+            "6.36": {
+                "file": "dataset_pipeline/comprehensive_api.py",
+                "class": "ComprehensiveAPI",
+            },
         }
 
     def setup_environment(self):
@@ -101,7 +209,7 @@ class CorrectedEnterpriseAuditor:
             "error": None,
             "enterprise_ready": False,
             "functional": False,
-            "issues": []
+            "issues": [],
         }
 
         # Check if file exists
@@ -141,9 +249,13 @@ except Exception as e:
 """
 
             # Run test in subprocess with proper environment
-            process = subprocess.run([
-                "/home/vivi/pixelated/.venv/bin/python", "-c", test_script
-            ], check=False, capture_output=True, text=True, cwd="/home/vivi/pixelated/ai")
+            process = subprocess.run(
+                ["/home/vivi/pixelated/.venv/bin/python", "-c", test_script],
+                check=False,
+                capture_output=True,
+                text=True,
+                cwd="/home/vivi/pixelated/ai",
+            )
 
             output = process.stdout
             error_output = process.stderr
@@ -212,7 +324,6 @@ except Exception as e:
         if not self.setup_environment():
             return
 
-
         for task_id, component_info in self.task_components.items():
 
             result = self.test_component(task_id, component_info)
@@ -237,7 +348,6 @@ except Exception as e:
         len(self.results["functional"])
         len(self.results["broken"])
         len(self.results["missing"])
-
 
         if self.results["enterprise_ready"]:
             for task_id in self.results["enterprise_ready"]:

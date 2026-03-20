@@ -515,9 +515,11 @@ class ProgressTracker:
                 "median": statistics.median(processing_times),
                 "min": min(processing_times),
                 "max": max(processing_times),
-                "std_dev": statistics.stdev(processing_times)
-                if len(processing_times) > 1
-                else 0,
+                "std_dev": (
+                    statistics.stdev(processing_times)
+                    if len(processing_times) > 1
+                    else 0
+                ),
             }
 
         return {

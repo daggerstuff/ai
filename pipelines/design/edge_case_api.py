@@ -69,7 +69,9 @@ class EdgeCaseAPI:
             }
         except ValueError as e:
             logger.error(f"Invalid edge case type: {edge_case_type}")
-            raise ValueError(f"Invalid edge case type: {edge_case_type}. Valid types: {[et.value for et in EdgeCaseType]}") from e
+            raise ValueError(
+                f"Invalid edge case type: {edge_case_type}. Valid types: {[et.value for et in EdgeCaseType]}"
+            ) from e
         except Exception as e:
             logger.error(f"Failed to generate edge case scenarios: {e}")
             raise
@@ -143,7 +145,9 @@ class EdgeCaseAPI:
                 continue
 
             # Extract edge case type
-            edge_case_type = record.get("edge_case_type", result.get("edge_case_type", "unknown"))
+            edge_case_type = record.get(
+                "edge_case_type", result.get("edge_case_type", "unknown")
+            )
 
             # Format scenario
             scenario = {
@@ -153,8 +157,12 @@ class EdgeCaseAPI:
                 "edge_case_type": edge_case_type,
                 "difficulty_level": result.get("difficulty_level", "advanced"),
                 "clientProfile": self._extract_client_profile(record),
-                "edgeCaseDetails": self._extract_edge_case_details(record, edge_case_type),
-                "challengeLevel": self._determine_challenge_level(record, edge_case_type),
+                "edgeCaseDetails": self._extract_edge_case_details(
+                    record, edge_case_type
+                ),
+                "challengeLevel": self._determine_challenge_level(
+                    record, edge_case_type
+                ),
                 "estimatedDuration": self._estimate_duration(edge_case_type),
                 "metadata": {
                     "generatedAt": result.get("metadata", {}).get("generated_at", ""),
@@ -197,7 +205,10 @@ class EdgeCaseAPI:
             "multi_generational": f"Multi-generational family scenario with {record.get('family_structure', 'family structure')} and {record.get('generational_conflicts', 'conflicts')}",
             "systemic_oppression": f"Systemic oppression scenario involving {record.get('oppression_type', 'oppression')} with {record.get('systemic_barriers', 'barriers')}",
         }
-        return descriptions.get(edge_case_type, "Edge case scenario requiring specialized therapeutic intervention")
+        return descriptions.get(
+            edge_case_type,
+            "Edge case scenario requiring specialized therapeutic intervention",
+        )
 
     def _extract_client_profile(self, record: dict[str, Any]) -> dict[str, Any]:
         """Extract client profile information from record."""
@@ -208,42 +219,60 @@ class EdgeCaseAPI:
             "background": f"{record.get('ethnicity', 'Unknown')} individual, age {record.get('age', 'unknown')}",
         }
 
-    def _extract_edge_case_details(self, record: dict[str, Any], edge_case_type: str) -> dict[str, Any]:
+    def _extract_edge_case_details(
+        self, record: dict[str, Any], edge_case_type: str
+    ) -> dict[str, Any]:
         """Extract edge case-specific details."""
         details = {}
 
         # Add type-specific details
         if edge_case_type == "crisis":
-            details.update({
-                "crisis_type": record.get("crisis_type"),
-                "crisis_severity": record.get("crisis_severity"),
-                "suicidal_ideation_present": record.get("suicidal_ideation_present"),
-                "immediate_risk_score": record.get("immediate_risk_score"),
-            })
+            details.update(
+                {
+                    "crisis_type": record.get("crisis_type"),
+                    "crisis_severity": record.get("crisis_severity"),
+                    "suicidal_ideation_present": record.get(
+                        "suicidal_ideation_present"
+                    ),
+                    "immediate_risk_score": record.get("immediate_risk_score"),
+                }
+            )
         elif edge_case_type == "cultural_complexity":
-            details.update({
-                "primary_language": record.get("primary_language"),
-                "immigration_status": record.get("immigration_status"),
-                "cultural_barriers": record.get("cultural_barriers"),
-                "cultural_competence_required": record.get("cultural_competence_required"),
-            })
+            details.update(
+                {
+                    "primary_language": record.get("primary_language"),
+                    "immigration_status": record.get("immigration_status"),
+                    "cultural_barriers": record.get("cultural_barriers"),
+                    "cultural_competence_required": record.get(
+                        "cultural_competence_required"
+                    ),
+                }
+            )
         elif edge_case_type == "comorbidity":
-            details.update({
-                "primary_diagnosis": record.get("primary_diagnosis"),
-                "comorbid_conditions": record.get("comorbid_conditions"),
-                "complexity_score": record.get("complexity_score"),
-            })
+            details.update(
+                {
+                    "primary_diagnosis": record.get("primary_diagnosis"),
+                    "comorbid_conditions": record.get("comorbid_conditions"),
+                    "complexity_score": record.get("complexity_score"),
+                }
+            )
 
         # Add common details
-        details.update({
-            "intervention_complexity": record.get("intervention_complexity", "high"),
-            "supervision_required": record.get("supervision_required", "yes"),
-            "training_priority": record.get("training_priority", "high"),
-        })
+        details.update(
+            {
+                "intervention_complexity": record.get(
+                    "intervention_complexity", "high"
+                ),
+                "supervision_required": record.get("supervision_required", "yes"),
+                "training_priority": record.get("training_priority", "high"),
+            }
+        )
 
         return details
 
-    def _determine_challenge_level(self, record: dict[str, Any], edge_case_type: str) -> str:
+    def _determine_challenge_level(
+        self, record: dict[str, Any], edge_case_type: str
+    ) -> str:
         """Determine the challenge level based on record data."""
         # Most edge cases are advanced by nature
         complexity = record.get("intervention_complexity", "high")
@@ -269,4 +298,3 @@ class EdgeCaseAPI:
             "systemic_oppression": "60-90 minutes",
         }
         return duration_map.get(edge_case_type, "60-75 minutes")
-

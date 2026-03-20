@@ -481,11 +481,11 @@ class TierDistributionOptimizer:
                     "rebalancing_effort": float(rebalancing_effort),
                     "quality_effort": float(quality_effort),
                     "total_effort": float(total_effort),
-                    "priority": "high"
-                    if total_effort > 50
-                    else "medium"
-                    if total_effort > 20
-                    else "low",
+                    "priority": (
+                        "high"
+                        if total_effort > 50
+                        else "medium" if total_effort > 20 else "low"
+                    ),
                 }
 
             return {
@@ -776,9 +776,11 @@ class TierDistributionOptimizer:
                 "distribution_balance_score": float(
                     1.0 - np.std(distribution_values) / 100
                 ),
-                "optimization_priority": "high"
-                if len(optimization.rebalancing_recommendations) > 3
-                else "medium",
+                "optimization_priority": (
+                    "high"
+                    if len(optimization.rebalancing_recommendations) > 3
+                    else "medium"
+                ),
                 "expected_quality_improvement": optimization.expected_impact.get(
                     "quality_improvement", 0
                 ),

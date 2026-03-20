@@ -459,15 +459,10 @@ class ProgressTracker:
 def console_progress_callback(task_id: str, task: ProgressTask):
     """Example console progress callback."""
     task.get_progress_percentage()
-    (
-        task.metrics.download_speed / (1024 * 1024)
-        if task.metrics.download_speed
-        else 0
-    )
+    (task.metrics.download_speed / (1024 * 1024) if task.metrics.download_speed else 0)
 
     if task.metrics.eta_seconds:
         f" ETA: {timedelta(seconds=int(task.metrics.eta_seconds))}"
-
 
 
 # Example usage

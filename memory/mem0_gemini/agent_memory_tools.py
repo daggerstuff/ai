@@ -321,7 +321,13 @@ class AgentMemoryTools:
                         "category": {
                             "type": "string",
                             "description": "Optional category for the memory (e.g., 'preference', 'fact', 'context')",
-                            "enum": ["preference", "fact", "context", "therapeutic", "goal"],
+                            "enum": [
+                                "preference",
+                                "fact",
+                                "context",
+                                "therapeutic",
+                                "goal",
+                            ],
                         },
                     },
                     "required": ["content"],

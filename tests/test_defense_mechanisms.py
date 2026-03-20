@@ -75,9 +75,11 @@ def sample_dialogue_samples():
                 sample_id=f"s_{i}",
                 dialogue_id=dialogue_id,
                 turns=[
-                    {"speaker": "Supporter", "text": f"Turn {j} from supporter"}
-                    if j % 2 == 0
-                    else {"speaker": "Seeker", "text": f"Turn {j} from seeker"}
+                    (
+                        {"speaker": "Supporter", "text": f"Turn {j} from supporter"}
+                        if j % 2 == 0
+                        else {"speaker": "Seeker", "text": f"Turn {j} from seeker"}
+                    )
                     for j in range(6)
                 ],
                 target_text=f"Turn {i % 6} from seeker",
@@ -290,9 +292,9 @@ class TestCrossValidation:
         )
         train_ids = set(train_ds.get_dialogue_ids())
         val_ids = set(val_ds.get_dialogue_ids())
-        assert len(train_ids & val_ids) == 0, (
-            "Dialogue leakage detected between train and val"
-        )
+        assert (
+            len(train_ids & val_ids) == 0
+        ), "Dialogue leakage detected between train and val"
 
     def test_all_samples_covered(self, sample_dialogue_samples, mock_tokenizer):
         total_samples = 0
@@ -401,15 +403,15 @@ class TestPredictionOutput:
     def test_maturity_score_normalization(self):
         for label, maturity in DEFENSE_MATURITY.items():
             if maturity is not None:
-                assert 0.0 <= maturity <= 1.0, (
-                    f"Label {label} maturity {maturity} out of range"
-                )
+                assert (
+                    0.0 <= maturity <= 1.0
+                ), f"Label {label} maturity {maturity} out of range"
 
     def test_all_labels_have_names(self):
         for label_id in range(9):
-            assert label_id in DEFENSE_LABELS, (
-                f"Label {label_id} missing from DEFENSE_LABELS"
-            )
+            assert (
+                label_id in DEFENSE_LABELS
+            ), f"Label {label_id} missing from DEFENSE_LABELS"
 
     def test_maturity_monotonic(self):
         """Defense maturity should increase with label number (1-7)."""

@@ -25,7 +25,7 @@ class MemoryManagerFactory:
     def create_manager() -> BaseMemoryManager:
         """
         Creates a memory manager based on environment configuration.
-        
+
         Logic:
         1. Check MEM0_PROVIDER env var ('nvidia' or 'gemini').
         2. If not set, check for NVIDIA_API_KEY (defaults to nvidia).
@@ -49,6 +49,7 @@ class MemoryManagerFactory:
         # 3. Fallback to Null
         logger.warning("No memory provider configured. Using NullMemoryManager.")
         from ai.api.memory.null_memory import NullMemoryManager
+
         return NullMemoryManager()
 
     @staticmethod
@@ -75,18 +76,15 @@ class MemoryManagerFactory:
                     model_tiers={
                         # Reasoning tier: Complex therapeutic conversations
                         "reasoning": os.environ.get(
-                            "NVIDIA_REASONING_MODEL",
-                            ModelTier.NEMOTRON_SUPER.value
+                            "NVIDIA_REASONING_MODEL", ModelTier.NEMOTRON_SUPER.value
                         ),
                         # Generation tier: Fast responses for real-time chat
                         "generation": os.environ.get(
-                            "NVIDIA_GENERATION_MODEL",
-                            ModelTier.NEMOTRON_NANO.value
+                            "NVIDIA_GENERATION_MODEL", ModelTier.NEMOTRON_NANO.value
                         ),
                         # Embedding tier: RAG-ready semantic search
                         "embedding": os.environ.get(
-                            "NVIDIA_EMBEDDING_MODEL",
-                            ModelTier.NEMOTRON_EMBED.value
+                            "NVIDIA_EMBEDDING_MODEL", ModelTier.NEMOTRON_EMBED.value
                         ),
                     },
                     # Map task complexity to model tiers
@@ -101,9 +99,12 @@ class MemoryManagerFactory:
                     crisis_detection_threshold=0.7,
                     user_id=os.environ.get("DEFAULT_USER_ID", "default_user"),
                     temperature=float(os.environ.get("NVIDIA_TEMPERATURE", "0.7")),
-                    streaming_enabled=os.environ.get("NVIDIA_STREAMING", "true").lower() != "false",
+                    streaming_enabled=os.environ.get("NVIDIA_STREAMING", "true").lower()
+                    != "false",
                 )
-                logger.info("Using EnhancedNvidiaNimManager with tiered model selection")
+                logger.info(
+                    "Using EnhancedNvidiaNimManager with tiered model selection"
+                )
                 return EnhancedNvidiaNimManager(config)
             except Exception as e:
                 logger.error(f"Failed to initialize EnhancedNvidiaNimManager: {e}")
@@ -129,7 +130,8 @@ class MemoryManagerFactory:
         """Helper to create Gemini manager."""
         try:
             config = GeminiMem0Config(
-                gemini_api_key=os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"),
+                gemini_api_key=os.environ.get("GEMINI_API_KEY")
+                or os.environ.get("GOOGLE_API_KEY"),
                 mem0_api_key=os.environ.get("MEM0_API_KEY"),
                 model_name=os.environ.get("GEMINI_MODEL_NAME", "gemini-1.5-pro"),
             )

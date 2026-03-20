@@ -5,7 +5,6 @@ Provides Server-Sent Events (SSE) endpoint for graphiti-context integration.
 This server handles real-time context streaming for VS Code extensions.
 """
 
-
 import asyncio
 import logging
 import os

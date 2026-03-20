@@ -116,11 +116,13 @@ class QualityTrendReporter:
                             anomalies=self.analyzer.detect_anomalies(
                                 component_df, component
                             ),
-                            predictions=self.analyzer.generate_predictions(
-                                component_df, component
-                            )
-                            if include_predictions
-                            else [],
+                            predictions=(
+                                self.analyzer.generate_predictions(
+                                    component_df, component
+                                )
+                                if include_predictions
+                                else []
+                            ),
                             recommendations=self.analyzer._generate_trend_recommendations(
                                 trend_stats, 0, []
                             ),
@@ -339,7 +341,9 @@ class QualityTrendReporter:
                 "📊 Trend is statistically significant with high confidence."
             )
         else:
-            summary.append("⚠️ Trend lacks statistical significance - more data needed.")
+            summary.append(
+                "⚠️ Trend lacks statistical significance - more data needed."
+            )
 
         # Component insights
         if component_trends:

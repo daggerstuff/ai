@@ -766,13 +766,19 @@ class DatasetStatisticsDashboard:
                 "top_datasets_by_volume": [name for name, _ in top_datasets],
                 "common_strengths": common_strengths,
                 "common_weaknesses": common_weaknesses,
-                "overall_health": "excellent"
-                if avg_quality > 0.8 and processing_rate > 95
-                else "good"
-                if avg_quality > 0.7 and processing_rate > 90
-                else "fair"
-                if avg_quality > 0.6 and processing_rate > 80
-                else "poor",
+                "overall_health": (
+                    "excellent"
+                    if avg_quality > 0.8 and processing_rate > 95
+                    else (
+                        "good"
+                        if avg_quality > 0.7 and processing_rate > 90
+                        else (
+                            "fair"
+                            if avg_quality > 0.6 and processing_rate > 80
+                            else "poor"
+                        )
+                    )
+                ),
             }
 
         except Exception as e:

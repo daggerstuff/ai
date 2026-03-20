@@ -22,7 +22,7 @@ OVH_S3_CONFIG = {
 def create_60gb_processor_script():
     """Create 60GB processing script with correct OVH credentials"""
 
-    processor = f'''#!/bin/bash
+    processor = f"""#!/bin/bash
 # OVH 60GB S3 Processor - Correct Credentials
 
 set -e
@@ -58,9 +58,9 @@ aws s3 ls s3://$S3_BUCKET --recursive --endpoint-url $S3_ENDPOINT | \
 
 # Phase 3: Generate processing commands
 echo "⚙️  Phase 3: Creating processing commands..."
-'''
+"""
 
-    commands = f'''#!/bin/bash
+    commands = f"""#!/bin/bash
 # 60GB OVH S3 Processing Commands
 
 S3_ENDPOINT="{OVH_S3_CONFIG["endpoint"]}"
@@ -166,7 +166,7 @@ case "$1" in
         ;;
      esac
 EOF
-'''
+"""
 
     return commands
 

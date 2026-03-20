@@ -115,7 +115,12 @@ MODEL_REGISTRY: Dict[str, ModelCapabilities] = {
         typical_latency_ms=1500,
         supports_streaming=True,
         cost_per_1k_tokens=0.0005,
-        best_for=["complex_reasoning", "crisis_detection", "nuanced_responses", "therapeutic_conversations"],
+        best_for=[
+            "complex_reasoning",
+            "crisis_detection",
+            "nuanced_responses",
+            "therapeutic_conversations",
+        ],
     ),
     ModelTier.DEEPSEEK_V3.value: ModelCapabilities(
         model_id=ModelTier.DEEPSEEK_V3.value,
@@ -148,7 +153,11 @@ MODEL_REGISTRY: Dict[str, ModelCapabilities] = {
         typical_latency_ms=1400,
         supports_streaming=True,
         cost_per_1k_tokens=0.0004,
-        best_for=["multilingual_reasoning", "diverse_populations", "cultural_sensitivity"],
+        best_for=[
+            "multilingual_reasoning",
+            "diverse_populations",
+            "cultural_sensitivity",
+        ],
     ),
     ModelTier.MISTRAL_LARGE.value: ModelCapabilities(
         model_id=ModelTier.MISTRAL_LARGE.value,
@@ -158,7 +167,6 @@ MODEL_REGISTRY: Dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.0008,
         best_for=["highest_complexity", "research_grade", "nuanced_understanding"],
     ),
-
     # === BALANCED TIER ===
     ModelTier.NEMOTRON_NANO.value: ModelCapabilities(
         model_id=ModelTier.NEMOTRON_NANO.value,
@@ -184,7 +192,6 @@ MODEL_REGISTRY: Dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.0002,
         best_for=["structured_output", "json_responses", "assessment_scoring"],
     ),
-
     # === FAST TIER ===
     ModelTier.PHI4_MINI.value: ModelCapabilities(
         model_id=ModelTier.PHI4_MINI.value,
@@ -216,9 +223,12 @@ MODEL_REGISTRY: Dict[str, ModelCapabilities] = {
         typical_latency_ms=200,
         supports_streaming=True,
         cost_per_1k_tokens=0.00003,
-        best_for=["fast_nvidia_optimized", "balanced_speed_quality", "quick_turnaround"],
+        best_for=[
+            "fast_nvidia_optimized",
+            "balanced_speed_quality",
+            "quick_turnaround",
+        ],
     ),
-
     # === SAFETY TIER ===
     ModelTier.NEMOTRON_SAFETY.value: ModelCapabilities(
         model_id=ModelTier.NEMOTRON_SAFETY.value,
@@ -226,7 +236,12 @@ MODEL_REGISTRY: Dict[str, ModelCapabilities] = {
         typical_latency_ms=400,
         supports_streaming=True,
         cost_per_1k_tokens=0.0001,
-        best_for=["crisis_detection", "harm_prevention", "safety_checking", "guardrails"],
+        best_for=[
+            "crisis_detection",
+            "harm_prevention",
+            "safety_checking",
+            "guardrails",
+        ],
     ),
     ModelTier.NEMOGUARD_CONTENT.value: ModelCapabilities(
         model_id=ModelTier.NEMOGUARD_CONTENT.value,
@@ -244,7 +259,6 @@ MODEL_REGISTRY: Dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.00015,
         best_for=["meta_safety", "comprehensive_guard", "multi_category_safety"],
     ),
-
     # === MULTILINGUAL TIER ===
     ModelTier.QWEN_35_LARGE.value: ModelCapabilities(
         model_id=ModelTier.QWEN_35_LARGE.value,
@@ -262,7 +276,6 @@ MODEL_REGISTRY: Dict[str, ModelCapabilities] = {
         cost_per_1k_tokens=0.0002,
         best_for=["balanced_multilingual", "efficient_translation", "cross_cultural"],
     ),
-
     # === EMBEDDING TIER ===
     ModelTier.NEMOTRON_EMBED.value: ModelCapabilities(
         model_id=ModelTier.NEMOTRON_EMBED.value,
@@ -279,7 +292,11 @@ MODEL_REGISTRY: Dict[str, ModelCapabilities] = {
         typical_latency_ms=80,
         supports_streaming=False,
         cost_per_1k_tokens=0.00001,
-        best_for=["multilingual_embeddings", "cross_lingual_search", "diverse_languages"],
+        best_for=[
+            "multilingual_embeddings",
+            "cross_lingual_search",
+            "diverse_languages",
+        ],
     ),
 }
 
@@ -336,7 +353,9 @@ class EnhancedNvidiaConfig(BaseModel):
 
     # Safety Configuration
     enable_crisis_detection: bool = Field(True, description="Enable crisis detection")
-    crisis_detection_threshold: float = Field(0.7, description="Threshold for crisis detection")
+    crisis_detection_threshold: float = Field(
+        0.7, description="Threshold for crisis detection"
+    )
 
     # User Configuration
     user_id: str = Field("default_user", description="Default user ID for memory")
@@ -640,8 +659,12 @@ class EnhancedNvidiaNimManager:
         self.model_selector = TieredModelSelector(config)
 
         # Initialize specialized components
-        reasoning_model = config.model_tiers.get("reasoning", ModelTier.NEMOTRON_SUPER.value)
-        embedding_model = config.model_tiers.get("embedding", ModelTier.NEMOTRON_EMBED.value)
+        reasoning_model = config.model_tiers.get(
+            "reasoning", ModelTier.NEMOTRON_SUPER.value
+        )
+        embedding_model = config.model_tiers.get(
+            "embedding", ModelTier.NEMOTRON_EMBED.value
+        )
 
         self.crisis_detector = CrisisDetector(self.client, reasoning_model)
         self.embedding_generator = EmbeddingGenerator(
@@ -704,9 +727,7 @@ class EnhancedNvidiaNimManager:
                 latency_ms = (time.time() - start_time) * 1000
                 self.model_selector.record_latency(model, latency_ms)
 
-                logger.debug(
-                    f"Generated response with {model} in {latency_ms:.0f}ms"
-                )
+                logger.debug(f"Generated response with {model} in {latency_ms:.0f}ms")
 
                 return response.choices[0].message.content
 
@@ -841,7 +862,9 @@ Offer appropriate resources and encourage professional help."""
                     results[tier_name] = {
                         "status": "healthy",
                         "model": model_id,
-                        "response_length": len(response.choices[0].message.content or ""),
+                        "response_length": len(
+                            response.choices[0].message.content or ""
+                        ),
                     }
             except Exception as e:
                 results[tier_name] = {

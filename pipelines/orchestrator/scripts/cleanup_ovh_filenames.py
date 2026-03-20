@@ -87,12 +87,15 @@ def get_s3_client():
     if not access_key or not secret_key:
         raise ValueError("OVH_S3_ACCESS_KEY and OVH_S3_SECRET_KEY must be set")
 
-    return boto3.client(
-        "s3",
-        endpoint_url=f"https://{endpoint}",
-        aws_access_key_id=access_key,
-        aws_secret_access_key=secret_key,
-    ), bucket
+    return (
+        boto3.client(
+            "s3",
+            endpoint_url=f"https://{endpoint}",
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+        ),
+        bucket,
+    )
 
 
 def check_objects_exist(s3_client, bucket: str, keys: List[str]) -> Dict[str, bool]:

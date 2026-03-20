@@ -57,7 +57,9 @@ class DatasetInventoryAuditor:
             required=True,
         ),
         "edge_case_synthetic": DatasetFamily(
-            name="edge_case_synthetic", description="Synthetic edge case dataset", required=True
+            name="edge_case_synthetic",
+            description="Synthetic edge case dataset",
+            required=True,
         ),
         "long_running_therapy": DatasetFamily(
             name="long_running_therapy",
@@ -65,7 +67,9 @@ class DatasetInventoryAuditor:
             required=True,
         ),
         "mental_health_datasets": DatasetFamily(
-            name="mental_health_datasets", description="All mental health datasets", required=True
+            name="mental_health_datasets",
+            description="All mental health datasets",
+            required=True,
         ),
         "video_transcripts": DatasetFamily(
             name="video_transcripts",
@@ -82,8 +86,12 @@ class DatasetInventoryAuditor:
             description="Unrestricted content for robust handling of nasty content",
             required=True,
         ),
-        "sarcasm": DatasetFamily(name="sarcasm", description="Sarcasm datasets", required=True),
-        "cptsd": DatasetFamily(name="cptsd", description="CPTSD-specific datasets", required=True),
+        "sarcasm": DatasetFamily(
+            name="sarcasm", description="Sarcasm datasets", required=True
+        ),
+        "cptsd": DatasetFamily(
+            name="cptsd", description="CPTSD-specific datasets", required=True
+        ),
         "addiction": DatasetFamily(
             name="addiction", description="Addiction-specific datasets", required=True
         ),
@@ -96,7 +104,9 @@ class DatasetInventoryAuditor:
             required=True,
         ),
         "dpo_preference": DatasetFamily(
-            name="dpo_preference", description="DPO/preference training datasets", required=True
+            name="dpo_preference",
+            description="DPO/preference training datasets",
+            required=True,
         ),
     }
 
@@ -112,7 +122,11 @@ class DatasetInventoryAuditor:
             "edge_case_loader",
             "edge_cases_training",
         ],
-        "edge_case_resulting_chats": ["edge_case.*chat", "resulting.*chat", "edge.*conversation"],
+        "edge_case_resulting_chats": [
+            "edge_case.*chat",
+            "resulting.*chat",
+            "edge.*conversation",
+        ],
         "edge_case_synthetic": ["synthetic.*edge", "edge.*synthetic"],
         "long_running_therapy": [
             "long.*session",
@@ -177,10 +191,18 @@ class DatasetInventoryAuditor:
             "designer",
             "scenario.*generator",
         ],
-        "dpo_preference": ["dpo", "preference", "rlhf", "human.*preference", "anthropic.*hh"],
+        "dpo_preference": [
+            "dpo",
+            "preference",
+            "rlhf",
+            "human.*preference",
+            "anthropic.*hh",
+        ],
     }
 
-    def __init__(self, manifest_path: str | Path, registry_path: str | Path | None = None):
+    def __init__(
+        self, manifest_path: str | Path, registry_path: str | Path | None = None
+    ):
         self.manifest_path = Path(manifest_path)
         self.registry_path = Path(registry_path) if registry_path else None
         self.manifest_data: dict[str, Any] = {}
@@ -220,7 +242,9 @@ class DatasetInventoryAuditor:
                     extract_from_category(value, f"{prefix}/{key}")
 
         if "categories" in self.manifest_data:
-            for category_name, category_data in self.manifest_data["categories"].items():
+            for category_name, category_data in self.manifest_data[
+                "categories"
+            ].items():
                 extract_from_category(category_data, category_name)
 
     def load_registry(self) -> None:
@@ -253,7 +277,9 @@ class DatasetInventoryAuditor:
                     pattern = keyword.replace(".*", ".*").replace("*", ".*")
                     if re.search(pattern, key_lower, re.IGNORECASE):
                         self.family_matches[family_name].append(s3_obj)
-                        self.REQUIRED_FAMILIES[family_name].s3_evidence.append(s3_obj.key)
+                        self.REQUIRED_FAMILIES[family_name].s3_evidence.append(
+                            s3_obj.key
+                        )
                         break
 
     def incorporate_local_generated(self, generated_dir: Path) -> None:
@@ -283,7 +309,9 @@ class DatasetInventoryAuditor:
                 family.notes = "No S3 objects found matching this family"
             elif evidence_count < 3:
                 family.status = "partial"
-                family.notes = f"Found {evidence_count} matching object(s) - may need more"
+                family.notes = (
+                    f"Found {evidence_count} matching object(s) - may need more"
+                )
             else:
                 family.status = "present"
                 family.notes = f"Found {evidence_count} matching object(s)"
@@ -349,16 +377,16 @@ class DatasetInventoryAuditor:
 def main():
     """Main entry point"""
     project_root = Path(__file__).parents[3]
-    manifest_path = (
-        project_root / "ai" / "training" / "data" / "s3_manifest.json"
-    )
+    manifest_path = project_root / "ai" / "training" / "data" / "s3_manifest.json"
     registry_path = project_root / "ai" / "data" / "dataset_registry.json"
 
     auditor = DatasetInventoryAuditor(manifest_path, registry_path)
     report = auditor.run_audit()
 
     # Save report
-    output_path = project_root / "ai" / "training" / "data" / "dataset_coverage_report.json"
+    output_path = (
+        project_root / "ai" / "training" / "data" / "dataset_coverage_report.json"
+    )
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(output_path, "w", encoding="utf-8") as f:

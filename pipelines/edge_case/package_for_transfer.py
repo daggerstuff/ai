@@ -56,7 +56,9 @@ def create_transfer_package():
     print(f"💾 Size: {zip_size:,} bytes ({zip_size / 1024:.1f} KB)")  # noqa: T201
     print(f"📁 Current directory: {os.getcwd()}")  # noqa: T201
 
-    print(f"\n🚀 Ready for transfer! Upload {zip_filename} to Google Drive.")  # noqa: T201
+    print(
+        f"\n🚀 Ready for transfer! Upload {zip_filename} to Google Drive."
+    )  # noqa: T201
 
     return zip_filename
 

@@ -129,7 +129,6 @@ async def analyze_defense(
             ),
         )
 
-
     from training.defense_mechanisms.dataset import format_dialogue
 
     turns = [{"speaker": t.speaker, "text": t.text} for t in request.dialogue]

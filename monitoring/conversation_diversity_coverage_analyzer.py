@@ -157,20 +157,22 @@ class ConversationDiversityCoverageAnalyzer:
         vocabulary_stats = {
             "total_unique_words": len(all_words),
             "total_word_instances": sum(word_frequencies.values()),
-            "vocabulary_richness": len(all_words) / sum(word_frequencies.values())
-            if sum(word_frequencies.values()) > 0
-            else 0,
+            "vocabulary_richness": (
+                len(all_words) / sum(word_frequencies.values())
+                if sum(word_frequencies.values()) > 0
+                else 0
+            ),
             "most_common_words": word_frequencies.most_common(20),
             "rare_words_count": sum(
                 1 for count in word_frequencies.values() if count == 1
             ),
-            "rare_words_percentage": sum(
-                1 for count in word_frequencies.values() if count == 1
-            )
-            / len(all_words)
-            * 100
-            if len(all_words) > 0
-            else 0,
+            "rare_words_percentage": (
+                sum(1 for count in word_frequencies.values() if count == 1)
+                / len(all_words)
+                * 100
+                if len(all_words) > 0
+                else 0
+            ),
         }
 
         # Dataset vocabulary diversity
@@ -178,11 +180,11 @@ class ConversationDiversityCoverageAnalyzer:
         for dataset, vocab in dataset_vocabularies.items():
             dataset_vocab_stats[dataset] = {
                 "unique_words": len(vocab),
-                "vocabulary_overlap_with_global": len(vocab.intersection(all_words))
-                / len(all_words)
-                * 100
-                if len(all_words) > 0
-                else 0,
+                "vocabulary_overlap_with_global": (
+                    len(vocab.intersection(all_words)) / len(all_words) * 100
+                    if len(all_words) > 0
+                    else 0
+                ),
                 "unique_to_dataset": len(vocab - (all_words - vocab)),
                 "conversation_count": len(
                     conversations[conversations["dataset"] == dataset]
@@ -194,11 +196,11 @@ class ConversationDiversityCoverageAnalyzer:
         for tier, vocab in tier_vocabularies.items():
             tier_vocab_stats[tier] = {
                 "unique_words": len(vocab),
-                "vocabulary_overlap_with_global": len(vocab.intersection(all_words))
-                / len(all_words)
-                * 100
-                if len(all_words) > 0
-                else 0,
+                "vocabulary_overlap_with_global": (
+                    len(vocab.intersection(all_words)) / len(all_words) * 100
+                    if len(all_words) > 0
+                    else 0
+                ),
                 "conversation_count": len(conversations[conversations["tier"] == tier]),
             }
 
@@ -276,14 +278,14 @@ class ConversationDiversityCoverageAnalyzer:
             topic_diversity = {
                 "cluster_count": n_clusters,
                 "cluster_analysis": cluster_analysis,
-                "topic_distribution_entropy": self._calculate_cluster_entropy(
-                    cluster_labels
-                )
-                if n_clusters > 1
-                else 0,
-                "average_cluster_size": len(texts) / n_clusters
-                if n_clusters > 0
-                else len(texts),
+                "topic_distribution_entropy": (
+                    self._calculate_cluster_entropy(cluster_labels)
+                    if n_clusters > 1
+                    else 0
+                ),
+                "average_cluster_size": (
+                    len(texts) / n_clusters if n_clusters > 0 else len(texts)
+                ),
             }
 
         except Exception as e:
@@ -479,9 +481,11 @@ class ConversationDiversityCoverageAnalyzer:
             "dataset_count": len(dataset_counts),
             "largest_dataset": dataset_counts.index[0],
             "smallest_dataset": dataset_counts.index[-1],
-            "size_ratio": dataset_counts.iloc[0] / dataset_counts.iloc[-1]
-            if len(dataset_counts) > 1
-            else 1,
+            "size_ratio": (
+                dataset_counts.iloc[0] / dataset_counts.iloc[-1]
+                if len(dataset_counts) > 1
+                else 1
+            ),
         }
 
         # Tier coverage
@@ -687,11 +691,11 @@ class ConversationDiversityCoverageAnalyzer:
                     "monthly_diversity_scores": {
                         str(k): v for k, v in monthly_diversity.to_dict().items()
                     },
-                    "trend_direction": "increasing"
-                    if monthly_diversity.iloc[-1] > monthly_diversity.iloc[0]
-                    else "decreasing"
-                    if len(monthly_diversity) > 1
-                    else "stable",
+                    "trend_direction": (
+                        "increasing"
+                        if monthly_diversity.iloc[-1] > monthly_diversity.iloc[0]
+                        else "decreasing" if len(monthly_diversity) > 1 else "stable"
+                    ),
                 }
             else:
                 trends_analysis["monthly_trends"] = {}
@@ -719,11 +723,11 @@ class ConversationDiversityCoverageAnalyzer:
         completeness_analysis["combination_coverage"] = {
             "total_possible": total_possible_combinations,
             "actual_combinations": actual_combinations,
-            "coverage_percentage": actual_combinations
-            / total_possible_combinations
-            * 100
-            if total_possible_combinations > 0
-            else 0,
+            "coverage_percentage": (
+                actual_combinations / total_possible_combinations * 100
+                if total_possible_combinations > 0
+                else 0
+            ),
         }
 
         # Content coverage assessment
@@ -745,9 +749,9 @@ class ConversationDiversityCoverageAnalyzer:
             category: {
                 "count": count,
                 "percentage": count / total_conversations * 100,
-                "adequacy": "good"
-                if count > total_conversations * 0.2
-                else "needs_improvement",
+                "adequacy": (
+                    "good" if count > total_conversations * 0.2 else "needs_improvement"
+                ),
             }
             for category, count in size_categories.items()
         }

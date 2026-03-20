@@ -840,9 +840,11 @@ class YouTubeRAGSystem:
         for entry in selected_entries:
             example = {
                 "input": f"Client is struggling with {topic}",
-                "output": f"{entry.content[:300]}..."
-                if len(entry.content) > 300
-                else entry.content,
+                "output": (
+                    f"{entry.content[:300]}..."
+                    if len(entry.content) > 300
+                    else entry.content
+                ),
                 "context": {
                     "speaker": entry.metadata.speaker,
                     "title": entry.metadata.title,
@@ -960,9 +962,9 @@ class YouTubeRAGSystem:
             "speakers": list(speakers),
             "total_duration_hours": round(total_duration / 3600, 2),
             "total_words": total_words,
-            "average_words_per_transcript": round(total_words / len(self.transcripts))
-            if self.transcripts
-            else 0,
+            "average_words_per_transcript": (
+                round(total_words / len(self.transcripts)) if self.transcripts else 0
+            ),
             "topics_distribution": topics_count,
             "approaches_distribution": approaches_count,
             "indexed_chunks": len(self.rag_index),

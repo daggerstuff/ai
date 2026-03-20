@@ -130,9 +130,7 @@ def list_agents(ctx, status: str, detailed: bool):
             status_icon = (
                 "🟢"
                 if agent["status"] == "active"
-                else "🔴"
-                if agent["status"] == "inactive"
-                else "🟡"
+                else "🔴" if agent["status"] == "inactive" else "🟡"
             )
 
             click.echo(f"{status_icon} {agent['name']} ({agent['id']})")
@@ -623,9 +621,7 @@ def _display_executions_list(executions: List[Dict[str, Any]]) -> None:
         status_icon = (
             "🟢"
             if execution["status"] == "completed"
-            else "🟡"
-            if execution["status"] == "running"
-            else "🔴"
+            else "🟡" if execution["status"] == "running" else "🔴"
         )
         click.echo(
             f"  {status_icon} {execution['id']} - {execution['tool']} - {execution['status']}"

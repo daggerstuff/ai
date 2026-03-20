@@ -21,6 +21,7 @@ logger = get_logger("dataset_pipeline.monitoring.metrics_edge")
 
 class MetricType(Enum):
     """Types of metrics tracked"""
+
     TRAINING_LOSS = "training_loss"
     ACCURACY = "accuracy"
     PERPLEXITY = "perplexity"
@@ -38,6 +39,7 @@ class MetricType(Enum):
 @dataclass
 class TrainingMetrics:
     """Core training performance metrics"""
+
     loss: float
     accuracy: float
     perplexity: Optional[float] = None
@@ -48,9 +50,14 @@ class TrainingMetrics:
 @dataclass
 class CrisisResponseMetrics:
     """Crisis response accuracy metrics"""
+
     crisis_response_accuracy: float  # 0.0 to 1.0
-    by_category: Dict[str, float] = field(default_factory=dict)  # EdgeCategory -> accuracy
-    by_intensity: Dict[str, float] = field(default_factory=dict)  # IntensityLevel -> accuracy
+    by_category: Dict[str, float] = field(
+        default_factory=dict
+    )  # EdgeCategory -> accuracy
+    by_intensity: Dict[str, float] = field(
+        default_factory=dict
+    )  # IntensityLevel -> accuracy
     total_crisis_examples: int = 0
     correctly_handled: int = 0
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
@@ -59,8 +66,11 @@ class CrisisResponseMetrics:
 @dataclass
 class EmpathyMetrics:
     """Empathy score tracking metrics"""
+
     empathy_score: float  # 0.0 to 1.0
-    empathy_by_stage: Dict[str, float] = field(default_factory=dict)  # stage_id -> score
+    empathy_by_stage: Dict[str, float] = field(
+        default_factory=dict
+    )  # stage_id -> score
     empathy_by_tone: Dict[str, float] = field(default_factory=dict)  # tone -> score
     total_examples: int = 0
     timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
@@ -69,8 +79,11 @@ class EmpathyMetrics:
 @dataclass
 class EdgeScenarioMetrics:
     """Edge scenario success rate metrics"""
+
     edge_scenario_success_rate: float  # 0.0 to 1.0
-    by_category: Dict[str, float] = field(default_factory=dict)  # EdgeCategory -> success rate
+    by_category: Dict[str, float] = field(
+        default_factory=dict
+    )  # EdgeCategory -> success rate
     nightmare_fuel_success_rate: float = 0.0  # Overall nightmare scenario success
     total_edge_scenarios: int = 0
     successful_scenarios: int = 0
@@ -80,6 +93,7 @@ class EdgeScenarioMetrics:
 @dataclass
 class ResourceMetrics:
     """Resource utilization metrics"""
+
     gpu_utilization: float  # 0.0 to 100.0
     gpu_memory_used_gb: float
     gpu_memory_total_gb: float
@@ -93,6 +107,7 @@ class ResourceMetrics:
 @dataclass
 class EdgeTrainingMetrics:
     """Comprehensive edge training metrics report"""
+
     run_id: str
     training_metrics: TrainingMetrics
     crisis_metrics: CrisisResponseMetrics
@@ -164,13 +179,17 @@ class EdgeMetricsCollector:
     def __init__(self, output_dir: Optional[Union[str, Path]] = None):
         """
         Initialize metrics collector.
-        
+
         Args:
             output_dir: Directory to save metrics reports
         """
-        self.output_dir = Path(output_dir) if output_dir else get_dataset_pipeline_output_root() / "monitoring" / "metrics"
+        self.output_dir = (
+            Path(output_dir)
+            if output_dir
+            else get_dataset_pipeline_output_root() / "monitoring" / "metrics"
+        )
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         self.metrics_history: List[EdgeTrainingMetrics] = []
 
     def record_training_step(
@@ -183,14 +202,14 @@ class EdgeMetricsCollector:
     ) -> TrainingMetrics:
         """
         Record a training step.
-        
+
         Args:
             run_id: Training run identifier
             loss: Training loss
             accuracy: Training accuracy
             perplexity: Optional perplexity
             throughput: Optional throughput (examples/second)
-        
+
         Returns:
             TrainingMetrics object
         """
@@ -210,7 +229,7 @@ class EdgeMetricsCollector:
     ) -> None:
         """
         Record a crisis response evaluation.
-        
+
         Args:
             run_id: Training run identifier
             category: Edge category
@@ -228,36 +247,46 @@ class EdgeMetricsCollector:
     ) -> CrisisResponseMetrics:
         """
         Calculate crisis response metrics from evaluations.
-        
+
         Args:
             crisis_evaluations: List of evaluation results
-        
+
         Returns:
             CrisisResponseMetrics
         """
         if not crisis_evaluations:
             return CrisisResponseMetrics(crisis_response_accuracy=0.0)
-        
+
         total = len(crisis_evaluations)
-        correct = sum(1 for e in crisis_evaluations if e.get("correctly_handled", False))
+        correct = sum(
+            1 for e in crisis_evaluations if e.get("correctly_handled", False)
+        )
         accuracy = correct / total if total > 0 else 0.0
-        
+
         # Calculate by category
         by_category = {}
         for cat in EdgeCategory:
-            cat_evals = [e for e in crisis_evaluations if e.get("category") == cat.value]
+            cat_evals = [
+                e for e in crisis_evaluations if e.get("category") == cat.value
+            ]
             if cat_evals:
-                cat_correct = sum(1 for e in cat_evals if e.get("correctly_handled", False))
+                cat_correct = sum(
+                    1 for e in cat_evals if e.get("correctly_handled", False)
+                )
                 by_category[cat.value] = cat_correct / len(cat_evals)
-        
+
         # Calculate by intensity
         by_intensity = {}
         for intensity in IntensityLevel:
-            int_evals = [e for e in crisis_evaluations if e.get("intensity") == intensity.value]
+            int_evals = [
+                e for e in crisis_evaluations if e.get("intensity") == intensity.value
+            ]
             if int_evals:
-                int_correct = sum(1 for e in int_evals if e.get("correctly_handled", False))
+                int_correct = sum(
+                    1 for e in int_evals if e.get("correctly_handled", False)
+                )
                 by_intensity[intensity.value] = int_correct / len(int_evals)
-        
+
         return CrisisResponseMetrics(
             crisis_response_accuracy=accuracy,
             by_category=by_category,
@@ -272,33 +301,46 @@ class EdgeMetricsCollector:
     ) -> EmpathyMetrics:
         """
         Calculate empathy metrics from scores.
-        
+
         Args:
             empathy_scores: List of empathy score records
-        
+
         Returns:
             EmpathyMetrics
         """
         if not empathy_scores:
             return EmpathyMetrics(empathy_score=0.0)
-        
+
         total = len(empathy_scores)
-        avg_empathy = sum(s.get("score", 0.0) for s in empathy_scores) / total if total > 0 else 0.0
-        
+        avg_empathy = (
+            sum(s.get("score", 0.0) for s in empathy_scores) / total
+            if total > 0
+            else 0.0
+        )
+
         # Calculate by stage
         by_stage = {}
-        for stage_id in ["stage1_foundation", "stage2_therapeutic_expertise", "stage3_edge_stress_test", "stage4_voice_persona"]:
+        for stage_id in [
+            "stage1_foundation",
+            "stage2_therapeutic_expertise",
+            "stage3_edge_stress_test",
+            "stage4_voice_persona",
+        ]:
             stage_scores = [s for s in empathy_scores if s.get("stage") == stage_id]
             if stage_scores:
-                by_stage[stage_id] = sum(s.get("score", 0.0) for s in stage_scores) / len(stage_scores)
-        
+                by_stage[stage_id] = sum(
+                    s.get("score", 0.0) for s in stage_scores
+                ) / len(stage_scores)
+
         # Calculate by tone
         by_tone = {}
         for tone in ["FOUNDATION", "CLINICAL", "CRISIS_DIRECT"]:
             tone_scores = [s for s in empathy_scores if s.get("tone") == tone]
             if tone_scores:
-                by_tone[tone] = sum(s.get("score", 0.0) for s in tone_scores) / len(tone_scores)
-        
+                by_tone[tone] = sum(s.get("score", 0.0) for s in tone_scores) / len(
+                    tone_scores
+                )
+
         return EmpathyMetrics(
             empathy_score=avg_empathy,
             empathy_by_stage=by_stage,
@@ -312,28 +354,30 @@ class EdgeMetricsCollector:
     ) -> EdgeScenarioMetrics:
         """
         Calculate edge scenario success rate metrics.
-        
+
         Args:
             scenario_results: List of scenario evaluation results
-        
+
         Returns:
             EdgeScenarioMetrics
         """
         if not scenario_results:
             return EdgeScenarioMetrics(edge_scenario_success_rate=0.0)
-        
+
         total = len(scenario_results)
         successful = sum(1 for r in scenario_results if r.get("success", False))
         success_rate = successful / total if total > 0 else 0.0
-        
+
         # Calculate by category
         by_category = {}
         for cat in EdgeCategory:
-            cat_results = [r for r in scenario_results if r.get("category") == cat.value]
+            cat_results = [
+                r for r in scenario_results if r.get("category") == cat.value
+            ]
             if cat_results:
                 cat_success = sum(1 for r in cat_results if r.get("success", False))
                 by_category[cat.value] = cat_success / len(cat_results)
-        
+
         return EdgeScenarioMetrics(
             edge_scenario_success_rate=success_rate,
             by_category=by_category,
@@ -354,7 +398,7 @@ class EdgeMetricsCollector:
     ) -> ResourceMetrics:
         """
         Collect resource utilization metrics.
-        
+
         Args:
             gpu_utilization: GPU utilization percentage
             gpu_memory_used_gb: GPU memory used in GB
@@ -363,7 +407,7 @@ class EdgeMetricsCollector:
             memory_usage_gb: System memory used in GB
             memory_total_gb: Total system memory in GB
             multi_gpu_info: Optional multi-GPU coordination info
-        
+
         Returns:
             ResourceMetrics
         """
@@ -392,7 +436,7 @@ class EdgeMetricsCollector:
     ) -> EdgeTrainingMetrics:
         """
         Generate comprehensive metrics report.
-        
+
         Args:
             run_id: Training run identifier
             training_metrics: Training performance metrics
@@ -404,7 +448,7 @@ class EdgeMetricsCollector:
             total_examples: Total training examples
             edge_examples: Number of edge examples
             metadata: Optional additional metadata
-        
+
         Returns:
             EdgeTrainingMetrics report
         """
@@ -420,13 +464,13 @@ class EdgeMetricsCollector:
             edge_examples=edge_examples,
             metadata=metadata or {},
         )
-        
+
         # Save to history
         self.metrics_history.append(report)
-        
+
         # Save to file
         self._save_report(report)
-        
+
         return report
 
     def _save_report(self, report: EdgeTrainingMetrics):
@@ -434,10 +478,10 @@ class EdgeMetricsCollector:
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         filename = f"edge_metrics_{report.run_id}_{timestamp}.json"
         filepath = self.output_dir / filename
-        
-        with open(filepath, 'w') as f:
+
+        with open(filepath, "w") as f:
             json.dump(report.to_dict(), f, indent=2)
-        
+
         logger.info(f"Saved metrics report to {filepath}")
 
     def export_metrics_summary(
@@ -446,32 +490,30 @@ class EdgeMetricsCollector:
     ) -> Dict[str, Any]:
         """
         Export summary of all collected metrics.
-        
+
         Args:
             output_path: Optional path to save summary
-        
+
         Returns:
             Summary dictionary
         """
         if not self.metrics_history:
             return {"message": "No metrics collected yet"}
-        
+
         # Aggregate metrics
         avg_crisis_accuracy = sum(
-            m.crisis_metrics.crisis_response_accuracy
-            for m in self.metrics_history
+            m.crisis_metrics.crisis_response_accuracy for m in self.metrics_history
         ) / len(self.metrics_history)
-        
+
         avg_empathy = sum(
-            m.empathy_metrics.empathy_score
-            for m in self.metrics_history
+            m.empathy_metrics.empathy_score for m in self.metrics_history
         ) / len(self.metrics_history)
-        
+
         avg_edge_success = sum(
             m.edge_scenario_metrics.edge_scenario_success_rate
             for m in self.metrics_history
         ) / len(self.metrics_history)
-        
+
         summary = {
             "total_runs": len(self.metrics_history),
             "average_crisis_response_accuracy": avg_crisis_accuracy,
@@ -479,10 +521,10 @@ class EdgeMetricsCollector:
             "average_edge_scenario_success_rate": avg_edge_success,
             "runs": [m.to_dict() for m in self.metrics_history],
         }
-        
+
         if output_path:
-            with open(output_path, 'w') as f:
+            with open(output_path, "w") as f:
                 json.dump(summary, f, indent=2)
             logger.info(f"Exported metrics summary to {output_path}")
-        
+
         return summary

@@ -33,14 +33,14 @@ class MemoryCategory(str, Enum):
     PREFERENCE = "preference"
     PROJECT_CONTEXT = "project_context"
     IDENTITY = "identity"
-    
+
     # Emotional/Therapeutic categories (maintained for core mission)
     EMOTIONAL_STATE = "emotional_state"
     INSIGHT = "insight"
     PROGRESS = "progress"
     CRISIS_CONTEXT = "crisis_context"
     SUMMARY = "summary"
-    
+
     GENERAL = "general"
 
 
@@ -113,7 +113,9 @@ class TherapeuticMemoryConfig:
     confidence_threshold: float = field(default=0.8)
     pii_patterns: List[str] = field(default_factory=lambda: DEFAULT_PII_PATTERNS.copy())
     inference_mode: InferenceMode = field(default=InferenceMode.QUALITY)
-    categories: List[MemoryCategory] = field(default_factory=lambda: list(MemoryCategory))
+    categories: List[MemoryCategory] = field(
+        default_factory=lambda: list(MemoryCategory)
+    )
     enable_crisis_detection: bool = field(default=True)
     max_memory_length: int = field(default=2000)
 
@@ -124,7 +126,9 @@ class TherapeuticMemoryConfig:
                 f"confidence_threshold must be 0.0-1.0, got {self.confidence_threshold}"
             )
         if self.max_memory_length < 100:
-            raise ValueError(f"max_memory_length must be >= 100, got {self.max_memory_length}")
+            raise ValueError(
+                f"max_memory_length must be >= 100, got {self.max_memory_length}"
+            )
 
 
 class PIIFilter:
@@ -289,7 +293,9 @@ class SpeculationFilter:
                 return 1.0
 
         # Low confidence for speculative statements
-        speculation_count = sum(1 for ind in cls.SPECULATION_INDICATORS if ind in text_lower)
+        speculation_count = sum(
+            1 for ind in cls.SPECULATION_INDICATORS if ind in text_lower
+        )
 
         if speculation_count >= 2:
             return 0.5
@@ -335,7 +341,9 @@ class CrisisDetector:
 
     def __init__(self):
         """Initialize crisis detector with compiled patterns."""
-        self._compiled_patterns = [re.compile(p, re.IGNORECASE) for p in self.CRISIS_PATTERNS]
+        self._compiled_patterns = [
+            re.compile(p, re.IGNORECASE) for p in self.CRISIS_PATTERNS
+        ]
 
     def detect_crisis(self, text: str) -> bool:
         """

@@ -271,7 +271,7 @@ def create_memory_server() -> FastAPI:
         try:
             manager = get_mcp_manager()
             status = "healthy" if manager else "degraded"
-            
+
             manager_type = str(type(manager))
             if "NvidiaMem0Manager" in manager_type:
                 provider = "NvidiaMem0"

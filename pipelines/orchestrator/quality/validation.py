@@ -196,9 +196,11 @@ def validate_record(raw_record: IngestRecord) -> ConversationRecord:
                 {
                     "speaker_id": row.get("speaker", f"speaker_{i}"),
                     "content": row.get("content", ""),
-                    "timestamp": datetime.fromisoformat(row.get("timestamp", ""))
-                    if row.get("timestamp")
-                    else None,
+                    "timestamp": (
+                        datetime.fromisoformat(row.get("timestamp", ""))
+                        if row.get("timestamp")
+                        else None
+                    ),
                 }
                 for i, row in enumerate(payload.get("rows", []))
             ]
@@ -228,9 +230,11 @@ def validate_record(raw_record: IngestRecord) -> ConversationRecord:
                 {
                     "speaker_id": seg.get("speaker", "unknown"),
                     "content": seg.get("text", ""),
-                    "timestamp": datetime.fromtimestamp(seg.get("start_time", 0))
-                    if seg.get("start_time")
-                    else None,
+                    "timestamp": (
+                        datetime.fromtimestamp(seg.get("start_time", 0))
+                        if seg.get("start_time")
+                        else None
+                    ),
                 }
                 for seg in segments
             ]

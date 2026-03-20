@@ -17,6 +17,7 @@ logger = get_logger(__name__)
 @dataclass
 class DatasetSplit:
     """Dataset split result."""
+
     train: list[Conversation]
     validation: list[Conversation]
     test: list[Conversation]
@@ -36,24 +37,29 @@ class TrainValidationTestSplitter:
         self.logger = get_logger(__name__)
 
         self.default_ratios = {
-            "train": 0.8,      # 80%
+            "train": 0.8,  # 80%
             "validation": 0.1,  # 10%
-            "test": 0.1        # 10%
+            "test": 0.1,  # 10%
         }
 
         self.logger.info("TrainValidationTestSplitter initialized")
 
-    def split_dataset(self, conversations: list[Conversation],
-                     ratios: dict[str, float] | None = None,
-                     stratify_by: str = "tags",
-                     random_seed: int = 42) -> DatasetSplit:
+    def split_dataset(
+        self,
+        conversations: list[Conversation],
+        ratios: dict[str, float] | None = None,
+        stratify_by: str = "tags",
+        random_seed: int = 42,
+    ) -> DatasetSplit:
         """Split dataset into train/validation/test sets."""
         if ratios is None:
             ratios = self.default_ratios
 
         random.seed(random_seed)
 
-        self.logger.info(f"Splitting {len(conversations)} conversations with ratios {ratios}")
+        self.logger.info(
+            f"Splitting {len(conversations)} conversations with ratios {ratios}"
+        )
 
         # Stratify conversations by specified attribute
         stratified_groups = self._stratify_conversations(conversations, stratify_by)
@@ -64,7 +70,9 @@ class TrainValidationTestSplitter:
 
         # Split each stratified group
         for _group_name, group_conversations in stratified_groups.items():
-            group_train, group_val, group_test = self._split_group(group_conversations, ratios)
+            group_train, group_val, group_test = self._split_group(
+                group_conversations, ratios
+            )
 
             train_conversations.extend(group_train)
             validation_conversations.extend(group_val)
@@ -86,19 +94,23 @@ class TrainValidationTestSplitter:
             "split_at": datetime.now().isoformat(),
             "stratified_groups": {
                 group: len(convs) for group, convs in stratified_groups.items()
-            }
+            },
         }
 
-        self.logger.info(f"Split complete: {len(train_conversations)} train, {len(validation_conversations)} val, {len(test_conversations)} test")
+        self.logger.info(
+            f"Split complete: {len(train_conversations)} train, {len(validation_conversations)} val, {len(test_conversations)} test"
+        )
 
         return DatasetSplit(
             train=train_conversations,
             validation=validation_conversations,
             test=test_conversations,
-            split_info=split_info
+            split_info=split_info,
         )
 
-    def _stratify_conversations(self, conversations: list[Conversation], stratify_by: str) -> dict[str, list[Conversation]]:
+    def _stratify_conversations(
+        self, conversations: list[Conversation], stratify_by: str
+    ) -> dict[str, list[Conversation]]:
         """Stratify conversations by specified attribute."""
         groups = {}
 
@@ -128,8 +140,9 @@ class TrainValidationTestSplitter:
 
         return groups
 
-    def _split_group(self, conversations: list[Conversation],
-                    ratios: dict[str, float]) -> tuple[list[Conversation], list[Conversation], list[Conversation]]:
+    def _split_group(
+        self, conversations: list[Conversation], ratios: dict[str, float]
+    ) -> tuple[list[Conversation], list[Conversation], list[Conversation]]:
         """Split a single group of conversations."""
         total = len(conversations)
 
@@ -144,8 +157,8 @@ class TrainValidationTestSplitter:
 
         # Split
         train = shuffled[:train_size]
-        validation = shuffled[train_size:train_size + val_size]
-        test = shuffled[train_size + val_size:]
+        validation = shuffled[train_size : train_size + val_size]
+        test = shuffled[train_size + val_size :]
 
         return train, validation, test
 
@@ -157,7 +170,7 @@ class TrainValidationTestSplitter:
         actual_ratios = {
             "train": len(split.train) / total,
             "validation": len(split.validation) / total,
-            "test": len(split.test) / total
+            "test": len(split.test) / total,
         }
 
         # Check for data leakage (same conversation IDs across splits)
@@ -180,17 +193,25 @@ class TrainValidationTestSplitter:
                 "train_validation": leakage_train_val,
                 "train_test": leakage_train_test,
                 "validation_test": leakage_val_test,
-                "total_leakage": leakage_train_val + leakage_train_test + leakage_val_test
+                "total_leakage": leakage_train_val
+                + leakage_train_test
+                + leakage_val_test,
             },
             "tag_distribution": {
                 "train": train_tags,
                 "validation": val_tags,
-                "test": test_tags
+                "test": test_tags,
             },
-            "split_quality": "good" if (leakage_train_val + leakage_train_test + leakage_val_test) == 0 else "poor"
+            "split_quality": (
+                "good"
+                if (leakage_train_val + leakage_train_test + leakage_val_test) == 0
+                else "poor"
+            ),
         }
 
-    def _get_tag_distribution(self, conversations: list[Conversation]) -> dict[str, int]:
+    def _get_tag_distribution(
+        self, conversations: list[Conversation]
+    ) -> dict[str, int]:
         """Get tag distribution for a set of conversations."""
         tag_counts = {}
         for conv in conversations:

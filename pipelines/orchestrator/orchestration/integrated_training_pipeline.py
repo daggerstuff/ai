@@ -1908,9 +1908,11 @@ class IntegratedTrainingPipeline:
             "fail_on_missing_stage_artifacts": self.config.fail_on_missing_stage_artifacts,
             "stage_balance": self.stats.stage_balance,
             "actual_stage_percentages": {
-                stage: count / self.stats.total_samples
-                if self.stats.total_samples > 0
-                else 0
+                stage: (
+                    count / self.stats.total_samples
+                    if self.stats.total_samples > 0
+                    else 0
+                )
                 for stage, count in self.stats.samples_by_stage.items()
             },
             "split_counts": self.stats.split_counts,

@@ -129,7 +129,9 @@ class HIPAAValidator:
                 access_controls_implemented=False,
                 audit_logging_implemented=False,
                 issues=[],
-                recommendations=["Dataset does not appear to contain PHI - HIPAA may not apply"],
+                recommendations=[
+                    "Dataset does not appear to contain PHI - HIPAA may not apply"
+                ],
                 compliance_score=1.0,
             )
 
@@ -206,16 +208,14 @@ class HIPAAValidator:
 
         # Encryption at rest
         checklist["encryption_at_rest"] = (
-            encryption_status is not None
-            and encryption_status.get("at_rest", False)
+            encryption_status is not None and encryption_status.get("at_rest", False)
             if encryption_status
             else False
         )
 
         # Encryption in transit
         checklist["encryption_in_transit"] = (
-            encryption_status is not None
-            and encryption_status.get("in_transit", False)
+            encryption_status is not None and encryption_status.get("in_transit", False)
             if encryption_status
             else False
         )
@@ -323,9 +323,7 @@ class HIPAAValidator:
             )
 
         if not checklist_items.get("encryption_at_rest", False):
-            recommendations.append(
-                "Implement encryption at rest for all PHI storage"
-            )
+            recommendations.append("Implement encryption at rest for all PHI storage")
 
         if not checklist_items.get("encryption_in_transit", False):
             recommendations.append(
@@ -343,14 +341,10 @@ class HIPAAValidator:
             )
 
         if not checklist_items.get("data_backup", False):
-            recommendations.append(
-                "Establish data backup and recovery procedures"
-            )
+            recommendations.append("Establish data backup and recovery procedures")
 
         if not checklist_items.get("secure_disposal", False):
-            recommendations.append(
-                "Establish secure data disposal procedures"
-            )
+            recommendations.append("Establish secure data disposal procedures")
 
         if not checklist_items.get("risk_assessment", False):
             recommendations.append("Conduct comprehensive risk assessment")
@@ -364,15 +358,11 @@ class HIPAAValidator:
             recommendations.append("Develop incident response plan")
 
         if not checklist_items.get("workforce_training", False):
-            recommendations.append(
-                "Provide HIPAA training to all workforce members"
-            )
+            recommendations.append("Provide HIPAA training to all workforce members")
 
         return recommendations
 
-    def _calculate_compliance_score(
-        self, checklist_items: Dict[str, bool]
-    ) -> float:
+    def _calculate_compliance_score(self, checklist_items: Dict[str, bool]) -> float:
         """Calculate HIPAA compliance score (0.0-1.0)."""
         if not checklist_items:
             return 0.0
@@ -392,9 +382,7 @@ class HIPAAValidator:
         ) / len(critical_items)
 
         other_items = [
-            item
-            for item in self.REQUIRED_CHECKLIST_ITEMS
-            if item not in critical_items
+            item for item in self.REQUIRED_CHECKLIST_ITEMS if item not in critical_items
         ]
         other_score = (
             sum(1 for item in other_items if checklist_items.get(item, False))
@@ -403,9 +391,6 @@ class HIPAAValidator:
             else 0.0
         )
 
-        compliance_score = (
-            critical_score * critical_weight + other_score * other_weight
-        )
+        compliance_score = critical_score * critical_weight + other_score * other_weight
 
         return compliance_score
-

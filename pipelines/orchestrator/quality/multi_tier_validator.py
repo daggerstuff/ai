@@ -299,9 +299,11 @@ class MultiTierValidator:
                 ValidationIssue(
                     tier=tier,
                     category="therapeutic_accuracy",
-                    severity="HIGH"
-                    if tier in [ValidationTier.CLINICAL, ValidationTier.RESEARCH]
-                    else "MEDIUM",
+                    severity=(
+                        "HIGH"
+                        if tier in [ValidationTier.CLINICAL, ValidationTier.RESEARCH]
+                        else "MEDIUM"
+                    ),
                     description=f"Insufficient therapeutic techniques detected ({technique_matches}/{required_techniques})",
                     suggestion="Include more evidence-based therapeutic interventions",
                     confidence_score=0.8,

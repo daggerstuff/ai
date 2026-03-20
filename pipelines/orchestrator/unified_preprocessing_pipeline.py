@@ -1009,9 +1009,11 @@ class UnifiedPreprocessingPipeline:
                             text = record["text"]
                         elif "messages" in record:
                             text = " ".join(
-                                msg.get("content", "")
-                                if isinstance(msg, dict)
-                                else str(msg)
+                                (
+                                    msg.get("content", "")
+                                    if isinstance(msg, dict)
+                                    else str(msg)
+                                )
                                 for msg in record["messages"]
                             )
 
@@ -1428,9 +1430,9 @@ class UnifiedPreprocessingPipeline:
                 self.config.psychology_integration_enabled
             ),
             "final_dataset_path": self.final_dataset_path,
-            "final_dataset_size_bytes": final_dataset_path.stat().st_size
-            if final_dataset_path.exists()
-            else 0,
+            "final_dataset_size_bytes": (
+                final_dataset_path.stat().st_size if final_dataset_path.exists() else 0
+            ),
         }
 
         summary_path = output_dir / "pipeline_summary.json"

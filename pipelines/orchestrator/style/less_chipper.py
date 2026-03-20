@@ -20,14 +20,18 @@ class Tone(Enum):
     Therapeutic response tone levels.
     Matches the brief's distinction between foundation, clinical, and crisis-direct styles.
     """
+
     FOUNDATION = "foundation"  # Gentle, supportive, rapport-building
     CLINICAL = "clinical"  # Matter-of-fact, professional, evidence-based
-    CRISIS_DIRECT = "crisis_direct"  # Direct, serious, minimal fluff, appropriate for crisis
+    CRISIS_DIRECT = (
+        "crisis_direct"  # Direct, serious, minimal fluff, appropriate for crisis
+    )
 
 
 @dataclass
 class ToneLabel:
     """Tone label with confidence and metadata"""
+
     tone: Tone
     confidence: float = 1.0
     reasoning: Optional[str] = None
@@ -105,10 +109,12 @@ class LessChipperToneLabeler:
     def _compile_patterns(self):
         """Compile regex patterns for efficiency"""
         self._toxic_positivity_re = [
-            re.compile(pattern, re.IGNORECASE) for pattern in self.TOXIC_POSITIVITY_PATTERNS
+            re.compile(pattern, re.IGNORECASE)
+            for pattern in self.TOXIC_POSITIVITY_PATTERNS
         ]
         self._crisis_direct_re = [
-            re.compile(pattern, re.IGNORECASE) for pattern in self.CRISIS_DIRECT_PATTERNS
+            re.compile(pattern, re.IGNORECASE)
+            for pattern in self.CRISIS_DIRECT_PATTERNS
         ]
         self._clinical_re = [
             re.compile(pattern, re.IGNORECASE) for pattern in self.CLINICAL_PATTERNS
@@ -117,7 +123,9 @@ class LessChipperToneLabeler:
             re.compile(pattern, re.IGNORECASE) for pattern in self.FOUNDATION_PATTERNS
         ]
 
-    def label_tone(self, text: str, context: Optional[Dict[str, Any]] = None) -> ToneLabel:
+    def label_tone(
+        self, text: str, context: Optional[Dict[str, Any]] = None
+    ) -> ToneLabel:
         """
         Label the tone of a therapeutic response.
 
@@ -144,18 +152,21 @@ class LessChipperToneLabeler:
             crisis_flags = context.get("crisis_indicators", [])
             intensity = context.get("intensity", "").lower()
             is_crisis_context = (
-                len(crisis_flags) > 0 or
-                intensity in ["very_high", "extreme", "high"] or
-                context.get("is_crisis", False)
+                len(crisis_flags) > 0
+                or intensity in ["very_high", "extreme", "high"]
+                or context.get("is_crisis", False)
             )
 
         # Score patterns
-        crisis_score = sum(bool(pattern.search(text_lower))
-                       for pattern in self._crisis_direct_re)
-        clinical_score = sum(bool(pattern.search(text_lower))
-                         for pattern in self._clinical_re)
-        foundation_score = sum(bool(pattern.search(text_lower))
-                           for pattern in self._foundation_re)
+        crisis_score = sum(
+            bool(pattern.search(text_lower)) for pattern in self._crisis_direct_re
+        )
+        clinical_score = sum(
+            bool(pattern.search(text_lower)) for pattern in self._clinical_re
+        )
+        foundation_score = sum(
+            bool(pattern.search(text_lower)) for pattern in self._foundation_re
+        )
 
         # Determine tone based on scores and context
         if is_crisis_context or crisis_score > 0:
@@ -171,7 +182,9 @@ class LessChipperToneLabeler:
         elif foundation_score > 0:
             # Foundation/rapport patterns -> FOUNDATION
             tone = Tone.FOUNDATION
-            reasoning = f"Foundation/rapport patterns detected (score: {foundation_score})"
+            reasoning = (
+                f"Foundation/rapport patterns detected (score: {foundation_score})"
+            )
             confidence = 0.75
         else:
             # Default to CLINICAL for professional responses
@@ -189,14 +202,14 @@ class LessChipperToneLabeler:
                 "clinical_score": clinical_score,
                 "foundation_score": foundation_score,
                 "is_crisis_context": is_crisis_context,
-            }
+            },
         )
 
     def enforce_less_chipper_policy(
         self,
         text: str,
         tone: Union[Tone, str],
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ) -> tuple[str, bool]:
         """
         Enforce less-chipper policy: prevent generic post-processors from inserting
@@ -244,9 +257,11 @@ class LessChipperToneLabeler:
                 # Clean up orphaned punctuation sequences (safe from ReDoS)
                 # Use bounded quantifiers to prevent catastrophic backtracking
                 # Pattern: punctuation, optional whitespace (max 10 chars), 1-10 punctuation marks
-                processed_text = re.sub(r'[,.;]\s{0,10}[,.;]{1,10}', '.', processed_text)
+                processed_text = re.sub(
+                    r"[,.;]\s{0,10}[,.;]{1,10}", ".", processed_text
+                )
                 # Clean up whitespace
-                processed_text = re.sub(r'\s+', ' ', processed_text).strip()
+                processed_text = re.sub(r"\s+", " ", processed_text).strip()
 
             return processed_text, modified
 
@@ -257,7 +272,7 @@ class LessChipperToneLabeler:
         self,
         text: str,
         expected_tone: Union[Tone, str],
-        context: Optional[Dict[str, Any]] = None
+        context: Optional[Dict[str, Any]] = None,
     ) -> tuple[bool, Optional[str]]:
         """
         Validate that a response's tone matches the expected tone for the context.
@@ -296,7 +311,9 @@ class LessChipperToneLabeler:
                 "Crisis responses should be direct and serious, not overly gentle."
             )
 
-        if expected_tone_enum == Tone.CRISIS_DIRECT and actual_label.metadata.get("has_toxic_positivity", False):
+        if expected_tone_enum == Tone.CRISIS_DIRECT and actual_label.metadata.get(
+            "has_toxic_positivity", False
+        ):
             return False, (
                 "Response contains toxic positivity patterns. "
                 "Crisis responses should avoid dismissive optimism."
@@ -328,9 +345,7 @@ def label_tone(text: str, context: Optional[Dict[str, Any]] = None) -> ToneLabel
 
 
 def enforce_less_chipper_policy(
-    text: str,
-    tone: Union[Tone, str],
-    context: Optional[Dict[str, Any]] = None
+    text: str, tone: Union[Tone, str], context: Optional[Dict[str, Any]] = None
 ) -> tuple[str, bool]:
     """
     Convenience function to enforce less-chipper policy.
@@ -344,4 +359,3 @@ def enforce_less_chipper_policy(
         Tuple of (processed_text, was_modified)
     """
     return _labeler.enforce_less_chipper_policy(text, tone, context)
-

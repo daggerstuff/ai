@@ -404,9 +404,9 @@ class DatasetExporter:
             export_time_seconds=export_time,
             errors=errors,
             warnings=warnings,
-            checksum=self._calculate_checksum(output_path)
-            if output_path.exists()
-            else "",
+            checksum=(
+                self._calculate_checksum(output_path) if output_path.exists() else ""
+            ),
         )
 
     def _create_manifest(

@@ -543,9 +543,9 @@ class EventBus:
                 "threshold": threshold,
                 "threshold_exceeded": bias_score > threshold,
                 "recommendations": recommendations or [],
-                "compliance_status": "acceptable"
-                if bias_score <= threshold
-                else "review_required",
+                "compliance_status": (
+                    "acceptable" if bias_score <= threshold else "review_required"
+                ),
             },
             source="bias_detection_service",
             target="pipeline_coordinator",
@@ -566,9 +566,9 @@ class EventBus:
             metrics = self.get_metrics()
 
             return {
-                "status": "healthy"
-                if redis_health["status"] == "healthy"
-                else "degraded",
+                "status": (
+                    "healthy" if redis_health["status"] == "healthy" else "degraded"
+                ),
                 "redis_health": redis_health,
                 "metrics": metrics,
                 "registered_handlers": {

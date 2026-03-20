@@ -250,9 +250,11 @@ class QualityDistributionAnalyzer:
                 "range": np.max(values_array) - np.min(values_array),
                 "skewness": stats.skew(values_array),
                 "kurtosis": stats.kurtosis(values_array),
-                "coefficient_of_variation": np.std(values_array) / np.mean(values_array)
-                if np.mean(values_array) != 0
-                else 0,
+                "coefficient_of_variation": (
+                    np.std(values_array) / np.mean(values_array)
+                    if np.mean(values_array) != 0
+                    else 0
+                ),
             }
 
         except Exception as e:

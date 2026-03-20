@@ -280,9 +280,11 @@ class HyperparameterSweeper:
             sweep_config=sweep_config,
             trial_results=trial_results,
             best_config=best_config or {},
-            best_metric_value=best_metric
-            if best_metric != float("inf") and best_metric != float("-inf")
-            else 0,
+            best_metric_value=(
+                best_metric
+                if best_metric != float("inf") and best_metric != float("-inf")
+                else 0
+            ),
             best_trial_id=best_trial_id or "",
             completed_trials=completed_trials,
             failed_trials=failed_trials,
@@ -591,9 +593,11 @@ class HyperparameterOptimizationSystem:
             # Find the best result
             best_result = max(
                 trial_results,
-                key=lambda r: r.metrics.get(sweep_config.metric, 0)
-                if sweep_config.goal == "maximize"
-                else -r.metrics.get(sweep_config.metric, 0),
+                key=lambda r: (
+                    r.metrics.get(sweep_config.metric, 0)
+                    if sweep_config.goal == "maximize"
+                    else -r.metrics.get(sweep_config.metric, 0)
+                ),
             )
 
             sweep_result = SweepResult(
@@ -645,9 +649,11 @@ class HyperparameterOptimizationSystem:
 
             return {
                 sweep_config.metric: random.random(),  # Placeholder for actual metric
-                "param_count": getattr(result, "num_parameters", 0)
-                if hasattr(result, "num_parameters")
-                else 0,
+                "param_count": (
+                    getattr(result, "num_parameters", 0)
+                    if hasattr(result, "num_parameters")
+                    else 0
+                ),
             }
 
         # Run the sweep using the local sweeper
@@ -715,9 +721,11 @@ class HyperparameterOptimizationSystem:
         report.append("Top 5 Configurations:")
         sorted_trials = sorted(
             sweep_result.trial_results,
-            key=lambda x: x.metrics.get(sweep_result.sweep_config.metric, 0)
-            if sweep_result.sweep_config.goal == "maximize"
-            else -x.metrics.get(sweep_result.sweep_config.metric, 0),
+            key=lambda x: (
+                x.metrics.get(sweep_result.sweep_config.metric, 0)
+                if sweep_result.sweep_config.goal == "maximize"
+                else -x.metrics.get(sweep_result.sweep_config.metric, 0)
+            ),
         )[:5]
 
         for i, trial in enumerate(sorted_trials, 1):

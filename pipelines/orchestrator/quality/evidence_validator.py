@@ -16,9 +16,14 @@ logger = logging.getLogger(__name__)
 
 class EvidenceLevel(Enum):
     """Hierarchy of research evidence levels."""
+
     SYSTEMATIC_REVIEW = ("systematic_review", 1, "Systematic reviews and meta-analyses")
     RCT = ("randomized_controlled_trial", 2, "Randomized controlled trials")
-    CONTROLLED_STUDY = ("controlled_study", 3, "Controlled studies without randomization")
+    CONTROLLED_STUDY = (
+        "controlled_study",
+        3,
+        "Controlled studies without randomization",
+    )
     COHORT_STUDY = ("cohort_study", 4, "Cohort and case-control studies")
     CASE_SERIES = ("case_series", 5, "Case series and case reports")
     EXPERT_OPINION = ("expert_opinion", 6, "Expert opinion and consensus")
@@ -31,6 +36,7 @@ class EvidenceLevel(Enum):
 
 class PracticeGuideline(Enum):
     """Evidence-based practice guidelines."""
+
     APA_CLINICAL = "apa_clinical_psychology"
     APA_COUNSELING = "apa_counseling_psychology"
     SAMHSA = "samhsa_evidence_based_practices"
@@ -41,6 +47,7 @@ class PracticeGuideline(Enum):
 
 class TherapeuticModality(Enum):
     """Evidence-based therapeutic modalities."""
+
     CBT = "cognitive_behavioral_therapy"
     DBT = "dialectical_behavior_therapy"
     ACT = "acceptance_commitment_therapy"
@@ -55,6 +62,7 @@ class TherapeuticModality(Enum):
 @dataclass
 class EvidenceSource:
     """Scientific evidence source."""
+
     source_id: str
     title: str
     authors: list[str]
@@ -74,6 +82,7 @@ class EvidenceSource:
 @dataclass
 class PracticeRecommendation:
     """Evidence-based practice recommendation."""
+
     recommendation_id: str
     guideline_source: PracticeGuideline
     condition: str
@@ -89,6 +98,7 @@ class PracticeRecommendation:
 @dataclass
 class ValidationResult:
     """Evidence validation result."""
+
     intervention_id: str
     is_evidence_based: bool
     evidence_strength: str
@@ -103,6 +113,7 @@ class ValidationResult:
 @dataclass
 class EvidenceAnalysis:
     """Complete evidence analysis."""
+
     conversation_id: str
     identified_interventions: list[str]
     validation_results: list[ValidationResult]
@@ -147,7 +158,10 @@ class EvidenceValidator:
                     p_value=0.001,
                     summary="CBT shows strong evidence for treating depression with large effect sizes",
                     relevant_conditions=["major_depression", "persistent_depression"],
-                    relevant_interventions=["cognitive_restructuring", "behavioral_activation"]
+                    relevant_interventions=[
+                        "cognitive_restructuring",
+                        "behavioral_activation",
+                    ],
                 ),
                 EvidenceSource(
                     source_id="ipt_depression_rct_2022",
@@ -163,8 +177,8 @@ class EvidenceValidator:
                     p_value=0.01,
                     summary="IPT demonstrates moderate to large effects for depression treatment",
                     relevant_conditions=["major_depression"],
-                    relevant_interventions=["interpersonal_therapy", "grief_work"]
-                )
+                    relevant_interventions=["interpersonal_therapy", "grief_work"],
+                ),
             ],
             "anxiety": [
                 EvidenceSource(
@@ -180,8 +194,15 @@ class EvidenceValidator:
                     confidence_interval=(0.65, 0.79),
                     p_value=0.001,
                     summary="CBT is highly effective for anxiety disorders across multiple studies",
-                    relevant_conditions=["generalized_anxiety", "social_anxiety", "panic_disorder"],
-                    relevant_interventions=["exposure_therapy", "cognitive_restructuring"]
+                    relevant_conditions=[
+                        "generalized_anxiety",
+                        "social_anxiety",
+                        "panic_disorder",
+                    ],
+                    relevant_interventions=[
+                        "exposure_therapy",
+                        "cognitive_restructuring",
+                    ],
                 )
             ],
             "trauma": [
@@ -199,9 +220,9 @@ class EvidenceValidator:
                     p_value=0.001,
                     summary="EMDR shows strong evidence for PTSD treatment with large effect sizes",
                     relevant_conditions=["ptsd", "complex_trauma"],
-                    relevant_interventions=["emdr", "trauma_processing"]
+                    relevant_interventions=["emdr", "trauma_processing"],
                 )
-            ]
+            ],
         }
 
     def _load_practice_guidelines(self) -> dict[str, list[PracticeRecommendation]]:
@@ -216,9 +237,12 @@ class EvidenceValidator:
                     recommendation_strength="strong",
                     evidence_quality="high",
                     recommendation_text="CBT is strongly recommended as first-line treatment for major depression",
-                    supporting_evidence=["cbt_depression_meta_2023", "multiple_rcts_2020_2023"],
+                    supporting_evidence=[
+                        "cbt_depression_meta_2023",
+                        "multiple_rcts_2020_2023",
+                    ],
                     contraindications=["severe_psychosis", "active_substance_abuse"],
-                    implementation_notes="Typically 12-20 sessions, structured approach with homework"
+                    implementation_notes="Typically 12-20 sessions, structured approach with homework",
                 ),
                 PracticeRecommendation(
                     recommendation_id="nice_depression_ipt_2022",
@@ -230,8 +254,8 @@ class EvidenceValidator:
                     recommendation_text="IPT is recommended for depression, particularly with interpersonal difficulties",
                     supporting_evidence=["ipt_depression_rct_2022"],
                     contraindications=["severe_personality_disorders"],
-                    implementation_notes="Focus on interpersonal relationships and life transitions"
-                )
+                    implementation_notes="Focus on interpersonal relationships and life transitions",
+                ),
             ],
             "anxiety": [
                 PracticeRecommendation(
@@ -244,7 +268,7 @@ class EvidenceValidator:
                     recommendation_text="CBT with exposure therapy is strongly recommended for anxiety disorders",
                     supporting_evidence=["cbt_anxiety_cochrane_2023"],
                     contraindications=["severe_agoraphobia_without_support"],
-                    implementation_notes="Include graded exposure and cognitive restructuring"
+                    implementation_notes="Include graded exposure and cognitive restructuring",
                 )
             ],
             "trauma": [
@@ -258,9 +282,9 @@ class EvidenceValidator:
                     recommendation_text="EMDR is strongly recommended for PTSD treatment",
                     supporting_evidence=["emdr_ptsd_meta_2023"],
                     contraindications=["active_psychosis", "severe_dissociation"],
-                    implementation_notes="Requires specialized training and careful assessment"
+                    implementation_notes="Requires specialized training and careful assessment",
                 )
-            ]
+            ],
         }
 
     def _load_intervention_mappings(self) -> dict[str, list[str]]:
@@ -273,26 +297,47 @@ class EvidenceValidator:
             "interpersonal_therapy": ["depression"],
             "emdr": ["trauma", "ptsd"],
             "dbt_skills": ["borderline_personality", "emotion_regulation"],
-            "acceptance_commitment": ["anxiety", "depression", "chronic_pain"]
+            "acceptance_commitment": ["anxiety", "depression", "chronic_pain"],
         }
 
     def _load_quality_criteria(self) -> dict[str, dict[str, Any]]:
         """Load quality assessment criteria."""
         return {
             "evidence_strength": {
-                "strong": {"min_effect_size": 0.6, "min_studies": 5, "required_levels": [1, 2]},
-                "moderate": {"min_effect_size": 0.4, "min_studies": 3, "required_levels": [1, 2, 3]},
-                "weak": {"min_effect_size": 0.2, "min_studies": 1, "required_levels": [1, 2, 3, 4]},
-                "insufficient": {"min_effect_size": 0.0, "min_studies": 0, "required_levels": []}
+                "strong": {
+                    "min_effect_size": 0.6,
+                    "min_studies": 5,
+                    "required_levels": [1, 2],
+                },
+                "moderate": {
+                    "min_effect_size": 0.4,
+                    "min_studies": 3,
+                    "required_levels": [1, 2, 3],
+                },
+                "weak": {
+                    "min_effect_size": 0.2,
+                    "min_studies": 1,
+                    "required_levels": [1, 2, 3, 4],
+                },
+                "insufficient": {
+                    "min_effect_size": 0.0,
+                    "min_studies": 0,
+                    "required_levels": [],
+                },
             },
             "recommendation_strength": {
                 "strong": {"evidence_quality": ["high"], "consistency": "high"},
-                "moderate": {"evidence_quality": ["high", "moderate"], "consistency": "moderate"},
-                "weak": {"evidence_quality": ["moderate", "low"], "consistency": "low"}
-            }
+                "moderate": {
+                    "evidence_quality": ["high", "moderate"],
+                    "consistency": "moderate",
+                },
+                "weak": {"evidence_quality": ["moderate", "low"], "consistency": "low"},
+            },
         }
 
-    def validate_evidence_based_practice(self, conversation: dict[str, Any]) -> EvidenceAnalysis:
+    def validate_evidence_based_practice(
+        self, conversation: dict[str, Any]
+    ) -> EvidenceAnalysis:
         """Validate evidence-based practice in conversation."""
         try:
             # Extract content and identify interventions
@@ -309,10 +354,14 @@ class EvidenceValidator:
             overall_quality = self._calculate_overall_quality(validation_results)
 
             # Identify evidence gaps
-            evidence_gaps = self._identify_evidence_gaps(interventions, validation_results)
+            evidence_gaps = self._identify_evidence_gaps(
+                interventions, validation_results
+            )
 
             # Generate improvement suggestions
-            improvements = self._generate_improvement_suggestions(validation_results, evidence_gaps)
+            improvements = self._generate_improvement_suggestions(
+                validation_results, evidence_gaps
+            )
 
             # Calculate compliance score
             compliance_score = self._calculate_compliance_score(validation_results)
@@ -324,17 +373,21 @@ class EvidenceValidator:
                 overall_evidence_quality=overall_quality,
                 evidence_gaps=evidence_gaps,
                 improvement_suggestions=improvements,
-                compliance_score=compliance_score
+                compliance_score=compliance_score,
             )
 
-            logger.info(f"Evidence validation completed: {len(interventions)} interventions, "
-                       f"quality: {overall_quality}, compliance: {compliance_score:.2f}")
+            logger.info(
+                f"Evidence validation completed: {len(interventions)} interventions, "
+                f"quality: {overall_quality}, compliance: {compliance_score:.2f}"
+            )
 
             return analysis
 
         except Exception as e:
             logger.error(f"Error in evidence validation: {e}")
-            return self._get_default_evidence_analysis(conversation.get("conversation_id", "unknown"))
+            return self._get_default_evidence_analysis(
+                conversation.get("conversation_id", "unknown")
+            )
 
     def _extract_content(self, conversation: dict[str, Any]) -> str:
         """Extract content from conversation."""
@@ -355,32 +408,56 @@ class EvidenceValidator:
         # Define intervention keywords
         intervention_keywords = {
             "cognitive_restructuring": [
-                "thought challenging", "cognitive restructuring", "thinking patterns",
-                "negative thoughts", "cognitive distortions", "reframe"
+                "thought challenging",
+                "cognitive restructuring",
+                "thinking patterns",
+                "negative thoughts",
+                "cognitive distortions",
+                "reframe",
             ],
             "behavioral_activation": [
-                "behavioral activation", "activity scheduling", "pleasant activities",
-                "behavior change", "activity monitoring"
+                "behavioral activation",
+                "activity scheduling",
+                "pleasant activities",
+                "behavior change",
+                "activity monitoring",
             ],
             "exposure_therapy": [
-                "exposure", "gradual exposure", "systematic desensitization",
-                "face your fears", "exposure hierarchy"
+                "exposure",
+                "gradual exposure",
+                "systematic desensitization",
+                "face your fears",
+                "exposure hierarchy",
             ],
             "mindfulness": [
-                "mindfulness", "meditation", "present moment", "awareness",
-                "mindful breathing", "body scan"
+                "mindfulness",
+                "meditation",
+                "present moment",
+                "awareness",
+                "mindful breathing",
+                "body scan",
             ],
             "interpersonal_therapy": [
-                "interpersonal", "relationship", "communication skills",
-                "social support", "grief work"
+                "interpersonal",
+                "relationship",
+                "communication skills",
+                "social support",
+                "grief work",
             ],
             "emdr": [
-                "emdr", "eye movement", "bilateral stimulation", "trauma processing"
+                "emdr",
+                "eye movement",
+                "bilateral stimulation",
+                "trauma processing",
             ],
             "dbt_skills": [
-                "dbt", "distress tolerance", "emotion regulation", "interpersonal effectiveness",
-                "wise mind", "radical acceptance"
-            ]
+                "dbt",
+                "distress tolerance",
+                "emotion regulation",
+                "interpersonal effectiveness",
+                "wise mind",
+                "radical acceptance",
+            ],
         }
 
         # Check for intervention keywords
@@ -390,7 +467,9 @@ class EvidenceValidator:
 
         return interventions
 
-    def _validate_intervention(self, intervention: str, content: str) -> ValidationResult:
+    def _validate_intervention(
+        self, intervention: str, content: str
+    ) -> ValidationResult:
         """Validate a specific intervention against evidence."""
         # Find relevant conditions
         relevant_conditions = self.intervention_mappings.get(intervention, [])
@@ -415,7 +494,9 @@ class EvidenceValidator:
                         practice_recommendations.append(rec)
 
         # Calculate validation score
-        validation_score = self._calculate_validation_score(supporting_sources, practice_recommendations)
+        validation_score = self._calculate_validation_score(
+            supporting_sources, practice_recommendations
+        )
 
         # Determine evidence strength
         evidence_strength = self._determine_evidence_strength(supporting_sources)
@@ -424,7 +505,9 @@ class EvidenceValidator:
         is_evidence_based = validation_score >= 0.6 and len(supporting_sources) > 0
 
         # Identify concerns
-        concerns = self._identify_concerns(intervention, supporting_sources, practice_recommendations)
+        concerns = self._identify_concerns(
+            intervention, supporting_sources, practice_recommendations
+        )
 
         # Generate recommendations
         recommendations = self._generate_intervention_recommendations(
@@ -432,7 +515,9 @@ class EvidenceValidator:
         )
 
         # Determine quality rating
-        quality_rating = self._determine_quality_rating(validation_score, evidence_strength)
+        quality_rating = self._determine_quality_rating(
+            validation_score, evidence_strength
+        )
 
         return ValidationResult(
             intervention_id=intervention,
@@ -443,11 +528,14 @@ class EvidenceValidator:
             validation_score=validation_score,
             concerns=concerns,
             recommendations=recommendations,
-            quality_rating=quality_rating
+            quality_rating=quality_rating,
         )
 
-    def _calculate_validation_score(self, sources: list[EvidenceSource],
-                                  recommendations: list[PracticeRecommendation]) -> float:
+    def _calculate_validation_score(
+        self,
+        sources: list[EvidenceSource],
+        recommendations: list[PracticeRecommendation],
+    ) -> float:
         """Calculate validation score based on evidence."""
         if not sources and not recommendations:
             return 0.0
@@ -459,7 +547,9 @@ class EvidenceValidator:
 
             for source in sources:
                 level_weight = level_weights.get(source.evidence_level.level, 0.1)
-                effect_size_bonus = min(1.0, source.effect_size or 0.0) if source.effect_size else 0.5
+                effect_size_bonus = (
+                    min(1.0, source.effect_size or 0.0) if source.effect_size else 0.5
+                )
                 source_score += level_weight * effect_size_bonus
 
             source_score = min(1.0, source_score / len(sources))
@@ -468,7 +558,12 @@ class EvidenceValidator:
         rec_score = 0.0
         if recommendations:
             strength_weights = {"strong": 1.0, "moderate": 0.7, "weak": 0.4}
-            quality_weights = {"high": 1.0, "moderate": 0.7, "low": 0.4, "very_low": 0.2}
+            quality_weights = {
+                "high": 1.0,
+                "moderate": 0.7,
+                "low": 0.4,
+                "very_low": 0.2,
+            }
 
             for rec in recommendations:
                 strength_weight = strength_weights.get(rec.recommendation_strength, 0.4)
@@ -479,7 +574,7 @@ class EvidenceValidator:
 
         # Combined score
         if sources and recommendations:
-            return (source_score * 0.6 + rec_score * 0.4)
+            return source_score * 0.6 + rec_score * 0.4
         if sources:
             return source_score * 0.8  # Penalty for no guidelines
         if recommendations:
@@ -507,9 +602,12 @@ class EvidenceValidator:
             return "weak"
         return "insufficient"
 
-    def _identify_concerns(self, intervention: str,
-                         sources: list[EvidenceSource],
-                         recommendations: list[PracticeRecommendation]) -> list[str]:
+    def _identify_concerns(
+        self,
+        intervention: str,
+        sources: list[EvidenceSource],
+        recommendations: list[PracticeRecommendation],
+    ) -> list[str]:
         """Identify concerns with intervention."""
         concerns = []
 
@@ -525,7 +623,9 @@ class EvidenceValidator:
             contraindications.extend(rec.contraindications)
 
         if contraindications:
-            concerns.append(f"Potential contraindications: {', '.join(set(contraindications))}")
+            concerns.append(
+                f"Potential contraindications: {', '.join(set(contraindications))}"
+            )
 
         # Check evidence quality
         if sources:
@@ -535,14 +635,19 @@ class EvidenceValidator:
 
         return concerns
 
-    def _generate_intervention_recommendations(self, intervention: str,
-                                             sources: list[EvidenceSource],
-                                             recommendations: list[PracticeRecommendation]) -> list[str]:
+    def _generate_intervention_recommendations(
+        self,
+        intervention: str,
+        sources: list[EvidenceSource],
+        recommendations: list[PracticeRecommendation],
+    ) -> list[str]:
         """Generate recommendations for intervention."""
         recs = []
 
         if sources:
-            recs.append(f"Intervention has research support from {len(sources)} studies")
+            recs.append(
+                f"Intervention has research support from {len(sources)} studies"
+            )
 
             # Add implementation notes from guidelines
             for rec in recommendations:
@@ -558,15 +663,21 @@ class EvidenceValidator:
         if evidence_strength == "strong":
             recs.append("This intervention is strongly supported by research evidence")
         elif evidence_strength == "moderate":
-            recs.append("This intervention has moderate research support - consider as part of treatment plan")
+            recs.append(
+                "This intervention has moderate research support - consider as part of treatment plan"
+            )
         elif evidence_strength == "weak":
-            recs.append("Limited evidence - use with caution and monitor outcomes closely")
+            recs.append(
+                "Limited evidence - use with caution and monitor outcomes closely"
+            )
         else:
             recs.append("Insufficient evidence - consider alternative interventions")
 
         return recs
 
-    def _determine_quality_rating(self, validation_score: float, evidence_strength: str) -> str:
+    def _determine_quality_rating(
+        self, validation_score: float, evidence_strength: str
+    ) -> str:
         """Determine overall quality rating."""
         if validation_score >= 0.8 and evidence_strength == "strong":
             return "excellent"
@@ -576,7 +687,9 @@ class EvidenceValidator:
             return "fair"
         return "poor"
 
-    def _calculate_overall_quality(self, validation_results: list[ValidationResult]) -> str:
+    def _calculate_overall_quality(
+        self, validation_results: list[ValidationResult]
+    ) -> str:
         """Calculate overall evidence quality."""
         if not validation_results:
             return "insufficient"
@@ -592,57 +705,77 @@ class EvidenceValidator:
             return "low"
         return "very_low"
 
-    def _identify_evidence_gaps(self, interventions: list[str],
-                              validation_results: list[ValidationResult]) -> list[str]:
+    def _identify_evidence_gaps(
+        self, interventions: list[str], validation_results: list[ValidationResult]
+    ) -> list[str]:
         """Identify evidence gaps."""
         gaps = []
 
         # Check for interventions without evidence
         unsupported_interventions = [
-            result.intervention_id for result in validation_results
+            result.intervention_id
+            for result in validation_results
             if not result.is_evidence_based
         ]
 
         if unsupported_interventions:
-            gaps.append(f"Interventions lacking evidence support: {', '.join(unsupported_interventions)}")
+            gaps.append(
+                f"Interventions lacking evidence support: {', '.join(unsupported_interventions)}"
+            )
 
         # Check for missing practice guidelines
         no_guidelines = [
-            result.intervention_id for result in validation_results
+            result.intervention_id
+            for result in validation_results
             if not result.practice_recommendations
         ]
 
         if no_guidelines:
-            gaps.append(f"Interventions without practice guidelines: {', '.join(no_guidelines)}")
+            gaps.append(
+                f"Interventions without practice guidelines: {', '.join(no_guidelines)}"
+            )
 
         return gaps
 
-    def _generate_improvement_suggestions(self, validation_results: list[ValidationResult],
-                                        evidence_gaps: list[str]) -> list[str]:
+    def _generate_improvement_suggestions(
+        self, validation_results: list[ValidationResult], evidence_gaps: list[str]
+    ) -> list[str]:
         """Generate improvement suggestions."""
         suggestions = []
 
         # Suggest evidence-based alternatives
-        poor_quality = [r for r in validation_results if r.quality_rating in ["poor", "fair"]]
+        poor_quality = [
+            r for r in validation_results if r.quality_rating in ["poor", "fair"]
+        ]
         if poor_quality:
-            suggestions.append("Consider replacing low-evidence interventions with evidence-based alternatives")
+            suggestions.append(
+                "Consider replacing low-evidence interventions with evidence-based alternatives"
+            )
 
         # Suggest additional evidence gathering
         if evidence_gaps:
-            suggestions.append("Conduct literature review for interventions lacking evidence support")
+            suggestions.append(
+                "Conduct literature review for interventions lacking evidence support"
+            )
 
         # Suggest implementation improvements
-        suggestions.append("Ensure interventions follow established practice guidelines")
+        suggestions.append(
+            "Ensure interventions follow established practice guidelines"
+        )
         suggestions.append("Monitor outcomes to validate intervention effectiveness")
 
         return suggestions
 
-    def _calculate_compliance_score(self, validation_results: list[ValidationResult]) -> float:
+    def _calculate_compliance_score(
+        self, validation_results: list[ValidationResult]
+    ) -> float:
         """Calculate compliance score."""
         if not validation_results:
             return 0.0
 
-        evidence_based_count = sum(1 for result in validation_results if result.is_evidence_based)
+        evidence_based_count = sum(
+            1 for result in validation_results if result.is_evidence_based
+        )
         return evidence_based_count / len(validation_results)
 
     def _get_default_evidence_analysis(self, conversation_id: str) -> EvidenceAnalysis:
@@ -654,7 +787,7 @@ class EvidenceValidator:
             overall_evidence_quality="insufficient",
             evidence_gaps=["Unable to analyze evidence"],
             improvement_suggestions=["Comprehensive evidence review needed"],
-            compliance_score=0.0
+            compliance_score=0.0,
         )
 
     def get_evidence_summary(self, analysis: EvidenceAnalysis) -> dict[str, Any]:
@@ -662,11 +795,19 @@ class EvidenceValidator:
         return {
             "conversation_id": analysis.conversation_id,
             "num_interventions": len(analysis.identified_interventions),
-            "evidence_based_interventions": len([r for r in analysis.validation_results if r.is_evidence_based]),
+            "evidence_based_interventions": len(
+                [r for r in analysis.validation_results if r.is_evidence_based]
+            ),
             "overall_quality": analysis.overall_evidence_quality,
             "compliance_score": analysis.compliance_score,
             "interventions_by_quality": {
-                quality: len([r for r in analysis.validation_results if r.quality_rating == quality])
+                quality: len(
+                    [
+                        r
+                        for r in analysis.validation_results
+                        if r.quality_rating == quality
+                    ]
+                )
                 for quality in ["excellent", "good", "fair", "poor"]
             },
             "evidence_gaps": len(analysis.evidence_gaps),
@@ -676,11 +817,14 @@ class EvidenceValidator:
                     "intervention": result.intervention_id,
                     "evidence_based": result.is_evidence_based,
                     "quality": result.quality_rating,
-                    "score": result.validation_score
+                    "score": result.validation_score,
                 }
-                for result in sorted(analysis.validation_results,
-                                   key=lambda x: x.validation_score, reverse=True)[:3]
-            ]
+                for result in sorted(
+                    analysis.validation_results,
+                    key=lambda x: x.validation_score,
+                    reverse=True,
+                )[:3]
+            ],
         }
 
 
@@ -694,18 +838,17 @@ def main():
         "turns": [
             {
                 "speaker": "user",
-                "content": "I've been feeling really depressed and anxious lately. I can't stop having negative thoughts about myself."
+                "content": "I've been feeling really depressed and anxious lately. I can't stop having negative thoughts about myself.",
             },
             {
                 "speaker": "assistant",
-                "content": "I understand you're struggling with depression and anxiety. Let's work on cognitive restructuring to help you challenge those negative thoughts. We can also try some mindfulness techniques and behavioral activation to help improve your mood."
-            }
-        ]
+                "content": "I understand you're struggling with depression and anxiety. Let's work on cognitive restructuring to help you challenge those negative thoughts. We can also try some mindfulness techniques and behavioral activation to help improve your mood.",
+            },
+        ],
     }
 
     # Validate evidence-based practice
     analysis = validator.validate_evidence_based_practice(test_conversation)
-
 
     for _intervention in analysis.identified_interventions:
         pass

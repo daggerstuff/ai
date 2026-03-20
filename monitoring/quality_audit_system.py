@@ -118,19 +118,27 @@ class QualityAuditSystem:
             "compliance_adherence",
         ]
 
-    def conduct_comprehensive_audit(self, framework: str = "healthcare") -> ComplianceReport:
+    def conduct_comprehensive_audit(
+        self, framework: str = "healthcare"
+    ) -> ComplianceReport:
         """Conduct comprehensive quality audit"""
-        logger.info(f"Conducting comprehensive quality audit ({framework} framework)...")
+        logger.info(
+            f"Conducting comprehensive quality audit ({framework} framework)..."
+        )
 
         try:
             # Generate audit records
             audit_records = self._generate_audit_records(framework)
 
             # Calculate compliance score
-            compliance_score = self._calculate_compliance_score(audit_records, framework)
+            compliance_score = self._calculate_compliance_score(
+                audit_records, framework
+            )
 
             # Create compliance summary
-            compliance_summary = self._create_compliance_summary(audit_records, framework)
+            compliance_summary = self._create_compliance_summary(
+                audit_records, framework
+            )
 
             # Perform risk assessment
             risk_assessment = self._perform_risk_assessment(audit_records)
@@ -221,7 +229,9 @@ class QualityAuditSystem:
             cursor = conn.execute("SELECT COUNT(*) FROM conversations")
             total_conversations = cursor.fetchone()[0]
 
-            cursor = conn.execute("SELECT COUNT(DISTINCT dataset_source) FROM conversations")
+            cursor = conn.execute(
+                "SELECT COUNT(DISTINCT dataset_source) FROM conversations"
+            )
             unique_datasets = cursor.fetchone()[0]
 
             cursor = conn.execute(
@@ -237,9 +247,11 @@ class QualityAuditSystem:
                 "clinical_compliance": np.random.uniform(0.82, 0.92),
                 "therapeutic_accuracy": np.random.uniform(0.78, 0.88),
                 "data_quality": np.random.uniform(0.85, 0.95),
-                "processing_efficiency": (processed_conversations / total_conversations) * 100
-                if total_conversations > 0
-                else 0,
+                "processing_efficiency": (
+                    (processed_conversations / total_conversations) * 100
+                    if total_conversations > 0
+                    else 0
+                ),
             }
 
             return {
@@ -271,20 +283,26 @@ class QualityAuditSystem:
                 if value >= threshold:
                     status = "pass"
                     risk_level = "low"
-                    finding = f"{metric.replace('_', ' ').title()} meets compliance threshold"
-                    recommendation = f"Maintain current {metric.replace('_', ' ')} standards"
+                    finding = (
+                        f"{metric.replace('_', ' ').title()} meets compliance threshold"
+                    )
+                    recommendation = (
+                        f"Maintain current {metric.replace('_', ' ')} standards"
+                    )
                 elif value >= threshold - 0.05:
                     status = "warning"
                     risk_level = "medium"
                     finding = f"{metric.replace('_', ' ').title()} approaching compliance threshold"
-                    recommendation = (
-                        f"Implement improvements to strengthen {metric.replace('_', ' ')}"
-                    )
+                    recommendation = f"Implement improvements to strengthen {metric.replace('_', ' ')}"
                 else:
                     status = "fail"
                     risk_level = "high" if metric == "safety_score" else "medium"
-                    finding = f"{metric.replace('_', ' ').title()} below compliance threshold"
-                    recommendation = f"URGENT: Address {metric.replace('_', ' ')} compliance gap"
+                    finding = (
+                        f"{metric.replace('_', ' ').title()} below compliance threshold"
+                    )
+                    recommendation = (
+                        f"URGENT: Address {metric.replace('_', ' ')} compliance gap"
+                    )
 
                 audit_record = AuditRecord(
                     audit_id=f"QM_{metric}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
@@ -423,7 +441,9 @@ class QualityAuditSystem:
                     "backup_frequency": "daily",
                     "backup_retention": "90_days",
                     "recovery_testing": "monthly",
-                    "last_recovery_test": (datetime.now() - timedelta(days=15)).isoformat(),
+                    "last_recovery_test": (
+                        datetime.now() - timedelta(days=15)
+                    ).isoformat(),
                 },
                 risk_level="low",
                 recommendation="Maintain current backup and recovery schedule",
@@ -479,7 +499,9 @@ class QualityAuditSystem:
                 status = "fail"
                 risk_level = "high"
                 finding = f"{requirement} significant compliance gaps"
-                recommendation = f"URGENT: Address {requirement.lower()} compliance gaps"
+                recommendation = (
+                    f"URGENT: Address {requirement.lower()} compliance gaps"
+                )
 
             audit_record = AuditRecord(
                 audit_id=f"COMP_{framework.upper()}_{i}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
@@ -535,7 +557,9 @@ class QualityAuditSystem:
             return (weighted_score / total_weight) * 100 if total_weight > 0 else 0.0
 
         except Exception:
-            logger.exception(f"Error calculating compliance score for framework: {framework}")
+            logger.exception(
+                f"Error calculating compliance score for framework: {framework}"
+            )
             return 0.0
 
     def _create_compliance_summary(
@@ -543,37 +567,57 @@ class QualityAuditSystem:
     ) -> Dict[str, Any]:
         """Create compliance summary"""
         try:
-            status_counts = pd.Series([r.status for r in audit_records]).value_counts().to_dict()
-            risk_counts = pd.Series([r.risk_level for r in audit_records]).value_counts().to_dict()
+            status_counts = (
+                pd.Series([r.status for r in audit_records]).value_counts().to_dict()
+            )
+            risk_counts = (
+                pd.Series([r.risk_level for r in audit_records])
+                .value_counts()
+                .to_dict()
+            )
 
             return {
                 "total_audits": len(audit_records),
                 "status_distribution": status_counts,
                 "risk_distribution": risk_counts,
-                "pass_rate": (status_counts.get("pass", 0) / len(audit_records)) * 100
-                if audit_records
-                else 0,
-                "critical_findings": len([r for r in audit_records if r.risk_level == "critical"]),
-                "high_risk_findings": len([r for r in audit_records if r.risk_level == "high"]),
+                "pass_rate": (
+                    (status_counts.get("pass", 0) / len(audit_records)) * 100
+                    if audit_records
+                    else 0
+                ),
+                "critical_findings": len(
+                    [r for r in audit_records if r.risk_level == "critical"]
+                ),
+                "high_risk_findings": len(
+                    [r for r in audit_records if r.risk_level == "high"]
+                ),
                 "framework_compliance": framework,
                 "audit_date": datetime.now().isoformat(),
             }
 
         except Exception:
-            logger.exception(f"Error creating compliance summary for framework: {framework}")
+            logger.exception(
+                f"Error creating compliance summary for framework: {framework}"
+            )
             return {}
 
-    def _perform_risk_assessment(self, audit_records: List[AuditRecord]) -> Dict[str, Any]:
+    def _perform_risk_assessment(
+        self, audit_records: List[AuditRecord]
+    ) -> Dict[str, Any]:
         """Perform risk assessment based on audit findings"""
         try:
             # Risk scoring
             risk_scores = {"critical": 10, "high": 7, "medium": 4, "low": 1}
 
-            total_risk_score = sum(risk_scores.get(r.risk_level, 0) for r in audit_records)
+            total_risk_score = sum(
+                risk_scores.get(r.risk_level, 0) for r in audit_records
+            )
             max_possible_score = len(audit_records) * 10
 
             risk_percentage = (
-                (total_risk_score / max_possible_score) * 100 if max_possible_score > 0 else 0
+                (total_risk_score / max_possible_score) * 100
+                if max_possible_score > 0
+                else 0
             )
 
             # Risk level determination
@@ -608,7 +652,9 @@ class QualityAuditSystem:
                 "max_possible_score": max_possible_score,
                 "top_risk_areas": [area for area, score in top_risk_areas[:5]],
                 "risk_trend": "stable",  # Would be calculated from historical data
-                "mitigation_priority": "high" if overall_risk in ["critical", "high"] else "medium",
+                "mitigation_priority": (
+                    "high" if overall_risk in ["critical", "high"] else "medium"
+                ),
             }
 
         except Exception:
@@ -620,10 +666,14 @@ class QualityAuditSystem:
         remediation_items = []
 
         # Group by risk level and component
-        high_risk_items = [r for r in audit_records if r.risk_level in ["critical", "high"]]
+        high_risk_items = [
+            r for r in audit_records if r.risk_level in ["critical", "high"]
+        ]
 
         for record in high_risk_items:
-            remediation_items.append(f"[{record.risk_level.upper()}] {record.recommendation}")
+            remediation_items.append(
+                f"[{record.risk_level.upper()}] {record.recommendation}"
+            )
 
         # Add general remediation items
         if len(high_risk_items) > 3:
@@ -637,7 +687,11 @@ class QualityAuditSystem:
     ) -> str:
         """Determine certification status"""
         critical_failures = len(
-            [r for r in audit_records if r.status == "fail" and r.risk_level == "critical"]
+            [
+                r
+                for r in audit_records
+                if r.status == "fail" and r.risk_level == "critical"
+            ]
         )
 
         if critical_failures > 0:
@@ -747,16 +801,14 @@ def main():
         icon = (
             "✅"
             if status == "pass"
-            else "⚠️"
-            if status == "warning"
-            else "❌"
-            if status == "fail"
-            else "ℹ️"
+            else "⚠️" if status == "warning" else "❌" if status == "fail" else "ℹ️"
         )
         logger.info(f"   {icon} {status.title()}: {count}")
 
     # Show top risks
-    high_risk_findings = [r for r in report.audit_records if r.risk_level in ["critical", "high"]]
+    high_risk_findings = [
+        r for r in report.audit_records if r.risk_level in ["critical", "high"]
+    ]
     if high_risk_findings:
         logger.info(f"\n🚨 High Risk Findings ({len(high_risk_findings)}):")
         for finding in high_risk_findings[:3]:  # Top 3

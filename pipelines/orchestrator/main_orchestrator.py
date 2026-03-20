@@ -345,9 +345,9 @@ class DatasetPipelineOrchestrator:
             # Calculate percentages
             for field, count in required_fields_found.items():
                 percentage = (count / sample_size * 100) if sample_size > 0 else 0
-                validation_report["validation_results"][f"{field}_coverage"] = (
-                    f"{percentage:.1f}%"
-                )
+                validation_report["validation_results"][
+                    f"{field}_coverage"
+                ] = f"{percentage:.1f}%"
 
             validation_report["validation_results"]["overall_validation"] = "PASSED"
             logger.info(
@@ -381,13 +381,15 @@ class DatasetPipelineOrchestrator:
             "dataset_composition_results": self.composition_results,
             "training_manifest": {
                 "created": self.manifest is not None,
-                "path": str(
-                    get_dataset_pipeline_output_root()
-                    / "final_output"
-                    / "training_manifest.json"
-                )
-                if self.manifest
-                else None,
+                "path": (
+                    str(
+                        get_dataset_pipeline_output_root()
+                        / "final_output"
+                        / "training_manifest.json"
+                    )
+                    if self.manifest
+                    else None
+                ),
             },
         }
 

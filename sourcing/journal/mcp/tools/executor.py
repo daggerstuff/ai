@@ -231,6 +231,3 @@ class ToolExecutor:
         if not self.async_executor:
             return None
         return await self.async_executor.get_operation_status(operation_id)
-
-
-

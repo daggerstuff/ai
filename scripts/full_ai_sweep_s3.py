@@ -85,7 +85,9 @@ def upload_file(s3_client, file_path, root_path):
             try:
                 head = s3_client.head_object(Bucket=BUCKET_NAME, Key=s3_key)
                 if head["ContentLength"] == file_size:
-                    print(f"⏭️  Skipping {file_path.name} (Already on S3: {human_size})")
+                    print(
+                        f"⏭️  Skipping {file_path.name} (Already on S3: {human_size})"
+                    )
                     return True
             except Exception:
                 pass  # Not on S3 or error checking

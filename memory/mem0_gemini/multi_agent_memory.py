@@ -229,7 +229,8 @@ class MultiAgentMemory:
                 m
                 for m in memories
                 if m.get("metadata", {}).get("session_id") == context.session_id
-                and m.get("metadata", {}).get("scope") in [MemoryScope.SHARED.value, None]
+                and m.get("metadata", {}).get("scope")
+                in [MemoryScope.SHARED.value, None]
             ]
 
             return shared[:limit]
@@ -273,7 +274,8 @@ class MultiAgentMemory:
                 filtered = [
                     m
                     for m in memories
-                    if m.get("metadata", {}).get("agent_id") == context.current_agent.agent_id
+                    if m.get("metadata", {}).get("agent_id")
+                    == context.current_agent.agent_id
                 ]
             elif scope == MemoryScope.SHARED:
                 filtered = [
@@ -400,7 +402,9 @@ class MultiAgentMemory:
 
             # Filter by session
             session_memories = [
-                m for m in memories if m.get("metadata", {}).get("session_id") == context.session_id
+                m
+                for m in memories
+                if m.get("metadata", {}).get("session_id") == context.session_id
             ]
 
             # Optionally filter by agent

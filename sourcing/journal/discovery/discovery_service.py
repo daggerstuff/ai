@@ -45,7 +45,9 @@ class DiscoveryService(DiscoveryServiceProtocol):
         pubmed_config = discovery_config.get("pubmed", {})
         self.pubmed_client = pubmed_client or PubMedClient(
             api_key=pubmed_config.get("api_key"),
-            base_url=pubmed_config.get("base_url", "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"),
+            base_url=pubmed_config.get(
+                "base_url", "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+            ),
             search_limit=pubmed_config.get("search_limit", 100),
         )
 
@@ -98,7 +100,9 @@ class DiscoveryService(DiscoveryServiceProtocol):
             dataset_keywords = search_keywords.get("dataset", [])
             # Ensure they are lists
             if not isinstance(therapeutic_keywords, list):
-                therapeutic_keywords = [therapeutic_keywords] if therapeutic_keywords else []
+                therapeutic_keywords = (
+                    [therapeutic_keywords] if therapeutic_keywords else []
+                )
             if not isinstance(dataset_keywords, list):
                 dataset_keywords = [dataset_keywords] if dataset_keywords else []
             all_keywords = therapeutic_keywords + dataset_keywords
@@ -155,7 +159,9 @@ class DiscoveryService(DiscoveryServiceProtocol):
                 all_sources.extend(sources)
                 logger.info(f"Found {len(sources)} sources from ClinicalTrials.gov")
             except Exception as e:
-                logger.error(f"Error discovering from ClinicalTrials.gov: {e}", exc_info=True)
+                logger.error(
+                    f"Error discovering from ClinicalTrials.gov: {e}", exc_info=True
+                )
 
         # Deduplicate sources
         if all_sources:
@@ -171,7 +177,9 @@ class DiscoveryService(DiscoveryServiceProtocol):
 
         return self.pubmed_client.search(
             keywords=keywords,
-            max_results=self.config.get("discovery", {}).get("pubmed", {}).get("search_limit", 100),
+            max_results=self.config.get("discovery", {})
+            .get("pubmed", {})
+            .get("search_limit", 100),
         )
 
     def _discover_doaj(
@@ -213,4 +221,3 @@ class DiscoveryService(DiscoveryServiceProtocol):
             status="COMPLETED",
             max_results=100,
         )
-

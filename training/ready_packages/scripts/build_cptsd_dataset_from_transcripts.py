@@ -741,9 +741,11 @@ def _build_record(
                     "topic_tag",
                     "chatml_convert",
                 ],
-                "voice_profile_used": author
-                if multi_profiles.get(author)
-                else (voice_profile is not None),
+                "voice_profile_used": (
+                    author
+                    if multi_profiles.get(author)
+                    else (voice_profile is not None)
+                ),
             },
         },
     }
@@ -926,9 +928,11 @@ def main() -> int:
     log_level = logging.DEBUG if args.verbose else logging.INFO
     logging.basicConfig(
         level=log_level,
-        format="%(asctime)s - %(levelname)s - %(message)s"
-        if args.verbose
-        else "%(message)s",
+        format=(
+            "%(asctime)s - %(levelname)s - %(message)s"
+            if args.verbose
+            else "%(message)s"
+        ),
     )
 
     bucket, endpoint, manifest = _load_s3_manifest(Path(args.manifest))

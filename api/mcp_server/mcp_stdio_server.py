@@ -79,7 +79,10 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "content": {"type": "string", "description": "Content to remember"},
                     "user_id": {"type": "string", "description": "User identifier"},
-                    "category": {"type": "string", "description": "Memory category (optional)"},
+                    "category": {
+                        "type": "string",
+                        "description": "Memory category (optional)",
+                    },
                 },
                 "required": ["content", "user_id"],
             },
@@ -92,7 +95,11 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "query": {"type": "string", "description": "Search query"},
                     "user_id": {"type": "string", "description": "User identifier"},
-                    "limit": {"type": "integer", "description": "Max results", "default": 10},
+                    "limit": {
+                        "type": "integer",
+                        "description": "Max results",
+                        "default": 10,
+                    },
                 },
                 "required": ["query", "user_id"],
             },
@@ -121,9 +128,11 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             result = client.add(
                 arguments["content"],
                 user_id=arguments["user_id"],
-                metadata={"category": arguments.get("category")}
-                if arguments.get("category")
-                else None,
+                metadata=(
+                    {"category": arguments.get("category")}
+                    if arguments.get("category")
+                    else None
+                ),
             )
             memory_id = "unknown"
             if isinstance(result, dict) and "results" in result and result["results"]:
@@ -145,7 +154,11 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             memories = result.get("results", []) if isinstance(result, dict) else result
 
             if not memories:
-                return [TextContent(type="text", text="No memories found matching your query.")]
+                return [
+                    TextContent(
+                        type="text", text="No memories found matching your query."
+                    )
+                ]
 
             text = f"Found {len(memories)} memories:\n\n"
             for i, mem in enumerate(memories, 1):
@@ -159,7 +172,9 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             memories = result.get("results", []) if isinstance(result, dict) else result
 
             if not memories:
-                return [TextContent(type="text", text="No memories stored for this user.")]
+                return [
+                    TextContent(type="text", text="No memories stored for this user.")
+                ]
 
             text = f"Total memories: {len(memories)}\n\n"
             for i, mem in enumerate(memories, 1):

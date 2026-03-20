@@ -107,31 +107,33 @@ class ChannelRegistryDB:
             "subscriber_count": channel.subscriber_count,
             "video_count": channel.video_count,
             "total_views": channel.total_views,
-            "created_date": channel.created_date.isoformat()
-            if channel.created_date
-            else None,
-            "last_updated": channel.last_updated.isoformat()
-            if channel.last_updated
-            else None,
+            "created_date": (
+                channel.created_date.isoformat() if channel.created_date else None
+            ),
+            "last_updated": (
+                channel.last_updated.isoformat() if channel.last_updated else None
+            ),
             "primary_language": channel.primary_language,
             "languages": json.dumps(list(channel.languages)),
             "categories": json.dumps([c.value for c in channel.categories]),
             "description": channel.description,
             "quality_score": channel.quality_score,
-            "quality_metrics": json.dumps(channel.quality_metrics.__dict__())
-            if channel.quality_metrics
-            else None,
+            "quality_metrics": (
+                json.dumps(channel.quality_metrics.__dict__())
+                if channel.quality_metrics
+                else None
+            ),
             "is_professional": 1 if channel.is_professional else 0,
             "credentials": json.dumps(channel.credentials),
             "organization": channel.organization,
-            "licensing_info": json.dumps(channel.licensing.__dict__())
-            if channel.licensing
-            else None,
+            "licensing_info": (
+                json.dumps(channel.licensing.__dict__()) if channel.licensing else None
+            ),
             "status": channel.status.value,
             "health_score": channel.health_score,
-            "last_monitored": channel.last_monitored.isoformat()
-            if channel.last_monitored
-            else None,
+            "last_monitored": (
+                channel.last_monitored.isoformat() if channel.last_monitored else None
+            ),
             "tags": json.dumps(channel.tags),
             "notes": channel.notes,
             "source": channel.source,
@@ -426,17 +428,23 @@ class ChannelRegistryDB:
             subscriber_count=row["subscriber_count"],
             video_count=row["video_count"],
             total_views=row["total_views"],
-            created_date=datetime.fromisoformat(row["created_date"])
-            if row["created_date"]
-            else None,
-            last_updated=datetime.fromisoformat(row["last_updated"])
-            if row["last_updated"]
-            else None,
+            created_date=(
+                datetime.fromisoformat(row["created_date"])
+                if row["created_date"]
+                else None
+            ),
+            last_updated=(
+                datetime.fromisoformat(row["last_updated"])
+                if row["last_updated"]
+                else None
+            ),
             primary_language=row["primary_language"],
             languages=set(json.loads(row["languages"])) if row["languages"] else set(),
-            categories=[ContentCategory(c) for c in json.loads(row["categories"])]
-            if row["categories"]
-            else [],
+            categories=(
+                [ContentCategory(c) for c in json.loads(row["categories"])]
+                if row["categories"]
+                else []
+            ),
             description=row["description"],
             quality_score=row["quality_score"],
             is_professional=bool(row["is_professional"]),
@@ -444,9 +452,11 @@ class ChannelRegistryDB:
             organization=row["organization"],
             status=ChannelStatus(row["status"]),
             health_score=row["health_score"],
-            last_monitored=datetime.fromisoformat(row["last_monitored"])
-            if row["last_monitored"]
-            else None,
+            last_monitored=(
+                datetime.fromisoformat(row["last_monitored"])
+                if row["last_monitored"]
+                else None
+            ),
             tags=json.loads(row["tags"]) if row["tags"] else [],
             notes=row["notes"],
             source=row["source"],

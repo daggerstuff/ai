@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 class AlertSeverity(str, Enum):
     """Severity levels for alerts."""
+
     INFO = "info"
     WARNING = "warning"
     ERROR = "error"
@@ -30,6 +31,7 @@ class AlertSeverity(str, Enum):
 @dataclass
 class AlertCondition:
     """Condition that triggers an alert."""
+
     name: str
     severity: AlertSeverity
     description: str
@@ -44,6 +46,7 @@ class AlertCondition:
 @dataclass
 class HealthCheck:
     """Result of a health check on a channel."""
+
     channel_id: str
     timestamp: datetime
     status: ChannelStatus
@@ -79,8 +82,7 @@ class ChannelMonitor:
             severity=AlertSeverity.WARNING,
             description="No new content in 30+ days",
             check=lambda c: (
-                c.last_updated
-                and datetime.now() - c.last_updated > timedelta(days=30)
+                c.last_updated and datetime.now() - c.last_updated > timedelta(days=30)
             ),
             action="Monitor for 14 more days, then consider replacement",
         ),
@@ -106,9 +108,7 @@ class ChannelMonitor:
         alert_conditions: Optional[List[AlertCondition]] = None,
     ):
         self.channels = channels
-        self.alert_conditions = (
-            alert_conditions or self.DEFAULT_ALERT_CONDITIONS[:]
-        )
+        self.alert_conditions = alert_conditions or self.DEFAULT_ALERT_CONDITIONS[:]
         self.health_history: dict[str, List[HealthCheck]] = {}
 
     def check_channel_health(self, channel: Channel) -> HealthCheck:
@@ -135,23 +135,18 @@ class ChannelMonitor:
 
         # Categorize alert counts
         critical_alerts = sum(
-            1 for a in health_check.alerts
-            if a.severity == AlertSeverity.CRITICAL
+            1 for a in health_check.alerts if a.severity == AlertSeverity.CRITICAL
         )
         error_alerts = sum(
-            1 for a in health_check.alerts
-            if a.severity == AlertSeverity.ERROR
+            1 for a in health_check.alerts if a.severity == AlertSeverity.ERROR
         )
         warning_alerts = sum(
-            1 for a in health_check.alerts
-            if a.severity == AlertSeverity.WARNING
+            1 for a in health_check.alerts if a.severity == AlertSeverity.WARNING
         )
 
         # Calculate passed/failed checks
         total_checks = len(self.alert_conditions) + 5  # + base checks
-        health_check.checks_failed = (
-            critical_alerts + error_alerts + warning_alerts
-        )
+        health_check.checks_failed = critical_alerts + error_alerts + warning_alerts
         health_check.checks_passed = total_checks - health_check.checks_failed
 
         # Determine overall status
@@ -212,9 +207,7 @@ class ChannelMonitor:
 
         return min(score, 1.0)
 
-    def _generate_notes(
-        self, channel: Channel, health_check: HealthCheck
-    ) -> List[str]:
+    def _generate_notes(self, channel: Channel, health_check: HealthCheck) -> List[str]:
         """Generate descriptive notes for the health check."""
         notes = []
 
@@ -263,42 +256,29 @@ class ChannelMonitor:
         """Trim health check history to specified days."""
         cutoff_date = datetime.now() - timedelta(days=days_to_keep)
         self.health_history[channel_id] = [
-            check for check in self.health_history[channel_id]
+            check
+            for check in self.health_history[channel_id]
             if check.timestamp >= cutoff_date
         ]
 
     def get_channels_at_risk(self) -> List[Channel]:
         """Get list of channels marked as at risk."""
-        return [
-            c for c in self.channels if c.status == ChannelStatus.AT_RISK
-        ]
+        return [c for c in self.channels if c.status == ChannelStatus.AT_RISK]
 
     def get_inactive_channels(self) -> List[Channel]:
         """Get list of inactive channels."""
-        return [
-            c for c in self.channels if c.status == ChannelStatus.INACTIVE
-        ]
+        return [c for c in self.channels if c.status == ChannelStatus.INACTIVE]
 
     def generate_health_report(self) -> str:
         """Generate comprehensive health report."""
         results = self.run_all_checks()
 
-        active = sum(
-            1 for r in results.values()
-            if r.status == ChannelStatus.ACTIVE
-        )
-        at_risk = sum(
-            1 for r in results.values()
-            if r.status == ChannelStatus.AT_RISK
-        )
+        active = sum(1 for r in results.values() if r.status == ChannelStatus.ACTIVE)
+        at_risk = sum(1 for r in results.values() if r.status == ChannelStatus.AT_RISK)
         inactive = sum(
-            1 for r in results.values()
-            if r.status == ChannelStatus.INACTIVE
+            1 for r in results.values() if r.status == ChannelStatus.INACTIVE
         )
-        unknown = sum(
-            1 for r in results.values()
-            if r.status == ChannelStatus.UNKNOWN
-        )
+        unknown = sum(1 for r in results.values() if r.status == ChannelStatus.UNKNOWN)
 
         report = f"""
 Channel Health Report
@@ -316,9 +296,7 @@ Critical Alerts (Immediate Action Required):
 
         # Add critical alerts
         for channel_id, check in results.items():
-            critical = [
-                a for a in check.alerts if a.severity == AlertSeverity.CRITICAL
-            ]
+            critical = [a for a in check.alerts if a.severity == AlertSeverity.CRITICAL]
             if critical:
                 report += f"\n  {channel_id}: {len(critical)} critical alert(s)\n"
                 for alert in critical:
@@ -327,9 +305,7 @@ Critical Alerts (Immediate Action Required):
         # Add error alerts
         report += "\nError Alerts (Attention Required):\n"
         for channel_id, check in results.items():
-            errors = [
-                a for a in check.alerts if a.severity == AlertSeverity.ERROR
-            ]
+            errors = [a for a in check.alerts if a.severity == AlertSeverity.ERROR]
             if errors:
                 report += f"\n  {channel_id}: {len(errors)} error alert(s)\n"
                 for alert in errors:
@@ -372,7 +348,9 @@ def health_check_channel(channel: Channel) -> dict:
         "quality_score": channel.quality_score,
         "subscribers": channel.subscriber_count,
         "videos": channel.video_count,
-        "last_updated": channel.last_updated.isoformat() if channel.last_updated else None,
+        "last_updated": (
+            channel.last_updated.isoformat() if channel.last_updated else None
+        ),
         "last_health_check": health_check.timestamp.isoformat(),
         "alerts": [
             {

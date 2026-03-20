@@ -106,10 +106,14 @@ class EmotionalCartographer:
         self._add_dyad(m, PlutchikEmotion.JOY, PlutchikEmotion.TRUST, "Love")
         self._add_dyad(m, PlutchikEmotion.TRUST, PlutchikEmotion.FEAR, "Submission")
         self._add_dyad(m, PlutchikEmotion.FEAR, PlutchikEmotion.SURPRISE, "Awe")
-        self._add_dyad(m, PlutchikEmotion.SURPRISE, PlutchikEmotion.SADNESS, "Disapproval")
+        self._add_dyad(
+            m, PlutchikEmotion.SURPRISE, PlutchikEmotion.SADNESS, "Disapproval"
+        )
         self._add_dyad(m, PlutchikEmotion.SADNESS, PlutchikEmotion.DISGUST, "Remorse")
         self._add_dyad(m, PlutchikEmotion.DISGUST, PlutchikEmotion.ANGER, "Contempt")
-        self._add_dyad(m, PlutchikEmotion.ANGER, PlutchikEmotion.ANTICIPATION, "Aggressiveness")
+        self._add_dyad(
+            m, PlutchikEmotion.ANGER, PlutchikEmotion.ANTICIPATION, "Aggressiveness"
+        )
         self._add_dyad(m, PlutchikEmotion.ANTICIPATION, PlutchikEmotion.JOY, "Optimism")
 
         # Secondary Dyads (One apart)
@@ -119,17 +123,27 @@ class EmotionalCartographer:
         self._add_dyad(
             m, PlutchikEmotion.SURPRISE, PlutchikEmotion.DISGUST, "Unbelief"
         )  # or Horror/Shock
-        self._add_dyad(m, PlutchikEmotion.SADNESS, PlutchikEmotion.ANGER, "Envy")  # Sullenness/Envy
-        self._add_dyad(m, PlutchikEmotion.DISGUST, PlutchikEmotion.ANTICIPATION, "Cynicism")
+        self._add_dyad(
+            m, PlutchikEmotion.SADNESS, PlutchikEmotion.ANGER, "Envy"
+        )  # Sullenness/Envy
+        self._add_dyad(
+            m, PlutchikEmotion.DISGUST, PlutchikEmotion.ANTICIPATION, "Cynicism"
+        )
         self._add_dyad(m, PlutchikEmotion.ANGER, PlutchikEmotion.JOY, "Pride")
-        self._add_dyad(m, PlutchikEmotion.ANTICIPATION, PlutchikEmotion.TRUST, "Fatalism")
+        self._add_dyad(
+            m, PlutchikEmotion.ANTICIPATION, PlutchikEmotion.TRUST, "Fatalism"
+        )
 
         # Tertiary Dyads (Two apart - Opposites logic varies, usually these are conflicting)
         self._add_dyad(m, PlutchikEmotion.JOY, PlutchikEmotion.SURPRISE, "Delight")
-        self._add_dyad(m, PlutchikEmotion.TRUST, PlutchikEmotion.SADNESS, "Sentimentality")
+        self._add_dyad(
+            m, PlutchikEmotion.TRUST, PlutchikEmotion.SADNESS, "Sentimentality"
+        )
         self._add_dyad(m, PlutchikEmotion.FEAR, PlutchikEmotion.DISGUST, "Shame")
         self._add_dyad(m, PlutchikEmotion.SURPRISE, PlutchikEmotion.ANGER, "Outrage")
-        self._add_dyad(m, PlutchikEmotion.SADNESS, PlutchikEmotion.ANTICIPATION, "Pessimism")
+        self._add_dyad(
+            m, PlutchikEmotion.SADNESS, PlutchikEmotion.ANTICIPATION, "Pessimism"
+        )
         self._add_dyad(m, PlutchikEmotion.DISGUST, PlutchikEmotion.JOY, "Morbidness")
         self._add_dyad(m, PlutchikEmotion.ANGER, PlutchikEmotion.TRUST, "Dominance")
         self._add_dyad(m, PlutchikEmotion.ANTICIPATION, PlutchikEmotion.FEAR, "Anxiety")
@@ -141,7 +155,9 @@ class EmotionalCartographer:
         key = tuple(sorted([e1.value, e2.value]))
         map_obj[key] = name
 
-    def identify_dyad(self, emotion1: PlutchikEmotion, emotion2: PlutchikEmotion) -> Optional[str]:
+    def identify_dyad(
+        self, emotion1: PlutchikEmotion, emotion2: PlutchikEmotion
+    ) -> Optional[str]:
         """Identifies the complex emotion formed by two primary emotions."""
         key = tuple(sorted([emotion1.value, emotion2.value]))
         return self.dyad_map.get(key)
@@ -154,7 +170,9 @@ class EmotionalCartographer:
             return {"primary_state": "Neutral", "complex_states": []}
 
         # simple logic: take top 2 intense emotions
-        sorted_emotions = sorted(emotions, key=lambda x: x.intensity_score, reverse=True)
+        sorted_emotions = sorted(
+            emotions, key=lambda x: x.intensity_score, reverse=True
+        )
         top_emotions = sorted_emotions[:2]
 
         result = {

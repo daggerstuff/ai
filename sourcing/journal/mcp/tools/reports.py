@@ -290,4 +290,3 @@ class ListReportsTool(MCPTool):
                 f"Failed to list reports: {str(e)}",
                 {"params": params, "error": str(e)},
             ) from e
-

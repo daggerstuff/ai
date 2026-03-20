@@ -7,7 +7,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from transformers import AutoModelForSequenceClassification
 
-from training.defense_mechanisms.constants import DEFENSE_LABELS, DEFENSE_MATURITY, NUM_LABELS
+from training.defense_mechanisms.constants import (
+    DEFENSE_LABELS,
+    DEFENSE_MATURITY,
+    NUM_LABELS,
+)
 
 
 @dataclass
@@ -43,9 +47,7 @@ class FocalLoss(nn.Module):
 
         if self.label_smoothing > 0:
             smooth = self.label_smoothing / num_classes
-            one_hot = torch.zeros_like(log_probs).scatter(
-                1, targets.unsqueeze(1), 1.0
-            )
+            one_hot = torch.zeros_like(log_probs).scatter(1, targets.unsqueeze(1), 1.0)
             one_hot = one_hot * (1.0 - self.label_smoothing) + smooth
 
             loss = -(one_hot * log_probs).sum(dim=-1)

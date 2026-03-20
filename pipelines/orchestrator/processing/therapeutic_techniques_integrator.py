@@ -1128,9 +1128,7 @@ class TherapeuticTechniquesIntegrator:
             engagement_level = (
                 "high"
                 if avg_engagement > 2.5
-                else "medium"
-                if avg_engagement > 1.5
-                else "low"
+                else "medium" if avg_engagement > 1.5 else "low"
             )
             notes.append(
                 f"Client demonstrated {engagement_level} engagement throughout session"
@@ -1220,12 +1218,12 @@ class TherapeuticTechniquesIntegrator:
                 "protocols_used": list(
                     {conv.intervention_selection.protocol.id for conv in conversations}
                 ),
-                "average_fidelity_score": sum(
-                    conv.intervention_fidelity_score for conv in conversations
-                )
-                / len(conversations)
-                if conversations
-                else 0,
+                "average_fidelity_score": (
+                    sum(conv.intervention_fidelity_score for conv in conversations)
+                    / len(conversations)
+                    if conversations
+                    else 0
+                ),
             },
             "conversations": serializable_conversations,
         }

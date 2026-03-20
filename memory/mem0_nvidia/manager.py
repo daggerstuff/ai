@@ -95,16 +95,15 @@ class NvidiaMem0Manager(BaseMemoryManager):
         self.therapeutic_config = config.therapeutic_config or TherapeuticMemoryConfig()
 
         from ai.memory.therapeutic_processor import TherapeuticProcessor
+
         self.processor = TherapeuticProcessor(self.therapeutic_config)
 
         # Initialize OpenAI clients
         self.client = OpenAI(
-            base_url=self.config.base_url,
-            api_key=self.config.nvidia_api_key
+            base_url=self.config.base_url, api_key=self.config.nvidia_api_key
         )
         self.async_client = AsyncOpenAI(
-            base_url=self.config.base_url,
-            api_key=self.config.nvidia_api_key
+            base_url=self.config.base_url, api_key=self.config.nvidia_api_key
         )
 
         # Initialize Memory
@@ -192,7 +191,7 @@ class NvidiaMem0Manager(BaseMemoryManager):
                 model=self.config.model_name,
                 messages=messages,
                 temperature=0.7,
-                max_tokens=2048
+                max_tokens=2048,
             )
             return response.choices[0].message.content
         except Exception as e:
@@ -211,10 +210,10 @@ Maintain professional boundaries and safety protocols at all times."""
         """Get response from the memory-augmented agent using NVIDIA NIM."""
         # 1. Search relevant memories (Mem0 is currently sync)
         memories = self.search_memories(message, user_id)
-        
+
         # 2. Extract facts for the prompt
         facts = [m.get("memory", "") for m in memories]
-        
+
         # 3. Build augmented prompt
         base_instructions = self._get_base_instructions()
         system_prompt = self.processor.build_system_prompt(base_instructions, facts)
@@ -266,9 +265,11 @@ Maintain professional boundaries and safety protocols at all times."""
                 self.memory.add(
                     filtered_response,
                     user_id=user_id,
-                    metadata={"role": "assistant", "session_id": session_id}
-                    if session_id
-                    else {"role": "assistant"},
+                    metadata=(
+                        {"role": "assistant", "session_id": session_id}
+                        if session_id
+                        else {"role": "assistant"}
+                    ),
                 )
         except Exception:
             logger.exception("Error storing interaction")
@@ -465,4 +466,5 @@ async def test_integration():
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(test_integration())

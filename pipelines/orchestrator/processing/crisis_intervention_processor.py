@@ -15,6 +15,7 @@ logger = get_logger(__name__)
 
 class CrisisType(Enum):
     """Types of crisis situations."""
+
     SUICIDAL_IDEATION = "suicidal_ideation"
     SELF_HARM = "self_harm"
     PSYCHOTIC_EPISODE = "psychotic_episode"
@@ -41,14 +42,14 @@ class CrisisInterventionProcessor:
                 "assess immediate danger",
                 "safety planning",
                 "remove means",
-                "emergency contacts"
+                "emergency contacts",
             ],
             CrisisType.PSYCHOTIC_EPISODE: [
                 "reality testing",
                 "grounding techniques",
                 "medical referral",
-                "safety assessment"
-            ]
+                "safety assessment",
+            ],
         }
 
         self.logger.info("CrisisInterventionProcessor initialized")
@@ -72,13 +73,13 @@ class CrisisInterventionProcessor:
                 Message(
                     role="user",
                     content="I'm in crisis and need immediate help.",
-                    timestamp=datetime.now()
+                    timestamp=datetime.now(),
                 ),
                 Message(
                     role="assistant",
                     content="I'm here to help you. Your safety is my priority. Can you tell me what's happening right now?",
-                    timestamp=datetime.now()
-                )
+                    timestamp=datetime.now(),
+                ),
             ]
 
             return Conversation(
@@ -86,7 +87,7 @@ class CrisisInterventionProcessor:
                 messages=messages,
                 title="Crisis Intervention",
                 metadata={"crisis_intervention": True, "safety_critical": True},
-                tags=["crisis", "emergency", "safety"]
+                tags=["crisis", "emergency", "safety"],
             )
 
         except Exception as e:

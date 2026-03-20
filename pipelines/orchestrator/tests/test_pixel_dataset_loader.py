@@ -168,9 +168,11 @@ class TestPixelDatasetLoader(unittest.TestCase):
             failed_datasets=0,
             total_conversations=1000,
             loaded_conversations=400,
-            start_time=self.loader.loading_progress.start_time
-            if self.loader.loading_progress
-            else None,
+            start_time=(
+                self.loader.loading_progress.start_time
+                if self.loader.loading_progress
+                else None
+            ),
         )
 
         self.loader.loading_progress = test_progress

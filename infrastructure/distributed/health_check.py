@@ -449,11 +449,11 @@ async def example_health_check():
         status_icon = (
             "✅"
             if check.status == HealthStatus.HEALTHY
-            else "⚠️"
-            if check.status == HealthStatus.DEGRADED
-            else "❌"
-            if check.status == HealthStatus.UNHEALTHY
-            else "❓"
+            else (
+                "⚠️"
+                if check.status == HealthStatus.DEGRADED
+                else "❌" if check.status == HealthStatus.UNHEALTHY else "❓"
+            )
         )
         print(
             f"  {status_icon} {check.component_name}: {check.status.value} "

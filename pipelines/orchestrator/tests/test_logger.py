@@ -54,7 +54,11 @@ class TestLogger(unittest.TestCase):
                 encoding="utf-8",
             )
             file_handler.setLevel(logging.INFO)
-            file_handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+            file_handler.setFormatter(
+                logging.Formatter(
+                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                )
+            )
             logger.addHandler(file_handler)
             logger.setLevel(logging.INFO)
 
@@ -69,6 +73,7 @@ class TestLogger(unittest.TestCase):
             with open(test_log_file) as f:
                 content = f.read()
                 assert "test" in content
+
 
 if __name__ == "__main__":
     unittest.main()

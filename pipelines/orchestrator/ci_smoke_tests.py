@@ -402,17 +402,17 @@ def run_smoke_tests() -> Dict[str, Any]:
     results["tests"]["component_integration"] = smoke_tester.run_component_tests()
 
     # Resource monitoring test
-    results["tests"]["resource_monitoring"] = (
-        smoke_tester.run_resource_monitoring_test()
-    )
+    results["tests"][
+        "resource_monitoring"
+    ] = smoke_tester.run_resource_monitoring_test()
 
     # Full pipeline test
     results["tests"]["full_pipeline"] = integration_tester.test_full_pipeline()
 
     # Hyperparameter sweep test
-    results["tests"]["hyperparameter_sweep"] = (
-        integration_tester.test_hyperparameter_sweep()
-    )
+    results["tests"][
+        "hyperparameter_sweep"
+    ] = integration_tester.test_hyperparameter_sweep()
 
     # Calculate summary
     total_tests = len(results["tests"])
@@ -570,36 +570,36 @@ def test_smoke_training():
     """Pytest-compatible smoke training test"""
     tester = SmokeTrainingTest()
     result = tester.run_quick_training_test()
-    assert result["status"] == "passed", (
-        f"Smoke training failed: {result.get('error', 'Unknown error')}"
-    )
+    assert (
+        result["status"] == "passed"
+    ), f"Smoke training failed: {result.get('error', 'Unknown error')}"
 
 
 def test_component_integration():
     """Pytest-compatible component integration test"""
     tester = SmokeTrainingTest()
     result = tester.run_component_tests()
-    assert result["status"] == "passed", (
-        f"Component integration failed: {result.get('error', 'Unknown error')}"
-    )
+    assert (
+        result["status"] == "passed"
+    ), f"Component integration failed: {result.get('error', 'Unknown error')}"
 
 
 def test_resource_monitoring():
     """Pytest-compatible resource monitoring test"""
     tester = SmokeTrainingTest()
     result = tester.run_resource_monitoring_test()
-    assert result["status"] == "passed", (
-        f"Resource monitoring failed: {result.get('error', 'Unknown error')}"
-    )
+    assert (
+        result["status"] == "passed"
+    ), f"Resource monitoring failed: {result.get('error', 'Unknown error')}"
 
 
 def test_full_pipeline_integration():
     """Pytest-compatible full pipeline test"""
     tester = IntegrationTestSuite()
     result = tester.test_full_pipeline()
-    assert result["status"] == "passed", (
-        f"Full pipeline failed: {result.get('error', 'Unknown error')}"
-    )
+    assert (
+        result["status"] == "passed"
+    ), f"Full pipeline failed: {result.get('error', 'Unknown error')}"
 
 
 if __name__ == "__main__":

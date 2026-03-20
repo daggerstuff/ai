@@ -61,7 +61,9 @@ class AuthenticationHandler(ABC):
             # Check for Authorization header in params
             headers = request.params.get("headers", {})
             if isinstance(headers, dict):
-                auth_header = headers.get("Authorization") or headers.get("authorization")
+                auth_header = headers.get("Authorization") or headers.get(
+                    "authorization"
+                )
                 if auth_header:
                     return auth_header
 
@@ -312,4 +314,3 @@ def create_auth_handler(config: AuthConfig) -> Optional[AuthenticationHandler]:
     # Default: no authentication
     logger.warning("Authentication enabled but no method configured")
     return None
-

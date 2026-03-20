@@ -164,9 +164,7 @@ class AutomatedMaintenance:
 
 def test_automated_maintenance():
     """Verify that maintenance tasks correctly trigger and process."""
-    config = {
-        "tasks": [{"name": "deduplication", "interval": 0}]  # 0 forces immediate
-    }
+    config = {"tasks": [{"name": "deduplication", "interval": 0}]}  # 0 forces immediate
 
     maintainer = AutomatedMaintenance(config)
     assert len(maintainer.tasks) == 1

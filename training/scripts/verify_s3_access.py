@@ -42,8 +42,8 @@ def main():
         from ai.training.utils.s3_dataset_loader import S3DatasetLoader
 
         print("\n1. Initializing S3DatasetLoader...")
-        access_key = os.environ.get('OVH_S3_ACCESS_KEY')
-        secret_key = os.environ.get('OVH_S3_SECRET_KEY')
+        access_key = os.environ.get("OVH_S3_ACCESS_KEY")
+        secret_key = os.environ.get("OVH_S3_SECRET_KEY")
         print(f"   - OVH_S3_ACCESS_KEY: {'[SET]' if access_key else '[NOT SET]'}")
         print(f"   - OVH_S3_SECRET_KEY: {'[SET]' if secret_key else '[NOT SET]'}")
         print(f"   - OVH_S3_BUCKET: {os.environ.get('OVH_S3_BUCKET', 'Not set')}")

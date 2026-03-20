@@ -147,7 +147,7 @@ async def memory_query(query: str, user_id: str, limit: int = 5) -> str:
     """
     Search long-term memory for relevant information.
 
-    AUTONOMOUS TRIGGER: Call this if you're unsure about a past detail or need 
+    AUTONOMOUS TRIGGER: Call this if you're unsure about a past detail or need
     to align with established user preferences/goals.
 
     Args:
@@ -168,18 +168,15 @@ async def memory_query(query: str, user_id: str, limit: int = 5) -> str:
             for r in results
         ]
 
-        return (
-            f"### 🔍 Memory Retrieval for {user_id}\n\n"
-            + "\n".join(formatted_results)
+        return f"### 🔍 Memory Retrieval for {user_id}\n\n" + "\n".join(
+            formatted_results
         )
     except Exception as e:
         return f"❌ Error querying memory: {str(e)}"
 
 
 @mcp.tool()
-async def memory_update(
-    memory_id: str, content: str, metadata: str = None
-) -> str:
+async def memory_update(memory_id: str, content: str, metadata: str = None) -> str:
     """
     Refine or correct an existing memory entry.
 
@@ -230,7 +227,7 @@ async def memory_sync_workspace(user_id: str, context_summary: str) -> str:
     manager = get_manager()
     meta = {
         "timestamp": datetime.now(timezone.utc).isoformat(),
-        "type": "workspace_sync"
+        "type": "workspace_sync",
     }
     try:
         res = manager.add_memory(
@@ -321,7 +318,7 @@ async def memory_status(user_id: str) -> str:
     """
     manager = get_manager()
     memories = manager.get_all_memories(user_id)
-    
+
     if not memories:
         return f"### 📊 Memory Status: {user_id}\n\nCartography is empty."
 
@@ -330,9 +327,9 @@ async def memory_status(user_id: str) -> str:
     for m in memories:
         cat = m.get("metadata", {}).get("category", "general")
         categories[cat] = categories.get(cat, 0) + 1
-    
+
     cat_lines = "\n".join(f"- **{k}:** {v}" for k, v in categories.items())
-    
+
     return (
         f"### 📊 Memory Status: {user_id}\n\n"
         f"**Total Anchors:** {count}\n"

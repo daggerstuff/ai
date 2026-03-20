@@ -1,6 +1,10 @@
 import pytest
 from pathlib import Path
-from training.scripts.create_folder_structure import create_folder_structure, print_structure
+from training.scripts.create_folder_structure import (
+    create_folder_structure,
+    print_structure,
+)
+
 
 def test_create_folder_structure_new_dirs(tmp_path: Path, capsys):
     """Test creating directories in an empty base path."""
@@ -52,6 +56,7 @@ def test_create_folder_structure_new_dirs(tmp_path: Path, capsys):
     assert "✅ Created" in captured.out
     assert "📂 Folder structure:" in captured.out
 
+
 def test_create_folder_structure_existing_dirs(tmp_path: Path, capsys):
     """Test creating directories when they already exist."""
     # Run once to create them
@@ -96,6 +101,7 @@ def test_create_folder_structure_existing_dirs(tmp_path: Path, capsys):
     captured = capsys.readouterr()
     assert "✅ Created 0 directories" in captured.out
     assert f"{len(expected_dirs)} directories already existed" in captured.out
+
 
 def test_print_structure(tmp_path: Path, capsys):
     """Test the structure printing functionality."""

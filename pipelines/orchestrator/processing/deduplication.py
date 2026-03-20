@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SimilarityMetrics:
     """Container for similarity assessment metrics."""
+
     content_similarity: float
     semantic_similarity: float
     structural_similarity: float
@@ -33,6 +34,7 @@ class SimilarityMetrics:
 @dataclass
 class DuplicationResult:
     """Result of deduplication analysis."""
+
     original_count: int
     unique_count: int
     duplicates_removed: int
@@ -52,10 +54,13 @@ class ConversationDeduplicator:
     - Structural similarity (conversation flow and patterns)
     """
 
-    def __init__(self, similarity_threshold: float = 0.85,
-                 content_weight: float = 0.4,
-                 semantic_weight: float = 0.4,
-                 structural_weight: float = 0.2):
+    def __init__(
+        self,
+        similarity_threshold: float = 0.85,
+        content_weight: float = 0.4,
+        semantic_weight: float = 0.4,
+        structural_weight: float = 0.2,
+    ):
         """
         Initialize the deduplication system.
 
@@ -78,7 +83,9 @@ class ConversationDeduplicator:
 
         logger.info(f"Deduplicator initialized with threshold {similarity_threshold}")
 
-    def deduplicate_conversations(self, conversations: list[Conversation]) -> tuple[list[Conversation], DuplicationResult]:
+    def deduplicate_conversations(
+        self, conversations: list[Conversation]
+    ) -> tuple[list[Conversation], DuplicationResult]:
         """
         Remove duplicate conversations from the dataset.
 
@@ -89,6 +96,7 @@ class ConversationDeduplicator:
             Tuple of (unique_conversations, deduplication_result)
         """
         import time
+
         start_time = time.time()
 
         logger.info(f"Starting deduplication of {len(conversations)} conversations")
@@ -103,7 +111,9 @@ class ConversationDeduplicator:
         similarity_duplicates = self._find_similarity_duplicates(unique_by_hash)
 
         # Step 4: Remove similarity-based duplicates
-        final_unique = self._remove_similarity_duplicates(unique_by_hash, similarity_duplicates)
+        final_unique = self._remove_similarity_duplicates(
+            unique_by_hash, similarity_duplicates
+        )
 
         # Generate comprehensive result
         processing_time = time.time() - start_time
@@ -115,21 +125,28 @@ class ConversationDeduplicator:
             unique_count=len(final_unique),
             duplicates_removed=len(conversations) - len(final_unique),
             duplicate_groups=all_duplicate_groups,
-            similarity_distribution=self._calculate_similarity_distribution(conversations),
+            similarity_distribution=self._calculate_similarity_distribution(
+                conversations
+            ),
             processing_time=processing_time,
             details={
                 "exact_duplicate_groups": len(exact_duplicates),
                 "similarity_duplicate_groups": len(similarity_duplicates),
                 "exact_duplicates_removed": len(conversations) - len(unique_by_hash),
-                "similarity_duplicates_removed": len(unique_by_hash) - len(final_unique)
-            }
+                "similarity_duplicates_removed": len(unique_by_hash)
+                - len(final_unique),
+            },
         )
 
-        logger.info(f"Deduplication completed: {len(conversations)} -> {len(final_unique)} conversations")
+        logger.info(
+            f"Deduplication completed: {len(conversations)} -> {len(final_unique)} conversations"
+        )
 
         return final_unique, result
 
-    def calculate_similarity(self, conv1: Conversation, conv2: Conversation) -> SimilarityMetrics:
+    def calculate_similarity(
+        self, conv1: Conversation, conv2: Conversation
+    ) -> SimilarityMetrics:
         """
         Calculate comprehensive similarity between two conversations.
 
@@ -151,9 +168,9 @@ class ConversationDeduplicator:
 
         # Overall weighted similarity
         overall_sim = (
-            content_sim * self.content_weight +
-            semantic_sim * self.semantic_weight +
-            structural_sim * self.structural_weight
+            content_sim * self.content_weight
+            + semantic_sim * self.semantic_weight
+            + structural_sim * self.structural_weight
         )
 
         return SimilarityMetrics(
@@ -165,11 +182,13 @@ class ConversationDeduplicator:
                 "content_weight": self.content_weight,
                 "semantic_weight": self.semantic_weight,
                 "structural_weight": self.structural_weight,
-                "threshold": self.similarity_threshold
-            }
+                "threshold": self.similarity_threshold,
+            },
         )
 
-    def _find_exact_duplicates(self, conversations: list[Conversation]) -> dict[str, list[str]]:
+    def _find_exact_duplicates(
+        self, conversations: list[Conversation]
+    ) -> dict[str, list[str]]:
         """Find exact duplicates using content hashing."""
         hash_groups = defaultdict(list)
 
@@ -180,8 +199,9 @@ class ConversationDeduplicator:
         # Return only groups with duplicates
         return {h: ids for h, ids in hash_groups.items() if len(ids) > 1}
 
-    def _remove_exact_duplicates(self, conversations: list[Conversation],
-                                exact_duplicates: dict[str, list[str]]) -> list[Conversation]:
+    def _remove_exact_duplicates(
+        self, conversations: list[Conversation], exact_duplicates: dict[str, list[str]]
+    ) -> list[Conversation]:
         """Remove exact duplicates, keeping the first occurrence."""
         if not exact_duplicates:
             return conversations
@@ -195,10 +215,15 @@ class ConversationDeduplicator:
             duplicate_ids.update(group[1:])  # Mark rest as duplicates
 
         # Keep conversations not in duplicate groups + first occurrence of each group
-        return [conv for conv in conversations
-                if conv.id not in duplicate_ids or conv.id in ids_to_keep]
+        return [
+            conv
+            for conv in conversations
+            if conv.id not in duplicate_ids or conv.id in ids_to_keep
+        ]
 
-    def _find_similarity_duplicates(self, conversations: list[Conversation]) -> list[list[str]]:
+    def _find_similarity_duplicates(
+        self, conversations: list[Conversation]
+    ) -> list[list[str]]:
         """Find similarity-based duplicates using comprehensive similarity metrics."""
         duplicate_groups = []
         processed_ids = set()
@@ -209,7 +234,7 @@ class ConversationDeduplicator:
 
             current_group = [conv1.id]
 
-            for _j, conv2 in enumerate(conversations[i+1:], i+1):
+            for _j, conv2 in enumerate(conversations[i + 1 :], i + 1):
                 if conv2.id in processed_ids:
                     continue
 
@@ -225,8 +250,9 @@ class ConversationDeduplicator:
 
         return duplicate_groups
 
-    def _remove_similarity_duplicates(self, conversations: list[Conversation],
-                                    similarity_duplicates: list[list[str]]) -> list[Conversation]:
+    def _remove_similarity_duplicates(
+        self, conversations: list[Conversation], similarity_duplicates: list[list[str]]
+    ) -> list[Conversation]:
         """Remove similarity-based duplicates, keeping the first occurrence."""
         if not similarity_duplicates:
             return conversations
@@ -252,7 +278,9 @@ class ConversationDeduplicator:
         content_str = "|".join(normalized_content)
         return hashlib.sha256(content_str.encode()).hexdigest()
 
-    def _calculate_content_similarity(self, conv1: Conversation, conv2: Conversation) -> float:
+    def _calculate_content_similarity(
+        self, conv1: Conversation, conv2: Conversation
+    ) -> float:
         """Calculate content-based similarity using text comparison."""
         # Extract all content
         content1 = " ".join(msg.content for msg in conv1.messages)
@@ -264,7 +292,9 @@ class ConversationDeduplicator:
 
         return difflib.SequenceMatcher(None, content1, content2).ratio()
 
-    def _calculate_semantic_similarity(self, conv1: Conversation, conv2: Conversation) -> float:
+    def _calculate_semantic_similarity(
+        self, conv1: Conversation, conv2: Conversation
+    ) -> float:
         """Calculate semantic similarity using word overlap and patterns."""
         # Extract words from both conversations
         words1 = set()
@@ -286,8 +316,15 @@ class ConversationDeduplicator:
 
         # Additional semantic checks
         semantic_patterns = [
-            "anxiety", "depression", "stress", "therapy", "counseling",
-            "mental health", "emotional", "psychological", "treatment"
+            "anxiety",
+            "depression",
+            "stress",
+            "therapy",
+            "counseling",
+            "mental health",
+            "emotional",
+            "psychological",
+            "treatment",
         ]
 
         patterns1 = sum(
@@ -299,12 +336,16 @@ class ConversationDeduplicator:
             for pattern in semantic_patterns
         )
 
-        pattern_similarity = 1.0 - abs(patterns1 - patterns2) / max(patterns1 + patterns2, 1)
+        pattern_similarity = 1.0 - abs(patterns1 - patterns2) / max(
+            patterns1 + patterns2, 1
+        )
 
         # Weighted combination
         return 0.7 * jaccard_similarity_score + 0.3 * pattern_similarity
 
-    def _calculate_structural_similarity(self, conv1: Conversation, conv2: Conversation) -> float:
+    def _calculate_structural_similarity(
+        self, conv1: Conversation, conv2: Conversation
+    ) -> float:
         """Calculate structural similarity based on conversation patterns."""
         # Message count similarity
         count_diff = abs(len(conv1.messages) - len(conv2.messages))
@@ -323,26 +364,34 @@ class ConversationDeduplicator:
 
         # Normalize lengths to categories
         def categorize_length(length):
-            if length < 20: return "short"
-            if length < 100: return "medium"
+            if length < 20:
+                return "short"
+            if length < 100:
+                return "medium"
             return "long"
 
         length_pattern1 = [categorize_length(l) for l in lengths1]
         length_pattern2 = [categorize_length(l) for l in lengths2]
 
-        length_similarity = difflib.SequenceMatcher(None, length_pattern1, length_pattern2).ratio()
+        length_similarity = difflib.SequenceMatcher(
+            None, length_pattern1, length_pattern2
+        ).ratio()
 
         # Weighted combination
-        return 0.4 * count_similarity + 0.4 * pattern_similarity + 0.2 * length_similarity
+        return (
+            0.4 * count_similarity + 0.4 * pattern_similarity + 0.2 * length_similarity
+        )
 
-    def _calculate_similarity_distribution(self, conversations: list[Conversation]) -> dict[str, int]:
+    def _calculate_similarity_distribution(
+        self, conversations: list[Conversation]
+    ) -> dict[str, int]:
         """Calculate distribution of similarity scores for analysis."""
         distribution = {
             "very_high": 0,  # 0.9+
-            "high": 0,       # 0.8-0.9
-            "medium": 0,     # 0.6-0.8
-            "low": 0,        # 0.4-0.6
-            "very_low": 0    # <0.4
+            "high": 0,  # 0.8-0.9
+            "medium": 0,  # 0.6-0.8
+            "low": 0,  # 0.4-0.6
+            "very_low": 0,  # <0.4
         }
 
         # Sample a subset for performance
@@ -351,7 +400,7 @@ class ConversationDeduplicator:
 
         comparisons = 0
         for i, conv1 in enumerate(sample_conversations):
-            for conv2 in sample_conversations[i+1:]:
+            for conv2 in sample_conversations[i + 1 :]:
                 similarity = self.calculate_similarity(conv1, conv2)
                 score = similarity.overall_similarity
 
@@ -457,6 +506,7 @@ def deduplicate_conversations_simple(
             unique.append(conv)
             seen.append(text)
     return unique, duplicates
+
 
 # Alias for compatibility
 Deduplicator = ConversationDeduplicator

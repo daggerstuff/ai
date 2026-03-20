@@ -17,6 +17,7 @@ class EdgeCategory(Enum):
     Edge crisis and trauma categories for nightmare fuel training scenarios.
     Based on the 25+ high-difficulty categories from the expanded project brief.
     """
+
     # Core crisis categories
     SUICIDAL_IDEATION = "suicidal_ideation"
     SELF_HARM = "self_harm"
@@ -64,6 +65,7 @@ class IntensityLevel(Enum):
     Crisis intensity levels for edge scenarios.
     Matches the brief's "Very high, high, moderate" levels with additional granularity.
     """
+
     LOW = "low"
     MODERATE = "moderate"
     HIGH = "high"
@@ -77,6 +79,7 @@ class EdgeProfile:
     Complete edge profile metadata for a training example.
     Combines category, intensity, tone, stage, and additional metadata.
     """
+
     profile_id: str
     category: EdgeCategory
     intensity: IntensityLevel
@@ -209,7 +212,9 @@ def get_categories_by_intensity(intensity: IntensityLevel) -> List[EdgeCategory]
         ]
     else:
         # LOW intensity is not associated with edge categories
-        raise ValueError(f"LOW intensity is not associated with edge categories: {intensity}")
+        raise ValueError(
+            f"LOW intensity is not associated with edge categories: {intensity}"
+        )
 
 
 def validate_edge_profile(profile: EdgeProfile) -> tuple[bool, Optional[str]]:
@@ -228,4 +233,3 @@ def validate_edge_profile(profile: EdgeProfile) -> tuple[bool, Optional[str]]:
         return False, f"tone must be a Tone enum, got {type(profile.tone)}"
 
     return True, None
-

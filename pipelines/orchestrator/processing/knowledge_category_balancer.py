@@ -233,9 +233,11 @@ class KnowledgeCategoryBalancer:
                     category_name=category,
                     total_count=sum(dist_data.values()),
                     percentage=sum(dist_data.values()) / len(scenarios),
-                    target_percentage=sum(target_dist.values())
-                    if isinstance(target_dist, dict)
-                    else target_dist,
+                    target_percentage=(
+                        sum(target_dist.values())
+                        if isinstance(target_dist, dict)
+                        else target_dist
+                    ),
                     deviation=self._calculate_category_deviation(
                         dist_data, target_dist, len(scenarios)
                     ),

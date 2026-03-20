@@ -33,7 +33,9 @@ def csv_to_jsonl(input_csv, output_jsonl, limit=5000):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Convert Reddit CSV to JSONL for annotation")
+    parser = argparse.ArgumentParser(
+        description="Convert Reddit CSV to JSONL for annotation"
+    )
     parser.add_argument("--input", required=True, help="Path to input CSV")
     parser.add_argument("--output", required=True, help="Path to output JSONL")
     parser.add_argument("--limit", type=int, default=5000, help="Max rows to process")

@@ -14,16 +14,16 @@ data science and analytics workflows.
 
 Usage:
     from ai.infrastructure.export.multi_format import MultiFormatExporter, ExportFormat
-    
+
     exporter = MultiFormatExporter()
-    
+
     # Export to JSONL
     exporter.export_dataset(
         dataset_path="data/input.jsonl",
         output_path="data/output.jsonl",
         format=ExportFormat.JSONL
     )
-    
+
     # Export to Parquet for analytics
     exporter.export_dataset(
         dataset_path="data/input.jsonl",
@@ -46,6 +46,7 @@ logger = logging.getLogger(__name__)
 
 class ExportFormat(Enum):
     """Supported export formats."""
+
     JSONL = "jsonl"
     JSON = "json"
     CSV = "csv"
@@ -54,7 +55,7 @@ class ExportFormat(Enum):
 
 class ExportConfig:
     """Configuration for multi-format export operations."""
-    
+
     def __init__(
         self,
         format: ExportFormat = ExportFormat.JSONL,
@@ -69,7 +70,7 @@ class ExportConfig:
     ):
         """
         Initialize export configuration.
-        
+
         Args:
             format: Target export format
             compression: Compression type (gzip, bz2, xz, or None)
@@ -94,7 +95,7 @@ class ExportConfig:
 
 class ExportResult:
     """Result of an export operation."""
-    
+
     def __init__(
         self,
         success: bool,
@@ -107,7 +108,7 @@ class ExportResult:
     ):
         """
         Initialize export result.
-        
+
         Args:
             success: Whether export completed successfully
             output_path: Path to exported file
@@ -124,7 +125,7 @@ class ExportResult:
         self.bytes_written = bytes_written
         self.errors = errors
         self.metadata = metadata or {}
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to dictionary."""
         return {
@@ -141,28 +142,28 @@ class ExportResult:
 class MultiFormatExporter:
     """
     Multi-format dataset exporter supporting JSONL, JSON, CSV, and Parquet.
-    
+
     Provides efficient streaming export for large datasets with proper
     error handling and progress tracking.
     """
-    
+
     SUPPORTED_FORMATS = {
         ExportFormat.JSONL: ".jsonl",
         ExportFormat.JSON: ".json",
         ExportFormat.CSV: ".csv",
         ExportFormat.PARQUET: ".parquet",
     }
-    
+
     def __init__(self, config: Optional[ExportConfig] = None):
         """
         Initialize the multi-format exporter.
-        
+
         Args:
             config: Export configuration (uses defaults if None)
         """
         self.config = config or ExportConfig()
         self.logger = logging.getLogger("multi_format_exporter")
-    
+
     def export_dataset(
         self,
         dataset_path: Union[str, Path],
@@ -172,22 +173,22 @@ class MultiFormatExporter:
     ) -> ExportResult:
         """
         Export a dataset to the specified format.
-        
+
         Args:
             dataset_path: Path to input dataset (JSONL)
             output_path: Path for output file
             format: Target format (uses config default if None)
             config: Optional override configuration
-            
+
         Returns:
             ExportResult with operation details
         """
         config = config or self.config
         format = format or config.format
-        
+
         dataset_path = Path(dataset_path)
         output_path = Path(output_path)
-        
+
         # Validate input
         if not dataset_path.exists():
             return ExportResult(
@@ -198,10 +199,10 @@ class MultiFormatExporter:
                 bytes_written=0,
                 errors=[f"Input file not found: {dataset_path}"],
             )
-        
+
         # Ensure output directory exists
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Route to appropriate exporter
         try:
             if format == ExportFormat.JSONL:
@@ -231,14 +232,14 @@ class MultiFormatExporter:
                 bytes_written=0,
                 errors=[str(e)],
             )
-    
+
     def _load_dataset(self, dataset_path: Path) -> Iterator[Dict[str, Any]]:
         """
         Load dataset as a streaming iterator.
-        
+
         Args:
             dataset_path: Path to JSONL file
-            
+
         Yields:
             Dictionary records
         """
@@ -251,21 +252,21 @@ class MultiFormatExporter:
                     yield json.loads(line)
                 except json.JSONDecodeError as e:
                     self.logger.warning(f"Line {line_num}: JSON parse error - {e}")
-    
+
     def _export_jsonl(
         self, dataset_path: Path, output_path: Path, config: ExportConfig
     ) -> ExportResult:
         """Export to JSONL format."""
         records_exported = 0
         errors = []
-        
+
         with open(output_path, "w", encoding="utf-8") as f:
             for record in self._load_dataset(dataset_path):
                 f.write(json.dumps(record, ensure_ascii=False) + "\n")
                 records_exported += 1
-        
+
         bytes_written = output_path.stat().st_size
-        
+
         return ExportResult(
             success=True,
             output_path=output_path,
@@ -275,18 +276,18 @@ class MultiFormatExporter:
             errors=errors,
             metadata={"format": "JSON Lines"},
         )
-    
+
     def _export_json(
         self, dataset_path: Path, output_path: Path, config: ExportConfig
     ) -> ExportResult:
         """Export to JSON array format."""
         records = list(self._load_dataset(dataset_path))
-        
+
         with open(output_path, "w", encoding="utf-8") as f:
             json.dump(records, f, ensure_ascii=False, indent=2)
-        
+
         bytes_written = output_path.stat().st_size
-        
+
         return ExportResult(
             success=True,
             output_path=output_path,
@@ -296,15 +297,17 @@ class MultiFormatExporter:
             errors=[],
             metadata={"format": "JSON Array"},
         )
-    
-    def _flatten_record(self, record: Dict[str, Any], prefix: str = "") -> Dict[str, Any]:
+
+    def _flatten_record(
+        self, record: Dict[str, Any], prefix: str = ""
+    ) -> Dict[str, Any]:
         """
         Flatten a nested dictionary for CSV export.
-        
+
         Args:
             record: Nested dictionary
             prefix: Key prefix for nested fields
-            
+
         Returns:
             Flattened dictionary
         """
@@ -318,13 +321,13 @@ class MultiFormatExporter:
             else:
                 items.append((new_key, value))
         return dict(items)
-    
+
     def _export_csv(
         self, dataset_path: Path, output_path: Path, config: ExportConfig
     ) -> ExportResult:
         """Export to CSV format."""
         records = list(self._load_dataset(dataset_path))
-        
+
         if not records:
             return ExportResult(
                 success=False,
@@ -334,17 +337,17 @@ class MultiFormatExporter:
                 bytes_written=0,
                 errors=["No records to export"],
             )
-        
+
         # Flatten records if configured
         if config.flatten_nested:
             records = [self._flatten_record(r) for r in records]
-        
+
         # Get all fieldnames from all records
         fieldnames = set()
         for record in records:
             fieldnames.update(record.keys())
         fieldnames = sorted(fieldnames)
-        
+
         with open(output_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(
                 f,
@@ -355,9 +358,9 @@ class MultiFormatExporter:
             )
             writer.writeheader()
             writer.writerows(records)
-        
+
         bytes_written = output_path.stat().st_size
-        
+
         return ExportResult(
             success=True,
             output_path=output_path,
@@ -371,7 +374,7 @@ class MultiFormatExporter:
                 "flattened": config.flatten_nested,
             },
         )
-    
+
     def _export_parquet(
         self, dataset_path: Path, output_path: Path, config: ExportConfig
     ) -> ExportResult:
@@ -387,7 +390,7 @@ class MultiFormatExporter:
                 bytes_written=0,
                 errors=["pandas required for Parquet export: uv add pandas"],
             )
-        
+
         try:
             import pyarrow
         except ImportError:
@@ -399,9 +402,9 @@ class MultiFormatExporter:
                 bytes_written=0,
                 errors=["pyarrow required for Parquet export: uv add pyarrow"],
             )
-        
+
         records = list(self._load_dataset(dataset_path))
-        
+
         if not records:
             return ExportResult(
                 success=False,
@@ -411,7 +414,7 @@ class MultiFormatExporter:
                 bytes_written=0,
                 errors=["No records to export"],
             )
-        
+
         # Convert to DataFrame and export
         df = pd.DataFrame(records)
         df.to_parquet(
@@ -419,9 +422,9 @@ class MultiFormatExporter:
             compression=config.parquet_compression,
             index=False,
         )
-        
+
         bytes_written = output_path.stat().st_size
-        
+
         return ExportResult(
             success=True,
             output_path=output_path,
@@ -435,7 +438,7 @@ class MultiFormatExporter:
                 "columns": list(df.columns),
             },
         )
-    
+
     def convert_format(
         self,
         input_path: Union[str, Path],
@@ -445,13 +448,13 @@ class MultiFormatExporter:
     ) -> ExportResult:
         """
         Convert between formats (assumes input is valid format).
-        
+
         Args:
             input_path: Path to input file
             output_path: Path for output file
             input_format: Format of input (must be JSONL currently)
             output_format: Desired output format
-            
+
         Returns:
             ExportResult with operation details
         """
@@ -464,9 +467,9 @@ class MultiFormatExporter:
                 bytes_written=0,
                 errors=["Currently only JSONL input is supported"],
             )
-        
+
         return self.export_dataset(input_path, output_path, output_format)
-    
+
     def batch_export(
         self,
         datasets: List[Dict[str, Any]],
@@ -475,27 +478,27 @@ class MultiFormatExporter:
     ) -> List[ExportResult]:
         """
         Export a dataset to all supported formats.
-        
+
         Args:
             datasets: List of dataset configurations with 'path' and optional 'config'
             output_dir: Directory for output files
             base_name: Base filename for outputs
-            
+
         Returns:
             List of ExportResult for each format
         """
         output_dir = Path(output_dir)
         output_dir.mkdir(parents=True, exist_ok=True)
-        
+
         results = []
-        
+
         for fmt in ExportFormat:
             output_path = output_dir / f"{base_name}{self.SUPPORTED_FORMATS[fmt]}"
-            
+
             for dataset_config in datasets:
                 dataset_path = dataset_config["path"]
                 config = dataset_config.get("config", self.config)
-                
+
                 result = self.export_dataset(
                     dataset_path=dataset_path,
                     output_path=output_path,
@@ -503,7 +506,7 @@ class MultiFormatExporter:
                     config=config,
                 )
                 results.append(result)
-                
+
                 if result.success:
                     self.logger.info(
                         f"Exported {result.records_exported} records to {fmt.value}: "
@@ -513,11 +516,12 @@ class MultiFormatExporter:
                     self.logger.error(
                         f"Failed to export to {fmt.value}: {result.errors}"
                     )
-        
+
         return results
 
 
 # Convenience functions for common use cases
+
 
 def export_to_jsonl(
     input_path: Union[str, Path],
@@ -555,39 +559,41 @@ if __name__ == "__main__":
     print("=" * 80)
     print("Multi-Format Exporter - Production Implementation")
     print("=" * 80)
-    
+
     # Example: Create a sample dataset and export it
     print("\nExample: Exporting sample dataset to multiple formats")
     print("-" * 80)
-    
+
     # Create sample data
     sample_data = [
         {"id": 1, "text": "Hello world", "label": "greeting", "confidence": 0.95},
         {"id": 2, "text": "Sample message", "label": "generic", "confidence": 0.87},
         {"id": 3, "text": "Test data", "label": "test", "confidence": 0.99},
     ]
-    
+
     # Write sample JSONL
     sample_path = Path("/tmp/sample_dataset.jsonl")
     with open(sample_path, "w") as f:
         for record in sample_data:
             f.write(json.dumps(record) + "\n")
-    
+
     print(f"Created sample dataset: {sample_path}")
-    
+
     # Export to all formats
     exporter = MultiFormatExporter()
-    
+
     for fmt in ExportFormat:
         output_path = Path(f"/tmp/sample_dataset{exporter.SUPPORTED_FORMATS[fmt]}")
         result = exporter.export_dataset(sample_path, output_path, fmt)
-        
+
         if result.success:
-            print(f"✅ {fmt.value.upper()}: {result.records_exported} records, "
-                  f"{result.bytes_written} bytes")
+            print(
+                f"✅ {fmt.value.upper()}: {result.records_exported} records, "
+                f"{result.bytes_written} bytes"
+            )
         else:
             print(f"❌ {fmt.value.upper()}: {result.errors}")
-    
+
     print("\n" + "=" * 80)
     print("Multi-Format Exporter Ready")
     print("=" * 80)

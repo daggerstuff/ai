@@ -139,7 +139,9 @@ def main() -> int:
     if args.dry_run:
         logger.info(f"🔍 DRY RUN: Would upload {len(uploads)} files")
     else:
-        logger.info(f"✅ Upload complete: {success_count}/{len(uploads)} files uploaded")
+        logger.info(
+            f"✅ Upload complete: {success_count}/{len(uploads)} files uploaded"
+        )
     logger.info("=" * 80)
 
     return 0 if success_count == len(uploads) or args.dry_run else 1

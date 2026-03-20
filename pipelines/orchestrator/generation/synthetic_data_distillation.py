@@ -470,12 +470,12 @@ Respond with ONLY a JSON object:
             samples=quality_samples,
             total_generated=len(samples),
             quality_passed=len(quality_samples),
-            average_quality=sum(s.quality_score for s in samples) / len(samples)
-            if samples
-            else 0,
-            average_diversity=sum(s.diversity_score for s in samples) / len(samples)
-            if samples
-            else 0,
+            average_quality=(
+                sum(s.quality_score for s in samples) / len(samples) if samples else 0
+            ),
+            average_diversity=(
+                sum(s.diversity_score for s in samples) / len(samples) if samples else 0
+            ),
             generation_time_seconds=elapsed_time,
             strategy_used=strategy,
             metadata={

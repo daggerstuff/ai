@@ -516,12 +516,14 @@ def run_comprehensive_test():
             "test_details": [],
         },
         "success_rate": (
-            (result.testsRun - len(result.failures) - len(result.errors))
-            / result.testsRun
-            * 100
-        )
-        if result.testsRun > 0
-        else 0,
+            (
+                (result.testsRun - len(result.failures) - len(result.errors))
+                / result.testsRun
+                * 100
+            )
+            if result.testsRun > 0
+            else 0
+        ),
         "status": "PASSED" if result.wasSuccessful() else "FAILED",
     }
 

@@ -111,7 +111,9 @@ def ingest_nemotron_dataset(
             print(f"   ... processed {idx} samples", flush=True)
 
     if not lines:
-        raise RuntimeError("No samples were ingested; check dataset name/split/max-samples.")
+        raise RuntimeError(
+            "No samples were ingested; check dataset name/split/max-samples."
+        )
 
     body = ("\n".join(lines) + "\n").encode("utf-8")
     loader.s3_client.put_object(Bucket=loader.bucket, Key=key, Body=body)

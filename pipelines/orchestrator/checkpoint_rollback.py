@@ -214,9 +214,11 @@ class CheckpointManager:
         if keep_best_n > 0:
             best_checkpoints = sorted(
                 available,
-                key=lambda x: x.metrics.get("eval_loss", float("inf"))
-                if x.metrics
-                else float("inf"),
+                key=lambda x: (
+                    x.metrics.get("eval_loss", float("inf"))
+                    if x.metrics
+                    else float("inf")
+                ),
             )[:keep_best_n]
             for chk in best_checkpoints:
                 checkpoints_to_keep.add(chk.checkpoint_id)

@@ -272,9 +272,9 @@ class ErrorRecoveryManager:
             "total_operations": total_operations,
             "successful_operations": successful_operations,
             "failed_operations": failed_operations,
-            "overall_success_rate": successful_operations / total_operations
-            if total_operations > 0
-            else 0,
+            "overall_success_rate": (
+                successful_operations / total_operations if total_operations > 0 else 0
+            ),
             "operation_statistics": operation_stats,
             "error_type_distribution": error_types,
             "registered_configs": len(self.retry_configs),

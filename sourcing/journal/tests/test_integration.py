@@ -53,7 +53,9 @@ class TestComponentCommunication:
         assert evaluation.overall_score >= 0
         assert evaluation.priority_tier in ["high", "medium", "low"]
 
-    def test_evaluation_to_acquisition_flow(self, sample_dataset_source, sample_evaluation, temp_dir):
+    def test_evaluation_to_acquisition_flow(
+        self, sample_dataset_source, sample_evaluation, temp_dir
+    ):
         """Test data flow from evaluation to acquisition."""
         # Create acquisition manager
         config = AcquisitionConfig(storage_base_path=str(temp_dir))
@@ -189,6 +191,7 @@ class TestErrorHandling:
 
     def test_error_recovery_in_discovery(self, temp_dir):
         """Test error recovery in discovery phase."""
+
         class FailingDiscoveryService:
             def __init__(self):
                 self.attempts = 0
@@ -227,6 +230,7 @@ class TestErrorHandling:
 
     def test_fallback_strategy(self, temp_dir):
         """Test fallback strategy for failures."""
+
         class FailingService:
             def discover_sources(self, session):
                 raise RuntimeError("Service unavailable")
@@ -342,4 +346,3 @@ class TestSessionPersistence:
         # Verify progress was restored
         progress = new_orchestrator.get_progress(loaded_session.session_id)
         assert progress.sources_identified == 5
-

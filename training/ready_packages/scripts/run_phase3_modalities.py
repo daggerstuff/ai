@@ -13,10 +13,18 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parents[3]
 sys.path.append(str(project_root))
 
-from ai.pipelines.orchestrator.therapies.act_integration import ACTIntegration  # noqa: E402
-from ai.pipelines.orchestrator.therapies.cbt_integration import CBTIntegration  # noqa: E402
-from ai.pipelines.orchestrator.therapies.dbt_integration import DBTIntegration  # noqa: E402
-from ai.pipelines.orchestrator.therapies.emdr_integration import EMDRIntegration  # noqa: E402
+from ai.pipelines.orchestrator.therapies.act_integration import (
+    ACTIntegration,
+)  # noqa: E402
+from ai.pipelines.orchestrator.therapies.cbt_integration import (
+    CBTIntegration,
+)  # noqa: E402
+from ai.pipelines.orchestrator.therapies.dbt_integration import (
+    DBTIntegration,
+)  # noqa: E402
+from ai.pipelines.orchestrator.therapies.emdr_integration import (
+    EMDRIntegration,
+)  # noqa: E402
 
 # Configure Logging
 logging.basicConfig(

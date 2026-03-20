@@ -166,9 +166,9 @@ class DatasetProcessor:
                         {"messages": messages, "source": "mental_health_counseling"}
                     )
                     self.stats["mental_health_counseling"]["valid"] += 1
-                    self.stats["mental_health_counseling"]["tokens_approx"] += (
-                        self.estimate_tokens(context + response)
-                    )
+                    self.stats["mental_health_counseling"][
+                        "tokens_approx"
+                    ] += self.estimate_tokens(context + response)
                 else:
                     self.stats["mental_health_counseling"]["skipped"] += 1
 
@@ -231,9 +231,9 @@ class DatasetProcessor:
                             {"messages": messages, "source": "therapist_sft"}
                         )
                         self.stats["therapist_sft"]["valid"] += 1
-                        self.stats["therapist_sft"]["tokens_approx"] += (
-                            self.estimate_tokens(text)
-                        )
+                        self.stats["therapist_sft"][
+                            "tokens_approx"
+                        ] += self.estimate_tokens(text)
                     else:
                         self.stats["therapist_sft"]["skipped"] += 1
 
@@ -470,9 +470,9 @@ class DatasetProcessor:
                             }
                         )
                         self.stats[f"cot_{dataset_name}"]["valid"] += 1
-                        self.stats[f"cot_{dataset_name}"]["tokens_approx"] += (
-                            self.estimate_tokens(response)
-                        )
+                        self.stats[f"cot_{dataset_name}"][
+                            "tokens_approx"
+                        ] += self.estimate_tokens(response)
                     else:
                         self.stats[f"cot_{dataset_name}"]["skipped"] += 1
 

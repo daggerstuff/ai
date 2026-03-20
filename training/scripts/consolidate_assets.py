@@ -69,7 +69,9 @@ def consolidate_configs(manifest: Dict, target_dir: Path, base_path: Path) -> in
     return consolidated
 
 
-def consolidate_datasets(manifest: Dict, target_dir: Path, base_path: Path, use_symlinks: bool = True) -> int:
+def consolidate_datasets(
+    manifest: Dict, target_dir: Path, base_path: Path, use_symlinks: bool = True
+) -> int:
     """Consolidate datasets with symlink strategy for large files."""
     datasets = manifest.get("datasets", [])
     consolidated = 0
@@ -110,7 +112,9 @@ def consolidate_datasets(manifest: Dict, target_dir: Path, base_path: Path, use_
                 shutil.copy2(source_path, target_file)
             consolidated += 1
         except Exception as e:
-            print(f"  ⚠️  Failed to {'symlink' if use_symlink else 'copy'} {source_path.name}: {e}")
+            print(
+                f"  ⚠️  Failed to {'symlink' if use_symlink else 'copy'} {source_path.name}: {e}"
+            )
 
     print(f"  ✅ Consolidated {consolidated} datasets ({symlinked} symlinked)")
     return consolidated
@@ -194,7 +198,9 @@ def consolidate_pipelines(manifest: Dict, target_dir: Path, base_path: Path) -> 
     return consolidated
 
 
-def consolidate_infrastructure(manifest: Dict, target_dir: Path, base_path: Path) -> int:
+def consolidate_infrastructure(
+    manifest: Dict, target_dir: Path, base_path: Path
+) -> int:
     """Consolidate infrastructure configs."""
     infrastructure = manifest.get("infrastructure", [])
     consolidated = 0
@@ -274,4 +280,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-

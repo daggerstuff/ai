@@ -3,7 +3,10 @@ import tempfile
 
 import pandas as pd
 
-from ai.pipelines.orchestrator.dataset_inventory import get_dataset_metadata, scan_datasets
+from ai.pipelines.orchestrator.dataset_inventory import (
+    get_dataset_metadata,
+    scan_datasets,
+)
 
 EXPECTED_DATASET_COUNT = 2
 

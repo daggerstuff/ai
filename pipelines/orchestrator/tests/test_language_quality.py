@@ -51,7 +51,9 @@ def test_language_quality_low():
                 timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
             ),
             Message(
-                role="user", content="ok", timestamp=datetime.datetime.now(datetime.UTC).isoformat()
+                role="user",
+                content="ok",
+                timestamp=datetime.datetime.now(datetime.UTC).isoformat(),
             ),
         ],
         source="testset",

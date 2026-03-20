@@ -59,11 +59,15 @@ def _extract_history(msgs: list[dict[str, Any]]) -> list[dict[str, str]]:
         if role == "system":
             continue
         speaker = "therapist" if role in ["user", "human"] else "client"
-        history.append({"speaker": speaker, "text": m.get("content", m.get("value", ""))})
+        history.append(
+            {"speaker": speaker, "text": m.get("content", m.get("value", ""))}
+        )
     return history
 
 
-def _extract_multi_turn(msgs: list[dict[str, Any]]) -> tuple[str, str, list[dict[str, str]]]:
+def _extract_multi_turn(
+    msgs: list[dict[str, Any]],
+) -> tuple[str, str, list[dict[str, str]]]:
     """Extract a target + response pair from multi-turn conversation records."""
     if not msgs or not isinstance(msgs, list) or len(msgs) < 2:
         return "", "", []
@@ -231,7 +235,9 @@ def process_single_record(
     return ProcessResult(None, "unreachable", max_retries + 1, None, None)
 
 
-def _setup_simulator(args: argparse.Namespace, loader: S3DatasetLoader, device: str) -> GestaltSimulator:
+def _setup_simulator(
+    args: argparse.Namespace, loader: S3DatasetLoader, device: str
+) -> GestaltSimulator:
     """Ensure model presence (optional) and init simulator."""
     model_path = Path(args.defense_model_path) if args.defense_model_path else None
 
@@ -359,7 +365,9 @@ def _select_persona_id(
         return None
 
     overrepresented = {
-        pid for pid, count in persona_counts.items() if count / total_written > max_fraction
+        pid
+        for pid, count in persona_counts.items()
+        if count / total_written > max_fraction
     }
     if len(overrepresented) >= len(all_personas):
         return None
@@ -407,18 +415,26 @@ def _process_records(
     """Process records from input files and write valid results to a temp file."""
     max_retries = max(0, args.retry_on_validation_failure)
     checkpoint_key = _resolve_checkpoint_s3_key(args)
-    checkpoint_state = _load_checkpoint_state(loader, checkpoint_key) if args.resume else {}
+    checkpoint_state = (
+        _load_checkpoint_state(loader, checkpoint_key) if args.resume else {}
+    )
 
     resume_written, resume_hashes, resume_persona_counts = (
-        _load_output_state(args.output_s3_key, loader) if args.resume else (0, set(), {})
+        _load_output_state(args.output_s3_key, loader)
+        if args.resume
+        else (0, set(), {})
     )
 
     written_count = max(int(checkpoint_state.get("written_count", 0)), resume_written)
     skipped_count = int(checkpoint_state.get("skipped_count", 0))
     retry_count = int(checkpoint_state.get("retry_count", 0))
     duplicate_count = int(checkpoint_state.get("duplicate_count", 0))
-    start_file_index = int(checkpoint_state.get("source_file_index", 0)) if args.resume else 0
-    start_line_index = int(checkpoint_state.get("source_line_index", 0)) if args.resume else 0
+    start_file_index = (
+        int(checkpoint_state.get("source_file_index", 0)) if args.resume else 0
+    )
+    start_line_index = (
+        int(checkpoint_state.get("source_line_index", 0)) if args.resume else 0
+    )
 
     seen_hashes = set(resume_hashes)
     seen_hashes.update(checkpoint_state.get("seen_hashes", []))
@@ -439,9 +455,10 @@ def _process_records(
         with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as seed_file:
             seed_output_path = seed_file.name
         loader.download_file(args.output_s3_key, seed_output_path)
-        with open(seed_output_path, "r", encoding="utf-8") as src, open(
-            temp_out_path, "w", encoding="utf-8"
-        ) as dst:
+        with (
+            open(seed_output_path, "r", encoding="utf-8") as src,
+            open(temp_out_path, "w", encoding="utf-8") as dst,
+        ):
             for line in src:
                 dst.write(line)
         seed_written = resume_written

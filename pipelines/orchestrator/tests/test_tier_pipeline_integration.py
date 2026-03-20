@@ -69,21 +69,25 @@ class TestTierPipelineIntegration:
         # Tier 3 should have discovered 27+ CoT datasets
         tier3_loader = tier_processor.tier_loaders[3]
         assert hasattr(tier3_loader, "dataset_paths")
-        assert len(tier3_loader.dataset_paths) >= 27, (
-            f"Tier 3 should have 27+ datasets, found {len(tier3_loader.dataset_paths)}"
-        )
+        assert (
+            len(tier3_loader.dataset_paths) >= 27
+        ), f"Tier 3 should have 27+ datasets, found {len(tier3_loader.dataset_paths)}"
 
         # Tier 2 should have discovered 11+ professional datasets
         tier2_loader = tier_processor.tier_loaders[2]
         assert hasattr(tier2_loader, "dataset_paths")
-        assert len(tier2_loader.dataset_paths) >= 11, (
-            f"Tier 2 should have 11+ datasets, found {len(tier2_loader.dataset_paths)}"
-        )
+        assert (
+            len(tier2_loader.dataset_paths) >= 11
+        ), f"Tier 2 should have 11+ datasets, found {len(tier2_loader.dataset_paths)}"
 
         logger.info("✓ Tier loaders successfully discovered datasets from registry")
 
-    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run")
-    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which")
+    @patch(
+        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run"
+    )
+    @patch(
+        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which"
+    )
     def test_s3_download_capability(self, mock_which, mock_subprocess, tier_processor):
         """Test that tier loaders can handle S3 downloads (mocked)."""
         # Mock ovhai CLI availability
@@ -144,9 +148,9 @@ class TestTierPipelineIntegration:
 
         # Verify ratios sum to 1.0
         total_ratio = sum(tier_processor.TRAINING_RATIO_WEIGHTS.values())
-        assert abs(total_ratio - 1.0) < 0.001, (
-            f"Training ratios should sum to 1.0, got {total_ratio}"
-        )
+        assert (
+            abs(total_ratio - 1.0) < 0.001
+        ), f"Training ratios should sum to 1.0, got {total_ratio}"
 
         logger.info("✓ Tier training ratios are correctly configured")
 
@@ -168,8 +172,12 @@ class TestTierPipelineIntegration:
         logger.info("✓ TierProcessor can generate statistics")
 
     @pytest.mark.slow
-    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run")
-    @patch("ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which")
+    @patch(
+        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.subprocess.run"
+    )
+    @patch(
+        "ai.pipelines.orchestrator.ingestion.tier_loaders.base_tier_loader.shutil.which"
+    )
     def test_process_single_tier(self, mock_which, mock_subprocess, tier_processor):
         """Test processing a single tier (Tier 1 - smallest dataset)."""
         # Mock ovhai CLI

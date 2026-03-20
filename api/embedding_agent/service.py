@@ -566,9 +566,9 @@ class EmbeddingAgentService:
                         getattr(item, "knowledge_type", "general")
                     ),
                     source=getattr(item, "source", "unknown"),
-                    metadata=getattr(item, "metadata", {})
-                    if include_metadata
-                    else None,
+                    metadata=(
+                        getattr(item, "metadata", {}) if include_metadata else None
+                    ),
                 )
                 matches.append(match)
 

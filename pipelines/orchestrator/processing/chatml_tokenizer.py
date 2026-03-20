@@ -189,9 +189,7 @@ def tokenize_chatml(
         return (
             []
             if return_type == "dict"
-            else pd.DataFrame()
-            if return_type == "dataframe"
-            else None
+            else pd.DataFrame() if return_type == "dataframe" else None
         )
 
     tokenizer = _get_tokenizer(model_name_or_path, **tokenizer_kwargs)
