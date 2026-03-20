@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-03-17T21:34:51.661040+00:00",
+  "generated_at": "2026-03-19T07:04:55.971833+00:00",
   "total_samples": 0,
-  "integration_time_seconds": 0.010314,
+  "integration_time_seconds": 0.009822,
   "stage_distribution_targets": {
     "stage1_foundation": 0.4,
     "stage2_therapeutic_expertise": 0.25,
@@ -91,9 +91,7 @@
     "validator_failures:stage1_foundation"
   ],
   "warnings": [
-    "Missing required artifacts for stage3_edge_stress_test: ai/pipelines/edge_case/output/edge_cases_training_format.jsonl, ai/pipelines/orchestrator/prompt_corpus",
     "Missing required artifacts for stage4_voice_persona: ai/training_data_consolidated/transcripts",
-    "Edge case data not found. Run edge case pipeline first.",
     "Pixel Voice data not found. Run Pixel Voice pipeline first.",
     "Psychology knowledge base not found.",
     "Stage 'stage1_foundation' has only 20 samples (target: 3200).",
@@ -122,7 +120,7 @@
     "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550"
   ],
   "errors": [
-    "Standard therapeutic data not found in any of: ['ai/pipelines/orchestrator/pixelated-training/training_dataset.json', 'ai/lightning/pixelated-training/training_dataset.json', 'ai/pipelines/orchestrator/pixelated-training/training_dataset.json']"
+    "Failed to load standard therapeutic data from any available file. Last error: Extra data: line 2 column 1 (char 1405)"
   ],
   "pass": false
 }
