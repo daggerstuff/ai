@@ -6,7 +6,6 @@ stages:
   - validate
   - test
   - build
-  - deploy
 
 variables:
   # Python and uv configuration
@@ -129,39 +128,6 @@ build:docker:
     - main
     - tags
 
-# Deploy to staging (optional)
-deploy:staging:
-  stage: deploy
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache curl
-  script: |
-    echo "🚀 Deploying AI module to staging environment..."
-    echo "Container image: $CONTAINER_IMAGE"
-    echo "⚠️ Deployment logic not implemented yet"
 
-  environment:
-    name: "staging"
-    url: "https://staging.pixelatedempathy.com"
-  only:
-    - master
-    - main
-  when: manual
-
-# Deploy to production (manual trigger only)
-deploy:production:
-  stage: deploy
-  image: alpine:latest
-  before_script:
-    - apk add --no-cache curl
-  script: |
-    echo "🚀 Deploying AI module to production environment..."
-    echo "Container image: $CONTAINER_IMAGE"
-    echo "⚠️ Deployment logic not implemented yet"
-
-  environment:
-    name: "production"
-    url: "https://pixelatedempathy.com"
-  only:
-    - tags
-  when: manual
+# Note: Deployment is managed by the Azure Kubernetes deployment pipeline.
+# This GitLab pipeline handles validation, tests, and image build/publish only.

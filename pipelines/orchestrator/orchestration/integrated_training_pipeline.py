@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from ai.pipelines.orchestrator.configs.stages import get_all_stages
+from ai.pipelines.orchestrator.data_splitter import DataSplitter
 from ai.pipelines.orchestrator.ingestion.dual_persona_loader import (
     DualPersonaLoader,
 )
@@ -33,7 +34,6 @@ from ai.pipelines.orchestrator.ingestion.psychology_knowledge_loader import (
 from ai.pipelines.orchestrator.quality.evidence_based_practice_validator import (
     validate_bias,
 )
-from ai.pipelines.orchestrator.data_splitter import DataSplitter
 from ai.pipelines.orchestrator.storage_config import get_storage_config
 from ai.pipelines.orchestrator.storage_manager import StorageManager
 from ai.pipelines.orchestrator.utils.logger import get_logger
@@ -63,7 +63,8 @@ class IntegratedPipelineConfig:
         default_factory=lambda: DataSourceConfig(
             enabled=True,
             target_percentage=0.25,  # 25% edge cases
-            source_path="ai/pipelines/edge_case/output",
+            # Updated 2026-03-19: Use rclone path from dataset_registry.json
+            source_path="drive:backups/S3-Complete/gdrive/processed/edge_cases/edge_cases_training_format.jsonl",
         )
     )
 
@@ -71,7 +72,8 @@ class IntegratedPipelineConfig:
         default_factory=lambda: DataSourceConfig(
             enabled=True,
             target_percentage=0.20,  # 20% voice-derived
-            source_path="ai/pipelines/voice",
+            # Updated 2026-03-19: Use rclone path from dataset_registry.json
+            source_path="drive:backups/S3-Complete/voice/exports",
         )
     )
 
@@ -79,7 +81,8 @@ class IntegratedPipelineConfig:
         default_factory=lambda: DataSourceConfig(
             enabled=True,
             target_percentage=0.15,  # 15% psychology knowledge
-            source_path="ai/training_data_consolidated",
+            # Updated 2026-03-19: Use rclone path from dataset_registry.json
+            source_path="drive:backups/S3-Complete/datasets/consolidated/datasets/psychology_dataset.json",
         )
     )
 
@@ -87,6 +90,7 @@ class IntegratedPipelineConfig:
         default_factory=lambda: DataSourceConfig(
             enabled=True,
             target_percentage=0.10,  # 10% dual persona
+            # Updated 2026-03-19: Keep local path - loader generates synthetic data
             source_path="ai/pipelines/dual_persona",
         )
     )
@@ -95,11 +99,15 @@ class IntegratedPipelineConfig:
         default_factory=lambda: DataSourceConfig(
             enabled=True,
             target_percentage=0.30,  # 30% standard conversations
-            source_path="ai/pipelines/orchestrator/pixelated-training",
+            # Updated 2026-03-19: Use rclone path - ULTIMATE_FINAL_DATASET
+            # has 420K samples
+            source_path=(
+                "drive:backups/S3-Complete/processed_ready/"
+                "ULTIMATE_FINAL_DATASET_processed.jsonl"
+            ),
         )
     )
 
-    # Output configuration
     output_dir: str = "ai/lightning"
     output_filename: str = "training_dataset.json"
     target_total_samples: int = 8000
@@ -186,11 +194,11 @@ class IntegratedTrainingPipeline:
             and not storage_config.s3_bucket
             and os.getenv("USER") == "vivi"
         ):
-            # Convenience default for a known VPS environment when S3 is explicitly selected.
-            # Do not force S3 when the backend isn't explicitly configured.
-            storage_config.s3_bucket = "pixel-data"
+            # Convenience default for a known VPS environment when S3 is
+            # explicitly selected. Do not force S3 when the backend isn't
+            # explicitly configured.
 
-        self.storage = StorageManager(storage_config)
+            self.storage = StorageManager(storage_config)
 
         # Initialize stage_balance with the four-stage ladder from configs/stages.py
         for stage in get_all_stages():
@@ -206,14 +214,16 @@ class IntegratedTrainingPipeline:
 
         STRICT MODE (default=True for production):
         - fail_on_stage_drift: Fails if stage distribution drifts >2% from targets
-        - fail_on_missing_stage_artifacts: Fails if required Stage 3/4 assets are missing
+        - fail_on_missing_stage_artifacts: Fails if required Stage 3/4
+          assets are missing
 
         Override with environment variables (development/testing only):
         - TRAINING_STRICT_MODE=false: Disable all strict checks (logs warnings instead)
         - TRAINING_ALLOW_MISSING_ARTIFACTS=true: Allow missing Stage 3/4 artifacts
         - TRAINING_ALLOW_STAGE_DRIFT=true: Allow stage distribution drift
 
-        WARNING: Non-strict mode may produce partial-quality datasets. Use only for testing.
+        WARNING: Non-strict mode may produce partial-quality datasets.
+        Use only for testing.
         """
         strict_mode_env = os.getenv("TRAINING_STRICT_MODE", "true").strip().lower()
         is_strict = strict_mode_env in {"1", "true", "yes", "on"}
@@ -242,7 +252,8 @@ class IntegratedTrainingPipeline:
         if allow_drift in {"1", "true", "yes", "on"}:
             logger.warning(
                 "⚠️  TRAINING_ALLOW_STAGE_DRIFT=true. "
-                "Stage distribution may drift from targets. Curriculum balance may be affected."
+                "Stage distribution may drift from targets."
+                " Curriculum balance may be affected."
             )
             self.config.fail_on_stage_drift = False
 
@@ -358,7 +369,10 @@ class IntegratedTrainingPipeline:
         expires_at_raw = waiver.get("expires_at")
         expires_at = self._parse_iso_timestamp(expires_at_raw)
         if expires_at is not None and datetime.now(timezone.utc) > expires_at:
-            warning = f"Drift waiver for stage '{stage}' is expired at {expires_at.isoformat()}"
+            warning = (
+                f"Drift waiver for stage '{stage}' is expired at "
+                f"{expires_at.isoformat()}"
+            )
             logger.warning(warning)
             self.stats.warnings.append(warning)
             return STAGE_DRIFT_TOLERANCE, False
@@ -388,7 +402,8 @@ class IntegratedTrainingPipeline:
         Preflight required Stage 3/4 artifacts before training run.
 
         STRICT MODE (default): Raises RuntimeError if required artifacts are missing.
-        NON-STRICT MODE: Logs warnings and continues (may produce partial-quality datasets).
+        NON-STRICT MODE: Logs warnings and continues (may produce partial-quality
+        datasets).
         """
         required_artifacts = {
             "stage3_edge_stress_test": [
@@ -405,8 +420,7 @@ class IntegratedTrainingPipeline:
         for stage, paths in required_artifacts.items():
             if self.config.stage_distribution.get(stage, 0.0) <= 0:
                 continue
-            stage_missing = [str(path) for path in paths if not path.exists()]
-            if stage_missing:
+            if stage_missing := [str(path) for path in paths if not path.exists()]:
                 missing[stage] = stage_missing
 
         if not missing:
@@ -477,8 +491,10 @@ class IntegratedTrainingPipeline:
             logger.warning("Failed to load stage distribution from manifest: %s", exc)
 
     def _resolve_s3_path(self, manifest_path: str) -> str:
-        """Resolve legacy local paths to S3 URIs."""
+        """Resolve legacy local paths to storage URIs (S3 or rclone)."""
         if manifest_path.startswith("s3://"):
+            return manifest_path
+        if manifest_path.startswith("drive:"):
             return manifest_path
 
         # Map legacy VPS/Local paths to S3 structure
@@ -487,19 +503,22 @@ class IntegratedTrainingPipeline:
             # Strip home directory or relative prefixes
             clean_path = manifest_path.replace("~/", "").replace("../", "")
             if clean_path.startswith("datasets/consolidated/"):
-                return f"datasets/consolidated/{clean_path.split('datasets/consolidated/')[1]}"
+                return (
+                    f"datasets/consolidated/"
+                    f"{clean_path.split('datasets/consolidated/')[1]}"
+                )
 
         return manifest_path
 
     def _cache_data(self, source_path: str | None) -> Path | None:
-        """Download data from S3 to local cache if needed."""
+        """Download data from storage to local cache if needed."""
         if not source_path:
             return None
 
-        s3_path = self._resolve_s3_path(source_path)
+        storage_path = self._resolve_s3_path(source_path)
 
-        # If it's still a local path (wasn't resolved to S3), check if it exists
-        if not s3_path.startswith("s3://") and not s3_path.startswith("datasets/"):
+        # If it's a local path that exists, return it
+        if not storage_path.startswith(("s3://", "drive:", "datasets/")):
             local_p = Path(os.path.expanduser(source_path))
             if local_p.exists():
                 return local_p
@@ -510,42 +529,40 @@ class IntegratedTrainingPipeline:
         cache_dir.mkdir(parents=True, exist_ok=True)
 
         # Create a unique filename based on the path to avoid collisions
-        safe_name = s3_path.replace("/", "_").replace("s3:__", "")
+        safe_name = (
+            storage_path.replace("/", "_").replace("s3:__", "").replace(":", "_")
+        )
         cached_file = cache_dir / safe_name
 
         if cached_file.exists():
             logger.info(f"Using cached file: {cached_file}")
             return cached_file
 
-        logger.info(f"Downloading {s3_path} to cache...")
+        logger.info(f"Downloading {storage_path} to cache...")
         try:
-            # StorageManager expects path without s3://bucket/ prefix for S3 backend usually,
-            # but let's check how it handles it.
-            # Looking at StorageManager.download_file:
-            # s3_client.download_file(bucket, storage_path, local)
-            # So we need to strip the bucket if it's in the string
+            # Handle different storage backends
+            if storage_path.startswith("drive:"):
+                # Rclone path - pass directly to storage manager with full path
+                # Storage manager expects the full rclone path
+                # e.g., "drive:backups/S3-Complete/..."
+                self.storage.download_file(storage_path, cached_file)
+                return cached_file
+            elif storage_path.startswith("s3://"):
+                download_key = storage_path
+                if storage_path.startswith(f"s3://{self.storage.config.s3_bucket}/"):
+                    download_key = storage_path.replace(
+                        f"s3://{self.storage.config.s3_bucket}/", ""
+                    )
+                self.storage.download_file(download_key, cached_file)
+                return cached_file
+            elif storage_path.startswith("datasets/"):
+                # Relative path - use as-is
+                self.storage.download_file(storage_path, cached_file)
+                return cached_file
 
-            download_key = s3_path
-            if s3_path.startswith(
-                f"s3://{self.storage.config.s3_bucket}/"
-            ):  # Use self.storage.config.s3_bucket
-                download_key = s3_path.replace(
-                    f"s3://{self.storage.config.s3_bucket}/", ""
-                )
-            elif s3_path.startswith("datasets/"):
-                # This matches the S3 key structure directly
-                download_key = s3_path
-            else:
-                # If it's not an S3 path or a datasets/ path, it's likely a local path that wasn't resolved
-                # or an S3 path without the s3:// prefix.
-                # For now, assume it's an S3 key if it's not a local file.
-                # This might need more robust parsing depending on expected s3_path formats.
-                pass
-
-            self.storage.download_file(download_key, cached_file)
-            return cached_file
+            return None
         except Exception as e:
-            logger.error(f"Failed to download {s3_path}: {e}")
+            logger.error(f"Failed to download {storage_path}: {e}")
             return None
 
     def run(self) -> dict:
@@ -606,8 +623,8 @@ class IntegratedTrainingPipeline:
 
         # 5. Load Standard Therapeutic Conversations
         if self.config.standard_therapeutic.enabled:
-            # Standard therapeutic loader handles its own path resolution and caching internally
-            # as it tries multiple paths. We will keep its original signature for now.
+            # Standard therapeutic loader handles its own path resolution
+            # and caching internally as it tries multiple paths.
             standard_data = self._load_standard_therapeutic()
             all_training_data.extend(standard_data)
             self.stats.samples_by_source["standard_therapeutic"] = len(standard_data)
@@ -624,7 +641,7 @@ class IntegratedTrainingPipeline:
         if self.config.enable_quality_validation:
             balanced_data = self._run_quality_validation(balanced_data)
 
-        # Recompute stage counts after all filters and record drift against policy targets.
+        # Recompute stage counts after all filters and record drift.
         self._validate_final_stage_balance(balanced_data)
 
         # 9. Save integrated dataset
@@ -678,7 +695,7 @@ class IntegratedTrainingPipeline:
         checklist = {
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "total_samples": report.get("total_samples", 0),
-            "stage_drift_within_tolerance": len(drift_failures) == 0,
+            "stage_drift_within_tolerance": not drift_failures,
             "stage_drift_failures": drift_failures,
             "split_counts": report.get("split_counts", {}),
             "ops_freshness": self._collect_ops_freshness(),
@@ -839,7 +856,10 @@ class IntegratedTrainingPipeline:
                         json.dump(
                             {
                                 "generated_at": datetime.now(timezone.utc).isoformat(),
-                                "note": "Move refresh_token into ASANA_REFRESH_TOKEN and clear ASANA_AUTH_CODE.",
+                                "note": (
+                                    "Move refresh_token into ASANA_REFRESH_TOKEN "
+                                    "and clear ASANA_AUTH_CODE."
+                                ),
                                 "refresh_token": exchanged_refresh,
                             },
                             handle,
@@ -1195,9 +1215,9 @@ class IntegratedTrainingPipeline:
                     "POST",
                     f"/tasks/{gid}/stories",
                     payload={
-                        "text": (
-                            f"Checklist transition update ({generated_at}): "
-                            f"completed={should_complete}; signals={', '.join(signal_keys)}"
+                        (
+                        f"Checklist transition update ({generated_at}): "
+                        f"completed={should_complete}; signals={', '.join(signal_keys)}"
                         )
                     },
                 )
@@ -1231,7 +1251,7 @@ class IntegratedTrainingPipeline:
             self.stats.warnings.append(warning)
 
     def _collect_ops_freshness(self) -> dict[str, Any]:
-        """Collect inventory/prompt-mirror/voice-export freshness checks for checklist sync."""
+        """Collect ops freshness for checklist sync."""
         threshold_hours_raw = os.getenv("TRAINING_OPS_FRESHNESS_HOURS", "24").strip()
         try:
             threshold_hours = float(threshold_hours_raw)
@@ -1369,7 +1389,18 @@ class IntegratedTrainingPipeline:
     def _load_standard_therapeutic(self) -> list[dict]:
         """Load standard therapeutic conversations with robust error handling"""
         source_root = self.config.standard_therapeutic.source_path or ""
-        # Try multiple file locations
+
+        # Check if source is a rclone JSONL file
+        if source_root.startswith("drive:") and source_root.endswith(".jsonl"):
+            cached_path = self._cache_data(source_root)
+            if cached_path and cached_path.exists():
+                return self._load_jsonl_file(cached_path)
+            warning = f"Could not cache rclone file: {source_root}"
+            logger.warning(warning)
+            self.stats.warnings.append(warning)
+            return []
+
+        # Try multiple file locations for local paths
         possible_files = [
             Path(source_root) / "training_dataset.json",
             Path("ai/lightning/pixelated-training/training_dataset.json"),
@@ -1399,6 +1430,38 @@ class IntegratedTrainingPipeline:
 
         return self._normalize_conversations(raw_conversations)
 
+    def _load_jsonl_file(
+        self, file_path: Path, max_samples: int | None = None
+    ) -> list[dict]:
+        """Load a JSONL file and return list of conversations"""
+        conversations = []
+        try:
+            with open(file_path, encoding="utf-8") as f:
+                for i, line in enumerate(f):
+                    if max_samples and i >= max_samples:
+                        break
+                    line = line.strip()
+                    if not line:
+                        continue
+                    try:
+                        record = json.loads(line)
+                        # Convert to training format if it has messages
+                        if "messages" in record:
+                            conversations.append(record)
+                        elif "conversation" in record:
+                            conversations.append(record)
+                        else:
+                            conversations.append(record)
+                    except json.JSONDecodeError as e:
+                        logger.warning(f"Skipping malformed line {i + 1}: {e}")
+                        continue
+            logger.info(
+                f"✅ Loaded {len(conversations)} conversations from JSONL: {file_path}"
+            )
+        except Exception as e:
+            logger.error(f"Failed to load JSONL file {file_path}: {e}")
+        return conversations
+
     def _try_load_json_file(self, file_path: Path) -> list:
         """Helper to try loading a JSON file and return list of conversations"""
         try:
@@ -1407,14 +1470,16 @@ class IntegratedTrainingPipeline:
 
             if isinstance(raw_data, list):
                 logger.info(
-                    f"✅ Loaded {len(raw_data)} conversations from {file_path} (list format)"
+                    f"✅ Loaded {len(raw_data)} conversations from {file_path} "
+                    f"(list format)"
                 )
                 return raw_data
             if isinstance(raw_data, dict):
                 conversations = raw_data.get("conversations", [])
                 if conversations:
                     logger.info(
-                        f"✅ Loaded {len(conversations)} conversations from {file_path} (dict format)"
+                        f"✅ Loaded {len(conversations)} conversations from "
+                        f"{file_path} (dict format)"
                     )
                     return conversations
                 logger.warning(f"File {file_path} loaded but no conversations found")
@@ -1435,11 +1500,14 @@ class IntegratedTrainingPipeline:
     ):
         """Helper to handle load errors"""
         if last_error:
-            error = f"Failed to load standard therapeutic data from any available file. Last error: {last_error}"
+            error_msg = (
+                f"Failed to load standard therapeutic data. Last error: {last_error}"
+            )
         else:
-            error = f"Standard therapeutic data not found in any of: {[str(f) for f in possible_files]}"
-        logger.error(error)
-        self.stats.errors.append(error)
+            file_list = [str(f) for f in possible_files]
+            error_msg = f"Standard therapeutic data not found in: {file_list}"
+        logger.error(error_msg)
+        self.stats.errors.append(error_msg)
 
     def _normalize_conversations(self, conversations: list) -> list[dict]:
         """Normalize raw conversations to training format"""
@@ -1461,7 +1529,8 @@ class IntegratedTrainingPipeline:
                 )
 
         logger.info(
-            f"✅ Converted {len(training_data)} standard therapeutic examples to training format"
+            f"✅ Converted {len(training_data)} standard therapeutic examples "
+            f"to training format"
         )
         return training_data
 
@@ -1530,7 +1599,10 @@ class IntegratedTrainingPipeline:
             if len(bucket) <= target_count:
                 stage_sample = bucket
                 if len(bucket) < target_count:
-                    warning = f"Stage '{stage}' has only {len(bucket)} samples (target: {target_count})."
+                    warning = (
+                        f"Stage '{stage}' has only {len(bucket)} samples "
+                        f"(target: {target_count})."
+                    )
                     logger.warning(warning)
                     self.stats.warnings.append(warning)
             else:
@@ -1591,40 +1663,41 @@ class IntegratedTrainingPipeline:
                 self.stats.warnings.append(warning)
                 drift_violations.append(stage)
 
-        if self.config.fail_on_stage_drift:
-            if drift_violations:
-                raise RuntimeError(
-                    "Stage balance drift exceeds tolerance: "
-                    + ", ".join(drift_violations)
-                )
+        if self.config.fail_on_stage_drift and drift_violations:
+            raise RuntimeError(
+                "Stage balance drift exceeds tolerance: " + ", ".join(drift_violations)
+            )
 
     def _run_bias_detection(self, data: list[dict]) -> list[dict]:
         """Run bias detection on training data"""
         logger.info("🔍 Running bias detection...")
 
         try:
-            flagged_count = 0
-            filtered_data = []
-
-            for item in data:
-                text = item.get("text", "")
-                if validate_bias(text):
-                    filtered_data.append(item)
-                else:
-                    flagged_count += 1
-
-            self.stats.bias_detection_results = {
-                "total_checked": len(data),
-                "flagged": flagged_count,
-                "passed": len(filtered_data),
-            }
-
-            logger.info(f"   Flagged {flagged_count} items for bias")
-            return filtered_data
-
+            return self._extracted_from__run_bias_detection_6(data)
         except Exception as e:
             logger.warning(f"Bias detection failed: {e}")
             return data
+
+    # TODO Rename this here and in `_run_bias_detection`
+    def _extracted_from__run_bias_detection_6(self, data):
+        flagged_count = 0
+        filtered_data = []
+
+        for item in data:
+            text = item.get("text", "")
+            if validate_bias(text):
+                filtered_data.append(item)
+            else:
+                flagged_count += 1
+
+        self.stats.bias_detection_results = {
+            "total_checked": len(data),
+            "flagged": flagged_count,
+            "passed": len(filtered_data),
+        }
+
+        logger.info(f"   Flagged {flagged_count} items for bias")
+        return filtered_data
 
     def _run_quality_validation(self, data: list[dict]) -> list[dict]:
         """Run quality validation on training data using Quality Scoring v1"""
@@ -1905,7 +1978,9 @@ class IntegratedTrainingPipeline:
             "total_samples": self.stats.total_samples,
             "samples_by_source": self.stats.samples_by_source,
             "stage_distribution_targets": self.config.stage_distribution,
-            "fail_on_missing_stage_artifacts": self.config.fail_on_missing_stage_artifacts,
+            "fail_on_missing_stage_artifacts": (
+                self.config.fail_on_missing_stage_artifacts
+            ),
             "stage_balance": self.stats.stage_balance,
             "actual_stage_percentages": {
                 stage: count / self.stats.total_samples
@@ -2063,11 +2138,15 @@ class IntegratedTrainingPipeline:
                 "evidence": "stage_health_report.blockers + report.stage_balance",
             },
             "manifest_and_report_generated": {
-                "passed": Path(
-                    "ai/training_data_consolidated/final/MASTER_STAGE_MANIFEST.json"
-                ).exists()
-                and stage_health_path.exists(),
-                "evidence": "MASTER_STAGE_MANIFEST.json + integrated_stage_health_report.json",
+                "passed": (
+                    Path(
+                        "ai/training_data_consolidated/final/MASTER_STAGE_MANIFEST.json"
+                    ).exists()
+                    and stage_health_path.exists()
+                ),
+                "evidence": (
+                    "MASTER_STAGE_MANIFEST.json + integrated_stage_health_report.json"
+                ),
             },
             "stage_3_4_inputs_checked": {
                 "passed": any(
@@ -2112,7 +2191,9 @@ class IntegratedTrainingPipeline:
             "artifact_paths": {
                 "checklist": str(checklist_path),
                 "stage_health_report": str(stage_health_path),
-                "stage_manifest": "ai/training_data_consolidated/final/MASTER_STAGE_MANIFEST.json",
+                "stage_manifest": (
+                    "ai/training_data_consolidated/final/MASTER_STAGE_MANIFEST.json"
+                ),
                 "asana_task_key_mapping": str(asana_mapping_path),
                 "asana_task_transition_results": str(asana_transition_path),
             },
