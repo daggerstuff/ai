@@ -335,10 +335,13 @@
                         e.preventDefault();
                         this.innerHTML = '⏳ Processing...';
                         this.style.pointerEvents = 'none';
+                        this.setAttribute('aria-busy', 'true');
+                        this.setAttribute('aria-disabled', 'true');
                         
                         // Simulate processing time
                         setTimeout(() => {
                             this.innerHTML = '✅ Complete';
+                            this.removeAttribute('aria-busy');
                             setTimeout(() => {
                                 location.reload();
                             }, 2000);
