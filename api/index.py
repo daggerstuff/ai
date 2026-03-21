@@ -1,8 +1,8 @@
 """
 Pixelated Empathy AI - Vercel Entry Point
 
-Exports a Starlette ASGI app as a handler-compatible object for @vercel/python.
-FastAPI is ASGI-native; Starlette provides the WSGI bridge for Vercel's
+Exports a Starlette ASGI app as the handler for @vercel/python.
+FastAPI/Starlette are ASGI-native and work directly with Vercel's
 serverless runtime.
 """
 
@@ -27,6 +27,8 @@ routes = [
 ]
 
 middleware = [
+    # NOTE: For production, restrict allow_origins to known frontend domains
+    # Current wildcard is for development convenience
     Middleware(
         CORSMiddleware,
         allow_origins=["*"],
