@@ -88,14 +88,17 @@ find = { where = ["."], include = ["*"] }
 
 [tool.uv]
 index-strategy = "unsafe-best-match"
-# Transitive dependency overrides for security patches:
-# CVE-2026-27199: werkzeug pulled via flask - pin to patched release
-# CVE-2026-25990: pillow pulled via torchvision - pin to patched release
-# CVE-2025-69872: diskcache via llama-cpp-python - no PyPI fix as of 2026-03-16
-override-dependencies = [
-  "werkzeug>=3.1.6",
-  "pillow>=12.1.1",
-]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+torchvision = { index = "pytorch-cpu" }
+torchaudio = { index = "pytorch-cpu" }
+
+# Security patches added to dependencies instead of override-dependencies
 
 
 [tool.ruff]
