@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 """
 Storage Manager for Dataset Pipeline
-Handles file uploads/downloads to configured storage backend (S3, GCS, or local)
+Handles file uploads/downloads to configured storage backend (S3, GCS, Rclone, or local)
 """
 
 import hashlib
 import json
+import subprocess
 from pathlib import Path
 from typing import Any, Dict, Optional
 
@@ -33,10 +34,41 @@ class StorageManager:
         self._gcs_client = None
         self._gcs_bucket = None
 
-        # Validate config
         is_valid, error = self.config.validate()
         if not is_valid:
             raise ValueError(f"Invalid storage configuration: {error}")
+
+    def _rclone_path(self, key: str) -> str:
+        """Build rclone path from remote and base_path config"""
+        base = f"{self.config.rclone_remote}:{self.config.rclone_base_path}"
+        return f"{base}/{key}"
+
+    def _rclone_cat(self, rclone_path: str) -> bytes:
+        """Read file content via rclone cat"""
+        result = subprocess.run(
+            ["rclone", "cat", rclone_path],
+            capture_output=True,
+            check=True,
+        )
+        return result.stdout
+
+    def _rclone_ls(self, rclone_path: str) -> list[str]:
+        """List files via rclone lsf"""
+        result = subprocess.run(
+            ["rclone", "lsf", rclone_path],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return result.stdout.strip().split("\n") if result.stdout.strip() else []
+
+    def _rclone_copy_to_local(self, rclone_path: str, local_path: Path) -> None:
+        """Download file via rclone copyto"""
+        local_path.parent.mkdir(parents=True, exist_ok=True)
+        subprocess.run(
+            ["rclone", "copyto", rclone_path, str(local_path)],
+            check=True,
+        )
 
     def _get_s3_client(self):
         """Get or create S3 client"""
@@ -162,6 +194,18 @@ class StorageManager:
             except GoogleCloudError as e:
                 raise RuntimeError(f"Failed to upload to GCS: {e}")
 
+        elif self.config.backend == StorageBackend.RCLONE:
+            rclone_path = self._rclone_path(storage_path)
+            try:
+                subprocess.run(
+                    ["rclone", "copyto", str(local_path), rclone_path],
+                    check=True,
+                    capture_output=True,
+                )
+                return rclone_path
+            except subprocess.CalledProcessError as e:
+                raise RuntimeError(f"Failed to upload via rclone: {e.stderr.decode()}")
+
         else:
             raise ValueError(f"Unknown backend: {self.config.backend}")
 
@@ -208,6 +252,20 @@ class StorageManager:
             except GoogleCloudError as e:
                 raise RuntimeError(f"Failed to download from GCS: {e}")
 
+        elif self.config.backend == StorageBackend.RCLONE:
+            # Check if storage_path is already a full rclone path (contains ":")
+            if ":" in storage_path:
+                rclone_path = storage_path
+            else:
+                rclone_path = self._rclone_path(storage_path)
+            try:
+                self._rclone_copy_to_local(rclone_path, local_path)
+                return local_path
+            except subprocess.CalledProcessError as e:
+                raise FileNotFoundError(
+                    f"Failed to download via rclone: {e.stderr.decode() if e.stderr else str(e)}"
+                )
+
         else:
             raise ValueError(f"Unknown backend: {self.config.backend}")
 
@@ -236,6 +294,22 @@ class StorageManager:
 
             blob = gcs_bucket.blob(storage_path)
             return blob.exists()
+
+        elif self.config.backend == StorageBackend.RCLONE:
+            # Check if storage_path is already a full rclone path (contains ":")
+            if ":" in storage_path:
+                rclone_path = storage_path
+            else:
+                rclone_path = self._rclone_path(storage_path)
+            try:
+                subprocess.run(
+                    ["rclone", "lsf", "--max-depth", "1", rclone_path],
+                    check=True,
+                    capture_output=True,
+                )
+                return True
+            except subprocess.CalledProcessError:
+                return False
 
         else:
             raise ValueError(f"Unknown backend: {self.config.backend}")
