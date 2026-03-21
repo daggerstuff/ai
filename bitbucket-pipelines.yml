@@ -187,30 +187,51 @@ definitions:
     - step: &deploy-staging
         name: Deploy to Staging
         deployment: staging
-        caches:
-          - uv
+        image: mcr.microsoft.com/azure-cli:2.63.0
         script:
-          # Install uv for fast Python dependency management
-          - curl -LsSf https://astral.sh/uv/install.sh | sh
-          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
-          - echo "Deploying to staging environment..."
-          # Add your staging deployment commands here
-          # Example: kubectl apply -f deployment/kubernetes_deployment.yaml
-          - echo "Deployment completed"
+          - |
+            set -euo pipefail
+            for required in AZURE_CLIENT_ID AZURE_CLIENT_SECRET AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID AZURE_AKS_CLUSTER_NAME AZURE_AKS_RESOURCE_GROUP ACR_NAME; do
+              if [ -z "${!required:-}" ]; then
+                echo "ERROR: Missing required Bitbucket deployment variable: ${required}"
+                exit 1
+              fi
+            done
+            az login --service-principal \
+              --username "$AZURE_CLIENT_ID" \
+              --password "$AZURE_CLIENT_SECRET" \
+              --tenant "$AZURE_TENANT_ID"
+            az account set --subscription "$AZURE_SUBSCRIPTION_ID"
+            az aks get-credentials --resource-group "$AZURE_AKS_RESOURCE_GROUP" --name "$AZURE_AKS_CLUSTER_NAME" --overwrite-existing
+            IMAGE="${ACR_NAME}.azurecr.io/pixelatedempathy:${BITBUCKET_COMMIT}"
+            kubectl -n pixelated-staging set image deployment/pixelated app="$IMAGE"
+            kubectl -n pixelated-staging rollout status deployment/pixelated --timeout=300s
+            echo "Staging AKS deployment completed"
 
     - step: &deploy-production
         name: Deploy to Production
         deployment: production
         trigger: manual
-        caches:
-          - uv
+        image: mcr.microsoft.com/azure-cli:2.63.0
         script:
-          # Install uv for fast Python dependency management
-          - curl -LsSf https://astral.sh/uv/install.sh | sh
-          - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
-          - echo "Deploying to production environment..."
-          # Add your production deployment commands here
-          - echo "Production deployment completed"
+          - |
+            set -euo pipefail
+            for required in AZURE_CLIENT_ID AZURE_CLIENT_SECRET AZURE_TENANT_ID AZURE_SUBSCRIPTION_ID AZURE_AKS_CLUSTER_NAME AZURE_AKS_RESOURCE_GROUP ACR_NAME; do
+              if [ -z "${!required:-}" ]; then
+                echo "ERROR: Missing required Bitbucket deployment variable: ${required}"
+                exit 1
+              fi
+            done
+            az login --service-principal \
+              --username "$AZURE_CLIENT_ID" \
+              --password "$AZURE_CLIENT_SECRET" \
+              --tenant "$AZURE_TENANT_ID"
+            az account set --subscription "$AZURE_SUBSCRIPTION_ID"
+            az aks get-credentials --resource-group "$AZURE_AKS_RESOURCE_GROUP" --name "$AZURE_AKS_CLUSTER_NAME" --overwrite-existing
+            IMAGE="${ACR_NAME}.azurecr.io/pixelatedempathy:${BITBUCKET_COMMIT}"
+            kubectl -n pixelated-production set image deployment/pixelated app="$IMAGE"
+            kubectl -n pixelated-production rollout status deployment/pixelated --timeout=300s
+            echo "Production AKS deployment completed"
 
     # Governance validation step for dataset expansion
     - step: &governance-validate
