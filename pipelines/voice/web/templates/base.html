@@ -765,8 +765,15 @@
         
         // Floating particles animation
         function createParticles() {
+            // ⚡ Bolt: Early return for accessibility and performance
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                return;
+            }
+
             const particlesContainer = document.getElementById('particles');
             const particleCount = 50;
+            // ⚡ Bolt: Use DocumentFragment to batch DOM inserts and avoid layout thrashing
+            const fragment = document.createDocumentFragment();
 
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
@@ -791,8 +798,10 @@
                 // Random opacity
                 particle.style.opacity = Math.random() * 0.3 + 0.1;
 
-                particlesContainer.appendChild(particle);
+                fragment.appendChild(particle);
             }
+
+            particlesContainer.appendChild(fragment);
         }
 
         // Connect WebSocket when page loads
