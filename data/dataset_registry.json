@@ -1,9 +1,10 @@
 {
-  "description": "Dataset registry (S3-first). S3 is canonical; GDrive/local paths are fallbacks only.",
+  "description": "Dataset registry (rclone-first). S3 backup on Google Drive is canonical via rclone.",
   "canonical_storage": {
-    "type": "s3",
-    "bucket": "pixel-data",
-    "base_uri": "s3://pixel-data",
+    "type": "rclone",
+    "remote": "drive",
+    "base_uri": "drive:backups/S3-Complete",
+    "rclone_prefix": "rclone:",
     "prefixes": {
       "gdrive_raw": "gdrive/raw",
       "gdrive_processed": "gdrive/processed",
@@ -15,12 +16,18 @@
     "docs": {
       "s3_structure": "ai/training_ready/docs/S3_TRAINING_DATA_STRUCTURE.md",
       "s3_usage": "ai/training_ready/docs/S3_USAGE_GUIDE.md"
-    }
+    },
+    "notes": [
+      "S3 service is not active. Data is stored in Google Drive at drive:backups/S3-Complete",
+      "Use rclone to access: rclone cat drive:backups/S3-Complete/<path>",
+      "Updated 2026-03-19: Switched from s3:// to rclone paths"
+    ]
   },
   "source_staging": {
-    "type": "gdrive",
-    "gdrive_mount": "/mnt/gdrive/datasets",
-    "notes": "Google Drive is source/staging only. Sync to S3 via rclone; training reads from S3."
+    "type": "rclone",
+    "remote": "drive",
+    "base_path": "drive:backups/S3-Complete",
+    "notes": "Google Drive via rclone is now canonical. S3 service is offline."
   },
   "total_size_gb": 10,
   "consolidation_status": "audited_2025-12-11",
@@ -28,7 +35,7 @@
   "datasets": {
     "cot_reasoning": {
       "CoT_Clinical_Diagnosis_Mental_Health": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json"
         },
@@ -39,7 +46,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Heartbreak_and_Breakups": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Heartbreak_and_Breakups_downloaded.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Heartbreak_and_Breakups_downloaded.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Heartbreak_and_Breakups_downloaded.json"
         },
@@ -50,7 +57,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Neurodivergent_vs_Neurotypical": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json"
         },
@@ -61,7 +68,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Mens_Mental_Health": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Reasoning_Mens_Mental_Health_downloaded.json"
         },
@@ -72,7 +79,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Cultural_Nuances": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT-Reasoning_Cultural_Nuances_Dataset.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT-Reasoning_Cultural_Nuances_Dataset.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT-Reasoning_Cultural_Nuances/CoT-Reasoning_Cultural_Nuances_Dataset.json"
         },
@@ -83,7 +90,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Philosophical_Understanding": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Philosophical_Understanding.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Philosophical_Understanding.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Philosophical_Understanding/CoT_Philosophical_Understanding.json"
         },
@@ -94,7 +101,7 @@
         "quality_profile": "cot_reasoning"
       },
       "CoT_Temporal_Reasoning": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Temporal_Reasoning_Dataset.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Temporal_Reasoning_Dataset.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Temporal_Reasoning_Dataset/CoT_Temporal_Reasoning_Dataset.json"
         },
@@ -105,7 +112,7 @@
         "quality_profile": "cot_reasoning"
       },
       "RPSD": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/RPSD.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/RPSD.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/RPSD.json"
         },
@@ -117,7 +124,7 @@
         "status": "pending_sync"
       },
       "ToT-RPSD-V2": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/ToT-RPSD-V2.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/ToT-RPSD-V2.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/ToT-RPSD-V2.json"
         },
@@ -129,7 +136,7 @@
         "status": "pending_sync"
       },
       "CoT_Rare_Diseases_Health_Conditions": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Rare_Disseases_Health_Conditions_9.8k.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Rare_Disseases_Health_Conditions_9.8k.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Rare_Disseases_Health_Conditions_9.8k.json"
         },
@@ -141,7 +148,7 @@
         "status": "pending_sync"
       },
       "CoT_Breakups_and_heartbreak": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT-Breakups_and_heartbreak-9.8k.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT-Breakups_and_heartbreak-9.8k.json",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/CoT_Heartbreak_and_Breakups_downloaded.json",
           "local": "~/datasets/consolidated/cot_reasoning/CoT-Breakups_and_heartbreak-9.8k.json"
@@ -154,7 +161,7 @@
         "status": "pending_sync"
       },
       "General_Inquiry_Thinking_Chain_Of_Thought": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought_6K.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought_6K.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/General_Inquiry_Thinking-Chain-Of-Thought_6K.json"
         },
@@ -166,7 +173,7 @@
         "status": "pending_sync"
       },
       "CoT_Reasoning_The_Ancient_Past": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_The_Ancient_Past.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Reasoning_The_Ancient_Past.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_The_Ancient_Past.json"
         },
@@ -178,7 +185,7 @@
         "status": "pending_sync"
       },
       "CoT_Legal_Issues_And_Laws": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Legal_Issues_And_Laws.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Legal_Issues_And_Laws.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Legal_Issues_And_Laws.json"
         },
@@ -190,7 +197,7 @@
         "status": "pending_sync"
       },
       "CoT_Reasoning_Scientific_Discovery_and_Research": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Scientific_Discovery_and_Research.json"
         },
@@ -202,7 +209,7 @@
         "status": "pending_sync"
       },
       "CoT_Medical_Diagnosis": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Medical_Diagnosis_3k.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Medical_Diagnosis_3k.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Medical_Diagnosis_3k.json"
         },
@@ -214,7 +221,7 @@
         "status": "pending_sync"
       },
       "CoT_Reasoning_First_Responders_Triage_And_Emergencies": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_First_Responders_Triage_And_Emergencies.json"
         },
@@ -226,7 +233,7 @@
         "status": "pending_sync"
       },
       "CoT_Reasoning_Quantum_Physics_And_Computing": {
-        "path": "s3://pixel-data/gdrive/processed/cot_reasoning/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+        "path": "drive:backups/S3-Complete/gdrive/processed/cot_reasoning/CoT_Reasoning_Quantum_Physics_And_Computing.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/cot_reasoning/CoT_Reasoning_Quantum_Physics_And_Computing.json"
         },
@@ -238,7 +245,7 @@
         "status": "pending_sync"
       },
       "cot_reasoning_consolidated": {
-        "path": "s3://pixel-data/datasets/consolidated/datasets/cot_reasoning_filtered.json",
+        "path": "drive:backups/S3-Complete/datasets/consolidated/datasets/cot_reasoning_filtered.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/datasets/cot_reasoning_filtered.json"
         },
@@ -250,7 +257,7 @@
     },
     "professional_therapeutic": {
       "mental_health_counseling_conversations": {
-        "path": "s3://pixel-data/gdrive/processed/professional_therapeutic/mental_health_counseling_conversations/",
+        "path": "drive:backups/S3-Complete/gdrive/processed/professional_therapeutic/mental_health_counseling_conversations/",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/mental_health_counseling_conversations"
         },
@@ -261,7 +268,7 @@
         "quality_profile": "foundation"
       },
       "SoulChat2.0": {
-        "path": "s3://pixel-data/gdrive/processed/professional_therapeutic/SoulChat2.0/",
+        "path": "drive:backups/S3-Complete/gdrive/processed/professional_therapeutic/SoulChat2.0/",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/SoulChat2.0"
         },
@@ -271,7 +278,7 @@
         "quality_profile": "foundation"
       },
       "counsel_chat": {
-        "path": "s3://pixel-data/gdrive/processed/professional_therapeutic/counsel-chat/",
+        "path": "drive:backups/S3-Complete/gdrive/processed/professional_therapeutic/counsel-chat/",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/counsel-chat"
         },
@@ -281,7 +288,7 @@
         "quality_profile": "foundation"
       },
       "LLAMA3_Mental_Counseling": {
-        "path": "s3://pixel-data/gdrive/processed/professional_therapeutic/LLAMA3_Mental_Counseling_Data/",
+        "path": "drive:backups/S3-Complete/gdrive/processed/professional_therapeutic/LLAMA3_Mental_Counseling_Data/",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/LLAMA3_Mental_Counseling_Data"
         },
@@ -291,7 +298,7 @@
         "quality_profile": "foundation"
       },
       "therapist_sft": {
-        "path": "s3://pixel-data/gdrive/processed/professional_therapeutic/therapist-sft-format/",
+        "path": "drive:backups/S3-Complete/gdrive/processed/professional_therapeutic/therapist-sft-format/",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/therapist-sft-format"
         },
@@ -302,7 +309,7 @@
         "quality_profile": "foundation"
       },
       "neuro_qa_sft": {
-        "path": "s3://pixel-data/gdrive/processed/professional_therapeutic/neuro_qa_SFT_Trainer/",
+        "path": "drive:backups/S3-Complete/gdrive/processed/professional_therapeutic/neuro_qa_SFT_Trainer/",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/neuro_qa_SFT_Trainer"
         },
@@ -313,7 +320,7 @@
         "quality_profile": "foundation"
       },
       "Psych8k": {
-        "path": "s3://pixel-data/gdrive/processed/professional_therapeutic/Psych8k/",
+        "path": "drive:backups/S3-Complete/gdrive/processed/professional_therapeutic/Psych8k/",
         "fallback_paths": {
           "gdrive": "/mnt/gdrive/datasets/Psych8k"
         },
@@ -324,7 +331,7 @@
         "quality_profile": "foundation"
       },
       "professional_psychology_consolidated": {
-        "path": "s3://pixel-data/datasets/consolidated/datasets/professional_psychology_filtered.json",
+        "path": "drive:backups/S3-Complete/datasets/consolidated/datasets/professional_psychology_filtered.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/datasets/professional_psychology_filtered.json"
         },
@@ -334,7 +341,7 @@
         "quality_profile": "foundation"
       },
       "professional_neuro_consolidated": {
-        "path": "s3://pixel-data/datasets/consolidated/datasets/professional_neuro_filtered.json",
+        "path": "drive:backups/S3-Complete/datasets/consolidated/datasets/professional_neuro_filtered.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/datasets/professional_neuro_filtered.json"
         },
@@ -344,7 +351,7 @@
         "quality_profile": "foundation"
       },
       "professional_soulchat_consolidated": {
-        "path": "s3://pixel-data/datasets/consolidated/datasets/professional_soulchat_filtered.json",
+        "path": "drive:backups/S3-Complete/datasets/consolidated/datasets/professional_soulchat_filtered.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/datasets/professional_soulchat_filtered.json"
         },
@@ -356,7 +363,7 @@
     },
     "wendy_curated_sets": {
       "wendy_set_alpha_therapeutic_core": {
-        "path": "s3://pixel-data/datasets/consolidated/datasets/priority_1_FINAL.jsonl",
+        "path": "drive:backups/S3-Complete/datasets/consolidated/datasets/priority_1_FINAL.jsonl",
         "fallback_paths": {
           "gdrive_dir": "/mnt/gdrive/datasets/datasets-wendy"
         },
@@ -368,7 +375,7 @@
         "status": "active"
       },
       "wendy_set_beta_high_quality_core": {
-        "path": "s3://pixel-data/datasets/consolidated/datasets/priority_2_FINAL.jsonl",
+        "path": "drive:backups/S3-Complete/datasets/consolidated/datasets/priority_2_FINAL.jsonl",
         "fallback_paths": {
           "gdrive_dir": "/mnt/gdrive/datasets/datasets-wendy"
         },
@@ -380,7 +387,7 @@
         "status": "active"
       },
       "wendy_set_gamma_specialized_therapy": {
-        "path": "s3://pixel-data/datasets/consolidated/datasets/priority_3_FINAL.jsonl",
+        "path": "drive:backups/S3-Complete/datasets/consolidated/datasets/priority_3_FINAL.jsonl",
         "fallback_paths": {
           "gdrive_dir": "/mnt/gdrive/datasets/datasets-wendy"
         },
@@ -394,56 +401,56 @@
     },
     "training_v3": {
       "stage1_foundation_mental_health_counseling": {
-        "path": "s3://pixel-data/datasets/training_v3/stage1_foundation/Amod_mental_health_counseling_conversations.jsonl",
+        "path": "drive:backups/S3-Complete/datasets/training_v3/stage1_foundation/Amod_mental_health_counseling_conversations.jsonl",
         "stage": "stage1_foundation",
         "category": "therapeutic",
         "enabled": true,
         "priority": "high"
       },
       "stage1_foundation_chatbot": {
-        "path": "s3://pixel-data/datasets/training_v3/stage1_foundation/heliosbrahma_mental_health_chatbot_dataset.jsonl",
+        "path": "drive:backups/S3-Complete/datasets/training_v3/stage1_foundation/heliosbrahma_mental_health_chatbot_dataset.jsonl",
         "stage": "stage1_foundation",
         "category": "therapeutic",
         "enabled": true,
         "priority": "high"
       },
       "stage2_specialist_addiction_therapy": {
-        "path": "s3://pixel-data/datasets/training_v3/stage2_specialist_addiction/fadodr_mental_health_therapy.jsonl",
+        "path": "drive:backups/S3-Complete/datasets/training_v3/stage2_specialist_addiction/fadodr_mental_health_therapy.jsonl",
         "stage": "stage2_specialist",
         "category": "therapeutic",
         "enabled": true,
         "priority": "medium"
       },
       "stage2_specialist_mental_disorders": {
-        "path": "s3://pixel-data/datasets/training_v3/stage2_specialist_personality/Kanakmi_mental-disorders.jsonl",
+        "path": "drive:backups/S3-Complete/datasets/training_v3/stage2_specialist_personality/Kanakmi_mental-disorders.jsonl",
         "stage": "stage2_specialist",
         "category": "therapeutic",
         "enabled": true,
         "priority": "medium"
       },
       "stage4_voice_character_codex": {
-        "path": "s3://pixel-data/datasets/training_v3/stage4_voice_persona/NousResearch_CharacterCodex.jsonl",
+        "path": "drive:backups/S3-Complete/datasets/training_v3/stage4_voice_persona/NousResearch_CharacterCodex.jsonl",
         "stage": "stage4_voice",
         "category": "persona",
         "enabled": true,
         "priority": "low"
       },
       "stage4_voice_synthetic_persona": {
-        "path": "s3://pixel-data/datasets/training_v3/stage4_voice_persona/google_Synthetic-Persona-Chat.jsonl",
+        "path": "drive:backups/S3-Complete/datasets/training_v3/stage4_voice_persona/google_Synthetic-Persona-Chat.jsonl",
         "stage": "stage4_voice",
         "category": "persona",
         "enabled": true,
         "priority": "low"
       },
       "stage4_voice_roleplay": {
-        "path": "s3://pixel-data/datasets/training_v3/stage4_voice_persona/hieunguyenminh_roleplay.jsonl",
+        "path": "drive:backups/S3-Complete/datasets/training_v3/stage4_voice_persona/hieunguyenminh_roleplay.jsonl",
         "stage": "stage4_voice",
         "category": "persona",
         "enabled": true,
         "priority": "low"
       },
       "stage4_voice_persona_chat": {
-        "path": "s3://pixel-data/datasets/training_v3/stage4_voice_persona/nazlicanto_persona-based-chat.jsonl",
+        "path": "drive:backups/S3-Complete/datasets/training_v3/stage4_voice_persona/nazlicanto_persona-based-chat.jsonl",
         "stage": "stage4_voice",
         "category": "persona",
         "enabled": true,
@@ -452,45 +459,91 @@
     },
     "therapeutic": {
       "s3_ultimate_final_dataset": {
-        "path": "s3://pixel-data/ai/training_ready/ULTIMATE_FINAL_DATASET.jsonl",
+        "path": "drive:backups/S3-Complete/ai/training_ready/ULTIMATE_FINAL_DATASET.jsonl",
         "priority": "critical",
         "format": "messages",
         "streaming": true,
         "estimated_records": 8000000
       },
       "s3_mental_health_clean": {
-        "path": "s3://pixel-data/ai/data/compress/processed/mental_health_clean.jsonl",
+        "path": "drive:backups/S3-Complete/ai/data/compress/processed/mental_health_clean.jsonl",
         "priority": "high",
         "format": "messages",
         "streaming": true,
         "estimated_records": 65000
       },
       "s3_tier1_curated": {
-        "path": "s3://pixel-data/processed/pixelated_tier1_priority_curated_dark_humor.jsonl",
+        "path": "drive:backups/S3-Complete/processed/pixelated_tier1_priority_curated_dark_humor.jsonl",
         "priority": "critical",
         "format": "messages",
         "streaming": true,
         "estimated_records": 1700000
       },
       "s3_tier2_professional": {
-        "path": "s3://pixel-data/processed/pixelated_tier2_professional_therapeutic_dark_humor.jsonl",
+        "path": "drive:backups/S3-Complete/processed/pixelated_tier2_professional_therapeutic_dark_humor.jsonl",
         "priority": "high",
         "format": "messages",
         "streaming": true,
         "estimated_records": 150000
       },
       "s3_tier3_clinical": {
-        "path": "s3://pixel-data/processed/pixelated_tier3_clinical_cot_dark_humor.jsonl",
+        "path": "drive:backups/S3-Complete/processed/pixelated_tier3_clinical_cot_dark_humor.jsonl",
         "priority": "high",
         "format": "messages",
         "streaming": true,
         "estimated_records": 50000
       }
+    },
+    "edge_case_sources": {
+      "edge_case_synthetic": {
+        "path": "drive:backups/S3-Complete/gdrive/processed/edge_cases/edge_case_synthetic.jsonl",
+        "fallback_paths": {
+          "local": "ai/training/ready_packages/data/generated/edge_case_synthetic.jsonl"
+        },
+        "type": "synthetic_edge",
+        "focus": "10K synthetic edge case conversations",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_crisis",
+        "samples": 10000
+      },
+      "nightmare_fuel": {
+        "path": "drive:backups/S3-Complete/gdrive/processed/edge_cases/nightmare_fuel.jsonl",
+        "fallback_paths": {
+          "local": "ai/training/ready_packages/datasets/synthetic/nightmare_fuel.jsonl"
+        },
+        "type": "synthetic_edge",
+        "focus": "extreme edge case scenarios",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_crisis",
+        "samples": 100
+      },
+      "long_sessions": {
+        "path": "drive:backups/S3-Complete/gdrive/processed/edge_cases/long_sessions.jsonl",
+        "fallback_paths": {
+          "local": "ai/training/ready_packages/datasets/synthetic/long_sessions.jsonl"
+        },
+        "type": "synthetic_edge",
+        "focus": "multi-turn therapy sessions",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_crisis",
+        "samples": 20
+      },
+      "nemo_synthetic_conversations": {
+        "path": "drive:backups/S3-Complete/gdrive/processed/edge_cases/nemo_synthetic_conversations.jsonl",
+        "fallback_paths": {
+          "local": "ai/training/ready_packages/datasets/synthetic/nemo_synthetic_conversations.jsonl"
+        },
+        "type": "synthetic_edge",
+        "focus": "Nemotron synthetic conversations",
+        "stage": "stage3_edge_stress_test",
+        "quality_profile": "edge_crisis",
+        "samples": 50
+      }
     }
   },
   "edge_case_sources": {
     "edge_case_generator": {
-      "path": "s3://pixel-data/gdrive/processed/edge_cases/edge_cases_training_format.jsonl",
+      "path": "drive:backups/S3-Complete/gdrive/processed/edge_cases/edge_cases_training_format.jsonl",
       "fallback_paths": {
         "local": "/home/vivi/pixelated/ai/pipelines/edge_case_pipeline_standalone/output/edge_cases_training_format.jsonl"
       },
@@ -501,7 +554,7 @@
       "notes": "Retain intense content; only drop when PII detected"
     },
     "scenario_prompt_library": {
-      "path": "s3://pixel-data/gdrive/raw/prompt_corpus/",
+      "path": "drive:backups/S3-Complete/gdrive/raw/prompt_corpus/",
       "fallback_paths": {
         "local": "/home/vivi/pixelated/ai/dataset_pipeline/prompt_corpus"
       },
@@ -512,7 +565,7 @@
       "status": "pending_sync"
     },
     "reddit_archives": {
-      "path": "s3://pixel-data/gdrive/raw/reddit/",
+      "path": "drive:backups/S3-Complete/gdrive/raw/reddit/",
       "fallback_paths": {
         "gdrive": "/mnt/gdrive/datasets/reddit"
       },
@@ -522,7 +575,7 @@
       "quality_profile": "edge_raw"
     },
     "kaggle_tf_idf_bundle": {
-      "path": "s3://pixel-data/acquired/kaggle/tier4_reddit_archive/",
+      "path": "drive:backups/S3-Complete/acquired/kaggle/tier4_reddit_archive/",
       "fallback_paths": {
         "local": "/home/vivi/pixelated/ai/datasets/tier4_reddit_archive"
       },
@@ -533,7 +586,7 @@
       "status": "pending_download"
     },
     "safety_dpo_pairs": {
-      "path": "s3://pixel-data/gdrive/processed/edge_cases/safety_dpo_pairs.jsonl",
+      "path": "drive:backups/S3-Complete/gdrive/processed/edge_cases/safety_dpo_pairs.jsonl",
       "fallback_paths": {
         "local": "/home/vivi/pixelated/ai/dataset_pipeline/quality/output/safety_dpo_pairs.jsonl"
       },
@@ -545,7 +598,7 @@
     },
     "reddit_mental_health": {
       "mental_disorders_reddit": {
-        "path": "s3://pixel-data/gdrive/raw/reddit/mental_disorders_reddit.csv",
+        "path": "drive:backups/S3-Complete/gdrive/raw/reddit/mental_disorders_reddit.csv",
         "fallback_paths": {
           "local": "~/datasets/consolidated/reddit/mental_disorders_reddit.csv"
         },
@@ -556,7 +609,7 @@
         "status": "pending_sync"
       },
       "suicide_detection": {
-        "path": "s3://pixel-data/gdrive/raw/reddit/Suicide_Detection.csv",
+        "path": "drive:backups/S3-Complete/gdrive/raw/reddit/Suicide_Detection.csv",
         "fallback_paths": {
           "local": "~/datasets/consolidated/reddit/Suicide_Detection.csv"
         },
@@ -567,7 +620,7 @@
         "status": "pending_sync"
       },
       "merged_mental_health": {
-        "path": "s3://pixel-data/gdrive/raw/reddit/merged_mental_health_dataset.jsonl",
+        "path": "drive:backups/S3-Complete/gdrive/raw/reddit/merged_mental_health_dataset.jsonl",
         "fallback_paths": {
           "local": "~/datasets/consolidated/reddit/merged_mental_health_dataset.jsonl"
         },
@@ -578,7 +631,7 @@
         "status": "pending_sync"
       },
       "reddit_consolidated": {
-        "path": "s3://pixel-data/datasets/consolidated/datasets/reddit_mental_health_filtered.json",
+        "path": "drive:backups/S3-Complete/datasets/consolidated/datasets/reddit_mental_health_filtered.json",
         "fallback_paths": {
           "local": "~/datasets/consolidated/datasets/reddit_mental_health_filtered.json"
         },
@@ -591,7 +644,7 @@
   },
   "voice_persona": {
     "tim_fletcher_transcripts": {
-      "path": "s3://pixel-data/voice/tim_fletcher_transcripts/",
+      "path": "drive:backups/S3-Complete/voice/tim_fletcher_transcripts/",
       "fallback_paths": {
         "local": "/home/vivi/pixelated/ai/training_data_consolidated/transcripts"
       },
@@ -601,7 +654,7 @@
       "quality_profile": "voice"
     },
     "tim_fletcher_voice_profile": {
-      "path": "s3://pixel-data/voice/tim_fletcher_voice_profile.json",
+      "path": "drive:backups/S3-Complete/voice/tim_fletcher_voice_profile.json",
       "fallback_paths": {
         "local": "/home/vivi/pixelated/ai/data/tim_fletcher_voice/tim_fletcher_voice_profile.json"
       },
@@ -611,7 +664,7 @@
       "quality_profile": "voice"
     },
     "pixel_voice_pipeline_exports": {
-      "path": "s3://pixel-data/voice/exports/",
+      "path": "drive:backups/S3-Complete/voice/exports/",
       "fallback_paths": {
         "local": "/home/vivi/pixelated/ai/data/tim_fletcher_voice/exports"
       },
@@ -623,7 +676,7 @@
   },
   "supplementary": {
     "legacy_compiled_dataset_csv": {
-      "path": "s3://pixel-data/gdrive/processed/misc/compiled_dataset.csv",
+      "path": "drive:backups/S3-Complete/gdrive/processed/misc/compiled_dataset.csv",
       "fallback_paths": {
         "local_dir": "~/datasets/consolidated/misc"
       },
@@ -634,7 +687,7 @@
       "status": "pending_s3_rename"
     },
     "psychology_10k": {
-      "path": "s3://pixel-data/datasets/consolidated/datasets/psychology_dataset.json",
+      "path": "drive:backups/S3-Complete/datasets/consolidated/datasets/psychology_dataset.json",
       "fallback_paths": {
         "local": "~/datasets/consolidated/misc/psychology-10k/Psychology-10K.json"
       },
@@ -645,7 +698,7 @@
       "status": "pending_sync"
     },
     "academic_psychology_books": {
-      "path": "s3://pixel-data/acquired/academic_psychology_books/academic_psychology_books.jsonl",
+      "path": "drive:backups/S3-Complete/acquired/academic_psychology_books/academic_psychology_books.jsonl",
       "fallback_paths": {
         "local": "~/datasets/consolidated/academic_psychology_books/academic_psychology_books.jsonl"
       },
@@ -656,7 +709,7 @@
       "status": "pending_sync"
     },
     "research_instruments": {
-      "path": "s3://pixel-data/acquired/research_instruments/research_instruments.jsonl",
+      "path": "drive:backups/S3-Complete/acquired/research_instruments/research_instruments.jsonl",
       "fallback_paths": {
         "local": "~/datasets/consolidated/research_instruments/research_instruments.jsonl"
       },
@@ -667,7 +720,7 @@
       "status": "pending_sync"
     },
     "research_consolidated": {
-      "path": "s3://pixel-data/datasets/consolidated/datasets/research_datasets_filtered.json",
+      "path": "drive:backups/S3-Complete/datasets/consolidated/datasets/research_datasets_filtered.json",
       "fallback_paths": {
         "local": "~/datasets/consolidated/datasets/research_datasets_filtered.json"
       },
@@ -714,9 +767,10 @@
     }
   },
   "usage_notes": {
-    "s3_is_canonical": "S3 (s3://pixel-data/) is the training mecca - all training scripts should read from S3",
-    "gdrive_is_source": "Google Drive is source/staging area that syncs to S3 via rclone",
-    "no_local_copy_needed": "All datasets should be accessible via S3 - local copies are cache only",
-    "s3_structure": "See ai/training_ready/docs/S3_TRAINING_DATA_STRUCTURE.md for canonical S3 organization"
+    "rclone_is_canonical": "Use rclone to access datasets: rclone cat drive:backups/S3-Complete/<path>",
+    "s3_backup_location": "Full S3 backup is at drive:backups/S3-Complete (295 GiB, 64k+ objects)",
+    "no_s3_service": "S3 service is offline - do not use s3:// URLs",
+    "access_pattern": "rclone lsd/cat/sync drive:backups/S3-Complete/...",
+    "structure_doc": "See ai/training_ready/docs/S3_TRAINING_DATA_STRUCTURE.md for canonical organization"
   }
 }
