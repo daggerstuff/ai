@@ -1,0 +1,75 @@
+{
+  "generated_at": "2026-03-19T07:04:55.973162+00:00",
+  "task_key": "MTGC-13",
+  "overall_pass": false,
+  "success_criteria": {
+    "stage_drift_within_tolerance": {
+      "passed": false,
+      "evidence": "stage_health_report.blockers + report.stage_balance"
+    },
+    "manifest_and_report_generated": {
+      "passed": true,
+      "evidence": "MASTER_STAGE_MANIFEST.json + integrated_stage_health_report.json"
+    },
+    "stage_3_4_inputs_checked": {
+      "passed": true,
+      "evidence": "pipeline warnings + strict artifact validation gate"
+    },
+    "aggregate_and_stage_split_artifacts_emitted": {
+      "passed": true,
+      "evidence": "report.split_counts.aggregate + split directories"
+    },
+    "asana_task_graph_evidence_available": {
+      "passed": false,
+      "evidence": "asana_task_key_mapping.json"
+    },
+    "ops_freshness_reflected": {
+      "passed": false,
+      "evidence": "training_run_checklist.json:ops_freshness"
+    },
+    "asana_transition_results_recorded": {
+      "passed": false,
+      "evidence": "asana_task_transition_results.json"
+    }
+  },
+  "artifact_paths": {
+    "checklist": "ai/lightning/training_run_checklist.json",
+    "stage_health_report": "ai/lightning/integrated_stage_health_report.json",
+    "stage_manifest": "ai/training_data_consolidated/final/MASTER_STAGE_MANIFEST.json",
+    "asana_task_key_mapping": "ai/lightning/asana_task_key_mapping.json",
+    "asana_task_transition_results": "ai/lightning/asana_task_transition_results.json"
+  },
+  "warnings": [
+    "Missing required artifacts for stage4_voice_persona: ai/training_data_consolidated/transcripts",
+    "Pixel Voice data not found. Run Pixel Voice pipeline first.",
+    "Psychology knowledge base not found.",
+    "Stage 'stage1_foundation' has only 20 samples (target: 3200).",
+    "No data found for stage 'stage2_therapeutic_expertise' (target: 2000).",
+    "No data found for stage 'stage3_edge_stress_test' (target: 1600).",
+    "No data found for stage 'stage4_voice_persona' (target: 1200).",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Dropped sample from stage1_foundation due to stage quality profile: empathy 0.500 < min_empathy 0.550",
+    "Asana sync skipped: ASANA_PROJECT_GID missing or invalid"
+  ],
+  "errors": [
+    "Failed to load standard therapeutic data from any available file. Last error: Extra data: line 2 column 1 (char 1405)"
+  ]
+}
