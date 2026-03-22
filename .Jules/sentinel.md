@@ -1,0 +1,1 @@
+## 2026-03-22 - Prevent Database Information Leakage | Vulnerability: Unsanitized database errors leaking stack traces | Learning: The API returned raw SQLite errors which could expose schema details | Prevention: Always sanitize error responses to generic messages
