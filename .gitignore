@@ -165,3 +165,6 @@ helm/pixelated-empathy/templates/*-secret.yaml
 .history
 .viminfo
 .ssh/
+
+# Ignore codemaps
+codemap.md
