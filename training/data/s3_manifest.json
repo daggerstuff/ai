@@ -1,6 +1,0 @@
-{
-  "bucket": "pixel-data",
-  "endpoint": "https://s3.us-east-va.io.cloud.ovh.us",
-  "region": "us-east-va",
-  "description": "Production therapeutic datasets for Pixelated Empathy"
-}
