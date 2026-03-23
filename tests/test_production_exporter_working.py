@@ -163,7 +163,7 @@ class MockProductionExporter:
         elif deployment_target == 'docker':
             config = {
                 **base_config,
-                'base_image': 'python:3.11-slim',
+                'base_image': 'python:3.13-slim',
                 'port': 8080,
                 'environment': {
                     'MODEL_PATH': f'/models/{model_info["model_name"]}',
@@ -181,7 +181,7 @@ class MockProductionExporter:
         elif deployment_target == 'aws_lambda':
             config = {
                 **base_config,
-                'runtime': 'python3.11',
+                'runtime': 'python3.13',
                 'timeout': 300,
                 'memory': min(3008, max(512, int(model_info['size_mb'] * 4))),
                 'environment': {

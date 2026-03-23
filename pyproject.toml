@@ -4,73 +4,72 @@ version = "0.0.1"
 description = "Pixelated Empathy AI - Production Quality Monitoring System"
 requires-python = ">=3.13"
 dependencies = [
-  "pandas>=2.0.0",
-  "numpy>=1.24.0",
-  "scipy>=1.10.0",
-  "scikit-learn>=1.3.0",
-  "plotly>=5.15.0",
-  "jinja2>=3.1.6",
-  "python-dateutil>=2.8.0",
-  "transformers>=4.42.0",
-  "datasets>=2.19.0",
-  "accelerate>=0.33.0",
-  "bitsandbytes>=0.43.0; platform_system == 'Linux'",
-  "peft>=0.11.0",
-  "trl>=0.11.0",
-  "sentencepiece>=0.1.99",
-  "einops>=0.7.0",
-  "pydantic>=2.11.7",
-  "starlette>=0.40.0",
-  "openai-whisper>=20250625",
-  "faster-whisper>=1.2.0",
-  "librosa>=0.11.0",
-  "pydub>=0.25.1",
-  "python-magic>=0.4.27",
-  "redis>=6.4.0",
-  "requests>=2.32.3",
-  "ruff>=0.12.11",
-  "black>=26.3.1",
-  "nbqa>=1.7.0",
-  "torch>=2.8.0",
-  "torchvision>=0.23.0",
-  "torchaudio>=2.8.0",
-  "packaging>=25.0",
-  "setuptools>=80.9.0",
-  "wheel>=0.45.1",
-  "huggingface-hub>=0.34.4",
-  # CLI dependencies
-  "click>=8.1.0",
-  "pyyaml>=6.0",
-  "cryptography>=46.0.5",
-  "pyjwt>=2.12.0",
-  "psutil>=5.9.0",
-  "rich>=13.0.0",
-  "typer>=0.9.0",
-  "httpx>=0.28.1",
-  "websockets>=11.0",
-  "aiofiles>=23.0.0",
-  "openai>=2.6.0",
-  # Embedding Agent API dependencies
-  "fastapi>=0.124.4",
-  "uvicorn[standard]>=0.34.0",
-  "sentence-transformers>=3.0.0",
-  "faiss-cpu>=1.8.0",
-  # Memory & User Management
-  "mem0ai>=1.0.3",
-  "google-genai>=1.62.0",
-  "qdrant-client>=1.16.2",
-  "mcp>=1.26.0",
-  "e2b>=1.4.0",
-  "yt-dlp>=2026.2.21",
-  "flask>=3.1.3",
-  "flask-cors>=6.0.2",
-  "flask-jwt-extended>=4.6.0",
-  "flask-socketio>=5.3.6",
-  "eventlet>=0.36.0",
-  "boto3>=1.42.53",
-  "ray>=2.54.0",
-  "kernels>=0.12.1",
-  # Security: minimum versions enforced via constraint-dependencies (see below)
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "scikit-learn>=1.3.0",
+    "plotly>=5.15.0",
+    "jinja2>=3.1.6",
+    "python-dateutil>=2.8.0",
+    "transformers>=4.42.0",
+    "datasets>=2.19.0",
+    "accelerate>=0.33.0",
+    "bitsandbytes>=0.43.0; platform_system == 'Linux'",
+    "peft>=0.11.0",
+    "trl>=0.11.0",
+    "sentencepiece>=0.1.99",
+    "einops>=0.7.0",
+    "pydantic>=2.11.7",
+    "starlette>=0.40.0",
+    "openai-whisper>=20250625",
+    "faster-whisper>=1.2.0",
+    "librosa>=0.11.0",
+    "pydub>=0.25.1",
+    "python-magic>=0.4.27",
+    "redis>=6.4.0",
+    "requests>=2.32.3",
+    "ruff>=0.12.11",
+    "black>=26.3.1",
+    "nbqa>=1.7.0",
+    "torch>=2.3.0",               # current stable major release
+    "torchvision>=0.17.0",        # matches torch 2.3.x
+    "torchaudio>=2.3.0",          # matches torch 2.3.x
+    "packaging>=25.0",
+    "setuptools>=80.9.0",
+    "wheel>=0.45.1",
+    "huggingface-hub>=0.34.4",
+    # CLI dependencies
+    "click>=8.1.0",
+    "pyyaml>=6.0",
+    "cryptography>=46.0.5",
+    "pyjwt>=2.12.0",
+    "psutil>=5.9.0",
+    "rich>=13.0.0",
+    "typer>=0.9.0",
+    "httpx>=0.28.1",
+    "websockets>=11.0",
+    "aiofiles>=23.0.0",
+    "openai>=2.6.0",
+    # Embedding Agent API dependencies
+    "fastapi>=0.124.4",
+    "uvicorn[standard]>=0.34.0",
+    "sentence-transformers>=3.0.0",
+    "faiss-cpu>=1.8.0",
+    # Memory & User Management
+    "mem0ai>=1.0.3",
+    "google-genai>=1.62.0",
+    "qdrant-client>=1.16.2",
+    "mcp>=1.26.0",
+    "e2b>=1.4.0",
+    "yt-dlp>=2026.2.21",
+    "flask>=3.1.3",
+    "flask-cors>=6.0.2",
+    "flask-jwt-extended>=4.6.0",
+    "flask-socketio>=5.3.6",
+    "eventlet>=0.36.0",
+    "boto3>=1.42.53",
+    "ray>=2.54.0",
+    "kernels>=0.12.1",
 ]
 
 [dependency-groups]
@@ -100,6 +99,7 @@ constraint-dependencies = [
     "pyasn1>=0.6.3",
     "urllib3>=2.6.3",
     "werkzeug>=3.1.6",
+    "trl>=0.11.0",
 ]
 
 [[tool.uv.index]]
@@ -108,10 +108,9 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.uv.sources]
-torch = { index = "pytorch-cpu" }
-torchvision = { index = "pytorch-cpu" }
-torchaudio = { index = "pytorch-cpu" }
-
+torch = [{ index = "pytorch-cpu" }]
+torchvision = [{ index = "pytorch-cpu" }]
+torchaudio = [{ index = "pytorch-cpu" }]
 
 [tool.ruff]
 # Exclude Jupyter notebooks from direct linting

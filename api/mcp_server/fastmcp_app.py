@@ -1,5 +1,5 @@
 # /// script
-# requires-python = ">=3.11"
+# requires-python = ">=3.13"
 # dependencies = [
 #   "mcp>=1.26.0",
 #   "fastmcp>=2.3.3",
@@ -16,6 +16,7 @@ Refined for autonomous agent use with consolidated, high-utility tools.
 """
 
 import json
+import inspect
 import logging
 import os
 import sys
@@ -52,6 +53,52 @@ def get_manager():
     if not manager:
         raise RuntimeError("No memory manager configured (NVIDIA or Gemini)")
     return manager
+
+
+def _get_recent_memories(manager: Any, user_id: str, limit: int) -> List[Dict[str, Any]]:
+    """Prefer bounded retrieval when the manager supports it."""
+    try:
+        return manager.get_all_memories(user_id, limit=limit)
+    except TypeError:
+        memories = manager.get_all_memories(user_id)
+        return memories[-limit:]
+
+
+async def _generate_analysis_text(manager: Any, prompt: str, mode: str) -> str:
+    """Generate analysis text across sync and async memory manager variants."""
+    response: Any
+
+    if hasattr(manager, "generate_analysis"):
+        response = manager.generate_analysis(prompt, mode=mode)
+    elif hasattr(manager, "generate_content"):
+        response = manager.generate_content(prompt)
+    elif hasattr(manager, "generate"):
+        response = manager.generate(prompt=prompt)
+    else:
+        client = getattr(manager, "client", None)
+        config = getattr(manager, "config", None)
+        model_name = getattr(config, "model_name", None)
+
+        if client and model_name and hasattr(client, "chat"):
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return response.choices[0].message.content
+
+        if client and model_name and hasattr(client, "models"):
+            response = client.models.generate_content(
+                model=model_name,
+                contents=prompt,
+            )
+            return response.text
+
+        raise RuntimeError("Analysis requires an AI-capable memory manager.")
+
+    if inspect.isawaitable(response):
+        response = await response
+
+    return response
 
 
 # --- Resources ---
@@ -265,14 +312,10 @@ async def memory_analyze(user_id: str, mode: str = "themes") -> str:
         mode: Analysis mode ('themes', 'evolution', 'dissonance', 'forensics').
     """
     manager = get_manager()
-    if not hasattr(manager, "client") or not hasattr(manager, "config"):
-        return "❌ Analysis requires an AI-capable memory manager."
-
-    memories = manager.get_all_memories(user_id)
+    memories = _get_recent_memories(manager, user_id, limit=100)
     if not memories:
         return f"No memories for **{user_id}** to analyze."
 
-    # Limit to 100 recent memories for context limits
     mem_list = memories[-100:]
     history = "\n".join(
         f"[{m.get('metadata', {}).get('timestamp', 'unk')}] "
@@ -303,20 +346,7 @@ async def memory_analyze(user_id: str, mode: str = "themes") -> str:
         return f"❌ Invalid mode: {mode}"
 
     try:
-        # Client detection
-        if hasattr(manager.client, "chat"):
-            response = manager.client.chat.completions.create(
-                model=manager.config.model_name,
-                messages=[{"role": "user", "content": prompts[mode]}],
-            )
-            response_text = response.choices[0].message.content
-        else:
-            response = manager.client.models.generate_content(
-                model=manager.config.model_name,
-                contents=prompts[mode],
-            )
-            response_text = response.text
-
+        response_text = await _generate_analysis_text(manager, prompts[mode], mode)
         return f"### 🧩 Memory Analysis ({mode}): {user_id}\n\n{response_text}"
     except Exception as e:
         return f"❌ Analysis Error: {str(e)}"
@@ -328,7 +358,7 @@ async def memory_status(user_id: str) -> str:
     Get high-level statistics and health of the user's memory cartography.
     """
     manager = get_manager()
-    memories = manager.get_all_memories(user_id)
+    memories = _get_recent_memories(manager, user_id, limit=250)
     
     if not memories:
         return f"### 📊 Memory Status: {user_id}\n\nCartography is empty."

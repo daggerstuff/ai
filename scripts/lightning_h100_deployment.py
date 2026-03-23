@@ -401,7 +401,7 @@ if __name__ == "__main__":
                 "compute": {"type": "gpu-h100", "count": 1, "memory": "80GB"},
             },
             "environment": {
-                "python_version": "3.11",
+                "python_version": "3.13",
                 "requirements": [
                     "torch>=2.0.0",
                     "lightning>=2.1.0",

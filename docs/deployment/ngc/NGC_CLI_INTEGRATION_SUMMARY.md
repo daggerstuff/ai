@@ -134,7 +134,7 @@ Note: NGC CLI is optional - systems will work without it, but with limited NGC r
 - **Large Language Models**: Require special NGC Enterprise access
   - Nemotron-4-340B-Instruct, Llama-3.1-70B-Instruct, Nemotron-3-8B-Chat
 - **Premium Containers**: Require subscription or special permissions
-  - PyTorch, TensorFlow, Triton Inference Server containers
+  - PyTorch and TensorFlow containers
 - **Advanced Tools**: Limited access to specialized datasets and examples
 
 ### Configuration Parsing Fix
