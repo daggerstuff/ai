@@ -77,7 +77,10 @@ class CorrectedEnterpriseAuditor:
             return False
 
         # Update sys.path to use the virtual environment
-        sys.path.insert(0, "/home/vivi/pixelated/.venv/lib/python3.11/site-packages")
+        sys.path.insert(
+            0,
+            f"/home/vivi/pixelated/.venv/lib/python{sys.version_info.major}.{sys.version_info.minor}/site-packages",
+        )
 
         # Change to AI directory
         os.chdir("/home/vivi/pixelated/ai")

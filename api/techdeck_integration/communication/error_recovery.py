@@ -670,7 +670,7 @@ class ErrorRecoveryManager:
         """Get environment information for debugging."""
         return {
             'timestamp': datetime.utcnow().isoformat(),
-            'python_version': '3.11',  # Would be actual Python version
+            'python_version': '3.13',  # Would be actual Python version
             'platform': 'linux',  # Would be actual platform
             'memory_usage': 'normal',  # Would be actual memory usage
             'cpu_usage': 'normal'  # Would be actual CPU usage
