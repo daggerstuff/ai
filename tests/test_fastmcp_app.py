@@ -67,3 +67,29 @@ def test_memory_query_applies_limit_without_manager_limit_keyword(
 
     assert "Error querying memory" not in result
     assert result.count("\n- [") == 1
+
+
+def test_memory_analyze_supports_async_ai_capable_manager_without_sync_client_assumptions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Analysis should work with async-capable managers such as enhanced NVIDIA."""
+
+    class AsyncAnalysisManager(NullMemoryManager):
+        async def generate(self, prompt: str, **kwargs) -> str:
+            return f"analysis generated for: {prompt[:40]}"
+
+    manager = AsyncAnalysisManager()
+    manager.add_memory(
+        "We are fixing the NVIDIA memory manager interface mismatch.",
+        "vivi",
+        {"category": "project_context"},
+    )
+
+    monkeypatch.setattr(fastmcp_app, "get_memory_manager", lambda: manager)
+    monkeypatch.setattr(fastmcp_app, "_manager_instance", None, raising=False)
+
+    result = asyncio.run(fastmcp_app.memory_analyze("vivi", mode="themes"))
+
+    assert "Analysis requires an AI-capable memory manager" not in result
+    assert "Memory Analysis (themes): vivi" in result
+    assert "analysis generated for:" in result

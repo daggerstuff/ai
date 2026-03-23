@@ -86,8 +86,8 @@ def validate_environment() -> bool:
 
     try:
         # Check Python version
-        if sys.version_info < (3, 11):
-            raise ValueError("Python 3.11 or higher is required")
+        if sys.version_info < (3, 13):
+            raise ValueError("Python 3.13 or higher is required")
 
         # Check required environment variables
         required_vars = []

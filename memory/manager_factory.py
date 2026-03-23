@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Optional
+from typing import Any, Dict, Optional
 
 from ai.memory.mem0_gemini.manager import GeminiMem0Config, GeminiMem0Manager
 from ai.memory.mem0_nvidia.manager import NvidiaMem0Config, NvidiaMem0Manager
@@ -13,6 +13,103 @@ from ai.memory.mem0_nvidia.enhanced_manager import (
 from ai.api.memory.base import BaseMemoryManager
 
 logger = logging.getLogger("MemoryManagerFactory")
+
+
+class EnhancedNvidiaMem0Manager(BaseMemoryManager):
+    """
+    Compatibility wrapper that combines enhanced NVIDIA generation with Mem0 CRUD.
+
+    The enhanced NVIDIA manager provides tiered model selection and async generation,
+    but it does not implement the BaseMemoryManager interface required by MCP.
+    This wrapper keeps the enhanced model path while delegating persistence/search
+    to the Mem0-backed NVIDIA manager.
+    """
+
+    def __init__(
+        self,
+        enhanced_config: EnhancedNvidiaConfig,
+        mem0_api_key: Optional[str] = None,
+    ) -> None:
+        self.config = enhanced_config
+        self._enhanced_manager = EnhancedNvidiaNimManager(enhanced_config)
+        self._memory_manager = NvidiaMem0Manager(
+            NvidiaMem0Config(
+                nvidia_api_key=enhanced_config.nvidia_api_key,
+                mem0_api_key=mem0_api_key,
+                model_name=enhanced_config.model_tiers.get(
+                    "reasoning",
+                    ModelTier.NEMOTRON_SUPER.value,
+                ),
+                base_url=enhanced_config.base_url,
+                user_id=enhanced_config.user_id,
+            )
+        )
+
+        # Preserve the broadly expected client attributes for downstream callers.
+        self.client = getattr(
+            self._enhanced_manager,
+            "sync_client",
+            getattr(self._memory_manager, "client", None),
+        )
+        self.async_client = getattr(
+            self._enhanced_manager,
+            "client",
+            getattr(self._memory_manager, "async_client", None),
+        )
+
+    def __getattr__(self, name: str) -> Any:
+        """Delegate unknown attributes to the enhanced manager first, then memory."""
+        for delegate_name in ("_enhanced_manager", "_memory_manager"):
+            delegate = object.__getattribute__(self, delegate_name)
+            if hasattr(delegate, name):
+                return getattr(delegate, name)
+        raise AttributeError(
+            f"{self.__class__.__name__!s} object has no attribute {name!r}"
+        )
+
+    async def generate_analysis(self, prompt: str, mode: str = "themes") -> str:
+        """Generate analysis text using the enhanced reasoning-capable NVIDIA path."""
+        complexity = (
+            TaskComplexity.MODERATE
+            if mode == "forensics"
+            else TaskComplexity.COMPLEX
+        )
+        return await self._enhanced_manager.generate(
+            prompt=prompt,
+            complexity=complexity,
+        )
+
+    def add_memory(
+        self,
+        content: str,
+        user_id: str,
+        metadata: Optional[Dict[str, Any]] = None,
+        category: Optional[str] = None,
+    ) -> str:
+        return self._memory_manager.add_memory(content, user_id, metadata, category)
+
+    def search_memories(self, query: str, user_id: str):
+        return self._memory_manager.search_memories(query, user_id)
+
+    def get_all_memories(self, user_id: str):
+        return self._memory_manager.get_all_memories(user_id)
+
+    def get_memory(self, memory_id: str):
+        return self._memory_manager.get_memory(memory_id)
+
+    def update_memory(
+        self,
+        memory_id: str,
+        new_content: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> bool:
+        return self._memory_manager.update_memory(memory_id, new_content, metadata)
+
+    def delete_memory(self, memory_id: str) -> bool:
+        return self._memory_manager.delete_memory(memory_id)
+
+    def clear_memory(self, user_id: str) -> bool:
+        return self._memory_manager.clear_memory(user_id)
 
 
 class MemoryManagerFactory:
@@ -103,8 +200,13 @@ class MemoryManagerFactory:
                     temperature=float(os.environ.get("NVIDIA_TEMPERATURE", "0.7")),
                     streaming_enabled=os.environ.get("NVIDIA_STREAMING", "true").lower() != "false",
                 )
-                logger.info("Using EnhancedNvidiaNimManager with tiered model selection")
-                return EnhancedNvidiaNimManager(config)
+                logger.info(
+                    "Using EnhancedNvidiaMem0Manager with tiered model selection"
+                )
+                return EnhancedNvidiaMem0Manager(
+                    config,
+                    mem0_api_key=os.environ.get("MEM0_API_KEY"),
+                )
             except Exception as e:
                 logger.error(f"Failed to initialize EnhancedNvidiaNimManager: {e}")
                 raise

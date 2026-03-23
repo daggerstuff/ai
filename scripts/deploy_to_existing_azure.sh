@@ -19,6 +19,32 @@ CONTAINER_REGISTRY="pixelatedcr"
 LOG_WORKSPACE="pixel-log-production"
 LOCATION="eastus"
 
+generate_secret() {
+  tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32
+}
+
+SECRET_STATE_FILE="${PIXELATED_AZURE_SECRET_FILE:-${TMPDIR:-/tmp}/pixelated-azure-deploy-secrets.env}"
+
+# Prefer caller-provided credentials, otherwise reuse persisted runtime secrets,
+# and only then generate fresh values for this deployment session.
+if [ -f "$SECRET_STATE_FILE" ]; then
+  # shellcheck disable=SC1090
+  . "$SECRET_STATE_FILE"
+fi
+
+: "${POSTGRES_PASSWORD:=$(generate_secret)}"
+: "${GF_SECURITY_ADMIN_PASSWORD:=$(generate_secret)}"
+
+mkdir -p "$(dirname "$SECRET_STATE_FILE")"
+umask 077
+cat > "$SECRET_STATE_FILE" <<EOF
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+GF_SECURITY_ADMIN_PASSWORD=${GF_SECURITY_ADMIN_PASSWORD}
+EOF
+umask 022
+
+export POSTGRES_PASSWORD GF_SECURITY_ADMIN_PASSWORD
+
 echo -e "${BLUE}🚀 DEPLOYING TO EXISTING AZURE INFRASTRUCTURE${NC}"
 echo -e "${BLUE}Resource Group: ${RESOURCE_GROUP}${NC}"
 echo -e "${BLUE}Container Environment: ${CONTAINER_ENV}${NC}"
@@ -54,7 +80,7 @@ az containerapp create \
   --env-vars \
     POSTGRES_DB=pixelated_empathy \
     POSTGRES_USER=postgres \
-    POSTGRES_PASSWORD=pixelated_empathy_prod_2025 \
+    POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
     PGDATA=/var/lib/postgresql/data/pgdata
 
 print_status "PostgreSQL Container App created"
@@ -128,7 +154,7 @@ az containerapp create \
   --cpu 0.5 \
   --memory 1.0Gi \
   --env-vars \
-    GF_SECURITY_ADMIN_PASSWORD=pixelated_admin_2025 \
+    GF_SECURITY_ADMIN_PASSWORD="${GF_SECURITY_ADMIN_PASSWORD}" \
     GF_USERS_ALLOW_SIGN_UP=false
 
 print_status "Grafana Container App created"
@@ -140,7 +166,7 @@ az containerapp job create \
   --name pixelated-data-migration \
   --resource-group $RESOURCE_GROUP \
   --environment $CONTAINER_ENV \
-  --image python:3.11-slim \
+  --image python:3.13-slim \
   --cpu 1.0 \
   --memory 2.0Gi \
   --replica-timeout 3600 \
@@ -152,7 +178,7 @@ az containerapp job create \
     POSTGRES_HOST=pixelated-postgres \
     POSTGRES_PORT=5432 \
     POSTGRES_USER=postgres \
-    POSTGRES_PASSWORD=pixelated_empathy_prod_2025 \
+    POSTGRES_PASSWORD="${POSTGRES_PASSWORD}" \
     POSTGRES_DB=pixelated_empathy
 
 print_status "Data migration job created"
@@ -172,7 +198,7 @@ echo -e "${GREEN}Redis (internal): ${REDIS_FQDN}:6379${NC}"
 echo -e "${GREEN}Prometheus: https://${PROMETHEUS_FQDN}${NC}"
 echo -e "${GREEN}Grafana: https://${GRAFANA_FQDN}${NC}"
 echo -e "${GREEN}  - Username: admin${NC}"
-echo -e "${GREEN}  - Password: pixelated_admin_2025${NC}"
+echo -e "${GREEN}  - Password: provided via environment or generated at runtime${NC}"
 
 # Step 7: Update existing pixelated-web app with database connection
 echo -e "\n${BLUE}🔗 UPDATING EXISTING WEB APP WITH DATABASE CONNECTION${NC}"
@@ -181,7 +207,7 @@ az containerapp update \
   --name pixelated-web \
   --resource-group $RESOURCE_GROUP \
   --set-env-vars \
-    DATABASE_URL="postgresql://postgres:pixelated_empathy_prod_2025@${POSTGRES_FQDN}:5432/pixelated_empathy" \
+    DATABASE_URL="postgresql://postgres:${POSTGRES_PASSWORD}@${POSTGRES_FQDN}:5432/pixelated_empathy" \
     REDIS_URL="redis://${REDIS_FQDN}:6379/0"
 
 print_status "Web app updated with database connections"

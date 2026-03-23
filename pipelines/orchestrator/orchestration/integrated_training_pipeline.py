@@ -36,6 +36,10 @@ from ai.pipelines.orchestrator.quality.evidence_based_practice_validator import 
 )
 from ai.pipelines.orchestrator.storage_config import get_storage_config
 from ai.pipelines.orchestrator.storage_manager import StorageManager
+from ai.pipelines.orchestrator.orchestration.tracker_sync import (
+    TrackerSyncCoordinator,
+    TrackerSyncEvent,
+)
 from ai.pipelines.orchestrator.utils.logger import get_logger
 
 logger = get_logger("dataset_pipeline.integrated_training_pipeline")
@@ -134,7 +138,11 @@ class IntegratedPipelineConfig:
     progress_tracker_path: str = "ai/lightning/therapeutic_progress_tracker.py"
     enable_tracker_sync: bool = True
     tracker_sync_output_path: str = "ai/lightning/training_run_checklist.json"
+    tracker_sync_state_output_path: str = "ai/lightning/tracker_sync_state.json"
     enable_asana_sync: bool = True
+    enable_beads_sync: bool = True
+    enable_jira_sync: bool = True
+    enable_linear_sync: bool = True
     asana_project_gid: str | None = None
     asana_section_gid: str | None = None
     asana_parent_task_gid: str | None = None
@@ -388,6 +396,12 @@ class IntegratedTrainingPipeline:
         if self.config.asana_parent_task_gid is None:
             self.config.asana_parent_task_gid = os.getenv("ASANA_PARENT_TASK_GID")
 
+        def _env_flag(name: str, default: bool) -> bool:
+            raw_value = os.getenv(name)
+            if raw_value is None:
+                return default
+            return raw_value.strip().lower() in {"1", "true", "yes", "on"}
+
         enable_asana_env = os.getenv("ENABLE_ASANA_SYNC")
         if enable_asana_env is not None:
             self.config.enable_asana_sync = enable_asana_env.strip().lower() in {
@@ -396,6 +410,23 @@ class IntegratedTrainingPipeline:
                 "yes",
                 "on",
             }
+
+        self.config.enable_beads_sync = _env_flag(
+            "ENABLE_BEADS_SYNC",
+            self.config.enable_beads_sync,
+        )
+        self.config.enable_jira_sync = _env_flag(
+            "ENABLE_JIRA_SYNC",
+            self.config.enable_jira_sync,
+        )
+        self.config.enable_linear_sync = _env_flag(
+            "ENABLE_LINEAR_SYNC",
+            self.config.enable_linear_sync,
+        )
+
+        tracker_sync_state_path = os.getenv("TRACKER_SYNC_STATE_PATH")
+        if tracker_sync_state_path:
+            self.config.tracker_sync_state_output_path = tracker_sync_state_path
 
     def _validate_required_stage_artifacts(self) -> None:
         """
@@ -714,7 +745,7 @@ class IntegratedTrainingPipeline:
 
         webhook_url = os.getenv("TRAINING_CHECKLIST_WEBHOOK_URL", "").strip()
         if not webhook_url:
-            self._sync_to_asana(checklist, output_path)
+            self._sync_tracker_state(checklist, output_path)
             return
 
         try:
@@ -734,7 +765,35 @@ class IntegratedTrainingPipeline:
             logger.warning(warning)
             self.stats.warnings.append(warning)
 
-        self._sync_to_asana(checklist, output_path)
+        self._sync_tracker_state(checklist, output_path)
+
+    def _sync_tracker_state(
+        self, checklist: dict[str, Any], checklist_path: Path
+    ) -> None:
+        """Sync the checklist payload across beads, Jira, Linear, and Asana."""
+        coordinator = TrackerSyncCoordinator.from_pipeline(self)
+        event = TrackerSyncEvent(
+            source="integrated_training_pipeline",
+            source_id=str(
+                checklist.get("generated_at", datetime.now(timezone.utc).isoformat())
+            ),
+            title=f"Training Checklist {checklist.get('generated_at', datetime.now(timezone.utc).isoformat())}",
+            body=json.dumps(checklist, indent=2),
+            status="done"
+            if checklist.get("stage_drift_within_tolerance", False)
+            else "open",
+            checklist_path=checklist_path,
+            payload=checklist,
+        )
+        summary = coordinator.sync(event)
+        if summary.warnings:
+            for warning in summary.warnings:
+                logger.warning(warning)
+                self.stats.warnings.append(warning)
+        if summary.errors:
+            for error in summary.errors:
+                logger.warning(error)
+                self.stats.warnings.append(error)
 
     @staticmethod
     def _is_valid_gid(value: str | None) -> bool:
@@ -1216,8 +1275,8 @@ class IntegratedTrainingPipeline:
                     f"/tasks/{gid}/stories",
                     payload={
                         (
-                        f"Checklist transition update ({generated_at}): "
-                        f"completed={should_complete}; signals={', '.join(signal_keys)}"
+                            f"Checklist transition update ({generated_at}): "
+                            f"completed={should_complete}; signals={', '.join(signal_keys)}"
                         )
                     },
                 )
