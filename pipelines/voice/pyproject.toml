@@ -21,7 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.13"
 dependencies = [
     # Core FastAPI and async support
     "fastapi>=0.104.0",
@@ -132,7 +132,7 @@ packages = ["pixel_voice"]
 
 [tool.black]
 line-length = 100
-target-version = ['py39']
+target-version = ['py313']
 include = '\.pyi?$'
 extend-exclude = '''
 /(
@@ -149,7 +149,7 @@ extend-exclude = '''
 '''
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.13"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

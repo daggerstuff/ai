@@ -2,7 +2,7 @@
 name = "pixelated-ai"
 version = "0.0.1"
 description = "Pixelated Empathy AI - Production Quality Monitoring System"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
   "pandas>=2.0.0",
   "numpy>=1.24.0",
@@ -89,7 +89,7 @@ build-backend = "setuptools.build_meta"
 find = { where = ["."], include = ["*"] }
 
 [tool.uv]
-index-strategy = "unsafe-best-match"
+index-strategy = "first-index"
 constraint-dependencies = [
     "aiohttp>=3.13.3",
     "filelock>=3.20.3",
@@ -105,6 +105,7 @@ constraint-dependencies = [
 [[tool.uv.index]]
 name = "pytorch-cpu"
 url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [tool.uv.sources]
 torch = { index = "pytorch-cpu" }
