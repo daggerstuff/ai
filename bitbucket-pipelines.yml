@@ -1,4 +1,4 @@
-image: python:3.11-bookworm # Python 3.11 with Debian Bookworm
+image: python:3.13-bookworm # Python 3.13 with Debian Bookworm
 
 clone:
   depth: full # SonarQube Cloud scanner needs full history
@@ -175,7 +175,7 @@ definitions:
               SONAR_TOKEN: $SONAR_TOKEN
               EXTRA_ARGS: >
                 -Dsonar.python.coverage.reportPaths=coverage.xml
-                -Dsonar.python.version=3.11
+                -Dsonar.python.version=3.13
                 -Dsonar.sources=.
                 -Dsonar.exclusions=**/*.ipynb,**/__pycache__/**,**/tests/**,**/.venv/**,**/dist/**,**/build/**
 

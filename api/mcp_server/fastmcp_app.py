@@ -32,6 +32,7 @@ from ai.memory.manager_factory import get_memory_manager
 # Configure Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("mcp_server")
+_manager_instance = None
 
 # Initialize FastMCP
 mcp = FastMCP(
@@ -42,7 +43,12 @@ mcp = FastMCP(
 
 def get_manager():
     """Retrieve the global memory manager instance."""
-    manager = get_memory_manager()
+    global _manager_instance
+
+    if _manager_instance is None:
+        _manager_instance = get_memory_manager()
+
+    manager = _manager_instance
     if not manager:
         raise RuntimeError("No memory manager configured (NVIDIA or Gemini)")
     return manager
@@ -157,15 +163,17 @@ async def memory_query(query: str, user_id: str, limit: int = 5) -> str:
     """
     manager = get_manager()
     try:
-        results = manager.search_memories(query, user_id, limit=limit)
+        results = manager.search_memories(query, user_id)
 
         if not results:
             return f"🔍 No relevant matches for '{query}' in {user_id}'s memory."
 
+        limited_results = results[:limit]
+
         formatted_results = [
             f"- [{r.get('score', 0.0):.2f}] "
             f"{r.get('memory') or r.get('content', 'N/A')}"
-            for r in results
+            for r in limited_results
         ]
 
         return (
