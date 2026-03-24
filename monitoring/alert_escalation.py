@@ -260,19 +260,19 @@ class AlertEscalationManager:
                     {
                         "level": "level_1",
                         "delay_minutes": 0,
-                        "recipients": ["oncall@pixelated.ai"],
+                        "recipients": ["oncall@pixelatedempathy.com"],
                         "channels": ["email", "slack"],
                     },
                     {
                         "level": "level_2",
                         "delay_minutes": 5,
-                        "recipients": ["team-lead@pixelated.ai"],
+                        "recipients": ["team-lead@pixelatedempathy.com"],
                         "channels": ["email", "slack", "sms"],
                     },
                     {
                         "level": "level_3",
                         "delay_minutes": 15,
-                        "recipients": ["manager@pixelated.ai"],
+                        "recipients": ["manager@pixelatedempathy.com"],
                         "channels": ["email", "sms"],
                     },
                 ],
@@ -280,13 +280,13 @@ class AlertEscalationManager:
                     {
                         "level": "level_1",
                         "delay_minutes": 0,
-                        "recipients": ["oncall@pixelated.ai"],
+                        "recipients": ["oncall@pixelatedempathy.com"],
                         "channels": ["email", "slack"],
                     },
                     {
                         "level": "level_2",
                         "delay_minutes": 15,
-                        "recipients": ["team-lead@pixelated.ai"],
+                        "recipients": ["team-lead@pixelatedempathy.com"],
                         "channels": ["email", "slack"],
                     },
                 ],
@@ -294,7 +294,7 @@ class AlertEscalationManager:
                     {
                         "level": "level_1",
                         "delay_minutes": 0,
-                        "recipients": ["team@pixelated.ai"],
+                        "recipients": ["team@pixelatedempathy.com"],
                         "channels": ["email", "slack"],
                     }
                 ],
@@ -302,7 +302,7 @@ class AlertEscalationManager:
                     {
                         "level": "level_1",
                         "delay_minutes": 0,
-                        "recipients": ["team@pixelated.ai"],
+                        "recipients": ["team@pixelatedempathy.com"],
                         "channels": ["email"],
                     }
                 ],
@@ -316,7 +316,7 @@ class AlertEscalationManager:
                         "smtp_port": 587,
                         "username": "",
                         "password": "",
-                        "from_address": "alerts@pixelated.ai",
+                        "from_address": "alerts@pixelatedempathy.com",
                     },
                 },
                 {
@@ -539,7 +539,7 @@ class AlertEscalationManager:
 
         # Create message
         msg = MimeMultipart()
-        msg["From"] = config.get("from_address", "alerts@pixelated.ai")
+        msg["From"] = config.get("from_address", "alerts@pixelatedempathy.com")
         msg["To"] = ", ".join(rule.recipients)
         msg["Subject"] = f"[{alert.severity.value.upper()}] {alert.title}"
 

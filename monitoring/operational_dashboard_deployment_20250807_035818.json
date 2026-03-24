@@ -132,12 +132,12 @@
     "authentication": {
       "required": true,
       "method": "role_based_access_control",
-      "contact": "admin@pixelated.ai"
+      "contact": "admin@pixelatedempathy.com"
     },
     "support": {
       "documentation": "/home/vivi/pixelated/ai/monitoring/dashboards/operational_runbook.md",
       "training": "Available upon request",
-      "help_desk": "support@pixelated.ai"
+      "help_desk": "support@pixelatedempathy.com"
     }
   },
   "maintenance_schedule": {
@@ -171,9 +171,9 @@
       "duration": "4_hours"
     },
     "emergency_contacts": {
-      "primary": "ops-team@pixelated.ai",
-      "secondary": "tech-lead@pixelated.ai",
-      "escalation": "cto@pixelated.ai"
+      "primary": "ops-team@pixelatedempathy.com",
+      "secondary": "tech-lead@pixelatedempathy.com",
+      "escalation": "cto@pixelatedempathy.com"
     }
   }
 }
