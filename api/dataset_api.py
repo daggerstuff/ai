@@ -178,8 +178,10 @@ async def list_datasets(
                     columns=columns,
                 )
             )
-    except sqlite3.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+    except sqlite3.Error:
+        raise HTTPException(
+            status_code=500, detail="An internal database error occurred."
+        )
     finally:
         if conn:
             conn.close()
@@ -235,8 +237,10 @@ async def get_dataset_metadata(
             row_count=row_count,
             columns=columns,
         )
-    except sqlite3.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+    except sqlite3.Error:
+        raise HTTPException(
+            status_code=500, detail="An internal database error occurred."
+        )
     finally:
         if conn:
             conn.close()
@@ -315,8 +319,10 @@ async def query_dataset(
             data=results, total_rows=total_rows, page=page, page_size=page_size
         )
 
-    except sqlite3.Error as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {e}")
+    except sqlite3.Error:
+        raise HTTPException(
+            status_code=500, detail="An internal database error occurred."
+        )
     finally:
         if conn:
             conn.close()
