@@ -14,7 +14,7 @@ sources:
   - https://github.com/pixelated/empathy-ai
 maintainers:
   - name: Pixelated Team
-    email: team@pixelated.ai
+    email: team@pixelatedempathy.com
 dependencies:
   - name: postgresql
     version: "12.1.9"

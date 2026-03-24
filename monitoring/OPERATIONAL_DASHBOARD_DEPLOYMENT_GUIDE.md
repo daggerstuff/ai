@@ -228,10 +228,10 @@ Monthly:      /home/vivi/pixelated/ai/monitoring/reports/monthly/
 - **Duration:** 4 hours
 
 ### **Support Contacts:**
-- **Primary Operations:** ops-team@pixelated.ai
-- **Technical Support:** tech-lead@pixelated.ai
-- **Emergency Escalation:** cto@pixelated.ai
-- **General Help Desk:** support@pixelated.ai
+- **Primary Operations:** ops-team@pixelatedempathy.com
+- **Technical Support:** tech-lead@pixelatedempathy.com
+- **Emergency Escalation:** cto@pixelatedempathy.com
+- **General Help Desk:** support@pixelatedempathy.com
 
 ### **Documentation:**
 - **Operational Runbook:** `/home/vivi/pixelated/ai/monitoring/dashboards/operational_runbook.md`

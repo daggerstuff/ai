@@ -402,7 +402,7 @@ if __name__ == "__main__":
 
     # Create default admin user
     admin_user = auth_system.create_user(
-        "admin", "admin@pixelated.ai", "admin_password", UserRole.ADMIN
+        "admin", "admin@pixelatedempathy.com", "admin_password", UserRole.ADMIN
     )
 
     # Create test API key
