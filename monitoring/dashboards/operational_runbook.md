@@ -56,6 +56,6 @@
 4. Document incident for post-mortem
 
 ## Contact Information
-- Operations Team: operations@pixelated.ai
-- Technical Support: tech-support@pixelated.ai
-- Management Escalation: management@pixelated.ai
+- Operations Team: operations@pixelatedempathy.com
+- Technical Support: tech-support@pixelatedempathy.com
+- Management Escalation: management@pixelatedempathy.com

@@ -500,7 +500,7 @@ class OperationalDashboardSystem:
             "daily_report": {
                 "frequency": "daily",
                 "time": "08:00",
-                "recipients": ["operations@pixelated.ai"],
+                "recipients": ["operations@pixelatedempathy.com"],
                 "sections": ["quality_summary", "processing_stats", "alerts"],
                 "format": "email_html",
             },
@@ -508,7 +508,7 @@ class OperationalDashboardSystem:
                 "frequency": "weekly",
                 "day": "monday",
                 "time": "09:00",
-                "recipients": ["management@pixelated.ai"],
+                "recipients": ["management@pixelatedempathy.com"],
                 "sections": ["quality_trends", "performance_analysis", "recommendations"],
                 "format": "pdf",
             },
@@ -516,7 +516,7 @@ class OperationalDashboardSystem:
                 "frequency": "monthly",
                 "day": 1,
                 "time": "10:00",
-                "recipients": ["executives@pixelated.ai"],
+                "recipients": ["executives@pixelatedempathy.com"],
                 "sections": ["strategic_overview", "roi_analysis", "roadmap_updates"],
                 "format": "executive_summary",
             },
@@ -752,9 +752,9 @@ class OperationalDashboardSystem:
 4. Document incident for post-mortem
 
 ## Contact Information
-- Operations Team: operations@pixelated.ai
-- Technical Support: tech-support@pixelated.ai
-- Management Escalation: management@pixelated.ai
+- Operations Team: operations@pixelatedempathy.com
+- Technical Support: tech-support@pixelatedempathy.com
+- Management Escalation: management@pixelatedempathy.com
 """
 
         runbook_path = f"{self.dashboard_dir}/operational_runbook.md"
@@ -781,12 +781,12 @@ class OperationalDashboardSystem:
             "authentication": {
                 "required": True,
                 "method": "role_based_access_control",
-                "contact": "admin@pixelated.ai",
+                "contact": "admin@pixelatedempathy.com",
             },
             "support": {
                 "documentation": f"{self.dashboard_dir}/operational_runbook.md",
                 "training": "Available upon request",
-                "help_desk": "support@pixelated.ai",
+                "help_desk": "support@pixelatedempathy.com",
             },
         }
 
@@ -812,9 +812,9 @@ class OperationalDashboardSystem:
                 "duration": "4_hours",
             },
             "emergency_contacts": {
-                "primary": "ops-team@pixelated.ai",
-                "secondary": "tech-lead@pixelated.ai",
-                "escalation": "cto@pixelated.ai",
+                "primary": "ops-team@pixelatedempathy.com",
+                "secondary": "tech-lead@pixelatedempathy.com",
+                "escalation": "cto@pixelatedempathy.com",
             },
         }
 
