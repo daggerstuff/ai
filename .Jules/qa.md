@@ -1,0 +1,1 @@
+## 2024-03-24 - SubtitleProcessor Testing | Pattern: Test directory structure alignment | Action: When creating tests for utility functions inside `utils/`, ensure they are placed within the matching subfolder `tests/utils/` and initialized properly with an `__init__.py` file if one does not exist to allow correct module resolution by `pytest`.
