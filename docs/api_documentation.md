@@ -119,7 +119,8 @@ Keys can be revoked immediately if compromised
 
 #### Curl
 
-curl -H 'Authorization: Bearer YOUR_API_KEY' https://api.pixelatedempathy.com/v1/datasets
+curl -H 'Authorization: Bearer YOUR_API_KEY'
+https://api.pixelatedempathy.com/v1/datasets
 
 #### Python
 
@@ -312,7 +313,9 @@ Response format (json, jsonl, csv)
 ###### Conversations
 
 - **id**: conv_12345
-- **turns**: [{'speaker': 'user', 'text': "I've been feeling really anxious lately..."}, {'speaker': 'assistant', 'text': 'I understand that anxiety can be overwhelming...'}]
+- **turns**: [{'speaker': 'user', 'text': "I've been feeling really anxious
+  lately..."}, {'speaker': 'assistant', 'text': 'I understand that anxiety can
+  be overwhelming...'}]
 - **quality_score**: 0.75
 - **metadata**: {'tier': 1, 'topic': 'anxiety', 'length': 8}
 
@@ -954,4 +957,3 @@ const conversations = await client.getConversations({
     limit: 100
 });
 ```
-

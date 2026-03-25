@@ -2,7 +2,8 @@
 
 ## Academic Sourcing Interface
 
-This guide outlines the steps to verify the functionality and user experience of the new Academic Sourcing Interface.
+This guide outlines the steps to verify the functionality and user experience of
+the new Academic Sourcing Interface.
 
 ### 1. Literature Search (`/research`)
 
@@ -59,5 +60,5 @@ This guide outlines the steps to verify the functionality and user experience of
 
 ---
 
-**Report Findings**:
-Any issues should be logged in the project issue tracker with the tag `uat-feedback`.
+**Report Findings**: Any issues should be logged in the project issue tracker
+with the tag `uat-feedback`.

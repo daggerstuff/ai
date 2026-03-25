@@ -1,0 +1,42 @@
+{
+  "generated_at": "2025-12-12T20:18:11.882384+00:00",
+  "started_at": "2025-12-12T20:11:55.597452+00:00",
+  "bucket": "pixel-data",
+  "endpoint": "https://s3.us-east-va.io.cloud.ovh.us",
+  "source_keys": [
+    "datasets/gdrive/tier2_professional/soulchat_2_0_complete_no_limits.jsonl",
+    "datasets/gdrive/tier2_professional/additional_specialized_conversations.jsonl",
+    "datasets/gdrive/raw/SoulChat2.0/PsyDTCorpus/PsyDTCorpus_train_mulit_turn_packing.json"
+  ],
+  "min_turns": 24,
+  "seen_records": 62821,
+  "kept_records": 500,
+  "parse_failures": 9071,
+  "sources_used": {
+    "datasets/gdrive/tier2_professional/soulchat_2_0_complete_no_limits.jsonl": 1,
+    "datasets/gdrive/tier2_professional/additional_specialized_conversations.jsonl": 1,
+    "datasets/gdrive/raw/SoulChat2.0/PsyDTCorpus/PsyDTCorpus_train_mulit_turn_packing.json": 1
+  },
+  "turn_histogram_capped_200": {
+    "2": 53246,
+    "30": 54,
+    "32": 47,
+    "40": 47,
+    "44": 29,
+    "38": 60,
+    "28": 24,
+    "34": 56,
+    "46": 25,
+    "36": 79,
+    "48": 13,
+    "50": 6,
+    "42": 32,
+    "26": 17,
+    "24": 8,
+    "54": 1,
+    "22": 2,
+    "52": 2,
+    "20": 1,
+    "18": 1
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "timestamp": "2025-12-12T20:58:33.202770+00:00",
+  "dry_run": false,
+  "results": [
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "priority_1_conversations.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "priority_2_conversations.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "priority_3_conversations.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "unified_priority_conversations.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "soulchat_2_0_conversations.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "llama3_mental_counseling_conversations.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "tot_reasoning_conversations.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "condition_specific_conversations.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "specialized_populations_conversations.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "temporal_analysis_conversations.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "temporal_analysis_data.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "soulchat_2_0_complete_no_limits.jsonl",
+      "category": "known_problematic"
+    },
+    {
+      "success": true,
+      "skipped": true,
+      "reason": "Already UTF-8",
+      "encoding": "utf-8",
+      "file": "soulchat_2_0_complete_no_limits.jsonl",
+      "category": "known_problematic"
+    }
+  ],
+  "summary": {
+    "total": 13,
+    "fixed": 0,
+    "skipped": 13,
+    "failed": 0
+  }
+}

@@ -3,13 +3,16 @@
 ## Core Entities & Data Structures
 
 ### 1. Model
+
 - **Attributes:**
   - `model_path: str`
   - `config: dict`
   - `tokenizer: Tokenizer`
-- **Description:** Loaded Wayfarer-2-12B model object, compatible with Unsloth and Lightning.ai Studio.
+- **Description:** Loaded Wayfarer-2-12B model object, compatible with Unsloth
+  and Lightning.ai Studio.
 
 ### 2. RawSample
+
 - **Attributes:**
   - `source: str` (dataset path or identifier)
   - `data: dict` (raw sample content)
@@ -18,15 +21,18 @@
   - No null or empty values.
 
 ### 3. CleanSample
+
 - **Attributes:**
   - `prompt: str`
   - `response: str`
   - `metadata: dict` (optional, e.g., tags, source)
 - **Validation:**
-  - Prompt and response must be non-empty, trimmed, and free of control characters.
+  - Prompt and response must be non-empty, trimmed, and free of control
+    characters.
   - No duplicates (exact or near-duplicate).
 
 ### 4. ChatMLSample
+
 - **Attributes:**
   - `chatml: str` (serialized ChatML format)
   - `metadata: dict`
@@ -35,6 +41,7 @@
   - All required fields present.
 
 ### 5. TokenizedDataset
+
 - **Attributes:**
   - `input_ids: List[List[int]]`
   - `attention_mask: List[List[int]]`
@@ -44,6 +51,7 @@
   - Padding and special tokens as required by tokenizer.
 
 ### 6. ComplianceReport
+
 - **Attributes:**
   - `issues: List[ComplianceIssue]`
   - `summary: dict`

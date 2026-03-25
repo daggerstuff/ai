@@ -91,10 +91,7 @@
         "std": 0.18
       },
       "sample_size": 137855,
-      "confidence_interval": [
-        0.71,
-        0.73
-      ],
+      "confidence_interval": [0.71, 0.73],
       "methodology": "Statistical analysis of quality scores across complete dataset"
     },
     {
@@ -110,10 +107,7 @@
         "std": 0.12
       },
       "sample_size": 9846,
-      "confidence_interval": [
-        0.83,
-        0.85
-      ],
+      "confidence_interval": [0.83, 0.85],
       "methodology": "Analysis of professionally curated therapeutic conversations"
     }
   ],

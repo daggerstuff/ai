@@ -1,0 +1,25 @@
+{
+  "version": "1.1.0",
+  "compiled_at": "2026-03-01T09:37:47Z",
+  "stats": {
+    "train_total": 2198530,
+    "val_total": 124155,
+    "test_total": 124511,
+    "duplicates": 4181854,
+    "files_processed": 149
+  },
+  "splits": {
+    "train": {
+      "total": 2198530,
+      "shards": 440
+    },
+    "val": {
+      "total": 124155,
+      "shards": 25
+    },
+    "test": {
+      "total": 124511,
+      "shards": 25
+    }
+  }
+}

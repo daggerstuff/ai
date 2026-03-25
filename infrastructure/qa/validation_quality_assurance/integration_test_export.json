@@ -127,10 +127,7 @@
         "crisis_keywords": 1,
         "harmful_content": false,
         "privacy_violations": false,
-        "therapeutic_techniques": [
-          "Cognitive Restructuring",
-          "Goal Setting"
-        ],
+        "therapeutic_techniques": ["Cognitive Restructuring", "Goal Setting"],
         "validation_statements": 0,
         "solution_focused": 0.0
       },
@@ -164,9 +161,7 @@
         "evidence_based_practice": 0.5,
         "cultural_competency": 0.6,
         "safety_protocols": 0.6,
-        "violations": [
-          "Inappropriate diagnostic language detected"
-        ],
+        "violations": ["Inappropriate diagnostic language detected"],
         "recommendations": [
           "Improve DSM-5 Compliance (current: 0.40)",
           "Improve Therapeutic Boundaries (current: 0.50)",
@@ -210,9 +205,7 @@
         "crisis_keywords": 0,
         "harmful_content": false,
         "privacy_violations": false,
-        "therapeutic_techniques": [
-          "Goal Setting"
-        ],
+        "therapeutic_techniques": ["Goal Setting"],
         "validation_statements": 0,
         "solution_focused": 0.0
       },
@@ -291,9 +284,7 @@
         "crisis_keywords": 0,
         "harmful_content": false,
         "privacy_violations": false,
-        "therapeutic_techniques": [
-          "Cognitive Restructuring"
-        ],
+        "therapeutic_techniques": ["Cognitive Restructuring"],
         "validation_statements": 0,
         "solution_focused": 0.3333333333333333
       },

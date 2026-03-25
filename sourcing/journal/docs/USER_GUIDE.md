@@ -14,7 +14,10 @@
 
 ### Overview
 
-The Journal Dataset Research System is an automated platform for discovering, evaluating, acquiring, and integrating therapeutic datasets from academic sources. The system operates through a coordinated workflow that spans four main phases:
+The Journal Dataset Research System is an automated platform for discovering,
+evaluating, acquiring, and integrating therapeutic datasets from academic
+sources. The system operates through a coordinated workflow that spans four main
+phases:
 
 1. **Discovery**: Discover dataset sources from academic repositories
 2. **Evaluation**: Evaluate discovered datasets across multiple dimensions
@@ -23,13 +26,20 @@ The Journal Dataset Research System is an automated platform for discovering, ev
 
 ### Key Features
 
-- **Automated Discovery**: Search across multiple academic repositories (PubMed, DOAJ, Dryad, Zenodo, ClinicalTrials.gov)
-- **Multi-Dimensional Evaluation**: Evaluate datasets across therapeutic relevance, data structure quality, training integration potential, and ethical accessibility
-- **Compliance Checking**: Comprehensive compliance checking including license compatibility, privacy verification, and HIPAA validation
-- **Secure Storage**: Organized storage with optional encryption for sensitive data
-- **Integration Planning**: Automated integration planning with preprocessing script generation
+- **Automated Discovery**: Search across multiple academic repositories (PubMed,
+  DOAJ, Dryad, Zenodo, ClinicalTrials.gov)
+- **Multi-Dimensional Evaluation**: Evaluate datasets across therapeutic
+  relevance, data structure quality, training integration potential, and ethical
+  accessibility
+- **Compliance Checking**: Comprehensive compliance checking including license
+  compatibility, privacy verification, and HIPAA validation
+- **Secure Storage**: Organized storage with optional encryption for sensitive
+  data
+- **Integration Planning**: Automated integration planning with preprocessing
+  script generation
 - **Progress Tracking**: Real-time progress tracking and reporting
-- **Session Management**: Session-based workflow with checkpointing and resume capability
+- **Session Management**: Session-based workflow with checkpointing and resume
+  capability
 
 ## Installation
 
@@ -42,24 +52,28 @@ The Journal Dataset Research System is an automated platform for discovering, ev
 ### Installation Steps
 
 1. **Clone the repository** (if not already available):
+
 ```bash
 git clone <repository-url>
 cd pixelated
 ```
 
 2. **Install dependencies**:
+
 ```bash
 cd ai
 uv install
 ```
 
 Or with pip:
+
 ```bash
 cd ai
 pip install -r requirements.txt
 ```
 
 3. **Verify installation**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli --help
 ```
@@ -67,11 +81,13 @@ python -m ai.sourcing.journal.cli.cli --help
 ### Optional Dependencies
 
 For YAML configuration support:
+
 ```bash
 uv add pyyaml
 ```
 
 For enhanced reporting and visualization:
+
 ```bash
 uv add matplotlib pandas
 ```
@@ -80,7 +96,8 @@ uv add matplotlib pandas
 
 ### Configuration File
 
-The system uses a configuration file located at `~/.journal_research/config.yaml` (or `config.json` if YAML is not available).
+The system uses a configuration file located at
+`~/.journal_research/config.yaml` (or `config.json` if YAML is not available).
 
 ### Default Configuration
 
@@ -101,17 +118,17 @@ orchestrator:
 discovery:
   pubmed:
     api_key: null
-    base_url: "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
+    base_url: 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils'
     search_limit: 100
   doaj:
-    base_url: "https://doaj.org/api/v2"
+    base_url: 'https://doaj.org/api/v2'
   repositories:
     dryad:
-      base_url: "https://datadryad.org/api/v2"
+      base_url: 'https://datadryad.org/api/v2'
     zenodo:
-      base_url: "https://zenodo.org/api"
+      base_url: 'https://zenodo.org/api'
     clinical_trials:
-      base_url: "https://clinicaltrials.gov/api/v2"
+      base_url: 'https://clinicaltrials.gov/api/v2'
 
 evaluation:
   therapeutic_relevance_weight: 0.35
@@ -122,7 +139,7 @@ evaluation:
   medium_priority_threshold: 5.0
 
 acquisition:
-  storage_base_path: "data/acquired_datasets"
+  storage_base_path: 'data/acquired_datasets'
   encryption_enabled: false
   download_timeout: 3600
   max_retries: 3
@@ -130,13 +147,13 @@ acquisition:
   resume_downloads: true
 
 integration:
-  target_format: "chatml"
-  default_complexity: "medium"
+  target_format: 'chatml'
+  default_complexity: 'medium'
 
 logging:
-  level: "INFO"
+  level: 'INFO'
   file: null
-  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 ```
 
 ### Environment Variables
@@ -150,6 +167,7 @@ You can override configuration values using environment variables:
 - `JOURNAL_RESEARCH_MAX_WORKERS`: Maximum workers for parallel processing
 
 Example:
+
 ```bash
 export JOURNAL_RESEARCH_PUBMED_API_KEY="your-api-key"
 export JOURNAL_RESEARCH_STORAGE_PATH="/path/to/datasets"
@@ -159,16 +177,19 @@ export JOURNAL_RESEARCH_LOG_LEVEL="DEBUG"
 ### Configuration Management
 
 View configuration:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config show
 ```
 
 Get specific configuration value:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config get "orchestrator.max_retries"
 ```
 
 Set configuration value:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "orchestrator.max_retries" "5"
 ```
@@ -188,6 +209,7 @@ python -m ai.sourcing.journal.cli.cli search \
 ```
 
 **Options**:
+
 - `--keywords, -k`: Search keywords (multiple allowed)
 - `--sources, -s`: Target sources (pubmed, doaj, etc.) (multiple allowed)
 - `--session-id`: Session ID (optional, auto-generated if not provided)
@@ -204,6 +226,7 @@ python -m ai.sourcing.journal.cli.cli evaluate \
 ```
 
 **Options**:
+
 - `--session-id`: Session ID (required)
 - `--interactive, -i`: Interactive mode for manual evaluation overrides
 
@@ -218,6 +241,7 @@ python -m ai.sourcing.journal.cli.cli acquire \
 ```
 
 **Options**:
+
 - `--session-id`: Session ID (required)
 - `--interactive, -i`: Interactive mode for manual acquisition approval
 
@@ -233,8 +257,10 @@ python -m ai.sourcing.journal.cli.cli integrate \
 ```
 
 **Options**:
+
 - `--session-id`: Session ID (required)
-- `--target-format`: Target format (chatml, conversation_record) (default: chatml)
+- `--target-format`: Target format (chatml, conversation_record) (default:
+  chatml)
 - `--interactive, -i`: Interactive mode for manual integration approval
 
 ### Status Command
@@ -250,6 +276,7 @@ python -m ai.sourcing.journal.cli.cli status
 ```
 
 **Options**:
+
 - `--session-id`: Session ID (optional, lists all sessions if not provided)
 
 ### Report Command
@@ -264,6 +291,7 @@ python -m ai.sourcing.journal.cli.cli report \
 ```
 
 **Options**:
+
 - `--session-id`: Session ID (required)
 - `--output`: Output file path (default: stdout)
 - `--format`: Report format (json, markdown) (default: json)
@@ -306,6 +334,7 @@ python ai/sourcing/journal/main.py \
 ```
 
 This will:
+
 1. Create a new research session
 2. Discover dataset sources from PubMed and DOAJ
 3. Evaluate discovered datasets
@@ -378,6 +407,7 @@ python ai/sourcing/journal/main.py \
 ```
 
 In interactive mode, you can:
+
 - Review datasets before evaluation
 - Approve acquisition requests
 - Review integration plans
@@ -425,45 +455,60 @@ python ai/sourcing/journal/main.py \
 
 ### 1. Session Management
 
-- **Use unique session IDs**: Always use unique session IDs for different research efforts
-- **Save session state regularly**: The system automatically saves session state, but you can also save manually
-- **Resume interrupted workflows**: Use the `--resume` flag to resume interrupted workflows from the last checkpoint
+- **Use unique session IDs**: Always use unique session IDs for different
+  research efforts
+- **Save session state regularly**: The system automatically saves session
+  state, but you can also save manually
+- **Resume interrupted workflows**: Use the `--resume` flag to resume
+  interrupted workflows from the last checkpoint
 
 ### 2. Configuration
 
-- **Use environment variables**: Use environment variables for sensitive configuration like API keys
-- **Validate configuration**: Always validate configuration before running workflows
-- **Use default values**: The system provides sensible default values for all configuration options
+- **Use environment variables**: Use environment variables for sensitive
+  configuration like API keys
+- **Validate configuration**: Always validate configuration before running
+  workflows
+- **Use default values**: The system provides sensible default values for all
+  configuration options
 
 ### 3. Error Handling
 
 - **Enable logging**: Enable verbose logging for debugging and monitoring
 - **Handle exceptions**: Always handle exceptions and implement retry logic
-- **Use dry-run mode**: Use dry-run mode to test workflows without making actual changes
+- **Use dry-run mode**: Use dry-run mode to test workflows without making actual
+  changes
 
 ### 4. Compliance
 
-- **Perform compliance checks**: Always perform compliance checks before acquiring datasets
-- **Review compliance reports**: Review compliance reports to ensure datasets meet requirements
-- **Document compliance decisions**: Document compliance decisions for audit purposes
+- **Perform compliance checks**: Always perform compliance checks before
+  acquiring datasets
+- **Review compliance reports**: Review compliance reports to ensure datasets
+  meet requirements
+- **Document compliance decisions**: Document compliance decisions for audit
+  purposes
 
 ### 5. Progress Tracking
 
 - **Track progress regularly**: Track progress regularly and generate reports
 - **Set weekly targets**: Set weekly targets to track progress against goals
-- **Monitor metrics**: Monitor metrics like sources identified, datasets evaluated, and datasets acquired
+- **Monitor metrics**: Monitor metrics like sources identified, datasets
+  evaluated, and datasets acquired
 
 ### 6. Security
 
-- **Use encryption**: Use encryption for sensitive data and secure credential management
-- **Secure storage**: Store datasets in secure locations with appropriate access controls
+- **Use encryption**: Use encryption for sensitive data and secure credential
+  management
+- **Secure storage**: Store datasets in secure locations with appropriate access
+  controls
 - **Audit logging**: Enable audit logging for all data access and modifications
 
 ### 7. Performance
 
-- **Use parallel processing**: Use parallel processing for evaluation and integration planning when possible
+- **Use parallel processing**: Use parallel processing for evaluation and
+  integration planning when possible
 - **Configure timeouts**: Configure appropriate timeouts for network operations
-- **Monitor resources**: Monitor system resources and adjust configuration as needed
+- **Monitor resources**: Monitor system resources and adjust configuration as
+  needed
 
 ### 8. Documentation
 
@@ -477,49 +522,65 @@ python ai/sourcing/journal/main.py \
 
 - **Use specific keywords**: Use specific keywords to narrow down search results
 - **Combine keywords**: Combine multiple keywords to find relevant datasets
-- **Use MeSH terms**: Use Medical Subject Headings (MeSH) terms for PubMed searches
-- **Filter by open access**: Filter by open access status to find freely available datasets
+- **Use MeSH terms**: Use Medical Subject Headings (MeSH) terms for PubMed
+  searches
+- **Filter by open access**: Filter by open access status to find freely
+  available datasets
 
 ### 2. Evaluation Optimization
 
-- **Prioritize high-score datasets**: Prioritize datasets with high overall scores
-- **Review evaluation notes**: Review evaluation notes to understand scoring decisions
-- **Use interactive mode**: Use interactive mode to override evaluation scores when needed
-- **Check compliance status**: Always check compliance status before acquiring datasets
+- **Prioritize high-score datasets**: Prioritize datasets with high overall
+  scores
+- **Review evaluation notes**: Review evaluation notes to understand scoring
+  decisions
+- **Use interactive mode**: Use interactive mode to override evaluation scores
+  when needed
+- **Check compliance status**: Always check compliance status before acquiring
+  datasets
 
 ### 3. Acquisition Efficiency
 
-- **Use direct downloads**: Prefer direct downloads over API-based retrieval when possible
-- **Resume interrupted downloads**: Use resume capability for interrupted downloads
+- **Use direct downloads**: Prefer direct downloads over API-based retrieval
+  when possible
+- **Resume interrupted downloads**: Use resume capability for interrupted
+  downloads
 - **Verify integrity**: Always verify download integrity using checksums
 - **Organize storage**: Organize storage by source type and acquisition date
 
 ### 4. Integration Planning
 
-- **Review integration plans**: Review integration plans before executing preprocessing scripts
+- **Review integration plans**: Review integration plans before executing
+  preprocessing scripts
 - **Estimate complexity**: Use complexity estimates to plan integration efforts
-- **Test preprocessing scripts**: Test preprocessing scripts on sample data before full integration
-- **Document transformations**: Document all transformations for future reference
+- **Test preprocessing scripts**: Test preprocessing scripts on sample data
+  before full integration
+- **Document transformations**: Document all transformations for future
+  reference
 
 ### 5. Troubleshooting
 
 - **Check logs**: Check logs for error messages and debugging information
 - **Use verbose mode**: Use verbose mode to get detailed output
-- **Test with dry-run**: Test workflows with dry-run mode before actual execution
+- **Test with dry-run**: Test workflows with dry-run mode before actual
+  execution
 - **Review configuration**: Review configuration for incorrect settings
 
 ### 6. Performance Optimization
 
 - **Use parallel processing**: Enable parallel processing for large datasets
-- **Configure workers**: Configure the number of workers based on system resources
+- **Configure workers**: Configure the number of workers based on system
+  resources
 - **Use caching**: Use caching for frequently accessed data
-- **Monitor resources**: Monitor system resources and adjust configuration as needed
+- **Monitor resources**: Monitor system resources and adjust configuration as
+  needed
 
 ### 7. Reporting
 
 - **Generate regular reports**: Generate reports regularly for stakeholders
-- **Use multiple formats**: Use multiple formats (JSON, Markdown) for different audiences
-- **Include visualizations**: Include visualizations in reports for better understanding
+- **Use multiple formats**: Use multiple formats (JSON, Markdown) for different
+  audiences
+- **Include visualizations**: Include visualizations in reports for better
+  understanding
 - **Document findings**: Document key findings and challenges in reports
 
 ### 8. Collaboration
@@ -588,9 +649,11 @@ class CustomIntegrationEngine(IntegrationPlanningEngine):
 
 ### Documentation
 
-- **Architecture Documentation**: See `docs/ARCHITECTURE.md` for system architecture details
+- **Architecture Documentation**: See `docs/ARCHITECTURE.md` for system
+  architecture details
 - **API Reference**: See `docs/API_REFERENCE.md` for API documentation
-- **Troubleshooting Guide**: See `docs/TROUBLESHOOTING.md` for troubleshooting tips
+- **Troubleshooting Guide**: See `docs/TROUBLESHOOTING.md` for troubleshooting
+  tips
 
 ### Support
 
@@ -606,7 +669,11 @@ class CustomIntegrationEngine(IntegrationPlanningEngine):
 
 ## Conclusion
 
-The Journal Dataset Research System provides a comprehensive, automated platform for discovering, evaluating, acquiring, and integrating therapeutic datasets from academic sources. By following this user guide, you can effectively use the system to streamline your research workflow and ensure compliance with ethical and legal requirements.
+The Journal Dataset Research System provides a comprehensive, automated platform
+for discovering, evaluating, acquiring, and integrating therapeutic datasets
+from academic sources. By following this user guide, you can effectively use the
+system to streamline your research workflow and ensure compliance with ethical
+and legal requirements.
 
-For more information, see the architecture documentation, API reference, and troubleshooting guide.
-
+For more information, see the architecture documentation, API reference, and
+troubleshooting guide.

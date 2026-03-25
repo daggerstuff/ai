@@ -11,14 +11,14 @@ services:
       - OPENAICOMPATIBLE_API_KEY
       - NEMO_MICROSERVICES_AUDITOR_JOB_IMAGE=${NEMO_MICROSERVICES_IMAGE_REGISTRY}/auditor:${NEMO_MICROSERVICES_IMAGE_TAG}
     ports:
-      - "5000"
+      - '5000'
     networks:
       - nmp
     configs:
       - source: platform_config
         target: /etc/nmp/config.yaml
-        gid: "1000"
-        uid: "1000"
+        gid: '1000'
+        uid: '1000'
         mode: 0444
     depends_on:
       postgres:
@@ -30,8 +30,10 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; assert urllib.request.urlopen('http://localhost:5000/health/ready').status == 200",
+          'CMD',
+          'python',
+          '-c',
+          "import urllib.request; assert
+          urllib.request.urlopen('http://localhost:5000/health/ready').status ==
+          200",
         ]

@@ -15,9 +15,7 @@
       "Strengthen integration with emergency services protocols",
       "Improve documentation of clinical decision-making process"
     ],
-    "concerns": [
-      "Potential bias in risk assessment across demographic groups"
-    ],
+    "concerns": ["Potential bias in risk assessment across demographic groups"],
     "approval_status": "CertificationStatus.REQUIRES_REVISION",
     "clinical_notes": "Clinical validation conducted by Dr. Sarah Johnson, Ph.D.. Overall assessment: requires_revision. System demonstrates strong clinical safety measures with recommendations for continuous improvement."
   },
@@ -37,9 +35,7 @@
       "Strengthen integration with emergency services protocols",
       "Improve documentation of clinical decision-making process"
     ],
-    "concerns": [
-      "Potential bias in risk assessment across demographic groups"
-    ],
+    "concerns": ["Potential bias in risk assessment across demographic groups"],
     "approval_status": "CertificationStatus.REQUIRES_REVISION",
     "clinical_notes": "Clinical validation conducted by Dr. Michael Chen, M.D.. Overall assessment: requires_revision. System demonstrates strong clinical safety measures with recommendations for continuous improvement."
   },
@@ -59,9 +55,7 @@
       "Strengthen integration with emergency services protocols",
       "Improve documentation of clinical decision-making process"
     ],
-    "concerns": [
-      "Potential bias in risk assessment across demographic groups"
-    ],
+    "concerns": ["Potential bias in risk assessment across demographic groups"],
     "approval_status": "CertificationStatus.REQUIRES_REVISION",
     "clinical_notes": "Clinical validation conducted by Dr. Lisa Rodriguez, LCSW. Overall assessment: requires_revision. System demonstrates strong clinical safety measures with recommendations for continuous improvement."
   }

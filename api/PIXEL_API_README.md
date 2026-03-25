@@ -1,19 +1,22 @@
 # Pixel Model Inference API
 
-Production-grade API for the Pixel emotional intelligence model providing real-time therapeutic conversation generation with EQ awareness, crisis detection, and bias mitigation.
+Production-grade API for the Pixel emotional intelligence model providing
+real-time therapeutic conversation generation with EQ awareness, crisis
+detection, and bias mitigation.
 
 ## Overview
 
 The Pixel Model Inference API provides:
 
-- **Emotional Intelligence (EQ) Measurement**: Real-time scoring across 5 domains
+- **Emotional Intelligence (EQ) Measurement**: Real-time scoring across 5
+  domains
   - Emotional Awareness (self-recognition)
   - Empathy Recognition (other-emotion understanding)
   - Emotional Regulation (response control)
   - Social Cognition (situation understanding)
   - Interpersonal Skills (relationship management)
 
-- **Conversation Quality Analysis**: 
+- **Conversation Quality Analysis**:
   - Therapeutic technique detection (CBT/DBT/MI/etc)
   - Bias detection and scoring
   - Safety validation
@@ -98,6 +101,7 @@ The service will start on `http://localhost:8001`
 ## API Endpoints
 
 ### Health Check
+
 ```
 GET /health
 
@@ -110,6 +114,7 @@ Response:
 ```
 
 ### Model Status
+
 ```
 GET /status
 
@@ -129,6 +134,7 @@ Response:
 ```
 
 ### Generate Response
+
 ```
 POST /infer
 
@@ -178,6 +184,7 @@ Response:
 ```
 
 ### Batch Inference
+
 ```
 POST /batch-infer
 
@@ -191,6 +198,7 @@ Request:
 ```
 
 ### Reload Model
+
 ```
 POST /reload-model
 
@@ -233,7 +241,7 @@ function TherapyChat() {
   const handleSubmit = async (query: string) => {
     try {
       const result = await infer(query, conversationHistory)
-      
+
       // Track EQ progression
       if (result.eq_scores) {
         recordMetrics(result.eq_scores)
@@ -269,28 +277,31 @@ function TherapyChat() {
 
 ## Performance Characteristics
 
-| Metric | Target | Typical |
-|--------|--------|---------|
-| P50 Latency | <150ms | 135ms |
-| P95 Latency | <200ms | 165ms |
-| P99 Latency | <250ms | 185ms |
-| Throughput | >5 req/s | ~7 req/s |
-| Memory (CPU) | <512MB | 380MB |
-| Memory (GPU) | <8GB | 4.2GB |
+| Metric       | Target   | Typical  |
+| ------------ | -------- | -------- |
+| P50 Latency  | <150ms   | 135ms    |
+| P95 Latency  | <200ms   | 165ms    |
+| P99 Latency  | <250ms   | 185ms    |
+| Throughput   | >5 req/s | ~7 req/s |
+| Memory (CPU) | <512MB   | 380MB    |
+| Memory (GPU) | <8GB     | 4.2GB    |
 
 ## Testing
 
 ### Run Unit Tests
+
 ```bash
 uv run pytest ai/api/test_pixel_inference.py -v
 ```
 
 ### Run Performance Benchmarks
+
 ```bash
 uv run pytest ai/api/test_pixel_inference.py::TestPixelInferencePerformance -v
 ```
 
 ### Run Integration Tests
+
 ```bash
 # Start the service first
 uv run ai/api/pixel_inference_service.py &
@@ -326,14 +337,14 @@ docker-compose -f docker/docker-compose.pixel.yml up -d
 
 The API implements comprehensive error handling:
 
-| Status | Scenario | Response |
-|--------|----------|----------|
-| 200 | Successful inference | Full response with metrics |
-| 400 | Invalid request | Validation errors |
-| 401 | Unauthorized | Auth token required/invalid |
-| 429 | Rate limited | Retry after X seconds |
-| 503 | Model not loaded | Service unavailable |
-| 500 | Internal error | Error details for debugging |
+| Status | Scenario             | Response                    |
+| ------ | -------------------- | --------------------------- |
+| 200    | Successful inference | Full response with metrics  |
+| 400    | Invalid request      | Validation errors           |
+| 401    | Unauthorized         | Auth token required/invalid |
+| 429    | Rate limited         | Retry after X seconds       |
+| 503    | Model not loaded     | Service unavailable         |
+| 500    | Internal error       | Error details for debugging |
 
 ## Monitoring & Observability
 
@@ -357,6 +368,7 @@ The API implements comprehensive error handling:
 ### Logging
 
 All inferences are logged with:
+
 - User ID (anonymized)
 - Session ID
 - Inference time

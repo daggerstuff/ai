@@ -154,3 +154,7 @@ infrastructure/qa/validation_results/**
 .viminfo
 .zsh_history
 codemap.md
+data/
+datasets/
+training/
+training_ready/

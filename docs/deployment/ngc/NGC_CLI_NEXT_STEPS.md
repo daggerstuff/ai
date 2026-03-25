@@ -60,6 +60,7 @@ python ai/utils/test_ngc_cli.py
 ```
 
 This will verify:
+
 - NGC CLI is found
 - Configuration is set up
 - Can access NGC catalog
@@ -67,6 +68,7 @@ This will verify:
 ### 5. Try Downloading a Resource
 
 **Training Ready:**
+
 ```python
 from ai.training.ready_packages.utils.ngc_resources import download_nemo_quickstart
 
@@ -76,6 +78,7 @@ print(f"Downloaded to: {quickstart_path}")
 ```
 
 **Dataset Pipeline:**
+
 ```python
 from ai.pipelines.orchestrator.sourcing.ngc_ingestor import ingest_ngc_datasets
 
@@ -113,24 +116,29 @@ NGC_DATASETS = {
 ### 7. Integrate into Workflows
 
 **Training Scripts:**
+
 - Add NGC resource downloads to training setup scripts
 - Use `NGCResourceDownloader` in training initialization
 
 **Dataset Pipeline:**
+
 - NGC ingestor is already integrated into `multi_source_ingestor.py`
 - It will automatically run when you call the multi-source pipeline
 
 ### 8. Update Existing Scripts
 
-If you have existing scripts that manually download NGC resources, update them to use the new utilities:
+If you have existing scripts that manually download NGC resources, update them
+to use the new utilities:
 
 **Before:**
+
 ```bash
 # Manual download
 ngc registry resource download-version "nvidia/nemo-microservices/nemo-microservices-quickstart:25.10"
 ```
 
 **After:**
+
 ```python
 from ai.training.ready_packages.utils.ngc_resources import download_nemo_quickstart
 quickstart = download_nemo_quickstart(version="25.10")
@@ -145,16 +153,19 @@ quickstart = download_nemo_quickstart(version="25.10")
 ## 🔍 Troubleshooting
 
 ### "NGC CLI not found"
+
 - Verify NGC CLI is installed: `which ngc` or `ls ~/ngc-cli/ngc`
 - Check PATH includes NGC CLI location
 - Re-download from https://catalog.ngc.nvidia.com if needed
 
 ### "Authentication failed"
+
 - Verify API key: `ngc config get`
 - Make sure you're using NGC API key (not NVIDIA_API_KEY)
 - Re-configure: `ngc config set`
 
 ### "Download failed"
+
 - Check network connectivity
 - Verify you have access to the resource
 - Check resource path is correct

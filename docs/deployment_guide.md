@@ -49,12 +49,14 @@ This guide covers deploying Pixelated Empathy AI across different environments:
 ### System Requirements
 
 **Minimum Requirements:**
+
 - **CPU**: 2 cores
 - **RAM**: 4GB
 - **Storage**: 20GB SSD
 - **Network**: 100 Mbps
 
 **Recommended for Production:**
+
 - **CPU**: 8 cores
 - **RAM**: 16GB
 - **Storage**: 100GB SSD
@@ -140,7 +142,7 @@ services:
   api:
     image: pixelated-empathy-ai:latest
     ports:
-      - "8000:8000"
+      - '8000:8000'
     environment:
       - NODE_ENV=production
       - DATABASE_URL=${DATABASE_URL}
@@ -151,7 +153,7 @@ services:
       - redis
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -177,8 +179,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl
@@ -235,11 +237,11 @@ metadata:
   name: pixelated-config
   namespace: pixelated-empathy
 data:
-  NODE_ENV: "production"
-  API_HOST: "0.0.0.0"
-  API_PORT: "8000"
-  LOG_LEVEL: "INFO"
-  REDIS_URL: "redis://redis-service:6379/0"
+  NODE_ENV: 'production'
+  API_HOST: '0.0.0.0'
+  API_PORT: '8000'
+  LOG_LEVEL: 'INFO'
+  REDIS_URL: 'redis://redis-service:6379/0'
 
 ---
 # secrets.yaml
@@ -275,34 +277,34 @@ spec:
         app: pixelated-api
     spec:
       containers:
-      - name: api
-        image: pixelated-empathy-ai:latest
-        ports:
-        - containerPort: 8000
-        envFrom:
-        - configMapRef:
-            name: pixelated-config
-        - secretRef:
-            name: pixelated-secrets
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health/live
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health/ready
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: api
+          image: pixelated-empathy-ai:latest
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: pixelated-config
+            - secretRef:
+                name: pixelated-secrets
+          resources:
+            requests:
+              memory: '512Mi'
+              cpu: '250m'
+            limits:
+              memory: '1Gi'
+              cpu: '500m'
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
 
 ---
 # service.yaml
@@ -315,9 +317,9 @@ spec:
   selector:
     app: pixelated-api
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8000
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
   type: ClusterIP
 ```
 
@@ -333,24 +335,24 @@ metadata:
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/rate-limit: "100"
-    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    nginx.ingress.kubernetes.io/rate-limit: '100'
+    nginx.ingress.kubernetes.io/rate-limit-window: '1m'
 spec:
   tls:
-  - hosts:
-    - api.pixelatedempathy.com
-    secretName: pixelated-tls
+    - hosts:
+        - api.pixelatedempathy.com
+      secretName: pixelated-tls
   rules:
-  - host: api.pixelatedempathy.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: pixelated-api-service
-            port:
-              number: 80
+    - host: api.pixelatedempathy.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pixelated-api-service
+                port:
+                  number: 80
 ```
 
 ### Deploy to Kubernetes
@@ -400,7 +402,7 @@ replicaCount: 3
 
 image:
   repository: pixelated-empathy-ai
-  tag: "v2.0.0"
+  tag: 'v2.0.0'
   pullPolicy: IfNotPresent
 
 service:
@@ -412,7 +414,7 @@ ingress:
   className: nginx
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/rate-limit: "1000"
+    nginx.ingress.kubernetes.io/rate-limit: '1000'
   hosts:
     - host: api.pixelatedempathy.com
       paths:
@@ -441,8 +443,8 @@ autoscaling:
 postgresql:
   enabled: true
   auth:
-    postgresPassword: "secure-postgres-password"
-    database: "pixelated_prod"
+    postgresPassword: 'secure-postgres-password'
+    database: 'pixelated_prod'
   primary:
     persistence:
       enabled: true
@@ -452,7 +454,7 @@ redis:
   enabled: true
   auth:
     enabled: true
-    password: "secure-redis-password"
+    password: 'secure-redis-password'
   master:
     persistence:
       enabled: true
@@ -710,6 +712,7 @@ curl https://api.pixelatedempathy.com/metrics
 ### Performance Tuning
 
 **Database Optimization**:
+
 ```sql
 -- Add indexes for common queries
 CREATE INDEX CONCURRENTLY idx_conversations_user_id ON conversations(user_id);
@@ -720,6 +723,7 @@ EXPLAIN ANALYZE SELECT * FROM conversations WHERE user_id = 'user123';
 ```
 
 **Redis Optimization**:
+
 ```bash
 # Monitor Redis performance
 redis-cli --latency-history -h redis-service
@@ -760,5 +764,5 @@ helm rollback pixelated-empathy 2 -n pixelated-empathy
 
 ---
 
-*Last updated: 2025-08-12T21:33:00Z*  
-*For deployment support, contact the DevOps team or create an issue on GitHub.*
+_Last updated: 2025-08-12T21:33:00Z_  
+_For deployment support, contact the DevOps team or create an issue on GitHub._

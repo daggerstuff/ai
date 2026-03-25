@@ -4,13 +4,13 @@ services:
     configs:
       - source: envoy_config
         target: /etc/envoy/envoy.yaml
-        gid: "101"
-        uid: "101"
+        gid: '101'
+        uid: '101'
         mode: 0444
     environment:
       - LOG_LEVEL=info
     ports:
-      - "8080:8000"
+      - '8080:8000'
     networks:
       - nmp
     ulimits:

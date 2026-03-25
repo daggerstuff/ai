@@ -1,9 +1,9 @@
 # NeMo Gym Integration Design (Pixelated Empathy)
 
 **Status**: Design document – no direct runtime dependency on NeMo Gym code.  
-**Goal**: Define how a Pixelated Empathy–specific RL environment would look,
-how it connects to existing training infrastructure, and how Nemotron 3 can
-act as a teacher/reward model without breaking the S3-first architecture.
+**Goal**: Define how a Pixelated Empathy–specific RL environment would look, how
+it connects to existing training infrastructure, and how Nemotron 3 can act as a
+teacher/reward model without breaking the S3-first architecture.
 
 ---
 
@@ -19,10 +19,11 @@ We follow the patterns from the official NeMo Gym repository
 For Pixelated Empathy we introduce:
 
 - A **TherapeuticSession resource server** that:
-  - Wraps the existing inference service (`packages/velocity/training_scripts/inference_service.py`)
-    or an OVH/Lightning deployment.
-  - Encodes environment state as: conversation history, scenario metadata,
-    and target competencies (safety, empathy, bias constraints).
+  - Wraps the existing inference service
+    (`packages/velocity/training_scripts/inference_service.py`) or an
+    OVH/Lightning deployment.
+  - Encodes environment state as: conversation history, scenario metadata, and
+    target competencies (safety, empathy, bias constraints).
   - Emits **verifiable rewards** based on transcript analysis.
 - One or more **RL jobs** that:
   - Use either Nemotron 3 Nano or the Pixelated Empathy model as the policy.
@@ -57,7 +58,8 @@ Each environment episode represents a single therapeutic scenario:
   - `messages`: Chat-style list of `{role, content}` objects.
   - `turn_index`: current turn number.
 - **Targets / constraints**:
-  - `expected_outcomes`: high-level goals (de-escalation, validation, psychoeducation).
+  - `expected_outcomes`: high-level goals (de-escalation, validation,
+    psychoeducation).
   - `hard_constraints`: non-negotiables (e.g., crisis protocol adherence).
 
 State is serialized as JSON and passed between:
@@ -70,8 +72,8 @@ State is serialized as JSON and passed between:
 
 An action is a **single assistant turn**:
 
-- The policy (Pixelated model or Nemotron 3 Nano) receives the state and
-  outputs one assistant message (`{role: "assistant", content: "..."}`).
+- The policy (Pixelated model or Nemotron 3 Nano) receives the state and outputs
+  one assistant message (`{role: "assistant", content: "..."}`).
 - The environment appends this to the `messages` list and optionally updates
   internal hidden state (e.g. client mood trajectory).
 
@@ -80,8 +82,8 @@ An action is a **single assistant turn**:
 An episode terminates when:
 
 - A maximum number of turns is reached.
-- A “session end” condition is triggered (e.g. client stabilized, hard
-  safety violation, or explicit end-of-session marker).
+- A “session end” condition is triggered (e.g. client stabilized, hard safety
+  violation, or explicit end-of-session marker).
 
 At termination, the environment:
 
@@ -93,8 +95,8 @@ At termination, the environment:
 
 ## 3. Reward Design (Verifiers)
 
-Reward is decomposed into several components, all computed from transcripts
-and scenario metadata:
+Reward is decomposed into several components, all computed from transcripts and
+scenario metadata:
 
 1. **Safety** (hard constraint):
    - Deduct or fail if:
@@ -143,8 +145,8 @@ This is compatible with GRPO-style pipelines used in Nemotron RL recipes.
 
 ## 4. Rollout Format & S3 Storage
 
-Following Nemotron RL datasets on Hugging Face, we target a JSONL-based
-rollout format:
+Following Nemotron RL datasets on Hugging Face, we target a JSONL-based rollout
+format:
 
 Each line in `s3://pixel-data/rl/pixelated/therapeutic_session/{run_id}.jsonl`
 contains:
@@ -159,9 +161,9 @@ contains:
     "risk_level": "moderate"
   },
   "messages": [
-    {"role": "system", "content": "..."},
-    {"role": "user", "content": "..."},
-    {"role": "assistant", "content": "..."},
+    { "role": "system", "content": "..." },
+    { "role": "user", "content": "..." },
+    { "role": "assistant", "content": "..." },
     "..."
   ],
   "policy": {
@@ -206,11 +208,11 @@ We expect separate **collection jobs** that:
 3. Use NeMo Gym tooling (`ng_collect_rollouts` or similar) to:
    - Generate rollouts.
    - Store them to local disk.
-4. Mirror rollouts to S3 under `rl/pixelated/...` using the existing
-   S3 utilities or a small upload script.
+4. Mirror rollouts to S3 under `rl/pixelated/...` using the existing S3
+   utilities or a small upload script.
 
-Pixelated codebase remains the **owner** of S3 paths and RL configuration;
-NeMo Gym is purely an external environment/collector.
+Pixelated codebase remains the **owner** of S3 paths and RL configuration; NeMo
+Gym is purely an external environment/collector.
 
 ### 5.2 RL Fine-Tuning
 
@@ -238,8 +240,8 @@ Nemotron 3 Nano can participate in two ways:
    - Use Nemotron 3 as the acting policy inside the environment to:
      - Generate idealized trajectories for specific scenarios.
      - Produce “gold” trajectories stored in S3 as teacher data.
-   - Pixelated models can then be fine-tuned to imitate or compete with
-     these trajectories using standard distillation or preference learning.
+   - Pixelated models can then be fine-tuned to imitate or compete with these
+     trajectories using standard distillation or preference learning.
 
 2. **Reward Model / LLM-as-a-Judge**:
    - Use Nemotron 3 in analysis mode:
@@ -251,16 +253,16 @@ Nemotron 3 Nano can participate in two ways:
 In both roles:
 
 - Nemotron-derived judgments are **advisory**, not authoritative.
-- Final training decisions are grounded in Pixelated’s own ethical and
-  clinical guidelines.
+- Final training decisions are grounded in Pixelated’s own ethical and clinical
+  guidelines.
 
 ---
 
 ## 7. Safety & Compliance Considerations
 
-- NeMo Gym environments must **never** emit or require real PHI; all
-  scenarios are synthetic or drawn from de-identified corpora already
-  in the training pipeline.
+- NeMo Gym environments must **never** emit or require real PHI; all scenarios
+  are synthetic or drawn from de-identified corpora already in the training
+  pipeline.
 - All RL rollouts must be stored under clear S3 prefixes that separate:
   - Synthetic RL data.
   - Real or de-identified supervised data.
@@ -287,10 +289,8 @@ In both roles:
    - Add an H100-focused config variant to `train_moe_h100.py` that:
      - Consumes RL rollouts.
      - Performs GRPO/ORPO/SimPO-style updates.
-   - Keep this experiment behind a clear flag / config so the main SFT
-     path remains unchanged.
+   - Keep this experiment behind a clear flag / config so the main SFT path
+     remains unchanged.
 
-This design keeps NeMo Gym and Nemotron 3 as **well-defined external
-systems** while respecting the S3-first, safety-first architecture of
-Pixelated Empathy.
-
+This design keeps NeMo Gym and Nemotron 3 as **well-defined external systems**
+while respecting the S3-first, safety-first architecture of Pixelated Empathy.

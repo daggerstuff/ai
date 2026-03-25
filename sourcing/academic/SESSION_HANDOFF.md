@@ -158,7 +158,8 @@ datasets = find_therapy_datasets(min_turns=20, min_quality=0.6)
 
 ## 🎊 Summary
 
-**The Academic Sourcing module went from 30% complete to 100% complete in one session!**
+**The Academic Sourcing module went from 30% complete to 100% complete in one
+session!**
 
 Everything is:
 

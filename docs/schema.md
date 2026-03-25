@@ -18,7 +18,8 @@ This document describes the schema for all export formats.
 - **Type**: `array`
 - **Required**: Yes
 - **Description**: Array of conversation messages
-- **Example**: `[{"role": "user", "content": "I'm feeling anxious."}, {"role": "assistant", "content": "I understand..."}]`
+- **Example**:
+  `[{"role": "user", "content": "I'm feeling anxious."}, {"role": "assistant", "content": "I understand..."}]`
 
 ### `quality_score`
 
@@ -81,4 +82,4 @@ This document describes the schema for all export formats.
 
 ---
 
-*Generated on 2025-08-03 19:09:15 UTC*
+_Generated on 2025-08-03 19:09:15 UTC_

@@ -46,21 +46,26 @@ if errors:
 ```
 
 **Fields**:
+
 - `source_id` (str): Unique identifier for the source
 - `title` (str): Title of the dataset
 - `authors` (List[str]): List of authors
 - `publication_date` (datetime): Publication date
-- `source_type` (str): Type of source (journal, repository, clinical_trial, training_material)
+- `source_type` (str): Type of source (journal, repository, clinical_trial,
+  training_material)
 - `url` (str): URL to the source
 - `doi` (Optional[str]): Digital Object Identifier
 - `abstract` (str): Abstract text
 - `keywords` (List[str]): List of keywords
 - `open_access` (bool): Open access status
-- `data_availability` (str): Availability status (available, upon_request, restricted, unknown)
+- `data_availability` (str): Availability status (available, upon_request,
+  restricted, unknown)
 - `discovery_date` (datetime): Date of discovery
-- `discovery_method` (str): Discovery method (pubmed_search, doaj_manual, repository_api, citation)
+- `discovery_method` (str): Discovery method (pubmed_search, doaj_manual,
+  repository_api, citation)
 
 **Methods**:
+
 - `validate() -> List[str]`: Validates the source and returns list of errors
 
 ### DatasetEvaluation
@@ -98,6 +103,7 @@ errors = evaluation.validate()
 ```
 
 **Fields**:
+
 - `source_id` (str): Source identifier
 - `therapeutic_relevance` (int): Relevance score (1-10)
 - `data_structure_quality` (int): Structure quality score (1-10)
@@ -113,13 +119,15 @@ errors = evaluation.validate()
 - `evaluator` (str): Evaluator identifier
 - `competitive_advantages` (List[str]): List of competitive advantages
 - `compliance_checked` (bool): Compliance check status
-- `compliance_status` (str): Compliance status (compliant, partially_compliant, non_compliant)
+- `compliance_status` (str): Compliance status (compliant, partially_compliant,
+  non_compliant)
 - `compliance_score` (float): Compliance score (0.0-1.0)
 - `license_compatible` (bool): License compatibility status
 - `privacy_compliant` (bool): Privacy compliance status
 - `hipaa_compliant` (bool): HIPAA compliance status
 
 **Methods**:
+
 - `validate() -> List[str]`: Validates the evaluation and returns list of errors
 
 ### AccessRequest
@@ -145,18 +153,23 @@ errors = access_request.validate()
 ```
 
 **Fields**:
+
 - `source_id` (str): Source identifier
-- `access_method` (str): Access method (direct, api, request_form, collaboration, registration)
+- `access_method` (str): Access method (direct, api, request_form,
+  collaboration, registration)
 - `request_date` (datetime): Request date
 - `status` (str): Request status (pending, approved, denied, downloaded, error)
 - `access_url` (str): Access URL
 - `credentials_required` (bool): Credentials requirement flag
-- `institutional_affiliation_required` (bool): Institutional affiliation requirement flag
+- `institutional_affiliation_required` (bool): Institutional affiliation
+  requirement flag
 - `estimated_access_date` (Optional[datetime]): Estimated access date
 - `notes` (str): Additional notes
 
 **Methods**:
-- `validate() -> List[str]`: Validates the access request and returns list of errors
+
+- `validate() -> List[str]`: Validates the access request and returns list of
+  errors
 
 ### AcquiredDataset
 
@@ -188,6 +201,7 @@ errors = acquired_dataset.validate()
 ```
 
 **Fields**:
+
 - `source_id` (str): Source identifier
 - `acquisition_date` (datetime): Acquisition date
 - `storage_path` (str): Storage path
@@ -204,7 +218,9 @@ errors = acquired_dataset.validate()
 - `privacy_assessed` (bool): Privacy assessment status
 
 **Methods**:
-- `validate() -> List[str]`: Validates the acquired dataset and returns list of errors
+
+- `validate() -> List[str]`: Validates the acquired dataset and returns list of
+  errors
 
 ### IntegrationPlan
 
@@ -236,9 +252,11 @@ errors = integration_plan.validate()
 ```
 
 **Fields**:
+
 - `source_id` (str): Source identifier
 - `dataset_format` (str): Dataset format (csv, json, xml, parquet, custom)
-- `schema_mapping` (Dict[str, str]): Field mapping (dataset_field -> pipeline_field)
+- `schema_mapping` (Dict[str, str]): Field mapping (dataset_field ->
+  pipeline_field)
 - `required_transformations` (List[str]): List of required transformations
 - `preprocessing_steps` (List[str]): List of preprocessing steps
 - `complexity` (str): Integration complexity (low, medium, high)
@@ -248,7 +266,9 @@ errors = integration_plan.validate()
 - `created_date` (datetime): Creation date
 
 **Methods**:
-- `validate() -> List[str]`: Validates the integration plan and returns list of errors
+
+- `validate() -> List[str]`: Validates the integration plan and returns list of
+  errors
 
 ### ResearchSession
 
@@ -284,15 +304,18 @@ errors = session.validate()
 ```
 
 **Fields**:
+
 - `session_id` (str): Unique session identifier
 - `start_date` (datetime): Session start date
 - `target_sources` (List[str]): List of target sources
 - `search_keywords` (Dict[str, List[str]]): Search keywords dictionary
 - `weekly_targets` (Dict[str, int]): Weekly targets dictionary
-- `current_phase` (str): Current phase (discovery, evaluation, acquisition, integration)
+- `current_phase` (str): Current phase (discovery, evaluation, acquisition,
+  integration)
 - `progress_metrics` (Dict[str, int]): Progress metrics dictionary
 
 **Methods**:
+
 - `validate() -> List[str]`: Validates the session and returns list of errors
 
 ## Research Orchestrator
@@ -350,6 +373,7 @@ session = orchestrator.start_research_session(
 ```
 
 **Parameters**:
+
 - `target_sources` (List[str]): List of target sources
 - `search_keywords` (Dict[str, List[str]]): Search keywords dictionary
 - `weekly_targets` (Optional[Dict[str, int]]): Weekly targets dictionary
@@ -366,6 +390,7 @@ next_phase = orchestrator.advance_phase("session_abc123")
 ```
 
 **Parameters**:
+
 - `session_id` (str): Session ID
 
 **Returns**: `str` - Next phase name
@@ -382,6 +407,7 @@ orchestrator.update_progress(
 ```
 
 **Parameters**:
+
 - `session_id` (str): Session ID
 - `metrics` (Dict[str, int]): Progress metrics dictionary
 
@@ -399,6 +425,7 @@ state = orchestrator.run_session(
 ```
 
 **Parameters**:
+
 - `session_id` (str): Session ID
 - `evaluator` (str): Evaluator identifier (default: "system")
 - `auto_acquire` (bool): Automatically acquire datasets (default: True)
@@ -415,6 +442,7 @@ state = orchestrator.get_session_state("session_abc123")
 ```
 
 **Parameters**:
+
 - `session_id` (str): Session ID
 
 **Returns**: `SessionState` instance
@@ -431,8 +459,10 @@ checkpoint_path = orchestrator.save_session_state(
 ```
 
 **Parameters**:
+
 - `session_id` (str): Session ID
-- `directory` (Optional[Path]): Checkpoint directory (default: configured storage path)
+- `directory` (Optional[Path]): Checkpoint directory (default: configured
+  storage path)
 
 **Returns**: `Path` - Checkpoint file path
 
@@ -445,8 +475,10 @@ orchestrator.load_session_state("session_abc123", directory=Path("checkpoints"))
 ```
 
 **Parameters**:
+
 - `session_id` (str): Session ID
-- `directory` (Optional[Path]): Checkpoint directory (default: configured storage path)
+- `directory` (Optional[Path]): Checkpoint directory (default: configured
+  storage path)
 
 ##### log_activity
 
@@ -463,6 +495,7 @@ orchestrator.log_activity(
 ```
 
 **Parameters**:
+
 - `session_id` (str): Session ID
 - `activity_type` (str): Activity type
 - `description` (str): Activity description
@@ -478,6 +511,7 @@ report = orchestrator.get_progress_report("session_abc123")
 ```
 
 **Parameters**:
+
 - `session_id` (str): Session ID
 
 **Returns**: `Dict[str, Any]` - Progress report dictionary
@@ -491,6 +525,7 @@ weekly_report = orchestrator.generate_weekly_report("session_abc123", week_numbe
 ```
 
 **Parameters**:
+
 - `session_id` (str): Session ID
 - `week_number` (int): Week number
 
@@ -535,6 +570,7 @@ evaluation = evaluation_engine.evaluate_dataset(
 ```
 
 **Parameters**:
+
 - `source` (DatasetSource): Dataset source to evaluate
 - `evaluator` (str): Evaluator identifier (default: "system")
 - `include_compliance` (bool): Include compliance checks (default: True)
@@ -550,6 +586,7 @@ relevance_score, notes = evaluation_engine.assess_therapeutic_relevance(source)
 ```
 
 **Parameters**:
+
 - `source` (DatasetSource): Dataset source to assess
 
 **Returns**: `Tuple[int, str]` - Relevance score (1-10) and notes
@@ -563,6 +600,7 @@ quality_score, notes = evaluation_engine.assess_data_structure_quality(source)
 ```
 
 **Parameters**:
+
 - `source` (DatasetSource): Dataset source to assess
 
 **Returns**: `Tuple[int, str]` - Quality score (1-10) and notes
@@ -576,6 +614,7 @@ integration_score, notes = evaluation_engine.assess_training_integration(source)
 ```
 
 **Parameters**:
+
 - `source` (DatasetSource): Dataset source to assess
 
 **Returns**: `Tuple[int, str]` - Integration score (1-10) and notes
@@ -589,6 +628,7 @@ ethical_score, notes = evaluation_engine.assess_ethical_accessibility(source)
 ```
 
 **Parameters**:
+
 - `source` (DatasetSource): Dataset source to assess
 
 **Returns**: `Tuple[int, str]` - Ethical score (1-10) and notes
@@ -607,6 +647,7 @@ overall_score = evaluation_engine.calculate_overall_score(
 ```
 
 **Parameters**:
+
 - `therapeutic_relevance` (int): Therapeutic relevance score
 - `data_structure_quality` (int): Data structure quality score
 - `training_integration` (int): Training integration score
@@ -623,6 +664,7 @@ priority_tier = evaluation_engine.determine_priority_tier(overall_score=8.0)
 ```
 
 **Parameters**:
+
 - `overall_score` (float): Overall score
 
 **Returns**: `str` - Priority tier (high, medium, low)
@@ -662,9 +704,11 @@ access_method = acquisition_manager.determine_access_method(source)
 ```
 
 **Parameters**:
+
 - `source` (DatasetSource): Dataset source
 
-**Returns**: `str` - Access method (direct, api, request_form, collaboration, registration)
+**Returns**: `str` - Access method (direct, api, request_form, collaboration,
+registration)
 
 ##### submit_access_request
 
@@ -675,6 +719,7 @@ access_request = acquisition_manager.submit_access_request(source)
 ```
 
 **Parameters**:
+
 - `source` (DatasetSource): Dataset source
 
 **Returns**: `AccessRequest` instance
@@ -691,6 +736,7 @@ acquired_dataset = acquisition_manager.download_dataset(
 ```
 
 **Parameters**:
+
 - `source` (DatasetSource): Dataset source
 - `access_request` (AccessRequest): Access request
 
@@ -705,6 +751,7 @@ progress = acquisition_manager.get_download_progress("source_id")
 ```
 
 **Parameters**:
+
 - `source_id` (str): Source ID
 
 **Returns**: `DownloadProgress` instance
@@ -721,6 +768,7 @@ is_valid = acquisition_manager.verify_download_integrity(
 ```
 
 **Parameters**:
+
 - `file_path` (str): File path
 - `expected_checksum` (str): Expected checksum
 
@@ -754,6 +802,7 @@ structure = integration_engine.analyze_dataset_structure(
 ```
 
 **Parameters**:
+
 - `dataset_path` (str): Path to the dataset file
 
 **Returns**: `DatasetStructure` instance
@@ -770,6 +819,7 @@ schema_mapping = integration_engine.create_schema_mapping(
 ```
 
 **Parameters**:
+
 - `dataset_structure` (DatasetStructure): Dataset structure
 - `target_format` (str): Target format (chatml, conversation_record)
 
@@ -787,6 +837,7 @@ integration_plan = integration_engine.create_integration_plan(
 ```
 
 **Parameters**:
+
 - `acquired_dataset` (AcquiredDataset): Acquired dataset
 - `target_format` (str): Target format (chatml, conversation_record)
 
@@ -803,9 +854,11 @@ complexity, effort_hours = integration_engine.estimate_complexity(
 ```
 
 **Parameters**:
+
 - `integration_plan` (IntegrationPlan): Integration plan
 
-**Returns**: `Tuple[str, int]` - Complexity (low, medium, high) and effort in hours
+**Returns**: `Tuple[str, int]` - Complexity (low, medium, high) and effort in
+hours
 
 ##### generate_preprocessing_script
 
@@ -819,6 +872,7 @@ script_path = integration_engine.generate_preprocessing_script(
 ```
 
 **Parameters**:
+
 - `integration_plan` (IntegrationPlan): Integration plan
 - `output_path` (str): Output path for the script
 
@@ -856,6 +910,7 @@ compliance_result = compliance_checker.check_compliance(
 ```
 
 **Parameters**:
+
 - `source` (DatasetSource): Dataset source
 - `dataset_sample` (Optional[str]): Sample dataset content
 - `dataset_path` (Optional[str]): Path to the dataset file
@@ -1217,7 +1272,8 @@ except Exception as e:
 
 ## Thread Safety
 
-The Research Orchestrator is thread-safe and can be used in multi-threaded environments. Session state management uses locks to ensure thread safety.
+The Research Orchestrator is thread-safe and can be used in multi-threaded
+environments. Session state management uses locks to ensure thread safety.
 
 ## Performance Considerations
 
@@ -1228,12 +1284,13 @@ The Research Orchestrator is thread-safe and can be used in multi-threaded envir
 
 ## Best Practices
 
-1. **Session Management**: Always use unique session IDs and save session state regularly
+1. **Session Management**: Always use unique session IDs and save session state
+   regularly
 2. **Error Handling**: Always handle exceptions and implement retry logic
 3. **Configuration**: Use environment variables for sensitive configuration
 4. **Logging**: Enable logging for debugging and monitoring
 5. **Compliance**: Always perform compliance checks before acquiring datasets
 6. **Validation**: Validate all data models before use
 7. **Progress Tracking**: Track progress regularly and generate reports
-8. **Security**: Use encryption for sensitive data and secure credential management
-
+8. **Security**: Use encryption for sensitive data and secure credential
+   management

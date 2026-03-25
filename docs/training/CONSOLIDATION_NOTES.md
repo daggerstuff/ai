@@ -10,8 +10,10 @@ absolute paths to all original files.
 
 1. **Small Files**: Configs, scripts, and small model files have been copied
    where possible
-2. **Large Files**: Large datasets use symlinks or are referenced via manifest entries
-3. **Original Locations**: All original file paths are preserved in `TRAINING_MANIFEST.json`
+2. **Large Files**: Large datasets use symlinks or are referenced via manifest
+   entries
+3. **Original Locations**: All original file paths are preserved in
+   `TRAINING_MANIFEST.json`
 
 ### Using the Manifest
 

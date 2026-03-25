@@ -420,11 +420,8 @@
       "size_estimate_gb": 0.0015
     },
     "stage5_safety_dpo": {
-      "datasets": [
-        "HuggingFace: Human-Like DPO, Character Roleplay DPO"
-      ],
+      "datasets": ["HuggingFace: Human-Like DPO, Character Roleplay DPO"],
       "size_estimate_gb": 0.35
     }
   }
 }
-

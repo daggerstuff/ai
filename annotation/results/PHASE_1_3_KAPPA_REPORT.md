@@ -8,7 +8,11 @@
 
 ## Executive Summary
 
-The enhanced annotation agents (Dr. A and Dr. B) demonstrate **exceptional agreement** on crisis detection (κ = 1.0) and **strong agreement** on emotion classification (κ = 0.78). The crisis detection metric exceeds the target, while emotion classification is slightly below but within acceptable range for subjective psychological constructs.
+The enhanced annotation agents (Dr. A and Dr. B) demonstrate **exceptional
+agreement** on crisis detection (κ = 1.0) and **strong agreement** on emotion
+classification (κ = 0.78). The crisis detection metric exceeds the target, while
+emotion classification is slightly below but within acceptable range for
+subjective psychological constructs.
 
 ---
 
@@ -40,7 +44,8 @@ The enhanced annotation agents (Dr. A and Dr. B) demonstrate **exceptional agree
 
 ### 1. Perfect Crisis Detection Agreement
 
-Both agents achieved **100% agreement** on crisis labels (0-5 scale), indicating:
+Both agents achieved **100% agreement** on crisis labels (0-5 scale),
+indicating:
 
 - ✅ Consistent interpretation of crisis indicators
 - ✅ Reliable safety-critical decision making
@@ -57,11 +62,14 @@ Both agents achieved **100% agreement** on crisis labels (0-5 scale), indicating
 - `real_00033`: Dr.A=Sadness, Dr.B=Anger
 - `real_00034`: Dr.A=Sadness, Dr.B=Fear
 
-**Analysis**: Disagreements cluster around **Sadness vs. Anger/Fear**, which are psychologically related (negative valence, overlapping arousal). This is expected in complex emotional states.
+**Analysis**: Disagreements cluster around **Sadness vs. Anger/Fear**, which are
+psychologically related (negative valence, overlapping arousal). This is
+expected in complex emotional states.
 
 ### 3. Excellent Intensity & Empathy Agreement
 
-- **Emotion Intensity**: 96% agreement within ±1 point (acceptable clinical tolerance)
+- **Emotion Intensity**: 96% agreement within ±1 point (acceptable clinical
+  tolerance)
 - **Empathy Score**: 98% agreement within ±1 point
 
 ---
@@ -74,7 +82,8 @@ Initial Kappa calculation showed κ = 0.13 due to:
 - ❌ Mixing `dr_a_real_augesc.jsonl`, `dr_a_manual_run.jsonl`, etc.
 - ❌ Script aggregating all `dr_a` and `dr_b` files regardless of batch
 
-**Resolution**: Isolated enhanced annotations → κ jumped from 0.13 to 1.0 (crisis) and 0.78 (emotion)
+**Resolution**: Isolated enhanced annotations → κ jumped from 0.13 to 1.0
+(crisis) and 0.78 (emotion)
 
 ---
 
@@ -88,7 +97,8 @@ Initial Kappa calculation showed κ = 0.13 due to:
 
 2. **Accept Emotion Kappa with Caveat**
    - κ = 0.78 is strong for subjective psychological constructs
-   - Literature suggests κ > 0.70 is "substantial agreement" (Landis & Koch, 1977)
+   - Literature suggests κ > 0.70 is "substantial agreement" (Landis &
+     Koch, 1977)
    - 90% accuracy is clinically acceptable
 
 3. **Implement Batch Isolation**
@@ -145,9 +155,11 @@ Initial Kappa calculation showed κ = 0.13 due to:
 
 ## References
 
-- Landis, J. R., & Koch, G. G. (1977). The measurement of observer agreement for categorical data. _Biometrics_, 33(1), 159-174.
+- Landis, J. R., & Koch, G. G. (1977). The measurement of observer agreement for
+  categorical data. _Biometrics_, 33(1), 159-174.
 - NVIDIA AI-Q Blueprint: https://build.nvidia.com/nvidia/aiq
-- NVIDIA Ambient Healthcare Agents: https://build.nvidia.com/nvidia/ambient-healthcare-agents
+- NVIDIA Ambient Healthcare Agents:
+  https://build.nvidia.com/nvidia/ambient-healthcare-agents
 
 ---
 

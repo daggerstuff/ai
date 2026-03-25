@@ -9,17 +9,8 @@
     "work_career": {
       "frequency": 73,
       "percentage": 4.866666666666666,
-      "keywords": [
-        "workplace",
-        "boss",
-        "work",
-        "professional",
-        "job"
-      ],
-      "related_themes": [
-        "coping_strategies",
-        "self_esteem"
-      ],
+      "keywords": ["workplace", "boss", "work", "professional", "job"],
+      "related_themes": ["coping_strategies", "self_esteem"],
       "conversation_examples": [
         "e7e1ef4a-6659-433e-a5bc-75ec7e1d1e0a",
         "a5930175-6c02-4bd3-8079-b667d1686b3c",
@@ -28,9 +19,7 @@
         "9ffcc619-0d99-4009-96b6-f35c9ed5dde6"
       ],
       "quality_score": 0.73,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "life_challenges": {
       "frequency": 36,
@@ -43,10 +32,7 @@
         "challenge",
         "struggle"
       ],
-      "related_themes": [
-        "coping_strategies",
-        "trauma_recovery"
-      ],
+      "related_themes": ["coping_strategies", "trauma_recovery"],
       "conversation_examples": [
         "e7e1ef4a-6659-433e-a5bc-75ec7e1d1e0a",
         "a5930175-6c02-4bd3-8079-b667d1686b3c",
@@ -55,9 +41,7 @@
         "864ab422-58e7-47cd-a12e-9966637daeaa"
       ],
       "quality_score": 0.36,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "communication": {
       "frequency": 35,
@@ -79,22 +63,13 @@
         "81d1546d-fa73-47f6-942e-a48761066691"
       ],
       "quality_score": 0.35,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "support_help": {
       "frequency": 93,
       "percentage": 6.2,
-      "keywords": [
-        "help",
-        "guidance",
-        "support"
-      ],
-      "related_themes": [
-        "cognitive_behavioral",
-        "coping_strategies"
-      ],
+      "keywords": ["help", "guidance", "support"],
+      "related_themes": ["cognitive_behavioral", "coping_strategies"],
       "conversation_examples": [
         "e7e1ef4a-6659-433e-a5bc-75ec7e1d1e0a",
         "a5930175-6c02-4bd3-8079-b667d1686b3c",
@@ -103,24 +78,13 @@
         "60363766-a4fb-408e-ad29-ee6c094d0d6a"
       ],
       "quality_score": 0.93,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "relationships": {
       "frequency": 30,
       "percentage": 2.0,
-      "keywords": [
-        "friend",
-        "love",
-        "partner",
-        "relationship",
-        "family"
-      ],
-      "related_themes": [
-        "communication",
-        "self_esteem"
-      ],
+      "keywords": ["friend", "love", "partner", "relationship", "family"],
+      "related_themes": ["communication", "self_esteem"],
       "conversation_examples": [
         "a5930175-6c02-4bd3-8079-b667d1686b3c",
         "8a5236c6-c497-4feb-886a-3320ce6c4b19",
@@ -129,9 +93,7 @@
         "34c1d085-d448-40bd-bd3d-e7a352303bcf"
       ],
       "quality_score": 0.3,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "mental_health": {
       "frequency": 41,
@@ -158,19 +120,12 @@
         "8a5236c6-c497-4feb-886a-3320ce6c4b19"
       ],
       "quality_score": 0.41,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "health_wellness": {
       "frequency": 30,
       "percentage": 2.0,
-      "keywords": [
-        "exercise",
-        "sleep",
-        "health",
-        "diet"
-      ],
+      "keywords": ["exercise", "sleep", "health", "diet"],
       "related_themes": [],
       "conversation_examples": [
         "c7aec28b-7662-45cd-959b-be72b4abb9cf",
@@ -180,22 +135,13 @@
         "faf30a10-2ebe-4df4-8397-d0ced12e8a7b"
       ],
       "quality_score": 0.3,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "emotions": {
       "frequency": 58,
       "percentage": 3.8666666666666667,
-      "keywords": [
-        "emotion",
-        "sad",
-        "feel"
-      ],
-      "related_themes": [
-        "mindfulness",
-        "coping_strategies"
-      ],
+      "keywords": ["emotion", "sad", "feel"],
+      "related_themes": ["mindfulness", "coping_strategies"],
       "conversation_examples": [
         "c7aec28b-7662-45cd-959b-be72b4abb9cf",
         "48b0dcda-be64-4c51-9aab-39256107abda",
@@ -204,20 +150,12 @@
         "8a5236c6-c497-4feb-886a-3320ce6c4b19"
       ],
       "quality_score": 0.58,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "decision_making": {
       "frequency": 22,
       "percentage": 1.4666666666666666,
-      "keywords": [
-        "option",
-        "consider",
-        "choice",
-        "think",
-        "decision"
-      ],
+      "keywords": ["option", "consider", "choice", "think", "decision"],
       "related_themes": [],
       "conversation_examples": [
         "60363766-a4fb-408e-ad29-ee6c094d0d6a",
@@ -227,17 +165,12 @@
         "864ab422-58e7-47cd-a12e-9966637daeaa"
       ],
       "quality_score": 0.22,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "personal_growth": {
       "frequency": 6,
       "percentage": 0.4,
-      "keywords": [
-        "growth",
-        "goals"
-      ],
+      "keywords": ["growth", "goals"],
       "related_themes": [],
       "conversation_examples": [
         "df39fe0b-9f3f-4480-973b-efd971293c8d",
@@ -247,9 +180,7 @@
         "c7d4a207-6454-4b6a-971d-3b60c6592630"
       ],
       "quality_score": 0.06,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     }
   },
   "theme_analysis": {

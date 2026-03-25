@@ -2,34 +2,46 @@
 
 ## Overview
 
-The Taxonomy Classifier is a keyword-based classification system designed to automatically categorize therapeutic conversations into 6 distinct therapeutic categories. It was developed to re-categorize the 67 'Other' files (132,801 records) from S3 processing into more meaningful therapeutic domains.
+The Taxonomy Classifier is a keyword-based classification system designed to
+automatically categorize therapeutic conversations into 6 distinct therapeutic
+categories. It was developed to re-categorize the 67 'Other' files (132,801
+records) from S3 processing into more meaningful therapeutic domains.
 
 ## Phase 1: Keyword-Based Classification ✅ COMPLETE
 
-Phase 1 implements a production-ready keyword-based classifier that achieves **100% accuracy** on test cases.
+Phase 1 implements a production-ready keyword-based classifier that achieves
+**100% accuracy** on test cases.
 
 ### Therapeutic Categories (6 Total)
 
-1. **therapeutic_conversation** - Standard therapy sessions, general therapeutic discussions
-2. **crisis_support** - Active crisis intervention, suicide prevention, emergency mental health
-3. **mental_health_support** - General mental health guidance, coping strategies, wellness
+1. **therapeutic_conversation** - Standard therapy sessions, general therapeutic
+   discussions
+2. **crisis_support** - Active crisis intervention, suicide prevention,
+   emergency mental health
+3. **mental_health_support** - General mental health guidance, coping
+   strategies, wellness
 4. **trauma_processing** - PTSD, abuse recovery, trauma-focused therapy
-5. **relationship_therapy** - Couples therapy, family therapy, interpersonal issues
-6. **clinical_assessment** - Diagnosis, evaluation, intake sessions, screening tools
+5. **relationship_therapy** - Couples therapy, family therapy, interpersonal
+   issues
+6. **clinical_assessment** - Diagnosis, evaluation, intake sessions, screening
+   tools
 
 ### Classification Approach
 
 The classifier uses a **comprehensive keyword matching system** with:
 
 - **350+ domain-specific keywords** across 6 categories
-- **Multi-phrase pattern matching** (e.g., "thoughts of suicide", "last session")
-- **Confidence scoring** based on keyword density (20% per match, capped at 100%)
+- **Multi-phrase pattern matching** (e.g., "thoughts of suicide", "last
+  session")
+- **Confidence scoring** based on keyword density (20% per match, capped at
+  100%)
 - **Fallback mechanism** to `therapeutic_conversation` when no keywords match
 - **Case-insensitive matching** with word boundary detection
 
 ### Performance Metrics
 
 ✅ **100% accuracy** on diverse test cases including:
+
 - Crisis situations (suicidal ideation)
 - Trauma processing (PTSD, assault)
 - Relationship conflicts
@@ -149,6 +161,7 @@ python scripts/data/test_taxonomy_classifier.py
 ```
 
 Expected output:
+
 ```
 ================================================================================
 🧪 TESTING TAXONOMY CLASSIFIER
@@ -182,6 +195,7 @@ python scripts/data/validate_taxonomy_classifier.py \
 ```
 
 This will:
+
 1. Load records from the 'Other' category
 2. Classify each record
 3. Generate distribution statistics
@@ -197,12 +211,15 @@ Main classifier class for categorizing therapeutic conversations.
 #### Methods
 
 **`classify_record(record: Dict[str, Any]) -> CategoryClassification`**
+
 - Classifies a single conversation record
 - **Parameters:**
   - `record`: Dictionary with 'messages' key containing conversation
-- **Returns:** `CategoryClassification` with category, confidence, reasoning, and keywords
+- **Returns:** `CategoryClassification` with category, confidence, reasoning,
+  and keywords
 
 **`classify_batch(records: List[Dict], show_progress: bool = False) -> List[CategoryClassification]`**
+
 - Classifies multiple records with optional progress bar
 - **Parameters:**
   - `records`: List of conversation records
@@ -238,21 +255,27 @@ Enum of 6 therapeutic categories.
 The classifier includes comprehensive keyword coverage:
 
 ### Crisis Support (~40 keywords)
+
 Examples: suicide, self-harm, crisis, emergency, overdose, cutting
 
 ### Trauma Processing (~90 keywords)
+
 Examples: trauma, PTSD, flashback, assault, abuse, nightmares
 
 ### Relationship Therapy (~60 keywords)
+
 Examples: partner, relationship, couples, marriage, divorce, conflict
 
 ### Clinical Assessment (~80 keywords)
+
 Examples: diagnosis, assessment, screening, evaluation, intake, PHQ-9
 
 ### Mental Health Support (~60 keywords)
+
 Examples: anxiety, depression, stress, coping, mindfulness, meditation
 
 ### Therapeutic Conversation (~20 keywords)
+
 Examples: session, therapy, counseling, therapeutic, progress
 
 **Total: 350+ keywords and multi-word phrases**
@@ -302,7 +325,7 @@ for category in TherapeuticCategory:
         record for record, cls in zip(records, classifications)
         if cls.category == category
     ]
-    
+
     with jsonl.open(f'output/{category.value}.jsonl', 'w') as f:
         f.write_all(category_records)
 ```
@@ -324,6 +347,7 @@ for category in TherapeuticCategory:
 ### Scaling Recommendations
 
 For large-scale processing:
+
 1. Use batch processing with progress tracking
 2. Process in chunks of 10,000-50,000 records
 3. Save intermediate results to avoid re-processing
@@ -334,7 +358,8 @@ For large-scale processing:
 ### Potential Improvements
 
 1. **LLM-Based Classification** - Use NeMo/GPT for ambiguous cases
-2. **Multi-label Classification** - Allow conversations to span multiple categories
+2. **Multi-label Classification** - Allow conversations to span multiple
+   categories
 3. **Confidence Thresholds** - Flag low-confidence classifications for review
 4. **Active Learning** - Learn from manual corrections to improve keywords
 5. **Hierarchical Categories** - Sub-categories within main therapeutic domains
@@ -343,6 +368,7 @@ For large-scale processing:
 ### Phase 2 Planning
 
 Phase 2 will focus on:
+
 - Validating classifier on full dataset (132,801 records)
 - Analyzing category distributions
 - Identifying edge cases requiring LLM classification
@@ -354,27 +380,34 @@ Phase 2 will focus on:
 ### Common Issues
 
 **Issue: Low confidence scores**
+
 - Solution: Review keywords_detected to understand what matched
-- This is expected for subtle conversations - fallback to therapeutic_conversation is safe
+- This is expected for subtle conversations - fallback to
+  therapeutic_conversation is safe
 
 **Issue: Misclassification**
+
 - Solution: Check the full conversation context - keywords may be misleading
 - Consider adding context-specific keywords or exclusion patterns
 
 **Issue: No keywords detected**
+
 - Solution: Defaults to therapeutic_conversation (safe fallback)
 - Review conversation to see if new keywords should be added
 
 ## Files
 
 ### Core Implementation
+
 - `taxonomy_classifier.py` - Main classifier implementation (354 lines)
 
 ### Testing & Validation
+
 - `test_taxonomy_classifier.py` - Unit tests with 6 test cases
 - `validate_taxonomy_classifier.py` - Full dataset validation script
 
 ### Documentation
+
 - `TAXONOMY_CLASSIFIER_README.md` - This file
 - Code includes comprehensive docstrings and inline comments
 
@@ -395,13 +428,13 @@ Part of the Pixelated Empathy AI platform. See main LICENSE file.
 ## Support
 
 For questions or issues:
+
 - Review test cases in `test_taxonomy_classifier.py`
 - Check validation results from `validate_taxonomy_classifier.py`
 - Review keyword mappings in `taxonomy_classifier.py`
 
 ---
 
-**Status:** ✅ Phase 1 Complete - Production Ready
-**Last Updated:** 2026-02-18
-**Accuracy:** 100% on test cases
-**Next Steps:** Run full validation on 132,801 records
+**Status:** ✅ Phase 1 Complete - Production Ready **Last Updated:** 2026-02-18
+**Accuracy:** 100% on test cases **Next Steps:** Run full validation on 132,801
+records

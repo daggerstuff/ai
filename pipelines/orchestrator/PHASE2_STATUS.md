@@ -12,7 +12,8 @@
 ### 2. Clinical Correction and Therapeutic Bias Guarding (PIX-31)
 
 - Integrated `NemoCuratorClient` and `NemoEvaluatorClient` into the pipeline.
-- Added placeholders for crisis narrative detection and therapeutic alignment checks.
+- Added placeholders for crisis narrative detection and therapeutic alignment
+  checks.
 
 ### 3. Orchestrator Ingestion System (PIX-32)
 
@@ -44,8 +45,8 @@
 ## Pilot Results
 
 - Successfully verified the **Semantic Deduplication** script with test data.
-- Initialized **Faster-Whisper (large-v3)** - Note: Requires ~5GB RAM/VRAM.
-  For limited environments, use `base` or `medium`.
+- Initialized **Faster-Whisper (large-v3)** - Note: Requires ~5GB RAM/VRAM. For
+  limited environments, use `base` or `medium`.
 - **YouTube Download Note**: Direct downloads are currently restricted by
   YouTube bot detection in this environment. For production ingestion, use of
   proxies or valid cookies from a browser session may be required.

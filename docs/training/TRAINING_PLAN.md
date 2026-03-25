@@ -3,9 +3,9 @@
 ## Overview
 
 This training plan outlines the complete strategy for training the Pixelated
-Empathy model using the consolidated training assets. The plan follows a
-4-stage architecture with clear objectives, dataset strategies, and success
-metrics for each stage.
+Empathy model using the consolidated training assets. The plan follows a 4-stage
+architecture with clear objectives, dataset strategies, and success metrics for
+each stage.
 
 ## Training Objectives
 
@@ -13,7 +13,8 @@ metrics for each stage.
    rapport-building capabilities
 2. **Expertise**: Develop structured reasoning, clinical knowledge, and
    evidence-based therapeutic techniques
-3. **Edge Cases**: Stress-test with high-intensity crisis scenarios and trauma cases
+3. **Edge Cases**: Stress-test with high-intensity crisis scenarios and trauma
+   cases
 4. **Voice & Persona**: Refine authentic voice, persona consistency, and
    delivery style
 
@@ -54,7 +55,8 @@ low-risk support capabilities.
 
 - Primary sources from `ai/datasets/tier1_priority/`
 - Consolidated foundation datasets from `ai/training_data_consolidated/`
-- Foundation datasets: therapist_sft, SoulChat, counsel_chat, Psych8k, mental_health_counseling
+- Foundation datasets: therapist_sft, SoulChat, counsel_chat, Psych8k,
+  mental_health_counseling
 - Target: ~40% of total training data
 
 **Training Focus**:
@@ -104,8 +106,8 @@ grounding, and evidence-based techniques.
 
 **Datasets** (from manifest):
 
-- CoT reasoning datasets (clinical diagnosis, neurodivergent interactions,
-  men's mental health, etc.)
+- CoT reasoning datasets (clinical diagnosis, neurodivergent interactions, men's
+  mental health, etc.)
 - Professional psychology datasets
 - Reasoning JSON from psychology knowledge base
 
@@ -150,7 +152,8 @@ capabilities, and delivery style.
 **Dataset Strategy**:
 
 - Voice data from `ai/pixel_voice/`
-- Wayfarer-balanced datasets from `ai/orchestrator/targets/pixelated-training/wayfarer-balanced/`
+- Wayfarer-balanced datasets from
+  `ai/orchestrator/targets/pixelated-training/wayfarer-balanced/`
 - Tim Fletcher voice extraction data
 - Dual persona training datasets
 - Target: ~15% of total training data
@@ -183,7 +186,8 @@ capabilities, and delivery style.
 
 - **Platform**: Lightning.ai for distributed training
 - **GPU**: H100 recommended, A100 acceptable
-- **Configuration**: `ai/orchestrator/targets_training_package/config/lightning_deployment_config.json`
+- **Configuration**:
+  `ai/orchestrator/targets_training_package/config/lightning_deployment_config.json`
 - **Benefits**: Managed infrastructure, automatic scaling, experiment tracking
 
 #### Alternative: Kubernetes (GKE)
@@ -277,7 +281,8 @@ capabilities, and delivery style.
 ### Immediate Integration (Phase 1)
 
 1. **MERTools** - Core emotional intelligence foundation
-2. **Cultural Competency Validation** - Already implemented, ensure full integration
+2. **Cultural Competency Validation** - Already implemented, ensure full
+   integration
 3. **Psychology Knowledge Base** - Scientific grounding
 
 ### Short-term Enhancement (Phase 2)
@@ -308,7 +313,8 @@ capabilities, and delivery style.
 
 ### Training Instability Risks
 
-- **Mitigation**: Gradient clipping, learning rate scheduling, checkpoint management
+- **Mitigation**: Gradient clipping, learning rate scheduling, checkpoint
+  management
 - **Monitoring**: Loss curves, validation metrics, early stopping
 
 ### Experimental Feature Risks
@@ -318,7 +324,8 @@ capabilities, and delivery style.
 
 ## Next Steps
 
-1. **Review Training Manifest**: Verify all datasets are correctly mapped to stages
+1. **Review Training Manifest**: Verify all datasets are correctly mapped to
+   stages
 2. **Prepare Infrastructure**: Set up Lightning.ai or Kubernetes environment
 3. **Validate Datasets**: Run quality checks on all stage datasets
 4. **Begin Stage 1 Training**: Start with foundation datasets

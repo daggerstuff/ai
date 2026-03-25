@@ -18,7 +18,8 @@
 
 ### Architecture Components
 
-The Pixelated Empathy AI system consists of several components that need to be deployed:
+The Pixelated Empathy AI system consists of several components that need to be
+deployed:
 
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
@@ -53,12 +54,14 @@ The Pixelated Empathy AI system consists of several components that need to be d
 ### System Requirements
 
 #### Minimum Requirements (Development)
+
 - **CPU**: 4 cores
 - **RAM**: 8 GB
 - **Storage**: 50 GB SSD
 - **Network**: 100 Mbps
 
 #### Recommended Requirements (Production)
+
 - **CPU**: 8+ cores
 - **RAM**: 32+ GB
 - **Storage**: 500+ GB SSD
@@ -118,12 +121,14 @@ LOG_LEVEL=INFO
 ### Quick Start with Docker Compose
 
 1. **Clone Repository**:
+
 ```bash
 git clone https://github.com/pixelatedempathy/api.git
 cd api
 ```
 
 2. **Environment Setup**:
+
 ```bash
 # Copy environment template
 cp .env.example .env
@@ -133,6 +138,7 @@ nano .env
 ```
 
 3. **Start Services**:
+
 ```bash
 # Start all services
 docker-compose up -d
@@ -157,7 +163,7 @@ services:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - '8000:8000'
     environment:
       - DATABASE_URL=postgresql://postgres:password@db:5432/pixelated_empathy
       - REDIS_URL=redis://redis:6379/0
@@ -179,14 +185,14 @@ services:
       - postgres_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
-      - "5432:5432"
+      - '5432:5432'
     restart: unless-stopped
 
   # Redis Cache
   redis:
     image: redis:7-alpine
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     restart: unless-stopped
@@ -211,8 +217,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - ./ssl:/etc/nginx/ssl
@@ -318,7 +324,7 @@ services:
   api:
     image: pixelatedempathy/api:latest
     ports:
-      - "8000:8000"
+      - '8000:8000'
     environment:
       - DATABASE_URL=${DATABASE_URL}
       - REDIS_URL=${REDIS_URL}
@@ -334,10 +340,10 @@ services:
           memory: 512M
     restart: unless-stopped
     logging:
-      driver: "json-file"
+      driver: 'json-file'
       options:
-        max-size: "10m"
-        max-file: "3"
+        max-size: '10m'
+        max-file: '3'
 
   db:
     image: postgres:15
@@ -356,7 +362,9 @@ services:
 
   redis:
     image: redis:7-alpine
-    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+    command:
+      redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy
+      allkeys-lru
     volumes:
       - redis_data:/data
     deploy:
@@ -456,10 +464,10 @@ metadata:
   name: pixelated-empathy-config
   namespace: pixelated-empathy
 data:
-  LOG_LEVEL: "INFO"
-  PROMETHEUS_ENABLED: "true"
-  REDIS_URL: "redis://redis-service:6379/0"
-  DATABASE_URL: "postgresql://postgres:password@postgres-service:5432/pixelated_empathy"
+  LOG_LEVEL: 'INFO'
+  PROMETHEUS_ENABLED: 'true'
+  REDIS_URL: 'redis://redis-service:6379/0'
+  DATABASE_URL: 'postgresql://postgres:password@postgres-service:5432/pixelated_empathy'
 ```
 
 ### Secrets
@@ -498,34 +506,34 @@ spec:
         app: postgres
     spec:
       containers:
-      - name: postgres
-        image: postgres:15
-        env:
-        - name: POSTGRES_DB
-          value: "pixelated_empathy"
-        - name: POSTGRES_USER
-          value: "postgres"
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: pixelated-empathy-secrets
-              key: database-password
-        ports:
-        - containerPort: 5432
-        volumeMounts:
-        - name: postgres-storage
-          mountPath: /var/lib/postgresql/data
-        resources:
-          requests:
-            memory: "1Gi"
-            cpu: "500m"
-          limits:
-            memory: "4Gi"
-            cpu: "2"
+        - name: postgres
+          image: postgres:15
+          env:
+            - name: POSTGRES_DB
+              value: 'pixelated_empathy'
+            - name: POSTGRES_USER
+              value: 'postgres'
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: pixelated-empathy-secrets
+                  key: database-password
+          ports:
+            - containerPort: 5432
+          volumeMounts:
+            - name: postgres-storage
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: '1Gi'
+              cpu: '500m'
+            limits:
+              memory: '4Gi'
+              cpu: '2'
       volumes:
-      - name: postgres-storage
-        persistentVolumeClaim:
-          claimName: postgres-pvc
+        - name: postgres-storage
+          persistentVolumeClaim:
+            claimName: postgres-pvc
 
 ---
 apiVersion: v1
@@ -537,8 +545,8 @@ spec:
   selector:
     app: postgres
   ports:
-  - port: 5432
-    targetPort: 5432
+    - port: 5432
+      targetPort: 5432
   type: ClusterIP
 
 ---
@@ -576,45 +584,45 @@ spec:
         app: pixelated-empathy-api
     spec:
       containers:
-      - name: api
-        image: pixelatedempathy/api:latest
-        ports:
-        - containerPort: 8000
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            configMapKeyRef:
-              name: pixelated-empathy-config
-              key: DATABASE_URL
-        - name: REDIS_URL
-          valueFrom:
-            configMapKeyRef:
-              name: pixelated-empathy-config
-              key: REDIS_URL
-        - name: JWT_SECRET_KEY
-          valueFrom:
-            secretKeyRef:
-              name: pixelated-empathy-secrets
-              key: jwt-secret-key
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: api
+          image: pixelatedempathy/api:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: pixelated-empathy-config
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: pixelated-empathy-config
+                  key: REDIS_URL
+            - name: JWT_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: pixelated-empathy-secrets
+                  key: jwt-secret-key
+          resources:
+            requests:
+              memory: '512Mi'
+              cpu: '250m'
+            limits:
+              memory: '1Gi'
+              cpu: '500m'
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
 
 ---
 apiVersion: v1
@@ -626,8 +634,8 @@ spec:
   selector:
     app: pixelated-empathy-api
   ports:
-  - port: 80
-    targetPort: 8000
+    - port: 80
+      targetPort: 8000
   type: ClusterIP
 ```
 
@@ -641,26 +649,26 @@ metadata:
   name: pixelated-empathy-ingress
   namespace: pixelated-empathy
   annotations:
-    kubernetes.io/ingress.class: "nginx"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/rate-limit: "100"
-    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+    kubernetes.io/ingress.class: 'nginx'
+    cert-manager.io/cluster-issuer: 'letsencrypt-prod'
+    nginx.ingress.kubernetes.io/rate-limit: '100'
+    nginx.ingress.kubernetes.io/rate-limit-window: '1m'
 spec:
   tls:
-  - hosts:
-    - api.pixelatedempathy.com
-    secretName: pixelated-empathy-tls
+    - hosts:
+        - api.pixelatedempathy.com
+      secretName: pixelated-empathy-tls
   rules:
-  - host: api.pixelatedempathy.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: pixelated-empathy-api-service
-            port:
-              number: 80
+    - host: api.pixelatedempathy.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: pixelated-empathy-api-service
+                port:
+                  number: 80
 ```
 
 ### Horizontal Pod Autoscaler
@@ -680,31 +688,31 @@ spec:
   minReplicas: 3
   maxReplicas: 20
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
   behavior:
     scaleUp:
       stabilizationWindowSeconds: 60
       policies:
-      - type: Percent
-        value: 100
-        periodSeconds: 15
+        - type: Percent
+          value: 100
+          periodSeconds: 15
     scaleDown:
       stabilizationWindowSeconds: 300
       policies:
-      - type: Percent
-        value: 10
-        periodSeconds: 60
+        - type: Percent
+          value: 10
+          periodSeconds: 60
 ```
 
 ### Deployment Script
@@ -935,6 +943,8 @@ echo "Daily maintenance completed at $(date)"
 
 ---
 
-**For specific cloud provider configurations and advanced deployment scenarios, see our [Cloud Deployment Guides](cloud_deployments.md) and [Infrastructure as Code](infrastructure_as_code.md) documentation.**
+**For specific cloud provider configurations and advanced deployment scenarios,
+see our [Cloud Deployment Guides](cloud_deployments.md) and
+[Infrastructure as Code](infrastructure_as_code.md) documentation.**
 
-*Deployment guides are updated with each release. Last updated: 2025-08-17*
+_Deployment guides are updated with each release. Last updated: 2025-08-17_

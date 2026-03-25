@@ -1,10 +1,12 @@
 # Mental Health Datasets Expansion - Release 0 Implementation
 
-This directory contains the complete implementation of the Mental Health Datasets Expansion project as defined in the GitHub issues tracking document.
+This directory contains the complete implementation of the Mental Health
+Datasets Expansion project as defined in the GitHub issues tracking document.
 
 ## Overview
 
-The implementation provides an end-to-end S3-first dataset pipeline with strict privacy, compliance, and quality gates for mental health training datasets.
+The implementation provides an end-to-end S3-first dataset pipeline with strict
+privacy, compliance, and quality gates for mental health training datasets.
 
 ## Architecture
 
@@ -24,20 +26,20 @@ The implementation provides an end-to-end S3-first dataset pipeline with strict 
 
 ### Core Implementation Scripts
 
-| Script | Issue | Purpose |
-|--------|-------|---------|
-| `build_coverage_matrix.py` | Issue 2 | Build coverage matrix from S3 inventory |
-| `build_release_manifest.py` | Issue 3 | Generate versioned manifest + compiled ChatML export |
-| `privacy_provenance_gates.py` | Issue 4 | Enforce privacy and provenance gates (fail closed) |
-| `dedup_leakage_gates.py` | Issue 5 | Run dedup and cross-split leakage gates |
-| `distribution_gate.py` | Issue 6 | Record distribution stats by family and split |
-| `human_qa_signoff.py` | Issue 7 | Clinician QA + bias/cultural review signoff |
-| `training_consumption_test.py` | Issue 8 | Smoke test training consumes S3 release artifacts |
+| Script                         | Issue   | Purpose                                              |
+| ------------------------------ | ------- | ---------------------------------------------------- |
+| `build_coverage_matrix.py`     | Issue 2 | Build coverage matrix from S3 inventory              |
+| `build_release_manifest.py`    | Issue 3 | Generate versioned manifest + compiled ChatML export |
+| `privacy_provenance_gates.py`  | Issue 4 | Enforce privacy and provenance gates (fail closed)   |
+| `dedup_leakage_gates.py`       | Issue 5 | Run dedup and cross-split leakage gates              |
+| `distribution_gate.py`         | Issue 6 | Record distribution stats by family and split        |
+| `human_qa_signoff.py`          | Issue 7 | Clinician QA + bias/cultural review signoff          |
+| `training_consumption_test.py` | Issue 8 | Smoke test training consumes S3 release artifacts    |
 
 ### Orchestration
 
-| Script | Purpose |
-|--------|---------|
+| Script                    | Purpose                                              |
+| ------------------------- | ---------------------------------------------------- |
 | `release_orchestrator.py` | Master orchestrator that runs all issues in sequence |
 
 ## Quick Start
@@ -45,6 +47,7 @@ The implementation provides an end-to-end S3-first dataset pipeline with strict 
 ### Prerequisites
 
 1. **S3 Configuration**: Set up OVH S3 credentials
+
    ```bash
    export DATASET_STORAGE_BACKEND=s3
    export OVH_S3_BUCKET=pixel-data
@@ -131,6 +134,7 @@ s3://pixel-data/exports/releases/vYYYY-MM-DD/
 The implementation uses a **fail-closed** gate system:
 
 ### Blocking Gates (Release Blockers)
+
 - **Privacy Gate**: No PII detected in final exports
 - **Provenance Gate**: All files have complete provenance metadata
 - **Deduplication Gate**: No exact duplicates in priority families
@@ -138,6 +142,7 @@ The implementation uses a **fail-closed** gate system:
 - **Human QA Gate**: Clinical review approval required
 
 ### Non-Blocking Gates (Warnings)
+
 - **Distribution Gate**: Statistics within expected ranges
 - **Training Consumption Gate**: End-to-end training compatibility
 
@@ -146,16 +151,20 @@ The implementation uses a **fail-closed** gate system:
 Release 0 supports these dataset families:
 
 ### Stage 1: Foundation
+
 - `professional_therapeutic`: High-quality therapeutic conversations
 - `priority_datasets`: Curated priority therapeutic content
 
-### Stage 2: Therapeutic Expertise  
+### Stage 2: Therapeutic Expertise
+
 - `cot_reasoning`: Clinical reasoning and chain-of-thought patterns
 
 ### Stage 3: Edge/Crisis
+
 - `edge_cases`: Crisis scenarios and edge case handling
 
 ### Stage 4: Voice/Persona
+
 - `voice_persona`: Voice and persona training data
 
 ## Configuration
@@ -173,29 +182,32 @@ config = get_storage_config()
 
 ### Environment Variables
 
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `DATASET_STORAGE_BACKEND` | Storage backend | `s3` |
-| `OVH_S3_BUCKET` | S3 bucket name | `pixel-data` |
-| `OVH_S3_ACCESS_KEY` | S3 access key | `your-access-key` |
-| `OVH_S3_SECRET_KEY` | S3 secret key | `your-secret-key` |
-| `OVH_S3_ENDPOINT` | S3 endpoint URL | `https://s3.region.cloud.ovh.us` |
-| `OVH_S3_REGION` | S3 region | `us-east-1` |
+| Variable                  | Description     | Example                          |
+| ------------------------- | --------------- | -------------------------------- |
+| `DATASET_STORAGE_BACKEND` | Storage backend | `s3`                             |
+| `OVH_S3_BUCKET`           | S3 bucket name  | `pixel-data`                     |
+| `OVH_S3_ACCESS_KEY`       | S3 access key   | `your-access-key`                |
+| `OVH_S3_SECRET_KEY`       | S3 secret key   | `your-secret-key`                |
+| `OVH_S3_ENDPOINT`         | S3 endpoint URL | `https://s3.region.cloud.ovh.us` |
+| `OVH_S3_REGION`           | S3 region       | `us-east-1`                      |
 
 ## Privacy & Compliance
 
 ### PII Detection
+
 - Automated PII scanning with pattern matching
 - Email, phone, SSN, credit card detection
 - Name pattern recognition
 - Fail-closed on high-confidence PII detection
 
 ### Provenance Tracking
+
 - Complete source tracking for all files
 - Registry integration for metadata validation
 - Audit trail for all transformations
 
 ### HIPAA Compliance
+
 - End-to-end encryption for sensitive operations
 - Audit logging for all data access
 - Minimal data collection principles
@@ -204,16 +216,19 @@ config = get_storage_config()
 ## Quality Gates
 
 ### Deduplication
+
 - Exact duplicate detection via content hashing
 - Near-duplicate detection via text similarity
 - Cross-family deduplication analysis
 
 ### Cross-Split Leakage
+
 - Prevents data leakage between train/val/test splits
 - Special enforcement for holdout-sensitive families
 - Similarity-based leakage detection
 
 ### Distribution Analysis
+
 - Token/turn/length statistics by family and split
 - Expected range validation
 - Regression detection for dataset changes
@@ -221,32 +236,39 @@ config = get_storage_config()
 ## Human QA Process
 
 ### Review Types
+
 1. **Foundation Review**: Core therapeutic datasets
-2. **Edge Review**: Crisis and edge case datasets  
+2. **Edge Review**: Crisis and edge case datasets
 3. **Bias/Cultural Review**: Cultural competency and bias detection
 
 ### Review Criteria
+
 - Therapeutic accuracy and clinical appropriateness
 - Crisis handling and safety prioritization
 - Cultural sensitivity and bias avoidance
 - Empathy, boundaries, and accessibility awareness
 
 ### Mock Implementation
-The current implementation includes mock QA signoff for demonstration. In production, this would integrate with actual human reviewers.
+
+The current implementation includes mock QA signoff for demonstration. In
+production, this would integrate with actual human reviewers.
 
 ## Training Integration
 
 ### S3-First Architecture
+
 - All training scripts read directly from S3
 - No local file dependencies required
 - Streaming data loading for large datasets
 
 ### Curriculum Configuration
+
 - Multi-stage training curriculum (Foundation → Expertise → Edge → Voice)
 - Configurable weights and epoch recommendations
 - Family-to-stage mapping
 
 ### Smoke Testing
+
 - End-to-end training pipeline validation
 - S3 connectivity and access testing
 - Environment prerequisite validation
@@ -254,11 +276,13 @@ The current implementation includes mock QA signoff for demonstration. In produc
 ## Error Handling
 
 ### Fail-Closed Security
+
 - All gates fail closed on errors
 - Release blocked if any critical gate fails
 - Comprehensive error logging and reporting
 
 ### Graceful Degradation
+
 - Non-blocking gates produce warnings but don't block release
 - Partial failures are clearly documented
 - Recovery guidance provided for common issues
@@ -266,16 +290,19 @@ The current implementation includes mock QA signoff for demonstration. In produc
 ## Monitoring & Observability
 
 ### Gate Reports
+
 - Detailed JSON reports for each gate
 - Combined gate summaries
 - Historical tracking capability
 
 ### Release Summaries
+
 - Complete orchestration logs
 - Success/failure tracking
 - Performance metrics
 
 ### Audit Trails
+
 - All operations logged with timestamps
 - Provenance tracking for data lineage
 - Compliance reporting
@@ -283,19 +310,23 @@ The current implementation includes mock QA signoff for demonstration. In produc
 ## Development
 
 ### Adding New Gates
+
 1. Create new script in `scripts/` directory
 2. Follow existing gate pattern (load manifest, analyze, report)
 3. Add to orchestrator execution sequence
 4. Update documentation
 
 ### Extending Dataset Families
+
 1. Update `ai/data/dataset_registry.json`
 2. Add family to Release 0 requirements in coverage matrix
 3. Update routing configuration
 4. Add family-specific validation rules
 
 ### Testing
-Each script includes comprehensive error handling and can be run independently for testing and development.
+
+Each script includes comprehensive error handling and can be run independently
+for testing and development.
 
 ## Troubleshooting
 
@@ -317,6 +348,7 @@ Each script includes comprehensive error handling and can be run independently f
    - Verify dataset registry entries
 
 ### Debug Mode
+
 Run individual scripts with verbose output to diagnose issues:
 
 ```bash
@@ -326,6 +358,7 @@ python scripts/build_coverage_matrix.py 2>&1 | tee debug.log
 ## Future Enhancements
 
 ### Planned Improvements
+
 1. **Real ChatML Compilation**: Replace placeholder with actual ChatML export
 2. **Advanced PII Detection**: Integration with NLP-based PII detection
 3. **Real-time QA Integration**: Web interface for human reviewers
@@ -333,6 +366,7 @@ python scripts/build_coverage_matrix.py 2>&1 | tee debug.log
 5. **Performance Optimization**: Parallel processing for large datasets
 
 ### Integration Opportunities
+
 1. **Training Pipeline Integration**: Direct integration with training scripts
 2. **Monitoring Dashboard**: Real-time release status monitoring
 3. **Automated Scheduling**: Scheduled release generation
@@ -343,9 +377,11 @@ python scripts/build_coverage_matrix.py 2>&1 | tee debug.log
 ## Support
 
 For issues or questions:
+
 1. Check the troubleshooting section above
 2. Review gate reports for specific error details
 3. Examine the release summary for overall status
 4. Check S3 connectivity and permissions
 
-This implementation provides a robust, compliant, and scalable foundation for mental health dataset management with strict privacy and quality controls.
+This implementation provides a robust, compliant, and scalable foundation for
+mental health dataset management with strict privacy and quality controls.

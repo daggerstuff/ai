@@ -1,6 +1,7 @@
 # Dataset Pipeline Operator Runbook
 
-Complete guide for operating the dataset pipeline, generating exports, and executing training runs.
+Complete guide for operating the dataset pipeline, generating exports, and
+executing training runs.
 
 ## Table of Contents
 
@@ -32,6 +33,7 @@ uv run python ai/pipelines/orchestrator/verify_pipeline.py
 ```
 
 Expected output:
+
 - ✅ All imports successful
 - ✅ Data sources accessible (some may be optional)
 - ✅ Pipeline execution successful
@@ -40,11 +42,12 @@ Expected output:
 
 ### Local Storage (Default)
 
-No configuration needed. By default, dataset pipeline runtime artifacts are stored under
-`tmp/dataset_pipeline/` (outside the package tree).
+No configuration needed. By default, dataset pipeline runtime artifacts are
+stored under `tmp/dataset_pipeline/` (outside the package tree).
 
 - **Data**: `tmp/dataset_pipeline/data/`
-- Override with `DATASET_PIPELINE_OUTPUT_DIR` (see `ai/pipelines/orchestrator/storage.env.template`)
+- Override with `DATASET_PIPELINE_OUTPUT_DIR` (see
+  `ai/pipelines/orchestrator/storage.env.template`)
 
 ### S3 Storage
 
@@ -122,6 +125,7 @@ production_exports/v1.0.0/
 ### Manifest Contents
 
 The manifest includes:
+
 - File checksums (SHA256)
 - File sizes and row counts
 - Source distribution
@@ -158,7 +162,9 @@ uv run python -m ai.pipelines.orchestrator.qa_report_generator \
 ### QA Report Contents
 
 The QA report includes:
-- **Quality Metrics**: Semantic coherence, therapeutic appropriateness, bias scores
+
+- **Quality Metrics**: Semantic coherence, therapeutic appropriateness, bias
+  scores
 - **Safety Metrics**: Crisis flags (detected, resolved, unresolved)
 - **Privacy Metrics**: PII detection (detected, resolved, unresolved)
 - **Threshold Validation**: Pass/fail against quality thresholds
@@ -194,6 +200,7 @@ cat production_exports/v1.0.0/qa_report_v1.0.0.json | jq '.failures'
 
 1. **Lightning.ai Account**: Set up H100 access
 2. **Environment Variables**:
+
    ```bash
    export LIGHTNING_PROJECT_ID=your-project-id
    export WANDB_API_KEY=your-wandb-key
@@ -205,6 +212,7 @@ cat production_exports/v1.0.0/qa_report_v1.0.0.json | jq '.failures'
 ### Training Configuration
 
 Training configuration is managed in:
+
 - `ai/lightning/moe_training_config.json` - Model and training config
 - `ai/lightning/train_optimized.py` - Training script
 
@@ -221,6 +229,7 @@ uv run python train_optimized.py \
 ### Training Outputs
 
 After training:
+
 - Model checkpoints in `ai/lightning/checkpoints/v1.0.0/`
 - Training logs
 - W&B experiment tracking
@@ -251,6 +260,7 @@ print(f"Uploaded to: {upload_info['storage_url']}")
 **Problem**: `ModuleNotFoundError` for transformers or other packages
 
 **Solution**:
+
 ```bash
 uv pip install "transformers>=4.35.0"
 uv pip install -r ai/config/requirements_training.txt
@@ -258,10 +268,15 @@ uv pip install -r ai/config/requirements_training.txt
 
 ### Psychology Knowledge Loader Errors
 
-**Problem**: `'str' object has no attribute 'get'` errors when loading psychology knowledge
+**Problem**: `'str' object has no attribute 'get'` errors when loading
+psychology knowledge
 
-**Solution**: These are non-fatal warnings. The pipeline will continue with available data sources. To fix:
-1. Check `ai/models/pixel_core/knowledge/psychology_knowledge_base_optimized.json` format
+**Solution**: These are non-fatal warnings. The pipeline will continue with
+available data sources. To fix:
+
+1. Check
+   `ai/models/pixel_core/knowledge/psychology_knowledge_base_optimized.json`
+   format
 2. Ensure it's a list of objects, not strings
 
 ### Storage Upload Failures
@@ -269,6 +284,7 @@ uv pip install -r ai/config/requirements_training.txt
 **Problem**: S3/GCS upload fails
 
 **Solution**:
+
 1. Verify credentials: `aws s3 ls` or `gsutil ls`
 2. Check bucket permissions
 3. Verify environment variables are set correctly
@@ -279,6 +295,7 @@ uv pip install -r ai/config/requirements_training.txt
 **Problem**: QA report shows failures
 
 **Solution**:
+
 1. Review failures in QA report
 2. Check if thresholds are too strict
 3. Re-run pipeline with quality validation enabled
@@ -289,6 +306,7 @@ uv pip install -r ai/config/requirements_training.txt
 **Problem**: Training fails on H100
 
 **Solution**:
+
 1. Check Lightning.ai quota and access
 2. Verify dataset format is correct
 3. Check training config parameters
@@ -328,8 +346,8 @@ python -c "from ai.pipelines.orchestrator.export_manifest import DatasetManifest
 ## Support
 
 For issues or questions:
+
 1. Check this runbook
 2. Review error logs
 3. Check `ai/pipelines/orchestrator/IMPLEMENTATION_SUMMARY.md` for architecture details
 4. Review `.kiro/specs/foundation-model-training/` for requirements
-

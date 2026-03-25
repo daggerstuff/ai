@@ -51,10 +51,7 @@
     "quality_indicators": {}
   },
   "relationships": {
-    "related_metrics": [
-      "clinical_compliance",
-      "overall_quality"
-    ],
+    "related_metrics": ["clinical_compliance", "overall_quality"],
     "calculation_dependencies": [
       "technique_identification",
       "appropriateness_assessment",

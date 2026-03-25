@@ -1,17 +1,20 @@
 # Google Drive Dataset Migration Guide
 
-**Purpose**: Step-by-step guide for reorganizing Google Drive datasets into canonical structure  
+**Purpose**: Step-by-step guide for reorganizing Google Drive datasets into
+canonical structure  
 **Status**: Planning document - execute when ready
 
 ## Prerequisites
 
 1. **rclone configured** with Google Drive access:
+
    ```bash
    rclone listremotes
    # Should show: gdrive:
    ```
 
 2. **Backup created** (recommended):
+
    ```bash
    # Create backup before reorganization
    rclone copy gdrive:datasets gdrive:datasets_backup_$(date +%Y%m%d) --progress
@@ -168,11 +171,13 @@ Update all paths in `ai/data/dataset_registry.json` to use canonical structure:
 
 ### 2. Update Training Scripts
 
-Update any scripts that reference old paths to use new canonical paths or the `get_dataset_path()` helper function.
+Update any scripts that reference old paths to use new canonical paths or the
+`get_dataset_path()` helper function.
 
 ### 3. Update Sync Scripts
 
-The sync scripts (`gdrive-download.sh`, `sync-datasets.sh`) have been updated to support both canonical and legacy structures with automatic fallback.
+The sync scripts (`gdrive-download.sh`, `sync-datasets.sh`) have been updated to
+support both canonical and legacy structures with automatic fallback.
 
 ### 4. Test Access
 

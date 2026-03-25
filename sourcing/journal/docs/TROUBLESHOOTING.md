@@ -16,6 +16,7 @@
 ### Issue: Configuration Not Loading
 
 **Symptoms**:
+
 - Configuration file not found errors
 - Default configuration values not being used
 - Environment variable overrides not working
@@ -23,28 +24,33 @@
 **Solutions**:
 
 1. **Check configuration file path**:
+
 ```bash
 # Default path: ~/.journal_research/config.yaml
 ls -la ~/.journal_research/config.yaml
 ```
 
 2. **Create configuration file if missing**:
+
 ```bash
 mkdir -p ~/.journal_research
 touch ~/.journal_research/config.yaml
 ```
 
 3. **Check file permissions**:
+
 ```bash
 chmod 644 ~/.journal_research/config.yaml
 ```
 
 4. **Validate YAML syntax**:
+
 ```bash
 python -c "import yaml; yaml.safe_load(open('~/.journal_research/config.yaml'))"
 ```
 
 5. **Use environment variables**:
+
 ```bash
 export JOURNAL_RESEARCH_PUBMED_API_KEY="your-api-key"
 export JOURNAL_RESEARCH_STORAGE_PATH="/path/to/datasets"
@@ -53,6 +59,7 @@ export JOURNAL_RESEARCH_STORAGE_PATH="/path/to/datasets"
 ### Issue: Session Not Found
 
 **Symptoms**:
+
 - "Session not found" errors
 - Cannot resume interrupted workflows
 - Session state not persisting
@@ -60,27 +67,32 @@ export JOURNAL_RESEARCH_STORAGE_PATH="/path/to/datasets"
 **Solutions**:
 
 1. **Check session storage path**:
+
 ```bash
 # Default path: checkpoints/
 ls -la checkpoints/
 ```
 
 2. **Verify session ID**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli status
 ```
 
 3. **Check session file exists**:
+
 ```bash
 ls -la checkpoints/session_*.json
 ```
 
 4. **Verify file permissions**:
+
 ```bash
 chmod 644 checkpoints/session_*.json
 ```
 
 5. **Recreate session if needed**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli search \
     --session-id "new_session_id" \
@@ -91,6 +103,7 @@ python -m ai.sourcing.journal.cli.cli search \
 ### Issue: Discovery Service Not Initialized
 
 **Symptoms**:
+
 - "No discovery service configured" warnings
 - No sources found during discovery
 - Discovery phase skipped
@@ -98,26 +111,31 @@ python -m ai.sourcing.journal.cli.cli search \
 **Solutions**:
 
 1. **Check discovery service configuration**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config get "discovery.pubmed.api_key"
 ```
 
 2. **Set API keys if required**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "discovery.pubmed.api_key" "your-api-key"
 ```
 
 3. **Verify API endpoints**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config get "discovery.pubmed.base_url"
 ```
 
 4. **Check network connectivity**:
+
 ```bash
 curl -I https://eutils.ncbi.nlm.nih.gov/entrez/eutils
 ```
 
 5. **Use environment variables**:
+
 ```bash
 export JOURNAL_RESEARCH_PUBMED_API_KEY="your-api-key"
 ```
@@ -125,6 +143,7 @@ export JOURNAL_RESEARCH_PUBMED_API_KEY="your-api-key"
 ### Issue: Evaluation Engine Not Working
 
 **Symptoms**:
+
 - Evaluation scores are all zeros
 - Evaluation phase skipped
 - "No evaluation engine configured" warnings
@@ -132,21 +151,25 @@ export JOURNAL_RESEARCH_PUBMED_API_KEY="your-api-key"
 **Solutions**:
 
 1. **Check evaluation engine configuration**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config get "evaluation.therapeutic_relevance_weight"
 ```
 
 2. **Verify evaluation weights**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config show | grep evaluation
 ```
 
 3. **Check compliance module availability**:
+
 ```bash
 python -c "from ai.sourcing.journal.compliance.compliance_checker import ComplianceChecker; print('OK')"
 ```
 
 4. **Enable verbose logging**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli evaluate \
     --session-id "my_session" \
@@ -156,6 +179,7 @@ python -m ai.sourcing.journal.cli.cli evaluate \
 ### Issue: Acquisition Manager Failing
 
 **Symptoms**:
+
 - Download failures
 - "No acquisition manager configured" warnings
 - Access request failures
@@ -163,27 +187,32 @@ python -m ai.sourcing.journal.cli.cli evaluate \
 **Solutions**:
 
 1. **Check acquisition configuration**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config get "acquisition.storage_base_path"
 ```
 
 2. **Verify storage path exists**:
+
 ```bash
 mkdir -p data/acquired_datasets
 chmod 755 data/acquired_datasets
 ```
 
 3. **Check download timeout**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config get "acquisition.download_timeout"
 ```
 
 4. **Verify network connectivity**:
+
 ```bash
 curl -I https://example.com/dataset
 ```
 
 5. **Check file permissions**:
+
 ```bash
 ls -la data/acquired_datasets/
 ```
@@ -191,6 +220,7 @@ ls -la data/acquired_datasets/
 ### Issue: Integration Planning Engine Not Working
 
 **Symptoms**:
+
 - Integration plans not generated
 - "No integration engine configured" warnings
 - Preprocessing scripts not generated
@@ -198,21 +228,25 @@ ls -la data/acquired_datasets/
 **Solutions**:
 
 1. **Check integration configuration**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config get "integration.target_format"
 ```
 
 2. **Verify target format**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "integration.target_format" "chatml"
 ```
 
 3. **Check dataset format support**:
+
 ```bash
 # Supported formats: csv, json, xml, parquet
 ```
 
 4. **Verify dataset structure**:
+
 ```bash
 python -c "import json; print(json.load(open('data/acquired_datasets/source_id/dataset.json'))[:1])"
 ```
@@ -220,6 +254,7 @@ python -c "import json; print(json.load(open('data/acquired_datasets/source_id/d
 ### Issue: Compliance Checks Failing
 
 **Symptoms**:
+
 - Compliance checks returning errors
 - "Compliance module not available" warnings
 - License checks failing
@@ -227,21 +262,25 @@ python -c "import json; print(json.load(open('data/acquired_datasets/source_id/d
 **Solutions**:
 
 1. **Check compliance module availability**:
+
 ```bash
 python -c "from ai.sourcing.journal.compliance.compliance_checker import ComplianceChecker; print('OK')"
 ```
 
 2. **Verify license text format**:
+
 ```bash
 # License text should be in plain text format
 ```
 
 3. **Check privacy verifier configuration**:
+
 ```bash
 python -c "from ai.sourcing.journal.compliance.privacy_verifier import PrivacyVerifier; print('OK')"
 ```
 
 4. **Verify HIPAA validator configuration**:
+
 ```bash
 python -c "from ai.sourcing.journal.compliance.hipaa_validator import HIPAAValidator; print('OK')"
 ```
@@ -249,6 +288,7 @@ python -c "from ai.sourcing.journal.compliance.hipaa_validator import HIPAAValid
 ### Issue: Progress Tracking Not Working
 
 **Symptoms**:
+
 - Progress metrics not updating
 - Progress reports not generated
 - Progress history not saving
@@ -256,21 +296,25 @@ python -c "from ai.sourcing.journal.compliance.hipaa_validator import HIPAAValid
 **Solutions**:
 
 1. **Check progress history limit**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config get "orchestrator.progress_history_limit"
 ```
 
 2. **Verify session state**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli status --session-id "my_session"
 ```
 
 3. **Check progress storage**:
+
 ```bash
 ls -la checkpoints/session_*.json
 ```
 
 4. **Enable progress logging**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli search \
     --session-id "my_session" \
@@ -284,6 +328,7 @@ python -m ai.sourcing.journal.cli.cli search \
 **Cause**: Session validation failed
 
 **Solution**:
+
 ```bash
 # Check session validation errors
 python -c "from ai.sourcing.journal.models.dataset_models import ResearchSession; session = ResearchSession(session_id='test'); errors = session.validate(); print(errors)"
@@ -294,6 +339,7 @@ python -c "from ai.sourcing.journal.models.dataset_models import ResearchSession
 **Cause**: Session file not found or session ID incorrect
 
 **Solution**:
+
 ```bash
 # List all sessions
 python -m ai.sourcing.journal.cli.cli status
@@ -307,6 +353,7 @@ ls -la checkpoints/session_*.json
 **Cause**: Configuration file missing or path incorrect
 
 **Solution**:
+
 ```bash
 # Create configuration file
 mkdir -p ~/.journal_research
@@ -321,6 +368,7 @@ export JOURNAL_RESEARCH_PUBMED_API_KEY="your-api-key"
 **Cause**: API key not configured
 
 **Solution**:
+
 ```bash
 # Set API key in configuration
 python -m ai.sourcing.journal.cli.cli config set "discovery.pubmed.api_key" "your-api-key"
@@ -334,6 +382,7 @@ export JOURNAL_RESEARCH_PUBMED_API_KEY="your-api-key"
 **Cause**: Network error or file not available
 
 **Solution**:
+
 ```bash
 # Check network connectivity
 curl -I https://example.com/dataset
@@ -350,6 +399,7 @@ python -m ai.sourcing.journal.cli.cli config set "acquisition.download_timeout" 
 **Cause**: Data validation error
 
 **Solution**:
+
 ```bash
 # Check validation errors
 python -c "from ai.sourcing.journal.models.dataset_models import DatasetSource; source = DatasetSource(...); errors = source.validate(); print(errors)"
@@ -360,6 +410,7 @@ python -c "from ai.sourcing.journal.models.dataset_models import DatasetSource; 
 **Cause**: Compliance check error
 
 **Solution**:
+
 ```bash
 # Check compliance module availability
 python -c "from ai.sourcing.journal.compliance.compliance_checker import ComplianceChecker; print('OK')"
@@ -592,11 +643,13 @@ python -m ai.sourcing.journal.cli.cli config set "discovery.pubmed.api_timeout" 
 **Solutions**:
 
 1. **Reduce search limit**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "discovery.pubmed.search_limit" "50"
 ```
 
 2. **Use specific keywords**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli search \
     --keywords "therapy" "counseling" \
@@ -604,6 +657,7 @@ python -m ai.sourcing.journal.cli.cli search \
 ```
 
 3. **Filter by open access**:
+
 ```bash
 # Filter by open access in discovery service
 ```
@@ -615,17 +669,20 @@ python -m ai.sourcing.journal.cli.cli search \
 **Solutions**:
 
 1. **Enable parallel processing**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "orchestrator.parallel_evaluation" "true"
 python -m ai.sourcing.journal.cli.cli config set "orchestrator.max_workers" "8"
 ```
 
 2. **Skip compliance checks if not needed**:
+
 ```bash
 # Set include_compliance=False in evaluation
 ```
 
 3. **Reduce evaluation history**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "orchestrator.progress_history_limit" "50"
 ```
@@ -637,16 +694,19 @@ python -m ai.sourcing.journal.cli.cli config set "orchestrator.progress_history_
 **Solutions**:
 
 1. **Increase chunk size**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "acquisition.chunk_size" "16384"
 ```
 
 2. **Enable resume downloads**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "acquisition.resume_downloads" "true"
 ```
 
 3. **Increase timeout**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "acquisition.download_timeout" "7200"
 ```
@@ -658,16 +718,19 @@ python -m ai.sourcing.journal.cli.cli config set "acquisition.download_timeout" 
 **Solutions**:
 
 1. **Reduce parallel workers**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "orchestrator.max_workers" "2"
 ```
 
 2. **Process in batches**:
+
 ```bash
 # Process datasets in smaller batches
 ```
 
 3. **Clear progress history**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "orchestrator.progress_history_limit" "10"
 ```
@@ -681,16 +744,19 @@ python -m ai.sourcing.journal.cli.cli config set "orchestrator.progress_history_
 **Solutions**:
 
 1. **Check file permissions**:
+
 ```bash
 chmod 644 ~/.journal_research/config.yaml
 ```
 
 2. **Verify configuration path**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config show
 ```
 
 3. **Check YAML syntax**:
+
 ```bash
 python -c "import yaml; yaml.safe_load(open('~/.journal_research/config.yaml'))"
 ```
@@ -702,17 +768,20 @@ python -c "import yaml; yaml.safe_load(open('~/.journal_research/config.yaml'))"
 **Solutions**:
 
 1. **Verify environment variable names**:
+
 ```bash
 echo $JOURNAL_RESEARCH_PUBMED_API_KEY
 ```
 
 2. **Check environment variable format**:
+
 ```bash
 # Format: JOURNAL_RESEARCH_<CONFIG_PATH>
 export JOURNAL_RESEARCH_PUBMED_API_KEY="your-api-key"
 ```
 
 3. **Reload configuration**:
+
 ```bash
 # Restart the application to reload environment variables
 ```
@@ -726,16 +795,19 @@ export JOURNAL_RESEARCH_PUBMED_API_KEY="your-api-key"
 **Solutions**:
 
 1. **Increase timeout**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "discovery.pubmed.api_timeout" "60"
 ```
 
 2. **Check network connectivity**:
+
 ```bash
 curl -I https://eutils.ncbi.nlm.nih.gov/entrez/eutils
 ```
 
 3. **Use retry logic**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "orchestrator.max_retries" "5"
 ```
@@ -747,16 +819,19 @@ python -m ai.sourcing.journal.cli.cli config set "orchestrator.max_retries" "5"
 **Solutions**:
 
 1. **Increase rate limit delay**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "acquisition.rate_limit_delay" "2.0"
 ```
 
 2. **Reduce concurrent requests**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "orchestrator.max_workers" "2"
 ```
 
 3. **Use API keys**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli config set "discovery.pubmed.api_key" "your-api-key"
 ```
@@ -770,16 +845,19 @@ python -m ai.sourcing.journal.cli.cli config set "discovery.pubmed.api_key" "you
 **Solutions**:
 
 1. **Check data format**:
+
 ```bash
 file data/acquired_datasets/source_id/dataset.json
 ```
 
 2. **Validate JSON syntax**:
+
 ```bash
 python -c "import json; json.load(open('data/acquired_datasets/source_id/dataset.json'))"
 ```
 
 3. **Check data model validation**:
+
 ```python
 from ai.sourcing.journal.models.dataset_models import DatasetSource
 
@@ -796,12 +874,14 @@ if errors:
 **Solutions**:
 
 1. **Check required fields**:
+
 ```bash
 # Check data model requirements
 python -c "from ai.sourcing.journal.models.dataset_models import DatasetSource; import inspect; print(inspect.signature(DatasetSource.__init__))"
 ```
 
 2. **Validate data before processing**:
+
 ```python
 source = DatasetSource(...)
 errors = source.validate()
@@ -816,12 +896,14 @@ if errors:
 **Solutions**:
 
 1. **Verify checksums**:
+
 ```bash
 # Check file checksum
 python -c "import hashlib; print(hashlib.md5(open('data/acquired_datasets/source_id/dataset.json', 'rb').read()).hexdigest())"
 ```
 
 2. **Re-download if needed**:
+
 ```bash
 python -m ai.sourcing.journal.cli.cli acquire \
     --session-id "my_session" \
@@ -829,6 +911,7 @@ python -m ai.sourcing.journal.cli.cli acquire \
 ```
 
 3. **Check file permissions**:
+
 ```bash
 ls -la data/acquired_datasets/source_id/dataset.json
 ```
@@ -865,7 +948,9 @@ python -m ai.sourcing.journal.cli.cli search \
 
 ## Conclusion
 
-This troubleshooting guide provides solutions for common issues, error messages, and performance problems. If you encounter issues not covered in this guide, please refer to the documentation or contact support.
+This troubleshooting guide provides solutions for common issues, error messages,
+and performance problems. If you encounter issues not covered in this guide,
+please refer to the documentation or contact support.
 
-For more information, see the architecture documentation, API reference, and user guide.
-
+For more information, see the architecture documentation, API reference, and
+user guide.

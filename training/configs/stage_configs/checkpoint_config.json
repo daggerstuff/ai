@@ -1,0 +1,44 @@
+{
+  "checkpoint_config": {
+    "save_steps": 506,
+    "save_total_limit": 5,
+    "output_dir": "./checkpoints",
+    "resume_from_checkpoint": true,
+    "auto_find_batch_size": false
+  },
+  "backup_strategy": {
+    "local_backup": true,
+    "cloud_backup": false,
+    "backup_frequency": "every_checkpoint",
+    "backup_location": "./backups"
+  },
+  "recovery_points": [
+    {
+      "step": 1013,
+      "description": "10% complete"
+    },
+    {
+      "step": 2532,
+      "description": "25% complete"
+    },
+    {
+      "step": 5065,
+      "description": "50% complete"
+    },
+    {
+      "step": 7597,
+      "description": "75% complete"
+    },
+    {
+      "step": 9117,
+      "description": "90% complete"
+    }
+  ],
+  "monitoring": {
+    "track_loss": true,
+    "track_learning_rate": true,
+    "track_memory_usage": true,
+    "alert_on_divergence": true,
+    "loss_spike_threshold": 2.0
+  }
+}

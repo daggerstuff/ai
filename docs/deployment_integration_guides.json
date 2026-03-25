@@ -37,9 +37,7 @@
           "step": 3,
           "title": "Initialize Database",
           "description": "Set up the conversation database",
-          "commands": [
-            "python database/conversation_database.py"
-          ]
+          "commands": ["python database/conversation_database.py"]
         },
         {
           "step": 4,
@@ -53,9 +51,7 @@
           "step": 5,
           "title": "Verify Installation",
           "description": "Run tests to verify everything works",
-          "commands": [
-            "python -m pytest tests/ -v"
-          ]
+          "commands": ["python -m pytest tests/ -v"]
         }
       ],
       "verification": [
@@ -301,10 +297,7 @@
             "Advanced features",
             "Excellent performance"
           ],
-          "cons": [
-            "Requires server setup",
-            "More complex configuration"
-          ]
+          "cons": ["Requires server setup", "More complex configuration"]
         }
       },
       "migration_guide": {
@@ -418,10 +411,7 @@
       "common_deployment_issues": [
         {
           "issue": "Service fails to start",
-          "symptoms": [
-            "Service startup errors",
-            "Port binding failures"
-          ],
+          "symptoms": ["Service startup errors", "Port binding failures"],
           "solutions": [
             "Check configuration files",
             "Verify port availability",
@@ -431,10 +421,7 @@
         },
         {
           "issue": "Database connection failures",
-          "symptoms": [
-            "Connection timeout",
-            "Authentication errors"
-          ],
+          "symptoms": ["Connection timeout", "Authentication errors"],
           "solutions": [
             "Verify database server is running",
             "Check connection string",
@@ -444,10 +431,7 @@
         },
         {
           "issue": "High memory usage",
-          "symptoms": [
-            "Out of memory errors",
-            "System slowdown"
-          ],
+          "symptoms": ["Out of memory errors", "System slowdown"],
           "solutions": [
             "Reduce batch sizes",
             "Enable memory monitoring",

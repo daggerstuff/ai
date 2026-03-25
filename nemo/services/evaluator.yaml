@@ -20,8 +20,8 @@ services:
     healthcheck:
       test:
         [
-          "CMD-SHELL",
-          "wget --no-verbose --tries=1 --spider http://localhost:7331/health",
+          'CMD-SHELL',
+          'wget --no-verbose --tries=1 --spider http://localhost:7331/health',
         ]
       interval: 10s
       timeout: 3s
@@ -36,7 +36,7 @@ services:
       NEMO_MICROSERVICES_DATASTORE_URL: http://datastore:3000/v1/hf # /results endpoint
       ENTITY_STORE_URL: http://entity-store:8000
       EVALUATOR_IMAGE: ${NEMO_MICROSERVICES_IMAGE_REGISTRY}/evaluator:${NEMO_MICROSERVICES_IMAGE_TAG}
-    entrypoint: ["python", "-m", "evaluator.server"]
+    entrypoint: ['python', '-m', 'evaluator.server']
 
   evaluator-internal:
     image: ${NEMO_MICROSERVICES_IMAGE_REGISTRY}/evaluator:${NEMO_MICROSERVICES_IMAGE_TAG}
@@ -53,8 +53,8 @@ services:
     healthcheck:
       test:
         [
-          "CMD-SHELL",
-          "wget --no-verbose --tries=1 --spider http://localhost:7332/health",
+          'CMD-SHELL',
+          'wget --no-verbose --tries=1 --spider http://localhost:7332/health',
         ]
       interval: 10s
       timeout: 3s
@@ -64,17 +64,17 @@ services:
       MODE: standalone
       POSTGRES_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/evaluator
       EVALUATOR_PORT_INTERNAL: 7332
-    entrypoint: ["python", "-m", "evaluator.internal_server"]
+    entrypoint: ['python', '-m', 'evaluator.internal_server']
 
   evaluator-postgres-db-migration:
     image: ${NEMO_MICROSERVICES_IMAGE_REGISTRY}/evaluator:${NEMO_MICROSERVICES_IMAGE_TAG}
     profiles: [evaluator, platform]
     environment:
       MODE: standalone
-      POSTGRES_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/evaluator"
+      POSTGRES_URI: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/evaluator'
       DATA_STORE_URL: none
     entrypoint: /bin/sh
-    command: ["-c", "/app/scripts/run-db-migration.sh"]
+    command: ['-c', '/app/scripts/run-db-migration.sh']
     depends_on:
       postgres:
         condition: service_healthy

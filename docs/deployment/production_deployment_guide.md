@@ -1,16 +1,18 @@
 # Enterprise Production Deployment Guide
+
 ## Phase 4.1: Operational Readiness & DevOps Excellence
 
 **Version**: 1.0.0  
 **Date**: August 2025  
 **Owner**: DevOps Engineering Team  
-**Review Cycle**: Monthly  
+**Review Cycle**: Monthly
 
 ---
 
 ## 🎯 **DEPLOYMENT OVERVIEW**
 
 ### **Deployment Strategy**
+
 - **Model**: Blue-Green Deployment with Zero Downtime
 - **Rollout**: Canary releases (5% → 25% → 50% → 100% traffic)
 - **Rollback**: Automated rollback with health checks
@@ -18,6 +20,7 @@
 - **CI/CD**: Automated pipeline with quality gates
 
 ### **Environment Architecture**
+
 ```
 Production Environment Stack:
 ┌─────────────────────────────────────────────────────────────┐
@@ -42,6 +45,7 @@ Production Environment Stack:
 ## 🏗️ **INFRASTRUCTURE AS CODE**
 
 ### **Terraform Configuration Structure**
+
 ```
 infrastructure/
 ├── environments/
@@ -66,6 +70,7 @@ infrastructure/
 ### **Core Infrastructure Components**
 
 #### **1. Networking Module**
+
 - **VPC**: Multi-AZ deployment with private/public subnets
 - **Security Groups**: Least privilege access controls
 - **NACLs**: Network-level security policies
@@ -73,24 +78,28 @@ infrastructure/
 - **NAT Gateway**: Outbound internet access for private subnets
 
 #### **2. Compute Module**
+
 - **ECS Fargate**: Serverless container platform
 - **Auto Scaling**: CPU/memory/request-based scaling (2-20 instances)
 - **Service Discovery**: AWS Cloud Map for service communication
 - **Task Definitions**: Container specifications with resource limits
 
 #### **3. Database Module**
+
 - **RDS PostgreSQL**: Multi-AZ with automated backups
 - **Read Replicas**: Cross-region disaster recovery
 - **ElastiCache Redis**: High-performance caching layer
 - **DynamoDB**: NoSQL for session and configuration data
 
 #### **4. Security Module**
+
 - **KMS**: Encryption key management
 - **Secrets Manager**: Secure credential storage
 - **IAM Roles**: Least privilege access policies
 - **WAF**: Web Application Firewall with OWASP rules
 
 #### **5. Monitoring Module**
+
 - **CloudWatch**: AWS native monitoring and logging
 - **Datadog**: Application performance monitoring
 - **PagerDuty**: Incident management and alerting
@@ -101,6 +110,7 @@ infrastructure/
 ## 🚀 **DEPLOYMENT PROCEDURES**
 
 ### **Pre-Deployment Checklist**
+
 - [ ] Infrastructure provisioned and validated
 - [ ] Database migrations tested and ready
 - [ ] SSL certificates installed and validated
@@ -115,28 +125,31 @@ infrastructure/
 ### **Blue-Green Deployment Process**
 
 #### **Phase 1: Blue Environment Preparation**
+
 1. **Infrastructure Provisioning**
+
    ```bash
    # Navigate to production environment
    cd infrastructure/environments/production
-   
+
    # Initialize Terraform
    terraform init
-   
+
    # Plan deployment
    terraform plan -var-file="terraform.tfvars"
-   
+
    # Apply infrastructure changes
    terraform apply -auto-approve
    ```
 
 2. **Application Deployment**
+
    ```bash
    # Build and push Docker images
    docker build -t pixelated-empathy:latest .
    docker tag pixelated-empathy:latest $ECR_REPO:$BUILD_NUMBER
    docker push $ECR_REPO:$BUILD_NUMBER
-   
+
    # Update ECS service with new image
    aws ecs update-service \
      --cluster production-cluster \
@@ -145,41 +158,46 @@ infrastructure/
    ```
 
 3. **Database Migration**
+
    ```bash
    # Run database migrations
    python manage.py migrate --settings=production
-   
+
    # Verify migration success
    python manage.py showmigrations --settings=production
    ```
 
 #### **Phase 2: Health Checks and Validation**
+
 1. **Application Health Checks**
+
    ```bash
    # Check application health
    curl -f https://blue.pixelatedempathy.com/health
-   
+
    # Verify API endpoints
    curl -f https://blue.pixelatedempathy.com/api/v1/status
-   
+
    # Test authentication
    curl -f https://blue.pixelatedempathy.com/api/v1/auth/verify
    ```
 
 2. **Database Connectivity**
+
    ```bash
    # Test database connections
    python manage.py dbshell --settings=production
-   
+
    # Verify read/write operations
    python manage.py check --database=default --settings=production
    ```
 
 3. **Security Validation**
+
    ```bash
    # SSL certificate validation
    openssl s_client -connect blue.pixelatedempathy.com:443
-   
+
    # Security headers check
    curl -I https://blue.pixelatedempathy.com
    ```
@@ -187,12 +205,13 @@ infrastructure/
 #### **Phase 3: Traffic Switching (Canary Release)**
 
 1. **5% Traffic Switch**
+
    ```bash
    # Update load balancer target groups
    aws elbv2 modify-target-group \
      --target-group-arn $BLUE_TARGET_GROUP_ARN \
      --health-check-path /health
-   
+
    # Route 5% traffic to blue environment
    aws elbv2 modify-listener \
      --listener-arn $LISTENER_ARN \
@@ -211,6 +230,7 @@ infrastructure/
    - Memory utilization < 80%
 
 3. **25% Traffic Switch**
+
    ```bash
    # Increase traffic to 25% if metrics are healthy
    aws elbv2 modify-listener \
@@ -224,6 +244,7 @@ infrastructure/
    ```
 
 4. **50% Traffic Switch**
+
    ```bash
    # Continue gradual rollout to 50%
    aws elbv2 modify-listener \
@@ -245,8 +266,10 @@ infrastructure/
    ```
 
 #### **Phase 4: Green Environment Decommission**
+
 1. **Verify Blue Environment Stability (30 minutes)**
 2. **Scale Down Green Environment**
+
    ```bash
    # Scale down green environment
    aws ecs update-service \
@@ -268,6 +291,7 @@ infrastructure/
 ## 🔄 **AUTOMATED ROLLBACK PROCEDURES**
 
 ### **Rollback Triggers**
+
 - Error rate > 1% for 5 consecutive minutes
 - Response time > 500ms (95th percentile) for 5 minutes
 - CPU utilization > 90% for 10 minutes
@@ -275,6 +299,7 @@ infrastructure/
 - Health check failures > 50% for 3 minutes
 
 ### **Automated Rollback Process**
+
 ```bash
 #!/bin/bash
 # automated-rollback.sh
@@ -317,6 +342,7 @@ echo "ROLLBACK COMPLETED"
 ```
 
 ### **Manual Rollback Process**
+
 1. **Immediate Actions (< 2 minutes)**
    - Switch 100% traffic back to green environment
    - Verify green environment health
@@ -337,6 +363,7 @@ echo "ROLLBACK COMPLETED"
 ## 🔧 **CI/CD PIPELINE INTEGRATION**
 
 ### **Pipeline Stages**
+
 1. **Source**: Git commit triggers pipeline
 2. **Build**: Docker image build and security scan
 3. **Test**: Unit tests, integration tests, security tests
@@ -347,6 +374,7 @@ echo "ROLLBACK COMPLETED"
 8. **Cleanup**: Remove old images and resources
 
 ### **Quality Gates**
+
 - **Code Coverage**: > 80%
 - **Security Scan**: No critical vulnerabilities
 - **Performance Test**: Response time < 200ms
@@ -354,6 +382,7 @@ echo "ROLLBACK COMPLETED"
 - **Compliance Check**: HIPAA/SOC2/GDPR validation
 
 ### **Pipeline Configuration (GitHub Actions)**
+
 ```yaml
 name: Production Deployment Pipeline
 
@@ -374,7 +403,7 @@ jobs:
         run: trivy image pixelated-empathy:${{ github.sha }}
       - name: Run Tests
         run: docker run pixelated-empathy:${{ github.sha }} pytest
-      
+
   deploy-staging:
     needs: build-and-test
     runs-on: ubuntu-latest
@@ -384,7 +413,7 @@ jobs:
         run: ./scripts/deploy-staging.sh
       - name: Run E2E Tests
         run: ./scripts/e2e-tests.sh staging
-        
+
   deploy-production:
     needs: deploy-staging
     runs-on: ubuntu-latest
@@ -401,12 +430,14 @@ jobs:
 ## 📊 **MONITORING AND VALIDATION**
 
 ### **Deployment Metrics**
+
 - **Deployment Success Rate**: > 99%
 - **Deployment Time**: < 30 minutes
 - **Rollback Time**: < 5 minutes
 - **Zero Downtime**: 100% uptime during deployment
 
 ### **Health Check Endpoints**
+
 - `/health`: Basic application health
 - `/health/detailed`: Detailed component health
 - `/health/database`: Database connectivity
@@ -414,6 +445,7 @@ jobs:
 - `/health/external`: External service dependencies
 
 ### **Post-Deployment Validation**
+
 1. **Functional Tests**
    - API endpoint validation
    - Authentication flow testing
@@ -439,6 +471,7 @@ jobs:
 ## 🚨 **EMERGENCY PROCEDURES**
 
 ### **Emergency Rollback**
+
 ```bash
 # One-command emergency rollback
 ./scripts/emergency-rollback.sh
@@ -449,12 +482,14 @@ aws elbv2 modify-listener --listener-arn $LISTENER_ARN \
 ```
 
 ### **Emergency Contacts**
+
 - **DevOps Lead**: +1-555-DEVOPS (24/7)
 - **Platform Engineer**: +1-555-PLATFORM (24/7)
 - **Security Team**: +1-555-SECURITY (24/7)
 - **Clinical Director**: +1-555-CLINICAL (24/7)
 
 ### **Communication Plan**
+
 1. **Internal Notification**: Slack #incidents channel
 2. **Stakeholder Update**: Email to leadership team
 3. **Customer Communication**: Status page update
@@ -465,6 +500,7 @@ aws elbv2 modify-listener --listener-arn $LISTENER_ARN \
 ## 📝 **DEPLOYMENT CHECKLIST**
 
 ### **Pre-Deployment**
+
 - [ ] Code review completed and approved
 - [ ] All tests passing (unit, integration, e2e)
 - [ ] Security scan completed with no critical issues
@@ -477,6 +513,7 @@ aws elbv2 modify-listener --listener-arn $LISTENER_ARN \
 - [ ] Monitoring alerts configured
 
 ### **During Deployment**
+
 - [ ] Blue environment provisioned successfully
 - [ ] Application deployed and healthy
 - [ ] Database migrations completed
@@ -489,6 +526,7 @@ aws elbv2 modify-listener --listener-arn $LISTENER_ARN \
 - [ ] DNS records updated
 
 ### **Post-Deployment**
+
 - [ ] Full functionality testing completed
 - [ ] Performance metrics validated
 - [ ] Security posture verified

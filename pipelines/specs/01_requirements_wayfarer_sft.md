@@ -44,8 +44,10 @@
 
 ## Constraints
 
-- **Security/Privacy:** All data handling must comply with HIPAA++ and zero-knowledge architecture.
-- **Performance:** Pipeline must support large datasets and maintain <50ms processing per sample.
+- **Security/Privacy:** All data handling must comply with HIPAA++ and
+  zero-knowledge architecture.
+- **Performance:** Pipeline must support large datasets and maintain <50ms
+  processing per sample.
 - **Modularity:** Each step must be independently testable and replaceable.
 - **No hard-coded secrets/configs:** All sensitive info must be passed securely.
 - **Auditability:** All compliance checks and transformations must be logged.
@@ -62,7 +64,8 @@
 
 - **Scalability:** Support for distributed processing if needed.
 - **Extensibility:** Easy integration of new compliance checks or data formats.
-- **Traceability:** Full audit trail for all transformations and compliance checks.
+- **Traceability:** Full audit trail for all transformations and compliance
+  checks.
 
 ## Stakeholders
 

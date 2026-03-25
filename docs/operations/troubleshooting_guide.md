@@ -1,10 +1,11 @@
 # Enterprise Troubleshooting & Incident Response Guide
+
 ## Phase 4.3: Operational Readiness & DevOps Excellence
 
 **Version**: 1.0.0  
 **Date**: August 2025  
 **Owner**: Operations Team  
-**Review Cycle**: Monthly  
+**Review Cycle**: Monthly
 
 ---
 
@@ -12,22 +13,22 @@
 
 ### **Incident Classification Matrix**
 
-| Priority | Impact | Response Time | Escalation | Examples |
-|----------|--------|---------------|------------|----------|
-| **P0 - Critical** | System down, data loss, security breach | 15 minutes | Immediate | Complete outage, data breach, safety system failure |
-| **P1 - High** | Major feature broken, significant user impact | 1 hour | 30 minutes | API errors >5%, authentication failure, payment issues |
-| **P2 - Medium** | Minor feature issues, limited user impact | 4 hours | 2 hours | Slow response times, UI glitches, non-critical errors |
-| **P3 - Low** | Cosmetic issues, enhancement requests | 24 hours | Next business day | Documentation updates, minor UI improvements |
+| Priority          | Impact                                        | Response Time | Escalation        | Examples                                               |
+| ----------------- | --------------------------------------------- | ------------- | ----------------- | ------------------------------------------------------ |
+| **P0 - Critical** | System down, data loss, security breach       | 15 minutes    | Immediate         | Complete outage, data breach, safety system failure    |
+| **P1 - High**     | Major feature broken, significant user impact | 1 hour        | 30 minutes        | API errors >5%, authentication failure, payment issues |
+| **P2 - Medium**   | Minor feature issues, limited user impact     | 4 hours       | 2 hours           | Slow response times, UI glitches, non-critical errors  |
+| **P3 - Low**      | Cosmetic issues, enhancement requests         | 24 hours      | Next business day | Documentation updates, minor UI improvements           |
 
 ### **Response Team Roles**
 
-| Role | Responsibilities | Contact |
-|------|------------------|---------|
-| **Incident Commander** | Overall incident coordination, communication | +1-555-IC-LEAD |
-| **Technical Lead** | Technical investigation and resolution | +1-555-TECH-LEAD |
-| **Communications Lead** | Stakeholder updates, status page | +1-555-COMM-LEAD |
-| **Security Lead** | Security-related incidents | +1-555-SEC-LEAD |
-| **Clinical Lead** | Safety-related incidents | +1-555-CLINICAL |
+| Role                    | Responsibilities                             | Contact          |
+| ----------------------- | -------------------------------------------- | ---------------- |
+| **Incident Commander**  | Overall incident coordination, communication | +1-555-IC-LEAD   |
+| **Technical Lead**      | Technical investigation and resolution       | +1-555-TECH-LEAD |
+| **Communications Lead** | Stakeholder updates, status page             | +1-555-COMM-LEAD |
+| **Security Lead**       | Security-related incidents                   | +1-555-SEC-LEAD  |
+| **Clinical Lead**       | Safety-related incidents                     | +1-555-CLINICAL  |
 
 ---
 
@@ -81,32 +82,36 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
 ### **1. High Response Times (>500ms)**
 
 #### **Symptoms**
+
 - API response times consistently above 500ms
 - User complaints about slow performance
 - CloudWatch alarms triggered
 
 #### **Diagnostic Steps**
+
 1. **Check Database Performance**
+
    ```bash
    # Check active connections
    psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c "
-   SELECT count(*) as active_connections 
-   FROM pg_stat_activity 
+   SELECT count(*) as active_connections
+   FROM pg_stat_activity
    WHERE state = 'active';"
-   
+
    # Check slow queries
    psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c "
-   SELECT query, mean_time, calls 
-   FROM pg_stat_statements 
-   ORDER BY mean_time DESC 
+   SELECT query, mean_time, calls
+   FROM pg_stat_statements
+   ORDER BY mean_time DESC
    LIMIT 10;"
    ```
 
 2. **Check Redis Performance**
+
    ```bash
    # Redis info
    redis-cli -h $REDIS_HOST info stats
-   
+
    # Check memory usage
    redis-cli -h $REDIS_HOST info memory
    ```
@@ -125,6 +130,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    ```
 
 #### **Resolution Steps**
+
 1. **Database Optimization**
    - Identify and optimize slow queries
    - Check for missing indexes
@@ -142,6 +148,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    - Optimize application code
 
 #### **Prevention**
+
 - Set up proactive monitoring for response times
 - Regular database maintenance and optimization
 - Implement circuit breakers for external services
@@ -151,12 +158,15 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
 ### **2. High Error Rates (>1%)**
 
 #### **Symptoms**
+
 - Increased 4xx/5xx HTTP status codes
 - Error rate alerts triggered
 - User reports of failed requests
 
 #### **Diagnostic Steps**
+
 1. **Analyze Error Patterns**
+
    ```bash
    # Get error breakdown by status code
    aws logs insights start-query \
@@ -171,13 +181,14 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    ```
 
 2. **Check External Dependencies**
+
    ```bash
    # Test database connectivity
    pg_isready -h $DB_HOST -p 5432
-   
+
    # Test Redis connectivity
    redis-cli -h $REDIS_HOST ping
-   
+
    # Test external APIs
    curl -f https://external-api.example.com/health
    ```
@@ -191,6 +202,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    ```
 
 #### **Resolution Steps**
+
 1. **Application Errors (5xx)**
    - Check application logs for stack traces
    - Verify configuration and environment variables
@@ -208,6 +220,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    - Use cached responses when possible
 
 #### **Prevention**
+
 - Comprehensive error monitoring and alerting
 - Regular dependency health checks
 - Graceful degradation strategies
@@ -217,12 +230,15 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
 ### **3. Database Connection Issues**
 
 #### **Symptoms**
+
 - "Connection refused" errors
 - "Too many connections" errors
 - Database timeouts
 
 #### **Diagnostic Steps**
+
 1. **Check Connection Pool**
+
    ```bash
    # Check active connections
    psql -h $DB_HOST -U $DB_USER -d $DB_NAME -c "
@@ -233,15 +249,17 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    ```
 
 2. **Check Database Status**
+
    ```bash
    # RDS instance status
    aws rds describe-db-instances --db-instance-identifier production-db
-   
+
    # Check for maintenance windows
    aws rds describe-pending-maintenance-actions
    ```
 
 #### **Resolution Steps**
+
 1. **Connection Pool Tuning**
    - Adjust connection pool size in application
    - Implement connection pooling (PgBouncer)
@@ -253,6 +271,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    - Consider connection pooling solutions
 
 #### **Prevention**
+
 - Monitor connection pool metrics
 - Set up alerts for connection thresholds
 - Regular connection pool optimization
@@ -262,12 +281,15 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
 ### **4. Memory Issues**
 
 #### **Symptoms**
+
 - Out of Memory (OOM) kills
 - High memory utilization alerts
 - Application crashes
 
 #### **Diagnostic Steps**
+
 1. **Check Memory Usage**
+
    ```bash
    # ECS task memory utilization
    aws cloudwatch get-metric-statistics \
@@ -288,6 +310,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    ```
 
 #### **Resolution Steps**
+
 1. **Immediate Actions**
    - Restart affected services
    - Scale up memory allocation
@@ -299,6 +322,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    - Implement proper garbage collection tuning
 
 #### **Prevention**
+
 - Regular memory profiling
 - Set up memory usage alerts
 - Implement memory limits and monitoring
@@ -308,31 +332,36 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
 ### **5. SSL/TLS Certificate Issues**
 
 #### **Symptoms**
+
 - SSL certificate warnings
 - HTTPS connection failures
 - Certificate expiration alerts
 
 #### **Diagnostic Steps**
+
 1. **Check Certificate Status**
+
    ```bash
    # Check certificate expiration
    openssl s_client -connect api.pixelatedempathy.com:443 -servername api.pixelatedempathy.com 2>/dev/null | \
      openssl x509 -noout -dates
-   
+
    # Check certificate chain
    openssl s_client -connect api.pixelatedempathy.com:443 -showcerts
    ```
 
 2. **Check ACM Certificate**
+
    ```bash
    # List ACM certificates
    aws acm list-certificates --region us-east-1
-   
+
    # Describe specific certificate
    aws acm describe-certificate --certificate-arn $CERT_ARN
    ```
 
 #### **Resolution Steps**
+
 1. **Certificate Renewal**
    - Renew certificate through ACM or certificate provider
    - Update load balancer configuration
@@ -344,6 +373,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    - Verify HTTPS functionality
 
 #### **Prevention**
+
 - Set up certificate expiration monitoring
 - Automate certificate renewal process
 - Regular certificate audits
@@ -354,13 +384,13 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
 
 ### **Escalation Matrix**
 
-| Time Elapsed | P0 Critical | P1 High | P2 Medium | P3 Low |
-|--------------|-------------|---------|-----------|--------|
-| **0 minutes** | Incident Commander | Technical Lead | Technical Lead | Assigned Engineer |
-| **15 minutes** | Technical Lead + Security Lead | Incident Commander | Technical Lead | Team Lead |
-| **30 minutes** | Engineering Manager | Engineering Manager | Incident Commander | Engineering Manager |
-| **1 hour** | VP Engineering | VP Engineering | Engineering Manager | VP Engineering |
-| **2 hours** | CTO | CTO | VP Engineering | CTO |
+| Time Elapsed   | P0 Critical                    | P1 High             | P2 Medium           | P3 Low              |
+| -------------- | ------------------------------ | ------------------- | ------------------- | ------------------- |
+| **0 minutes**  | Incident Commander             | Technical Lead      | Technical Lead      | Assigned Engineer   |
+| **15 minutes** | Technical Lead + Security Lead | Incident Commander  | Technical Lead      | Team Lead           |
+| **30 minutes** | Engineering Manager            | Engineering Manager | Incident Commander  | Engineering Manager |
+| **1 hour**     | VP Engineering                 | VP Engineering      | Engineering Manager | VP Engineering      |
+| **2 hours**    | CTO                            | CTO                 | VP Engineering      | CTO                 |
 
 ### **Communication Channels**
 
@@ -386,6 +416,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
 ### **P0 Critical Incident Playbook**
 
 #### **Immediate Actions (0-15 minutes)**
+
 1. **Acknowledge and Assess**
    - Confirm incident severity
    - Assign Incident Commander
@@ -402,6 +433,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    - Identify affected components
 
 #### **Investigation Phase (15-60 minutes)**
+
 1. **Root Cause Analysis**
    - Analyze logs and metrics
    - Check external dependencies
@@ -418,6 +450,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
    - Prepare customer communication
 
 #### **Resolution Phase (60+ minutes)**
+
 1. **Implement Fix**
    - Deploy resolution
    - Verify system recovery
@@ -431,6 +464,7 @@ aws logs filter-log-events --log-group-name /ecs/pixelated-empathy-api \
 ### **Security Incident Playbook**
 
 #### **Immediate Actions**
+
 1. **Containment**
    - Isolate affected systems
    - Preserve evidence
@@ -510,17 +544,17 @@ python manage.py show_jobs --settings=production
 
 ### **Key Metrics to Monitor**
 
-| Metric | Threshold | Alert Level | Action |
-|--------|-----------|-------------|--------|
-| Response Time (P95) | >500ms | Warning | Investigate performance |
-| Response Time (P95) | >1000ms | Critical | Immediate action |
-| Error Rate | >1% | Warning | Check error patterns |
-| Error Rate | >5% | Critical | Incident response |
-| CPU Utilization | >80% | Warning | Consider scaling |
-| Memory Utilization | >90% | Critical | Scale immediately |
-| Database Connections | >80% of max | Warning | Monitor closely |
-| Disk Usage | >85% | Warning | Plan cleanup |
-| SSL Certificate | <30 days | Warning | Renew certificate |
+| Metric               | Threshold   | Alert Level | Action                  |
+| -------------------- | ----------- | ----------- | ----------------------- |
+| Response Time (P95)  | >500ms      | Warning     | Investigate performance |
+| Response Time (P95)  | >1000ms     | Critical    | Immediate action        |
+| Error Rate           | >1%         | Warning     | Check error patterns    |
+| Error Rate           | >5%         | Critical    | Incident response       |
+| CPU Utilization      | >80%        | Warning     | Consider scaling        |
+| Memory Utilization   | >90%        | Critical    | Scale immediately       |
+| Database Connections | >80% of max | Warning     | Monitor closely         |
+| Disk Usage           | >85%        | Warning     | Plan cleanup            |
+| SSL Certificate      | <30 days    | Warning     | Renew certificate       |
 
 ### **Alert Channels**
 
@@ -535,13 +569,13 @@ python manage.py show_jobs --settings=production
 
 ### **Common Error Messages**
 
-| Error Message | Cause | Solution |
-|---------------|-------|----------|
-| "Connection refused" | Service down or network issue | Check service status, network connectivity |
-| "Timeout" | Slow response or overloaded system | Check performance metrics, scale if needed |
-| "Authentication failed" | Invalid credentials or token expired | Verify credentials, check token expiration |
-| "Rate limit exceeded" | Too many requests | Implement backoff, check rate limiting rules |
-| "Internal server error" | Application bug or configuration issue | Check logs, verify configuration |
+| Error Message           | Cause                                  | Solution                                     |
+| ----------------------- | -------------------------------------- | -------------------------------------------- |
+| "Connection refused"    | Service down or network issue          | Check service status, network connectivity   |
+| "Timeout"               | Slow response or overloaded system     | Check performance metrics, scale if needed   |
+| "Authentication failed" | Invalid credentials or token expired   | Verify credentials, check token expiration   |
+| "Rate limit exceeded"   | Too many requests                      | Implement backoff, check rate limiting rules |
+| "Internal server error" | Application bug or configuration issue | Check logs, verify configuration             |
 
 ### **Useful Resources**
 

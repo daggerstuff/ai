@@ -6,7 +6,9 @@
 
 ## 🎯 Overview
 
-The Therapy Dataset Sourcing module is designed to find and filter therapy/counseling conversation datasets from various sources (primarily HuggingFace Hub) with specific criteria:
+The Therapy Dataset Sourcing module is designed to find and filter
+therapy/counseling conversation datasets from various sources (primarily
+HuggingFace Hub) with specific criteria:
 
 ✅ **Multi-turn conversations** (20+ turns preferred)  
 ✅ **Therapy/mental health focus**  
@@ -450,10 +452,12 @@ uv run python ai/sourcing/academic/demo_therapy_sourcing.py
 
 - [Academic Sourcing README](./README.md) - Main module documentation
 - [Enhancement Summary](./ENHANCEMENT_SUMMARY.md) - Recent feature additions
-- [HuggingFace Datasets](https://huggingface.co/datasets) - Browse available datasets
+- [HuggingFace Datasets](https://huggingface.co/datasets) - Browse available
+  datasets
 
 ---
 
 **Happy dataset hunting!** 🎯
 
-For questions or issues, check the demo script or module source code for examples.
+For questions or issues, check the demo script or module source code for
+examples.

@@ -1,0 +1,2812 @@
+{
+  "all_files": [
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-10-19T12:58:45.425979",
+      "path": "/home/vivi/pixelated/ai/lightning/processed_data/merged_dataset_original.jsonl",
+      "relative_path": "processed_data/merged_dataset_original.jsonl",
+      "size_bytes": 3863573525
+    },
+    {
+      "category": "consolidated",
+      "extension": ".jsonl",
+      "modified": "2025-10-28T13:44:25.567446",
+      "path": "/home/vivi/pixelated/ai/training_ready/data/ULTIMATE_FINAL_DATASET.jsonl",
+      "relative_path": "ULTIMATE_FINAL_DATASET.jsonl",
+      "size_bytes": 2677798451
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-10-19T13:51:34.084736",
+      "path": "/home/vivi/pixelated/ai/lightning/processed_data/merged_dataset.jsonl",
+      "relative_path": "processed_data/merged_dataset.jsonl",
+      "size_bytes": 2597706555
+    },
+    {
+      "category": "consolidated",
+      "extension": ".jsonl",
+      "modified": "2025-12-02T14:09:27.218351",
+      "path": "/home/vivi/pixelated/ai/training_ready/configs/stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
+      "relative_path": "stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
+      "size_bytes": 2593275904
+    },
+    {
+      "category": "consolidated",
+      "extension": ".jsonl",
+      "modified": "2025-12-30T15:36:00.152622",
+      "path": "/home/vivi/pixelated/ai/training_ready/data/ULTIMATE_FINAL_DATASET_cleaned.jsonl",
+      "relative_path": "ULTIMATE_FINAL_DATASET_cleaned.jsonl",
+      "size_bytes": 1922398939
+    },
+    {
+      "category": "social_media",
+      "extension": ".csv",
+      "modified": "2025-10-14T06:40:38",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/reddit_depression_dataset.csv",
+      "relative_path": "ghost/datasets/reddit_depression_dataset.csv",
+      "size_bytes": 1165277530
+    },
+    {
+      "category": "social_media",
+      "extension": ".csv",
+      "modified": "2025-10-14T06:40:38",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/reddit_depression_dataset.csv",
+      "relative_path": "datasets/reddit_depression_dataset.csv",
+      "size_bytes": 1165277530
+    },
+    {
+      "category": "psychological_data",
+      "extension": ".jsonl",
+      "modified": "2025-12-25T14:18:20.911255",
+      "path": "/home/vivi/pixelated/ai/datasets/tier6_knowledge/Psych-101/train.jsonl",
+      "relative_path": "tier6_knowledge/Psych-101/train.jsonl",
+      "size_bytes": 858942975
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:10:07.579114",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/training_dataset.json",
+      "relative_path": "pixelated-training/training_dataset.json",
+      "size_bytes": 828477242
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:39:40",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+      "relative_path": "ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+      "size_bytes": 484546094
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-10-14T07:30:58",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+      "relative_path": "ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+      "size_bytes": 484546094
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:39:40",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+      "relative_path": "datasets/priority_1/priority_1_FINAL.jsonl",
+      "size_bytes": 484546094
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-10-14T07:30:58",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+      "relative_path": "Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+      "size_bytes": 484546094
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:07:28",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+      "relative_path": "ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+      "size_bytes": 388349831
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:07:28",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+      "relative_path": "ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+      "size_bytes": 388349831
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:07:28",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+      "relative_path": "datasets/priority_3/priority_3_FINAL.jsonl",
+      "size_bytes": 388349831
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:07:28",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+      "relative_path": "Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+      "size_bytes": 388349831
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:40:08",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+      "relative_path": "ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+      "size_bytes": 345745944
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:40:08",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+      "relative_path": "ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+      "size_bytes": 345745944
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:40:08",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+      "relative_path": "datasets/priority_2/priority_2_FINAL.jsonl",
+      "size_bytes": 345745944
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:40:08",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+      "relative_path": "Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+      "size_bytes": 345745944
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".jsonl",
+      "modified": "2025-09-07T16:29:04",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
+      "relative_path": "pixelated-training/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
+      "size_bytes": 292592117
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-10-17T16:11:37.907082",
+      "path": "/home/vivi/pixelated/ai/lightning/processed_data/unified_training_data.jsonl",
+      "relative_path": "processed_data/unified_training_data.jsonl",
+      "size_bytes": 222242650
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-10-14T07:30:14",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+      "relative_path": "ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+      "size_bytes": 199668099
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-10-14T07:30:14",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+      "relative_path": "Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+      "size_bytes": 199668099
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:46:46",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+      "relative_path": "ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+      "size_bytes": 198503089
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:46:46",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+      "relative_path": "Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+      "size_bytes": 198503089
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-09-07T16:28:58",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+      "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+      "size_bytes": 159598319
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-09-07T16:28:52",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+      "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+      "size_bytes": 149527524
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-04-25T02:40:56",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/HealthCareMagic-100k.json",
+      "relative_path": "ghost/datasets/HealthCareMagic-100k.json",
+      "size_bytes": 143845222
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-04-25T02:40:56",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/HealthCareMagic-100k.json",
+      "relative_path": "datasets/HealthCareMagic-100k.json",
+      "size_bytes": 143845222
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-09-07T16:28:48",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+      "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+      "size_bytes": 128897645
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-09T10:54:00.100610",
+      "path": "/home/vivi/pixelated/ai/training_ready/configs/hyperparameters/training_dataset.json",
+      "relative_path": "hyperparameters/training_dataset.json",
+      "size_bytes": 125834752
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-05-25T22:34:10",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/master_integration/therapy_expert_train.jsonl",
+      "relative_path": "ghost/master_integration/therapy_expert_train.jsonl",
+      "size_bytes": 76198530
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-05-25T22:34:10",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/master_integration/therapy_expert_train.jsonl",
+      "relative_path": "master_integration/therapy_expert_train.jsonl",
+      "size_bytes": 76198530
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:10:07.941145",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/training_dataset_enhanced.json",
+      "relative_path": "pixelated-training/training_dataset_enhanced.json",
+      "size_bytes": 60328138
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-07-28T14:38:26",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions/CoT_Neurodivergent vs. Neurotypical Interactions.json",
+      "relative_path": "CoT_Neurodivergent_vs_Neurotypical_Interactions/CoT_Neurodivergent vs. Neurotypical Interactions.json",
+      "size_bytes": 55461894
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-09-02T13:58:34",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+      "relative_path": "CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+      "size_bytes": 55379316
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2019-12-19T09:52:50",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/valid.csv",
+      "relative_path": "ghost/empathetic_dialogues/data/valid.csv",
+      "size_bytes": 38888723
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2019-12-19T09:52:50",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/valid.csv",
+      "relative_path": "empathetic_dialogues/data/valid.csv",
+      "size_bytes": 38888723
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-07-28T14:32:19",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Heartbreak_and_Breakups/CoT-Breakups and heartbreak-9.8k.json",
+      "relative_path": "CoT_Heartbreak_and_Breakups/CoT-Breakups and heartbreak-9.8k.json",
+      "size_bytes": 38571023
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-09-02T13:58:33",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Heartbreak_and_Breakups_downloaded.json",
+      "relative_path": "CoT_Heartbreak_and_Breakups_downloaded.json",
+      "size_bytes": 38489133
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2019-12-19T09:52:40",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/test.csv",
+      "relative_path": "ghost/empathetic_dialogues/data/test.csv",
+      "size_bytes": 36608618
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2019-12-19T09:52:40",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/test.csv",
+      "relative_path": "empathetic_dialogues/data/test.csv",
+      "size_bytes": 36608618
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-07-29T21:08:54",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Legal_Issues_And_Laws/CoT_Legal_Issues_And_Laws.json",
+      "relative_path": "CoT_Legal_Issues_And_Laws/CoT_Legal_Issues_And_Laws.json",
+      "size_bytes": 25486617
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-09-07T16:29:16",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+      "relative_path": "pixelated-training/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+      "size_bytes": 25303165
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2025-05-03T20:57:44",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/sentiment_data.csv",
+      "relative_path": "ghost/datasets/sentiment_data.csv",
+      "size_bytes": 23860510
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2025-05-03T20:57:44",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/sentiment_data.csv",
+      "relative_path": "datasets/sentiment_data.csv",
+      "size_bytes": 23860510
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-07-28T14:33:18",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+      "relative_path": "CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+      "size_bytes": 20115638
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-09-02T13:58:34",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health_downloaded.json",
+      "relative_path": "CoT_Reasoning_Clinical_Diagnosis_Mental_Health_downloaded.json",
+      "size_bytes": 20089914
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-04-25T02:41:04",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/iCliniq.json",
+      "relative_path": "ghost/datasets/iCliniq.json",
+      "size_bytes": 19536692
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-04-25T02:41:04",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/iCliniq.json",
+      "relative_path": "datasets/iCliniq.json",
+      "size_bytes": 19536692
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T10:12:12",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/dual_persona_training/training_data.jsonl",
+      "relative_path": "ghost/dual_persona_training/training_data.jsonl",
+      "size_bytes": 19459250
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T10:12:12",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/dual_persona_training/training_data.jsonl",
+      "relative_path": "dual_persona_training/training_data.jsonl",
+      "size_bytes": 19459250
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".txt",
+      "modified": "2017-05-25T11:12:58",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/collected_weather_dataset.txt",
+      "relative_path": "ghost/datasets/collected_weather_dataset.txt",
+      "size_bytes": 18521203
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".txt",
+      "modified": "2017-05-25T11:12:58",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/collected_weather_dataset.txt",
+      "relative_path": "datasets/collected_weather_dataset.txt",
+      "size_bytes": 18521203
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-07-29T21:09:10",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Mens_Mental_Health/CoT_Reasoning_Mens_Mental_Health.json",
+      "relative_path": "CoT_Reasoning_Mens_Mental_Health/CoT_Reasoning_Mens_Mental_Health.json",
+      "size_bytes": 17836257
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-09-02T13:58:35",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+      "relative_path": "CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+      "size_bytes": 17809998
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2019-12-19T09:52:46",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/train.csv",
+      "relative_path": "ghost/empathetic_dialogues/data/train.csv",
+      "size_bytes": 17394764
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2019-12-19T09:52:46",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/train.csv",
+      "relative_path": "empathetic_dialogues/data/train.csv",
+      "size_bytes": 17394764
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-07-29T21:09:02",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Quantom_Physics_And_Computing/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+      "relative_path": "CoT_Reasoning_Quantom_Physics_And_Computing/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+      "size_bytes": 17316867
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:10:22.776416",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-100/tokenizer.json",
+      "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-100/tokenizer.json",
+      "size_bytes": 17078934
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:11:49.671738",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-300/tokenizer.json",
+      "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-300/tokenizer.json",
+      "size_bytes": 17078934
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:10:57.359379",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-200/tokenizer.json",
+      "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-200/tokenizer.json",
+      "size_bytes": 17078934
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:12:09.466846",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-350/tokenizer.json",
+      "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-350/tokenizer.json",
+      "size_bytes": 17078934
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:12:12.499227",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-50/tokenizer.json",
+      "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-50/tokenizer.json",
+      "size_bytes": 17078934
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:11:29.798159",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-250/tokenizer.json",
+      "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-250/tokenizer.json",
+      "size_bytes": 17078934
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:10:40.901969",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-150/tokenizer.json",
+      "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-150/tokenizer.json",
+      "size_bytes": 17078934
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:12:14.350256",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/practical_high_quality.json",
+      "relative_path": "pixelated-v2/training_data/enhanced/practical_high_quality.json",
+      "size_bytes": 14846257
+    },
+    {
+      "category": "therapeutic_data",
+      "extension": ".json",
+      "modified": "2025-10-24T15:12:14.411224",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/therapeutic_high_quality.json",
+      "relative_path": "pixelated-v2/training_data/enhanced/therapeutic_high_quality.json",
+      "size_bytes": 13583109
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:12:14.281292",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/educational_high_quality.json",
+      "relative_path": "pixelated-v2/training_data/enhanced/educational_high_quality.json",
+      "size_bytes": 13469212
+    }
+  ],
+  "file_types": {
+    ".csv": 10,
+    ".json": 27,
+    ".jsonl": 32,
+    ".txt": 2
+  },
+  "files_by_category": {
+    "chain_of_thought": [
+      {
+        "category": "chain_of_thought",
+        "extension": ".jsonl",
+        "modified": "2025-09-07T16:29:04",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
+        "relative_path": "pixelated-training/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
+        "size_bytes": 292592117
+      },
+      {
+        "category": "chain_of_thought",
+        "extension": ".json",
+        "modified": "2025-09-02T13:58:34",
+        "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health_downloaded.json",
+        "relative_path": "CoT_Reasoning_Clinical_Diagnosis_Mental_Health_downloaded.json",
+        "size_bytes": 20089914
+      },
+      {
+        "category": "chain_of_thought",
+        "extension": ".json",
+        "modified": "2025-09-02T13:58:34",
+        "path": "/home/vivi/pixelated/ai/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+        "relative_path": "CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+        "size_bytes": 55379316
+      },
+      {
+        "category": "chain_of_thought",
+        "extension": ".json",
+        "modified": "2025-09-02T13:58:35",
+        "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+        "relative_path": "CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+        "size_bytes": 17809998
+      },
+      {
+        "category": "chain_of_thought",
+        "extension": ".json",
+        "modified": "2025-09-02T13:58:33",
+        "path": "/home/vivi/pixelated/ai/datasets/CoT_Heartbreak_and_Breakups_downloaded.json",
+        "relative_path": "CoT_Heartbreak_and_Breakups_downloaded.json",
+        "size_bytes": 38489133
+      },
+      {
+        "category": "chain_of_thought",
+        "extension": ".json",
+        "modified": "2025-07-28T14:33:18",
+        "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+        "relative_path": "CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+        "size_bytes": 20115638
+      },
+      {
+        "category": "chain_of_thought",
+        "extension": ".json",
+        "modified": "2025-07-28T14:32:19",
+        "path": "/home/vivi/pixelated/ai/datasets/CoT_Heartbreak_and_Breakups/CoT-Breakups and heartbreak-9.8k.json",
+        "relative_path": "CoT_Heartbreak_and_Breakups/CoT-Breakups and heartbreak-9.8k.json",
+        "size_bytes": 38571023
+      },
+      {
+        "category": "chain_of_thought",
+        "extension": ".json",
+        "modified": "2025-07-29T21:09:10",
+        "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Mens_Mental_Health/CoT_Reasoning_Mens_Mental_Health.json",
+        "relative_path": "CoT_Reasoning_Mens_Mental_Health/CoT_Reasoning_Mens_Mental_Health.json",
+        "size_bytes": 17836257
+      },
+      {
+        "category": "chain_of_thought",
+        "extension": ".json",
+        "modified": "2025-07-29T21:09:02",
+        "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Quantom_Physics_And_Computing/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+        "relative_path": "CoT_Reasoning_Quantom_Physics_And_Computing/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+        "size_bytes": 17316867
+      },
+      {
+        "category": "chain_of_thought",
+        "extension": ".json",
+        "modified": "2025-07-28T14:38:26",
+        "path": "/home/vivi/pixelated/ai/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions/CoT_Neurodivergent vs. Neurotypical Interactions.json",
+        "relative_path": "CoT_Neurodivergent_vs_Neurotypical_Interactions/CoT_Neurodivergent vs. Neurotypical Interactions.json",
+        "size_bytes": 55461894
+      },
+      {
+        "category": "chain_of_thought",
+        "extension": ".json",
+        "modified": "2025-07-29T21:08:54",
+        "path": "/home/vivi/pixelated/ai/datasets/CoT_Legal_Issues_And_Laws/CoT_Legal_Issues_And_Laws.json",
+        "relative_path": "CoT_Legal_Issues_And_Laws/CoT_Legal_Issues_And_Laws.json",
+        "size_bytes": 25486617
+      }
+    ],
+    "consolidated": [
+      {
+        "category": "consolidated",
+        "extension": ".jsonl",
+        "modified": "2025-12-30T15:36:00.152622",
+        "path": "/home/vivi/pixelated/ai/training_ready/data/ULTIMATE_FINAL_DATASET_cleaned.jsonl",
+        "relative_path": "ULTIMATE_FINAL_DATASET_cleaned.jsonl",
+        "size_bytes": 1922398939
+      },
+      {
+        "category": "consolidated",
+        "extension": ".jsonl",
+        "modified": "2025-10-28T13:44:25.567446",
+        "path": "/home/vivi/pixelated/ai/training_ready/data/ULTIMATE_FINAL_DATASET.jsonl",
+        "relative_path": "ULTIMATE_FINAL_DATASET.jsonl",
+        "size_bytes": 2677798451
+      },
+      {
+        "category": "consolidated",
+        "extension": ".jsonl",
+        "modified": "2025-12-02T14:09:27.218351",
+        "path": "/home/vivi/pixelated/ai/training_ready/configs/stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
+        "relative_path": "stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
+        "size_bytes": 2593275904
+      }
+    ],
+    "priority_datasets": [
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-09-07T16:28:48",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+        "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+        "size_bytes": 128897645
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-09-07T16:28:58",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+        "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+        "size_bytes": 159598319
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-09-07T16:28:52",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+        "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+        "size_bytes": 149527524
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T13:40:08",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+        "relative_path": "ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+        "size_bytes": 345745944
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T14:07:28",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+        "relative_path": "ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+        "size_bytes": 388349831
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T13:39:40",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+        "relative_path": "ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+        "size_bytes": 484546094
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T13:40:08",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+        "relative_path": "ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+        "size_bytes": 345745944
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T14:07:28",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+        "relative_path": "ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+        "size_bytes": 388349831
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-10-14T07:30:58",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+        "relative_path": "ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+        "size_bytes": 484546094
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T13:40:08",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+        "relative_path": "datasets/priority_2/priority_2_FINAL.jsonl",
+        "size_bytes": 345745944
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T14:07:28",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+        "relative_path": "datasets/priority_3/priority_3_FINAL.jsonl",
+        "size_bytes": 388349831
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T13:39:40",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+        "relative_path": "datasets/priority_1/priority_1_FINAL.jsonl",
+        "size_bytes": 484546094
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T13:40:08",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+        "relative_path": "Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+        "size_bytes": 345745944
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T14:07:28",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+        "relative_path": "Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+        "size_bytes": 388349831
+      },
+      {
+        "category": "priority_datasets",
+        "extension": ".jsonl",
+        "modified": "2025-10-14T07:30:58",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+        "relative_path": "Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+        "size_bytes": 484546094
+      }
+    ],
+    "psychological_data": [
+      {
+        "category": "psychological_data",
+        "extension": ".jsonl",
+        "modified": "2025-12-25T14:18:20.911255",
+        "path": "/home/vivi/pixelated/ai/datasets/tier6_knowledge/Psych-101/train.jsonl",
+        "relative_path": "tier6_knowledge/Psych-101/train.jsonl",
+        "size_bytes": 858942975
+      }
+    ],
+    "social_media": [
+      {
+        "category": "social_media",
+        "extension": ".csv",
+        "modified": "2025-10-14T06:40:38",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/reddit_depression_dataset.csv",
+        "relative_path": "ghost/datasets/reddit_depression_dataset.csv",
+        "size_bytes": 1165277530
+      },
+      {
+        "category": "social_media",
+        "extension": ".csv",
+        "modified": "2025-10-14T06:40:38",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/reddit_depression_dataset.csv",
+        "relative_path": "datasets/reddit_depression_dataset.csv",
+        "size_bytes": 1165277530
+      }
+    ],
+    "therapeutic_data": [
+      {
+        "category": "therapeutic_data",
+        "extension": ".json",
+        "modified": "2025-10-24T15:12:14.411224",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/therapeutic_high_quality.json",
+        "relative_path": "pixelated-v2/training_data/enhanced/therapeutic_high_quality.json",
+        "size_bytes": 13583109
+      }
+    ],
+    "uncategorized": [
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-09-07T16:29:16",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+        "relative_path": "pixelated-training/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+        "size_bytes": 25303165
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-10-17T16:11:37.907082",
+        "path": "/home/vivi/pixelated/ai/lightning/processed_data/unified_training_data.jsonl",
+        "relative_path": "processed_data/unified_training_data.jsonl",
+        "size_bytes": 222242650
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-10-19T13:51:34.084736",
+        "path": "/home/vivi/pixelated/ai/lightning/processed_data/merged_dataset.jsonl",
+        "relative_path": "processed_data/merged_dataset.jsonl",
+        "size_bytes": 2597706555
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-10-19T12:58:45.425979",
+        "path": "/home/vivi/pixelated/ai/lightning/processed_data/merged_dataset_original.jsonl",
+        "relative_path": "processed_data/merged_dataset_original.jsonl",
+        "size_bytes": 3863573525
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-05-25T22:34:10",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/master_integration/therapy_expert_train.jsonl",
+        "relative_path": "ghost/master_integration/therapy_expert_train.jsonl",
+        "size_bytes": 76198530
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T10:12:12",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/dual_persona_training/training_data.jsonl",
+        "relative_path": "ghost/dual_persona_training/training_data.jsonl",
+        "size_bytes": 19459250
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-10-14T07:30:14",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+        "relative_path": "ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+        "size_bytes": 199668099
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T14:46:46",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+        "relative_path": "ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+        "size_bytes": 198503089
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-24T15:10:07.941145",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/training_dataset_enhanced.json",
+        "relative_path": "pixelated-training/training_dataset_enhanced.json",
+        "size_bytes": 60328138
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-24T15:10:07.579114",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/training_dataset.json",
+        "relative_path": "pixelated-training/training_dataset.json",
+        "size_bytes": 828477242
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-24T15:10:22.776416",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-100/tokenizer.json",
+        "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-100/tokenizer.json",
+        "size_bytes": 17078934
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-24T15:11:49.671738",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-300/tokenizer.json",
+        "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-300/tokenizer.json",
+        "size_bytes": 17078934
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-24T15:10:57.359379",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-200/tokenizer.json",
+        "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-200/tokenizer.json",
+        "size_bytes": 17078934
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-24T15:12:09.466846",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-350/tokenizer.json",
+        "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-350/tokenizer.json",
+        "size_bytes": 17078934
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-24T15:12:12.499227",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-50/tokenizer.json",
+        "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-50/tokenizer.json",
+        "size_bytes": 17078934
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-24T15:11:29.798159",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-250/tokenizer.json",
+        "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-250/tokenizer.json",
+        "size_bytes": 17078934
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-24T15:10:40.901969",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-150/tokenizer.json",
+        "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-150/tokenizer.json",
+        "size_bytes": 17078934
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-24T15:12:14.281292",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/educational_high_quality.json",
+        "relative_path": "pixelated-v2/training_data/enhanced/educational_high_quality.json",
+        "size_bytes": 13469212
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-24T15:12:14.350256",
+        "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/practical_high_quality.json",
+        "relative_path": "pixelated-v2/training_data/enhanced/practical_high_quality.json",
+        "size_bytes": 14846257
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-04-25T02:41:04",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/iCliniq.json",
+        "relative_path": "ghost/datasets/iCliniq.json",
+        "size_bytes": 19536692
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-04-25T02:40:56",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/HealthCareMagic-100k.json",
+        "relative_path": "ghost/datasets/HealthCareMagic-100k.json",
+        "size_bytes": 143845222
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".csv",
+        "modified": "2025-05-03T20:57:44",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/sentiment_data.csv",
+        "relative_path": "ghost/datasets/sentiment_data.csv",
+        "size_bytes": 23860510
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".csv",
+        "modified": "2019-12-19T09:52:50",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/valid.csv",
+        "relative_path": "ghost/empathetic_dialogues/data/valid.csv",
+        "size_bytes": 38888723
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".csv",
+        "modified": "2019-12-19T09:52:46",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/train.csv",
+        "relative_path": "ghost/empathetic_dialogues/data/train.csv",
+        "size_bytes": 17394764
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".csv",
+        "modified": "2019-12-19T09:52:40",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/test.csv",
+        "relative_path": "ghost/empathetic_dialogues/data/test.csv",
+        "size_bytes": 36608618
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".txt",
+        "modified": "2017-05-25T11:12:58",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/collected_weather_dataset.txt",
+        "relative_path": "ghost/datasets/collected_weather_dataset.txt",
+        "size_bytes": 18521203
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-10-09T10:54:00.100610",
+        "path": "/home/vivi/pixelated/ai/training_ready/configs/hyperparameters/training_dataset.json",
+        "relative_path": "hyperparameters/training_dataset.json",
+        "size_bytes": 125834752
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-05-25T22:34:10",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/master_integration/therapy_expert_train.jsonl",
+        "relative_path": "master_integration/therapy_expert_train.jsonl",
+        "size_bytes": 76198530
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T10:12:12",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/dual_persona_training/training_data.jsonl",
+        "relative_path": "dual_persona_training/training_data.jsonl",
+        "size_bytes": 19459250
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-10-14T07:30:14",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+        "relative_path": "Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+        "size_bytes": 199668099
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".jsonl",
+        "modified": "2025-05-26T14:46:46",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+        "relative_path": "Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+        "size_bytes": 198503089
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-04-25T02:41:04",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/iCliniq.json",
+        "relative_path": "datasets/iCliniq.json",
+        "size_bytes": 19536692
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".json",
+        "modified": "2025-04-25T02:40:56",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/HealthCareMagic-100k.json",
+        "relative_path": "datasets/HealthCareMagic-100k.json",
+        "size_bytes": 143845222
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".csv",
+        "modified": "2025-05-03T20:57:44",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/sentiment_data.csv",
+        "relative_path": "datasets/sentiment_data.csv",
+        "size_bytes": 23860510
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".csv",
+        "modified": "2019-12-19T09:52:50",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/valid.csv",
+        "relative_path": "empathetic_dialogues/data/valid.csv",
+        "size_bytes": 38888723
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".csv",
+        "modified": "2019-12-19T09:52:46",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/train.csv",
+        "relative_path": "empathetic_dialogues/data/train.csv",
+        "size_bytes": 17394764
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".csv",
+        "modified": "2019-12-19T09:52:40",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/test.csv",
+        "relative_path": "empathetic_dialogues/data/test.csv",
+        "size_bytes": 36608618
+      },
+      {
+        "category": "uncategorized",
+        "extension": ".txt",
+        "modified": "2017-05-25T11:12:58",
+        "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/collected_weather_dataset.txt",
+        "relative_path": "datasets/collected_weather_dataset.txt",
+        "size_bytes": 18521203
+      }
+    ]
+  },
+  "missing_categories": [
+    "gdrive",
+    "acquired",
+    "lightning",
+    "voice",
+    "pixel_voice",
+    "metadata",
+    "other"
+  ],
+  "processing_plan": {
+    "estimated_memory_needed": 35.99,
+    "processing_order": {
+      "chain_of_thought": [
+        {
+          "category": "chain_of_thought",
+          "extension": ".jsonl",
+          "modified": "2025-09-07T16:29:04",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
+          "relative_path": "pixelated-training/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
+          "size_bytes": 292592117
+        },
+        {
+          "category": "chain_of_thought",
+          "extension": ".json",
+          "modified": "2025-07-28T14:38:26",
+          "path": "/home/vivi/pixelated/ai/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions/CoT_Neurodivergent vs. Neurotypical Interactions.json",
+          "relative_path": "CoT_Neurodivergent_vs_Neurotypical_Interactions/CoT_Neurodivergent vs. Neurotypical Interactions.json",
+          "size_bytes": 55461894
+        },
+        {
+          "category": "chain_of_thought",
+          "extension": ".json",
+          "modified": "2025-09-02T13:58:34",
+          "path": "/home/vivi/pixelated/ai/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+          "relative_path": "CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+          "size_bytes": 55379316
+        },
+        {
+          "category": "chain_of_thought",
+          "extension": ".json",
+          "modified": "2025-07-28T14:32:19",
+          "path": "/home/vivi/pixelated/ai/datasets/CoT_Heartbreak_and_Breakups/CoT-Breakups and heartbreak-9.8k.json",
+          "relative_path": "CoT_Heartbreak_and_Breakups/CoT-Breakups and heartbreak-9.8k.json",
+          "size_bytes": 38571023
+        },
+        {
+          "category": "chain_of_thought",
+          "extension": ".json",
+          "modified": "2025-09-02T13:58:33",
+          "path": "/home/vivi/pixelated/ai/datasets/CoT_Heartbreak_and_Breakups_downloaded.json",
+          "relative_path": "CoT_Heartbreak_and_Breakups_downloaded.json",
+          "size_bytes": 38489133
+        },
+        {
+          "category": "chain_of_thought",
+          "extension": ".json",
+          "modified": "2025-07-29T21:08:54",
+          "path": "/home/vivi/pixelated/ai/datasets/CoT_Legal_Issues_And_Laws/CoT_Legal_Issues_And_Laws.json",
+          "relative_path": "CoT_Legal_Issues_And_Laws/CoT_Legal_Issues_And_Laws.json",
+          "size_bytes": 25486617
+        },
+        {
+          "category": "chain_of_thought",
+          "extension": ".json",
+          "modified": "2025-07-28T14:33:18",
+          "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+          "relative_path": "CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+          "size_bytes": 20115638
+        },
+        {
+          "category": "chain_of_thought",
+          "extension": ".json",
+          "modified": "2025-09-02T13:58:34",
+          "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health_downloaded.json",
+          "relative_path": "CoT_Reasoning_Clinical_Diagnosis_Mental_Health_downloaded.json",
+          "size_bytes": 20089914
+        },
+        {
+          "category": "chain_of_thought",
+          "extension": ".json",
+          "modified": "2025-07-29T21:09:10",
+          "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Mens_Mental_Health/CoT_Reasoning_Mens_Mental_Health.json",
+          "relative_path": "CoT_Reasoning_Mens_Mental_Health/CoT_Reasoning_Mens_Mental_Health.json",
+          "size_bytes": 17836257
+        },
+        {
+          "category": "chain_of_thought",
+          "extension": ".json",
+          "modified": "2025-09-02T13:58:35",
+          "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+          "relative_path": "CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+          "size_bytes": 17809998
+        },
+        {
+          "category": "chain_of_thought",
+          "extension": ".json",
+          "modified": "2025-07-29T21:09:02",
+          "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Quantom_Physics_And_Computing/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+          "relative_path": "CoT_Reasoning_Quantom_Physics_And_Computing/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+          "size_bytes": 17316867
+        }
+      ],
+      "consolidated": [
+        {
+          "category": "consolidated",
+          "extension": ".jsonl",
+          "modified": "2025-10-28T13:44:25.567446",
+          "path": "/home/vivi/pixelated/ai/training_ready/data/ULTIMATE_FINAL_DATASET.jsonl",
+          "relative_path": "ULTIMATE_FINAL_DATASET.jsonl",
+          "size_bytes": 2677798451
+        },
+        {
+          "category": "consolidated",
+          "extension": ".jsonl",
+          "modified": "2025-12-02T14:09:27.218351",
+          "path": "/home/vivi/pixelated/ai/training_ready/configs/stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
+          "relative_path": "stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
+          "size_bytes": 2593275904
+        },
+        {
+          "category": "consolidated",
+          "extension": ".jsonl",
+          "modified": "2025-12-30T15:36:00.152622",
+          "path": "/home/vivi/pixelated/ai/training_ready/data/ULTIMATE_FINAL_DATASET_cleaned.jsonl",
+          "relative_path": "ULTIMATE_FINAL_DATASET_cleaned.jsonl",
+          "size_bytes": 1922398939
+        }
+      ],
+      "edge_cases": [],
+      "priority_datasets": [
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T13:39:40",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+          "relative_path": "ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+          "size_bytes": 484546094
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-10-14T07:30:58",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+          "relative_path": "ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+          "size_bytes": 484546094
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T13:39:40",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+          "relative_path": "datasets/priority_1/priority_1_FINAL.jsonl",
+          "size_bytes": 484546094
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-10-14T07:30:58",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+          "relative_path": "Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+          "size_bytes": 484546094
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T14:07:28",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+          "relative_path": "ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+          "size_bytes": 388349831
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T14:07:28",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+          "relative_path": "ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+          "size_bytes": 388349831
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T14:07:28",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+          "relative_path": "datasets/priority_3/priority_3_FINAL.jsonl",
+          "size_bytes": 388349831
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T14:07:28",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+          "relative_path": "Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+          "size_bytes": 388349831
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T13:40:08",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+          "relative_path": "ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+          "size_bytes": 345745944
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T13:40:08",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+          "relative_path": "ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+          "size_bytes": 345745944
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T13:40:08",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+          "relative_path": "datasets/priority_2/priority_2_FINAL.jsonl",
+          "size_bytes": 345745944
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T13:40:08",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+          "relative_path": "Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+          "size_bytes": 345745944
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-09-07T16:28:58",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+          "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+          "size_bytes": 159598319
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-09-07T16:28:52",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+          "size_bytes": 149527524
+        },
+        {
+          "category": "priority_datasets",
+          "extension": ".jsonl",
+          "modified": "2025-09-07T16:28:48",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+          "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+          "size_bytes": 128897645
+        }
+      ],
+      "psychological_data": [
+        {
+          "category": "psychological_data",
+          "extension": ".jsonl",
+          "modified": "2025-12-25T14:18:20.911255",
+          "path": "/home/vivi/pixelated/ai/datasets/tier6_knowledge/Psych-101/train.jsonl",
+          "relative_path": "tier6_knowledge/Psych-101/train.jsonl",
+          "size_bytes": 858942975
+        }
+      ],
+      "social_media": [
+        {
+          "category": "social_media",
+          "extension": ".csv",
+          "modified": "2025-10-14T06:40:38",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/reddit_depression_dataset.csv",
+          "relative_path": "ghost/datasets/reddit_depression_dataset.csv",
+          "size_bytes": 1165277530
+        },
+        {
+          "category": "social_media",
+          "extension": ".csv",
+          "modified": "2025-10-14T06:40:38",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/reddit_depression_dataset.csv",
+          "relative_path": "datasets/reddit_depression_dataset.csv",
+          "size_bytes": 1165277530
+        }
+      ],
+      "therapeutic_data": [
+        {
+          "category": "therapeutic_data",
+          "extension": ".json",
+          "modified": "2025-10-24T15:12:14.411224",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/therapeutic_high_quality.json",
+          "relative_path": "pixelated-v2/training_data/enhanced/therapeutic_high_quality.json",
+          "size_bytes": 13583109
+        }
+      ],
+      "training_stages": [],
+      "uncategorized": [
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-10-19T12:58:45.425979",
+          "path": "/home/vivi/pixelated/ai/lightning/processed_data/merged_dataset_original.jsonl",
+          "relative_path": "processed_data/merged_dataset_original.jsonl",
+          "size_bytes": 3863573525
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-10-19T13:51:34.084736",
+          "path": "/home/vivi/pixelated/ai/lightning/processed_data/merged_dataset.jsonl",
+          "relative_path": "processed_data/merged_dataset.jsonl",
+          "size_bytes": 2597706555
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-24T15:10:07.579114",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/training_dataset.json",
+          "relative_path": "pixelated-training/training_dataset.json",
+          "size_bytes": 828477242
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-10-17T16:11:37.907082",
+          "path": "/home/vivi/pixelated/ai/lightning/processed_data/unified_training_data.jsonl",
+          "relative_path": "processed_data/unified_training_data.jsonl",
+          "size_bytes": 222242650
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-10-14T07:30:14",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+          "relative_path": "ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+          "size_bytes": 199668099
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-10-14T07:30:14",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+          "relative_path": "Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+          "size_bytes": 199668099
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T14:46:46",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+          "relative_path": "ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+          "size_bytes": 198503089
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T14:46:46",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+          "relative_path": "Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+          "size_bytes": 198503089
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-04-25T02:40:56",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/HealthCareMagic-100k.json",
+          "relative_path": "ghost/datasets/HealthCareMagic-100k.json",
+          "size_bytes": 143845222
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-04-25T02:40:56",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/HealthCareMagic-100k.json",
+          "relative_path": "datasets/HealthCareMagic-100k.json",
+          "size_bytes": 143845222
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-09T10:54:00.100610",
+          "path": "/home/vivi/pixelated/ai/training_ready/configs/hyperparameters/training_dataset.json",
+          "relative_path": "hyperparameters/training_dataset.json",
+          "size_bytes": 125834752
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-05-25T22:34:10",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/master_integration/therapy_expert_train.jsonl",
+          "relative_path": "ghost/master_integration/therapy_expert_train.jsonl",
+          "size_bytes": 76198530
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-05-25T22:34:10",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/master_integration/therapy_expert_train.jsonl",
+          "relative_path": "master_integration/therapy_expert_train.jsonl",
+          "size_bytes": 76198530
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-24T15:10:07.941145",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/training_dataset_enhanced.json",
+          "relative_path": "pixelated-training/training_dataset_enhanced.json",
+          "size_bytes": 60328138
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".csv",
+          "modified": "2019-12-19T09:52:50",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/valid.csv",
+          "relative_path": "ghost/empathetic_dialogues/data/valid.csv",
+          "size_bytes": 38888723
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".csv",
+          "modified": "2019-12-19T09:52:50",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/valid.csv",
+          "relative_path": "empathetic_dialogues/data/valid.csv",
+          "size_bytes": 38888723
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".csv",
+          "modified": "2019-12-19T09:52:40",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/test.csv",
+          "relative_path": "ghost/empathetic_dialogues/data/test.csv",
+          "size_bytes": 36608618
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".csv",
+          "modified": "2019-12-19T09:52:40",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/test.csv",
+          "relative_path": "empathetic_dialogues/data/test.csv",
+          "size_bytes": 36608618
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-09-07T16:29:16",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+          "relative_path": "pixelated-training/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+          "size_bytes": 25303165
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".csv",
+          "modified": "2025-05-03T20:57:44",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/sentiment_data.csv",
+          "relative_path": "ghost/datasets/sentiment_data.csv",
+          "size_bytes": 23860510
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".csv",
+          "modified": "2025-05-03T20:57:44",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/sentiment_data.csv",
+          "relative_path": "datasets/sentiment_data.csv",
+          "size_bytes": 23860510
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-04-25T02:41:04",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/iCliniq.json",
+          "relative_path": "ghost/datasets/iCliniq.json",
+          "size_bytes": 19536692
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-04-25T02:41:04",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/iCliniq.json",
+          "relative_path": "datasets/iCliniq.json",
+          "size_bytes": 19536692
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T10:12:12",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/dual_persona_training/training_data.jsonl",
+          "relative_path": "ghost/dual_persona_training/training_data.jsonl",
+          "size_bytes": 19459250
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".jsonl",
+          "modified": "2025-05-26T10:12:12",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/dual_persona_training/training_data.jsonl",
+          "relative_path": "dual_persona_training/training_data.jsonl",
+          "size_bytes": 19459250
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".txt",
+          "modified": "2017-05-25T11:12:58",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/collected_weather_dataset.txt",
+          "relative_path": "ghost/datasets/collected_weather_dataset.txt",
+          "size_bytes": 18521203
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".txt",
+          "modified": "2017-05-25T11:12:58",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/collected_weather_dataset.txt",
+          "relative_path": "datasets/collected_weather_dataset.txt",
+          "size_bytes": 18521203
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".csv",
+          "modified": "2019-12-19T09:52:46",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/train.csv",
+          "relative_path": "ghost/empathetic_dialogues/data/train.csv",
+          "size_bytes": 17394764
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".csv",
+          "modified": "2019-12-19T09:52:46",
+          "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/train.csv",
+          "relative_path": "empathetic_dialogues/data/train.csv",
+          "size_bytes": 17394764
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-24T15:10:22.776416",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-100/tokenizer.json",
+          "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-100/tokenizer.json",
+          "size_bytes": 17078934
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-24T15:11:49.671738",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-300/tokenizer.json",
+          "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-300/tokenizer.json",
+          "size_bytes": 17078934
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-24T15:10:57.359379",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-200/tokenizer.json",
+          "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-200/tokenizer.json",
+          "size_bytes": 17078934
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-24T15:12:09.466846",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-350/tokenizer.json",
+          "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-350/tokenizer.json",
+          "size_bytes": 17078934
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-24T15:12:12.499227",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-50/tokenizer.json",
+          "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-50/tokenizer.json",
+          "size_bytes": 17078934
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-24T15:11:29.798159",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-250/tokenizer.json",
+          "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-250/tokenizer.json",
+          "size_bytes": 17078934
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-24T15:10:40.901969",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-150/tokenizer.json",
+          "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-150/tokenizer.json",
+          "size_bytes": 17078934
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-24T15:12:14.350256",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/practical_high_quality.json",
+          "relative_path": "pixelated-v2/training_data/enhanced/practical_high_quality.json",
+          "size_bytes": 14846257
+        },
+        {
+          "category": "uncategorized",
+          "extension": ".json",
+          "modified": "2025-10-24T15:12:14.281292",
+          "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/educational_high_quality.json",
+          "relative_path": "pixelated-v2/training_data/enhanced/educational_high_quality.json",
+          "size_bytes": 13469212
+        }
+      ],
+      "voice_data": []
+    },
+    "recommended_batch_size": [
+      {
+        "file_count": 1,
+        "files": [
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-10-19T12:58:45.425979",
+            "path": "/home/vivi/pixelated/ai/lightning/processed_data/merged_dataset_original.jsonl",
+            "relative_path": "processed_data/merged_dataset_original.jsonl",
+            "size_bytes": 3863573525
+          }
+        ],
+        "total_size": 3863573525
+      },
+      {
+        "file_count": 1,
+        "files": [
+          {
+            "category": "consolidated",
+            "extension": ".jsonl",
+            "modified": "2025-10-28T13:44:25.567446",
+            "path": "/home/vivi/pixelated/ai/training_ready/data/ULTIMATE_FINAL_DATASET.jsonl",
+            "relative_path": "ULTIMATE_FINAL_DATASET.jsonl",
+            "size_bytes": 2677798451
+          }
+        ],
+        "total_size": 2677798451
+      },
+      {
+        "file_count": 1,
+        "files": [
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-10-19T13:51:34.084736",
+            "path": "/home/vivi/pixelated/ai/lightning/processed_data/merged_dataset.jsonl",
+            "relative_path": "processed_data/merged_dataset.jsonl",
+            "size_bytes": 2597706555
+          }
+        ],
+        "total_size": 2597706555
+      },
+      {
+        "file_count": 1,
+        "files": [
+          {
+            "category": "consolidated",
+            "extension": ".jsonl",
+            "modified": "2025-12-02T14:09:27.218351",
+            "path": "/home/vivi/pixelated/ai/training_ready/configs/stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
+            "relative_path": "stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
+            "size_bytes": 2593275904
+          }
+        ],
+        "total_size": 2593275904
+      },
+      {
+        "file_count": 1,
+        "files": [
+          {
+            "category": "consolidated",
+            "extension": ".jsonl",
+            "modified": "2025-12-30T15:36:00.152622",
+            "path": "/home/vivi/pixelated/ai/training_ready/data/ULTIMATE_FINAL_DATASET_cleaned.jsonl",
+            "relative_path": "ULTIMATE_FINAL_DATASET_cleaned.jsonl",
+            "size_bytes": 1922398939
+          }
+        ],
+        "total_size": 1922398939
+      },
+      {
+        "file_count": 1,
+        "files": [
+          {
+            "category": "social_media",
+            "extension": ".csv",
+            "modified": "2025-10-14T06:40:38",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/reddit_depression_dataset.csv",
+            "relative_path": "ghost/datasets/reddit_depression_dataset.csv",
+            "size_bytes": 1165277530
+          }
+        ],
+        "total_size": 1165277530
+      },
+      {
+        "file_count": 2,
+        "files": [
+          {
+            "category": "social_media",
+            "extension": ".csv",
+            "modified": "2025-10-14T06:40:38",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/reddit_depression_dataset.csv",
+            "relative_path": "datasets/reddit_depression_dataset.csv",
+            "size_bytes": 1165277530
+          },
+          {
+            "category": "psychological_data",
+            "extension": ".jsonl",
+            "modified": "2025-12-25T14:18:20.911255",
+            "path": "/home/vivi/pixelated/ai/datasets/tier6_knowledge/Psych-101/train.jsonl",
+            "relative_path": "tier6_knowledge/Psych-101/train.jsonl",
+            "size_bytes": 858942975
+          }
+        ],
+        "total_size": 2024220505
+      },
+      {
+        "file_count": 3,
+        "files": [
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-24T15:10:07.579114",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/training_dataset.json",
+            "relative_path": "pixelated-training/training_dataset.json",
+            "size_bytes": 828477242
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T13:39:40",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+            "relative_path": "ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+            "size_bytes": 484546094
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-10-14T07:30:58",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+            "relative_path": "ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+            "size_bytes": 484546094
+          }
+        ],
+        "total_size": 1797569430
+      },
+      {
+        "file_count": 5,
+        "files": [
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T13:39:40",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+            "relative_path": "datasets/priority_1/priority_1_FINAL.jsonl",
+            "size_bytes": 484546094
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-10-14T07:30:58",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+            "relative_path": "Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+            "size_bytes": 484546094
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T14:07:28",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+            "relative_path": "ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+            "size_bytes": 388349831
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T14:07:28",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+            "relative_path": "ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+            "size_bytes": 388349831
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T14:07:28",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+            "relative_path": "datasets/priority_3/priority_3_FINAL.jsonl",
+            "size_bytes": 388349831
+          }
+        ],
+        "total_size": 2134141681
+      },
+      {
+        "file_count": 6,
+        "files": [
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T14:07:28",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+            "relative_path": "Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+            "size_bytes": 388349831
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T13:40:08",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+            "relative_path": "ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+            "size_bytes": 345745944
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T13:40:08",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+            "relative_path": "ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+            "size_bytes": 345745944
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T13:40:08",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+            "relative_path": "datasets/priority_2/priority_2_FINAL.jsonl",
+            "size_bytes": 345745944
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T13:40:08",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+            "relative_path": "Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+            "size_bytes": 345745944
+          },
+          {
+            "category": "chain_of_thought",
+            "extension": ".jsonl",
+            "modified": "2025-09-07T16:29:04",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
+            "relative_path": "pixelated-training/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
+            "size_bytes": 292592117
+          }
+        ],
+        "total_size": 2063925724
+      },
+      {
+        "file_count": 15,
+        "files": [
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-10-17T16:11:37.907082",
+            "path": "/home/vivi/pixelated/ai/lightning/processed_data/unified_training_data.jsonl",
+            "relative_path": "processed_data/unified_training_data.jsonl",
+            "size_bytes": 222242650
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-10-14T07:30:14",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+            "relative_path": "ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+            "size_bytes": 199668099
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-10-14T07:30:14",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+            "relative_path": "Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+            "size_bytes": 199668099
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T14:46:46",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+            "relative_path": "ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+            "size_bytes": 198503089
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T14:46:46",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+            "relative_path": "Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+            "size_bytes": 198503089
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-09-07T16:28:58",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+            "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+            "size_bytes": 159598319
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-09-07T16:28:52",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+            "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+            "size_bytes": 149527524
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-04-25T02:40:56",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/HealthCareMagic-100k.json",
+            "relative_path": "ghost/datasets/HealthCareMagic-100k.json",
+            "size_bytes": 143845222
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-04-25T02:40:56",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/HealthCareMagic-100k.json",
+            "relative_path": "datasets/HealthCareMagic-100k.json",
+            "size_bytes": 143845222
+          },
+          {
+            "category": "priority_datasets",
+            "extension": ".jsonl",
+            "modified": "2025-09-07T16:28:48",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+            "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+            "size_bytes": 128897645
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-09T10:54:00.100610",
+            "path": "/home/vivi/pixelated/ai/training_ready/configs/hyperparameters/training_dataset.json",
+            "relative_path": "hyperparameters/training_dataset.json",
+            "size_bytes": 125834752
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-05-25T22:34:10",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/master_integration/therapy_expert_train.jsonl",
+            "relative_path": "ghost/master_integration/therapy_expert_train.jsonl",
+            "size_bytes": 76198530
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-05-25T22:34:10",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/master_integration/therapy_expert_train.jsonl",
+            "relative_path": "master_integration/therapy_expert_train.jsonl",
+            "size_bytes": 76198530
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-24T15:10:07.941145",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/training_dataset_enhanced.json",
+            "relative_path": "pixelated-training/training_dataset_enhanced.json",
+            "size_bytes": 60328138
+          },
+          {
+            "category": "chain_of_thought",
+            "extension": ".json",
+            "modified": "2025-07-28T14:38:26",
+            "path": "/home/vivi/pixelated/ai/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions/CoT_Neurodivergent vs. Neurotypical Interactions.json",
+            "relative_path": "CoT_Neurodivergent_vs_Neurotypical_Interactions/CoT_Neurodivergent vs. Neurotypical Interactions.json",
+            "size_bytes": 55461894
+          }
+        ],
+        "total_size": 2138320802
+      },
+      {
+        "file_count": 34,
+        "files": [
+          {
+            "category": "chain_of_thought",
+            "extension": ".json",
+            "modified": "2025-09-02T13:58:34",
+            "path": "/home/vivi/pixelated/ai/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+            "relative_path": "CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+            "size_bytes": 55379316
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".csv",
+            "modified": "2019-12-19T09:52:50",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/valid.csv",
+            "relative_path": "ghost/empathetic_dialogues/data/valid.csv",
+            "size_bytes": 38888723
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".csv",
+            "modified": "2019-12-19T09:52:50",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/valid.csv",
+            "relative_path": "empathetic_dialogues/data/valid.csv",
+            "size_bytes": 38888723
+          },
+          {
+            "category": "chain_of_thought",
+            "extension": ".json",
+            "modified": "2025-07-28T14:32:19",
+            "path": "/home/vivi/pixelated/ai/datasets/CoT_Heartbreak_and_Breakups/CoT-Breakups and heartbreak-9.8k.json",
+            "relative_path": "CoT_Heartbreak_and_Breakups/CoT-Breakups and heartbreak-9.8k.json",
+            "size_bytes": 38571023
+          },
+          {
+            "category": "chain_of_thought",
+            "extension": ".json",
+            "modified": "2025-09-02T13:58:33",
+            "path": "/home/vivi/pixelated/ai/datasets/CoT_Heartbreak_and_Breakups_downloaded.json",
+            "relative_path": "CoT_Heartbreak_and_Breakups_downloaded.json",
+            "size_bytes": 38489133
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".csv",
+            "modified": "2019-12-19T09:52:40",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/test.csv",
+            "relative_path": "ghost/empathetic_dialogues/data/test.csv",
+            "size_bytes": 36608618
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".csv",
+            "modified": "2019-12-19T09:52:40",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/test.csv",
+            "relative_path": "empathetic_dialogues/data/test.csv",
+            "size_bytes": 36608618
+          },
+          {
+            "category": "chain_of_thought",
+            "extension": ".json",
+            "modified": "2025-07-29T21:08:54",
+            "path": "/home/vivi/pixelated/ai/datasets/CoT_Legal_Issues_And_Laws/CoT_Legal_Issues_And_Laws.json",
+            "relative_path": "CoT_Legal_Issues_And_Laws/CoT_Legal_Issues_And_Laws.json",
+            "size_bytes": 25486617
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-09-07T16:29:16",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+            "relative_path": "pixelated-training/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+            "size_bytes": 25303165
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".csv",
+            "modified": "2025-05-03T20:57:44",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/sentiment_data.csv",
+            "relative_path": "ghost/datasets/sentiment_data.csv",
+            "size_bytes": 23860510
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".csv",
+            "modified": "2025-05-03T20:57:44",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/sentiment_data.csv",
+            "relative_path": "datasets/sentiment_data.csv",
+            "size_bytes": 23860510
+          },
+          {
+            "category": "chain_of_thought",
+            "extension": ".json",
+            "modified": "2025-07-28T14:33:18",
+            "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+            "relative_path": "CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+            "size_bytes": 20115638
+          },
+          {
+            "category": "chain_of_thought",
+            "extension": ".json",
+            "modified": "2025-09-02T13:58:34",
+            "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health_downloaded.json",
+            "relative_path": "CoT_Reasoning_Clinical_Diagnosis_Mental_Health_downloaded.json",
+            "size_bytes": 20089914
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-04-25T02:41:04",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/iCliniq.json",
+            "relative_path": "ghost/datasets/iCliniq.json",
+            "size_bytes": 19536692
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-04-25T02:41:04",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/iCliniq.json",
+            "relative_path": "datasets/iCliniq.json",
+            "size_bytes": 19536692
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T10:12:12",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/dual_persona_training/training_data.jsonl",
+            "relative_path": "ghost/dual_persona_training/training_data.jsonl",
+            "size_bytes": 19459250
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".jsonl",
+            "modified": "2025-05-26T10:12:12",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/dual_persona_training/training_data.jsonl",
+            "relative_path": "dual_persona_training/training_data.jsonl",
+            "size_bytes": 19459250
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".txt",
+            "modified": "2017-05-25T11:12:58",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/collected_weather_dataset.txt",
+            "relative_path": "ghost/datasets/collected_weather_dataset.txt",
+            "size_bytes": 18521203
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".txt",
+            "modified": "2017-05-25T11:12:58",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/collected_weather_dataset.txt",
+            "relative_path": "datasets/collected_weather_dataset.txt",
+            "size_bytes": 18521203
+          },
+          {
+            "category": "chain_of_thought",
+            "extension": ".json",
+            "modified": "2025-07-29T21:09:10",
+            "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Mens_Mental_Health/CoT_Reasoning_Mens_Mental_Health.json",
+            "relative_path": "CoT_Reasoning_Mens_Mental_Health/CoT_Reasoning_Mens_Mental_Health.json",
+            "size_bytes": 17836257
+          },
+          {
+            "category": "chain_of_thought",
+            "extension": ".json",
+            "modified": "2025-09-02T13:58:35",
+            "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+            "relative_path": "CoT_Reasoning_Mens_Mental_Health_downloaded.json",
+            "size_bytes": 17809998
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".csv",
+            "modified": "2019-12-19T09:52:46",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/train.csv",
+            "relative_path": "ghost/empathetic_dialogues/data/train.csv",
+            "size_bytes": 17394764
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".csv",
+            "modified": "2019-12-19T09:52:46",
+            "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/train.csv",
+            "relative_path": "empathetic_dialogues/data/train.csv",
+            "size_bytes": 17394764
+          },
+          {
+            "category": "chain_of_thought",
+            "extension": ".json",
+            "modified": "2025-07-29T21:09:02",
+            "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Quantom_Physics_And_Computing/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+            "relative_path": "CoT_Reasoning_Quantom_Physics_And_Computing/CoT_Reasoning_Quantum_Physics_And_Computing.json",
+            "size_bytes": 17316867
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-24T15:10:22.776416",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-100/tokenizer.json",
+            "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-100/tokenizer.json",
+            "size_bytes": 17078934
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-24T15:11:49.671738",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-300/tokenizer.json",
+            "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-300/tokenizer.json",
+            "size_bytes": 17078934
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-24T15:10:57.359379",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-200/tokenizer.json",
+            "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-200/tokenizer.json",
+            "size_bytes": 17078934
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-24T15:12:09.466846",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-350/tokenizer.json",
+            "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-350/tokenizer.json",
+            "size_bytes": 17078934
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-24T15:12:12.499227",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-50/tokenizer.json",
+            "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-50/tokenizer.json",
+            "size_bytes": 17078934
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-24T15:11:29.798159",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-250/tokenizer.json",
+            "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-250/tokenizer.json",
+            "size_bytes": 17078934
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-24T15:10:40.901969",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/wayfarer-balanced/checkpoint-150/tokenizer.json",
+            "relative_path": "pixelated-training/wayfarer-balanced/checkpoint-150/tokenizer.json",
+            "size_bytes": 17078934
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-24T15:12:14.350256",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/practical_high_quality.json",
+            "relative_path": "pixelated-v2/training_data/enhanced/practical_high_quality.json",
+            "size_bytes": 14846257
+          },
+          {
+            "category": "therapeutic_data",
+            "extension": ".json",
+            "modified": "2025-10-24T15:12:14.411224",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/therapeutic_high_quality.json",
+            "relative_path": "pixelated-v2/training_data/enhanced/therapeutic_high_quality.json",
+            "size_bytes": 13583109
+          },
+          {
+            "category": "uncategorized",
+            "extension": ".json",
+            "modified": "2025-10-24T15:12:14.281292",
+            "path": "/home/vivi/pixelated/ai/lightning/pixelated-v2/training_data/enhanced/educational_high_quality.json",
+            "relative_path": "pixelated-v2/training_data/enhanced/educational_high_quality.json",
+            "size_bytes": 13469212
+          }
+        ],
+        "total_size": 786388564
+      }
+    ],
+    "streaming_required": true,
+    "total_size_gb": 24.0
+  },
+  "s3_claimed_objects": 19330,
+  "s3_claimed_size": 56053379485,
+  "size_discrepancy": 30288781875,
+  "top_files": [
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-10-19T12:58:45.425979",
+      "path": "/home/vivi/pixelated/ai/lightning/processed_data/merged_dataset_original.jsonl",
+      "relative_path": "processed_data/merged_dataset_original.jsonl",
+      "size_bytes": 3863573525
+    },
+    {
+      "category": "consolidated",
+      "extension": ".jsonl",
+      "modified": "2025-10-28T13:44:25.567446",
+      "path": "/home/vivi/pixelated/ai/training_ready/data/ULTIMATE_FINAL_DATASET.jsonl",
+      "relative_path": "ULTIMATE_FINAL_DATASET.jsonl",
+      "size_bytes": 2677798451
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-10-19T13:51:34.084736",
+      "path": "/home/vivi/pixelated/ai/lightning/processed_data/merged_dataset.jsonl",
+      "relative_path": "processed_data/merged_dataset.jsonl",
+      "size_bytes": 2597706555
+    },
+    {
+      "category": "consolidated",
+      "extension": ".jsonl",
+      "modified": "2025-12-02T14:09:27.218351",
+      "path": "/home/vivi/pixelated/ai/training_ready/configs/stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
+      "relative_path": "stage_configs/ULTIMATE_FINAL_DATASET.jsonl",
+      "size_bytes": 2593275904
+    },
+    {
+      "category": "consolidated",
+      "extension": ".jsonl",
+      "modified": "2025-12-30T15:36:00.152622",
+      "path": "/home/vivi/pixelated/ai/training_ready/data/ULTIMATE_FINAL_DATASET_cleaned.jsonl",
+      "relative_path": "ULTIMATE_FINAL_DATASET_cleaned.jsonl",
+      "size_bytes": 1922398939
+    },
+    {
+      "category": "social_media",
+      "extension": ".csv",
+      "modified": "2025-10-14T06:40:38",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/reddit_depression_dataset.csv",
+      "relative_path": "ghost/datasets/reddit_depression_dataset.csv",
+      "size_bytes": 1165277530
+    },
+    {
+      "category": "social_media",
+      "extension": ".csv",
+      "modified": "2025-10-14T06:40:38",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/reddit_depression_dataset.csv",
+      "relative_path": "datasets/reddit_depression_dataset.csv",
+      "size_bytes": 1165277530
+    },
+    {
+      "category": "psychological_data",
+      "extension": ".jsonl",
+      "modified": "2025-12-25T14:18:20.911255",
+      "path": "/home/vivi/pixelated/ai/datasets/tier6_knowledge/Psych-101/train.jsonl",
+      "relative_path": "tier6_knowledge/Psych-101/train.jsonl",
+      "size_bytes": 858942975
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:10:07.579114",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/training_dataset.json",
+      "relative_path": "pixelated-training/training_dataset.json",
+      "size_bytes": 828477242
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:39:40",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+      "relative_path": "ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+      "size_bytes": 484546094
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-10-14T07:30:58",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+      "relative_path": "ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+      "size_bytes": 484546094
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:39:40",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_1/priority_1_FINAL.jsonl",
+      "relative_path": "datasets/priority_1/priority_1_FINAL.jsonl",
+      "size_bytes": 484546094
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-10-14T07:30:58",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+      "relative_path": "Wendy/datasets/priority_1/priority_1_FINAL.jsonl",
+      "size_bytes": 484546094
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:07:28",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+      "relative_path": "ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+      "size_bytes": 388349831
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:07:28",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+      "relative_path": "ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+      "size_bytes": 388349831
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:07:28",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_3/priority_3_FINAL.jsonl",
+      "relative_path": "datasets/priority_3/priority_3_FINAL.jsonl",
+      "size_bytes": 388349831
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:07:28",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+      "relative_path": "Wendy/datasets/priority_3/priority_3_FINAL.jsonl",
+      "size_bytes": 388349831
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:40:08",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+      "relative_path": "ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+      "size_bytes": 345745944
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:40:08",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+      "relative_path": "ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+      "size_bytes": 345745944
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:40:08",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/priority_2/priority_2_FINAL.jsonl",
+      "relative_path": "datasets/priority_2/priority_2_FINAL.jsonl",
+      "size_bytes": 345745944
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T13:40:08",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+      "relative_path": "Wendy/datasets/priority_2/priority_2_FINAL.jsonl",
+      "size_bytes": 345745944
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".jsonl",
+      "modified": "2025-09-07T16:29:04",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
+      "relative_path": "pixelated-training/processed/phase_3_cot_reasoning/task_5_15_cot_reasoning/cot_reasoning_conversations_consolidated.jsonl",
+      "size_bytes": 292592117
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-10-17T16:11:37.907082",
+      "path": "/home/vivi/pixelated/ai/lightning/processed_data/unified_training_data.jsonl",
+      "relative_path": "processed_data/unified_training_data.jsonl",
+      "size_bytes": 222242650
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-10-14T07:30:14",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+      "relative_path": "ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+      "size_bytes": 199668099
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-10-14T07:30:14",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+      "relative_path": "Wendy/pixelated_empathy_val_20250526_174637.jsonl",
+      "size_bytes": 199668099
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:46:46",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+      "relative_path": "ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+      "size_bytes": 198503089
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-05-26T14:46:46",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+      "relative_path": "Wendy/pixelated_empathy_test_20250526_174637.jsonl",
+      "size_bytes": 198503089
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-09-07T16:28:58",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+      "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_3_priority_3/priority_3_conversations.jsonl",
+      "size_bytes": 159598319
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-09-07T16:28:52",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+      "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_6_unified_priority/unified_priority_conversations.jsonl",
+      "size_bytes": 149527524
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-04-25T02:40:56",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/HealthCareMagic-100k.json",
+      "relative_path": "ghost/datasets/HealthCareMagic-100k.json",
+      "size_bytes": 143845222
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-04-25T02:40:56",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/HealthCareMagic-100k.json",
+      "relative_path": "datasets/HealthCareMagic-100k.json",
+      "size_bytes": 143845222
+    },
+    {
+      "category": "priority_datasets",
+      "extension": ".jsonl",
+      "modified": "2025-09-07T16:28:48",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+      "relative_path": "pixelated-training/processed/phase_1_priority_conversations/task_5_2_priority_2/priority_2_conversations.jsonl",
+      "size_bytes": 128897645
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-09T10:54:00.100610",
+      "path": "/home/vivi/pixelated/ai/training_ready/configs/hyperparameters/training_dataset.json",
+      "relative_path": "hyperparameters/training_dataset.json",
+      "size_bytes": 125834752
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-05-25T22:34:10",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/master_integration/therapy_expert_train.jsonl",
+      "relative_path": "ghost/master_integration/therapy_expert_train.jsonl",
+      "size_bytes": 76198530
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-05-25T22:34:10",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/master_integration/therapy_expert_train.jsonl",
+      "relative_path": "master_integration/therapy_expert_train.jsonl",
+      "size_bytes": 76198530
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".json",
+      "modified": "2025-10-24T15:10:07.941145",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/training_dataset_enhanced.json",
+      "relative_path": "pixelated-training/training_dataset_enhanced.json",
+      "size_bytes": 60328138
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-07-28T14:38:26",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions/CoT_Neurodivergent vs. Neurotypical Interactions.json",
+      "relative_path": "CoT_Neurodivergent_vs_Neurotypical_Interactions/CoT_Neurodivergent vs. Neurotypical Interactions.json",
+      "size_bytes": 55461894
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-09-02T13:58:34",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+      "relative_path": "CoT_Neurodivergent_vs_Neurotypical_Interactions_downloaded.json",
+      "size_bytes": 55379316
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2019-12-19T09:52:50",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/valid.csv",
+      "relative_path": "ghost/empathetic_dialogues/data/valid.csv",
+      "size_bytes": 38888723
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2019-12-19T09:52:50",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/valid.csv",
+      "relative_path": "empathetic_dialogues/data/valid.csv",
+      "size_bytes": 38888723
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-07-28T14:32:19",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Heartbreak_and_Breakups/CoT-Breakups and heartbreak-9.8k.json",
+      "relative_path": "CoT_Heartbreak_and_Breakups/CoT-Breakups and heartbreak-9.8k.json",
+      "size_bytes": 38571023
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-09-02T13:58:33",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Heartbreak_and_Breakups_downloaded.json",
+      "relative_path": "CoT_Heartbreak_and_Breakups_downloaded.json",
+      "size_bytes": 38489133
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2019-12-19T09:52:40",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/test.csv",
+      "relative_path": "ghost/empathetic_dialogues/data/test.csv",
+      "size_bytes": 36608618
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2019-12-19T09:52:40",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/empathetic_dialogues/data/test.csv",
+      "relative_path": "empathetic_dialogues/data/test.csv",
+      "size_bytes": 36608618
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-07-29T21:08:54",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Legal_Issues_And_Laws/CoT_Legal_Issues_And_Laws.json",
+      "relative_path": "CoT_Legal_Issues_And_Laws/CoT_Legal_Issues_And_Laws.json",
+      "size_bytes": 25486617
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".jsonl",
+      "modified": "2025-09-07T16:29:16",
+      "path": "/home/vivi/pixelated/ai/lightning/pixelated-training/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+      "relative_path": "pixelated-training/processed/phase_2_professional_datasets/task_5_9_soulchat/soulchat_2_0_conversations.jsonl",
+      "size_bytes": 25303165
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2025-05-03T20:57:44",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/sentiment_data.csv",
+      "relative_path": "ghost/datasets/sentiment_data.csv",
+      "size_bytes": 23860510
+    },
+    {
+      "category": "uncategorized",
+      "extension": ".csv",
+      "modified": "2025-05-03T20:57:44",
+      "path": "/home/vivi/pixelated/ai/lightning/ghost/datasets/sentiment_data.csv",
+      "relative_path": "datasets/sentiment_data.csv",
+      "size_bytes": 23860510
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-07-28T14:33:18",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+      "relative_path": "CoT_Reasoning_Clinical_Diagnosis_Mental_Health/CoT_Reasoning_Clinical_Diagnosis_Mental_Health.json",
+      "size_bytes": 20115638
+    },
+    {
+      "category": "chain_of_thought",
+      "extension": ".json",
+      "modified": "2025-09-02T13:58:34",
+      "path": "/home/vivi/pixelated/ai/datasets/CoT_Reasoning_Clinical_Diagnosis_Mental_Health_downloaded.json",
+      "relative_path": "CoT_Reasoning_Clinical_Diagnosis_Mental_Health_downloaded.json",
+      "size_bytes": 20089914
+    }
+  ],
+  "total_real_files": 71,
+  "total_real_size_bytes": 25764597610
+}

@@ -2,7 +2,9 @@
 
 ## Overview
 
-This simplified taxonomy reduces annotation complexity while maintaining clinical utility. Based on Phase 1.3 results showing Crisis κ=1.0 but Emotion κ=0.78, we're refining the emotion categories.
+This simplified taxonomy reduces annotation complexity while maintaining
+clinical utility. Based on Phase 1.3 results showing Crisis κ=1.0 but Emotion
+κ=0.78, we're refining the emotion categories.
 
 ## Changes from Original
 

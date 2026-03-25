@@ -125,11 +125,11 @@ Apply content-based deduplication (similarity threshold: 0.85)
 
 #### Clinical Accuracy
 
->0.65 for therapeutic applications
+> 0.65 for therapeutic applications
 
 #### Safety Score
 
->0.8 for all conversations
+> 0.8 for all conversations
 
 ## Quality Guidelines {#quality_guidelines}
 
@@ -698,4 +698,3 @@ Proper release management procedures
 #### Rollback Procedures
 
 Rollback procedures for failed deployments
-

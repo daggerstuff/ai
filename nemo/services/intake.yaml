@@ -4,7 +4,7 @@ services:
     profiles: [intake]
     restart: unless-stopped
     ports:
-      - "8000"
+      - '8000'
     networks:
       - nmp
     environment:
@@ -19,10 +19,11 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; assert urllib.request.urlopen('http://localhost:8000/health').status == 200",
+          'CMD',
+          'python',
+          '-c',
+          "import urllib.request; assert
+          urllib.request.urlopen('http://localhost:8000/health').status == 200",
         ]
       interval: 10s
       timeout: 3s
@@ -35,8 +36,8 @@ services:
     working_dir: /app/services/intake
     environment:
       POSTGRES_URI: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/intake
-    entrypoint: ["/app/.venv/bin/alembic"]
-    command: ["upgrade", "head"]
+    entrypoint: ['/app/.venv/bin/alembic']
+    command: ['upgrade', 'head']
     depends_on:
       postgres:
         condition: service_healthy

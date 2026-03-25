@@ -68,7 +68,8 @@ Adherence to technical best practices and security standards
 
 ### License Type
 
-Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)
+Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC
+BY-NC-SA 4.0)
 
 ### License Summary
 
@@ -82,11 +83,13 @@ You may not use the material for commercial purposes without explicit permission
 
 #### Share Alike
 
-If you remix, transform, or build upon the material, you must distribute your contributions under the same license
+If you remix, transform, or build upon the material, you must distribute your
+contributions under the same license
 
 #### No Additional Restrictions
 
-You may not apply legal terms or technological measures that legally restrict others from doing anything the license permits
+You may not apply legal terms or technological measures that legally restrict
+others from doing anything the license permits
 
 ### Permitted Uses
 
@@ -152,23 +155,22 @@ MIT License
 
 Copyright (c) 2024 Pixelated Empathy AI Project
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of
+this software and associated documentation files (the "Software"), to deal in
+the Software without restriction, including without limitation the rights to
+use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
+the Software, and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all
 copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ### Permissions
 
@@ -216,7 +218,8 @@ Third-party attributions included in LICENSES.txt file
 ### Restricted Applications
 
 - **application**: Clinical or therapeutic use
-- **requirements**: Requires appropriate clinical oversight and professional licensing
+- **requirements**: Requires appropriate clinical oversight and professional
+  licensing
 - **approval_needed**: Clinical review board approval may be required
 - **application**: Research involving human subjects
 - **requirements**: Requires IRB approval and informed consent
@@ -250,7 +253,8 @@ Compliance with emerging AI governance and regulation frameworks
 
 #### Minimum Age
 
-System not intended for use with individuals under 18 without appropriate supervision
+System not intended for use with individuals under 18 without appropriate
+supervision
 
 #### Parental Consent
 
@@ -843,18 +847,14 @@ Ongoing compliance monitoring and reporting
 
 #### Required Citation
 
-Pixelated Empathy AI Dataset. (2024). Version 1.0. [Dataset]. Available at: [URL]
+Pixelated Empathy AI Dataset. (2024). Version 1.0. [Dataset]. Available at:
+[URL]
 
 #### Bibtex Format
 
-@dataset{pixelated_empathy_2024,
-  title={Pixelated Empathy AI Dataset},
-  author={Pixelated Empathy AI Project},
-  year={2024},
-  version={1.0},
-  url={[URL]},
-  note={Licensed under CC BY-NC-SA 4.0}
-}
+@dataset{pixelated_empathy_2024, title={Pixelated Empathy AI Dataset},
+author={Pixelated Empathy AI Project}, year={2024}, version={1.0}, url={[URL]},
+note={Licensed under CC BY-NC-SA 4.0} }
 
 #### Acknowledgments
 
@@ -991,4 +991,3 @@ Users responsible for compliance with applicable laws
 #### Indemnification
 
 Users agree to indemnify developers against claims arising from use
-

@@ -9,7 +9,9 @@
 
 ## Overview
 
-Complete implementation of the provenance metadata tracking system for the Dataset Expansion project. The system tracks source information, licenses, processing lineage, and provides audit trails for compliance.
+Complete implementation of the provenance metadata tracking system for the
+Dataset Expansion project. The system tracks source information, licenses,
+processing lineage, and provides audit trails for compliance.
 
 ---
 
@@ -22,7 +24,6 @@ Complete implementation of the provenance metadata tracking system for the Datas
 - **Tables Created**:
   - `dataset_provenance` - Main provenance records with JSONB fields
   - `provenance_audit_log` - Immutable audit trail
-  
 - **Features**:
   - Comprehensive indexes for efficient querying
   - Full-text search support
@@ -35,6 +36,7 @@ Complete implementation of the provenance metadata tracking system for the Datas
 **File**: `ai/pipelines/orchestrator/services/provenance_service.py`
 
 **ProvenanceService Class**:
+
 - Database connection management (asyncpg pool)
 - Schema initialization
 - CRUD operations (create, read, update, delete)
@@ -46,11 +48,15 @@ Complete implementation of the provenance metadata tracking system for the Datas
 ### 3. Integration Layer ✅
 
 **Files**:
-- `provenance_integration.py` - Helper functions for creating provenance from pipeline data
+
+- `provenance_integration.py` - Helper functions for creating provenance from
+  pipeline data
 - `provenance_pipeline_integration.py` - Decorators and context managers
-- `provenance_orchestrator_wrapper.py` - Wrapper class for easy orchestrator integration
+- `provenance_orchestrator_wrapper.py` - Wrapper class for easy orchestrator
+  integration
 
 **Features**:
+
 - Automatic provenance record creation from pipeline stages
 - Stage tracking functions
 - Storage information updates
@@ -61,6 +67,7 @@ Complete implementation of the provenance metadata tracking system for the Datas
 **File**: `ai/pipelines/orchestrator/cli/provenance_cli.py`
 
 **Commands**:
+
 - `init-schema` - Initialize database schema
 - `create` - Create provenance record from JSON file
 - `get` - Retrieve provenance record by dataset ID
@@ -70,6 +77,7 @@ Complete implementation of the provenance metadata tracking system for the Datas
 ### 5. Documentation ✅
 
 **Files**:
+
 - `services/README.md` - Complete usage documentation
 - `services/IMPLEMENTATION_SUMMARY.md` - This file
 - Integration examples in code comments
@@ -192,6 +200,7 @@ python -m ai.pipelines.orchestrator.cli.provenance_cli list \
 ### Database Setup
 
 1. Run migration:
+
    ```bash
    psql $DATABASE_URL -f db/provenance_schema.sql
    ```
@@ -210,6 +219,7 @@ python -m ai.pipelines.orchestrator.cli.provenance_cli list \
 To integrate into existing pipeline orchestrators:
 
 1. **Import wrapper**:
+
    ```python
    from ai.pipelines.orchestrator.services.provenance_orchestrator_wrapper import (
        ProvenanceOrchestratorWrapper,
@@ -217,6 +227,7 @@ To integrate into existing pipeline orchestrators:
    ```
 
 2. **Initialize in orchestrator**:
+
    ```python
    self.provenance_tracker = ProvenanceOrchestratorWrapper()
    await self.provenance_tracker.initialize()
@@ -235,11 +246,13 @@ See `provenance_integration_example.py` for complete example.
 ## Testing
 
 Run verification:
+
 ```bash
 python3 ai/pipelines/orchestrator/services/verify_implementation.py
 ```
 
 Test CLI:
+
 ```bash
 python -m ai.pipelines.orchestrator.cli.provenance_cli init-schema
 python -m ai.pipelines.orchestrator.cli.provenance_cli list

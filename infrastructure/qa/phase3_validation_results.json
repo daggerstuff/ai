@@ -20,9 +20,7 @@
   },
   "overall_score": 97.5,
   "enterprise_ready": false,
-  "critical_issues": [
-    "Task 3.1: Accuracy 87.5% below 95% requirement"
-  ],
+  "critical_issues": ["Task 3.1: Accuracy 87.5% below 95% requirement"],
   "recommendations": [
     "Resolve all critical issues before production deployment"
   ]

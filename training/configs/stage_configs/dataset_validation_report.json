@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-11-04T20:01:01.798115",
+  "dataset_path": "ai/training_data_consolidated/final_datasets/ULTIMATE_FINAL_DATASET.jsonl",
+  "file_exists": true,
+  "file_readable": true,
+  "record_count": 10000,
+  "quality_metrics": {
+    "field_coverage": {
+      "prompt_id": "8.0%",
+      "category": "100.0%",
+      "scenario_type": "8.0%",
+      "instructions": "8.0%",
+      "metadata": "100.0%",
+      "_source": "100.0%",
+      "messages": "0.0%",
+      "text": "0.0%"
+    },
+    "source_type_distribution": {
+      "ghost": 10000
+    },
+    "average_content_length": 77.834,
+    "min_content_length": 0,
+    "max_content_length": 1220
+  },
+  "validation_errors": [],
+  "recommendations": [],
+  "overall_status": "PASSED"
+}

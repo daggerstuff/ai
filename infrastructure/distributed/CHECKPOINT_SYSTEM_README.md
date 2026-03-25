@@ -2,29 +2,38 @@
 
 ## Overview
 
-The Processing Checkpoint System provides robust fault tolerance and recovery capabilities for the Pixelated Empathy AI distributed processing infrastructure. It enables automatic checkpoint creation, storage, and recovery to ensure processing operations can resume from the last known good state after interruptions.
+The Processing Checkpoint System provides robust fault tolerance and recovery
+capabilities for the Pixelated Empathy AI distributed processing infrastructure.
+It enables automatic checkpoint creation, storage, and recovery to ensure
+processing operations can resume from the last known good state after
+interruptions.
 
 ## 🚀 Key Features
 
 ### **Comprehensive Checkpoint Management**
+
 - **Automatic checkpoint creation** during processing operations
-- **Multiple checkpoint types** (processing state, batch progress, model state, etc.)
+- **Multiple checkpoint types** (processing state, batch progress, model state,
+  etc.)
 - **Intelligent storage optimization** with compression and deduplication
 - **Configurable TTL** and automatic cleanup of expired checkpoints
 
 ### **Fault Tolerance & Recovery**
+
 - **Process state persistence** across system restarts
 - **Automatic recovery** from the latest checkpoint
 - **Progress tracking** with completion estimation
 - **Partial result recovery** and continuation capabilities
 
 ### **Performance & Optimization**
+
 - **Compressed storage** to minimize disk usage
 - **Deduplication** of identical checkpoint data
 - **Background cleanup** of expired checkpoints
 - **Storage limit enforcement** with automatic optimization
 
 ### **Monitoring & Health**
+
 - **Real-time monitoring** of checkpoint system health
 - **Performance metrics** and trend analysis
 - **Storage usage tracking** and optimization recommendations
@@ -99,21 +108,21 @@ from checkpoint_utils import setup_checkpoint_system
 async def process_with_checkpoints():
     # Initialize system
     manager, monitor = setup_checkpoint_system()
-    
+
     try:
         # Register a processing operation
         process_id = "data_processing_001"
         task_id = "batch_processing"
-        
+
         state = manager.register_process(
             process_id=process_id,
             task_id=task_id,
             total_steps=100,
             description="Processing large dataset"
         )
-        
+
         print(f"Registered process: {process_id}")
-        
+
         # Simulate processing with progress updates
         for step in range(0, 101, 10):
             # Update progress (auto-checkpoints every 5% progress)
@@ -127,12 +136,12 @@ async def process_with_checkpoints():
                     "memory_usage": "45%"
                 }
             )
-            
+
             print(f"Progress: {step}% - {state.current_step}")
-            
+
             # Simulate work
             await asyncio.sleep(0.5)
-        
+
         # Complete the process
         final_checkpoint = manager.complete_process(
             process_id=process_id,
@@ -142,9 +151,9 @@ async def process_with_checkpoints():
                 "processing_time": "50 seconds"
             }
         )
-        
+
         print(f"Process completed with checkpoint: {final_checkpoint}")
-        
+
     finally:
         manager.stop_background_tasks()
         monitor.stop_monitoring()
@@ -160,32 +169,32 @@ from checkpoint_system import CheckpointManager
 
 async def recover_interrupted_process():
     manager = CheckpointManager()
-    
+
     # Attempt to recover a process
     process_id = "interrupted_process_001"
     recovered_state = manager.recover_process(process_id)
-    
+
     if recovered_state:
         print(f"Recovered process at {recovered_state.progress_percentage:.1f}% completion")
         print(f"Last step: {recovered_state.current_step}")
         print(f"Completed steps: {recovered_state.completed_steps}/{recovered_state.total_steps}")
-        
+
         # Continue processing from where it left off
         remaining_steps = recovered_state.total_steps - recovered_state.completed_steps
-        
+
         for step in range(recovered_state.completed_steps + 1, recovered_state.total_steps + 1):
             manager.update_process_progress(
                 process_id=process_id,
                 completed_steps=step,
                 current_step=f"Resumed processing step {step}"
             )
-            
+
             await asyncio.sleep(0.1)  # Simulate work
-        
+
         # Complete the recovered process
         manager.complete_process(process_id, {"recovery": "successful"})
         print("Process completed after recovery")
-        
+
     else:
         print("No checkpoint found for recovery")
 
@@ -199,7 +208,7 @@ from checkpoint_system import CheckpointManager, CheckpointType
 
 async def create_custom_checkpoints():
     manager = CheckpointManager()
-    
+
     # Create model state checkpoint
     model_state = {
         "epoch": 15,
@@ -208,7 +217,7 @@ async def create_custom_checkpoints():
         "weights": "model_weights_epoch_15.pkl",
         "optimizer_state": "optimizer_state_epoch_15.pkl"
     }
-    
+
     model_checkpoint = manager.create_checkpoint(
         process_id="training_session_001",
         task_id="model_training",
@@ -218,9 +227,9 @@ async def create_custom_checkpoints():
         tags=["training", "epoch_15", "high_accuracy"],
         ttl_hours=168  # Keep for 1 week
     )
-    
+
     print(f"Created model checkpoint: {model_checkpoint}")
-    
+
     # Create batch processing checkpoint
     batch_state = {
         "batch_id": "batch_2024_001",
@@ -232,7 +241,7 @@ async def create_custom_checkpoints():
             "estimated_completion": "2024-08-27T02:30:00Z"
         }
     }
-    
+
     batch_checkpoint = manager.create_checkpoint(
         process_id="batch_processor_001",
         task_id="daily_batch_processing",
@@ -241,7 +250,7 @@ async def create_custom_checkpoints():
         description="Batch processing checkpoint",
         tags=["batch", "daily_processing"]
     )
-    
+
     print(f"Created batch checkpoint: {batch_checkpoint}")
 
 asyncio.run(create_custom_checkpoints())
@@ -259,22 +268,22 @@ def optimize_checkpoint_storage():
         compression_enabled=True,
         backup_enabled=True
     )
-    
+
     # Initialize optimizer
     optimizer = CheckpointOptimizer(config)
-    
+
     # Run optimization
     results = optimizer.optimize_storage()
-    
+
     print("Optimization Results:")
     print(f"  Actions taken: {results['actions_taken']}")
     print(f"  Space freed: {results['space_freed_mb']:.2f} MB")
     print(f"  Checkpoints archived: {results['checkpoints_archived']}")
     print(f"  Checkpoints compressed: {results['checkpoints_compressed']}")
-    
+
     # Analyze performance
     analysis = optimizer.analyze_performance()
-    
+
     print("\nPerformance Analysis:")
     print(f"  Storage efficiency: {analysis['storage_efficiency']}")
     print(f"  Recommendations: {analysis['recommendations']}")
@@ -293,20 +302,20 @@ config = CheckpointConfig(
     # Storage settings
     storage_path="/path/to/checkpoints",
     max_storage_size_gb=10.0,
-    
+
     # Timing settings
     auto_checkpoint_interval=300,  # 5 minutes
     cleanup_interval=3600,         # 1 hour
     default_ttl_hours=24,          # 24 hours
-    
+
     # Optimization settings
     compression_enabled=True,
     encryption_enabled=False,      # Future feature
-    
+
     # Backup settings
     backup_enabled=True,
     backup_path="/path/to/backups",
-    
+
     # Monitoring settings
     monitoring_enabled=True,
     performance_tracking=True
@@ -365,12 +374,12 @@ python3 test_checkpoint_system.py
 # Expected output:
 # 🧪 Starting Checkpoint System Test Suite
 # ============================================================
-# 
+#
 # 🔍 Running test_basic_checkpoint_operations...
 # ✅ test_basic_checkpoint_operations passed
-# 
+#
 # ... (additional tests)
-# 
+#
 # 🏁 CHECKPOINT SYSTEM TEST SUMMARY
 # ============================================================
 # ✅ Passed: 10
@@ -459,7 +468,7 @@ class CheckpointedPipeline(ProcessingPipeline):
     def __init__(self):
         super().__init__()
         self.checkpoint_manager = CheckpointManager()
-    
+
     async def process_batch(self, batch_id, data):
         # Register processing operation
         process_id = f"pipeline_{batch_id}"
@@ -469,12 +478,12 @@ class CheckpointedPipeline(ProcessingPipeline):
             total_steps=len(data),
             description=f"Processing batch {batch_id}"
         )
-        
+
         try:
             # Process with checkpoints
             for i, item in enumerate(data):
                 result = await self.process_item(item)
-                
+
                 # Update progress with checkpoint
                 self.checkpoint_manager.update_process_progress(
                     process_id=process_id,
@@ -482,15 +491,15 @@ class CheckpointedPipeline(ProcessingPipeline):
                     current_step=f"Processed item {i + 1}",
                     metadata={"item_id": item.id, "result": result}
                 )
-            
+
             # Complete processing
             final_checkpoint = self.checkpoint_manager.complete_process(
                 process_id=process_id,
                 final_data={"batch_id": batch_id, "items_processed": len(data)}
             )
-            
+
             return final_checkpoint
-            
+
         except Exception as e:
             # Error occurred - checkpoint current state for recovery
             self.checkpoint_manager.create_checkpoint(
@@ -517,12 +526,12 @@ class CheckpointMonitoringIntegration:
     def __init__(self, checkpoint_monitor, notification_manager):
         self.checkpoint_monitor = checkpoint_monitor
         self.notification_manager = notification_manager
-        
+
         # Register callbacks for checkpoint events
         checkpoint_monitor.manager.add_checkpoint_callback(
             "created", self.on_checkpoint_created
         )
-    
+
     async def on_checkpoint_created(self, checkpoint_id, event_type, metadata):
         # Send notification for critical checkpoints
         if metadata.checkpoint_type == CheckpointType.MODEL_STATE:
@@ -532,11 +541,11 @@ class CheckpointMonitoringIntegration:
                 priority=NotificationPriority.LOW,
                 metadata={"checkpoint_id": checkpoint_id}
             )
-    
+
     async def monitor_health(self):
         # Regular health checks with alerting
         health_report = self.checkpoint_monitor.get_health_report()
-        
+
         if health_report["status"] == "critical":
             await self.notification_manager.send_alert(
                 title="Checkpoint System Critical",
@@ -552,11 +561,14 @@ class CheckpointMonitoringIntegration:
 
 #### Core Methods
 
-- `register_process(process_id, task_id, total_steps, description)`: Register new process
-- `update_process_progress(process_id, completed_steps, current_step, metadata)`: Update progress
+- `register_process(process_id, task_id, total_steps, description)`: Register
+  new process
+- `update_process_progress(process_id, completed_steps, current_step, metadata)`:
+  Update progress
 - `complete_process(process_id, final_data)`: Mark process as completed
 - `recover_process(process_id)`: Recover process from checkpoint
-- `create_checkpoint(process_id, task_id, checkpoint_type, data, description)`: Create checkpoint
+- `create_checkpoint(process_id, task_id, checkpoint_type, data, description)`:
+  Create checkpoint
 
 #### Utility Methods
 
@@ -570,7 +582,8 @@ class CheckpointMonitoringIntegration:
 
 - `save_checkpoint(metadata, data)`: Save checkpoint to storage
 - `load_checkpoint(checkpoint_id)`: Load checkpoint from storage
-- `list_checkpoints(process_id, task_id, checkpoint_type, status)`: List checkpoints with filters
+- `list_checkpoints(process_id, task_id, checkpoint_type, status)`: List
+  checkpoints with filters
 - `delete_checkpoint(checkpoint_id)`: Delete checkpoint
 - `cleanup_expired_checkpoints()`: Clean up expired checkpoints
 

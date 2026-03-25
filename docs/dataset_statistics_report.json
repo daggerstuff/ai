@@ -64,12 +64,7 @@
       "conversation_format": "Multi-turn therapeutic conversations",
       "average_turns": "3-15 turns per conversation",
       "language": "English",
-      "domains": [
-        "Mental health",
-        "Psychology",
-        "Counseling",
-        "Peer support"
-      ],
+      "domains": ["Mental health", "Psychology", "Counseling", "Peer support"],
       "quality_validation": "Real NLP-based quality assessment",
       "ethical_compliance": "Privacy-protected and ethically sourced"
     }
@@ -166,11 +161,7 @@
       "tier_1_priority": {
         "description": "Highest quality therapeutic conversations",
         "quality_threshold": ">0.8",
-        "use_cases": [
-          "Model training",
-          "Fine-tuning",
-          "Production deployment"
-        ],
+        "use_cases": ["Model training", "Fine-tuning", "Production deployment"],
         "characteristics": [
           "Professional quality",
           "Clinical accuracy",
@@ -180,11 +171,7 @@
       "tier_2_standard": {
         "description": "Standard quality conversations for general training",
         "quality_threshold": "0.6-0.8",
-        "use_cases": [
-          "General training",
-          "Data augmentation",
-          "Research"
-        ],
+        "use_cases": ["General training", "Data augmentation", "Research"],
         "characteristics": [
           "Good quality",
           "Appropriate content",
@@ -194,11 +181,7 @@
       "tier_3_supplementary": {
         "description": "Supplementary conversations for context and diversity",
         "quality_threshold": "0.4-0.6",
-        "use_cases": [
-          "Context building",
-          "Diversity enhancement",
-          "Research"
-        ],
+        "use_cases": ["Context building", "Diversity enhancement", "Research"],
         "characteristics": [
           "Acceptable quality",
           "Diverse perspectives",

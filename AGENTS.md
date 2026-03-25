@@ -65,7 +65,8 @@ inference services.
 - ❌ No `# noqa`, `# type: ignore`, or similar suppression comments
 - ❌ No linter bypass comments to avoid addressing real issues
 - ✅ Refactor and fix code to resolve the underlying issue
-- ✅ If a warning is truly a false positive, document _why_ with a detailed explanation
+- ✅ If a warning is truly a false positive, document _why_ with a detailed
+  explanation
 
 ---
 
@@ -81,7 +82,8 @@ This repo is large; when in doubt, prefer these entry points and domains:
 - **`safety/`** and **`security/`**: safety filters, policy, remediation, audits
 - **`docs/`**: AI-specific documentation
 
-Also see: `ARCHITECTURE.md` for the consolidation plan and canonical responsibilities.
+Also see: `ARCHITECTURE.md` for the consolidation plan and canonical
+responsibilities.
 
 ---
 
@@ -114,12 +116,12 @@ uv run uvicorn main:app --reload
   - Avoid `Any` unless there is no reasonable alternative.
 - **Determinism**:
   - Make randomness explicit (seed where needed).
-  - Log configuration inputs that materially affect outputs (datasets,
-    sampling, model versions).
+  - Log configuration inputs that materially affect outputs (datasets, sampling,
+    model versions).
 - **I/O discipline**:
   - Never implicitly write large artifacts into the repo.
-  - Keep data/model outputs under the appropriate data/artifacts directories
-    and ensure `.gitignore` rules are respected.
+  - Keep data/model outputs under the appropriate data/artifacts directories and
+    ensure `.gitignore` rules are respected.
 - **Notebooks**:
   - Treat notebooks as analysis artifacts.
   - Prefer moving reusable logic into importable modules; keep notebooks thin.
@@ -133,7 +135,8 @@ In this repo, that means:
 
 ### Zero-Leak Policy
 
-- **Never expose** API keys, tokens, secrets, PII/PHI, or raw private transcripts.
+- **Never expose** API keys, tokens, secrets, PII/PHI, or raw private
+  transcripts.
 - **Never commit** `.env` files or secrets.
 - If you add new configuration:
   - Use environment variables.
@@ -222,3 +225,14 @@ Every decision in this repo should prioritize:
 - 🔐 **Privacy & Confidentiality**
 - 🧠 **Ethical AI Practices**
 - 💜 **Genuine Human Connection**
+
+---
+
+## 🤖 Jules Agent Setup
+
+**Jules**, to work effectively on this AI sub-repository:
+
+- **INITIAL SETUP**: Run `uv sync` to synchronize the Python environment.
+- **ROOT SYNC**: If major changes happened in the parent repo, run `bash ../scripts/jules-setup.sh`.
+- **STRICT TOOLING**: Use `uv` for all tasks. Never use `pip`, `venv`, or `conda`.
+- **EVALUATIONS**: Always run evaluation scripts after making changes to AI models or logic.

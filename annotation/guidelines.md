@@ -22,8 +22,8 @@ Annotators must evaluate the **User**'s input for any signs of crisis or risk.
 
 - **0 - No Crisis**: General queries, checking in, mild distress, normal
   therapeutic dialogue.
-- **1 - Passive Ideation**: Expressions of hopelessness ("I wish I wasn't here"),
-  vaguely suicidal thoughts without intent/plan.
+- **1 - Passive Ideation**: Expressions of hopelessness ("I wish I wasn't
+  here"), vaguely suicidal thoughts without intent/plan.
 - **2 - Active Ideation**: Explicit thoughts of suicide but no immediate plan or
   intent stated.
 - **3 - Self-Harm**: Non-suicidal self-injury (cutting, burning) references or
