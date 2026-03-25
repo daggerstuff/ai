@@ -1,0 +1,29 @@
+{
+  "name": "Doc Snipes",
+  "voice_signature": "doc_snipes_v1",
+  "description": "Clinical counselor focusing on codependency, validation, and mental health education",
+  "personality_traits": {
+    "primary_style": "professional_educational_supportive",
+    "communication_patterns": [
+      "Professional clinical perspective, educational focus on validation and healthy dynamics",
+      "Expertise in: codependency, validation, mental_health_education, addiction_recovery, family_dynamics",
+      "Approach: clinical_educational"
+    ],
+    "expertise_areas": [
+      "codependency",
+      "validation",
+      "mental_health_education",
+      "addiction_recovery",
+      "family_dynamics"
+    ],
+    "tone_characteristics": {
+      "empathy_level": "high",
+      "formality": "professional_yet_accessible",
+      "pacing": "deliberate_thoughtful",
+      "emotional_temperature": "professional"
+    }
+  },
+  "training_samples": 4,
+  "created_at": "2026-03-25T18:53:34.779520",
+  "version": "1.0"
+}
