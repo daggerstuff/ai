@@ -10,7 +10,6 @@ readme = "README.md"
 license = { file = "LICENSE" }
 authors = [{ name = "Pixel Voice Team" }]
 classifiers = [
-<<<<<<< HEAD
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
   "License :: OSI Approved :: MIT License",
@@ -19,13 +18,6 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
-=======
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.13",
->>>>>>> 9ac3d7e897f1aa5901f5efb9c531e71f84b8215a
 ]
 requires-python = ">=3.13"
 dependencies = [
