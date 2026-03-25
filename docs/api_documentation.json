@@ -8,15 +8,8 @@
       "description": "RESTful API for accessing the Pixelated Empathy AI dataset and processing system",
       "version": "1.0.0",
       "base_url": "https://api.pixelatedempathy.com/v1",
-      "protocols": [
-        "HTTPS"
-      ],
-      "data_formats": [
-        "JSON",
-        "JSONL",
-        "CSV",
-        "Parquet"
-      ],
+      "protocols": ["HTTPS"],
+      "data_formats": ["JSON", "JSONL", "CSV", "Parquet"],
       "authentication": "API Key based authentication",
       "rate_limits": "1000 requests per hour for standard users",
       "key_features": [
@@ -251,20 +244,12 @@
         "jsonl": {
           "description": "JSON Lines format for streaming processing",
           "mime_type": "application/jsonl",
-          "use_cases": [
-            "Model training",
-            "Data processing",
-            "Streaming"
-          ]
+          "use_cases": ["Model training", "Data processing", "Streaming"]
         },
         "parquet": {
           "description": "Columnar storage format for analytics",
           "mime_type": "application/parquet",
-          "use_cases": [
-            "Data analysis",
-            "Big data processing",
-            "Analytics"
-          ]
+          "use_cases": ["Data analysis", "Big data processing", "Analytics"]
         },
         "csv": {
           "description": "Comma-separated values for human readability",
@@ -278,10 +263,7 @@
         "huggingface": {
           "description": "HuggingFace datasets format",
           "mime_type": "application/json",
-          "use_cases": [
-            "HuggingFace model training",
-            "Transformers library"
-          ]
+          "use_cases": ["HuggingFace model training", "Transformers library"]
         }
       },
       "endpoints": {
@@ -290,17 +272,11 @@
           "path": "/export",
           "description": "Export dataset in specified format",
           "request_body": {
-            "dataset_ids": [
-              "priority_1",
-              "priority_2"
-            ],
+            "dataset_ids": ["priority_1", "priority_2"],
             "format": "jsonl",
             "filters": {
               "quality_min": 0.7,
-              "tier": [
-                1,
-                2
-              ]
+              "tier": [1, 2]
             },
             "split": {
               "train": 0.7,

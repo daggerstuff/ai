@@ -68,13 +68,7 @@
           "long": 0
         }
       },
-      "common_themes": [
-        "hello",
-        "doing",
-        "well",
-        "thank",
-        "asking"
-      ],
+      "common_themes": ["hello", "doing", "well", "thank", "asking"],
       "vocabulary_analysis": {
         "richness_distribution": {
           "low": 0,

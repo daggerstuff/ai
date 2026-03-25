@@ -1,4 +1,3 @@
-
 services:
   # PostgreSQL Database
   postgres:
@@ -11,10 +10,10 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      - '5432:5432'
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U pixel_voice"]
+      test: ['CMD-SHELL', 'pg_isready -U pixel_voice']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -24,14 +23,16 @@ services:
   # Redis Cache
   redis:
     image: redis:7-alpine
-    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    command:
+      redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy
+      allkeys-lru
     volumes:
       - redis_data:/data
     ports:
-      - "6379:6379"
+      - '6379:6379'
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ['CMD', 'redis-cli', 'ping']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -40,12 +41,12 @@ services:
 
   # Pixel Voice API
   pixel-voice-api:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     command: api
     ports:
-      - "8000:8000"
+      - '8000:8000'
     environment:
       - PIXEL_VOICE_ENV=production
       - PIXEL_VOICE_DEBUG=false
@@ -66,7 +67,7 @@ services:
         condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ['CMD', 'curl', '-f', 'http://localhost:8000/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -75,12 +76,12 @@ services:
 
   # Pixel Voice MCP Server
   pixel-voice-mcp:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile
     command: mcp
     ports:
-      - "8001:8001"
+      - '8001:8001'
     environment:
       - PIXEL_VOICE_ENV=production
       - PIXEL_VOICE_DEBUG=false
@@ -108,8 +109,8 @@ services:
   nginx:
     image: nginx:alpine
     ports:
-      - "80:80"
-      - "443:443"
+      - '80:80'
+      - '443:443'
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/ssl:/etc/nginx/ssl:ro
@@ -123,7 +124,7 @@ services:
   prometheus:
     image: prom/prometheus:latest
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./monitoring/alert_rules.yml:/etc/prometheus/alert_rules.yml:ro
@@ -143,7 +144,7 @@ services:
   grafana:
     image: grafana/grafana:latest
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
@@ -161,7 +162,7 @@ services:
   alertmanager:
     image: prom/alertmanager:latest
     ports:
-      - "9093:9093"
+      - '9093:9093'
     volumes:
       - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
       - alertmanager_data:/alertmanager

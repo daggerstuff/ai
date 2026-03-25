@@ -56,9 +56,7 @@
         "fair": 196,
         "poor": 166
       },
-      "failure_patterns": [
-        "Low confidence in failed validations (avg: 0.509)"
-      ],
+      "failure_patterns": ["Low confidence in failed validations (avg: 0.509)"],
       "recommendations": [
         "URGENT: Low pass rate (63.2%) requires immediate intervention",
         "Review and strengthen quality validation criteria",

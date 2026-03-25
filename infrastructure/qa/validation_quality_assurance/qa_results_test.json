@@ -128,10 +128,7 @@
         "crisis_keywords": 1,
         "harmful_content": false,
         "privacy_violations": false,
-        "therapeutic_techniques": [
-          "Cognitive Restructuring",
-          "Goal Setting"
-        ],
+        "therapeutic_techniques": ["Cognitive Restructuring", "Goal Setting"],
         "validation_statements": 0,
         "solution_focused": 0.0
       },

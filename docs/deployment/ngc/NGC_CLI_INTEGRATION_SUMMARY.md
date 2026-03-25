@@ -2,7 +2,9 @@
 
 ## Overview
 
-NGC CLI (NVIDIA GPU Cloud CLI) has been integrated into both `training_ready` and `dataset_pipeline` systems for downloading NeMo resources, training frameworks, and datasets from the NGC catalog.
+NGC CLI (NVIDIA GPU Cloud CLI) has been integrated into both `training_ready`
+and `dataset_pipeline` systems for downloading NeMo resources, training
+frameworks, and datasets from the NGC catalog.
 
 ## What Was Added
 
@@ -11,6 +13,7 @@ NGC CLI (NVIDIA GPU Cloud CLI) has been integrated into both `training_ready` an
 **Location**: `ai/utils/ngc_cli.py`
 
 A comprehensive utility module that provides:
+
 - NGC CLI detection (system, local, or uv-based installation)
 - Automatic installation via uv if needed
 - Configuration management (API key setup)
@@ -18,20 +21,25 @@ A comprehensive utility module that provides:
 - Error handling and retry logic
 
 **Key Classes**:
+
 - `NGCCLI`: Main wrapper class for NGC CLI operations
 - `NGCConfig`: Configuration dataclass
-- Custom exceptions: `NGCCLINotFoundError`, `NGCCLIAuthError`, `NGCCLIDownloadError`
+- Custom exceptions: `NGCCLINotFoundError`, `NGCCLIAuthError`,
+  `NGCCLIDownloadError`
 
 ### 2. Training Ready Integration
 
 **Location**: `ai/training/ready_packages/utils/ngc_resources.py`
 
 Provides:
+
 - `NGCResourceDownloader`: Downloads NeMo resources for training
-- Pre-configured resources: NeMo Microservices quickstart, NeMo framework, NeMo Megatron
+- Pre-configured resources: NeMo Microservices quickstart, NeMo framework, NeMo
+  Megatron
 - Convenience functions for common downloads
 
 **Usage**:
+
 ```python
 from ai.training.ready_packages.utils.ngc_resources import download_nemo_quickstart
 
@@ -43,11 +51,13 @@ quickstart_path = download_nemo_quickstart(version="25.10")
 **Location**: `ai/pipelines/orchestrator/sourcing/ngc_ingestor.py`
 
 Provides:
+
 - `NGCIngestor`: Downloads datasets from NGC catalog
 - Similar interface to `HuggingFaceIngestor` for consistency
 - Integrated into `multi_source_ingestor.py` automatically
 
 **Usage**:
+
 ```python
 from ai.pipelines.orchestrator.sourcing.ngc_ingestor import ingest_ngc_datasets
 
@@ -61,7 +71,8 @@ results = ingest_ngc_datasets()
 
 ## Installation
 
-**Important**: NGC CLI is not available as a PyPI package. You must download it directly from NVIDIA.
+**Important**: NGC CLI is not available as a PyPI package. You must download it
+directly from NVIDIA.
 
 ### Quick Setup
 
@@ -82,7 +93,8 @@ ngc config set
 
 - **Module**: `ai/training/ready_packages/utils/ngc_resources.py`
 - **Exported**: `NGCResourceDownloader`, `download_nemo_quickstart`
-- **Use Cases**: Download NeMo Microservices, training frameworks, custom resources
+- **Use Cases**: Download NeMo Microservices, training frameworks, custom
+  resources
 
 ### Dataset Pipeline
 
@@ -104,11 +116,13 @@ Added to:
 - `ai/training/ready_packages/packages/velocity/configs/requirements_moe.txt`
 - `ai/pipelines/orchestrator/utils/requirements.txt`
 
-Note: NGC CLI is optional - systems will work without it, but with limited NGC resource access.
+Note: NGC CLI is optional - systems will work without it, but with limited NGC
+resource access.
 
 ## Next Steps
 
-1. **Configure NGC API Key**: Get from https://catalog.ngc.nvidia.com ✅ **COMPLETED**
+1. **Configure NGC API Key**: Get from https://catalog.ngc.nvidia.com ✅
+   **COMPLETED**
 2. **Test Integration**: Try downloading a NeMo resource ✅ **COMPLETED**
 3. **Add More Resources**: Configure additional NGC datasets/resources as needed
 
@@ -117,20 +131,27 @@ Note: NGC CLI is optional - systems will work without it, but with limited NGC r
 **✅ NGC CLI Integration Successfully Tested (January 2, 2026)**
 
 ### Core Integration Tests
+
 - **NGC CLI Detection**: ✅ Found NGC CLI v4.10.0 in system PATH
 - **Configuration Check**: ✅ API key properly configured and detected
-- **Resource Download**: ✅ Successfully downloaded `nvidia/nemo-microservices/nemo-microservices-quickstart:25.10`
-- **Training Ready Integration**: ✅ `NGCResourceDownloader` and `download_nemo_quickstart()` working correctly
-- **Dataset Pipeline Integration**: ⚠️ Available but requires torch dependencies for full testing
+- **Resource Download**: ✅ Successfully downloaded
+  `nvidia/nemo-microservices/nemo-microservices-quickstart:25.10`
+- **Training Ready Integration**: ✅ `NGCResourceDownloader` and
+  `download_nemo_quickstart()` working correctly
+- **Dataset Pipeline Integration**: ⚠️ Available but requires torch dependencies
+  for full testing
 
 ### Successful Downloads
+
 - **NeMo Microservices Quickstart v25.10** (✅ Downloaded)
   - Size: ~500MB
   - Contents: Complete microservices architecture with Docker Compose
-  - Services: Data Designer, Auditor, Evaluator, Guardrails, Customizer, Safe Synthesizer
+  - Services: Data Designer, Auditor, Evaluator, Guardrails, Customizer, Safe
+    Synthesizer
   - Use Case: Production deployment of therapeutic conversation models
 
 ### Access Limitations Discovered
+
 - **Large Language Models**: Require special NGC Enterprise access
   - Nemotron-4-340B-Instruct, Llama-3.1-70B-Instruct, Nemotron-3-8B-Chat
 - **Premium Containers**: Require subscription or special permissions
@@ -138,11 +159,13 @@ Note: NGC CLI is optional - systems will work without it, but with limited NGC r
 - **Advanced Tools**: Limited access to specialized datasets and examples
 
 ### Configuration Parsing Fix
+
 - Fixed NGC CLI config parsing to handle multi-line API key display
 - Updated condition to properly detect `apikey` field vs header `key` column
 - Improved error handling and configuration validation
 
 ### Recommendations for Enhanced Access
+
 1. **Apply for NGC Enterprise Access**: For premium models and containers
 2. **Use Hugging Face Alternatives**: Many models available without restrictions
 3. **Docker Hub Alternatives**: Use official PyTorch/TensorFlow images with CUDA

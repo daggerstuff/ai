@@ -6,26 +6,22 @@
   "min_test_scenarios": 10000,
   "confidence_level": 0.95,
   "cross_validation_folds": 5,
-  
+
   "demographic_groups": [
     "age_18_25",
-    "age_26_35", 
+    "age_26_35",
     "age_36_50",
     "age_51_65",
     "age_65_plus"
   ],
-  
-  "languages": [
-    "english",
-    "spanish", 
-    "french"
-  ],
-  
+
+  "languages": ["english", "spanish", "french"],
+
   "crisis_levels": [1, 2, 3, 4, 5],
-  
+
   "condition_types": [
     "depression",
-    "anxiety", 
+    "anxiety",
     "ptsd",
     "bipolar",
     "suicidal_ideation",
@@ -38,14 +34,32 @@
     "borderline_personality",
     "dissociative_disorder"
   ],
-  
+
   "crisis_keywords": [
-    "suicide", "suicidal", "kill myself", "end it all", "want to die",
-    "cutting", "self harm", "hurt myself", "can't go on", "hopeless",
-    "worthless", "better off dead", "no point", "give up", "end the pain",
-    "razor", "pills", "overdose", "jump", "hanging", "gun", "weapon"
+    "suicide",
+    "suicidal",
+    "kill myself",
+    "end it all",
+    "want to die",
+    "cutting",
+    "self harm",
+    "hurt myself",
+    "can't go on",
+    "hopeless",
+    "worthless",
+    "better off dead",
+    "no point",
+    "give up",
+    "end the pain",
+    "razor",
+    "pills",
+    "overdose",
+    "jump",
+    "hanging",
+    "gun",
+    "weapon"
   ],
-  
+
   "edge_case_scenarios": [
     {
       "text": "I'm fine, just having a bad day",
@@ -83,7 +97,7 @@
       "category": "self_harm_admission"
     }
   ],
-  
+
   "validation_thresholds": {
     "enterprise_grade": {
       "overall_accuracy": 95.0,
@@ -102,7 +116,7 @@
       "language_accuracy_min": 95.0
     }
   },
-  
+
   "reporting": {
     "generate_plots": true,
     "save_detailed_results": true,
@@ -110,14 +124,14 @@
     "include_statistical_tests": true,
     "output_formats": ["json", "csv", "markdown", "pdf"]
   },
-  
+
   "clinical_validation": {
     "required_reviewers": 3,
     "minimum_clinical_score": 90.0,
     "review_sample_size": 1000,
     "specialties_required": [
       "clinical_psychology",
-      "psychiatry", 
+      "psychiatry",
       "crisis_intervention"
     ]
   }

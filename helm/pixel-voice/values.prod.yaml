@@ -7,19 +7,19 @@ worker:
   replicaCount: 5
   resources:
     limits:
-      cpu: "1"
-      memory: "2Gi"
+      cpu: '1'
+      memory: '2Gi'
     requests:
-      cpu: "500m"
-      memory: "1Gi"
+      cpu: '500m'
+      memory: '1Gi'
 
 appConfig:
-  FASTAPI_ENV: "production"
-  LOG_LEVEL: "INFO"
+  FASTAPI_ENV: 'production'
+  LOG_LEVEL: 'INFO'
 
 postgresql:
   auth:
-    existingSecret: "pixel-voice-postgres-secret"
+    existingSecret: 'pixel-voice-postgres-secret'
     secretKeys:
       adminPasswordKey: postgres-password
   primary:
@@ -28,6 +28,6 @@ postgresql:
 
 redis:
   auth:
-    existingSecret: "pixel-voice-redis-secret"
+    existingSecret: 'pixel-voice-redis-secret'
     secretKeys:
       passwordKey: redis-password

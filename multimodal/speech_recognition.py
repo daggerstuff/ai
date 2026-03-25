@@ -32,8 +32,7 @@ import librosa
 import numpy as np
 import torch
 import torchaudio
-from whisper import load_model as load_whisper_model
-from whisper import transcribe as whisper_transcribe
+from faster_whisper import WhisperModel
 
 logger = logging.getLogger(__name__)
 
@@ -94,18 +93,18 @@ class SpeechRecognizer:
         self._load_model()
 
     def _load_model(self) -> None:
-        """Load Whisper model."""
-        logger.info(f"Loading Whisper {self.model_name} model on {self.device}")
+        """Load Faster-Whisper model."""
+        logger.info(f"Loading Faster-Whisper {self.model_name} model on {self.device}")
 
         try:
             # Suppress warnings
             warnings.filterwarnings("ignore")
 
             # Load model
-            self.model = load_whisper_model(
+            self.model = WhisperModel(
                 self.model_name,
                 device=self.device,
-                in_memory=True,
+                compute_type=self.compute_type,
             )
 
             logger.info(f"Model loaded: {self.model_name}")
@@ -240,31 +239,39 @@ class SpeechRecognizer:
         """Synchronous transcription (runs in thread)."""
         # Normalize sample rate to 16kHz if needed
         if sample_rate != 16000:
+            import librosa
+
             waveform = librosa.resample(waveform, orig_sr=sample_rate, target_sr=16000)
             sample_rate = 16000
 
         # Transcribe
-        result = whisper_transcribe(
-            audio=waveform,
-            model=self.model,
+        segments, info = self.model.transcribe(
+            waveform,
             language=language,
             initial_prompt=initial_prompt,
-            verbose=False,
+            beam_size=5,
         )
 
-        return result
+        # Convert generator to list for internal result format
+        segment_list = list(segments)
+
+        return {
+            "segments": segment_list,
+            "language": info.language,
+            "language_probability": info.language_probability,
+        }
 
     def _parse_segments(self, result: Dict[str, Any]) -> List[TranscriptionSegment]:
-        """Parse Whisper result into segments."""
+        """Parse Faster-Whisper result into segments."""
         segments = []
 
         for segment in result.get("segments", []):
             segments.append(
                 TranscriptionSegment(
-                    start_time=segment["start"],
-                    end_time=segment["end"],
-                    text=segment["text"].strip(),
-                    confidence=float(segment.get("confidence", 0.9)),
+                    start_time=segment.start,
+                    end_time=segment.end,
+                    text=segment.text.strip(),
+                    confidence=float(getattr(segment, "avg_logprob", 0.9)),
                     language=result.get("language", "en"),
                 )
             )
@@ -296,7 +303,12 @@ class SpeechRecognizer:
 
             # Create temporary file for transcription
             temp_path = f"/tmp/{session_id}_stream.wav"
-            librosa.output.write_wav(temp_path, full_audio, sr=sample_rate)
+            import torch
+            import torchaudio
+
+            torchaudio.save(
+                temp_path, torch.from_numpy(full_audio).unsqueeze(0), sample_rate
+            )
 
             # Transcribe
             result = await self.transcribe_audio(session_id, temp_path)

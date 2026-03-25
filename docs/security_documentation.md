@@ -53,6 +53,7 @@
 ### JWT Authentication
 
 **Implementation:**
+
 ```python
 # JWT Configuration
 JWT_SECRET_KEY=your-256-bit-secret-key-here
@@ -64,6 +65,7 @@ JWT_AUDIENCE=api.pixelatedempathy.com
 ```
 
 **Security Requirements:**
+
 - **Secret Key**: Minimum 256 bits (32 characters)
 - **Algorithm**: HS256 or RS256 (avoid none)
 - **Expiration**: Short-lived tokens (≤30 minutes)
@@ -71,6 +73,7 @@ JWT_AUDIENCE=api.pixelatedempathy.com
 - **Token Rotation**: Automatic rotation on refresh
 
 **Best Practices:**
+
 ```python
 # Secure JWT implementation
 import jwt
@@ -82,7 +85,7 @@ class JWTManager:
         self.secret_key = os.getenv('JWT_SECRET_KEY')
         if len(self.secret_key) < 32:
             raise ValueError("JWT secret key must be at least 32 characters")
-    
+
     def create_token(self, user_id: str, roles: List[str]) -> str:
         payload = {
             'sub': user_id,
@@ -99,6 +102,7 @@ class JWTManager:
 ### API Key Authentication
 
 **Implementation:**
+
 ```bash
 # API Key Configuration
 API_KEY_LENGTH=32
@@ -108,6 +112,7 @@ API_KEY_HASH_ALGORITHM=SHA256
 ```
 
 **Security Requirements:**
+
 - **Length**: Minimum 32 characters
 - **Entropy**: Cryptographically secure random generation
 - **Hashing**: Store hashed versions only
@@ -117,32 +122,33 @@ API_KEY_HASH_ALGORITHM=SHA256
 ### Role-Based Access Control (RBAC)
 
 **Role Hierarchy:**
+
 ```yaml
 roles:
   admin:
     permissions:
-      - "admin:*"
-      - "user:*"
-      - "system:*"
-  
+      - 'admin:*'
+      - 'user:*'
+      - 'system:*'
+
   premium_user:
     permissions:
-      - "user:read"
-      - "user:write"
-      - "conversation:create"
-      - "conversation:read"
-      - "analytics:read"
-  
+      - 'user:read'
+      - 'user:write'
+      - 'conversation:create'
+      - 'conversation:read'
+      - 'analytics:read'
+
   standard_user:
     permissions:
-      - "user:read"
-      - "conversation:create"
-      - "conversation:read"
-  
+      - 'user:read'
+      - 'conversation:create'
+      - 'conversation:read'
+
   readonly_user:
     permissions:
-      - "user:read"
-      - "conversation:read"
+      - 'user:read'
+      - 'conversation:read'
 ```
 
 ---
@@ -152,6 +158,7 @@ roles:
 ### Encryption at Rest
 
 **Database Encryption:**
+
 ```sql
 -- PostgreSQL encryption
 CREATE TABLE conversations (
@@ -165,6 +172,7 @@ CREATE TABLE conversations (
 ```
 
 **File System Encryption:**
+
 ```bash
 # Enable encryption for sensitive directories
 sudo cryptsetup luksFormat /dev/sdb1
@@ -176,26 +184,27 @@ sudo mount /dev/mapper/encrypted_storage /var/lib/pixelated/encrypted
 ### Encryption in Transit
 
 **TLS Configuration:**
+
 ```nginx
 # Nginx SSL configuration
 server {
     listen 443 ssl http2;
     server_name api.pixelatedempathy.com;
-    
+
     # SSL certificates
     ssl_certificate /etc/ssl/certs/pixelated.crt;
     ssl_certificate_key /etc/ssl/private/pixelated.key;
-    
+
     # SSL security settings
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384;
     ssl_prefer_server_ciphers off;
     ssl_session_cache shared:SSL:10m;
     ssl_session_timeout 10m;
-    
+
     # HSTS
     add_header Strict-Transport-Security "max-age=63072000" always;
-    
+
     # Security headers
     add_header X-Frame-Options DENY;
     add_header X-Content-Type-Options nosniff;
@@ -207,12 +216,14 @@ server {
 ### Data Classification
 
 **Classification Levels:**
+
 1. **Public**: Marketing materials, documentation
 2. **Internal**: System logs, metrics
 3. **Confidential**: User conversations, personal data
 4. **Restricted**: Authentication credentials, encryption keys
 
 **Handling Requirements:**
+
 ```python
 # Data classification implementation
 from enum import Enum
@@ -230,7 +241,7 @@ class SecureDataHandler:
             DataClassification.CONFIDENTIAL,
             DataClassification.RESTRICTED
         ]
-    
+
     def store_data(self, data: str) -> str:
         if self.encryption_required:
             return self.encrypt_data(data)
@@ -244,6 +255,7 @@ class SecureDataHandler:
 ### Firewall Configuration
 
 **Inbound Rules:**
+
 ```bash
 # Allow HTTPS traffic
 sudo ufw allow 443/tcp
@@ -260,6 +272,7 @@ sudo ufw default allow outgoing
 ```
 
 **Network Segmentation:**
+
 ```yaml
 # Kubernetes Network Policies
 apiVersion: networking.k8s.io/v1
@@ -272,29 +285,30 @@ spec:
     matchLabels:
       app: pixelated-api
   policyTypes:
-  - Ingress
-  - Egress
+    - Ingress
+    - Egress
   ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          name: ingress-nginx
-    ports:
-    - protocol: TCP
-      port: 8000
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8000
   egress:
-  - to:
-    - namespaceSelector:
-        matchLabels:
-          name: database
-    ports:
-    - protocol: TCP
-      port: 5432
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: database
+      ports:
+        - protocol: TCP
+          port: 5432
 ```
 
 ### VPC Security
 
 **AWS VPC Configuration:**
+
 ```yaml
 # VPC Security Groups
 SecurityGroups:
@@ -326,6 +340,7 @@ SecurityGroups:
 ### Input Validation
 
 **Request Validation:**
+
 ```python
 from pydantic import BaseModel, validator, Field
 from typing import Optional
@@ -335,14 +350,14 @@ class ConversationRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=1000)
     user_id: str = Field(..., regex=r'^[a-zA-Z0-9_-]+$')
     context: Optional[str] = Field(None, max_length=500)
-    
+
     @validator('message')
     def validate_message(cls, v):
         # Sanitize input
         if re.search(r'<script|javascript:|data:', v, re.IGNORECASE):
             raise ValueError('Invalid characters in message')
         return v.strip()
-    
+
     @validator('user_id')
     def validate_user_id(cls, v):
         if len(v) < 3 or len(v) > 50:
@@ -353,6 +368,7 @@ class ConversationRequest(BaseModel):
 ### Rate Limiting
 
 **Implementation:**
+
 ```python
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.util import get_remote_address
@@ -384,6 +400,7 @@ def get_user_rate_limit(user: User) -> str:
 ### CORS Security
 
 **Configuration:**
+
 ```python
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -404,6 +421,7 @@ app.add_middleware(
 ### SQL Injection Prevention
 
 **Safe Database Queries:**
+
 ```python
 from sqlalchemy import text
 from sqlalchemy.orm import Session
@@ -430,6 +448,7 @@ def get_user_conversations_orm(db: Session, user_id: str):
 ### Container Security
 
 **Dockerfile Security:**
+
 ```dockerfile
 # Use specific, minimal base image
 FROM python:3.11-slim-bullseye
@@ -468,6 +487,7 @@ CMD ["uvicorn", "pixel_voice.api.server:app", "--host", "0.0.0.0", "--port", "80
 ```
 
 **Container Scanning:**
+
 ```bash
 # Scan for vulnerabilities
 docker run --rm -v /var/run/docker.sock:/var/run/docker.sock \
@@ -482,6 +502,7 @@ docker run --rm -v $(pwd):/app \
 ### Kubernetes Security
 
 **Pod Security Standards:**
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -497,36 +518,37 @@ spec:
     seccompProfile:
       type: RuntimeDefault
   containers:
-  - name: api
-    image: pixelated-empathy-ai:latest
-    securityContext:
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true
-      capabilities:
-        drop:
-        - ALL
-    resources:
-      limits:
-        memory: "1Gi"
-        cpu: "500m"
-      requests:
-        memory: "512Mi"
-        cpu: "250m"
-    volumeMounts:
-    - name: tmp
-      mountPath: /tmp
-    - name: var-tmp
-      mountPath: /var/tmp
+    - name: api
+      image: pixelated-empathy-ai:latest
+      securityContext:
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+      resources:
+        limits:
+          memory: '1Gi'
+          cpu: '500m'
+        requests:
+          memory: '512Mi'
+          cpu: '250m'
+      volumeMounts:
+        - name: tmp
+          mountPath: /tmp
+        - name: var-tmp
+          mountPath: /var/tmp
   volumes:
-  - name: tmp
-    emptyDir: {}
-  - name: var-tmp
-    emptyDir: {}
+    - name: tmp
+      emptyDir: {}
+    - name: var-tmp
+      emptyDir: {}
 ```
 
 ### Secrets Management
 
 **Kubernetes Secrets:**
+
 ```yaml
 apiVersion: v1
 kind: Secret
@@ -541,6 +563,7 @@ data:
 ```
 
 **External Secrets Operator:**
+
 ```yaml
 apiVersion: external-secrets.io/v1beta1
 kind: SecretStore
@@ -572,10 +595,10 @@ spec:
     name: pixelated-secrets
     creationPolicy: Owner
   data:
-  - secretKey: database-url
-    remoteRef:
-      key: pixelated/database
-      property: url
+    - secretKey: database-url
+      remoteRef:
+        key: pixelated/database
+        property: url
 ```
 
 ---
@@ -585,24 +608,25 @@ spec:
 ### GDPR Compliance
 
 **Data Processing Requirements:**
+
 ```python
 class GDPRCompliantDataProcessor:
     def __init__(self):
         self.lawful_basis = "consent"  # or "legitimate_interest"
         self.data_retention_days = 365
         self.anonymization_enabled = True
-    
+
     def process_personal_data(self, data: PersonalData, consent: UserConsent):
         # Verify consent
         if not consent.is_valid():
             raise ValueError("Invalid or expired consent")
-        
+
         # Log processing activity
         self.log_processing_activity(data, consent)
-        
+
         # Process with privacy by design
         return self.privacy_preserving_process(data)
-    
+
     def handle_data_subject_request(self, request: DataSubjectRequest):
         if request.type == "access":
             return self.export_user_data(request.user_id)
@@ -613,6 +637,7 @@ class GDPRCompliantDataProcessor:
 ```
 
 **Privacy Policy Implementation:**
+
 ```python
 # Data retention policy
 RETENTION_POLICIES = {
@@ -631,43 +656,46 @@ async def cleanup_expired_data():
 ### SOC 2 Compliance
 
 **Security Controls:**
+
 ```yaml
 # SOC 2 Type II Controls
 controls:
   CC1.1: # Control Environment
-    description: "Management establishes structures, reporting lines, and authorities"
-    implementation: "RBAC system with documented roles and responsibilities"
-    
+    description:
+      'Management establishes structures, reporting lines, and authorities'
+    implementation: 'RBAC system with documented roles and responsibilities'
+
   CC2.1: # Communication and Information
-    description: "Management obtains or generates relevant information"
-    implementation: "Comprehensive logging and monitoring system"
-    
+    description: 'Management obtains or generates relevant information'
+    implementation: 'Comprehensive logging and monitoring system'
+
   CC6.1: # Logical and Physical Access
-    description: "Logical access security measures"
-    implementation: "Multi-factor authentication and access controls"
-    
+    description: 'Logical access security measures'
+    implementation: 'Multi-factor authentication and access controls'
+
   CC7.1: # System Operations
-    description: "System availability and processing integrity"
-    implementation: "Health checks, monitoring, and automated failover"
+    description: 'System availability and processing integrity'
+    implementation: 'Health checks, monitoring, and automated failover'
 ```
 
 ### HIPAA Compliance (if applicable)
 
 **Technical Safeguards:**
+
 ```python
 class HIPAACompliantStorage:
     def __init__(self):
         self.encryption_key = self.get_encryption_key()
         self.audit_logger = AuditLogger()
-    
+
     def store_phi(self, phi_data: PHIData, user: AuthenticatedUser):
         # Access control
         if not user.has_permission("phi:write"):
             raise PermissionError("Insufficient permissions")
-        
+
         # Encrypt PHI
         encrypted_data = self.encrypt(phi_data.to_json())
-        
+
         # Audit log
         self.audit_logger.log_phi_access(
             user_id=user.id,
@@ -675,7 +703,7 @@ class HIPAACompliantStorage:
             phi_type=phi_data.type,
             timestamp=datetime.now()
         )
-        
+
         return self.database.store(encrypted_data)
 ```
 
@@ -686,6 +714,7 @@ class HIPAACompliantStorage:
 ### Security Information and Event Management (SIEM)
 
 **Log Aggregation:**
+
 ```python
 import structlog
 from datetime import datetime
@@ -703,7 +732,7 @@ class SecurityEventLogger:
             timestamp=datetime.utcnow().isoformat(),
             event_type="auth"
         )
-    
+
     def log_permission_denied(self, user_id: str, resource: str, action: str):
         security_logger.warning(
             "permission_denied",
@@ -713,7 +742,7 @@ class SecurityEventLogger:
             timestamp=datetime.utcnow().isoformat(),
             event_type="authorization"
         )
-    
+
     def log_suspicious_activity(self, user_id: str, activity: str, risk_score: int):
         security_logger.error(
             "suspicious_activity",
@@ -728,19 +757,20 @@ class SecurityEventLogger:
 ### Intrusion Detection
 
 **Anomaly Detection:**
+
 ```python
 class AnomalyDetector:
     def __init__(self):
         self.baseline_metrics = self.load_baseline()
         self.threshold_multiplier = 3.0
-    
+
     def detect_anomalies(self, current_metrics: Dict[str, float]) -> List[Anomaly]:
         anomalies = []
-        
+
         for metric, value in current_metrics.items():
             baseline = self.baseline_metrics.get(metric, 0)
             threshold = baseline * self.threshold_multiplier
-            
+
             if value > threshold:
                 anomalies.append(Anomaly(
                     metric=metric,
@@ -748,13 +778,14 @@ class AnomalyDetector:
                     baseline=baseline,
                     severity=self.calculate_severity(value, baseline)
                 ))
-        
+
         return anomalies
 ```
 
 ### Vulnerability Scanning
 
 **Automated Security Scanning:**
+
 ```bash
 #!/bin/bash
 # security-scan.sh
@@ -783,12 +814,14 @@ echo "Security scans completed. Check reports for issues."
 ### Security Incident Response Plan
 
 **Incident Classification:**
+
 1. **Critical**: Data breach, system compromise
 2. **High**: Service disruption, privilege escalation
 3. **Medium**: Failed authentication attempts, policy violations
 4. **Low**: Suspicious activity, minor vulnerabilities
 
 **Response Procedures:**
+
 ```python
 class IncidentResponse:
     def __init__(self):
@@ -798,21 +831,21 @@ class IncidentResponse:
             "medium": ["security-team"],
             "low": ["security-team"]
         }
-    
+
     def handle_incident(self, incident: SecurityIncident):
         # Immediate containment
         if incident.severity == "critical":
             self.isolate_affected_systems(incident.affected_systems)
-        
+
         # Notification
         self.notify_stakeholders(incident)
-        
+
         # Evidence collection
         self.collect_evidence(incident)
-        
+
         # Recovery
         self.initiate_recovery(incident)
-        
+
         # Post-incident review
         self.schedule_post_incident_review(incident)
 ```
@@ -820,25 +853,26 @@ class IncidentResponse:
 ### Breach Response
 
 **Data Breach Response:**
+
 ```python
 class DataBreachResponse:
     def __init__(self):
         self.notification_deadline = timedelta(hours=72)  # GDPR requirement
         self.affected_users = []
-    
+
     def handle_data_breach(self, breach: DataBreach):
         # Immediate actions
         self.contain_breach(breach)
         self.assess_impact(breach)
-        
+
         # Legal notifications
         if self.requires_regulatory_notification(breach):
             self.notify_regulators(breach)
-        
+
         # User notifications
         if self.requires_user_notification(breach):
             self.notify_affected_users(breach)
-        
+
         # Remediation
         self.implement_remediation(breach)
 ```
@@ -850,6 +884,7 @@ class DataBreachResponse:
 ### Secure Development Lifecycle
 
 **Security Checkpoints:**
+
 1. **Design Phase**: Threat modeling, security requirements
 2. **Development Phase**: Secure coding practices, code review
 3. **Testing Phase**: Security testing, vulnerability assessment
@@ -859,6 +894,7 @@ class DataBreachResponse:
 ### Security Training
 
 **Developer Security Training Topics:**
+
 - OWASP Top 10 vulnerabilities
 - Secure coding practices
 - Cryptography best practices
@@ -869,6 +905,7 @@ class DataBreachResponse:
 ### Regular Security Assessments
 
 **Assessment Schedule:**
+
 - **Daily**: Automated vulnerability scans
 - **Weekly**: Security log review
 - **Monthly**: Access review and cleanup
@@ -878,6 +915,7 @@ class DataBreachResponse:
 ### Security Metrics
 
 **Key Security Indicators:**
+
 ```python
 class SecurityMetrics:
     def calculate_security_score(self) -> float:
@@ -888,7 +926,7 @@ class SecurityMetrics:
             "security_training_completion": self.get_training_completion_rate(),
             "incident_response_time": self.get_avg_response_time()
         }
-        
+
         # Calculate weighted security score
         weights = {
             "vulnerability_count": 0.3,
@@ -897,7 +935,7 @@ class SecurityMetrics:
             "security_training_completion": 0.15,
             "incident_response_time": 0.15
         }
-        
+
         score = sum(metrics[k] * weights[k] for k in metrics)
         return min(100, max(0, score))
 ```
@@ -908,12 +946,12 @@ class SecurityMetrics:
 
 ### Security Team Contacts
 
-| Role | Contact | Availability |
-|------|---------|--------------|
-| **CISO** | security-chief@pixelatedempathy.com | 24/7 |
-| **Security Engineer** | security-team@pixelatedempathy.com | Business hours |
-| **Incident Response** | incident-response@pixelatedempathy.com | 24/7 |
-| **Legal/Compliance** | legal@pixelatedempathy.com | Business hours |
+| Role                  | Contact                                | Availability   |
+| --------------------- | -------------------------------------- | -------------- |
+| **CISO**              | security-chief@pixelatedempathy.com    | 24/7           |
+| **Security Engineer** | security-team@pixelatedempathy.com     | Business hours |
+| **Incident Response** | incident-response@pixelatedempathy.com | 24/7           |
+| **Legal/Compliance**  | legal@pixelatedempathy.com             | Business hours |
 
 ### External Contacts
 
@@ -924,5 +962,6 @@ class SecurityMetrics:
 
 ---
 
-*Last updated: 2025-08-12T21:39:00Z*  
-*For security concerns, contact security-team@pixelatedempathy.com or call the incident response hotline.*
+_Last updated: 2025-08-12T21:39:00Z_  
+_For security concerns, contact security-team@pixelatedempathy.com or call the
+incident response hotline._

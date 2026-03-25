@@ -1,0 +1,7427 @@
+{
+  "total_conversations": 618,
+  "conversations_scrubbed": 618,
+  "conversations_clean": 0,
+  "pii_types_summary": {
+    "full_name": 69987
+  },
+  "detailed_stats": [
+    {
+      "index": 0,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 24
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 24
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 1,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 24
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 24
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 2,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 21
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 21
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 3,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 21
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 21
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 4,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 21
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 21
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 5,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 21
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 21
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 6,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 22
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 22
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 7,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 23
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 23
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 8,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 21
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 21
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 9,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 21
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 21
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 10,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 33
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 33
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 11,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 20
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 20
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 12,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 20
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 20
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 13,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 21
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 21
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 14,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 20
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 20
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 15,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 20
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 20
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 16,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 21
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 21
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 17,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 20
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 20
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 18,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 21
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 21
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 19,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 20
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 20
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 20,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 23
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 23
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 21,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 20
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 20
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 22,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 31
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 31
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 23,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 21
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 21
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 24,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 20
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 20
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 25,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 22
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 22
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 26,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 21
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 21
+      },
+      "source_family": "edge_case_synthetic"
+    },
+    {
+      "index": 27,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 28,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 29,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 30,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 31,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 32,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 33,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 34,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 35,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 36,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 37,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 38,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 39,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 40,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 41,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 42,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 43,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 44,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 45,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 46,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 47,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 48,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 49,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 50,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 51,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 52,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 53,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 54,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 55,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 56,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 57,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 58,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 59,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 60,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 61,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 62,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 63,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 64,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 65,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 66,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 67,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 68,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 69,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 70,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 71,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 72,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 73,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 74,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 75,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 76,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 77,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 78,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 79,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 80,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 81,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 82,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 83,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 84,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 85,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 86,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 87,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 88,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 89,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 90,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 91,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 92,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 93,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 94,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 95,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 96,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 97,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 98,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 99,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 100,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 101,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 102,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 103,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 104,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 105,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 106,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 107,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 108,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 109,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 110,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 111,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 112,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 113,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 114,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 115,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 116,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 117,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 118,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 119,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 120,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 121,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 122,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 123,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 124,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 125,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 126,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 127,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 128,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 129,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 130,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 131,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 132,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 133,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 134,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 135,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 136,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 137,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 138,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 139,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 140,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 141,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 142,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 143,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 144,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 145,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 146,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 147,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 148,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 149,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 150,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 151,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 152,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 153,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 154,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 155,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 156,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 157,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 158,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 159,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 160,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 161,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 162,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 163,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 164,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 165,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 166,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 167,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 168,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 169,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 170,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 171,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 172,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 173,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 174,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 175,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 176,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 177,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 178,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 179,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 180,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 181,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 182,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 183,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 184,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 185,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 186,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 187,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 188,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 189,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 190,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 191,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 192,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 193,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 194,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 195,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 196,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 197,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 198,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 199,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 200,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 201,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 202,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 203,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 204,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 205,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 206,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 207,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 208,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 209,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 210,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 211,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 212,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 213,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 214,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 215,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 216,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 217,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 218,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 219,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 220,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 221,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 222,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 223,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 224,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 225,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 226,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 227,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 228,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 229,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 230,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 231,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 232,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 233,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 234,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 235,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 236,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 237,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 238,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 239,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 240,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 241,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 242,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 243,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 244,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 245,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 246,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 247,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 248,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 249,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 250,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 251,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 252,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 253,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 254,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 255,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 256,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 257,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 258,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 259,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 260,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 261,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 262,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 263,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 264,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 265,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 266,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 267,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 268,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 269,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 270,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 271,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 272,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 273,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 274,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 275,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 276,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 277,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 278,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 279,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 280,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 281,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 282,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 283,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 284,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 285,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 286,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 287,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 288,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 289,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 290,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 291,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 292,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 293,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 294,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 295,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 296,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 297,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 298,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 299,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 300,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 301,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 302,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 303,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 304,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 305,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 306,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 307,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 308,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 309,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 310,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 311,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 312,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 313,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 314,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 315,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 316,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 317,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 318,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 319,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 320,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 321,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 322,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 323,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 324,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 325,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 326,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 327,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 328,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 329,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 330,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 331,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 332,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 333,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 334,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 335,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 336,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 337,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 338,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 339,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 340,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 341,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 342,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 343,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 344,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 345,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 346,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 347,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 348,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 349,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 350,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 351,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 352,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 353,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 354,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 355,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 356,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 357,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 358,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 359,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 360,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 361,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 362,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 363,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 364,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 365,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 366,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 367,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 368,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 369,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 370,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 371,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 372,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 373,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 374,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 375,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 376,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 377,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 378,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 379,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 380,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 381,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 382,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 383,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 384,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 385,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 386,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 387,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 388,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 389,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 390,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 391,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 392,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 393,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 394,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 395,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 396,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 397,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 398,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 399,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 400,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 401,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 402,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 403,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 404,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 405,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 406,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 407,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 408,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 409,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 410,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 411,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 412,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 413,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 414,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 415,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 416,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 417,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 418,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 419,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 420,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 421,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 422,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 423,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 424,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 425,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 426,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 427,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 428,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 429,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 430,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 431,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 432,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 433,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 434,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 435,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 436,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 437,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 438,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 439,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 440,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 441,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 442,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 443,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 444,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 445,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 446,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 447,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 448,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 449,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 450,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 451,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 452,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 453,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 454,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 455,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 456,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 457,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 458,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 459,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 460,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 461,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 462,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 463,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 464,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 465,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 466,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 467,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 468,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 469,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 470,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 471,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 472,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 473,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 474,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 475,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 476,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 477,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 478,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 479,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 480,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 481,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 482,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 483,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 484,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 485,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 486,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 487,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 488,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 489,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 490,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 491,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 492,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 493,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 494,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 495,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 496,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 497,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 498,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 499,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 500,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 501,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 502,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 503,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 504,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 505,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 506,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 507,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 508,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 509,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 510,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 511,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 512,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 513,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 514,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 515,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 516,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 517,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 518,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 519,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 520,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 521,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 522,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 523,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 524,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 525,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 526,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1
+        },
+        "messages_affected": 1,
+        "total_pii_instances": 1
+      },
+      "source_family": "long_running_therapy"
+    },
+    {
+      "index": 527,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 409
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 409
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 528,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 585
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 585
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 529,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 833
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 833
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 530,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1538
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1538
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 531,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1556
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1556
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 532,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1369
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1369
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 533,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1044
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1044
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 534,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 563
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 563
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 535,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 212
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 212
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 536,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 405
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 405
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 537,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 264
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 264
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 538,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1244
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1244
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 539,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 431
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 431
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 540,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1184
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1184
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 541,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1245
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1245
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 542,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 644
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 644
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 543,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1065
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1065
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 544,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1083
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1083
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 545,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 371
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 371
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 546,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1330
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1330
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 547,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 167
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 167
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 548,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1545
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1545
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 549,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 752
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 752
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 550,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 342
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 342
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 551,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 629
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 629
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 552,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 403
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 403
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 553,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1248
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1248
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 554,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 236
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 236
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 555,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 400
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 400
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 556,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 395
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 395
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 557,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 748
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 748
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 558,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1138
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1138
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 559,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 253
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 253
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 560,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 900
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 900
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 561,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 982
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 982
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 562,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 344
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 344
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 563,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 195
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 195
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 564,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 339
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 339
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 565,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 798
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 798
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 566,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 264
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 264
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 567,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 464
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 464
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 568,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1298
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1298
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 569,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1204
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1204
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 570,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1335
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1335
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 571,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1245
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1245
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 572,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1051
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1051
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 573,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1101
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1101
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 574,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1087
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1087
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 575,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1434
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1434
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 576,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1177
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1177
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 577,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1235
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1235
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 578,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1226
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1226
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 579,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1223
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1223
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 580,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1363
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1363
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 581,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1383
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1383
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 582,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 447
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 447
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 583,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1435
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1435
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 584,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 448
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 448
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 585,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 380
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 380
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 586,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 210
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 210
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 587,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 759
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 759
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 588,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1099
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1099
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 589,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 749
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 749
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 590,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 865
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 865
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 591,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 410
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 410
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 592,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 475
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 475
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 593,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 552
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 552
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 594,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 825
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 825
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 595,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 308
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 308
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 596,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1199
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1199
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 597,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 609
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 609
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 598,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 269
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 269
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 599,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1158
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1158
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 600,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 422
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 422
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 601,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 358
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 358
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 602,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 424
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 424
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 603,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 207
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 207
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 604,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 47
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 47
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 605,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 260
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 260
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 606,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 226
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 226
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 607,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 394
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 394
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 608,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 258
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 258
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 609,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1190
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1190
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 610,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 317
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 317
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 611,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 298
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 298
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 612,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 508
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 508
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 613,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 444
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 444
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 614,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 490
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 490
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 615,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1137
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1137
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 616,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1092
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1092
+      },
+      "source_family": "cptsd"
+    },
+    {
+      "index": 617,
+      "stats": {
+        "pii_found": true,
+        "pii_types": {
+          "full_name": 1346
+        },
+        "messages_affected": 3,
+        "total_pii_instances": 1346
+      },
+      "source_family": "cptsd"
+    }
+  ],
+  "processing_timestamp": "2025-12-30T15:26:55.209669"
+}

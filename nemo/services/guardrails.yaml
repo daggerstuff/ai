@@ -119,7 +119,7 @@ configs:
         jailbreak_detection:
           nim_base_url: "https://ai.api.nvidia.com"
           nim_server_endpoint: "/v1/security/nvidia/nemoguard-jailbreak-detect"
-          api_key: NIM_API_KEY
+          api_key: NVIDIA_API_KEY
 
   quickstart_prompts:
     content: |
@@ -251,36 +251,38 @@ services:
       # model configs
       - source: ${GUARDRAILS_CONFIG_TYPE:-nvbuild}_config
         target: /config-store/config.yaml
-        gid: "1000"
-        uid: "1000"
+        gid: '1000'
+        uid: '1000'
         mode: 0444
 
       # default configs
       - source: ${GUARDRAILS_CONFIG_TYPE:-nvbuild}_default_config
         target: /config-store/default/config.yaml
-        gid: "1000"
-        uid: "1000"
+        gid: '1000'
+        uid: '1000'
         mode: 0444
 
       # quickstart configs
       - source: ${GUARDRAILS_CONFIG_TYPE:-nvbuild}_quickstart_config
         target: /config-store/quickstart/config.yaml
-        gid: "1000"
-        uid: "1000"
+        gid: '1000'
+        uid: '1000'
         mode: 0444
 
       - source: quickstart_prompts
         target: /config-store/quickstart/prompts.yaml
-        gid: "1000"
-        uid: "1000"
+        gid: '1000'
+        uid: '1000'
         mode: 0444
     healthcheck:
       test:
         [
-          "CMD",
-          "python",
-          "-c",
-          "import urllib.request; assert urllib.request.urlopen('http://localhost:7331/v1/health').status == 200",
+          'CMD',
+          'python',
+          '-c',
+          "import urllib.request; assert
+          urllib.request.urlopen('http://localhost:7331/v1/health').status ==
+          200",
         ]
     depends_on:
       guardrails-db-migration:
@@ -296,9 +298,9 @@ services:
     profiles: [guardrails, platform]
     # we don't currently have a cross platform build for guardrails
     platform: linux/amd64
-    entrypoint: ["alembic", "upgrade", "head"]
+    entrypoint: ['alembic', 'upgrade', 'head']
     environment:
-      POSTGRES_URI: "postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/guardrails"
+      POSTGRES_URI: 'postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/guardrails'
     depends_on:
       postgres:
         condition: service_healthy
@@ -316,7 +318,7 @@ services:
     profiles: [guardrails-nims, llama-3-3-70b-instruct]
     shm_size: 16gb
     ports:
-      - "8000"
+      - '8000'
     environment:
       - NGC_API_KEY
       - NIM_SERVED_MODEL_NAME=llama-3.3-70b-instruct
@@ -327,7 +329,7 @@ services:
       resources:
         limits:
           memory: 4G
-          cpus: "2.0"
+          cpus: '2.0'
     #    reservations:
     #      devices:
     #        - driver: nvidia
@@ -345,7 +347,7 @@ services:
     profiles: [guardrails-nims, nims-topic-control]
     shm_size: 16gb
     ports:
-      - "8000"
+      - '8000'
     environment:
       - NGC_API_KEY
       - NIM_SERVED_MODEL_NAME=llama-3.1-nemoguard-8b-topic-control
@@ -357,7 +359,7 @@ services:
       resources:
         limits:
           memory: 4G
-          cpus: "2.0"
+          cpus: '2.0'
     #    reservations:
     #      devices:
     #        - driver: nvidia
@@ -375,7 +377,7 @@ services:
     profiles: [guardrails-nims, nims-jailbreak]
     shm_size: 16gb
     ports:
-      - "8000"
+      - '8000'
     environment:
       - NGC_API_KEY
     volumes:
@@ -384,7 +386,7 @@ services:
       resources:
         limits:
           memory: 2G
-          cpus: "1.0"
+          cpus: '1.0'
     #    reservations:
     #      devices:
     #        - driver: nvidia
@@ -402,7 +404,7 @@ services:
     profiles: [guardrails-nims, nims-content-safety]
     shm_size: 16gb
     ports:
-      - "8000"
+      - '8000'
     environment:
       - NGC_API_KEY
       - NIM_SERVED_MODEL_NAME=llama-3.1-nemoguard-8b-content-safety
@@ -414,7 +416,7 @@ services:
       resources:
         limits:
           memory: 4G
-          cpus: "2.0"
+          cpus: '2.0'
     #    reservations:
     #      devices:
     #        - driver: nvidia

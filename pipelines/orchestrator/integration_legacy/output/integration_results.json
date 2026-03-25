@@ -71,11 +71,7 @@
       "crisis_intervention_dataset": {
         "dataset_name": "crisis_intervention_dataset",
         "description": "Edge cases with expert voice and safety validation",
-        "components_used": [
-          "edge_cases",
-          "voice_blending",
-          "bias_detection"
-        ],
+        "components_used": ["edge_cases", "voice_blending", "bias_detection"],
         "priority": "high",
         "status": "success",
         "output_file": "ai/pipelines/orchestrator/integration_legacy/output/crisis_intervention_dataset.jsonl",
@@ -85,11 +81,7 @@
       "long_term_therapy_dataset": {
         "dataset_name": "long_term_therapy_dataset",
         "description": "Journaling with dual persona and progress tracking",
-        "components_used": [
-          "journaling",
-          "dual_persona",
-          "psychology_kb"
-        ],
+        "components_used": ["journaling", "dual_persona", "psychology_kb"],
         "priority": "high",
         "status": "success",
         "output_file": "ai/pipelines/orchestrator/integration_legacy/output/long_term_therapy_dataset.jsonl",

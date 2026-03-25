@@ -2,29 +2,37 @@
 
 ## Overview
 
-The Alert Fatigue Prevention & Intelligent Grouping System is a comprehensive solution designed to reduce alert noise and prevent alert fatigue in the Pixelated Empathy AI monitoring infrastructure. It uses advanced machine learning algorithms, pattern matching, and intelligent rules to group related alerts and suppress redundant notifications.
+The Alert Fatigue Prevention & Intelligent Grouping System is a comprehensive
+solution designed to reduce alert noise and prevent alert fatigue in the
+Pixelated Empathy AI monitoring infrastructure. It uses advanced machine
+learning algorithms, pattern matching, and intelligent rules to group related
+alerts and suppress redundant notifications.
 
 ## 🚀 Key Features
 
 ### **Intelligent Alert Grouping**
+
 - **Similarity-based clustering** using TF-IDF and cosine similarity
 - **Pattern matching** with regex-based feature extraction
 - **Temporal clustering** for time-based alert correlation
 - **Hybrid approach** combining multiple algorithms for optimal results
 
 ### **Advanced Fatigue Prevention**
+
 - **Duplicate detection** with configurable thresholds
 - **High-frequency suppression** to prevent alert storms
 - **Escalation management** with multi-level thresholds
 - **Maintenance mode** support for planned downtime
 
 ### **Machine Learning Capabilities**
+
 - **Feature extraction** from alert text, metadata, and patterns
 - **Clustering algorithms** (DBSCAN) for automatic grouping
 - **Quality metrics** to evaluate grouping effectiveness
 - **Adaptive learning** from historical alert patterns
 
 ### **Real-time Dashboard**
+
 - **Web-based interface** for monitoring and management
 - **Interactive charts** showing alert trends and statistics
 - **Rule management** with CRUD operations
@@ -95,6 +103,7 @@ python3 fatigue_dashboard.py
 ### Dashboard Access
 
 Once started, access the dashboard at:
+
 - **URL**: `http://localhost:5000`
 - **Features**: Real-time monitoring, rule management, alert group visualization
 
@@ -109,7 +118,7 @@ from alert_fatigue_prevention import AlertFatiguePreventionSystem
 async def process_alerts():
     # Initialize system
     afp = AlertFatiguePreventionSystem()
-    
+
     # Process an alert
     alert = {
         "title": "High CPU Usage",
@@ -118,9 +127,9 @@ async def process_alerts():
         "source": "monitoring",
         "metadata": {"server": "server-01", "cpu_usage": 87}
     }
-    
+
     result = await afp.process_alert(alert)
-    
+
     print(f"Group ID: {result['group_id']}")
     print(f"Actions taken: {result['actions_taken']}")
     print(f"Should notify: {result['should_notify']}")
@@ -137,20 +146,20 @@ from intelligent_grouping import IntelligentGroupingEngine
 
 async def test_grouping():
     engine = IntelligentGroupingEngine()
-    
+
     alerts = [
         {"title": "CPU Alert", "message": "High CPU on server-01", "priority": "medium"},
         {"title": "CPU Alert", "message": "High CPU on server-02", "priority": "medium"},
         {"title": "Memory Alert", "message": "High memory usage", "priority": "high"}
     ]
-    
+
     # Test different algorithms
     algorithms = ['similarity_clustering', 'pattern_matching', 'hybrid_approach']
-    
+
     for algorithm in algorithms:
         groups = await engine.suggest_groups(alerts, algorithm)
         quality = await engine.evaluate_grouping_quality(alerts, groups)
-        
+
         print(f"{algorithm}: {len(groups)} groups, quality: {quality['silhouette_score']:.3f}")
 
 asyncio.run(test_grouping())
@@ -182,7 +191,8 @@ afp.add_fatigue_rule(custom_rule)
 
 ### Similarity Clustering
 
-Uses TF-IDF vectorization and cosine similarity to group alerts with similar content:
+Uses TF-IDF vectorization and cosine similarity to group alerts with similar
+content:
 
 1. **Text Processing**: Extract and normalize alert text content
 2. **Feature Extraction**: Convert text to TF-IDF vectors
@@ -238,7 +248,8 @@ Combines multiple algorithms for optimal results:
 The system includes pre-configured rules:
 
 1. **Duplicate Suppression**: Suppress identical alerts (≥3 in 15 minutes)
-2. **High Frequency Suppression**: Suppress high-frequency alerts (≥5 per minute)
+2. **High Frequency Suppression**: Suppress high-frequency alerts (≥5 per
+   minute)
 3. **Similar Alert Grouping**: Group alerts with ≥80% similarity
 4. **Escalation Threshold**: Escalate when group count ≥10 in 30 minutes
 5. **Maintenance Mode**: Suppress alerts during maintenance windows
@@ -280,12 +291,12 @@ python3 test_alert_fatigue.py
 # Expected output:
 # 🧪 Starting Alert Fatigue Prevention Test Suite
 # ============================================================
-# 
+#
 # 🔍 Running test_duplicate_detection...
 # ✅ test_duplicate_detection passed
-# 
+#
 # ... (additional tests)
-# 
+#
 # 🏁 TEST SUMMARY
 # ============================================================
 # ✅ Passed: 12
@@ -360,15 +371,15 @@ from alert_fatigue_prevention import AlertFatiguePreventionSystem
 class MonitoringIntegration:
     def __init__(self):
         self.afp = AlertFatiguePreventionSystem()
-    
+
     async def process_monitoring_alert(self, alert_data):
         # Process through fatigue prevention
         result = await self.afp.process_alert(alert_data)
-        
+
         # Only send notification if not suppressed
         if result['should_notify']:
             await self.send_notification(alert_data, result)
-        
+
         return result
 ```
 
@@ -381,7 +392,7 @@ from notification_integrations import NotificationManager
 async def integrated_alerting(alert_data):
     # Process through fatigue prevention first
     afp_result = await afp.process_alert(alert_data)
-    
+
     if afp_result['should_notify']:
         # Send through notification system
         notification_manager = NotificationManager()
@@ -403,7 +414,8 @@ async def integrated_alerting(alert_data):
 
 #### Methods
 
-- `process_alert(alert_data)`: Process an alert through the fatigue prevention system
+- `process_alert(alert_data)`: Process an alert through the fatigue prevention
+  system
 - `add_fatigue_rule(rule)`: Add a new fatigue prevention rule
 - `get_group_summary(hours)`: Get summary of alert groups
 - `cleanup_old_groups(days)`: Clean up old resolved groups

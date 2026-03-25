@@ -7,7 +7,9 @@
 ## Overview
 
 The final training dataset is a **dual artifact**:
-1. **Manifest**: JSON file pointing to sharded datasets in S3 with hashes and provenance
+
+1. **Manifest**: JSON file pointing to sharded datasets in S3 with hashes and
+   provenance
 2. **Compiled Export**: Single ChatML JSONL file for portability
 
 Both artifacts are stored in S3 as the canonical source of truth.
@@ -59,13 +61,17 @@ Each line in the compiled JSONL export follows this schema:
 ### Required Fields
 
 - **messages**: Array of ChatML message objects (system/user/assistant)
-- **metadata.source_family**: One of the required dataset families (see coverage report)
+- **metadata.source_family**: One of the required dataset families (see coverage
+  report)
 - **metadata.source_key**: S3 path to original source data
-- **metadata.content_hash**: SHA256 hash of normalized conversation text (for dedup)
-- **metadata.pii_status**: `"scrubbed"`, `"none_detected"`, or `"requires_review"`
+- **metadata.content_hash**: SHA256 hash of normalized conversation text (for
+  dedup)
+- **metadata.pii_status**: `"scrubbed"`, `"none_detected"`, or
+  `"requires_review"`
 - **metadata.license_tag**: License identifier for the source data
 - **metadata.split**: `"train"`, `"val"`, or `"test"`
-- **metadata.phase**: Training phase this data belongs to (`stage1_foundation`, `stage2_therapeutic_expertise`, etc.)
+- **metadata.phase**: Training phase this data belongs to (`stage1_foundation`,
+  `stage2_therapeutic_expertise`, etc.)
 - **metadata.provenance**: Immutable tracking of data origin and processing
 
 ### Optional Fields
@@ -174,7 +180,8 @@ These families are **excluded from train/val** and only appear in test:
 
 - **Exact duplicates**: Same content_hash cannot appear in multiple splits
 - **Near-duplicates**: Semantic similarity > 0.95 cannot cross split boundaries
-- **Source family isolation**: Hard holdout families are completely isolated to test
+- **Source family isolation**: Hard holdout families are completely isolated to
+  test
 
 ---
 
@@ -186,9 +193,11 @@ Every conversation in the final dataset must have **immutable provenance**:
 2. **Source family**: Which dataset family it belongs to
 3. **Processing pipeline**: Which pipeline processed it
 4. **Processing timestamp**: When it was processed
-5. **Processing steps**: List of transformations applied (encoding_fix, dedup, chatml_convert, etc.)
+5. **Processing steps**: List of transformations applied (encoding_fix, dedup,
+   chatml_convert, etc.)
 
 This enables:
+
 - **Reproducibility**: Rebuild dataset from source
 - **Auditability**: Trace any conversation back to origin
 - **Quality tracking**: Identify problematic sources
@@ -210,10 +219,10 @@ def compute_content_hash(messages: list[dict]) -> str:
     for msg in messages:
         if isinstance(msg, dict) and 'content' in msg:
             content_parts.append(msg['content'].strip().lower())
-    
+
     # Normalize: lowercase, strip whitespace, sort
     normalized = ' '.join(sorted(content_parts))
-    
+
     # Compute hash
     return f"sha256:{hashlib.sha256(normalized.encode('utf-8')).hexdigest()}"
 ```
@@ -228,7 +237,8 @@ All conversations must be tagged with PII status:
 - **none_detected**: No PII found
 - **requires_review**: PII detection uncertain, needs human review
 
-**Hard constraint**: Conversations with `requires_review` status must be excluded from final dataset until reviewed.
+**Hard constraint**: Conversations with `requires_review` status must be
+excluded from final dataset until reviewed.
 
 ---
 
@@ -247,16 +257,19 @@ Each conversation must have a license tag indicating source license:
 ## Canonical S3 Locations
 
 ### Manifest
+
 ```
 s3://pixel-data/final_dataset/manifest.json
 ```
 
 ### Compiled Export
+
 ```
 s3://pixel-data/final_dataset/compiled/final_training_dataset.jsonl
 ```
 
 ### Sharded Datasets
+
 ```
 s3://pixel-data/final_dataset/train/train_000.jsonl
 s3://pixel-data/final_dataset/train/train_001.jsonl
@@ -279,7 +292,8 @@ Before final dataset is considered complete:
 4. **Provenance gate**: All conversations have complete provenance
 5. **Hash gate**: All conversations have valid content_hash
 6. **Split gate**: Hard holdout families only in test split
-7. **Stats gate**: Distribution report generated (counts/tokens by family, phase, split)
+7. **Stats gate**: Distribution report generated (counts/tokens by family,
+   phase, split)
 
 ---
 

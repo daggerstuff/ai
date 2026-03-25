@@ -4,7 +4,8 @@ Command-line interface for the journal dataset research system.
 
 ## Installation
 
-The CLI is part of the journal dataset research package. Make sure you have all dependencies installed:
+The CLI is part of the journal dataset research package. Make sure you have all
+dependencies installed:
 
 ```bash
 cd ai/
@@ -85,7 +86,8 @@ python -m ai.sourcing.journal.cli.cli config set "orchestrator.max_retries" "5"
 
 ### Main Execution Script
 
-The main execution script provides automated workflow execution with checkpointing:
+The main execution script provides automated workflow execution with
+checkpointing:
 
 ```bash
 # Run full workflow
@@ -117,6 +119,7 @@ python ai/sourcing/journal/main.py \
 ### Interactive Mode
 
 Many commands support `--interactive` or `-i` flag for manual oversight:
+
 - Review datasets before evaluation
 - Approve acquisition requests
 - Review integration plans
@@ -124,9 +127,11 @@ Many commands support `--interactive` or `-i` flag for manual oversight:
 
 ## Configuration
 
-Configuration is stored in `~/.journal_research/config.yaml` (or JSON if YAML is not available).
+Configuration is stored in `~/.journal_research/config.yaml` (or JSON if YAML is
+not available).
 
 You can override configuration using environment variables:
+
 - `JOURNAL_RESEARCH_PUBMED_API_KEY`: PubMed API key
 - `JOURNAL_RESEARCH_STORAGE_PATH`: Storage path for acquired datasets
 - `JOURNAL_RESEARCH_LOG_LEVEL`: Logging level
@@ -137,7 +142,8 @@ You can override configuration using environment variables:
 
 The main execution script (`main.py`) provides:
 
-1. **Phase-by-phase execution**: Runs discovery → evaluation → acquisition → integration
+1. **Phase-by-phase execution**: Runs discovery → evaluation → acquisition →
+   integration
 2. **Checkpointing**: Saves progress after each phase
 3. **Resume capability**: Resume from last checkpoint
 4. **Dry-run mode**: Test workflows without making changes
@@ -187,7 +193,9 @@ python ai/sourcing/journal/main.py \
 
 ## Session Management
 
-Sessions are stored in the checkpoint directory (default: `checkpoints/`). Each session includes:
+Sessions are stored in the checkpoint directory (default: `checkpoints/`). Each
+session includes:
+
 - Session metadata
 - Discovered sources
 - Evaluations
@@ -200,6 +208,7 @@ Sessions are stored in the checkpoint directory (default: `checkpoints/`). Each 
 ## Error Handling
 
 The CLI includes robust error handling:
+
 - Automatic retries with exponential backoff
 - Fallback strategies for component failures
 - Error logging and notification
@@ -210,6 +219,7 @@ The CLI includes robust error handling:
 ### Configuration Issues
 
 If configuration doesn't load:
+
 - Check that the config file exists and is valid YAML/JSON
 - Verify file permissions
 - Check environment variable overrides
@@ -217,14 +227,16 @@ If configuration doesn't load:
 ### Service Initialization
 
 If services are not initialized:
-- Check that discovery/evaluation/acquisition/integration services are configured
+
+- Check that discovery/evaluation/acquisition/integration services are
+  configured
 - Verify API keys and credentials
 - Check service dependencies
 
 ### Session Not Found
 
 If a session is not found:
+
 - Verify the session ID is correct
 - Check the checkpoint directory
 - List all sessions with `status` command
-

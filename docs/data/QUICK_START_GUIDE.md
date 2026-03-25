@@ -2,7 +2,8 @@
 
 ## 🚀 Complete System Setup and Execution
 
-This guide walks you through the complete process from data generation to model training and deployment.
+This guide walks you through the complete process from data generation to model
+training and deployment.
 
 ---
 
@@ -224,6 +225,7 @@ curl http://localhost:8001/api/v1/progress/test_client_001/report?days=30
 ## Quick Reference Commands
 
 ### Data Generation
+
 ```bash
 # Edge cases
 cd ai/pipelines/edge_case_pipeline_standalone/ && python quick_start.py
@@ -233,6 +235,7 @@ cd ai/dataset_pipeline/orchestration/ && python integrated_training_pipeline.py
 ```
 
 ### Testing
+
 ```bash
 # End-to-end test
 cd ai/dataset_pipeline/ && python test_end_to_end_pipeline.py
@@ -242,6 +245,7 @@ cd ai/dataset_pipeline/ingestion/ && python edge_case_jsonl_loader.py
 ```
 
 ### Training
+
 ```bash
 # Start training
 cd ai/training_ready && python scripts/train_optimized.py
@@ -251,6 +255,7 @@ python scripts/train_optimized.py --resume_from_checkpoint auto
 ```
 
 ### Inference
+
 ```bash
 # Start service
 cd ai/training_ready && python scripts/inference_service.py
@@ -268,6 +273,7 @@ curl -X POST http://localhost:8000/api/v1/inference \
 ### Issue: Edge case data not found
 
 **Solution**: Run the edge case generator first:
+
 ```bash
 cd ai/pipelines/edge_case_pipeline_standalone/
 python quick_start.py
@@ -276,6 +282,7 @@ python quick_start.py
 ### Issue: Training dataset empty
 
 **Solution**: Check that at least one data source is available:
+
 ```bash
 cd ai/dataset_pipeline/ingestion/
 python dual_persona_loader.py  # This auto-generates data
@@ -284,6 +291,7 @@ python dual_persona_loader.py  # This auto-generates data
 ### Issue: Out of memory during training
 
 **Solution**: Use memory-efficient profile:
+
 ```bash
 # Edit training_config.json
 {
@@ -294,6 +302,7 @@ python dual_persona_loader.py  # This auto-generates data
 ### Issue: Inference service won't start
 
 **Solution**: Check model path:
+
 ```bash
 # Verify model exists
 ls -la ai/training_ready/models/
@@ -306,15 +315,18 @@ ls -la ai/training_ready/models/
 ## Performance Expectations
 
 ### Data Generation
+
 - Edge cases: ~10-15 minutes (500 conversations)
 - Integrated pipeline: ~1-2 minutes (8,000 samples)
 
 ### Training (H100)
+
 - Fast profile: ~2.8 hours
 - Balanced profile: ~4.2 hours
 - Quality profile: ~8.3 hours
 
 ### Inference
+
 - P50 latency: 650ms (without cache)
 - P95 latency: 1,200ms (without cache)
 - With cache: 45-85ms (30-50% hit rate)
@@ -334,8 +346,10 @@ ls -la ai/training_ready/models/
 ## Documentation
 
 - **Quick Start**: `ai/training_ready/docs/QUICK_START_GUIDE.md` (this file)
-- **Lightning H100 Deploy**: `ai/training_ready/docs/LIGHTNING_H100_QUICK_DEPLOY.md`
-- **Implementation Complete**: `ai/training_ready/docs/IMPLEMENTATION_COMPLETE.md`
+- **Lightning H100 Deploy**:
+  `ai/training_ready/docs/LIGHTNING_H100_QUICK_DEPLOY.md`
+- **Implementation Complete**:
+  `ai/training_ready/docs/IMPLEMENTATION_COMPLETE.md`
 - **Package Manifest**: `ai/training_ready/docs/PACKAGE_MANIFEST.md`
 - **API Documentation**: `ai/dataset_pipeline/api_documentation/`
 
@@ -344,6 +358,7 @@ ls -la ai/training_ready/models/
 ## Support
 
 For issues or questions:
+
 1. Check troubleshooting section above
 2. Review documentation in `ai/training_ready/docs/`
 3. Check logs in `logs/training.log` or service logs

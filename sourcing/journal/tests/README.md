@@ -1,32 +1,41 @@
 # Journal Dataset Research System - Test Suite
 
-This directory contains comprehensive tests for the journal dataset research system, covering unit tests, integration tests, and end-to-end tests.
+This directory contains comprehensive tests for the journal dataset research
+system, covering unit tests, integration tests, and end-to-end tests.
 
 ## Test Structure
 
 ### Unit Tests
 
-- **`test_dataset_models.py`**: Tests for all data models (DatasetSource, DatasetEvaluation, AccessRequest, etc.)
+- **`test_dataset_models.py`**: Tests for all data models (DatasetSource,
+  DatasetEvaluation, AccessRequest, etc.)
 - **`test_evaluation_engine.py`**: Tests for dataset evaluation engine
 - **`test_acquisition_manager.py`**: Tests for access and acquisition manager
-- **`test_compliance.py`**: Tests for compliance module (license checker, privacy verifier, HIPAA validator, etc.)
-- **`test_integration_planning_engine.py`**: Tests for integration planning engine
-- **`test_pipeline_integration_service.py`**: Tests for pipeline integration service
-- **`test_documentation.py`**: Tests for documentation module (research logger, report generator, dataset catalog, tracking updater, progress visualization)
+- **`test_compliance.py`**: Tests for compliance module (license checker,
+  privacy verifier, HIPAA validator, etc.)
+- **`test_integration_planning_engine.py`**: Tests for integration planning
+  engine
+- **`test_pipeline_integration_service.py`**: Tests for pipeline integration
+  service
+- **`test_documentation.py`**: Tests for documentation module (research logger,
+  report generator, dataset catalog, tracking updater, progress visualization)
 - **`test_cli.py`**: Tests for CLI interface and commands
 - **`test_research_orchestrator.py`**: Tests for research orchestrator
 
 ### Integration Tests
 
-- **`test_integration.py`**: Tests for component communication, workflow state transitions, error handling, and progress tracking
+- **`test_integration.py`**: Tests for component communication, workflow state
+  transitions, error handling, and progress tracking
 
 ### End-to-End Tests
 
-- **`test_e2e.py`**: Tests for complete research workflow, report generation, dataset acquisition, and pipeline integration
+- **`test_e2e.py`**: Tests for complete research workflow, report generation,
+  dataset acquisition, and pipeline integration
 
 ### Test Fixtures
 
-- **`conftest.py`**: Shared fixtures, mocks, and test utilities for all test modules
+- **`conftest.py`**: Shared fixtures, mocks, and test utilities for all test
+  modules
 
 ## Running Tests
 
@@ -79,9 +88,11 @@ The test suite covers:
 3. **Evaluation Engine**: Dataset evaluation across all dimensions
 4. **Acquisition Manager**: Access requests and dataset downloads
 5. **Integration Planning**: Schema mapping and transformation planning
-6. **Pipeline Integration**: Format conversion, validation, merging, and quality checks
+6. **Pipeline Integration**: Format conversion, validation, merging, and quality
+   checks
 7. **Compliance**: License checking, privacy verification, HIPAA validation
-8. **Documentation**: Report generation, logging, catalog export, progress visualization
+8. **Documentation**: Report generation, logging, catalog export, progress
+   visualization
 9. **CLI**: Command-line interface and interactive mode
 10. **Orchestrator**: Workflow coordination and state management
 
@@ -96,9 +107,12 @@ The `conftest.py` file provides:
 - **Integration Plans**: Sample integration plans
 - **Research Sessions**: Sample research sessions
 - **Test Datasets**: CSV, JSONL, and JSON test datasets
-- **Mock API Responses**: Mock responses for PubMed, Zenodo, Dryad, ClinicalTrials.gov
-- **Mock Services**: Mock discovery, evaluation, acquisition, and integration services
-- **Temporary Directories**: Temporary directories for logs, reports, and storage
+- **Mock API Responses**: Mock responses for PubMed, Zenodo, Dryad,
+  ClinicalTrials.gov
+- **Mock Services**: Mock discovery, evaluation, acquisition, and integration
+  services
+- **Temporary Directories**: Temporary directories for logs, reports, and
+  storage
 
 ## Mock Services
 
@@ -130,7 +144,8 @@ Test datasets are created dynamically using fixtures:
 
 ### Import Errors
 
-If you encounter import errors, make sure you're running tests from the correct directory:
+If you encounter import errors, make sure you're running tests from the correct
+directory:
 
 ```bash
 cd ai
@@ -171,4 +186,3 @@ When adding new tests:
 3. Add appropriate test markers (unit, integration, e2e)
 4. Update this README if adding new test categories
 5. Ensure tests pass before committing
-

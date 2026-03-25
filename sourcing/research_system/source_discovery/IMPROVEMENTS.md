@@ -1,25 +1,33 @@
 # Source Discovery Module Improvements
 
 ## Overview
-Comprehensive refactoring of the source discovery module to eliminate code duplication, add caching, standardize error handling, and improve maintainability.
+
+Comprehensive refactoring of the source discovery module to eliminate code
+duplication, add caching, standardize error handling, and improve
+maintainability.
 
 ## Changes Implemented
 
 ### 1. Enhanced Base Client (`base_client.py`)
+
 **New Features:**
+
 - `BaseAPIClient` - Unified base class for all API clients
 - `RequestCache` - LRU cache with TTL support (5 min default, 1000 entry max)
 - `APIError` & `RateLimitError` - Custom exceptions for better error handling
 - Statistics tracking for monitoring performance
 
 **Benefits:**
+
 - Eliminated ~200 lines of duplicate code across 5 clients
 - Built-in request caching reduces API calls by 40-60%
 - Consistent retry logic with exponential backoff
 - Rate limiting enforcement across all clients
 
 ### 2. Refactored API Clients
+
 **Updated Clients:**
+
 - `PubMedClient` - Now inherits from `BaseAPIClient`
 - `DOAJClient` - Now inherits from `BaseAPIClient`
 - `DryadClient` - Now inherits from `BaseAPIClient`
@@ -27,19 +35,23 @@ Comprehensive refactoring of the source discovery module to eliminate code dupli
 - `ClinicalTrialsClient` - Now inherits from `BaseAPIClient`
 
 **Improvements:**
+
 - All clients support `enable_cache` parameter
 - Standardized error handling (APIError → Exception)
 - Complete type hints for Python 3.10+
 - Consistent return types (empty list on error, not None)
 
 ### 3. Enhanced Module Interface (`__init__.py`)
+
 **New Features:**
+
 - Version tracking (`__version__ = "0.1.0"`)
 - Graceful import error handling with logging
 - Factory functions for easy object creation
 - Introspection functions for debugging
 
 **Factory Functions:**
+
 ```python
 create_all_clients(enable_cache=True)      # Create all API clients
 create_unified_client(enable_cache=True)   # Create unified search client
@@ -48,6 +60,7 @@ create_metadata_parser()                   # Create metadata parser
 ```
 
 **Introspection Functions:**
+
 ```python
 get_available_clients()  # List successfully imported clients
 get_import_errors()      # List components with import errors
@@ -56,6 +69,7 @@ get_import_errors()      # List components with import errors
 ## Usage Examples
 
 ### Basic Usage
+
 ```python
 from ai.sourcing.research_system.source_discovery import PubMedClient
 
@@ -75,6 +89,7 @@ print(f"Cache hit rate: {stats['cache_hit_rate']}%")
 ```
 
 ### Using Factory Functions
+
 ```python
 from ai.sourcing.research_system.source_discovery import (
     create_all_clients,
@@ -93,6 +108,7 @@ dedup = create_deduplicator(similarity_threshold=0.85)
 ```
 
 ### Error Handling
+
 ```python
 from ai.sourcing.research_system.source_discovery import (
     PubMedClient,
@@ -112,6 +128,7 @@ except APIError as e:
 ```
 
 ### Cache Management
+
 ```python
 client = PubMedClient(enable_cache=True)
 
@@ -129,6 +146,7 @@ client.reset_stats()
 ```
 
 ### Checking Available Components
+
 ```python
 from ai.sourcing.research_system.source_discovery import (
     get_available_clients,
@@ -148,17 +166,21 @@ if errors:
 ## Performance Improvements
 
 ### Caching Benefits
+
 - **Reduced API Calls**: 40-60% reduction for typical workflows
 - **Faster Response Times**: Cached responses return instantly
 - **Lower Rate Limit Usage**: Fewer requests = less chance of hitting limits
 
 ### Memory Management
+
 - **LRU Eviction**: Oldest entries removed when cache is full
 - **TTL Expiration**: Entries expire after 5 minutes (configurable)
 - **Max Size**: 1000 entries per client (configurable)
 
 ### Statistics Tracking
+
 Each client tracks:
+
 - `requests_made` - Total API requests
 - `cache_hits` - Successful cache retrievals
 - `cache_misses` - Cache misses requiring API calls
@@ -169,7 +191,10 @@ Each client tracks:
 ## Design Patterns
 
 ### Template Method Pattern
-`BaseAPIClient` defines the request flow, subclasses customize specific behavior:
+
+`BaseAPIClient` defines the request flow, subclasses customize specific
+behavior:
+
 ```python
 class PubMedClient(BaseAPIClient):
     def _make_pubmed_request(self, endpoint, params):
@@ -180,7 +205,9 @@ class PubMedClient(BaseAPIClient):
 ```
 
 ### Factory Pattern
+
 Factory functions encapsulate object creation:
+
 ```python
 def create_all_clients(enable_cache=True):
     return {
@@ -191,11 +218,13 @@ def create_all_clients(enable_cache=True):
 ```
 
 ### Decorator Pattern
+
 Caching wraps request logic transparently without changing client code.
 
 ## Migration Guide
 
 ### Before
+
 ```python
 from ai.sourcing.research_system.source_discovery import PubMedClient
 
@@ -204,6 +233,7 @@ results = client.search(keywords=["test"])
 ```
 
 ### After (No Changes Required!)
+
 ```python
 from ai.sourcing.research_system.source_discovery import PubMedClient
 
@@ -218,15 +248,16 @@ client = PubMedClient(enable_cache=False)
 ## Testing Recommendations
 
 ### Unit Tests
+
 ```python
 def test_caching():
     client = PubMedClient(enable_cache=True)
-    
+
     # First call - should hit API
     results1 = client.search(keywords=["test"])
     stats1 = client.get_stats()
     assert stats1["cache_misses"] == 1
-    
+
     # Second call - should hit cache
     results2 = client.search(keywords=["test"])
     stats2 = client.get_stats()
@@ -235,10 +266,11 @@ def test_caching():
 ```
 
 ### Integration Tests
+
 ```python
 def test_error_handling():
     client = PubMedClient()
-    
+
     # Should return empty list on error, not raise
     results = client.search(keywords=["invalid" * 1000])
     assert results == []
@@ -247,6 +279,7 @@ def test_error_handling():
 ## Future Enhancements
 
 ### Potential Improvements
+
 1. **Persistent Caching**: Save cache to disk for cross-session reuse
 2. **Distributed Caching**: Redis/Memcached for multi-instance deployments
 3. **Smart Cache Invalidation**: Invalidate based on data freshness
@@ -255,7 +288,9 @@ def test_error_handling():
 6. **Metrics Export**: Prometheus/StatsD integration
 
 ### Configuration Options
+
 Consider adding:
+
 - Per-client cache TTL configuration
 - Per-client cache size limits
 - Global cache sharing across clients
@@ -264,6 +299,7 @@ Consider adding:
 ## Backward Compatibility
 
 All changes are **100% backward compatible**:
+
 - Existing code continues to work without modifications
 - New features are opt-in via parameters
 - Default behavior matches previous implementation
@@ -272,6 +308,7 @@ All changes are **100% backward compatible**:
 ## Version History
 
 ### v0.1.0 (Current)
+
 - Initial refactoring with base client
 - Added request caching with TTL
 - Standardized error handling

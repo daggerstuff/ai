@@ -87,7 +87,9 @@ with LogPerformance(logger, "expensive_operation"):
 ## Troubleshooting
 
 ### Import Errors
-If you get import errors, ensure the enterprise_config directory is in your Python path:
+
+If you get import errors, ensure the enterprise_config directory is in your
+Python path:
 
 ```python
 import sys
@@ -96,6 +98,7 @@ sys.path.append(str(Path(__file__).parent.parent / "enterprise_config"))
 ```
 
 ### Configuration Issues
+
 Check configuration with:
 
 ```bash
@@ -103,4 +106,5 @@ python enterprise_config/status_dashboard.py
 ```
 
 ### Logging Issues
+
 Check log files in the `logs/` directory.

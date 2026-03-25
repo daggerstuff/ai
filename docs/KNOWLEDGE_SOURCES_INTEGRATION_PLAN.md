@@ -2,12 +2,14 @@
 
 ## Overview
 
-This document outlines the integration of therapeutic books, PDFs, and reference materials from S3 into the Pixelated Empathy training and RAG systems.
+This document outlines the integration of therapeutic books, PDFs, and reference
+materials from S3 into the Pixelated Empathy training and RAG systems.
 
 ## Current Status
 
 - **Total Knowledge Sources**: 14 books/PDFs (27.25 MB)
-- **Integration Status**: All 14 sources need migration to canonical `knowledge/` prefix
+- **Integration Status**: All 14 sources need migration to canonical
+  `knowledge/` prefix
 - **Priority Breakdown**:
   - Critical: 3 sources (DSM, Complex PTSD, IFS)
   - High: 6 sources (DBT, Brain Energy, PTSD resources)
@@ -19,19 +21,22 @@ This document outlines the integration of therapeutic books, PDFs, and reference
 
 1. **Complex PTSD: From Surviving to Thriving** - Pete Walker
    - Current: `datasets/gdrive/raw/Books/Complex PTSD_...`
-   - Target: `s3://pixel-data/knowledge/books/Complex_PTSD_From_Surviving_to_Thriving_Pete_Walker.epub`
+   - Target:
+     `s3://pixel-data/knowledge/books/Complex_PTSD_From_Surviving_to_Thriving_Pete_Walker.epub`
    - Topics: complex_trauma, ptsd, recovery, emotional_flashbacks
    - Size: 683 KB
 
 2. **Internal Family Systems Therapy** - Richard C. Schwartz
    - Current: `datasets/gdrive/raw/Books/Internal Family Systems...`
-   - Target: `s3://pixel-data/knowledge/books/Internal_Family_Systems_Therapy_Richard_Schwartz.epub`
+   - Target:
+     `s3://pixel-data/knowledge/books/Internal_Family_Systems_Therapy_Richard_Schwartz.epub`
    - Topics: ifs_therapy, parts_work, self_leadership, trauma_therapy
    - Size: 450 KB
 
 3. **DSM - Diagnostic and Statistical Manual**
    - Current: `datasets/gdrive/raw/Diagnostic and Statistical Manual...`
-   - Target: `s3://pixel-data/knowledge/clinical/DSM_Diagnostic_and_Statistical_Manual.pdf`
+   - Target:
+     `s3://pixel-data/knowledge/clinical/DSM_Diagnostic_and_Statistical_Manual.pdf`
    - Topics: diagnosis, clinical_criteria, mental_disorders
    - Size: 20 MB
    - **Note**: Core diagnostic reference - essential for clinical accuracy
@@ -143,7 +148,7 @@ class YouTubeRAGSystem:
         self.knowledge_sources_dir = Path("knowledge/books")
         if include_books:
             self._load_knowledge_sources()
-    
+
     def _load_knowledge_sources(self):
         """Load and index therapeutic books."""
         for book_file in self.knowledge_sources_dir.glob("*.txt"):
@@ -217,6 +222,5 @@ EXTRACT_BOOK_TEXT=true
 
 ---
 
-**Status**: ✅ Ready for execution
-**Last Updated**: 2026-02-03
-**Owner**: AI Training Pipeline
+**Status**: ✅ Ready for execution **Last Updated**: 2026-02-03 **Owner**: AI
+Training Pipeline

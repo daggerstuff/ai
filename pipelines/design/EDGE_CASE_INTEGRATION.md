@@ -2,27 +2,41 @@
 
 ## Overview
 
-The Edge Case Generator uses NVIDIA NeMo Data Designer to generate challenging, rare, and edge case scenarios for therapeutic training. It integrates seamlessly with the existing scenario generation system in Pixelated Empathy.
+The Edge Case Generator uses NVIDIA NeMo Data Designer to generate challenging,
+rare, and edge case scenarios for therapeutic training. It integrates seamlessly
+with the existing scenario generation system in Pixelated Empathy.
 
 ## Features
 
-- **10 Edge Case Types**: Crisis, cultural complexity, comorbidity, boundary violations, trauma disclosure, substance abuse, ethical dilemmas, rare diagnoses, multi-generational families, and systemic oppression
-- **Difficulty Levels**: Supports beginner, intermediate, and advanced difficulty levels
+- **10 Edge Case Types**: Crisis, cultural complexity, comorbidity, boundary
+  violations, trauma disclosure, substance abuse, ethical dilemmas, rare
+  diagnoses, multi-generational families, and systemic oppression
+- **Difficulty Levels**: Supports beginner, intermediate, and advanced
+  difficulty levels
 - **Scalable Generation**: Generate single or multiple edge case types at scale
-- **API Integration**: Formatted output compatible with existing scenario generation API
+- **API Integration**: Formatted output compatible with existing scenario
+  generation API
 
 ## Edge Case Types
 
-1. **CRISIS** - Suicidal ideation, self-harm, substance overdose, domestic violence, psychotic episodes
-2. **CULTURAL_COMPLEXITY** - Language barriers, immigration status, cultural conflicts, stigma
+1. **CRISIS** - Suicidal ideation, self-harm, substance overdose, domestic
+   violence, psychotic episodes
+2. **CULTURAL_COMPLEXITY** - Language barriers, immigration status, cultural
+   conflicts, stigma
 3. **COMORBIDITY** - Multiple co-occurring mental health conditions
-4. **BOUNDARY_VIOLATION** - Dual relationships, gift offering, social media requests, physical boundary testing
-5. **TRAUMA_DISCLOSURE** - Childhood abuse, sexual assault, domestic violence, combat trauma
+4. **BOUNDARY_VIOLATION** - Dual relationships, gift offering, social media
+   requests, physical boundary testing
+5. **TRAUMA_DISCLOSURE** - Childhood abuse, sexual assault, domestic violence,
+   combat trauma
 6. **SUBSTANCE_ABUSE** - Alcohol, opioids, stimulants, polysubstance use
-7. **ETHICAL_DILEMMA** - Confidentiality breaches, mandatory reporting, competence boundaries
-8. **RARE_DIAGNOSIS** - Dissociative identity disorder, factitious disorder, selective mutism
-9. **MULTI_GENERATIONAL** - Extended families, generational conflicts, cultural values
-10. **SYSTEMIC_OPPRESSION** - Racism, sexism, classism, ableism, intersectional oppression
+7. **ETHICAL_DILEMMA** - Confidentiality breaches, mandatory reporting,
+   competence boundaries
+8. **RARE_DIAGNOSIS** - Dissociative identity disorder, factitious disorder,
+   selective mutism
+9. **MULTI_GENERATIONAL** - Extended families, generational conflicts, cultural
+   values
+10. **SYSTEMIC_OPPRESSION** - Racism, sexism, classism, ableism, intersectional
+    oppression
 
 ## Usage
 
@@ -88,7 +102,8 @@ for scenario in scenarios:
 
 ## Integration with Scenario Generation API
 
-The edge case generator produces scenarios compatible with the existing scenario generation API format:
+The edge case generator produces scenarios compatible with the existing scenario
+generation API format:
 
 ```typescript
 interface EdgeCaseScenario {
@@ -179,15 +194,17 @@ uv run python ai/pipelines/design/edge_case_example.py
 
 ## Next Steps
 
-1. **API Endpoint**: Create TypeScript API endpoint that calls the Python edge case generator
+1. **API Endpoint**: Create TypeScript API endpoint that calls the Python edge
+   case generator
 2. **UI Integration**: Add edge case generation to the scenario generation UI
-3. **Training Integration**: Integrate edge cases into the training data pipeline
+3. **Training Integration**: Integrate edge cases into the training data
+   pipeline
 4. **Quality Metrics**: Add quality metrics for generated edge cases
 
 ## Notes
 
 - Edge cases are generated using synthetic data from NeMo Data Designer
 - All scenarios are designed for training purposes
-- Edge cases focus on challenging, rare scenarios that require specialized skills
+- Edge cases focus on challenging, rare scenarios that require specialized
+  skills
 - Generated data maintains privacy and does not contain real patient information
-

@@ -8,86 +8,26 @@
         "total_word_instances": 44296483,
         "vocabulary_richness": 0.0019705853396984135,
         "most_common_words": [
-          [
-            "and",
-            1661510
-          ],
-          [
-            "the",
-            1450744
-          ],
-          [
-            "to",
-            1231741
-          ],
-          [
-            "of",
-            947218
-          ],
-          [
-            "a",
-            816587
-          ],
-          [
-            "in",
-            585127
-          ],
-          [
-            "can",
-            545480
-          ],
-          [
-            "for",
-            497079
-          ],
-          [
-            "or",
-            437590
-          ],
-          [
-            "with",
-            434904
-          ],
-          [
-            "is",
-            432829
-          ],
-          [
-            "role",
-            406058
-          ],
-          [
-            "i",
-            402560
-          ],
-          [
-            "that",
-            396560
-          ],
-          [
-            "content",
-            392140
-          ],
-          [
-            "this",
-            384277
-          ],
-          [
-            "are",
-            329082
-          ],
-          [
-            "s",
-            311863
-          ],
-          [
-            "on",
-            298198
-          ],
-          [
-            "be",
-            294970
-          ]
+          ["and", 1661510],
+          ["the", 1450744],
+          ["to", 1231741],
+          ["of", 947218],
+          ["a", 816587],
+          ["in", 585127],
+          ["can", 545480],
+          ["for", 497079],
+          ["or", 437590],
+          ["with", 434904],
+          ["is", 432829],
+          ["role", 406058],
+          ["i", 402560],
+          ["that", 396560],
+          ["content", 392140],
+          ["this", 384277],
+          ["are", 329082],
+          ["s", 311863],
+          ["on", 298198],
+          ["be", 294970]
         ],
         "rare_words_count": 20892,
         "rare_words_percentage": 23.934013059915223
@@ -209,9 +149,7 @@
             "valid let",
             "adhd affects"
           ],
-          "datasets_in_cluster": [
-            "additional_specialized"
-          ]
+          "datasets_in_cluster": ["additional_specialized"]
         },
         "cluster_1": {
           "document_count": 9847,
@@ -228,10 +166,7 @@
             "psychologist",
             "assistant"
           ],
-          "datasets_in_cluster": [
-            "professional_psychology",
-            "test_dataset"
-          ]
+          "datasets_in_cluster": ["professional_psychology", "test_dataset"]
         },
         "cluster_2": {
           "document_count": 12795,
@@ -271,10 +206,7 @@
             "disorder",
             "mental"
           ],
-          "datasets_in_cluster": [
-            "additional_specialized",
-            "cot_reasoning"
-          ]
+          "datasets_in_cluster": ["additional_specialized", "cot_reasoning"]
         },
         "cluster_4": {
           "document_count": 31520,
@@ -314,10 +246,7 @@
             "reflecting",
             "ongoing"
           ],
-          "datasets_in_cluster": [
-            "additional_specialized",
-            "cot_reasoning"
-          ]
+          "datasets_in_cluster": ["additional_specialized", "cot_reasoning"]
         },
         "cluster_6": {
           "document_count": 5002,
@@ -334,10 +263,7 @@
             "feel",
             "turn_id"
           ],
-          "datasets_in_cluster": [
-            "professional_soulchat",
-            "cot_reasoning"
-          ]
+          "datasets_in_cluster": ["professional_soulchat", "cot_reasoning"]
         },
         "cluster_7": {
           "document_count": 5325,
@@ -354,10 +280,7 @@
             "norms",
             "nuances"
           ],
-          "datasets_in_cluster": [
-            "cot_reasoning",
-            "priority_3"
-          ]
+          "datasets_in_cluster": ["cot_reasoning", "priority_3"]
         },
         "cluster_8": {
           "document_count": 10056,
@@ -818,219 +741,60 @@
           }
         },
         "empty_combinations": [
-          [
-            "additional_specialized",
-            "cot_reasoning"
-          ],
-          [
-            "additional_specialized",
-            "priority_1"
-          ],
-          [
-            "additional_specialized",
-            "priority_2"
-          ],
-          [
-            "additional_specialized",
-            "priority_3"
-          ],
-          [
-            "additional_specialized",
-            "professional"
-          ],
-          [
-            "cot_reasoning",
-            "priority_1"
-          ],
-          [
-            "cot_reasoning",
-            "priority_2"
-          ],
-          [
-            "cot_reasoning",
-            "priority_3"
-          ],
-          [
-            "cot_reasoning",
-            "professional"
-          ],
-          [
-            "cot_reasoning",
-            "research"
-          ],
-          [
-            "priority_1",
-            "cot_reasoning"
-          ],
-          [
-            "priority_1",
-            "priority_2"
-          ],
-          [
-            "priority_1",
-            "priority_3"
-          ],
-          [
-            "priority_1",
-            "professional"
-          ],
-          [
-            "priority_1",
-            "research"
-          ],
-          [
-            "priority_2",
-            "cot_reasoning"
-          ],
-          [
-            "priority_2",
-            "priority_1"
-          ],
-          [
-            "priority_2",
-            "priority_3"
-          ],
-          [
-            "priority_2",
-            "professional"
-          ],
-          [
-            "priority_2",
-            "research"
-          ],
-          [
-            "priority_3",
-            "cot_reasoning"
-          ],
-          [
-            "priority_3",
-            "priority_1"
-          ],
-          [
-            "priority_3",
-            "priority_2"
-          ],
-          [
-            "priority_3",
-            "professional"
-          ],
-          [
-            "priority_3",
-            "research"
-          ],
-          [
-            "professional_neuro",
-            "cot_reasoning"
-          ],
-          [
-            "professional_neuro",
-            "priority_1"
-          ],
-          [
-            "professional_neuro",
-            "priority_2"
-          ],
-          [
-            "professional_neuro",
-            "priority_3"
-          ],
-          [
-            "professional_neuro",
-            "research"
-          ],
-          [
-            "professional_psychology",
-            "cot_reasoning"
-          ],
-          [
-            "professional_psychology",
-            "priority_1"
-          ],
-          [
-            "professional_psychology",
-            "priority_2"
-          ],
-          [
-            "professional_psychology",
-            "priority_3"
-          ],
-          [
-            "professional_psychology",
-            "research"
-          ],
-          [
-            "professional_soulchat",
-            "cot_reasoning"
-          ],
-          [
-            "professional_soulchat",
-            "priority_1"
-          ],
-          [
-            "professional_soulchat",
-            "priority_2"
-          ],
-          [
-            "professional_soulchat",
-            "priority_3"
-          ],
-          [
-            "professional_soulchat",
-            "research"
-          ],
-          [
-            "test_dataset",
-            "cot_reasoning"
-          ],
-          [
-            "test_dataset",
-            "priority_2"
-          ],
-          [
-            "test_dataset",
-            "priority_3"
-          ],
-          [
-            "test_dataset",
-            "professional"
-          ],
-          [
-            "test_dataset",
-            "research"
-          ],
-          [
-            "test_search",
-            "cot_reasoning"
-          ],
-          [
-            "test_search",
-            "priority_2"
-          ],
-          [
-            "test_search",
-            "priority_3"
-          ],
-          [
-            "test_search",
-            "research"
-          ]
+          ["additional_specialized", "cot_reasoning"],
+          ["additional_specialized", "priority_1"],
+          ["additional_specialized", "priority_2"],
+          ["additional_specialized", "priority_3"],
+          ["additional_specialized", "professional"],
+          ["cot_reasoning", "priority_1"],
+          ["cot_reasoning", "priority_2"],
+          ["cot_reasoning", "priority_3"],
+          ["cot_reasoning", "professional"],
+          ["cot_reasoning", "research"],
+          ["priority_1", "cot_reasoning"],
+          ["priority_1", "priority_2"],
+          ["priority_1", "priority_3"],
+          ["priority_1", "professional"],
+          ["priority_1", "research"],
+          ["priority_2", "cot_reasoning"],
+          ["priority_2", "priority_1"],
+          ["priority_2", "priority_3"],
+          ["priority_2", "professional"],
+          ["priority_2", "research"],
+          ["priority_3", "cot_reasoning"],
+          ["priority_3", "priority_1"],
+          ["priority_3", "priority_2"],
+          ["priority_3", "professional"],
+          ["priority_3", "research"],
+          ["professional_neuro", "cot_reasoning"],
+          ["professional_neuro", "priority_1"],
+          ["professional_neuro", "priority_2"],
+          ["professional_neuro", "priority_3"],
+          ["professional_neuro", "research"],
+          ["professional_psychology", "cot_reasoning"],
+          ["professional_psychology", "priority_1"],
+          ["professional_psychology", "priority_2"],
+          ["professional_psychology", "priority_3"],
+          ["professional_psychology", "research"],
+          ["professional_soulchat", "cot_reasoning"],
+          ["professional_soulchat", "priority_1"],
+          ["professional_soulchat", "priority_2"],
+          ["professional_soulchat", "priority_3"],
+          ["professional_soulchat", "research"],
+          ["test_dataset", "cot_reasoning"],
+          ["test_dataset", "priority_2"],
+          ["test_dataset", "priority_3"],
+          ["test_dataset", "professional"],
+          ["test_dataset", "research"],
+          ["test_search", "cot_reasoning"],
+          ["test_search", "priority_2"],
+          ["test_search", "priority_3"],
+          ["test_search", "research"]
         ],
         "sparse_combinations": [
-          [
-            "test_dataset",
-            "priority_1",
-            "1"
-          ],
-          [
-            "test_search",
-            "priority_1",
-            "1"
-          ],
-          [
-            "test_search",
-            "professional",
-            "1"
-          ]
+          ["test_dataset", "priority_1", "1"],
+          ["test_search", "priority_1", "1"],
+          ["test_search", "professional", "1"]
         ]
       }
     },

@@ -1,16 +1,21 @@
 # Integration Planning Engine
 
-The Integration Planning Engine assesses integration feasibility and creates preprocessing plans for acquired datasets from journal research sources.
+The Integration Planning Engine assesses integration feasibility and creates
+preprocessing plans for acquired datasets from journal research sources.
 
 ## Overview
 
-This module implements Task 5 of the journal dataset research system, providing comprehensive tools to:
+This module implements Task 5 of the journal dataset research system, providing
+comprehensive tools to:
 
-1. **Analyze Dataset Structure** - Parse and understand different dataset formats
-2. **Map Schemas** - Create mappings from dataset fields to training pipeline format
+1. **Analyze Dataset Structure** - Parse and understand different dataset
+   formats
+2. **Map Schemas** - Create mappings from dataset fields to training pipeline
+   format
 3. **Generate Transformation Specs** - Define required data transformations
 4. **Estimate Complexity** - Calculate integration effort and complexity
-5. **Generate Preprocessing Scripts** - Create Python scripts for data transformation
+5. **Generate Preprocessing Scripts** - Create Python scripts for data
+   transformation
 
 ## Components
 
@@ -29,7 +34,8 @@ Main engine class that orchestrates all integration planning functionality.
   - Supports ChatML and ConversationRecord target formats
 
 - `create_transformation_specs(structure: DatasetStructure, mappings: List[SchemaMapping]) -> List[TransformationSpec]`
-  - Generates transformation specifications for format conversion, field mapping, cleaning, and validation
+  - Generates transformation specifications for format conversion, field
+    mapping, cleaning, and validation
 
 - `estimate_complexity(structure, mappings, specs) -> Tuple[str, int]`
   - Estimates integration complexity (low/medium/high) and effort in hours
@@ -62,7 +68,8 @@ Data class representing field mappings:
 
 - `dataset_field`: Source field name
 - `pipeline_field`: Target pipeline field name
-- `transformation_type`: Type of transformation (direct, transform, combine, extract)
+- `transformation_type`: Type of transformation (direct, transform, combine,
+  extract)
 - `transformation_logic`: Description of transformation logic
 - `required`: Whether field is required
 - `default_value`: Default value if field is missing
@@ -70,27 +77,32 @@ Data class representing field mappings:
 ## Supported Formats
 
 ### CSV
+
 - Automatic schema detection
 - Field type inference
 - Missing value detection
 - Distribution analysis for numeric fields
 
 ### JSON/JSONL
+
 - Nested structure analysis
 - Field extraction from complex objects
 - Type consistency checking
 - Support for arrays and nested objects
 
 ### Parquet
+
 - Schema extraction from Parquet metadata
 - Efficient sampling for large files
 - Type information from Arrow schema
 
 ### XML
+
 - Basic format identification
 - Note: Requires format-specific parsing (manual analysis recommended)
 
 ### Custom
+
 - Placeholder for unknown formats
 - Requires manual structure analysis
 
@@ -99,13 +111,17 @@ Data class representing field mappings:
 The engine supports two target formats:
 
 ### ChatML Format
+
 - Required fields: `messages`, `id`, `source`
 - Message structure: `{"role": "user|assistant|system", "content": "text"}`
-- Optional fields: `timestamp`, `quality_score`, `tags`, `mental_health_condition`
+- Optional fields: `timestamp`, `quality_score`, `tags`,
+  `mental_health_condition`
 
 ### ConversationRecord Format
+
 - Required fields: `id`, `title`, `turns`, `source_type`, `source_id`
-- Turn structure: `{"speaker_id": str, "content": str, "timestamp": optional, "metadata": optional}`
+- Turn structure:
+  `{"speaker_id": str, "content": str, "timestamp": optional, "metadata": optional}`
 
 ## Complexity Estimation
 
@@ -129,6 +145,7 @@ Complexity is calculated based on:
    - Each quality issue: 1 point
 
 **Complexity Levels:**
+
 - **Low**: ≤3 points → 2-4 hours
 - **Medium**: 4-7 points → 4-11 hours
 - **High**: >7 points → 8+ hours
@@ -173,6 +190,7 @@ Comprehensive test suite in `tests/test_integration_planning_engine.py`:
 - Feasibility validation tests
 
 Run tests with:
+
 ```bash
 uv run pytest ai/sourcing/journal/tests/test_integration_planning_engine.py
 ```
@@ -185,17 +203,16 @@ uv run pytest ai/sourcing/journal/tests/test_integration_planning_engine.py
 
 ## Related Modules
 
-- `models.dataset_models`: Data model definitions (AcquiredDataset, IntegrationPlan, etc.)
+- `models.dataset_models`: Data model definitions (AcquiredDataset,
+  IntegrationPlan, etc.)
 - `acquisition.acquisition_manager`: Dataset acquisition functionality
 - `evaluation.evaluation_engine`: Dataset quality evaluation
 
 ## Implementation Status
 
-✅ **Task 5.1**: Dataset structure analysis - Complete
-✅ **Task 5.2**: Schema mapping - Complete
-✅ **Task 5.3**: Transformation specification generator - Complete
-✅ **Task 5.4**: Complexity estimation - Complete
-✅ **Task 5.5**: Preprocessing script generation - Complete
+✅ **Task 5.1**: Dataset structure analysis - Complete ✅ **Task 5.2**: Schema
+mapping - Complete ✅ **Task 5.3**: Transformation specification generator -
+Complete ✅ **Task 5.4**: Complexity estimation - Complete ✅ **Task 5.5**:
+Preprocessing script generation - Complete
 
 All subtasks for Task 5 (Integration Planning Engine) are complete and tested.
-

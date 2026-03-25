@@ -1,12 +1,17 @@
 # NVIDIA NeMo Data Designer Integration
 
-This module provides integration with [NVIDIA NeMo Data Designer](https://build.nvidia.com/nemo/data-designer) for generating high-quality, domain-specific synthetic datasets for training, fine-tuning, and evaluating AI models in the Pixelated Empathy platform.
+This module provides integration with
+[NVIDIA NeMo Data Designer](https://build.nvidia.com/nemo/data-designer) for
+generating high-quality, domain-specific synthetic datasets for training,
+fine-tuning, and evaluating AI models in the Pixelated Empathy platform.
 
 ## Overview
 
-NVIDIA NeMo Data Designer is a powerful tool for generating realistic synthetic datasets using large language models (LLMs). It allows you to:
+NVIDIA NeMo Data Designer is a powerful tool for generating realistic synthetic
+datasets using large language models (LLMs). It allows you to:
 
-- **Create realistic datasets** with various data types (categorical, integer, float, text)
+- **Create realistic datasets** with various data types (categorical, integer,
+  float, text)
 - **Define custom column types** with constraints and relationships
 - **Leverage LLM intelligence** for intelligent data generation
 - **Scale to large datasets** via batch processing
@@ -15,20 +20,26 @@ NVIDIA NeMo Data Designer is a powerful tool for generating realistic synthetic 
 ## Features
 
 ### Therapeutic Dataset Generation
+
 Generate synthetic therapeutic datasets with:
+
 - Demographic information (age, gender, ethnicity)
 - Mental health symptoms and diagnoses
 - Treatment types and frequencies
 - Treatment outcomes and satisfaction scores
 
 ### Bias Detection Dataset Generation
+
 Create datasets specifically designed for bias detection analysis:
+
 - Protected attributes (gender, ethnicity, age groups)
 - Outcome variables (treatment response, attendance, ratings)
 - Fairness analysis ready format
 
 ### Custom Dataset Generation
+
 Build completely custom datasets with:
+
 - User-defined column configurations
 - Multiple data types (categories, integers, floats, text)
 - Custom constraints and value ranges
@@ -44,42 +55,51 @@ Build completely custom datasets with:
 
 ### Important: Deployment Required
 
-**NeMo Data Designer must be deployed locally or on a cluster** - it is not a cloud API service. You need to deploy the service before using this integration.
+**NeMo Data Designer must be deployed locally or on a cluster** - it is not a
+cloud API service. You need to deploy the service before using this integration.
 
 ### Setup
 
 1. **Install the package** (already included in `pyproject.toml`):
+
    ```bash
    uv pip install 'nemo-microservices[data-designer]'
    ```
 
 2. **Deploy NeMo Data Designer**:
-   
+
    **Option A: Docker Compose (Recommended for local development)**
+
    ```bash
    ./scripts/deploy-nemo-data-designer.sh
    ```
-   
+
    Or manually:
+
    ```bash
    docker-compose -f docker-compose.nemo-data-designer.yml up -d
    ```
-   
+
    **Option B: Kubernetes/Helm** (for production)
 
    For Kubernetes deployment, use the new deployment script:
+
    ```bash
    ./scripts/infrastructure/deploy-nemo-data-designer-k8s.sh
    ```
 
    Or manually deploy using the provided Kubernetes manifest:
+
    ```bash
     kubectl apply -f ai/deployment/nemo-data-designer-k8s.yaml
    ```
 
-   See the [official deployment guide](https://docs.nvidia.com/nemo/microservices/latest/set-up/deploy-as-microservices/data-designer/parent-chart.html) for more details.
+   See the
+   [official deployment guide](https://docs.nvidia.com/nemo/microservices/latest/set-up/deploy-as-microservices/data-designer/parent-chart.html)
+   for more details.
 
 3. **Set environment variables**:
+
    ```bash
    export NVIDIA_API_KEY="your-api-key-here"
    export NEMO_DATA_DESIGNER_BASE_URL="http://localhost:8000"  # For local Docker Compose
@@ -89,6 +109,7 @@ Build completely custom datasets with:
    ```
 
    Or create a `.env` file:
+
    ```env
    NVIDIA_API_KEY=your-api-key-here
    # For local Docker Compose deployment
@@ -99,10 +120,11 @@ Build completely custom datasets with:
    NEMO_DATA_DESIGNER_MAX_RETRIES=3
    NEMO_DATA_DESIGNER_BATCH_SIZE=1000
    ```
-   
+
    **Note**: The `NEMO_DATA_DESIGNER_BASE_URL` depends on your deployment:
    - `http://localhost:8000` for local Docker Compose
-   - Your cluster ingress URL for Kubernetes (e.g., `https://nemo-data-designer.your-cluster-domain.com`)
+   - Your cluster ingress URL for Kubernetes (e.g.,
+     `https://nemo-data-designer.your-cluster-domain.com`)
 
 ## Quick Start
 
@@ -197,13 +219,13 @@ result = service.generate_custom_dataset(
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `NVIDIA_API_KEY` | Your NVIDIA API key (required) | - |
-| `NEMO_DATA_DESIGNER_BASE_URL` | Base URL for the Data Designer service | `http://localhost:8000` |
-| `NEMO_DATA_DESIGNER_TIMEOUT` | Request timeout in seconds | `300` |
-| `NEMO_DATA_DESIGNER_MAX_RETRIES` | Maximum retry attempts | `3` |
-| `NEMO_DATA_DESIGNER_BATCH_SIZE` | Batch size for processing | `1000` |
+| Variable                         | Description                            | Default                 |
+| -------------------------------- | -------------------------------------- | ----------------------- |
+| `NVIDIA_API_KEY`                 | Your NVIDIA API key (required)         | -                       |
+| `NEMO_DATA_DESIGNER_BASE_URL`    | Base URL for the Data Designer service | `http://localhost:8000` |
+| `NEMO_DATA_DESIGNER_TIMEOUT`     | Request timeout in seconds             | `300`                   |
+| `NEMO_DATA_DESIGNER_MAX_RETRIES` | Maximum retry attempts                 | `3`                     |
+| `NEMO_DATA_DESIGNER_BATCH_SIZE`  | Batch size for processing              | `1000`                  |
 
 ### Custom Configuration
 
@@ -225,7 +247,8 @@ service = NeMoDataDesignerService(config=config)
 
 ### Bias Detection Integration
 
-The generated datasets can be directly used with the existing bias detection system:
+The generated datasets can be directly used with the existing bias detection
+system:
 
 ```python
 from ai.pipelines.design import NeMoDataDesignerService
@@ -276,9 +299,12 @@ Main service class for generating synthetic datasets.
 
 #### Methods
 
-- `generate_therapeutic_dataset(num_samples, include_demographics, include_symptoms, include_treatments, include_outcomes)` - Generate therapeutic dataset
-- `generate_bias_detection_dataset(num_samples, protected_attributes)` - Generate bias detection dataset
-- `generate_custom_dataset(column_configs, num_samples)` - Generate custom dataset
+- `generate_therapeutic_dataset(num_samples, include_demographics, include_symptoms, include_treatments, include_outcomes)` -
+  Generate therapeutic dataset
+- `generate_bias_detection_dataset(num_samples, protected_attributes)` -
+  Generate bias detection dataset
+- `generate_custom_dataset(column_configs, num_samples)` - Generate custom
+  dataset
 
 ### `DataDesignerConfig`
 
@@ -294,8 +320,10 @@ Configuration class for the service.
 
 ## Deployment Options
 
-NeMo Data Designer is deployed on your infrastructure (local Docker Compose or Kubernetes/Helm) and then accessed via its REST API.
-See the [NVIDIA Documentation](https://docs.nvidia.com/nemo/microservices/latest/set-up/deploy-as-microservices/data-designer/parent-chart.html) for deployment details.
+NeMo Data Designer is deployed on your infrastructure (local Docker Compose or
+Kubernetes/Helm) and then accessed via its REST API. See the
+[NVIDIA Documentation](https://docs.nvidia.com/nemo/microservices/latest/set-up/deploy-as-microservices/data-designer/parent-chart.html)
+for deployment details.
 
 ## Troubleshooting
 
@@ -326,5 +354,5 @@ See the [NVIDIA Documentation](https://docs.nvidia.com/nemo/microservices/latest
 
 ## License
 
-This integration is part of the Pixelated Empathy platform and follows the project's licensing terms.
-
+This integration is part of the Pixelated Empathy platform and follows the
+project's licensing terms.

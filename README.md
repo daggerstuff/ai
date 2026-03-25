@@ -1,7 +1,9 @@
 # Pixelated Empathy AI - Production Structure
 
 ## Overview
-Production-ready AI system for empathy-aware conversational AI with proper organization and deployment structure.
+
+Production-ready AI system for empathy-aware conversational AI with proper
+organization and deployment structure.
 
 ## Directory Structure
 
@@ -57,18 +59,21 @@ ai/
 ## Quick Start
 
 ### Training
+
 ```bash
 cd training
 python train_pixelated_empathy.py
 ```
 
 ### Inference
+
 ```bash
 cd inference
 python pixelated_empathy_inference.py
 ```
 
 ### Data Processing
+
 ```bash
 cd pipelines
 python process_datasets.py
@@ -77,21 +82,25 @@ python process_datasets.py
 ## Production Deployment
 
 ### Configuration
+
 - Production configs: `config/production/`
 - Development configs: `config/development/`
 - Testing configs: `config/testing/`
 
 ### Model Management
+
 - Training checkpoints: `training/checkpoints/`
 - Model artifacts: `models/artifacts/`
 - Exported models: `models/exports/`
 
 ### Data Management
+
 - Raw datasets: `data/raw/`
 - Processed datasets: `data/processed/`
 - Synthetic data: `data/synthetic/`
 
 ### API Deployment
+
 - API endpoints: `inference/api/`
 - Deployment configs: `inference/deployment/`
 - Service implementations: `inference/services/`
@@ -105,9 +114,12 @@ python process_datasets.py
 5. **Monitoring**: Use tools in `qa/validation/`
 
 ## Legacy Files
-All previous task files and reports have been moved to `archive/legacy_files/` for reference.
+
+All previous task files and reports have been moved to `archive/legacy_files/`
+for reference.
 
 ## Environment Setup
+
 ```bash
 # Activate virtual environment
 source .venv/bin/activate
@@ -120,6 +132,7 @@ cp config/development/.env.example config/development/.env
 ```
 
 ## Support
+
 - Documentation: `docs/`
 - API Reference: `docs/api/`
 - Architecture Guide: `docs/architecture/`

@@ -52,6 +52,7 @@ data = loader.load_json("s3://pixel-data/gdrive/processed/cot_reasoning/clinical
 The loader automatically loads from `.env` file (project root or `ai/.env`).
 
 **OVH S3 credentials** (preferred):
+
 ```bash
 # In .env file or environment
 OVH_S3_ACCESS_KEY="your_access_key"
@@ -61,6 +62,7 @@ OVH_S3_REGION="us-east-va"  # Optional, has default
 ```
 
 **Fallback options** (for compatibility):
+
 - `OVH_ACCESS_KEY` / `OVH_SECRET_KEY`
 - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`
 
@@ -78,19 +80,20 @@ pip install boto3
 
 The loader automatically resolves paths in this order:
 
-1. **Canonical processed structure**: `s3://pixel-data/gdrive/processed/{category}/{dataset_name}`
+1. **Canonical processed structure**:
+   `s3://pixel-data/gdrive/processed/{category}/{dataset_name}`
 2. **Raw structure**: `s3://pixel-data/gdrive/raw/{dataset_name}`
 3. **Acquired datasets**: `s3://pixel-data/acquired/{dataset_name}`
 
 ### Category Mapping
 
-| Training Stage | Category | S3 Path |
-|---------------|----------|---------|
+| Training Stage      | Category                   | S3 Path                                      |
+| ------------------- | -------------------------- | -------------------------------------------- |
 | Stage 1: Foundation | `professional_therapeutic` | `gdrive/processed/professional_therapeutic/` |
-| Stage 2: Expertise | `cot_reasoning` | `gdrive/processed/cot_reasoning/` |
-| Stage 3: Edge Cases | `edge_cases` | `gdrive/processed/edge_cases/` |
-| Stage 4: Voice | `voice` | `voice/` |
-| Priority | `priority` | `gdrive/processed/priority/` |
+| Stage 2: Expertise  | `cot_reasoning`            | `gdrive/processed/cot_reasoning/`            |
+| Stage 3: Edge Cases | `edge_cases`               | `gdrive/processed/edge_cases/`               |
+| Stage 4: Voice      | `voice`                    | `voice/`                                     |
+| Priority            | `priority`                 | `gdrive/processed/priority/`                 |
 
 ---
 
@@ -173,7 +176,7 @@ def analyze_dataset(s3_path: str = None, dataset_path: str = None):
     else:
         # Auto-detect from S3
         data = load_dataset_from_s3('training_dataset.json', category='professional_therapeutic')
-    
+
     # ... rest of analysis
 ```
 
@@ -193,7 +196,7 @@ def load_training_data(s3_path: str = None, dataset_path: str = None):
     else:
         # Auto-detect from S3
         data = load_dataset_from_s3('training_dataset.json', category='professional_therapeutic')
-    
+
     # ... rest of loading
 ```
 
@@ -249,6 +252,7 @@ python scripts/verify_s3_access.py
 ```
 
 This will:
+
 - Test S3 connection
 - Verify credentials are loaded from `.env`
 - List available datasets
@@ -268,7 +272,11 @@ print(f"Found {len(datasets)} datasets")
 
 ## Related Documentation
 
-- **S3 Structure**: `ai/training_ready/docs/S3_TRAINING_DATA_STRUCTURE.md` - Complete S3 organization
-- **S3 Execution Order**: `ai/training_ready/docs/S3_EXECUTION_ORDER.md` - S3-first workflow
-- **Dataset Registry**: `ai/data/dataset_registry.json` - Dataset catalog with S3 paths
-- **Verification Script**: `ai/training_ready/scripts/verify_s3_access.py` - Test S3 access
+- **S3 Structure**: `ai/training_ready/docs/S3_TRAINING_DATA_STRUCTURE.md` -
+  Complete S3 organization
+- **S3 Execution Order**: `ai/training_ready/docs/S3_EXECUTION_ORDER.md` -
+  S3-first workflow
+- **Dataset Registry**: `ai/data/dataset_registry.json` - Dataset catalog with
+  S3 paths
+- **Verification Script**: `ai/training_ready/scripts/verify_s3_access.py` -
+  Test S3 access

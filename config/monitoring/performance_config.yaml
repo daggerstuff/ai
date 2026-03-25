@@ -6,13 +6,13 @@ alerts:
 collection_interval: 60
 metrics:
   application:
-  - processing_rate
-  - error_rate
-  - quality_scores
+    - processing_rate
+    - error_rate
+    - quality_scores
   custom: []
   system:
-  - cpu
-  - memory
-  - disk
-  - network
+    - cpu
+    - memory
+    - disk
+    - network
 retention_days: 30

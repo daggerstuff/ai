@@ -2,24 +2,29 @@
 
 ## Overview
 
-Added comprehensive temporal context analysis to distinguish between **current/active problems** vs. **past/resolved issues**, addressing the critical 82.8% accuracy issue.
+Added comprehensive temporal context analysis to distinguish between
+**current/active problems** vs. **past/resolved issues**, addressing the
+critical 82.8% accuracy issue.
 
 ## Components Created
 
 ### 1. **Temporal Context Analyzer** (`temporal_analyzer.py`)
 
 **Purpose**: Determines if conversation is about:
+
 - Current/active issues (present tense, ongoing)
 - Past/resolved issues (past tense, processed, overcome)
 - Future concerns (planning, prevention)
 
 **Key Features**:
+
 - Pattern-based tense detection
 - Active suffering detection (overrides past tense)
 - Resolution detection (overrides present tense)
 - Confidence scoring
 
 **Example Results**:
+
 ```python
 "I struggle with PTSD every day"
 → Focus: current, Active: True, Resolved: False (75%)
@@ -34,11 +39,13 @@ Added comprehensive temporal context analysis to distinguish between **current/a
 ### 2. **Enhanced Situational Awareness** (`situational_awareness.py`)
 
 **Integrated temporal analyzer** to provide:
+
 - Time-aware priority guidance
 - Category-specific temporal hints
 - Resolved vs. active issue distinction
 
 **New Guidance Examples**:
+
 ```
 ⏱️ RESOLVED/PAST → therapeutic_conversation (NOT active treatment category)
 ⏱️ ACTIVE TRAUMA → trauma_processing (NOT therapeutic_conversation)
@@ -51,6 +58,7 @@ Added comprehensive temporal context analysis to distinguish between **current/a
 ### Before Temporal Awareness (82.8% accuracy):
 
 **Failure Pattern**:
+
 1. "Past trauma (fully processed)" → mental_health_support ❌
    - **Should be**: therapeutic_conversation
    - **Issue**: Not recognizing "fully processed" = resolved
@@ -70,6 +78,7 @@ Added comprehensive temporal context analysis to distinguish between **current/a
 ### After Temporal Awareness (Expected: 90%+):
 
 **Enhanced Detection**:
+
 - ✅ Temporal analyzer detects "fully processed" → `is_resolved=True`
 - ✅ Situational guidance: "RESOLVED/PAST → therapeutic_conversation"
 - ✅ Clinical markers prioritized over mental health keywords
@@ -88,6 +97,7 @@ Added comprehensive temporal context analysis to distinguish between **current/a
 ### Prompt Enhancement:
 
 LLM now receives:
+
 ```python
 situation = {
     'is_resolved': True/False,
@@ -100,6 +110,7 @@ situation = {
 ## Validation Status
 
 **Current Run**: Testing with enhanced temporal awareness
+
 - **Start Time**: 2026-02-19 02:50 UTC
 - **Expected Completion**: ~15 minutes
 - **Target**: ≥90% accuracy
@@ -107,13 +118,13 @@ situation = {
 
 ### Expected Improvements:
 
-| Test Case | Before | Expected After |
-|-----------|--------|----------------|
-| Past trauma (resolved) | ❌ mental_health_support | ✅ therapeutic_conversation |
-| Medication evaluation | ❌ mental_health_support | ✅ clinical_assessment |
-| Domestic violence | ❌ crisis_support | ✅ relationship_therapy |
-| Metaphorical death | ✅ therapeutic_conversation | ✅ therapeutic_conversation |
-| Self-growth | ❌ mental_health_support | ✅ therapeutic_conversation |
+| Test Case              | Before                      | Expected After              |
+| ---------------------- | --------------------------- | --------------------------- |
+| Past trauma (resolved) | ❌ mental_health_support    | ✅ therapeutic_conversation |
+| Medication evaluation  | ❌ mental_health_support    | ✅ clinical_assessment      |
+| Domestic violence      | ❌ crisis_support           | ✅ relationship_therapy     |
+| Metaphorical death     | ✅ therapeutic_conversation | ✅ therapeutic_conversation |
+| Self-growth            | ❌ mental_health_support    | ✅ therapeutic_conversation |
 
 ## Code Quality
 
@@ -132,5 +143,4 @@ situation = {
 
 ---
 
-**Last Updated**: 2026-02-19 02:50 UTC
-**Status**: 🔄 Validation in progress
+**Last Updated**: 2026-02-19 02:50 UTC **Status**: 🔄 Validation in progress

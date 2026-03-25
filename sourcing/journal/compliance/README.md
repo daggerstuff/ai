@@ -1,6 +1,8 @@
 # Compliance and Security Module
 
-This module provides comprehensive compliance checking, privacy verification, HIPAA validation, audit logging, and data encryption capabilities for the journal dataset research system.
+This module provides comprehensive compliance checking, privacy verification,
+HIPAA validation, audit logging, and data encryption capabilities for the
+journal dataset research system.
 
 ## Overview
 
@@ -23,6 +25,7 @@ The compliance module implements all requirements from Task 9, including:
 - Flags incompatible licenses for review
 
 **Usage:**
+
 ```python
 from ai.sourcing.journal.compliance import LicenseChecker
 
@@ -33,12 +36,14 @@ print(result.is_usable())  # True
 
 ### Privacy Verifier (`privacy_verifier.py`)
 
-- Detects PII in dataset samples (email, phone, SSN, credit card, addresses, medical IDs)
+- Detects PII in dataset samples (email, phone, SSN, credit card, addresses,
+  medical IDs)
 - Assesses anonymization quality
 - Evaluates re-identification risks
 - Generates privacy assessment reports
 
 **Usage:**
+
 ```python
 from ai.sourcing.journal.compliance import PrivacyVerifier
 
@@ -60,6 +65,7 @@ print(assessment.compliance_score)  # 0.0-1.0
 - Provides HIPAA compliance checklist
 
 **Usage:**
+
 ```python
 from ai.sourcing.journal.compliance import HIPAAValidator
 
@@ -82,6 +88,7 @@ print(result.is_compliant())  # True/False
 - Log integrity verification
 
 **Usage:**
+
 ```python
 from ai.sourcing.journal.compliance import AuditLogger, AuditEventType
 
@@ -108,6 +115,7 @@ results = logger.verify_log_integrity()
 - Support for symmetric (Fernet) and asymmetric (RSA) encryption
 
 **Usage:**
+
 ```python
 from ai.sourcing.journal.compliance import EncryptionManager
 
@@ -126,9 +134,11 @@ decrypted = manager.decrypt_string(encrypted)
 
 ### Compliance Checker (`compliance_checker.py`)
 
-Orchestrates all compliance checks and generates comprehensive compliance reports.
+Orchestrates all compliance checks and generates comprehensive compliance
+reports.
 
 **Usage:**
+
 ```python
 from ai.sourcing.journal.compliance import ComplianceChecker, AuditLogger, EncryptionManager
 from ai.sourcing.journal.models.dataset_models import DatasetSource
@@ -154,7 +164,8 @@ print(result.overall_compliance_score)  # 0.0-1.0
 
 ## Integration with Evaluation Engine
 
-The compliance module is integrated with the evaluation engine to enhance ethical accessibility assessment:
+The compliance module is integrated with the evaluation engine to enhance
+ethical accessibility assessment:
 
 ```python
 from ai.sourcing.journal.compliance import ComplianceChecker
@@ -174,7 +185,8 @@ print(evaluation.compliance_score)  # 0.0-1.0
 
 ## Data Model Updates
 
-The `DatasetEvaluation` and `AcquiredDataset` models have been updated to include compliance information:
+The `DatasetEvaluation` and `AcquiredDataset` models have been updated to
+include compliance information:
 
 - `compliance_checked`: Whether compliance checks were performed
 - `compliance_status`: Overall compliance status
@@ -200,7 +212,8 @@ pytest ai/sourcing/journal/tests/test_compliance.py -v
 - ✅ **6.4**: Document usage restrictions or attribution requirements
 - ✅ **6.5**: Flag datasets requiring IRB approval
 - ✅ **6.6**: Ensure all acquired datasets comply with HIPAA privacy standards
-- ✅ **6.7**: Reject datasets with inadequate privacy protections or incompatible licenses
+- ✅ **6.7**: Reject datasets with inadequate privacy protections or
+  incompatible licenses
 
 ## Security Considerations
 
@@ -216,4 +229,3 @@ pytest ai/sourcing/journal/tests/test_compliance.py -v
 - Integration with external compliance databases
 - Automated compliance reporting
 - Real-time compliance monitoring
-

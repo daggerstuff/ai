@@ -292,51 +292,51 @@ SENTRY_DSN=https://your-dsn@sentry.io/project-id
 ```yaml
 # config.yaml - Advanced configuration
 app:
-  name: "Pixelated Empathy AI"
-  version: "2.0.0"
-  description: "AI-powered empathy and conversation analysis"
-  
+  name: 'Pixelated Empathy AI'
+  version: '2.0.0'
+  description: 'AI-powered empathy and conversation analysis'
+
 server:
-  host: "0.0.0.0"
+  host: '0.0.0.0'
   port: 8000
   workers: 4
   timeout: 30
   max_request_size: 10485760
-  
+
 database:
-  url: "${DATABASE_URL}"
+  url: '${DATABASE_URL}'
   pool:
     size: 20
     max_overflow: 30
     timeout: 30
     recycle: 3600
   ssl:
-    mode: "require"
-    cert_path: "/path/to/cert.pem"
-    key_path: "/path/to/key.pem"
-    
+    mode: 'require'
+    cert_path: '/path/to/cert.pem'
+    key_path: '/path/to/key.pem'
+
 redis:
-  url: "${REDIS_URL}"
-  password: "${REDIS_PASSWORD}"
+  url: '${REDIS_URL}'
+  password: '${REDIS_PASSWORD}'
   pool:
     size: 10
     timeout: 5
     retry_on_timeout: true
-    
+
 security:
   jwt:
-    secret_key: "${JWT_SECRET_KEY}"
-    algorithm: "HS256"
+    secret_key: '${JWT_SECRET_KEY}'
+    algorithm: 'HS256'
     expire_minutes: 30
   cors:
     origins:
-      - "https://app.pixelatedempathy.com"
-      - "https://admin.pixelatedempathy.com"
+      - 'https://app.pixelatedempathy.com'
+      - 'https://admin.pixelatedempathy.com'
     allow_credentials: true
-    
+
 rate_limiting:
   enabled: true
-  storage: "redis"
+  storage: 'redis'
   default_limits:
     per_minute: 100
     per_hour: 1000
@@ -348,29 +348,29 @@ rate_limiting:
       per_minute: 300
     enterprise:
       per_minute: 1000
-      
+
 external_services:
   openai:
-    api_key: "${OPENAI_API_KEY}"
-    model: "gpt-4"
+    api_key: '${OPENAI_API_KEY}'
+    model: 'gpt-4'
     max_tokens: 2048
     temperature: 0.7
   huggingface:
-    token: "${HUGGINGFACE_TOKEN}"
-    cache_dir: "/app/models"
-    
+    token: '${HUGGINGFACE_TOKEN}'
+    cache_dir: '/app/models'
+
 monitoring:
   prometheus:
     enabled: true
     port: 9090
-    path: "/metrics"
+    path: '/metrics'
   logging:
-    level: "INFO"
-    format: "json"
-    file: "/var/log/pixelated-ai.log"
+    level: 'INFO'
+    format: 'json'
+    file: '/var/log/pixelated-ai.log'
   sentry:
-    dsn: "${SENTRY_DSN}"
-    environment: "production"
+    dsn: '${SENTRY_DSN}'
+    environment: 'production'
     sample_rate: 1.0
 ```
 
@@ -658,16 +658,19 @@ K8S_TARGET_MEMORY_UTILIZATION=80
 ### Required Variables Checklist
 
 **Critical (Application won't start without these):**
+
 - [ ] `DATABASE_URL`
 - [ ] `JWT_SECRET_KEY`
 - [ ] `REDIS_URL`
 
 **Important (Application will start but with limited functionality):**
+
 - [ ] `OPENAI_API_KEY`
 - [ ] `HUGGINGFACE_TOKEN`
 - [ ] `CORS_ORIGINS`
 
 **Optional (Application will use defaults):**
+
 - [ ] `LOG_LEVEL`
 - [ ] `API_WORKERS`
 - [ ] `PROMETHEUS_ENABLED`
@@ -726,5 +729,6 @@ echo "✅ All configuration checks passed!"
 
 ---
 
-*Last updated: 2025-08-12T21:38:00Z*  
-*For configuration support, contact the DevOps team or create an issue on GitHub.*
+_Last updated: 2025-08-12T21:38:00Z_  
+_For configuration support, contact the DevOps team or create an issue on
+GitHub._

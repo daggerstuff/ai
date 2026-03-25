@@ -156,10 +156,7 @@
       "finding": "Data lineage tracking partially implemented",
       "evidence": {
         "lineage_coverage": 0.75,
-        "missing_sources": [
-          "external_api_data",
-          "manual_imports"
-        ],
+        "missing_sources": ["external_api_data", "manual_imports"],
         "tracking_accuracy": 0.85
       },
       "risk_level": "medium",

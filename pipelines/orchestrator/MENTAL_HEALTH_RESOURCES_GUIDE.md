@@ -1,6 +1,8 @@
 # Mental Health Resources Integration Guide
 
-> Comprehensive guide for using the newly integrated mental health datasets, synthetic data generation, empathy scoring, DPO training, and safety alignment features.
+> Comprehensive guide for using the newly integrated mental health datasets,
+> synthetic data generation, empathy scoring, DPO training, and safety alignment
+> features.
 
 ## Quick Start
 
@@ -18,11 +20,11 @@ uv pip install datasets transformers torch aiohttp requests
 
 ### Available Datasets
 
-| Dataset | Size | Purpose | HuggingFace ID |
-|---------|------|---------|----------------|
-| Mental Health SNLI | 43.9k pairs | NLI inference for MH statements | `iqrakiran/customized-mental-health-snli2` |
-| MentalHealth Preprocessed | 3k entries | Conversational agent training | `typosonlr/MentalHealthPreProcessed` |
-| Depression Detection | Variable | Depression indicator detection | `ShreyaR/DepressionDetection` |
+| Dataset                   | Size        | Purpose                         | HuggingFace ID                             |
+| ------------------------- | ----------- | ------------------------------- | ------------------------------------------ |
+| Mental Health SNLI        | 43.9k pairs | NLI inference for MH statements | `iqrakiran/customized-mental-health-snli2` |
+| MentalHealth Preprocessed | 3k entries  | Conversational agent training   | `typosonlr/MentalHealthPreProcessed`       |
+| Depression Detection      | Variable    | Depression indicator detection  | `ShreyaR/DepressionDetection`              |
 
 ### Usage
 
@@ -75,14 +77,14 @@ export OPENAI_API_KEY="your-key-here"
 
 ### Available Strategies
 
-| Strategy | Description | Best For |
-|----------|-------------|----------|
-| `direct_distillation` | Generate directly from teacher model | Quick dataset creation |
-| `self_improvement` | Iteratively refine generated samples | Quality improvement |
-| `multi_step_prompting` | Context → Outline → Conversation | Structured generation |
-| `targen_style` | Progressive query evolution | Dataset diversity |
-| `cultural_augmentation` | Generate across 7 cultures | Cultural diversity |
-| `edge_case_expansion` | Generate challenging scenarios | Robustness training |
+| Strategy                | Description                          | Best For               |
+| ----------------------- | ------------------------------------ | ---------------------- |
+| `direct_distillation`   | Generate directly from teacher model | Quick dataset creation |
+| `self_improvement`      | Iteratively refine generated samples | Quality improvement    |
+| `multi_step_prompting`  | Context → Outline → Conversation     | Structured generation  |
+| `targen_style`          | Progressive query evolution          | Dataset diversity      |
+| `cultural_augmentation` | Generate across 7 cultures           | Cultural diversity     |
+| `edge_case_expansion`   | Generate challenging scenarios       | Robustness training    |
 
 ### Usage
 
@@ -143,12 +145,12 @@ python synthetic_data_distillation.py
 
 ### Empathy Dimensions (EMNLP 2020)
 
-| Dimension | Code | Description | Weight |
-|-----------|------|-------------|--------|
-| Emotional Reactions | ER | Expressing warmth, compassion, concern | 30% |
-| Interpretations | IP | Understanding seeker's feelings/situation | 30% |
-| Explorations | EX | Probing to improve understanding | 25% |
-| Validation | VAL | Acknowledging emotions as valid | 15% |
+| Dimension           | Code | Description                               | Weight |
+| ------------------- | ---- | ----------------------------------------- | ------ |
+| Emotional Reactions | ER   | Expressing warmth, compassion, concern    | 30%    |
+| Interpretations     | IP   | Understanding seeker's feelings/situation | 30%    |
+| Explorations        | EX   | Probing to improve understanding          | 25%    |
+| Validation          | VAL  | Acknowledging emotions as valid           | 15%    |
 
 ### Usage
 
@@ -226,11 +228,11 @@ python empathy_mental_health_validator.py
 
 ### Available DPO Datasets
 
-| Dataset | Type | Use Case | HuggingFace ID |
-|---------|------|----------|----------------|
-| Human-Like DPO | HUMAN_LIKE | Natural conversation style | `mlx-community/Human-Like-DPO` |
-| Character Roleplay DPO | ROLEPLAY | Persona consistency | `flammenai/character-roleplay-DPO` |
-| Toxic Safety DPO | SAFETY | Safety alignment | `PJMixers/unalignment_toxic-dpo-v0.2-ShareGPT` |
+| Dataset                | Type       | Use Case                   | HuggingFace ID                                 |
+| ---------------------- | ---------- | -------------------------- | ---------------------------------------------- |
+| Human-Like DPO         | HUMAN_LIKE | Natural conversation style | `mlx-community/Human-Like-DPO`                 |
+| Character Roleplay DPO | ROLEPLAY   | Persona consistency        | `flammenai/character-roleplay-DPO`             |
+| Toxic Safety DPO       | SAFETY     | Safety alignment           | `PJMixers/unalignment_toxic-dpo-v0.2-ShareGPT` |
 
 ### Loading DPO Datasets
 
@@ -406,13 +408,13 @@ python memo_counseling_dataset.py
 
 ### Safety Rules Included
 
-| Category | Rules | Severity |
-|----------|-------|----------|
-| Crisis Content | Suicide, self-harm, violence | CRITICAL |
-| Toxic Language | Slurs, stigma, discrimination | HIGH |
-| Harmful Advice | Medical misinformation, dismissive | MEDIUM-HIGH |
-| Professional Boundaries | Romantic, personal info | MEDIUM-CRITICAL |
-| PII Exposure | SSN, phone, email | HIGH-CRITICAL |
+| Category                | Rules                              | Severity        |
+| ----------------------- | ---------------------------------- | --------------- |
+| Crisis Content          | Suicide, self-harm, violence       | CRITICAL        |
+| Toxic Language          | Slurs, stigma, discrimination      | HIGH            |
+| Harmful Advice          | Medical misinformation, dismissive | MEDIUM-HIGH     |
+| Professional Boundaries | Romantic, personal info            | MEDIUM-CRITICAL |
+| PII Exposure            | SSN, phone, email                  | HIGH-CRITICAL   |
 
 ### Usage
 
@@ -537,7 +539,7 @@ for dataset_convs in hf_datasets.values():
     all_conversations.extend(dataset_convs)
 
 empathy_assessments = empathy_validator.batch_validate(all_conversations)
-high_empathy = [c for c, a in zip(all_conversations, empathy_assessments) 
+high_empathy = [c for c, a in zip(all_conversations, empathy_assessments)
                 if a.overall_empathy_score >= 0.6]
 print(f"High empathy conversations: {len(high_empathy)}/{len(all_conversations)}")
 
@@ -572,12 +574,14 @@ print("\n✅ Pipeline complete!")
 ### Immediate Actions
 
 1. **Run HuggingFace Loader Test**
+
    ```bash
    cd ai/pipelines/orchestrator/ingestion/tier_loaders
    python huggingface_mental_health_loader.py
    ```
 
 2. **Test Synthetic Generation** (requires Ollama)
+
    ```bash
    ollama serve &
    ollama pull llama3.2
@@ -597,14 +601,15 @@ print("\n✅ Pipeline complete!")
    - Add empathy scoring to quality validation pipeline
 
 2. **Run Full Quality Pipeline**
+
    ```python
    from ai.pipelines.orchestrator.quality.empathy_mental_health_validator import EmpathyMentalHealthValidator
    from ai.pipelines.orchestrator.quality.safety_alignment_validator import SafetyAlignmentValidator
-   
+
    # Combine validators
    empathy_v = EmpathyMentalHealthValidator()
    safety_v = SafetyAlignmentValidator()
-   
+
    # Validate your dataset
    conversations = [...]
    empathy_results = empathy_v.batch_validate(conversations)
@@ -612,10 +617,11 @@ print("\n✅ Pipeline complete!")
    ```
 
 3. **Start DPO Training**
+
    ```bash
    # Install TRL
    uv pip install trl
-   
+
    # Prepare DPO dataset
    python -c "
    from ai.pipelines.orchestrator.ingestion.tier_loaders import DPODatasetLoader
@@ -632,7 +638,8 @@ print("\n✅ Pipeline complete!")
 - [x] `ShreyaR/DepressionDetection` - Auto-download via HuggingFace
 - [x] `mlx-community/Human-Like-DPO` - Auto-download via HuggingFace
 - [x] `flammenai/character-roleplay-DPO` - Auto-download via HuggingFace
-- [x] `PJMixers/unalignment_toxic-dpo-v0.2-ShareGPT` - Auto-download via HuggingFace
+- [x] `PJMixers/unalignment_toxic-dpo-v0.2-ShareGPT` - Auto-download via
+      HuggingFace
 - [ ] `LCS2-IIITD/MEMO` - **Requires manual access request**
 
 ---
@@ -655,11 +662,13 @@ print("\n✅ Pipeline complete!")
 ## Troubleshooting
 
 ### "datasets not installed"
+
 ```bash
 uv pip install datasets
 ```
 
 ### "Ollama connection refused"
+
 ```bash
 ollama serve  # Start Ollama server
 ollama list   # Check available models
@@ -667,14 +676,16 @@ ollama pull llama3.2  # Download model
 ```
 
 ### "MEMO dataset not found"
-The MEMO dataset requires academic access. See Section 5 for access instructions.
+
+The MEMO dataset requires academic access. See Section 5 for access
+instructions.
 
 ### "transformers not installed" (for summarization)
+
 ```bash
 uv pip install transformers torch
 ```
 
 ---
 
-*Generated as part of the Mental Health Resources Investigation implementation.*
-
+_Generated as part of the Mental Health Resources Investigation implementation._

@@ -1,0 +1,2367 @@
+{
+  "generated_at": "2026-02-21T13:42:10.525402",
+  "summary": {
+    "total_files_scanned": 235,
+    "total_conversations": 13812,
+    "total_transcripts": 232,
+    "files_with_errors": 0,
+    "scan_directories": [
+      "ai/data/acquired_datasets",
+      "ai/data/transcripts/ingested",
+      "ai/training/ready_packages/data/generated"
+    ]
+  },
+  "files": [
+    {
+      "file": "ai/data/acquired_datasets/cot_reasoning.json",
+      "format": "json_array",
+      "size_bytes": 192002,
+      "valid": true,
+      "conversations": 300,
+      "roles_found": ["client", "therapist"],
+      "empty_messages": 0,
+      "errors": []
+    },
+    {
+      "file": "ai/data/acquired_datasets/mental_health_counseling.json",
+      "format": "json_array",
+      "size_bytes": 10359460,
+      "valid": true,
+      "conversations": 3512,
+      "roles_found": ["client", "therapist"],
+      "empty_messages": 4,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/10%Happier_How_to_Regulate_Your_Nervous_System_for_Stress__Anxiety__Peter_Levine__Ten_Percent_Happier.md",
+      "format": "transcript_md",
+      "size_bytes": 56667,
+      "valid": true,
+      "word_count": 10454,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/ARTE_Ils_fuient_lAm\u00e9rique_de_TRUMP__Reportage__ARTE_Regards.md",
+      "format": "transcript_md",
+      "size_bytes": 20889,
+      "valid": true,
+      "word_count": 3931,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/ARTE_Ils_fuient_lAm\u00e9rique_de_Trump__Reportage__ARTE_Regards.md",
+      "format": "transcript_md",
+      "size_bytes": 22483,
+      "valid": true,
+      "word_count": 4195,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/ARTEde_Bye_Bye_Trump_-_Auswandern_nach_Spanien__ARTE_Re.md",
+      "format": "transcript_md",
+      "size_bytes": 20223,
+      "valid": true,
+      "word_count": 3725,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/BigThink_How_the_body_keeps_the_score_on_trauma__Bessel_van_der_Kolk_for_Big_Think.md",
+      "format": "transcript_md",
+      "size_bytes": 7122,
+      "valid": true,
+      "word_count": 1281,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/BorderlinerNotes_Inside_the_Minds_of_Domestic_Abusers__How_to_Support_Women__Lundy_Bancroft.md",
+      "format": "transcript_md",
+      "size_bytes": 87044,
+      "valid": true,
+      "word_count": 15899,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/BreakthroughZone_When_Narcissistic_Parents_Finally_Lose_Their_Scapegoat.md",
+      "format": "transcript_md",
+      "size_bytes": 49116,
+      "valid": true,
+      "word_count": 8041,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/CarolineMyss_Caroline_Myss_-You_do_not_sell_your_soul__no_matter_what.md",
+      "format": "transcript_md",
+      "size_bytes": 24807,
+      "valid": true,
+      "word_count": 4694,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/ChrisWilliamson_The_Art_of_Living_a_Courageous_Life_-_Matthew_McConaughey_4K.md",
+      "format": "transcript_md",
+      "size_bytes": 108650,
+      "valid": true,
+      "word_count": 20736,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/ChristopherGermer,Ph.D._Self-Compassion_An_Antidote_to_Shame.md",
+      "format": "transcript_md",
+      "size_bytes": 40249,
+      "valid": true,
+      "word_count": 7172,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/CommonEgo_9_Signs_of_Covert_Narcissism_That_Dont_Look_Narcissistic.md",
+      "format": "transcript_md",
+      "size_bytes": 17319,
+      "valid": true,
+      "word_count": 3105,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/CouplesTherapyOfficial_The_Evolution_of_Annie__Mau__Couples_Therapy.md",
+      "format": "transcript_md",
+      "size_bytes": 30982,
+      "valid": true,
+      "word_count": 5847,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/CrappyChildhoodFairy_Five_CRUCIAL_PHASES_OF_HEALING_Complex_PTSD.md",
+      "format": "transcript_md",
+      "size_bytes": 15448,
+      "valid": true,
+      "word_count": 2804,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/CrappyChildhoodFairy_Heal_Dysregulation_To_Bring_Calm_To_Your_Emotions_and_Your_Nervous_System.md",
+      "format": "transcript_md",
+      "size_bytes": 14685,
+      "valid": true,
+      "word_count": 2609,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/CrappyChildhoodFairy_Here_are_Signs_No_One_Listened_To_You_in_Childhood.md",
+      "format": "transcript_md",
+      "size_bytes": 19537,
+      "valid": true,
+      "word_count": 3593,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/CrappyChildhoodFairy_How_to_Heal_Your_Wounded_Soul_After_Trauma_4-Video_Compilation.md",
+      "format": "transcript_md",
+      "size_bytes": 68939,
+      "valid": true,
+      "word_count": 13122,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/CrappyChildhoodFairy_I_Had_No_Friends_But_Heres_What_Finally_Changed.md",
+      "format": "transcript_md",
+      "size_bytes": 21781,
+      "valid": true,
+      "word_count": 4142,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/CrappyChildhoodFairy_If_You_See_These_Early_Signs_RUN.md",
+      "format": "transcript_md",
+      "size_bytes": 15447,
+      "valid": true,
+      "word_count": 2833,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/CrappyChildhoodFairy_Try_These_Emergency_Measures_to_Re-Regulate_Anywhere.md",
+      "format": "transcript_md",
+      "size_bytes": 14907,
+      "valid": true,
+      "word_count": 2783,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DWDeutsch_Gro\u00df_klein_prall_oder_schlaff_Warum_Br\u00fcste_sich_st\u00e4ndig_ver\u00e4ndern__Sex__the_Body_6.md",
+      "format": "transcript_md",
+      "size_bytes": 12762,
+      "valid": true,
+      "word_count": 2259,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DhruPurohit_If_You_HEAR_THIS_Thats_A_Narcissist_Trying_To_TRAP_You_Dont_Argue_Or_Fight__Dr_Ramani.md",
+      "format": "transcript_md",
+      "size_bytes": 24188,
+      "valid": true,
+      "word_count": 4463,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DocSnipes_15_Signs_You_are_Hitting_Bottom_in_Codependency.md",
+      "format": "transcript_md",
+      "size_bytes": 19873,
+      "valid": true,
+      "word_count": 3534,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DocSnipes_20_Signs_of_CoDependency_and_Tips_to_Address_Them.md",
+      "format": "transcript_md",
+      "size_bytes": 24112,
+      "valid": true,
+      "word_count": 4308,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DocSnipes_Insecure_Attachment_Linked_to_CoDependency_and_Addiction.md",
+      "format": "transcript_md",
+      "size_bytes": 44767,
+      "valid": true,
+      "word_count": 7664,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DocSnipes_Understanding_the_Need_for_Validation_and_Control_with_Dr_Dawn-Elise_Snipes.md",
+      "format": "transcript_md",
+      "size_bytes": 28524,
+      "valid": true,
+      "word_count": 5460,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DoctorRamani_Breaking_Free_4_Things_Narcissists_Do_When_Powerless.md",
+      "format": "transcript_md",
+      "size_bytes": 49427,
+      "valid": true,
+      "word_count": 8749,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DoctorRamani_Dr_Ramani_Reveals_How_Narcissists_Know_You_Know.md",
+      "format": "transcript_md",
+      "size_bytes": 11987,
+      "valid": true,
+      "word_count": 2170,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DoctorRamani_The_types_of_CONSEQUENCES_narcissists_respond_to.md",
+      "format": "transcript_md",
+      "size_bytes": 14119,
+      "valid": true,
+      "word_count": 2540,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DoctorRamani_What_happens_to_the_scapegoat_in_adulthood.md",
+      "format": "transcript_md",
+      "size_bytes": 12129,
+      "valid": true,
+      "word_count": 2071,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DoctorRamani_What_is_codependency_Glossary_of_Narcissistic_Relationships.md",
+      "format": "transcript_md",
+      "size_bytes": 18541,
+      "valid": true,
+      "word_count": 3128,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DoctorRamani_What_to_expect_when_you_go_NO_CONTACT_with_your_narcissistic_parent.md",
+      "format": "transcript_md",
+      "size_bytes": 31620,
+      "valid": true,
+      "word_count": 5722,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DoctorRamani_When_narcissists_lose_their_scapegoat.md",
+      "format": "transcript_md",
+      "size_bytes": 10779,
+      "valid": true,
+      "word_count": 1877,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DoctorRamani_When_the_golden_child_grows_up.md",
+      "format": "transcript_md",
+      "size_bytes": 13868,
+      "valid": true,
+      "word_count": 2423,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DougBopst_Give_Me_15_Minutes_Ill_Save_You_25_Years_Of_Feeling_Lonely_Depressed__Lost__Dr_Gabor_Mat\u00e9.md",
+      "format": "transcript_md",
+      "size_bytes": 17460,
+      "valid": true,
+      "word_count": 3191,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Dr.DanielFox_10_signs_of_emotionally_and_physically_abusive_relationships.md",
+      "format": "transcript_md",
+      "size_bytes": 11393,
+      "valid": true,
+      "word_count": 1967,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Dr.DanielFox_The_Truth_About_BPD_Attention_Seeking_Behaviors_Explained__Dr_Daniel_Fox.md",
+      "format": "transcript_md",
+      "size_bytes": 9825,
+      "valid": true,
+      "word_count": 1726,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Dr.KimSage,LicensedPsychologist_THESE_ARE_THE_EARLY_SIGNS_YOU_ARE_DATING_A_NARCISSIST__AM_I_DATING_A_NARCISSIST.md",
+      "format": "transcript_md",
+      "size_bytes": 14193,
+      "valid": true,
+      "word_count": 2704,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Dr.ScottEilers_3_Things_I_Do_When_Existence_Feels_Like_A_Burden.md",
+      "format": "transcript_md",
+      "size_bytes": 24949,
+      "valid": true,
+      "word_count": 4682,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Dr.ToddGrande_10_Signs_of_Vindictive_Narcissism.md",
+      "format": "transcript_md",
+      "size_bytes": 15721,
+      "valid": true,
+      "word_count": 2585,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/DrRanganChatterjee_Your_Body_Keeps_Score_-_Unhealed_Trauma_Making_You_Feel_Lost_Addicted_Stressed__Dr_Bessel.md",
+      "format": "transcript_md",
+      "size_bytes": 94855,
+      "valid": true,
+      "word_count": 17626,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/EckhartTolle_How_to_Calm_the_Voice_Inside__Eckhart_Tolle_Teachings.md",
+      "format": "transcript_md",
+      "size_bytes": 10798,
+      "valid": true,
+      "word_count": 1939,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/EckhartTolle_Who_Are_You__Eckhart_Tolle_Reads_A_Course_in_Miracles.md",
+      "format": "transcript_md",
+      "size_bytes": 8586,
+      "valid": true,
+      "word_count": 1558,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/FindingMastery_The_Narcissist_Expert_How_To_Spot_Them_Survive_Them__Why_Theyre_Everywhere_-_Dr_Ramani.md",
+      "format": "transcript_md",
+      "size_bytes": 78442,
+      "valid": true,
+      "word_count": 14234,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/ForrestHanson_Disorganized_Attachment_How_to_Embrace_Your_Needs__Dr_Rick_Being_Well.md",
+      "format": "transcript_md",
+      "size_bytes": 67703,
+      "valid": true,
+      "word_count": 11985,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/FullStoryLane_Emotional_Story_The_Unwanted_Child___Family_Drama_FULL_STORY.md",
+      "format": "transcript_md",
+      "size_bytes": 32596,
+      "valid": true,
+      "word_count": 5966,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/HeidiPriebe_10_Survival_Lies_You_May_Tell_If_You_Have_CPTSD.md",
+      "format": "transcript_md",
+      "size_bytes": 50784,
+      "valid": true,
+      "word_count": 9447,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/HeidiPriebe_C-PTSD_Survivors_10_Important_Messages_You_May_Have_Missed_In_Childhood.md",
+      "format": "transcript_md",
+      "size_bytes": 37112,
+      "valid": true,
+      "word_count": 6893,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/HeidiPriebe_CPTSD_Breaking_The_Toxic_ShameProcrastination_Cycle_With_Self-Compassion.md",
+      "format": "transcript_md",
+      "size_bytes": 40475,
+      "valid": true,
+      "word_count": 7319,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/HeidiPriebe_Complex_PTSD_10_Realistic_Signs_Of_Healing.md",
+      "format": "transcript_md",
+      "size_bytes": 27657,
+      "valid": true,
+      "word_count": 5161,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/HowToAcademy_Dr_Gabor_Mat\u00e9__Authenticity_Can_Heal_Trauma_Part_2.md",
+      "format": "transcript_md",
+      "size_bytes": 15881,
+      "valid": true,
+      "word_count": 2850,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/InspirationHub_Betrayed_by_Blood_Why_Your_Family_Rejects_You_-_The_Shocking_Truth_Revealed__Brene_Brown_npdabuse.md",
+      "format": "transcript_md",
+      "size_bytes": 20324,
+      "valid": true,
+      "word_count": 3658,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/IreneLyon_How_is_Trauma_REALLY_Released.md",
+      "format": "transcript_md",
+      "size_bytes": 69405,
+      "valid": true,
+      "word_count": 12892,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/JayShettyPodcast_MADONNA_EXCLUSIVE_The_Side_That_NOBODY_Knows.md",
+      "format": "transcript_md",
+      "size_bytes": 118064,
+      "valid": true,
+      "word_count": 22176,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/JerryWise_Narcissistic_Family_Why_Nobody_Believes_the_Scapegoat.md",
+      "format": "transcript_md",
+      "size_bytes": 10239,
+      "valid": true,
+      "word_count": 1842,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/JerryWise_Narcissistic_Parents_Weird_Mannerisms_Their_Abused_Adult_Children_Have.md",
+      "format": "transcript_md",
+      "size_bytes": 11719,
+      "valid": true,
+      "word_count": 2035,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/JerryWise_Narcissistic_Parents_Why_You_Always_Felt_Like_a_BURDEN_to_Them.md",
+      "format": "transcript_md",
+      "size_bytes": 8557,
+      "valid": true,
+      "word_count": 1564,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/JerryWise_When_Narcissistic_Parents_Lose_Their_Scapegoat.md",
+      "format": "transcript_md",
+      "size_bytes": 13202,
+      "valid": true,
+      "word_count": 2333,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/JimHopper_Sexual_Assault__the_Brain_in_Six_Minutes_-_Jim_Hopper_PhD.md",
+      "format": "transcript_md",
+      "size_bytes": 7725,
+      "valid": true,
+      "word_count": 1332,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/JimmyKimmelLive_Trump__Hegseth_Lecture_Generals_About_Being_Fat_and_a_Visit_from_Gov_Gavin_Newsom__Seth_Meyers.md",
+      "format": "transcript_md",
+      "size_bytes": 11632,
+      "valid": true,
+      "word_count": 2152,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/JordanPetersonMotivationMastery_7_Clear_Signs_of_Narcissists_Worsening_As_They_Age.md",
+      "format": "transcript_md",
+      "size_bytes": 29267,
+      "valid": true,
+      "word_count": 4766,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Kaltbl\u00fctig_Elisabeth_Fritzl_Ihr_erster_Satz_in_Freiheit_verbl\u00fcffte_die_Ermittler.md",
+      "format": "transcript_md",
+      "size_bytes": 28572,
+      "valid": true,
+      "word_count": 4872,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/KerryMcAvoy,PhD_We_Need_to_Talk_About_AbusiveMen_An_Interview_with_Chuck_Derry_Gender_Violence_Institute.md",
+      "format": "transcript_md",
+      "size_bytes": 26376,
+      "valid": true,
+      "word_count": 4903,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/KleinaberHannah_Perfektionismus_steht_dir_im_Weg.md",
+      "format": "transcript_md",
+      "size_bytes": 17493,
+      "valid": true,
+      "word_count": 3266,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/KrisReece_Narcissists_are_Catching_On_-_Do_THIS_Before_They_Trick_You_Again.md",
+      "format": "transcript_md",
+      "size_bytes": 48167,
+      "valid": true,
+      "word_count": 8996,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/KristinSnowden_What_Betrayal_Trauma_Does_to_the_Brain_and_Body_Tools_to_Heal.md",
+      "format": "transcript_md",
+      "size_bytes": 39609,
+      "valid": true,
+      "word_count": 7072,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/LastWeekTonight_Netanyahu_Last_Week_Tonight_with_John_Oliver_HBO.md",
+      "format": "transcript_md",
+      "size_bytes": 36746,
+      "valid": true,
+      "word_count": 6464,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/LimitlessMotivation_When_You_Do_This_To_A_Narcissist_They_Will_Eventually_Become_Your_Slave_Until_Death_Jordan_Peterson.md",
+      "format": "transcript_md",
+      "size_bytes": 48364,
+      "valid": true,
+      "word_count": 7879,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/LisaA.RomanoBreakthroughLifeCoachInc_CODEPENDENCY_EXPLAINED_What_Codependency_Feels_Like_with_Codependency_Expert_Lisa_A_Romano.md",
+      "format": "transcript_md",
+      "size_bytes": 56715,
+      "valid": true,
+      "word_count": 10532,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/MSNBC_Lawrence_Trump_was_on_the_verge_of_outright_insanity_in_deranged_speech_to_military_commanders.md",
+      "format": "transcript_md",
+      "size_bytes": 13304,
+      "valid": true,
+      "word_count": 2400,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/MeadowDeVor_If_They_Do_This_Theyre_a_Narcissist.md",
+      "format": "transcript_md",
+      "size_bytes": 9899,
+      "valid": true,
+      "word_count": 1766,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/MedCircle_Betrayal_Trauma__The_Signs.md",
+      "format": "transcript_md",
+      "size_bytes": 11949,
+      "valid": true,
+      "word_count": 2120,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/MelRobbins_1_Neurosurgeon_How_to_Manifest_Anything_You_Want__Unlock_the_Unlimited_Power_of_Your_Mind.md",
+      "format": "transcript_md",
+      "size_bytes": 67835,
+      "valid": true,
+      "word_count": 12510,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/MelRobbins_How_to_Deal_With_Betrayal_and_Take_Your_Power_Back__The_Mel_Robbins_Podcast.md",
+      "format": "transcript_md",
+      "size_bytes": 37768,
+      "valid": true,
+      "word_count": 7229,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/MelRobbins_The_Best_Way_to_Deal_With_Narcissists_Without_Arguing__The_Mel_Robbins_Podcast.md",
+      "format": "transcript_md",
+      "size_bytes": 50714,
+      "valid": true,
+      "word_count": 9520,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/MicheleLeeNievesCoaching_The_Personality_of_Victims_of_Covert_Narcissistic_Abuse_narcissistic_narcissism_emotionalabuse.md",
+      "format": "transcript_md",
+      "size_bytes": 16926,
+      "valid": true,
+      "word_count": 3104,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/MindShiftMotivation_How_a_Narcissist_Reacts_When_No_Contact_Is_Maintained_for_a_Long_Time__Mel_Robbins_Motivation.md",
+      "format": "transcript_md",
+      "size_bytes": 25212,
+      "valid": true,
+      "word_count": 4239,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/NA_Hegseth_Lectures_Fat_Generals_and_Trump_Threatens_War_Against_US_Cities__The_Daily_Show.md",
+      "format": "transcript_md",
+      "size_bytes": 9509,
+      "valid": true,
+      "word_count": 1692,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/NarcissistUnveiled_What_Happens_When_a_narcissist_Cannot_Destroy_You__MEL_ROBBINS__motivation.md",
+      "format": "transcript_md",
+      "size_bytes": 28243,
+      "valid": true,
+      "word_count": 4715,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/NatalieDawson_How_To_Command_Respect_Like_The_1_Elite.md",
+      "format": "transcript_md",
+      "size_bytes": 16075,
+      "valid": true,
+      "word_count": 3046,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/NatalieDawson_How_To_Speak_Like_The_1_Elite.md",
+      "format": "transcript_md",
+      "size_bytes": 16630,
+      "valid": true,
+      "word_count": 2952,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/NavigatingNarcissism_What_is_Betrayal_Blindness_With_Dr_Jennifer_Freyd__Season_2_Ep_18.md",
+      "format": "transcript_md",
+      "size_bytes": 67254,
+      "valid": true,
+      "word_count": 12039,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/NewLifeCovenantChurchofGod_Hearing_the_Voice_of_God.md",
+      "format": "transcript_md",
+      "size_bytes": 48320,
+      "valid": true,
+      "word_count": 9270,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/NoeticFilms_Viktor_Frankl_Self-Actualization_is_not_the_goal.md",
+      "format": "transcript_md",
+      "size_bytes": 8535,
+      "valid": true,
+      "word_count": 1483,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PatrickTeahan_11_Oddly_Specific_Childhood_Trauma_Issues.md",
+      "format": "transcript_md",
+      "size_bytes": 41283,
+      "valid": true,
+      "word_count": 7540,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PatrickTeahan_5_Emotional_Development_Delays_What_You_Need_to_Know.md",
+      "format": "transcript_md",
+      "size_bytes": 35076,
+      "valid": true,
+      "word_count": 6285,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PatrickTeahan_6_Common_Pitfalls_In_Healing_Childhood_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 31036,
+      "valid": true,
+      "word_count": 5704,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PatrickTeahan_6_Unknown_Childhood_Trauma_Triggers.md",
+      "format": "transcript_md",
+      "size_bytes": 24665,
+      "valid": true,
+      "word_count": 4554,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PatrickTeahan_9_Random_Examples_of_Shame_from_PTSD__CPTSD.md",
+      "format": "transcript_md",
+      "size_bytes": 39911,
+      "valid": true,
+      "word_count": 7355,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PatrickTeahan_Goodness_and_Power_-__How_to_Rebuild_a_Lost_Sense_of_Self.md",
+      "format": "transcript_md",
+      "size_bytes": 35601,
+      "valid": true,
+      "word_count": 6502,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PatrickTeahan_Healing_From_a_Narcissistic_Parent.md",
+      "format": "transcript_md",
+      "size_bytes": 28844,
+      "valid": true,
+      "word_count": 5253,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PatrickTeahan_Is_this_your_real_personality_5_Childhood_Trauma_Personalities.md",
+      "format": "transcript_md",
+      "size_bytes": 52374,
+      "valid": true,
+      "word_count": 9556,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PatrickTeahan_Rebuilding_Emotional_Security_After_Childhood_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 58823,
+      "valid": true,
+      "word_count": 10599,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PatrickTeahan_Toxic_Fathers__The_Daughters_They_Leave_Behind.md",
+      "format": "transcript_md",
+      "size_bytes": 45107,
+      "valid": true,
+      "word_count": 8140,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PatrickTeahan_When_You_Cant_Remember_Childhood_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 23990,
+      "valid": true,
+      "word_count": 4411,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/PhoenixTraumaCenter&DrScottGiacomucci_7_New_APA_Guidelines_for_Treatment_of_Complex_Trauma__CPTSD.md",
+      "format": "transcript_md",
+      "size_bytes": 20391,
+      "valid": true,
+      "word_count": 3296,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Prof.SamVaknin_Victimized_by_Your_Own_Kin_Family_Mobbing_the_Scapegoat.md",
+      "format": "transcript_md",
+      "size_bytes": 14162,
+      "valid": true,
+      "word_count": 2269,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Psych2Go_7_Signs_Youre_Emotionally_Abusive_To_Others.md",
+      "format": "transcript_md",
+      "size_bytes": 6406,
+      "valid": true,
+      "word_count": 1089,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/QbitFilms_GASLIGHTING__Award-winning_short_film.md",
+      "format": "transcript_md",
+      "size_bytes": 6799,
+      "valid": true,
+      "word_count": 1268,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/RTS-RadioT\u00e9l\u00e9visionSuisse_Arm\u00e9e_suisse_faut-il_sinqui\u00e9ter_pour_notre_s\u00e9curit\u00e9___RTS.md",
+      "format": "transcript_md",
+      "size_bytes": 37976,
+      "valid": true,
+      "word_count": 6738,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/RebeccaC.MandevilleLMFTScapegoatAbuseExpert_16_FAMILY_SCAPEGOAT_SIGNS_Are_You_In_the_Family_Scapegoat_Role_scapegoat_toxicfamily.md",
+      "format": "transcript_md",
+      "size_bytes": 19400,
+      "valid": true,
+      "word_count": 3399,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/RebeccaC.MandevilleLMFTScapegoatAbuseExpert_Dirty_Secrets_The_Hidden_Truth_of_Family_Mobbing_and_Scapegoat_Abuse_scapegoat_toxicfamily.md",
+      "format": "transcript_md",
+      "size_bytes": 18611,
+      "valid": true,
+      "word_count": 3246,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/SCSASmithers_When_the_Body_Says_No_--_Caring_for_ourselves_while_caring_for_others_Dr_Gabor_Mat\u00e9.md",
+      "format": "transcript_md",
+      "size_bytes": 63548,
+      "valid": true,
+      "word_count": 11580,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/SWRDoku_Heilpraktiker_Quacksalber_oder_sanfte_Alternative__SWR_Doku.md",
+      "format": "transcript_md",
+      "size_bytes": 33290,
+      "valid": true,
+      "word_count": 5644,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/SandstoneCare_Signs_of_Emotional_Dysregulation__ADHD__More.md",
+      "format": "transcript_md",
+      "size_bytes": 9232,
+      "valid": true,
+      "word_count": 1576,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/ShawnStevenson_7_Money_Trauma_Signs_Youre_Probably_Ignoring_with_Lewis_Howes.md",
+      "format": "transcript_md",
+      "size_bytes": 83413,
+      "valid": true,
+      "word_count": 15787,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/SoundsTrue_How_to_Overcome_Toxic_Shame_with_Peter_A_Levine_PhD.md",
+      "format": "transcript_md",
+      "size_bytes": 9627,
+      "valid": true,
+      "word_count": 1715,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/StephandCraig_The_Connection_Between_Complex_Trauma_Codependency__Narcissism.md",
+      "format": "transcript_md",
+      "size_bytes": 96892,
+      "valid": true,
+      "word_count": 18125,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/SurvivingNarcissism_How_To_Argue_But_Not_Fight_With_A_Narcissist.md",
+      "format": "transcript_md",
+      "size_bytes": 13662,
+      "valid": true,
+      "word_count": 2581,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/SurvivingNarcissism_THIS_Is_What_Trauma_Bonding_With_A_Narcissist_Does_To_A_Decent_Person.md",
+      "format": "transcript_md",
+      "size_bytes": 8211,
+      "valid": true,
+      "word_count": 1569,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TEDxTalks_Family_scapegoat_prized_needed_and_envied__Diane_Collins__TEDxFederalHill.md",
+      "format": "transcript_md",
+      "size_bytes": 13606,
+      "valid": true,
+      "word_count": 2559,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TEDxTalks_Healing_vs_Retaliation_Surviving_Trauma_and_Sexual_Abuse__Peter_and_Adenike_Harris__TEDxPasadena.md",
+      "format": "transcript_md",
+      "size_bytes": 13586,
+      "valid": true,
+      "word_count": 2438,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/THEMOTIVATIONALMIND_7_Silent_Moves_Empaths_Do_That_Drive_Narcissists_Absolutely_Crazy__INSPIRED_BY_MEL_ROBBINS.md",
+      "format": "transcript_md",
+      "size_bytes": 24228,
+      "valid": true,
+      "word_count": 4033,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/THEMOTIVATIONALMIND_7_Things_a_Narcissist_Secretly_Wants_from_You_When_Theres_No_Contact__INSPIRED_BY_MEL_ROBBINS.md",
+      "format": "transcript_md",
+      "size_bytes": 25759,
+      "valid": true,
+      "word_count": 4396,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TamsenFadal_The_Narcissist_Decoder_How_Smart_Women_Get_Trapped_in_Emotional_Abuse.md",
+      "format": "transcript_md",
+      "size_bytes": 68372,
+      "valid": true,
+      "word_count": 12484,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TheDiaryOfACEO_Former_FBI_Agent_If_They_Do_This_Please_RUN_Narcissists_Favourite_Trick_To_Control_You.md",
+      "format": "transcript_md",
+      "size_bytes": 119240,
+      "valid": true,
+      "word_count": 21988,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TheDiaryOfACEO_Secret_Agent_Never_Be_Yourself_At_Work_Authenticity_Is_Quietly_Sabotaging_You_Evy_Poumpouras.md",
+      "format": "transcript_md",
+      "size_bytes": 180746,
+      "valid": true,
+      "word_count": 34199,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TheDiaryOfACEO_The_Body_Trauma_Expert_This_Eye_Movement_Trick_Can_Fix_Your_Trauma_The_Body_Keeps_The_Score.md",
+      "format": "transcript_md",
+      "size_bytes": 111733,
+      "valid": true,
+      "word_count": 20500,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TheLateShowwithStephenColbert_Jimmy_Kimmel_Shares_The_Minute-By-Minute_Details_Of_Finding_Out_ABC_Was_Taking_Him_Off_The_Air.md",
+      "format": "transcript_md",
+      "size_bytes": 6910,
+      "valid": true,
+      "word_count": 1348,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TheLateShowwithStephenColbert_Shutdown_Eve__Hegseth_To_Americas_Enemies_FAFO__Trump_To_Military_Brass_Fight_The_Enemy_Within.md",
+      "format": "transcript_md",
+      "size_bytes": 10543,
+      "valid": true,
+      "word_count": 1907,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TheoVon_Trauma_Expert_Tim_Fletcher__This_Past_Weekend_w_Theo_Von_495.md",
+      "format": "transcript_md",
+      "size_bytes": 127503,
+      "valid": true,
+      "word_count": 24271,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TherapyChatPodcast_Detaching_From_Emotionally_Immature_People_with_Dr_Lindsay_Gibson.md",
+      "format": "transcript_md",
+      "size_bytes": 46636,
+      "valid": true,
+      "word_count": 8821,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TherapyDecoded_You_Cant_Heal_in_Survival_Mode__Why_Safety_Is_the_First_Step_-_Bessel_van_der_Kolk_Motivation.md",
+      "format": "transcript_md",
+      "size_bytes": 36535,
+      "valid": true,
+      "word_count": 6214,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TherapyinaNutshellPodcast_When_It_Feels_Like_Anxiety_But_Its_Actually_ANGER_-_with_Dr_Sarah_Michaud.md",
+      "format": "transcript_md",
+      "size_bytes": 48514,
+      "valid": true,
+      "word_count": 9130,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TherapyinaNutshell_A_nerdy_deep_dive_into_ADHD_and_Anxiety.md",
+      "format": "transcript_md",
+      "size_bytes": 29106,
+      "valid": true,
+      "word_count": 5171,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TherapyinaNutshell_ER_Doctor_Teaches_How_to_Overcome_Burnout_from_a_Body-Based_Perspective_w_Dr_Laura_Hays_MD.md",
+      "format": "transcript_md",
+      "size_bytes": 47633,
+      "valid": true,
+      "word_count": 8737,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TherapyinaNutshell_How_to_Let_Go_of_the_Past_-_3_Steps_for_Regret.md",
+      "format": "transcript_md",
+      "size_bytes": 16561,
+      "valid": true,
+      "word_count": 3044,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TherapyinaNutshell_How_to_Set_Boundaries_with_Emotionally_Immature_People__-_The_CLEAR_Method_w_Jess_Miller.md",
+      "format": "transcript_md",
+      "size_bytes": 47831,
+      "valid": true,
+      "word_count": 8886,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TherapyinaNutshell_How_to_Stop_Taking_Things_Personally.md",
+      "format": "transcript_md",
+      "size_bytes": 19527,
+      "valid": true,
+      "word_count": 3561,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TherapyinaNutshell_Probably_the_most_Transformative_Exercise_for_Processing_Painful_Emotions_-_Embodiment_Meditation.md",
+      "format": "transcript_md",
+      "size_bytes": 11764,
+      "valid": true,
+      "word_count": 2088,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_26_Signs_of_Emotional_Depletion.md",
+      "format": "transcript_md",
+      "size_bytes": 17675,
+      "valid": true,
+      "word_count": 3202,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Adult_Children_of_Wounded_Parents_Reclaiming_Your_Worth__Identity__Mommy__Daddy_Issues_Part_2.md",
+      "format": "transcript_md",
+      "size_bytes": 27069,
+      "valid": true,
+      "word_count": 5008,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Am_I_Ever_Going_to_Heal_from_My_Shame__Healing_Shame_as_Part_of_Complex_Trauma_Recovery.md",
+      "format": "transcript_md",
+      "size_bytes": 33207,
+      "valid": true,
+      "word_count": 6197,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Anger_and_Complex_Trauma_-_Part_1111_-_Gaslighting.md",
+      "format": "transcript_md",
+      "size_bytes": 47412,
+      "valid": true,
+      "word_count": 8891,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Anger_and_Complex_Trauma_-_Part_111_-_Intro.md",
+      "format": "transcript_md",
+      "size_bytes": 47198,
+      "valid": true,
+      "word_count": 8853,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Anger_and_Complex_Trauma_-_Part_911_-_Characteristics_of_Abusers.md",
+      "format": "transcript_md",
+      "size_bytes": 44859,
+      "valid": true,
+      "word_count": 8723,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Are_You_Seeking_Approval_or_Attention_-_Complex_Trauma_Prisons.md",
+      "format": "transcript_md",
+      "size_bytes": 36639,
+      "valid": true,
+      "word_count": 6588,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Being_Your_Own_Dark_Cloud_How_Complex_Trauma_Can_Cause_You_to_Fall_Into_a_Negative_Mindset.md",
+      "format": "transcript_md",
+      "size_bytes": 18498,
+      "valid": true,
+      "word_count": 3372,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Being_a_Chameleon_Complex_Traumas_Effect_on_Your_Sense_of_Self.md",
+      "format": "transcript_md",
+      "size_bytes": 10039,
+      "valid": true,
+      "word_count": 1891,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Being_an_Unwanted_Child_Comes_with_a_Lifetime_of_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 17695,
+      "valid": true,
+      "word_count": 3212,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Being_the_Family_Scapegoat_or_Problem_Child_Honesty_About_Dysfunction.md",
+      "format": "transcript_md",
+      "size_bytes": 9640,
+      "valid": true,
+      "word_count": 1817,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Betrayal_Trauma__Understanding_Trauma_-_Part_13__complextrauma.md",
+      "format": "transcript_md",
+      "size_bytes": 41004,
+      "valid": true,
+      "word_count": 7387,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Big_T_vs_Little_t_Trauma__Understanding_Trauma_-_Part_28__complextrauma.md",
+      "format": "transcript_md",
+      "size_bytes": 10659,
+      "valid": true,
+      "word_count": 1923,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Brain_Fog_and_Complex_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 15858,
+      "valid": true,
+      "word_count": 2829,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Codependency_and_Complex_Trauma_-_Part_210_-_Narcissist_or_Co-Narcissist.md",
+      "format": "transcript_md",
+      "size_bytes": 38470,
+      "valid": true,
+      "word_count": 7225,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Codependency_and_Complex_Trauma_-_Part_710_-_Attachment_Issues.md",
+      "format": "transcript_md",
+      "size_bytes": 39685,
+      "valid": true,
+      "word_count": 7375,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Complex_Trauma_Explained_Why_Fear_Controls_Our_Responses.md",
+      "format": "transcript_md",
+      "size_bytes": 20368,
+      "valid": true,
+      "word_count": 3799,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Dating_and_Intimate_Relationship_Lies_-_Re-Parenting_-_Part_116.md",
+      "format": "transcript_md",
+      "size_bytes": 36615,
+      "valid": true,
+      "word_count": 6719,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Depletion_and_Self-Care__Re-Parenting_-_Part_89__complextrauma.md",
+      "format": "transcript_md",
+      "size_bytes": 39703,
+      "valid": true,
+      "word_count": 7259,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Depression__The_Fear_of_Hope_Complex_Traumas_Double_Bind.md",
+      "format": "transcript_md",
+      "size_bytes": 15849,
+      "valid": true,
+      "word_count": 2907,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Drawn_to_Criminal_Activity_-_Complex_Trauma_Prisons.md",
+      "format": "transcript_md",
+      "size_bytes": 45121,
+      "valid": true,
+      "word_count": 8142,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Everyone_Has_a_Sex_Life_4_Ways_Trauma_Affects_Sexuality_and_Intimacy.md",
+      "format": "transcript_md",
+      "size_bytes": 6129,
+      "valid": true,
+      "word_count": 1110,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Healing__Understanding_Trauma_-_Part_10__complextrauma.md",
+      "format": "transcript_md",
+      "size_bytes": 51448,
+      "valid": true,
+      "word_count": 9544,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Heres_Why_You_Feel_Emotionally_Depleted.md",
+      "format": "transcript_md",
+      "size_bytes": 20760,
+      "valid": true,
+      "word_count": 3703,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_Being_Betrayed_Changes_You.md",
+      "format": "transcript_md",
+      "size_bytes": 13820,
+      "valid": true,
+      "word_count": 2489,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_Complex_Trauma_Affects_Emotional_Resilience_and_Leads_to_Long-Term_Consequences.md",
+      "format": "transcript_md",
+      "size_bytes": 24501,
+      "valid": true,
+      "word_count": 4417,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_Complex_Trauma_Leads_to_a_Hypersensitivity_to_Disrespect_and_Criticism.md",
+      "format": "transcript_md",
+      "size_bytes": 12359,
+      "valid": true,
+      "word_count": 2267,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_Complex_Trauma_Messes_With_Relationships__The_Characteristics_of_Complex_Trauma_-_Part_10.md",
+      "format": "transcript_md",
+      "size_bytes": 40726,
+      "valid": true,
+      "word_count": 7407,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_Do_People_Become_so_Angry_-_Complex_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 7964,
+      "valid": true,
+      "word_count": 1449,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_Does_Complex_Trauma_Cause_People_to_Confuse_Validation_With_Love__With_lisamtickel.md",
+      "format": "transcript_md",
+      "size_bytes": 14482,
+      "valid": true,
+      "word_count": 2736,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_Narcissistic_Relationships_Create_Complex_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 13935,
+      "valid": true,
+      "word_count": 2507,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_Trauma_Keeps_You_Disconnected_Without_Realizing_It.md",
+      "format": "transcript_md",
+      "size_bytes": 24305,
+      "valid": true,
+      "word_count": 4413,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_Your_Trauma_Explains_Your_Coping_Mechanisms_-_Part_1.md",
+      "format": "transcript_md",
+      "size_bytes": 34556,
+      "valid": true,
+      "word_count": 6613,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_the_Pattern_of_Narcissism_is_Misunderstood.md",
+      "format": "transcript_md",
+      "size_bytes": 8512,
+      "valid": true,
+      "word_count": 1509,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_to_Handle_a_Narcissist_QA_with_Tim_Part_8.md",
+      "format": "transcript_md",
+      "size_bytes": 36177,
+      "valid": true,
+      "word_count": 6756,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_to_Set_Boundaries_and_Stop_People_Pleasing_-_Boundaries_and_Complex_Trauma_-_Part_212.md",
+      "format": "transcript_md",
+      "size_bytes": 35091,
+      "valid": true,
+      "word_count": 6529,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_to_Spot_a_Narcissist_-_18_Characteristics_of_Narcissism__Complex_Trauma_Recovery.md",
+      "format": "transcript_md",
+      "size_bytes": 10344,
+      "valid": true,
+      "word_count": 1895,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_to_Start_Healing_from_Emotional_Dysregulation.md",
+      "format": "transcript_md",
+      "size_bytes": 5376,
+      "valid": true,
+      "word_count": 972,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_How_to_Stop_Procrastinating__Heal_Feelings_of_Paralysis.md",
+      "format": "transcript_md",
+      "size_bytes": 12972,
+      "valid": true,
+      "word_count": 2419,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_If_You_Leave_Me_Can_I_Come_Too_-_Codependency_and_Complex_Trauma_-_Part_110.md",
+      "format": "transcript_md",
+      "size_bytes": 43970,
+      "valid": true,
+      "word_count": 8339,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Listening_to_Shame.md",
+      "format": "transcript_md",
+      "size_bytes": 31608,
+      "valid": true,
+      "word_count": 6219,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Maladaptive_Daydreaming_Avoiding_Pain_by_Fantasizing.md",
+      "format": "transcript_md",
+      "size_bytes": 8638,
+      "valid": true,
+      "word_count": 1537,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Planting_Seeds_of_Doubt_Signs_Youre_Being_Manipulated_to_Question_Yourself.md",
+      "format": "transcript_md",
+      "size_bytes": 13926,
+      "valid": true,
+      "word_count": 2530,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Realistic_Recovery_-_Part_113_-_Seven_Levels_of_Change.md",
+      "format": "transcript_md",
+      "size_bytes": 38638,
+      "valid": true,
+      "word_count": 7406,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Recovery_and_Letting_Go__Re-Parenting_-_Part_93__complextrauma.md",
+      "format": "transcript_md",
+      "size_bytes": 44252,
+      "valid": true,
+      "word_count": 8427,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Relationships_and_Complex_Trauma_-_Part_1111_-_When_to_End_One.md",
+      "format": "transcript_md",
+      "size_bytes": 42713,
+      "valid": true,
+      "word_count": 8310,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Relationships_and_Complex_Trauma_-_Part_211_-_Family_Roles_-_Part_12.md",
+      "format": "transcript_md",
+      "size_bytes": 36622,
+      "valid": true,
+      "word_count": 6978,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Set_Boundaries_and_Stop_People_Pleasing_The_Subjugation_Life_Trap_-_Complex_Trauma_Prisons.md",
+      "format": "transcript_md",
+      "size_bytes": 38317,
+      "valid": true,
+      "word_count": 7039,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Sex__Re-Parenting_-_Part_25__complextrauma.md",
+      "format": "transcript_md",
+      "size_bytes": 40553,
+      "valid": true,
+      "word_count": 7543,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Sexuality_as_Love_-_Complex_Trauma_Prisons.md",
+      "format": "transcript_md",
+      "size_bytes": 40400,
+      "valid": true,
+      "word_count": 7263,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Shame_and_Complex_Trauma_-_Part_16_-_What_is_Shame.md",
+      "format": "transcript_md",
+      "size_bytes": 43965,
+      "valid": true,
+      "word_count": 8396,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Shame_and_Complex_Trauma_-_Part_26_-_Unhealthy_Solutions.md",
+      "format": "transcript_md",
+      "size_bytes": 43840,
+      "valid": true,
+      "word_count": 8302,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Shame_and_Complex_Trauma_-_Part_27_-_Unhealthy_Solutions_-_Repeat.md",
+      "format": "transcript_md",
+      "size_bytes": 41126,
+      "valid": true,
+      "word_count": 7725,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Shame_and_Complex_Trauma_-_Part_36.md",
+      "format": "transcript_md",
+      "size_bytes": 42201,
+      "valid": true,
+      "word_count": 8129,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Shame_and_Complex_Trauma_-_Part_46_-_Shame_Test.md",
+      "format": "transcript_md",
+      "size_bytes": 41116,
+      "valid": true,
+      "word_count": 7656,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Shame_and_Complex_Trauma_-_Part_56.md",
+      "format": "transcript_md",
+      "size_bytes": 43678,
+      "valid": true,
+      "word_count": 8356,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Shame_and_Complex_Trauma_-_Part_66_-_Healing.md",
+      "format": "transcript_md",
+      "size_bytes": 45190,
+      "valid": true,
+      "word_count": 8541,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Shedding_the_Weight_of_Negativity_is_Essential_for_Freedom_from_Complex_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 14031,
+      "valid": true,
+      "word_count": 2500,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Signs_and_Relationship_Patterns_of_Dating_a_Narcissist_-_Codependency_and_Complex_Trauma_-_Part_310.md",
+      "format": "transcript_md",
+      "size_bytes": 53339,
+      "valid": true,
+      "word_count": 10322,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Surviving_vs_Thriving_Moving_Beyond_Survival_Mode_After_Complex_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 15130,
+      "valid": true,
+      "word_count": 2727,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_The_16_Reasons_You_Are_Sabotaging_the_Good_Things.md",
+      "format": "transcript_md",
+      "size_bytes": 11358,
+      "valid": true,
+      "word_count": 2082,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_The_Basics_of_Anger_Issues_and_Complex_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 7331,
+      "valid": true,
+      "word_count": 1378,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_The_Basics_of_Complex_Trauma_Understanding_the_Hidden_Impact_of_Unmet_Needs.md",
+      "format": "transcript_md",
+      "size_bytes": 25361,
+      "valid": true,
+      "word_count": 4775,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_The_Characteristics_of_Complex_Trauma_-_Part_20_-_Emotional_Dysregulation.md",
+      "format": "transcript_md",
+      "size_bytes": 40765,
+      "valid": true,
+      "word_count": 7395,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_The_Characteristics_of_Complex_Trauma_-_Part_23_-_Afraid_To_Be_A_Burden.md",
+      "format": "transcript_md",
+      "size_bytes": 33303,
+      "valid": true,
+      "word_count": 6408,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_The_Difference_Between_Guilt_and_Shame_-_Why_It_Matters_for_Complex_Trauma_Healing_and_Recovery.md",
+      "format": "transcript_md",
+      "size_bytes": 28609,
+      "valid": true,
+      "word_count": 5328,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_The_Fear-Trauma_Connection_Nobody_Talks_About.md",
+      "format": "transcript_md",
+      "size_bytes": 13657,
+      "valid": true,
+      "word_count": 2497,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_The_Key_to_Letting_Go_-_Healing_Complex_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 14533,
+      "valid": true,
+      "word_count": 2753,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_The_Trauma_Loop_Why_You_Keep_Ending_Up_in_the_Same_Pain.md",
+      "format": "transcript_md",
+      "size_bytes": 18077,
+      "valid": true,
+      "word_count": 3320,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_These_12_Needs_Are_Non-Negotiable_for_a_Healthy__Whole_Life__complextrauma_whatstuck.md",
+      "format": "transcript_md",
+      "size_bytes": 26435,
+      "valid": true,
+      "word_count": 4981,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Trapped_in_a_Cycle_of_Burnout_the_Grown-up_Hero_Child.md",
+      "format": "transcript_md",
+      "size_bytes": 9449,
+      "valid": true,
+      "word_count": 1749,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Trauma_Bonding__Understanding_Trauma_-_Part_31__complextrauma.md",
+      "format": "transcript_md",
+      "size_bytes": 40848,
+      "valid": true,
+      "word_count": 7458,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Trust_and_Commitment_The_Foundations_of_Healing_from_Complex_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 25128,
+      "valid": true,
+      "word_count": 4667,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_What_Complex_Trauma_Does_to_Love_Attachment_and_Loyalty.md",
+      "format": "transcript_md",
+      "size_bytes": 9432,
+      "valid": true,
+      "word_count": 1694,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_What_Complex_Trauma_Really_Does_to_Your_Emotions__The_Characteristics_of_Complex_Trauma_-_Part_7.md",
+      "format": "transcript_md",
+      "size_bytes": 41197,
+      "valid": true,
+      "word_count": 7494,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_What_Complex_Trauma_Survivors_Need_to_Know_About_Their_Anger.md",
+      "format": "transcript_md",
+      "size_bytes": 12932,
+      "valid": true,
+      "word_count": 2377,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_What_You_NEED_to_Know_After_Ending_a_Relationship_with_a_Narcissist.md",
+      "format": "transcript_md",
+      "size_bytes": 13769,
+      "valid": true,
+      "word_count": 2486,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_When_Narcissists_Discard_and_Devalue_The_Late_Stages_of_Codependent_Narcissistic_Relationships.md",
+      "format": "transcript_md",
+      "size_bytes": 14582,
+      "valid": true,
+      "word_count": 2717,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_When_a_Narcissist_is_Triggered_Others_Pay_the_Price.md",
+      "format": "transcript_md",
+      "size_bytes": 8137,
+      "valid": true,
+      "word_count": 1483,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Why_Boundaries_are_More_Than_Just_Saying_No.md",
+      "format": "transcript_md",
+      "size_bytes": 1226,
+      "valid": true,
+      "word_count": 213,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Why_Complex_Trauma_Survivors_Struggle_with_Money.md",
+      "format": "transcript_md",
+      "size_bytes": 13508,
+      "valid": true,
+      "word_count": 2610,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Why_Do_People_Become_Abusive.md",
+      "format": "transcript_md",
+      "size_bytes": 7163,
+      "valid": true,
+      "word_count": 1373,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Why_Do_People_Seek_Attention_and_Approval.md",
+      "format": "transcript_md",
+      "size_bytes": 13239,
+      "valid": true,
+      "word_count": 2389,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Why_Narcissists_Dont_Change_Without_Consequences.md",
+      "format": "transcript_md",
+      "size_bytes": 8030,
+      "valid": true,
+      "word_count": 1499,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Why_Procrastination_Is_Tied_to_Complex_Trauma_and_How_to_Heal_It.md",
+      "format": "transcript_md",
+      "size_bytes": 38614,
+      "valid": true,
+      "word_count": 7007,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Why_Shame_Affects_100_of_People_with_Complex_Trauma.md",
+      "format": "transcript_md",
+      "size_bytes": 9180,
+      "valid": true,
+      "word_count": 1695,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Why_You_Are_Afraid_to_Be_a_Burden.md",
+      "format": "transcript_md",
+      "size_bytes": 9736,
+      "valid": true,
+      "word_count": 1824,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Why_You_Cant_Let_Go_of_the_Past.md",
+      "format": "transcript_md",
+      "size_bytes": 18664,
+      "valid": true,
+      "word_count": 3507,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Why_Youre_Afraid_of_Love_Success_and_Change_Traumas_Quiet_Rules.md",
+      "format": "transcript_md",
+      "size_bytes": 14012,
+      "valid": true,
+      "word_count": 2592,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Your_Gut_Your_Boundaries_Your_MotivationHow_Trauma_Rewires_It_All.md",
+      "format": "transcript_md",
+      "size_bytes": 15385,
+      "valid": true,
+      "word_count": 2695,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/TimFletcher_Your_Money_Trauma_Starts_at_Childhood.md",
+      "format": "transcript_md",
+      "size_bytes": 39668,
+      "valid": true,
+      "word_count": 7626,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Understood_ADHD_and_emotional_dysregulation__MissUnderstood.md",
+      "format": "transcript_md",
+      "size_bytes": 15793,
+      "valid": true,
+      "word_count": 2555,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Unfilteredd\uff1aNarcissisticFamilies_Can_the_Golden_Child_Turn_Into_the_Scapegoat.md",
+      "format": "transcript_md",
+      "size_bytes": 12174,
+      "valid": true,
+      "word_count": 2230,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Veritasium_Something_Strange_Happens_When_You_Trace_How_Connected_We_Are.md",
+      "format": "transcript_md",
+      "size_bytes": 32174,
+      "valid": true,
+      "word_count": 5729,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/WDR_Hirschhausen_und_ADHS_So_kann_die_Diagnose_Leben_ver\u00e4ndern__Doku__WDR.md",
+      "format": "transcript_md",
+      "size_bytes": 36357,
+      "valid": true,
+      "word_count": 6502,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/WDR_Torsten_Str\u00e4ter_\u00fcber_Fitness_im_Alter_und_seine_schr\u00e4gsten_Angewohnheiten__K\u00f6lner_Treff__WDR.md",
+      "format": "transcript_md",
+      "size_bytes": 22153,
+      "valid": true,
+      "word_count": 4168,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/WuWeiWisdom_Attention_Seeking_Behaviour_Explained__Why_You_Need_to_STOP_Seeking_Approval__Wu_Wei_Wisdom.md",
+      "format": "transcript_md",
+      "size_bytes": 23582,
+      "valid": true,
+      "word_count": 4368,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/WuWeiWisdom_WHY_DO_I_SEEK_APPROVAL__VALIDATION_FROM_OTHERS__The_Needy_Inner_Child_Explained__Wu_Wei_Wisdom.md",
+      "format": "transcript_md",
+      "size_bytes": 40683,
+      "valid": true,
+      "word_count": 7549,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/Y-Kollektiv_Die_teuerste_Schule_der_Welt_Hinter_den_Toren_von_Le_Rosey___Y-Kollektiv.md",
+      "format": "transcript_md",
+      "size_bytes": 31053,
+      "valid": true,
+      "word_count": 5804,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/ZDFMAGAZINROYALE_Verschw\u00f6rung_Zensur_und_fliegende_Sandwiches_Die_USA_im_Umbau_zur_Autokratie__ZDF_Magazin_Royale.md",
+      "format": "transcript_md",
+      "size_bytes": 19435,
+      "valid": true,
+      "word_count": 3359,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/ZDFheuteNachrichten_Trumps_Friedensplan_f\u00fcr_Gaza_Das_Ende_von_Leid_und_Elend__Markus_Lanz_vom_30_September_2025.md",
+      "format": "transcript_md",
+      "size_bytes": 30644,
+      "valid": true,
+      "word_count": 5658,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/hunds-kompetentKarinActun_Warum_dein_Hund_nicht_auf_dich_h\u00f6rt__und_was_Kommunikation_damit_zu_tun_hat.md",
+      "format": "transcript_md",
+      "size_bytes": 16092,
+      "valid": true,
+      "word_count": 3034,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/data/transcripts/ingested/rbbDoku_Diagnose_ALS_Bis_der_Tod_uns_schied__Dokumentation__Echtes_Leben.md",
+      "format": "transcript_md",
+      "size_bytes": 17058,
+      "valid": true,
+      "word_count": 3330,
+      "has_title": true,
+      "has_transcript_section": true,
+      "errors": []
+    },
+    {
+      "file": "ai/training/ready_packages/data/generated/edge_case_synthetic.jsonl",
+      "format": "jsonl",
+      "size_bytes": 21683058,
+      "valid": true,
+      "conversations": 10000,
+      "total_lines": 10000,
+      "roles_found": ["assistant", "system", "user"],
+      "empty_messages": 0,
+      "errors": []
+    }
+  ]
+}

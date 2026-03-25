@@ -1,22 +1,31 @@
 # TechDeck-Python Pipeline Integration Flask API Service
 
-A comprehensive Flask API service that bridges TechDeck React frontend with Python dataset pipeline processing, featuring HIPAA++ compliance, real-time bias detection, WebSocket progress tracking, and enterprise-grade error handling.
+A comprehensive Flask API service that bridges TechDeck React frontend with
+Python dataset pipeline processing, featuring HIPAA++ compliance, real-time bias
+detection, WebSocket progress tracking, and enterprise-grade error handling.
 
 ## 🎯 Overview
 
-This Flask service provides a robust REST API layer for integrating TechDeck's React-based frontend with Python dataset processing pipelines. It handles dataset management, pipeline orchestration, bias detection, real-time progress tracking, and comprehensive analytics while maintaining strict HIPAA++ compliance and sub-50ms response times for critical operations.
+This Flask service provides a robust REST API layer for integrating TechDeck's
+React-based frontend with Python dataset processing pipelines. It handles
+dataset management, pipeline orchestration, bias detection, real-time progress
+tracking, and comprehensive analytics while maintaining strict HIPAA++
+compliance and sub-50ms response times for critical operations.
 
 ## 🏗️ Architecture
 
 ### Core Components
+
 - **Flask Application Factory**: Modular application structure with blueprints
 - **JWT Authentication**: Role-based access control with rate limiting
-- **Six-Stage Pipeline**: Data ingestion → validation → standardization → bias detection → processing → output
+- **Six-Stage Pipeline**: Data ingestion → validation → standardization → bias
+  detection → processing → output
 - **WebSocket Integration**: Real-time progress tracking and event broadcasting
 - **Redis Integration**: Caching, pub/sub, and session management
 - **HIPAA++ Compliance**: Encrypted data handling and audit logging
 
 ### Technology Stack
+
 - **Backend**: Flask 3.0+ with Python 3.11+
 - **Authentication**: PyJWT with role-based access control
 - **Database**: PostgreSQL with SQLAlchemy ORM
@@ -64,6 +73,7 @@ techdeck_integration/
 ## 🚀 Quick Start
 
 ### Prerequisites
+
 - Python 3.11+
 - Redis server
 - PostgreSQL database
@@ -72,6 +82,7 @@ techdeck_integration/
 ### Installation
 
 1. **Clone and setup environment:**
+
 ```bash
 cd ai/api/techdeck_integration
 python -m venv venv
@@ -79,22 +90,26 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 2. **Install dependencies:**
+
 ```bash
 pip install -r requirements.txt
 ```
 
 3. **Configure environment variables:**
+
 ```bash
 cp .env.example .env
 # Edit .env with your configuration
 ```
 
 4. **Initialize database:**
+
 ```bash
 python -c "from app import create_app; app = create_app(); app.app_context().push()"
 ```
 
 5. **Start the service:**
+
 ```bash
 python main.py
 ```
@@ -104,6 +119,7 @@ The service will start on `http://localhost:5000` by default.
 ## 📡 API Endpoints
 
 ### Dataset Management
+
 - `GET /api/datasets` - List datasets with pagination
 - `POST /api/datasets` - Upload new dataset
 - `GET /api/datasets/{id}` - Get dataset details
@@ -112,6 +128,7 @@ The service will start on `http://localhost:5000` by default.
 - `GET /api/datasets/{id}/download` - Download dataset
 
 ### Pipeline Operations
+
 - `GET /api/pipeline/config` - Get pipeline configuration
 - `POST /api/pipeline/config` - Update pipeline configuration
 - `POST /api/pipeline/execute` - Execute pipeline
@@ -119,11 +136,13 @@ The service will start on `http://localhost:5000` by default.
 - `POST /api/pipeline/cancel/{operation_id}` - Cancel operation
 
 ### Data Processing
+
 - `POST /api/standardization/execute` - Standardize data format
 - `POST /api/validation/execute` - Validate data quality
 - `GET /api/validation/schema/{format}` - Get validation schema
 
 ### Analytics & Monitoring
+
 - `GET /api/analytics/usage` - Usage metrics
 - `GET /api/analytics/performance` - Performance metrics
 - `GET /api/analytics/pipeline` - Pipeline analytics
@@ -131,6 +150,7 @@ The service will start on `http://localhost:5000` by default.
 - `GET /api/system/metrics` - System metrics
 
 ### WebSocket (Real-time)
+
 - `ws://localhost:5000/ws/progress/{operation_id}` - Progress updates
 
 ## 🔐 Authentication
@@ -138,25 +158,30 @@ The service will start on `http://localhost:5000` by default.
 The service uses JWT-based authentication with role-based access control:
 
 ### Roles
+
 - **admin**: Full access to all endpoints
 - **user**: Standard dataset and pipeline operations
 - **viewer**: Read-only access
 
 ### Authentication Flow
+
 1. Obtain JWT token from authentication service
 2. Include token in `Authorization: Bearer <token>` header
 3. Token is validated with configurable expiration and refresh
 
 ### Rate Limiting
+
 - Default: 100 requests per minute per user
 - Configurable per endpoint and user role
 - Redis-backed for distributed deployments
 
 ## 📊 Bias Detection Integration
 
-The service integrates with bias detection services to ensure ethical AI processing:
+The service integrates with bias detection services to ensure ethical AI
+processing:
 
 ### Supported Bias Types
+
 - Gender bias
 - Racial/ethnic bias
 - Age bias
@@ -167,6 +192,7 @@ The service integrates with bias detection services to ensure ethical AI process
 - Sexual orientation bias
 
 ### Bias Detection Features
+
 - Real-time bias scoring (0.0-1.0 scale)
 - Configurable thresholds (default: 0.7)
 - Detailed bias metrics and recommendations
@@ -189,6 +215,7 @@ Each stage provides real-time progress updates via WebSocket.
 ## 🛡️ Security Features
 
 ### HIPAA++ Compliance
+
 - End-to-end encryption for sensitive data
 - Audit logging for all data access
 - PII detection and sanitization
@@ -196,6 +223,7 @@ Each stage provides real-time progress updates via WebSocket.
 - Compliance reporting and monitoring
 
 ### Input Validation
+
 - Comprehensive input sanitization
 - File type and size validation
 - SQL injection prevention
@@ -203,6 +231,7 @@ Each stage provides real-time progress updates via WebSocket.
 - Rate limiting and DDoS protection
 
 ### Data Protection
+
 - Encryption at rest and in transit
 - Secure key management
 - Data minimization principles
@@ -212,12 +241,14 @@ Each stage provides real-time progress updates via WebSocket.
 ## 📈 Performance Optimization
 
 ### Response Time Targets
+
 - Critical operations: <50ms
 - Standard API calls: <200ms
 - File uploads: <5s for 100MB files
 - Pipeline execution: Progress updates every 2 seconds
 
 ### Optimization Features
+
 - Redis caching for frequently accessed data
 - Database query optimization
 - Connection pooling
@@ -227,6 +258,7 @@ Each stage provides real-time progress updates via WebSocket.
 ## 🔍 Monitoring & Observability
 
 ### Logging
+
 - Structured JSON logging
 - HIPAA-compliant audit trails
 - Performance metrics collection
@@ -234,6 +266,7 @@ Each stage provides real-time progress updates via WebSocket.
 - Security event logging
 
 ### Metrics
+
 - API response times
 - Pipeline execution duration
 - Error rates and types
@@ -241,6 +274,7 @@ Each stage provides real-time progress updates via WebSocket.
 - User activity patterns
 
 ### Health Checks
+
 - Database connectivity
 - Redis availability
 - External service dependencies
@@ -250,6 +284,7 @@ Each stage provides real-time progress updates via WebSocket.
 ## 🧪 Testing
 
 ### Test Coverage
+
 - Unit tests: >80% coverage
 - Integration tests: All API endpoints
 - Performance tests: Load and stress testing
@@ -257,6 +292,7 @@ Each stage provides real-time progress updates via WebSocket.
 - Bias detection tests: Fairness validation
 
 ### Test Commands
+
 ```bash
 # Run all tests
 python -m pytest tests/ -v --cov=.
@@ -270,6 +306,7 @@ python -m pytest tests/performance/ -v
 ## 🚢 Deployment
 
 ### Docker Support
+
 ```bash
 # Build container
 docker build -t techdeck-flask-api .
@@ -279,12 +316,14 @@ docker-compose up -d
 ```
 
 ### Environment Configuration
+
 - Development, staging, and production configs
 - Environment variable management
 - Secret rotation support
 - Feature flags for gradual rollouts
 
 ### Scaling
+
 - Horizontal scaling with load balancers
 - Database read replicas
 - Redis clustering
@@ -294,12 +333,14 @@ docker-compose up -d
 ## 📚 Documentation
 
 ### API Documentation
+
 - OpenAPI 3.0 specification
 - Interactive Swagger UI
 - Postman collection
 - Code examples for all endpoints
 
 ### Architecture Documentation
+
 - System design diagrams
 - Data flow documentation
 - Security architecture
@@ -308,6 +349,7 @@ docker-compose up -d
 ## 🤝 Contributing
 
 ### Development Workflow
+
 1. Fork the repository
 2. Create feature branch
 3. Implement with tests
@@ -315,6 +357,7 @@ docker-compose up -d
 5. Code review and merge
 
 ### Code Standards
+
 - PEP 8 compliance
 - Type hints for all functions
 - Comprehensive docstrings
@@ -324,12 +367,14 @@ docker-compose up -d
 ## 📞 Support
 
 ### Issues and Bug Reports
+
 - Use GitHub Issues for bug reports
 - Include reproduction steps
 - Provide environment details
 - Attach relevant logs
 
 ### Feature Requests
+
 - Describe use case and benefits
 - Provide implementation suggestions
 - Consider security implications
@@ -337,7 +382,9 @@ docker-compose up -d
 
 ## 📄 License
 
-This project is part of the Pixelated Empathy platform and follows the organization's licensing terms. See the main project repository for license details.
+This project is part of the Pixelated Empathy platform and follows the
+organization's licensing terms. See the main project repository for license
+details.
 
 ## 🙏 Acknowledgments
 
@@ -348,4 +395,5 @@ This project is part of the Pixelated Empathy platform and follows the organizat
 
 ---
 
-For more information about the Pixelated Empathy platform, visit the [main project documentation](https://github.com/pixelated-empathy/pixelated).
+For more information about the Pixelated Empathy platform, visit the
+[main project documentation](https://github.com/pixelated-empathy/pixelated).

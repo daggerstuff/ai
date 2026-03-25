@@ -232,7 +232,13 @@ jobs:
   notify-team:
     name: Notify Team
     runs-on: ubuntu-latest
-    needs: [validate-openapi, sync-to-swaggerhub, generate-client-sdks, contract-testing]
+    needs:
+      [
+        validate-openapi,
+        sync-to-swaggerhub,
+        generate-client-sdks,
+        contract-testing,
+      ]
     if: always() && github.ref == 'refs/heads/main'
 
     steps:
@@ -259,7 +265,9 @@ jobs:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
 
       - name: Create GitHub Release
-        if: needs.validate-openapi.result == 'success' && needs.sync-to-swaggerhub.result == 'success'
+        if:
+          needs.validate-openapi.result == 'success' &&
+          needs.sync-to-swaggerhub.result == 'success'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

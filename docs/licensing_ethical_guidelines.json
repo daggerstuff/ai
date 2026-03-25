@@ -70,10 +70,7 @@
         "License and copyright notice",
         "Attribution to original authors"
       ],
-      "limitations": [
-        "Liability",
-        "Warranty"
-      ],
+      "limitations": ["Liability", "Warranty"],
       "third_party_licenses": {
         "dependencies": "Software includes third-party dependencies with their own licenses",
         "compliance": "Users must comply with all third-party license terms",

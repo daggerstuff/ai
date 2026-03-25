@@ -10,7 +10,10 @@
 
 This document provides the complete blueprint for consolidating all Pixelated Empathy training datasets into a cohesive, multi-stage training pipeline. The plan leverages the operational `ai/pipelines/orchestrator/` system, preserves critical edge case training data (without safety filtering), and defines a staged curriculum from foundation to voice/personality injection.
 
-**Critical Principle:** Edge case data is intentionally difficult/scary/horrible for training purposes. Guardrails that filter these out would destroy training value. Edge cases must pass through WITHOUT safety filtering, tagged with `is_training_edge_case: true`.
+**Critical Principle:** Edge case data is intentionally difficult/scary/horrible
+for training purposes. Guardrails that filter these out would destroy training
+value. Edge cases must pass through WITHOUT safety filtering, tagged with
+`is_training_edge_case: true`.
 
 ---
 
@@ -32,7 +35,8 @@ This document provides the complete blueprint for consolidating all Pixelated Em
 
 The `ai/pipelines/orchestrator/` is now operational per completed epic with:
 - **Export capabilities**: JSONL and Parquet formats
-- **Manifest generation**: SHA256 checksums, dataset counts, config commit SHA, random seed
+- **Manifest generation**: SHA256 checksums, dataset counts, config commit SHA,
+  random seed
 - **QA reports**: semantic coherence, safety flags, PII detection
 - **Storage integration**: S3/GCS connectors for raw/processed/export/checkpoints
 - **Training orchestrator**: `ai/pipelines/orchestrator/training_orchestrator.py` for H100 execution
@@ -57,6 +61,7 @@ The `ai/pipelines/orchestrator/` is now operational per completed epic with:
 - Metadata tagging for source attribution and lineage tracking
 
 **Stage 4: Crossover Management**
+
 - Tag datasets with source categories to prevent cross-contamination
 - Filter rules in `ai/data/training_policy_manifest.json`:
   - Priority datasets → Stage 1 only
@@ -66,10 +71,12 @@ The `ai/pipelines/orchestrator/` is now operational per completed epic with:
 ### Export Format
 
 **Primary Formats:**
+
 - **JSONL**: Line-delimited JSON for streaming processing
 - **Parquet**: Columnar format for efficient querying and analysis
 
 **Manifest Requirements:**
+
 - SHA256 checksums for all files
 - Dataset counts by source and stage
 - Config commit SHA for reproducibility
@@ -82,11 +89,15 @@ The `ai/pipelines/orchestrator/` is now operational per completed epic with:
 
 ### CRITICAL REQUIREMENT
 
-Edge case data is intentionally difficult/scary/horrible for training purposes. This is a **mental health TRAINING LLM** that must learn to handle the worst-case scenarios. Guardrails that filter these out would make training worthless.
+Edge case data is intentionally difficult/scary/horrible for training purposes.
+This is a **mental health TRAINING LLM** that must learn to handle the
+worst-case scenarios. Guardrails that filter these out would make training
+worthless.
 
 ### Edge Case Categories (25 total)
 
 **Very High Difficulty:**
+
 - Suicidality
 - Homicidal ideation
 - Psychotic episodes
@@ -94,6 +105,7 @@ Edge case data is intentionally difficult/scary/horrible for training purposes. 
 - Severe dissociation
 
 **High Difficulty:**
+
 - Substance abuse crisis
 - Trauma flashbacks
 - Borderline crisis
@@ -103,6 +115,7 @@ Edge case data is intentionally difficult/scary/horrible for training purposes. 
 - **Ultra Nightmares** (Extreme violation scenarios for guardrail testing)
 
 **Moderate Difficulty:**
+
 - Paranoid accusations
 - Medication refusal
 - Family conflicts
@@ -111,8 +124,10 @@ Edge case data is intentionally difficult/scary/horrible for training purposes. 
 
 ### Preservation Rules
 
-1. **Tag-based Bypass**: All edge cases must be tagged with `is_training_edge_case: true` metadata
-2. **No Safety Filtering**: Edge cases bypass ALL safety filters (crisis detection, toxicity, PII blocking)
+1. **Tag-based Bypass**: All edge cases must be tagged with
+   `is_training_edge_case: true` metadata
+2. **No Safety Filtering**: Edge cases bypass ALL safety filters (crisis
+   detection, toxicity, PII blocking)
 3. **Source Tracking**: Edge cases come from:
    - `ai/lightning/ghost/edge_case_pipeline_standalone/` (edge case generator)
    - Google Drive scenario prompts
@@ -125,7 +140,8 @@ Edge case data is intentionally difficult/scary/horrible for training purposes. 
    - Therapeutic appropriateness (is it useful for training?)
    - **NO** safety/threat filtering
 
-5. **Pipeline Modification**: Update quality validation pipeline to check `is_training_edge_case` tag and skip safety filters when present
+5. **Pipeline Modification**: Update quality validation pipeline to check
+   `is_training_edge_case` tag and skip safety filters when present
 
 ### Implementation
 
@@ -134,7 +150,7 @@ Modify `ai/pipelines/orchestrator/quality/` validators to:
 def validate_conversation(conversation: Conversation) -> ValidationResult:
     # Check for edge case tag
     is_edge_case = conversation.metadata.get("is_training_edge_case", False)
-    
+
     if is_edge_case:
         # Skip safety filters, only validate format/coherence
         return validate_format_and_coherence(conversation)
@@ -156,22 +172,26 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 - Safety compliance: Pass all safety gates (PII, toxicity, crisis handling)
 
 **Stage 2: Reasoning**
+
 - Reasoning completeness: ≥0.8 (CoT structure validation)
 - Clinical accuracy: Evidence-based reasoning patterns
 - Empathy score: ≥0.6 (lower threshold for reasoning focus)
 
 **Stage 3: Edge Cases**
+
 - Format validation: Schema compliance only
 - Coherence scoring: Conversation flow validation
 - Therapeutic value: Is this scenario useful for training?
 - **NO safety filtering** (by design)
 
 **Stage 4: Voice/Personality**
+
 - Voice consistency: Personality marker alignment
 - Naturalness score: Authentic conversational flow
 - Empathy score: ≥0.6
 
 **Stage 5: Safety/DPO**
+
 - Safety alignment: DPO preference pair validation
 - Production readiness: Appropriate for deployment
 - Preference quality: Clear chosen/rejected distinctions
@@ -202,7 +222,9 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 **Purpose:** Natural therapeutic dialogue patterns, empathy, rapport building
 
 **Datasets:**
-- Curated Wendy datasets (Tier 1): prefer descriptive names (no `FINAL`/`MASTER`, no numeric “priority” labels), e.g.
+
+- Curated Wendy datasets (Tier 1): prefer descriptive names (no
+  `FINAL`/`MASTER`, no numeric “priority” labels), e.g.
   - `wendy_set_alpha_therapeutic_core.jsonl`
   - `wendy_set_beta_high_quality_core.jsonl`
   - `wendy_set_gamma_specialized_therapy.jsonl`
@@ -216,11 +238,13 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
   - Psych8k
 
 **Quality Thresholds:**
+
 - Empathy: ≥0.7
 - Safety: ≥0.7
 - Bias: ≤0.2
 
 **Training Config:**
+
 - Epochs: 3
 - Learning Rate: 2e-4
 - Checkpoint: Foundation base model
@@ -232,6 +256,7 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 **Purpose:** Clinical reasoning patterns, Chain-of-Thought thinking
 
 **Datasets:**
+
 - CoT Reasoning Clinical Diagnosis Mental Health (38MB, 30K+ entries)
 - CoT Neurodivergent vs Neurotypical Interactions
 - CoT Heartbreak and Breakups (38MB, 98K+ entries)
@@ -243,11 +268,13 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 - CoT-Reasoning Cultural Nuances
 
 **Quality Thresholds:**
+
 - Reasoning completeness: ≥0.8
 - Clinical accuracy: Pass DSM-5 validation
 - Empathy: ≥0.6
 
 **Training Config:**
+
 - Epochs: 2
 - Learning Rate: 1e-4
 - Checkpoint: Resume from Stage 1
@@ -271,12 +298,14 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 - Unalignment toxic DPO dataset (difficult client behavior patterns)
 
 **Quality Thresholds:**
+
 - Format validation: Schema compliance
 - Coherence: Conversation flow validation
 - Therapeutic value: Useful for training
 - **NO safety filtering** (by design)
 
 **Training Config:**
+
 - Epochs: 2
 - Learning Rate: 1e-4
 - Checkpoint: Resume from Stage 2
@@ -289,6 +318,7 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 **Purpose:** Tim Fletcher speaking style, authentic personality, teaching voice
 
 **Datasets:**
+
 - Tim Fletcher YouTube transcripts: `ai/training_data_consolidated/transcripts/`
   - 42 transcripts (Complex Trauma series)
   - Voice profile: `ai/data/tim_fletcher_voice/tim_fletcher_voice_profile.json`
@@ -296,17 +326,20 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 - Personality-consistent dialogue pairs
 
 **Processing:**
+
 - Extract personality markers (Big Five)
 - Analyze speech patterns, vocabulary, emotional expression
 - Create dialogue pairs with consistent voice signature
 - Validate personality consistency across samples
 
 **Quality Thresholds:**
+
 - Voice consistency: Personality marker alignment
 - Naturalness: Authentic conversational flow
 - Empathy: ≥0.6
 
 **Training Config:**
+
 - Epochs: 2
 - Learning Rate: 5e-5
 - Checkpoint: Resume from Stage 3
@@ -318,17 +351,20 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 **Purpose:** Production safety alignment, preference optimization
 
 **Datasets:**
+
 - Human-Like DPO: `mlx-community/Human-Like-DPO`
 - Character Roleplay DPO: `flammenai/character-roleplay-DPO`
 - Toxic Safety DPO: `PJMixers/unalignment_toxic-dpo-v0.2-ShareGPT`
 - Safety DPO pairs (chosen/rejected responses)
 
 **Quality Thresholds:**
+
 - Safety alignment: DPO preference validation
 - Production readiness: Appropriate for deployment
 - Preference quality: Clear chosen/rejected distinctions
 
 **Training Config:**
+
 - Epochs: 1-2
 - Learning Rate: 5e-5
 - Checkpoint: Resume from Stage 4
@@ -345,6 +381,7 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 - Google Drive: Check `ai/data/training_policy_manifest.json` for `gdrive_path` references
 
 **Categories (25 total):**
+
 1. Suicidality
 2. Homicidal ideation
 3. Psychotic episodes
@@ -363,6 +400,7 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 16. And 10 more...
 
 **Integration:**
+
 - Load from generator output files
 - Load from Google Drive scenario prompts
 - Tag all with `is_training_edge_case: true`
@@ -372,11 +410,13 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 ### Tim Fletcher YouTube Transcripts
 
 **Location:**
+
 - Transcripts: `ai/training_data_consolidated/transcripts/`
 - Voice Profile: `ai/data/tim_fletcher_voice/`
 - Pipeline: `ai/pipelines/orchestrator/voice_pipeline_integration.py`
 
 **Processing:**
+
 1. Load 42 Tim Fletcher transcripts (Complex Trauma series)
 2. Extract personality markers using voice pipeline
 3. Analyze speech patterns and vocabulary
@@ -384,6 +424,7 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 5. Validate personality consistency
 
 **Integration:**
+
 - Process through voice pipeline integration
 - Generate personality-consistent conversation pairs
 - Integrate into Stage 4 (Voice/Personality)
@@ -502,7 +543,8 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
    - `ai/pipelines/orchestrator/scripts/S3_INVENTORY.json` - OVH S3 dataset inventory
 
 5. **Updated Manifests**:
-   - `ai/data/training_policy_manifest.json` - Policy + historical reference (dataset locations live in `ai/data/dataset_registry.json`)
+   - `ai/data/training_policy_manifest.json` - Policy + historical reference
+     (dataset locations live in `ai/data/dataset_registry.json`)
    - Consolidated dataset manifest (generated by pipeline)
 
 ---
@@ -524,4 +566,3 @@ def validate_conversation(conversation: Conversation) -> ValidationResult:
 **Document Maintained By:** Dataset Pipeline Team  
 **Last Review:** December 2025  
 **Next Review:** After consolidation completion or major dataset additions
-

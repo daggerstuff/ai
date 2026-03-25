@@ -7,6 +7,7 @@
 ## 🚀 Quick Start
 
 ### Authentication
+
 ```bash
 # Get API key from dashboard
 export API_KEY="your_api_key_here"
@@ -16,6 +17,7 @@ export JWT_TOKEN="your_jwt_token_here"
 ```
 
 ### Basic Usage
+
 ```bash
 # Health check
 curl -X GET "https://api.pixelatedempathy.com/v1/" \
@@ -35,11 +37,13 @@ curl -X POST "https://api.pixelatedempathy.com/v1/transcribe" \
 ## 📋 API Endpoints
 
 ### Health Check
+
 **GET** `/`
 
 Returns API health status and version information.
 
 **Response:**
+
 ```json
 {
   "status": "healthy",
@@ -50,11 +54,13 @@ Returns API health status and version information.
 ```
 
 ### Transcription
+
 **POST** `/transcribe`
 
 Transcribe audio content using AI models.
 
 **Request Body:**
+
 ```json
 {
   "audio_url": "string",
@@ -69,19 +75,19 @@ Transcribe audio content using AI models.
 ```
 
 **Response:**
+
 ```json
 {
   "transcript": "string",
   "confidence": 0.95,
   "language": "en",
   "duration": 120.5,
-  "timestamps": [
-    {"start": 0.0, "end": 5.2, "text": "Hello world"}
-  ]
+  "timestamps": [{ "start": 0.0, "end": 5.2, "text": "Hello world" }]
 }
 ```
 
 **Example:**
+
 ```python
 import requests
 
@@ -98,11 +104,13 @@ print(response.json())
 ```
 
 ### Pipeline Jobs
+
 **POST** `/pipeline/jobs`
 
 Create a new pipeline processing job.
 
 **Request Body:**
+
 ```json
 {
   "job_type": "transcription|analysis|processing",
@@ -119,6 +127,7 @@ Create a new pipeline processing job.
 ```
 
 **Response:**
+
 ```json
 {
   "job_id": "uuid",
@@ -133,6 +142,7 @@ Create a new pipeline processing job.
 List all jobs for the authenticated user.
 
 **Response:**
+
 ```json
 [
   {
@@ -155,6 +165,7 @@ Get specific job details.
 Cancel a running job.
 
 ### Data Access
+
 **GET** `/data/{data_type}/latest`
 
 Get latest data of specified type.
@@ -166,34 +177,37 @@ List available data files.
 ## 🔐 Authentication
 
 ### API Key Authentication
+
 ```bash
 curl -H "X-API-Key: your_api_key" https://api.pixelatedempathy.com/v1/
 ```
 
 ### JWT Token Authentication
+
 ```bash
 curl -H "Authorization: Bearer your_jwt_token" https://api.pixelatedempathy.com/v1/
 ```
 
 ### Role-Based Access Control
 
-| Role | Permissions |
-|------|-------------|
-| **readonly** | Read access to data and job status |
+| Role         | Permissions                             |
+| ------------ | --------------------------------------- |
+| **readonly** | Read access to data and job status      |
 | **standard** | Create jobs, read data, manage own jobs |
-| **premium** | Higher rate limits, priority processing |
-| **admin** | Full system access, user management |
+| **premium**  | Higher rate limits, priority processing |
+| **admin**    | Full system access, user management     |
 
 ## ⚡ Rate Limits
 
-| Tier | Requests/Minute | Requests/Hour | Requests/Day |
-|------|----------------|---------------|--------------|
-| **Free** | 60 | 1,000 | 10,000 |
-| **Standard** | 120 | 5,000 | 50,000 |
-| **Premium** | 300 | 15,000 | 150,000 |
-| **Enterprise** | Unlimited | Unlimited | Unlimited |
+| Tier           | Requests/Minute | Requests/Hour | Requests/Day |
+| -------------- | --------------- | ------------- | ------------ |
+| **Free**       | 60              | 1,000         | 10,000       |
+| **Standard**   | 120             | 5,000         | 50,000       |
+| **Premium**    | 300             | 15,000        | 150,000      |
+| **Enterprise** | Unlimited       | Unlimited     | Unlimited    |
 
 ### Rate Limit Headers
+
 ```
 X-RateLimit-Limit: 60
 X-RateLimit-Remaining: 45
@@ -203,6 +217,7 @@ X-RateLimit-Reset: 1692742800
 ## 🚨 Error Handling
 
 ### HTTP Status Codes
+
 - **200** - Success
 - **201** - Created
 - **202** - Accepted (async processing)
@@ -215,6 +230,7 @@ X-RateLimit-Reset: 1692742800
 - **500** - Internal Server Error
 
 ### Error Response Format
+
 ```json
 {
   "error": {
@@ -232,6 +248,7 @@ X-RateLimit-Reset: 1692742800
 ## 📚 SDK Examples
 
 ### Python
+
 ```python
 import requests
 from typing import Optional, Dict, Any
@@ -242,7 +259,7 @@ class PixelatedEmpathyAPI:
         self.base_url = base_url
         self.session = requests.Session()
         self.session.headers.update({"X-API-Key": api_key})
-    
+
     def transcribe(self, audio_url: str, language: str = "en", **options) -> Dict[str, Any]:
         response = self.session.post(
             f"{self.base_url}/transcribe",
@@ -254,7 +271,7 @@ class PixelatedEmpathyAPI:
         )
         response.raise_for_status()
         return response.json()
-    
+
     def create_job(self, job_type: str, input_data: Dict, config: Dict) -> str:
         response = self.session.post(
             f"{self.base_url}/pipeline/jobs",
@@ -266,7 +283,7 @@ class PixelatedEmpathyAPI:
         )
         response.raise_for_status()
         return response.json()["job_id"]
-    
+
     def get_job(self, job_id: str) -> Dict[str, Any]:
         response = self.session.get(f"{self.base_url}/pipeline/jobs/{job_id}")
         response.raise_for_status()
@@ -279,64 +296,66 @@ print(result["transcript"])
 ```
 
 ### JavaScript/Node.js
+
 ```javascript
 class PixelatedEmpathyAPI {
-    constructor(apiKey, baseUrl = 'https://api.pixelatedempathy.com/v1') {
-        this.apiKey = apiKey;
-        this.baseUrl = baseUrl;
+  constructor(apiKey, baseUrl = 'https://api.pixelatedempathy.com/v1') {
+    this.apiKey = apiKey
+    this.baseUrl = baseUrl
+  }
+
+  async transcribe(audioUrl, options = {}) {
+    const response = await fetch(`${this.baseUrl}/transcribe`, {
+      method: 'POST',
+      headers: {
+        'X-API-Key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        audio_url: audioUrl,
+        ...options,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error(`API Error: ${response.status}`)
     }
-    
-    async transcribe(audioUrl, options = {}) {
-        const response = await fetch(`${this.baseUrl}/transcribe`, {
-            method: 'POST',
-            headers: {
-                'X-API-Key': this.apiKey,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                audio_url: audioUrl,
-                ...options
-            })
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API Error: ${response.status}`);
-        }
-        
-        return await response.json();
-    }
-    
-    async createJob(jobType, inputData, config) {
-        const response = await fetch(`${this.baseUrl}/pipeline/jobs`, {
-            method: 'POST',
-            headers: {
-                'X-API-Key': this.apiKey,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                job_type: jobType,
-                input_data: inputData,
-                config: config
-            })
-        });
-        
-        const result = await response.json();
-        return result.job_id;
-    }
+
+    return await response.json()
+  }
+
+  async createJob(jobType, inputData, config) {
+    const response = await fetch(`${this.baseUrl}/pipeline/jobs`, {
+      method: 'POST',
+      headers: {
+        'X-API-Key': this.apiKey,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        job_type: jobType,
+        input_data: inputData,
+        config: config,
+      }),
+    })
+
+    const result = await response.json()
+    return result.job_id
+  }
 }
 
 // Usage
-const api = new PixelatedEmpathyAPI('your_api_key');
+const api = new PixelatedEmpathyAPI('your_api_key')
 const result = await api.transcribe('https://example.com/audio.mp3', {
-    language: 'en',
-    timestamps: true
-});
-console.log(result.transcript);
+  language: 'en',
+  timestamps: true,
+})
+console.log(result.transcript)
 ```
 
 ## 🔧 Advanced Features
 
 ### Webhooks
+
 Configure webhooks to receive job completion notifications:
 
 ```json
@@ -348,6 +367,7 @@ Configure webhooks to receive job completion notifications:
 ```
 
 ### Batch Processing
+
 Process multiple files in a single request:
 
 ```json
@@ -375,4 +395,4 @@ Process multiple files in a single request:
 
 ---
 
-*Last updated: 2025-08-12T20:56:05.349119*
+_Last updated: 2025-08-12T20:56:05.349119_

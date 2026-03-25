@@ -2,11 +2,14 @@
 
 ## Overview
 
-NGC (NVIDIA GPU Cloud) integration allows the dataset pipeline to download datasets and resources directly from the NGC catalog, similar to how HuggingFace datasets are ingested.
+NGC (NVIDIA GPU Cloud) integration allows the dataset pipeline to download
+datasets and resources directly from the NGC catalog, similar to how HuggingFace
+datasets are ingested.
 
 ## Installation
 
-**Important**: NGC CLI is not available as a PyPI package. You must download it directly from NVIDIA.
+**Important**: NGC CLI is not available as a PyPI package. You must download it
+directly from NVIDIA.
 
 ### Download from NGC Catalog
 
@@ -122,11 +125,13 @@ if ngc_ingestor.is_available():
 
 Currently configured NGC datasets:
 
-- **nvidia/nemo/datasets/therapeutic_conversations**: Therapeutic conversation dataset from NeMo
+- **nvidia/nemo/datasets/therapeutic_conversations**: Therapeutic conversation
+  dataset from NeMo
   - Target: `stage1_foundation`
   - Version: Latest
 
-Add more datasets to `NGC_DATASETS` in `ngc_ingestor.py` as they become available.
+Add more datasets to `NGC_DATASETS` in `ngc_ingestor.py` as they become
+available.
 
 ## Configuration
 
@@ -192,6 +197,7 @@ ngc config set
 ### "Download failed"
 
 **Possible causes**:
+
 1. Resource path incorrect
 2. No access to resource
 3. Network issues

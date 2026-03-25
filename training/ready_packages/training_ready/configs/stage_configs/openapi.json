@@ -1,0 +1,301 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Pixelated Empathy Dataset Pipeline API",
+    "version": "1.0.0",
+    "description": "Comprehensive API for therapeutic conversation validation, dataset export, and analytics",
+    "contact": {
+      "name": "API Support",
+      "email": "api-support@pixelatedempathy.com"
+    },
+    "license": {
+      "name": "MIT",
+      "url": "https://opensource.org/licenses/MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "https://api.pixelatedempathy.com",
+      "description": "Production server"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Conversation": {
+        "type": "object",
+        "required": [
+          "id",
+          "content",
+          "turns"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "turns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "speaker": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      },
+      "ValidationResult": {
+        "type": "object",
+        "properties": {
+          "validation_id": {
+            "type": "string"
+          },
+          "overall_quality_score": {
+            "type": "number"
+          },
+          "tier_assessment": {
+            "type": "string"
+          },
+          "validation_results": {
+            "type": "object"
+          },
+          "issues": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "recommendations": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/api/v1/validate/conversation": {
+      "post": {
+        "summary": "Validate a therapeutic conversation using multi-tier quality assessment",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "validation_id": "val_12345",
+                  "overall_quality_score": 0.85,
+                  "tier_assessment": "professional",
+                  "validation_results": {
+                    "multi_tier_validation": {
+                      "passed": true,
+                      "score": 0.87
+                    },
+                    "dsm5_accuracy": {
+                      "passed": true,
+                      "score": 0.83
+                    },
+                    "safety_ethics": {
+                      "passed": true,
+                      "score": 0.91
+                    },
+                    "effectiveness_prediction": {
+                      "score": 0.78,
+                      "confidence": "high"
+                    },
+                    "coherence_validation": {
+                      "score": 0.82,
+                      "level": "moderately_coherent"
+                    }
+                  },
+                  "issues": [],
+                  "recommendations": [
+                    "Consider adding more specific therapeutic techniques",
+                    "Enhance empathetic responses"
+                  ],
+                  "processing_time_ms": 245
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid conversation format"
+          },
+          "422": {
+            "description": "Validation failed - conversation quality too low"
+          },
+          "429": {
+            "description": "Rate limit exceeded"
+          },
+          "500": {
+            "description": "Internal validation error"
+          }
+        }
+      }
+    },
+    "/api/v1/export/dataset": {
+      "post": {
+        "summary": "Export dataset in specified format with tiered access control",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "export_id": "exp_67890",
+                  "status": "completed",
+                  "export_metadata": [
+                    {
+                      "format": "json",
+                      "tier": "priority",
+                      "conversations": 1542,
+                      "file_path": "/exports/v1/priority/conversations.json.zip",
+                      "checksum": "sha256:abc123..."
+                    }
+                  ],
+                  "total_conversations": 4626,
+                  "export_time_seconds": 45.2
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid export configuration"
+          },
+          "403": {
+            "description": "Insufficient access permissions for requested tier"
+          },
+          "413": {
+            "description": "Export size exceeds limits"
+          },
+          "500": {
+            "description": "Export processing error"
+          }
+        }
+      }
+    },
+    "/api/v1/analytics/dashboard": {
+      "get": {
+        "summary": "Get comprehensive analytics dashboard data",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "dashboard_data": {
+                    "total_conversations": 15420,
+                    "quality_distribution": {
+                      "excellent": 3084,
+                      "good": 6168,
+                      "acceptable": 4626,
+                      "poor": 1542
+                    },
+                    "safety_metrics": {
+                      "overall_safety_score": 0.91,
+                      "compliance_rate": 0.94
+                    },
+                    "performance_trends": {
+                      "quality_scores": [
+                        0.78,
+                        0.79,
+                        0.81,
+                        0.82
+                      ]
+                    }
+                  },
+                  "summary_report": {
+                    "performance_status": "\ud83d\udfe2 EXCELLENT",
+                    "key_insights": [
+                      "High quality conversations",
+                      "Excellent safety compliance"
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid time range parameter"
+          },
+          "500": {
+            "description": "Analytics processing error"
+          }
+        }
+      }
+    },
+    "/api/v1/system/status": {
+      "get": {
+        "summary": "Get real-time system status and health metrics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Successful response",
+            "content": {
+              "application/json": {
+                "example": {
+                  "system_status": "healthy",
+                  "components": {
+                    "validation_pipeline": {
+                      "status": "operational",
+                      "response_time_ms": 150
+                    },
+                    "export_system": {
+                      "status": "operational",
+                      "queue_size": 2
+                    },
+                    "analytics_engine": {
+                      "status": "operational",
+                      "last_update": "2025-08-10T07:30:00Z"
+                    },
+                    "maintenance_system": {
+                      "status": "operational",
+                      "next_maintenance": "2025-08-10T12:00:00Z"
+                    }
+                  },
+                  "performance_metrics": {
+                    "total_conversations_processed": 15420,
+                    "average_processing_time_ms": 245,
+                    "success_rate": 0.998,
+                    "uptime_hours": 168.5
+                  },
+                  "alerts": []
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "System temporarily unavailable"
+          }
+        }
+      }
+    }
+  }
+}

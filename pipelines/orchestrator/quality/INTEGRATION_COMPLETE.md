@@ -8,7 +8,8 @@
 
 ## Integration Summary
 
-Quality Scoring v1 has been successfully integrated into the dataset pipeline at multiple strategic points.
+Quality Scoring v1 has been successfully integrated into the dataset pipeline at
+multiple strategic points.
 
 ---
 
@@ -20,14 +21,16 @@ Quality Scoring v1 has been successfully integrated into the dataset pipeline at
 - **Location**: `_validate_quality` method (Stage 5: Quality Validation)
 - **Behavior**: Uses Quality Scoring v1 for scoring and filtering conversations
 - **Fallback**: Falls back to acquisition monitor if unavailable
-- **Configuration**: `enable_quality_scoring_v1` and `quality_scoring_config` in PipelineConfig
+- **Configuration**: `enable_quality_scoring_v1` and `quality_scoring_config` in
+  PipelineConfig
 
 ### ✅ 2. Unified Preprocessing Pipeline
 **File**: `ai/pipelines/orchestrator/unified_preprocessing_pipeline.py`
 
 - **Location**: `enhance_record` method
 - **Behavior**: Automatically scores records during enhancement
-- **Output**: Stores scores in `metadata.quality_score` and `metadata.quality_scoring_v1`
+- **Output**: Stores scores in `metadata.quality_score` and
+  `metadata.quality_scoring_v1`
 - **Fallback**: Falls back to `estimate_quality_score` if unavailable
 
 ### ✅ 3. Production Pipeline Orchestrator
@@ -70,6 +73,7 @@ Quality Scoring v1 has been successfully integrated into the dataset pipeline at
 ### Automatic (Pipeline Integration)
 
 Quality Scoring v1 is now automatically used in:
+
 - Pipeline orchestrator quality validation
 - Unified preprocessing record enhancement
 - Production pipeline quality filtering
@@ -108,6 +112,7 @@ config = PipelineConfig(
 ## Testing
 
 ✅ Integration verified:
+
 - Quality Scoring v1 initializes correctly
 - Scoring works with various conversation formats
 - Filtering logic functions properly
@@ -119,11 +124,13 @@ config = PipelineConfig(
 ## Impact
 
 **Before Integration**:
+
 - Basic quality scoring using acquisition monitor
 - Simple threshold-based filtering
 - Limited quality signal information
 
 **After Integration**:
+
 - Comprehensive quality scoring (empathy, fidelity, harm, domain)
 - Three-tier decision system (accept/curate/reject)
 - Detailed quality metrics stored in metadata
@@ -144,4 +151,5 @@ config = PipelineConfig(
 ---
 
 **Integration Complete** ✅  
-Quality Scoring v1 is now fully integrated and operational in the dataset pipeline.
+Quality Scoring v1 is now fully integrated and operational in the dataset
+pipeline.

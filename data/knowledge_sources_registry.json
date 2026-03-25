@@ -1,0 +1,333 @@
+{
+  "description": "Knowledge sources registry for therapeutic books, PDFs, and reference materials on S3",
+  "canonical_storage": {
+    "type": "s3",
+    "bucket": "pixel-data",
+    "base_uri": "s3://pixel-data/knowledge",
+    "notes": "All books and PDFs should be stored under knowledge/ prefix for RAG and knowledge extraction"
+  },
+  "extraction_status": "pending",
+  "integration_targets": [
+    "RAG system (YouTubeRAGSystem)",
+    "Knowledge base embeddings",
+    "Therapeutic reference library",
+    "Training data augmentation"
+  ],
+  "knowledge_sources": {
+    "therapeutic_books": {
+      "complex_ptsd_pete_walker": {
+        "path": "s3://pixel-data/knowledge/books/Complex_PTSD_From_Surviving_to_Thriving_Pete_Walker.epub",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/Complex PTSD_ From Surviving to Thriving by Pete Walker EPUB/Complex PTSD_ From Surviving to Thriving by Pete Walker.epub",
+        "size_bytes": 683385,
+        "author": "Pete Walker",
+        "title": "Complex PTSD: From Surviving to Thriving",
+        "topics": [
+          "complex_trauma",
+          "ptsd",
+          "recovery",
+          "emotional_flashbacks"
+        ],
+        "priority": "critical",
+        "extraction_method": "epub_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/books/Complex_PTSD_From_Surviving_to_Thriving_Pete_Walker.txt"
+      },
+      "internal_family_systems_schwartz": {
+        "path": "s3://pixel-data/knowledge/books/Internal_Family_Systems_Therapy_Richard_Schwartz.epub",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/Internal Family Systems Therapy by Richard C. Schwartz EPUB/Internal Family Systems Therapy by Richard C. Schwartz.epub",
+        "size_bytes": 450518,
+        "author": "Richard C. Schwartz",
+        "title": "Internal Family Systems Therapy",
+        "topics": [
+          "ifs_therapy",
+          "parts_work",
+          "self_leadership",
+          "trauma_therapy"
+        ],
+        "priority": "critical",
+        "extraction_method": "epub_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/books/Internal_Family_Systems_Therapy_Richard_Schwartz.txt"
+      },
+      "brain_energy_palmer": {
+        "path": "s3://pixel-data/knowledge/books/Brain_Energy_Christopher_Palmer.epub",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/Brain Energy_ A Revolutionary Breakthrough in Understanding Mental Health by Christopher M. Palmer EPUB/Brain Energy_ A Revolutionary Breakthrough in Understanding Mental Health by Christopher M. Palmer.epub",
+        "size_bytes": 461025,
+        "author": "Christopher M. Palmer",
+        "title": "Brain Energy: A Revolutionary Breakthrough in Understanding Mental Health",
+        "topics": [
+          "neuroscience",
+          "mental_health",
+          "metabolism",
+          "brain_health"
+        ],
+        "priority": "high",
+        "extraction_method": "epub_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/books/Brain_Energy_Christopher_Palmer.txt"
+      },
+      "loving_someone_with_ptsd": {
+        "path": "s3://pixel-data/knowledge/books/Loving_Someone_with_PTSD_Aphrodite_Matsakis.azw3",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/Loving Someone with PTSD by Aphrodite T. Matsakis AZW3/Loving Someone with PTSD by Aphrodite T. Matsakis.azw3",
+        "size_bytes": 405759,
+        "author": "Aphrodite T. Matsakis",
+        "title": "Loving Someone with PTSD",
+        "topics": [
+          "ptsd",
+          "relationships",
+          "caregiver_support",
+          "trauma_recovery"
+        ],
+        "priority": "high",
+        "extraction_method": "azw3_to_text",
+        "integration_status": "needs_migration"
+      },
+      "high_conflict_couple_dbt": {
+        "path": "s3://pixel-data/knowledge/books/The_High_Conflict_Couple_DBT_Guide_Alan_Fruzzetti.epub",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/The High Conflict Couple_ A Dialectical Behavior Therapy Guide by Alan E. Fruzzetti EPUB/The High Conflict Couple_ A Dialectical Behavior Therapy Guide by Alan E. Fruzzetti.epub",
+        "size_bytes": 850185,
+        "author": "Alan E. Fruzzetti",
+        "title": "The High Conflict Couple: A Dialectical Behavior Therapy Guide",
+        "topics": [
+          "dbt",
+          "couples_therapy",
+          "conflict_resolution",
+          "emotional_regulation"
+        ],
+        "priority": "high",
+        "extraction_method": "epub_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/books/The_High_Conflict_Couple_DBT_Guide_Alan_Fruzzetti.txt"
+      },
+      "8_keys_passive_aggressiveness": {
+        "path": "s3://pixel-data/knowledge/books/8_Keys_to_Eliminating_Passive_Aggressiveness_Andrea_Brandt.epub",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/8 Keys to Eliminating Passive-Aggressiveness (8 Keys to Mental Health) by Andrea Brandt EPUB/8 Keys to Eliminating Passive-Aggressiveness (8 Keys to Mental Health) by Andrea Brandt.epub",
+        "size_bytes": 598776,
+        "author": "Andrea Brandt",
+        "title": "8 Keys to Eliminating Passive-Aggressiveness",
+        "topics": [
+          "passive_aggression",
+          "communication",
+          "anger_management",
+          "relationships"
+        ],
+        "priority": "medium",
+        "extraction_method": "epub_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/books/8_Keys_to_Eliminating_Passive_Aggressiveness_Andrea_Brandt.txt"
+      },
+      "addiction_procrastination_laziness": {
+        "path": "s3://pixel-data/knowledge/books/Addiction_Procrastination_and_Laziness_Psychology_of_Motivation.epub",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/Addiction, Procrastination, and Laziness - A Proactive Guide to the Psychology of Motivation/Addiction, Procrastination, and Laziness - A Proactive Guide to the Psychology of Motivation.epub",
+        "size_bytes": 454041,
+        "author": "Unknown",
+        "title": "Addiction, Procrastination, and Laziness: A Proactive Guide to the Psychology of Motivation",
+        "topics": [
+          "motivation",
+          "addiction",
+          "procrastination",
+          "behavioral_psychology"
+        ],
+        "priority": "medium",
+        "extraction_method": "epub_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/books/Addiction_Procrastination_and_Laziness_Psychology_of_Motivation.txt"
+      },
+      "sedated_capitalism_mental_health": {
+        "path": "s3://pixel-data/knowledge/books/Sedated_How_Modern_Capitalism_Created_Mental_Health_Crisis.epub",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/Sedated How Modern Capitalism Created our Mental Health Crisis/Sedated How Modern Capitalism Created our Mental Health Crisis.epub",
+        "size_bytes": 757157,
+        "author": "Unknown",
+        "title": "Sedated: How Modern Capitalism Created our Mental Health Crisis",
+        "topics": [
+          "social_determinants",
+          "capitalism",
+          "mental_health_crisis",
+          "systemic_issues"
+        ],
+        "priority": "medium",
+        "extraction_method": "epub_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/books/Sedated_How_Modern_Capitalism_Created_Mental_Health_Crisis.txt"
+      },
+      "psycho_logical": {
+        "path": "s3://pixel-data/knowledge/books/Psycho_Logical_Why_Mental_Health_Goes_Wrong.epub",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/Psycho Logical Why Mental Health Goes Wrong And How To Make Sense Of It/Psycho Logical Why Mental Health Goes Wrong And How To Make Sense Of It.epub",
+        "size_bytes": 526903,
+        "author": "Unknown",
+        "title": "Psycho-Logical: Why Mental Health Goes Wrong and How To Make Sense Of It",
+        "topics": [
+          "mental_health",
+          "psychology",
+          "understanding_mental_illness"
+        ],
+        "priority": "medium",
+        "extraction_method": "epub_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/books/Psycho_Logical_Why_Mental_Health_Goes_Wrong.txt"
+      },
+      "self_help_ptsd_recovery": {
+        "path": "s3://pixel-data/knowledge/books/Self_Help_Psychology_Anxiety_PTSD_Recovery.epub",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/Self Help Psychology Anxiety PTSD Recovery[EPUB][GLODLS]/Self_Help_Psychology_Anxiety_PTSD_Recovery.epub",
+        "size_bytes": 184189,
+        "author": "Unknown",
+        "title": "Self Help Psychology: Anxiety PTSD Recovery",
+        "topics": ["self_help", "anxiety", "ptsd", "recovery"],
+        "priority": "medium",
+        "extraction_method": "epub_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/books/Self_Help_Psychology_Anxiety_PTSD_Recovery.txt"
+      },
+      "cbt_dbt_for_anxiety": {
+        "path": "s3://pixel-data/knowledge/books/CBT_and_DBT_For_Anxiety.epub",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/[NulledPremium.com] Cognitive Behavioral Therapy & Dialectical Behavior Therapy/CBT and DBT For Anxiety/CBT and DBT For Anxiety.epub",
+        "size_bytes": 182254,
+        "author": "Unknown",
+        "title": "CBT and DBT For Anxiety",
+        "topics": ["cbt", "dbt", "anxiety", "therapeutic_techniques"],
+        "priority": "high",
+        "extraction_method": "epub_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/books/CBT_and_DBT_For_Anxiety.txt"
+      }
+    },
+    "clinical_references": {
+      "dsm_manual": {
+        "path": "s3://pixel-data/knowledge/clinical/DSM_Diagnostic_and_Statistical_Manual.pdf",
+        "current_s3_path": "archive/gdrive/raw/Diagnostic and Statistical Manual of... (Z-Library).pdf",
+        "size_bytes": 20004930,
+        "title": "Diagnostic and Statistical Manual of Mental Disorders",
+        "topics": ["diagnosis", "clinical_criteria", "mental_disorders", "dsm"],
+        "priority": "critical",
+        "extraction_method": "pdf_to_text",
+        "integration_status": "migrated",
+        "notes": "Core diagnostic reference - essential for clinical accuracy",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/clinical/DSM_Diagnostic_and_Statistical_Manual.txt"
+      },
+      "treating_ptsd_military": {
+        "path": "s3://pixel-data/knowledge/clinical/Treating_PTSD_in_Military_Personnel_Clinical_Handbook.pdf",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/Treating PTSD in Military Personnel A Clinical Handbook/[Bookflare.net] - Treating PTSD in Military Personnel A Clinical Handbook.pdf",
+        "size_bytes": 2386627,
+        "title": "Treating PTSD in Military Personnel: A Clinical Handbook",
+        "topics": ["ptsd", "military", "trauma", "clinical_treatment"],
+        "priority": "high",
+        "extraction_method": "pdf_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/clinical/Treating_PTSD_in_Military_Personnel_Clinical_Handbook.txt"
+      },
+      "cbt_dbt_for_anxiety_pdf": {
+        "path": "s3://pixel-data/knowledge/clinical/CBT_and_DBT_For_Anxiety.pdf",
+        "current_s3_path": "archive/gdrive/raw/backups/coder/root/pixelated/ai/docs/Books/[NulledPremium.com] Cognitive Behavioral Therapy & Dialectical Behavior Therapy/CBT and DBT For Anxiety/CBT and DBT For Anxiety.pdf",
+        "size_bytes": 625004,
+        "title": "CBT and DBT For Anxiety (PDF)",
+        "topics": ["cbt", "dbt", "anxiety", "therapeutic_techniques"],
+        "priority": "high",
+        "extraction_method": "pdf_to_text",
+        "integration_status": "migrated",
+        "extraction_status": "complete",
+        "extracted_text_path": "s3://pixel-data/knowledge/clinical/CBT_and_DBT_For_Anxiety.txt"
+      }
+    },
+    "existing_integrated_pdfs": {
+      "gifts_of_imperfection": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/knowledge/gifts_of_imperfection_brene_brown.pdf",
+        "current_s3_path": "datasets/consolidated/datasets/gifts_of_imperfection-brene-brown.pdf",
+        "size_bytes": 86250,
+        "author": "Bren\u00e9 Brown",
+        "title": "The Gifts of Imperfection",
+        "topics": ["vulnerability", "shame", "authenticity", "self_compassion"],
+        "priority": "critical",
+        "extraction_method": "pdf_to_text",
+        "integration_status": "already_in_training_path",
+        "notes": "Already integrated into training pipeline"
+      },
+      "myth_of_normal": {
+        "path": "s3://pixel-data/training/v1/stage1_foundation/knowledge/myth_of_normal_gabor_mate.pdf",
+        "current_s3_path": "datasets/consolidated/datasets/myth_of_normal-gabor-mate.pdf",
+        "size_bytes": 184410,
+        "author": "Gabor Mat\u00e9",
+        "title": "The Myth of Normal",
+        "topics": ["trauma", "society", "health", "compassion"],
+        "priority": "critical",
+        "extraction_method": "pdf_to_text",
+        "integration_status": "already_in_training_path",
+        "notes": "Already integrated into training pipeline"
+      }
+    },
+    "dark_psychology_collection": {
+      "notes": "Collection of books on manipulation, persuasion, and dark psychology - useful for understanding manipulation tactics and defensive strategies",
+      "priority": "low",
+      "integration_status": "review_needed",
+      "books": [
+        {
+          "title": "Dark Psychology - 6 Books in 1",
+          "current_s3_path": "datasets/gdrive/raw/Books/50 Dark Psychology & Manipulation Books Collection/DARK PSYCHOLOGY 6 BOOKS IN 1 - Introducing Psychology,How To Analyze People,Manipulation.epub",
+          "size_bytes": 672575,
+          "topics": [
+            "manipulation",
+            "persuasion",
+            "dark_psychology",
+            "influence"
+          ]
+        },
+        {
+          "title": "How to Analyze People with Dark Psychology",
+          "current_s3_path": "datasets/gdrive/raw/Books/50 Dark Psychology & Manipulation Books Collection/How to Analyze People with Dark Psychology - 3 Books in 1 - Dark Psychology and Manipulation.epub",
+          "size_bytes": 628679,
+          "topics": [
+            "body_language",
+            "manipulation_detection",
+            "psychological_analysis"
+          ]
+        }
+      ]
+    }
+  },
+  "extraction_pipeline": {
+    "step_1_migrate_to_knowledge_prefix": {
+      "description": "Move all books/PDFs from current locations to s3://pixel-data/knowledge/",
+      "script": "ai/scripts/migrate_knowledge_sources.py",
+      "status": "pending"
+    },
+    "step_2_extract_text": {
+      "description": "Extract text from EPUBs, PDFs, AZW3 files",
+      "tools": ["calibre", "pdftotext", "epub_to_text"],
+      "output_format": "markdown",
+      "status": "pending"
+    },
+    "step_3_chunk_and_embed": {
+      "description": "Chunk extracted text and generate embeddings",
+      "chunk_size": 500,
+      "overlap": 50,
+      "embedding_model": "all-MiniLM-L6-v2",
+      "status": "pending"
+    },
+    "step_4_integrate_rag": {
+      "description": "Add to YouTubeRAGSystem index",
+      "target_file": "ai/pipelines/orchestrator/youtube_rag_system.py",
+      "status": "pending"
+    },
+    "step_5_augment_training": {
+      "description": "Use knowledge sources to augment training data",
+      "method": "few_shot_examples",
+      "status": "pending"
+    }
+  },
+  "migration_commands": {
+    "example_rclone_sync": "rclone copy pixel-data:datasets/gdrive/raw/Books/ pixel-data:knowledge/books/ --include '*.{epub,pdf,azw3}' --progress",
+    "example_calibre_convert": "ebook-convert input.epub output.txt --enable-heuristics",
+    "example_pdf_extract": "pdftotext -layout input.pdf output.txt"
+  }
+}

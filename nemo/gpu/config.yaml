@@ -25,7 +25,7 @@ services:
     networks:
       - nmp
     healthcheck:
-      test: ["CMD", "dockerd", "--version"]
+      test: ['CMD', 'dockerd', '--version']
     deploy:
       resources:
         reservations:

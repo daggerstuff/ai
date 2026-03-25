@@ -22,10 +22,7 @@
         },
         {
           "issue": "UV command not found",
-          "symptoms": [
-            "uv: command not found",
-            "UV not installed"
-          ],
+          "symptoms": ["uv: command not found", "UV not installed"],
           "solutions": [
             "Install UV: `pip install uv`",
             "Use pip instead: `pip install -r requirements.txt`",
@@ -75,11 +72,7 @@
       "common_installation_issues": [
         {
           "issue": "spaCy model download fails",
-          "symptoms": [
-            "Model not found",
-            "Download timeout",
-            "SSL errors"
-          ],
+          "symptoms": ["Model not found", "Download timeout", "SSL errors"],
           "solutions": [
             "Download manually: `python -m spacy download en_core_web_sm`",
             "Use alternative model: `python -m spacy download en_core_web_md`",
@@ -103,11 +96,7 @@
         },
         {
           "issue": "Database setup fails",
-          "symptoms": [
-            "SQLite errors",
-            "Permission denied",
-            "Database locked"
-          ],
+          "symptoms": ["SQLite errors", "Permission denied", "Database locked"],
           "solutions": [
             "Check file permissions: `chmod 664 database/conversations.db`",
             "Ensure directory exists: `mkdir -p database`",
@@ -142,11 +131,7 @@
         },
         {
           "issue": "Quality validation takes too long",
-          "symptoms": [
-            "Slow processing",
-            "High CPU usage",
-            "Timeout errors"
-          ],
+          "symptoms": ["Slow processing", "High CPU usage", "Timeout errors"],
           "solutions": [
             "Reduce quality validation complexity",
             "Use parallel processing: increase worker count",
@@ -298,10 +283,7 @@
       "authentication_issues": [
         {
           "issue": "API key not working",
-          "symptoms": [
-            "401 Unauthorized",
-            "Invalid API key"
-          ],
+          "symptoms": ["401 Unauthorized", "Invalid API key"],
           "solutions": [
             "Verify API key format and validity",
             "Check for extra spaces or characters",
@@ -311,10 +293,7 @@
         },
         {
           "issue": "Rate limit exceeded",
-          "symptoms": [
-            "429 Too Many Requests",
-            "Rate limit headers"
-          ],
+          "symptoms": ["429 Too Many Requests", "Rate limit headers"],
           "solutions": [
             "Implement exponential backoff",
             "Reduce request frequency",
@@ -326,10 +305,7 @@
       "connection_issues": [
         {
           "issue": "Connection timeout",
-          "symptoms": [
-            "Timeout errors",
-            "Connection refused"
-          ],
+          "symptoms": ["Timeout errors", "Connection refused"],
           "solutions": [
             "Check internet connection",
             "Verify API endpoint URL",
@@ -377,10 +353,7 @@
       "common_database_issues": [
         {
           "issue": "Database locked error",
-          "symptoms": [
-            "SQLite database is locked",
-            "Cannot write to database"
-          ],
+          "symptoms": ["SQLite database is locked", "Cannot write to database"],
           "solutions": [
             "Close all database connections",
             "Check for zombie processes: `ps aux | grep python`",

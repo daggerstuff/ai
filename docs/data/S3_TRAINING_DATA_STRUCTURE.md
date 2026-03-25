@@ -14,7 +14,9 @@ S3 Buckets (Training Mecca - Canonical)
 Model Training
 ```
 
-**Key Principle**: All training data flows through S3. Google Drive is a staging area that syncs to S3. Training scripts read from S3, not Google Drive or local files.
+**Key Principle**: All training data flows through S3. Google Drive is a staging
+area that syncs to S3. Training scripts read from S3, not Google Drive or local
+files.
 
 ---
 
@@ -110,6 +112,7 @@ s3://pixel-checkpoints/
 ### Current Sync Process
 
 **Active Uploads** (per `.notes/markdown/one.md`):
+
 - `rclone copy gdrive:datasets ovh:pixel-data/datasets/gdrive/raw ...`
 - Status: `processed` tier is DONE. `raw` tier is IN PROGRESS.
 - Log: `upload_raw_final.log`
@@ -117,6 +120,7 @@ s3://pixel-checkpoints/
 ### Sync Scripts
 
 1. **Background rclone sync** (stable, low-priority):
+
    ```bash
    # Running in tmux session
    rclone copy gdrive:datasets ovh:pixel-data/datasets/gdrive/raw \
@@ -133,10 +137,14 @@ s3://pixel-checkpoints/
 ### Sync Strategy
 
 **Two-Tier Approach**:
-1. **Raw Tier** (`gdrive/raw/`): Direct mirror of Google Drive structure (for backup/reference)
-2. **Processed Tier** (`gdrive/processed/`): Organized canonical structure (for training)
+
+1. **Raw Tier** (`gdrive/raw/`): Direct mirror of Google Drive structure (for
+   backup/reference)
+2. **Processed Tier** (`gdrive/processed/`): Organized canonical structure (for
+   training)
 
 **Migration Path**:
+
 - Current: Google Drive → `s3://pixel-data/gdrive/raw/` (in progress)
 - Future: Process and organize → `s3://pixel-data/gdrive/processed/` (canonical)
 
@@ -153,20 +161,20 @@ from pathlib import Path
 def get_s3_dataset_path(dataset_name: str, category: str = None) -> str:
     """
     Get S3 path for dataset - S3 is the canonical source.
-    
+
     Args:
         dataset_name: Name of the dataset
         category: Optional category (cot_reasoning, professional_therapeutic, etc.)
-    
+
     Returns:
         S3 path (s3://bucket/path)
     """
     bucket = "pixel-data"
-    
+
     # Try processed/canonical structure first
     if category:
         return f"s3://{bucket}/gdrive/processed/{category}/{dataset_name}"
-    
+
     # Fallback to raw structure
     return f"s3://{bucket}/gdrive/raw/{dataset_name}"
 
@@ -174,31 +182,31 @@ def get_s3_dataset_path(dataset_name: str, category: str = None) -> str:
 def load_dataset_from_s3(s3_path: str, local_cache: Path = None):
     """
     Load dataset from S3 with optional local caching.
-    
+
     Args:
         s3_path: S3 path (s3://bucket/key)
         local_cache: Optional local cache path
-    
+
     Returns:
         Dataset data
     """
     s3 = boto3.client('s3')
     bucket, key = s3_path.replace('s3://', '').split('/', 1)
-    
+
     # Check local cache first
     if local_cache and local_cache.exists():
         return json.load(local_cache)
-    
+
     # Download from S3
     obj = s3.get_object(Bucket=bucket, Key=key)
     data = json.loads(obj['Body'].read())
-    
+
     # Cache locally if requested
     if local_cache:
         local_cache.parent.mkdir(parents=True, exist_ok=True)
         with open(local_cache, 'w') as f:
             json.dump(data, f)
-    
+
     return data
 ```
 
@@ -225,7 +233,9 @@ priority_data = load_dataset_from_s3(priority_path)
 ## S3 Dataset Organization by Training Stage
 
 ### Stage 1: Foundation (`stage1_foundation`)
+
 **S3 Paths**:
+
 - `s3://pixel-data/gdrive/processed/professional_therapeutic/`
 - `s3://pixel-data/gdrive/processed/priority/`
 - `s3://pixel-data/acquired/mental_health_counseling.json`
@@ -233,21 +243,27 @@ priority_data = load_dataset_from_s3(priority_path)
 **Purpose**: Natural therapeutic dialogue patterns
 
 ### Stage 2: Therapeutic Expertise (`stage2_therapeutic_expertise`)
+
 **S3 Paths**:
+
 - `s3://pixel-data/gdrive/processed/cot_reasoning/`
 - `s3://pixel-data/acquired/cot_reasoning.json`
 
 **Purpose**: Clinical reasoning patterns (Chain of Thought)
 
 ### Stage 3: Edge Stress Test (`stage3_edge_stress_test`)
+
 **S3 Paths**:
+
 - `s3://pixel-data/gdrive/processed/edge_cases/raw/reddit/`
 - `s3://pixel-data/edge_cases/`
 
 **Purpose**: Crisis scenarios and edge cases
 
 ### Stage 4: Voice Persona (`stage4_voice_persona`)
+
 **S3 Paths**:
+
 - `s3://pixel-data/voice/tim_fletcher_voice_profile.json`
 - `s3://pixel-data/voice/synthetic_conversations.json`
 - `s3://pixel-data/pixel_voice/`
@@ -259,6 +275,7 @@ priority_data = load_dataset_from_s3(priority_path)
 ## Consolidation Strategy for S3
 
 ### Current State
+
 - Google Drive datasets syncing to `gdrive/raw/` (in progress)
 - Some organized data in `gdrive/processed/` (target structure)
 - Local acquired datasets in `acquired/`
@@ -267,6 +284,7 @@ priority_data = load_dataset_from_s3(priority_path)
 ### Target Canonical Structure
 
 All training data should be organized under:
+
 ```
 s3://pixel-data/
 ├── gdrive/processed/          # Canonical organized structure (primary)
@@ -322,18 +340,18 @@ ovhai data push pixel-data ./processed/ gdrive/processed/
 ```python
 import boto3
 
-    s3 = boto3.client('s3', 
+    s3 = boto3.client('s3',
         endpoint_url='https://s3.us-east-va.cloud.ovh.us',
         aws_access_key_id=os.getenv('OVH_S3_ACCESS_KEY'),
         aws_secret_access_key=os.getenv('OVH_S3_SECRET_KEY')
     )
-    
+
     # List datasets
     response = s3.list_objects_v2(
         Bucket='pixel-data',
         Prefix='gdrive/processed/cot_reasoning/'
     )
-    
+
     # Download dataset
     s3.download_file(
         'pixel-data',
@@ -371,7 +389,7 @@ rclone copy ovh:pixel-data/gdrive/processed/cot_reasoning/ ./local/
 def get_training_dataset_path(dataset_name: str, stage: str) -> str:
     """
     Get dataset path - S3 is canonical, with fallbacks.
-    
+
     Priority:
     1. S3 processed/canonical structure
     2. S3 raw structure
@@ -379,7 +397,7 @@ def get_training_dataset_path(dataset_name: str, stage: str) -> str:
     4. Download from S3 to cache
     """
     bucket = "pixel-data"
-    
+
     # Map stage to S3 category
     stage_to_category = {
         "stage1_foundation": "professional_therapeutic",
@@ -387,24 +405,24 @@ def get_training_dataset_path(dataset_name: str, stage: str) -> str:
         "stage3_edge_stress_test": "edge_cases",
         "stage4_voice_persona": "voice"
     }
-    
+
     category = stage_to_category.get(stage)
-    
+
     # Try canonical processed structure
     s3_path = f"s3://{bucket}/gdrive/processed/{category}/{dataset_name}"
     if s3_object_exists(s3_path):
         return s3_path
-    
+
     # Fallback to raw structure
     s3_path = f"s3://{bucket}/gdrive/raw/{dataset_name}"
     if s3_object_exists(s3_path):
         return s3_path
-    
+
     # Fallback to acquired
     s3_path = f"s3://{bucket}/acquired/{dataset_name}"
     if s3_object_exists(s3_path):
         return s3_path
-    
+
     raise FileNotFoundError(f"Dataset {dataset_name} not found in S3")
 ```
 
@@ -413,8 +431,10 @@ def get_training_dataset_path(dataset_name: str, stage: str) -> str:
 ## Related Documentation
 
 - **S3 Execution Order**: `ai/training_ready/docs/S3_EXECUTION_ORDER.md`
-- **Google Drive Structure**: `ai/training_ready/docs/GDRIVE_STRUCTURE.md` (source/staging)
-- **Dataset Registry**: `ai/data/dataset_registry.json` (should reference S3 paths)
+- **Google Drive Structure**: `ai/training_ready/docs/GDRIVE_STRUCTURE.md`
+  (source/staging)
+- **Dataset Registry**: `ai/data/dataset_registry.json` (should reference S3
+  paths)
 - **Sync Scripts**: `ai/training_ready/platforms/ovh/sync-datasets.sh`
 
 ---
@@ -422,6 +442,8 @@ def get_training_dataset_path(dataset_name: str, stage: str) -> str:
 ## Notes
 
 - **S3 is canonical** - All training scripts should read from S3
-- **Google Drive is source** - Syncs to S3 via rclone, not used directly for training
-- **Local is cache only** - Local files are temporary caches, not source of truth
+- **Google Drive is source** - Syncs to S3 via rclone, not used directly for
+  training
+- **Local is cache only** - Local files are temporary caches, not source of
+  truth
 - **Two-tier S3 structure** - `raw/` for backup, `processed/` for training

@@ -31,23 +31,13 @@
         "03883768-07cf-4d4f-91cf-1b1a8247bf76"
       ],
       "quality_score": 0.64,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "work_career": {
       "frequency": 93,
       "percentage": 6.2,
-      "keywords": [
-        "career",
-        "job",
-        "professional",
-        "work"
-      ],
-      "related_themes": [
-        "coping_strategies",
-        "self_esteem"
-      ],
+      "keywords": ["career", "job", "professional", "work"],
+      "related_themes": ["coping_strategies", "self_esteem"],
       "conversation_examples": [
         "a6817cff-5fde-439b-a86e-587edd2f052b",
         "5635bb93-ea58-4a82-b07a-17f28563a26f",
@@ -56,24 +46,13 @@
         "eeabb8fc-3c40-4b95-bc0a-78484edaef0a"
       ],
       "quality_score": 0.93,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "emotions": {
       "frequency": 82,
       "percentage": 5.466666666666667,
-      "keywords": [
-        "sad",
-        "angry",
-        "emotion",
-        "feel",
-        "worried"
-      ],
-      "related_themes": [
-        "mindfulness",
-        "coping_strategies"
-      ],
+      "keywords": ["sad", "angry", "emotion", "feel", "worried"],
+      "related_themes": ["mindfulness", "coping_strategies"],
       "conversation_examples": [
         "a6817cff-5fde-439b-a86e-587edd2f052b",
         "5635bb93-ea58-4a82-b07a-17f28563a26f",
@@ -82,23 +61,13 @@
         "eeabb8fc-3c40-4b95-bc0a-78484edaef0a"
       ],
       "quality_score": 0.82,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "support_help": {
       "frequency": 121,
       "percentage": 8.066666666666666,
-      "keywords": [
-        "recommend",
-        "support",
-        "help",
-        "guidance"
-      ],
-      "related_themes": [
-        "cognitive_behavioral",
-        "coping_strategies"
-      ],
+      "keywords": ["recommend", "support", "help", "guidance"],
+      "related_themes": ["cognitive_behavioral", "coping_strategies"],
       "conversation_examples": [
         "a6817cff-5fde-439b-a86e-587edd2f052b",
         "5635bb93-ea58-4a82-b07a-17f28563a26f",
@@ -107,9 +76,7 @@
         "1ea63b56-ad48-4f57-8456-67cd2d26634d"
       ],
       "quality_score": 1.0,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "communication": {
       "frequency": 50,
@@ -131,9 +98,7 @@
         "1669b13e-fa47-4e1f-a430-eada8cc278fe"
       ],
       "quality_score": 0.5,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "life_challenges": {
       "frequency": 43,
@@ -146,10 +111,7 @@
         "conflict",
         "problem"
       ],
-      "related_themes": [
-        "coping_strategies",
-        "trauma_recovery"
-      ],
+      "related_themes": ["coping_strategies", "trauma_recovery"],
       "conversation_examples": [
         "7cad1d4e-8e1a-400b-a4ad-acdc0daf14d5",
         "178a8e5b-b1ce-421d-9834-002f8e8410a3",
@@ -158,24 +120,13 @@
         "4d8a3741-f2c3-4cd6-902f-76399d93f6b3"
       ],
       "quality_score": 0.43,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "relationships": {
       "frequency": 36,
       "percentage": 2.4,
-      "keywords": [
-        "family",
-        "relationship",
-        "love",
-        "friend",
-        "partner"
-      ],
-      "related_themes": [
-        "communication",
-        "self_esteem"
-      ],
+      "keywords": ["family", "relationship", "love", "friend", "partner"],
+      "related_themes": ["communication", "self_esteem"],
       "conversation_examples": [
         "1ea63b56-ad48-4f57-8456-67cd2d26634d",
         "c0c7c787-f603-484d-8810-1a1d6780b9f5",
@@ -184,20 +135,12 @@
         "1669b13e-fa47-4e1f-a430-eada8cc278fe"
       ],
       "quality_score": 0.36,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "health_wellness": {
       "frequency": 27,
       "percentage": 1.7999999999999998,
-      "keywords": [
-        "exercise",
-        "sleep",
-        "diet",
-        "medical",
-        "health"
-      ],
+      "keywords": ["exercise", "sleep", "diet", "medical", "health"],
       "related_themes": [],
       "conversation_examples": [
         "300fee76-9654-4704-9cca-5c380ac0824c",
@@ -207,19 +150,12 @@
         "2a71e2c2-8f76-4de8-be0f-734d89cad7a9"
       ],
       "quality_score": 0.27,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "decision_making": {
       "frequency": 34,
       "percentage": 2.2666666666666666,
-      "keywords": [
-        "consider",
-        "think",
-        "option",
-        "decision"
-      ],
+      "keywords": ["consider", "think", "option", "decision"],
       "related_themes": [],
       "conversation_examples": [
         "300fee76-9654-4704-9cca-5c380ac0824c",
@@ -229,20 +165,12 @@
         "16ec8ec9-eab6-4288-b1df-cbf0e7b9ea44"
       ],
       "quality_score": 0.34,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     },
     "personal_growth": {
       "frequency": 13,
       "percentage": 0.8666666666666666,
-      "keywords": [
-        "goals",
-        "success",
-        "growth",
-        "learning",
-        "motivation"
-      ],
+      "keywords": ["goals", "success", "growth", "learning", "motivation"],
       "related_themes": [],
       "conversation_examples": [
         "4d8a3741-f2c3-4cd6-902f-76399d93f6b3",
@@ -252,9 +180,7 @@
         "2b74c1d3-9ab2-49f5-88cd-750617d3925b"
       ],
       "quality_score": 0.13,
-      "datasets": [
-        "professional_psychology"
-      ]
+      "datasets": ["professional_psychology"]
     }
   },
   "theme_analysis": {
