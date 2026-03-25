@@ -2,44 +2,56 @@
 
 ## 🎯 Overview
 
-Phase 2 successfully implements **LLM-powered classification** with a **hybrid approach** that optimizes for both accuracy and cost-efficiency.
+Phase 2 successfully implements **LLM-powered classification** with a **hybrid
+approach** that optimizes for both accuracy and cost-efficiency.
 
 ## ✅ Completed Work
 
 ### 1. **LLM Classifier** (`llm_classifier.py`)
+
 - **NVIDIA NIM GLM4.7 Integration**: Cost-effective model for classification
-- **Intelligent System Prompt**: Expert clinical psychologist persona with detailed category guidelines
-- **JSON Response Format**: Structured output with category, confidence, reasoning, and key indicators
-- **Priority-Based Classification**: Crisis → Trauma → Relationship → Assessment → Mental Health → Therapeutic
+- **Intelligent System Prompt**: Expert clinical psychologist persona with
+  detailed category guidelines
+- **JSON Response Format**: Structured output with category, confidence,
+  reasoning, and key indicators
+- **Priority-Based Classification**: Crisis → Trauma → Relationship → Assessment
+  → Mental Health → Therapeutic
 - **Error Handling**: Graceful fallbacks for API failures
 - **Batch Processing**: Support for classifying multiple conversations
 
 **Key Features:**
+
 - Temperature: 0.1 (low for consistent classification)
 - Max tokens: 500
-- Confidence scoring guidelines (0.90-1.00 very clear, 0.75-0.89 strong, 0.60-0.74 moderate)
+- Confidence scoring guidelines (0.90-1.00 very clear, 0.75-0.89 strong,
+  0.60-0.74 moderate)
 - Conversation truncation (4000 chars) to manage token costs
 
 ### 2. **Hybrid Classifier** (`hybrid_classifier.py`)
+
 - **Two-Stage Strategy**:
   1. **Fast Path**: Keyword-based classification (free, instant)
-  2. **Accurate Path**: LLM-based for ambiguous cases (costs money, high accuracy)
-  
+  2. **Accurate Path**: LLM-based for ambiguous cases (costs money, high
+     accuracy)
 - **Intelligent Routing**:
   - High confidence keywords (≥0.80) → Use keyword result, skip LLM
   - Low confidence keywords (<0.80) → Fall back to LLM classification
-  
 - **LLM Result Caching**: Avoid redundant API calls for identical conversations
 - **Cost Tracking**: Estimates API costs (NVIDIA NIM GLM4.7: ~$0.20/1M tokens)
-- **Detailed Statistics**: Tracks keyword vs LLM usage, confidence averages, category distribution
+- **Detailed Statistics**: Tracks keyword vs LLM usage, confidence averages,
+  category distribution
 
 **Configuration Options:**
-- `keyword_confidence_threshold`: Minimum confidence to accept keyword result (default: 0.80)
-- `final_confidence_threshold`: Minimum confidence to classify record (default: 0.70)
+
+- `keyword_confidence_threshold`: Minimum confidence to accept keyword result
+  (default: 0.80)
+- `final_confidence_threshold`: Minimum confidence to classify record (default:
+  0.70)
 - `enable_llm`: Toggle LLM fallback on/off
 - `cache_llm_results`: Enable/disable LLM result caching
 
 ### 3. **Comprehensive Testing** (`test_llm_classifier.py`)
+
 - **LLM Classifier Tests**: 7 test cases covering all 6 categories + edge cases
 - **Hybrid Logic Tests**: Validates decision routing (keyword vs LLM)
 - **File Processing Tests**: End-to-end JSONL file classification
@@ -47,6 +59,7 @@ Phase 2 successfully implements **LLM-powered classification** with a **hybrid a
 - **100% Test Pass Rate**: All tests passing ✅
 
 **Test Coverage:**
+
 - Crisis support (suicidal ideation)
 - Trauma processing (PTSD flashbacks)
 - Relationship therapy (couples therapy)
@@ -58,18 +71,21 @@ Phase 2 successfully implements **LLM-powered classification** with a **hybrid a
 ## 📊 Performance Characteristics
 
 ### Keyword-Based Classification (Phase 1)
+
 - **Speed**: 1-5ms per record
 - **Cost**: $0 (free)
 - **Accuracy**: 100% on test cases (with comprehensive keyword expansion)
 - **Coverage**: ~80-90% of clear-cut cases
 
 ### LLM-Based Classification (Phase 2)
+
 - **Speed**: 500-2000ms per record (network dependent)
 - **Cost**: ~$0.0002 per record (NVIDIA NIM GLM4.7)
 - **Accuracy**: Expected 95%+ (based on GLM4.7 capabilities)
 - **Coverage**: Handles ambiguous/edge cases
 
 ### Hybrid Approach (Optimal)
+
 - **Speed**: 1-5ms for 80-90% of records, 500-2000ms for remaining 10-20%
 - **Cost**: ~$0.00002-$0.00004 per record (assuming 10-20% LLM usage)
 - **Accuracy**: Expected 95%+ overall
@@ -212,20 +228,26 @@ python scripts/data/test_llm_classifier.py
 2. **Enable caching**: Avoid redundant LLM calls for duplicate conversations
 3. **Batch processing**: Process files in chunks to monitor costs
 4. **Test first**: Use `--max-records` to test on small sample before full run
-5. **Keyword-only mode**: Use `--no-llm` for initial passes, LLM for low-confidence records
+5. **Keyword-only mode**: Use `--no-llm` for initial passes, LLM for
+   low-confidence records
 
 ## 📈 Next Steps
 
 ### Phase 3 (Future Enhancements)
-- [ ] **Multi-label Classification**: Support conversations with multiple categories
+
+- [ ] **Multi-label Classification**: Support conversations with multiple
+      categories
 - [ ] **Active Learning**: Flag low-confidence cases for human review
 - [ ] **Model Fine-tuning**: Train a custom model on classified data
 - [ ] **Real-time Classification**: API endpoint for live classification
-- [ ] **Confidence Calibration**: Tune confidence thresholds based on validation data
-- [ ] **Category Hierarchies**: Support sub-categories (e.g., crisis_support → suicidal_ideation)
+- [ ] **Confidence Calibration**: Tune confidence thresholds based on validation
+      data
+- [ ] **Category Hierarchies**: Support sub-categories (e.g., crisis_support →
+      suicidal_ideation)
 - [ ] **Performance Monitoring**: Track classification accuracy over time
 
 ### Integration Tasks
+
 - [ ] Process full 132,801 'Other' records using hybrid approach
 - [ ] Validate results on random sample
 - [ ] Upload classified data to S3/GDrive
@@ -234,13 +256,17 @@ python scripts/data/test_llm_classifier.py
 
 ## 🔗 Related Documentation
 
-- **Phase 1 README**: [`TAXONOMY_CLASSIFIER_README.md`](./TAXONOMY_CLASSIFIER_README.md)
-- **Jira Ticket**: [PIX-9 - Phase 2: Implement LLM-based Taxonomy Classifier](https://vivirocks.atlassian.net/browse/PIX-9)
-- **Confluence**: [Taxonomy Classifier - Phase 1 Implementation](https://vivirocks.atlassian.net/wiki/spaces/~712020d88a810b493a43e49aa1d99345d3b7e9/pages/524290)
+- **Phase 1 README**:
+  [`TAXONOMY_CLASSIFIER_README.md`](./TAXONOMY_CLASSIFIER_README.md)
+- **Jira Ticket**:
+  [PIX-9 - Phase 2: Implement LLM-based Taxonomy Classifier](https://vivirocks.atlassian.net/browse/PIX-9)
+- **Confluence**:
+  [Taxonomy Classifier - Phase 1 Implementation](https://vivirocks.atlassian.net/wiki/spaces/~712020d88a810b493a43e49aa1d99345d3b7e9/pages/524290)
 
 ## 📝 Change Log
 
 **2026-02-18** - Phase 2 Initial Release
+
 - Added `llm_classifier.py` with NVIDIA NIM GLM4.7 integration
 - Added `hybrid_classifier.py` with intelligent routing strategy
 - Added comprehensive test suite (`test_llm_classifier.py`)

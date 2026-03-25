@@ -1,10 +1,14 @@
 # Journal Dataset Research System
 
-A systematic approach for researching, evaluating, and acquiring therapeutic journal datasets from open access sources to enhance the Pixelated Empathy training data pipeline.
+A systematic approach for researching, evaluating, and acquiring therapeutic
+journal datasets from open access sources to enhance the Pixelated Empathy
+training data pipeline.
 
 ## Overview
 
-This system implements a structured research methodology combining automated search tools, manual evaluation processes, and integration planning to discover and acquire high-quality academic therapeutic content.
+This system implements a structured research methodology combining automated
+search tools, manual evaluation processes, and integration planning to discover
+and acquire high-quality academic therapeutic content.
 
 ## Project Structure
 
@@ -47,28 +51,36 @@ ai/sourcing/research_system/
 ## Core Data Models
 
 ### DatasetSource
+
 Represents a potential therapeutic dataset source from academic literature.
 
 ### DatasetEvaluation
+
 Quality assessment and scoring for a dataset source across four dimensions:
+
 - Therapeutic Relevance (1-10)
 - Data Structure Quality (1-10)
 - Training Integration Potential (1-10)
 - Ethical Accessibility (1-10)
 
 ### AccessRequest
+
 Tracks dataset access requests and their status.
 
 ### AcquiredDataset
+
 Represents a successfully acquired dataset with storage metadata.
 
 ### IntegrationPlan
+
 Plan for integrating a dataset into the training pipeline.
 
 ### ResearchSession
+
 Represents a research session with targets and current state.
 
 ### ResearchProgress
+
 Tracks progress metrics for the research workflow.
 
 ## Configuration
@@ -76,6 +88,7 @@ Tracks progress metrics for the research workflow.
 ### Setup
 
 1. Copy the environment variables template:
+
    ```bash
    cp .env.example .env
    ```
@@ -89,6 +102,7 @@ Tracks progress metrics for the research workflow.
 ### Configuration Structure
 
 The `config.yaml` file contains:
+
 - **API Endpoints**: URLs and credentials for data sources
 - **Search Keywords**: Organized by dataset type
 - **MeSH Terms**: For PubMed searches

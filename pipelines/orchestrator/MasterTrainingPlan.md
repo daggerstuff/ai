@@ -1,20 +1,25 @@
 # Master Training Plan – Pixelated Empathy
 
-> Cohesive blueprint for consolidating all therapeutic datasets into a four-stage training ladder while preserving nightmare-fuel edge cases, scenario prompts, and Tim Fletcher voice alignment.
+> Cohesive blueprint for consolidating all therapeutic datasets into a
+> four-stage training ladder while preserving nightmare-fuel edge cases,
+> scenario prompts, and Tim Fletcher voice alignment.
 
 ---
 
 ## 1. Context & Alignment Checklist
 
-1. Review `ai/datasets/MASTER_TRAINING_DATA_INVENTORY.md` for sizes, formats, and pending pulls (Kaggle TF-IDF pack, MEMO access).
+1. Review `ai/datasets/MASTER_TRAINING_DATA_INVENTORY.md` for sizes, formats,
+   and pending pulls (Kaggle TF-IDF pack, MEMO access).
 2. Cross-reference existing guides:
    - `ai/pipelines/orchestrator/MENTAL_HEALTH_RESOURCES_GUIDE.md`
    - `ai/pipelines/orchestrator/architecture/dataset_training_architecture.md`
    - `ai/pipelines/orchestrator/INTEGRATED_PIPELINE_GUIDE.md`
 3. Surface blockers in status doc / stand-up notes:
    - MEMO dataset requires manual approval.
-   - Kaggle TF-IDF bundle must be downloaded on the remote GPU node before Stage 3 can be balanced.
-   - Voice pipeline still generating `tim_fletcher_pipeline` artifacts; mark in manifest as `in_progress`.
+   - Kaggle TF-IDF bundle must be downloaded on the remote GPU node before Stage
+     3 can be balanced.
+   - Voice pipeline still generating `tim_fletcher_pipeline` artifacts; mark in
+     manifest as `in_progress`.
 
 ---
 
@@ -62,20 +67,24 @@ Use `ConversationRecord` from `ai/pipelines/orchestrator/schemas/conversation_sc
 
 ### Cleaning Passes
 
-1. **Normalization**: Unicode normalize, strip zero-width chars, convert smart quotes.
-2. **Metadata enrichment**: attach `stage`, `source`, `difficulty_level`, `voice_signature`.
-3. **Profanity tagging** (not removal): annotate `metadata.flags.contains_extreme_language = true`.
-4. **PII/Compliance**: run PII detector; mask or drop only when real identifiers appear. Crisis gore stays.
+1. **Normalization**: Unicode normalize, strip zero-width chars, convert smart
+   quotes.
+2. **Metadata enrichment**: attach `stage`, `source`, `difficulty_level`,
+   `voice_signature`.
+3. **Profanity tagging** (not removal): annotate
+   `metadata.flags.contains_extreme_language = true`.
+4. **PII/Compliance**: run PII detector; mask or drop only when real identifiers
+   appear. Crisis gore stays.
 5. **Structural QA**: ensure alternating roles, timestamps optional.
 
 ### Validators per Stage
 
-| Stage | Validators | Threshold / Mode |
-|-------|------------|------------------|
-| 1 | `EmpathyMentalHealthValidator` | Fail if empathy < 0.55; reroute to Stage 3 bucket only if scenario qualifies as crisis. |
-| 2 | Empathy (≥0.5) + Bias monitor + `evaluation_gates.reasoning_score >= 0.65`. |
-| 3 | Safety validator runs in *lenient* mode (`safety_threshold=0.6`, `allow_crisis_override=True`), bias monitor flagged but not dropping. |
-| 4 | Empathy ≥0.6, safety ≥0.75, voice-style discriminator (Pixel Voice pipeline). |
+| Stage | Validators                                                                                                                             | Threshold / Mode                                                                        |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 1     | `EmpathyMentalHealthValidator`                                                                                                         | Fail if empathy < 0.55; reroute to Stage 3 bucket only if scenario qualifies as crisis. |
+| 2     | Empathy (≥0.5) + Bias monitor + `evaluation_gates.reasoning_score >= 0.65`.                                                            |
+| 3     | Safety validator runs in _lenient_ mode (`safety_threshold=0.6`, `allow_crisis_override=True`), bias monitor flagged but not dropping. |
+| 4     | Empathy ≥0.6, safety ≥0.75, voice-style discriminator (Pixel Voice pipeline).                                                          |
 
 ---
 
@@ -85,7 +94,8 @@ Use `ConversationRecord` from `ai/pipelines/orchestrator/schemas/conversation_sc
 
 Modify `ai/pipelines/orchestrator/orchestration/integrated_training_pipeline.py`:
 
-1. **Stage manifests**: load from `ai/data/training_policy_manifest.json` where each entry now includes `stage`, `target_percentage`, `quality_profile`.
+1. **Stage manifests**: load from `ai/data/training_policy_manifest.json` where
+   each entry now includes `stage`, `target_percentage`, `quality_profile`.
 2. **Sampler**: introduce `StageSampler` helper that:
    - reads candidate files per stage,
    - enforces ratio using reservoir sampling,
@@ -112,8 +122,10 @@ Modify `ai/pipelines/orchestrator/orchestration/integrated_training_pipeline.py`
 1. **Edge Generator Intake**
    - Source: `ai/pipelines/edge_case/output/edge_cases_training_format.jsonl`.
    - Add to manifest `stage3_edge_stress_test.edge_case_generator`.
-   - Metadata fields: `category`, `difficulty_level`, `expected_challenges`, `prompt_hash`.
-   - Keep `purpose: "difficult_client"` to differentiate from synthetic polite data.
+   - Metadata fields: `category`, `difficulty_level`, `expected_challenges`,
+     `prompt_hash`.
+   - Keep `purpose: "difficult_client"` to differentiate from synthetic polite
+     data.
 
 2. **Scenario Prompt Corpus**
    - Mirror Google Drive prompt sheets to repo under `ai/pipelines/orchestrator/prompt_corpus/{category}.md`.
@@ -121,20 +133,27 @@ Modify `ai/pipelines/orchestrator/orchestration/integrated_training_pipeline.py`
    - Prompts seed `SyntheticDataDistillationPipeline` strategies (`edge_case_expansion`, `cultural_augmentation`).
 
 3. **Safety DPO Pairing**
-   - Unsafe conversations from Stage 3 feed `create_safety_dpo_dataset` to create DPO pairs.
-   - Keep pairs referenced in manifest under `stage3_edge_stress_test.safety_dpo_pairs`.
+   - Unsafe conversations from Stage 3 feed `create_safety_dpo_dataset` to
+     create DPO pairs.
+   - Keep pairs referenced in manifest under
+     `stage3_edge_stress_test.safety_dpo_pairs`.
 
 ---
 
 ## 6. Voice / Persona Alignment
 
 1. **Transcripts → Voice Tokens**
-   - Run Pixel Voice pipeline (`ai/pipelines/voice/`) to convert YouTube transcripts into `conversation + voice_signature`.
+   - Run Pixel Voice pipeline (`ai/pipelines/voice/`) to convert YouTube
+     transcripts into `conversation + voice_signature`.
    - Store derived files in `ai/data/tim_fletcher_voice/exports/`.
 2. **Persona Stitching**
-   - Dual persona datasets (mentor + peer) combined with Stage 1 records via `persona_blender.py` (todo script) to generate training segments with `persona_id`.
+   - Dual persona datasets (mentor + peer) combined with Stage 1 records via
+     `persona_blender.py` (todo script) to generate training segments with
+     `persona_id`.
 3. **Guardrail Override**
-   - Safety validator runs in normal mode (≥0.75) but with `allowed_styles = ["tim_fletcher", "pixel_voice"]` so cadence instructions stay.
+   - Safety validator runs in normal mode (≥0.75) but with
+     `allowed_styles = ["tim_fletcher", "pixel_voice"]` so cadence instructions
+     stay.
 4. **Manifest updates**
    - `stage4_voice_persona.tim_fletcher_transcripts` (transcripts)
    - `stage4_voice_persona.voice_profile_embeddings`
@@ -184,7 +203,8 @@ kaggle kernels output rickyzou/nlp-for-mental-health-text-data -p datasets/tier4
 - [ ] Scenario prompts mirrored to `ai/pipelines/orchestrator/prompt_corpus/`.
 - [ ] Tim Fletcher voice exports present with latest transcripts.
 - [ ] Integrated pipeline report shows stage ratios within ±2%.
-- [ ] Final manifest updated with `stage`, `target_percentage`, `quality_profile`, and ingestion timestamps.
+- [ ] Final manifest updated with `stage`, `target_percentage`,
+      `quality_profile`, and ingestion timestamps.
 
 ---
 
@@ -197,5 +217,7 @@ kaggle kernels output rickyzou/nlp-for-mental-health-text-data -p datasets/tier4
 - `ai/pipelines/edge_case`
 - `ai/pipelines/voice`
 
-This document is the single source of truth for assembling the master dataset going forward. Update it whenever new stages, validators, or data sources are introduced. Guard-rail policies here supersede default safety filters for Stage 3 nightmare fuel scenarios.
-
+This document is the single source of truth for assembling the master dataset
+going forward. Update it whenever new stages, validators, or data sources are
+introduced. Guard-rail policies here supersede default safety filters for Stage
+3 nightmare fuel scenarios.

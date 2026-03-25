@@ -18,9 +18,7 @@
       "priority": "critical",
       "title": "Improve Emotional Authenticity",
       "description": "Address critical performance in emotional authenticity through targeted improvements",
-      "affected_metrics": [
-        "emotional_authenticity"
-      ],
+      "affected_metrics": ["emotional_authenticity"],
       "expected_impact": "Improve emotional authenticity from 0.78 to 0.93",
       "implementation_effort": "high",
       "timeline_days": 45,
@@ -53,9 +51,7 @@
       "priority": "critical",
       "title": "Improve Personality Consistency",
       "description": "Address critical performance in personality consistency through targeted improvements",
-      "affected_metrics": [
-        "personality_consistency"
-      ],
+      "affected_metrics": ["personality_consistency"],
       "expected_impact": "Improve personality consistency from 0.67 to 0.82",
       "implementation_effort": "high",
       "timeline_days": 45,
@@ -88,9 +84,7 @@
       "priority": "critical",
       "title": "URGENT: Safety Protocol Enhancement",
       "description": "Critical safety improvements required to meet minimum safety standards",
-      "affected_metrics": [
-        "safety_score"
-      ],
+      "affected_metrics": ["safety_score"],
       "expected_impact": "Improve safety score from 0.92 to 1.07",
       "implementation_effort": "high",
       "timeline_days": 7,
@@ -123,9 +117,7 @@
       "priority": "high",
       "title": "Improve Conversation Coherence",
       "description": "Address low performance in conversation coherence through targeted improvements",
-      "affected_metrics": [
-        "conversation_coherence"
-      ],
+      "affected_metrics": ["conversation_coherence"],
       "expected_impact": "Improve conversation coherence from 0.75 to 0.85",
       "implementation_effort": "medium",
       "timeline_days": 30,
@@ -158,9 +150,7 @@
       "priority": "high",
       "title": "Improve Language Quality",
       "description": "Address low performance in language quality through targeted improvements",
-      "affected_metrics": [
-        "language_quality"
-      ],
+      "affected_metrics": ["language_quality"],
       "expected_impact": "Improve language quality from 0.88 to 0.98",
       "implementation_effort": "medium",
       "timeline_days": 30,
@@ -236,9 +226,7 @@
       "priority": "medium",
       "title": "Enhanced Quality Monitoring Implementation",
       "description": "Implement real-time quality monitoring and alerting systems",
-      "affected_metrics": [
-        "all_metrics"
-      ],
+      "affected_metrics": ["all_metrics"],
       "expected_impact": "Faster detection and resolution of quality issues",
       "implementation_effort": "medium",
       "timeline_days": 30,
@@ -278,9 +266,7 @@
       "Enhanced Quality Monitoring Implementation (30 days)"
     ],
     "long_term": [],
-    "strategic": [
-      "Comprehensive Quality System Overhaul (120 days)"
-    ]
+    "strategic": ["Comprehensive Quality System Overhaul (120 days)"]
   },
   "resource_allocation": {
     "total_recommendations": 7,

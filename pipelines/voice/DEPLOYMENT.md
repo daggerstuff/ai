@@ -1,6 +1,7 @@
 # Pixel Voice Production Deployment Guide
 
-This guide covers deploying the Pixel Voice API and MCP server to production environments with full monitoring, scaling, and security features.
+This guide covers deploying the Pixel Voice API and MCP server to production
+environments with full monitoring, scaling, and security features.
 
 ## 🏗️ Architecture Overview
 
@@ -98,24 +99,26 @@ kubectl apply -f k8s/api-deployment.yaml
 
 ### Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PIXEL_VOICE_ENV` | Environment (development/production) | `production` |
-| `PIXEL_VOICE_DEBUG` | Enable debug mode | `false` |
-| `DATABASE_URL` | PostgreSQL connection string | Required |
-| `REDIS_URL` | Redis connection string | Required |
-| `SECRET_KEY` | Application secret key | Required |
-| `JWT_SECRET` | JWT signing secret | Required |
+| Variable            | Description                          | Default      |
+| ------------------- | ------------------------------------ | ------------ |
+| `PIXEL_VOICE_ENV`   | Environment (development/production) | `production` |
+| `PIXEL_VOICE_DEBUG` | Enable debug mode                    | `false`      |
+| `DATABASE_URL`      | PostgreSQL connection string         | Required     |
+| `REDIS_URL`         | Redis connection string              | Required     |
+| `SECRET_KEY`        | Application secret key               | Required     |
+| `JWT_SECRET`        | JWT signing secret                   | Required     |
 
 ### Resource Requirements
 
 #### Minimum Requirements
+
 - **API Pods**: 512Mi RAM, 250m CPU each
 - **PostgreSQL**: 1Gi RAM, 500m CPU
 - **Redis**: 512Mi RAM, 250m CPU
 - **Storage**: 100Gi for data, 50Gi for database
 
 #### Recommended Production
+
 - **API Pods**: 2Gi RAM, 1000m CPU each (3 replicas)
 - **PostgreSQL**: 4Gi RAM, 2000m CPU
 - **Redis**: 1Gi RAM, 500m CPU
@@ -190,18 +193,18 @@ spec:
   minReplicas: 3
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
 ```
 
 ### Vertical Pod Autoscaler
@@ -283,6 +286,7 @@ kubectl logs deployment/pixel-voice-api -n pixel-voice --since=24h > api-logs.tx
 ### Common Issues
 
 #### Pods Not Starting
+
 ```bash
 # Check pod status
 kubectl get pods -n pixel-voice
@@ -295,6 +299,7 @@ kubectl logs <pod-name> -n pixel-voice
 ```
 
 #### Database Connection Issues
+
 ```bash
 # Test database connectivity
 kubectl exec -it deployment/pixel-voice-api -n pixel-voice -- \
@@ -302,6 +307,7 @@ kubectl exec -it deployment/pixel-voice-api -n pixel-voice -- \
 ```
 
 #### High Memory Usage
+
 ```bash
 # Check resource usage
 kubectl top pods -n pixel-voice

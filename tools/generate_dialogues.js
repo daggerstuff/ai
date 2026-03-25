@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
+import { exec, execSync } from 'child_process'
 import fs from 'fs'
 import path from 'path'
-import { exec, execSync } from 'child_process'
 import readline from 'readline'
 import { promisify } from 'util'
 
@@ -197,61 +197,61 @@ async function selectPrompt(prompts) {
 }
 
 async function main() {
-console.log('Edge Case Dialogue Generator')
-console.log('===========================\n')
+  console.log('Edge Case Dialogue Generator')
+  console.log('===========================\n')
 
-// Check Ollama installation
-const ollamaAvailable = await checkOllama()
-if (!ollamaAvailable) {
-  console.error('Ollama is required to generate dialogues.')
-  process.exit(1)
-}
+  // Check Ollama installation
+  const ollamaAvailable = await checkOllama()
+  if (!ollamaAvailable) {
+    console.error('Ollama is required to generate dialogues.')
+    process.exit(1)
+  }
 
-// Read the prompts
-const prompts = readPrompts()
-if (prompts.length === 0) {
-  console.error('No prompts found in the input file.')
-  process.exit(1)
-}
+  // Read the prompts
+  const prompts = readPrompts()
+  if (prompts.length === 0) {
+    console.error('No prompts found in the input file.')
+    process.exit(1)
+  }
 
-console.log(`Found ${prompts.length} prompts in ${INPUT_FILE}`)
+  console.log(`Found ${prompts.length} prompts in ${INPUT_FILE}`)
 
-await promptLoop(prompts);
+  await promptLoop(prompts)
 }
 
 // Moved main interactive loop into separate async function to avoid await in loop
 async function promptLoop(prompts) {
-// Let the user select a prompt
-const selectedPrompt = await selectPrompt(prompts)
-if (!selectedPrompt) {
-  console.log('Exiting...')
-  return;
-}
-
-console.log(
-  `\nSelected: ${selectedPrompt.prompt_id} (${selectedPrompt.scenario_type})`,
-)
-console.log('Generating dialogue...')
-
-try {
-  // Generate and save the dialogue
-  const dialogue = await generateDialogue(selectedPrompt)
-  const outputPath = saveDialogue(selectedPrompt, dialogue)
-
-  if (outputPath) {
-    console.log('\nDialogue generation complete!')
-
-    // Ask if the user wants to generate another dialogue
-    const answer = await askGenerateAnother();
-    if (answer.toLowerCase() === 'y') {
-      await promptLoop(prompts);
-    } else {
-      console.log('Exiting...')
-    }
+  // Let the user select a prompt
+  const selectedPrompt = await selectPrompt(prompts)
+  if (!selectedPrompt) {
+    console.log('Exiting...')
+    return
   }
-} catch (error) {
-  console.error(`Failed to generate dialogue: ${error.message}`)
-}
+
+  console.log(
+    `\nSelected: ${selectedPrompt.prompt_id} (${selectedPrompt.scenario_type})`,
+  )
+  console.log('Generating dialogue...')
+
+  try {
+    // Generate and save the dialogue
+    const dialogue = await generateDialogue(selectedPrompt)
+    const outputPath = saveDialogue(selectedPrompt, dialogue)
+
+    if (outputPath) {
+      console.log('\nDialogue generation complete!')
+
+      // Ask if the user wants to generate another dialogue
+      const answer = await askGenerateAnother()
+      if (answer.toLowerCase() === 'y') {
+        await promptLoop(prompts)
+      } else {
+        console.log('Exiting...')
+      }
+    }
+  } catch (error) {
+    console.error(`Failed to generate dialogue: ${error.message}`)
+  }
 }
 
 /**
@@ -259,16 +259,16 @@ try {
  * Returns the answer string.
  */
 async function askGenerateAnother() {
-  const rl = createInterface();
+  const rl = createInterface()
   try {
     return await new Promise((resolve) => {
       rl.question(
         '\nWould you like to generate another dialogue? (y/n): ',
         resolve,
-      );
-    });
+      )
+    })
   } finally {
-    rl.close();
+    rl.close()
   }
 }
 

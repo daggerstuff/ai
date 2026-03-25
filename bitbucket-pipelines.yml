@@ -26,7 +26,8 @@ definitions:
           - uv sync --frozen
           # Verify installation
           - uv run python --version
-          - uv run python -c "import torch; print(f'PyTorch {torch.__version__}')"
+          - uv run python -c "import torch; print(f'PyTorch
+            {torch.__version__}')"
         artifacts:
           - .venv/**
 
@@ -85,7 +86,8 @@ definitions:
           - curl -LsSf https://astral.sh/uv/install.sh | sh
           - export PATH="$HOME/.local/bin:$HOME/.cargo/bin:$PATH"
           # Run pytest with coverage
-          - uv run pytest tests/ -v --cov=. --cov-report=xml --cov-report=html --cov-report=term
+          - uv run pytest tests/ -v --cov=. --cov-report=xml --cov-report=html
+            --cov-report=term
           # Display coverage summary
           - uv run coverage report
         artifacts:
@@ -161,7 +163,8 @@ definitions:
           - docker build -t pixelated-ai:${BITBUCKET_COMMIT} .
           - docker tag pixelated-ai:${BITBUCKET_COMMIT} pixelated-ai:latest
           # Save image for deployment
-          - docker save pixelated-ai:${BITBUCKET_COMMIT} | gzip > pixelated-ai-image.tar.gz
+          - docker save pixelated-ai:${BITBUCKET_COMMIT} | gzip >
+            pixelated-ai-image.tar.gz
         artifacts:
           - pixelated-ai-image.tar.gz
 
@@ -175,8 +178,12 @@ definitions:
               SONAR_TOKEN: $SONAR_TOKEN
               EXTRA_ARGS: >
                 -Dsonar.python.coverage.reportPaths=coverage.xml
+<<<<<<< HEAD
+                -Dsonar.python.version=3.11 -Dsonar.sources=.
+=======
                 -Dsonar.python.version=3.13
                 -Dsonar.sources=.
+>>>>>>> 9ac3d7e897f1aa5901f5efb9c531e71f84b8215a
                 -Dsonar.exclusions=**/*.ipynb,**/__pycache__/**,**/tests/**,**/.venv/**,**/dist/**,**/build/**
 
     - step: &quality-gate
@@ -302,7 +309,7 @@ pipelines:
       - step: *deploy-production
 
   pull-requests:
-    "**":
+    '**':
       - step: *install-dependencies
       - step: *governance-validate
       - parallel:
@@ -314,7 +321,7 @@ pipelines:
       - step: *quality-gate
 
   tags:
-    "v*":
+    'v*':
       - step: *install-dependencies
       - step: *unit-tests
       - step: *build-docker-image

@@ -2,7 +2,10 @@
 
 ## Overview
 
-This directory contains all consolidated training assets for the Pixelated Empathy model, organized and ready for immediate training deployment. All training configs, datasets, models, pipelines, and infrastructure have been cataloged and organized from 20+ AI directories across the codebase.
+This directory contains all consolidated training assets for the Pixelated
+Empathy model, organized and ready for immediate training deployment. All
+training configs, datasets, models, pipelines, and infrastructure have been
+cataloged and organized from 20+ AI directories across the codebase.
 
 ## Quick Start
 
@@ -23,6 +26,7 @@ pip install torch torchvision torchaudio --index-url https://download.pytorch.or
 ```
 
 **Note**: If using `uv`, run scripts with `uv run`:
+
 ```bash
 uv run python3 ai/training_ready/scripts/prepare_training_data.py --all
 ```
@@ -34,6 +38,7 @@ cat TRAINING_MANIFEST.json | jq '.summary'
 ```
 
 The manifest contains:
+
 - **9,608 total assets** cataloged
 - **5,208 datasets** mapped to 4-stage architecture
 - **2,145 model architectures**
@@ -49,6 +54,7 @@ cat TRAINING_PLAN.md
 ```
 
 The training plan outlines:
+
 - 4-stage training architecture (40/25/20/15)
 - Model selection (Harbringer-24B/Mistral Small 3.1)
 - Dataset strategy per stage
@@ -129,21 +135,25 @@ ai/training_ready/
 ## Stage-Based Training
 
 ### Stage 1: Foundation & Rapport (40%)
+
 - **Objective**: Baseline therapeutic tone and empathy
 - **Datasets**: Foundation datasets, tier1_priority
 - **Success Metrics**: Empathy ≥ 0.70, Safety ≥ 0.80
 
 ### Stage 2: Therapeutic Expertise & Reasoning (25%)
+
 - **Objective**: Structured reasoning and clinical knowledge
 - **Datasets**: CoT reasoning datasets, professional psychology
 - **Success Metrics**: Reasoning ≥ 0.75, Clinical accuracy ≥ 0.80
 
 ### Stage 3: Edge Stress Test (20%)
+
 - **Objective**: Crisis response and trauma handling
 - **Datasets**: Edge cases, crisis scenarios, trauma data
 - **Success Metrics**: Crisis response ≥ 0.85, Edge success ≥ 0.80
 
 ### Stage 4: Voice & Persona (15%)
+
 - **Objective**: Authentic voice and persona consistency
 - **Datasets**: Voice data, wayfarer-balanced, persona training
 - **Success Metrics**: Voice authenticity ≥ 0.80, Persona consistency ≥ 0.85
@@ -151,18 +161,21 @@ ai/training_ready/
 ## Key Files
 
 ### Training Manifest
+
 - **Location**: `TRAINING_MANIFEST.json`
 - **Purpose**: Complete inventory of all training assets
 - **Format**: JSON with structured metadata
 - **Use**: Reference for dataset selection, asset discovery
 
 ### Training Plan
+
 - **Location**: `TRAINING_PLAN.md`
 - **Purpose**: Comprehensive training strategy and timeline
 - **Contents**: Stage breakdown, model selection, infrastructure, metrics
 - **Use**: Guide for training execution
 
 ### Upgrade Opportunities
+
 - **Location**: `experimental/UPGRADE_OPPORTUNITIES.md`
 - **Purpose**: Document experimental features for future integration
 - **Contents**: MoE, CNN/ResNet layers, quantum models, etc.
@@ -171,10 +184,15 @@ ai/training_ready/
 ## Dataset Access
 
 ### Large Files
-Due to disk space constraints, large dataset files use symlinks or references. Access original files from their source locations as documented in `TRAINING_MANIFEST.json`.
+
+Due to disk space constraints, large dataset files use symlinks or references.
+Access original files from their source locations as documented in
+`TRAINING_MANIFEST.json`.
 
 ### Stage Mapping
+
 All datasets are mapped to stages in the manifest:
+
 - `stage1_foundation`: Foundation datasets
 - `stage2_reasoning`: Reasoning and CoT datasets
 - `stage3_edge`: Edge cases and crisis scenarios
@@ -183,6 +201,7 @@ All datasets are mapped to stages in the manifest:
 ## Experimental Features
 
 See `experimental/UPGRADE_OPPORTUNITIES.md` for:
+
 - MoE architecture for specialized experts
 - CNN/ResNet emotional layers
 - Quantum-inspired emotional models
@@ -192,16 +211,19 @@ See `experimental/UPGRADE_OPPORTUNITIES.md` for:
 ## Troubleshooting
 
 ### Disk Space Issues
+
 - Large files use symlinks - access from original locations
 - Check `TRAINING_MANIFEST.json` for original file paths
 - Consider using dataset references instead of copies
 
 ### Missing Files
+
 - Check `TRAINING_MANIFEST.json` for file paths
 - Some files may be in original directories (see manifest)
 - Run `explore_directories.py` to refresh catalog
 
 ### Configuration Issues
+
 - Check `configs/` directory for training configs
 - Reference original configs in source directories if needed
 - See `TRAINING_PLAN.md` for infrastructure setup
@@ -225,6 +247,7 @@ See `experimental/UPGRADE_OPPORTUNITIES.md` for:
 ## Support
 
 For questions or issues:
+
 1. Check `TRAINING_MANIFEST.json` for asset locations
 2. Review `TRAINING_PLAN.md` for training strategy
 3. Consult `experimental/UPGRADE_OPPORTUNITIES.md` for experimental features
@@ -233,6 +256,7 @@ For questions or issues:
 ## Summary
 
 This consolidated training system provides:
+
 - ✅ **Complete asset inventory** (9,608 files cataloged)
 - ✅ **4-stage training architecture** (40/25/20/15 distribution)
 - ✅ **Comprehensive training plan** with timelines and metrics
@@ -240,4 +264,3 @@ This consolidated training system provides:
 - ✅ **Ready-to-use structure** for immediate training deployment
 
 **Status**: Ready for training deployment
-

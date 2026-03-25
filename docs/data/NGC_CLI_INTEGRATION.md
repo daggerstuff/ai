@@ -2,11 +2,14 @@
 
 ## Overview
 
-NGC CLI (NVIDIA GPU Cloud CLI) is integrated into `training_ready` for downloading NeMo resources, training frameworks, and other assets from the NGC catalog.
+NGC CLI (NVIDIA GPU Cloud CLI) is integrated into `training_ready` for
+downloading NeMo resources, training frameworks, and other assets from the NGC
+catalog.
 
 ## Installation
 
-**Important**: NGC CLI is not available as a PyPI package. You must download it directly from NVIDIA.
+**Important**: NGC CLI is not available as a PyPI package. You must download it
+directly from NVIDIA.
 
 ### Option 1: Download from NGC Catalog (Recommended)
 
@@ -46,7 +49,8 @@ Follow NVIDIA's official installation guide for system-wide installation.
 3. Go to your profile → Setup → Generate API Key
 4. Copy the API key
 
-**Note**: This is different from `NVIDIA_API_KEY` used for Docker registry login.
+**Note**: This is different from `NVIDIA_API_KEY` used for Docker registry
+login.
 
 ### Configure NGC CLI
 
@@ -132,7 +136,8 @@ print(f"API Key configured: {bool(config.get('API key'))}")
 
 ## Integration with Training Scripts
 
-NGC resources are automatically downloaded when needed by training scripts. The integration handles:
+NGC resources are automatically downloaded when needed by training scripts. The
+integration handles:
 
 - Automatic NGC CLI detection (system, local, or uv-based)
 - Configuration checking and setup
@@ -147,7 +152,7 @@ from ai.training.ready_packages.utils.ngc_resources import NGCResourceDownloader
 def setup_training_environment():
     """Set up training environment with required NeMo resources"""
     downloader = NGCResourceDownloader()
-    
+
     try:
         # Download NeMo quickstart if needed
         quickstart = downloader.download_nemo_quickstart()
@@ -178,8 +183,8 @@ def setup_training_environment():
 ### Nemotron & NeMo Gym (Pattern)
 
 Nemotron 3 models, RL training blends, and NeMo Gym containers are typically
-published as standard NGC catalog resources. While specific catalog paths
-may change over time, you can integrate them using the existing
+published as standard NGC catalog resources. While specific catalog paths may
+change over time, you can integrate them using the existing
 `NGCResourceDownloader.download_custom_resource(...)` API:
 
 ```python
@@ -200,10 +205,10 @@ print(f"Nemotron assets available at: {nemotron_resource}")
 ```
 
 After download, mirror any datasets or RL rollouts into your canonical S3
-structure (for example `external/nemotron/` or `rl/pixelated/...`) using
-the same S3-first principles described in `S3_TRAINING_DATA_STRUCTURE.md`.
-This keeps NGC artifacts decoupled from the training code and avoids
-introducing local-path assumptions into training scripts.
+structure (for example `external/nemotron/` or `rl/pixelated/...`) using the
+same S3-first principles described in `S3_TRAINING_DATA_STRUCTURE.md`. This
+keeps NGC artifacts decoupled from the training code and avoids introducing
+local-path assumptions into training scripts.
 
 ## Troubleshooting
 
@@ -227,11 +232,13 @@ ngc config set
 ### "Download failed"
 
 **Possible causes**:
+
 1. API key not configured
 2. No access to the resource
 3. Network connectivity issues
 
 **Solution**:
+
 ```bash
 # Check configuration
 ngc config get

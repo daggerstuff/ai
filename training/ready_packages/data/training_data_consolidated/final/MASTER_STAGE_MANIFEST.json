@@ -1,0 +1,11 @@
+{
+  "generated_at": "2025-12-10T07:36:15.077691+00:00",
+  "stages": {
+    "stage1_foundation": {
+      "samples": 40,
+      "target": 40,
+      "available": 182213,
+      "output_path": "ai/training_data_consolidated/final/MASTER_stage1_foundation.jsonl"
+    }
+  }
+}

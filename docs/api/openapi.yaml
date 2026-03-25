@@ -1,7 +1,9 @@
 openapi: 3.0.3
 info:
   title: Pixelated Empathy AI API
-  description: RESTful API for accessing the Pixelated Empathy AI dataset and processing system
+  description:
+    RESTful API for accessing the Pixelated Empathy AI dataset and processing
+    system
   version: 1.0.0
   contact:
     name: API Support
@@ -175,7 +177,8 @@ paths:
   /v1/quality/validate:
     post:
       summary: Validate Conversation Quality
-      description: Validate the quality of a conversation using NLP-based assessment
+      description:
+        Validate the quality of a conversation using NLP-based assessment
       requestBody:
         required: true
         content:
@@ -232,7 +235,8 @@ paths:
   /v1/search:
     post:
       summary: Search Conversations
-      description: Search conversations using advanced filters and full-text search
+      description:
+        Search conversations using advanced filters and full-text search
       requestBody:
         required: true
         content:

@@ -143,7 +143,8 @@ def run_wayfarer_sft_pipeline(model_path: str, dataset_paths: List[str]) -> None
 
 - All functions must validate inputs and raise descriptive errors.
 - All errors and compliance issues must be logged with context.
-- Audit trail must be maintained for all data transformations and compliance checks.
+- Audit trail must be maintained for all data transformations and compliance
+  checks.
 
 ---
 

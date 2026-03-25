@@ -1,7 +1,7 @@
 # YouTube Channel Curation System
 
-**Purpose:** Discover, evaluate, and curate therapeutic YouTube channels for CPTSD dataset training.
-**Agent:** PIX-28 - YouTube Source Expansion
+**Purpose:** Discover, evaluate, and curate therapeutic YouTube channels for
+CPTSD dataset training. **Agent:** PIX-28 - YouTube Source Expansion
 **Timeline:** Week 1-2 (3-5 days target)
 
 ## Quick Start
@@ -65,14 +65,14 @@ ai/sourcing/youtube/
 
 ## Quality Scoring (0.0-1.0)
 
-| Metric | Weight | Description |
-| ----- | ----- | ------------- |
-| Clinical Accuracy | 30% | Evidence-based therapeutic content |
-| Content Quality | 25% | Educational value and clarity |
-| Production Quality | 15% | Audio/video technical quality |
-| Credibility | 15% | Professional credentials |
-| Engagement Quality | 10% | Interaction and community |
-| Consistency | 5% | Posting regularity |
+| Metric             | Weight | Description                        |
+| ------------------ | ------ | ---------------------------------- |
+| Clinical Accuracy  | 30%    | Evidence-based therapeutic content |
+| Content Quality    | 25%    | Educational value and clarity      |
+| Production Quality | 15%    | Audio/video technical quality      |
+| Credibility        | 15%    | Professional credentials           |
+| Engagement Quality | 10%    | Interaction and community          |
+| Consistency        | 5%     | Posting regularity                 |
 
 ## Acceptance Criteria
 
@@ -131,12 +131,12 @@ And 6 more categories defined in `api.py`.
 
 Monitoring system has 4 alert levels:
 
-| Severity | Trigger | Action |
-| ----- | ----- | --------- |
-| CRITICAL | Channel removed | Immediate replacement |
-| ERROR | Subscribers drop >10% | Investigate cause |
-| WARNING | No new content 30+ days | Monitor 14 more days |
-| INFO | Quality dropped below 0.7 | Schedule review |
+| Severity | Trigger                   | Action                |
+| -------- | ------------------------- | --------------------- |
+| CRITICAL | Channel removed           | Immediate replacement |
+| ERROR    | Subscribers drop >10%     | Investigate cause     |
+| WARNING  | No new content 30+ days   | Monitor 14 more days  |
+| INFO     | Quality dropped below 0.7 | Schedule review       |
 
 ## Configuration
 
@@ -192,10 +192,14 @@ config = ChannelHunterConfig(
 
 ## Known Limitations
 
-1. **YouTube API Limits** - Quota management required (recommend multiple API keys)
-2. **Licensing Verification** - Automated detection limited; manual review recommended
-3. **Channel Status** - Initial status assumed ACTIVE; monitoring system updates over time
-4. **Video Quality Metrics** - Requires audio download and analysis (performance consideration)
+1. **YouTube API Limits** - Quota management required (recommend multiple API
+   keys)
+2. **Licensing Verification** - Automated detection limited; manual review
+   recommended
+3. **Channel Status** - Initial status assumed ACTIVE; monitoring system updates
+   over time
+4. **Video Quality Metrics** - Requires audio download and analysis (performance
+   consideration)
 
 ## Next Steps After Discovery
 

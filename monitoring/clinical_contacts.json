@@ -5,10 +5,7 @@
     "role": "Crisis Intervention Specialist",
     "phone": "+1-555-CRISIS-1",
     "email": "crisis1@pixelatedempathy.com",
-    "specialization": [
-      "Crisis Intervention",
-      "Suicide Prevention"
-    ],
+    "specialization": ["Crisis Intervention", "Suicide Prevention"],
     "availability_hours": {
       "24/7": "Always available"
     },
@@ -21,10 +18,7 @@
     "role": "Clinical Director",
     "phone": "+1-555-CLINICAL",
     "email": "clinical.director@pixelatedempathy.com",
-    "specialization": [
-      "Clinical Oversight",
-      "Risk Assessment"
-    ],
+    "specialization": ["Clinical Oversight", "Risk Assessment"],
     "availability_hours": {
       "business": "8AM-6PM EST",
       "emergency": "24/7"
@@ -38,10 +32,7 @@
     "role": "Medical Director",
     "phone": "+1-555-MEDICAL",
     "email": "medical.director@pixelatedempathy.com",
-    "specialization": [
-      "Medical Oversight",
-      "Emergency Response"
-    ],
+    "specialization": ["Medical Oversight", "Emergency Response"],
     "availability_hours": {
       "emergency": "24/7"
     },

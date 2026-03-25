@@ -1,0 +1,41 @@
+{
+  "timestamp": "2025-12-11T23:21:45.072663",
+  "dry_run": true,
+  "keep_strategy": "priority_order",
+  "category_filter": null,
+  "results": [
+    {
+      "success": true,
+      "dry_run": true,
+      "removed": 53,
+      "kept": 3137,
+      "original": 3190,
+      "category": "phase_1_priority_conversations",
+      "file": "priority_1_conversations.jsonl"
+    },
+    {
+      "success": true,
+      "dry_run": true,
+      "removed": 57,
+      "kept": 5937,
+      "original": 5994,
+      "category": "phase_2_professional_datasets",
+      "file": "llama3_mental_counseling_conversations.jsonl"
+    },
+    {
+      "success": true,
+      "dry_run": true,
+      "removed": 45,
+      "kept": 1933,
+      "original": 1978,
+      "category": "phase_2_professional_datasets",
+      "file": "counsel_chat_conversations.jsonl"
+    }
+  ],
+  "summary": {
+    "successful": 3,
+    "failed": 0,
+    "total_removed": 155,
+    "total_kept": 11007
+  }
+}

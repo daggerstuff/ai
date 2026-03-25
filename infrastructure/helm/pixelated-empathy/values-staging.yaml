@@ -1,14 +1,14 @@
 # Staging environment values
-environment: "staging"
+environment: 'staging'
 
 replicaCount: 2
 
 image:
-  tag: "staging-latest"
+  tag: 'staging-latest'
 
 app:
   config:
-    logLevel: "INFO"
+    logLevel: 'INFO'
     debug: false
     maxWorkers: 3
     batchSize: 75
@@ -63,5 +63,5 @@ ingress:
 
 backup:
   enabled: true
-  schedule: "0 4 * * *"
-  retention: "7d"
+  schedule: '0 4 * * *'
+  retention: '7d'

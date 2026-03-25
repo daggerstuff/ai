@@ -18,9 +18,7 @@
       "priority": "critical",
       "title": "URGENT: Safety Protocol Enhancement",
       "description": "Critical safety improvements required to meet minimum safety standards",
-      "affected_metrics": [
-        "safety_score"
-      ],
+      "affected_metrics": ["safety_score"],
       "expected_impact": "Improve safety score from 0.91 to 1.06",
       "implementation_effort": "high",
       "timeline_days": 7,
@@ -53,9 +51,7 @@
       "priority": "high",
       "title": "Enhance Therapeutic Accuracy Training",
       "description": "Improve therapeutic accuracy through enhanced clinical training data and validation",
-      "affected_metrics": [
-        "therapeutic_accuracy"
-      ],
+      "affected_metrics": ["therapeutic_accuracy"],
       "expected_impact": "Improve therapeutic accuracy from 0.74 to 0.84",
       "implementation_effort": "medium",
       "timeline_days": 60,
@@ -88,9 +84,7 @@
       "priority": "high",
       "title": "Improve Clinical Compliance",
       "description": "Address low performance in clinical compliance through targeted improvements",
-      "affected_metrics": [
-        "clinical_compliance"
-      ],
+      "affected_metrics": ["clinical_compliance"],
       "expected_impact": "Improve clinical compliance from 0.81 to 0.91",
       "implementation_effort": "medium",
       "timeline_days": 30,
@@ -123,9 +117,7 @@
       "priority": "high",
       "title": "Improve Personality Consistency",
       "description": "Address low performance in personality consistency through targeted improvements",
-      "affected_metrics": [
-        "personality_consistency"
-      ],
+      "affected_metrics": ["personality_consistency"],
       "expected_impact": "Improve personality consistency from 0.88 to 0.98",
       "implementation_effort": "medium",
       "timeline_days": 30,
@@ -158,9 +150,7 @@
       "priority": "high",
       "title": "Improve Language Quality",
       "description": "Address low performance in language quality through targeted improvements",
-      "affected_metrics": [
-        "language_quality"
-      ],
+      "affected_metrics": ["language_quality"],
       "expected_impact": "Improve language quality from 0.76 to 0.86",
       "implementation_effort": "medium",
       "timeline_days": 30,
@@ -193,9 +183,7 @@
       "priority": "medium",
       "title": "Enhanced Quality Monitoring Implementation",
       "description": "Implement real-time quality monitoring and alerting systems",
-      "affected_metrics": [
-        "all_metrics"
-      ],
+      "affected_metrics": ["all_metrics"],
       "expected_impact": "Faster detection and resolution of quality issues",
       "implementation_effort": "medium",
       "timeline_days": 30,
@@ -224,9 +212,7 @@
     }
   ],
   "implementation_roadmap": {
-    "immediate": [
-      "URGENT: Safety Protocol Enhancement (7 days)"
-    ],
+    "immediate": ["URGENT: Safety Protocol Enhancement (7 days)"],
     "short_term": [
       "Enhance Therapeutic Accuracy Training (60 days)",
       "Improve Clinical Compliance (30 days)",

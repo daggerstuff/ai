@@ -3,33 +3,21 @@
   "total_conversations": 137855,
   "benchmarks": {
     "length": {
-      "optimal_range": [
-        0.0,
-        0.0
-      ],
+      "optimal_range": [0.0, 0.0],
       "mean": 0.0,
       "std": 0.0
     },
     "word_count": {
-      "optimal_range": [
-        80.0,
-        122.0
-      ],
+      "optimal_range": [80.0, 122.0],
       "mean": 133.46760972071093
     },
     "turn_count": {
-      "optimal_range": [
-        2.0,
-        2.0
-      ],
+      "optimal_range": [2.0, 2.0],
       "mean": 2.0
     },
     "readability": {
       "target_flesch_score": 57.04646748061029,
-      "acceptable_range": [
-        53.14750000000001,
-        63.486153846153854
-      ]
+      "acceptable_range": [53.14750000000001, 63.486153846153854]
     },
     "engagement": {
       "target_question_density": 1.8688518333305788,
@@ -180,9 +168,7 @@
         },
         "priority_1": {
           "current_quality": 44.98701419148443,
-          "recommendations": [
-            "Increase question usage to improve engagement"
-          ],
+          "recommendations": ["Increase question usage to improve engagement"],
           "conversation_count": 1225
         },
         "priority_2": {

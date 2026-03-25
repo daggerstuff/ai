@@ -1,0 +1,16 @@
+{
+  "total_concepts_available": 10,
+  "concept_categories": [
+    "therapeutic_modalities",
+    "developmental_psychology",
+    "trauma_psychology",
+    "contemplative_psychology",
+    "family_systems",
+    "body_psychology",
+    "well_being_psychology",
+    "postmodern_approaches",
+    "emotion_psychology"
+  ],
+  "enhancement_complete": true,
+  "datasets_enhanced": 5
+}

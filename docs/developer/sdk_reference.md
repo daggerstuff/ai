@@ -47,6 +47,7 @@ PixelatedEmpathyAPI(
 ```
 
 **Parameters:**
+
 - `api_key` (str): Your API key from the dashboard
 - `base_url` (str, optional): API base URL
 - `timeout` (int, optional): Request timeout in seconds
@@ -67,6 +68,7 @@ for dataset in datasets:
 **Returns:** List of dataset information dictionaries
 
 **Example Response:**
+
 ```python
 [
     {
@@ -89,6 +91,7 @@ print(f"Total conversations: {info['statistics']['total_conversations']}")
 ```
 
 **Parameters:**
+
 - `dataset_name` (str): Name of the dataset
 
 **Returns:** Dataset information dictionary
@@ -110,6 +113,7 @@ conversations = api.get_conversations(
 ```
 
 **Parameters:**
+
 - `dataset` (str, optional): Filter by dataset name
 - `tier` (str, optional): Filter by quality tier
 - `min_quality` (float, optional): Minimum quality score (0.0-1.0)
@@ -129,6 +133,7 @@ print(f"Quality: {conversation['quality_metrics']['overall_quality']}")
 ```
 
 **Parameters:**
+
 - `conversation_id` (str): Unique conversation identifier
 
 **Returns:** Complete conversation data
@@ -144,6 +149,7 @@ for conversation in api.iter_conversations(tier="professional", batch_size=50):
 ```
 
 **Parameters:**
+
 - Same as `get_conversations()` plus:
 - `batch_size` (int, optional): Conversations per request (default: 100)
 
@@ -161,6 +167,7 @@ print(f"Average quality: {metrics['overall_statistics']['average_quality']}")
 ```
 
 **Parameters:**
+
 - `dataset` (str, optional): Filter by dataset name
 - `tier` (str, optional): Filter by quality tier
 
@@ -185,6 +192,7 @@ print(f"Tier: {validation['tier_classification']}")
 ```
 
 **Parameters:**
+
 - `conversation` (dict): Conversation data to validate
 
 **Returns:** Validation results with quality metrics and recommendations
@@ -208,8 +216,10 @@ print(f"Job ID: {job['job_id']}")
 ```
 
 **Parameters:**
+
 - `dataset_name` (str): Dataset to process
-- `processing_type` (str): Type of processing (quality_validation, export, analysis)
+- `processing_type` (str): Type of processing (quality_validation, export,
+  analysis)
 - `parameters` (dict, optional): Processing parameters
 
 **Returns:** Job information dictionary
@@ -224,6 +234,7 @@ print(f"Status: {status['status']} ({status['progress']}%)")
 ```
 
 **Parameters:**
+
 - `job_id` (str): Unique job identifier
 
 **Returns:** Job status dictionary
@@ -238,6 +249,7 @@ print(f"Job completed with status: {final_status['status']}")
 ```
 
 **Parameters:**
+
 - `job_id` (str): Job identifier to wait for
 - `poll_interval` (int, optional): Seconds between status checks
 - `timeout` (int, optional): Maximum wait time in seconds
@@ -260,6 +272,7 @@ print(f"Found {results['total_matches']} matching conversations")
 ```
 
 **Parameters:**
+
 - `query` (str): Search query string
 - `filters` (dict, optional): Search filters
 - `limit` (int, optional): Maximum results
@@ -299,8 +312,10 @@ print(f"Download URL: {export['download_url']}")
 ```
 
 **Parameters:**
+
 - `dataset` (str): Dataset name to export
-- `format` (str, optional): Export format (jsonl, csv, parquet, huggingface, openai)
+- `format` (str, optional): Export format (jsonl, csv, parquet, huggingface,
+  openai)
 - `tier` (str, optional): Quality tier filter
 - `min_quality` (float, optional): Minimum quality score
 
@@ -334,14 +349,17 @@ npm install pixelated-empathy-api
 ### Basic Usage
 
 ```javascript
-const { PixelatedEmpathyAPI } = require('pixelated-empathy-api');
+const { PixelatedEmpathyAPI } = require('pixelated-empathy-api')
 
 // Initialize client
-const api = new PixelatedEmpathyAPI('your_api_key');
+const api = new PixelatedEmpathyAPI('your_api_key')
 
 // Basic operations
-const datasets = await api.listDatasets();
-const conversations = await api.getConversations({ tier: 'professional', limit: 10 });
+const datasets = await api.listDatasets()
+const conversations = await api.getConversations({
+  tier: 'professional',
+  limit: 10,
+})
 ```
 
 ### Class: PixelatedEmpathyAPI
@@ -349,10 +367,11 @@ const conversations = await api.getConversations({ tier: 'professional', limit: 
 #### Constructor
 
 ```javascript
-new PixelatedEmpathyAPI(apiKey, options = {})
+new PixelatedEmpathyAPI(apiKey, (options = {}))
 ```
 
 **Parameters:**
+
 - `apiKey` (string): Your API key from the dashboard
 - `options` (object, optional): Configuration options
   - `baseUrl` (string): API base URL
@@ -366,10 +385,10 @@ new PixelatedEmpathyAPI(apiKey, options = {})
 List all available datasets.
 
 ```javascript
-const datasets = await api.listDatasets();
-datasets.forEach(dataset => {
-    console.log(`${dataset.name}: ${dataset.conversations} conversations`);
-});
+const datasets = await api.listDatasets()
+datasets.forEach((dataset) => {
+  console.log(`${dataset.name}: ${dataset.conversations} conversations`)
+})
 ```
 
 **Returns:** Promise resolving to array of dataset objects
@@ -379,11 +398,12 @@ datasets.forEach(dataset => {
 Get detailed information about a specific dataset.
 
 ```javascript
-const info = await api.getDatasetInfo('priority_complete_fixed');
-console.log(`Total conversations: ${info.statistics.total_conversations}`);
+const info = await api.getDatasetInfo('priority_complete_fixed')
+console.log(`Total conversations: ${info.statistics.total_conversations}`)
 ```
 
 **Parameters:**
+
 - `datasetName` (string): Name of the dataset
 
 **Returns:** Promise resolving to dataset information object
@@ -396,15 +416,16 @@ Get conversations with optional filtering.
 
 ```javascript
 const conversations = await api.getConversations({
-    dataset: 'priority_complete_fixed',
-    tier: 'professional',
-    minQuality: 0.75,
-    limit: 100,
-    offset: 0
-});
+  dataset: 'priority_complete_fixed',
+  tier: 'professional',
+  minQuality: 0.75,
+  limit: 100,
+  offset: 0,
+})
 ```
 
 **Parameters:**
+
 - `options` (object, optional): Filtering options
   - `dataset` (string): Filter by dataset name
   - `tier` (string): Filter by quality tier
@@ -419,12 +440,13 @@ const conversations = await api.getConversations({
 Get a specific conversation by ID.
 
 ```javascript
-const conversation = await api.getConversation('conv_000001');
-console.log(`Messages: ${conversation.messages.length}`);
-console.log(`Quality: ${conversation.quality_metrics.overall_quality}`);
+const conversation = await api.getConversation('conv_000001')
+console.log(`Messages: ${conversation.messages.length}`)
+console.log(`Quality: ${conversation.quality_metrics.overall_quality}`)
 ```
 
 **Parameters:**
+
 - `conversationId` (string): Unique conversation identifier
 
 **Returns:** Promise resolving to complete conversation data
@@ -434,13 +456,16 @@ console.log(`Quality: ${conversation.quality_metrics.overall_quality}`);
 Iterate through all conversations with automatic pagination.
 
 ```javascript
-for await (const conversation of api.iterConversations({ tier: 'professional' })) {
-    console.log(`Processing conversation: ${conversation.id}`);
-    // Process conversation...
+for await (const conversation of api.iterConversations({
+  tier: 'professional',
+})) {
+  console.log(`Processing conversation: ${conversation.id}`)
+  // Process conversation...
 }
 ```
 
 **Parameters:**
+
 - Same as `getConversations()` plus:
 - `batchSize` (number): Conversations per request (default: 100)
 
@@ -453,11 +478,14 @@ for await (const conversation of api.iterConversations({ tier: 'professional' })
 Get quality metrics for datasets or tiers.
 
 ```javascript
-const metrics = await api.getQualityMetrics({ dataset: 'professional_datasets_final' });
-console.log(`Average quality: ${metrics.overall_statistics.average_quality}`);
+const metrics = await api.getQualityMetrics({
+  dataset: 'professional_datasets_final',
+})
+console.log(`Average quality: ${metrics.overall_statistics.average_quality}`)
 ```
 
 **Parameters:**
+
 - `options` (object, optional): Filtering options
   - `dataset` (string): Filter by dataset name
   - `tier` (string): Filter by quality tier
@@ -470,19 +498,20 @@ Validate conversation quality using NLP-based assessment.
 
 ```javascript
 const conversation = {
-    id: 'test_conv',
-    messages: [
-        { role: 'user', content: "I'm feeling anxious." },
-        { role: 'assistant', content: 'I understand. Can you tell me more?' }
-    ]
-};
+  id: 'test_conv',
+  messages: [
+    { role: 'user', content: "I'm feeling anxious." },
+    { role: 'assistant', content: 'I understand. Can you tell me more?' },
+  ],
+}
 
-const validation = await api.validateConversationQuality(conversation);
-console.log(`Quality score: ${validation.validation_results.overall_quality}`);
-console.log(`Tier: ${validation.tier_classification}`);
+const validation = await api.validateConversationQuality(conversation)
+console.log(`Quality score: ${validation.validation_results.overall_quality}`)
+console.log(`Tier: ${validation.tier_classification}`)
 ```
 
 **Parameters:**
+
 - `conversation` (object): Conversation data to validate
 
 **Returns:** Promise resolving to validation results
@@ -495,17 +524,18 @@ Submit a processing job for dataset analysis or export.
 
 ```javascript
 const job = await api.submitProcessingJob(
-    'priority_complete_fixed',
-    'quality_validation',
-    {
-        tier_filter: 'professional',
-        min_quality: 0.8
-    }
-);
-console.log(`Job ID: ${job.job_id}`);
+  'priority_complete_fixed',
+  'quality_validation',
+  {
+    tier_filter: 'professional',
+    min_quality: 0.8,
+  },
+)
+console.log(`Job ID: ${job.job_id}`)
 ```
 
 **Parameters:**
+
 - `datasetName` (string): Dataset to process
 - `processingType` (string): Type of processing
 - `parameters` (object): Processing parameters
@@ -517,11 +547,12 @@ console.log(`Job ID: ${job.job_id}`);
 Get the status of a processing job.
 
 ```javascript
-const status = await api.getJobStatus('job_20250817_010000');
-console.log(`Status: ${status.status} (${status.progress}%)`);
+const status = await api.getJobStatus('job_20250817_010000')
+console.log(`Status: ${status.status} (${status.progress}%)`)
 ```
 
 **Parameters:**
+
 - `jobId` (string): Unique job identifier
 
 **Returns:** Promise resolving to job status
@@ -532,13 +563,14 @@ Wait for a processing job to complete.
 
 ```javascript
 const finalStatus = await api.waitForJob('job_20250817_010000', {
-    pollInterval: 10,
-    timeout: 3600
-});
-console.log(`Job completed with status: ${finalStatus.status}`);
+  pollInterval: 10,
+  timeout: 3600,
+})
+console.log(`Job completed with status: ${finalStatus.status}`)
 ```
 
 **Parameters:**
+
 - `jobId` (string): Job identifier to wait for
 - `options` (object): Wait options
   - `pollInterval` (number): Seconds between status checks
@@ -553,17 +585,15 @@ console.log(`Job completed with status: ${finalStatus.status}`);
 Search conversations using advanced filters.
 
 ```javascript
-const results = await api.searchConversations(
-    'anxiety therapy techniques',
-    {
-        filters: { tier: 'professional', min_quality: 0.8 },
-        limit: 50
-    }
-);
-console.log(`Found ${results.total_matches} matching conversations`);
+const results = await api.searchConversations('anxiety therapy techniques', {
+  filters: { tier: 'professional', min_quality: 0.8 },
+  limit: 50,
+})
+console.log(`Found ${results.total_matches} matching conversations`)
 ```
 
 **Parameters:**
+
 - `query` (string): Search query string
 - `options` (object): Search options
   - `filters` (object): Search filters
@@ -579,9 +609,9 @@ console.log(`Found ${results.total_matches} matching conversations`);
 Get comprehensive statistics about the API and datasets.
 
 ```javascript
-const stats = await api.getStatisticsOverview();
-console.log(`Total conversations: ${stats.total_conversations}`);
-console.log(`API requests today: ${stats.api_usage.requests_today}`);
+const stats = await api.getStatisticsOverview()
+console.log(`Total conversations: ${stats.total_conversations}`)
+console.log(`API requests today: ${stats.api_usage.requests_today}`)
 ```
 
 **Returns:** Promise resolving to statistics overview
@@ -594,15 +624,16 @@ Export data in specified format.
 
 ```javascript
 const exportInfo = await api.exportData('professional_datasets_final', {
-    format: 'jsonl',
-    tier: 'professional',
-    minQuality: 0.8
-});
-console.log(`Export ID: ${exportInfo.export_id}`);
-console.log(`Download URL: ${exportInfo.download_url}`);
+  format: 'jsonl',
+  tier: 'professional',
+  minQuality: 0.8,
+})
+console.log(`Export ID: ${exportInfo.export_id}`)
+console.log(`Download URL: ${exportInfo.download_url}`)
 ```
 
 **Parameters:**
+
 - `dataset` (string): Dataset name to export
 - `options` (object): Export options
   - `format` (string): Export format
@@ -618,11 +649,11 @@ console.log(`Download URL: ${exportInfo.download_url}`);
 Check if the API is healthy.
 
 ```javascript
-const isHealthy = await api.healthCheck();
+const isHealthy = await api.healthCheck()
 if (isHealthy) {
-    console.log('API is healthy');
+  console.log('API is healthy')
 } else {
-    console.log('API is not responding');
+  console.log('API is not responding')
 }
 ```
 
@@ -657,21 +688,21 @@ except PixelatedEmpathyAPIError as e:
 ### JavaScript Error Handling
 
 ```javascript
-const { 
-    PixelatedEmpathyAPIError, 
-    RateLimitError 
-} = require('pixelated-empathy-api');
+const {
+  PixelatedEmpathyAPIError,
+  RateLimitError,
+} = require('pixelated-empathy-api')
 
 try {
-    const conversations = await api.getConversations({ tier: 'invalid_tier' });
+  const conversations = await api.getConversations({ tier: 'invalid_tier' })
 } catch (error) {
-    if (error instanceof RateLimitError) {
-        console.log(`Rate limited. Retry after ${error.retryAfter} seconds`);
-    } else if (error instanceof PixelatedEmpathyAPIError) {
-        console.log(`API error: ${error.message} (Code: ${error.errorCode})`);
-    } else {
-        console.log(`Unexpected error: ${error.message}`);
-    }
+  if (error instanceof RateLimitError) {
+    console.log(`Rate limited. Retry after ${error.retryAfter} seconds`)
+  } else if (error instanceof PixelatedEmpathyAPIError) {
+    console.log(`API error: ${error.message} (Code: ${error.errorCode})`)
+  } else {
+    console.log(`Unexpected error: ${error.message}`)
+  }
 }
 ```
 
@@ -709,7 +740,7 @@ class APIConfig:
     timeout: int = 30
     max_retries: int = 3
     log_level: str = "INFO"
-    
+
     @classmethod
     def from_file(cls, config_path: str):
         import json
@@ -727,19 +758,21 @@ api = PixelatedEmpathyAPI(config=config)
 ```javascript
 // config.js
 const config = {
-    apiKey: process.env.PIXELATED_EMPATHY_API_KEY,
-    baseUrl: process.env.PIXELATED_EMPATHY_BASE_URL || 'https://api.pixelatedempathy.com/v1',
-    timeout: parseInt(process.env.PIXELATED_EMPATHY_TIMEOUT) || 30000,
-    maxRetries: parseInt(process.env.PIXELATED_EMPATHY_MAX_RETRIES) || 3,
-    logLevel: process.env.PIXELATED_EMPATHY_LOG_LEVEL || 'INFO'
-};
+  apiKey: process.env.PIXELATED_EMPATHY_API_KEY,
+  baseUrl:
+    process.env.PIXELATED_EMPATHY_BASE_URL ||
+    'https://api.pixelatedempathy.com/v1',
+  timeout: parseInt(process.env.PIXELATED_EMPATHY_TIMEOUT) || 30000,
+  maxRetries: parseInt(process.env.PIXELATED_EMPATHY_MAX_RETRIES) || 3,
+  logLevel: process.env.PIXELATED_EMPATHY_LOG_LEVEL || 'INFO',
+}
 
 // Usage
 const api = new PixelatedEmpathyAPI(config.apiKey, {
-    baseUrl: config.baseUrl,
-    timeout: config.timeout,
-    maxRetries: config.maxRetries
-});
+  baseUrl: config.baseUrl,
+  timeout: config.timeout,
+  maxRetries: config.maxRetries,
+})
 ```
 
 ---
@@ -756,24 +789,24 @@ from urllib3.util.retry import Retry
 class CustomPixelatedEmpathyAPI(PixelatedEmpathyAPI):
     def __init__(self, api_key, **kwargs):
         super().__init__(api_key, **kwargs)
-        
+
         # Configure custom session
         self.session = requests.Session()
-        
+
         # Custom retry strategy
         retry_strategy = Retry(
             total=5,
             backoff_factor=2,
             status_forcelist=[429, 500, 502, 503, 504],
         )
-        
+
         # Custom adapter
         adapter = HTTPAdapter(
             max_retries=retry_strategy,
             pool_connections=20,
             pool_maxsize=50
         )
-        
+
         self.session.mount("http://", adapter)
         self.session.mount("https://", adapter)
 ```
@@ -782,36 +815,38 @@ class CustomPixelatedEmpathyAPI(PixelatedEmpathyAPI):
 
 ```javascript
 class MiddlewareAPI extends PixelatedEmpathyAPI {
-    constructor(apiKey, options = {}) {
-        super(apiKey, options);
-        this.middleware = [];
+  constructor(apiKey, options = {}) {
+    super(apiKey, options)
+    this.middleware = []
+  }
+
+  use(middleware) {
+    this.middleware.push(middleware)
+  }
+
+  async _makeRequest(method, endpoint, options = {}) {
+    // Apply middleware
+    for (const middleware of this.middleware) {
+      options = await middleware(method, endpoint, options)
     }
-    
-    use(middleware) {
-        this.middleware.push(middleware);
-    }
-    
-    async _makeRequest(method, endpoint, options = {}) {
-        // Apply middleware
-        for (const middleware of this.middleware) {
-            options = await middleware(method, endpoint, options);
-        }
-        
-        return super._makeRequest(method, endpoint, options);
-    }
+
+    return super._makeRequest(method, endpoint, options)
+  }
 }
 
 // Usage with logging middleware
-const api = new MiddlewareAPI('your_api_key');
+const api = new MiddlewareAPI('your_api_key')
 
 api.use(async (method, endpoint, options) => {
-    console.log(`Making ${method} request to ${endpoint}`);
-    return options;
-});
+  console.log(`Making ${method} request to ${endpoint}`)
+  return options
+})
 ```
 
 ---
 
-**For more examples and advanced usage patterns, see our [Developer Guide](README.md) and [User Guides](../user_guides/).**
+**For more examples and advanced usage patterns, see our
+[Developer Guide](README.md) and [User Guides](../user_guides/).**
 
-*This SDK reference is automatically generated from source code. Last updated: 2025-08-17*
+_This SDK reference is automatically generated from source code. Last updated:
+2025-08-17_

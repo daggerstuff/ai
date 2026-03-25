@@ -41,7 +41,7 @@
         "Implement regular access reviews",
         "Enhance multi-factor authentication coverage"
       ],
-      "assessment_time": 3.5762786865234375e-06
+      "assessment_time": 3.5762786865234375e-6
     },
     {
       "control_id": "ISO-A.9.2.1",
@@ -56,7 +56,7 @@
         "Implement regular access reviews",
         "Enhance multi-factor authentication coverage"
       ],
-      "assessment_time": 9.5367431640625e-07
+      "assessment_time": 9.5367431640625e-7
     },
     {
       "control_id": "ISO-A.12.6.1",
@@ -66,15 +66,13 @@
       "score": 92.0,
       "evidence_count": 4,
       "gaps_count": 1,
-      "gaps": [
-        "Vulnerability management process needs formalization"
-      ],
+      "gaps": ["Vulnerability management process needs formalization"],
       "recommendations": [
         "Formalize vulnerability management procedures",
         "Implement automated security scanning",
         "Establish security metrics and reporting"
       ],
-      "assessment_time": 2.6226043701171875e-06
+      "assessment_time": 2.6226043701171875e-6
     },
     {
       "control_id": "ISO-A.16.1.1",
@@ -93,7 +91,7 @@
         "Enhance incident communication procedures",
         "Implement incident metrics tracking"
       ],
-      "assessment_time": 2.6226043701171875e-06
+      "assessment_time": 2.6226043701171875e-6
     },
     {
       "control_id": "ISO-A.18.1.1",
@@ -112,7 +110,7 @@
         "Document data retention and deletion procedures",
         "Conduct regular data protection audits"
       ],
-      "assessment_time": 1.9073486328125e-06
+      "assessment_time": 1.9073486328125e-6
     },
     {
       "control_id": "SOC2-CC6.1",
@@ -131,7 +129,7 @@
         "Automate log monitoring and alerting",
         "Document log retention and archival procedures"
       ],
-      "assessment_time": 2.384185791015625e-06
+      "assessment_time": 2.384185791015625e-6
     },
     {
       "control_id": "SOC2-CC7.1",
@@ -141,15 +139,13 @@
       "score": 92.0,
       "evidence_count": 4,
       "gaps_count": 1,
-      "gaps": [
-        "Vulnerability management process needs formalization"
-      ],
+      "gaps": ["Vulnerability management process needs formalization"],
       "recommendations": [
         "Formalize vulnerability management procedures",
         "Implement automated security scanning",
         "Establish security metrics and reporting"
       ],
-      "assessment_time": 9.5367431640625e-07
+      "assessment_time": 9.5367431640625e-7
     },
     {
       "control_id": "SOC2-A1.1",
@@ -168,7 +164,7 @@
         "Validate recovery time and point objectives",
         "Implement automated backup and recovery"
       ],
-      "assessment_time": 3.337860107421875e-06
+      "assessment_time": 3.337860107421875e-6
     },
     {
       "control_id": "GDPR-Art.25",
@@ -178,15 +174,13 @@
       "score": 93.0,
       "evidence_count": 4,
       "gaps_count": 1,
-      "gaps": [
-        "Privacy impact assessment process needs formalization"
-      ],
+      "gaps": ["Privacy impact assessment process needs formalization"],
       "recommendations": [
         "Formalize privacy impact assessment procedures",
         "Implement privacy-enhancing technologies",
         "Conduct regular privacy audits"
       ],
-      "assessment_time": 2.384185791015625e-06
+      "assessment_time": 2.384185791015625e-6
     },
     {
       "control_id": "GDPR-Art.32",
@@ -205,7 +199,7 @@
         "Document data retention and deletion procedures",
         "Conduct regular data protection audits"
       ],
-      "assessment_time": 1.1920928955078125e-06
+      "assessment_time": 1.1920928955078125e-6
     },
     {
       "control_id": "GDPR-Art.33",
@@ -224,7 +218,7 @@
         "Enhance incident communication procedures",
         "Implement incident metrics tracking"
       ],
-      "assessment_time": 1.1920928955078125e-06
+      "assessment_time": 1.1920928955078125e-6
     },
     {
       "control_id": "GDPR-Art.35",
@@ -243,7 +237,7 @@
         "Implement continuous risk monitoring",
         "Establish risk appetite and tolerance levels"
       ],
-      "assessment_time": 2.1457672119140625e-06
+      "assessment_time": 2.1457672119140625e-6
     }
   ],
   "compliance_metrics": {

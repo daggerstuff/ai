@@ -1,0 +1,47 @@
+{
+  "type": "object",
+  "required": [
+    "manifest_version",
+    "generated_at",
+    "total_conversations",
+    "splits"
+  ],
+  "properties": {
+    "manifest_version": {
+      "type": "string"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "total_conversations": {
+      "type": "integer"
+    },
+    "total_tokens_approx": {
+      "type": "integer"
+    },
+    "splits": {
+      "type": "object",
+      "properties": {
+        "train": {
+          "type": "object"
+        },
+        "val": {
+          "type": "object"
+        },
+        "test": {
+          "type": "object"
+        }
+      }
+    },
+    "source_families": {
+      "type": "object"
+    },
+    "provenance_map": {
+      "type": "object"
+    },
+    "holdout_families": {
+      "type": "object"
+    }
+  }
+}

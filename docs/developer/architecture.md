@@ -1,6 +1,7 @@
 # Architecture Documentation: Pixelated Empathy AI
 
-**Comprehensive technical architecture documentation for developers and system architects.**
+**Comprehensive technical architecture documentation for developers and system
+architects.**
 
 ## Table of Contents
 
@@ -56,6 +57,7 @@
 ### Technology Stack
 
 #### Backend Services
+
 - **API Server**: FastAPI (Python 3.11+)
 - **Database**: PostgreSQL 15+ with FTS5 full-text search
 - **Cache**: Redis 7+ for session and data caching
@@ -63,12 +65,14 @@
 - **File Storage**: S3-compatible storage for exports and media
 
 #### Frontend & Client
+
 - **Web Dashboard**: React 18+ with TypeScript
 - **Mobile Apps**: React Native with TypeScript
 - **SDKs**: Python 3.8+ and Node.js 16+ client libraries
 - **CLI Tools**: Python-based command-line interface
 
 #### Infrastructure
+
 - **Container Platform**: Docker with Kubernetes orchestration
 - **Load Balancer**: NGINX with SSL termination
 - **Monitoring**: Prometheus + Grafana + ELK stack
@@ -86,27 +90,28 @@ class APIGateway:
     """
     Handles authentication, rate limiting, and request routing.
     """
-    
+
     def __init__(self):
         self.rate_limiter = RateLimiter()
         self.auth_service = AuthenticationService()
         self.load_balancer = LoadBalancer()
-    
+
     async def process_request(self, request):
         # 1. Authentication
         user = await self.auth_service.authenticate(request)
-        
+
         # 2. Rate limiting
         await self.rate_limiter.check_limits(user)
-        
+
         # 3. Request routing
         backend = self.load_balancer.select_backend()
-        
+
         # 4. Forward request
         return await backend.handle_request(request)
 ```
 
 #### Features
+
 - **JWT Authentication**: Stateless token-based authentication
 - **Rate Limiting**: Per-user and per-endpoint rate limits
 - **Load Balancing**: Round-robin and health-based routing
@@ -161,6 +166,7 @@ async def list_conversations(
 ```
 
 #### Key Components
+
 - **Route Handlers**: RESTful endpoint implementations
 - **Dependency Injection**: Database, authentication, and service dependencies
 - **Middleware**: CORS, authentication, logging, and error handling
@@ -187,24 +193,24 @@ def process_quality_validation(self, conversation_data):
     try:
         # Update task status
         self.update_state(state='PROGRESS', meta={'progress': 0})
-        
+
         # Load NLP models
         quality_validator = QualityValidator()
         self.update_state(state='PROGRESS', meta={'progress': 25})
-        
+
         # Validate conversation
         results = quality_validator.validate(conversation_data)
         self.update_state(state='PROGRESS', meta={'progress': 75})
-        
+
         # Store results
         store_validation_results(conversation_data['id'], results)
         self.update_state(state='PROGRESS', meta={'progress': 100})
-        
+
         return {
             'status': 'completed',
             'results': results
         }
-        
+
     except Exception as exc:
         self.update_state(
             state='FAILURE',
@@ -214,6 +220,7 @@ def process_quality_validation(self, conversation_data):
 ```
 
 #### Worker Types
+
 - **Quality Validation Workers**: NLP-based conversation assessment
 - **Export Workers**: Multi-format data export processing
 - **Analytics Workers**: Statistical analysis and reporting
@@ -236,7 +243,7 @@ CREATE TABLE conversations (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     metadata JSONB,
-    
+
     -- Indexes for performance
     INDEX idx_conversations_dataset (dataset_name),
     INDEX idx_conversations_tier (tier),
@@ -253,12 +260,12 @@ CREATE TABLE messages (
     sequence_number INTEGER NOT NULL,
     timestamp TIMESTAMP WITH TIME ZONE,
     metadata JSONB,
-    
+
     -- Full-text search index
     search_vector tsvector GENERATED ALWAYS AS (
         to_tsvector('english', content)
     ) STORED,
-    
+
     INDEX idx_messages_conversation (conversation_id),
     INDEX idx_messages_search USING GIN (search_vector)
 );
@@ -274,7 +281,7 @@ CREATE TABLE quality_metrics (
     overall_quality DECIMAL(4,3) NOT NULL,
     validation_timestamp TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     validation_version VARCHAR(20) NOT NULL,
-    
+
     INDEX idx_quality_therapeutic (therapeutic_accuracy),
     INDEX idx_quality_overall (overall_quality)
 );
@@ -325,7 +332,7 @@ CREATE TABLE processing_jobs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     started_at TIMESTAMP WITH TIME ZONE,
     completed_at TIMESTAMP WITH TIME ZONE,
-    
+
     INDEX idx_jobs_user (user_id),
     INDEX idx_jobs_status (status),
     INDEX idx_jobs_created (created_at)
@@ -357,26 +364,26 @@ class CacheManager:
         self.l1_cache = {}  # In-memory cache
         self.l2_cache = redis.Redis()  # Redis cache
         self.l3_cache = DatabaseConnection()  # Database
-    
+
     async def get(self, key):
         # L1: Check in-memory cache
         if key in self.l1_cache:
             return self.l1_cache[key]
-        
+
         # L2: Check Redis cache
         cached_value = await self.l2_cache.get(key)
         if cached_value:
             value = json.loads(cached_value)
             self.l1_cache[key] = value  # Populate L1
             return value
-        
+
         # L3: Fetch from database
         value = await self.l3_cache.fetch(key)
         if value:
             # Populate both cache levels
             self.l1_cache[key] = value
             await self.l2_cache.setex(key, 3600, json.dumps(value))
-        
+
         return value
 ```
 
@@ -397,15 +404,15 @@ class SecurityManager:
         self.secret_key = os.getenv("JWT_SECRET_KEY")
         self.algorithm = "HS256"
         self.access_token_expire_minutes = 30
-    
+
     def create_access_token(self, data: dict):
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(minutes=self.access_token_expire_minutes)
         to_encode.update({"exp": expire})
-        
+
         encoded_jwt = jwt.encode(to_encode, self.secret_key, algorithm=self.algorithm)
         return encoded_jwt
-    
+
     def verify_token(self, token: str):
         try:
             payload = jwt.decode(token, self.secret_key, algorithms=[self.algorithm])
@@ -415,10 +422,10 @@ class SecurityManager:
             return user_id
         except JWTError:
             raise HTTPException(status_code=401, detail="Invalid token")
-    
+
     def hash_password(self, password: str):
         return self.pwd_context.hash(password)
-    
+
     def verify_password(self, plain_password: str, hashed_password: str):
         return self.pwd_context.verify(plain_password, hashed_password)
 ```
@@ -457,26 +464,26 @@ class PrivacyManager:
             'ssn': r'\b\d{3}-\d{2}-\d{4}\b',
             'name': r'\b[A-Z][a-z]+ [A-Z][a-z]+\b'
         }
-    
+
     def anonymize_conversation(self, conversation):
         """Remove or mask PII from conversation data."""
-        
+
         anonymized = conversation.copy()
-        
+
         for message in anonymized['messages']:
             content = message['content']
-            
+
             # Replace PII with placeholders
             for pii_type, pattern in self.pii_patterns.items():
                 content = re.sub(pattern, f'<{pii_type.upper()}>', content)
-            
+
             message['content'] = content
-        
+
         return anonymized
-    
+
     def audit_data_access(self, user_id, resource_id, action):
         """Log data access for compliance auditing."""
-        
+
         audit_record = {
             'user_id': user_id,
             'resource_id': resource_id,
@@ -485,7 +492,7 @@ class PrivacyManager:
             'ip_address': request.client.host,
             'user_agent': request.headers.get('user-agent')
         }
-        
+
         # Store in secure audit log
         self.audit_logger.log(audit_record)
 ```
@@ -537,40 +544,40 @@ spec:
         app: pixelated-empathy-api
     spec:
       containers:
-      - name: api
-        image: pixelated-empathy/api:latest
-        ports:
-        - containerPort: 8000
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: database-secret
-              key: url
-        - name: REDIS_URL
-          valueFrom:
-            secretKeyRef:
-              name: redis-secret
-              key: url
-        resources:
-          requests:
-            memory: "512Mi"
-            cpu: "250m"
-          limits:
-            memory: "1Gi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 8000
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: api
+          image: pixelated-empathy/api:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: database-secret
+                  key: url
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: url
+          resources:
+            requests:
+              memory: '512Mi'
+              cpu: '250m'
+            limits:
+              memory: '1Gi'
+              cpu: '500m'
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 5
+            periodSeconds: 5
 
 ---
 # Load balancer service
@@ -582,9 +589,9 @@ spec:
   selector:
     app: pixelated-empathy-api
   ports:
-  - protocol: TCP
-    port: 80
-    targetPort: 8000
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
   type: LoadBalancer
 ```
 
@@ -615,30 +622,30 @@ resource "aws_eks_cluster" "pixelated_empathy" {
 # RDS PostgreSQL database
 resource "aws_db_instance" "main" {
   identifier = "pixelated-empathy-db"
-  
+
   engine         = "postgres"
   engine_version = "15.3"
   instance_class = "db.r6g.xlarge"
-  
+
   allocated_storage     = 100
   max_allocated_storage = 1000
   storage_type         = "gp3"
   storage_encrypted    = true
-  
+
   db_name  = "pixelated_empathy"
   username = var.db_username
   password = var.db_password
-  
+
   vpc_security_group_ids = [aws_security_group.database.id]
   db_subnet_group_name   = aws_db_subnet_group.main.name
-  
+
   backup_retention_period = 7
   backup_window          = "03:00-04:00"
   maintenance_window     = "sun:04:00-sun:05:00"
-  
+
   skip_final_snapshot = false
   final_snapshot_identifier = "pixelated-empathy-final-snapshot"
-  
+
   tags = {
     Name = "Pixelated Empathy Database"
   }
@@ -648,21 +655,21 @@ resource "aws_db_instance" "main" {
 resource "aws_elasticache_replication_group" "main" {
   replication_group_id       = "pixelated-empathy-redis"
   description                = "Redis cluster for Pixelated Empathy AI"
-  
+
   node_type                  = "cache.r6g.large"
   port                       = 6379
   parameter_group_name       = "default.redis7"
-  
+
   num_cache_clusters         = 2
   automatic_failover_enabled = true
   multi_az_enabled          = true
-  
+
   subnet_group_name = aws_elasticache_subnet_group.main.name
   security_group_ids = [aws_security_group.redis.id]
-  
+
   at_rest_encryption_enabled = true
   transit_encryption_enabled = true
-  
+
   tags = {
     Name = "Pixelated Empathy Redis"
   }
@@ -681,46 +688,46 @@ class AutoScaler:
     def __init__(self):
         self.metrics_collector = MetricsCollector()
         self.kubernetes_client = KubernetesClient()
-    
+
     async def check_scaling_conditions(self):
         """Check if scaling is needed based on metrics."""
-        
+
         metrics = await self.metrics_collector.get_current_metrics()
-        
+
         # CPU-based scaling
         if metrics['cpu_usage'] > 80:
             await self.scale_up('cpu_high')
         elif metrics['cpu_usage'] < 20:
             await self.scale_down('cpu_low')
-        
+
         # Memory-based scaling
         if metrics['memory_usage'] > 85:
             await self.scale_up('memory_high')
-        
+
         # Request queue-based scaling
         if metrics['queue_length'] > 100:
             await self.scale_up('queue_high')
         elif metrics['queue_length'] < 10:
             await self.scale_down('queue_low')
-    
+
     async def scale_up(self, reason):
         """Scale up the application."""
-        
+
         current_replicas = await self.kubernetes_client.get_replica_count()
         new_replicas = min(current_replicas + 2, 20)  # Max 20 replicas
-        
+
         await self.kubernetes_client.set_replica_count(new_replicas)
-        
+
         self.logger.info(f"Scaled up to {new_replicas} replicas. Reason: {reason}")
-    
+
     async def scale_down(self, reason):
         """Scale down the application."""
-        
+
         current_replicas = await self.kubernetes_client.get_replica_count()
         new_replicas = max(current_replicas - 1, 3)  # Min 3 replicas
-        
+
         await self.kubernetes_client.set_replica_count(new_replicas)
-        
+
         self.logger.info(f"Scaled down to {new_replicas} replicas. Reason: {reason}")
 ```
 
@@ -730,7 +737,7 @@ class AutoScaler:
 -- Performance optimization queries and indexes
 
 -- Conversation search optimization
-CREATE INDEX CONCURRENTLY idx_conversations_search 
+CREATE INDEX CONCURRENTLY idx_conversations_search
 ON conversations USING GIN (
     (
         setweight(to_tsvector('english', coalesce(metadata->>'title', '')), 'A') ||
@@ -739,8 +746,8 @@ ON conversations USING GIN (
 );
 
 -- Quality-based filtering optimization
-CREATE INDEX CONCURRENTLY idx_conversations_quality_tier 
-ON conversations (tier, quality_score DESC) 
+CREATE INDEX CONCURRENTLY idx_conversations_quality_tier
+ON conversations (tier, quality_score DESC)
 WHERE quality_score >= 0.7;
 
 -- Time-based partitioning for large datasets
@@ -752,7 +759,7 @@ FOR VALUES FROM ('2025-04-01') TO ('2025-07-01');
 
 -- Materialized view for analytics
 CREATE MATERIALIZED VIEW conversation_analytics AS
-SELECT 
+SELECT
     dataset_name,
     tier,
     DATE_TRUNC('day', created_at) as date,
@@ -785,7 +792,7 @@ class MonitoringSystem:
     def __init__(self):
         self.registry = CollectorRegistry()
         self.logger = structlog.get_logger()
-        
+
         # Metrics
         self.request_count = Counter(
             'api_requests_total',
@@ -793,46 +800,46 @@ class MonitoringSystem:
             ['method', 'endpoint', 'status_code'],
             registry=self.registry
         )
-        
+
         self.request_duration = Histogram(
             'api_request_duration_seconds',
             'API request duration',
             ['method', 'endpoint'],
             registry=self.registry
         )
-        
+
         self.active_connections = Gauge(
             'api_active_connections',
             'Number of active connections',
             registry=self.registry
         )
-        
+
         self.database_connections = Gauge(
             'database_connections_active',
             'Active database connections',
             registry=self.registry
         )
-        
+
         self.cache_hit_rate = Gauge(
             'cache_hit_rate',
             'Cache hit rate percentage',
             registry=self.registry
         )
-    
+
     def track_request(self, method, endpoint, status_code, duration):
         """Track API request metrics."""
-        
+
         self.request_count.labels(
             method=method,
             endpoint=endpoint,
             status_code=status_code
         ).inc()
-        
+
         self.request_duration.labels(
             method=method,
             endpoint=endpoint
         ).observe(duration)
-        
+
         # Structured logging
         self.logger.info(
             "api_request",
@@ -841,22 +848,22 @@ class MonitoringSystem:
             status_code=status_code,
             duration=duration
         )
-    
+
     def track_database_performance(self, query_type, duration, rows_affected):
         """Track database performance metrics."""
-        
+
         self.logger.info(
             "database_query",
             query_type=query_type,
             duration=duration,
             rows_affected=rows_affected
         )
-    
+
     def track_cache_performance(self, hit_rate):
         """Track cache performance."""
-        
+
         self.cache_hit_rate.set(hit_rate)
-        
+
         self.logger.info(
             "cache_performance",
             hit_rate=hit_rate
@@ -865,6 +872,10 @@ class MonitoringSystem:
 
 ---
 
-**This architecture documentation provides a comprehensive technical overview of the Pixelated Empathy AI system. For implementation details, see our [SDK Reference](sdk_reference.md) and [Integration Patterns](integration_patterns.md).**
+**This architecture documentation provides a comprehensive technical overview of
+the Pixelated Empathy AI system. For implementation details, see our
+[SDK Reference](sdk_reference.md) and
+[Integration Patterns](integration_patterns.md).**
 
-*Architecture documentation is updated with each major release. Last updated: 2025-08-17*
+_Architecture documentation is updated with each major release. Last updated:
+2025-08-17_

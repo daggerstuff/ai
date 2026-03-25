@@ -21,11 +21,7 @@
     },
     "automated_reporting": {
       "automated_reports_configured": true,
-      "report_types": [
-        "daily_report",
-        "weekly_report",
-        "monthly_report"
-      ],
+      "report_types": ["daily_report", "weekly_report", "monthly_report"],
       "sample_reports": {
         "daily_report": "/home/vivi/pixelated/ai/monitoring/reports/daily/daily_report_20250807_114753.txt",
         "weekly_report": "/home/vivi/pixelated/ai/monitoring/reports/weekly/weekly_report_20250807_114753.txt",
@@ -56,10 +52,7 @@
         "system_performance": "/home/vivi/pixelated/ai/monitoring/dashboards/alerts/check_system_performance.sh",
         "data_anomalies": "/home/vivi/pixelated/ai/monitoring/dashboards/alerts/check_data_anomalies.sh"
       },
-      "notification_channels": [
-        "email",
-        "slack"
-      ],
+      "notification_channels": ["email", "slack"],
       "status": "active"
     },
     "stakeholder_views": {
@@ -143,11 +136,7 @@
   "maintenance_schedule": {
     "daily_maintenance": {
       "time": "02:00",
-      "tasks": [
-        "cache_cleanup",
-        "log_rotation",
-        "backup_verification"
-      ],
+      "tasks": ["cache_cleanup", "log_rotation", "backup_verification"],
       "duration": "30_minutes"
     },
     "weekly_maintenance": {
@@ -163,11 +152,7 @@
     "monthly_maintenance": {
       "day": "first_sunday",
       "time": "01:00",
-      "tasks": [
-        "full_system_backup",
-        "capacity_planning",
-        "security_audit"
-      ],
+      "tasks": ["full_system_backup", "capacity_planning", "security_audit"],
       "duration": "4_hours"
     },
     "emergency_contacts": {

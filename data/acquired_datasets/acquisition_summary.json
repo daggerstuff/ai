@@ -1,0 +1,14 @@
+{
+  "total_datasets": 2,
+  "total_conversations": 3812,
+  "datasets": {
+    "cot_reasoning": {
+      "count": 300,
+      "source": "local_cot_datasets"
+    },
+    "mental_health_counseling": {
+      "count": 3512,
+      "source": "Amod/mental_health_counseling_conversations"
+    }
+  }
+}

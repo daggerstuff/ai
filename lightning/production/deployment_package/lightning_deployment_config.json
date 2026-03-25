@@ -1,0 +1,106 @@
+{
+  "lightning_app": {
+    "name": "therapeutic-ai-training",
+    "description": "H100 LoRA training for therapeutic conversation AI with intelligent multi-pattern dataset",
+    "compute": {
+      "type": "gpu-h100",
+      "count": 1,
+      "memory": "80GB"
+    }
+  },
+  "environment": {
+    "python_version": "3.11",
+    "requirements": [
+      "torch>=2.0.0",
+      "lightning>=2.1.0",
+      "transformers>=4.35.0",
+      "peft>=0.6.0",
+      "datasets>=2.14.0",
+      "accelerate>=0.24.0",
+      "bitsandbytes>=0.41.0"
+    ]
+  },
+  "training_config": {
+    "num_train_epochs": 3,
+    "learning_rate": 1e-5,
+    "per_device_train_batch_size": 2,
+    "per_device_eval_batch_size": 8,
+    "gradient_accumulation_steps": 32,
+    "max_grad_norm": 1.0,
+    "weight_decay": 0.01,
+    "warmup_steps": 500,
+    "optim": "adamw_8bit",
+    "lr_scheduler_type": "linear",
+    "max_seq_length": 512,
+    "gradient_checkpointing": true,
+    "bf16": true,
+    "fp16": false,
+    "save_steps": 100,
+    "logging_steps": 5,
+    "eval_steps": null,
+    "save_total_limit": 2,
+    "dataloader_num_workers": 0,
+    "dataloader_pin_memory": true
+  },
+  "model_config": {
+    "base_model": "microsoft/DialoGPT-medium",
+    "lora_r": 16,
+    "lora_alpha": 32,
+    "lora_dropout": 0.05
+  },
+  "data_config": {
+    "train_file": "train.json",
+    "validation_file": "validation.json",
+    "expert_files": {
+      "expert_therapeutic": "expert_therapeutic.json",
+      "expert_educational": "expert_educational.json",
+      "expert_empathetic": "expert_empathetic.json",
+      "expert_practical": "expert_practical.json"
+    },
+    "dataset_path": "/teamspace/studios/this_studio/data",
+    "validation_results": {
+      "dataset_ready": true,
+      "config_valid": true,
+      "files_present": [
+        "train.json",
+        "validation.json",
+        "expert_therapeutic.json",
+        "expert_educational.json",
+        "expert_empathetic.json",
+        "expert_practical.json",
+        "unified_lightning_config.json"
+      ],
+      "missing_files": [],
+      "total_conversations": 133878,
+      "expert_distribution": {
+        "therapeutic": 15115,
+        "educational": 15115,
+        "empathetic": 15115,
+        "practical": 15115
+      },
+      "quality_metrics": {
+        "total_sources": 7,
+        "total_files": 443,
+        "processed_conversations": 73418,
+        "high_quality": 60462,
+        "extracted_questions": 48369,
+        "contextual_questions": 12092
+      }
+    }
+  },
+  "deployment": {
+    "auto_scale": false,
+    "max_runtime_hours": 24,
+    "checkpoint_interval": 100,
+    "early_stopping": {
+      "patience": 3,
+      "monitor": "val_loss",
+      "mode": "min"
+    }
+  },
+  "monitoring": {
+    "wandb_project": "therapeutic-ai-training",
+    "log_level": "INFO",
+    "save_top_k": 3
+  }
+}

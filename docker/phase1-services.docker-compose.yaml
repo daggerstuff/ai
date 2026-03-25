@@ -6,7 +6,6 @@
 # - Jupyter for interactive development
 # - Prometheus for monitoring
 
-
 services:
   # PostgreSQL for therapeutic metadata and sessions
   postgres:
@@ -17,7 +16,7 @@ services:
       POSTGRES_USER: pixelated
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
     ports:
-      - "5432:5432"
+      - '5432:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -28,7 +27,7 @@ services:
     image: redis:7-alpine
     container_name: pixelated-redis
     ports:
-      - "6379:6379"
+      - '6379:6379'
     volumes:
       - redis_data:/data
     networks:
@@ -39,10 +38,10 @@ services:
     image: jupyter/datascience-notebook:latest
     container_name: pixelated-jupyter
     environment:
-      JUPYTER_ENABLE_LAB: "yes"
+      JUPYTER_ENABLE_LAB: 'yes'
       JUPYTER_TOKEN: ${JUPYTER_TOKEN:-pixelated}
     ports:
-      - "8888:8888"
+      - '8888:8888'
     volumes:
       - ./ai/notebooks:/home/jovyan/work
       - ./data:/home/jovyan/data
@@ -54,7 +53,7 @@ services:
     image: prom/prometheus:latest
     container_name: pixelated-prometheus
     ports:
-      - "9090:9090"
+      - '9090:9090'
     volumes:
       - ./monitoring/prometheus.yaml:/etc/prometheus/prometheus.yml
       - prometheus_data:/prometheus
@@ -66,7 +65,7 @@ services:
     image: grafana/grafana:latest
     container_name: pixelated-grafana
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
     volumes:
@@ -81,7 +80,6 @@ volumes:
   redis_data:
   prometheus_data:
   grafana_data:
-
 
 networks:
   therapeutic:

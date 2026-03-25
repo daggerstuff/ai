@@ -3,14 +3,14 @@
 **Project**: Academic Literature Search Interface  
 **Backend**: Academic Sourcing Module (Python)  
 **Frontend**: Astro + React (matching existing Pixelated Empathy theme)  
-**Date**: 2026-01-12
-**Status**: 🚧 **In Progress** (Phase 1 Started)
+**Date**: 2026-01-12 **Status**: 🚧 **In Progress** (Phase 1 Started)
 
 ---
 
 ## 🎯 Project Overview
 
-Create a beautiful, user-friendly web interface for the Academic Sourcing module that:
+Create a beautiful, user-friendly web interface for the Academic Sourcing module
+that:
 
 - Matches the existing Pixelated Empathy design system
 - Provides powerful search across 20+ academic sources
@@ -200,12 +200,12 @@ ai/sourcing/academic/api/
 
 ```typescript
 interface SearchState {
-  query: string;
-  filters: SearchFilters;
-  results: BookMetadata[];
-  loading: boolean;
-  error: string | null;
-  selectedSources: SourceType[];
+  query: string
+  filters: SearchFilters
+  results: BookMetadata[]
+  loading: boolean
+  error: string | null
+  selectedSources: SourceType[]
 }
 ```
 
@@ -353,29 +353,29 @@ async def export_results(
 // src/lib/api/research.ts
 
 export class ResearchAPI {
-  private baseURL = "/api";
+  private baseURL = '/api'
 
   async searchLiterature(params: SearchParams): Promise<SearchResponse> {
     const response = await fetch(
-      `${this.baseURL}/search?${new URLSearchParams(params)}`
-    );
-    return response.json();
+      `${this.baseURL}/search?${new URLSearchParams(params)}`,
+    )
+    return response.json()
   }
 
   async searchDatasets(params: DatasetParams): Promise<DatasetResponse> {
     const response = await fetch(
-      `${this.baseURL}/datasets?${new URLSearchParams(params)}`
-    );
-    return response.json();
+      `${this.baseURL}/datasets?${new URLSearchParams(params)}`,
+    )
+    return response.json()
   }
 
   async exportResults(results: BookMetadata[], format: string): Promise<Blob> {
     const response = await fetch(`${this.baseURL}/export`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ results, format }),
-    });
-    return response.blob();
+    })
+    return response.blob()
   }
 }
 ```
@@ -396,7 +396,7 @@ export class ResearchAPI {
 }
 
 .research-hero::before {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   background: radial-gradient(

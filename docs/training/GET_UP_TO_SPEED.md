@@ -2,7 +2,9 @@
 
 ## Project Context
 
-This project consolidates all training assets from 20+ AI directories into a unified `ai/training_ready/` structure for immediate training deployment. The system includes:
+This project consolidates all training assets from 20+ AI directories into a
+unified `ai/training_ready/` structure for immediate training deployment. The
+system includes:
 
 - **Asset Discovery**: Systematic exploration and cataloging
 - **Manifest Generation**: Complete inventory of 9,608 assets
@@ -12,6 +14,7 @@ This project consolidates all training assets from 20+ AI directories into a uni
 ## Current Status
 
 ### ✅ Completed
+
 - All 18 spec tasks implemented
 - Directory exploration (9,608 files cataloged)
 - Training manifest generated (4.2MB, all assets)
@@ -20,6 +23,7 @@ This project consolidates all training assets from 20+ AI directories into a uni
 - Dataset accessibility cataloging
 
 ### 🔄 In Progress
+
 - VPS migration with S3 storage
 - Direct HF/Kaggle → S3 downloads
 - Local-only dataset identification
@@ -27,20 +31,25 @@ This project consolidates all training assets from 20+ AI directories into a uni
 ## Key Files
 
 ### Core Scripts
+
 - `scripts/explore_directories.py` - Catalog all AI directories
 - `scripts/generate_manifest.py` - Generate TRAINING_MANIFEST.json
-- `scripts/catalog_local_only_datasets.py` - **NEW** Identify local vs remote datasets
+- `scripts/catalog_local_only_datasets.py` - **NEW** Identify local vs remote
+  datasets
 - `scripts/download_to_s3.py` - **NEW** Download remote datasets directly to S3
 - `scripts/prepare_training_data.py` - End-to-end data processing orchestration
 
 ### Data Processing Pipeline
+
 - `tools/data_preparation/source_datasets.py` - Source/download datasets
 - `tools/data_preparation/filter_and_clean.py` - Filter, clean, remove PII
 - `tools/data_preparation/format_for_training.py` - Convert to standard format
-- `pipelines/integrated/process_all_datasets.py` - Process through unified pipeline
+- `pipelines/integrated/process_all_datasets.py` - Process through unified
+  pipeline
 - `pipelines/integrated/assemble_final_dataset.py` - Assemble final datasets
 
 ### Documentation
+
 - `README.md` - Quick start and overview
 - `TRAINING_PLAN.md` - Comprehensive training strategy
 - `TRAINING_MANIFEST.json` - Complete asset inventory
@@ -50,12 +59,14 @@ This project consolidates all training assets from 20+ AI directories into a uni
 ## Architecture
 
 ### 4-Stage Training Architecture
+
 1. **Stage 1 (40%)**: Foundation & Rapport
 2. **Stage 2 (25%)**: Therapeutic Expertise & Reasoning
 3. **Stage 3 (20%)**: Edge Stress Test
 4. **Stage 4 (15%)**: Voice & Persona
 
 ### Data Flow
+
 ```
 Local Machine → Catalog → Identify Local vs Remote
                                     ↓
@@ -69,12 +80,14 @@ S3 → Process → Filter → Format → Assemble → Final Datasets
 ## Current Task: VPS Migration
 
 ### What We're Doing
+
 1. **Cataloging**: Identify which datasets are local-only vs remote-accessible
 2. **S3 Downloads**: Download remote datasets (HF/Kaggle/URL) directly to S3
 3. **Local Uploads**: Upload local-only datasets from local machine to S3
 4. **Migration**: Move all scripts and configs to VPS
 
 ### Why
+
 - Local connection is too slow for large uploads
 - Most datasets can be downloaded directly from source to S3
 - Only truly local-only datasets need manual upload
@@ -82,6 +95,7 @@ S3 → Process → Filter → Format → Assemble → Final Datasets
 ## Environment Setup
 
 ### Required Dependencies
+
 ```bash
 # Core ML
 torch torchvision torchaudio (CPU-only for local)
@@ -97,6 +111,7 @@ requests  # URL downloads
 ```
 
 ### Environment Variables
+
 ```bash
 # AWS/S3
 AWS_ACCESS_KEY_ID
@@ -113,6 +128,7 @@ HF_TOKEN
 ## Quick Commands
 
 ### Catalog Datasets
+
 ```bash
 python3 scripts/catalog_local_only_datasets.py
 # Output: scripts/output/dataset_accessibility_catalog.json
@@ -120,6 +136,7 @@ python3 scripts/catalog_local_only_datasets.py
 ```
 
 ### Download to S3
+
 ```bash
 python3 scripts/download_to_s3.py \
   --bucket $S3_BUCKET \
@@ -127,6 +144,7 @@ python3 scripts/download_to_s3.py \
 ```
 
 ### Process Data
+
 ```bash
 uv run python3 scripts/prepare_training_data.py --all
 ```
@@ -144,7 +162,8 @@ uv run python3 scripts/prepare_training_data.py --all
 
 ## Important Notes
 
-- **Local Connection**: Too slow for large uploads, so we're using direct HF/Kaggle → S3
+- **Local Connection**: Too slow for large uploads, so we're using direct
+  HF/Kaggle → S3
 - **CPU Torch**: Installed for local testing, VPS can use GPU version
 - **Manifest**: Contains all 9,608 assets with paths - will need S3 path updates
 - **Pipeline**: Designed to work with S3 paths once datasets are uploaded
@@ -156,5 +175,3 @@ uv run python3 scripts/prepare_training_data.py --all
 3. Kaggle API credentials location?
 4. VPS location and access method?
 5. Preferred S3 path structure?
-
-

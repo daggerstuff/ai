@@ -1,6 +1,7 @@
 # Getting Started with Pixelated Empathy AI
 
-**Welcome to Pixelated Empathy AI!** This guide will help you get started with our enterprise-grade conversational AI dataset and processing system.
+**Welcome to Pixelated Empathy AI!** This guide will help you get started with
+our enterprise-grade conversational AI dataset and processing system.
 
 ## Table of Contents
 
@@ -16,7 +17,9 @@
 
 ## Overview
 
-Pixelated Empathy AI provides access to **2.59 million high-quality therapeutic conversations** with advanced quality validation, real-time processing, and comprehensive analytics. Our system is designed for:
+Pixelated Empathy AI provides access to **2.59 million high-quality therapeutic
+conversations** with advanced quality validation, real-time processing, and
+comprehensive analytics. Our system is designed for:
 
 - **Researchers** studying conversational AI and mental health
 - **Developers** building empathy-aware applications
@@ -38,7 +41,8 @@ Pixelated Empathy AI provides access to **2.59 million high-quality therapeutic 
 
 ### Step 1: Register for an Account
 
-1. Visit [https://api.pixelatedempathy.com/register](https://api.pixelatedempathy.com/register)
+1. Visit
+   [https://api.pixelatedempathy.com/register](https://api.pixelatedempathy.com/register)
 2. Fill out the registration form with:
    - Your name and email address
    - Organization details
@@ -74,12 +78,14 @@ Pixelated Empathy AI provides access to **2.59 million high-quality therapeutic 
 Once you have your API key, test your access:
 
 #### Using cURL
+
 ```bash
 curl -H "Authorization: Bearer YOUR_API_KEY" \
      https://api.pixelatedempathy.com/v1/datasets
 ```
 
 #### Using Python
+
 ```python
 import requests
 
@@ -89,7 +95,7 @@ headers = {
 }
 
 response = requests.get(
-    'https://api.pixelatedempathy.com/v1/datasets', 
+    'https://api.pixelatedempathy.com/v1/datasets',
     headers=headers
 )
 
@@ -97,22 +103,23 @@ print(response.json())
 ```
 
 ### Expected Response
+
 ```json
 {
-    "success": true,
-    "data": {
-        "datasets": [
-            {
-                "name": "priority_complete_fixed",
-                "description": "Priority conversations with complete processing",
-                "conversations": 297917,
-                "quality_score": 0.624,
-                "tiers": ["basic", "standard", "professional"]
-            }
-        ],
-        "total": 3
-    },
-    "message": "Datasets retrieved successfully"
+  "success": true,
+  "data": {
+    "datasets": [
+      {
+        "name": "priority_complete_fixed",
+        "description": "Priority conversations with complete processing",
+        "conversations": 297917,
+        "quality_score": 0.624,
+        "tiers": ["basic", "standard", "professional"]
+      }
+    ],
+    "total": 3
+  },
+  "message": "Datasets retrieved successfully"
 }
 ```
 
@@ -146,7 +153,7 @@ Get a sample of conversations to understand the data structure:
 ```python
 # Get 5 professional-tier conversations
 conversations = api.get_conversations(
-    tier="professional", 
+    tier="professional",
     limit=5
 )
 
@@ -204,30 +211,35 @@ for result in results['results']:
 Our conversations are organized into 5 quality tiers based on real NLP analysis:
 
 ### **Research Tier** (Quality: 0.82+)
+
 - **Count**: 11,730 conversations
 - **Use Case**: Academic research, publication-quality studies
 - **Features**: Highest therapeutic accuracy, clinical compliance
 - **Access**: Requires research verification
 
 ### **Clinical Tier** (Quality: 0.80+)
+
 - **Count**: 33,739 conversations
 - **Use Case**: Clinical training, therapeutic applications
 - **Features**: DSM-5 compliant, professional therapeutic techniques
 - **Access**: Requires clinical credentials or institutional approval
 
 ### **Professional Tier** (Quality: 0.74+)
+
 - **Count**: 89,870 conversations
 - **Use Case**: Commercial applications, professional training
 - **Features**: High therapeutic accuracy, emotional authenticity
 - **Access**: Standard commercial license
 
 ### **Standard Tier** (Quality: 0.69+)
+
 - **Count**: 179,740 conversations
 - **Use Case**: General development, prototyping
 - **Features**: Good conversation coherence, basic therapeutic patterns
 - **Access**: Standard API access
 
 ### **Basic Tier** (Quality: 0.62+)
+
 - **Count**: 2,277,144 conversations
 - **Use Case**: Training data, bulk processing, experimentation
 - **Features**: Validated conversations, basic quality assurance
@@ -254,7 +266,9 @@ for tier, data in metrics['tier_metrics'].items():
 **Goal**: Train a therapeutic chatbot using high-quality conversations
 
 **Steps**:
-1. **Select appropriate tier**: Professional or Clinical for therapeutic applications
+
+1. **Select appropriate tier**: Professional or Clinical for therapeutic
+   applications
 2. **Filter by quality**: Set minimum quality threshold (e.g., 0.75)
 3. **Export training data**: Use OpenAI format for fine-tuning
 4. **Validate quality**: Use our quality validation API
@@ -278,6 +292,7 @@ print(f"Download URL: {export_info['download_url']}")
 **Goal**: Analyze conversation patterns for academic research
 
 **Steps**:
+
 1. **Access research tier**: Highest quality conversations
 2. **Search by topic**: Find conversations about specific conditions
 3. **Analyze quality metrics**: Study therapeutic effectiveness
@@ -306,6 +321,7 @@ export_info = api.export_data(
 **Goal**: Validate the quality of your own conversations
 
 **Steps**:
+
 1. **Prepare your conversation**: Format as required
 2. **Submit for validation**: Use quality validation API
 3. **Review results**: Analyze quality metrics and recommendations
@@ -336,6 +352,7 @@ for rec in validation['recommendations']:
 **Goal**: Process large amounts of conversation data
 
 **Steps**:
+
 1. **Submit processing job**: Specify dataset and processing type
 2. **Monitor progress**: Check job status regularly
 3. **Retrieve results**: Download processed data when complete
@@ -366,10 +383,12 @@ print(f"Results: {final_status['results']}")
 
 ### Explore Advanced Features
 
-1. **Read the API Documentation**: [Complete API Reference](../api/complete_api_documentation.md)
+1. **Read the API Documentation**:
+   [Complete API Reference](../api/complete_api_documentation.md)
 2. **Try the Interactive Docs**: Visit https://api.pixelatedempathy.com/docs
 3. **Join the Community**: Connect with other users on our Discord
-4. **Follow Best Practices**: Review our [Best Practices Guide](best_practices.md)
+4. **Follow Best Practices**: Review our
+   [Best Practices Guide](best_practices.md)
 
 ### Get Support
 
@@ -391,6 +410,7 @@ print(f"Results: {final_status['results']}")
 ## Quick Reference
 
 ### Essential API Endpoints
+
 - **List Datasets**: `GET /v1/datasets`
 - **Get Conversations**: `GET /v1/conversations`
 - **Search**: `POST /v1/search`
@@ -398,19 +418,22 @@ print(f"Results: {final_status['results']}")
 - **Export Data**: `POST /v1/export`
 
 ### Quality Tiers (by minimum score)
+
 - **Research**: 0.82+ (11,730 conversations)
-- **Clinical**: 0.80+ (33,739 conversations)  
+- **Clinical**: 0.80+ (33,739 conversations)
 - **Professional**: 0.74+ (89,870 conversations)
 - **Standard**: 0.69+ (179,740 conversations)
 - **Basic**: 0.62+ (2,277,144 conversations)
 
 ### Rate Limits
+
 - **Free Tier**: 100 requests/hour
 - **Research**: 1,000 requests/hour
 - **Commercial**: 10,000 requests/hour
 - **Enterprise**: Custom limits
 
 ### Export Formats
+
 - **JSONL**: Standard conversation format
 - **CSV**: Human-readable spreadsheet format
 - **Parquet**: Efficient data analysis format
@@ -419,6 +442,8 @@ print(f"Results: {final_status['results']}")
 
 ---
 
-**Ready to get started?** [Set up your account](https://api.pixelatedempathy.com/register) and begin exploring our 2.59 million therapeutic conversations today!
+**Ready to get started?**
+[Set up your account](https://api.pixelatedempathy.com/register) and begin
+exploring our 2.59 million therapeutic conversations today!
 
-*Need help? Contact us at api-support@pixelatedempathy.com*
+_Need help? Contact us at api-support@pixelatedempathy.com_

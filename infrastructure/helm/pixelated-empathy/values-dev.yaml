@@ -1,15 +1,15 @@
 # Development environment values
-environment: "development"
+environment: 'development'
 
 replicaCount: 1
 
 image:
-  tag: "dev-latest"
+  tag: 'dev-latest'
   pullPolicy: Always
 
 app:
   config:
-    logLevel: "DEBUG"
+    logLevel: 'DEBUG'
     debug: true
     maxWorkers: 2
     batchSize: 50

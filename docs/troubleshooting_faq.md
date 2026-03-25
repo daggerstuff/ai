@@ -27,23 +27,28 @@
 **Issue:** Virtual environment activation fails
 
 **Symptoms:**
+
 - Command not found
 - Permission denied
 - Path not found
 
 **Solutions:**
+
 - Ensure virtual environment exists: `python -m venv .venv`
-- Use correct activation command: `source .venv/bin/activate` (Linux/Mac) or `.venv\Scripts\activate` (Windows)
+- Use correct activation command: `source .venv/bin/activate` (Linux/Mac) or
+  `.venv\Scripts\activate` (Windows)
 - Check file permissions: `chmod +x .venv/bin/activate`
 - Verify Python installation: `python --version`
 
 **Issue:** UV command not found
 
 **Symptoms:**
+
 - uv: command not found
 - UV not installed
 
 **Solutions:**
+
 - Install UV: `pip install uv`
 - Use pip instead: `pip install -r requirements.txt`
 - Check PATH environment variable
@@ -52,16 +57,18 @@
 **Issue:** Dependencies installation fails
 
 **Symptoms:**
+
 - Package not found
 - Version conflicts
 - Build errors
 
 **Solutions:**
+
 - Update pip: `pip install --upgrade pip`
 - Clear pip cache: `pip cache purge`
-- Install system dependencies (Ubuntu): `sudo apt-get install python3-dev build-essential`
+- Install system dependencies (Ubuntu):
+  `sudo apt-get install python3-dev build-essential`
 - Use specific Python version: `python3.8 -m pip install`
-
 
 ### Verification Steps
 
@@ -115,11 +122,13 @@
 **Issue:** spaCy model download fails
 
 **Symptoms:**
+
 - Model not found
 - Download timeout
 - SSL errors
 
 **Solutions:**
+
 - Download manually: `python -m spacy download en_core_web_sm`
 - Use alternative model: `python -m spacy download en_core_web_md`
 - Check internet connection and proxy settings
@@ -128,12 +137,15 @@
 **Issue:** PyTorch installation issues
 
 **Symptoms:**
+
 - CUDA version mismatch
 - No GPU support
 - Import errors
 
 **Solutions:**
-- Install CPU version: `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu`
+
+- Install CPU version:
+  `pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu`
 - Check CUDA version: `nvidia-smi`
 - Install matching CUDA version from PyTorch website
 - Use conda for complex dependencies: `conda install pytorch`
@@ -141,16 +153,17 @@
 **Issue:** Database setup fails
 
 **Symptoms:**
+
 - SQLite errors
 - Permission denied
 - Database locked
 
 **Solutions:**
+
 - Check file permissions: `chmod 664 database/conversations.db`
 - Ensure directory exists: `mkdir -p database`
 - Close all database connections
 - Delete and recreate database if corrupted
-
 
 ## Data Processing Issues {#data_processing_issues}
 
@@ -159,11 +172,13 @@
 **Issue:** Dataset processing stops unexpectedly
 
 **Symptoms:**
+
 - Process terminates
 - Incomplete results
 - Error messages
 
 **Solutions:**
+
 - Check available memory: `free -h`
 - Monitor disk space: `df -h`
 - Review error logs in logs/ directory
@@ -173,11 +188,13 @@
 **Issue:** Quality validation takes too long
 
 **Symptoms:**
+
 - Slow processing
 - High CPU usage
 - Timeout errors
 
 **Solutions:**
+
 - Reduce quality validation complexity
 - Use parallel processing: increase worker count
 - Cache validation results
@@ -186,26 +203,29 @@
 **Issue:** File format not recognized
 
 **Symptoms:**
+
 - Format detection fails
 - Parsing errors
 - Empty results
 
 **Solutions:**
+
 - Check file extension and content
 - Verify file encoding: `file -i dataset.txt`
 - Convert to supported format (JSONL, JSON, CSV)
 - Check for BOM or special characters
-
 
 ### Data Quality Issues
 
 **Issue:** Low quality scores across dataset
 
 **Symptoms:**
+
 - All conversations below threshold
 - Quality validation fails
 
 **Solutions:**
+
 - Review quality thresholds in configuration
 - Check if quality validation is working correctly
 - Examine sample conversations manually
@@ -214,15 +234,16 @@
 **Issue:** Deduplication removes too many conversations
 
 **Symptoms:**
+
 - Significant reduction in dataset size
 - Similar conversations removed
 
 **Solutions:**
+
 - Adjust similarity threshold (default: 0.85)
 - Review deduplication algorithm settings
 - Check if conversations are actually duplicates
 - Disable deduplication for testing: `enable_deduplication=False`
-
 
 ## Quality Validation Problems {#quality_validation_problems}
 
@@ -231,11 +252,13 @@
 **Issue:** Quality validation fails to start
 
 **Symptoms:**
+
 - Import errors
 - Model loading fails
 - Configuration errors
 
 **Solutions:**
+
 - Install required models: `python -m spacy download en_core_web_sm`
 - Check transformers installation: `pip install transformers`
 - Verify configuration file format
@@ -244,15 +267,16 @@
 **Issue:** Inconsistent quality scores
 
 **Symptoms:**
+
 - Scores vary between runs
 - Unexpected quality ratings
 
 **Solutions:**
+
 - Set random seed for reproducibility
 - Check for non-deterministic operations
 - Verify input data consistency
 - Review quality metric weights
-
 
 ### Performance Optimization
 
@@ -273,17 +297,18 @@
 **Issue:** Out of memory errors
 
 **Symptoms:**
+
 - MemoryError
 - System becomes unresponsive
 - Process killed
 
 **Solutions:**
+
 - Reduce batch size: `batch_size=500`
 - Use streaming processing
 - Close unused applications
 - Add swap space: `sudo swapon /swapfile`
 - Process datasets separately
-
 
 ### Cpu Optimization
 
@@ -310,10 +335,12 @@
 **Issue:** API key not working
 
 **Symptoms:**
+
 - 401 Unauthorized
 - Invalid API key
 
 **Solutions:**
+
 - Verify API key format and validity
 - Check for extra spaces or characters
 - Regenerate API key if necessary
@@ -322,30 +349,32 @@
 **Issue:** Rate limit exceeded
 
 **Symptoms:**
+
 - 429 Too Many Requests
 - Rate limit headers
 
 **Solutions:**
+
 - Implement exponential backoff
 - Reduce request frequency
 - Upgrade to higher tier plan
 - Cache responses to reduce requests
-
 
 ### Connection Issues
 
 **Issue:** Connection timeout
 
 **Symptoms:**
+
 - Timeout errors
 - Connection refused
 
 **Solutions:**
+
 - Check internet connection
 - Verify API endpoint URL
 - Increase timeout values
 - Check firewall settings
-
 
 ## Export Format Issues {#export_format_issues}
 
@@ -356,30 +385,30 @@
 **Issue:** Invalid JSON in JSONL file
 
 **Solutions:**
+
 - Validate each line separately
 - Check for unescaped quotes
 - Verify UTF-8 encoding
-
 
 #### Parquet
 
 **Issue:** Schema mismatch errors
 
 **Solutions:**
+
 - Ensure consistent data types
 - Handle null values
 - Use schema evolution
-
 
 #### Csv
 
 **Issue:** Encoding issues with special characters
 
 **Solutions:**
+
 - Use UTF-8 encoding
 - Escape special characters
 - Use proper CSV quoting
-
 
 ## Database Problems {#database_problems}
 
@@ -388,10 +417,12 @@
 **Issue:** Database locked error
 
 **Symptoms:**
+
 - SQLite database is locked
 - Cannot write to database
 
 **Solutions:**
+
 - Close all database connections
 - Check for zombie processes: `ps aux | grep python`
 - Restart application
@@ -400,15 +431,16 @@
 **Issue:** Database corruption
 
 **Symptoms:**
+
 - Database disk image is malformed
 - Integrity check fails
 
 **Solutions:**
+
 - Run integrity check: `PRAGMA integrity_check`
 - Backup and restore database
 - Recreate database from processed data
 - Check disk space and file system
-
 
 ## Memory And Resource Issues {#memory_and_resource_issues}
 
@@ -438,46 +470,52 @@
 
 **Q:** What is the minimum system requirement?
 
-**A:** Python 3.8+, 8GB RAM, 100GB storage, and 4 CPU cores. For optimal performance, we recommend 32GB RAM and SSD storage.
+**A:** Python 3.8+, 8GB RAM, 100GB storage, and 4 CPU cores. For optimal
+performance, we recommend 32GB RAM and SSD storage.
 
 **Q:** How long does dataset processing take?
 
-**A:** Processing time varies by dataset size and system specs. Expect 1-2 hours for 100K conversations on recommended hardware.
+**A:** Processing time varies by dataset size and system specs. Expect 1-2 hours
+for 100K conversations on recommended hardware.
 
 **Q:** Can I use this for commercial purposes?
 
-**A:** The dataset requires a commercial license for commercial use. The software is MIT licensed and can be used commercially.
+**A:** The dataset requires a commercial license for commercial use. The
+software is MIT licensed and can be used commercially.
 
 **Q:** How accurate are the quality scores?
 
-**A:** Quality scores are based on real NLP analysis with >95% accuracy. They should be used as guidance, not absolute truth.
-
+**A:** Quality scores are based on real NLP analysis with >95% accuracy. They
+should be used as guidance, not absolute truth.
 
 ### Technical Questions
 
 **Q:** Why are some datasets returning 0 conversations?
 
-**A:** This usually indicates file format issues, corruption, or processing errors. Check logs and verify file integrity.
+**A:** This usually indicates file format issues, corruption, or processing
+errors. Check logs and verify file integrity.
 
 **Q:** How can I improve processing speed?
 
-**A:** Use SSD storage, increase batch size, enable parallel processing, and ensure adequate RAM.
+**A:** Use SSD storage, increase batch size, enable parallel processing, and
+ensure adequate RAM.
 
 **Q:** What export formats are supported?
 
-**A:** JSONL, Parquet, CSV, HuggingFace datasets, OpenAI format, PyTorch, and TensorFlow formats.
-
+**A:** JSONL, Parquet, CSV, HuggingFace datasets, OpenAI format, PyTorch, and
+TensorFlow formats.
 
 ### Usage Questions
 
 **Q:** How do I choose quality thresholds?
 
-**A:** Use 0.6+ for general use, 0.7+ for training, 0.8+ for production. Adjust based on your specific requirements.
+**A:** Use 0.6+ for general use, 0.7+ for training, 0.8+ for production. Adjust
+based on your specific requirements.
 
 **Q:** Can I add my own datasets?
 
-**A:** Yes, the system supports custom datasets in JSONL, JSON, or CSV format with proper conversation structure.
-
+**A:** Yes, the system supports custom datasets in JSONL, JSON, or CSV format
+with proper conversation structure.
 
 ## Error Codes Reference {#error_codes_reference}
 
@@ -581,4 +619,3 @@ licensing@pixelatedempathy.com
 #### Security Issues
 
 security@pixelatedempathy.com
-

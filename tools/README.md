@@ -13,7 +13,9 @@
 
 ## Last Updated
 
-{Path(__file__).stat().st_mtime}
+{Path(**file**).stat().st_mtime}
 
 ---
-*This directory is part of the AI folder reorganization for better project structure and maintainability.*
+
+_This directory is part of the AI folder reorganization for better project
+structure and maintainability._

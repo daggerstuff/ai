@@ -81,6 +81,7 @@ LABEL org.opencontainers.image.title="Pixelated Empathy AI" \
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
     PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH="/app" \
     BUILD_DATE="${BUILD_DATE}" \
     GIT_COMMIT="${GIT_COMMIT}" \
     GIT_BRANCH="${GIT_BRANCH}" \
@@ -93,23 +94,21 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/* \
     && apt-get clean
 
-# Non-root user created in base stage
+# OVH AI Training runs as UID 42420
+RUN groupadd -g 42420 ovhcloud && \
+    useradd -u 42420 -g 42420 -m -s /bin/bash ovhcloud
 
 # Create application directory
 WORKDIR /app
 
 # Copy virtual environment from deps stage
-COPY --from=deps --chown=ubuntu:ubuntu /app/.venv /app/.venv
+COPY --from=deps /app/.venv /app/.venv
 
 # Copy application code
 COPY --chown=ubuntu:ubuntu . .
 
-# Create necessary directories
-RUN mkdir -p /app/logs /app/data /app/tmp \
-    && chown -R ubuntu:ubuntu /app
-
-# Switch to non-root user
-USER ubuntu
+# Switch to OVH user
+USER 42420
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
@@ -118,8 +117,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # Expose port
 EXPOSE 8000
 
-# Default command
-CMD ["/app/.venv/bin/python", "-m", "api.main"]
+# Default command (assuming api.main is the entry point for other services)
+CMD ["python", "-m", "ai.api.main"]
 
 # Development override
 FROM development AS dev
@@ -129,4 +128,4 @@ RUN apt-get update && apt-get install -y \
     htop \
     && rm -rf /var/lib/apt/lists/*
 USER ubuntu
-CMD ["/app/.venv/bin/python", "-m", "api.main"]
+CMD ["python", "-m", "ai.api.main"]

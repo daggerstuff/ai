@@ -6,12 +6,19 @@ stages:
   - validate
   - test
   - build
+  - deploy
 
 variables:
   # Python and uv configuration
+<<<<<<< HEAD
+  PYTHON_VERSION: '3.11'
+  UV_VERSION: 'latest'
+  PIP_CACHE_DIR: '$CI_PROJECT_DIR/.cache/pip'
+=======
   PYTHON_VERSION: "3.13"
   UV_VERSION: "latest"
   PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+>>>>>>> 9ac3d7e897f1aa5901f5efb9c531e71f84b8215a
 
   # Container configuration
   CONTAINER_IMAGE: $CI_REGISTRY_IMAGE/ai:$CI_COMMIT_SHA
@@ -46,9 +53,11 @@ validate:python:
   stage: validate
   script:
     - echo "✅ Validating Python syntax and imports..."
-    - uv run python -m py_compile $(find . -name "*.py" -not -path "./.venv/*" -not -path "./.*")
+    - uv run python -m py_compile $(find . -name "*.py" -not -path "./.venv/*"
+      -not -path "./.*")
     - echo "✅ Checking pyproject.toml configuration..."
-    - uv run python -c "import tomllib; f = open('pyproject.toml', 'rb'); tomllib.load(f); f.close()"
+    - uv run python -c "import tomllib; f = open('pyproject.toml', 'rb');
+      tomllib.load(f); f.close()"
   only:
     - branches
     - merge_requests
@@ -107,7 +116,7 @@ build:docker:
   services:
     - docker:27-dind
   variables:
-    DOCKER_TLS_CERTDIR: ""
+    DOCKER_TLS_CERTDIR: ''
     DOCKER_HOST: tcp://docker:2375
   before_script:
     - echo "🔐 Logging in to GitLab Container Registry..."
@@ -128,6 +137,43 @@ build:docker:
     - main
     - tags
 
-
 # Note: Deployment is managed by the Azure Kubernetes deployment pipeline.
 # This GitLab pipeline handles validation, tests, and image build/publish only.
+# The following stages are preserved for reference or fallback.
+
+# Deploy to staging (manual trigger only)
+deploy:staging:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
+  script: |
+    echo "🚀 Deploying AI module to staging environment..."
+    echo "Container image: $CONTAINER_IMAGE"
+    echo "⚠️ Deployment logic not implemented yet"
+
+  environment:
+    name: 'staging'
+    url: 'https://staging.pixelatedempathy.com'
+  only:
+    - master
+    - main
+  when: manual
+
+# Deploy to production (manual trigger only)
+deploy:production:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache curl
+  script: |
+    echo "🚀 Deploying AI module to production environment..."
+    echo "Container image: $CONTAINER_IMAGE"
+    echo "⚠️ Deployment logic not implemented yet"
+
+  environment:
+    name: 'production'
+    url: 'https://pixelatedempathy.com'
+  only:
+    - tags
+  when: manual

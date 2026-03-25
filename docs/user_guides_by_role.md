@@ -19,17 +19,22 @@
 ## Content Creators & Writers
 
 ### Getting Started
-As a content creator, you can use Pixelated Empathy AI to generate authentic, emotionally resonant dialogue and scenarios for your creative projects.
+
+As a content creator, you can use Pixelated Empathy AI to generate authentic,
+emotionally resonant dialogue and scenarios for your creative projects.
 
 ### Key Features for Creators
+
 - **Character Development**: Create realistic emotional responses
 - **Dialogue Generation**: Generate natural, empathetic conversations
-- **Scenario Testing**: Explore how characters might react in different situations
+- **Scenario Testing**: Explore how characters might react in different
+  situations
 - **Emotional Authenticity**: Ensure your content resonates with audiences
 
 ### Practical Workflows
 
 #### 1. Character Dialogue Creation
+
 ```
 Prompt: "My character Sarah just found out her best friend has been lying to her for months. She's hurt but trying to stay composed. How would she respond when confronted?"
 
@@ -40,6 +45,7 @@ Context Settings:
 ```
 
 #### 2. Emotional Scene Development
+
 ```
 Prompt: "I need dialogue for a scene where a parent is trying to comfort their teenager after a breakup, but the teen is pushing them away."
 
@@ -50,6 +56,7 @@ Context Settings:
 ```
 
 #### 3. Conflict Resolution Scenes
+
 ```
 Prompt: "Two coworkers who were friends are now in conflict over a promotion. They need to have a difficult conversation. Show me how this might unfold."
 
@@ -60,16 +67,24 @@ Context Settings:
 ```
 
 ### Best Practices for Creators
-1. **Provide Rich Context**: Include character backgrounds, relationship dynamics, and emotional stakes
-2. **Iterate and Refine**: Generate multiple versions and combine the best elements
-3. **Test Emotional Authenticity**: Ask the AI to explain the emotional reasoning behind responses
-4. **Consider Your Audience**: Specify the target demographic for age-appropriate content
-5. **Maintain Character Consistency**: Reference previous interactions to maintain character voice
+
+1. **Provide Rich Context**: Include character backgrounds, relationship
+   dynamics, and emotional stakes
+2. **Iterate and Refine**: Generate multiple versions and combine the best
+   elements
+3. **Test Emotional Authenticity**: Ask the AI to explain the emotional
+   reasoning behind responses
+4. **Consider Your Audience**: Specify the target demographic for
+   age-appropriate content
+5. **Maintain Character Consistency**: Reference previous interactions to
+   maintain character voice
 
 ### Advanced Techniques
+
 - **Emotional Arc Development**: Map character emotional journeys across scenes
 - **Dialogue Style Matching**: Train the AI on your specific writing style
-- **Cultural Sensitivity**: Request culturally appropriate responses for diverse characters
+- **Cultural Sensitivity**: Request culturally appropriate responses for diverse
+  characters
 - **Genre-Specific Tone**: Adjust for comedy, drama, thriller, or other genres
 
 ---
@@ -77,9 +92,12 @@ Context Settings:
 ## Educators & Trainers
 
 ### Educational Applications
-Use Pixelated Empathy AI to create engaging learning experiences, develop emotional intelligence curricula, and provide personalized student support.
+
+Use Pixelated Empathy AI to create engaging learning experiences, develop
+emotional intelligence curricula, and provide personalized student support.
 
 ### Key Features for Educators
+
 - **Scenario-Based Learning**: Create realistic situations for skill practice
 - **Empathy Training**: Develop emotional intelligence exercises
 - **Personalized Support**: Provide individualized guidance to students
@@ -88,6 +106,7 @@ Use Pixelated Empathy AI to create engaging learning experiences, develop emotio
 ### Classroom Integration
 
 #### 1. Empathy Development Exercises
+
 ```
 Prompt: "Create a scenario where a student needs to understand a classmate's perspective who comes from a different cultural background."
 
@@ -99,6 +118,7 @@ Context Settings:
 ```
 
 #### 2. Conflict Resolution Training
+
 ```
 Prompt: "Design a peer mediation scenario for high school students dealing with social media drama."
 
@@ -110,6 +130,7 @@ Context Settings:
 ```
 
 #### 3. Communication Skills Practice
+
 ```
 Prompt: "Create a practice scenario for students learning to give constructive feedback to group project partners."
 
@@ -123,6 +144,7 @@ Context Settings:
 ### Curriculum Development
 
 #### Emotional Intelligence Modules
+
 1. **Self-Awareness**: Understanding personal emotions and triggers
 2. **Self-Regulation**: Managing emotional responses appropriately
 3. **Empathy**: Understanding others' perspectives and feelings
@@ -130,12 +152,15 @@ Context Settings:
 5. **Motivation**: Finding internal drive and resilience
 
 #### Assessment Strategies
-- **Scenario Response Analysis**: Evaluate student responses to emotional situations
+
+- **Scenario Response Analysis**: Evaluate student responses to emotional
+  situations
 - **Peer Interaction Observation**: Monitor real-world application of skills
 - **Reflection Journals**: Encourage self-assessment and growth tracking
 - **Role-Playing Exercises**: Practice skills in safe, controlled environments
 
 ### Best Practices for Educators
+
 1. **Age-Appropriate Content**: Always specify student age/grade level
 2. **Learning Objectives**: Clearly state what skills you're targeting
 3. **Cultural Sensitivity**: Ensure scenarios reflect diverse backgrounds
@@ -147,9 +172,12 @@ Context Settings:
 ## Researchers & Academics
 
 ### Research Applications
-Leverage Pixelated Empathy AI for studying conversational patterns, empathy modeling, human-AI interaction, and social psychology research.
+
+Leverage Pixelated Empathy AI for studying conversational patterns, empathy
+modeling, human-AI interaction, and social psychology research.
 
 ### Key Features for Researchers
+
 - **Data Generation**: Create consistent, controlled conversational data
 - **Hypothesis Testing**: Explore empathy models and communication theories
 - **Comparative Analysis**: Study different response patterns and approaches
@@ -158,6 +186,7 @@ Leverage Pixelated Empathy AI for studying conversational patterns, empathy mode
 ### Research Methodologies
 
 #### 1. Empathy Model Validation
+
 ```
 Research Question: "How does AI empathy compare to human empathy in crisis support scenarios?"
 
@@ -169,6 +198,7 @@ Methodology:
 ```
 
 #### 2. Communication Pattern Analysis
+
 ```
 Research Focus: "Gender differences in empathetic communication styles"
 
@@ -180,6 +210,7 @@ Approach:
 ```
 
 #### 3. Cross-Cultural Empathy Studies
+
 ```
 Research Objective: "Cultural variations in empathetic response patterns"
 
@@ -191,6 +222,7 @@ Design:
 ```
 
 ### Data Collection Best Practices
+
 1. **Standardized Prompts**: Use consistent input formats for comparable results
 2. **Control Variables**: Maintain consistent context settings across trials
 3. **Sample Size**: Generate sufficient data for statistical significance
@@ -198,19 +230,24 @@ Design:
 5. **Ethical Considerations**: Follow institutional review board guidelines
 
 ### Analysis Frameworks
+
 - **Empathy Measurement**: Develop quantitative empathy scoring systems
 - **Linguistic Analysis**: Examine word choice, tone, and structure patterns
 - **Effectiveness Metrics**: Measure response helpfulness and appropriateness
-- **Comparative Studies**: Benchmark against human responses and other AI systems
+- **Comparative Studies**: Benchmark against human responses and other AI
+  systems
 
 ---
 
 ## Mental Health Professionals
 
 ### Professional Applications
-**Important Note**: Pixelated Empathy AI is a supplementary tool and should never replace professional clinical judgment or direct patient care.
+
+**Important Note**: Pixelated Empathy AI is a supplementary tool and should
+never replace professional clinical judgment or direct patient care.
 
 ### Appropriate Use Cases
+
 - **Training Scenarios**: Practice difficult conversations in safe environments
 - **Educational Materials**: Create client education resources
 - **Supervision Tools**: Generate discussion scenarios for training
@@ -219,6 +256,7 @@ Design:
 ### Training Applications
 
 #### 1. Difficult Conversation Practice
+
 ```
 Scenario: "Practice responding to a client who expresses suicidal ideation for the first time."
 
@@ -230,6 +268,7 @@ Training Focus:
 ```
 
 #### 2. Cultural Competency Training
+
 ```
 Scenario: "Navigate cultural differences in expressing mental health concerns with clients from different backgrounds."
 
@@ -241,6 +280,7 @@ Training Elements:
 ```
 
 #### 3. Supervision Scenario Development
+
 ```
 Purpose: "Create realistic case scenarios for supervision discussions."
 
@@ -252,6 +292,7 @@ Applications:
 ```
 
 ### Ethical Guidelines
+
 1. **Never Replace Clinical Judgment**: AI is a tool, not a clinician
 2. **Maintain Confidentiality**: Don't input real client information
 3. **Professional Boundaries**: Use only for training and education
@@ -259,6 +300,7 @@ Applications:
 5. **Continuing Education**: Stay updated on AI ethics in mental health
 
 ### Professional Development
+
 - **Communication Skills**: Refine empathetic response techniques
 - **Cultural Competency**: Explore diverse perspectives and approaches
 - **Ethical Reasoning**: Practice navigating complex professional situations
@@ -269,9 +311,12 @@ Applications:
 ## Game Developers
 
 ### Game Development Applications
-Integrate empathetic AI to create more engaging, emotionally intelligent gaming experiences.
+
+Integrate empathetic AI to create more engaging, emotionally intelligent gaming
+experiences.
 
 ### Key Features for Developers
+
 - **NPC Dialogue**: Generate contextually appropriate character responses
 - **Player Support Systems**: Create in-game emotional support features
 - **Narrative Branching**: Develop complex, emotionally-driven storylines
@@ -280,6 +325,7 @@ Integrate empathetic AI to create more engaging, emotionally intelligent gaming 
 ### Implementation Strategies
 
 #### 1. Empathetic NPCs
+
 ```
 Character Design: "Create an NPC shopkeeper who responds empathetically to player emotional states."
 
@@ -291,6 +337,7 @@ Implementation:
 ```
 
 #### 2. Player Support Systems
+
 ```
 Feature: "In-game counselor NPC for players experiencing frustration or toxicity."
 
@@ -302,6 +349,7 @@ Mechanics:
 ```
 
 #### 3. Narrative Emotional Intelligence
+
 ```
 Story Element: "Branching dialogue that responds to player emotional choices."
 
@@ -313,6 +361,7 @@ Design:
 ```
 
 ### Technical Integration
+
 1. **API Integration**: Connect game systems to Pixelated Empathy API
 2. **Response Caching**: Store common responses for performance
 3. **Context Management**: Maintain conversation history and player state
@@ -320,6 +369,7 @@ Design:
 5. **Performance Optimization**: Balance AI quality with game performance
 
 ### Player Experience Design
+
 - **Emotional Engagement**: Create deeper player-character connections
 - **Conflict Resolution**: Help players navigate social challenges
 - **Community Building**: Foster positive player interactions
@@ -330,9 +380,12 @@ Design:
 ## Business Professionals
 
 ### Professional Applications
-Enhance workplace communication, team dynamics, and customer relations using empathetic AI insights.
+
+Enhance workplace communication, team dynamics, and customer relations using
+empathetic AI insights.
 
 ### Key Features for Business
+
 - **Communication Training**: Improve interpersonal skills
 - **Conflict Resolution**: Navigate workplace disagreements
 - **Customer Service**: Enhance client interaction quality
@@ -341,6 +394,7 @@ Enhance workplace communication, team dynamics, and customer relations using emp
 ### Workplace Scenarios
 
 #### 1. Difficult Conversations
+
 ```
 Scenario: "Providing constructive feedback to an underperforming team member."
 
@@ -352,6 +406,7 @@ Context:
 ```
 
 #### 2. Customer Service Excellence
+
 ```
 Application: "Responding to frustrated customers with empathy while maintaining boundaries."
 
@@ -363,6 +418,7 @@ Skills Development:
 ```
 
 #### 3. Team Conflict Resolution
+
 ```
 Situation: "Mediating between team members with different working styles."
 
@@ -374,12 +430,14 @@ Focus Areas:
 ```
 
 ### Leadership Development
+
 - **Emotional Intelligence**: Develop empathetic leadership skills
 - **Communication Mastery**: Improve team communication effectiveness
 - **Change Management**: Navigate organizational transitions with empathy
 - **Inclusive Leadership**: Create supportive environments for diverse teams
 
 ### Best Practices for Business Use
+
 1. **Professional Context**: Always specify workplace setting and relationships
 2. **Outcome Focus**: Clearly state desired business outcomes
 3. **Cultural Awareness**: Consider organizational culture and values
@@ -391,9 +449,12 @@ Focus Areas:
 ## Students & Learners
 
 ### Learning Applications
-Use Pixelated Empathy AI to develop emotional intelligence, improve communication skills, and enhance academic and personal growth.
+
+Use Pixelated Empathy AI to develop emotional intelligence, improve
+communication skills, and enhance academic and personal growth.
 
 ### Key Features for Students
+
 - **Study Support**: Get encouragement and motivation
 - **Social Skills**: Practice interpersonal communication
 - **Stress Management**: Learn coping strategies
@@ -402,6 +463,7 @@ Use Pixelated Empathy AI to develop emotional intelligence, improve communicatio
 ### Academic Support
 
 #### 1. Study Motivation
+
 ```
 Situation: "I'm struggling to stay motivated with my coursework and feeling overwhelmed."
 
@@ -413,6 +475,7 @@ Support Type:
 ```
 
 #### 2. Social Skill Development
+
 ```
 Practice Scenario: "How to approach a professor about extending a deadline."
 
@@ -424,6 +487,7 @@ Learning Goals:
 ```
 
 #### 3. Peer Relationship Navigation
+
 ```
 Challenge: "Dealing with group project conflicts and different work styles."
 
@@ -435,12 +499,14 @@ Skills Practice:
 ```
 
 ### Personal Development
+
 - **Self-Awareness**: Understand personal strengths and challenges
 - **Emotional Regulation**: Learn healthy coping mechanisms
 - **Empathy Building**: Develop understanding of others' perspectives
 - **Communication Skills**: Improve interpersonal effectiveness
 
 ### Academic Success Strategies
+
 1. **Regular Check-ins**: Use AI for ongoing motivation and support
 2. **Skill Practice**: Rehearse difficult conversations before they happen
 3. **Stress Management**: Develop healthy coping mechanisms
@@ -452,9 +518,12 @@ Skills Practice:
 ## Community Managers
 
 ### Community Management Applications
-Build and maintain positive, empathetic online communities using AI-powered insights and support tools.
+
+Build and maintain positive, empathetic online communities using AI-powered
+insights and support tools.
 
 ### Key Features for Community Managers
+
 - **Conflict Mediation**: Navigate community disputes effectively
 - **Supportive Responses**: Craft empathetic community communications
 - **Crisis Management**: Handle sensitive community situations
@@ -463,6 +532,7 @@ Build and maintain positive, empathetic online communities using AI-powered insi
 ### Community Scenarios
 
 #### 1. Conflict Resolution
+
 ```
 Situation: "Two community members are having a heated disagreement in public channels."
 
@@ -474,6 +544,7 @@ Management Approach:
 ```
 
 #### 2. Crisis Support
+
 ```
 Challenge: "Community member shares personal crisis in public forum."
 
@@ -485,6 +556,7 @@ Response Strategy:
 ```
 
 #### 3. Inclusive Environment Building
+
 ```
 Goal: "Creating welcoming spaces for diverse community members."
 
@@ -496,6 +568,7 @@ Implementation:
 ```
 
 ### Community Health Strategies
+
 - **Proactive Engagement**: Foster positive interactions before problems arise
 - **Clear Guidelines**: Establish and communicate community standards
 - **Consistent Enforcement**: Apply rules fairly and empathetically
@@ -503,31 +576,40 @@ Implementation:
 - **Continuous Improvement**: Regularly assess and improve community dynamics
 
 ### Best Practices for Community Management
+
 1. **Transparency**: Be open about AI assistance in community management
 2. **Human Oversight**: Always maintain human judgment in final decisions
 3. **Cultural Sensitivity**: Consider diverse community member backgrounds
 4. **Privacy Protection**: Respect member confidentiality and boundaries
-5. **Professional Development**: Continuously improve empathetic leadership skills
+5. **Professional Development**: Continuously improve empathetic leadership
+   skills
 
 ---
 
 ## Getting Started with Your Role
 
 ### Next Steps
-1. **Identify Your Primary Use Case**: Choose the role guide most relevant to you
-2. **Start with Simple Scenarios**: Begin with basic applications before advancing
-3. **Practice Regularly**: Consistent use improves both your skills and AI personalization
+
+1. **Identify Your Primary Use Case**: Choose the role guide most relevant to
+   you
+2. **Start with Simple Scenarios**: Begin with basic applications before
+   advancing
+3. **Practice Regularly**: Consistent use improves both your skills and AI
+   personalization
 4. **Join the Community**: Connect with other users in similar roles
 5. **Provide Feedback**: Help improve the system for your specific use case
 
 ### Additional Resources
+
 - **Role-Specific Tutorials**: Video guides for each professional application
 - **Best Practice Sharing**: Community forums for tips and strategies
 - **Advanced Training**: Specialized workshops for professional development
 - **Custom Integration**: Enterprise solutions for organizational implementation
 
 ### Support for Your Role
+
 Each role has dedicated support resources:
+
 - **Specialized Documentation**: Detailed guides for your specific use case
 - **Community Groups**: Connect with peers in similar roles
 - **Expert Consultation**: Access to specialists in your field
@@ -535,7 +617,9 @@ Each role has dedicated support resources:
 
 ---
 
-*This role-specific guide is regularly updated based on user feedback and emerging best practices. For the latest version and role-specific updates, visit our documentation portal.*
+_This role-specific guide is regularly updated based on user feedback and
+emerging best practices. For the latest version and role-specific updates, visit
+our documentation portal._
 
 **Document Version**: 1.0.0  
 **Last Updated**: 2025-08-13  

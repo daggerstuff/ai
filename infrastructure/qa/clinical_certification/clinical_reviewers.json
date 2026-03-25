@@ -12,9 +12,7 @@
       "Digital Mental Health"
     ],
     "years_experience": 15,
-    "board_certifications": [
-      "ABPP Clinical Psychology"
-    ],
+    "board_certifications": ["ABPP Clinical Psychology"],
     "contact_email": "s.johnson@clinicalreview.com",
     "signature_date": null
   },
@@ -31,10 +29,7 @@
       "Risk Assessment"
     ],
     "years_experience": 20,
-    "board_certifications": [
-      "ABPN Psychiatry",
-      "ABPN Emergency Psychiatry"
-    ],
+    "board_certifications": ["ABPN Psychiatry", "ABPN Emergency Psychiatry"],
     "contact_email": "m.chen@medicalreview.com",
     "signature_date": null
   },
@@ -51,10 +46,7 @@
       "Cultural Competency"
     ],
     "years_experience": 12,
-    "board_certifications": [
-      "ACSW",
-      "BCD"
-    ],
+    "board_certifications": ["ACSW", "BCD"],
     "contact_email": "l.rodriguez@socialwork.com",
     "signature_date": null
   }

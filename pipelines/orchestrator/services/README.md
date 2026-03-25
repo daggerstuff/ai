@@ -1,10 +1,13 @@
 # Provenance Service
 
-Service layer for managing dataset provenance metadata in the Dataset Expansion project.
+Service layer for managing dataset provenance metadata in the Dataset Expansion
+project.
 
 ## Overview
 
-The Provenance Service provides complete provenance tracking for all datasets, including:
+The Provenance Service provides complete provenance tracking for all datasets,
+including:
+
 - Source information and acquisition details
 - License and usage rights tracking
 - Complete processing lineage
@@ -21,7 +24,8 @@ The Provenance Service provides complete provenance tracking for all datasets, i
 
 ### Schema
 
-- **`../schemas/provenance_schema.py`**: Python dataclasses for provenance data models
+- **`../schemas/provenance_schema.py`**: Python dataclasses for provenance data
+  models
 - **`../../docs/governance/provenance_schema.json`**: JSON schema definition
 - **`../../db/provenance_schema.sql`**: Database schema migration
 
@@ -103,7 +107,7 @@ async with ProvenanceTracker(dataset_id, dataset_name) as tracker:
         input_count=0,
         output_count=1000,
     )
-    
+
     await tracker.track_stage(
         stage_name="quality_scoring",
         transformation_type="quality_scoring",
@@ -152,17 +156,20 @@ See `db/provenance_schema.sql` for complete schema definition.
 ## S3 Storage
 
 Provenance documents are automatically stored to S3 at:
+
 ```
 s3://{bucket}/provenance/{dataset_id}/v{timestamp}/provenance.json
 ```
 
 Configure via environment variables:
+
 - `S3_BUCKET`: Bucket name (default: "pixelated-datasets")
 - `S3_REGION`: AWS region (default: "us-east-1")
 
 ## Configuration
 
 Environment variables:
+
 - `DATABASE_URL` or `SUPABASE_DB_URL`: PostgreSQL connection string
 - `S3_BUCKET`: S3 bucket for file storage
 - `S3_REGION`: AWS region

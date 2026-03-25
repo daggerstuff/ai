@@ -1,6 +1,7 @@
 # VPS Dataset Acquisition - Usage Guide
 
-The `vps_dataset_acquisition.sh` script is designed to run independently on the VPS without requiring a persistent SSH connection from your local machine.
+The `vps_dataset_acquisition.sh` script is designed to run independently on the
+VPS without requiring a persistent SSH connection from your local machine.
 
 ## Quick Start
 
@@ -15,6 +16,7 @@ ssh -i ~/.ssh/planet vivi@146.71.78.184 "mkdir -p ~/pixelated-datasets && cd ~/p
 ```
 
 This will:
+
 - Start the script in the background
 - Continue running even if you disconnect
 - Redirect all output to `download_nohup.out`
@@ -140,7 +142,8 @@ ssh -i ~/.ssh/planet vivi@146.71.78.184 "cat ~/pixelated-datasets/download.statu
 
 ### Re-run after failure
 
-The script is idempotent - you can run it again and it will skip already-downloaded datasets.
+The script is idempotent - you can run it again and it will skip
+already-downloaded datasets.
 
 ### View full logs
 
@@ -151,7 +154,7 @@ ssh -i ~/.ssh/planet vivi@146.71.78.184 "cat ~/pixelated-datasets/download.log"
 ## Next Steps
 
 After downloads complete:
+
 1. Check `~/pixelated-datasets/inventory/VPS_INVENTORY.json` for manifest
 2. Run transfer script to upload missing local data
 3. Run upload script to push everything to OVH S3
-

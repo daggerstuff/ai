@@ -1,8 +1,10 @@
 # Academic Sourcing Module
 
-> **Comprehensive academic literature and dataset sourcing for psychology and therapy research**
+> **Comprehensive academic literature and dataset sourcing for psychology and
+> therapy research**
 
-**Status**: ✅ Production Ready | **Version**: 2.0 | **Last Updated**: 2026-01-12
+**Status**: ✅ Production Ready | **Version**: 2.0 | **Last Updated**:
+2026-01-12
 
 ---
 
@@ -72,7 +74,8 @@ export CORE_API_KEY="your-key"
 export HUGGINGFACE_TOKEN="your-token"
 ```
 
-**Note**: Most sources work without API keys, but keys improve rate limits and access.
+**Note**: Most sources work without API keys, but keys improve rate limits and
+access.
 
 ### Frontend Configuration
 
@@ -224,7 +227,8 @@ ai/sourcing/academic/
 
 ## 🖥️ Frontend Interface
 
-The module now includes a modern, responsive web interface for searching and research.
+The module now includes a modern, responsive web interface for searching and
+research.
 
 ### Literature Search (`/research`)
 
@@ -239,7 +243,8 @@ The module now includes a modern, responsive web interface for searching and res
 ### Dataset Discovery (`/research/datasets`)
 
 - **Therapeutic Focus**: Specialized search for therapy conversation datasets.
-- **Quality Metrics**: Filter by conversation quality, turn count, and therapeutic relevance.
+- **Quality Metrics**: Filter by conversation quality, turn count, and
+  therapeutic relevance.
 - **Direct Access**: Preview and link directly to HuggingFace datasets.
 
 ---
@@ -290,7 +295,8 @@ uv run python -m pytest ai/sourcing/academic/tests/ -v
 
 ## 📖 Additional Documentation
 
-- **[THERAPY_DATASET_GUIDE.md](./THERAPY_DATASET_GUIDE.md)** - Comprehensive guide for therapy dataset sourcing
+- **[THERAPY_DATASET_GUIDE.md](./THERAPY_DATASET_GUIDE.md)** - Comprehensive
+  guide for therapy dataset sourcing
 - **Demo Script**: `demo_therapy_sourcing.py` - Working examples
 
 ---

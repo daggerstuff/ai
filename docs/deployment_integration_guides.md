@@ -37,44 +37,34 @@ Get Pixelated Empathy AI running in under 10 minutes
 
 - **Step**: 1
 - **Title**: Clone Repository
-- **Description**: Clone the Pixelated Empathy AI repository
-**Commands:**
+- **Description**: Clone the Pixelated Empathy AI repository **Commands:**
 - git clone https://github.com/pixelated-empathy/ai.git
 - cd ai
-
 
 - **Step**: 2
 - **Title**: Setup Environment
 - **Description**: Create virtual environment and install dependencies
-**Commands:**
+  **Commands:**
 - python -m venv .venv
-- source .venv/bin/activate  # Linux/Mac
-- # .venv\Scripts\activate  # Windows
+- source .venv/bin/activate # Linux/Mac
+- # .venv\Scripts\activate # Windows
 - pip install uv
 - uv sync
 
-
 - **Step**: 3
 - **Title**: Initialize Database
-- **Description**: Set up the conversation database
-**Commands:**
+- **Description**: Set up the conversation database **Commands:**
 - python database/conversation_database.py
-
 
 - **Step**: 4
 - **Title**: Run Basic Processing
-- **Description**: Test the system with sample data
-**Commands:**
+- **Description**: Test the system with sample data **Commands:**
 - python production_deployment/production_orchestrator.py --sample
-
 
 - **Step**: 5
 - **Title**: Verify Installation
-- **Description**: Run tests to verify everything works
-**Commands:**
+- **Description**: Run tests to verify everything works **Commands:**
 - python -m pytest tests/ -v
-
-
 
 ### Verification
 
@@ -126,30 +116,23 @@ VS Code with Python extension
 
 ### Setup Steps
 
-- **Category**: Environment Setup
-**Steps:**
+- **Category**: Environment Setup **Steps:**
 - Install Python 3.9+: `sudo apt install python3.9 python3.9-venv`
 - Install Git: `sudo apt install git`
 - Install UV: `pip install uv`
 - Clone repository: `git clone [repository-url]`
 
-
-- **Category**: Dependencies
-**Steps:**
+- **Category**: Dependencies **Steps:**
 - Create virtual environment: `python -m venv .venv`
 - Activate environment: `source .venv/bin/activate`
 - Install dependencies: `uv sync`
 - Install development tools: `uv add --dev pytest black ruff`
 
-
-- **Category**: Configuration
-**Steps:**
+- **Category**: Configuration **Steps:**
 - Copy example config: `cp config/example.json config/local.json`
 - Edit configuration for local development
 - Set environment variables: `export PIXELATED_ENV=development`
 - Initialize database: `python database/conversation_database.py`
-
-
 
 ### Development Workflow
 
@@ -234,42 +217,33 @@ ELK Stack or similar
 
 ### Deployment Steps
 
-- **Phase**: Pre-deployment
-**Tasks:**
+- **Phase**: Pre-deployment **Tasks:**
 - Provision production servers
 - Set up monitoring and logging
 - Configure security (firewall, SSL)
 - Prepare deployment scripts
 - Set up backup systems
 
-
-- **Phase**: Application Deployment
-**Tasks:**
+- **Phase**: Application Deployment **Tasks:**
 - Deploy application code
 - Install and configure dependencies
 - Set up production configuration
 - Initialize production database
 - Configure environment variables
 
-
-- **Phase**: Service Configuration
-**Tasks:**
+- **Phase**: Service Configuration **Tasks:**
 - Configure systemd services
 - Set up reverse proxy (nginx)
 - Configure SSL certificates
 - Set up log rotation
 - Configure monitoring agents
 
-
-- **Phase**: Testing and Validation
-**Tasks:**
+- **Phase**: Testing and Validation **Tasks:**
 - Run smoke tests
 - Validate API endpoints
 - Test processing pipeline
 - Verify monitoring and alerting
 - Perform load testing
-
-
 
 ### Production Checklist
 
@@ -679,12 +653,12 @@ Jaeger for distributed tracing
 server {
     listen 443 ssl http2;
     server_name api.pixelatedempathy.com;
-    
+
     ssl_certificate /path/to/certificate.crt;
     ssl_certificate_key /path/to/private.key;
     ssl_protocols TLSv1.2 TLSv1.3;
     ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512;
-    
+
     location / {
         proxy_pass http://localhost:8000;
         proxy_set_header Host $host;
@@ -789,42 +763,38 @@ Recovery Point Objective: 1 hour
 
 ### Common Deployment Issues
 
-- **Issue**: Service fails to start
-**Symptoms:**
+- **Issue**: Service fails to start **Symptoms:**
 - Service startup errors
 - Port binding failures
 
 **Solutions:**
+
 - Check configuration files
 - Verify port availability
 - Check file permissions
 - Review system logs
 
-
-- **Issue**: Database connection failures
-**Symptoms:**
+- **Issue**: Database connection failures **Symptoms:**
 - Connection timeout
 - Authentication errors
 
 **Solutions:**
+
 - Verify database server is running
 - Check connection string
 - Validate credentials
 - Test network connectivity
 
-
-- **Issue**: High memory usage
-**Symptoms:**
+- **Issue**: High memory usage **Symptoms:**
 - Out of memory errors
 - System slowdown
 
 **Solutions:**
+
 - Reduce batch sizes
 - Enable memory monitoring
 - Optimize processing algorithms
 - Add more RAM or swap
-
-
 
 ### Diagnostic Commands
 
@@ -833,4 +803,3 @@ Recovery Point Objective: 1 hour
 - Monitor resources: `htop` or `top`
 - Test connectivity: `curl -I http://localhost:8000/health`
 - Check disk space: `df -h`
-

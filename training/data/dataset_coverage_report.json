@@ -1,0 +1,153 @@
+{
+  "generated_at": "2026-03-15T18:37:28.405679+00:00",
+  "manifest_path": "/home/vivi/pixelated/ai/training/data/s3_manifest.json",
+  "total_s3_objects": 0,
+  "families": {
+    "edge_case_generator": {
+      "name": "edge_case_generator",
+      "description": "Edge case generator outputs (nightmare fuel scenarios)",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "edge_case_resulting_chats": {
+      "name": "edge_case_resulting_chats",
+      "description": "Resulting chats from edge case generator",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "edge_case_synthetic": {
+      "name": "edge_case_synthetic",
+      "description": "Synthetic edge case dataset",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "long_running_therapy": {
+      "name": "long_running_therapy",
+      "description": "Long-running therapy sessions (actual therapy sessions)",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "mental_health_datasets": {
+      "name": "mental_health_datasets",
+      "description": "All mental health datasets",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "video_transcripts": {
+      "name": "video_transcripts",
+      "description": "Video transcripts (YouTube, podcasts, etc.)",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "voice_persona": {
+      "name": "voice_persona",
+      "description": "Personality/voice datasets from video transcripts",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "safety_guardrails_annihilator": {
+      "name": "safety_guardrails_annihilator",
+      "description": "Unrestricted content for robust handling of nasty content",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "sarcasm": {
+      "name": "sarcasm",
+      "description": "Sarcasm datasets",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "cptsd": {
+      "name": "cptsd",
+      "description": "CPTSD-specific datasets",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "addiction": {
+      "name": "addiction",
+      "description": "Addiction-specific datasets",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "experimental": {
+      "name": "experimental",
+      "description": "Experimental datasets",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "roleplay_simulator": {
+      "name": "roleplay_simulator",
+      "description": "Roleplaying guide/training simulator designer datasets",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    },
+    "dpo_preference": {
+      "name": "dpo_preference",
+      "description": "DPO/preference training datasets",
+      "required": true,
+      "status": "missing",
+      "evidence_count": 0,
+      "s3_evidence": [],
+      "total_evidence": 0,
+      "notes": "No S3 objects found matching this family"
+    }
+  },
+  "summary": {
+    "total_families": 14,
+    "present": 0,
+    "partial": 0,
+    "missing": 14
+  }
+}

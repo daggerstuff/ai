@@ -4,12 +4,12 @@ worker:
   replicaCount: 1
 
 appConfig:
-  FASTAPI_ENV: "development"
-  LOG_LEVEL: "DEBUG"
+  FASTAPI_ENV: 'development'
+  LOG_LEVEL: 'DEBUG'
 
 postgresql:
   auth:
-    password: "devpassword"
+    password: 'devpassword'
   primary:
     persistence:
       size: 1Gi

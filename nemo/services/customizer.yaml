@@ -75,8 +75,8 @@ services:
     configs:
       - source: customizer_config
         target: /mount/cfg/config.yaml
-        gid: "1000"
-        uid: "1000"
+        gid: '1000'
+        uid: '1000'
         mode: 0444
     volumes:
       - customizer_model_cache:/mount/models
@@ -92,7 +92,7 @@ services:
       - MODELS_CACHE_PATH=/mount/models
       - NGC_API_KEY
     healthcheck:
-      test: ["CMD", "curl", "http://localhost:8001/v1/health/live"]
+      test: ['CMD', 'curl', 'http://localhost:8001/v1/health/live']
       interval: 10s
       timeout: 3s
       retries: 3
@@ -112,7 +112,7 @@ services:
     #            - driver: nvidia
     #              capabilities: [gpu]
     #              count: all
-    shm_size: "1G"
+    shm_size: '1G'
 
 volumes:
   customizer_model_cache:
