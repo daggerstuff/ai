@@ -14,6 +14,13 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 from ai.api.memory.null_memory import NullMemoryManager
+from ai.api.mcp_server.memory_scope import (
+    build_scope_metadata,
+    filter_memories_by_scope,
+    memory_in_scope,
+    search_with_overfetch,
+    scope_from_kwargs,
+)
 from ai.memory.manager_factory import get_memory_manager
 
 logger = logging.getLogger(__name__)
@@ -25,8 +32,13 @@ logger = logging.getLogger(__name__)
 class AddMemoryRequest(BaseModel):
     content: str
     user_id: str
+    org_id: Optional[str] = None
+    project_id: Optional[str] = None
     session_id: Optional[str] = None
     agent_id: Optional[str] = None
+    run_id: Optional[str] = None
+    visibility: Optional[str] = "private"
+    include_shared: Optional[bool] = True
     category: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
 
@@ -34,11 +46,24 @@ class AddMemoryRequest(BaseModel):
 class SearchMemoryRequest(BaseModel):
     query: str
     user_id: str
+    org_id: Optional[str] = None
+    project_id: Optional[str] = None
+    session_id: Optional[str] = None
+    agent_id: Optional[str] = None
+    run_id: Optional[str] = None
+    include_shared: Optional[bool] = True
     limit: Optional[int] = 10
 
 
 class UpdateMemoryRequest(BaseModel):
     text: str
+    user_id: str
+    org_id: Optional[str] = None
+    project_id: Optional[str] = None
+    session_id: Optional[str] = None
+    agent_id: Optional[str] = None
+    run_id: Optional[str] = None
+    include_shared: Optional[bool] = True
     metadata: Optional[Dict[str, Any]] = None
 
 
@@ -97,11 +122,21 @@ def create_memory_server() -> FastAPI:
                     status_code=503, detail="Memory service unavailable"
                 )
 
-            metadata = request.metadata or {}
-            if request.session_id:
-                metadata["session_id"] = request.session_id
-            if request.agent_id:
-                metadata["agent_id"] = request.agent_id
+            scope = scope_from_kwargs(
+                user_id=request.user_id,
+                org_id=request.org_id,
+                project_id=request.project_id,
+                session_id=request.session_id,
+                agent_id=request.agent_id,
+                run_id=request.run_id,
+                visibility=request.visibility or "private",
+                include_shared=request.include_shared is not False,
+            )
+            metadata = build_scope_metadata(
+                scope=scope,
+                incoming_metadata=request.metadata,
+                category=request.category,
+            )
 
             # Call add_memory on the manager (GeminiMem0Manager or Wrapper)
             # Note: GeminiMem0Manager.add_memory arguments:
@@ -143,9 +178,21 @@ def create_memory_server() -> FastAPI:
                     status_code=503, detail="Memory service unavailable"
                 )
 
-            memories = manager.search_memories(
-                request.query,
+            scope = scope_from_kwargs(
                 user_id=request.user_id,
+                org_id=request.org_id,
+                project_id=request.project_id,
+                session_id=request.session_id,
+                agent_id=request.agent_id,
+                run_id=request.run_id,
+                include_shared=request.include_shared is not False,
+            )
+            limit = request.limit or 10
+            memories = search_with_overfetch(
+                manager=manager,
+                query=request.query,
+                user_id=request.user_id,
+                requested_limit=limit,
             )
 
             # Handle case where result might be a dict with 'results' key
@@ -154,6 +201,12 @@ def create_memory_server() -> FastAPI:
             # Wrapper returns client.search which might be list or dict.
             if isinstance(memories, dict) and "results" in memories:
                 memories = memories["results"]
+
+            memories = filter_memories_by_scope(
+                scope=scope,
+                memories=memories or [],
+                limit=limit,
+            )
 
             return {
                 "success": True,
@@ -180,6 +233,26 @@ def create_memory_server() -> FastAPI:
                     status_code=503, detail="Memory service unavailable"
                 )
 
+            scope = scope_from_kwargs(
+                user_id=request.user_id,
+                org_id=request.org_id,
+                project_id=request.project_id,
+                session_id=request.session_id,
+                agent_id=request.agent_id,
+                run_id=request.run_id,
+                include_shared=request.include_shared is not False,
+            )
+            allowed = memory_in_scope(
+                manager=manager,
+                scope=scope,
+                memory_id=memory_id,
+            )
+            if not allowed:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Memory not found in provided scope",
+                )
+
             success = manager.update_memory(
                 memory_id=memory_id,
                 new_content=request.text,
@@ -202,7 +275,16 @@ def create_memory_server() -> FastAPI:
             raise HTTPException(status_code=400, detail=str(e))
 
     @app.delete("/api/memory/{memory_id}", tags=["MCP Tools"])
-    async def delete_memory_endpoint(memory_id: str):
+    async def delete_memory_endpoint(
+        memory_id: str,
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+    ):
         """
         Delete a memory (MCP Tool: delete_memory).
         """
@@ -211,6 +293,26 @@ def create_memory_server() -> FastAPI:
             if not manager:
                 raise HTTPException(
                     status_code=503, detail="Memory service unavailable"
+                )
+
+            scope = scope_from_kwargs(
+                user_id=user_id,
+                org_id=org_id,
+                project_id=project_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                run_id=run_id,
+                include_shared=include_shared,
+            )
+            allowed = memory_in_scope(
+                manager=manager,
+                scope=scope,
+                memory_id=memory_id,
+            )
+            if not allowed:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Memory not found in provided scope",
                 )
 
             manager.delete_memory(memory_id=memory_id)

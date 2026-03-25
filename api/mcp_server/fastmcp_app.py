@@ -21,7 +21,7 @@ import logging
 import os
 import sys
 from datetime import datetime, timezone
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from mcp.server.fastmcp import FastMCP
 
@@ -29,6 +29,13 @@ from mcp.server.fastmcp import FastMCP
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
 from ai.memory.manager_factory import get_memory_manager
+from ai.api.mcp_server.memory_scope import (
+    build_scope_metadata,
+    filter_memories_by_scope,
+    memory_in_scope,
+    search_with_overfetch,
+    scope_from_kwargs,
+)
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO)
@@ -64,54 +71,100 @@ def _get_recent_memories(manager: Any, user_id: str, limit: int) -> List[Dict[st
         return memories[-limit:]
 
 
+async def _resolve(value: Any) -> Any:
+    if inspect.isawaitable(value):
+        return await value
+    return value
+
+
+async def _analysis_strategy_manager_methods(
+    manager: Any, prompt: str, mode: str
+) -> Optional[str]:
+    if hasattr(manager, "generate_analysis"):
+        return await _resolve(manager.generate_analysis(prompt, mode=mode))
+    if hasattr(manager, "generate_content"):
+        return await _resolve(manager.generate_content(prompt))
+    if hasattr(manager, "generate"):
+        return await _resolve(manager.generate(prompt=prompt))
+    return None
+
+
+async def _analysis_strategy_openai_client(
+    manager: Any, prompt: str, mode: str
+) -> Optional[str]:
+    del mode
+    client = getattr(manager, "client", None)
+    config = getattr(manager, "config", None)
+    model_name = getattr(config, "model_name", None)
+    if not (client and model_name and hasattr(client, "chat")):
+        return None
+    response = client.chat.completions.create(
+        model=model_name,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return response.choices[0].message.content
+
+
+async def _analysis_strategy_gemini_client(
+    manager: Any, prompt: str, mode: str
+) -> Optional[str]:
+    del mode
+    client = getattr(manager, "client", None)
+    config = getattr(manager, "config", None)
+    model_name = getattr(config, "model_name", None)
+    if not (client and model_name and hasattr(client, "models")):
+        return None
+    response = client.models.generate_content(
+        model=model_name,
+        contents=prompt,
+    )
+    return response.text
+
+
 async def _generate_analysis_text(manager: Any, prompt: str, mode: str) -> str:
     """Generate analysis text across sync and async memory manager variants."""
-    response: Any
+    strategies = (
+        _analysis_strategy_manager_methods,
+        _analysis_strategy_openai_client,
+        _analysis_strategy_gemini_client,
+    )
+    for strategy in strategies:
+        result = await strategy(manager, prompt, mode)
+        if result is not None:
+            return result
 
-    if hasattr(manager, "generate_analysis"):
-        response = manager.generate_analysis(prompt, mode=mode)
-    elif hasattr(manager, "generate_content"):
-        response = manager.generate_content(prompt)
-    elif hasattr(manager, "generate"):
-        response = manager.generate(prompt=prompt)
-    else:
-        client = getattr(manager, "client", None)
-        config = getattr(manager, "config", None)
-        model_name = getattr(config, "model_name", None)
-
-        if client and model_name and hasattr(client, "chat"):
-            response = client.chat.completions.create(
-                model=model_name,
-                messages=[{"role": "user", "content": prompt}],
-            )
-            return response.choices[0].message.content
-
-        if client and model_name and hasattr(client, "models"):
-            response = client.models.generate_content(
-                model=model_name,
-                contents=prompt,
-            )
-            return response.text
-
-        raise RuntimeError("Analysis requires an AI-capable memory manager.")
-
-    if inspect.isawaitable(response):
-        response = await response
-
-    return response
+    raise RuntimeError("Analysis requires an AI-capable memory manager.")
 
 
 # --- Resources ---
 
 
 @mcp.resource("memory://{user_id}/context")
-def get_memory_context(user_id: str) -> str:
+def get_memory_context(
+    user_id: str,
+    org_id: str = None,
+    project_id: str = None,
+    agent_id: str = None,
+    run_id: str = None,
+    session_id: str = None,
+    include_shared: bool = True,
+) -> str:
     """
     Get a concise context summary for the user.
     Useful for quick session restarts or context bootstrapping.
     """
     manager = get_manager()
+    scope = scope_from_kwargs(
+        user_id=user_id,
+        org_id=org_id,
+        project_id=project_id,
+        agent_id=agent_id,
+        run_id=run_id,
+        session_id=session_id,
+        include_shared=include_shared,
+    )
     memories = manager.get_all_memories(user_id)
+    memories = filter_memories_by_scope(scope=scope, memories=memories or [], limit=100)
     if not memories:
         return f"No context data found for user: {user_id}"
 
@@ -154,7 +207,17 @@ def session_start(user_id: str) -> List[Dict[str, Any]]:
 
 @mcp.tool()
 async def memory_store(
-    content: str, user_id: str, category: str = "fact", metadata: str = None
+    content: str,
+    user_id: str,
+    category: str = "fact",
+    metadata: str = None,
+    org_id: str = None,
+    project_id: str = None,
+    agent_id: str = None,
+    run_id: str = None,
+    session_id: str = None,
+    visibility: str = "private",
+    include_shared: bool = True,
 ) -> str:
     """
     Store a significant fact, preference, or insight in long-term memory.
@@ -178,6 +241,23 @@ async def memory_store(
         with contextlib.suppress(Exception):
             meta_dict = json.loads(metadata) or {}
 
+    scope = scope_from_kwargs(
+        user_id=user_id,
+        org_id=org_id,
+        project_id=project_id,
+        agent_id=agent_id,
+        run_id=run_id,
+        session_id=session_id,
+        visibility=visibility or "private",
+        include_shared=include_shared,
+    )
+
+    meta_dict = build_scope_metadata(
+        scope=scope,
+        incoming_metadata=meta_dict,
+        category=category,
+    )
+
     if "timestamp" not in meta_dict:
         meta_dict["timestamp"] = datetime.now(timezone.utc).isoformat()
 
@@ -196,7 +276,17 @@ async def memory_store(
 
 
 @mcp.tool()
-async def memory_query(query: str, user_id: str, limit: int = 5) -> str:
+async def memory_query(
+    query: str,
+    user_id: str,
+    limit: int = 5,
+    org_id: str = None,
+    project_id: str = None,
+    agent_id: str = None,
+    run_id: str = None,
+    session_id: str = None,
+    include_shared: bool = True,
+) -> str:
     """
     Search long-term memory for relevant information.
 
@@ -210,7 +300,22 @@ async def memory_query(query: str, user_id: str, limit: int = 5) -> str:
     """
     manager = get_manager()
     try:
-        results = manager.search_memories(query, user_id)
+        scope = scope_from_kwargs(
+            user_id=user_id,
+            org_id=org_id,
+            project_id=project_id,
+            agent_id=agent_id,
+            run_id=run_id,
+            session_id=session_id,
+            include_shared=include_shared,
+        )
+        results = search_with_overfetch(
+            manager=manager,
+            query=query,
+            user_id=user_id,
+            requested_limit=limit,
+        )
+        results = filter_memories_by_scope(scope=scope, memories=results or [], limit=limit)
 
         if not results:
             return f"🔍 No relevant matches for '{query}' in {user_id}'s memory."
@@ -233,7 +338,16 @@ async def memory_query(query: str, user_id: str, limit: int = 5) -> str:
 
 @mcp.tool()
 async def memory_update(
-    memory_id: str, content: str, metadata: str = None
+    memory_id: str,
+    content: str,
+    user_id: str,
+    metadata: str = None,
+    org_id: str = None,
+    project_id: str = None,
+    agent_id: str = None,
+    run_id: str = None,
+    session_id: str = None,
+    include_shared: bool = True,
 ) -> str:
     """
     Refine or correct an existing memory entry.
@@ -251,7 +365,19 @@ async def memory_update(
         with contextlib.suppress(Exception):
             meta_dict = json.loads(metadata) or {}
 
+    scope = scope_from_kwargs(
+        user_id=user_id,
+        org_id=org_id,
+        project_id=project_id,
+        agent_id=agent_id,
+        run_id=run_id,
+        session_id=session_id,
+        include_shared=include_shared,
+    )
+
     try:
+        if not memory_in_scope(manager=manager, scope=scope, memory_id=memory_id):
+            return "❌ Update denied: memory not found in provided scope."
         if manager.update_memory(memory_id, new_content=content, metadata=meta_dict):
             return f"🔄 **Memory Updated** (ID: {memory_id})"
         return "❌ Update failed or not supported."
@@ -260,12 +386,32 @@ async def memory_update(
 
 
 @mcp.tool()
-async def memory_delete(memory_id: str) -> str:
+async def memory_delete(
+    memory_id: str,
+    user_id: str,
+    org_id: str = None,
+    project_id: str = None,
+    agent_id: str = None,
+    run_id: str = None,
+    session_id: str = None,
+    include_shared: bool = True,
+) -> str:
     """
     Purge an obsolete or incorrect memory entry.
     """
     manager = get_manager()
+    scope = scope_from_kwargs(
+        user_id=user_id,
+        org_id=org_id,
+        project_id=project_id,
+        agent_id=agent_id,
+        run_id=run_id,
+        session_id=session_id,
+        include_shared=include_shared,
+    )
     try:
+        if not memory_in_scope(manager=manager, scope=scope, memory_id=memory_id):
+            return "❌ Delete denied: memory not found in provided scope."
         if manager.delete_memory(memory_id):
             return f"🗑️ **Memory Released** (ID: {memory_id})"
         return "❌ Deletion failed."
@@ -297,7 +443,16 @@ async def memory_sync_workspace(user_id: str, context_summary: str) -> str:
 
 
 @mcp.tool()
-async def memory_analyze(user_id: str, mode: str = "themes") -> str:
+async def memory_analyze(
+    user_id: str,
+    mode: str = "themes",
+    org_id: str = None,
+    project_id: str = None,
+    agent_id: str = None,
+    run_id: str = None,
+    session_id: str = None,
+    include_shared: bool = True,
+) -> str:
     """
     Perform deep analysis on user memory for systemic insights.
 
@@ -312,7 +467,17 @@ async def memory_analyze(user_id: str, mode: str = "themes") -> str:
         mode: Analysis mode ('themes', 'evolution', 'dissonance', 'forensics').
     """
     manager = get_manager()
+    scope = scope_from_kwargs(
+        user_id=user_id,
+        org_id=org_id,
+        project_id=project_id,
+        agent_id=agent_id,
+        run_id=run_id,
+        session_id=session_id,
+        include_shared=include_shared,
+    )
     memories = _get_recent_memories(manager, user_id, limit=100)
+    memories = filter_memories_by_scope(scope=scope, memories=memories, limit=100)
     if not memories:
         return f"No memories for **{user_id}** to analyze."
 
@@ -353,12 +518,30 @@ async def memory_analyze(user_id: str, mode: str = "themes") -> str:
 
 
 @mcp.tool()
-async def memory_status(user_id: str) -> str:
+async def memory_status(
+    user_id: str,
+    org_id: str = None,
+    project_id: str = None,
+    agent_id: str = None,
+    run_id: str = None,
+    session_id: str = None,
+    include_shared: bool = True,
+) -> str:
     """
     Get high-level statistics and health of the user's memory cartography.
     """
     manager = get_manager()
+    scope = scope_from_kwargs(
+        user_id=user_id,
+        org_id=org_id,
+        project_id=project_id,
+        agent_id=agent_id,
+        run_id=run_id,
+        session_id=session_id,
+        include_shared=include_shared,
+    )
     memories = _get_recent_memories(manager, user_id, limit=250)
+    memories = filter_memories_by_scope(scope=scope, memories=memories, limit=250)
     
     if not memories:
         return f"### 📊 Memory Status: {user_id}\n\nCartography is empty."

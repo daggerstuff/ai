@@ -15,6 +15,14 @@ from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import TextContent, Tool
 
+from ai.api.mcp_server.memory_scope import (
+    build_scope_metadata,
+    filter_memories_by_scope,
+    search_with_overfetch,
+    scope_from_kwargs,
+    scope_input_schema_properties,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -67,6 +75,19 @@ def get_mem0_client():
     return _mem0_client
 
 
+def _scope_from_arguments(arguments: Any):
+    return scope_from_kwargs(
+        user_id=arguments["user_id"],
+        org_id=arguments.get("org_id"),
+        project_id=arguments.get("project_id"),
+        session_id=arguments.get("session_id"),
+        agent_id=arguments.get("agent_id"),
+        run_id=arguments.get("run_id"),
+        visibility=arguments.get("visibility", "private"),
+        include_shared=arguments.get("include_shared", True),
+    )
+
+
 @app.list_tools()
 async def list_tools() -> list[Tool]:
     """List available memory tools."""
@@ -80,6 +101,7 @@ async def list_tools() -> list[Tool]:
                     "content": {"type": "string", "description": "Content to remember"},
                     "user_id": {"type": "string", "description": "User identifier"},
                     "category": {"type": "string", "description": "Memory category (optional)"},
+                    **scope_input_schema_properties(include_visibility=True),
                 },
                 "required": ["content", "user_id"],
             },
@@ -93,6 +115,7 @@ async def list_tools() -> list[Tool]:
                     "query": {"type": "string", "description": "Search query"},
                     "user_id": {"type": "string", "description": "User identifier"},
                     "limit": {"type": "integer", "description": "Max results", "default": 10},
+                    **scope_input_schema_properties(include_visibility=False),
                 },
                 "required": ["query", "user_id"],
             },
@@ -104,6 +127,7 @@ async def list_tools() -> list[Tool]:
                 "type": "object",
                 "properties": {
                     "user_id": {"type": "string", "description": "User identifier"},
+                    **scope_input_schema_properties(include_visibility=False),
                 },
                 "required": ["user_id"],
             },
@@ -118,16 +142,24 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
 
     try:
         if name == "add_memory":
+            scope = _scope_from_arguments(arguments)
             result = client.add(
                 arguments["content"],
                 user_id=arguments["user_id"],
-                metadata={"category": arguments.get("category")}
-                if arguments.get("category")
-                else None,
+                metadata=build_scope_metadata(
+                    scope=scope,
+                    incoming_metadata={},
+                    category=arguments.get("category"),
+                ),
             )
             memory_id = "unknown"
-            if isinstance(result, dict) and "results" in result and result["results"]:
-                memory_id = result["results"][0].get("id", "unknown")
+            if isinstance(result, dict):
+                if result.get("id"):
+                    memory_id = result.get("id")
+                elif "results" in result and result["results"]:
+                    memory_id = result["results"][0].get("id", "unknown")
+            elif isinstance(result, list) and result:
+                memory_id = result[0].get("id", "unknown")
 
             return [
                 TextContent(
@@ -137,12 +169,19 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             ]
 
         elif name == "search_memory":
-            result = client.search(
-                arguments["query"],
+            scope = _scope_from_arguments(arguments)
+            limit = arguments.get("limit", 10)
+            memories = search_with_overfetch(
+                manager=client,
+                query=arguments["query"],
                 user_id=arguments["user_id"],
-                limit=arguments.get("limit", 10),
+                requested_limit=limit,
             )
-            memories = result.get("results", []) if isinstance(result, dict) else result
+            memories = filter_memories_by_scope(
+                scope=scope,
+                memories=memories or [],
+                limit=limit,
+            )
 
             if not memories:
                 return [TextContent(type="text", text="No memories found matching your query.")]
@@ -155,8 +194,10 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             return [TextContent(type="text", text=text)]
 
         elif name == "get_all_memories":
+            scope = _scope_from_arguments(arguments)
             result = client.get_all(user_id=arguments["user_id"])
             memories = result.get("results", []) if isinstance(result, dict) else result
+            memories = filter_memories_by_scope(scope=scope, memories=memories or [])
 
             if not memories:
                 return [TextContent(type="text", text="No memories stored for this user.")]
