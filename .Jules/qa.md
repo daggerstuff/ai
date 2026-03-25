@@ -1,0 +1,1 @@
+## 2026-03-25 - QA Test Limits | Pattern: Tests must remain under 50 lines to prevent bloated testing and must purely test project code | Action: Always use wc -l <filepath> when validating testing agent plans.
