@@ -10,18 +10,21 @@ logging.basicConfig(
     filename=LOG_FILE, level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
 PIPELINE_STAGES = [
-    ("Audio Quality Control", "pixel_voice/audio_quality_control.py"),
-    ("Batch Transcription", "pixel_voice/batch_transcribe.py"),
-    ("Transcription Quality Filtering", "pixel_voice/transcription_quality_filter.py"),
-    ("Feature Extraction", "pixel_voice/feature_extraction.py"),
-    ("Personality & Emotion Clustering", "pixel_voice/personality_emotion_clustering.py"),
-    ("Dialogue Pair Construction", "pixel_voice/dialogue_pair_constructor.py"),
-    ("Dialogue Pair Validation", "pixel_voice/dialogue_pair_validation.py"),
-    ("Therapeutic Pair Generation", "pixel_voice/generate_therapeutic_pairs.py"),
-    ("Voice Quality Consistency", "pixel_voice/voice_quality_consistency.py"),
-    ("Voice Data Filtering/Optimization", "pixel_voice/voice_data_filtering.py"),
-    ("Pipeline Reporting", "pixel_voice/pipeline_reporting.py"),
+    ("Audio Quality Control", os.path.join(SCRIPT_DIR, "audio_quality_control.py")),
+    ("Batch Transcription", os.path.join(SCRIPT_DIR, "batch_transcribe.py")),
+    ("Transcription Quality Filtering", os.path.join(SCRIPT_DIR, "transcription_quality_filter.py")),
+    ("Feature Extraction", os.path.join(SCRIPT_DIR, "feature_extraction.py")),
+    ("Personality & Emotion Clustering", os.path.join(SCRIPT_DIR, "personality_emotion_clustering.py")),
+    ("Dialogue Pair Construction", os.path.join(SCRIPT_DIR, "dialogue_pair_constructor.py")),
+    ("Dialogue Pair Validation", os.path.join(SCRIPT_DIR, "dialogue_pair_validation.py")),
+    ("Therapeutic Pair Generation", os.path.join(SCRIPT_DIR, "generate_therapeutic_pairs.py")),
+    ("Voice Quality Consistency", os.path.join(SCRIPT_DIR, "voice_quality_consistency.py")),
+    ("Voice Data Filtering/Optimization", os.path.join(SCRIPT_DIR, "voice_data_filtering.py")),
+    ("Pipeline Reporting", os.path.join(SCRIPT_DIR, "pipeline_reporting.py")),
 ]
 
 
