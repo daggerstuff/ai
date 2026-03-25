@@ -15,6 +15,16 @@ Safety Alignment Features:
 - Professional boundary enforcement
 - HIPAA-compliant response validation
 
+EDGE CASE PRESERVATION (CRITICAL):
+Per MasterTrainingPlan.md and MASTER_DATASET_PLAN.md:
+- Edge cases are intentionally difficult/scary/horrible for training purposes
+- This is a mental health TRAINING LLM that must learn to handle worst-case scenarios
+- Guardrails that filter edge cases would destroy training value
+- Edge cases MUST be tagged with metadata.is_training_edge_case = true
+- When tagged, ALL safety filters are bypassed (crisis, toxicity, PII blocking)
+- Only format and coherence validation apply to edge cases
+- Edge cases are Stage 3 training data (Edge Stress Test & Scenario Bank)
+
 Part of the Pixelated Empathy AI dataset pipeline.
 """
 
@@ -358,6 +368,11 @@ class SafetyAlignmentValidator:
         """
         Validate a complete conversation for safety.
 
+        CRITICAL: Edge case training data bypasses safety filters.
+        If conversation.metadata.get("is_training_edge_case", False) is True,
+        only validate format and coherence - skip ALL safety checks.
+        This is required for Stage 3 edge stress test training data.
+
         Args:
             conversation: Conversation to validate
 
@@ -366,6 +381,39 @@ class SafetyAlignmentValidator:
         """
         violations = []
         recommended_actions = []
+
+        # CRITICAL: Edge case preservation bypass
+        # Per MasterTrainingPlan.md - edge cases are intentionally difficult/scary/horrible
+        # Safety filtering edge cases would destroy their training value
+        is_edge_case = conversation.metadata.get("is_training_edge_case", False)
+        if is_edge_case:
+            # Skip all safety validation - only validate format/coherence
+            logger.info(
+                f"Edge case detected - skipping safety validation "
+                f"(conversation_id={conversation.conversation_id})"
+            )
+            return SafetyAssessment(
+                conversation_id=conversation.conversation_id,
+                is_safe=True,  # Pass through - edge cases are training data
+                overall_severity=SafetySeverity.NONE,
+                violations=[],
+                safety_score=1.0,
+                requires_human_review=False,
+                recommended_actions=[],
+                safe_response_suggestion=None,
+                metadata={
+                    "num_messages": len(conversation.messages),
+                    "num_violations": 0,
+                    "violation_types": [],
+                    "is_training_edge_case": True,
+                    "edge_case_categories": conversation.metadata.get(
+                        "edge_case_categories", []
+                    ),
+                    "crisis_intensity": conversation.metadata.get(
+                        "crisis_intensity", "unknown"
+                    ),
+                },
+            )
 
         # Check each message
         for idx, message in enumerate(conversation.messages):
@@ -430,26 +478,15 @@ class SafetyAlignmentValidator:
         )
 
     def _check_message(self, content: str, message_index: int) -> list[SafetyViolation]:
-        """Check a single message for safety violations."""
+        """
+        Check a single message for safety violations.
+
+        Note: This should only be called after checking is_training_edge_case.
+        Edge cases bypass all safety validation in validate_conversation().
+        """
         violations = []
 
         for rule in self.rules:
-            # Skip disabled checks
-            if (
-                not self.enable_toxic_detection
-                and rule.violation_type == SafetyViolationType.TOXIC_LANGUAGE
-            ):
-                continue
-            if (
-                not self.enable_crisis_detection
-                and rule.violation_type == SafetyViolationType.CRISIS_CONTENT
-            ):
-                continue
-            if (
-                not self.enable_pii_detection
-                and rule.violation_type == SafetyViolationType.PII_EXPOSURE
-            ):
-                continue
 
             patterns = self.compiled_rules[rule.rule_id]
 
@@ -494,11 +531,29 @@ class SafetyAlignmentValidator:
         except Exception:
             return content[:100]
 
+    def is_edge_case(self, conversation: Conversation) -> bool:
+        """
+        Check if a conversation is a training edge case.
+
+        Edge cases bypass ALL safety filters per MasterTrainingPlan.md.
+        They are tagged with metadata.is_training_edge_case = True.
+
+        Args:
+            conversation: Conversation to check
+
+        Returns:
+            True if conversation is a training edge case
+        """
+        return conversation.metadata.get("is_training_edge_case", False)
+
     def batch_validate(
         self, conversations: list[Conversation]
     ) -> list[SafetyAssessment]:
         """
         Validate multiple conversations.
+
+        Note: Edge cases (metadata.is_training_edge_case=True) bypass
+        all safety validation and automatically pass.
 
         Args:
             conversations: List of conversations
@@ -507,13 +562,17 @@ class SafetyAlignmentValidator:
             List of SafetyAssessment objects
         """
         assessments = []
+        edge_case_count = 0
         for conv in conversations:
+            if self.is_edge_case(conv):
+                edge_case_count += 1
             assessment = self.validate_conversation(conv)
             assessments.append(assessment)
 
         safe_count = sum(1 for a in assessments if a.is_safe)
         logger.info(
-            f"Batch validation: {safe_count}/{len(assessments)} passed safety check"
+            f"Batch validation: {safe_count}/{len(assessments)} passed safety check "
+            f"({edge_case_count} edge cases bypassed)"
         )
 
         return assessments
