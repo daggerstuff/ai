@@ -37,7 +37,7 @@ class WebSocketManager:
         logger.info(f"Client {sid} subscribed to agent {agent_id} status updates")
         
         # Initial status could be fetched and emitted here
-        emit('subscription_confirmed', {'target': f'agent_status_{agent_id}'}, room=sid)
+        emit('subscription_confirmed', {'target': f'agent_status_{agent_id}'}, to=sid)
 
     def handle_task_progress_subscribe(self, sid: str, data: Dict[str, Any]) -> None:
         """Handle task progress subscription."""
@@ -55,7 +55,7 @@ class WebSocketManager:
         emit(
             'subscription_confirmed', 
             {'target': f'task_progress_{task_id}'}, 
-            room=sid
+            to=sid
         )
 
     def handle_pipeline_updates_subscribe(self, sid: str, data: Dict[str, Any]) -> None:
@@ -76,7 +76,7 @@ class WebSocketManager:
         emit(
             'subscription_confirmed', 
             {'target': f'pipeline_updates_{execution_id}'}, 
-            room=sid
+            to=sid
         )
 
     def broadcast_agent_update(
@@ -86,7 +86,7 @@ class WebSocketManager:
         self.socketio.emit(
             'agent_status_update', 
             update_data, 
-            room=f"agent_status_{agent_id}"
+            to=f"agent_status_{agent_id}"
         )
         logger.debug(f"Broadcasted status update for agent {agent_id}")
 
@@ -95,7 +95,7 @@ class WebSocketManager:
         self.socketio.emit(
             'task_progress_update', 
             update_data, 
-            room=f"task_progress_{task_id}"
+            to=f"task_progress_{task_id}"
         )
         logger.debug(f"Broadcasted progress update for task {task_id}")
 
@@ -106,7 +106,7 @@ class WebSocketManager:
         self.socketio.emit(
             'pipeline_update', 
             update_data, 
-            room=f"pipeline_updates_{execution_id}"
+            to=f"pipeline_updates_{execution_id}"
         )
         logger.debug(f"Broadcasted update for pipeline {execution_id}")
 
