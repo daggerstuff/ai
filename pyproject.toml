@@ -72,6 +72,7 @@ dependencies = [
   "kernels>=0.12.1",
   "sentry-sdk>=2.54.0",
   # Security: minimum versions enforced via constraint-dependencies (see below)
+  "virtualenv>=21.2.0",
 ]
 
 [dependency-groups]
