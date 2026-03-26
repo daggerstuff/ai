@@ -9,7 +9,7 @@ This is the correct implementation for MCP client integration.
 import asyncio
 import logging
 import os
-from typing import Any
+from typing import Any, Dict, Optional
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
@@ -18,9 +18,9 @@ from mcp.types import TextContent, Tool
 from ai.api.mcp_server.memory_scope import (
     build_scope_metadata,
     filter_memories_by_scope,
-    search_with_overfetch,
     scope_from_kwargs,
     scope_input_schema_properties,
+    search_with_overfetch,
 )
 
 logger = logging.getLogger(__name__)
@@ -55,7 +55,13 @@ def get_mem0_client():
         class NullMemory:
             """Complete null memory for development."""
 
-            def add(self, content: str, user_id: str, metadata: dict = None, **kwargs):
+            def add(
+                self,
+                content: str,
+                user_id: str,
+                metadata: Optional[Dict[str, Any]] = None,
+                **kwargs,
+            ):
                 return {"results": [{"id": f"null-{hash(content) % 10000}"}]}
 
             def search(self, query: str, user_id: str, limit: int = 10, **kwargs):
@@ -100,7 +106,9 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "content": {"type": "string", "description": "Content to remember"},
                     "user_id": {"type": "string", "description": "User identifier"},
-                    "category": {"type": "string", "description": "Memory category (optional)"},
+                    "category": {
+                        "type": "string", "description": "Memory category (optional)"
+                    },
                     **scope_input_schema_properties(include_visibility=True),
                 },
                 "required": ["content", "user_id"],
@@ -114,7 +122,9 @@ async def list_tools() -> list[Tool]:
                 "properties": {
                     "query": {"type": "string", "description": "Search query"},
                     "user_id": {"type": "string", "description": "User identifier"},
-                    "limit": {"type": "integer", "description": "Max results", "default": 10},
+                    "limit": {
+                        "type": "integer", "description": "Max results", "default": 10
+                    },
                     **scope_input_schema_properties(include_visibility=False),
                 },
                 "required": ["query", "user_id"],
@@ -184,7 +194,11 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             )
 
             if not memories:
-                return [TextContent(type="text", text="No memories found matching your query.")]
+                return [
+                    TextContent(
+                        type="text", text="No memories found matching your query."
+                    )
+                ]
 
             text = f"Found {len(memories)} memories:\n\n"
             for i, mem in enumerate(memories, 1):
@@ -200,7 +214,9 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
             memories = filter_memories_by_scope(scope=scope, memories=memories or [])
 
             if not memories:
-                return [TextContent(type="text", text="No memories stored for this user.")]
+                return [
+                    TextContent(type="text", text="No memories stored for this user.")
+                ]
 
             text = f"Total memories: {len(memories)}\n\n"
             for i, mem in enumerate(memories, 1):
@@ -224,7 +240,8 @@ async def main():
     # Initialize memory client
     get_mem0_client()
 
-    async with stdio_server() as (read_stream, write_stream):
+    async with stdio_server() as streams:
+        read_stream, write_stream = streams
         await app.run(
             read_stream,
             write_stream,

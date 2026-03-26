@@ -71,6 +71,8 @@ dependencies = [
   "ray>=2.54.0",
   "kernels>=0.12.1",
   "sentry-sdk>=2.54.0",
+  "pymongo>=4.10.1",
+  "motor>=3.6.0",
   # Security: minimum versions enforced via constraint-dependencies (see below)
 ]
 
