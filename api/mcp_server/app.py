@@ -118,7 +118,9 @@ def _init_extensions(app: Flask, config: MCPConfig) -> None:
     
     # Initialize MongoDB client (separate from main TechDeck MongoDB)
     try:
-        app.mongodb_client = MCPMongoDBClient(config.MONGODB_URI, config.MONGODB_DATABASE)
+        app.mongodb_client = MCPMongoDBClient(
+            config.MONGODB_URI, config.MONGODB_DATABASE
+        )
         logger.debug("MCP MongoDB client initialized")
     except Exception as e:
         logger.error(f"Failed to initialize MCP MongoDB client: {e}")
@@ -195,7 +197,8 @@ def _register_error_handlers(app: Flask, config: MCPConfig) -> None:
                 'code': 'REQUEST_ENTITY_TOO_LARGE',
                 'message': 'The request payload is too large',
                 'timestamp': datetime.utcnow().isoformat(),
-                'max_size_mb': config.MAX_AGENTS_PER_USER  # Using agent limit as size reference
+                # Using agent limit as size reference
+                'max_size_mb': config.MAX_AGENTS_PER_USER
             }
         }, 413
     
@@ -244,7 +247,9 @@ def _register_hooks(app: Flask) -> None:
     def before_request():
         """Execute before each request."""
         g.start_time = datetime.utcnow()
-        g.request_id = request.headers.get('X-Request-ID', str(datetime.utcnow().timestamp()))
+        g.request_id = request.headers.get(
+            'X-Request-ID', str(datetime.utcnow().timestamp())
+        )
         g.agent_id = request.headers.get('X-Agent-ID')  # For agent-specific requests
         
         # Log request details
@@ -259,13 +264,18 @@ def _register_hooks(app: Flask) -> None:
             response.headers['X-Request-ID'] = g.request_id
             
             # Log response details
-            logger.info(f"MCP Response {g.request_id}: {response.status_code} in {duration:.3f}s")
+            logger.info(
+                f"MCP Response {g.request_id}: {response.status_code} "
+                f"in {duration:.3f}s"
+            )
         
         # Add security headers
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-Frame-Options'] = 'DENY'
         response.headers['X-XSS-Protection'] = '1; mode=block'
-        response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+        response.headers['Strict-Transport-Security'] = (
+            'max-age=31536000; includeSubDomains'
+        )
         
         # Add MCP-specific headers
         response.headers['X-MCP-Version'] = '1.0.0'
@@ -277,7 +287,8 @@ def _register_hooks(app: Flask) -> None:
     def teardown_request(exception=None):
         """Execute after request processing (even if exception occurred)."""
         if exception:
-            logger.error(f"Exception in MCP request {getattr(g, 'request_id', 'unknown')}: {exception}")
+            request_id = getattr(g, 'request_id', 'unknown')
+            logger.error(f"Exception in MCP request {request_id}: {exception}")
 
 
 def _init_websocket(app: Flask, config: MCPConfig) -> None:

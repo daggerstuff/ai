@@ -13,14 +13,14 @@ from typing import Any, Dict, Optional
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
-from ai.api.memory.null_memory import NullMemoryManager
 from ai.api.mcp_server.memory_scope import (
     build_scope_metadata,
     filter_memories_by_scope,
     memory_in_scope,
-    search_with_overfetch,
     scope_from_kwargs,
+    search_with_overfetch,
 )
+from ai.api.memory.null_memory import NullMemoryManager
 from ai.memory.manager_factory import get_memory_manager
 
 logger = logging.getLogger(__name__)
