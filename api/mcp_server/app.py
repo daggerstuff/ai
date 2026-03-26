@@ -8,7 +8,7 @@ specifically for agent interaction management.
 
 import logging
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional, cast
 
 from flask import Flask, g, request
 from flask_cors import CORS
@@ -24,7 +24,51 @@ from .utils.logger import setup_logging
 from .websocket.manager import WebSocketManager
 
 
-def create_mcp_app(config: Optional[MCPConfig] = None) -> Flask:
+class MCPFlask(Flask):
+    """Custom Flask subclass with type hinting for MCP extensions."""
+
+    @property
+    def redis_client(self) -> 'MCPRedisClient':
+        return cast('MCPRedisClient', self.extensions.get('redis_client'))
+
+    @property
+    def mongodb_client(self) -> 'MCPMongoDBClient':
+        return cast('MCPMongoDBClient', self.extensions.get('mongodb_client'))
+
+    @property
+    def error_recovery_manager(self) -> 'MCPErrorRecoveryManager':
+        return cast(
+            'MCPErrorRecoveryManager', 
+            self.extensions.get('error_recovery_manager')
+        )
+
+    @property
+    def agent_manager(self) -> Any:
+        return self.extensions.get('agent_manager')
+
+    @property
+    def task_orchestrator(self) -> Any:
+        return self.extensions.get('task_orchestrator')
+
+    @property
+    def pipeline_manager(self) -> Any:
+        return self.extensions.get('pipeline_manager')
+
+    @property
+    def auth_middleware(self) -> Any:
+        return self.extensions.get('auth_middleware')
+
+    @property
+    def websocket_manager(self) -> WebSocketManager:
+        return cast(WebSocketManager, self.extensions.get('websocket_manager'))
+
+    @property
+    def socketio(self) -> SocketIO:
+        return cast(SocketIO, self.extensions.get('socketio'))
+
+
+
+def create_mcp_app(config: Optional[MCPConfig] = None) -> MCPFlask:
     """
     Create and configure Flask application for MCP server.
     
@@ -38,7 +82,7 @@ def create_mcp_app(config: Optional[MCPConfig] = None) -> Flask:
         ValueError: If required configuration is missing
         RuntimeError: If critical services cannot be initialized
     """
-    app = Flask(__name__)
+    app = MCPFlask(__name__)
     
     # Load configuration
     if config is None:
@@ -100,7 +144,7 @@ def _validate_configuration(config: MCPConfig) -> None:
         raise ValueError(f"Missing required configuration variables: {missing_vars}")
 
 
-def _init_extensions(app: Flask, config: MCPConfig) -> None:
+def _init_extensions(app: MCPFlask, config: MCPConfig) -> None:
     """Initialize Flask extensions and external services."""
     logger = logging.getLogger(__name__)
     
@@ -110,7 +154,9 @@ def _init_extensions(app: Flask, config: MCPConfig) -> None:
     
     # Initialize Redis client (separate from main TechDeck Redis)
     try:
-        app.redis_client = MCPRedisClient(config.REDIS_URL, config.REDIS_DB)
+        app.extensions['redis_client'] = MCPRedisClient(
+            config.REDIS_URL, config.REDIS_DB
+        )
         logger.debug("MCP Redis client initialized")
     except Exception as e:
         logger.error(f"Failed to initialize MCP Redis client: {e}")
@@ -118,7 +164,7 @@ def _init_extensions(app: Flask, config: MCPConfig) -> None:
     
     # Initialize MongoDB client (separate from main TechDeck MongoDB)
     try:
-        app.mongodb_client = MCPMongoDBClient(
+        app.extensions['mongodb_client'] = MCPMongoDBClient(
             config.MONGODB_URI, config.MONGODB_DATABASE
         )
         logger.debug("MCP MongoDB client initialized")
@@ -128,14 +174,34 @@ def _init_extensions(app: Flask, config: MCPConfig) -> None:
     
     # Initialize error recovery manager
     try:
-        app.error_recovery_manager = MCPErrorRecoveryManager(config)
+        app.extensions['error_recovery_manager'] = MCPErrorRecoveryManager(config)
         logger.debug("MCP error recovery manager initialized")
     except Exception as e:
         logger.error(f"Failed to initialize MCP error recovery manager: {e}")
         raise
 
+    # Initialize Core Managers
+    from .core.agent_manager import AgentManager
+    from .core.pipeline_integration import PipelineIntegrationManager
+    from .core.task_orchestrator import TaskOrchestrator
 
-def _register_blueprints(app: Flask) -> None:
+    try:
+        app.extensions['agent_manager'] = AgentManager(
+            app.redis_client, app.mongodb_client
+        )
+        app.extensions['task_orchestrator'] = TaskOrchestrator(
+            app.agent_manager, app.redis_client, app.mongodb_client
+        )
+        app.extensions['pipeline_manager'] = PipelineIntegrationManager(
+            app.task_orchestrator, app.agent_manager
+        )
+        logger.debug("MCP core managers initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize MCP core managers: {e}")
+        raise
+
+
+def _register_blueprints(app: MCPFlask) -> None:
     """Register API route blueprints."""
     logger = logging.getLogger(__name__)
     
@@ -158,7 +224,7 @@ def _register_blueprints(app: Flask) -> None:
         logger.debug(f"Registered blueprint {blueprint.name} at {url_prefix}")
 
 
-def _register_error_handlers(app: Flask, config: MCPConfig) -> None:
+def _register_error_handlers(app: MCPFlask, config: MCPConfig) -> None:
     """Register comprehensive error handlers."""
     logger = logging.getLogger(__name__)
     
@@ -222,7 +288,7 @@ def _register_error_handlers(app: Flask, config: MCPConfig) -> None:
     logger.debug("MCP error handlers registered")
 
 
-def _register_middleware(app: Flask, config: MCPConfig) -> None:
+def _register_middleware(app: MCPFlask, config: MCPConfig) -> None:
     """Register middleware components."""
     logger = logging.getLogger(__name__)
     
@@ -232,6 +298,7 @@ def _register_middleware(app: Flask, config: MCPConfig) -> None:
     # Initialize MCP authentication middleware
     try:
         mcp_auth_middleware = MCPAuthMiddleware(app.wsgi_app, config)
+        app.extensions['auth_middleware'] = mcp_auth_middleware
         app.wsgi_app = mcp_auth_middleware
         logger.debug("MCP authentication middleware registered")
     except Exception as e:
@@ -239,33 +306,33 @@ def _register_middleware(app: Flask, config: MCPConfig) -> None:
         raise
 
 
-def _register_hooks(app: Flask) -> None:
+def _register_hooks(app: MCPFlask) -> None:
     """Register application lifecycle hooks."""
     logger = logging.getLogger(__name__)
     
     @app.before_request
     def before_request():
         """Execute before each request."""
-        g.start_time = datetime.utcnow()
-        g.request_id = request.headers.get(
+        g.start_time = datetime.utcnow()  # type: ignore
+        g.request_id = request.headers.get(  # type: ignore
             'X-Request-ID', str(datetime.utcnow().timestamp())
         )
-        g.agent_id = request.headers.get('X-Agent-ID')  # For agent-specific requests
+        g.agent_id = request.headers.get('X-Agent-ID')  # type: ignore # For agent-specific requests
         
         # Log request details
-        logger.info(f"MCP Request {g.request_id}: {request.method} {request.path}")
+        logger.info(f"MCP Request {g.request_id}: {request.method} {request.path}")  # type: ignore
     
     @app.after_request
     def after_request(response):
         """Execute after each request."""
         if hasattr(g, 'start_time'):
-            duration = (datetime.utcnow() - g.start_time).total_seconds()
+            duration = (datetime.utcnow() - g.start_time).total_seconds()  # type: ignore
             response.headers['X-Response-Time'] = f"{duration:.3f}s"
-            response.headers['X-Request-ID'] = g.request_id
+            response.headers['X-Request-ID'] = g.request_id  # type: ignore
             
             # Log response details
             logger.info(
-                f"MCP Response {g.request_id}: {response.status_code} "
+                f"MCP Response {g.request_id}: {response.status_code} "  # type: ignore
                 f"in {duration:.3f}s"
             )
         
@@ -291,7 +358,7 @@ def _register_hooks(app: Flask) -> None:
             logger.error(f"Exception in MCP request {request_id}: {exception}")
 
 
-def _init_websocket(app: Flask, config: MCPConfig) -> None:
+def _init_websocket(app: MCPFlask, config: MCPConfig) -> None:
     """Initialize WebSocket manager for real-time communication."""
     logger = logging.getLogger(__name__)
     
@@ -301,7 +368,7 @@ def _init_websocket(app: Flask, config: MCPConfig) -> None:
     
     try:
         # Initialize SocketIO
-        app.socketio = SocketIO(
+        app.extensions['socketio'] = SocketIO(
             app,
             cors_allowed_origins=config.ALLOWED_ORIGINS,
             ping_interval=config.WEBSOCKET_PING_INTERVAL,
@@ -310,7 +377,7 @@ def _init_websocket(app: Flask, config: MCPConfig) -> None:
         )
         
         # Initialize WebSocket manager
-        app.websocket_manager = WebSocketManager(app.socketio, config)
+        app.extensions['websocket_manager'] = WebSocketManager(app.socketio, config)
         
         # Register WebSocket event handlers
         _register_websocket_events(app)
@@ -322,34 +389,42 @@ def _init_websocket(app: Flask, config: MCPConfig) -> None:
         raise
 
 
-def _register_websocket_events(app: Flask) -> None:
+def _register_websocket_events(app: MCPFlask) -> None:
     """Register WebSocket event handlers."""
     logger = logging.getLogger(__name__)
     
     @app.socketio.on('connect')
     def handle_connect():
         """Handle client connection."""
-        logger.info(f"WebSocket client connected: {request.sid}")
+        sid = getattr(request, 'sid', 'unknown')
+        logger.info(f"WebSocket client connected: {sid}")
     
     @app.socketio.on('disconnect')
     def handle_disconnect():
         """Handle client disconnection."""
-        logger.info(f"WebSocket client disconnected: {request.sid}")
+        sid = getattr(request, 'sid', 'unknown')
+        logger.info(f"WebSocket client disconnected: {sid}")
     
     @app.socketio.on('agent_status_subscribe')
     def handle_agent_status_subscribe(data):
         """Handle agent status subscription."""
-        app.websocket_manager.handle_agent_status_subscribe(request.sid, data)
+        app.websocket_manager.handle_agent_status_subscribe(
+            getattr(request, 'sid', 'unknown'), data
+        )
     
     @app.socketio.on('task_progress_subscribe')
     def handle_task_progress_subscribe(data):
         """Handle task progress subscription."""
-        app.websocket_manager.handle_task_progress_subscribe(request.sid, data)
+        app.websocket_manager.handle_task_progress_subscribe(
+            getattr(request, 'sid', 'unknown'), data
+        )
     
     @app.socketio.on('pipeline_updates_subscribe')
     def handle_pipeline_updates_subscribe(data):
         """Handle pipeline updates subscription."""
-        app.websocket_manager.handle_pipeline_updates_subscribe(request.sid, data)
+        app.websocket_manager.handle_pipeline_updates_subscribe(
+            getattr(request, 'sid', 'unknown'), data
+        )
     
     logger.debug("WebSocket event handlers registered")
 
