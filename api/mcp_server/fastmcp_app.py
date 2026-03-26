@@ -15,8 +15,8 @@ Exposes memory capabilities as standard MCP tools, resources, and prompts.
 Refined for autonomous agent use with consolidated, high-utility tools.
 """
 
-import json
 import inspect
+import json
 import logging
 import os
 import sys
@@ -28,14 +28,14 @@ from mcp.server.fastmcp import FastMCP
 # Add 'ai' to path if running directly to find siblings
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
-from ai.memory.manager_factory import get_memory_manager
 from ai.api.mcp_server.memory_scope import (
     build_scope_metadata,
     filter_memories_by_scope,
     memory_in_scope,
-    search_with_overfetch,
     scope_from_kwargs,
+    search_with_overfetch,
 )
+from ai.memory.manager_factory import get_memory_manager
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO)
@@ -62,7 +62,9 @@ def get_manager():
     return manager
 
 
-def _get_recent_memories(manager: Any, user_id: str, limit: int) -> List[Dict[str, Any]]:
+def _get_recent_memories(
+    manager: Any, user_id: str, limit: int
+) -> List[Dict[str, Any]]:
     """Prefer bounded retrieval when the manager supports it."""
     try:
         return manager.get_all_memories(user_id, limit=limit)
@@ -140,28 +142,16 @@ async def _generate_analysis_text(manager: Any, prompt: str, mode: str) -> str:
 
 
 @mcp.resource("memory://{user_id}/context")
-def get_memory_context(
-    user_id: str,
-    org_id: str = None,
-    project_id: str = None,
-    agent_id: str = None,
-    run_id: str = None,
-    session_id: str = None,
-    include_shared: bool = True,
-) -> str:
+def get_memory_context(user_id: str) -> str:
     """
     Get a concise context summary for the user.
     Useful for quick session restarts or context bootstrapping.
     """
     manager = get_manager()
+    # Default to user-level scope if only user_id is provided via URI
     scope = scope_from_kwargs(
         user_id=user_id,
-        org_id=org_id,
-        project_id=project_id,
-        agent_id=agent_id,
-        run_id=run_id,
-        session_id=session_id,
-        include_shared=include_shared,
+        include_shared=True,
     )
     memories = manager.get_all_memories(user_id)
     memories = filter_memories_by_scope(scope=scope, memories=memories or [], limit=100)
@@ -210,12 +200,12 @@ async def memory_store(
     content: str,
     user_id: str,
     category: str = "fact",
-    metadata: str = None,
-    org_id: str = None,
-    project_id: str = None,
-    agent_id: str = None,
-    run_id: str = None,
-    session_id: str = None,
+    metadata: Optional[str] = None,
+    org_id: Optional[str] = None,
+    project_id: Optional[str] = None,
+    agent_id: Optional[str] = None,
+    run_id: Optional[str] = None,
+    session_id: Optional[str] = None,
     visibility: str = "private",
     include_shared: bool = True,
 ) -> str:
@@ -280,11 +270,11 @@ async def memory_query(
     query: str,
     user_id: str,
     limit: int = 5,
-    org_id: str = None,
-    project_id: str = None,
-    agent_id: str = None,
-    run_id: str = None,
-    session_id: str = None,
+    org_id: Optional[str] = None,
+    project_id: Optional[str] = None,
+    agent_id: Optional[str] = None,
+    run_id: Optional[str] = None,
+    session_id: Optional[str] = None,
     include_shared: bool = True,
 ) -> str:
     """
@@ -315,7 +305,9 @@ async def memory_query(
             user_id=user_id,
             requested_limit=limit,
         )
-        results = filter_memories_by_scope(scope=scope, memories=results or [], limit=limit)
+        results = filter_memories_by_scope(
+            scope=scope, memories=results or [], limit=limit
+        )
 
         if not results:
             return f"🔍 No relevant matches for '{query}' in {user_id}'s memory."
@@ -341,12 +333,12 @@ async def memory_update(
     memory_id: str,
     content: str,
     user_id: str,
-    metadata: str = None,
-    org_id: str = None,
-    project_id: str = None,
-    agent_id: str = None,
-    run_id: str = None,
-    session_id: str = None,
+    metadata: Optional[str] = None,
+    org_id: Optional[str] = None,
+    project_id: Optional[str] = None,
+    agent_id: Optional[str] = None,
+    run_id: Optional[str] = None,
+    session_id: Optional[str] = None,
     include_shared: bool = True,
 ) -> str:
     """
@@ -389,11 +381,11 @@ async def memory_update(
 async def memory_delete(
     memory_id: str,
     user_id: str,
-    org_id: str = None,
-    project_id: str = None,
-    agent_id: str = None,
-    run_id: str = None,
-    session_id: str = None,
+    org_id: Optional[str] = None,
+    project_id: Optional[str] = None,
+    agent_id: Optional[str] = None,
+    run_id: Optional[str] = None,
+    session_id: Optional[str] = None,
     include_shared: bool = True,
 ) -> str:
     """
@@ -446,11 +438,11 @@ async def memory_sync_workspace(user_id: str, context_summary: str) -> str:
 async def memory_analyze(
     user_id: str,
     mode: str = "themes",
-    org_id: str = None,
-    project_id: str = None,
-    agent_id: str = None,
-    run_id: str = None,
-    session_id: str = None,
+    org_id: Optional[str] = None,
+    project_id: Optional[str] = None,
+    agent_id: Optional[str] = None,
+    run_id: Optional[str] = None,
+    session_id: Optional[str] = None,
     include_shared: bool = True,
 ) -> str:
     """
@@ -520,11 +512,11 @@ async def memory_analyze(
 @mcp.tool()
 async def memory_status(
     user_id: str,
-    org_id: str = None,
-    project_id: str = None,
-    agent_id: str = None,
-    run_id: str = None,
-    session_id: str = None,
+    org_id: Optional[str] = None,
+    project_id: Optional[str] = None,
+    agent_id: Optional[str] = None,
+    run_id: Optional[str] = None,
+    session_id: Optional[str] = None,
     include_shared: bool = True,
 ) -> str:
     """
