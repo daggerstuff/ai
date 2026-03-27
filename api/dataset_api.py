@@ -26,7 +26,6 @@ TEST_API_KEY, _ = auth_system.create_api_key(
     [PermissionLevel.READ, PermissionLevel.WRITE],
     expires_in_days=365,
 )
-print(f"DEBUG: Test API Key for /datasets endpoint: {TEST_API_KEY}")
 
 app = FastAPI(
     title="Dataset Access API", description="API for accessing and querying datasets."
