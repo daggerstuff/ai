@@ -1,10 +1,11 @@
-import os
 import argparse
-from typing import List, Optional
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+import os
+from typing import List
+
 import uvicorn
+from fastapi import FastAPI, HTTPException
 from llama_cpp import Llama
+from pydantic import BaseModel
 
 app = FastAPI(title="Pixelated Empathy EI Engine - Local Inference")
 
@@ -57,14 +58,16 @@ def chat_completion(request: ChatCompletionRequest):
     # Most GGUF models respond well to the chat-completion API style directly
     # but we can fine-tune the prompt construction here if needed.
 
-    formatted_prompt = ""
+    # Use list and join for O(n) string concatenation performance
+    prompt_parts = []
     for msg in request.messages:
         if msg.role == "system":
-            formatted_prompt += f"<<SYS>>\n{msg.content}\n<</SYS>>\n\n"
+            prompt_parts.append(f"<<SYS>>\n{msg.content}\n<</SYS>>\n\n")
         elif msg.role == "user":
-            formatted_prompt += f"[INST] {msg.content} [/INST] "
+            prompt_parts.append(f"[INST] {msg.content} [/INST] ")
         elif msg.role == "assistant":
-            formatted_prompt += f"{msg.content} "
+            prompt_parts.append(f"{msg.content} ")
+    formatted_prompt = "".join(prompt_parts)
 
     try:
         response = model(
