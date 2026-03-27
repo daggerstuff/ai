@@ -116,8 +116,7 @@ class DatasetInventoryDB:
             conn = sqlite3.connect(self.db_path)
             try:
                 # Main datasets table
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE TABLE IF NOT EXISTS datasets (
                         id TEXT PRIMARY KEY,
                         name TEXT NOT NULL,
@@ -134,12 +133,10 @@ class DatasetInventoryDB:
                         tags TEXT,
                         metadata TEXT
                     )
-                """
-                )
+                """)
 
                 # Versions table
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE TABLE IF NOT EXISTS dataset_versions (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         dataset_id TEXT,
@@ -152,12 +149,10 @@ class DatasetInventoryDB:
                         is_current BOOLEAN,
                         FOREIGN KEY (dataset_id) REFERENCES datasets (id)
                     )
-                """
-                )
+                """)
 
                 # Dependencies table
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE TABLE IF NOT EXISTS dataset_dependencies (
                         id INTEGER PRIMARY KEY AUTOINCREMENT,
                         dataset_id TEXT,
@@ -167,12 +162,10 @@ class DatasetInventoryDB:
                         description TEXT,
                         FOREIGN KEY (dataset_id) REFERENCES datasets (id)
                     )
-                """
-                )
+                """)
 
                 # Metrics table
-                conn.execute(
-                    """
+                conn.execute("""
                     CREATE TABLE IF NOT EXISTS dataset_metrics (
                         dataset_id TEXT PRIMARY KEY,
                         quality_score REAL,
@@ -184,12 +177,12 @@ class DatasetInventoryDB:
                         error_count INTEGER,
                         FOREIGN KEY (dataset_id) REFERENCES datasets (id)
                     )
-                """
-                )
+                """)
 
                 # Create indexes
                 conn.execute(
-                    "CREATE INDEX IF NOT EXISTS idx_dataset_type ON datasets (dataset_type)"
+                    "CREATE INDEX IF NOT EXISTS "
+                    "idx_dataset_type ON datasets (dataset_type)"
                 )
                 conn.execute(
                     "CREATE INDEX IF NOT EXISTS idx_dataset_status ON datasets (status)"
@@ -214,8 +207,9 @@ class DatasetInventoryDB:
                 conn.execute(
                     """
                     INSERT OR REPLACE INTO datasets
-                    (id, name, description, dataset_type, status, created_date, updated_date,
-                     file_path, file_size, format, source, license, tags, metadata)
+                    (id, name, description, dataset_type, status, created_date,
+                     updated_date, file_path, file_size, format, source,
+                     license, tags, metadata)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                     (
@@ -261,40 +255,48 @@ class DatasetInventoryDB:
                 )
 
                 # Insert versions
-                for version in record.versions:
-                    conn.execute(
+                if record.versions:
+                    conn.executemany(
                         """
                         INSERT OR REPLACE INTO dataset_versions
-                        (dataset_id, version, created_date, file_path, file_size, checksum, changes, is_current)
+                        (dataset_id, version, created_date, file_path,
+                         file_size, checksum, changes, is_current)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                     """,
-                        (
-                            record.id,
-                            version.version,
-                            version.created_date.isoformat(),
-                            version.file_path,
-                            version.file_size,
-                            version.checksum,
-                            version.changes,
-                            version.is_current,
-                        ),
+                        [
+                            (
+                                record.id,
+                                version.version,
+                                version.created_date.isoformat(),
+                                version.file_path,
+                                version.file_size,
+                                version.checksum,
+                                version.changes,
+                                version.is_current,
+                            )
+                            for version in record.versions
+                        ],
                     )
 
                 # Insert dependencies
-                for dep in record.dependencies:
-                    conn.execute(
+                if record.dependencies:
+                    conn.executemany(
                         """
                         INSERT OR REPLACE INTO dataset_dependencies
-                        (dataset_id, dependency_id, dependency_type, version_constraint, description)
+                        (dataset_id, dependency_id, dependency_type,
+                         version_constraint, description)
                         VALUES (?, ?, ?, ?, ?)
                     """,
-                        (
-                            record.id,
-                            dep.dataset_id,
-                            dep.dependency_type,
-                            dep.version_constraint,
-                            dep.description,
-                        ),
+                        [
+                            (
+                                record.id,
+                                dep.dataset_id,
+                                dep.dependency_type,
+                                dep.version_constraint,
+                                dep.description,
+                            )
+                            for dep in record.dependencies
+                        ],
                     )
 
                 conn.commit()
@@ -360,7 +362,8 @@ class DatasetInventoryDB:
 
                 # Get versions
                 cursor = conn.execute(
-                    "SELECT * FROM dataset_versions WHERE dataset_id = ? ORDER BY created_date DESC",
+                    "SELECT * FROM dataset_versions WHERE dataset_id = ? "
+                    "ORDER BY created_date DESC",
                     (dataset_id,),
                 )
                 for version_row in cursor.fetchall():
@@ -416,7 +419,10 @@ class DatasetInventoryDB:
                         params.append(f'%"{tag}"%')
 
                 if "min_quality" in filters:
-                    query += " AND id IN (SELECT dataset_id FROM dataset_metrics WHERE quality_score >= ?)"
+                    query += (
+                        " AND id IN (SELECT dataset_id FROM dataset_metrics "
+                        "WHERE quality_score >= ?)"
+                    )
                     params.append(filters["min_quality"])
 
                 cursor = conn.execute(query, params)
