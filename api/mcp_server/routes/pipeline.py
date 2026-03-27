@@ -6,7 +6,8 @@ orchestration, and monitoring.
 """
 
 import logging
-from flask import Blueprint, current_app, jsonify, request
+
+from flask import Blueprint, g, jsonify, request
 
 # Internal imports
 from ..auth.middleware import require_mcp_auth, require_mcp_role
@@ -32,11 +33,15 @@ def execute_pipeline():
             metadata=data.get('metadata', {})
         )
         
-        pipeline_manager = getattr(current_app, 'pipeline_manager', None)
+        pipeline_manager = g.pipeline_manager
         if not pipeline_manager:
-            return jsonify({"success": False, "error": "Pipeline manager not initialized"}), 500
+            return jsonify(
+                {"success": False, "error": "Pipeline manager not initialized"}
+            ), 500
             
-        result = asyncio_run(pipeline_manager.execute_pipeline_with_agents(pipeline_config))
+        result = asyncio_run(
+            pipeline_manager.execute_pipeline_with_agents(pipeline_config)
+        )
         
         return jsonify({
             "success": True, 
@@ -56,11 +61,15 @@ def execute_pipeline():
 def monitor_pipeline(execution_id):
     """Monitor progress for an active pipeline execution."""
     try:
-        pipeline_manager = getattr(current_app, 'pipeline_manager', None)
+        pipeline_manager = g.pipeline_manager
         if not pipeline_manager:
-            return jsonify({"success": False, "error": "Pipeline manager not initialized"}), 500
+            return jsonify(
+                {"success": False, "error": "Pipeline manager not initialized"}
+            ), 500
             
-        progress_data = asyncio_run(pipeline_manager.monitor_pipeline_progress(execution_id))
+        progress_data = asyncio_run(
+            pipeline_manager.monitor_pipeline_progress(execution_id)
+        )
         
         return jsonify({
             "success": True, 
