@@ -38,11 +38,11 @@ DATABASE_URL = "/home/vivi/pixelated/ai/data/conversation_system.db"
 def validate_identifier(identifier: str) -> str:
     """
     Validates that the identifier contains only alphanumeric characters and underscores.
-    Returns the identifier if valid, raises ValueError otherwise.
+    Returns the identifier if valid, raises HTTPException otherwise.
     This prevents SQL injection by disallowing special characters.
     """
     if not re.match(r"^[a-zA-Z0-9_]+$", identifier):
-        raise ValueError(f"Invalid identifier format: {identifier}")
+        raise HTTPException(status_code=400, detail=f"Invalid identifier format: {identifier}")
     return identifier
 
 
@@ -77,7 +77,7 @@ async def get_api_key_user(api_key: str = Security(api_key_header)) -> Dict[str,
         )
 
     # Validate API key using the authentication system
-    api_key_obj = auth_system.validate_api_key(api_key)
+    api_key_obj = auth_system.authenticate_api_key(api_key)
     if not api_key_obj:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key"
@@ -105,7 +105,7 @@ async def get_current_active_user_or_api_key(
 
     # If no user token, try API key authentication
     if api_key:
-        api_key_obj = auth_system.validate_api_key(api_key)
+        api_key_obj = auth_system.authenticate_api_key(api_key)
         if api_key_obj:
             return {
                 "username": api_key_obj.name,
@@ -148,7 +148,7 @@ async def list_datasets(
             # Validate table name format
             try:
                 safe_table_name = validate_identifier(table_name)
-            except ValueError:
+            except HTTPException:
                 continue
 
             # Get row count
