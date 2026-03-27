@@ -1,0 +1,1 @@
+## 2026-03-27 - Prevent SQL Error Leakage | Vulnerability: Information Exposure through Error Messages | Learning: Database error traces bubbling up to users can leak schema and path information. | Prevention: Catch database exceptions and return generic error messages (e.g. 500 Internal Server Error) to the client while logging the detailed exception server-side.
