@@ -7,7 +7,8 @@ metrics collection, and baseline diagnostics.
 
 import logging
 import time
-from flask import Blueprint, current_app, jsonify
+
+from flask import Blueprint, g, jsonify
 
 logger = logging.getLogger(__name__)
 system_bp = Blueprint('system', __name__)
@@ -27,7 +28,7 @@ def get_health():
         }
         
         # Check MongoDB
-        task_orchestrator = getattr(current_app, 'task_orchestrator', None)
+        task_orchestrator = g.task_orchestrator
         if task_orchestrator:
             try:
                 # Basic ping would go here
@@ -37,14 +38,11 @@ def get_health():
                 health_status['status'] = "degraded"
                 
         # Check Redis
-        redis_client = getattr(current_app, 'redis_client', None)
-        if redis_client:
-            try:
-                # Basic ping would go here
-                health_status['services']['redis'] = "connected"
-            except Exception:
-                health_status['services']['redis'] = "disconnected"
-                health_status['status'] = "degraded"
+        if g.agent_manager:
+            health_status['services']['redis'] = "connected"
+        else:
+            health_status['services']['redis'] = "disconnected"
+            health_status['status'] = "degraded"
                 
         return jsonify({
             "success": True, 
@@ -62,21 +60,22 @@ def get_health():
 def get_metrics():
     """Retrieve system usage metrics and orchestration statistics."""
     try:
-        agent_manager = getattr(current_app, 'agent_manager', None)
+        agent_manager = g.agent_manager
         active_agents = 0
         if agent_manager:
-            # Simulated stats for now
-            active_agents = len(agent_manager.active_agents) if hasattr(agent_manager, 'active_agents') else 0
+            # Stats for active agents
+            if hasattr(agent_manager, 'active_agents'):
+                active_agents = len(agent_manager.active_agents)
             
         metrics = {
             "agents": {
                 "active_count": active_agents
             },
             "pipelines": {
-                "active_count": 0 # Placeholder
+                "active_count": 0  # Placeholder
             },
             "tasks": {
-                "total_count": 0, # Placeholder
+                "total_count": 0,  # Placeholder
                 "completed_count": 0,
                 "failed_count": 0
             }

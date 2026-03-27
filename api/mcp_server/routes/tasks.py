@@ -7,7 +7,7 @@ and status monitoring within the TechDeck-Python pipeline.
 
 import logging
 
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, g, jsonify, request
 
 # Internal imports
 from ..auth.middleware import require_mcp_auth, require_mcp_role
@@ -36,7 +36,7 @@ def create_task():
             priority=data.get("priority", 1),
         )
 
-        task_orchestrator = getattr(current_app, "task_orchestrator", None)
+        task_orchestrator = g.task_orchestrator
         if not task_orchestrator:
             return jsonify(
                 {"success": False, "error": "Task orchestrator not initialized"}
@@ -56,7 +56,7 @@ def create_task():
 def get_task_status(task_id):
     """Get the current progress and status of a task."""
     try:
-        task_orchestrator = getattr(current_app, "task_orchestrator", None)
+        task_orchestrator = g.task_orchestrator
         if not task_orchestrator:
             return jsonify(
                 {"success": False, "error": "Task orchestrator not initialized"}
@@ -99,7 +99,7 @@ def update_progress(task_id):
                 {"success": False, "error": f"Invalid status: {status_val}"}
             ), 400
 
-        task_orchestrator = getattr(current_app, "task_orchestrator", None)
+        task_orchestrator = g.task_orchestrator
         if not task_orchestrator:
             return jsonify(
                 {"success": False, "error": "Task orchestrator not initialized"}

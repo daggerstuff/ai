@@ -186,16 +186,27 @@ def _init_extensions(app: MCPFlask, config: MCPConfig) -> None:
     from .core.task_orchestrator import TaskOrchestrator
 
     try:
-        app.extensions['agent_manager'] = AgentManager(
-            app.redis_client, app.mongodb_client
+        agent_manager = AgentManager(app.redis_client, app.mongodb_client)
+        task_orchestrator = TaskOrchestrator(
+            agent_manager, app.redis_client, app.mongodb_client
         )
-        app.extensions['task_orchestrator'] = TaskOrchestrator(
-            app.agent_manager, app.redis_client, app.mongodb_client
+        pipeline_manager = PipelineIntegrationManager(
+            task_orchestrator, agent_manager
         )
-        app.extensions['pipeline_manager'] = PipelineIntegrationManager(
-            app.task_orchestrator, app.agent_manager
+        
+        # Inject into extensions for MCPFlask property access
+        app.extensions['agent_manager'] = agent_manager
+        app.extensions['task_orchestrator'] = task_orchestrator
+        app.extensions['pipeline_manager'] = pipeline_manager
+        
+        # Inject into app.config for serialization/discovery as requested by plan
+        app.config['AGENT_MANAGER'] = agent_manager
+        app.config['TASK_ORCHESTRATOR'] = task_orchestrator
+        app.config['PIPELINE_MANAGER'] = pipeline_manager
+        
+        logger.debug(
+            "MCP core managers initialized and injected into extensions/config"
         )
-        logger.debug("MCP core managers initialized")
     except Exception as e:
         logger.error(f"Failed to initialize MCP core managers: {e}")
         raise
@@ -244,11 +255,14 @@ def _register_error_handlers(app: MCPFlask, config: MCPConfig) -> None:
     @app.errorhandler(405)
     def method_not_allowed(error):
         """Handle 405 Method Not Allowed errors."""
+        method_message = (
+            f'Method {request.method} is not allowed for this endpoint'
+        )
         return {
             'success': False,
             'error': {
                 'code': 'METHOD_NOT_ALLOWED',
-                'message': f'Method {request.method} is not allowed for this endpoint',
+                'message': method_message,
                 'timestamp': datetime.utcnow().isoformat(),
                 'allowed_methods': getattr(error, 'valid_methods', [])
             }
@@ -313,14 +327,18 @@ def _register_hooks(app: MCPFlask) -> None:
     @app.before_request
     def before_request():
         """Execute before each request."""
-        g.start_time = datetime.utcnow()  # type: ignore
-        g.request_id = request.headers.get(  # type: ignore
-            'X-Request-ID', str(datetime.utcnow().timestamp())
-        )
-        g.agent_id = request.headers.get('X-Agent-ID')  # type: ignore # For agent-specific requests
+        g.start_time = datetime.utcnow()
+        request_id_header = request.headers.get('X-Request-ID')
+        g.request_id = request_id_header or str(datetime.utcnow().timestamp())
+        g.agent_id = request.headers.get('X-Agent-ID')  # For agent-specific requests
+        
+        # Inject managers into g context for easier access in routes
+        g.agent_manager = app.agent_manager
+        g.task_orchestrator = app.task_orchestrator
+        g.pipeline_manager = app.pipeline_manager
         
         # Log request details
-        logger.info(f"MCP Request {g.request_id}: {request.method} {request.path}")  # type: ignore
+        logger.info(f"MCP Request {g.request_id}: {request.method} {request.path}")
     
     @app.after_request
     def after_request(response):

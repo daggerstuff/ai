@@ -11,12 +11,10 @@ This test suite validates the pipeline orchestrator's ability to:
 5. Scale processing based on load
 """
 
-import unittest
-import pytest
-import json
 import time
-from unittest.mock import Mock, patch, MagicMock
-from typing import Dict, List, Optional, Union, Any
+import unittest
+from typing import Any, Dict, Optional
+from unittest.mock import Mock
 
 # Mock the pipeline orchestrator for testing
 class MockPipelineOrchestrator:
@@ -29,9 +27,15 @@ class MockPipelineOrchestrator:
         self.error_handlers = {}
         self.retry_config = {'max_retries': 3, 'backoff_factor': 2}
         
-    def add_stage(self, stage_name: str, processor: Any, config: Dict[str, Any] = None) -> bool:
+    def add_stage(
+        self, stage_name: str, processor: Any, config: Optional[Dict[str, Any]] = None
+    ) -> bool:
         """Add a processing stage to the pipeline."""
-        if not stage_name or not isinstance(stage_name, str) or str(stage_name).strip() == "":
+        if (
+            not stage_name
+            or not isinstance(stage_name, str)
+            or str(stage_name).strip() == ""
+        ):
             return False
         
         stage = {
@@ -46,7 +50,9 @@ class MockPipelineOrchestrator:
         self.stages.append(stage)
         return True
     
-    def execute_pipeline(self, input_data: Any, pipeline_config: Dict[str, Any] = None) -> Dict[str, Any]:
+    def execute_pipeline(
+        self, input_data: Any, pipeline_config: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Execute the complete pipeline."""
         if not input_data:
             return {
@@ -83,7 +89,10 @@ class MockPipelineOrchestrator:
                 if not stage_result['success']:
                     return {
                         'success': False,
-                        'error': f'Stage {stage["name"]} failed: {stage_result["error"]}',
+                        'error': (
+                            f'Stage {stage["name"]} failed: '
+                            f'{stage_result["error"]}'
+                        ),
                         'results': results,
                         'execution_time': time.time() - start_time,
                         'stages_completed': stages_completed
@@ -124,12 +133,16 @@ class MockPipelineOrchestrator:
                 'stages_completed': stages_completed
             }
     
-    def _check_dependencies(self, stage: Dict[str, Any], results: Dict[str, Any]) -> bool:
+    def _check_dependencies(
+        self, stage: Dict[str, Any], results: Dict[str, Any]
+    ) -> bool:
         """Check if stage dependencies are satisfied."""
         dependencies = stage.get('dependencies', [])
         return all(dep in results for dep in dependencies)
     
-    def _execute_stage_with_retry(self, stage: Dict[str, Any], input_data: Any) -> Dict[str, Any]:
+    def _execute_stage_with_retry(
+        self, stage: Dict[str, Any], input_data: Any
+    ) -> Dict[str, Any]:
         """Execute a stage with retry logic."""
         max_retries = self.retry_config['max_retries']
         backoff_factor = self.retry_config['backoff_factor']
@@ -173,11 +186,20 @@ class MockPipelineOrchestrator:
         if 'validation' in stage_name.lower():
             return {'validated': True, 'data': input_data, 'validation_score': 0.95}
         elif 'transformation' in stage_name.lower():
-            return {'transformed_data': f"processed_{input_data}", 'transformation_type': 'standard'}
+            return {
+                'transformed_data': f"processed_{input_data}",
+                'transformation_type': 'standard'
+            }
         elif 'analysis' in stage_name.lower():
-            return {'analysis_results': {'sentiment': 0.8, 'confidence': 0.9}, 'original_data': input_data}
+            return {
+                'analysis_results': {'sentiment': 0.8, 'confidence': 0.9},
+                'original_data': input_data
+            }
         elif 'export' in stage_name.lower():
-            return {'export_path': f'/exports/{stage_name}_output.json', 'status': 'completed'}
+            return {
+                'export_path': f'/exports/{stage_name}_output.json',
+                'status': 'completed'
+            }
         else:
             return {'processed_data': input_data, 'stage': stage_name}
     
@@ -188,8 +210,13 @@ class MockPipelineOrchestrator:
         
         if self.execution_history:
             last_execution = self.execution_history[-1]
-            avg_execution_time = sum(exec['execution_time'] for exec in self.execution_history) / len(self.execution_history)
-            success_rate = sum(1 for exec in self.execution_history if exec['success']) / len(self.execution_history) * 100
+            avg_execution_time = sum(
+                exec['execution_time'] for exec in self.execution_history
+            ) / len(self.execution_history)
+            success_rate = (
+                sum(1 for exec in self.execution_history if exec['success']) 
+                / len(self.execution_history) * 100
+            )
         else:
             last_execution = None
             avg_execution_time = 0
@@ -242,7 +269,9 @@ class MockPipelineOrchestrator:
         for stage in self.stages:
             for dep in stage.get('dependencies', []):
                 if dep not in all_stage_names:
-                    issues.append(f'Stage {stage["name"]} depends on non-existent stage {dep}')
+                    issues.append(
+                        f'Stage {stage["name"]} depends on non-existent stage {dep}'
+                    )
         
         # Check for duplicate stage names
         stage_names = [stage['name'] for stage in self.stages]
@@ -346,7 +375,9 @@ class TestPipelineOrchestrator(unittest.TestCase):
             'retry_count': 5
         }
         
-        result = self.orchestrator.add_stage('transformation', self.mock_transformer, config)
+        result = self.orchestrator.add_stage(
+            'transformation', self.mock_transformer, config
+        )
         
         self.assertTrue(result)
         stage = self.orchestrator.stages[0]
@@ -596,7 +627,10 @@ class TestPipelineOrchestratorIntegration(unittest.TestCase):
         self.assertTrue(validation['valid'])
         
         # Execute pipeline
-        input_data = {'text': 'Sample therapeutic conversation', 'metadata': {'session_id': 123}}
+        input_data = {
+            'text': 'Sample therapeutic conversation',
+            'metadata': {'session_id': 123}
+        }
         result = self.orchestrator.execute_pipeline(input_data)
         
         # Verify complete execution
