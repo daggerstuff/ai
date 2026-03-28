@@ -46,9 +46,12 @@ from collections.abc import Iterator
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from ai.training.utils.s3_dataset_loader import S3DatasetLoader
+from ai.pipelines.orchestrator.configs.intake_routing import resolve_intake_route
+
+if TYPE_CHECKING:
+    from ai.training.utils.s3_dataset_loader import S3DatasetLoader
 
 # Comprehensive list of professional therapeutic datasets for long-running extraction
 # These are organized by tier from the MASTER_TRAINING_EPIC
@@ -132,7 +135,7 @@ def _to_chatml_messages(record: dict[str, Any]) -> list[dict[str, str]]:
     # Some corpora store conversations as a list-of-lists
     # (each inner list is a dialogue).
     # If so, flatten one level when elements are lists of turns.
-    if isinstance(turns[0], list):
+    if turns and isinstance(turns[0], list):
         # Prefer the longest inner dialogue as the "session"
         inner = max((t for t in turns if isinstance(t, list)), key=len, default=[])
         turns = inner
@@ -424,6 +427,7 @@ def _build_output_record(
     s3_path: str,
     turns: int,
 ) -> dict[str, Any]:
+    route = resolve_intake_route("long_running_therapy")
     return {
         "messages": messages,
         "metadata": {
@@ -431,7 +435,11 @@ def _build_output_record(
             "source_key": s3_path,
             "pii_status": "none_detected",
             "license_tag": "therapeutic_license",
-            "split": "test",  # hard holdout by contract
+            "split": route.split_preference or "test",
+            "stage": route.target_lane,
+            "intake_target_lane": route.target_lane,
+            "intake_route_reason": route.reason,
+            "requires_human_review": False,
             "phase": "stage5_long_running_therapy",
             "conversation_length": turns,
             "provenance": {
@@ -465,6 +473,8 @@ class ExtractionStats:
 
 def _setup_environment(args: argparse.Namespace) -> tuple[str, str, S3DatasetLoader]:
     """Setup S3 environment and return bucket, endpoint, and loader."""
+    from ai.training.utils.s3_dataset_loader import S3DatasetLoader
+
     bucket, endpoint = _load_s3_manifest(Path(args.manifest))
     bucket = os.getenv("OVH_S3_BUCKET", bucket)
     endpoint = os.getenv("OVH_S3_ENDPOINT", endpoint)

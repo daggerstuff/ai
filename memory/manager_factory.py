@@ -3,6 +3,7 @@ import os
 from typing import Any, Dict, Optional
 
 from ai.memory.mem0_gemini.manager import GeminiMem0Config, GeminiMem0Manager
+from ai.memory.hindsight_manager import HindsightMemoryManager
 from ai.memory.mem0_nvidia.manager import NvidiaMem0Config, NvidiaMem0Manager
 from ai.memory.mem0_nvidia.enhanced_manager import (
     EnhancedNvidiaConfig,
@@ -129,15 +130,23 @@ class MemoryManagerFactory:
         3. If not set, check for GEMINI_API_KEY (fallback to gemini).
         4. If nothing found, return NullMemoryManager.
         """
-        provider = os.environ.get("MEM0_PROVIDER", "").lower()
+        provider = (
+            os.environ.get("MEMORY_PROVIDER")
+            or os.environ.get("MEM0_PROVIDER")
+            or ""
+        ).lower()
 
         # 1. Force Provider if specified
+        if provider == "hindsight":
+            return MemoryManagerFactory._create_hindsight_manager()
         if provider == "nvidia":
             return MemoryManagerFactory._create_nvidia_manager()
-        elif provider == "gemini":
+        if provider == "gemini":
             return MemoryManagerFactory._create_gemini_manager()
 
         # 2. Autodetect
+        if os.environ.get("HINDSIGHT_API_KEY"):
+            return MemoryManagerFactory._create_hindsight_manager()
         if os.environ.get("NVIDIA_API_KEY"):
             return MemoryManagerFactory._create_nvidia_manager()
         if os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY"):
@@ -147,6 +156,16 @@ class MemoryManagerFactory:
         logger.warning("No memory provider configured. Using NullMemoryManager.")
         from ai.api.memory.null_memory import NullMemoryManager
         return NullMemoryManager()
+
+    @staticmethod
+    def _create_hindsight_manager() -> BaseMemoryManager:
+        """Helper to create Hindsight manager."""
+        try:
+            logger.info("Using HindsightMemoryManager")
+            return HindsightMemoryManager()
+        except Exception as e:
+            logger.error(f"Failed to initialize HindsightMemoryManager: {e}")
+            raise
 
     @staticmethod
     def _create_nvidia_manager() -> BaseMemoryManager:
