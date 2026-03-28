@@ -8,7 +8,6 @@ This is the correct implementation for MCP client integration.
 
 import asyncio
 import logging
-import os
 from typing import Any, Dict, Optional
 
 from mcp.server import Server
@@ -22,6 +21,7 @@ from ai.api.mcp_server.memory_scope import (
     scope_input_schema_properties,
     search_with_overfetch,
 )
+from ai.memory.manager_factory import get_memory_manager
 
 logger = logging.getLogger(__name__)
 
@@ -30,55 +30,16 @@ logger = logging.getLogger(__name__)
 app = Server("pixelated-memory")
 
 # Memory client initialization
-_mem0_client = None
+_memory_client = None
 
 
-def get_mem0_client():
-    """Get or create Mem0 client with null fallback."""
-    global _mem0_client
-    if _mem0_client is None:
-        api_key = os.environ.get("MEM0_API_KEY")
-
-        if api_key:
-            try:
-                from mem0 import MemoryClient
-
-                _mem0_client = MemoryClient(api_key=api_key)
-                logger.info("Initialized Mem0 Platform API client")
-                return _mem0_client
-            except Exception as e:
-                logger.error(f"Failed to initialize Mem0 client: {e}")
-        else:
-            logger.info("No MEM0_API_KEY, using null memory")
-
-        # Null implementation
-        class NullMemory:
-            """Complete null memory for development."""
-
-            def add(
-                self,
-                content: str,
-                user_id: str,
-                metadata: Optional[Dict[str, Any]] = None,
-                **kwargs,
-            ):
-                return {"results": [{"id": f"null-{hash(content) % 10000}"}]}
-
-            def search(self, query: str, user_id: str, limit: int = 10, **kwargs):
-                return {"results": []}
-
-            def get_all(self, user_id: str, **kwargs):
-                return {"results": []}
-
-            def update(self, memory_id: str, text: str, **kwargs):
-                return {"message": "updated"}
-
-            def delete(self, memory_id: str, **kwargs):
-                return {"message": "deleted"}
-
-        _mem0_client = NullMemory()
-
-    return _mem0_client
+def get_memory_client():
+    """Get or create the configured shared memory manager."""
+    global _memory_client
+    if _memory_client is None:
+        _memory_client = get_memory_manager()
+        logger.info("Initialized shared memory manager: %s", type(_memory_client).__name__)
+    return _memory_client
 
 
 def _scope_from_arguments(arguments: Any):
@@ -148,12 +109,12 @@ async def list_tools() -> list[Tool]:
 @app.call_tool()
 async def call_tool(name: str, arguments: Any) -> list[TextContent]:
     """Handle tool calls."""
-    client = get_mem0_client()
+    client = get_memory_client()
 
     try:
         if name == "add_memory":
             scope = _scope_from_arguments(arguments)
-            result = client.add(
+            memory_id = client.add_memory(
                 arguments["content"],
                 user_id=arguments["user_id"],
                 metadata=build_scope_metadata(
@@ -161,15 +122,8 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
                     incoming_metadata={},
                     category=arguments.get("category"),
                 ),
+                category=arguments.get("category"),
             )
-            memory_id = "unknown"
-            if isinstance(result, dict):
-                if result.get("id"):
-                    memory_id = result.get("id")
-                elif "results" in result and result["results"]:
-                    memory_id = result["results"][0].get("id", "unknown")
-            elif isinstance(result, list) and result:
-                memory_id = result[0].get("id", "unknown")
 
             return [
                 TextContent(
@@ -209,7 +163,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
 
         elif name == "get_all_memories":
             scope = _scope_from_arguments(arguments)
-            result = client.get_all(user_id=arguments["user_id"])
+            result = client.get_all_memories(user_id=arguments["user_id"])
             memories = result.get("results", []) if isinstance(result, dict) else result
             memories = filter_memories_by_scope(scope=scope, memories=memories or [])
 
@@ -238,7 +192,7 @@ async def main():
     logger.info("Starting Pixelated Memory MCP Server")
 
     # Initialize memory client
-    get_mem0_client()
+    get_memory_client()
 
     async with stdio_server() as streams:
         read_stream, write_stream = streams

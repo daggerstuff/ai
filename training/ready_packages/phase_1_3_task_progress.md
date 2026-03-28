@@ -1,3 +1,6 @@
+> Historical document. Do not use as the live tracker.
+> Canonical live state: `.agent/internal/STATE.md`
+
 # Phase 1.3: Annotation & Labeling - Task Progress
 
 ## Task Status: 🚀 READY TO START

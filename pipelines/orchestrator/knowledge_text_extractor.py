@@ -20,6 +20,11 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
 
+from ai.pipelines.orchestrator.ingestion.intake_gates import OrchestratorIntakeGates
+from ai.pipelines.orchestrator.ingestion.intake_routing_adapter import (
+    apply_intake_routing,
+)
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -433,6 +438,62 @@ class KnowledgeTextExtractor:
         logger.info(f"Extracted {total_chunks} total chunks from {len(all_chunks)} sources")
 
         return all_chunks
+
+    @staticmethod
+    def _source_family_for_source(source: KnowledgeSourceMetadata) -> str:
+        """Map knowledge source metadata to the canonical intake source family."""
+        source_type_map = {
+            "therapeutic_book": "psych_book",
+            "clinical_reference": "clinical_reference_pdf",
+            "integrated_pdf": "docs_manual",
+        }
+        return source_type_map.get(source.source_type, "docs_manual")
+
+    def chunks_to_training_records(self, chunks: List[ExtractedChunk]) -> List[dict]:
+        """Convert extracted chunks into orchestrator-ready training records."""
+        training_records_by_family: dict[str, list[dict]] = {}
+
+        for chunk in chunks:
+            source_family = self._source_family_for_source(chunk.metadata)
+            training_records_by_family.setdefault(source_family, []).append(
+                {
+                    "text": chunk.content,
+                    "prompt": f"Summarize and apply: {chunk.metadata.title}",
+                    "response": chunk.content,
+                    "metadata": {
+                        "source": chunk.metadata.source_type,
+                        "source_id": chunk.source_id,
+                        "author": chunk.metadata.author,
+                        "title": chunk.metadata.title,
+                        "topics": chunk.metadata.topics,
+                        "priority": chunk.metadata.priority,
+                        "chunk_id": chunk.chunk_id,
+                        "chunk_index": chunk.chunk_index,
+                        "is_knowledge_base": True,
+                        "trusted_source": True,
+                    },
+                }
+            )
+
+        routed_records: List[dict] = []
+        intake_gates = OrchestratorIntakeGates()
+        for source_family, records in training_records_by_family.items():
+            family_records = apply_intake_routing(
+                records,
+                source_family=source_family,
+                intake_gates=intake_gates,
+            )
+            routed_records.extend(family_records)
+
+        return routed_records
+
+    def extract_source_training_records(self, source_id: str) -> List[dict]:
+        """Extract, chunk, and convert a knowledge source into training records."""
+        text = self.extract_text(source_id)
+        if not text:
+            return []
+        chunks = self.chunk_text(text, source_id)
+        return self.chunks_to_training_records(chunks)
 
     def get_source_stats(self) -> Dict:
         """Get statistics about knowledge sources."""
