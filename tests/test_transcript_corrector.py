@@ -18,3 +18,29 @@ def test_transcript_corrector_fillers(mock_file, mock_exists):
 
     # "well" is not a filler in the regex, "um,", "you know,", "like,", "uh" are
     assert corrector.correct_transcript("um, well you know, I think, like, this is uh good.") == "well I think, this is good."
+
+@patch("utils.transcript_corrector.Path.exists", return_value=True)
+@patch("builtins.open", new_callable=mock_open, read_data='{"cptsd_terms": ["flashback"], "medical_terms": ["trauma"], "common_misinterpretations": {}}')
+def test_transcript_corrector_validate_term_coverage(mock_file, mock_exists):
+    corrector = TranscriptCorrector(config_path="dummy.json")
+
+    # Empty string
+    assert corrector.validate_term_coverage("") == {
+        "cptsd_term_count": 0,
+        "medical_term_count": 0,
+        "domain_coverage_score": 0.0,
+    }
+
+    # Full match
+    assert corrector.validate_term_coverage("Trauma can cause a flashback.") == {
+        "cptsd_term_count": 1,
+        "medical_term_count": 1,
+        "domain_coverage_score": 1.0,
+    }
+
+    # Case insensitive test
+    assert corrector.validate_term_coverage("FLASHBACK and TRAUMA") == {
+        "cptsd_term_count": 1,
+        "medical_term_count": 1,
+        "domain_coverage_score": 1.0,
+    }
