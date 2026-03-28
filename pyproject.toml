@@ -75,6 +75,7 @@ dependencies = [
   "motor>=3.6.0",
   # Security: minimum versions enforced via constraint-dependencies (see below)
   "virtualenv>=21.2.0",
+  "hindsight-litellm>=0.5.0",
 ]
 
 [dependency-groups]

@@ -1,8 +1,8 @@
 """
 Memory System Integration Module.
 
-Integrates Mem0-based memory management with the MCP server for managing
-user memory contexts, conversation history, and therapeutic session data.
+Integrates the configured shared memory backend with higher-level helpers for
+managing user memory contexts, conversation history, and therapeutic sessions.
 """
 
 import logging
@@ -11,14 +11,8 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-# Optional imports for Mem0
-try:
-    from mem0 import Memory
-except ImportError:
-    try:
-        from mem0ai import Memory
-    except ImportError:
-        Memory = None
+from ai.api.memory.null_memory import NullMemoryManager
+from ai.memory.manager_factory import get_memory_manager as get_backend_memory_manager
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +73,7 @@ class MemoryContext:
 
 class MemoryManager:
     """
-    Manages memory persistence and retrieval using Mem0.
+    Manages memory persistence and retrieval using the configured backend.
     """
 
     def __init__(self, mem0_client: Any):
@@ -114,7 +108,7 @@ class MemoryManager:
             )
             return True
         except Exception as e:
-            logger.error(f"Error adding message to Mem0: {e}")
+            logger.error(f"Error adding message to memory backend: {e}")
             return False
 
     def get_conversation_history(
@@ -124,8 +118,6 @@ class MemoryManager:
             if not hasattr(self.client, "get_all"):
                 return []
 
-            # Mem0 search returns relevant memories,
-            # but for history we might want get_all or a particular filter
             memories = self.client.get_all(user_id=user_id)
             if isinstance(memories, dict):
                 memories = memories.get("results", [])
@@ -145,7 +137,7 @@ class MemoryManager:
                     role=MessageRole(m.get("metadata", {}).get("role", "user")),
                     timestamp=datetime.now(
                         timezone.utc
-                    ),  # Mem0 might not give timestamp easily
+                    ),
                     message_id=m.get("id"),
                     metadata=m.get("metadata", {}),
                 )
@@ -182,7 +174,6 @@ class MemoryManager:
     def get_emotional_state(
         self, user_id: str, session_id: str
     ) -> Optional[Dict[str, Any]]:
-        # Search for emotional state in Mem0
         if not hasattr(self.client, "search"):
             return None
 
@@ -223,14 +214,17 @@ class MemoryManager:
         )
 
     def clear_session_memory(self, session_id: str) -> bool:
-        # Mem0 doesn't have a clear by session_id easily in one call
         logger.warning(
-            f"Clear session memory for {session_id} not fully implemented for Mem0 yet"
+            "Clear session memory for %s is not implemented for the current backend",
+            session_id,
         )
         return True
 
     def get_memory_stats(self, session_id: str) -> Dict[str, Any]:
-        return {"session_id": session_id, "provider": "mem0"}
+        return {
+            "session_id": session_id,
+            "provider": type(self.client).__name__,
+        }
 
 
 _memory_manager_instance: Optional[MemoryManager] = None
@@ -241,31 +235,28 @@ def get_memory_manager(mem0_client: Optional[Any] = None) -> MemoryManager:
     Get or create the global MemoryManager instance.
 
     Args:
-        mem0_client: Optional pre-configured Memory client
+        mem0_client: Optional pre-configured memory client
 
     Returns:
         Configured MemoryManager instance
 
-    Note: Defaults to NullMemoryManager if dependencies missing.
+    Note: Defaults to NullMemoryManager if backend initialization fails.
     """
     global _memory_manager_instance
     if _memory_manager_instance is None:
         if not mem0_client:
-            # 1. Try to create Mem0 if package exists
-            if Memory:
-                try:
-                    mem0_client = Memory()  # Default config or from env
-                    logger.info("Initialized default Mem0 client")
-                except Exception as e:
-                    logger.warning(f"Failed to auto-init Mem0: {e}")
+            try:
+                mem0_client = get_backend_memory_manager()
+                logger.info(
+                    "Initialized backend client for MemoryManager: %s",
+                    type(mem0_client).__name__,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to initialize configured memory backend: {e}")
 
-            # 2. Fallback to NullMemoryManager
             if not mem0_client:
-                # Create a null Memory implementation for development/fallback
-                from ai.api.memory.null_memory import NullMemoryManager
-
                 mem0_client = NullMemoryManager()
-                logger.info("Using null Memory implementation for MemoryManager")
+                logger.info("Using NullMemoryManager for legacy MemoryManager")
 
         _memory_manager_instance = MemoryManager(mem0_client)
     return _memory_manager_instance

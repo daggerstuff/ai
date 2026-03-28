@@ -321,6 +321,58 @@ def create_memory_server() -> FastAPI:
             logger.error(f"Error deleting memory: {e}")
             raise HTTPException(status_code=400, detail=str(e))
 
+    @app.get("/api/memory/all/{user_id}", tags=["MCP Tools"])
+    async def get_all_memories_endpoint(
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+        limit: Optional[int] = None,
+    ):
+        """
+        Return all memories for a user through the shared MCP memory surface.
+        """
+        try:
+            manager = get_mcp_manager()
+            if not manager:
+                raise HTTPException(
+                    status_code=503, detail="Memory service unavailable"
+                )
+
+            scope = scope_from_kwargs(
+                user_id=user_id,
+                org_id=org_id,
+                project_id=project_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                run_id=run_id,
+                include_shared=include_shared,
+            )
+
+            memories = manager.get_all_memories(user_id=user_id)
+            if isinstance(memories, dict) and "results" in memories:
+                memories = memories["results"]
+
+            memories = filter_memories_by_scope(
+                scope=scope,
+                memories=memories or [],
+                limit=limit,
+            )
+
+            return {
+                "success": True,
+                "memories": memories,
+                "count": len(memories),
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Error fetching all memories: {e}")
+            raise HTTPException(status_code=400, detail=str(e))
+
     # ==================== LEGACY/COMPATIBILITY ROUTES ====================
 
     @app.post("/api/memory/users")
