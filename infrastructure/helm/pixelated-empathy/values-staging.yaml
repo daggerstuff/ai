@@ -28,6 +28,7 @@ postgresql:
   primary:
     persistence:
       size: 8Gi
+      storageClass: "default" # Explicitly match existing PVC storageClass
     resources:
       limits:
         cpu: 500m
@@ -39,7 +40,8 @@ postgresql:
 redis:
   master:
     persistence:
-      size: 2Gi
+      size: 8Gi # Adjusted to match existing 8Gi PVC found in cluster
+      storageClass: "default"
     resources:
       limits:
         cpu: 250m
@@ -52,6 +54,9 @@ monitoring:
   prometheus:
     enabled: true
     server:
+      persistentVolume:
+        storageClass: "default"
+        size: 8Gi
       resources:
         limits:
           cpu: 500m
@@ -60,9 +65,12 @@ monitoring:
           cpu: 100m
           memory: 512Mi
     alertmanager:
-      enabled: false # Keep alertmanager off to save CPU if not strictly needed for staging logs
+      enabled: false 
   grafana:
     enabled: true
+    persistence:
+      storageClass: "default"
+      size: 2Gi
     resources:
       limits:
         cpu: 200m
