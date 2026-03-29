@@ -50,9 +50,26 @@ redis:
 
 monitoring:
   prometheus:
-    enabled: false
+    enabled: true
+    server:
+      resources:
+        limits:
+          cpu: 500m
+          memory: 1Gi
+        requests:
+          cpu: 100m
+          memory: 512Mi
+    alertmanager:
+      enabled: false # Keep alertmanager off to save CPU if not strictly needed for staging logs
   grafana:
-    enabled: false
+    enabled: true
+    resources:
+      limits:
+        cpu: 200m
+        memory: 512Mi
+      requests:
+        cpu: 50m
+        memory: 256Mi
 
 ingress:
   hosts:
