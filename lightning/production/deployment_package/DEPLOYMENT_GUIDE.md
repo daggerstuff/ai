@@ -34,14 +34,14 @@ python prepare_data.py
 ### **Step 3: Install Dependencies**
 
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 ### **Step 4: Launch H100 Training**
 
 ```bash
-# Start training on H100 GPU
-python train_therapeutic_ai.py
+# Start Stage 2 reasoning training
+uv run python train_therapeutic_ai.py --stage 2
 ```
 
 ### **Step 5: Monitor Training**
@@ -52,20 +52,20 @@ python train_therapeutic_ai.py
 
 ## ⚙️ **Training Configuration**
 
-- **Architecture:** 4-Expert MoE LoRA
-- **Base Model:** microsoft/DialoGPT-medium
+- **Architecture:** LoRA adapters for therapeutic reasoning
+- **Base Model:** LatitudeGames/Wayfarer-12B
 - **GPU:** H100 (80GB VRAM)
-- **Batch Size:** 8 (with gradient accumulation)
-- **Learning Rate:** 5e-4
-- **Epochs:** 3
+- **Batch Size:** 2 (with gradient accumulation)
+- **Learning Rate:** 1e-4
+- **Epochs:** 2
 - **LoRA Rank:** 16, Alpha: 32
 
-## 🧠 **Expert Specialization**
+## 🧠 **Stage 2 Focus**
 
-- **Expert 0:** Therapeutic conversations
-- **Expert 1:** Educational content
-- **Expert 2:** Empathetic responses
-- **Expert 3:** Practical advice
+- Clinical reasoning examples
+- Chain-of-thought therapeutic patterns
+- Curriculum shard: `s3://pixel-data/final_dataset/shards/curriculum/stage2/`
+- Resume source: `./therapeutic_ai_final_stage1`
 
 ## 📈 **Expected Training Results**
 
@@ -99,7 +99,8 @@ python train_therapeutic_ai.py
 
 After training completion:
 
-- `./therapeutic_ai_final/` - Trained model and tokenizer
+- `./therapeutic_ai_final_stage2/` - Tokenizer plus adapter or model artifacts
+- `./therapeutic_ai_final_stage2/artifact_manifest.json` - Saved artifact metadata
 - `./lightning_logs/` - Training logs and checkpoints
 - `./wandb/` - Detailed training metrics
 
