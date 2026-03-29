@@ -1,14 +1,14 @@
 {
   "package_type": "lightning_ai_h100_deployment",
-  "created_for": "therapeutic_ai_training",
+  "created_for": "therapeutic_ai_stage2_reasoning",
   "contains": [
-    "H100 LoRA training script",
-    "Unified intelligent dataset",
-    "Lightning.ai configuration",
-    "Deployment instructions",
+    "Stage 2 Lightning LoRA training script",
+    "Stage 2 reasoning configuration",
+    "Deployment instructions aligned with current launcher flow",
     "Requirements and dependencies"
   ],
   "ready_for_upload": true,
   "estimated_training_time": "6-12 hours on H100",
-  "expected_model_size": "~1.5GB LoRA adapters"
+  "expected_model_size": "~1.5GB LoRA adapters",
+  "artifact_output": "therapeutic_ai_final_stage2/adapters"
 }
