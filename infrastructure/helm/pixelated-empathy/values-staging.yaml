@@ -48,6 +48,12 @@ redis:
         cpu: 50m
         memory: 256Mi
 
+monitoring:
+  prometheus:
+    enabled: false
+  grafana:
+    enabled: false
+
 ingress:
   hosts:
     - host: staging-api.pixelated-empathy.ai
