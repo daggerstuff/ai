@@ -88,7 +88,6 @@ affinity:
 postgresql:
   enabled: true
   auth:
-    postgresPassword: "changeme"
     database: "pixelated_empathy"
   primary:
     persistence:
@@ -107,7 +106,6 @@ redis:
   enabled: true
   auth:
     enabled: true
-    password: "changeme"
   master:
     persistence:
       enabled: true
@@ -126,7 +124,9 @@ monitoring:
     enabled: true
   grafana:
     enabled: true
-    adminPassword: "changeme"
+
+caddy-ingress-controller:
+  enabled: true
 
 # Application Configuration
 app:
