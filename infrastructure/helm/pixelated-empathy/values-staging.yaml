@@ -1,7 +1,7 @@
 # Staging environment values
 environment: 'staging'
 
-replicaCount: 2
+replicaCount: 1
 
 image:
   tag: 'staging-latest'
@@ -10,45 +10,43 @@ app:
   config:
     logLevel: 'INFO'
     debug: false
-    maxWorkers: 3
-    batchSize: 75
+    maxWorkers: 2
+    batchSize: 50
 
 resources:
   limits:
-    cpu: 1500m
-    memory: 3Gi
+    cpu: 500m
+    memory: 1Gi
   requests:
-    cpu: 750m
-    memory: 1.5Gi
+    cpu: 100m
+    memory: 512Mi
 
 autoscaling:
-  enabled: true
-  minReplicas: 2
-  maxReplicas: 5
+  enabled: false
 
 postgresql:
   primary:
     persistence:
-      size: 50Gi
+      size: 8Gi
     resources:
       limits:
-        cpu: 1500m
-        memory: 3Gi
+        cpu: 500m
+        memory: 1Gi
       requests:
-        cpu: 750m
-        memory: 1.5Gi
+        cpu: 100m
+        memory: 512Mi
 
 redis:
   master:
     persistence:
-      size: 10Gi
+      size: 2Gi
     resources:
       limits:
-        cpu: 750m
-        memory: 1.5Gi
+        cpu: 250m
+        memory: 512Mi
       requests:
-        cpu: 375m
-        memory: 768Mi
+        cpu: 50m
+        memory: 256Mi
 
 ingress:
   hosts:
@@ -62,6 +60,4 @@ ingress:
         - staging-api.pixelated-empathy.ai
 
 backup:
-  enabled: true
-  schedule: '0 4 * * *'
-  retention: '7d'
+  enabled: false
