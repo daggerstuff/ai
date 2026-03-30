@@ -24,3 +24,12 @@ def test_validate_term_coverage(mock_file, mock_exists):
 
     metrics = corrector.validate_term_coverage("Nothing here.")
     assert metrics["domain_coverage_score"] == 0.0
+
+
+@patch('utils.transcript_corrector.Path.exists', return_value=True)
+@patch('builtins.open', new_callable=mock_open, read_data='{"common_misinterpretations": {"bad term": "good term"}}')
+def test_apply_terminology_fixes_edge_cases(mock_file, mock_exists):
+    corrector = TranscriptCorrector("mock.json")
+
+    assert corrector._apply_terminology_fixes("This is a BAD TERM.") == "This is a good term."
+    assert corrector._apply_terminology_fixes("bad term and Bad Term") == "good term and good term"
