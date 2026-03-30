@@ -70,7 +70,7 @@ monitoring:
 
 ingress:
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-production"
+    cert-manager.io/cluster-issuer: "letsencrypt-production-dns"
     kubernetes.io/ingress.class: "caddy"
     caddy.ingress.kubernetes.io/disable-http-redirect: "true"
   hosts:
