@@ -16,10 +16,10 @@ maintainers:
   - name: Pixelated Team
     email: team@pixelatedempathy.com
 dependencies:
-  - name: caddy-ingress-controller
-    version: '1.3.0'
-    repository: 'https://caddyserver.github.io/ingress/'
-    condition: caddy-ingress-controller.enabled
+  - name: traefik
+    version: '39.0.6'
+    repository: 'https://traefik.github.io/charts'
+    condition: traefik.enabled
   - name: postgresql
     version: '12.1.9'
     repository: 'https://charts.bitnami.com/bitnami'
