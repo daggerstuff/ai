@@ -532,20 +532,27 @@ class EmbeddingAgentService:
                 if item_type not in [kt.value for kt in knowledge_types]:
                     continue
 
-            # Get item embedding
-            item_embedding = getattr(item, "embedding", None)
-            if item_embedding is None:
-                continue
+            # ⚡ Bolt: Cache parsed normalized numpy arrays to avoid regenerating on every query
+            item_np = getattr(item, "_cached_np_embedding", None)
+
+            # Get item embedding if cache misses
+            if item_np is None:
+                item_embedding = getattr(item, "embedding", None)
+                if item_embedding is None:
+                    continue
+                if NUMPY_AVAILABLE and query_np is not None:
+                    item_np = np.array(item_embedding)
+                    if self.config.normalize_embeddings:
+                        norm = np.linalg.norm(item_np)
+                        if norm > 0:
+                            item_np = item_np / norm
+                    setattr(item, "_cached_np_embedding", item_np)
 
             # Calculate similarity
-            if NUMPY_AVAILABLE and query_np is not None:
-                item_np = np.array(item_embedding)
-                if self.config.normalize_embeddings:
-                    norm = np.linalg.norm(item_np)
-                    if norm > 0:
-                        item_np = item_np / norm
+            if NUMPY_AVAILABLE and query_np is not None and item_np is not None:
                 similarity = float(np.dot(query_np, item_np))
             else:
+                item_embedding = getattr(item, "embedding", None)
                 # Simple cosine similarity
                 dot_product = sum(
                     a * b for a, b in zip(query_embedding, item_embedding)
