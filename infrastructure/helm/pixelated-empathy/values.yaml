@@ -150,7 +150,7 @@ traefik:
 # Application Configuration
 app:
   config:
-    logLevel: "INFO"
+    logLevel: "info"
     debug: false
     maxWorkers: 4
     batchSize: 100

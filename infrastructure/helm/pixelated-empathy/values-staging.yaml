@@ -8,7 +8,7 @@ image:
 
 app:
   config:
-    logLevel: 'INFO'
+    logLevel: 'info'
     debug: false
     maxWorkers: 2
     batchSize: 50
