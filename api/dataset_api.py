@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import sqlite3
@@ -5,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, status
 from pydantic import BaseModel
+
 from security.api_authentication import (
     AuthenticationSystem,
     PermissionLevel,
@@ -13,6 +15,8 @@ from security.fastapi_auth_middleware import (
     AuthenticationDependencies,
     api_key_header,
 )
+
+logger = logging.getLogger(__name__)
 
 # Initialize Authentication System (use a strong secret key in production)
 AUTH_SECRET_KEY = os.getenv("AUTH_SECRET_KEY", "super-secret-key-for-dev")
@@ -177,7 +181,8 @@ async def list_datasets(
                     columns=columns,
                 )
             )
-    except sqlite3.Error:
+    except sqlite3.Error as e:
+        logger.error(f"Database error: {e}")
         raise HTTPException(status_code=500, detail="Database error occurred")
     finally:
         if conn:
@@ -234,7 +239,8 @@ async def get_dataset_metadata(
             row_count=row_count,
             columns=columns,
         )
-    except sqlite3.Error:
+    except sqlite3.Error as e:
+        logger.error(f"Database error: {e}")
         raise HTTPException(status_code=500, detail="Database error occurred")
     finally:
         if conn:
@@ -314,7 +320,8 @@ async def query_dataset(
             data=results, total_rows=total_rows, page=page, page_size=page_size
         )
 
-    except sqlite3.Error:
+    except sqlite3.Error as e:
+        logger.error(f"Database error: {e}")
         raise HTTPException(status_code=500, detail="Database error occurred")
     finally:
         if conn:
