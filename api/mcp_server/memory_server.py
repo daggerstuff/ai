@@ -2,7 +2,7 @@
 MCP Memory Integration Server.
 
 Provides MCP (Model Control Protocol) compatible endpoints for memory operations
-with hybrid Mem0 and Gemini backend.
+with Hindsight-backed memory storage.
 """
 
 import logging
@@ -97,7 +97,7 @@ def create_memory_server() -> FastAPI:
 
     app = FastAPI(
         title="Pixelated Memory Server",
-        description="Memory management with Mem0/Gemini integration",
+        description="Memory management with Hindsight integration",
         version="2.0.0",
         lifespan=lifespan,
     )
@@ -111,7 +111,7 @@ def create_memory_server() -> FastAPI:
     @app.post("/api/memory/add", tags=["MCP Tools"])
     async def add_memory(request: AddMemoryRequest):
         """
-        Add memory to Mem0 (MCP Tool: add_memory).
+        Add memory to Hindsight (MCP Tool: add_memory).
 
         Stores information in long-term memory with optional metadata.
         """
@@ -138,8 +138,8 @@ def create_memory_server() -> FastAPI:
                 category=request.category,
             )
 
-            # Call add_memory on the manager (GeminiMem0Manager or Wrapper)
-            # Note: GeminiMem0Manager.add_memory arguments:
+            # Call add_memory on the manager
+            # (Hindsight backend)
             # content, user_id, metadata=None, category=None
             memory_id = manager.add_memory(
                 request.content,
@@ -197,7 +197,7 @@ def create_memory_server() -> FastAPI:
 
             # Handle case where result might be a dict with 'results' key
             # (wrapper vs manager)
-            # GeminiMem0Manager.search_memories already returns a list.
+            # Search returns a list directly.
             # Wrapper returns client.search which might be list or dict.
             if isinstance(memories, dict) and "results" in memories:
                 memories = memories["results"]
@@ -382,15 +382,15 @@ def create_memory_server() -> FastAPI:
         role: str = "patient",
         metadata: Optional[Dict[str, Any]] = None,
     ):
-        """Create new user (Mem0 compatibility shim)."""
-        # Mem0 handles users implicitly via user_id. We'll use email as the user_id.
+        """Create new user."""
+        # Hindsight handles users implicitly via user_id.
         return {
             "success": True,
             "user_id": email,
             "email": email,
             "name": name,
             "role": role,
-            "message": "User registered for Mem0 context",
+            "message": "User registered for Hindsight context",
         }
 
     @app.get("/api/memory/users/{user_id}")
@@ -427,10 +427,10 @@ def create_memory_server() -> FastAPI:
             status = "healthy" if manager else "degraded"
             
             manager_type = str(type(manager))
-            if "NvidiaMem0Manager" in manager_type:
-                provider = "NvidiaMem0"
-            elif "GeminiMem0Manager" in manager_type:
-                provider = "GeminiMem0"
+            if "NvidiaManager" in manager_type:
+                provider = "Nvidia"
+            elif "GeminiManager" in manager_type:
+                provider = "Gemini"
             else:
                 provider = manager_type
 

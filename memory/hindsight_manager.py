@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional
 
 import requests
 
-from ai.api.memory.base import BaseMemoryManager
+from .base import BaseMemoryManager
 
 logger = logging.getLogger(__name__)
 

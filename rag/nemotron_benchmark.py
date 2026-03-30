@@ -18,6 +18,8 @@ import json
 import os
 import statistics
 import time
+
+import numpy as np
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List
@@ -255,33 +257,31 @@ class NemotronBenchmark:
         # Run benchmark with progress bar
         semaphore = asyncio.Semaphore(self.config.concurrency)
 
-        async def bounded_request(_task_type: TaskType, prompt_data: Dict):
+        async def bounded_request(task_type: TaskType, prompt_data: Dict):
             async with semaphore:
-                return await self.make_request(
+                result = await self.make_request(
                     session,
                     model,
                     prompt_data["prompt"],
                 )
+                return (task_type, result)
 
         tasks = []
         for task_type, prompt_data in all_prompts:
             tasks.append(bounded_request(task_type, prompt_data))
 
-        results = []
+        completed_results = []
         for coro in tqdm(
             asyncio.as_completed(tasks),
             total=len(tasks),
-            desc=f"  {model}",
+            desc=f" {model}",
         ):
-            result = await coro
-            results.append(result)
+            task_type, result = await coro
+            completed_results.append((task_type, result))
 
-        # Group results by task type
-        idx = 0
-        for task_type_value, prompts in THERAPEUTIC_BENCHMARK_DATASET.items():
-            for _ in prompts:
-                task_results[task_type.value].append(results[idx])
-                idx += 1
+        # Group by task_type
+        for task_type, result in completed_results:
+            task_results[task_type.value].append(result)
 
         # Calculate metrics per task type
         model_task_results: Dict[str, ModelResult] = {}

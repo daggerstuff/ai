@@ -95,21 +95,17 @@ THERAPEUTIC_KNOWLEDGE_BASE = {
     },
 }
 
-# Import ModelTier from enhanced manager for unified model selection
-from ai.memory.mem0_nvidia.enhanced_manager import ModelTier
+# NVIDIA NIM model identifiers for therapeutic RAG pipeline
+NIM_EMBEDDING_MODEL = "nvidia/llama-nemotron-embed-vl-1b-v2"
+NIM_RERANK_MODEL = "nvidia/llama-nemotron-rerank-vl-1b-v2"
+NIM_GENERATION_MODEL = "nvidia/llama-3.3-nemotron-super-49b-v1.5"
+NIM_FAST_MODEL = "nvidia/llama-3.1-nemotron-nano-4b-v1.1"
 
-# NVIDIA NIM model identifiers - using ModelTier enum from expanded catalog
-# This ensures consistency with the enhanced NVIDIA NIM manager
-NIM_EMBEDDING_MODEL = ModelTier.NEMOTRON_EMBED.value  # nvidia/llama-nemotron-embed-vl-1b-v2
-NIM_RERANK_MODEL = "nvidia/llama-nemotron-rerank-vl-1b-v2"  # Rerank not in ModelTier yet
-NIM_GENERATION_MODEL = ModelTier.NEMOTRON_SUPER.value  # nvidia/llama-3.3-nemotron-super-49b-v1.5
-NIM_FAST_MODEL = ModelTier.NEMOTRON_NANO_4B.value  # nvidia/llama-3.1-nemotron-nano-4b-v1.1
-
-# Alternative models for different use cases (from 187-model catalog)
-NIM_REASONING_MODEL = ModelTier.DEEPSEEK_V3.value  # Advanced reasoning
-NIM_BALANCED_MODEL = ModelTier.LLAMA_31_70B.value  # Balanced performance
-NIM_MULTILINGUAL_MODEL = ModelTier.QWEN_35_LARGE.value  # Multilingual support
-NIM_SAFETY_MODEL = ModelTier.NEMOTRON_SAFETY.value  # Crisis detection
+# Alternative models for different use cases
+NIM_REASONING_MODEL = "nvidia/deepseek-v3"
+NIM_BALANCED_MODEL = "meta/llama-3.1-70b-instruct"
+NIM_MULTILINGUAL_MODEL = "qwen/qwen-2.5-72b-instruct"
+NIM_SAFETY_MODEL = "nvidia/nemotron-guard-0.5"
 
 NIM_BASE_URL = "https://integrate.api.nvidia.com/v1"
 EMBEDDING_DIMENSION = 2048  # Nemotron-Embed-VL produces 2048-dim vectors
