@@ -5,7 +5,8 @@ kind: Deployment
 metadata:
   name: {{ include "pixelated-empathy.fullname" . }}
   labels:
-    app: {{ .Values.appName }}
+    app.kubernetes.io/name: {{ include "pixelated-empathy.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -16,6 +17,7 @@ spec:
     metadata:
       annotations: {}
       labels:
+        app: {{ include "pixelated-empathy.name" . }}
         app.kubernetes.io/name: {{ include "pixelated-empathy.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
