@@ -283,10 +283,12 @@ class AudioEmotionRecognizer:
             return EmotionalState(0.5, 0.5, 0.5, 0.0, "neutral", {})
 
         # Average VAD
-        valences = [e.valence for e in emotions]
-        arousals = [e.arousal for e in emotions]
-        dominances = [e.dominance for e in emotions]
-        confidences = [e.confidence for e in emotions]
+        # ⚡ Bolt: Consolidated four separate list comprehensions into a single
+        # comprehension using zip to reduce iterations from O(4N) to O(N),
+        # avoiding Python for-loop and append overhead.
+        valences, arousals, dominances, confidences = zip(*[
+            (e.valence, e.arousal, e.dominance, e.confidence) for e in emotions
+        ])
 
         avg_valence = np.mean(valences)
         avg_arousal = np.mean(arousals)
