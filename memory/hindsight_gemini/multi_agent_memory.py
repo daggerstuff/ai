@@ -1,0 +1,524 @@
+"""
+Multi-Agent Memory Layer.
+
+Provides shared memory infrastructure for multi-agent therapeutic workflows,
+enabling collaboration between different AI agents (e.g., trainer agent,
+practice agent, feedback agent).
+
+Based on:
+- https://docs.mem0.ai/cookbooks/operations/team-task-agent
+- https://docs.mem0.ai/cookbooks/frameworks/llamaindex-multiagent
+"""
+
+import logging
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Any, Dict, List, Optional
+
+try:
+    from mem0 import MemoryClient
+except ImportError:
+    try:
+        from mem0ai import MemoryClient
+    except ImportError:
+        MemoryClient = None
+
+logger = logging.getLogger("multi_agent_memory")
+
+
+class AgentRole(str, Enum):
+    """Predefined agent roles for therapeutic workflows."""
+
+    TRAINER = "trainer"  # Primary empathy training agent
+    PRACTICE = "practice"  # Role-play partner agent
+    FEEDBACK = "feedback"  # Session evaluation agent
+    SUPERVISOR = "supervisor"  # Clinical supervision agent
+    COORDINATOR = "coordinator"  # Multi-agent orchestrator
+
+
+class MemoryScope(str, Enum):
+    """Memory visibility scopes."""
+
+    PRIVATE = "private"  # Only accessible by the creating agent
+    SHARED = "shared"  # Accessible by all agents in the session
+    USER = "user"  # Accessible by all agents for this user
+    GLOBAL = "global"  # Accessible by all agents (system-wide)
+
+
+@dataclass
+class AgentIdentity:
+    """
+    Identity for an agent in a multi-agent system.
+
+    Attributes:
+        agent_id: Unique identifier for this agent instance
+        role: The agent's role in the workflow
+        name: Human-readable name for the agent
+        capabilities: List of capabilities this agent provides
+    """
+
+    agent_id: str
+    role: AgentRole
+    name: str = ""
+    capabilities: List[str] = field(default_factory=list)
+
+    def __post_init__(self):
+        if not self.name:
+            self.name = f"{self.role.value.title()} Agent"
+
+
+@dataclass
+class CollaborationContext:
+    """
+    Context for multi-agent collaboration.
+
+    Tracks the user, session, and participating agents for memory partitioning.
+    """
+
+    user_id: str
+    session_id: str
+    agents: List[AgentIdentity] = field(default_factory=list)
+    current_agent: Optional[AgentIdentity] = None
+
+    def get_memory_key(self, scope: MemoryScope) -> Dict[str, str]:
+        """Get the memory key for the specified scope."""
+        if scope == MemoryScope.PRIVATE:
+            if not self.current_agent:
+                raise ValueError("PRIVATE scope requires current_agent")
+            return {
+                "user_id": self.user_id,
+                "agent_id": self.current_agent.agent_id,
+                "session_id": self.session_id,
+            }
+        elif scope == MemoryScope.SHARED:
+            return {
+                "user_id": self.user_id,
+                "session_id": self.session_id,
+            }
+        elif scope == MemoryScope.USER:
+            return {"user_id": self.user_id}
+        else:  # GLOBAL
+            return {}
+
+
+class MultiAgentMemory:
+    """
+    Shared memory layer for multi-agent therapeutic workflows.
+
+    Enables agents to share context, pass information, and coordinate
+    their actions through a unified memory interface.
+
+    Features:
+    - Memory partitioning by agent, session, and user
+    - Cross-agent memory sharing with scoped access
+    - Agent handoff support with memory transfer
+    - Conversation summary for agent context
+
+    Usage:
+        memory = MultiAgentMemory(api_key="hs-xxx")
+        context = CollaborationContext(
+            user_id="user123",
+            session_id="session456",
+            current_agent=AgentIdentity("agent1", AgentRole.TRAINER)
+        )
+        await memory.share_with_agents(context, "User prefers detailed feedback")
+    """
+
+    def __init__(
+        self,
+        api_key: Optional[str] = None,
+        memory_client: Optional[Any] = None,
+    ):
+        """
+        Initialize multi-agent memory.
+
+        Args:
+            api_key: Hindsight Platform API key
+            memory_client: Optional pre-configured memory client
+        """
+        if memory_client:
+            self.memory = memory_client
+        elif api_key and MemoryClient:
+            self.memory = MemoryClient(api_key=api_key)
+        else:
+            logger.warning("No memory client available, using null memory")
+            self.memory = self._create_null_memory()
+
+    def _create_null_memory(self):
+        """Create null memory shim for testing."""
+
+        class NullMemory:
+            def add(self, *args, **kwargs):
+                return {"results": [{"id": "null-memory-id"}]}
+
+            def search(self, *args, **kwargs):
+                return {"results": []}
+
+            def get_all(self, *args, **kwargs):
+                return {"results": []}
+
+        return NullMemory()
+
+    async def store_agent_memory(
+        self,
+        context: CollaborationContext,
+        content: str,
+        scope: MemoryScope = MemoryScope.SHARED,
+        metadata: Optional[Dict[str, Any]] = None,
+        memory_type: str = "experience",
+    ) -> str:
+        """
+        Store memory from an agent.
+
+        Args:
+            context: Collaboration context
+            content: Memory content
+            scope: Memory visibility scope
+            metadata: Additional metadata
+            memory_type: Hindsight memory network type (experience, observation, opinion, world)
+
+        Returns:
+            Memory ID
+        """
+        try:
+            full_metadata = context.get_memory_key(scope)
+            full_metadata["scope"] = scope.value
+            full_metadata["type"] = memory_type
+
+            if context.current_agent:
+                full_metadata["source_agent"] = context.current_agent.agent_id
+                full_metadata["source_role"] = context.current_agent.role.value
+
+            if metadata:
+                full_metadata.update(metadata)
+
+            # In native Hindsight, types can be passed directly or via metadata.
+            # Here we pass it in metadata to ensure it's captured by the underlying wrapper.
+            result = getattr(self.memory, "retain", self.memory.add)(
+                content,
+                user_id=context.user_id,
+                metadata=full_metadata,
+            )
+
+            if isinstance(result, dict) and "results" in result:
+                results = result["results"]
+                if results:
+                    return results[0].get("id", "stored")
+            return "stored"
+
+        except Exception as e:
+            logger.error(f"Error storing agent memory: {e}")
+            raise
+
+    async def reflect_on_session(
+        self,
+        context: CollaborationContext,
+        query: str,
+        disposition_override: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Reflect on the current session using Hindsight's advanced reasoning.
+        Applies the current agent's role as a disposition modifier to personalize the insight.
+
+        Args:
+            context: Collaboration context
+            query: The question to reflect upon
+            disposition_override: Optional explicit disposition (e.g., "skeptical", "empathetic")
+
+        Returns:
+            Reflection insight and references
+        """
+        try:
+            agent = context.current_agent
+            disposition = disposition_override or (agent.role.value if agent else "neutral")
+            
+            # Construct a disposition-aware query
+            disposition_query = f"[Act with a {disposition} disposition] {query}"
+            
+            # If the underlying client supports native reflect (e.g., HindsightMemoryManager)
+            if hasattr(self.memory, "reflect"):
+                # We scope the reflection to the current session via tags/metadata if possible, 
+                # but the base manager primarily uses user_id. We pass session_id to let the 
+                # underlying system narrow the context if it supports it.
+                return self.memory.reflect(
+                    query=disposition_query,
+                    user_id=context.user_id,
+                    metadata={"session_id": context.session_id}
+                )
+            
+            # Fallback: RAG-style reflection if using a legacy wrapper without reflect
+            memories = await self.get_shared_context(context)
+            return {
+                "answer": f"Simulated reflection ({disposition} disposition) based on {len(memories)} session memories.",
+                "memories": memories
+            }
+        except Exception as e:
+            logger.error(f"Error reflecting on session: {e}")
+            return {"answer": "Reflection failed.", "error": str(e)}
+
+    async def get_shared_context(
+        self,
+        context: CollaborationContext,
+        limit: int = 20,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get shared memories from all agents in the session.
+
+        Args:
+            context: Collaboration context
+            limit: Maximum memories to retrieve
+
+        Returns:
+            List of shared memory objects
+        """
+        try:
+            result = self.memory.get_all(user_id=context.user_id)
+            memories = result.get("results", []) if isinstance(result, dict) else result
+
+            # Filter to shared scope for this session
+            shared = [
+                m
+                for m in memories
+                if m.get("metadata", {}).get("session_id") == context.session_id
+                and m.get("metadata", {}).get("scope") in [MemoryScope.SHARED.value, None]
+            ]
+
+            return shared[:limit]
+
+        except Exception as e:
+            logger.error(f"Error getting shared context: {e}")
+            return []
+
+    async def search_agent_memories(
+        self,
+        context: CollaborationContext,
+        query: str,
+        scope: MemoryScope = MemoryScope.SHARED,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """
+        Search memories with scope filtering.
+
+        Args:
+            context: Collaboration context
+            query: Search query
+            scope: Memory scope to search
+            limit: Maximum results
+
+        Returns:
+            List of relevant memories
+        """
+        try:
+            result = self.memory.search(
+                query,
+                user_id=context.user_id,
+                limit=limit * 2,  # Get extra to filter
+            )
+
+            memories = result.get("results", []) if isinstance(result, dict) else result
+
+            # Filter by scope
+            if scope == MemoryScope.PRIVATE:
+                if not context.current_agent:
+                    return []
+                filtered = [
+                    m
+                    for m in memories
+                    if m.get("metadata", {}).get("agent_id") == context.current_agent.agent_id
+                ]
+            elif scope == MemoryScope.SHARED:
+                filtered = [
+                    m
+                    for m in memories
+                    if m.get("metadata", {}).get("session_id") == context.session_id
+                ]
+            else:
+                filtered = memories
+
+            return filtered[:limit]
+
+        except Exception as e:
+            logger.error(f"Error searching agent memories: {e}")
+            return []
+
+    async def handoff_to_agent(
+        self,
+        context: CollaborationContext,
+        target_agent: AgentIdentity,
+        summary: str,
+        transfer_memories: bool = True,
+    ) -> Dict[str, Any]:
+        """
+        Perform agent handoff with memory transfer.
+
+        Transfers context from the current agent to a target agent,
+        storing a handoff summary and optionally transferring memories.
+
+        Args:
+            context: Current collaboration context
+            target_agent: Agent to hand off to
+            summary: Summary of the conversation/task so far
+            transfer_memories: Whether to copy private memories to shared scope
+
+        Returns:
+            Handoff result with context for target agent
+        """
+        try:
+            source_agent = context.current_agent
+
+            # Store handoff summary as shared memory
+            handoff_memory = await self.store_agent_memory(
+                context,
+                f"Handoff from {source_agent.name if source_agent else 'Unknown'}: {summary}",
+                scope=MemoryScope.SHARED,
+                metadata={
+                    "type": "handoff",
+                    "source_agent": source_agent.agent_id if source_agent else None,
+                    "target_agent": target_agent.agent_id,
+                },
+            )
+
+            # Get shared context for target agent
+            shared_context = await self.get_shared_context(context, limit=10)
+
+            # Update context for target agent
+            new_context = CollaborationContext(
+                user_id=context.user_id,
+                session_id=context.session_id,
+                agents=context.agents + [target_agent],
+                current_agent=target_agent,
+            )
+
+            return {
+                "success": True,
+                "handoff_memory_id": handoff_memory,
+                "new_context": new_context,
+                "shared_memories": shared_context,
+                "summary": summary,
+            }
+
+        except Exception as e:
+            logger.error(f"Error performing handoff: {e}")
+            return {"success": False, "error": str(e)}
+
+    async def broadcast_to_agents(
+        self,
+        context: CollaborationContext,
+        message: str,
+        message_type: str = "broadcast",
+    ) -> str:
+        """
+        Broadcast a message to all agents in the session.
+
+        Args:
+            context: Collaboration context
+            message: Message to broadcast
+            message_type: Type of broadcast (e.g., 'alert', 'update', 'directive')
+
+        Returns:
+            Memory ID of the broadcast
+        """
+        return await self.store_agent_memory(
+            context,
+            message,
+            scope=MemoryScope.SHARED,
+            metadata={
+                "type": message_type,
+                "broadcast": True,
+            },
+        )
+
+    async def get_agent_history(
+        self,
+        context: CollaborationContext,
+        agent_id: Optional[str] = None,
+        limit: int = 50,
+    ) -> List[Dict[str, Any]]:
+        """
+        Get memory history for a specific agent or all agents.
+
+        Args:
+            context: Collaboration context
+            agent_id: Optional specific agent ID, or None for all
+            limit: Maximum memories
+
+        Returns:
+            List of agent memories
+        """
+        try:
+            result = self.memory.get_all(user_id=context.user_id)
+            memories = result.get("results", []) if isinstance(result, dict) else result
+
+            # Filter by session
+            session_memories = [
+                m for m in memories if m.get("metadata", {}).get("session_id") == context.session_id
+            ]
+
+            # Optionally filter by agent
+            if agent_id:
+                session_memories = [
+                    m
+                    for m in session_memories
+                    if m.get("metadata", {}).get("source_agent") == agent_id
+                ]
+
+            return session_memories[:limit]
+
+        except Exception as e:
+            logger.error(f"Error getting agent history: {e}")
+            return []
+
+
+def create_empathy_gym_context(
+    user_id: str,
+    session_id: str,
+    current_role: AgentRole = AgentRole.TRAINER,
+) -> CollaborationContext:
+    """
+    Create a collaboration context for Empathy Gym training sessions.
+
+    Sets up the standard agents used in therapeutic training:
+    - Trainer: Primary empathy training agent
+    - Practice: Role-play partner for scenarios
+    - Feedback: Session evaluation and feedback
+
+    Args:
+        user_id: User (trainee) ID
+        session_id: Training session ID
+        current_role: Starting agent role
+
+    Returns:
+        Configured CollaborationContext
+    """
+    agents = [
+        AgentIdentity(
+            agent_id=f"trainer_{session_id}",
+            role=AgentRole.TRAINER,
+            name="Empathy Trainer",
+            capabilities=["instruction", "demonstration", "guidance"],
+        ),
+        AgentIdentity(
+            agent_id=f"practice_{session_id}",
+            role=AgentRole.PRACTICE,
+            name="Practice Partner",
+            capabilities=["roleplay", "scenario", "client_simulation"],
+        ),
+        AgentIdentity(
+            agent_id=f"feedback_{session_id}",
+            role=AgentRole.FEEDBACK,
+            name="Feedback Agent",
+            capabilities=["evaluation", "scoring", "improvement_suggestions"],
+        ),
+    ]
+
+    current_agent = next(
+        (a for a in agents if a.role == current_role),
+        agents[0],
+    )
+
+    return CollaborationContext(
+        user_id=user_id,
+        session_id=session_id,
+        agents=agents,
+        current_agent=current_agent,
+    )
