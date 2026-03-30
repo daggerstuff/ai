@@ -3,7 +3,6 @@
 # dependencies = [
 #   "mcp>=1.26.0",
 #   "fastmcp>=2.3.3",
-#   "mem0ai>=1.0.3",
 #   "google-genai>=1.62.0",
 #   "pydantic>=2.11.7",
 # ]
@@ -45,7 +44,7 @@ _manager_instance = None
 # Initialize FastMCP
 mcp = FastMCP(
     "Pixelated Memory",
-    dependencies=["mem0ai", "google-genai", "pydantic", "openai"],
+    dependencies=["google-genai", "pydantic", "openai"],
 )
 
 

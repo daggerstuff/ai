@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from ai.api.memory.null_memory import NullMemoryManager
+from ai.memory.null_memory import NullMemoryManager
 from ai.memory.manager_factory import get_memory_manager as get_backend_memory_manager
 
 logger = logging.getLogger(__name__)
@@ -76,10 +76,10 @@ class MemoryManager:
     Manages memory persistence and retrieval using the configured backend.
     """
 
-    def __init__(self, mem0_client: Any):
-        if not mem0_client:
-            raise ValueError("mem0_client is required")
-        self.client = mem0_client
+    def __init__(self, memory_client: Any):
+        if not memory_client:
+            raise ValueError("memory_client is required")
+        self.client = memory_client
 
     def add_message(
         self,
@@ -145,7 +145,7 @@ class MemoryManager:
             ]
             return messages
         except Exception as e:
-            logger.error(f"Error retrieving history from Mem0: {e}")
+            logger.error(f"Error retrieving history from memory backend: {e}")
             return []
 
     def store_session_summary(self, *args, **kwargs) -> bool:
@@ -230,12 +230,12 @@ class MemoryManager:
 _memory_manager_instance: Optional[MemoryManager] = None
 
 
-def get_memory_manager(mem0_client: Optional[Any] = None) -> MemoryManager:
+def get_memory_manager(memory_client: Optional[Any] = None) -> MemoryManager:
     """
     Get or create the global MemoryManager instance.
 
     Args:
-        mem0_client: Optional pre-configured memory client
+        memory_client: Optional pre-configured memory client
 
     Returns:
         Configured MemoryManager instance
@@ -244,19 +244,19 @@ def get_memory_manager(mem0_client: Optional[Any] = None) -> MemoryManager:
     """
     global _memory_manager_instance
     if _memory_manager_instance is None:
-        if not mem0_client:
+        if not memory_client:
             try:
-                mem0_client = get_backend_memory_manager()
+                memory_client = get_backend_memory_manager()
                 logger.info(
                     "Initialized backend client for MemoryManager: %s",
-                    type(mem0_client).__name__,
+                    type(memory_client).__name__,
                 )
             except Exception as e:
                 logger.warning(f"Failed to initialize configured memory backend: {e}")
 
-            if not mem0_client:
-                mem0_client = NullMemoryManager()
+            if not memory_client:
+                memory_client = NullMemoryManager()
                 logger.info("Using NullMemoryManager for legacy MemoryManager")
 
-        _memory_manager_instance = MemoryManager(mem0_client)
+        _memory_manager_instance = MemoryManager(memory_client)
     return _memory_manager_instance
