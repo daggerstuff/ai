@@ -1,0 +1,2 @@
+## 2024-03-28 - Initial Bolt Run | Learning: The codebase is primarily Python, not TS/JS/Astro | Action: Adjust search queries to look for Python performance hotspots, such as nested loops, N+1 queries, unnecessary list comprehensions, or missing caching/memoization.
+## 2024-03-28 - Optimize list comprehensions | Learning: Nested or repeated list comprehensions on large arrays cause unnecessary overhead in Python | Action: Consolidate repeated iterations into a single O(N) loop.
