@@ -69,10 +69,10 @@ monitoring:
     enabled: false
 
 ingress:
+  className: "traefik"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-production-dns"
-    kubernetes.io/ingress.class: "caddy"
-    caddy.ingress.kubernetes.io/disable-http-redirect: "true"
+    kubernetes.io/ingress.class: "traefik"
   hosts:
     - host: pixelatedempathy.com
       paths:
@@ -85,3 +85,7 @@ ingress:
 
 backup:
   enabled: false
+
+traefik:
+  deployment:
+    replicas: 2
