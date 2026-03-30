@@ -37,11 +37,10 @@ service:
 
 ingress:
   enabled: true
-  className: "caddy"
+  className: "traefik"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    kubernetes.io/ingress.class: "caddy"
-    caddy.ingress.kubernetes.io/disable-http-redirect: "true"
+    kubernetes.io/ingress.class: "traefik"
   hosts:
     - host: api.pixelated-empathy.ai
       paths:
@@ -127,8 +126,26 @@ monitoring:
   grafana:
     enabled: true
 
-caddy-ingress-controller:
+traefik:
   enabled: true
+  deployment:
+    replicas: 2
+  ingressClass:
+    enabled: true
+    isDefaultClass: true
+    name: "traefik"
+  providers:
+    kubernetesIngress:
+      enabled: true
+      ingressClass: "traefik"
+    kubernetesCRD:
+      enabled: false
+    kubernetesGateway:
+      enabled: false
+  gateway:
+    enabled: false
+  gatewayClass:
+    enabled: false
 
 # Application Configuration
 app:
