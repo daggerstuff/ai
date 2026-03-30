@@ -23,7 +23,7 @@ sentencepiece==0.2.1
 h11==0.16.0
 python-dateutil==2.9.0.post0
 typing-inspection==0.4.1
-cryptography==46.0.5
+cryptography==46.0.6
 more-itertools==10.8.0
 pytz==2025.2
 anyio==4.11.0
