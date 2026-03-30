@@ -144,6 +144,19 @@ _CANONICAL_ROUTES: dict[str, IntakeRoute] = {
         split_preference="test",
         reason="Continuity-heavy therapy sessions reserved for holdout by default.",
     ),
+    # Recovered feeder families (training data branches)
+    "training_data_v3": IntakeRoute(
+        source_family="training_data_v3",
+        target_lane=STAGE2_ID,
+        split_preference=None,
+        reason="Consolidated training data v3 branch for therapeutic expertise.",
+    ),
+    "training_data_v2": IntakeRoute(
+        source_family="training_data_v2",
+        target_lane=STAGE2_ID,
+        split_preference=None,
+        reason="Consolidated training data v2 branch for therapeutic expertise.",
+    ),
 }
 
 _ALIASES = {
@@ -154,6 +167,11 @@ _ALIASES = {
     "soulchat_2_0": "soulchat2",
     "tier4_voice_persona": "voice_persona",
     "persona_transcript": "youtube_transcript",
+    # Training data branches (recovered feeders)
+    "training_v3": "training_data_v3",
+    "training_v2": "training_data_v2",
+    "training-data-v3": "training_data_v3",
+    "training-data-v2": "training_data_v2",
 }
 
 
