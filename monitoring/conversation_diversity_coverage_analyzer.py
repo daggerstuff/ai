@@ -141,36 +141,43 @@ class ConversationDiversityCoverageAnalyzer:
         all_words = set()
         word_frequencies = Counter()
 
-        for _, conv in conversations.iterrows():
-            text = conv["conversation_text"].lower()
-            words = re.findall(r"\b[a-zA-Z]+\b", text)
+        # ⚡ Bolt: Replace .iterrows() with vectorized access and zip to significantly reduce iteration overhead
+        for text, dataset, tier in zip(
+            conversations["conversation_text"],
+            conversations["dataset"],
+            conversations["tier"],
+        ):
+            text_lower = text.lower()
+            words = re.findall(r"\b[a-zA-Z]+\b", text_lower)
 
             # Update global vocabulary
             all_words.update(words)
             word_frequencies.update(words)
 
             # Update dataset vocabularies
-            dataset_vocabularies[conv["dataset"]].update(words)
-            tier_vocabularies[conv["tier"]].update(words)
+            dataset_vocabularies[dataset].update(words)
+            tier_vocabularies[tier].update(words)
 
         # Calculate vocabulary diversity metrics
         vocabulary_stats = {
             "total_unique_words": len(all_words),
             "total_word_instances": sum(word_frequencies.values()),
-            "vocabulary_richness": len(all_words) / sum(word_frequencies.values())
-            if sum(word_frequencies.values()) > 0
-            else 0,
+            "vocabulary_richness": (
+                len(all_words) / sum(word_frequencies.values())
+                if sum(word_frequencies.values()) > 0
+                else 0
+            ),
             "most_common_words": word_frequencies.most_common(20),
             "rare_words_count": sum(
                 1 for count in word_frequencies.values() if count == 1
             ),
-            "rare_words_percentage": sum(
-                1 for count in word_frequencies.values() if count == 1
-            )
-            / len(all_words)
-            * 100
-            if len(all_words) > 0
-            else 0,
+            "rare_words_percentage": (
+                sum(1 for count in word_frequencies.values() if count == 1)
+                / len(all_words)
+                * 100
+                if len(all_words) > 0
+                else 0
+            ),
         }
 
         # Dataset vocabulary diversity
@@ -178,11 +185,11 @@ class ConversationDiversityCoverageAnalyzer:
         for dataset, vocab in dataset_vocabularies.items():
             dataset_vocab_stats[dataset] = {
                 "unique_words": len(vocab),
-                "vocabulary_overlap_with_global": len(vocab.intersection(all_words))
-                / len(all_words)
-                * 100
-                if len(all_words) > 0
-                else 0,
+                "vocabulary_overlap_with_global": (
+                    len(vocab.intersection(all_words)) / len(all_words) * 100
+                    if len(all_words) > 0
+                    else 0
+                ),
                 "unique_to_dataset": len(vocab - (all_words - vocab)),
                 "conversation_count": len(
                     conversations[conversations["dataset"] == dataset]
@@ -194,11 +201,11 @@ class ConversationDiversityCoverageAnalyzer:
         for tier, vocab in tier_vocabularies.items():
             tier_vocab_stats[tier] = {
                 "unique_words": len(vocab),
-                "vocabulary_overlap_with_global": len(vocab.intersection(all_words))
-                / len(all_words)
-                * 100
-                if len(all_words) > 0
-                else 0,
+                "vocabulary_overlap_with_global": (
+                    len(vocab.intersection(all_words)) / len(all_words) * 100
+                    if len(all_words) > 0
+                    else 0
+                ),
                 "conversation_count": len(conversations[conversations["tier"] == tier]),
             }
 
@@ -276,14 +283,14 @@ class ConversationDiversityCoverageAnalyzer:
             topic_diversity = {
                 "cluster_count": n_clusters,
                 "cluster_analysis": cluster_analysis,
-                "topic_distribution_entropy": self._calculate_cluster_entropy(
-                    cluster_labels
-                )
-                if n_clusters > 1
-                else 0,
-                "average_cluster_size": len(texts) / n_clusters
-                if n_clusters > 0
-                else len(texts),
+                "topic_distribution_entropy": (
+                    self._calculate_cluster_entropy(cluster_labels)
+                    if n_clusters > 1
+                    else 0
+                ),
+                "average_cluster_size": (
+                    len(texts) / n_clusters if n_clusters > 0 else len(texts)
+                ),
             }
 
         except Exception as e:
@@ -303,9 +310,13 @@ class ConversationDiversityCoverageAnalyzer:
 
         style_metrics = []
 
-        for _, conv in conversations.iterrows():
-            text = conv["conversation_text"]
-
+        # ⚡ Bolt: Replace .iterrows() with zip to avoid slow pandas row generation during iteration
+        for conv_id, dataset, tier, text in zip(
+            conversations["conversation_id"],
+            conversations["dataset"],
+            conversations["tier"],
+            conversations["conversation_text"],
+        ):
             # Style indicators
             question_density = (
                 text.count("?") / len(text) * 1000 if len(text) > 0 else 0
@@ -320,29 +331,30 @@ class ConversationDiversityCoverageAnalyzer:
             sentence_length_std = np.std(sentence_lengths) if sentence_lengths else 0
 
             # Formality indicators
+            text_lower = text.lower()
             formal_words = len(
                 re.findall(
                     r"\b(therefore|however|furthermore|consequently|nevertheless)\b",
-                    text.lower(),
+                    text_lower,
                 )
             )
             informal_words = len(
-                re.findall(r"\b(yeah|okay|cool|awesome|wow|hey)\b", text.lower())
+                re.findall(r"\b(yeah|okay|cool|awesome|wow|hey)\b", text_lower)
             )
 
             # Personal vs impersonal style
             personal_pronouns = len(
-                re.findall(r"\b(I|you|we|my|your|our)\b", text.lower())
+                re.findall(r"\b(I|you|we|my|your|our)\b", text_lower)
             )
             impersonal_indicators = len(
-                re.findall(r"\b(one|it|there|this|that)\b", text.lower())
+                re.findall(r"\b(one|it|there|this|that)\b", text_lower)
             )
 
             style_metrics.append(
                 {
-                    "conversation_id": conv["conversation_id"],
-                    "dataset": conv["dataset"],
-                    "tier": conv["tier"],
+                    "conversation_id": conv_id,
+                    "dataset": dataset,
+                    "tier": tier,
                     "question_density": question_density,
                     "exclamation_density": exclamation_density,
                     "sentence_length_variation": sentence_length_std,
@@ -402,10 +414,12 @@ class ConversationDiversityCoverageAnalyzer:
             "interaction_patterns": {},
         }
 
-        # Response length patterns
+        # ⚡ Bolt: Consolidate multiple .iterrows() passes into a single vectorized list iteration
         length_categories = []
-        for _, conv in conversations.iterrows():
-            text_length = len(conv["conversation_text"])
+        structure_patterns = []
+
+        for text in conversations["conversation_text"]:
+            text_length = len(text)
             if text_length < 100:
                 length_categories.append("short")
             elif text_length < 500:
@@ -414,26 +428,6 @@ class ConversationDiversityCoverageAnalyzer:
                 length_categories.append("long")
             else:
                 length_categories.append("very_long")
-
-        length_distribution = Counter(length_categories)
-        pattern_analysis["response_length_patterns"] = {
-            "distribution": dict(length_distribution),
-            "diversity_score": len(length_distribution) / 4 * 100,  # Max 4 categories
-        }
-
-        # Dialogue turn patterns
-        turn_counts = conversations["turn_count"].tolist()
-        turn_distribution = Counter(turn_counts)
-        pattern_analysis["dialogue_turn_patterns"] = {
-            "distribution": dict(list(turn_distribution.most_common(10))),
-            "average_turns": np.mean(turn_counts),
-            "turn_diversity": len(turn_distribution),
-        }
-
-        # Response structure patterns
-        structure_patterns = []
-        for _, conv in conversations.iterrows():
-            text = conv["conversation_text"]
 
             # Identify structure patterns
             has_questions = "?" in text
@@ -454,6 +448,21 @@ class ConversationDiversityCoverageAnalyzer:
             structure_patterns.append(
                 "".join(pattern) if pattern else "P"
             )  # P for plain text
+
+        length_distribution = Counter(length_categories)
+        pattern_analysis["response_length_patterns"] = {
+            "distribution": dict(length_distribution),
+            "diversity_score": len(length_distribution) / 4 * 100,  # Max 4 categories
+        }
+
+        # Dialogue turn patterns
+        turn_counts = conversations["turn_count"].tolist()
+        turn_distribution = Counter(turn_counts)
+        pattern_analysis["dialogue_turn_patterns"] = {
+            "distribution": dict(list(turn_distribution.most_common(10))),
+            "average_turns": np.mean(turn_counts),
+            "turn_diversity": len(turn_distribution),
+        }
 
         structure_distribution = Counter(structure_patterns)
         pattern_analysis["response_structure_patterns"] = {
@@ -479,9 +488,11 @@ class ConversationDiversityCoverageAnalyzer:
             "dataset_count": len(dataset_counts),
             "largest_dataset": dataset_counts.index[0],
             "smallest_dataset": dataset_counts.index[-1],
-            "size_ratio": dataset_counts.iloc[0] / dataset_counts.iloc[-1]
-            if len(dataset_counts) > 1
-            else 1,
+            "size_ratio": (
+                dataset_counts.iloc[0] / dataset_counts.iloc[-1]
+                if len(dataset_counts) > 1
+                else 1
+            ),
         }
 
         # Tier coverage
@@ -687,11 +698,11 @@ class ConversationDiversityCoverageAnalyzer:
                     "monthly_diversity_scores": {
                         str(k): v for k, v in monthly_diversity.to_dict().items()
                     },
-                    "trend_direction": "increasing"
-                    if monthly_diversity.iloc[-1] > monthly_diversity.iloc[0]
-                    else "decreasing"
-                    if len(monthly_diversity) > 1
-                    else "stable",
+                    "trend_direction": (
+                        "increasing"
+                        if monthly_diversity.iloc[-1] > monthly_diversity.iloc[0]
+                        else "decreasing" if len(monthly_diversity) > 1 else "stable"
+                    ),
                 }
             else:
                 trends_analysis["monthly_trends"] = {}
@@ -719,11 +730,11 @@ class ConversationDiversityCoverageAnalyzer:
         completeness_analysis["combination_coverage"] = {
             "total_possible": total_possible_combinations,
             "actual_combinations": actual_combinations,
-            "coverage_percentage": actual_combinations
-            / total_possible_combinations
-            * 100
-            if total_possible_combinations > 0
-            else 0,
+            "coverage_percentage": (
+                actual_combinations / total_possible_combinations * 100
+                if total_possible_combinations > 0
+                else 0
+            ),
         }
 
         # Content coverage assessment
@@ -745,9 +756,9 @@ class ConversationDiversityCoverageAnalyzer:
             category: {
                 "count": count,
                 "percentage": count / total_conversations * 100,
-                "adequacy": "good"
-                if count > total_conversations * 0.2
-                else "needs_improvement",
+                "adequacy": (
+                    "good" if count > total_conversations * 0.2 else "needs_improvement"
+                ),
             }
             for category, count in size_categories.items()
         }
