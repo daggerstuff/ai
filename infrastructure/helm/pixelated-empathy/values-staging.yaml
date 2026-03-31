@@ -4,7 +4,6 @@ environment: 'staging'
 replicaCount: 1
 
 image:
-  tag: 'staging-latest'
 
 app:
   config:
@@ -27,8 +26,6 @@ autoscaling:
 postgresql:
   primary:
     persistence:
-      size: 8Gi
-      storageClass: "default" # Explicitly match existing PVC storageClass
     resources:
       limits:
         cpu: 500m
@@ -40,8 +37,6 @@ postgresql:
 redis:
   master:
     persistence:
-      size: 8Gi # Adjusted to match existing 8Gi PVC found in cluster
-      storageClass: "default"
     resources:
       limits:
         cpu: 250m
@@ -80,6 +75,7 @@ monitoring:
         memory: 256Mi
 
 ingress:
+  className: "traefik"
   hosts:
     - host: staging-api.pixelated-empathy.ai
       paths:
@@ -92,3 +88,8 @@ ingress:
 
 backup:
   enabled: false
+
+traefik:
+  enabled: false
+  ingressClass:
+    enabled: false
