@@ -21,7 +21,7 @@ import pytest
 # Add parent directories to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from ai.api.pixel_inference_service import (
+from api.pixel_inference_service import (
     ConversationMessage,
     PixelInferenceEngine,
     PixelInferenceRequest,
