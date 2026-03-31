@@ -1,0 +1,1 @@
+## 2026-03-23 - AST Analysis O(1) Optimization | Learning: AST walks process thousands of nodes, making O(n) list lookups inside the loop very expensive. | Action: Replaced list membership checks with O(1) sets for `expensive_functions` and `expensive_attrs` to optimize `_find_expensive_operations`.

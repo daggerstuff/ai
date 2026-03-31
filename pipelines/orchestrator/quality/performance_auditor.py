@@ -512,7 +512,9 @@ class PerformanceAuditor:
     def _find_expensive_operations(self, node: ast.AST) -> int:
         """Find expensive operations that could benefit from caching."""
         count = 0
-        expensive_functions = ["sorted", "max", "min", "sum", "len"]
+        # ⚡ Bolt: Use O(1) sets instead of O(n) lists for membership testing
+        expensive_functions = {"sorted", "max", "min", "sum", "len"}
+        expensive_attrs = {"sort", "reverse", "split", "join"}
 
         for child in ast.walk(node):
             if isinstance(child, ast.Call):
@@ -522,9 +524,11 @@ class PerformanceAuditor:
                 ):
                     # Check if it's called multiple times (simple heuristic)
                     count += 1
-                elif isinstance(child.func, ast.Attribute):
-                    if child.func.attr in ["sort", "reverse", "split", "join"]:
-                        count += 1
+                elif (
+                    isinstance(child.func, ast.Attribute)
+                    and child.func.attr in expensive_attrs
+                ):
+                    count += 1
 
         return count if count > 2 else 0  # Only flag if multiple expensive ops
 
