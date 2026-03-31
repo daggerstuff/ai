@@ -30,9 +30,7 @@ from ai.training.utils.s3_dataset_loader import (
     S3DatasetLoader,  # noqa: E402
 )
 
-logging.getLogger("ai.training.utils.s3_dataset_loader").setLevel(
-    logging.ERROR
-)
+logging.getLogger("ai.training.utils.s3_dataset_loader").setLevel(logging.ERROR)
 
 DEFAULT_S3_BUCKET = "pixel-data"
 MAX_RETRIES = 3
@@ -887,10 +885,16 @@ def print_results(results: list[dict[str, Any]], output: OutputHandler) -> None:
     output.header("📊 ENCODING FIX RESULTS")
     output.separator()
 
-    successful = [r for r in results if r.get("success")]
-    failed = [r for r in results if not r.get("success")]
-    skipped = [r for r in successful if r.get("skipped")]
-    fixed = [r for r in successful if not r.get("skipped")]
+    successful, failed, skipped, fixed = [], [], [], []
+    for r in results:
+        if r.get("success"):
+            successful.append(r)
+            if r.get("skipped"):
+                skipped.append(r)
+            else:
+                fixed.append(r)
+        else:
+            failed.append(r)
 
     output.info(f"\n✅ Fixed: {len(fixed)} files")
     output.info(f"⏭️  Skipped (already UTF-8): {len(skipped)} files")
@@ -919,10 +923,16 @@ def save_results(
     results: list[dict[str, Any]],
 ) -> Path:
     """Save encoding fix results to JSON file"""
-    successful = [r for r in results if r.get("success")]
-    failed = [r for r in results if not r.get("success")]
-    skipped = [r for r in successful if r.get("skipped")]
-    fixed = [r for r in successful if not r.get("skipped")]
+    successful, failed, skipped, fixed = [], [], [], []
+    for r in results:
+        if r.get("success"):
+            successful.append(r)
+            if r.get("skipped"):
+                skipped.append(r)
+            else:
+                fixed.append(r)
+        else:
+            failed.append(r)
 
     results_path = project_root / "ai/training_ready/data/encoding_fix_results.json"
     with open(results_path, "w") as f:
