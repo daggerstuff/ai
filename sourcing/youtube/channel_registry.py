@@ -6,16 +6,15 @@ Provides persistent storage for discovered channels with CRUD operations.
 Uses SQLite for lightweight, embedded database storage.
 """
 
+import json
 import logging
 import sqlite3
-import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from ai.sourcing.youtube.models import (
     Channel,
-    ChannelRegistry,
     ChannelStatus,
     ContentCategory,
 )
@@ -375,18 +374,17 @@ class ChannelRegistryDB:
         by_status = {row[0]: row[1] for row in cursor.fetchall()}
 
         # Quality distribution
-        cursor.execute(
-            "SELECT "
-            "    quality_score * 10 AS quality_bucket, "
-            "    COUNT(*) as count "
-            "FROM channels "
-            "GROUP BY quality_score * 10 "
-            "ORDER BY quality_bucket"
-        )
-        quality_dist_raw = cursor.fetchall()
+        cursor.execute("""
+            SELECT
+                CAST(quality_score * 10 AS INTEGER) AS bucket_id,
+                COUNT(*) as count
+            FROM channels
+            GROUP BY bucket_id
+            ORDER BY bucket_id
+        """)
         quality_dist = {
-            f"{row[0] / 10:.1f}-{(row[0] + 1) / 10:.1f}": row[1]
-            for row in quality_dist_raw
+            f"{row[0] / 10.0:.1f}-{(row[0] + 1) / 10.0:.1f}": row[1]
+            for row in cursor.fetchall()
         }
 
         # By language
