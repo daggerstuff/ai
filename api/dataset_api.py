@@ -136,6 +136,9 @@ async def list_datasets(
     current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
 ):
     """List all available datasets (tables in the database)."""
+    if PermissionLevel.READ not in current_auth_entity["scopes"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions to list datasets")
+
     datasets = []
     try:
         conn = get_db_connection()
@@ -196,6 +199,9 @@ async def get_dataset_metadata(
     current_auth_entity: Any = Depends(get_current_active_user_or_api_key),
 ):
     """Get metadata (schema) for a specific dataset (table)."""
+    if PermissionLevel.READ not in current_auth_entity["scopes"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions to read dataset metadata")
+
     conn = None
     try:
         # Validate input format immediately to prevent any SQL injection attempts
@@ -258,6 +264,9 @@ async def query_dataset(
     """
     Query data from a specific dataset (table) with optional filters and pagination.
     """
+    if PermissionLevel.READ not in current_auth_entity["scopes"]:
+        raise HTTPException(status_code=403, detail="Insufficient permissions to query dataset")
+
     conn = None
     try:
         # Validate input format immediately
