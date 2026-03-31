@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import sqlite3
@@ -5,6 +6,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request, Security, status
 from pydantic import BaseModel
+
 from security.api_authentication import (
     AuthenticationSystem,
     PermissionLevel,
@@ -27,6 +29,8 @@ TEST_API_KEY, _ = auth_system.create_api_key(
     expires_in_days=365,
 )
 
+logger = logging.getLogger(__name__)
+
 app = FastAPI(
     title="Dataset Access API", description="API for accessing and querying datasets."
 )
@@ -41,7 +45,9 @@ def validate_identifier(identifier: str) -> str:
     This prevents SQL injection by disallowing special characters.
     """
     if not re.match(r"^[a-zA-Z0-9_]+$", identifier):
-        raise HTTPException(status_code=400, detail=f"Invalid identifier format: {identifier}")
+        raise HTTPException(
+            status_code=400, detail=f"Invalid identifier format: {identifier}"
+        )
     return identifier
 
 
@@ -178,6 +184,7 @@ async def list_datasets(
                 )
             )
     except sqlite3.Error:
+        logger.exception("Database error occurred while listing datasets")
         raise HTTPException(status_code=500, detail="Database error occurred")
     finally:
         if conn:
@@ -235,6 +242,7 @@ async def get_dataset_metadata(
             columns=columns,
         )
     except sqlite3.Error:
+        logger.exception("Database error occurred while getting dataset metadata")
         raise HTTPException(status_code=500, detail="Database error occurred")
     finally:
         if conn:
@@ -315,6 +323,7 @@ async def query_dataset(
         )
 
     except sqlite3.Error:
+        logger.exception("Database error occurred while querying dataset")
         raise HTTPException(status_code=500, detail="Database error occurred")
     finally:
         if conn:
