@@ -140,15 +140,17 @@ class DatasetProcessor:
 
     def generate_processing_report(self) -> Dict[str, Any]:
         """Generate processing report"""
+        # ⚡ Bolt: Replaced O(N*4) multi-pass loops with a single O(N) hash map grouping
+        by_stage = {STAGE1_ID: 0, STAGE2_ID: 0, STAGE3_ID: 0, STAGE4_ID: 0}
+        for d in self.processed_datasets:
+            stage = d.get("stage")
+            if stage in by_stage:
+                by_stage[stage] += 1
+
         return {
             "timestamp": datetime.now().isoformat(),
             "processed_datasets": len(self.processed_datasets),
-            "by_stage": {
-                STAGE1_ID: sum(1 for d in self.processed_datasets if d.get("stage") == STAGE1_ID),
-                STAGE2_ID: sum(1 for d in self.processed_datasets if d.get("stage") == STAGE2_ID),
-                STAGE3_ID: sum(1 for d in self.processed_datasets if d.get("stage") == STAGE3_ID),
-                STAGE4_ID: sum(1 for d in self.processed_datasets if d.get("stage") == STAGE4_ID),
-            },
+            "by_stage": by_stage,
             "datasets": self.processed_datasets,
         }
 
