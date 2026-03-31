@@ -164,12 +164,10 @@ class ConversationRecommendationOptimizer:
         benchmarks = {}
 
         # Calculate quality scores for all conversations
-        quality_scores = []
-        for _, conv in conversations.iterrows():
-            score = self._calculate_conversation_quality_score(conv)
-            quality_scores.append(score)
-
-        conversations["quality_score"] = quality_scores
+        # ⚡ Bolt: Replaced slow .iterrows() loop with .apply() for significant performance gain
+        conversations["quality_score"] = conversations.apply(
+            self._calculate_conversation_quality_score, axis=1
+        )
 
         # Get top 10% as benchmark
         top_10_percent = conversations.nlargest(
