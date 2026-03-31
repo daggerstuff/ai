@@ -14,3 +14,13 @@ Language: en
 """
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == "Hello Hello world"
+
+def test_format_as_markdown_empty_metadata():
+    text = "This is a sentence. This is another! And a third?"
+    metadata = {}
+
+    result = SubtitleProcessor.format_as_markdown(text, metadata)
+
+    assert "# Unknown Title" in result
+    assert "**Channel:** Unknown Channel" in result
+    assert "This is a sentence. This is another! And a third?" in result
