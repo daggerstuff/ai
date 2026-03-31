@@ -261,9 +261,9 @@ def main():
     evaluator = BaselineMetricsEvaluator()
 
     if args.dry_run:
-        return _extracted_from_main_25(evaluator)
+        return _run_dry_run_evaluation(evaluator)
     if args.scan_all:
-        return _extracted_from_main_68(evaluator)
+        return _scan_all_datasets(evaluator)
     if args.scan_all_s3:
         return _scan_s3_datasets(evaluator, args.scan_all_s3)
     if args.input_file:
@@ -410,8 +410,7 @@ def _scan_s3_datasets(evaluator, s3_prefix: str) -> int:
     return 0
 
 
-# TODO Rename this here and in `main`
-def _extracted_from_main_68(evaluator):
+def _scan_all_datasets(evaluator):
     logger.info("Scanning all dataset directories...")
     all_results: dict[str, Any] = {}
 
@@ -441,8 +440,7 @@ def _extracted_from_main_68(evaluator):
     return 0
 
 
-# TODO Rename this here and in `main`
-def _extracted_from_main_25(evaluator):
+def _run_dry_run_evaluation(evaluator):
     logger.info("Running DRY RUN evaluation...")
     mock_data = [
         {
