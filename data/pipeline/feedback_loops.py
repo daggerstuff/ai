@@ -1,10 +1,8 @@
-import logging
-import os
 import json
-import time
-from typing import Dict, List, Any, Optional
-from datetime import datetime
+import logging
 from collections import deque
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -126,8 +124,14 @@ class FeedbackLoops:
         try:
             # Mocked naive pattern extraction
             dummy_keywords = ["toxic positivity", "abrupt ending", "unhelpful generic"]
-            for keyword in dummy_keywords:
-                matches = sum(1 for c in failure_contexts if keyword in c)
+            # ⚡ Bolt: Prevent O(n*m) complexity by compiling a single regex pattern for O(N) searching
+            import re
+            pattern = re.compile("|".join(map(re.escape, dummy_keywords)))
+            counts = {k: 0 for k in dummy_keywords}
+            for c in failure_contexts:
+                for match in set(pattern.findall(c)):
+                    counts[match] += 1
+            for keyword, matches in counts.items():
                 if matches > 5:
                     anti_patterns.append(
                         {
