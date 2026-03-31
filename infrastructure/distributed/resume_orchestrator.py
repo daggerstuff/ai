@@ -142,11 +142,22 @@ class ResumeOrchestrator:
         self.resume_engine.start()
         self.orchestrator_active = True
 
-        # Start orchestration thread
-        self.orchestrator_thread = threading.Thread(
-            target=self._orchestration_loop, daemon=True
-        )
-        self.orchestrator_thread.start()
+        # Start orchestration task or thread
+        try:
+            loop = asyncio.get_running_loop()
+            self.orchestrator_task = loop.create_task(self._orchestration_loop())
+            self.orchestrator_thread = None
+        except RuntimeError:
+
+            def run_loop():
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(self._orchestration_loop())
+                loop.close()
+
+            self.orchestrator_thread = threading.Thread(target=run_loop, daemon=True)
+            self.orchestrator_thread.start()
+            self.orchestrator_task = None
 
         logger.info("Resume orchestrator started")
 
@@ -154,7 +165,9 @@ class ResumeOrchestrator:
         """Stop the resume orchestrator"""
 
         self.orchestrator_active = False
-        if self.orchestrator_thread:
+        if hasattr(self, "orchestrator_task") and self.orchestrator_task:
+            self.orchestrator_task.cancel()
+        if hasattr(self, "orchestrator_thread") and self.orchestrator_thread:
             self.orchestrator_thread.join(timeout=10)
 
         self.resume_engine.stop()
@@ -317,9 +330,11 @@ class ResumeOrchestrator:
                     "success": success,
                     "resume_time_seconds": resume_time,
                     "timestamp": datetime.utcnow().isoformat(),
-                    "interruption_type": interruption_context.interruption_type.value
-                    if interruption_context
-                    else None,
+                    "interruption_type": (
+                        interruption_context.interruption_type.value
+                        if interruption_context
+                        else None
+                    ),
                 }
             )
 
@@ -334,7 +349,7 @@ class ResumeOrchestrator:
             self._release_resources(process_id)
             self.active_resumes.discard(process_id)
 
-    def _orchestration_loop(self):
+    async def _orchestration_loop(self):
         """Main orchestration loop running in background thread"""
 
         while self.orchestrator_active:
@@ -349,11 +364,10 @@ class ResumeOrchestrator:
                     process_id = resume_request["process_id"]
 
                     # Schedule resume in async context
-                    asyncio.run_coroutine_threadsafe(
+                    asyncio.create_task(
                         self.resume_process_with_dependencies(
                             process_id, resume_request.get("interruption_context")
-                        ),
-                        asyncio.get_event_loop(),
+                        )
                     )
 
                 # Check for dependency updates
@@ -363,11 +377,11 @@ class ResumeOrchestrator:
                 self._cleanup_old_data()
 
                 # Sleep before next iteration
-                time.sleep(1)
+                await asyncio.sleep(1)
 
             except Exception as e:
                 logger.error(f"Orchestration loop error: {e}")
-                time.sleep(5)
+                await asyncio.sleep(5)
 
     async def _check_dependencies_satisfied(self, process_id: str) -> bool:
         """Check if all dependencies for a process are satisfied"""
@@ -485,10 +499,16 @@ class ResumeOrchestrator:
 
                 if has_dependencies:
                     # Check if we should queue this process for resume
-                    asyncio.run_coroutine_threadsafe(
-                        self._maybe_queue_dependent_process(process_id),
-                        asyncio.get_event_loop(),
-                    )
+                    try:
+                        loop = asyncio.get_running_loop()
+                        loop.create_task(
+                            self._maybe_queue_dependent_process(process_id)
+                        )
+                    except RuntimeError:
+                        asyncio.run_coroutine_threadsafe(
+                            self._maybe_queue_dependent_process(process_id),
+                            asyncio.get_event_loop(),
+                        )
 
     async def _maybe_queue_dependent_process(self, process_id: str):
         """Maybe queue a dependent process if its dependencies are now satisfied"""
@@ -587,9 +607,9 @@ class ResumeOrchestrator:
             "registered_at": process_info["registered_at"].isoformat(),
             "is_active": process_id in self.active_resumes,
             "is_queued": process_id in [req["process_id"] for req in self.resume_queue],
-            "current_progress": current_state.progress_percentage
-            if current_state
-            else None,
+            "current_progress": (
+                current_state.progress_percentage if current_state else None
+            ),
             "metrics": asdict(metrics) if metrics else None,
             "dependencies": [asdict(dep) for dep in dependencies],
             "resource_requirements": process_info.get("resource_requirements", {}),
