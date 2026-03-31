@@ -231,15 +231,17 @@ class StressTestFramework:
         total_duration = end_time - start_time
 
         # Aggregate results
-        successful_results = [r for r in results if r.get("success", False)]
-        failed_results = [r for r in results if not r.get("success", False)]
+        successful_batches = 0
+        total_conversations_inserted = 0
+        total_messages_inserted = 0
 
-        total_conversations_inserted = sum(
-            r.get("conversations_inserted", 0) for r in successful_results
-        )
-        total_messages_inserted = sum(
-            r.get("messages_inserted", 0) for r in successful_results
-        )
+        for r in results:
+            if r.get("success", False):
+                successful_batches += 1
+                total_conversations_inserted += r.get("conversations_inserted", 0)
+                total_messages_inserted += r.get("messages_inserted", 0)
+
+        failed_batches = len(results) - successful_batches
 
         return {
             "total_duration": total_duration,
@@ -252,8 +254,8 @@ class StressTestFramework:
             "overall_messages_per_second": total_messages_inserted / total_duration
             if total_duration > 0
             else 0,
-            "successful_batches": len(successful_results),
-            "failed_batches": len(failed_results),
+            "successful_batches": successful_batches,
+            "failed_batches": failed_batches,
             "batch_results": results,
         }
 
