@@ -209,13 +209,13 @@ def build_scoped_search_query(
     layout = query_layout(fts=fts)
     conditions = ["d.user_id = ?"]
     params: List[Any] = [*leading_params, user_id]
-    scoped_conditions, scoped_params = _scoped_conditions_and_params(
+    _apply_scope_filters(
+        conditions=conditions,
+        params=params,
         required_scope_tags=required_scope_tags,
         include_shared=include_shared,
         non_private_visibility_tags=non_private_visibility_tags,
     )
-    conditions.extend(scoped_conditions)
-    params.extend(scoped_params)
 
     where_suffix = ""
     if conditions:
@@ -243,13 +243,13 @@ def build_scope_listing_query(
 ) -> BuiltQuery:
     conditions = ["d.bank_id = ?", "d.user_id = ?"]
     params: List[Any] = [bank_id, user_id]
-    scoped_conditions, scoped_params = _scoped_conditions_and_params(
+    _apply_scope_filters(
+        conditions=conditions,
+        params=params,
         required_scope_tags=required_scope_tags,
         include_shared=include_shared,
         non_private_visibility_tags=non_private_visibility_tags,
     )
-    conditions.extend(scoped_conditions)
-    params.extend(scoped_params)
     where_clause = " AND ".join(f"({condition.strip()})" for condition in conditions)
     sql = f"""
         SELECT d.*
@@ -272,13 +272,13 @@ def build_scope_category_count_query(
 ) -> BuiltQuery:
     conditions = ["d.bank_id = ?", "d.user_id = ?"]
     params: List[Any] = [bank_id, user_id]
-    scoped_conditions, scoped_params = _scoped_conditions_and_params(
+    _apply_scope_filters(
+        conditions=conditions,
+        params=params,
         required_scope_tags=required_scope_tags,
         include_shared=include_shared,
         non_private_visibility_tags=non_private_visibility_tags,
     )
-    conditions.extend(scoped_conditions)
-    params.extend(scoped_params)
     where_clause = " AND ".join(f"({condition.strip()})" for condition in conditions)
     sql = f"""
         SELECT
@@ -313,3 +313,20 @@ def _scoped_conditions_and_params(
         conditions.append(non_shared_visibility_clause(len(non_private_visibility_tags)))
         params.extend(non_private_visibility_tags)
     return conditions, params
+
+
+def _apply_scope_filters(
+    *,
+    conditions: List[str],
+    params: List[Any],
+    required_scope_tags: List[str],
+    include_shared: bool,
+    non_private_visibility_tags: Optional[List[str]],
+) -> None:
+    scoped_conditions, scoped_params = _scoped_conditions_and_params(
+        required_scope_tags=required_scope_tags,
+        include_shared=include_shared,
+        non_private_visibility_tags=non_private_visibility_tags,
+    )
+    conditions.extend(scoped_conditions)
+    params.extend(scoped_params)

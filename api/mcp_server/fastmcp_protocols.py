@@ -97,6 +97,11 @@ class ScopedMemoryCategoryCounter(Protocol):
 
 
 @runtime_checkable
+class MemoryQueryServiceProvider(Protocol):
+    queries: ScopedMemoryCategoryCounter
+
+
+@runtime_checkable
 class MemoryScopeProvider(Protocol):
     org_id: str | None
     project_id: str | None

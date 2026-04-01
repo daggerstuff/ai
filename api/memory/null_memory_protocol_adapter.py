@@ -3,8 +3,9 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional
 
 from ai.api.mcp_server.memory_scope import filter_memories_by_scope, scope_from_kwargs
-from ai.memory.hindsight_local_adapter import normalize_tags
 
+from .memory_category_counts import count_memory_categories
+from .null_memory_cache import NullMemoryCategoryCountCache
 from .null_memory_store import NullMemoryStore
 
 
@@ -13,7 +14,7 @@ class NullMemoryProtocolAdapter:
 
     def __init__(self, store: NullMemoryStore) -> None:
         self.store = store
-        self._category_count_cache: Dict[tuple[Any, ...], Dict[str, int]] = {}
+        self._category_count_cache = NullMemoryCategoryCountCache(max_entries=64)
 
     def get_all_memories_scoped(
         self,
@@ -51,26 +52,15 @@ class NullMemoryProtocolAdapter:
         tags: Optional[List[str]],
         tags_match: str,
     ) -> Dict[str, Any]:
-        requested_tags = normalize_tags(tags)
-        matches: List[Dict[str, Any]] = []
-        for memory in self.store.search_records(query=query, user_id=user_id):
-            memory_tags = normalize_tags(memory.get("metadata", {}).get("tags", []))
-            if requested_tags:
-                if tags_match == "all":
-                    if not all(tag in memory_tags for tag in requested_tags):
-                        continue
-                elif not any(tag in memory_tags for tag in requested_tags):
-                    continue
-            matches.append(
-                {
-                    "document_id": memory["id"],
-                    "text": memory["content"],
-                    "tags": memory_tags,
-                }
+        return {
+            "results": self.store.recall_records(
+                query=query,
+                user_id=user_id,
+                tags=tags,
+                tags_match=tags_match,
+                limit=limit,
             )
-            if len(matches) >= limit:
-                break
-        return {"results": matches}
+        }
 
     def add_memory(
         self,
@@ -136,7 +126,7 @@ class NullMemoryProtocolAdapter:
         include_shared: bool = True,
     ) -> Dict[str, int]:
         cache_key = (
-            self.store.revision,
+            self.store.user_revision(user_id),
             user_id,
             org_id,
             project_id,
@@ -147,20 +137,19 @@ class NullMemoryProtocolAdapter:
         )
         cached = self._category_count_cache.get(cache_key)
         if cached is not None:
-            return dict(cached)
+            return cached
 
-        categories: Dict[str, int] = {}
-        for memory in self.get_all_memories_scoped(
-            user_id=user_id,
-            org_id=org_id,
-            project_id=project_id,
-            session_id=session_id,
-            agent_id=agent_id,
-            run_id=run_id,
-            include_shared=include_shared,
-            limit=100,
-        ):
-            category = (memory.get("metadata") or {}).get("category", "general")
-            categories[category] = categories.get(category, 0) + 1
-        self._category_count_cache = {cache_key: dict(categories)}
+        categories = count_memory_categories(
+            self.get_all_memories_scoped(
+                user_id=user_id,
+                org_id=org_id,
+                project_id=project_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                run_id=run_id,
+                include_shared=include_shared,
+                limit=100,
+            )
+        )
+        self._category_count_cache.put(cache_key, categories)
         return categories
