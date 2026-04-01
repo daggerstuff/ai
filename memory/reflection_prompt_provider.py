@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Optional
+
 from .reflection_prompts import CRISIS_DETECTION_PROMPT, get_reflection_prompt
 
 
@@ -18,7 +20,7 @@ class ReflectionPromptProvider:
         conversation_text: str,
         existing_memories: str,
         include_crisis_context: bool,
-        crisis_detected: bool,
+        crisis_detected: Optional[bool],
     ) -> str:
         prompt = get_reflection_prompt(
             crisis_detected=crisis_detected,

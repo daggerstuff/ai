@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from ai.api.mcp_server.memory_scope import filter_memories_by_scope, scope_from_kwargs
 from ai.memory.hindsight_local_adapter import normalize_tags
@@ -91,6 +91,34 @@ class NullMemoryProtocolAdapter:
 
     def search_memories(self, *, query: str, user_id: str, limit: int) -> List[Dict[str, Any]]:
         return self.store.search_records(query=query, user_id=user_id)[:limit]
+
+    def search_memories_scoped(
+        self,
+        *,
+        query: str,
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        scope = scope_from_kwargs(
+            user_id=user_id,
+            org_id=org_id,
+            project_id=project_id,
+            session_id=session_id,
+            agent_id=agent_id,
+            run_id=run_id,
+            include_shared=include_shared,
+        )
+        return filter_memories_by_scope(
+            scope=scope,
+            memories=self.store.search_records(query=query, user_id=user_id),
+            limit=limit,
+        )
 
     def get_all_memories(self, *, user_id: str, limit: int) -> List[Dict[str, Any]]:
         return self.store.list_records(user_id=user_id)[:limit]

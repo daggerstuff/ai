@@ -1,11 +1,15 @@
 import asyncio
 import importlib.util
+import json
 import sys
 from pathlib import Path
 
 import pytest
 
 from ai.api.memory.null_memory import NullMemoryManager
+from ai.api.mcp_server import fastmcp_context, fastmcp_tools
+from ai.api.mcp_server.memory_scope import scope_from_kwargs
+from ai.api.mcp_server.fastmcp_shared import AuthorizedToolContext
 
 
 def _load_fastmcp_app_module():
@@ -23,33 +27,66 @@ def _load_fastmcp_app_module():
 fastmcp_app = _load_fastmcp_app_module()
 
 
+def _auth_context() -> str:
+    return json.dumps({
+        "actor_id": "api-server",
+        "timestamp": "1710000000",
+        "nonce": "test-nonce",
+        "signature": "test-signature",
+    })
+
+
+def _scope_context(*, project_id: str | None = None) -> str:
+    payload: dict[str, object] = {}
+    if project_id is not None:
+        payload["project_id"] = project_id
+    return json.dumps(payload)
+
+
+def _authorized_context(manager, *, user_id: str, project_id: str | None = None) -> AuthorizedToolContext:
+    return AuthorizedToolContext(
+        manager=manager,
+        scope=scope_from_kwargs(
+            user_id=user_id,
+            project_id=project_id,
+        ),
+    )
+
+
 def test_memory_store_persists_across_tool_calls_with_fallback_manager(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     """Fallback state should survive across tool calls within one server process."""
-    created_managers: list[NullMemoryManager] = []
-
-    def make_manager() -> NullMemoryManager:
-        manager = NullMemoryManager()
-        created_managers.append(manager)
-        return manager
-
-    monkeypatch.setattr(fastmcp_app, "get_required_memory_manager", make_manager)
-    monkeypatch.setattr(fastmcp_app, "_manager_instance", None, raising=False)
+    manager = NullMemoryManager()
+    monkeypatch.setattr(
+        fastmcp_tools,
+        "authorized_tool_context_from_json",
+        lambda **kwargs: _authorized_context(manager, user_id=kwargs["user_id"]),
+    )
+    monkeypatch.setattr(
+        fastmcp_context,
+        "authorized_tool_context_from_json",
+        lambda **kwargs: _authorized_context(manager, user_id=kwargs["user_id"]),
+    )
 
     store_result = asyncio.run(
         fastmcp_app.memory_store(
             content="Baseline project checkpoint",
             user_id="vivi",
             category="project_context",
+            auth_context=_auth_context(),
         )
     )
     assert "Memory Secured" in store_result
 
-    status_result = asyncio.run(fastmcp_app.memory_status("vivi"))
+    status_result = asyncio.run(
+        fastmcp_app.memory_status(
+            user_id="vivi",
+            auth_context=_auth_context(),
+        )
+    )
 
     assert "Total Anchors:** 1" in status_result
-    assert len(created_managers) == 1
 
 
 def test_memory_query_applies_limit_without_manager_limit_keyword(
@@ -60,36 +97,81 @@ def test_memory_query_applies_limit_without_manager_limit_keyword(
     manager.add_memory("project alpha", "vivi")
     manager.add_memory("project beta", "vivi")
 
-    monkeypatch.setattr(fastmcp_app, "get_required_memory_manager", lambda: manager)
-    monkeypatch.setattr(fastmcp_app, "_manager_instance", None, raising=False)
+    monkeypatch.setattr(
+        fastmcp_tools,
+        "authorized_tool_context_from_json",
+        lambda **kwargs: _authorized_context(manager, user_id=kwargs["user_id"]),
+    )
 
-    result = asyncio.run(fastmcp_app.memory_query("project", "vivi", limit=1))
+    result = asyncio.run(
+        fastmcp_app.memory_query(
+            query="project",
+            user_id="vivi",
+            limit=1,
+            auth_context=_auth_context(),
+        )
+    )
 
     assert "Error querying memory" not in result
     assert result.count("\n- [") == 1
 
 
-def test_memory_analyze_supports_async_ai_capable_manager_without_sync_client_assumptions(
+def test_memory_query_refills_candidates_after_scope_filtering(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Analysis should work with async-capable managers such as enhanced NVIDIA."""
+    class DummyManager:
+        pass
 
-    class AsyncAnalysisManager(NullMemoryManager):
-        async def generate(self, prompt: str, **kwargs) -> str:
-            return f"analysis generated for: {prompt[:40]}"
+    attempts: list[int] = []
 
-    manager = AsyncAnalysisManager()
-    manager.add_memory(
-        "We are fixing the NVIDIA memory manager interface mismatch.",
-        "vivi",
-        {"category": "project_context"},
+    def fake_search_with_overfetch(*, manager, query: str, user_id: str, requested_limit: int):
+        del manager, query, user_id
+        attempts.append(requested_limit)
+        if requested_limit == 2:
+            return [
+                {"memory": "wrong project", "score": 0.9, "metadata": {"project_id": "other"}},
+                {"memory": "still wrong", "score": 0.8, "metadata": {"project_id": "other"}},
+            ]
+        return [
+            {"memory": "wrong project", "score": 0.9, "metadata": {"project_id": "other"}},
+            {"memory": "project one", "score": 0.8, "metadata": {"project_id": "pixelated"}},
+            {"memory": "project two", "score": 0.7, "metadata": {"project_id": "pixelated"}},
+        ]
+
+    monkeypatch.setattr(
+        fastmcp_tools,
+        "authorized_tool_context_from_json",
+        lambda **kwargs: _authorized_context(
+            DummyManager(),
+            user_id=kwargs["user_id"],
+            project_id=json.loads(kwargs["scope_context"]).get("project_id") if kwargs.get("scope_context") else None,
+        ),
+    )
+    monkeypatch.setattr("ai.api.mcp_server.fastmcp_search.search_with_overfetch", fake_search_with_overfetch)
+
+    result = asyncio.run(
+        fastmcp_app.memory_query(
+            query="project",
+            user_id="vivi",
+            limit=2,
+            scope_context=_scope_context(project_id="pixelated"),
+            auth_context=_auth_context(),
+        )
     )
 
-    monkeypatch.setattr(fastmcp_app, "get_required_memory_manager", lambda: manager)
-    monkeypatch.setattr(fastmcp_app, "_manager_instance", None, raising=False)
+    assert "Error querying memory" not in result
+    assert "project one" in result
+    assert "project two" in result
+    assert attempts == [10]
 
-    result = asyncio.run(fastmcp_app.memory_analyze("vivi", mode="themes"))
 
-    assert "Analysis requires an AI-capable memory manager" not in result
-    assert "Memory Analysis (themes): vivi" in result
-    assert "analysis generated for:" in result
+def test_fastmcp_surface_exposes_only_memory_primitives() -> None:
+    assert hasattr(fastmcp_app, "memory_store")
+    assert hasattr(fastmcp_app, "memory_query")
+    assert hasattr(fastmcp_app, "memory_update")
+    assert hasattr(fastmcp_app, "memory_delete")
+    assert hasattr(fastmcp_app, "memory_status")
+    assert not hasattr(fastmcp_app, "memory_analyze")
+    assert not hasattr(fastmcp_app, "memory_sync_workspace")
+    assert not hasattr(fastmcp_app, "get_memory_context")
+    assert not hasattr(fastmcp_app, "session_start")

@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import uuid
 from typing import Any, Dict, List, Optional
 
 from .base import BaseMemoryManager
@@ -11,6 +10,7 @@ from .hindsight_local_adapter import (
 )
 from .local_hindsight_document_service import LocalHindsightDocumentService
 from .local_hindsight_memory_query_service import LocalHindsightMemoryQueryService
+from .local_hindsight_memory_write_service import LocalHindsightMemoryWriteService
 from .local_hindsight_memory_update import build_updated_document_payload
 from .local_hindsight_protocol_adapter import LocalHindsightProtocolAdapter
 from .local_hindsight_repository import LocalHindsightRepository
@@ -18,17 +18,6 @@ from .local_hindsight_repository import LocalHindsightRepository
 
 class LocalHindsightMemoryManager(BaseMemoryManager):
     """Persistent local Hindsight-compatible store backed by SQLite."""
-
-    @staticmethod
-    def _metadata_dict(metadata: Optional[Any]) -> Dict[str, Any]:
-        if metadata is None:
-            return {}
-        if isinstance(metadata, dict):
-            return dict(metadata)
-        if hasattr(metadata, "to_dict") and callable(metadata.to_dict):
-            data = metadata.to_dict()
-            return dict(data) if isinstance(data, dict) else {}
-        raise TypeError("metadata must be a mapping or expose to_dict()")
 
     def __init__(
         self,
@@ -43,6 +32,10 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
         self.protocol = LocalHindsightProtocolAdapter(
             default_bank_id=self.default_bank_id,
             documents=self.documents,
+        )
+        self.writes = LocalHindsightMemoryWriteService(
+            protocol=self.protocol,
+            default_bank_id=self.default_bank_id,
         )
         self.queries = LocalHindsightMemoryQueryService(
             default_bank_id=self.default_bank_id,
@@ -158,23 +151,29 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
         metadata: Optional[Any] = None,
         category: Optional[str] = None,
     ) -> str:
-        merged = self._metadata_dict(metadata)
-        if category:
-            merged["category"] = category
-        retained = self.retain_items(
-            self.default_bank_id,
-            [self.protocol.build_add_memory_item(user_id=user_id, content=content, metadata=merged)],
+        return self.writes.add_memory(
+            content=content,
+            user_id=user_id,
+            metadata=metadata,
+            category=category,
         )
-        results = retained.get("results")
-        if not isinstance(results, list) or not results:
-            raise RuntimeError("Retain operation returned no document identifiers")
-        first = results[0]
-        if not isinstance(first, dict):
-            raise RuntimeError("Retain operation returned an invalid document payload")
-        document_id = first.get("id")
-        if not isinstance(document_id, str) or not document_id:
-            raise RuntimeError("Retain operation did not provide a valid document identifier")
-        return document_id
+
+    def add_memory_scoped(
+        self,
+        *,
+        content: str,
+        user_id: str,
+        metadata: Optional[Any] = None,
+        category: Optional[str] = None,
+        scope_metadata: Optional[Dict[str, Any]] = None,
+    ) -> str:
+        return self.writes.add_memory(
+            content=content,
+            user_id=user_id,
+            metadata=metadata,
+            category=category,
+            scope_metadata=scope_metadata,
+        )
 
     def search_memories(self, query: str, user_id: str, limit: int = 10) -> List[Dict[str, Any]]:
         return self.recall(
@@ -184,6 +183,31 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
             tags=[f"user:{user_id}"],
             tags_match="any",
         )["results"]
+
+    def search_memories_scoped(
+        self,
+        *,
+        query: str,
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        return self.queries.search_memories_scoped(
+            query=query,
+            user_id=user_id,
+            org_id=org_id,
+            project_id=project_id,
+            session_id=session_id,
+            agent_id=agent_id,
+            run_id=run_id,
+            include_shared=include_shared,
+            limit=limit,
+        )
 
     def get_all_memories(self, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
         return self.queries.get_all_memories(user_id=user_id, limit=limit)
@@ -250,7 +274,7 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
         owner_user_id, merged_metadata, category = build_updated_document_payload(
             repository=self.repository,
             existing_record=existing_record,
-            metadata=self._metadata_dict(metadata),
+            metadata=self.writes.coerce_metadata(metadata),
         )
         self.repository.upsert_document(
             bank_id=self.default_bank_id,
@@ -295,3 +319,6 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
             "provider": self.get_provider_name(),
             "readiness": db_health,
         }
+
+    def close(self) -> None:
+        self.repository.close()

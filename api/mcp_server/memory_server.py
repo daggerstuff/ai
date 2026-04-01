@@ -30,6 +30,8 @@ def create_memory_server() -> FastAPI:
         app.state.memory_manager = manager
         logger.info(f"Initialized Memory Manager: {type(manager).__name__}")
         yield
+        if manager is not None and hasattr(manager, "close"):
+            manager.close()
         app.state.memory_manager = None
 
     app = FastAPI(

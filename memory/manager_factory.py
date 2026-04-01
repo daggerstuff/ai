@@ -1,10 +1,9 @@
 import logging
-import os
 from typing import Optional, Type
 
 from .base import BaseMemoryManager
 from .local_hindsight_manager import LocalHindsightMemoryManager
-from .local_memory_settings import resolve_local_memory_settings
+from .local_memory_settings import resolve_local_memory_settings, resolve_memory_provider
 
 logger = logging.getLogger("MemoryManagerFactory")
 
@@ -30,28 +29,16 @@ class MemoryManagerFactory:
 
         Logic:
         1. Use the explicit provider argument when present.
-        2. Treat local and hindsight provider values as aliases for the shared local service.
+        2. Enforce one canonical provider name for the shared local service.
         3. If no supported provider is configured, fail closed with a configuration error.
         """
-        provider_name = (
-            provider or self.provider or os.environ.get("MEMORY_PROVIDER") or ""
-        ).lower().strip()
-
-        if provider_name in {"local_hindsight", "local-hindsight", "local", "hindsight"}:
-            return self._create_local_hindsight_manager()
-
-        raise RuntimeError(
-            "No supported memory provider configured. "
-            "Set MEMORY_PROVIDER=local_hindsight to run the shared local memory service."
-        )
+        resolve_memory_provider(provider or self.provider)
+        return self._create_local_hindsight_manager()
 
     def _create_local_hindsight_manager(self) -> BaseMemoryManager:
         """Helper to create local persistent Hindsight-compatible manager."""
         try:
-            settings = resolve_local_memory_settings(
-                db_path=os.environ.get("HINDSIGHT_LOCAL_DB_PATH"),
-                bank_id=os.environ.get("HINDSIGHT_BANK_ID"),
-            )
+            settings = resolve_local_memory_settings()
             logger.info("Using LocalHindsightMemoryManager")
             return self.local_manager_class(
                 db_path=settings.db_path,
@@ -60,6 +47,8 @@ class MemoryManagerFactory:
         except Exception as e:
             logger.error(f"Failed to initialize LocalHindsightMemoryManager: {e}")
             raise
+
+
 def get_required_memory_manager() -> BaseMemoryManager:
     """Return the configured shared memory manager or fail closed."""
     return MemoryManagerFactory().create_manager()
