@@ -1,18 +1,24 @@
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Dict
 
 from mcp.server.fastmcp import FastMCP
 
+from .fastmcp_protocols import ScopedMemoryCategoryCounter
 from .fastmcp_shared import (
     authorized_tool_context_from_json,
-    get_recent_memories,
 )
+from .fastmcp_search import get_scoped_recent_memories
 
 
-def _get_scoped_recent_memories(*, manager, scope, user_id: str, limit: int) -> list[dict[str, Any]]:
-    if hasattr(manager, "get_all_memories_scoped"):
-        return manager.get_all_memories_scoped(
+def _count_categories(*, manager, scope, user_id: str) -> Dict[str, int]:
+    counter = manager if isinstance(manager, ScopedMemoryCategoryCounter) else getattr(
+        manager,
+        "queries",
+        None,
+    )
+    if isinstance(counter, ScopedMemoryCategoryCounter):
+        return counter.count_memories_by_category_scoped(
             user_id=user_id,
             org_id=scope.org_id,
             project_id=scope.project_id,
@@ -20,12 +26,19 @@ def _get_scoped_recent_memories(*, manager, scope, user_id: str, limit: int) -> 
             agent_id=scope.agent_id,
             run_id=scope.run_id,
             include_shared=scope.include_shared,
-            limit=limit,
         )
-    memories = get_recent_memories(manager, user_id, limit=limit)
-    from ai.api.mcp_server.memory_scope import filter_memories_by_scope
 
-    return filter_memories_by_scope(scope=scope, memories=memories, limit=limit)
+    memories = get_scoped_recent_memories(
+        manager=manager,
+        scope=scope,
+        user_id=user_id,
+        limit=100,
+    )
+    categories: Dict[str, int] = {}
+    for memory in memories:
+        category = memory.get("metadata", {}).get("category", "general")
+        categories[category] = categories.get(category, 0) + 1
+    return categories
 
 
 async def memory_status(
@@ -44,20 +57,21 @@ async def memory_status(
             "scope_context": scope_context,
         },
     )
-    memories = _get_scoped_recent_memories(
+    memories = get_scoped_recent_memories(
         manager=context.manager,
         scope=context.scope,
         user_id=user_id,
-        limit=250,
+        limit=100,
     )
 
     if not memories:
         return f"### Memory Status: {user_id}\n\nCartography is empty."
 
-    categories: Dict[str, int] = {}
-    for memory in memories:
-        category = memory.get("metadata", {}).get("category", "general")
-        categories[category] = categories.get(category, 0) + 1
+    categories = _count_categories(
+        manager=context.manager,
+        scope=context.scope,
+        user_id=user_id,
+    )
 
     category_lines = "\n".join(f"- **{key}:** {value}" for key, value in categories.items())
     health = "Stable" if len(memories) > 10 else "Developing"
