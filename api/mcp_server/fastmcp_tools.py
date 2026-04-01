@@ -7,10 +7,15 @@ from mcp.server.fastmcp import FastMCP
 from ai.api.mcp_server.memory_scope import memory_in_scope
 
 from .fastmcp_parsing import parse_auth_context, parse_scope_context
+from .fastmcp_protocols import MemoryRemover, MemoryUpdater
 from .fastmcp_search import search_scoped_memories
 from .fastmcp_shared import authorized_tool_context_from_json
 from .fastmcp_store import (
+    AuthorizedMemoryStoreOperation,
+    build_memory_store_payload,
+    MemoryStoreMetadataFactory,
     MemoryStorePersistenceService,
+    ScopeEnrichedMemoryCreator,
     MemoryStoreRequestFactory,
     memory_store_success_message,
     parse_metadata,
@@ -68,10 +73,17 @@ async def memory_store(
     )
 
     try:
+        prepared_payload = MemoryStoreMetadataFactory.prepare(
+            payload=build_memory_store_payload(request),
+            scope=request.scope_config,
+        )
         result = MemoryStorePersistenceService.persist(
-            request=request,
-            manager=context.manager,
-            scope=context.scope,
+            operation=AuthorizedMemoryStoreOperation(
+                prepared_payload=prepared_payload,
+                creator=ScopeEnrichedMemoryCreator(
+                    manager=context.manager,
+                ),
+            ),
         )
         return memory_store_success_message(
             user_id=request.user_id,
@@ -150,6 +162,8 @@ async def memory_update(
     )
 
     try:
+        if not isinstance(context.manager, MemoryUpdater):
+            return "❌ Update failed: memory backend is not writable."
         if not memory_in_scope(manager=context.manager, scope=context.scope, memory_id=memory_id):
             return "❌ Update denied: memory not found in provided scope."
         if context.manager.update_memory(
@@ -183,6 +197,8 @@ async def memory_delete(
         },
     )
     try:
+        if not isinstance(context.manager, MemoryRemover):
+            return "❌ Deletion failed: memory backend is not writable."
         if not memory_in_scope(manager=context.manager, scope=context.scope, memory_id=memory_id):
             return "❌ Delete denied: memory not found in provided scope."
         if context.manager.delete_memory(memory_id, user_id=user_id):

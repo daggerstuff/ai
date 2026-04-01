@@ -8,6 +8,7 @@ from typing import Any, Dict, Iterable, List, Optional
 from .hindsight_local_adapter import encode_tags_json, normalize_tags
 from .hindsight_local_domain import NON_PRIVATE_VISIBILITY_TAGS, resolve_user_id_from_context
 from .local_hindsight_db import LocalHindsightDatabase
+from .local_hindsight_query_builders import build_scope_category_count_query
 from .local_hindsight_query_executor import LocalHindsightQueryExecutor
 
 
@@ -255,6 +256,36 @@ class LocalHindsightDocumentStore:
                 (bank_id, user_id, f"category:{category}", limit, offset),
             ).fetchall()
         return [self.parse_row(row) for row in rows]
+
+    def count_documents_by_category_for_scope(
+        self,
+        bank_id: str,
+        *,
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+    ) -> Dict[str, int]:
+        required_scope_tags = LocalHindsightQueryExecutor.scope_tags(
+            org_id=org_id,
+            project_id=project_id,
+            session_id=session_id,
+            agent_id=agent_id,
+            run_id=run_id,
+        )
+        built_query = build_scope_category_count_query(
+            bank_id=bank_id,
+            user_id=user_id,
+            required_scope_tags=required_scope_tags,
+            include_shared=include_shared,
+            non_private_visibility_tags=list(NON_PRIVATE_VISIBILITY_TAGS),
+        )
+        with self.db.lease() as conn:
+            rows = conn.execute(built_query.sql, built_query.params).fetchall()
+        return {str(row["category"]): int(row["total"]) for row in rows}
 
     def delete_documents(
         self,

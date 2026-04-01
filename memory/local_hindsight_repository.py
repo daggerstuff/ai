@@ -104,6 +104,29 @@ class LocalHindsightRepository:
             offset=offset,
         )
 
+    def count_documents_by_category_for_scope(
+        self,
+        bank_id: str,
+        *,
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+    ) -> Dict[str, int]:
+        return self.documents.count_documents_by_category_for_scope(
+            bank_id,
+            user_id=user_id,
+            org_id=org_id,
+            project_id=project_id,
+            session_id=session_id,
+            agent_id=agent_id,
+            run_id=run_id,
+            include_shared=include_shared,
+        )
+
     def delete_document(
         self,
         bank_id: str,

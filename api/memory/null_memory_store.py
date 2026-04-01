@@ -12,6 +12,7 @@ class NullMemoryStore:
         self._memories: Dict[str, List[Dict[str, Any]]] = {}
         self._memory_index: Dict[str, str] = {}
         self._memory_counter = 0
+        self._revision = 0
         self._index_lock = threading.Lock()
         self._user_locks: Dict[str, threading.Lock] = {}
         self.max_memories_per_user = 1000
@@ -31,6 +32,11 @@ class NullMemoryStore:
                 lock = threading.Lock()
                 self._user_locks[user_id] = lock
             return lock
+
+    @property
+    def revision(self) -> int:
+        with self._index_lock:
+            return self._revision
 
     def add_record(
         self,
@@ -66,6 +72,7 @@ class NullMemoryStore:
             user_memories.append(record)
         with self._index_lock:
             self._memory_index[record["id"]] = user_id
+            self._revision += 1
         return dict(record)
 
     def search_records(self, *, query: str, user_id: str) -> List[Dict[str, Any]]:
@@ -121,6 +128,8 @@ class NullMemoryStore:
                     merged = dict(memory.get("metadata", {}))
                     merged.update(metadata)
                     memory["metadata"] = merged
+                with self._index_lock:
+                    self._revision += 1
                 return True
         return False
 
@@ -137,6 +146,7 @@ class NullMemoryStore:
                 del memories[index]
                 with self._index_lock:
                     self._memory_index.pop(memory_id, None)
+                    self._revision += 1
                 return True
         return False
 
@@ -149,4 +159,5 @@ class NullMemoryStore:
         with self._index_lock:
             for memory_id in memory_ids:
                 self._memory_index.pop(memory_id, None)
+            self._revision += 1
         return True
