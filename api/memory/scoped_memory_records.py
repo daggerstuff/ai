@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ai.api.mcp_server.memory_scope import filter_memories_by_scope, scope_from_kwargs
+from ai.api.mcp_server.memory_scope import _scope_matches, filter_memories_by_scope, scope_from_kwargs
 
 from .memory_category_counts import count_memory_categories
 
@@ -46,8 +46,7 @@ def scoped_category_counts_from_records(
     run_id: str | None = None,
     include_shared: bool = True,
 ) -> dict[str, int]:
-    scoped_records = scoped_memories_from_records(
-        records=records,
+    scope = scope_from_kwargs(
         user_id=user_id,
         org_id=org_id,
         project_id=project_id,
@@ -55,6 +54,12 @@ def scoped_category_counts_from_records(
         agent_id=agent_id,
         run_id=run_id,
         include_shared=include_shared,
-        limit=None,
     )
-    return count_memory_categories(scoped_records)
+    categories: dict[str, int] = {}
+    for record in records:
+        metadata = record.get("metadata") or {}
+        if not _scope_matches(scope, metadata):
+            continue
+        category = metadata.get("category", "general")
+        categories[category] = categories.get(category, 0) + 1
+    return categories

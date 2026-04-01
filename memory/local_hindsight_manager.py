@@ -235,6 +235,27 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
             limit=limit,
         )
 
+    def count_memories_by_category_scoped(
+        self,
+        *,
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+    ) -> Dict[str, int]:
+        return self.queries.count_memories_by_category_scoped(
+            user_id=user_id,
+            org_id=org_id,
+            project_id=project_id,
+            session_id=session_id,
+            agent_id=agent_id,
+            run_id=run_id,
+            include_shared=include_shared,
+        )
+
     def get_memories_by_category(
         self,
         user_id: str,
