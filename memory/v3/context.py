@@ -6,19 +6,28 @@ flowing through async call chains without explicit passing.
 
 Thread-safe. Async-safe. No globals.
 """
+
 import asyncio
+import copy
+import json
 import logging
+import re
 from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from .config import SubconsciousConfig, UserConfig
-from .provider import MemoryProvider, LocalHindsightProvider, Memory
+from .provider import LocalHindsightProvider, Memory, MemoryProvider
+
+if TYPE_CHECKING:
+    pass
 
 logger = logging.getLogger(__name__)
 
 # The context variable. Holds SubconsciousState or None.
-subconscious_context: ContextVar[Optional["SubconsciousState"]] = ContextVar("subconscious_context", default=None)
+subconscious_context: ContextVar[Optional["SubconsciousState"]] = ContextVar(
+    "subconscious_context", default=None
+)
 
 
 @dataclass
@@ -29,6 +38,7 @@ class SubconsciousState:
     Created once per session, holds conversation history,
     and triggers reflection on close.
     """
+
     config: UserConfig
     _provider: Optional[MemoryProvider] = None
     _conversation: List[dict] = field(default_factory=list)
@@ -39,9 +49,14 @@ class SubconsciousState:
         if self._provider is None:
             if self.config.base.memory_provider == "mock":
                 from .provider import MockProvider
+
                 self._provider = MockProvider()
             else:
-                self._provider = LocalHindsightProvider(self.config.base.bank_id)
+                self._provider = LocalHindsightProvider(
+                    self.config.base.bank_id,
+                    max_retries=self.config.base.max_retries,
+                    retry_delay_ms=self.config.base.retry_delay_ms,
+                )
         return self._provider
 
     async def enrich(self, message: str) -> str:
@@ -56,13 +71,20 @@ class SubconsciousState:
         Otherwise returns: <memories>\\n\\n{message}
         """
         if not self.config.base.enabled:
+            logger.debug("Subconscious disabled, returning original message")
             return message
 
         if self._closed:
+            logger.warning("Attempted to enrich after state closed")
             return message
 
         try:
             provider = await self._ensure_provider()
+
+            # Validate input
+            if not message or not message.strip():
+                logger.debug("Empty message, skipping enrichment")
+                return message
 
             memories = await asyncio.wait_for(
                 provider.recall(
@@ -74,20 +96,25 @@ class SubconsciousState:
             )
 
             if not memories:
+                logger.debug("No memories found, returning original message")
                 return message
 
             # Format memories as XML block
             memory_xml = self._format_memories(memories)
+            logger.info(f"Enriched message with {len(memories)} memories")
             return f"{memory_xml}\\n\\n{message}"
 
         except asyncio.TimeoutError:
-            logger.warning(f"Memory lookup timed out for user={self.config.user_id}")
+            logger.warning(
+                f"Memory lookup timed out for user={self.config.user_id} "
+                f"(timeout={self.config.base.query_timeout_ms}ms)"
+            )
             if self.config.base.fail_open:
                 return message
             raise
 
         except Exception as e:
-            logger.error(f"Memory lookup failed: {e}")
+            logger.error(f"Memory lookup failed: {e}", exc_info=True)
             if self.config.base.fail_open:
                 return message
             raise
@@ -99,9 +126,11 @@ class SubconsciousState:
 
         lines = ["<subconscious_context>"]
         lines.append("  <relevant_memories>")
-        for mem in memories[:self.config.base.max_memories]:
+        for mem in memories[: self.config.base.max_memories]:
             # Truncate long memories
-            content = mem.content[:200] + "..." if len(mem.content) > 200 else mem.content
+            content = mem.content[:200]
+            if len(mem.content) > 200:
+                content += "..."
             lines.append(f"    - {content}")
         lines.append("  </relevant_memories>")
         lines.append("</subconscious_context>")
@@ -109,9 +138,25 @@ class SubconsciousState:
         return "\\n".join(lines)
 
     def record(self, role: str, content: str):
-        """Record a message for later reflection."""
-        if not self._closed:
-            self._conversation.append({"role": role, "content": content})
+        """
+        Record a message for later reflection.
+
+        Args:
+            role: Message role ("user" or "assistant")
+            content: Message content
+        """
+        if self._closed:
+            logger.warning("Attempted to record after state closed")
+            return
+
+        if not role or not content:
+            logger.debug(
+                f"Empty record: role={role}"
+            )
+            return
+
+        # Deep copy to prevent mutation
+        self._conversation.append({"role": role, "content": copy.deepcopy(content)})
 
     async def reflect(self):
         """
@@ -119,21 +164,26 @@ class SubconsciousState:
 
         Analyzes the conversation and stores extracted memories.
         """
-        if self._closed or not self._conversation:
+        if self._closed:
+            logger.warning("Attempted to reflect after state closed")
+            return
+
+        if not self._conversation:
+            logger.debug("No conversation to reflect on")
             return
 
         provider = await self._ensure_provider()
 
         # Build conversation text for analysis
         conv_text = "\\n".join(
-            f"{m['role']}: {m['content']}"
-            for m in self._conversation
+            f"{m['role']}: {m['content']}" for m in self._conversation
         )
 
         # Extract learnings using LLM
         learnings = await self._extract_learnings(conv_text)
 
         # Store new memories
+        stored_count = 0
         for learning in learnings:
             try:
                 await provider.store(
@@ -141,10 +191,14 @@ class SubconsciousState:
                     user_id=self.config.user_id,
                     metadata={"source": "reflection"},
                 )
+                stored_count += 1
             except Exception as e:
-                logger.error(f"Failed to store memory: {e}")
+                logger.error(f"Failed to store memory: {e}", exc_info=True)
 
-        logger.info(f"Reflected on {len(self._conversation)} messages, stored {len(learnings)} memories")
+        logger.info(
+            f"Reflected on {len(self._conversation)} messages, "
+            f"stored {stored_count}/{len(learnings)} memories"
+        )
 
     async def _extract_learnings(self, conversation: str) -> List[str]:
         """Use LLM to extract learnings from conversation."""
@@ -161,7 +215,7 @@ class SubconsciousState:
                 base_url=self.config.base.base_url,
             )
 
-            prompt = f"""Analyze this conversation and extract key learnings that should be remembered.
+            prompt = f"""Extract learnings from conversation.
 
 Focus on:
 - User preferences and patterns
@@ -181,7 +235,6 @@ Example: ["User prefers TypeScript over JavaScript", "Project uses pnpm not npm"
                 max_tokens=500,
             )
 
-            import json
             content = response.choices[0].message.content or "[]"
 
             # Try to parse JSON
@@ -190,17 +243,18 @@ Example: ["User prefers TypeScript over JavaScript", "Project uses pnpm not npm"
             except json.JSONDecodeError:
                 # Extract array if wrapped in markdown code blocks or text
                 # Use regex for more robust extraction
-                import re
-                match = re.search(r'\[[\s\S]*?\]', content)
+                match = re.search(r"\[[\s\S]*?\]", content)
                 if match:
                     try:
                         return json.loads(match.group(0))
                     except json.JSONDecodeError:
-                        logger.warning(f"Could not parse extracted JSON array: {match.group(0)[:100]}")
+                        logger.warning(
+                            f"JSON parse failed: {match.group(0)[:50]}"
+                        )
                 return []
 
         except Exception as e:
-            logger.error(f"LLM reflection failed: {e}")
+            logger.error(f"LLM reflection failed: {e}", exc_info=True)
             return []
 
     async def close(self):
@@ -210,12 +264,18 @@ Example: ["User prefers TypeScript over JavaScript", "Project uses pnpm not npm"
         This is called automatically by reset_subconscious().
         """
         if self._closed:
+            logger.debug("State already closed")
             return
 
         self._closed = True
+        logger.debug(f"Closing subconscious state for user {self.config.user_id}")
 
         if self.config.base.reflect_on_close and self._conversation:
             await self.reflect()
+
+        # Close provider connection if it has one
+        if self._provider and hasattr(self._provider, "close"):
+            await self._provider.close()
 
         # Clear conversation
         self._conversation.clear()
@@ -232,11 +292,23 @@ def set_subconscious(config: SubconsciousConfig, user_id: str) -> Token:
         try:
             # ... do work ...
         finally:
-            reset_subconscious(token)
+            await reset_subconscious(token)
+
+    Args:
+        config: Subconscious configuration
+        user_id: User identifier
+
+    Returns:
+        ContextVar token for cleanup
+
+    Raises:
+        ValueError: If user_id is empty
     """
     user_config = config.with_user(user_id)
     state = SubconsciousState(config=user_config)
-    return subconscious_context.set(state)
+    token = subconscious_context.set(state)
+    logger.debug(f"Set subconscious context for user {user_id}")
+    return token
 
 
 def get_subconscious() -> Optional[SubconsciousState]:
@@ -263,12 +335,17 @@ async def reset_subconscious(token: Token):
             # ... work ...
         finally:
             await reset_subconscious(token)
+
+    Args:
+        token: Token returned by set_subconscious()
     """
     state = subconscious_context.get()
     if state:
         await state.close()
+
     try:
         subconscious_context.reset(token)
+        logger.debug("Reset subconscious context")
     except ValueError as e:
         # Token from different context - state already cleaned up
         # This is expected in nested context scenarios, log and continue

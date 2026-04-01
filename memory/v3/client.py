@@ -16,13 +16,23 @@ Usage:
 
     await client.close()  # Triggers reflection
 """
+
+import asyncio
+import copy
+import json
 import logging
+import re
 from typing import Any, List, Optional
 
 from .config import SubconsciousConfig, UserConfig
-from .provider import MemoryProvider, LocalHindsightProvider
+from .provider import LocalHindsightProvider, MemoryProvider
 
 logger = logging.getLogger(__name__)
+
+# Constants for magic numbers
+MAX_CONVERSATION_LENGTH = 3000
+MAX_QUERY_LENGTH = 500
+MAX_TOKENS = 500
 
 
 class SubconsciousClient:
@@ -47,6 +57,7 @@ class SubconsciousClient:
         self.llm_client = llm_client
         self._provider: Optional[MemoryProvider] = None
         self._conversation: List[dict] = []
+        self._closed = False
 
     @classmethod
     async def create(
@@ -65,16 +76,21 @@ class SubconsciousClient:
 
         Returns:
             Initialized client ready to use
+
+        Raises:
+            ValueError: If user_id is empty
         """
         user_config = config.with_user(user_id)
 
         # Create default client if none provided
         if llm_client is None:
             import openai
+
             llm_client = openai.AsyncOpenAI(
                 api_key=config.api_key,
                 base_url=config.base_url,
             )
+            logger.debug("Created default OpenAI client")
 
         client = cls(user_config, llm_client)
         await client._init_provider()
@@ -84,9 +100,15 @@ class SubconsciousClient:
         """Initialize memory provider."""
         if self.config.base.memory_provider == "mock":
             from .provider import MockProvider
+
             self._provider = MockProvider()
         else:
-            self._provider = LocalHindsightProvider(self.config.base.bank_id)
+            self._provider = LocalHindsightProvider(
+                self.config.base.bank_id,
+                max_retries=self.config.base.max_retries,
+                retry_delay_ms=self.config.base.retry_delay_ms,
+            )
+        logger.debug(f"Initialized {self.config.base.memory_provider} provider")
 
     async def chat(
         self,
@@ -105,34 +127,36 @@ class SubconsciousClient:
         Returns:
             Response from underlying client
         """
+        if self._closed:
+            raise RuntimeError("Client is closed")
+
+        if not messages:
+            raise ValueError("Messages cannot be empty")
+
         if not self.config.base.enabled:
+            logger.debug("Subconscious disabled, passing through to LLM")
             return await self._call_llm(messages, **kwargs)
 
-        # Work on a copy
-        enriched_messages = [m.copy() for m in messages]
+        # Deep copy to prevent mutation of original
+        enriched_messages = copy.deepcopy(messages)
 
         # Enrich last user message
         if enrich:
-            last_user_idx = None
-            for i in reversed(range(len(enriched_messages))):
-                if enriched_messages[i].get("role") == "user":
-                    last_user_idx = i
-                    break
+            last_user_idx = self._find_last_user_message(enriched_messages)
 
             if last_user_idx is not None and self._provider:
                 original = enriched_messages[last_user_idx].get("content", "")
-                memories = await self._provider.recall(
-                    query=original[:500],
-                    user_id=self.config.user_id,
-                    limit=self.config.base.max_memories,
-                )
+                memories = await self._safe_recall(original)
 
                 if memories:
                     memory_block = self._format_memories(memories)
-                    enriched_messages[last_user_idx]["content"] = f"{memory_block}\\n\\n{original}"
+                    enriched_messages[last_user_idx]["content"] = (
+                        f"{memory_block}\\n\\n{original}"
+                    )
+                    logger.info(f"Enriched message with {len(memories)} memories")
 
-        # Record for reflection
-        self._conversation.extend(enriched_messages)
+        # Record for reflection (deep copy)
+        self._conversation.extend(copy.deepcopy(enriched_messages))
 
         # Call LLM
         response = await self._call_llm(enriched_messages, **kwargs)
@@ -140,12 +164,35 @@ class SubconsciousClient:
         # Record assistant response
         assistant_content = self._extract_content(response)
         if assistant_content:
-            self._conversation.append({
-                "role": "assistant",
-                "content": assistant_content,
-            })
+            self._conversation.append(
+                {
+                    "role": "assistant",
+                    "content": assistant_content,
+                }
+            )
 
         return response
+
+    def _find_last_user_message(self, messages: List[dict]) -> Optional[int]:
+        """Find the index of the last user message."""
+        for i in reversed(range(len(messages))):
+            if messages[i].get("role") == "user":
+                return i
+        return None
+
+    async def _safe_recall(self, query: str) -> List:
+        """Safely recall memories with error handling."""
+        try:
+            return await self._provider.recall(
+                query=query[:MAX_QUERY_LENGTH],
+                user_id=self.config.user_id,
+                limit=self.config.base.max_memories,
+            )
+        except Exception as e:
+            logger.error(f"Failed to recall memories: {e}", exc_info=True)
+            if self.config.base.fail_open:
+                return []
+            raise
 
     async def _call_llm(self, messages: List[dict], **kwargs) -> Any:
         """Call the underlying LLM client."""
@@ -161,7 +208,6 @@ class SubconsciousClient:
 
         # Fallback: try calling directly
         if callable(client):
-            import asyncio
             result = client(messages=messages, **kwargs)
             if asyncio.iscoroutine(result):
                 return await result
@@ -173,7 +219,7 @@ class SubconsciousClient:
         """Format memories for injection."""
         lines = ["<subconscious_context>"]
         lines.append("  <relevant_memories>")
-        for mem in memories[:self.config.base.max_memories]:
+        for mem in memories[: self.config.base.max_memories]:
             content = mem.content[:200]
             if len(mem.content) > 200:
                 content += "..."
@@ -183,7 +229,15 @@ class SubconsciousClient:
         return "\\n".join(lines)
 
     def _extract_content(self, response: Any) -> Optional[str]:
-        """Extract content from various response formats."""
+        """
+        Extract content from various response formats.
+
+        Args:
+            response: LLM response object
+
+        Returns:
+            Extracted content or None
+        """
         try:
             # OpenAI
             if hasattr(response, "choices"):
@@ -194,24 +248,39 @@ class SubconsciousClient:
                 return response.content[0].text
 
             return str(response)
-        except Exception:
+        except Exception as e:
+            logger.debug(f"Could not extract content from response: {e}")
             return None
 
     async def reflect(self):
-        """Manually trigger reflection on conversation history."""
-        if not self._conversation or not self._provider:
-            return
+        """
+        Manually trigger reflection on conversation history.
+
+        Returns:
+            Number of memories stored
+        """
+        if self._closed:
+            logger.warning("Attempted to reflect on closed client")
+            return 0
+
+        if not self._conversation:
+            logger.debug("No conversation to reflect on")
+            return 0
+
+        if not self._provider:
+            logger.warning("No provider available for reflection")
+            return 0
 
         # Build conversation text
         conv_text = "\\n".join(
-            f"{m['role']}: {m['content']}"
-            for m in self._conversation
+            f"{m['role']}: {m['content']}" for m in self._conversation
         )
 
         # Extract learnings
         learnings = await self._extract_learnings(conv_text)
 
         # Store
+        stored_count = 0
         for learning in learnings:
             try:
                 await self._provider.store(
@@ -219,19 +288,31 @@ class SubconsciousClient:
                     user_id=self.config.user_id,
                     metadata={"source": "reflection"},
                 )
+                stored_count += 1
             except Exception as e:
-                logger.error(f"Failed to store memory: {e}")
+                logger.error(f"Failed to store memory: {e}", exc_info=True)
 
-        logger.info(f"Reflection complete: {len(learnings)} memories stored")
+        logger.info(
+            f"Reflection complete: {stored_count}/{len(learnings)} memories stored"
+        )
+        return stored_count
 
     async def _extract_learnings(self, conversation: str) -> List[str]:
-        """Use LLM to extract learnings."""
+        """
+        Use LLM to extract learnings from conversation.
+
+        Args:
+            conversation: Conversation text
+
+        Returns:
+            List of extracted learnings
+        """
         if not self.config.base.api_key:
+            logger.warning("No API key configured, skipping reflection")
             return []
 
         try:
             import openai
-            import json
 
             client = openai.AsyncOpenAI(
                 api_key=self.config.base.api_key,
@@ -243,7 +324,7 @@ class SubconsciousClient:
 Focus on: user preferences, project context, important decisions.
 
 Conversation:
-{conversation[:3000]}
+{conversation[:MAX_CONVERSATION_LENGTH]}
 
 Return a JSON array of strings. Example:
 ["User prefers TypeScript", "Project uses pnpm"]
@@ -252,28 +333,62 @@ Return a JSON array of strings. Example:
             response = await client.chat.completions.create(
                 model=self.config.base.model,
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=500,
+                max_tokens=MAX_TOKENS,
             )
 
             content = response.choices[0].message.content or "[]"
 
+            # Try to parse JSON
             try:
                 return json.loads(content)
             except json.JSONDecodeError:
-                if "[" in content and "]" in content:
-                    start = content.index("[")
-                    end = content.rindex("]") + 1
-                    return json.loads(content[start:end])
+                # Extract array if wrapped in markdown code blocks or text
+                # Use regex for more robust extraction
+                match = re.search(r"\[[\s\S]*?\]", content)
+                if match:
+                    try:
+                        return json.loads(match.group(0))
+                    except json.JSONDecodeError:
+                        logger.warning(
+                            f"JSON parse failed: {match.group(0)[:50]}"
+                        )
                 return []
 
         except Exception as e:
-            logger.error(f"LLM reflection failed: {e}")
+            logger.error(f"LLM reflection failed: {e}", exc_info=True)
             return []
 
     async def close(self):
         """
         Close the client, triggering reflection if configured.
         """
+        if self._closed:
+            logger.debug("Client already closed")
+            return
+
+        self._closed = True
+        logger.debug(f"Closing client for user {self.config.user_id}")
+
         if self.config.base.reflect_on_close and self._conversation:
             await self.reflect()
+
+        # Close provider if it has a close method
+        if self._provider and hasattr(self._provider, "close"):
+            await self._provider.close()
+
         self._conversation.clear()
+
+    async def health_check(self) -> bool:
+        """
+        Check if the client and provider are healthy.
+
+        Returns:
+            True if healthy, False otherwise
+        """
+        if self._closed:
+            return False
+
+        if not self._provider:
+            return False
+
+        return await self._provider.health_check()
