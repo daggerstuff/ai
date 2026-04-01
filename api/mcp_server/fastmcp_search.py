@@ -1,26 +1,23 @@
 from __future__ import annotations
 
-import os
-
 from ai.api.mcp_server.memory_scope import (
     filter_memories_by_scope,
     search_with_overfetch,
 )
 
-from .fastmcp_protocols import ScopedMemorySearcher
+from .fastmcp_protocols import ScopedMemoryLister, ScopedMemorySearcher
+from .fastmcp_shared import get_recent_memories
+
+_MAX_FALLBACK_CANDIDATES = 100
+_MAX_FALLBACK_RECENT_MEMORIES = 100
 
 
 def _fallback_candidate_limit(*, requested_limit: int, aggressive: bool) -> int:
-    env_multiplier = os.getenv("PIXELATED_MEMORY_SCOPE_OVERFETCH_MULTIPLIER")
-    if env_multiplier:
-        try:
-            configured_multiplier = max(1, int(env_multiplier))
-            return max(requested_limit * configured_multiplier, requested_limit + 8)
-        except ValueError:
-            pass
     if aggressive:
-        return max(requested_limit * 4, requested_limit + 8)
-    return max(requested_limit * 2, requested_limit + 4)
+        computed = max(requested_limit * 4, requested_limit + 8)
+    else:
+        computed = max(requested_limit * 2, requested_limit + 4)
+    return min(computed, _MAX_FALLBACK_CANDIDATES)
 
 
 def _filter_scoped_candidates(*, scope, candidates):
@@ -104,3 +101,31 @@ def search_scoped_memories(
         requested_limit=requested_limit,
     )
     return filtered_results[:requested_limit]
+
+
+def get_scoped_recent_memories(
+    *,
+    manager,
+    user_id: str,
+    scope,
+    limit: int,
+):
+    requested_limit = min(max(limit, 1), _MAX_FALLBACK_RECENT_MEMORIES)
+    if isinstance(manager, ScopedMemoryLister):
+        return manager.get_all_memories_scoped(
+            user_id=user_id,
+            org_id=scope.org_id,
+            project_id=scope.project_id,
+            session_id=scope.session_id,
+            agent_id=scope.agent_id,
+            run_id=scope.run_id,
+            include_shared=scope.include_shared,
+            limit=requested_limit,
+        )
+
+    memories = get_recent_memories(manager, user_id, limit=requested_limit)
+    return filter_memories_by_scope(
+        scope=scope,
+        memories=memories,
+        limit=requested_limit,
+    )

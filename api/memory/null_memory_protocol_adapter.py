@@ -13,6 +13,7 @@ class NullMemoryProtocolAdapter:
 
     def __init__(self, store: NullMemoryStore) -> None:
         self.store = store
+        self._category_count_cache: Dict[tuple[Any, ...], Dict[str, int]] = {}
 
     def get_all_memories_scoped(
         self,
@@ -122,3 +123,44 @@ class NullMemoryProtocolAdapter:
 
     def get_all_memories(self, *, user_id: str, limit: int) -> List[Dict[str, Any]]:
         return self.store.list_records(user_id=user_id)[:limit]
+
+    def count_memories_by_category_scoped(
+        self,
+        *,
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+    ) -> Dict[str, int]:
+        cache_key = (
+            self.store.revision,
+            user_id,
+            org_id,
+            project_id,
+            session_id,
+            agent_id,
+            run_id,
+            include_shared,
+        )
+        cached = self._category_count_cache.get(cache_key)
+        if cached is not None:
+            return dict(cached)
+
+        categories: Dict[str, int] = {}
+        for memory in self.get_all_memories_scoped(
+            user_id=user_id,
+            org_id=org_id,
+            project_id=project_id,
+            session_id=session_id,
+            agent_id=agent_id,
+            run_id=run_id,
+            include_shared=include_shared,
+            limit=100,
+        ):
+            category = (memory.get("metadata") or {}).get("category", "general")
+            categories[category] = categories.get(category, 0) + 1
+        self._category_count_cache = {cache_key: dict(categories)}
+        return categories

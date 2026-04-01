@@ -23,6 +23,8 @@ from .local_hindsight_queries import build_fts_query
 class LocalHindsightQueryExecutor:
     """Execute prepared local memory queries against SQLite."""
 
+    scope_tags = staticmethod(scope_tags)
+
     @staticmethod
     def execute_fts_query(
         conn: sqlite3.Connection,

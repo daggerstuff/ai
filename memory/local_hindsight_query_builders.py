@@ -209,12 +209,13 @@ def build_scoped_search_query(
     layout = query_layout(fts=fts)
     conditions = ["d.user_id = ?"]
     params: List[Any] = [*leading_params, user_id]
-    if required_scope_tags:
-        conditions.append(required_tags_clause(len(required_scope_tags)))
-        params.extend(required_scope_tags)
-    if not include_shared and non_private_visibility_tags:
-        conditions.append(non_shared_visibility_clause(len(non_private_visibility_tags)))
-        params.extend(non_private_visibility_tags)
+    scoped_conditions, scoped_params = _scoped_conditions_and_params(
+        required_scope_tags=required_scope_tags,
+        include_shared=include_shared,
+        non_private_visibility_tags=non_private_visibility_tags,
+    )
+    conditions.extend(scoped_conditions)
+    params.extend(scoped_params)
 
     where_suffix = ""
     if conditions:
@@ -242,14 +243,13 @@ def build_scope_listing_query(
 ) -> BuiltQuery:
     conditions = ["d.bank_id = ?", "d.user_id = ?"]
     params: List[Any] = [bank_id, user_id]
-    if len(required_scope_tags) > MAX_SCOPE_TAGS:
-        raise ValueError("Scope tag count is outside the supported range")
-    if required_scope_tags:
-        conditions.append(required_tags_clause(len(required_scope_tags)))
-        params.extend(required_scope_tags)
-    if not include_shared and non_private_visibility_tags:
-        conditions.append(non_shared_visibility_clause(len(non_private_visibility_tags)))
-        params.extend(non_private_visibility_tags)
+    scoped_conditions, scoped_params = _scoped_conditions_and_params(
+        required_scope_tags=required_scope_tags,
+        include_shared=include_shared,
+        non_private_visibility_tags=non_private_visibility_tags,
+    )
+    conditions.extend(scoped_conditions)
+    params.extend(scoped_params)
     where_clause = " AND ".join(f"({condition.strip()})" for condition in conditions)
     sql = f"""
         SELECT d.*
@@ -260,3 +260,56 @@ def build_scope_listing_query(
     """
     params.extend([limit, offset])
     return BuiltQuery(sql=sql, params=tuple(params))
+
+
+def build_scope_category_count_query(
+    *,
+    bank_id: str,
+    user_id: str,
+    required_scope_tags: List[str],
+    include_shared: bool,
+    non_private_visibility_tags: Optional[List[str]],
+) -> BuiltQuery:
+    conditions = ["d.bank_id = ?", "d.user_id = ?"]
+    params: List[Any] = [bank_id, user_id]
+    scoped_conditions, scoped_params = _scoped_conditions_and_params(
+        required_scope_tags=required_scope_tags,
+        include_shared=include_shared,
+        non_private_visibility_tags=non_private_visibility_tags,
+    )
+    conditions.extend(scoped_conditions)
+    params.extend(scoped_params)
+    where_clause = " AND ".join(f"({condition.strip()})" for condition in conditions)
+    sql = f"""
+        SELECT
+            COALESCE(SUBSTR(category_tags.tag, 10), 'general') AS category,
+            COUNT(*) AS total
+        FROM documents d
+        LEFT JOIN document_tags category_tags
+          ON category_tags.bank_id = d.bank_id
+         AND category_tags.document_id = d.id
+         AND category_tags.tag LIKE 'category:%'
+        WHERE {where_clause}
+        GROUP BY COALESCE(SUBSTR(category_tags.tag, 10), 'general')
+        ORDER BY total DESC, category ASC
+    """
+    return BuiltQuery(sql=sql, params=tuple(params))
+
+
+def _scoped_conditions_and_params(
+    *,
+    required_scope_tags: List[str],
+    include_shared: bool,
+    non_private_visibility_tags: Optional[List[str]],
+) -> tuple[List[str], List[Any]]:
+    if len(required_scope_tags) > MAX_SCOPE_TAGS:
+        raise ValueError("Scope tag count is outside the supported range")
+    conditions: List[str] = []
+    params: List[Any] = []
+    if required_scope_tags:
+        conditions.append(required_tags_clause(len(required_scope_tags)))
+        params.extend(required_scope_tags)
+    if not include_shared and non_private_visibility_tags:
+        conditions.append(non_shared_visibility_clause(len(non_private_visibility_tags)))
+        params.extend(non_private_visibility_tags)
+    return conditions, params
