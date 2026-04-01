@@ -14,3 +14,29 @@ Language: en
 """
     result = SubtitleProcessor.clean_vtt(vtt_content)
     assert result == "Hello Hello world"
+
+def test_format_as_markdown_edge_cases():
+    text = "Sentence one. Sentence two! Sentence three? Sentence four."
+    metadata = {
+        "title": "Test Video",
+        "channel": "Test Channel",
+        "url": "https://example.com/video",
+        "date": "2023-01-01"
+    }
+
+    md = SubtitleProcessor.format_as_markdown(text, metadata)
+    assert "Test Video" in md
+    assert "Test Channel" in md
+    assert "https://example.com/video" in md
+    assert "2023-01-01" in md
+    assert "Sentence one. Sentence two! Sentence three? Sentence four." in md
+
+def test_format_as_markdown_missing_metadata():
+    text = "Just some text."
+    metadata = {}
+
+    md = SubtitleProcessor.format_as_markdown(text, metadata)
+    assert "Unknown Title" in md
+    assert "Unknown Channel" in md
+    assert "**Source:** \n" in md
+    assert "**Date:** \n" in md
