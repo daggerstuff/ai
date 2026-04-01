@@ -11,8 +11,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from ai.memory.null_memory import NullMemoryManager
-from ai.memory.manager_factory import get_memory_manager as get_backend_memory_manager
+from ai.memory.manager_factory import get_required_memory_manager as get_backend_memory_manager
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +90,7 @@ class MemoryManager:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
         try:
-            # Check if client supports 'add' (it should, even NullMemoryManager)
+            # Check if client supports legacy CRUD-style storage helpers
             if not hasattr(self.client, "add"):
                 logger.error("Memory client does not support 'add'")
                 return False
@@ -240,23 +239,16 @@ def get_memory_manager(memory_client: Optional[Any] = None) -> MemoryManager:
     Returns:
         Configured MemoryManager instance
 
-    Note: Defaults to NullMemoryManager if backend initialization fails.
+    Requires a configured shared local memory backend.
     """
     global _memory_manager_instance
     if _memory_manager_instance is None:
         if not memory_client:
-            try:
-                memory_client = get_backend_memory_manager()
-                logger.info(
-                    "Initialized backend client for MemoryManager: %s",
-                    type(memory_client).__name__,
-                )
-            except Exception as e:
-                logger.warning(f"Failed to initialize configured memory backend: {e}")
-
-            if not memory_client:
-                memory_client = NullMemoryManager()
-                logger.info("Using NullMemoryManager for legacy MemoryManager")
+            memory_client = get_backend_memory_manager()
+            logger.info(
+                "Initialized backend client for MemoryManager: %s",
+                type(memory_client).__name__,
+            )
 
         _memory_manager_instance = MemoryManager(memory_client)
     return _memory_manager_instance

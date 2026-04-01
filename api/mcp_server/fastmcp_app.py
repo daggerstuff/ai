@@ -34,7 +34,7 @@ from ai.api.mcp_server.memory_scope import (
     scope_from_kwargs,
     search_with_overfetch,
 )
-from ai.memory.manager_factory import get_memory_manager
+from ai.memory.manager_factory import get_required_memory_manager
 
 # Configure Logging
 logging.basicConfig(level=logging.INFO)
@@ -53,12 +53,9 @@ def get_manager():
     global _manager_instance
 
     if _manager_instance is None:
-        _manager_instance = get_memory_manager()
+        _manager_instance = get_required_memory_manager()
 
-    manager = _manager_instance
-    if not manager:
-        raise RuntimeError("No memory manager configured (NVIDIA or Gemini)")
-    return manager
+    return _manager_instance
 
 
 def _get_recent_memories(

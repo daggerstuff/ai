@@ -1,9 +1,9 @@
 from ai.api.memory.memory_manager import get_memory_manager
-from ai.api.memory.null_memory import NullMemoryManager
+from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
 
 
 def test_legacy_memory_manager_uses_configured_backend(monkeypatch) -> None:
-    manager = NullMemoryManager()
+    manager = LocalHindsightMemoryManager(db_path=":memory:")
 
     monkeypatch.setattr(
         "ai.api.memory.memory_manager._memory_manager_instance",
@@ -18,4 +18,4 @@ def test_legacy_memory_manager_uses_configured_backend(monkeypatch) -> None:
     legacy = get_memory_manager()
 
     assert legacy.client is manager
-    assert legacy.get_memory_stats("session-1")["provider"] == "NullMemoryManager"
+    assert legacy.get_memory_stats("session-1")["provider"] == "LocalHindsightMemoryManager"

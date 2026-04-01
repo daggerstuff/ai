@@ -2,12 +2,7 @@
 Multi-Agent Memory Layer.
 
 Provides shared memory infrastructure for multi-agent therapeutic workflows,
-enabling collaboration between different AI agents (e.g., trainer agent,
-practice agent, feedback agent).
-
-Based on:
-- https://docs.mem0.ai/cookbooks/operations/team-task-agent
-- https://docs.mem0.ai/cookbooks/frameworks/llamaindex-multiagent
+backed by the repository's single shared local memory service.
 """
 
 import logging
@@ -15,13 +10,9 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-try:
-    from mem0 import MemoryClient
-except ImportError:
-    try:
-        from mem0ai import MemoryClient
-    except ImportError:
-        MemoryClient = None
+from ai.memory.hindsight_local_adapter import normalize_tags
+from ai.memory.local_memory_settings import resolve_local_memory_settings
+from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
 
 logger = logging.getLogger("multi_agent_memory")
 
@@ -128,36 +119,27 @@ class MultiAgentMemory:
         self,
         api_key: Optional[str] = None,
         memory_client: Optional[Any] = None,
+        db_path: Optional[str] = None,
+        bank_id: Optional[str] = None,
     ):
         """
         Initialize multi-agent memory.
 
         Args:
-            api_key: Hindsight Platform API key
-            memory_client: Optional pre-configured memory client
+            api_key: Deprecated compatibility argument. Ignored.
+            memory_client: Optional pre-configured shared local memory manager
+            db_path: Optional path to the shared local memory database
+            bank_id: Optional bank identifier
         """
+        del api_key
         if memory_client:
             self.memory = memory_client
-        elif api_key and MemoryClient:
-            self.memory = MemoryClient(api_key=api_key)
         else:
-            logger.warning("No memory client available, using null memory")
-            self.memory = self._create_null_memory()
-
-    def _create_null_memory(self):
-        """Create null memory shim for testing."""
-
-        class NullMemory:
-            def add(self, *args, **kwargs):
-                return {"results": [{"id": "null-memory-id"}]}
-
-            def search(self, *args, **kwargs):
-                return {"results": []}
-
-            def get_all(self, *args, **kwargs):
-                return {"results": []}
-
-        return NullMemory()
+            settings = resolve_local_memory_settings(db_path=db_path, bank_id=bank_id)
+            self.memory = LocalHindsightMemoryManager(
+                db_path=settings.db_path,
+                bank_id=settings.bank_id,
+            )
 
     async def store_agent_memory(
         self,
@@ -194,17 +176,12 @@ class MultiAgentMemory:
 
             # In native Hindsight, types can be passed directly or via metadata.
             # Here we pass it in metadata to ensure it's captured by the underlying wrapper.
-            result = getattr(self.memory, "retain", self.memory.add)(
-                content,
+            result = self.memory.add_memory(
+                content=content,
                 user_id=context.user_id,
                 metadata=full_metadata,
             )
-
-            if isinstance(result, dict) and "results" in result:
-                results = result["results"]
-                if results:
-                    return results[0].get("id", "stored")
-            return "stored"
+            return result
 
         except Exception as e:
             logger.error(f"Error storing agent memory: {e}")
@@ -236,17 +213,6 @@ class MultiAgentMemory:
             disposition_query = f"[Act with a {disposition} disposition] {query}"
             
             # If the underlying client supports native reflect (e.g., HindsightMemoryManager)
-            if hasattr(self.memory, "reflect"):
-                # We scope the reflection to the current session via tags/metadata if possible, 
-                # but the base manager primarily uses user_id. We pass session_id to let the 
-                # underlying system narrow the context if it supports it.
-                return self.memory.reflect(
-                    query=disposition_query,
-                    user_id=context.user_id,
-                    metadata={"session_id": context.session_id}
-                )
-            
-            # Fallback: RAG-style reflection if using a legacy wrapper without reflect
             memories = await self.get_shared_context(context)
             return {
                 "answer": f"Simulated reflection ({disposition} disposition) based on {len(memories)} session memories.",
@@ -272,8 +238,7 @@ class MultiAgentMemory:
             List of shared memory objects
         """
         try:
-            result = self.memory.get_all(user_id=context.user_id)
-            memories = result.get("results", []) if isinstance(result, dict) else result
+            memories = self.memory.get_all_memories(user_id=context.user_id, limit=limit * 4)
 
             # Filter to shared scope for this session
             shared = [
@@ -309,28 +274,55 @@ class MultiAgentMemory:
             List of relevant memories
         """
         try:
-            result = self.memory.search(
-                query,
-                user_id=context.user_id,
-                limit=limit * 2,  # Get extra to filter
-            )
-
-            memories = result.get("results", []) if isinstance(result, dict) else result
-
-            # Filter by scope
+            required_tags = [f"session_id:{context.session_id}"]
             if scope == MemoryScope.PRIVATE:
                 if not context.current_agent:
                     return []
+                required_tags.extend(
+                    [
+                        f"agent_id:{context.current_agent.agent_id}",
+                        f"scope:{MemoryScope.PRIVATE.value}",
+                    ]
+                )
+            elif scope == MemoryScope.SHARED:
+                required_tags.append(f"scope:{MemoryScope.SHARED.value}")
+            elif scope == MemoryScope.USER:
+                required_tags.append(f"scope:{MemoryScope.USER.value}")
+            elif scope == MemoryScope.GLOBAL:
+                required_tags.append(f"scope:{MemoryScope.GLOBAL.value}")
+
+            if hasattr(self.memory, "recall_for_user"):
+                result = self.memory.recall_for_user(
+                    self.memory.default_bank_id,
+                    user_id=context.user_id,
+                    query=query,
+                    limit=limit,
+                    tags=normalize_tags(required_tags),
+                    tags_match="all",
+                )
+                memories = result.get("results", []) if isinstance(result, dict) else []
+                return memories[:limit]
+
+            memories = self.memory.search_memories(
+                query=query,
+                user_id=context.user_id,
+                limit=limit * 4,
+            )
+
+            # Filter by scope
+            if scope == MemoryScope.PRIVATE:
                 filtered = [
                     m
                     for m in memories
                     if m.get("metadata", {}).get("agent_id") == context.current_agent.agent_id
+                    and m.get("metadata", {}).get("session_id") == context.session_id
                 ]
             elif scope == MemoryScope.SHARED:
                 filtered = [
                     m
                     for m in memories
                     if m.get("metadata", {}).get("session_id") == context.session_id
+                    and m.get("metadata", {}).get("scope") == MemoryScope.SHARED.value
                 ]
             else:
                 filtered = memories
@@ -446,8 +438,7 @@ class MultiAgentMemory:
             List of agent memories
         """
         try:
-            result = self.memory.get_all(user_id=context.user_id)
-            memories = result.get("results", []) if isinstance(result, dict) else result
+            memories = self.memory.get_all_memories(user_id=context.user_id, limit=limit * 4)
 
             # Filter by session
             session_memories = [

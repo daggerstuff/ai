@@ -117,8 +117,8 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
 # Expose port
 EXPOSE 8000
 
-# Default command (assuming api.main is the entry point for other services)
-CMD ["python", "-m", "ai.api.main"]
+# Default command (using uv for all Python commands)
+CMD ["uv", "run", "python", "-m", "ai.api.main"]
 
 # Development override
 FROM development AS dev
@@ -128,4 +128,4 @@ RUN apt-get update && apt-get install -y \
     htop \
     && rm -rf /var/lib/apt/lists/*
 USER ubuntu
-CMD ["python", "-m", "ai.api.main"]
+CMD ["uv", "run", "python", "-m", "ai.api.main"]
