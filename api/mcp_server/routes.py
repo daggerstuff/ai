@@ -7,7 +7,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Dict, List, Optional, Protocol, cast
 
-from fastapi import APIRouter, Header, HTTPException, Response
+from fastapi import APIRouter, Header, HTTPException, Request, Response
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
@@ -33,7 +33,7 @@ from ai.memory.base import (
     ScopedMemoryManager,
 )
 from ai.memory.local_hindsight_document_service import DocumentAccessError
-from ai.memory.hindsight_local_retention import scope_metadata
+from ai.memory.hindsight_local_retention import RetainScopeConflictError, scope_metadata
 
 logger = logging.getLogger(__name__)
 
@@ -65,14 +65,29 @@ def _route_call(action: str, handler: Callable[[], Any]) -> Any:
 async def _run_authorized(
     *,
     action: str,
-    authorization: Optional[str],
+    request: Request,
     actor_id: Optional[str],
+    user_id: Optional[str],
+    timestamp: Optional[str],
+    nonce: Optional[str],
+    signature: Optional[str],
     handler: Callable[[MemoryAccessContext], Any],
 ) -> Any:
+    request_body = await request.body()
+    request_target = request.url.path
+    if request.url.query:
+        request_target = f"{request_target}?{request.url.query}"
+
     def _handler() -> Any:
         access = authorize_memory_access(
-            authorization=authorization,
             actor_id=actor_id,
+            user_id=user_id,
+            request_method=request.method,
+            request_target=request_target,
+            request_body=request_body,
+            timestamp=timestamp,
+            nonce=nonce,
+            signature=signature,
         )
         return handler(access)
 
@@ -230,6 +245,8 @@ def _prepare_hindsight_retain_items(
             items=items,
             base_metadata=base_metadata,
         )
+    except RetainScopeConflictError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
     except DocumentAccessError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
@@ -471,20 +488,53 @@ def _get_all_memories_response(
     return {"success": True, "memories": memories, "count": len(memories)}
 
 
+def _hindsight_document_response(
+    *,
+    manager: HindsightCompatibleMemoryManager,
+    bank_id: str,
+    document_id: str,
+    user_id: str,
+) -> Dict[str, Any]:
+    document = manager.get_document(bank_id, document_id, user_id=user_id)
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return document
+
+
+def _hindsight_delete_document_response(
+    *,
+    manager: HindsightCompatibleMemoryManager,
+    bank_id: str,
+    document_id: str,
+    user_id: str,
+) -> Response:
+    deleted = manager.delete_document(bank_id, document_id, user_id=user_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return Response(status_code=204)
+
+
 def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
     router = APIRouter(tags=["MCP Tools"])
 
     @router.post("/api/memory/add")
     async def add_memory(
+        request_context: Request,
         request: AddMemoryRequest,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
     ):
         return await _run_authorized(
             action="adding memory",
-            authorization=authorization,
+            request=request_context,
             actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
             handler=lambda access: _guard_user_scope(
                 access=access,
                 expected_user_id=request.user_id,
@@ -499,15 +549,22 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
 
     @router.post("/api/memory/search")
     async def search_memory(
+        request_context: Request,
         request: SearchMemoryRequest,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
     ):
         return await _run_authorized(
             action="searching memory",
-            authorization=authorization,
+            request=request_context,
             actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
             handler=lambda access: _guard_user_scope(
                 access=access,
                 expected_user_id=request.user_id,
@@ -518,16 +575,23 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
 
     @router.patch("/api/memory/{memory_id}")
     async def update_memory(
+        request_context: Request,
         memory_id: str,
         request: UpdateMemoryRequest,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
     ):
         return await _run_authorized(
             action="updating memory",
-            authorization=authorization,
+            request=request_context,
             actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
             handler=lambda access: _guard_user_scope(
                 access=access,
                 expected_user_id=request.user_id,
@@ -543,6 +607,7 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
 
     @router.delete("/api/memory/{memory_id}")
     async def delete_memory_endpoint(
+        request_context: Request,
         memory_id: str,
         user_id: str,
         org_id: Optional[str] = None,
@@ -551,14 +616,20 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
         agent_id: Optional[str] = None,
         run_id: Optional[str] = None,
         include_shared: bool = True,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
     ):
         return await _run_authorized(
             action="deleting memory",
-            authorization=authorization,
+            request=request_context,
             actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
             handler=lambda access: _guard_user_scope(
                 access=access,
                 expected_user_id=user_id,
@@ -579,6 +650,7 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
 
     @router.get("/api/memory/all/{user_id}")
     async def get_all_memories_endpoint(
+        request_context: Request,
         user_id: str,
         org_id: Optional[str] = None,
         project_id: Optional[str] = None,
@@ -587,14 +659,20 @@ def create_mcp_router(get_manager: ManagerGetter) -> APIRouter:
         run_id: Optional[str] = None,
         include_shared: bool = True,
         limit: Optional[int] = None,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
     ):
         return await _run_authorized(
             action="fetching all memories",
-            authorization=authorization,
+            request=request_context,
             actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
             handler=lambda access: _guard_user_scope(
                 access=access,
                 expected_user_id=user_id,
@@ -621,11 +699,14 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
 
     @router.post("/v1/default/banks/{bank_id}/memories")
     async def hindsight_retain(
+        request_context: Request,
         bank_id: str,
         request: HindsightRetainRequest,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
         x_memory_org_id: Optional[str] = Header(default=None),
         x_memory_project_id: Optional[str] = Header(default=None),
         x_memory_session_id: Optional[str] = Header(default=None),
@@ -633,20 +714,21 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
         x_memory_run_id: Optional[str] = Header(default=None),
         x_memory_visibility: Optional[str] = Header(default=None),
     ):
-        def _handler() -> Dict[str, Any]:
-            access = authorize_memory_access(
-                authorization=authorization,
-                actor_id=x_memory_actor_id,
-            )
-            user_id = _enforce_user_scope(access=access, scoped_user_id=x_memory_user_id)
-            manager = _require_hindsight_manager(get_manager())
-            return manager.retain_items(
+        return await _run_authorized(
+            action="retaining hindsight memory",
+            request=request_context,
+            actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
+            handler=lambda access: _require_hindsight_manager(get_manager()).retain_items(
                 bank_id,
                 _prepare_hindsight_retain_items(
-                    manager,
+                    get_manager(),
                     bank_id=bank_id,
                     items=[item.model_dump() for item in request.items],
-                    user_id=user_id,
+                    user_id=_enforce_user_scope(access=access, scoped_user_id=x_memory_user_id),
                     actor_metadata=access.audit_metadata(),
                     org_id=x_memory_org_id,
                     project_id=x_memory_project_id,
@@ -655,22 +737,28 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
                     run_id=x_memory_run_id,
                     visibility=x_memory_visibility,
                 ),
-            )
-
-        return await run_in_threadpool(_route_call, "retaining hindsight memory", _handler)
+            ),
+        )
 
     @router.post("/v1/default/banks/{bank_id}/memories/recall")
     async def hindsight_recall(
+        request_context: Request,
         bank_id: str,
         request: HindsightRecallRequest,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
     ):
         return await _run_authorized(
             action="recalling hindsight memory",
-            authorization=authorization,
+            request=request_context,
             actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
             handler=lambda access: recall_memories_for_user(
                 _require_hindsight_manager(get_manager()),
                 bank_id=bank_id,
@@ -684,67 +772,85 @@ def create_hindsight_router(get_manager: ManagerGetter) -> APIRouter:
 
     @router.get("/v1/default/banks/{bank_id}/documents")
     async def hindsight_list_documents(
+        request_context: Request,
         bank_id: str,
         limit: int = 100,
         offset: int = 0,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
     ):
-        def _handler() -> Dict[str, Any]:
-            access = authorize_memory_access(
-                authorization=authorization,
-                actor_id=x_memory_actor_id,
-            )
-            user_id = _enforce_user_scope(access=access, scoped_user_id=x_memory_user_id)
-            manager = _require_hindsight_manager(get_manager())
-            return manager.list_documents(bank_id, user_id=user_id, limit=limit, offset=offset)
-
-        return await run_in_threadpool(_route_call, "listing hindsight documents", _handler)
+        return await _run_authorized(
+            action="listing hindsight documents",
+            request=request_context,
+            actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
+            handler=lambda access: _require_hindsight_manager(get_manager()).list_documents(
+                bank_id,
+                user_id=_enforce_user_scope(access=access, scoped_user_id=x_memory_user_id),
+                limit=limit,
+                offset=offset,
+            ),
+        )
 
     @router.get("/v1/default/banks/{bank_id}/documents/{document_id}")
     async def hindsight_get_document(
+        request_context: Request,
         bank_id: str,
         document_id: str,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
     ):
-        def _handler() -> Dict[str, Any]:
-            access = authorize_memory_access(
-                authorization=authorization,
-                actor_id=x_memory_actor_id,
-            )
-            user_id = _enforce_user_scope(access=access, scoped_user_id=x_memory_user_id)
-            manager = _require_hindsight_manager(get_manager())
-            document = manager.get_document(bank_id, document_id, user_id=user_id)
-            if not document:
-                raise HTTPException(status_code=404, detail="Document not found")
-            return document
-
-        return await run_in_threadpool(_route_call, "fetching hindsight document", _handler)
+        return await _run_authorized(
+            action="fetching hindsight document",
+            request=request_context,
+            actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
+            handler=lambda access: _hindsight_document_response(
+                manager=_require_hindsight_manager(get_manager()),
+                bank_id=bank_id,
+                document_id=document_id,
+                user_id=_enforce_user_scope(access=access, scoped_user_id=x_memory_user_id),
+            ),
+        )
 
     @router.delete("/v1/default/banks/{bank_id}/documents/{document_id}")
     async def hindsight_delete_document(
+        request_context: Request,
         bank_id: str,
         document_id: str,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
     ):
-        def _handler() -> Response:
-            access = authorize_memory_access(
-                authorization=authorization,
-                actor_id=x_memory_actor_id,
-            )
-            user_id = _enforce_user_scope(access=access, scoped_user_id=x_memory_user_id)
-            manager = _require_hindsight_manager(get_manager())
-            deleted = manager.delete_document(bank_id, document_id, user_id=user_id)
-            if not deleted:
-                raise HTTPException(status_code=404, detail="Document not found")
-            return Response(status_code=204)
-
-        return await run_in_threadpool(_route_call, "deleting hindsight document", _handler)
+        return await _run_authorized(
+            action="deleting hindsight document",
+            request=request_context,
+            actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
+            handler=lambda access: _hindsight_delete_document_response(
+                manager=_require_hindsight_manager(get_manager()),
+                bank_id=bank_id,
+                document_id=document_id,
+                user_id=_enforce_user_scope(access=access, scoped_user_id=x_memory_user_id),
+            ),
+        )
 
     return router
 
@@ -754,18 +860,25 @@ def create_legacy_router(get_manager: ManagerGetter) -> APIRouter:
 
     @router.post("/api/memory/users")
     async def create_user(
+        request_context: Request,
         email: str,
         name: str,
         role: str = "patient",
         metadata: Optional[Dict[str, Any]] = None,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
     ):
         return await _run_authorized(
             action="registering memory user",
-            authorization=authorization,
+            request=request_context,
             actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
             handler=lambda access: _create_user_response(
                 manager=get_manager(),
                 email=email,
@@ -779,15 +892,22 @@ def create_legacy_router(get_manager: ManagerGetter) -> APIRouter:
 
     @router.get("/api/memory/users/{user_id}")
     async def get_user(
+        request_context: Request,
         user_id: str,
-        authorization: Optional[str] = Header(default=None),
         x_memory_actor_id: Optional[str] = Header(default=None),
         x_memory_user_id: Optional[str] = Header(default=None),
+        x_memory_timestamp: Optional[str] = Header(default=None),
+        x_memory_nonce: Optional[str] = Header(default=None),
+        x_memory_signature: Optional[str] = Header(default=None),
     ):
         return await _run_authorized(
             action="checking user",
-            authorization=authorization,
+            request=request_context,
             actor_id=x_memory_actor_id,
+            user_id=x_memory_user_id,
+            timestamp=x_memory_timestamp,
+            nonce=x_memory_nonce,
+            signature=x_memory_signature,
             handler=lambda access: _get_user_response(
                 manager=get_manager(),
                 requested_user_id=user_id,
@@ -810,13 +930,17 @@ def create_health_router(get_manager: ManagerGetter) -> APIRouter:
                 health_payload = manager.get_health_status()
             else:
                 health_payload = {"status": "degraded", "provider": "unconfigured"}
+            combined_readiness = dict(readiness_details())
+            manager_readiness = health_payload.get("readiness")
+            if isinstance(manager_readiness, dict):
+                combined_readiness.update(manager_readiness)
             return {
                 "status": health_payload.get("status", "degraded"),
                 "provider": health_payload.get("provider", "unconfigured"),
                 "service": "pixelated-memory-server",
                 "version": "2.0.0",
-                "auth_model": "internal_service_actor_policies",
-                "readiness": readiness_details(),
+                "auth_model": "internal_service_hmac_actor_policies",
+                "readiness": combined_readiness,
             }
         except Exception as e:
             logger.error(f"Health check failed: {e}")

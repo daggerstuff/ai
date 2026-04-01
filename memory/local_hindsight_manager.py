@@ -289,7 +289,9 @@ class LocalHindsightMemoryManager(BaseMemoryManager):
         return self.repository.delete_documents_for_user(self.default_bank_id, user_id=user_id)
 
     def get_health_status(self) -> Dict[str, Any]:
+        db_health = self.repository.db.health_details()
         return {
-            "status": "healthy",
+            "status": "healthy" if db_health.get("db_ready") else "degraded",
             "provider": self.get_provider_name(),
+            "readiness": db_health,
         }

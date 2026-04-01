@@ -10,6 +10,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 
+from ai.api.mcp_server.memory_auth import validate_memory_auth_configuration
 from ai.api.mcp_server.routes import (
     create_health_router,
     create_hindsight_router,
@@ -24,6 +25,7 @@ logger = logging.getLogger(__name__)
 def create_memory_server() -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        validate_memory_auth_configuration()
         manager = get_required_memory_manager()
         app.state.memory_manager = manager
         logger.info(f"Initialized Memory Manager: {type(manager).__name__}")

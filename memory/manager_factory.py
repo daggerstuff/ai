@@ -4,6 +4,7 @@ from typing import Optional, Type
 
 from .base import BaseMemoryManager
 from .local_hindsight_manager import LocalHindsightMemoryManager
+from .local_memory_settings import resolve_local_memory_settings
 
 logger = logging.getLogger("MemoryManagerFactory")
 
@@ -47,14 +48,15 @@ class MemoryManagerFactory:
     def _create_local_hindsight_manager(self) -> BaseMemoryManager:
         """Helper to create local persistent Hindsight-compatible manager."""
         try:
-            db_path = os.environ.get("HINDSIGHT_LOCAL_DB_PATH")
-            if not db_path:
-                raise RuntimeError(
-                    "HINDSIGHT_LOCAL_DB_PATH must be configured for the shared local memory service."
-                )
-            bank_id = os.environ.get("HINDSIGHT_BANK_ID") or "pixelated"
+            settings = resolve_local_memory_settings(
+                db_path=os.environ.get("HINDSIGHT_LOCAL_DB_PATH"),
+                bank_id=os.environ.get("HINDSIGHT_BANK_ID"),
+            )
             logger.info("Using LocalHindsightMemoryManager")
-            return self.local_manager_class(db_path=db_path, bank_id=bank_id)
+            return self.local_manager_class(
+                db_path=settings.db_path,
+                bank_id=settings.bank_id,
+            )
         except Exception as e:
             logger.error(f"Failed to initialize LocalHindsightMemoryManager: {e}")
             raise
