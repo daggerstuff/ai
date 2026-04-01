@@ -1,3 +1,4 @@
+# Managed with uv only. Do not use raw python, pip, or poetry in this repo.
 [project]
 name = "pixelated-ai"
 version = "0.0.1"

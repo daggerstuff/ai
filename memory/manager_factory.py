@@ -1,63 +1,63 @@
 import logging
 import os
-from typing import Any, Dict, Optional
+from typing import Optional, Type
 
 from .base import BaseMemoryManager
-from .null_memory import NullMemoryManager
+from .local_hindsight_manager import LocalHindsightMemoryManager
 
 logger = logging.getLogger("MemoryManagerFactory")
-
-
-def _get_hindsight_manager_class():
-    """Lazy import to avoid circular dependency."""
-    from .hindsight_manager import HindsightMemoryManager
-    return HindsightMemoryManager
 
 
 class MemoryManagerFactory:
     """
     Factory class to create and configure memory managers.
-    Supports Hindsight as the primary memory backend.
+    Local Hindsight is the only supported backend in this repo path.
     """
 
-    @staticmethod
-    def create_manager() -> BaseMemoryManager:
+    def __init__(
+        self,
+        *,
+        provider: Optional[str] = None,
+        local_manager_class: Type[BaseMemoryManager] = LocalHindsightMemoryManager,
+    ) -> None:
+        self.provider = provider
+        self.local_manager_class = local_manager_class
+
+    def create_manager(self, provider: Optional[str] = None) -> BaseMemoryManager:
         """
         Creates a memory manager based on environment configuration.
 
         Logic:
-        1. Check MEMORY_PROVIDER env var ('hindsight').
-        2. If not set, check for HINDSIGHT_API_KEY (defaults to hindsight).
-        3. If nothing found, return NullMemoryManager.
+        1. Use the explicit provider argument when present.
+        2. Treat local and hindsight provider values as aliases for the shared local service.
+        3. If no supported provider is configured, fail closed with a configuration error.
         """
-        provider = (
-            os.environ.get("MEMORY_PROVIDER") or ""
-        ).lower()
+        provider_name = (
+            provider or self.provider or os.environ.get("MEMORY_PROVIDER") or ""
+        ).lower().strip()
 
-        # 1. Force Provider if specified
-        if provider == "hindsight" or provider == "":
-            return MemoryManagerFactory._create_hindsight_manager()
+        if provider_name in {"local_hindsight", "local-hindsight", "local", "hindsight"}:
+            return self._create_local_hindsight_manager()
 
-        # 2. Autodetect
-        if os.environ.get("HINDSIGHT_API_KEY"):
-            return MemoryManagerFactory._create_hindsight_manager()
+        raise RuntimeError(
+            "No supported memory provider configured. "
+            "Set MEMORY_PROVIDER=local_hindsight to run the shared local memory service."
+        )
 
-        # 3. Fallback to Null
-        logger.warning("No memory provider configured. Using NullMemoryManager.")
-        return NullMemoryManager()
-
-    @staticmethod
-    def _create_hindsight_manager() -> BaseMemoryManager:
-        """Helper to create Hindsight manager."""
+    def _create_local_hindsight_manager(self) -> BaseMemoryManager:
+        """Helper to create local persistent Hindsight-compatible manager."""
         try:
-            logger.info("Using HindsightMemoryManager")
-            HindsightMemoryManagerClass = _get_hindsight_manager_class()
-            return HindsightMemoryManagerClass()
+            db_path = os.environ.get("HINDSIGHT_LOCAL_DB_PATH")
+            if not db_path:
+                raise RuntimeError(
+                    "HINDSIGHT_LOCAL_DB_PATH must be configured for the shared local memory service."
+                )
+            bank_id = os.environ.get("HINDSIGHT_BANK_ID") or "pixelated"
+            logger.info("Using LocalHindsightMemoryManager")
+            return self.local_manager_class(db_path=db_path, bank_id=bank_id)
         except Exception as e:
-            logger.error(f"Failed to initialize HindsightMemoryManager: {e}")
+            logger.error(f"Failed to initialize LocalHindsightMemoryManager: {e}")
             raise
-
-
-def get_memory_manager() -> BaseMemoryManager:
-    """Legacy wrapper for create_manager."""
-    return MemoryManagerFactory.create_manager()
+def get_required_memory_manager() -> BaseMemoryManager:
+    """Return the configured shared memory manager or fail closed."""
+    return MemoryManagerFactory().create_manager()

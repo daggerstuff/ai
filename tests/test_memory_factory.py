@@ -1,125 +1,73 @@
-import os
-from unittest.mock import patch
-
-from ai.api.memory.base import BaseMemoryManager
-from ai.memory.hindsight_manager import HindsightMemoryManager
 from ai.memory.manager_factory import MemoryManagerFactory
-from ai.memory.mem0_gemini.manager import GeminiMem0Manager
-from ai.memory.mem0_nvidia.manager import NvidiaMem0Manager
+import pytest
 
 
-@patch("ai.memory.manager_factory.HindsightMemoryManager")
-@patch("ai.memory.manager_factory.GeminiMem0Manager")
-@patch("ai.memory.manager_factory.NvidiaMem0Manager")
-def test_factory_creates_gemini_manager(mock_nvidia, mock_gemini, mock_hindsight):
-    """Test that the factory creates a GeminiMem0Manager when configured."""
-    with patch.dict(
-        os.environ,
-        {"MEM0_PROVIDER": "gemini", "GOOGLE_API_KEY": "test-key"},
-        clear=True,
-    ):
-        manager = MemoryManagerFactory.create_manager()
-        assert manager == mock_gemini.return_value
+def test_factory_creates_local_hindsight_manager_only_when_explicit(monkeypatch):
+    class FakeLocalManager:
+        def __init__(self, *, db_path: str, bank_id: str) -> None:
+            self.db_path = db_path
+            self.bank_id = bank_id
+
+    monkeypatch.setenv("MEMORY_PROVIDER", "local_hindsight")
+    monkeypatch.setenv("HINDSIGHT_LOCAL_DB_PATH", "/tmp/pixelated-memory.db")
+
+    manager = MemoryManagerFactory(local_manager_class=FakeLocalManager).create_manager()
+
+    assert isinstance(manager, FakeLocalManager)
+    assert manager.db_path == "/tmp/pixelated-memory.db"
+    assert manager.bank_id == "pixelated"
 
 
-@patch("ai.memory.manager_factory.HindsightMemoryManager")
-@patch("ai.memory.manager_factory.GeminiMem0Manager")
-@patch("ai.memory.manager_factory.NvidiaMem0Manager")
-def test_factory_creates_nvidia_manager(mock_nvidia, mock_gemini, mock_hindsight):
-    """Test that the factory creates an NvidiaMem0Manager when configured."""
-    with patch.dict(
-        os.environ,
-        {
-            "MEM0_PROVIDER": "nvidia",
-            "NVIDIA_API_KEY": "test-key",
-            "NVIDIA_USE_ENHANCED": "false",
-        },
-        clear=True,
-    ):
-        manager = MemoryManagerFactory.create_manager()
-        assert manager == mock_nvidia.return_value
+def test_factory_raises_when_memory_is_unconfigured(monkeypatch):
+    monkeypatch.delenv("MEMORY_PROVIDER", raising=False)
+    monkeypatch.delenv("HINDSIGHT_API_KEY", raising=False)
+
+    with pytest.raises(RuntimeError, match="No supported memory provider configured"):
+        MemoryManagerFactory().create_manager()
 
 
-@patch("ai.memory.manager_factory.HindsightMemoryManager")
-@patch("ai.memory.manager_factory.GeminiMem0Manager")
-@patch("ai.memory.manager_factory.NvidiaMem0Manager")
-def test_factory_default_provider(mock_nvidia, mock_gemini, mock_hindsight):
-    """Test that the factory defaults to gemini if no provider is specified."""
-    # Ensure clear environment for testing defaults
-    with patch.dict(os.environ, {"GOOGLE_API_KEY": "test-key"}, clear=True):
-        manager = MemoryManagerFactory.create_manager()
-        assert manager == mock_gemini.return_value
+def test_factory_treats_hindsight_provider_alias_as_local(monkeypatch):
+    monkeypatch.setenv("MEMORY_PROVIDER", "hindsight")
+    monkeypatch.setenv("HINDSIGHT_API_KEY", "test-key")
+    monkeypatch.setenv("HINDSIGHT_LOCAL_DB_PATH", "/tmp/pixelated-memory.db")
+
+    class FakeLocalManager:
+        def __init__(self, *, db_path: str, bank_id: str) -> None:
+            self.db_path = db_path
+            self.bank_id = bank_id
+
+    manager = MemoryManagerFactory(local_manager_class=FakeLocalManager).create_manager()
+
+    assert manager.__class__.__name__ == "FakeLocalManager"
 
 
-@patch("ai.memory.manager_factory.HindsightMemoryManager")
-@patch("ai.memory.manager_factory.GeminiMem0Manager")
-@patch("ai.memory.manager_factory.NvidiaMem0Manager")
-def test_factory_creates_hindsight_manager(mock_nvidia, mock_gemini, mock_hindsight):
-    with patch.dict(
-        os.environ,
-        {"MEMORY_PROVIDER": "hindsight", "HINDSIGHT_API_KEY": "test-key"},
-        clear=True,
-    ):
-        manager = MemoryManagerFactory.create_manager()
-        assert manager == mock_hindsight.return_value
-        mock_hindsight.assert_called_once()
+def test_factory_rejects_hindsight_api_key_without_explicit_local_mode(monkeypatch):
+    monkeypatch.delenv("MEMORY_PROVIDER", raising=False)
+    monkeypatch.setenv("HINDSIGHT_API_KEY", "test-key")
+
+    with pytest.raises(RuntimeError, match="No supported memory provider configured"):
+        MemoryManagerFactory().create_manager()
 
 
-def test_factory_enhanced_nvidia_path_returns_memory_manager_compatible_object(
-    monkeypatch,
-):
-    """Enhanced NVIDIA mode must still satisfy the BaseMemoryManager contract."""
+def test_factory_allows_provider_override_without_env(monkeypatch):
+    class FakeLocalManager:
+        def __init__(self, *, db_path: str, bank_id: str) -> None:
+            self.db_path = db_path
+            self.bank_id = bank_id
 
-    class FakeEnhancedManager:
-        def __init__(self, config):
-            self.config = config
-            self.sync_client = object()
-            self.client = object()
+    monkeypatch.delenv("MEMORY_PROVIDER", raising=False)
+    monkeypatch.setenv("HINDSIGHT_LOCAL_DB_PATH", "/tmp/pixelated-memory.db")
 
-        async def generate(self, prompt: str, **kwargs):
-            return f"analysis:{prompt}"
-
-    class FakeMemoryManager(BaseMemoryManager):
-        def add_memory(self, content, user_id, metadata=None, category=None):
-            return "mem-1"
-
-        def search_memories(self, query, user_id):
-            return [{"memory": "stored memory", "score": 1.0}]
-
-        def get_all_memories(self, user_id):
-            return [{"memory": "stored memory", "metadata": {"category": "fact"}}]
-
-        def get_memory(self, memory_id):
-            return {"id": memory_id}
-
-        def update_memory(self, memory_id, new_content, metadata=None):
-            return True
-
-        def delete_memory(self, memory_id):
-            return True
-
-        def clear_memory(self, user_id):
-            return True
-
-    monkeypatch.setattr(
-        "ai.memory.manager_factory.EnhancedNvidiaNimManager", FakeEnhancedManager
-    )
-    monkeypatch.setattr(
-        "ai.memory.manager_factory.NvidiaMem0Manager",
-        lambda config: FakeMemoryManager(),
+    manager = MemoryManagerFactory(local_manager_class=FakeLocalManager).create_manager(
+        provider="hindsight"
     )
 
-    with patch.dict(
-        os.environ,
-        {
-            "MEM0_PROVIDER": "nvidia",
-            "NVIDIA_API_KEY": "test-key",
-            "NVIDIA_USE_ENHANCED": "true",
-        },
-        clear=True,
-    ):
-        manager = MemoryManagerFactory.create_manager()
+    assert isinstance(manager, FakeLocalManager)
 
-    assert isinstance(manager, BaseMemoryManager)
-    assert manager.search_memories("stored", "vivi")[0]["memory"] == "stored memory"
-    assert hasattr(manager, "generate")
+
+def test_factory_requires_explicit_local_db_path(monkeypatch):
+    monkeypatch.setenv("MEMORY_PROVIDER", "local_hindsight")
+    monkeypatch.delenv("HINDSIGHT_LOCAL_DB_PATH", raising=False)
+
+    with pytest.raises(RuntimeError, match="HINDSIGHT_LOCAL_DB_PATH must be configured"):
+        MemoryManagerFactory().create_manager()
