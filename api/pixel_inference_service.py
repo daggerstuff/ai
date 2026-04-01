@@ -406,7 +406,7 @@ async def infer(request: PixelInferenceRequest, background_tasks: BackgroundTask
         return await inference_engine.generate_response(request)
     except Exception as e:
         logger.error(f"Inference error: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 @app.post("/batch-infer")
@@ -422,7 +422,7 @@ async def batch_infer(requests: list[PixelInferenceRequest]):
             responses.append(response)
         except Exception as e:
             logger.error(f"Batch inference error: {e}")
-            responses.append({"error": str(e)})
+            responses.append({"error": "Internal server error"})
 
     return {"results": responses}
 
@@ -437,7 +437,7 @@ async def reload_model():
         raise HTTPException(status_code=500, detail="Failed to reload model")
     except Exception as e:
         logger.error(f"Reload error: {e}")
-        raise HTTPException(status_code=500, detail=str(e)) from e
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 
 if __name__ == "__main__":
