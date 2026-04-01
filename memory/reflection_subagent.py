@@ -7,6 +7,7 @@ to `reflection_analysis`, keeping the shared service shell narrow.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from dataclasses import replace
 from typing import Callable, Dict, List, Optional
@@ -40,13 +41,15 @@ class ReflectionSubagent:
     ) -> ReflectionResult:
         logger.info("Starting reflection analysis for user %s", user_id)
 
-        crisis_result = await self.analysis.detect_crisis(conversation_text)
         memories_text = self._format_memories(existing_memories or [])
-        analysis = await self.analysis.run_reflection(
-            conversation_text=conversation_text,
-            existing_memories=memories_text,
-            include_crisis_context=self.config.include_crisis_context,
-            crisis_detected=crisis_result.get("crisis_detected", False),
+        crisis_result, analysis = await asyncio.gather(
+            self.analysis.detect_crisis(conversation_text),
+            self.analysis.run_reflection(
+                conversation_text=conversation_text,
+                existing_memories=memories_text,
+                include_crisis_context=self.config.include_crisis_context,
+                crisis_detected=None,
+            ),
         )
         result = self.analysis.parse_analysis(
             analysis,
@@ -101,3 +104,6 @@ class ReflectionSubagent:
 
     def reset_message_count(self) -> None:
         self._message_count = 0
+
+    async def close(self) -> None:
+        await self.memory.close()

@@ -194,7 +194,7 @@ Begin analysis.
 
 
 def get_reflection_prompt(
-    crisis_detected: bool = False,
+    crisis_detected: bool | None = False,
     include_crisis_context: bool = True
 ) -> ReflectionPrompt:
     """
@@ -207,7 +207,7 @@ def get_reflection_prompt(
     Returns:
         Appropriate ReflectionPrompt
     """
-    if crisis_detected or include_crisis_context:
+    if crisis_detected is None or crisis_detected or include_crisis_context:
         return CRISIS_AWARE_REFLECTION
     return STANDARD_REFLECTION
 

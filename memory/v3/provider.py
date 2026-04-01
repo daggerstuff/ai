@@ -130,6 +130,11 @@ class LocalHindsightProvider(MemoryProvider):
         self._retry_delay_ms = retry_delay_ms
         self._connection: Optional[aiosqlite.Connection] = None
 
+        # Circuit breaker state
+        self._failure_count = 0
+        self._circuit_open = False
+        self._last_failure_time: Optional[float] = None
+
     async def _get_connection(self) -> aiosqlite.Connection:
         """Get or create a database connection with connection pooling."""
         if self._connection is None:
@@ -166,14 +171,45 @@ class LocalHindsightProvider(MemoryProvider):
         self._initialized = True
 
     async def _retry_operation(self, operation, *args, **kwargs):
-        """Execute an operation with retry logic."""
+        """Execute an operation with retry logic and circuit breaker."""
+        import time
+
+        # Circuit breaker check
+        if self._circuit_open:
+            if self._last_failure_time:
+                elapsed = time.time() - self._last_failure_time
+                if elapsed < 60:  # 1 minute cooldown
+                    raise Exception(
+                        f"Circuit breaker open for {self.bank_id}, "
+                        f"retry in {60 - elapsed:.0f}s"
+                    )
+                else:
+                    self._circuit_open = False
+                    self._failure_count = 0
+                    logger.info(f"Circuit breaker reset for {self.bank_id}")
+
         last_error: Optional[Exception] = None
 
         for attempt in range(self._max_retries + 1):
             try:
-                return await operation(*args, **kwargs)
+                result = await operation(*args, **kwargs)
+                # Success - reset failure count
+                self._failure_count = 0
+                return result
             except (aiosqlite.Error, asyncio.TimeoutError) as e:
                 last_error = e
+                self._failure_count += 1
+
+                # Check circuit breaker threshold
+                if self._failure_count >= 5:
+                    self._circuit_open = True
+                    self._last_failure_time = time.time()
+                    logger.error(
+                        f"Circuit breaker opened for {self.bank_id} "
+                        f"after {self._failure_count} failures"
+                    )
+                    raise
+
                 if attempt < self._max_retries:
                     delay = self._retry_delay_ms / 1000
                     logger.warning(
@@ -321,11 +357,19 @@ class LocalHindsightProvider(MemoryProvider):
             return False
 
     async def close(self):
-        """Close the database connection."""
+        """Close the database connection and reset state."""
         if self._connection:
-            await self._connection.close()
-            self._connection = None
-            logger.debug("Closed database connection")
+            try:
+                await self._connection.close()
+            except Exception as e:
+                logger.warning(f"Error closing connection: {e}")
+            finally:
+                self._connection = None
+        # Reset circuit breaker state
+        self._failure_count = 0
+        self._circuit_open = False
+        self._last_failure_time = None
+        logger.debug(f"Closed database connection for {self.bank_id}")
 
 
 class MockProvider(MemoryProvider):

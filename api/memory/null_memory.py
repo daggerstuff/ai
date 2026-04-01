@@ -75,6 +75,31 @@ class NullMemoryManager(BaseMemoryManager):
     def get_all_memories(self, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
         return self.protocol.get_all_memories(user_id=user_id, limit=limit)
 
+    def search_memories_scoped(
+        self,
+        *,
+        query: str,
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        return self.protocol.search_memories_scoped(
+            query=query,
+            user_id=user_id,
+            org_id=org_id,
+            project_id=project_id,
+            session_id=session_id,
+            agent_id=agent_id,
+            run_id=run_id,
+            include_shared=include_shared,
+            limit=limit,
+        )
+
     def get_all_memories_scoped(
         self,
         *,

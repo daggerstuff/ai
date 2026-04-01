@@ -59,6 +59,9 @@ class ReflectionBootstrap:
                 await self._task  # type: ignore
             except asyncio.CancelledError:
                 pass
+        if self._subagent is not None and hasattr(self._subagent, "close"):
+            await self._subagent.close()
+            self._subagent = None
         logger.info("Reflection bootstrap stopped")
 
     async def reflect_now(

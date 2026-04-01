@@ -70,6 +70,10 @@ class SubconsciousConfig:
     max_retries: int = 3
     retry_delay_ms: int = 1000  # 1 second between retries
 
+    # Circuit breaker
+    circuit_breaker_threshold: int = 5  # Failures before opening circuit
+    circuit_breaker_reset_ms: int = 60000  # 1 minute before retry
+
     def __post_init__(self):
         """Validate configuration after initialization."""
         self._validate()
