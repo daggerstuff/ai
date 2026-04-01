@@ -16,8 +16,16 @@ from contextvars import ContextVar, Token
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, List, Optional
 
+from .constants import MAX_QUERY_LENGTH
 from .config import SubconsciousConfig, UserConfig
 from .provider import LocalHindsightProvider, Memory, MemoryProvider
+
+__all__ = [
+    "SubconsciousState",
+    "set_subconscious",
+    "get_subconscious",
+    "reset_subconscious",
+]
 
 if TYPE_CHECKING:
     pass
@@ -88,7 +96,7 @@ class SubconsciousState:
 
             memories = await asyncio.wait_for(
                 provider.recall(
-                    query=message[:500],  # Truncate for search
+                    query=message[:MAX_QUERY_LENGTH],
                     user_id=self.config.user_id,
                     limit=self.config.base.max_memories,
                 ),

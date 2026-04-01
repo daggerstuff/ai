@@ -11,6 +11,8 @@ from typing import Literal
 
 logger = logging.getLogger(__name__)
 
+__all__ = ["SubconsciousConfig", "UserConfig"]
+
 # Constants for magic numbers
 DEFAULT_MAX_MEMORIES = 5
 DEFAULT_QUERY_TIMEOUT_MS = 5000
@@ -93,7 +95,7 @@ class SubconsciousConfig:
         # Warn if API key missing but enabled
         if self.enabled and not self.api_key and self.reflect_on_close:
             logger.warning(
-                f"API key missing ({ENV_API_KEY}), skipping reflection"
+                f"API key missing ({ENV_API_KEY}), reflection will be skipped"
             )
 
     @classmethod
