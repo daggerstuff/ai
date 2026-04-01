@@ -188,11 +188,15 @@ Example: ["User prefers TypeScript over JavaScript", "Project uses pnpm not npm"
             try:
                 return json.loads(content)
             except json.JSONDecodeError:
-                # Extract array if wrapped in markdown
-                if "[" in content and "]" in content:
-                    start = content.index("[")
-                    end = content.rindex("]") + 1
-                    return json.loads(content[start:end])
+                # Extract array if wrapped in markdown code blocks or text
+                # Use regex for more robust extraction
+                import re
+                match = re.search(r'\[[\s\S]*?\]', content)
+                if match:
+                    try:
+                        return json.loads(match.group(0))
+                    except json.JSONDecodeError:
+                        logger.warning(f"Could not parse extracted JSON array: {match.group(0)[:100]}")
                 return []
 
         except Exception as e:
@@ -265,6 +269,7 @@ async def reset_subconscious(token: Token):
         await state.close()
     try:
         subconscious_context.reset(token)
-    except ValueError:
+    except ValueError as e:
         # Token from different context - state already cleaned up
-        pass
+        # This is expected in nested context scenarios, log and continue
+        logger.debug(f"ContextVar reset with token from different context: {e}")

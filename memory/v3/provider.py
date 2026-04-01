@@ -4,9 +4,12 @@ Memory provider interface and implementations.
 Pluggable architecture - swap backends without changing code.
 """
 import logging
-import sqlite3
+import re
+import hashlib
+import aiosqlite
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import List
 import json
@@ -51,19 +54,23 @@ class LocalHindsightProvider(MemoryProvider):
     SQLite-backed memory storage.
 
     Wraps the existing local_hindsight infrastructure.
+    Uses aiosqlite for async-safe database operations.
     """
 
     def __init__(self, bank_id: str):
         self.bank_id = bank_id
         self._db_path = Path.home() / ".hindsight" / f"{bank_id}.db"
-        self._ensure_db()
+        self._initialized = False
 
-    def _ensure_db(self):
-        """Create tables if they don't exist."""
+    async def _ensure_db(self):
+        """Create tables if they don't exist (async)."""
+        if self._initialized:
+            return
+
         self._db_path.parent.mkdir(parents=True, exist_ok=True)
 
-        with sqlite3.connect(self._db_path) as conn:
-            conn.execute("""
+        async with aiosqlite.connect(self._db_path) as conn:
+            await conn.execute("""
                 CREATE TABLE IF NOT EXISTS memories (
                     id TEXT PRIMARY KEY,
                     user_id TEXT NOT NULL,
@@ -72,31 +79,42 @@ class LocalHindsightProvider(MemoryProvider):
                     metadata TEXT
                 )
             """)
-            conn.execute("""
+            await conn.execute("""
                 CREATE INDEX IF NOT EXISTS idx_user_id ON memories(user_id)
             """)
-            conn.commit()
+            await conn.commit()
+
+        self._initialized = True
 
     def _generate_id(self, content: str, user_id: str) -> str:
         """Generate a stable ID for a memory."""
-        import hashlib
         hash_input = f"{user_id}:{content}:{self.bank_id}"
         return hashlib.sha256(hash_input.encode()).hexdigest()[:16]
 
+    @staticmethod
+    def _escape_like(value: str) -> str:
+        """Escape LIKE wildcards to prevent SQL injection."""
+        # Escape special LIKE characters: % and _
+        return re.sub(r"([%_\\])", r"\\\1", value)
+
     async def recall(self, query: str, user_id: str, limit: int) -> List[Memory]:
-        """Search memories by content similarity (simple LIKE for now)."""
-        # Simple text search - could be enhanced with embeddings
+        """Search memories by content (async-safe with proper escaping)."""
+        await self._ensure_db()
+
+        # Split into search terms and escape each one
         search_terms = query.lower().split()[:5]  # Top 5 words
+        escaped_terms = [self._escape_like(term) for term in search_terms]
 
-        with sqlite3.connect(self._db_path) as conn:
-            conn.row_factory = sqlite3.Row
+        async with aiosqlite.connect(self._db_path) as conn:
+            conn.row_factory = aiosqlite.Row
 
-            # Build LIKE query
-            like_clauses = " OR ".join(["content LIKE ?" for _ in search_terms])
-            params = [f"%{term}%" for term in search_terms]
-            params.append(user_id)
+            # Build LIKE query with escaped terms
+            like_clauses = " OR ".join(["content LIKE ? ESCAPE '\\'" for _ in escaped_terms])
+            params = [f"%{term}%" for term in escaped_terms]
+            params.insert(0, user_id)
+            params.append(limit)
 
-            cursor = conn.execute(
+            cursor = await conn.execute(
                 f"""
                 SELECT id, content, created_at, metadata
                 FROM memories
@@ -104,10 +122,10 @@ class LocalHindsightProvider(MemoryProvider):
                 ORDER BY created_at DESC
                 LIMIT ?
                 """,
-                params[:len(search_terms)] + [user_id, limit],
+                params,
             )
 
-            rows = cursor.fetchall()
+            rows = await cursor.fetchall()
             return [
                 Memory(
                     id=row["id"],
@@ -119,22 +137,22 @@ class LocalHindsightProvider(MemoryProvider):
             ]
 
     async def store(self, content: str, user_id: str, metadata: dict) -> Memory:
-        """Store a new memory."""
-        from datetime import datetime, timezone
+        """Store a new memory (async-safe)."""
+        await self._ensure_db()
 
         memory_id = self._generate_id(content, user_id)
         created_at = datetime.now(timezone.utc).isoformat()
         metadata_json = json.dumps(metadata)
 
-        with sqlite3.connect(self._db_path) as conn:
-            conn.execute(
+        async with aiosqlite.connect(self._db_path) as conn:
+            await conn.execute(
                 """
                 INSERT OR REPLACE INTO memories (id, user_id, content, created_at, metadata)
                 VALUES (?, ?, ?, ?, ?)
                 """,
                 (memory_id, user_id, content, created_at, metadata_json),
             )
-            conn.commit()
+            await conn.commit()
 
         return Memory(
             id=memory_id,
@@ -144,10 +162,10 @@ class LocalHindsightProvider(MemoryProvider):
         )
 
     async def delete(self, memory_id: str) -> bool:
-        """Delete a memory by ID."""
-        with sqlite3.connect(self._db_path) as conn:
-            cursor = conn.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
-            conn.commit()
+        """Delete a memory by ID (async-safe)."""
+        async with aiosqlite.connect(self._db_path) as conn:
+            cursor = await conn.execute("DELETE FROM memories WHERE id = ?", (memory_id,))
+            await conn.commit()
             return cursor.rowcount > 0
 
 
@@ -171,7 +189,6 @@ class MockProvider(MemoryProvider):
     async def store(self, content: str, user_id: str, metadata: dict) -> Memory:
         """Store in memory."""
         self._id_counter += 1
-        from datetime import datetime, timezone
 
         memory = Memory(
             id=f"mock-{self._id_counter}",
