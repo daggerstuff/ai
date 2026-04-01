@@ -17,6 +17,8 @@ from typing import List, Optional
 
 import aiosqlite
 
+__all__ = ["Memory", "MemoryProvider", "LocalHindsightProvider", "MockProvider"]
+
 logger = logging.getLogger(__name__)
 
 # Constants for connection pooling
@@ -115,7 +117,13 @@ class LocalHindsightProvider(MemoryProvider):
         if not bank_id or not bank_id.strip():
             raise ValueError("bank_id cannot be empty")
 
-        self.bank_id = bank_id.strip()
+        # Sanitize bank_id to prevent path traversal
+        import re
+        safe_bank_id = re.sub(r'[^\w\-]', '_', bank_id.strip())
+        if safe_bank_id != bank_id.strip():
+            logger.warning(f"bank_id sanitized: '{bank_id}' -> '{safe_bank_id}'")
+
+        self.bank_id = safe_bank_id
         self._db_path = Path.home() / ".hindsight" / f"{self.bank_id}.db"
         self._initialized = False
         self._max_retries = max_retries

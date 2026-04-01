@@ -27,6 +27,8 @@ from typing import Any, List, Optional
 from .config import SubconsciousConfig, UserConfig
 from .provider import LocalHindsightProvider, MemoryProvider
 
+__all__ = ["SubconsciousClient"]
+
 logger = logging.getLogger(__name__)
 
 # Constants for magic numbers
