@@ -1,0 +1,117 @@
+from unittest.mock import AsyncMock, MagicMock, patch
+
+import pytest
+
+from ai.memory.hindsight_nvidia.manager import NvidiaHindsightConfig, NvidiaHindsightManager
+
+@pytest.fixture
+def mock_openai():
+    with patch("ai.memory.hindsight_nvidia.manager.OpenAI") as mock:
+        mock_instance = MagicMock()
+        mock.return_value = mock_instance
+        yield mock
+
+@pytest.fixture
+def mock_async_openai():
+    with patch("ai.memory.hindsight_nvidia.manager.AsyncOpenAI") as mock:
+        mock_instance = MagicMock()
+        mock.return_value = mock_instance
+        yield mock
+
+@pytest.fixture
+def mock_hindsight_client():
+    with patch("ai.memory.hindsight_nvidia.manager.MemoryClient") as mock:
+        mock_instance = MagicMock()
+        mock.return_value = mock_instance
+        yield mock_instance
+
+def test_nvidia_manager_initialization(
+    mock_openai, mock_async_openai, mock_hindsight_client
+):
+    config = NvidiaHindsightConfig(
+        nvidia_api_key="test-nv",
+        hindsight_api_key="test-hindsight"
+    )
+    # Patch TherapeuticProcessor to avoid real sub-calls if needed
+    with patch("ai.memory.therapeutic_processor.TherapeuticProcessor"):
+        manager = NvidiaHindsightManager(config)
+        assert manager.processor is not None
+        assert mock_openai.called, "OpenAI client was not initialized"
+        assert mock_async_openai.called, "AsyncOpenAI client was not initialized"
+
+@pytest.mark.asyncio
+async def test_nvidia_manager_search(
+    mock_openai, mock_async_openai, mock_hindsight_client
+):
+    config = NvidiaHindsightConfig(
+        nvidia_api_key="test-nv",
+        hindsight_api_key="test-hindsight"
+    )
+    manager = NvidiaHindsightManager(config, memory_provider=mock_hindsight_client)
+    
+    # Mock search result
+    mock_hindsight_client.search.return_value = {
+        "results": [{"memory": "Fact 1", "id": "m1"}]
+    }
+    
+    results = manager.search_memories("query", user_id="u1")
+    assert len(results) == 1
+    assert results[0]["memory"] == "Fact 1"
+    mock_hindsight_client.search.assert_called_with("query", user_id="u1", limit=10)
+
+@pytest.mark.asyncio
+async def test_nvidia_manager_add(mock_openai, mock_async_openai, mock_hindsight_client):
+    config = NvidiaHindsightConfig(
+        nvidia_api_key="test-nv",
+        hindsight_api_key="test-hindsight"
+    )
+    manager = NvidiaHindsightManager(config, memory_provider=mock_hindsight_client)
+    
+    # Mock add result
+    mock_hindsight_client.add.return_value = {
+        "results": [{"id": "m2"}]
+    }
+    
+    memory_id = manager.add_memory(
+        "I feel happy", user_id="u1", category="EMOTIONAL_STATE"
+    )
+    assert memory_id == "m2"
+    
+    # Verify add was called with metadata
+    args, kwargs = mock_hindsight_client.add.call_args
+    assert "I feel happy" in args[0]
+    assert kwargs["user_id"] == "u1"
+    assert kwargs["metadata"]["category"] == "EMOTIONAL_STATE"
+
+@pytest.mark.asyncio
+async def test_nvidia_manager_get_response(
+    mock_openai, mock_async_openai, mock_hindsight_client
+):
+    config = NvidiaHindsightConfig(
+        nvidia_api_key="test-nv",
+        hindsight_api_key="test-hindsight"
+    )
+    manager = NvidiaHindsightManager(config, memory_provider=mock_hindsight_client)
+    
+    # Mock search
+    mock_hindsight_client.search.return_value = {"results": []}
+    
+    # Mock NVIDIA Chat Completion - properly mocked for AsyncOpenAI
+    mock_response = MagicMock()
+    mock_response.choices = [MagicMock()]
+    mock_response.choices[0].message.content = "I hear you."
+    
+    # Correct way to mock AsyncOpenAI's chat.completions.create
+    mock_async_openai.return_value.chat.completions.create = AsyncMock(
+        return_value=mock_response
+    )
+    
+    # We need to re-initialize manager or re-inject client because the previous
+    # mock_async_openai.called check might have used a different instance if
+    # we weren't careful.
+    # Actually, NvidiaHindsightManager creates self.async_client = AsyncOpenAI(...)
+    # So it calls the mock class.
+    
+    response = await manager.get_response(user_id="u1", message="Hello")
+    assert response == "I hear you."
+    assert mock_async_openai.return_value.chat.completions.create.called
