@@ -139,16 +139,20 @@ class NullMemoryProtocolAdapter:
         if cached is not None:
             return cached
 
+        scope = scope_from_kwargs(
+            user_id=user_id,
+            org_id=org_id,
+            project_id=project_id,
+            session_id=session_id,
+            agent_id=agent_id,
+            run_id=run_id,
+            include_shared=include_shared,
+        )
         categories = count_memory_categories(
-            self.get_all_memories_scoped(
-                user_id=user_id,
-                org_id=org_id,
-                project_id=project_id,
-                session_id=session_id,
-                agent_id=agent_id,
-                run_id=run_id,
-                include_shared=include_shared,
-                limit=100,
+            filter_memories_by_scope(
+                scope=scope,
+                memories=self.store.list_records(user_id=user_id),
+                limit=None,
             )
         )
         self._category_count_cache.put(cache_key, categories)

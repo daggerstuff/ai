@@ -63,25 +63,55 @@ class NullMemoryStore:
         user_lock = self._user_lock(user_id)
         with user_lock:
             user_memories = self._memories.setdefault(user_id, [])
-            existing_index = next(
-                (index for index, memory in enumerate(user_memories) if memory["id"] == record["id"]),
-                None,
+            existing_index = self._existing_record_index(
+                user_memories=user_memories,
+                memory_id=record["id"],
             )
             if existing_index is not None:
-                record["created_at"] = user_memories[existing_index]["created_at"]
-                user_memories[existing_index] = record
+                self._replace_existing_record(
+                    user_memories=user_memories,
+                    existing_index=existing_index,
+                    record=record,
+                )
                 return dict(record)
-
-            if len(user_memories) >= self.max_memories_per_user:
-                evicted = user_memories.pop(0)
-                with self._index_lock:
-                    self._memory_index.pop(evicted["id"], None)
+            self._ensure_capacity(user_memories=user_memories)
             user_memories.append(record)
+        self._index_record(user_id=user_id, memory_id=record["id"])
+        return dict(record)
+
+    @staticmethod
+    def _existing_record_index(
+        *,
+        user_memories: List[Dict[str, Any]],
+        memory_id: str,
+    ) -> Optional[int]:
+        return next(
+            (index for index, memory in enumerate(user_memories) if memory["id"] == memory_id),
+            None,
+        )
+
+    def _replace_existing_record(
+        self,
+        *,
+        user_memories: List[Dict[str, Any]],
+        existing_index: int,
+        record: Dict[str, Any],
+    ) -> None:
+        record["created_at"] = user_memories[existing_index]["created_at"]
+        user_memories[existing_index] = record
+
+    def _ensure_capacity(self, *, user_memories: List[Dict[str, Any]]) -> None:
+        if len(user_memories) < self.max_memories_per_user:
+            return
+        evicted = user_memories.pop(0)
         with self._index_lock:
-            self._memory_index[record["id"]] = user_id
+            self._memory_index.pop(evicted["id"], None)
+
+    def _index_record(self, *, user_id: str, memory_id: str) -> None:
+        with self._index_lock:
+            self._memory_index[memory_id] = user_id
             self._revision += 1
             self._user_revisions[user_id] = self._user_revisions.get(user_id, 0) + 1
-        return dict(record)
 
     def search_records(self, *, query: str, user_id: str) -> List[Dict[str, Any]]:
         query_lower = query.lower()
