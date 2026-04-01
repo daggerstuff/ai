@@ -10,6 +10,7 @@ from .local_hindsight_document_store import LocalHindsightDocumentStore
 from .local_hindsight_queries import build_fts_query
 from .local_hindsight_query_executor import LocalHindsightQueryExecutor
 from .hindsight_local_adapter import normalize_tags
+from .hindsight_local_domain import NON_PRIVATE_VISIBILITY_TAGS
 
 
 class LocalHindsightRepository:
@@ -181,6 +182,43 @@ class LocalHindsightRepository:
                 normalized_tags=normalized_tags,
                 required_tags=normalized_required_tags,
                 tags_match=tags_match,
+            )
+
+        documents = []
+        for row in rows:
+            parsed = self.documents.parse_row(row)
+            parsed["rank"] = float(row["rank"]) if row["rank"] is not None else 999.0
+            documents.append(parsed)
+        return documents
+
+    def search_documents_for_scope(
+        self,
+        bank_id: str,
+        *,
+        user_id: str,
+        query: str,
+        limit: int,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+    ) -> List[Dict[str, Any]]:
+        with self.db.lease() as conn:
+            rows = LocalHindsightQueryExecutor.execute_scoped_search_query(
+                conn,
+                bank_id=bank_id,
+                user_id=user_id,
+                query=query,
+                fetch_limit=limit,
+                org_id=org_id,
+                project_id=project_id,
+                session_id=session_id,
+                agent_id=agent_id,
+                run_id=run_id,
+                include_shared=include_shared,
+                non_private_visibility_tags=list(NON_PRIVATE_VISIBILITY_TAGS),
             )
 
         documents = []

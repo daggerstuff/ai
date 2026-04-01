@@ -134,3 +134,6 @@ class LocalReflectionMemoryClient:
             stats["deleted"] = deleted
             stats["errors"] = max(len(delete_ids) - deleted, 0)
         return stats
+
+    async def close(self) -> None:
+        await asyncio.to_thread(self.manager.close)

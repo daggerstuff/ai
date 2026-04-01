@@ -4,23 +4,92 @@ Pixelated Empathy AI - ASGI Entry Point
 Exports a Starlette ASGI app for production deployment.
 FastAPI/Starlette are ASGI-native and work with any ASGI server.
 """
+import json
 import logging
 from contextlib import asynccontextmanager
 
-# Activate subconscious memory injection - auto-injects context into ALL LLM calls
-import ai.memory.subconscious_autopatch  # noqa: F401
-
+from fastapi import HTTPException
 from starlette.applications import Starlette
-from starlette.routing import Route
 from starlette.responses import JSONResponse
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
+from starlette.routing import Route
+
+from ai.api.mcp_server.memory_auth import authorize_memory_access
+from ai.memory.reflection_bootstrap import create_and_start
 
 logger = logging.getLogger(__name__)
 
 # Global reflection bootstrap instance
 _reflection_bootstrap = None
 
+
+def _parse_reflection_body(raw_body: bytes) -> tuple[str, str]:
+    try:
+        body = json.loads(raw_body.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ValueError(f"Invalid JSON body: {exc}") from exc
+
+    conversation_text = body.get("conversation_text")
+    raw_user_id = body.get("user_id")
+    if raw_user_id is None:
+        raise ValueError("user_id required")
+    user_id = str(raw_user_id).strip()
+    if not conversation_text:
+        raise ValueError("conversation_text required")
+    if not user_id:
+        raise ValueError("user_id required")
+    return conversation_text, user_id
+
+
+def _request_target_for(request) -> str:
+    target = request.url.path
+    if request.url.query:
+        target = f"{target}?{request.url.query}"
+    return target
+
+
+def _authorize_reflection_request(request, raw_body: bytes, user_id: str) -> str:
+    header_user_id = request.headers.get("X-Memory-User-Id")
+    if not header_user_id:
+        raise ValueError("Missing X-Memory-User-Id header")
+    normalized_header_user_id = header_user_id.strip()
+    if normalized_header_user_id != user_id:
+        raise ValueError("X-Memory-User-Id must match the requested user scope")
+    auth_context = authorize_memory_access(
+        actor_id=request.headers.get("X-Memory-Actor-Id"),
+        user_id=normalized_header_user_id,
+        request_method=request.method,
+        request_target=_request_target_for(request),
+        request_body=raw_body,
+        timestamp=request.headers.get("X-Memory-Timestamp"),
+        nonce=request.headers.get("X-Memory-Nonce"),
+        signature=request.headers.get("X-Memory-Signature"),
+    )
+    return auth_context.assert_user_scope(normalized_header_user_id)
+
+
+async def _run_reflection(request) -> JSONResponse:
+    raw_body = await request.body()
+    conversation_text, user_id = _parse_reflection_body(raw_body)
+
+    if _reflection_bootstrap is None:
+        return JSONResponse({"error": "Reflection subagent not initialized"}, status_code=503)
+
+    authorized_user_id = _authorize_reflection_request(request, raw_body, user_id)
+
+    result = await _reflection_bootstrap.reflect_now(
+        conversation_text=conversation_text,
+        user_id=authorized_user_id,
+    )
+
+    return JSONResponse({
+        "status": "success",
+        "crisis_detected": result.crisis_detected,
+        "requires_review": result.requires_manual_review,
+        "memories_preserved": len(result.memories_preserved),
+        "memories_consolidated": len(result.memories_consolidated),
+    })
 
 @asynccontextmanager
 async def lifespan(app):
@@ -29,13 +98,8 @@ async def lifespan(app):
 
     # Startup: initialize reflection subagent
     logger.info("Starting up - initializing reflection subagent...")
-    try:
-        from ai.memory.reflection_bootstrap import ReflectionBootstrap
-        _reflection_bootstrap = await ReflectionBootstrap.create_and_start()
-        logger.info("Reflection subagent initialized successfully")
-    except Exception as e:
-        logger.error(f"Failed to initialize reflection subagent: {e}")
-        _reflection_bootstrap = None
+    _reflection_bootstrap = await create_and_start()
+    logger.info("Reflection subagent initialized successfully")
 
     yield
 
@@ -68,28 +132,11 @@ async def reflect(request):
         return JSONResponse({"error": "Method not allowed"}, status_code=405)
 
     try:
-        body = await request.json()
-        conversation_text = body.get("conversation_text")
-        user_id = body.get("user_id", "unknown")
-
-        if not conversation_text:
-            return JSONResponse({"error": "conversation_text required"}, status_code=400)
-
-        if _reflection_bootstrap is None:
-            return JSONResponse({"error": "Reflection subagent not initialized"}, status_code=503)
-
-        result = await _reflection_bootstrap.reflect_now(
-            conversation_text=conversation_text,
-            user_id=user_id,
-        )
-
-        return JSONResponse({
-            "status": "success",
-            "crisis_detected": result.crisis_detected,
-            "requires_review": result.requires_manual_review,
-            "memories_preserved": len(result.memories_preserved),
-            "memories_consolidated": len(result.memories_consolidated),
-        })
+        return await _run_reflection(request)
+    except ValueError as exc:
+        return JSONResponse({"error": str(exc)}, status_code=400)
+    except HTTPException as exc:
+        return JSONResponse({"error": exc.detail}, status_code=exc.status_code)
     except Exception as e:
         logger.error(f"Reflection error: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)

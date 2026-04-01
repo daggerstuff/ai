@@ -38,3 +38,26 @@ def test_local_hindsight_manager_crud_and_recall(tmp_path) -> None:
 
     assert manager.delete_memory(memory_id) is True
     assert manager.get_memory(memory_id) is None
+
+
+def test_local_hindsight_manager_add_memory_scoped_enriches_metadata(tmp_path) -> None:
+    manager = LocalHindsightMemoryManager(
+        db_path=str(tmp_path / "local-hindsight.db"),
+        bank_id="pixelated",
+    )
+
+    memory_id = manager.add_memory_scoped(
+        content="Scoped note",
+        user_id="vivi",
+        metadata={"source": "mcp"},
+        category="fact",
+        scope_metadata={"project_id": "pixelated", "visibility": "private"},
+    )
+
+    stored = manager.get_memory(memory_id)
+    assert stored is not None
+    assert stored["metadata"]["source"] == "mcp"
+    assert stored["metadata"]["project_id"] == "pixelated"
+    assert stored["metadata"]["visibility"] == "private"
+    assert stored["metadata"]["category"] == "fact"
+    assert stored["metadata"]["timestamp"]

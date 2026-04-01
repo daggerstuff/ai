@@ -44,7 +44,7 @@ class ReflectionAnalysisService:
         conversation_text: str,
         existing_memories: str,
         include_crisis_context: bool,
-        crisis_detected: bool,
+        crisis_detected: Optional[bool],
     ) -> str:
         if not self.llm_callback:
             logger.warning("No LLM callback - returning empty analysis")
