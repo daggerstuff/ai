@@ -8,7 +8,7 @@ from typing import Any, Dict, Iterable, List, Optional
 from .hindsight_local_adapter import encode_tags_json, normalize_tags
 from .hindsight_local_domain import NON_PRIVATE_VISIBILITY_TAGS, resolve_user_id_from_context
 from .local_hindsight_db import LocalHindsightDatabase
-from .local_hindsight_query_builders import build_scope_category_count_query
+from .local_hindsight_query_builders import build_scope_category_count_query, scope_tags
 from .local_hindsight_query_executor import LocalHindsightQueryExecutor
 
 
@@ -269,7 +269,7 @@ class LocalHindsightDocumentStore:
         run_id: Optional[str] = None,
         include_shared: bool = True,
     ) -> Dict[str, int]:
-        required_scope_tags = LocalHindsightQueryExecutor.scope_tags(
+        required_scope_tags = scope_tags(
             org_id=org_id,
             project_id=project_id,
             session_id=session_id,

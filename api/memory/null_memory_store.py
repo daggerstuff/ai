@@ -4,6 +4,8 @@ import threading
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
+from ai.memory.hindsight_local_adapter import normalize_tags
+
 
 class NullMemoryStore:
     """Thread-safe in-memory record store used by the null memory backend."""
@@ -13,6 +15,7 @@ class NullMemoryStore:
         self._memory_index: Dict[str, str] = {}
         self._memory_counter = 0
         self._revision = 0
+        self._user_revisions: Dict[str, int] = {}
         self._index_lock = threading.Lock()
         self._user_locks: Dict[str, threading.Lock] = {}
         self.max_memories_per_user = 1000
@@ -37,6 +40,10 @@ class NullMemoryStore:
     def revision(self) -> int:
         with self._index_lock:
             return self._revision
+
+    def user_revision(self, user_id: str) -> int:
+        with self._index_lock:
+            return self._user_revisions.get(user_id, 0)
 
     def add_record(
         self,
@@ -73,6 +80,7 @@ class NullMemoryStore:
         with self._index_lock:
             self._memory_index[record["id"]] = user_id
             self._revision += 1
+            self._user_revisions[user_id] = self._user_revisions.get(user_id, 0) + 1
         return dict(record)
 
     def search_records(self, *, query: str, user_id: str) -> List[Dict[str, Any]]:
@@ -83,6 +91,59 @@ class NullMemoryStore:
                 for memory in self._memories.get(user_id, [])
                 if query_lower in memory["content"].lower()
             ]
+
+    def recall_records(
+        self,
+        *,
+        query: str,
+        user_id: str,
+        tags: Optional[List[str]],
+        tags_match: str,
+        limit: int,
+    ) -> List[Dict[str, Any]]:
+        requested_tags = normalize_tags(tags)
+        matches: List[Dict[str, Any]] = []
+        for memory in self.search_records(query=query, user_id=user_id):
+            memory_tags = self._memory_tags(memory)
+            if not self._matches_requested_tags(
+                memory_tags=memory_tags,
+                requested_tags=requested_tags,
+                tags_match=tags_match,
+            ):
+                continue
+            matches.append(self._protocol_record(memory=memory, memory_tags=memory_tags))
+            if len(matches) >= limit:
+                break
+        return matches
+
+    @staticmethod
+    def _memory_tags(memory: Dict[str, Any]) -> List[str]:
+        return normalize_tags((memory.get("metadata") or {}).get("tags", []))
+
+    @staticmethod
+    def _matches_requested_tags(
+        *,
+        memory_tags: List[str],
+        requested_tags: List[str],
+        tags_match: str,
+    ) -> bool:
+        if not requested_tags:
+            return True
+        if tags_match == "all":
+            return all(tag in memory_tags for tag in requested_tags)
+        return any(tag in memory_tags for tag in requested_tags)
+
+    @staticmethod
+    def _protocol_record(
+        *,
+        memory: Dict[str, Any],
+        memory_tags: List[str],
+    ) -> Dict[str, Any]:
+        return {
+            "document_id": memory["id"],
+            "text": memory["content"],
+            "tags": memory_tags,
+        }
 
     def list_records(self, *, user_id: str) -> List[Dict[str, Any]]:
         with self._user_lock(user_id):
@@ -130,6 +191,7 @@ class NullMemoryStore:
                     memory["metadata"] = merged
                 with self._index_lock:
                     self._revision += 1
+                    self._user_revisions[user_id] = self._user_revisions.get(user_id, 0) + 1
                 return True
         return False
 
@@ -147,6 +209,7 @@ class NullMemoryStore:
                 with self._index_lock:
                     self._memory_index.pop(memory_id, None)
                     self._revision += 1
+                    self._user_revisions[user_id] = self._user_revisions.get(user_id, 0) + 1
                 return True
         return False
 
@@ -160,4 +223,6 @@ class NullMemoryStore:
             for memory_id in memory_ids:
                 self._memory_index.pop(memory_id, None)
             self._revision += 1
+            self._user_revisions[user_id] = self._user_revisions.get(user_id, 0) + 1
+            self._user_locks.pop(user_id, None)
         return True
