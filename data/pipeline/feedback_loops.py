@@ -126,8 +126,14 @@ class FeedbackLoops:
         try:
             # Mocked naive pattern extraction
             dummy_keywords = ["toxic positivity", "abrupt ending", "unhelpful generic"]
-            for keyword in dummy_keywords:
-                matches = sum(1 for c in failure_contexts if keyword in c)
+            # ⚡ Bolt: Consolidated multiple iterations over failure_contexts into a single O(N) loop to reduce Python iteration overhead.
+            keyword_counts = {k: 0 for k in dummy_keywords}
+            for c in failure_contexts:
+                for keyword in dummy_keywords:
+                    if keyword in c:
+                        keyword_counts[keyword] += 1
+
+            for keyword, matches in keyword_counts.items():
                 if matches > 5:
                     anti_patterns.append(
                         {
