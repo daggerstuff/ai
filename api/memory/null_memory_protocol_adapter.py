@@ -2,10 +2,11 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from ai.api.mcp_server.memory_scope import filter_memories_by_scope, scope_from_kwargs
-
-from .memory_category_counts import count_memory_categories
 from .null_memory_cache import NullMemoryCategoryCountCache
+from .scoped_memory_records import (
+    scoped_category_counts_from_records,
+    scoped_memories_from_records,
+)
 from .null_memory_store import NullMemoryStore
 
 
@@ -28,7 +29,8 @@ class NullMemoryProtocolAdapter:
         include_shared: bool = True,
         limit: int = 100,
     ) -> List[Dict[str, Any]]:
-        scope = scope_from_kwargs(
+        return scoped_memories_from_records(
+            records=self.store.list_records(user_id=user_id),
             user_id=user_id,
             org_id=org_id,
             project_id=project_id,
@@ -36,10 +38,6 @@ class NullMemoryProtocolAdapter:
             agent_id=agent_id,
             run_id=run_id,
             include_shared=include_shared,
-        )
-        return filter_memories_by_scope(
-            scope=scope,
-            memories=self.store.list_records(user_id=user_id),
             limit=limit,
         )
 
@@ -96,7 +94,8 @@ class NullMemoryProtocolAdapter:
         include_shared: bool = True,
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
-        scope = scope_from_kwargs(
+        return scoped_memories_from_records(
+            records=self.store.search_records(query=query, user_id=user_id),
             user_id=user_id,
             org_id=org_id,
             project_id=project_id,
@@ -104,10 +103,6 @@ class NullMemoryProtocolAdapter:
             agent_id=agent_id,
             run_id=run_id,
             include_shared=include_shared,
-        )
-        return filter_memories_by_scope(
-            scope=scope,
-            memories=self.store.search_records(query=query, user_id=user_id),
             limit=limit,
         )
 
@@ -139,7 +134,8 @@ class NullMemoryProtocolAdapter:
         if cached is not None:
             return cached
 
-        scope = scope_from_kwargs(
+        categories = scoped_category_counts_from_records(
+            records=self.store.list_records(user_id=user_id),
             user_id=user_id,
             org_id=org_id,
             project_id=project_id,
@@ -147,13 +143,6 @@ class NullMemoryProtocolAdapter:
             agent_id=agent_id,
             run_id=run_id,
             include_shared=include_shared,
-        )
-        categories = count_memory_categories(
-            filter_memories_by_scope(
-                scope=scope,
-                memories=self.store.list_records(user_id=user_id),
-                limit=None,
-            )
         )
         self._category_count_cache.put(cache_key, categories)
         return categories
