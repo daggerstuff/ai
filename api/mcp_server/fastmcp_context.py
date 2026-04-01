@@ -2,11 +2,9 @@ from __future__ import annotations
 
 from mcp.server.fastmcp import FastMCP
 
-from ai.api.memory.memory_status_summary import summarize_memory_status
+from ai.api.memory.memory_status_service import build_memory_status_summary
 
-from .fastmcp_shared import (
-    authorized_tool_context_from_json,
-)
+from .fastmcp_shared import authorized_tool_context_from_json
 
 
 async def memory_status(
@@ -25,19 +23,21 @@ async def memory_status(
             "scope_context": scope_context,
         },
     )
-    summary = summarize_memory_status(
+    authorized_user_id = context.scope.user_id
+    summary = build_memory_status_summary(
         manager=context.manager,
         scope=context.scope,
-        user_id=user_id,
+        user_id=authorized_user_id,
     )
-    if summary.total_anchors == 0:
-        return f"### Memory Status: {user_id}\n\nCartography is empty."
+    if summary.total_memories == 0:
+        return f"### Memory Status: {authorized_user_id}\n\nCartography is empty."
+    total_label = "Sampled Memories" if summary.is_sampled else "Total Memories"
     category_lines = "\n".join(
         f"- **{key}:** {value}" for key, value in summary.categories.items()
     )
     return (
-        f"### Memory Status: {user_id}\n\n"
-        f"**Total Anchors:** {summary.total_anchors}\n"
+        f"### Memory Status: {authorized_user_id}\n\n"
+        f"**{total_label}:** {summary.total_memories}\n"
         f"**Health:** {summary.health}\n\n"
         f"**Category Breakdown:**\n{category_lines}"
     )

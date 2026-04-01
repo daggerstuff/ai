@@ -7,7 +7,12 @@ from typing import Any, Dict, List
 
 from ai.api.mcp_server.memory_auth import authorize_memory_access
 from ai.api.mcp_server.memory_scope import MemoryScope, scope_from_kwargs
-from .fastmcp_parsing import parse_auth_context, parse_scope_context
+from .fastmcp_parsing import (
+    ParsedAuthContext,
+    ParsedScopeContext,
+    parse_auth_context,
+    parse_scope_context,
+)
 from ai.memory.manager_factory import get_required_memory_manager
 
 logger = logging.getLogger("mcp_server")
@@ -102,6 +107,33 @@ def authorized_tool_context(
     )
 
 
+def authorized_tool_context_from_parts(
+    *,
+    tool_name: str,
+    user_id: str,
+    auth: ParsedAuthContext,
+    scope: ParsedScopeContext,
+    payload: Dict[str, Any],
+    visibility_default: str = "private",
+) -> AuthorizedToolContext:
+    return authorized_tool_context(
+        tool_name=tool_name,
+        actor_id=auth.actor_id,
+        user_id=user_id,
+        timestamp=auth.timestamp,
+        nonce=auth.nonce,
+        signature=auth.signature,
+        payload=payload,
+        org_id=scope.org_id,
+        project_id=scope.project_id,
+        agent_id=scope.agent_id,
+        run_id=scope.run_id,
+        session_id=scope.session_id,
+        include_shared=scope.include_shared,
+        visibility=scope.visibility or visibility_default,
+    )
+
+
 def authorized_tool_context_from_json(
     *,
     tool_name: str,
@@ -113,19 +145,11 @@ def authorized_tool_context_from_json(
 ) -> AuthorizedToolContext:
     auth = parse_auth_context(auth_context)
     scope = parse_scope_context(scope_context)
-    return authorized_tool_context(
+    return authorized_tool_context_from_parts(
         tool_name=tool_name,
-        actor_id=auth["actor_id"],
         user_id=user_id,
-        timestamp=auth["timestamp"],
-        nonce=auth["nonce"],
-        signature=auth["signature"],
+        auth=auth,
+        scope=scope,
         payload=payload,
-        org_id=scope["org_id"],
-        project_id=scope["project_id"],
-        agent_id=scope["agent_id"],
-        run_id=scope["run_id"],
-        session_id=scope["session_id"],
-        include_shared=scope["include_shared"],
-        visibility=scope.get("visibility", visibility_default),
+        visibility_default=visibility_default,
     )

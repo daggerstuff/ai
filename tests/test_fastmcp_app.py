@@ -64,6 +64,11 @@ def test_memory_store_persists_across_tool_calls_with_fallback_manager(
         lambda **kwargs: _authorized_context(manager, user_id=kwargs["user_id"]),
     )
     monkeypatch.setattr(
+        fastmcp_tools,
+        "authorized_tool_context_from_parts",
+        lambda **kwargs: _authorized_context(manager, user_id=kwargs["user_id"]),
+    )
+    monkeypatch.setattr(
         fastmcp_context,
         "authorized_tool_context_from_json",
         lambda **kwargs: _authorized_context(manager, user_id=kwargs["user_id"]),
@@ -86,7 +91,8 @@ def test_memory_store_persists_across_tool_calls_with_fallback_manager(
         )
     )
 
-    assert "Total Anchors:** 1" in status_result
+    assert "Total Memories:** 1" in status_result
+    assert "**Health:** Healthy" in status_result
 
 
 def test_memory_query_applies_limit_without_manager_limit_keyword(

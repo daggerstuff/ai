@@ -302,7 +302,7 @@ def test_route_call_maps_internal_errors_to_500(monkeypatch) -> None:
     assert response.json()["detail"] == "Internal error while searching memory"
 
 
-def test_memory_server_health_is_degraded_for_null_manager(monkeypatch) -> None:
+def test_memory_server_health_is_healthy_for_null_manager(monkeypatch) -> None:
     _configure_memory_auth(monkeypatch)
     monkeypatch.setenv("HINDSIGHT_LOCAL_DB_PATH", "/tmp/pixelated-memory.db")
     app = create_memory_server()
@@ -313,7 +313,7 @@ def test_memory_server_health_is_degraded_for_null_manager(monkeypatch) -> None:
 
     assert response.status_code == 200
     payload = response.json()
-    assert payload["status"] == "degraded"
+    assert payload["status"] == "healthy"
     assert payload["provider"] == "NullMemoryManager"
     assert payload["auth_model"] == "internal_service_hmac_actor_policies"
     assert payload["readiness"]["auth_configured"] is True

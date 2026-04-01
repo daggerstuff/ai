@@ -18,7 +18,7 @@ class NullMemoryCategoryCountCache:
         self._entries.move_to_end(key)
         return dict(cached)
 
-    def put(self, key: tuple[Any, ...], value: dict[str, int]) -> None:
+    def put(self, key: tuple[Any, ...], *, value: dict[str, int]) -> None:
         if key in self._entries:
             self._entries.move_to_end(key)
         self._entries[key] = dict(value)
