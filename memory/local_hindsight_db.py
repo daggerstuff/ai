@@ -49,6 +49,21 @@ class LocalHindsightDatabase:
             with self.lease() as conn:
                 LocalHindsightSchemaManager.ensure_schema(conn)
 
+    def health_details(self) -> dict[str, object]:
+        conn = self._create_connection()
+        try:
+            quick_check_row = conn.execute("PRAGMA quick_check(1)").fetchone()
+            quick_check_ok = bool(quick_check_row and quick_check_row[0] == "ok")
+            conn.execute("BEGIN IMMEDIATE")
+            conn.execute("ROLLBACK")
+            return {
+                "db_ready": quick_check_ok,
+                "db_writable": True,
+                "db_quick_check": quick_check_row[0] if quick_check_row else "unknown",
+            }
+        finally:
+            conn.close()
+
     def close(self) -> None:
         while True:
             try:

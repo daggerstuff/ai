@@ -137,7 +137,7 @@ class SubconsciousState:
 
         return "\\n".join(lines)
 
-    def record(self, role: str, content: str):
+    def record(self, role: str, content: str) -> None:
         """
         Record a message for later reflection.
 

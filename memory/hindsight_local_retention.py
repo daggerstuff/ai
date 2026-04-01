@@ -17,6 +17,10 @@ _SCOPE_METADATA_KEYS = {
 _RESERVED_TAG_PREFIXES = tuple(f"{key}:" for key in (*_SCOPE_METADATA_KEYS, "user", "category"))
 
 
+class RetainScopeConflictError(ValueError):
+    """Raised when a caller attempts to retain a document with conflicting scoped identity."""
+
+
 def scope_metadata(
     *,
     org_id: Optional[str],
@@ -66,6 +70,55 @@ def custom_tags(tags: Iterable[str]) -> List[str]:
     return normalize_tags(filtered)
 
 
+def _assert_scope_consistency(
+    *,
+    context: Optional[str],
+    tags: Iterable[str],
+    user_id: str,
+    base_metadata: Dict[str, Any],
+) -> None:
+    payload = parse_context_payload(context)
+    context_user_id = payload.get("user_id")
+    if isinstance(context_user_id, str) and context_user_id and context_user_id != user_id:
+        raise RetainScopeConflictError(
+            f"Retained context user_id '{context_user_id}' does not match X-Memory-User-Id '{user_id}'"
+        )
+
+    context_metadata = payload.get("metadata")
+    metadata = context_metadata if isinstance(context_metadata, dict) else {}
+    for key, enforced_value in base_metadata.items():
+        incoming_value = metadata.get(key)
+        if incoming_value is None:
+            continue
+        if str(incoming_value) != str(enforced_value):
+            raise RetainScopeConflictError(
+                f"Retained context metadata '{key}' conflicts with enforced scope"
+            )
+
+    for tag in tags:
+        value = str(tag).strip()
+        if not value:
+            continue
+        if value.startswith("user:"):
+            tag_user_id = value.split(":", 1)[1]
+            if tag_user_id and tag_user_id != user_id:
+                raise RetainScopeConflictError(
+                    f"Retained tag user '{tag_user_id}' does not match X-Memory-User-Id '{user_id}'"
+                )
+            continue
+        for key in _SCOPE_METADATA_KEYS:
+            prefix = f"{key}:"
+            if not value.startswith(prefix):
+                continue
+            tag_value = value.split(":", 1)[1]
+            enforced_value = base_metadata.get(key)
+            if enforced_value is not None and tag_value and str(enforced_value) != tag_value:
+                raise RetainScopeConflictError(
+                    f"Retained tag '{key}' conflicts with enforced scope"
+                )
+            break
+
+
 def build_scoped_retain_items(
     *,
     items: Iterable[Dict[str, Any]],
@@ -78,6 +131,13 @@ def build_scoped_retain_items(
         document_id = item.get("document_id")
         if document_id:
             ownership_validator(str(document_id))
+        item_tags = item.get("tags") or []
+        _assert_scope_consistency(
+            context=item.get("context"),
+            tags=item_tags,
+            user_id=user_id,
+            base_metadata=base_metadata,
+        )
         merged_metadata = metadata_from_context(item.get("context"))
         merged_metadata.update(base_metadata)
         category = merged_metadata.get("category")
@@ -95,7 +155,7 @@ def build_scoped_retain_items(
                     metadata=merged_metadata,
                     category=category if isinstance(category, str) else None,
                 ),
-                "tags": normalize_tags([*scoped_tags, *custom_tags(item.get("tags") or [])]),
+                "tags": normalize_tags([*scoped_tags, *custom_tags(item_tags)]),
             }
         )
     return prepared

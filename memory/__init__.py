@@ -12,13 +12,6 @@ _EXPORTS: Dict[str, Tuple[str, str]] = {
     "LocalHindsightSchemaManager": ("ai.memory.local_hindsight_schema", "LocalHindsightSchemaManager"),
     "MemoryManagerFactory": ("ai.memory.manager_factory", "MemoryManagerFactory"),
     "get_required_memory_manager": ("ai.memory.manager_factory", "get_required_memory_manager"),
-    # v3 exports (preferred)
-    "SubconsciousConfig": ("ai.memory.v3.config", "SubconsciousConfig"),
-    "SubconsciousState": ("ai.memory.v3.context", "SubconsciousState"),
-    "SubconsciousClient": ("ai.memory.v3.client", "SubconsciousClient"),
-    "set_subconscious": ("ai.memory.v3.context", "set_subconscious"),
-    "get_subconscious": ("ai.memory.v3.context", "get_subconscious"),
-    "reset_subconscious": ("ai.memory.v3.context", "reset_subconscious"),
 }
 
 __all__ = list(_EXPORTS)
