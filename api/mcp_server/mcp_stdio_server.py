@@ -21,7 +21,7 @@ from ai.api.mcp_server.memory_scope import (
     scope_input_schema_properties,
     search_with_overfetch,
 )
-from ai.memory.manager_factory import get_memory_manager
+from ai.memory.manager_factory import get_required_memory_manager
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +37,7 @@ def get_memory_client():
     """Get or create the configured shared memory manager."""
     global _memory_client
     if _memory_client is None:
-        _memory_client = get_memory_manager()
+        _memory_client = get_required_memory_manager()
         logger.info("Initialized shared memory manager: %s", type(_memory_client).__name__)
     return _memory_client
 

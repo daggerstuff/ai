@@ -15,16 +15,17 @@ Usage:
     whisper = agent.get_whisper()
 """
 
+import asyncio
 import hashlib
 import json
 import logging
-import os
-import re
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-import aiohttp
+from .local_memory_settings import resolve_local_memory_settings
+from .hindsight_subconscious_model_provider import SubconsciousModelProvider
+from .hindsight_subconscious_security import validate_and_sanitize_content
 
 logger = logging.getLogger("hindsight_subconscious")
 
@@ -32,14 +33,6 @@ logger = logging.getLogger("hindsight_subconscious")
 def _get_hindsight_manager_class():
     from ai.memory.hindsight_manager import HindsightMemoryManager
     return HindsightMemoryManager
-
-# P0 Fix: Input validation - reject dangerous content
-MAX_CONTENT_LENGTH = 100000  # Max characters per message
-DANGEROUS_PATTERNS = [
-    r'<script[^>]*>',  # XSS prevention
-    r'javascript:',   # Protocol injection
-    r'data:',         # Data URI injection
-]
 
 # Model priority fallback chain for Subconscious agent
 # Optimized for: memory management, context understanding, pattern recognition
@@ -285,20 +278,31 @@ class SubconsciousAgent:
     - Provides whisper injections for Claude Code prompts
     """
 
-    def __init__(self, hindsight_api_key: Optional[str] = None):
+    def __init__(
+        self,
+        hindsight_api_key: Optional[str] = None,
+        *,
+        db_path: Optional[str] = None,
+        bank_id: Optional[str] = None,
+    ):
         """Initialize the Subconscious agent.
 
         Args:
-            hindsight_api_key: Optional API key for Hindsight.
-                               If not provided, uses HINDSIGHT_API_KEY env var.
+            hindsight_api_key: Deprecated compatibility argument. Ignored.
+            db_path: Optional shared local memory database path. Falls back to
+                HINDSIGHT_LOCAL_DB_PATH for compatibility.
+            bank_id: Optional shared bank identifier. Defaults to "pixelated".
         """
-        self.api_key = hindsight_api_key or os.environ.get("HINDSIGHT_API_KEY")
-        self.bank_id = os.environ.get("HINDSIGHT_BANK_ID", "pixeldated")
+        del hindsight_api_key
+        settings = resolve_local_memory_settings(db_path=db_path, bank_id=bank_id)
+        self.db_path = settings.db_path
+        self.bank_id = settings.bank_id
         HindsightMemoryManagerClass = _get_hindsight_manager_class()
         self.hindsight = HindsightMemoryManagerClass(
-            api_key=self.api_key,
             bank_id=self.bank_id,
+            db_path=self.db_path,
         )
+        self.model_provider = SubconsciousModelProvider(MODEL_PRIORITY)
         self.state = SubconsciousState()
         self.state.initialize_defaults()
         self._user_id = self._get_default_user_id()
@@ -308,49 +312,10 @@ class SubconsciousAgent:
         return "claude-subconscious-user"
 
     async def discover_available_models(self, base_url: str = "https://api.anthropic.com") -> List[Dict[str, Any]]:
-        """
-        Discover available models from the API.
-
-        Args:
-            base_url: Base URL for the API
-
-        Returns:
-            List of available models sorted by priority
-        """
-        try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(f"{base_url}/v1/models") as response:
-                    if response.status == 200:
-                        data = await response.json()
-                        models = data.get("data", [])
-                        # Sort by priority
-                        prioritized = []
-                        for priority_model in MODEL_PRIORITY:
-                            for model in models:
-                                if priority_model in model.get("id", ""):
-                                    prioritized.append(model)
-                        return prioritized
-                    return []
-        except Exception as e:
-            logger.warning(f"Failed to discover models: {e}")
-            return []
+        return await self.model_provider.discover_available_models(base_url=base_url)
 
     def select_best_model(self, available_models: List[Dict[str, Any]]) -> Optional[str]:
-        """
-        Select the best available model based on priority chain.
-
-        Args:
-            available_models: List of available models
-
-        Returns:
-            Selected model ID or None
-        """
-        for priority_model in MODEL_PRIORITY:
-            for model in available_models:
-                if priority_model in model.get("id", ""):
-                    return model.get("id")
-        # Fallback to first available
-        return available_models[0].get("id") if available_models else None
+        return self.model_provider.select_best_model(available_models)
 
     async def get_or_select_model(self) -> Optional[str]:
         """
@@ -374,34 +339,36 @@ class SubconsciousAgent:
         return f"subconscious:{session_id}:context"
 
     def _validate_and_sanitize(self, content: str, field_name: str = "content") -> str:
-        """
-        P0 Fix: Validate and sanitize input content.
+        return validate_and_sanitize_content(content, field_name=field_name)
 
-        Args:
-            content: Content to validate
-            field_name: Name of field for error messages
+    def _process_user_message(self, content: str, session_id: str) -> None:
+        if "I always" in content or "I prefer" in content or "I want" in content:
+            self._extract_preference(content)
+        if "TODO" in content or "TODO:" in content or "need to" in content.lower():
+            self._extract_pending_item(content, session_id)
 
-        Returns:
-            Sanitized content
-
-        Raises:
-            ValueError: If content is invalid or dangerous
-        """
-        if not content:
-            return ""
-
-        # Length check
-        if len(content) > MAX_CONTENT_LENGTH:
-            logger.warning(f"{field_name} exceeds max length ({len(content)}/{MAX_CONTENT_LENGTH}), truncating")
-            content = content[:MAX_CONTENT_LENGTH]
-
-        # Check for dangerous patterns
-        for pattern in DANGEROUS_PATTERNS:
-            if re.search(pattern, content, re.IGNORECASE):
-                logger.warning(f"Dangerous pattern detected in {field_name}, removing")
-                content = re.sub(pattern, '', content, flags=re.IGNORECASE)
-
-        return content
+    async def _store_session_context(
+        self,
+        *,
+        session_id: str,
+        project_path: Optional[str],
+        message_count: int,
+    ) -> None:
+        context_key = self._make_context_key(session_id)
+        await asyncio.to_thread(
+            self.hindsight.add_memory,
+            content=json.dumps({
+                "session_id": session_id,
+                "project_path": project_path,
+                "message_count": message_count,
+                "processed_at": datetime.now(timezone.utc).isoformat(),
+            }),
+            user_id=self._user_id,
+            metadata={
+                "category": "session_context",
+                "context_key": context_key,
+            },
+        )
 
     async def process_transcript(
         self,
@@ -433,32 +400,16 @@ class SubconsciousAgent:
             content = self._validate_and_sanitize(raw_content, f"message[{role}]")
 
             if role == "user":
-                # Look for explicit preferences
-                if "I always" in content or "I prefer" in content or "I want" in content:
-                    self._extract_preference(content)
-
-                # Look for TODOs and unfinished work
-                if "TODO" in content or "TODO:" in content or "need to" in content.lower():
-                    self._extract_pending_item(content, session_id)
+                self._process_user_message(content, session_id)
 
             elif role == "assistant":
                 # Track tool usage patterns (no-op for now)
                 pass
 
-        # Store processed transcript in Hindsight
-        context_key = self._make_context_key(session_id)
-        self.hindsight.add(
-            content=json.dumps({
-                "session_id": session_id,
-                "project_path": project_path,
-                "message_count": len(messages),
-                "processed_at": datetime.now(timezone.utc).isoformat(),
-            }),
-            user_id=self._user_id,
-            metadata={
-                "category": "session_context",
-                "context_key": context_key,
-            },
+        await self._store_session_context(
+            session_id=session_id,
+            project_path=project_path,
+            message_count=len(messages),
         )
 
         self.state.session_count += 1
@@ -480,4 +431,3 @@ class SubconsciousAgent:
             timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M")
             new_content = f"{pending_block.content}\n- [{timestamp}] {content.strip()} (session: {session_id})"
             self.state.update_block(PENDING_ITEMS, new_content)
-

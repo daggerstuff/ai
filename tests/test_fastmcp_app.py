@@ -34,7 +34,7 @@ def test_memory_store_persists_across_tool_calls_with_fallback_manager(
         created_managers.append(manager)
         return manager
 
-    monkeypatch.setattr(fastmcp_app, "get_memory_manager", make_manager)
+    monkeypatch.setattr(fastmcp_app, "get_required_memory_manager", make_manager)
     monkeypatch.setattr(fastmcp_app, "_manager_instance", None, raising=False)
 
     store_result = asyncio.run(
@@ -60,7 +60,7 @@ def test_memory_query_applies_limit_without_manager_limit_keyword(
     manager.add_memory("project alpha", "vivi")
     manager.add_memory("project beta", "vivi")
 
-    monkeypatch.setattr(fastmcp_app, "get_memory_manager", lambda: manager)
+    monkeypatch.setattr(fastmcp_app, "get_required_memory_manager", lambda: manager)
     monkeypatch.setattr(fastmcp_app, "_manager_instance", None, raising=False)
 
     result = asyncio.run(fastmcp_app.memory_query("project", "vivi", limit=1))
@@ -85,7 +85,7 @@ def test_memory_analyze_supports_async_ai_capable_manager_without_sync_client_as
         {"category": "project_context"},
     )
 
-    monkeypatch.setattr(fastmcp_app, "get_memory_manager", lambda: manager)
+    monkeypatch.setattr(fastmcp_app, "get_required_memory_manager", lambda: manager)
     monkeypatch.setattr(fastmcp_app, "_manager_instance", None, raising=False)
 
     result = asyncio.run(fastmcp_app.memory_analyze("vivi", mode="themes"))

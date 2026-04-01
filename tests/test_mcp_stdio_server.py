@@ -8,7 +8,7 @@ def test_mcp_stdio_server_uses_shared_memory_manager(monkeypatch) -> None:
     manager = NullMemoryManager()
 
     monkeypatch.setattr(mcp_stdio_server, "_memory_client", None, raising=False)
-    monkeypatch.setattr(mcp_stdio_server, "get_memory_manager", lambda: manager)
+    monkeypatch.setattr(mcp_stdio_server, "get_required_memory_manager", lambda: manager)
 
     add_result = asyncio.run(
         mcp_stdio_server.call_tool(

@@ -1,25 +1,18 @@
 """
 Agent Memory Tools Module.
 
-Provides async memory tools for integration with agent frameworks (OpenAI Agent SDK pattern).
-These tools wrap Hindsight operations for use as callable agent tools.
+Provides async memory tools for integration with agent frameworks.
 
-Based on:
-- https://docs.mem0.ai/cookbooks/integrations/agents-sdk-tool
-- https://docs.mem0.ai/cookbooks/operations/team-task-agent
+These tools now target the repository's shared local memory service instead of
+creating their own cloud-backed Hindsight client.
 """
 
 import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-try:
-    from mem0 import MemoryClient
-except ImportError:
-    try:
-        from mem0ai import MemoryClient
-    except ImportError:
-        MemoryClient = None
+from ai.memory.local_memory_settings import resolve_local_memory_settings
+from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
 
 logger = logging.getLogger("agent_memory_tools")
 
@@ -69,45 +62,27 @@ class AgentMemoryTools:
         self,
         api_key: Optional[str] = None,
         memory_client: Optional[Any] = None,
+        db_path: Optional[str] = None,
+        bank_id: Optional[str] = None,
     ):
         """
         Initialize agent memory tools.
 
         Args:
-            api_key: Hindsight Platform API key
-            memory_client: Optional pre-configured memory client
+            api_key: Deprecated compatibility argument. Ignored.
+            memory_client: Optional pre-configured shared local memory manager
+            db_path: Optional path to the shared local memory database
+            bank_id: Optional bank identifier
         """
+        del api_key
         if memory_client:
             self.memory = memory_client
-        elif api_key and MemoryClient:
-            self.memory = MemoryClient(api_key=api_key)
         else:
-            logger.warning("No memory client available, using null memory")
-            self.memory = self._create_null_memory()
-
-    def _create_null_memory(self):
-        """Create null memory shim for testing."""
-
-        class NullMemory:
-            def add(self, *args, **kwargs):
-                return {"results": [{"id": "null-memory-id"}]}
-
-            def search(self, *args, **kwargs):
-                return {"results": []}
-
-            def get_all(self, *args, **kwargs):
-                return {"results": []}
-
-            def get(self, *args, **kwargs):
-                return None
-
-            def update(self, *args, **kwargs):
-                return {"message": "updated"}
-
-            def delete(self, *args, **kwargs):
-                return {"message": "deleted"}
-
-        return NullMemory()
+            settings = resolve_local_memory_settings(db_path=db_path, bank_id=bank_id)
+            self.memory = LocalHindsightMemoryManager(
+                db_path=settings.db_path,
+                bank_id=settings.bank_id,
+            )
 
     async def add_to_memory(
         self,
@@ -143,18 +118,12 @@ class AgentMemoryTools:
             if metadata:
                 full_metadata.update(metadata)
 
-            result = self.memory.add(
-                content,
+            result = self.memory.add_memory(
+                content=content,
                 user_id=context.user_id,
                 metadata=full_metadata,
             )
-
-            # Handle different response formats
-            if isinstance(result, dict) and "results" in result:
-                results = result["results"]
-                if results and len(results) > 0:
-                    return results[0].get("id", "unknown")
-            return "stored"
+            return result
 
         except Exception as e:
             logger.error(f"Error adding to memory: {e}")
@@ -185,14 +154,11 @@ class AgentMemoryTools:
                 print(m["memory"])
         """
         try:
-            result = self.memory.search(
-                query,
+            result = self.memory.search_memories(
+                query=query,
                 user_id=context.user_id,
                 limit=limit,
             )
-
-            if isinstance(result, dict):
-                return result.get("results", [])
             return result if isinstance(result, list) else []
 
         except Exception as e:
@@ -215,13 +181,7 @@ class AgentMemoryTools:
             List of all memory objects for the user
         """
         try:
-            result = self.memory.get_all(user_id=context.user_id)
-
-            if isinstance(result, dict):
-                memories = result.get("results", [])
-            else:
-                memories = result if isinstance(result, list) else []
-
+            memories = self.memory.get_all_memories(user_id=context.user_id, limit=limit)
             return memories[:limit]
 
         except Exception as e:
@@ -242,7 +202,7 @@ class AgentMemoryTools:
             Memory object or None if not found
         """
         try:
-            return self.memory.get(memory_id=memory_id)
+            return self.memory.get_memory(memory_id)
         except Exception as e:
             logger.error(f"Error getting memory {memory_id}: {e}")
             return None
@@ -267,7 +227,11 @@ class AgentMemoryTools:
             True if update succeeded
         """
         try:
-            self.memory.update(memory_id=memory_id, text=new_content)
+            self.memory.update_memory(
+                memory_id=memory_id,
+                new_content=new_content,
+                metadata=context.to_metadata(),
+            )
             logger.info(f"Updated memory {memory_id}")
             return True
         except Exception as e:
@@ -290,7 +254,7 @@ class AgentMemoryTools:
             True if deletion succeeded
         """
         try:
-            self.memory.delete(memory_id=memory_id)
+            self.memory.delete_memory(memory_id)
             logger.info(f"Deleted memory {memory_id}")
             return True
         except Exception as e:

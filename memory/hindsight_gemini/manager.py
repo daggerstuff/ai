@@ -1,143 +1,69 @@
 """
-Gemini-tuned Hindsight Integration Manager.
+Gemini-oriented memory manager backed by the shared local memory service.
 
-Implements a production-ready interface for empathetic AI with memory,
-tuned for Google Gemini's context handling and Hindsight long-term storage.
+This module preserves the historical import path while removing the old cloud
+Hindsight/mem0 split. Gemini-specific code now writes into the same local
+SQLite-backed service used by the rest of the repository.
 """
 
-import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from __future__ import annotations
 
-# Third-party imports
-try:
-    from mem0 import MemoryClient
-except ImportError:
-    try:
-        from mem0ai import MemoryClient
-    except ImportError:
-        MemoryClient = None
-
-try:
-    from mem0 import Memory
-except ImportError:
-    try:
-        from mem0ai import Memory
-    except ImportError:
-        Memory = None
-
-if not MemoryClient and not Memory:
-    raise ImportError("Please install mem0ai: uv add mem0ai")
+from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 
-from ai.api.memory.base import BaseMemoryManager
-from ai.api.memory.null_memory import NullMemoryManager
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger("hindsight_gemini")
+from ai.memory.local_hindsight_manager import LocalHindsightMemoryManager
 
 
 class GeminiHindsightConfig(BaseModel):
-    """Configuration for Gemini and Hindsight integration."""
+    """Configuration for Gemini integrations using local shared memory."""
 
     gemini_api_key: str = Field(..., description="Gemini/Google API key")
-    hindsight_api_key: Optional[str] = Field(None, description="Hindsight API key (for cloud)")
     model_name: str = Field("gemini-1.5-pro", description="Gemini model to use")
     user_id: str = Field("default_user", description="Default user ID for memory")
-    memory_config: Dict[str, Any] = Field(
-        default_factory=lambda: {
-            "vector_store": {
-                "provider": "qdrant",
-                "config": {"host": "localhost", "port": 6333},
-            }
-        },
-        description="Hindsight memory configuration",
+    db_path: str = Field(..., description="Path to the shared local memory database")
+    bank_id: str = Field("pixelated", description="Shared memory bank identifier")
+    hindsight_api_key: Optional[str] = Field(
+        default=None,
+        description="Deprecated; local shared memory is the only supported backend",
+    )
+    memory_config: Optional[Dict[str, Any]] = Field(
+        default=None,
+        description="Deprecated; local shared memory is the only supported backend",
     )
 
 
-class GeminiHindsightManager(BaseMemoryManager):
+class GeminiHindsightManager(LocalHindsightMemoryManager):
     """
-    Manager for Google Gemini with Hindsight long-term memory.
+    Backward-compatible Gemini manager using the local shared memory service.
+
+    The Gemini integration keeps its provider/model metadata, but all durable
+    memory goes through the repository's single supported backend.
     """
 
     def __init__(self, config: GeminiHindsightConfig):
         self.config = config
-
-        # Initialize Hindsight client
-        # If hindsight_api_key is provided, use cloud; otherwise use local
-        if config.hindsight_api_key:
-            self.client = MemoryClient(api_key=config.hindsight_api_key)
-        else:
-            self.client = Memory.from_config(config.memory_config)
+        super().__init__(db_path=config.db_path, bank_id=config.bank_id)
 
     def add_memory(
         self,
         content: str,
         user_id: str,
-        metadata: Optional[Dict[str, Any]] = None,
+        metadata: Optional[Any] = None,
         category: Optional[str] = None,
     ) -> str:
-        """Add a memory and return ID."""
-        if metadata is None:
-            metadata = {}
+        merged = self._metadata_dict(metadata)
+        merged.setdefault("provider", "gemini")
+        merged.setdefault("model_name", self.config.model_name)
+        return super().add_memory(
+            content=content,
+            user_id=user_id,
+            metadata=merged,
+            category=category,
+        )
 
-        if category:
-            metadata["category"] = category
-
-        metadata["timestamp"] = datetime.now(timezone.utc).isoformat()
-        metadata["provider"] = "gemini"
-
-        result = self.client.add(content, user_id=user_id, metadata=metadata)
-
-        # Handle different return formats between cloud and local
-        if isinstance(result, list) and len(result) > 0:
-            return result[0].get("id") or str(result[0])
-        elif isinstance(result, dict) and "results" in result:
-            return result["results"][0]["id"]
-        return str(result)
-
-    def search_memories(self, query: str, user_id: str) -> List[Dict[str, Any]]:
-        """Search for relevant memories."""
-        return self.client.search(query, user_id=user_id)
-
-    def get_all_memories(self, user_id: str) -> List[Dict[str, Any]]:
-        """Retrieve all memories for a user."""
-        return self.client.get_all(user_id=user_id)
-
-    def get_memory(self, memory_id: str) -> Optional[Dict[str, Any]]:
-        """Retrieve a specific memory by ID."""
-        return self.client.get(memory_id)
-
-    def update_memory(
-        self,
-        memory_id: str,
-        new_content: str,
-        metadata: Optional[Dict[str, Any]] = None,
-    ) -> bool:
-        """Update an existing memory."""
-        try:
-            self.client.update(memory_id, new_content, metadata=metadata)
-            return True
-        except Exception as e:
-            logger.error(f"Failed to update memory {memory_id}: {e}")
-            return False
-
-    def delete_memory(self, memory_id: str) -> bool:
-        """Delete a memory by ID."""
-        try:
-            self.client.delete(memory_id)
-            return True
-        except Exception as e:
-            logger.error(f"Failed to delete memory {memory_id}: {e}")
-            return False
-
-    def clear_memory(self, user_id: str) -> bool:
-        """Clear all memories for a user."""
-        try:
-            self.client.delete_all(user_id=user_id)
-            return True
-        except Exception as e:
-            logger.error(f"Failed to clear memory for user {user_id}: {e}")
-            return False
+    def build_provider_metadata(self) -> Dict[str, str]:
+        return {
+            "provider": "gemini",
+            "model_name": self.config.model_name,
+        }

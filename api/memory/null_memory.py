@@ -1,130 +1,54 @@
 """
-Null Memory Implementation.
-
-Provides a fallback in-memory implementation of the memory manager interface
-for development environments or when external services are unavailable.
-
-This is a REAL implementation using in-memory dictionaries, not a stub.
+In-memory fallback memory backend for local tests and degraded service paths.
 """
 
-import threading
-from datetime import datetime, timezone
+from __future__ import annotations
+
 from typing import Any, Dict, List, Optional
 
 from ai.api.memory.base import BaseMemoryManager
+from .null_memory_protocol_adapter import NullMemoryProtocolAdapter
+from .null_memory_store import NullMemoryStore
 
 
 class NullMemoryManager(BaseMemoryManager):
-    """
-    In-memory implementation of Memory Manager.
+    """High-level memory manager facade backed by an in-memory store."""
 
-    Implements the interface required by MemoryServer and GeminiMem0Manager
-    with actual in-memory storage using dictionaries.
-    """
-
-    def __init__(self, *args, **kwargs):
-        # In-memory storage: user_id -> list of memory dicts
-        self._memories: Dict[str, List[Dict[str, Any]]] = {}
-        self._memory_counter = 0
-        self._lock = threading.Lock()
-        self.MAX_MEMORIES_PER_USER = 1000  # Prevent OOM
-
-    def _generate_id(self) -> str:
-        """Generate unique memory ID."""
-        self._memory_counter += 1
-        return f"mem-{self._memory_counter}"
+    def __init__(self, *args, **kwargs) -> None:
+        self.store = NullMemoryStore()
+        self.protocol = NullMemoryProtocolAdapter(self.store)
 
     def add(
         self,
         content: str,
         user_id: str,
         metadata: Optional[Dict[str, Any]] = None,
-        **kwargs,
-    ):
-        """Add memory (raw client interface)."""
-        memory_id = self._generate_id()
-        memory = {
-            "id": memory_id,
-            "content": content,
-            "user_id": user_id,
-            "metadata": metadata or {},
-            "created_at": datetime.now(timezone.utc).isoformat(),
-        }
+        **kwargs: Any,
+    ) -> Dict[str, List[Dict[str, str]]]:
+        record = self.store.add_record(content=content, user_id=user_id, metadata=metadata)
+        return {"results": [{"id": record["id"]}]}
 
-        with self._lock:
-            if user_id not in self._memories:
-                self._memories[user_id] = []
+    def search(self, query: str, user_id: str, **kwargs: Any) -> Dict[str, List[Dict[str, Any]]]:
+        return {"results": self.store.search_records(query=query, user_id=user_id)}
 
-            # Enforce capacity limit
-            if len(self._memories[user_id]) >= self.MAX_MEMORIES_PER_USER:
-                # Remove oldest (first index)
-                self._memories[user_id].pop(0)
+    def get_all(self, user_id: str, **kwargs: Any) -> Dict[str, List[Dict[str, Any]]]:
+        return {"results": self.store.list_records(user_id=user_id)}
 
-            self._memories[user_id].append(memory)
+    def get(self, memory_id: str, **kwargs: Any) -> Optional[Dict[str, Any]]:
+        return self.store.get_record(memory_id=memory_id)
 
-        return {"results": [{"id": memory_id}]}
+    def update(self, memory_id: str, new_content: str, **kwargs: Any) -> bool:
+        return self.store.update_record(
+            memory_id=memory_id,
+            new_content=new_content,
+            metadata=kwargs.get("metadata"),
+        )
 
-    def search(self, query: str, user_id: str, **kwargs):
-        """Search memories (raw client interface)."""
-        with self._lock:
-            if user_id not in self._memories:
-                return {"results": []}
+    def delete(self, memory_id: str, **kwargs: Any) -> bool:
+        return self.store.delete_record(memory_id=memory_id)
 
-            # Simple substring search
-            query_lower = query.lower()
-            results = [
-                m
-                for m in self._memories[user_id]
-                if query_lower in m["content"].lower()
-            ]
-            return {"results": results}
-
-    def get_all(self, user_id: str, **kwargs):
-        """Get all memories for user (raw client interface)."""
-        with self._lock:
-            return {"results": list(self._memories.get(user_id, []))}
-
-    def get(self, memory_id: str, **kwargs):
-        """Get specific memory by ID (raw client interface)."""
-        with self._lock:
-            for memories in self._memories.values():
-                for memory in memories:
-                    if memory["id"] == memory_id:
-                        return memory
-        return None
-
-    def update(self, memory_id: str, new_content: str, **kwargs):
-        """Update memory (raw client interface)."""
-        with self._lock:
-            for memories in self._memories.values():
-                for memory in memories:
-                    if memory["id"] == memory_id:
-                        memory["content"] = new_content
-                        memory["updated_at"] = datetime.now(timezone.utc).isoformat()
-                        if kwargs.get("metadata") is not None:
-                            memory["metadata"].update(kwargs["metadata"])
-                        return True
-        return False
-
-    def delete(self, memory_id: str, **kwargs):
-        """Delete memory (raw client interface)."""
-        with self._lock:
-            for user_id, memories in self._memories.items():
-                for i, memory in enumerate(memories):
-                    if memory["id"] == memory_id:
-                        del self._memories[user_id][i]
-                        return True
-        return False
-
-    def delete_all(self, user_id: str, **kwargs):
-        """Delete all memories for user (raw client interface)."""
-        with self._lock:
-            if user_id in self._memories:
-                del self._memories[user_id]
-                return True
-        return False
-
-    # --- High Level Interface matches GeminiMem0Manager ---
+    def delete_all(self, user_id: str, **kwargs: Any) -> bool:
+        return self.store.clear_user(user_id=user_id)
 
     def add_memory(
         self,
@@ -133,52 +57,85 @@ class NullMemoryManager(BaseMemoryManager):
         metadata: Optional[Dict[str, Any]] = None,
         category: Optional[str] = None,
     ) -> str:
-        """Add memory and return ID."""
-        if category and metadata:
-            metadata["category"] = category
-        elif category:
-            metadata = {"category": category}
+        return self.protocol.add_memory(
+            content=content,
+            user_id=user_id,
+            metadata=metadata,
+            category=category,
+        )
 
-        result = self.add(content, user_id, metadata)
-        return result["results"][0]["id"]
+    def search_memories(
+        self,
+        query: str,
+        user_id: str,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        return self.protocol.search_memories(query=query, user_id=user_id, limit=limit)
 
-    def search_memories(self, query: str, user_id: str) -> List[Dict[str, Any]]:
-        """Search memories and return list."""
-        result = self.search(query, user_id)
-        return result["results"]
+    def get_all_memories(self, user_id: str, limit: int = 100) -> List[Dict[str, Any]]:
+        return self.protocol.get_all_memories(user_id=user_id, limit=limit)
 
-    def get_all_memories(self, user_id: str) -> List[Dict[str, Any]]:
-        """Get all memories for user."""
-        result = self.get_all(user_id)
-        return result["results"]
+    def get_all_memories_scoped(
+        self,
+        *,
+        user_id: str,
+        org_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        agent_id: Optional[str] = None,
+        run_id: Optional[str] = None,
+        include_shared: bool = True,
+        limit: int = 100,
+    ) -> List[Dict[str, Any]]:
+        return self.protocol.get_all_memories_scoped(
+            user_id=user_id,
+            org_id=org_id,
+            project_id=project_id,
+            session_id=session_id,
+            agent_id=agent_id,
+            run_id=run_id,
+            include_shared=include_shared,
+            limit=limit,
+        )
 
-    def get_memory(self, memory_id: str) -> Optional[Dict[str, Any]]:
-        """Get specific memory by ID."""
-        return self.get(memory_id)
+    def get_memory(self, memory_id: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        memory = self.get(memory_id)
+        if memory is None:
+            return None
+        if user_id is not None and memory.get("user_id") != user_id:
+            return None
+        return memory
 
     def update_memory(
         self,
         memory_id: str,
         new_content: str,
         metadata: Optional[Dict[str, Any]] = None,
+        user_id: Optional[str] = None,
     ) -> bool:
-        """Update memory content."""
+        if user_id is not None:
+            memory = self.get_memory(memory_id, user_id=user_id)
+            if memory is None:
+                return False
         return self.update(memory_id, new_content, metadata=metadata)
 
-    def delete_memory(self, memory_id: str) -> bool:
-        """Delete specific memory."""
+    def delete_memory(self, memory_id: str, user_id: Optional[str] = None) -> bool:
+        if user_id is not None:
+            memory = self.get_memory(memory_id, user_id=user_id)
+            if memory is None:
+                return False
         return self.delete(memory_id)
 
     def clear_memory(self, user_id: str) -> bool:
-        """Clear all memories for user."""
         return self.delete_all(user_id)
+
+    def get_health_status(self) -> Dict[str, Any]:
+        return {"status": "degraded", "provider": self.__class__.__name__}
 
     @property
     def project(self):
-        """Mock project property for compatibility."""
-
         class NullProject:
-            def update(self, **kwargs):
-                pass
+            def update(self, **kwargs: Any) -> None:
+                return None
 
         return NullProject()
