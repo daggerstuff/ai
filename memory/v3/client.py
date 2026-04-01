@@ -215,7 +215,7 @@ class SubconsciousClient:
 
         raise ValueError(f"Unsupported client type: {type(client)}")
 
-    def _format_memories(self, memories) -> str:
+    def _format_memories(self, memories: List[Any]) -> str:
         """Format memories for injection."""
         lines = ["<subconscious_context>"]
         lines.append("  <relevant_memories>")
