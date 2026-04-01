@@ -22,16 +22,16 @@ Usage:
     await state.close()  # Triggers reflection
 """
 
+from .client import SubconsciousClient
+from .config import SubconsciousConfig
 from .context import (
     SubconsciousState,
-    subconscious_context,
-    set_subconscious,
     get_subconscious,
     reset_subconscious,
+    set_subconscious,
+    subconscious_context,
 )
-from .config import SubconsciousConfig
-from .client import SubconsciousClient
-from .provider import MemoryProvider, LocalHindsightProvider
+from .provider import LocalHindsightProvider, MemoryProvider
 
 __all__ = [
     # Context API
