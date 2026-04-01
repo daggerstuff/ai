@@ -193,9 +193,16 @@ class SubconsciousState:
         # Store new memories
         stored_count = 0
         for learning in learnings:
+            # Validate learning before storing
+            if not learning or not isinstance(learning, str):
+                logger.warning(f"Skipping invalid learning: {type(learning)}")
+                continue
+            if len(learning) < 10:
+                logger.debug(f"Skipping short learning: '{learning[:50]}'")
+                continue
             try:
                 await provider.store(
-                    content=learning,
+                    content=learning[:1000],  # Cap learning length
                     user_id=self.config.user_id,
                     metadata={"source": "reflection"},
                 )
