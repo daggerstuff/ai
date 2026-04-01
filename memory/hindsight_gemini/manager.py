@@ -2,7 +2,7 @@
 Gemini-oriented memory manager backed by the shared local memory service.
 
 This module preserves the historical import path while removing the old cloud
-Hindsight/mem0 split. Gemini-specific code now writes into the same local
+split. Gemini-specific code now writes into the same local
 SQLite-backed service used by the rest of the repository.
 """
 

@@ -1,3 +1,8 @@
+import json
+import time
+import uuid
+
+import pytest
 from fastapi.testclient import TestClient
 
 from ai.api.memory.null_memory import NullMemoryManager
@@ -18,6 +23,59 @@ def _configure_memory_auth(monkeypatch) -> None:
     )
 
 
+def _signed_request(
+    client: TestClient,
+    method: str,
+    path: str,
+    *,
+    user_id: str,
+    json_body=None,
+    params=None,
+    actor_id: str = "api-server",
+    secret: str = "actor-token",
+    timestamp: str | None = None,
+    nonce: str | None = None,
+):
+    encoded_body = b""
+    headers = {
+        "X-Memory-Actor-Id": actor_id,
+        "X-Memory-User-Id": user_id,
+    }
+    if json_body is not None:
+        encoded_body = json.dumps(json_body).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+    if params:
+        from urllib.parse import urlencode
+
+        target = f"{path}?{urlencode(params, doseq=True)}"
+    else:
+        target = path
+    timestamp_value = timestamp or str(int(time.time()))
+    nonce_value = nonce or uuid.uuid4().hex
+    headers["X-Memory-Timestamp"] = timestamp_value
+    headers["X-Memory-Nonce"] = nonce_value
+    headers["X-Memory-Signature"] = memory_auth.hmac.new(
+        secret.encode("utf-8"),
+        memory_auth._canonical_request(
+            actor_id=actor_id,
+            user_id=user_id,
+            method=method,
+            target=target,
+            body=encoded_body,
+            timestamp=timestamp_value,
+            nonce=nonce_value,
+        ).encode("utf-8"),
+        memory_auth.hashlib.sha256,
+    ).hexdigest()
+    return client.request(
+        method=method,
+        url=path,
+        params=params,
+        content=encoded_body or None,
+        headers=headers,
+    )
+
+
 def test_memory_server_get_all_route_returns_scoped_memories(monkeypatch) -> None:
     _configure_memory_auth(monkeypatch)
     app = create_memory_server()
@@ -35,14 +93,12 @@ def test_memory_server_get_all_route_returns_scoped_memories(monkeypatch) -> Non
     app.state.memory_manager = manager
 
     client = TestClient(app)
-    response = client.get(
+    response = _signed_request(
+        client,
+        "GET",
         "/api/memory/all/vivi",
+        user_id="vivi",
         params={"project_id": "pixelated"},
-        headers={
-            "Authorization": "Bearer actor-token",
-            "X-Memory-Actor-Id": "api-server",
-            "X-Memory-User-Id": "vivi",
-        },
     )
 
     assert response.status_code == 200
@@ -52,6 +108,25 @@ def test_memory_server_get_all_route_returns_scoped_memories(monkeypatch) -> Non
     assert payload["memories"][0]["content"] == "project alpha"
 
 
+def test_memory_server_requires_explicit_actor_policy_config(monkeypatch, tmp_path) -> None:
+    memory_auth.configured_actor_tokens.cache_clear()
+    memory_auth.configured_actor_policies.cache_clear()
+    memory_auth.readiness_details.cache_clear()
+    monkeypatch.setenv("MEMORY_PROVIDER", "local_hindsight")
+    monkeypatch.setenv("HINDSIGHT_LOCAL_DB_PATH", str(tmp_path / "local-hindsight.db"))
+    monkeypatch.setenv("LOCAL_MEMORY_ACTOR_TOKENS_JSON", '{"api-server":"actor-token"}')
+    monkeypatch.delenv("LOCAL_MEMORY_ACTOR_POLICIES_JSON", raising=False)
+
+    app = create_memory_server()
+
+    with pytest.raises(
+        RuntimeError,
+        match="LOCAL_MEMORY_ACTOR_POLICIES_JSON must be configured",
+    ):
+        with TestClient(app):
+            pass
+
+
 def test_memory_server_exposes_hindsight_compatible_routes(tmp_path, monkeypatch) -> None:
     _configure_memory_auth(monkeypatch)
     app = create_memory_server()
@@ -59,15 +134,12 @@ def test_memory_server_exposes_hindsight_compatible_routes(tmp_path, monkeypatch
     app.state.memory_manager = manager
 
     client = TestClient(app)
-    headers = {
-        "Authorization": "Bearer actor-token",
-        "X-Memory-Actor-Id": "api-server",
-        "X-Memory-User-Id": "vivi",
-    }
-
-    retain = client.post(
+    retain = _signed_request(
+        client,
+        "POST",
         "/v1/default/banks/pixelated/memories",
-        json={
+        user_id="vivi",
+        json_body={
             "items": [
                 {
                     "content": "Vivi prefers direct operational summaries",
@@ -77,30 +149,46 @@ def test_memory_server_exposes_hindsight_compatible_routes(tmp_path, monkeypatch
                 }
             ]
         },
-        headers=headers,
     )
     assert retain.status_code == 200
     assert retain.json()["results"][0]["id"] == "doc-1"
 
-    recall = client.post(
+    recall = _signed_request(
+        client,
+        "POST",
         "/v1/default/banks/pixelated/memories/recall",
-        json={"query": "operational summaries", "tags": ["user:vivi"]},
-        headers=headers,
+        user_id="vivi",
+        json_body={"query": "operational summaries", "tags": ["user:vivi"]},
     )
     assert recall.status_code == 200
     payload = recall.json()
     assert payload["results"][0]["document_id"] == "doc-1"
     assert payload["results"][0]["text"] == "Vivi prefers direct operational summaries"
 
-    listing = client.get("/v1/default/banks/pixelated/documents", headers=headers)
+    listing = _signed_request(
+        client,
+        "GET",
+        "/v1/default/banks/pixelated/documents",
+        user_id="vivi",
+    )
     assert listing.status_code == 200
     assert listing.json()["items"][0]["id"] == "doc-1"
 
-    document = client.get("/v1/default/banks/pixelated/documents/doc-1", headers=headers)
+    document = _signed_request(
+        client,
+        "GET",
+        "/v1/default/banks/pixelated/documents/doc-1",
+        user_id="vivi",
+    )
     assert document.status_code == 200
     assert document.json()["original_text"] == "Vivi prefers direct operational summaries"
 
-    deleted = client.delete("/v1/default/banks/pixelated/documents/doc-1", headers=headers)
+    deleted = _signed_request(
+        client,
+        "DELETE",
+        "/v1/default/banks/pixelated/documents/doc-1",
+        user_id="vivi",
+    )
     assert deleted.status_code == 204
 
 
@@ -111,15 +199,12 @@ def test_hindsight_recall_treats_empty_tag_list_as_no_extra_filter(tmp_path, mon
     app.state.memory_manager = manager
 
     client = TestClient(app)
-    headers = {
-        "Authorization": "Bearer actor-token",
-        "X-Memory-Actor-Id": "api-server",
-        "X-Memory-User-Id": "vivi",
-    }
-
-    retain = client.post(
+    retain = _signed_request(
+        client,
+        "POST",
         "/v1/default/banks/pixelated/memories",
-        json={
+        user_id="vivi",
+        json_body={
             "items": [
                 {
                     "content": "Vivi likes concise runbooks",
@@ -129,14 +214,15 @@ def test_hindsight_recall_treats_empty_tag_list_as_no_extra_filter(tmp_path, mon
                 }
             ]
         },
-        headers=headers,
     )
     assert retain.status_code == 200
 
-    recall = client.post(
+    recall = _signed_request(
+        client,
+        "POST",
         "/v1/default/banks/pixelated/memories/recall",
-        json={"query": "concise runbooks", "tags": []},
-        headers=headers,
+        user_id="vivi",
+        json_body={"query": "concise runbooks", "tags": []},
     )
     assert recall.status_code == 200
     assert recall.json()["results"][0]["document_id"] == "doc-empty-tags"
@@ -149,34 +235,38 @@ def test_hindsight_document_routes_enforce_user_scope(tmp_path, monkeypatch) -> 
     app.state.memory_manager = manager
 
     client = TestClient(app)
-    auth = {"Authorization": "Bearer actor-token"}
-    actor_headers = {**auth, "X-Memory-Actor-Id": "api-server"}
-
-    retain = client.post(
+    retain = _signed_request(
+        client,
+        "POST",
         "/v1/default/banks/pixelated/memories",
-        json={
+        user_id="vivi",
+        json_body={
             "items": [
                 {
                     "content": "Vivi private memory",
                     "document_id": "doc-locked",
-                    "context": '{"user_id":"mallory","metadata":{"project_id":"other"}}',
-                    "tags": ["user:mallory", "project_id:other", "custom:tag"],
+                    "context": '{"user_id":"vivi","metadata":{"project_id":"other"}}',
+                    "tags": ["user:vivi", "project_id:other", "custom:tag"],
                 }
             ]
         },
-        headers={**actor_headers, "X-Memory-User-Id": "vivi"},
     )
     assert retain.status_code == 200
 
-    other_user_get = client.get(
+    other_user_get = _signed_request(
+        client,
+        "GET",
         "/v1/default/banks/pixelated/documents/doc-locked",
-        headers={**actor_headers, "X-Memory-User-Id": "mallory"},
+        user_id="mallory",
     )
     assert other_user_get.status_code == 404
 
-    overwrite_attempt = client.post(
+    overwrite_attempt = _signed_request(
+        client,
+        "POST",
         "/v1/default/banks/pixelated/memories",
-        json={
+        user_id="mallory",
+        json_body={
             "items": [
                 {
                     "content": "Mallory overwrite attempt",
@@ -186,7 +276,6 @@ def test_hindsight_document_routes_enforce_user_scope(tmp_path, monkeypatch) -> 
                 }
             ]
         },
-        headers={**actor_headers, "X-Memory-User-Id": "mallory"},
     )
     assert overwrite_attempt.status_code == 404
 
@@ -201,14 +290,12 @@ def test_route_call_maps_internal_errors_to_500(monkeypatch) -> None:
 
     app.state.memory_manager = BrokenManager()
     client = TestClient(app)
-    response = client.post(
+    response = _signed_request(
+        client,
+        "POST",
         "/api/memory/search",
-        json={"query": "fire", "user_id": "vivi"},
-        headers={
-            "Authorization": "Bearer actor-token",
-            "X-Memory-Actor-Id": "api-server",
-            "X-Memory-User-Id": "vivi",
-        },
+        user_id="vivi",
+        json_body={"query": "fire", "user_id": "vivi"},
     )
 
     assert response.status_code == 500
@@ -228,11 +315,12 @@ def test_memory_server_health_is_degraded_for_null_manager(monkeypatch) -> None:
     payload = response.json()
     assert payload["status"] == "degraded"
     assert payload["provider"] == "NullMemoryManager"
-    assert payload["auth_model"] == "internal_service_actor_policies"
+    assert payload["auth_model"] == "internal_service_hmac_actor_policies"
     assert payload["readiness"]["auth_configured"] is True
     assert payload["readiness"]["db_path_configured"] is True
     assert "db_path" not in payload["readiness"]
     assert payload["readiness"]["actor_policy_mode"] == "scoped"
+    assert payload["readiness"]["signature_required"] is True
 
 
 def test_hindsight_retain_preserves_top_level_category_and_actor_metadata(tmp_path, monkeypatch) -> None:
@@ -242,15 +330,12 @@ def test_hindsight_retain_preserves_top_level_category_and_actor_metadata(tmp_pa
     app.state.memory_manager = manager
 
     client = TestClient(app)
-    headers = {
-        "Authorization": "Bearer actor-token",
-        "X-Memory-Actor-Id": "api-server",
-        "X-Memory-User-Id": "vivi",
-    }
-
-    retain = client.post(
+    retain = _signed_request(
+        client,
+        "POST",
         "/v1/default/banks/pixelated/memories",
-        json={
+        user_id="vivi",
+        json_body={
             "items": [
                 {
                     "content": "Direct operational summary preference",
@@ -260,7 +345,6 @@ def test_hindsight_retain_preserves_top_level_category_and_actor_metadata(tmp_pa
                 }
             ]
         },
-        headers=headers,
     )
     assert retain.status_code == 200
 
@@ -280,7 +364,6 @@ def test_mcp_routes_require_actor_identity(monkeypatch) -> None:
         "/api/memory/search",
         json={"query": "hello", "user_id": "vivi"},
         headers={
-            "Authorization": "Bearer actor-token",
             "X-Memory-User-Id": "vivi",
         },
     )
@@ -295,14 +378,12 @@ def test_mcp_routes_require_user_header_to_match_scope(monkeypatch) -> None:
     app.state.memory_manager = NullMemoryManager()
 
     client = TestClient(app)
-    response = client.post(
+    response = _signed_request(
+        client,
+        "POST",
         "/api/memory/search",
-        json={"query": "hello", "user_id": "vivi"},
-        headers={
-            "Authorization": "Bearer actor-token",
-            "X-Memory-Actor-Id": "api-server",
-            "X-Memory-User-Id": "mallory",
-        },
+        user_id="mallory",
+        json_body={"query": "hello", "user_id": "vivi"},
     )
 
     assert response.status_code == 400
@@ -315,14 +396,13 @@ def test_memory_auth_rejects_unknown_actor(monkeypatch) -> None:
     app.state.memory_manager = NullMemoryManager()
 
     client = TestClient(app)
-    response = client.post(
+    response = _signed_request(
+        client,
+        "POST",
         "/api/memory/search",
-        json={"query": "hello", "user_id": "vivi"},
-        headers={
-            "Authorization": "Bearer actor-token",
-            "X-Memory-Actor-Id": "unknown-service",
-            "X-Memory-User-Id": "vivi",
-        },
+        user_id="vivi",
+        actor_id="unknown-service",
+        json_body={"query": "hello", "user_id": "vivi"},
     )
 
     assert response.status_code == 403
@@ -341,14 +421,12 @@ def test_memory_auth_rejects_actor_impersonation_outside_policy(monkeypatch) -> 
     app.state.memory_manager = NullMemoryManager()
 
     client = TestClient(app)
-    response = client.post(
+    response = _signed_request(
+        client,
+        "POST",
         "/api/memory/search",
-        json={"query": "hello", "user_id": "mallory"},
-        headers={
-            "Authorization": "Bearer actor-token",
-            "X-Memory-Actor-Id": "api-server",
-            "X-Memory-User-Id": "mallory",
-        },
+        user_id="mallory",
+        json_body={"query": "hello", "user_id": "mallory"},
     )
 
     assert response.status_code == 403
@@ -365,20 +443,17 @@ def test_legacy_user_routes_require_user_scope_header(monkeypatch) -> None:
         "/api/memory/users",
         params={"email": "vivi", "name": "Vivi"},
         headers={
-            "Authorization": "Bearer actor-token",
             "X-Memory-Actor-Id": "api-server",
         },
     )
     assert create_response.status_code == 400
     assert create_response.json()["detail"] == "Missing X-Memory-User-Id header"
 
-    get_response = client.get(
+    get_response = _signed_request(
+        client,
+        "GET",
         "/api/memory/users/vivi",
-        headers={
-            "Authorization": "Bearer actor-token",
-            "X-Memory-Actor-Id": "api-server",
-            "X-Memory-User-Id": "service-reader",
-        },
+        user_id="service-reader",
     )
     assert get_response.status_code == 400
     assert get_response.json()["detail"] == "X-Memory-User-Id must match the requested user scope"
@@ -391,17 +466,15 @@ def test_legacy_create_user_persists_sanitized_profile_metadata(monkeypatch) -> 
     app.state.memory_manager = manager
     client = TestClient(app)
 
-    response = client.post(
+    response = _signed_request(
+        client,
+        "POST",
         "/api/memory/users",
+        user_id="vivi",
         params={
             "email": "vivi",
             "name": "Vivi",
             "role": "patient",
-        },
-        headers={
-            "Authorization": "Bearer actor-token",
-            "X-Memory-Actor-Id": "api-server",
-            "X-Memory-User-Id": "vivi",
         },
     )
 
@@ -413,3 +486,98 @@ def test_legacy_create_user_persists_sanitized_profile_metadata(monkeypatch) -> 
 
     sanitized = _sanitize_user_profile_metadata({"timezone": "UTC", "is_admin": True})
     assert sanitized == {"timezone": "UTC"}
+
+
+def test_memory_auth_rejects_replayed_signed_request(monkeypatch) -> None:
+    _configure_memory_auth(monkeypatch)
+    app = create_memory_server()
+    app.state.memory_manager = NullMemoryManager()
+    client = TestClient(app)
+
+    first = _signed_request(
+        client,
+        "POST",
+        "/api/memory/search",
+        user_id="vivi",
+        json_body={"query": "hello", "user_id": "vivi"},
+        nonce="replay-nonce",
+        timestamp=str(int(time.time())),
+    )
+    second = _signed_request(
+        client,
+        "POST",
+        "/api/memory/search",
+        user_id="vivi",
+        json_body={"query": "hello", "user_id": "vivi"},
+        nonce="replay-nonce",
+        timestamp=str(int(time.time())),
+    )
+
+    assert first.status_code == 200
+    assert second.status_code == 409
+    assert second.json()["detail"] == "Replay detected for signed memory request"
+
+
+def test_memory_auth_rejects_stale_signed_request(monkeypatch) -> None:
+    _configure_memory_auth(monkeypatch)
+    app = create_memory_server()
+    app.state.memory_manager = NullMemoryManager()
+    client = TestClient(app)
+
+    response = _signed_request(
+        client,
+        "POST",
+        "/api/memory/search",
+        user_id="vivi",
+        json_body={"query": "hello", "user_id": "vivi"},
+        timestamp="1",
+    )
+
+    assert response.status_code == 401
+    assert "outside the allowed window" in response.json()["detail"]
+
+
+def test_hindsight_retain_rejects_conflicting_identity_payload(tmp_path, monkeypatch) -> None:
+    _configure_memory_auth(monkeypatch)
+    app = create_memory_server()
+    manager = LocalHindsightMemoryManager(db_path=str(tmp_path / "local-hindsight.db"))
+    app.state.memory_manager = manager
+    client = TestClient(app)
+
+    response = _signed_request(
+        client,
+        "POST",
+        "/v1/default/banks/pixelated/memories",
+        user_id="vivi",
+        json_body={
+            "items": [
+                {
+                    "content": "Conflicting scope should fail",
+                    "document_id": "doc-conflict",
+                    "context": '{"user_id":"mallory","metadata":{"project_id":"pixelated"}}',
+                    "tags": ["user:mallory"],
+                }
+            ]
+        },
+    )
+
+    assert response.status_code == 400
+    assert "does not match X-Memory-User-Id" in response.json()["detail"]
+
+
+def test_memory_server_health_reports_local_db_probe(tmp_path, monkeypatch) -> None:
+    _configure_memory_auth(monkeypatch)
+    db_path = tmp_path / "local-hindsight.db"
+    monkeypatch.setenv("HINDSIGHT_LOCAL_DB_PATH", str(db_path))
+    app = create_memory_server()
+    app.state.memory_manager = LocalHindsightMemoryManager(db_path=str(db_path))
+    client = TestClient(app)
+
+    response = client.get("/health")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["status"] == "healthy"
+    assert payload["readiness"]["db_ready"] is True
+    assert payload["readiness"]["db_writable"] is True
+    assert payload["readiness"]["db_quick_check"] == "ok"

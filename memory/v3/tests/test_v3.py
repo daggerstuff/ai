@@ -3,14 +3,15 @@ Unit tests for Claude Subconscious v3.
 
 Tests core functionality without requiring external dependencies.
 """
+
 import pytest
 
 from ai.memory.v3.config import SubconsciousConfig
 from ai.memory.v3.context import (
     SubconsciousState,
-    set_subconscious,
     get_subconscious,
     reset_subconscious,
+    set_subconscious,
 )
 from ai.memory.v3.provider import MockProvider
 

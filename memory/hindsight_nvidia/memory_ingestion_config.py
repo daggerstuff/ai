@@ -1,13 +1,14 @@
 """
 Memory Ingestion Configuration Module.
 
-Provides therapeutic memory ingestion controls following Hindsight cookbook best practices:
+Provides therapeutic memory ingestion controls following the repository's
+shared-memory best practices:
 - Custom instructions for what to store/ignore
 - Confidence thresholds for high-stakes therapeutic data
 - PII filtering patterns for HIPAA compliance
 - Inference mode configuration
 
-Based on: https://docs.mem0.ai/cookbooks/essentials/controlling-memory-ingestion
+The current implementation is local-service-first and does not depend on mem0.
 """
 
 import re

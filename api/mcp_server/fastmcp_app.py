@@ -3,7 +3,6 @@
 # dependencies = [
 #   "mcp>=1.26.0",
 #   "fastmcp>=2.3.3",
-#   "google-genai>=1.62.0",
 #   "pydantic>=2.11.7",
 # ]
 # ///
@@ -11,21 +10,15 @@
 FastMCP Server for Pixelated Memory.
 
 Exposes memory capabilities as standard MCP tools, resources, and prompts.
-Refined for autonomous agent use with consolidated, high-utility tools.
 """
 
 import inspect
 import json
 import logging
-import os
-import sys
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
 from mcp.server.fastmcp import FastMCP
-
-# Add 'ai' to path if running directly to find siblings
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
 
 from ai.api.mcp_server.memory_scope import (
     build_scope_metadata,
@@ -44,7 +37,7 @@ _manager_instance = None
 # Initialize FastMCP
 mcp = FastMCP(
     "Pixelated Memory",
-    dependencies=["google-genai", "pydantic", "openai"],
+    dependencies=["pydantic"],
 )
 
 
@@ -87,51 +80,16 @@ async def _analysis_strategy_manager_methods(
     return None
 
 
-async def _analysis_strategy_openai_client(
-    manager: Any, prompt: str, mode: str
-) -> Optional[str]:
-    del mode
-    client = getattr(manager, "client", None)
-    config = getattr(manager, "config", None)
-    model_name = getattr(config, "model_name", None)
-    if not (client and model_name and hasattr(client, "chat")):
-        return None
-    response = client.chat.completions.create(
-        model=model_name,
-        messages=[{"role": "user", "content": prompt}],
-    )
-    return response.choices[0].message.content
-
-
-async def _analysis_strategy_gemini_client(
-    manager: Any, prompt: str, mode: str
-) -> Optional[str]:
-    del mode
-    client = getattr(manager, "client", None)
-    config = getattr(manager, "config", None)
-    model_name = getattr(config, "model_name", None)
-    if not (client and model_name and hasattr(client, "models")):
-        return None
-    response = client.models.generate_content(
-        model=model_name,
-        contents=prompt,
-    )
-    return response.text
-
-
 async def _generate_analysis_text(manager: Any, prompt: str, mode: str) -> str:
-    """Generate analysis text across sync and async memory manager variants."""
-    strategies = (
-        _analysis_strategy_manager_methods,
-        _analysis_strategy_openai_client,
-        _analysis_strategy_gemini_client,
-    )
-    for strategy in strategies:
-        result = await strategy(manager, prompt, mode)
-        if result is not None:
-            return result
+    """Generate analysis text through the manager's explicit analysis surface."""
+    result = await _analysis_strategy_manager_methods(manager, prompt, mode)
+    if result is not None:
+        return result
 
-    raise RuntimeError("Analysis requires an AI-capable memory manager.")
+    raise RuntimeError(
+        "Analysis requires a manager that implements generate_analysis, "
+        "generate_content, or generate."
+    )
 
 
 # --- Resources ---
