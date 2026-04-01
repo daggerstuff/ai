@@ -219,7 +219,7 @@ class LocalHindsightProvider(MemoryProvider):
             conn.row_factory = aiosqlite.Row
 
             # Build LIKE query with escaped terms
-            like_clauses = " OR ".join(
+            like_clauses = " AND ".join(
                 ["content LIKE ? ESCAPE '\'" for _ in escaped_terms]
             )
             params = [f"%{term}%" for term in escaped_terms]

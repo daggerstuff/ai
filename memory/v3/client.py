@@ -191,7 +191,11 @@ class SubconsciousClient:
                 limit=self.config.base.max_memories,
             )
         except Exception as e:
-            logger.error(f"Failed to recall memories: {e}", exc_info=True)
+            logger.error(
+                f"Failed to recall memories for user={self.config.user_id} "
+                f"query='{query[:50]}...': {e}",
+                exc_info=True,
+            )
             if self.config.base.fail_open:
                 return []
             raise

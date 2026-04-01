@@ -132,3 +132,6 @@ class UserConfig:
         """Validate user config after initialization."""
         if not self.user_id:
             raise ValueError("user_id cannot be empty")
+
+    def __repr__(self) -> str:
+        return f"UserConfig(user_id='{self.user_id}')"
