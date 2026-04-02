@@ -36,6 +36,11 @@ class MemoryRemover(Protocol):
 
 
 @runtime_checkable
+class MemoryReader(Protocol):
+    def get_memory(self, memory_id: str) -> dict[str, Any] | None: ...
+
+
+@runtime_checkable
 class ScopedMemoryCreator(MemoryCreator, Protocol):
     def add_memory_scoped(
         self,
@@ -66,6 +71,27 @@ class ScopedMemorySearcher(Protocol):
 
 
 @runtime_checkable
+class BasicMemorySearcher(Protocol):
+    def search_memories(
+        self,
+        query: str,
+        user_id: str,
+        limit: int = 10,
+    ) -> list[dict[str, Any]] | dict[str, Any]: ...
+
+
+@runtime_checkable
+class LegacyMemorySearcher(Protocol):
+    def search(
+        self,
+        query: str,
+        *,
+        user_id: str,
+        limit: int = 10,
+    ) -> list[dict[str, Any]] | dict[str, Any]: ...
+
+
+@runtime_checkable
 class ScopedMemoryLister(Protocol):
     def get_all_memories_scoped(
         self,
@@ -77,6 +103,15 @@ class ScopedMemoryLister(Protocol):
         agent_id: str | None = None,
         run_id: str | None = None,
         include_shared: bool = True,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]: ...
+
+
+@runtime_checkable
+class BasicMemoryLister(Protocol):
+    def get_all_memories(
+        self,
+        user_id: str,
         limit: int = 100,
     ) -> list[dict[str, Any]]: ...
 

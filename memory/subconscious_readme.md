@@ -40,7 +40,8 @@ await reset_subconscious(token)
 ## Current Model
 
 - v3 is the only supported subconscious implementation
-- local Hindsight-backed providers are the only supported memory backend here
+- the recommended backend is the shared local memory service via `shared_service`
+- direct `local_hindsight` remains available only for explicitly local single-host runs
 - no import-time monkey patching
 - no legacy wrapper layer
 
@@ -51,7 +52,27 @@ await reset_subconscious(token)
 | `v3/config.py` | v3 configuration |
 | `v3/context.py` | contextvars API |
 | `v3/client.py` | explicit client wrapper |
-| `v3/provider.py` | local memory provider |
+| `v3/provider.py` | local and shared-service memory providers |
+
+## Shared Service Configuration
+
+Set these environment variables on callers that should use the shared memory
+service instead of local SQLite:
+
+```bash
+SUBCONSCIOUS_MEMORY_PROVIDER=shared_service
+SUBCONSCIOUS_MEMORY_BASE_URL=http://memory-host:5003
+SUBCONSCIOUS_MEMORY_ACTOR_ID=subconscious-staging
+SUBCONSCIOUS_MEMORY_ACTOR_SECRET=replace-with-real-secret
+HINDSIGHT_BANK_ID=pixelated-staging
+```
+
+To run the shared service itself, use:
+
+```bash
+source /path/to/pixelated-memory.env
+/home/vivi/pixelated/scripts/memory/run-shared-memory-service.sh
+```
 
 ## Migration Note
 

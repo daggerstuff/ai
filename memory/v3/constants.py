@@ -6,6 +6,7 @@ Centralizes magic numbers to ensure consistency across modules.
 
 # Conversation limits
 MAX_CONVERSATION_LENGTH = 3000  # Max chars for reflection prompt
+MAX_CONVERSATION_MESSAGES = 100  # Max messages retained in local session history
 MAX_QUERY_LENGTH = 500  # Max chars for memory query
 MAX_TOKENS = 500  # Max tokens for LLM responses
 

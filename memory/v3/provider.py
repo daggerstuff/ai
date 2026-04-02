@@ -8,23 +8,30 @@ import asyncio
 import hashlib
 import json
 import logging
-import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
-import aiosqlite
+import httpx
 
-__all__ = ["Memory", "MemoryProvider", "LocalHindsightProvider", "MockProvider"]
+from ai.memory.hindsight_local_adapter import metadata_to_tags, serialize_context
+from .local_hindsight_sqlite import SQLiteMemoryStore
+from .provider_resilience import SQLiteResilienceController
+from .shared_service_transport import SharedMemoryServiceError, SharedMemoryServiceTransport
+
+__all__ = [
+    "Memory",
+    "MemoryProvider",
+    "LocalHindsightProvider",
+    "SharedMemoryServiceProvider",
+    "MockProvider",
+    "create_memory_provider",
+    "close_memory_provider",
+]
 
 logger = logging.getLogger(__name__)
-
-# Constants for connection pooling
-DB_POOL_SIZE = 5
-DB_TIMEOUT_MS = 30000  # 30 seconds
-
 
 @dataclass
 class Memory:
@@ -74,7 +81,7 @@ class MemoryProvider(ABC):
         ...
 
     @abstractmethod
-    async def delete(self, memory_id: str) -> bool:
+    async def delete(self, memory_id: str, user_id: str) -> bool:
         """
         Delete a memory by ID.
 
@@ -94,6 +101,11 @@ class MemoryProvider(ABC):
         Returns:
             True if healthy, False otherwise
         """
+        ...
+
+    @abstractmethod
+    async def flush(self) -> None:
+        """Flush any pending provider work before shutdown."""
         ...
 
 
@@ -128,158 +140,54 @@ class LocalHindsightProvider(MemoryProvider):
         self._initialized = False
         self._max_retries = max_retries
         self._retry_delay_ms = retry_delay_ms
-        self._connection: Optional[aiosqlite.Connection] = None
-
-        # Circuit breaker state
-        self._failure_count = 0
-        self._circuit_open = False
-        self._last_failure_time: Optional[float] = None
-
-    async def _get_connection(self) -> aiosqlite.Connection:
-        """Get or create a database connection with connection pooling."""
-        if self._connection is None:
-            self._db_path.parent.mkdir(parents=True, exist_ok=True)
-            self._connection = await aiosqlite.connect(
-                self._db_path, timeout=DB_TIMEOUT_MS / 1000
-            )
-        return self._connection
+        self._store = SQLiteMemoryStore(self._db_path)
+        self._resilience = SQLiteResilienceController(
+            bank_id=self.bank_id,
+            max_retries=max_retries,
+            retry_delay_ms=retry_delay_ms,
+        )
 
     async def _ensure_db(self):
-        """Create tables if they don't exist (async)."""
+        """Initialize the local SQLite schema if needed."""
         if self._initialized:
             return
 
-        conn = await self._get_connection()
-        await conn.execute("""
-            CREATE TABLE IF NOT EXISTS memories (
-                id TEXT PRIMARY KEY,
-                user_id TEXT NOT NULL,
-                content TEXT NOT NULL,
-                created_at TEXT NOT NULL,
-                metadata TEXT
-            )
-        """)
-        await conn.execute("""
-            CREATE INDEX IF NOT EXISTS idx_user_id ON memories(user_id)
-        """)
-        await conn.execute("""
-            CREATE INDEX IF NOT EXISTS idx_created_at ON memories(created_at)
-        """)
-        await conn.commit()
-
+        await self._store.ensure_ready()
         logger.debug(f"Initialized memory database at {self._db_path}")
         self._initialized = True
 
     async def _retry_operation(self, operation, *args, **kwargs):
         """Execute an operation with retry logic and circuit breaker."""
-        import time
-
-        # Circuit breaker check
-        if self._circuit_open:
-            if self._last_failure_time:
-                elapsed = time.time() - self._last_failure_time
-                if elapsed < 60:  # 1 minute cooldown
-                    raise Exception(
-                        f"Circuit breaker open for {self.bank_id}, "
-                        f"retry in {60 - elapsed:.0f}s"
-                    )
-                else:
-                    self._circuit_open = False
-                    self._failure_count = 0
-                    logger.info(f"Circuit breaker reset for {self.bank_id}")
-
-        last_error: Optional[Exception] = None
-
-        for attempt in range(self._max_retries + 1):
-            try:
-                result = await operation(*args, **kwargs)
-                # Success - reset failure count
-                self._failure_count = 0
-                return result
-            except (aiosqlite.Error, asyncio.TimeoutError) as e:
-                last_error = e
-                self._failure_count += 1
-
-                # Check circuit breaker threshold
-                if self._failure_count >= 5:
-                    self._circuit_open = True
-                    self._last_failure_time = time.time()
-                    logger.error(
-                        f"Circuit breaker opened for {self.bank_id} "
-                        f"after {self._failure_count} failures"
-                    )
-                    raise
-
-                if attempt < self._max_retries:
-                    delay = self._retry_delay_ms / 1000
-                    logger.warning(
-                        f"DB failed: {attempt + 1}/{self._max_retries + 1}. "
-                        f"Retry in {delay}s..."
-                    )
-                    await asyncio.sleep(delay)
-                else:
-                    logger.error(
-                        f"DB failed after {self._max_retries + 1} attempts: {e}"
-                    )
-                    raise
-
-        raise (
-            last_error
-            if last_error
-            else RuntimeError("Unexpected error in retry logic")
-        )
+        return await self._resilience.execute(lambda: operation(*args, **kwargs))
 
     def _generate_id(self, content: str, user_id: str) -> str:
         """Generate a stable ID for a memory."""
         hash_input = f"{user_id}:{content}:{self.bank_id}"
         return hashlib.sha256(hash_input.encode()).hexdigest()[:16]
 
-    @staticmethod
-    def _escape_like(value: str) -> str:
-        """Escape LIKE wildcards to prevent SQL injection."""
-        return re.sub(r"([%_\\])", r"\\\1", value)
-
     async def recall(self, query: str, user_id: str, limit: int) -> List[Memory]:
-        """Search memories by content (async-safe with proper escaping)."""
+        """Search memories by content using SQLite FTS5."""
         if not query:
             return []
 
         await self._ensure_db()
 
-        # Split into search terms and escape each one
-        search_terms = query.lower().split()[:5]  # Top 5 words
-        escaped_terms = [self._escape_like(term) for term in search_terms]
+        fts_query = self._store.build_fts_query(query)
+        if not fts_query:
+            return []
 
         async def _query():
-            conn = await self._get_connection()
-            conn.row_factory = aiosqlite.Row
-
-            # Build LIKE query with escaped terms
-            like_clauses = " AND ".join(
-                ["content LIKE ? ESCAPE '\'" for _ in escaped_terms]
+            rows = await self._store.recall(
+                user_id=user_id,
+                fts_query=fts_query,
+                limit=limit,
             )
-            params = [f"%{term}%" for term in escaped_terms]
-            params.insert(0, user_id)
-            params.append(limit)
-
-            cursor = await conn.execute(
-                f"""
-                SELECT id, content, created_at, metadata
-                FROM memories
-                WHERE user_id = ? AND ({like_clauses})
-                ORDER BY created_at DESC
-                LIMIT ?
-                """,
-                params,
-            )
-
-            rows = await cursor.fetchall()
             return [
                 Memory(
-                    id=row["id"],
-                    content=row["content"],
-                    created_at=row["created_at"],
-                    metadata=json.loads(row["metadata"] or "{}"),
+                    id=row.id,
+                    content=row.content,
+                    created_at=row.created_at,
+                    metadata=row.metadata,
                 )
                 for row in rows
             ]
@@ -302,16 +210,13 @@ class LocalHindsightProvider(MemoryProvider):
         metadata_json = json.dumps(metadata)
 
         async def _store():
-            conn = await self._get_connection()
-            await conn.execute(
-                """
-                INSERT OR REPLACE INTO memories
-                (id, user_id, content, created_at, metadata)
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (memory_id, user_id, content, created_at, metadata_json),
+            await self._store.store(
+                memory_id=memory_id,
+                user_id=user_id,
+                content=content,
+                created_at=created_at,
+                metadata_json=metadata_json,
             )
-            await conn.commit()
 
         await self._retry_operation(_store)
 
@@ -323,17 +228,12 @@ class LocalHindsightProvider(MemoryProvider):
             metadata=metadata,
         )
 
-    async def delete(self, memory_id: str) -> bool:
+    async def delete(self, memory_id: str, user_id: str) -> bool:
         """Delete a memory by ID (async-safe)."""
         await self._ensure_db()
 
         async def _delete():
-            conn = await self._get_connection()
-            cursor = await conn.execute(
-                "DELETE FROM memories WHERE id = ?", (memory_id,)
-            )
-            await conn.commit()
-            return cursor.rowcount > 0
+            return await self._store.delete(memory_id=memory_id, user_id=user_id)
 
         try:
             result = await self._retry_operation(_delete)
@@ -348,28 +248,171 @@ class LocalHindsightProvider(MemoryProvider):
         """Check if the database is accessible."""
         try:
             await self._ensure_db()
-            conn = await self._get_connection()
-            cursor = await conn.execute("SELECT 1")
-            await cursor.fetchone()
-            return True
+            return await self._store.health_check()
         except Exception as e:
             logger.error(f"Health check failed: {e}")
             return False
 
     async def close(self):
         """Close the database connection and reset state."""
-        if self._connection:
-            try:
-                await self._connection.close()
-            except Exception as e:
-                logger.warning(f"Error closing connection: {e}")
-            finally:
-                self._connection = None
+        try:
+            await self._store.close()
+        except Exception as e:
+            logger.warning(f"Error closing connection: {e}")
         # Reset circuit breaker state
-        self._failure_count = 0
-        self._circuit_open = False
-        self._last_failure_time = None
+        self._resilience.reset()
+        self._initialized = False
         logger.debug(f"Closed database connection for {self.bank_id}")
+
+    async def flush(self) -> None:
+        """SQLite operations are already awaited eagerly; no extra flush is required."""
+        return None
+
+
+class SharedMemoryServiceProvider(MemoryProvider):
+    """HTTP client for the shared local memory service."""
+
+    def __init__(
+        self,
+        *,
+        base_url: str,
+        bank_id: str,
+        actor_id: str,
+        actor_secret: str,
+        timeout_ms: int = 5000,
+        client: Optional[httpx.AsyncClient] = None,
+    ) -> None:
+        normalized_base_url = base_url.rstrip("/")
+        if not normalized_base_url:
+            raise ValueError("base_url cannot be empty")
+        if not bank_id.strip():
+            raise ValueError("bank_id cannot be empty")
+        if not actor_id.strip():
+            raise ValueError("actor_id cannot be empty")
+        if not actor_secret.strip():
+            raise ValueError("actor_secret cannot be empty")
+        if timeout_ms < 100:
+            raise ValueError("timeout_ms must be at least 100ms")
+
+        self.base_url = normalized_base_url
+        self.bank_id = bank_id.strip()
+        self.actor_id = actor_id.strip()
+        self.actor_secret = actor_secret.strip()
+        self.timeout_ms = timeout_ms
+        self.transport = SharedMemoryServiceTransport(
+            base_url=self.base_url,
+            actor_id=self.actor_id,
+            actor_secret=self.actor_secret,
+            timeout_ms=self.timeout_ms,
+            client=client,
+        )
+
+    async def recall(self, query: str, user_id: str, limit: int) -> List[Memory]:
+        if not query:
+            return []
+        payload = await self.transport.request_json(
+            method="POST",
+            path=f"/v1/default/banks/{self.bank_id}/memories/recall",
+            user_id=user_id,
+            json_body={"query": query, "limit": limit},
+        )
+        memories: List[Memory] = []
+        for item in payload.get("results", []):
+            document_id = item.get("document_id") or item.get("id")
+            if not document_id:
+                logger.warning(
+                    "Skipping shared memory recall item without id: %s",
+                    item,
+                )
+                continue
+            content = item.get("text") or item.get("content")
+            if not content:
+                logger.warning(
+                    "Skipping shared memory recall item without content: %s",
+                    item,
+                )
+                continue
+            memories.append(
+                Memory(
+                    id=document_id,
+                    content=content,
+                    created_at=item.get("created_at") or datetime.now(timezone.utc).isoformat(),
+                    metadata={
+                        "user_id": user_id,
+                        "match_context": item.get("context"),
+                    },
+                )
+            )
+        return memories
+
+    async def store(self, content: str, user_id: str, metadata: dict) -> Memory:
+        if not content or not content.strip():
+            raise ValueError("Content cannot be empty")
+
+        category = metadata.get("category")
+        created_at = datetime.now(timezone.utc).isoformat()
+        payload = await self.transport.request_json(
+            method="POST",
+            path=f"/v1/default/banks/{self.bank_id}/memories",
+            user_id=user_id,
+            json_body={
+                "items": [
+                    {
+                        "content": content,
+                        "context": serialize_context(
+                            user_id=user_id,
+                            metadata=metadata,
+                            category=category if isinstance(category, str) else None,
+                        ),
+                        "tags": metadata_to_tags(
+                            user_id=user_id,
+                            metadata=metadata,
+                            category=category if isinstance(category, str) else None,
+                        ),
+                    }
+                ]
+            },
+        )
+        result_items = payload.get("results") or []
+        if not result_items or not isinstance(result_items[0], dict):
+            raise RuntimeError("Shared memory service store response is missing results")
+        document_id = result_items[0].get("id")
+        if not document_id:
+            raise RuntimeError("Shared memory service store response is missing an id")
+        return Memory(
+            id=document_id,
+            content=content,
+            created_at=created_at,
+            metadata={"user_id": user_id, **metadata},
+        )
+
+    async def delete(self, memory_id: str, user_id: str) -> bool:
+        try:
+            await self.transport.request_json(
+                method="DELETE",
+                path=f"/v1/default/banks/{self.bank_id}/documents/{memory_id}",
+                user_id=user_id,
+                expected_status=204,
+            )
+        except SharedMemoryServiceError as exc:
+            if exc.status_code == 404:
+                return False
+            raise
+        return True
+
+    async def health_check(self) -> bool:
+        try:
+            return await self.transport.health_check()
+        except Exception as exc:
+            logger.error("Shared memory service health check failed: %s", exc)
+            return False
+
+    async def close(self) -> None:
+        await self.transport.close()
+
+    async def flush(self) -> None:
+        """Shared service requests are synchronous per await; no extra flush is required."""
+        return None
 
 
 class MockProvider(MemoryProvider):
@@ -431,7 +474,7 @@ class MockProvider(MemoryProvider):
         logger.debug(f"MockProvider: Stored memory {memory.id}")
         return memory
 
-    async def delete(self, memory_id: str) -> bool:
+    async def delete(self, memory_id: str, user_id: str) -> bool:
         """
         Delete from in-memory list.
 
@@ -442,7 +485,7 @@ class MockProvider(MemoryProvider):
             True if deleted, False if not found
         """
         for i, m in enumerate(self._memories):
-            if m.id == memory_id:
+            if m.id == memory_id and m.metadata.get("user_id") == user_id:
                 self._memories.pop(i)
                 logger.debug(f"MockProvider: Deleted memory {memory_id}")
                 return True
@@ -456,3 +499,39 @@ class MockProvider(MemoryProvider):
         """Clear all memories."""
         self._memories.clear()
         logger.debug("MockProvider: Cleared all memories")
+
+    async def flush(self) -> None:
+        """Mock provider does not buffer writes."""
+        return None
+
+
+def create_memory_provider(config: Any) -> MemoryProvider:
+    """Build the configured v3 memory provider from SubconsciousConfig."""
+    provider_name = config.memory_provider
+    if provider_name == "mock":
+        return MockProvider()
+    if provider_name == "shared_service":
+        return SharedMemoryServiceProvider(
+            base_url=config.memory_service_base_url,
+            bank_id=config.bank_id,
+            actor_id=config.memory_service_actor_id,
+            actor_secret=config.memory_service_actor_secret,
+            timeout_ms=config.memory_service_timeout_ms,
+        )
+    return LocalHindsightProvider(
+        config.bank_id,
+        max_retries=config.max_retries,
+        retry_delay_ms=config.retry_delay_ms,
+    )
+
+
+async def close_memory_provider(provider: Optional[MemoryProvider]) -> None:
+    """Close a provider if it exposes an async close hook."""
+    if provider is not None and hasattr(provider, "close"):
+        await provider.close()
+
+
+async def flush_memory_provider(provider: Optional[MemoryProvider]) -> None:
+    """Flush a provider if it exposes an async flush hook."""
+    if provider is not None and hasattr(provider, "flush"):
+        await provider.flush()

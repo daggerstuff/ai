@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, Optional, Protocol
+from typing import Any, Protocol
 
-from ai.api.mcp_server.memory_scope import build_scope_metadata
+from ai.api.mcp_server.memory_scope import build_scope_metadata, scope_metadata_dict
 
 from .fastmcp_parsing import ParsedScopeContext
 from .fastmcp_protocols import MemoryCreator, MemoryScopeProvider, ScopedMemoryCreator
@@ -19,65 +19,31 @@ class MemoryScopeConfig:
     include_shared: bool = True
     visibility: str = "private"
 
-    def to_metadata(self) -> dict[str, Any] | None:
-        metadata: dict[str, Any] = {"visibility": self.visibility}
-        if self.org_id:
-            metadata["org_id"] = self.org_id
-        if self.project_id:
-            metadata["project_id"] = self.project_id
-        if self.agent_id:
-            metadata["agent_id"] = self.agent_id
-        if self.run_id:
-            metadata["run_id"] = self.run_id
-        if self.session_id:
-            metadata["session_id"] = self.session_id
-        return metadata
-
 
 @dataclass(frozen=True)
-class MemoryStorePayload:
+class MemoryStorePlan:
     content: str
     user_id: str
     category: str
-    metadata_dict: dict
-
-
-@dataclass(frozen=True)
-class MemoryStoreRequest:
-    payload: MemoryStorePayload
-    scope_config: MemoryScopeConfig
-
-
-@dataclass(frozen=True)
-class PreparedMemoryStorePayload:
-    content: str
-    user_id: str
-    category: str
-    metadata_for_scoped_creator: dict
-    metadata_for_basic_creator: dict
+    basic_metadata: dict
+    scoped_metadata: dict
     scope_metadata: dict | None
 
 
-@dataclass(frozen=True)
-class AuthorizedMemoryStoreOperation:
-    prepared_payload: PreparedMemoryStorePayload
-    creator: "MemoryStoreCreator"
-
-
 class MemoryStoreCreator(Protocol):
-    def create_memory(self, payload: PreparedMemoryStorePayload) -> Any: ...
+    def create_memory(self, plan: MemoryStorePlan) -> str: ...
 
 
 class _BasicMemoryWriter:
     def __init__(self, manager: MemoryCreator) -> None:
         self.manager = manager
 
-    def create_memory(self, payload: PreparedMemoryStorePayload):
+    def create_memory(self, plan: MemoryStorePlan) -> str:
         return self.manager.add_memory(
-            content=payload.content,
-            user_id=payload.user_id,
-            metadata=payload.metadata_for_basic_creator,
-            category=payload.category,
+            content=plan.content,
+            user_id=plan.user_id,
+            metadata=plan.basic_metadata,
+            category=plan.category,
         )
 
 
@@ -85,38 +51,13 @@ class _ScopedMemoryWriter:
     def __init__(self, manager: ScopedMemoryCreator) -> None:
         self.manager = manager
 
-    def create_memory(self, payload: PreparedMemoryStorePayload):
+    def create_memory(self, plan: MemoryStorePlan) -> str:
         return self.manager.add_memory_scoped(
-            content=payload.content,
-            user_id=payload.user_id,
-            metadata=payload.metadata_for_scoped_creator,
-            category=payload.category,
-            scope_metadata=payload.scope_metadata,
-        )
-
-
-class MemoryStoreMetadataFactory:
-    @staticmethod
-    def prepare(
-        *,
-        payload: MemoryStorePayload,
-        scope: MemoryScopeProvider,
-    ) -> PreparedMemoryStorePayload:
-        metadata = dict(payload.metadata_dict)
-        if payload.category:
-            metadata.setdefault("category", payload.category)
-        enriched_metadata = build_scope_metadata(
-            scope=scope,
-            incoming_metadata=metadata,
-            category=payload.category,
-        )
-        return PreparedMemoryStorePayload(
-            content=payload.content,
-            user_id=payload.user_id,
-            category=payload.category,
-            metadata_for_scoped_creator=enriched_metadata,
-            metadata_for_basic_creator=dict(metadata),
-            scope_metadata=_scope_metadata_dict(scope),
+            content=plan.content,
+            user_id=plan.user_id,
+            metadata=plan.scoped_metadata,
+            category=plan.category,
+            scope_metadata=plan.scope_metadata,
         )
 
 
@@ -124,65 +65,74 @@ class MemoryStoreMetadataFactory:
 class ScopeEnrichedMemoryCreator:
     manager: Any
 
-    def create_memory(self, payload: PreparedMemoryStorePayload):
+    def create_memory(self, plan: MemoryStorePlan) -> str:
         writer = self._resolve_writer()
-        return writer.create_memory(payload)
+        return writer.create_memory(plan)
 
     def _resolve_writer(self) -> MemoryStoreCreator:
+        """Prefer scoped writers so scope metadata is never silently dropped."""
         manager = self.manager
-        if hasattr(manager, "add_memory_scoped"):
+        if isinstance(manager, ScopedMemoryCreator):
             return _ScopedMemoryWriter(manager)
-        if hasattr(manager, "add_memory"):
+        if isinstance(manager, MemoryCreator):
             return _BasicMemoryWriter(manager)
         raise TypeError("Memory manager does not support write operations.")
 
 
-class MemoryStoreRequestFactory:
-    @staticmethod
-    def from_inputs(
-        *,
-        content: str,
-        user_id: str,
-        category: str,
-        metadata_dict: dict,
-        scope: ParsedScopeContext,
-    ) -> MemoryStoreRequest:
-        return MemoryStoreRequest(
-            payload=MemoryStorePayload(
-                content=content,
-                user_id=user_id,
-                category=category,
-                metadata_dict=metadata_dict,
-            ),
-            scope_config=MemoryScopeConfig(
-                org_id=scope.org_id,
-                project_id=scope.project_id,
-                agent_id=scope.agent_id,
-                run_id=scope.run_id,
-                session_id=scope.session_id,
-                include_shared=scope.include_shared,
-                visibility=scope.visibility,
-            ),
-        )
+def scope_config_from_parsed(scope: ParsedScopeContext) -> MemoryScopeConfig:
+    return MemoryScopeConfig(
+        org_id=scope.org_id,
+        project_id=scope.project_id,
+        agent_id=scope.agent_id,
+        run_id=scope.run_id,
+        session_id=scope.session_id,
+        include_shared=scope.include_shared,
+        visibility=scope.visibility,
+    )
 
 
-def build_memory_store_payload(request: MemoryStoreRequest) -> MemoryStorePayload:
-    return request.payload
+def build_memory_store_plan(
+    *,
+    content: str,
+    user_id: str,
+    category: str,
+    metadata_dict: dict,
+    scope: MemoryScopeProvider,
+) -> MemoryStorePlan:
+    basic_metadata = _metadata_with_category(
+        category=category,
+        metadata_dict=metadata_dict,
+    )
+    return MemoryStorePlan(
+        content=content,
+        user_id=user_id,
+        category=category,
+        basic_metadata=basic_metadata,
+        scoped_metadata=build_scope_metadata(
+            scope=scope,
+            incoming_metadata=basic_metadata,
+            category=category,
+        ),
+        scope_metadata=_scope_metadata(scope),
+    )
 
 
-def _scope_metadata_dict(scope: MemoryScopeProvider) -> dict | None:
-    metadata = scope.to_metadata()
-    if metadata is None:
-        return None
+def _metadata_with_category(*, category: str, metadata_dict: dict) -> dict:
+    metadata = dict(metadata_dict)
+    if category:
+        metadata.setdefault("category", category)
+    return metadata
+
+
+def _scope_metadata(scope: MemoryScopeProvider) -> dict | None:
+    metadata = scope_metadata_dict(scope)
     if not isinstance(metadata, dict):
         raise TypeError("Scope metadata must be a dictionary.")
     return metadata
 
 
-class MemoryStorePersistenceService:
-    @staticmethod
-    def persist(*, operation: AuthorizedMemoryStoreOperation):
-        return operation.creator.create_memory(operation.prepared_payload)
+def persist_memory_store_plan(*, creator: MemoryStoreCreator, plan: MemoryStorePlan) -> str:
+    return creator.create_memory(plan)
 
 
 def memory_store_result_id(result) -> str | None:
@@ -200,21 +150,3 @@ def memory_store_result_id(result) -> str | None:
         if isinstance(result.get("id"), str) and result["id"].strip():
             return result["id"].strip()
     return None
-
-
-def memory_store_success_message(
-    *,
-    user_id: str,
-    content: str,
-    category: str,
-    result,
-) -> str:
-    lines = [
-        f"✅ **Memory Secured** for {user_id}",
-        f"- **Content:** {content}",
-        f"- **Category:** {category}",
-    ]
-    record_id = memory_store_result_id(result)
-    if record_id:
-        lines.append(f"- **ID:** {record_id}")
-    return "\n".join(lines)
